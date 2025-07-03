@@ -120,7 +120,7 @@ Files Modified:
 Ward Status: All passing
 
 Lore Entry Created:
-- File: quests/lore/error-parallel-type-conflicts.md
+- File: questmaestro/lore/error-parallel-type-conflicts.md
 - Lesson: When multiple Codeweavers work in parallel, ensure shared interfaces are established first
 
 Blockers Resolved:

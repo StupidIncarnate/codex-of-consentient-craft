@@ -1,6 +1,6 @@
 {
   "paths": {
-    "questFolder": "quests"
+    "questFolder": "questmaestro"
   },
   "commands": {
     "ward": "npm run lint -- $FILE && npm run typecheck -- $FILE && npm run test -- $FILE",

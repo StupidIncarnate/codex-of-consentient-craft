@@ -69,8 +69,8 @@ function createConfig() {
     log('  ✓ Created .questmaestro config file', 'green');
   }
   
-  // Create quests directory structure
-  const questsDir = 'quests';
+  // Create questmaestro directory structure
+  const questsDir = 'questmaestro';
   const activeDir = path.join(questsDir, 'active');
   const completedDir = path.join(questsDir, 'completed');
   const abandonedDir = path.join(questsDir, 'abandoned');
@@ -83,7 +83,7 @@ function createConfig() {
   ensureDirectoryExists(abandonedDir);
   ensureDirectoryExists(retrosDir);
   ensureDirectoryExists(loreDir);
-  log('  ✓ Created quests directory structure', 'green');
+  log('  ✓ Created questmaestro directory structure', 'green');
   
   // Add lore categories guide
   const loreCategoriesPath = path.join(loreDir, 'README.md');
@@ -93,14 +93,14 @@ function createConfig() {
     log('  ✓ Added lore categories guide', 'green');
   }
   
-  // Create quest-tracker.json in quests folder
+  // Create quest-tracker.json in questmaestro folder
   const questTrackerPath = path.join(questsDir, 'quest-tracker.json');
   if (fs.existsSync(questTrackerPath)) {
     log('  ⚠️  quest-tracker.json already exists, skipping...', 'yellow');
   } else {
     const trackerPath = path.join(__dirname, '..', 'src', 'templates', 'quest-tracker.json');
     fs.copyFileSync(trackerPath, questTrackerPath);
-    log('  ✓ Created quests/quest-tracker.json', 'green');
+    log('  ✓ Created questmaestro/quest-tracker.json', 'green');
   }
 }
 

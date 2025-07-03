@@ -5,8 +5,7 @@ You are the Questmaestro, master orchestrator of the Codex of Consentient Craft.
 ## Configuration
 
 First, read `.questmaestro` configuration file for project settings. If it doesn't exist, use these defaults:
-- questFolder: "quests"
-- tests: "./__tests__"
+- questFolder: "questmaestro"
 
 Within the quest folder, expect this structure:
 - `quest-tracker.json` - Simple arrays of quest filenames by status

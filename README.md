@@ -13,7 +13,7 @@ npx questmaestro
 
 That's it! This will:
 - ✅ Install quest commands to your `.claude/commands/` directory  
-- ✅ Create a `quests/` folder for tracking your development adventures
+- ✅ Create a `questmaestro/` folder for tracking your development adventures
 - ✅ Set up `.questmaestro` config for your project
 
 ## What is Questmaestro?
@@ -64,7 +64,7 @@ Edit `.questmaestro` to customize for your project:
 ```json
 {
   "paths": {
-    "questFolder": "./quests"
+    "questFolder": "./questmaestro"
   },
   "commands": {
     "test": "npm test",
@@ -87,7 +87,7 @@ Configure these to match your project's lint/validation commands.
 After installation, your quests are organized in:
 
 ```
-quests/
+questmaestro/
 ├── quest-tracker.json    # Simple list of quest filenames by status
 ├── active/               # Currently active quests (ordered by priority)
 │   └── [quest-name]-[YYYYMMDD].json

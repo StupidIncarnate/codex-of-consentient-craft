@@ -92,7 +92,7 @@ node bin/install.js
 
 # Check created structure
 ls -la .claude/commands/
-ls -la quests/
+ls -la questmaestro/
 ```
 
 ## Important Notes
@@ -100,7 +100,7 @@ ls -la quests/
 - We use `$ARGUMENTS` in agent prompts for Questmaestro to inject context
 - The system is file-based (no databases or external services)
 - Agents are "one-and-done" - they execute once and terminate
-- Quest tracking happens through JSON files in the quests/ folder
+- Quest tracking happens through JSON files in the questmaestro/ folder
 
 ## Need Help?
 

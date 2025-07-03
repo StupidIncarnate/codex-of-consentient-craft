@@ -108,7 +108,7 @@ Questmaestro → ward:all
 ### Quest Files
 
 ```
-/quests/
+/questmaestro/
 ├── quest-tracker.json     # Simple arrays of quest filenames
 ├── active/                # Currently active quests
 │   └── [quest-name]-[date].json
