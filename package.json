@@ -1,0 +1,36 @@
+{
+  "name": "questmaestro",
+  "version": "0.1.0",
+  "description": "A fun, quest-driven AI orchestration system for Claude that makes context windows work better",
+  "bin": {
+    "questmaestro": "./bin/install.js"
+  },
+  "scripts": {
+    "test": "echo \"No tests yet\"",
+    "prepublishOnly": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/questmaestro.git"
+  },
+  "keywords": [
+    "claude",
+    "ai",
+    "orchestration",
+    "context-management",
+    "quest",
+    "slash-commands"
+  ],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,35 @@
+{
+  "id": "[quest-name]-[YYYYMMDD]",
+  "title": "[Quest Title]",
+  "description": "[What needs to be done and why]",
+  "created": "[ISO timestamp]",
+  "complexity": "small|medium|large",
+  "tags": [],
+  "status": "active|paused|blocked|completed|abandoned",
+  "phases": {
+    "discovery": {
+      "status": "not_started|in_progress|complete|needs_revision",
+      "assignedTo": [],
+      "findings": {}
+    },
+    "implementation": {
+      "status": "not_started|in_progress|partial|complete",
+      "components": []
+    },
+    "testing": {
+      "status": "not_started|in_progress|complete",
+      "assignedTo": [],
+      "coverage": 0
+    },
+    "review": {
+      "status": "not_started|in_progress|complete", 
+      "assignedTo": [],
+      "issues": []
+    }
+  },
+  "activeAgents": [],
+  "activity": [],
+  "decisions": {},
+  "blockers": [],
+  "outcome": null
+}

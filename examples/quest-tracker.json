@@ -1,0 +1,14 @@
+{
+  "active": [
+    "user-avatar-upload-20250103.json",
+    "fix-payment-timeout-20250103.json"
+  ],
+  "completed": [
+    "setup-jest-testing-20250102.json",
+    "add-user-preferences-20250101.json",
+    "fix-login-redirect-20241231.json"
+  ],
+  "abandoned": [
+    "migrate-to-graphql-20241220.json"
+  ]
+}
