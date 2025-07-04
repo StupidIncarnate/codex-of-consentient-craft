@@ -1,0 +1,11 @@
+{
+  "name": "@monorepo/web",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "build": "echo 'Building Web App'"
+  }
+}

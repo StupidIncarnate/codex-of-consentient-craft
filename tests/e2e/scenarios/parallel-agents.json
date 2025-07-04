@@ -1,0 +1,91 @@
+{
+  "name": "Parallel Agent Execution",
+  "description": "Test multiple Codeweaver agents working in parallel",
+  "setup": {
+    "questFile": {
+      "filename": "add-user-profile-20250103.json",
+      "data": {
+        "id": "add-user-profile-20250103",
+        "title": "Add User Profile Feature",
+        "status": "active",
+        "phases": {
+          "discovery": {
+            "status": "complete",
+            "findings": {
+              "components": [
+                {
+                  "name": "UserProfileService",
+                  "dependencies": []
+                },
+                {
+                  "name": "ProfileController", 
+                  "dependencies": []
+                },
+                {
+                  "name": "ProfileValidator",
+                  "dependencies": []
+                }
+              ]
+            }
+          },
+          "implementation": {
+            "status": "in_progress",
+            "components": [
+              {
+                "name": "UserProfileService",
+                "status": "queued",
+                "dependencies": []
+              },
+              {
+                "name": "ProfileController",
+                "status": "queued", 
+                "dependencies": []
+              },
+              {
+                "name": "ProfileValidator",
+                "status": "queued",
+                "dependencies": []
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "steps": [
+    {
+      "description": "Continue quest to trigger parallel execution",
+      "command": "/questmaestro",
+      "assertions": [
+        {
+          "type": "outputContains",
+          "content": "Spawning multiple Codeweavers",
+          "message": "Should indicate parallel execution"
+        }
+      ],
+      "delay": 3000
+    },
+    {
+      "description": "Check implementation progress",
+      "command": "/questmaestro",
+      "args": "list",
+      "assertions": [
+        {
+          "type": "fileExists",
+          "path": "src/UserProfileService.js",
+          "message": "UserProfileService should be created"
+        },
+        {
+          "type": "fileExists", 
+          "path": "src/ProfileController.js",
+          "message": "ProfileController should be created"
+        },
+        {
+          "type": "fileExists",
+          "path": "src/ProfileValidator.js", 
+          "message": "ProfileValidator should be created"
+        }
+      ]
+    }
+  ]
+}

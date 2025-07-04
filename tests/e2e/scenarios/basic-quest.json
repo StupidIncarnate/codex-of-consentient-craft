@@ -1,0 +1,60 @@
+{
+  "name": "Basic Quest Flow",
+  "description": "Test creating and completing a simple quest",
+  "steps": [
+    {
+      "description": "Check initial quest status",
+      "command": "/questmaestro",
+      "args": "list",
+      "assertions": [
+        {
+          "type": "outputContains",
+          "content": "Quest Status",
+          "message": "Should show quest status"
+        }
+      ]
+    },
+    {
+      "description": "Create a new quest",
+      "command": "/questmaestro",
+      "args": "fix user login timeout bug",
+      "assertions": [
+        {
+          "type": "outputContains",
+          "content": "Creating",
+          "message": "Should indicate quest creation"
+        }
+      ],
+      "delay": 1000
+    },
+    {
+      "description": "Check quest was created",
+      "command": "/questmaestro",
+      "args": "list",
+      "assertions": [
+        {
+          "type": "outputContains",
+          "content": "Active Quest",
+          "message": "Should show active quest"
+        },
+        {
+          "type": "questStatus",
+          "status": "active",
+          "questFile": "fix-user-login-timeout-bug",
+          "message": "Quest should be in active array"
+        }
+      ]
+    },
+    {
+      "description": "Continue working on quest",
+      "command": "/questmaestro",
+      "assertions": [
+        {
+          "type": "outputContains",
+          "content": "Working on",
+          "message": "Should continue active quest"
+        }
+      ]
+    }
+  ]
+}

@@ -67,7 +67,7 @@ We've recently:
 ## Key Principles
 
 1. **Keep it Fun** - Medieval quest theme throughout
-2. **Keep it Simple** - Users just run `npx questmaestro` 
+2. **Keep it Simple** - Users just run `npx questmaestro`
 3. **Keep it Flexible** - Works with any project structure
 4. **Natural Language** - No rigid command formats
 5. **Parallel When Possible** - Multiple agents working simultaneously

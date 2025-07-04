@@ -42,17 +42,35 @@ function copyCommands() {
   fs.copyFileSync(questmaestroSrc, questmaestroDest);
   log('  ✓ Questmaestro (main orchestrator)', 'green');
   
-  // Copy quest sub-commands
-  const questDir = path.join(sourceDir, 'quest');
-  const questFiles = fs.readdirSync(questDir);
+  // Copy quest sub-commands to quest/ subdirectory
+  const questSourceDir = path.join(sourceDir, 'quest');
+  const questTargetDir = path.join(targetDir, 'quest');
+  
+  // Check if quest directory exists
+  if (!fs.existsSync(questSourceDir)) {
+    log(`  ❌ Quest directory not found: ${questSourceDir}`, 'red');
+    throw new Error(`Quest directory not found: ${questSourceDir}`);
+  }
+  
+  // Create quest subdirectory in target
+  ensureDirectoryExists(questTargetDir);
+  
+  const questFiles = fs.readdirSync(questSourceDir);
   
   questFiles.forEach(file => {
     if (file.endsWith('.md')) {
       const agentName = path.basename(file, '.md');
-      const srcPath = path.join(questDir, file);
-      const destPath = path.join(targetDir, `quest:${agentName}.md`);
+      const srcPath = path.join(questSourceDir, file);
+      const destPath = path.join(questTargetDir, file);
+      
+      // Verify source file exists
+      if (!fs.existsSync(srcPath)) {
+        log(`  ❌ Source file not found: ${srcPath}`, 'red');
+        throw new Error(`Source file not found: ${srcPath}`);
+      }
+      
       fs.copyFileSync(srcPath, destPath);
-      log(`  ✓ Quest:${agentName}`, 'green');
+      log(`  ✓ quest:${agentName}`, 'green');
     }
   });
 }

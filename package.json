@@ -6,8 +6,13 @@
     "questmaestro": "./bin/install.js"
   },
   "scripts": {
-    "test": "echo \"No tests yet\"",
-    "prepublishOnly": "npm test"
+    "test": "jest --testPathIgnorePatterns=e2e",
+    "test:watch": "jest --watch --testPathIgnorePatterns=e2e",
+    "test:coverage": "jest --coverage --testPathIgnorePatterns=e2e",
+    "test:e2e": "RUN_E2E_TESTS=true jest tests/e2e",
+    "test:all": "npm test && npm run test:e2e",
+    "claude": "claude",
+    "claude:version": "claude --version"
   },
   "repository": {
     "type": "git",
@@ -32,5 +37,9 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "dependencies": {}
+  "devDependencies": {
+    "@anthropic-ai/claude-code": "^1.0.0",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.4"
+  }
 }

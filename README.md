@@ -1,4 +1,4 @@
-# Codex of Consentient Craft 🗡️
+# Questmaestro: Keeper of the Codex of Consentient Craft 🗡️
 
 Turn your Claude into a quest-driven development powerhouse! Questmaestro adds fun, medieval-themed orchestration commands that help AI agents work together efficiently on your coding quests.
 
