@@ -19,14 +19,23 @@ class TestProject {
     const commandsDir = path.join(claudeDir, 'commands');
     fs.mkdirSync(commandsDir, { recursive: true });
     
-    // Create a basic package.json
+    // Create a basic package.json with required configs
     const packageJson = {
       name: `test-project-${this.name}`,
       version: '1.0.0',
       scripts: {
-        test: 'echo "Tests passed"',
-        lint: 'echo "Linting"',
+        test: 'jest',
+        lint: 'eslint .',
         typecheck: 'echo "Type checking"'
+      },
+      eslintConfig: {
+        env: {
+          node: true,
+          es2021: true
+        }
+      },
+      jest: {
+        testEnvironment: 'node'
       }
     };
     

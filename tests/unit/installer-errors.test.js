@@ -1,4 +1,4 @@
-const { createTestProject } = require('./utils/testbed');
+const { createTestProject } = require('../utils/testbed');
 const path = require('path');
 const fs = require('fs');
 
@@ -9,9 +9,8 @@ describe('Installer Error Handling', () => {
     testProject = await createTestProject('error-test');
   });
 
-  afterEach(async () => {
-    await testProject.cleanup();
-  });
+  // Cleanup happens on git commit, not after tests
+  // This allows debugging of test artifacts
 
   test('should handle read-only .claude/commands directory', async () => {
     // Make commands directory read-only

@@ -17,6 +17,58 @@ Within the quest folder, expect this structure:
 
 Each quest is a single JSON file containing all its activity and progress.
 
+Quest file structure includes:
+```json
+{
+  "id": "quest-id",
+  "title": "Quest Title",
+  "status": "active|blocked|paused|completed|abandoned",
+  "phases": {
+    "discovery": { "status": "...", "findings": {...} },
+    "implementation": { "status": "...", "components": [...] },
+    "review": { "status": "...", "issues": [...] },
+    "testing": { "status": "...", "coverage": "..." }
+  },
+  "activity": [
+    { "timestamp": "...", "agent": "...", "action": "...", "details": "..." }
+  ],
+  "agentReports": {
+    "pathseeker": { 
+      "timestamp": "...", 
+      "fullReport": [
+        "=== PATHSEEKER REPORT ===",
+        "Quest: ...",
+        "..."
+      ]
+    },
+    "codeweaver": [
+      { 
+        "component": "...", 
+        "timestamp": "...", 
+        "fullReport": [
+          "=== CODEWEAVER REPORT ===",
+          "Quest: ...",
+          "Component: ...",
+          "..."
+        ]
+      }
+    ],
+    "lawbringer": { 
+      "timestamp": "...", 
+      "fullReport": ["=== LAWBRINGER REPORT ===", "..."] 
+    },
+    "siegemaster": { 
+      "timestamp": "...", 
+      "fullReport": ["=== SIEGEMASTER REPORT ===", "..."] 
+    },
+    "spiritmender": { 
+      "timestamp": "...", 
+      "fullReport": ["=== SPIRITMENDER REPORT ===", "..."] 
+    }
+  }
+}
+```
+
 Read `[questFolder]/quest-tracker.json` to understand the current quest state.
 
 ## Core Commands
@@ -126,25 +178,68 @@ After each phase, parse the agent's report and update the quest file before proc
 ## Spawning Agents
 
 To spawn any agent:
-1. Read the agent's .md file from your commands/quest/ directory
-2. Replace `$ARGUMENTS` in the file with the specific context below
-3. Execute the agent with the modified prompt
+1. First check your current working directory with `pwd` or look at the cwd in your environment
+2. Read the agent file using a path relative to YOUR CURRENT DIRECTORY: 
+   - If you're in `/some/test/dir/`, read from `/some/test/dir/.claude/commands/quest/[agent-name].md`
+   - Do NOT go up directories or use absolute paths outside your working directory
+3. Replace `$ARGUMENTS` in the file with the specific context
+4. Use the Task tool with the modified content as the prompt
 
-When spawning agents, provide clear context:
+Agent files in your local .claude/commands/quest/ directory:
+- `taskweaver.md` - Quest definition generation
+- `pathseeker.md` - Discovery and dependency mapping
+- `codeweaver.md` - Component implementation
+- `lawbringer.md` - Code quality review
+- `siegemaster.md` - Integration test creation
+- `spiritmender.md` - Build/test fixing
 
-### Pathseeker
+When spawning agents, provide clear context to replace $ARGUMENTS:
+
+### Taskweaver Example
 ```
-Analyze this quest: [QUEST DESCRIPTION]
+You are the Taskweaver. Your role is to create well-structured quest definitions from user requests.
+
+User request: "fix user login timeout bug"
+Working directory: [CURRENT_WORKING_DIRECTORY]
+
+IMPORTANT: Stay within the current working directory for all operations.
+
+Create a quest definition JSON with:
+- id: based on the task and today's date
+- title: clear description of the quest
+- description: what needs to be done
+- complexity: small/medium/large
+- phases: standard quest phases initialized
+- tags: relevant categorization
+
+Output a structured report with:
+=== TASKWEAVER QUEST REPORT ===
+Suggested Filename: [quest-name]-[YYYYMMDD]
+Quest Definition: [JSON object]
+=== END REPORT ===
+```
+
+### Pathseeker Example
+```
+You are the Pathseeker. Analyze this quest: [QUEST DESCRIPTION]
 Quest context: [QUEST TITLE]
-Output your findings as a structured report (do not modify any files)
+Map out dependencies, identify components needed, and potential challenges.
+Output your findings as a structured report (do not modify any files).
 ```
 
-### Codeweaver
+### Codeweaver Example
 ```
+You are the Codeweaver. Implement this component for the quest.
 Quest context: [QUEST TITLE]
 Component to build: [SPECIFIC SERVICE/COMPONENT]
 Dependencies: [LIST FROM DISCOVERY]
-Output your implementation report (do not modify quest files)
+
+IMPORTANT: You are working in [CURRENT_WORKING_DIRECTORY]. 
+- All file operations must be within this directory
+- Do not cd to parent directories or access files outside this project
+- Create all new files relative to the current directory
+
+Create the implementation and output your report (do not modify quest files).
 ```
 
 ### Lawbringer
@@ -236,6 +331,7 @@ After parsing a report:
 - Add findings to phases.discovery.findings
 - Create component entries in phases.implementation.components
 - Add decisions from report to decisions object
+- Store full report in agentReports.pathseeker
 
 **For Codeweaver Reports:**
 - Find component in phases.implementation.components by name
@@ -243,25 +339,48 @@ After parsing a report:
 - Add files created to component object
 - Remove agent from activeAgents
 - If all components complete, set implementation phase to "complete"
+- Store full report in agentReports.codeweaver array with component name
 
 **For Lawbringer Reports:**
 - Set phases.review.status to "complete"
 - Add any issues to phases.review.issues array
 - If issues were fixed, note in activity
 - If major issues found, may need to set implementation back to "in_progress"
+- Store full report in agentReports.lawbringer
 
 **For Siegemaster Reports:**
 - Set phases.testing.status to "complete"
 - Update phases.testing.coverage with reported percentage
 - Add test files created to activity
+- Store full report in agentReports.siegemaster
 
 **For Spiritmender Reports:**
 - Clear any blockers that were resolved
 - Update quest status from "blocked" to "active" if appropriate
 - Note all fixes in activity log
+- Store full report in agentReports.spiritmender
 
 **Always:**
 - Add entry to activity array with timestamp, agent, action, and details
+- Store the complete agent report in agentReports object:
+  - For single-run agents (Pathseeker, Lawbringer, etc.): Store as object with timestamp and fullReport (array of strings)
+  - For multi-run agents (Codeweaver): Store as array with component name, timestamp, and fullReport (array of strings)
+  - Store each line of the report as a separate string in the fullReport array
+  - Format:
+    ```json
+    "fullReport": [
+      "=== AGENT REPORT ===",
+      "Quest: Quest Title",
+      "Component: Component Name",
+      "Status: Complete",
+      "",
+      "Files Created:",
+      "- src/file1.js",
+      "- src/file2.js",
+      "",
+      "=== END REPORT ==="
+    ]
+    ```
 - Update quest status if needed (active/blocked/paused)
 - Save the updated quest file
 

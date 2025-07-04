@@ -1,4 +1,4 @@
-const { createTestProject } = require('./utils/testbed');
+const { createTestProject } = require('../utils/testbed');
 
 describe('Questmaestro Installation', () => {
   let testProject;
@@ -7,9 +7,8 @@ describe('Questmaestro Installation', () => {
     testProject = await createTestProject('install-test');
   });
 
-  afterEach(async () => {
-    await testProject.cleanup();
-  });
+  // Cleanup happens on git commit, not after tests
+  // This allows debugging of test artifacts
 
   test('should install all quest commands to .claude/commands', async () => {
     // Run the installer

@@ -109,6 +109,12 @@ class ProjectBootstrapper {
     
     console.log(`   📦 Installing Questmaestro in ${path.basename(projectDir)}...`);
     
+    // Ensure .claude directory exists before running installer
+    const claudeDir = path.join(projectDir, '.claude');
+    if (!fs.existsSync(claudeDir)) {
+      fs.mkdirSync(claudeDir, { recursive: true });
+    }
+    
     const result = execSync(`node ${installerPath}`, {
       cwd: projectDir,
       encoding: 'utf8'

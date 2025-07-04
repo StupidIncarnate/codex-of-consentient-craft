@@ -20,16 +20,14 @@ class ClaudeE2ERunner {
     // If args provided, combine them. Otherwise just use command as the prompt
     const prompt = args ? `${command} ${args}`.trim() : command;
     
-    console.log(`\n🎯 Executing: ${prompt}`);
+    process.stdout.write(`\nExecuting: ${prompt}\n`);
     
-    // Use progress indicator for long-running commands
-    if (options.streaming) {
-      return this.executeCommandWithProgress(prompt, options);
-    }
+    // Always use streaming for E2E tests - we need to see what's happening
+    return this.executeCommandWithProgress(prompt, options);
     
-    // Default non-streaming implementation
+    // Legacy non-streaming implementation (kept for reference)
     try {
-      const cmdStr = `claude -p "${prompt}" --output-format json`;
+      const cmdStr = `claude -p "${prompt}" --output-format json --model sonnet`;
       console.log(`   📝 Running: ${cmdStr}`);
       console.log(`   📂 Working directory: ${this.projectDir}`);
 
@@ -89,17 +87,24 @@ class ClaudeE2ERunner {
    */
   async executeCommandWithProgress(prompt, options = {}) {
     return new Promise((resolve, reject) => {
-      // Use stream-json for real streaming
-      const cmdArray = ['claude', '-p', prompt, '--output-format', 'stream-json', '--verbose'];
+      // Use stream-json for real streaming with Sonnet
+      const cmdArray = ['claude', '-p', prompt, '--output-format', 'stream-json', '--verbose', '--model', 'sonnet'];
       
-      console.log(`   📝 Running (STREAMING): ${cmdArray.join(' ')}`);
-      console.log(`   📂 Working directory: ${this.projectDir}`);
-      console.log(`   🔄 Stream mode: JSON objects appear as they arrive\n`);
+      const debugMode = options.debug || false;
+      
+      process.stdout.write(`Running: ${cmdArray.join(' ')}\n`);
+      if (debugMode) {
+        process.stdout.write(`Debug mode: ON - showing raw JSON\n`);
+      }
 
+      // Set up abort controller for timeout
+      const controller = new AbortController();
+      
       const claudeProcess = spawn(cmdArray[0], cmdArray.slice(1), {
         cwd: this.projectDir,
         env: process.env,
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
+        signal: controller.signal
       });
 
       let fullOutput = '';
@@ -107,6 +112,8 @@ class ClaudeE2ERunner {
       let errorOutput = '';
       let startTime = Date.now();
       let finalResult = null;
+      let killMatched = false;
+      const killPhrase = options.killOnMatch;
 
       // Create readline interface for line-by-line processing
       const rl = readline.createInterface({
@@ -122,86 +129,161 @@ class ClaudeE2ERunner {
           const json = JSON.parse(line);
           const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
           
-          // Extract only the properties we care about
-          const filtered = {
-            type: json.type,
-            ...(json.subtype && { subtype: json.subtype }),
-            ...(json.role && { role: json.role }),
-            ...(json.model && { model: json.model }),
-            ...(json.content && { content: json.content }),
-            ...(json.result && { result: json.result })
-          };
+          // In debug mode, show raw JSON as single line first
+          if (debugMode) {
+            process.stdout.write(`\n[${elapsed}s] RAW: ${line}\n`);
+          }
           
-          // Handle different streaming event types
-          const icon = {
-            message: '💬',
-            content: '📝',
-            status: 'ℹ️',
-            tool_use: '🔧',
-            result: '✅',
-            system: '🔄',
-            assistant: '🤖',
-            error: '❌'
-          }[json.type] || '📦';
+          // Extract minimal info from each event type
+          let output = '';
           
-          // Build the complete output string
-          let output = `\n   [${elapsed}s] ${icon} ${json.type?.toUpperCase() || 'UNKNOWN'}:\n`;
-          
-          // Format each property
-          Object.entries(filtered).forEach(([key, value]) => {
-            if (key === 'content' && Array.isArray(value)) {
-              // Handle content array with text/thinking objects
-              output += `     ${key}:\n`;
-              value.forEach((item, idx) => {
-                if (item.type === 'text' && item.text) {
-                  output += `       [${idx}] text:\n`;
-                  // Display with proper line breaks
-                  item.text.split('\n').forEach(line => {
-                    output += `         ${line}\n`;
-                  });
-                } else if (item.type === 'thinking' && item.thinking) {
-                  output += `       [${idx}] thinking:\n`;
-                  // Display thinking with proper line breaks
-                  item.thinking.split('\n').forEach(line => {
-                    output += `         ${line}\n`;
-                  });
+          switch (json.type) {
+            case 'system':
+              output = `[${elapsed}s] SYSTEM: ${json.subtype || 'event'} (model: ${json.model || 'unknown'})\n`;
+              break;
+              
+            case 'assistant':
+              // Check if this is a sub-agent response
+              const isSubAgent = json.parent_tool_use_id ? true : false;
+              const prefix = isSubAgent ? '  └─ SUB-AGENT' : 'ASSISTANT';
+              
+              if (json.message?.content) {
+                json.message.content.forEach(item => {
+                  if (item.type === 'text' && item.text) {
+                    // Show full text, properly formatted
+                    const text = item.text.split('\n').map(line => `        ${line}`).join('\n');
+                    output = `[${elapsed}s] ${prefix}:\n${text}\n`;
+                    messages.push(item.text);
+                  } else if (item.type === 'tool_use') {
+                    // Show more details about tool use
+                    let toolInfo = `${item.name}`;
+                    
+                    if (item.name === 'Task') {
+                      // For Task tool, show the description and first part of prompt
+                      const desc = item.input?.description || 'sub-agent';
+                      toolInfo += `(${desc})`;
+                      output = `[${elapsed}s] ${prefix} → ${toolInfo}\n`;
+                      output += `        [Task ID: ${item.id}]\n`;
+                      
+                      // Show the actual prompt being sent to the sub-agent
+                      if (item.input?.prompt) {
+                        const promptLines = item.input.prompt.split('\n');
+                        const previewLines = promptLines.slice(0, 10);
+                        const truncated = promptLines.length > 10;
+                        output += `        Prompt:\n`;
+                        output += previewLines.map(line => `        │ ${line}`).join('\n');
+                        if (truncated) {
+                          output += `\n        │ ... (${promptLines.length - 10} more lines)`;
+                        }
+                        output += '\n';
+                      }
+                    } else if (item.name === 'TodoWrite') {
+                      const todoCount = item.input?.todos?.length || 0;
+                      toolInfo += `(${todoCount} todos)`;
+                      output = `[${elapsed}s] ${prefix} → ${toolInfo}\n`;
+                      // Show todo titles
+                      if (item.input?.todos) {
+                        item.input.todos.slice(0, 3).forEach(todo => {
+                          output += `        • ${todo.content}\n`;
+                        });
+                        if (item.input.todos.length > 3) {
+                          output += `        • ... (${item.input.todos.length - 3} more)\n`;
+                        }
+                      }
+                    } else {
+                      const params = [];
+                      if (item.input?.file_path) params.push(item.input.file_path);
+                      else if (item.input?.path) params.push(item.input.path);
+                      else if (item.input?.pattern) params.push(item.input.pattern);
+                      if (params.length > 0) toolInfo += `(${params.join(', ')})`;
+                      output = `[${elapsed}s] ${prefix} → ${toolInfo}\n`;
+                    }
+                  }
+                });
+              }
+              break;
+              
+            case 'user':
+              // Skip sub-agent user messages to prevent JSON bleed-through
+              if (json.parent_tool_use_id) {
+                break;
+              }
+              
+              if (json.message?.content?.[0]) {
+                const content = json.message.content[0];
+                if (content.type === 'tool_result') {
+                  const isSubAgentResult = json.parent_tool_use_id ? true : false;
+                  const resultPrefix = isSubAgentResult ? '  └─ SUB-RESULT' : 'RESULT';
+                  
+                  // Show first few lines for readability
+                  let resultText = content.content || '';
+                  const lines = resultText.split('\n');
+                  const preview = lines.slice(0, 5).map(line => `        ${line}`).join('\n');
+                  const truncated = lines.length > 5;
+                  
+                  output = `[${elapsed}s] ${resultPrefix}: ${content.is_error ? 'ERROR' : 'OK'}`;
+                  if (content.tool_use_id) {
+                    output += ` [Tool: ${content.tool_use_id.slice(-8)}]`;
+                  }
+                  output += `\n${preview}${truncated ? '\n        ...' : ''}\n`;
                 }
-              });
-            } else if ((key === 'content' || key === 'result') && typeof value === 'string') {
-              // Display string content/result with proper line breaks
-              output += `     ${key}:\n`;
-              value.split('\n').forEach(line => {
-                output += `       ${line}\n`;
-              });
-            } else {
-              // Other properties displayed normally
-              output += `     ${key}: ${JSON.stringify(value)}\n`;
+              }
+              break;
+              
+            case 'result':
+              output = `[${elapsed}s] COMPLETE: ${json.subtype || 'done'} (${json.duration_ms}ms, $${json.total_cost_usd || 0})\n`;
+              if (json.result) {
+                // Show the full result with proper indentation
+                const resultText = json.result.split('\n').map(line => `        ${line}`).join('\n');
+                output += `\n${resultText}\n`;
+              }
+              finalResult = json;
+              break;
+              
+            case 'error':
+              output = `[${elapsed}s] ERROR: ${json.message || 'Unknown error'}\n`;
+              break;
+              
+            default:
+              // Skip unknown types to reduce noise
+              break;
+          }
+          
+          if (output) {
+            process.stdout.write(output);
+            
+            // Check for kill phrase if specified
+            if (killPhrase && output.includes(killPhrase)) {
+              killMatched = true;
+              process.stdout.write(`\n[KILL MATCH FOUND: "${killPhrase}"]\n`);
+              claudeProcess.kill('SIGTERM');
+              return;
             }
-          });
+          }
           
-          // Single console.log for the entire event
-          console.log(output.trimEnd());
-          
-          // Collect messages for final output
-          if (json.content) {
-            if (Array.isArray(json.content)) {
-              // Extract text from content array
-              json.content.forEach(item => {
-                if (item.type === 'text' && item.text) {
-                  messages.push(item.text);
+          // Collect messages for final output (regardless of debug mode)
+          if (json.type === 'assistant' && json.message?.content) {
+            json.message.content.forEach(item => {
+              if (item.type === 'text' && item.text) {
+                messages.push(item.text);
+                
+                // Also check text content for kill phrase
+                if (killPhrase && item.text.includes(killPhrase)) {
+                  killMatched = true;
+                  process.stdout.write(`\n[KILL MATCH FOUND: "${killPhrase}"]\n`);
+                  claudeProcess.kill('SIGTERM');
+                  return;
                 }
-              });
-            } else if (typeof json.content === 'string') {
-              messages.push(json.content);
-            }
-          } else if (json.result) {
+              }
+            });
+          } else if (json.type === 'result') {
             finalResult = json;
           }
           
           fullOutput += line + '\n';
         } catch (e) {
           // Not JSON - plain text
-          console.log(`   📄 ${line}`);
+          process.stdout.write(line + '\n');
           fullOutput += line + '\n';
         }
       });
@@ -209,13 +291,19 @@ class ClaudeE2ERunner {
       // Handle stderr
       claudeProcess.stderr.on('data', (data) => {
         errorOutput += data.toString();
-        console.error(`   ❌ ${data.toString().trim()}`);
+        const errorMsg = data.toString().trim();
+        if (errorMsg) {
+          process.stderr.write(`ERROR: ${errorMsg}\n`);
+        }
       });
 
       // Handle close
       claudeProcess.on('close', (code) => {
         const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-        console.log(`\n   ✓ Completed in ${duration}s (exit: ${code})\n`);
+        process.stdout.write(`\nCompleted in ${duration}s\n`);
+        
+        // Clean up readline interface
+        rl.close();
         
         // Use final result if available, otherwise concatenate messages
         let output = '';
@@ -236,10 +324,12 @@ class ClaudeE2ERunner {
         });
 
         resolve({
-          stdout: output,
+          stdout: output || fullOutput, // Use fullOutput if no final result
           stderr: errorOutput,
           exitCode: code || 0,
-          success
+          success: success || killMatched, // Success if killed on match
+          killed: killMatched,
+          matchFound: killMatched
         });
       });
 
@@ -276,7 +366,7 @@ class ClaudeE2ERunner {
       const { spawn } = require('child_process');
       
       // Use shell: true which we confirmed works
-      const command = `claude -p "${prompt}" --output-format json`;
+      const command = `claude -p "${prompt}" --output-format json --model sonnet`;
       const claudeProcess = spawn(command, [], {
         cwd: this.projectDir,
         env: process.env,
@@ -392,7 +482,9 @@ class ClaudeE2ERunner {
     };
 
     for (const step of scenario.steps) {
-      const result = await this.executeCommand(step.command, step.args || '');
+      // Support options from scenario steps
+      const options = step.options || {};
+      const result = await this.executeCommand(step.command, step.args || '', options);
       
       results.steps.push({
         description: step.description,

@@ -3,10 +3,11 @@
   "description": "Test multiple Codeweaver agents working in parallel",
   "setup": {
     "questFile": {
-      "filename": "add-user-profile-20250103.json",
+      "filename": "add-math-utils-20250103.json",
       "data": {
-        "id": "add-user-profile-20250103",
-        "title": "Add User Profile Feature",
+        "id": "add-math-utils-20250103",
+        "title": "Add Simple Math Utilities",
+        "description": "Create three simple math utility functions",
         "status": "active",
         "phases": {
           "discovery": {
@@ -14,15 +15,11 @@
             "findings": {
               "components": [
                 {
-                  "name": "UserProfileService",
+                  "name": "Create addNumbers.ts with function that adds two numbers",
                   "dependencies": []
                 },
                 {
-                  "name": "ProfileController", 
-                  "dependencies": []
-                },
-                {
-                  "name": "ProfileValidator",
+                  "name": "Create multiplyNumbers.ts with function that multiplies two numbers",
                   "dependencies": []
                 }
               ]
@@ -32,21 +29,22 @@
             "status": "in_progress",
             "components": [
               {
-                "name": "UserProfileService",
+                "name": "Create addNumbers.ts with function that adds two numbers",
                 "status": "queued",
                 "dependencies": []
               },
               {
-                "name": "ProfileController",
-                "status": "queued", 
-                "dependencies": []
-              },
-              {
-                "name": "ProfileValidator",
+                "name": "Create multiplyNumbers.ts with function that multiplies two numbers",
                 "status": "queued",
                 "dependencies": []
               }
             ]
+          },
+          "review": {
+            "status": "not_started"
+          },
+          "testing": {
+            "status": "not_started"
           }
         }
       }
@@ -59,8 +57,8 @@
       "assertions": [
         {
           "type": "outputContains",
-          "content": "Spawning multiple Codeweavers",
-          "message": "Should indicate parallel execution"
+          "content": "Spawning",
+          "message": "Should indicate agent spawning"
         }
       ],
       "delay": 3000
@@ -72,18 +70,13 @@
       "assertions": [
         {
           "type": "fileExists",
-          "path": "src/UserProfileService.js",
-          "message": "UserProfileService should be created"
-        },
-        {
-          "type": "fileExists", 
-          "path": "src/ProfileController.js",
-          "message": "ProfileController should be created"
+          "path": "src/addNumbers.ts",
+          "message": "addNumbers.ts should be created"
         },
         {
           "type": "fileExists",
-          "path": "src/ProfileValidator.js", 
-          "message": "ProfileValidator should be created"
+          "path": "src/multiplyNumbers.ts",
+          "message": "multiplyNumbers.ts should be created"
         }
       ]
     }

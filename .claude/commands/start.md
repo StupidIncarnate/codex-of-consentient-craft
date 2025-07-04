@@ -2,6 +2,21 @@
 
 You're working on Questmaestro, a fun quest-driven orchestration system that helps AI agents work together efficiently on coding tasks.
 
+## IMPORTANT: DO NOT MAKE ASSUMPTIONS
+
+When this command runs:
+- DO NOT run any tests
+- DO NOT create todo lists unless asked
+- DO NOT execute any commands unless explicitly requested
+- Just acknowledge the context and wait for specific instructions
+
+This is a context file only. Wait for the user to tell you what they need.
+
+## When doing requests for user
+
+- Do exactly what the user asks you to do. DO NOT get ahead of yourself because you will make more work for both you and the user.
+- If a request is ambiguous, ASK for clarification. DO NOT assume anything.
+
 ## Quick Context
 
 This is an **npm package** that users install via `npx questmaestro` to add quest-themed slash commands to their Claude setup. It transforms development tasks into epic quests with a fellowship of specialized AI agents.

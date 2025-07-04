@@ -1,4 +1,4 @@
-const { ClaudeE2ERunner } = require('./claude-runner');
+const { ClaudeE2ERunner } = require('../utils/claude-runner');
 const { ProjectBootstrapper } = require('../utils/project-bootstrapper');
 
 describe('Claude Headless Basic Test', () => {
@@ -11,11 +11,8 @@ describe('Claude Headless Basic Test', () => {
     runner = new ClaudeE2ERunner(project.rootDir);
   });
 
-  afterEach(async () => {
-    if (project && project.cleanup) {
-      await project.cleanup();
-    }
-  });
+  // Cleanup happens on git commit, not after tests
+  // This allows debugging of test artifacts
 
   test('should get response from Claude for simple prompt', async () => {
     // Just test a basic prompt, not a slash command

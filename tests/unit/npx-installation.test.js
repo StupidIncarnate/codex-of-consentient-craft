@@ -1,4 +1,4 @@
-const { createTestProject } = require('./utils/testbed');
+const { createTestProject } = require('../utils/testbed');
 const path = require('path');
 const { execSync } = require('child_process');
 
@@ -9,9 +9,8 @@ describe('NPX Installation', () => {
     testProject = await createTestProject('npx-test');
   });
 
-  afterEach(async () => {
-    await testProject.cleanup();
-  });
+  // Cleanup happens on git commit, not after tests
+  // This allows debugging of test artifacts
 
   test('should install via npx simulation', async () => {
     // Simulate what happens when user runs: npx questmaestro

@@ -1,4 +1,4 @@
-const { ClaudeE2ERunner } = require('./claude-runner');
+const { ClaudeE2ERunner } = require('../utils/claude-runner');
 const { ProjectBootstrapper } = require('../utils/project-bootstrapper');
 
 describe('Claude Streaming Test', () => {
@@ -11,18 +11,15 @@ describe('Claude Streaming Test', () => {
     runner = new ClaudeE2ERunner(project.rootDir);
   });
 
-  afterEach(async () => {
-    if (project && project.cleanup) {
-      await project.cleanup();
-    }
-  });
+  // Cleanup happens on git commit, not after tests
+  // This allows debugging of test artifacts
 
   test('should handle options parameter correctly', async () => {
     // Test that options parameter works (even if streaming isn't implemented yet)
     const result = await runner.executeCommand(
       'Say hello. Think hard about how you feel. Then send a joke afterward',
       '',
-      { streaming: true, timeout: 10000 }
+      { streaming: true, timeout: 30000 }
     );
     
     expect(result.success).toBe(true);

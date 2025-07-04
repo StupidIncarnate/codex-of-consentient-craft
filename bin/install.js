@@ -146,6 +146,64 @@ function printInstructions() {
   log('  /questmaestro start auth   - Jump to specific quest');
 }
 
+function validateProject() {
+  log('\n🔍 Validating Project Requirements...', 'bright');
+  
+  // Check for package.json
+  if (!fs.existsSync('package.json')) {
+    throw new Error('No package.json found! Questmaestro requires a Node.js project.');
+  }
+  log('  ✓ package.json found', 'green');
+  
+  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  
+  // Check for ESLint configuration
+  const eslintConfigs = [
+    '.eslintrc',
+    '.eslintrc.js',
+    '.eslintrc.json',
+    '.eslintrc.yml',
+    '.eslintrc.yaml',
+    'eslint.config.js',
+    'eslint.config.mjs'
+  ];
+  
+  const hasEslintFile = eslintConfigs.some(file => fs.existsSync(file));
+  const hasEslintInPackage = packageJson.eslintConfig !== undefined;
+  
+  if (!hasEslintFile && !hasEslintInPackage) {
+    throw new Error('No ESLint configuration found! Please set up ESLint before installing Questmaestro.');
+  }
+  log('  ✓ ESLint configuration found', 'green');
+  
+  // Check for Jest configuration
+  const jestConfigs = [
+    'jest.config.js',
+    'jest.config.ts',
+    'jest.config.mjs',
+    'jest.config.cjs',
+    'jest.config.json'
+  ];
+  
+  const hasJestFile = jestConfigs.some(file => fs.existsSync(file));
+  const hasJestInPackage = packageJson.jest !== undefined;
+  
+  if (!hasJestFile && !hasJestInPackage) {
+    throw new Error('No Jest configuration found! Please set up Jest before installing Questmaestro.');
+  }
+  log('  ✓ Jest configuration found', 'green');
+  
+  // Check for required scripts
+  const scripts = packageJson.scripts || {};
+  const requiredScripts = ['lint', 'test'];
+  const missingScripts = requiredScripts.filter(script => !scripts[script]);
+  
+  if (missingScripts.length > 0) {
+    throw new Error(`Missing required scripts in package.json: ${missingScripts.join(', ')}`);
+  }
+  log('  ✓ Required scripts found', 'green');
+}
+
 function main() {
   log('🗡️  Questmaestro Installation', 'bright');
   log('================================\n', 'bright');
@@ -157,6 +215,9 @@ function main() {
       log('Please run this from a directory with Claude configured.', 'red');
       process.exit(1);
     }
+    
+    // Validate project requirements
+    validateProject();
     
     copyCommands();
     createConfig();
