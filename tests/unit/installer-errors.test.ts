@@ -1,9 +1,9 @@
-const { createTestProject } = require('../utils/testbed');
-const path = require('path');
-const fs = require('fs');
+import { TestProject, createTestProject } from "../utils/testbed";
+import path from 'path';
+import fs from 'fs';
 
 describe('Installer Error Handling', () => {
-  let testProject;
+  let testProject: TestProject;
 
   beforeEach(async () => {
     testProject = await createTestProject('error-test');

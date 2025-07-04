@@ -1,14 +1,15 @@
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
+
+import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 describe('Installer Validation Tests', () => {
-  let tempDir;
+  let tempDir: string;
   const installerPath = path.join(__dirname, '..', '..', 'bin', 'install.js');
 
   // Helper function to run installer and capture output
-  const runInstaller = (cwd) => {
+  const runInstaller = (cwd: string) => {
     try {
       const output = execSync(`node ${installerPath}`, {
         cwd,
@@ -19,7 +20,7 @@ describe('Installer Validation Tests', () => {
     } catch (error) {
       return { 
         success: false, 
-        output: error.stdout || error.stderr || error.message,
+        output: (error as any).stdout || (error as any).stderr || (error as Error).message,
         error 
       };
     }

@@ -2,7 +2,7 @@
   "name": "simple-test-project",
   "version": "1.0.0",
   "description": "A simple project for testing Questmaestro",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "test": "jest",
     "lint": "eslint",

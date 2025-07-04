@@ -1,7 +1,7 @@
-const { ProjectBootstrapper } = require('../utils/project-bootstrapper');
-const { ClaudeE2ERunner } = require('../utils/claude-runner');
-const fs = require('fs');
-const path = require('path');
+import { ProjectBootstrapper } from '../utils/project-bootstrapper';
+import { ClaudeE2ERunner } from '../utils/claude-runner';
+import * as fs from 'fs';
+import * as path from 'path';
 
 jest.setTimeout(60000); // 1 minute timeout
 

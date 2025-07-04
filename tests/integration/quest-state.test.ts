@@ -1,7 +1,7 @@
-const { ProjectBootstrapper } = require('../utils/project-bootstrapper');
-const { ClaudeE2ERunner } = require('../utils/claude-runner');
-const fs = require('fs');
-const path = require('path');
+import { ProjectBootstrapper } from '../utils/project-bootstrapper';
+import { ClaudeE2ERunner } from '../utils/claude-runner';
+import * as fs from 'fs';
+import * as path from 'path';
 
 jest.setTimeout(60000); // 1 minute timeout
 
@@ -39,7 +39,7 @@ describe('Quest State Management', () => {
     
     // Set initial order
     const trackerPath = path.join(project.rootDir, 'questmaestro/quest-tracker.json');
-    const tracker = JSON.parse(fs.readFileSync(trackerPath));
+    const tracker = JSON.parse(fs.readFileSync(trackerPath, 'utf8'));
     tracker.active = ['quest-a-20250104.json', 'quest-b-20250104.json'];
     fs.writeFileSync(trackerPath, JSON.stringify(tracker));
     
@@ -54,7 +54,7 @@ describe('Quest State Management', () => {
     expect(result.success).toBe(true);
     
     // Verify order changed
-    const updatedTracker = JSON.parse(fs.readFileSync(trackerPath));
+    const updatedTracker = JSON.parse(fs.readFileSync(trackerPath, 'utf8'));
     expect(updatedTracker.active[0]).toBe('quest-b-20250104.json');
   });
 
@@ -78,14 +78,14 @@ describe('Quest State Management', () => {
     runner = new ClaudeE2ERunner(project.rootDir);
     
     // This would trigger completion
-    const result = await runner.executeCommand(
+    await runner.executeCommand(
       '/questmaestro',
       '',
       { killOnMatch: 'Quest complete' }
     );
     
     const tracker = JSON.parse(
-      fs.readFileSync(path.join(project.rootDir, 'questmaestro/quest-tracker.json'))
+      fs.readFileSync(path.join(project.rootDir, 'questmaestro/quest-tracker.json'), 'utf8')
     );
     
     expect(tracker.active).not.toContain('tracker-test-20250104.json');
@@ -102,7 +102,7 @@ describe('Quest State Management', () => {
         blockers: [
           {
             type: 'build_failure',
-            description: 'ESLint error in src/test.js',
+            description: 'ESLint error in src/test.ts',
             timestamp: new Date().toISOString()
           }
         ],

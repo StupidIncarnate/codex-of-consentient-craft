@@ -1,22 +1,115 @@
-const { execSync, spawn, exec } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
+import { spawn } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as readline from 'readline';
 
-class ClaudeE2ERunner {
-  constructor(projectDir) {
+interface CommandResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  success: boolean;
+  killed?: boolean;
+  matchFound?: boolean;
+}
+
+interface CommandOptions {
+  timeout?: number;
+  debug?: boolean;
+  killOnMatch?: string;
+  streaming?: boolean;
+}
+
+interface TestResult {
+  command: string;
+  args: string;
+  output: string;
+  timestamp: Date;
+  success: boolean;
+  error?: string;
+}
+
+interface ScenarioStep {
+  description: string;
+  command: string;
+  args?: string;
+  options?: CommandOptions;
+  assertions?: Assertion[];
+  delay?: number;
+}
+
+interface Assertion {
+  type: 'fileExists' | 'fileContains' | 'questStatus' | 'outputContains';
+  path?: string;
+  content?: string;
+  status?: string;
+  questFile?: string;
+  message?: string;
+}
+
+interface Scenario {
+  name: string;
+  steps: ScenarioStep[];
+}
+
+interface ScenarioResult {
+  scenario: string;
+  steps: StepResult[];
+}
+
+interface StepResult {
+  description: string;
+  command: string;
+  args?: string;
+  success: boolean;
+  output: string;
+  assertions?: AssertionResult[];
+}
+
+interface AssertionResult {
+  type: string;
+  passed: boolean;
+  message?: string;
+}
+
+interface StreamJsonEvent {
+  type: 'system' | 'assistant' | 'user' | 'result' | 'error';
+  subtype?: string;
+  model?: string;
+  message?: {
+    content?: Array<{
+      type: 'text' | 'tool_use' | 'tool_result';
+      text?: string;
+      name?: string;
+      id?: string;
+      input?: any;
+      content?: string;
+      is_error?: boolean;
+      tool_use_id?: string;
+    }>;
+  };
+  parent_tool_use_id?: string;
+  result?: string;
+  duration_ms?: number;
+  total_cost_usd?: number;
+}
+
+export class ClaudeE2ERunner {
+  private projectDir: string;
+  private results: TestResult[];
+
+  constructor(projectDir: string) {
     this.projectDir = projectDir;
     this.results = [];
   }
 
   /**
    * Execute a Claude command in headless mode
-   * @param {string} command - The slash command to run (e.g., "/questmaestro")
-   * @param {string} args - Arguments for the command
-   * @param {object} options - Options including streaming
-   * @returns {object} Result with stdout, stderr, exitCode
+   * @param command - The slash command to run (e.g., "/questmaestro")
+   * @param args - Arguments for the command
+   * @param options - Options including streaming
+   * @returns Result with stdout, stderr, exitCode
    */
-  async executeCommand(command, args = '', options = {}) {
+  async executeCommand(command: string, args: string = '', options: CommandOptions = {}): Promise<CommandResult> {
     // If args provided, combine them. Otherwise just use command as the prompt
     const prompt = args ? `${command} ${args}`.trim() : command;
     
@@ -24,68 +117,12 @@ class ClaudeE2ERunner {
     
     // Always use streaming for E2E tests - we need to see what's happening
     return this.executeCommandWithProgress(prompt, options);
-    
-    // Legacy non-streaming implementation (kept for reference)
-    try {
-      const cmdStr = `claude -p "${prompt}" --output-format json --model sonnet`;
-      console.log(`   📝 Running: ${cmdStr}`);
-      console.log(`   📂 Working directory: ${this.projectDir}`);
-
-      const output = execSync(cmdStr, {
-        encoding: 'utf8',
-        timeout: options.timeout || 25000,
-        cwd: this.projectDir,
-        env: process.env
-      });
-
-      const result = JSON.parse(output);
-      const success = result.is_error === false;
-      const stdout = result.result || '';
-      
-      // Show Claude's actual response
-      if (stdout) {
-        console.log(`   💬 Claude says: ${stdout.substring(0, 200)}${stdout.length > 200 ? '...' : ''}`);
-      }
-      console.log(`   ✓ Completed successfully\n`);
-      
-      this.results.push({
-        command,
-        args,
-        output: stdout,
-        timestamp: new Date(),
-        success
-      });
-
-      return {
-        stdout,
-        stderr: '',
-        exitCode: success ? 0 : 1,
-        success
-      };
-    } catch (error) {
-      console.error(`   ❌ Error: ${error.message}`);
-      
-      this.results.push({
-        command,
-        args,
-        error: error.message,
-        timestamp: new Date(),
-        success: false
-      });
-
-      return {
-        stdout: '',
-        stderr: error.message,
-        exitCode: 1,
-        success: false
-      };
-    }
   }
 
   /**
    * Execute command with REAL streaming - shows each JSON object as it arrives
    */
-  async executeCommandWithProgress(prompt, options = {}) {
+  private async executeCommandWithProgress(prompt: string, options: CommandOptions = {}): Promise<CommandResult> {
     return new Promise((resolve, reject) => {
       // Use stream-json for real streaming with Sonnet
       const cmdArray = ['claude', '-p', prompt, '--output-format', 'stream-json', '--verbose', '--model', 'sonnet'];
@@ -108,10 +145,10 @@ class ClaudeE2ERunner {
       });
 
       let fullOutput = '';
-      let messages = [];
+      const messages: string[] = [];
       let errorOutput = '';
-      let startTime = Date.now();
-      let finalResult = null;
+      const startTime = Date.now();
+      let finalResult: StreamJsonEvent | null = null;
       let killMatched = false;
       const killPhrase = options.killOnMatch;
 
@@ -122,11 +159,11 @@ class ClaudeE2ERunner {
       });
 
       // Process each line (JSON object) as it arrives
-      rl.on('line', (line) => {
+      rl.on('line', (line: string) => {
         if (!line.trim()) return;
         
         try {
-          const json = JSON.parse(line);
+          const json: StreamJsonEvent = JSON.parse(line);
           const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
           
           // In debug mode, show raw JSON as single line first
@@ -171,7 +208,7 @@ class ClaudeE2ERunner {
                         const previewLines = promptLines.slice(0, 10);
                         const truncated = promptLines.length > 10;
                         output += `        Prompt:\n`;
-                        output += previewLines.map(line => `        │ ${line}`).join('\n');
+                        output += previewLines.map((line: string) => `        │ ${line}`).join('\n');
                         if (truncated) {
                           output += `\n        │ ... (${promptLines.length - 10} more lines)`;
                         }
@@ -183,7 +220,7 @@ class ClaudeE2ERunner {
                       output = `[${elapsed}s] ${prefix} → ${toolInfo}\n`;
                       // Show todo titles
                       if (item.input?.todos) {
-                        item.input.todos.slice(0, 3).forEach(todo => {
+                        item.input.todos.slice(0, 3).forEach((todo: any) => {
                           output += `        • ${todo.content}\n`;
                         });
                         if (item.input.todos.length > 3) {
@@ -191,7 +228,7 @@ class ClaudeE2ERunner {
                         }
                       }
                     } else {
-                      const params = [];
+                      const params: string[] = [];
                       if (item.input?.file_path) params.push(item.input.file_path);
                       else if (item.input?.path) params.push(item.input.path);
                       else if (item.input?.pattern) params.push(item.input.pattern);
@@ -216,7 +253,7 @@ class ClaudeE2ERunner {
                   const resultPrefix = isSubAgentResult ? '  └─ SUB-RESULT' : 'RESULT';
                   
                   // Show first few lines for readability
-                  let resultText = content.content || '';
+                  const resultText = content.content || '';
                   const lines = resultText.split('\n');
                   const preview = lines.slice(0, 5).map(line => `        ${line}`).join('\n');
                   const truncated = lines.length > 5;
@@ -241,7 +278,7 @@ class ClaudeE2ERunner {
               break;
               
             case 'error':
-              output = `[${elapsed}s] ERROR: ${json.message || 'Unknown error'}\n`;
+              output = `[${elapsed}s] ERROR: ${(json as any).message || 'Unknown error'}\n`;
               break;
               
             default:
@@ -289,7 +326,7 @@ class ClaudeE2ERunner {
       });
 
       // Handle stderr
-      claudeProcess.stderr.on('data', (data) => {
+      claudeProcess.stderr.on('data', (data: Buffer) => {
         errorOutput += data.toString();
         const errorMsg = data.toString().trim();
         if (errorMsg) {
@@ -298,7 +335,7 @@ class ClaudeE2ERunner {
       });
 
       // Handle close
-      claudeProcess.on('close', (code) => {
+      claudeProcess.on('close', (code: number | null) => {
         const duration = ((Date.now() - startTime) / 1000).toFixed(1);
         process.stdout.write(`\nCompleted in ${duration}s\n`);
         
@@ -334,7 +371,7 @@ class ClaudeE2ERunner {
       });
 
       // Handle errors
-      claudeProcess.on('error', (error) => {
+      claudeProcess.on('error', (error: Error) => {
         console.error(`   ❌ Process error: ${error.message}`);
         reject(error);
       });
@@ -345,7 +382,7 @@ class ClaudeE2ERunner {
       // Optional timeout
       if (options.timeout) {
         setTimeout(() => {
-          if (claudeProcess.exitCode === null) {
+          if ((claudeProcess as any).exitCode === null) {
             console.log(`   ⏱️  Timeout (${options.timeout}ms), terminating...`);
             claudeProcess.kill();
           }
@@ -357,13 +394,11 @@ class ClaudeE2ERunner {
   /**
    * Execute command with streaming output for long-running operations
    */
-  async executeCommandStreaming(prompt) {
+  async executeCommandStreaming(prompt: string): Promise<CommandResult> {
     return new Promise((resolve, reject) => {
       const cmdArray = ['claude', '-p', prompt, '--output-format', 'json'];
       console.log(`   📝 Running (streaming): ${cmdArray.join(' ')}`);
       console.log(`   📂 Working directory: ${this.projectDir}`);
-
-      const { spawn } = require('child_process');
       
       // Use shell: true which we confirmed works
       const command = `claude -p "${prompt}" --output-format json --model sonnet`;
@@ -377,7 +412,7 @@ class ClaudeE2ERunner {
       let fullOutput = '';
       let fullError = '';
 
-      claudeProcess.stdout.on('data', (data) => {
+      claudeProcess.stdout.on('data', (data: Buffer) => {
         const chunk = data.toString();
         fullOutput += chunk;
         
@@ -393,13 +428,13 @@ class ClaudeE2ERunner {
         }
       });
 
-      claudeProcess.stderr.on('data', (data) => {
+      claudeProcess.stderr.on('data', (data: Buffer) => {
         const chunk = data.toString();
         fullError += chunk;
         console.error(`   ❌ Error: ${chunk}`);
       });
 
-      claudeProcess.on('close', (code) => {
+      claudeProcess.on('close', (code: number | null) => {
         console.log(`   ✓ Process completed with code: ${code}\n`);
         
         let success = false;
@@ -410,7 +445,7 @@ class ClaudeE2ERunner {
           success = result.is_error === false;
           stdout = result.result || '';
         } catch (e) {
-          console.error(`   ⚠️  Failed to parse JSON: ${e.message}`);
+          console.error(`   ⚠️  Failed to parse JSON: ${(e as Error).message}`);
           stdout = fullOutput;
         }
         
@@ -430,14 +465,14 @@ class ClaudeE2ERunner {
         });
       });
 
-      claudeProcess.on('error', (error) => {
+      claudeProcess.on('error', (error: Error) => {
         console.error(`   ❌ Process error: ${error.message}`);
         reject(error);
       });
 
       // Safety timeout
       const timeout = setTimeout(() => {
-        if (claudeProcess.exitCode === null) {
+        if ((claudeProcess as any).exitCode === null) {
           console.log(`   ⏱️  Timeout reached, terminating process...`);
           claudeProcess.kill();
         }
@@ -453,9 +488,9 @@ class ClaudeE2ERunner {
   /**
    * Parse streaming JSON output from Claude
    */
-  parseStreamJSON(output) {
+  parseStreamJSON(output: string): string {
     const lines = output.split('\n').filter(line => line.trim());
-    const messages = [];
+    const messages: string[] = [];
     
     for (const line of lines) {
       try {
@@ -475,8 +510,8 @@ class ClaudeE2ERunner {
   /**
    * Run a complete quest scenario
    */
-  async runQuestScenario(scenario) {
-    const results = {
+  async runQuestScenario(scenario: Scenario): Promise<ScenarioResult> {
+    const results: ScenarioResult = {
       scenario: scenario.name,
       steps: []
     };
@@ -486,27 +521,28 @@ class ClaudeE2ERunner {
       const options = step.options || {};
       const result = await this.executeCommand(step.command, step.args || '', options);
       
-      results.steps.push({
+      const stepResult: StepResult = {
         description: step.description,
         command: step.command,
         args: step.args,
         success: result.success,
         output: result.stdout
-      });
+      };
 
       // Run assertions if provided
       if (step.assertions) {
+        stepResult.assertions = [];
         for (const assertion of step.assertions) {
           const passed = await this.runAssertion(assertion);
-          results.steps[results.steps.length - 1].assertions = 
-            results.steps[results.steps.length - 1].assertions || [];
-          results.steps[results.steps.length - 1].assertions.push({
+          stepResult.assertions.push({
             type: assertion.type,
             passed,
             message: assertion.message
           });
         }
       }
+
+      results.steps.push(stepResult);
 
       // Add delay between commands if specified
       if (step.delay) {
@@ -520,20 +556,20 @@ class ClaudeE2ERunner {
   /**
    * Run an assertion against the project state
    */
-  async runAssertion(assertion) {
+  async runAssertion(assertion: Assertion): Promise<boolean> {
     switch (assertion.type) {
       case 'fileExists':
-        return fs.existsSync(path.join(this.projectDir, assertion.path));
+        return fs.existsSync(path.join(this.projectDir, assertion.path!));
       
       case 'fileContains':
-        if (!fs.existsSync(path.join(this.projectDir, assertion.path))) {
+        if (!fs.existsSync(path.join(this.projectDir, assertion.path!))) {
           return false;
         }
         const content = fs.readFileSync(
-          path.join(this.projectDir, assertion.path), 
+          path.join(this.projectDir, assertion.path!), 
           'utf8'
         );
-        return content.includes(assertion.content);
+        return content.includes(assertion.content!);
       
       case 'questStatus':
         const trackerPath = path.join(
@@ -545,12 +581,12 @@ class ClaudeE2ERunner {
           return false;
         }
         const tracker = JSON.parse(fs.readFileSync(trackerPath, 'utf8'));
-        return tracker[assertion.status].includes(assertion.questFile);
+        return tracker[assertion.status!].includes(assertion.questFile!);
       
       case 'outputContains':
         const lastResult = this.results[this.results.length - 1];
-        return lastResult && lastResult.output && 
-               lastResult.output.includes(assertion.content);
+        return !!(lastResult && lastResult.output && 
+                  lastResult.output.includes(assertion.content!));
       
       default:
         throw new Error(`Unknown assertion type: ${assertion.type}`);
@@ -560,10 +596,7 @@ class ClaudeE2ERunner {
   /**
    * Get all results from this runner
    */
-  getResults() {
+  getResults(): TestResult[] {
     return this.results;
   }
-
 }
-
-module.exports = { ClaudeE2ERunner };

@@ -5,7 +5,7 @@ module.exports = {
   testEnvironment: 'node',
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
-    'packages/*/src/**/*.js',
-    '!packages/*/src/**/*.test.js'
+    'packages/*/src/**/*.ts',
+    '!packages/*/src/**/*.test.ts'
   ]
 };

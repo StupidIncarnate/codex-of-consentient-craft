@@ -1,9 +1,10 @@
-const { createTestProject } = require('../utils/testbed');
-const path = require('path');
-const { execSync } = require('child_process');
+import { TestProject, createTestProject } from "../utils/testbed";
+import path from 'path';
+import { execSync } from 'child_process';
+import fs from 'fs';
 
 describe('NPX Installation', () => {
-  let testProject;
+  let testProject: TestProject;
 
   beforeEach(async () => {
     testProject = await createTestProject('npx-test');
@@ -37,7 +38,6 @@ describe('NPX Installation', () => {
   test('should handle missing .claude directory', async () => {
     // Remove .claude directory to test error handling
     const claudeDir = path.join(testProject.rootDir, '.claude');
-    const fs = require('fs');
     if (fs.existsSync(claudeDir)) {
       fs.rmSync(claudeDir, { recursive: true });
     }
@@ -54,8 +54,8 @@ describe('NPX Installation', () => {
     }
 
     expect(error).toBeDefined();
-    expect(error.stdout).toContain('No .claude directory found');
-    expect(error.status).toBe(1);
+    expect((error as any).stdout).toContain('No .claude directory found');
+    expect((error as any).status).toBe(1);
   });
 
   test('should preserve existing configurations on reinstall', async () => {
@@ -89,7 +89,7 @@ describe('NPX Installation', () => {
     expect(config.commands.ward).toBe('eslint $FILE');
     
     const tracker = testProject.getQuestTracker();
-    expect(tracker.active).toContain('existing-quest.json');
+    expect(tracker!.active).toContain('existing-quest.json');
     
     // Check warning was shown
     expect(output).toContain('.questmaestro already exists, skipping');

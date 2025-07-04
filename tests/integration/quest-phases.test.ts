@@ -1,7 +1,7 @@
-const { ProjectBootstrapper } = require('../utils/project-bootstrapper');
-const { ClaudeE2ERunner } = require('../utils/claude-runner');
-const fs = require('fs');
-const path = require('path');
+import { ProjectBootstrapper } from '../utils/project-bootstrapper';
+import { ClaudeE2ERunner } from '../utils/claude-runner';
+import * as fs from 'fs';
+import * as path from 'path';
 
 jest.setTimeout(120000); // 2 minute timeout for integration tests
 
@@ -26,16 +26,16 @@ describe('Quest Phase Integration Tests', () => {
             status: 'complete',
             findings: {
               components: [
-                { name: 'Create isEven.js - returns true if number is even', dependencies: [] },
-                { name: 'Create isOdd.js - returns true if number is odd', dependencies: [] }
+                { name: 'Create isEven.ts - returns true if number is even', dependencies: [] },
+                { name: 'Create isOdd.ts - returns true if number is odd', dependencies: [] }
               ]
             }
           },
           implementation: {
             status: 'in_progress',
             components: [
-              { name: 'Create isEven.js - returns true if number is even', status: 'queued', dependencies: [] },
-              { name: 'Create isOdd.js - returns true if number is odd', status: 'queued', dependencies: [] }
+              { name: 'Create isEven.ts - returns true if number is even', status: 'queued', dependencies: [] },
+              { name: 'Create isOdd.ts - returns true if number is odd', status: 'queued', dependencies: [] }
             ]
           }
         }
@@ -61,8 +61,8 @@ describe('Quest Phase Integration Tests', () => {
     expect(result.stdout).toContain('Codeweaver');
     
     // Verify files were created
-    expect(fs.existsSync(path.join(project.rootDir, 'src/isEven.js'))).toBe(true);
-    expect(fs.existsSync(path.join(project.rootDir, 'src/isOdd.js'))).toBe(true);
+    expect(fs.existsSync(path.join(project.rootDir, 'src/isEven.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(project.rootDir, 'src/isOdd.ts'))).toBe(true);
   });
 
   test('spawns Lawbringer after implementations complete', async () => {
@@ -78,8 +78,8 @@ describe('Quest Phase Integration Tests', () => {
           implementation: {
             status: 'complete',
             components: [
-              { name: 'isEven.js', status: 'complete', files: ['src/isEven.js'] },
-              { name: 'isOdd.js', status: 'complete', files: ['src/isOdd.js'] }
+              { name: 'isEven.ts', status: 'complete', files: ['src/isEven.ts'] },
+              { name: 'isOdd.ts', status: 'complete', files: ['src/isOdd.ts'] }
             ]
           },
           review: { status: 'not_started' }
@@ -90,11 +90,11 @@ describe('Quest Phase Integration Tests', () => {
     // Create the implementation files
     project = await bootstrapper.createProjectWithQuests('simple', [questFile]);
     fs.writeFileSync(
-      path.join(project.rootDir, 'src/isEven.js'),
+      path.join(project.rootDir, 'src/isEven.ts'),
       'function isEven(n) { return n % 2 === 0; }\nmodule.exports = { isEven };'
     );
     fs.writeFileSync(
-      path.join(project.rootDir, 'src/isOdd.js'),
+      path.join(project.rootDir, 'src/isOdd.ts'),
       'function isOdd(n) { return n % 2 !== 0; }\nmodule.exports = { isOdd };'
     );
 
@@ -126,16 +126,16 @@ describe('Quest Phase Integration Tests', () => {
             status: 'complete',
             findings: {
               components: [
-                { name: 'Create config.js - configuration object', dependencies: [] },
-                { name: 'Create logger.js - uses config', dependencies: ['config.js'] }
+                { name: 'Create config.ts - configuration object', dependencies: [] },
+                { name: 'Create logger.ts - uses config', dependencies: ['config.ts'] }
               ]
             }
           },
           implementation: {
             status: 'in_progress',
             components: [
-              { name: 'Create config.js - configuration object', status: 'queued', dependencies: [] },
-              { name: 'Create logger.js - uses config', status: 'queued', dependencies: ['config.js'] }
+              { name: 'Create config.ts - configuration object', status: 'queued', dependencies: [] },
+              { name: 'Create logger.ts - uses config', status: 'queued', dependencies: ['config.ts'] }
             ]
           }
         }
@@ -150,15 +150,15 @@ describe('Quest Phase Integration Tests', () => {
       '',
       { 
         streaming: true,
-        killOnMatch: 'config.js',
+        killOnMatch: 'config.ts',
         timeout: 60000
       }
     );
     
     expect(result.success).toBe(true);
     expect(result.stdout).toContain('Codeweaver');
-    expect(result.stdout).toContain('config.js');
-    // Should NOT spawn logger.js Codeweaver yet
-    expect(result.stdout).not.toContain('logger.js');
+    expect(result.stdout).toContain('config.ts');
+    // Should NOT spawn logger.ts Codeweaver yet
+    expect(result.stdout).not.toContain('logger.ts');
   });
 });

@@ -1,7 +1,7 @@
-const { ProjectBootstrapper } = require('../utils/project-bootstrapper');
-const { ClaudeE2ERunner } = require('../utils/claude-runner');
-const fs = require('fs');
-const path = require('path');
+import { ProjectBootstrapper } from '../utils/project-bootstrapper';
+import { ClaudeE2ERunner } from '../utils/claude-runner';
+import * as fs from 'fs';
+import * as path from 'path';
 
 jest.setTimeout(60000); // 1 minute timeout
 
@@ -149,7 +149,7 @@ describe('Quest Command Routing', () => {
     
     // Put search quest first in active array
     const tracker = JSON.parse(
-      fs.readFileSync(path.join(project.rootDir, 'questmaestro/quest-tracker.json'))
+      fs.readFileSync(path.join(project.rootDir, 'questmaestro/quest-tracker.json'), 'utf8')
     );
     tracker.active = ['search-feature-20250104.json', 'login-feature-20250104.json'];
     fs.writeFileSync(

@@ -1,7 +1,7 @@
-const { createTestProject } = require('../utils/testbed');
+import { TestProject, createTestProject } from "../utils/testbed";
 
 describe('Questmaestro Installation', () => {
-  let testProject;
+  let testProject: TestProject;
 
   beforeEach(async () => {
     testProject = await createTestProject('install-test');
@@ -53,9 +53,9 @@ describe('Questmaestro Installation', () => {
     
     const tracker = testProject.getQuestTracker();
     expect(tracker).toBeDefined();
-    expect(tracker.active).toEqual([]);
-    expect(tracker.completed).toEqual([]);
-    expect(tracker.abandoned).toEqual([]);
+    expect(tracker?.active).toEqual([]);
+    expect(tracker?.completed).toEqual([]);
+    expect(tracker?.abandoned).toEqual([]);
   });
 
   test('should create .questmaestro config file', async () => {

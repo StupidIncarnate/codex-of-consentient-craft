@@ -1,9 +1,30 @@
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
-const crypto = require('crypto');
+import * as fs from 'fs';
+import * as path from 'path';
+import { execSync } from 'child_process';
+import * as crypto from 'crypto';
 
-class ProjectBootstrapper {
+interface ProjectInfo {
+  rootDir: string;
+  type: 'simple' | 'monorepo';
+  workspaces?: string[];
+  cleanup: () => void;
+}
+
+interface QuestData {
+  filename: string;
+  data: any;
+}
+
+interface QuestmaestroConfig {
+  commands?: {
+    [key: string]: string;
+  };
+  [key: string]: any;
+}
+
+export class ProjectBootstrapper {
+  private tempRoot: string;
+
   constructor() {
     this.tempRoot = path.join(process.cwd(), 'tests', 'tmp');
   }
@@ -11,7 +32,7 @@ class ProjectBootstrapper {
   /**
    * Copy a fixture project to a temporary test location
    */
-  async copyFixture(fixtureName, testName) {
+  async copyFixture(fixtureName: string, testName: string): Promise<string> {
     const fixtureDir = path.join(process.cwd(), 'tests', 'fixtures', fixtureName);
     const testId = crypto.randomBytes(4).toString('hex');
     const targetDir = path.join(this.tempRoot, `${testName}-${testId}`);
@@ -28,7 +49,7 @@ class ProjectBootstrapper {
   /**
    * Create a simple Node.js project
    */
-  async createSimpleProject(name = 'simple-project') {
+  async createSimpleProject(name: string = 'simple-project'): Promise<ProjectInfo> {
     const projectDir = await this.copyFixture('simple-project', name);
     
     // Create .claude directory structure BEFORE installing
@@ -48,7 +69,7 @@ class ProjectBootstrapper {
   /**
    * Create a monorepo project
    */
-  async createMonorepo(name = 'monorepo-project') {
+  async createMonorepo(name: string = 'monorepo-project'): Promise<ProjectInfo> {
     const projectDir = await this.copyFixture('monorepo', name);
     
     // Create .claude directory structure BEFORE installing
@@ -60,7 +81,7 @@ class ProjectBootstrapper {
     
     // Update .questmaestro config for monorepo
     const configPath = path.join(projectDir, '.questmaestro');
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const config: QuestmaestroConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     config.commands = {
       "ward": "npm run lint --workspace=$WORKSPACE -- $FILE",
       "ward:all": "npm run lint && npm run typecheck && npm run build && npm run test"
@@ -78,7 +99,7 @@ class ProjectBootstrapper {
   /**
    * Create a project with existing quests
    */
-  async createProjectWithQuests(baseType = 'simple', quests = []) {
+  async createProjectWithQuests(baseType: 'simple' | 'monorepo' = 'simple', quests: QuestData[] = []): Promise<ProjectInfo> {
     const project = baseType === 'monorepo' 
       ? await this.createMonorepo('project-with-quests')
       : await this.createSimpleProject('project-with-quests');
@@ -104,7 +125,7 @@ class ProjectBootstrapper {
   /**
    * Run npx questmaestro installer (simulating real user experience)
    */
-  async runNpxInstall(projectDir) {
+  async runNpxInstall(projectDir: string): Promise<string> {
     const installerPath = path.join(process.cwd(), 'bin', 'install.js');
     
     console.log(`   📦 Installing Questmaestro in ${path.basename(projectDir)}...`);
@@ -134,14 +155,14 @@ class ProjectBootstrapper {
   /**
    * Install Questmaestro in a project (legacy method)
    */
-  async installQuestmaestro(projectDir) {
+  async installQuestmaestro(projectDir: string): Promise<string> {
     return this.runNpxInstall(projectDir);
   }
 
   /**
    * Recursively copy directory
    */
-  copyDirectorySync(source, target) {
+  private copyDirectorySync(source: string, target: string): void {
     fs.mkdirSync(target, { recursive: true });
     
     const files = fs.readdirSync(source);
@@ -160,7 +181,7 @@ class ProjectBootstrapper {
   /**
    * Clean up test project
    */
-  cleanup(projectDir) {
+  cleanup(projectDir: string): void {
     if (fs.existsSync(projectDir)) {
       fs.rmSync(projectDir, { recursive: true, force: true });
     }
@@ -169,11 +190,9 @@ class ProjectBootstrapper {
   /**
    * Clean up all temp projects
    */
-  cleanupAll() {
+  cleanupAll(): void {
     if (fs.existsSync(this.tempRoot)) {
       fs.rmSync(this.tempRoot, { recursive: true, force: true });
     }
   }
 }
-
-module.exports = { ProjectBootstrapper };

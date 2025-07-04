@@ -1,7 +1,7 @@
-const { ProjectBootstrapper } = require('../utils/project-bootstrapper');
-const { ClaudeE2ERunner } = require('../utils/claude-runner');
-const fs = require('fs');
-const path = require('path');
+import { ProjectBootstrapper } from '../utils/project-bootstrapper';
+import { ClaudeE2ERunner } from '../utils/claude-runner';
+import * as fs from 'fs';
+import * as path from 'path';
 
 jest.setTimeout(120000); // 2 minute timeout for agent tests
 
@@ -65,8 +65,8 @@ describe('Agent Orchestration', () => {
           implementation: {
             status: 'complete',
             components: [
-              { name: 'add.js', status: 'complete' },
-              { name: 'subtract.js', status: 'complete' }
+              { name: 'add.ts', status: 'complete' },
+              { name: 'subtract.ts', status: 'complete' }
             ]
           },
           review: { status: 'not_started' }
@@ -78,11 +78,11 @@ describe('Agent Orchestration', () => {
     
     // Create dummy implementation files
     fs.writeFileSync(
-      path.join(project.rootDir, 'src/add.js'),
+      path.join(project.rootDir, 'src/add.ts'),
       'exports.add = (a, b) => a + b;'
     );
     fs.writeFileSync(
-      path.join(project.rootDir, 'src/subtract.js'),
+      path.join(project.rootDir, 'src/subtract.ts'),
       'exports.subtract = (a, b) => a - b;'
     );
     
@@ -153,7 +153,7 @@ describe('Agent Orchestration', () => {
     
     // Create a file with intentional lint error
     fs.writeFileSync(
-      path.join(project.rootDir, 'src/broken.js'),
+      path.join(project.rootDir, 'src/broken.ts'),
       'const x = 1\nconst x = 2 // duplicate declaration'
     );
     

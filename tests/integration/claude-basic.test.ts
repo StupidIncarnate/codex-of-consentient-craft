@@ -1,9 +1,9 @@
-const { ClaudeE2ERunner } = require('../utils/claude-runner');
-const { ProjectBootstrapper } = require('../utils/project-bootstrapper');
+import { ClaudeE2ERunner } from '../utils/claude-runner';
+import { ProjectBootstrapper } from '../utils/project-bootstrapper';
 
 describe('Claude Headless Basic Test', () => {
-  let project;
-  let runner;
+  let project: any;
+  let runner: any;
 
   beforeEach(async () => {
     const bootstrapper = new ProjectBootstrapper();

@@ -2,14 +2,14 @@ module.exports = {
   testEnvironment: 'node',
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
-    'src/**/*.js',
-    '!src/**/*.test.js'
+    'src/**/*.ts',
+    '!src/**/*.test.ts'
   ],
   testMatch: [
-    '**/__tests__/**/*.js',
-    '**/?(*.)+(spec|test).js'
+    '**/__tests__/**/*.ts',
+    '**/?(*.)+(spec|test).ts'
   ],
   transform: {
-    '^.+\\.js$': 'babel-jest'
+    '^.+\\.ts$': 'babel-jest'
   }
 };
