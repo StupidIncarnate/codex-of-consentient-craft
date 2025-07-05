@@ -1,6 +1,5 @@
 import { ProjectBootstrapper } from '../utils/project-bootstrapper';
 import { ClaudeE2ERunner } from '../utils/claude-runner';
-import { TestPhrases } from '../utils/quest-state-machine';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -49,7 +48,7 @@ describe('Quest State Management', () => {
     const result = await runner.executeCommand(
       '/questmaestro',
       'start quest b',
-      { killOnMatch: 'Quest B' }
+      { killOnPreAction: true } // Kill when we see [🎯] (continuing quest message)
     );
     
     expect(result.success).toBe(true);
@@ -82,7 +81,7 @@ describe('Quest State Management', () => {
     await runner.executeCommand(
       '/questmaestro',
       '',
-      { killOnMatch: TestPhrases.QUEST_COMPLETE }
+      { killOnPostAction: true } // Kill when we see [🎁] (quest complete message)
     );
     
     const tracker = JSON.parse(
@@ -120,11 +119,11 @@ describe('Quest State Management', () => {
     const result = await runner.executeCommand(
       '/questmaestro',
       '',
-      { killOnMatch: TestPhrases.QUEST_BLOCKED }
+      { killOnPostAction: true } // Kill when we see [🎁] (quest blocked message)
     );
     
     expect(result.success).toBe(true);
-    expect(result.stdout).toContain('blocked');
+    expect(result.stdout).toContain('Quest blocked');
     expect(result.stdout).toContain('ESLint error');
   });
 });

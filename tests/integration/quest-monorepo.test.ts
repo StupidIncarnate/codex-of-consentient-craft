@@ -22,7 +22,7 @@ describe('Quest in Monorepo', () => {
     const result = await runner.executeCommand(
       '/questmaestro', 
       'add API endpoint',
-      { killOnMatch: 'Creating quest' }
+      { killOnAction: true } // Kill when we see [🎲] (spawning Taskweaver for quest creation)
     );
     
     expect(result.success).toBe(true);

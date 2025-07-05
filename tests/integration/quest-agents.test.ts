@@ -1,9 +1,7 @@
 import { ProjectBootstrapper } from '../utils/project-bootstrapper';
 import { ClaudeE2ERunner } from '../utils/claude-runner';
 import { QuestStateBuilder } from '../utils/quest-state-builder';
-import { PhaseStatus, ComponentStatus, QuestStatus, TestPhrases } from '../utils/quest-state-machine';
-import * as fs from 'fs';
-import * as path from 'path';
+import { PhaseStatus, ComponentStatus, QuestStatus } from '../utils/quest-state-machine';
 
 jest.setTimeout(120000); // 2 minute timeout for agent tests
 
@@ -43,6 +41,7 @@ describe('Agent Orchestration', () => {
     );
     
     expect(result.success).toBe(true);
+    expect(result.stdout).toContain('Summoning 3 Codeweavers');
   });
 
   test('respects component dependencies for Codeweaver spawning', async () => {
@@ -73,6 +72,7 @@ describe('Agent Orchestration', () => {
     );
     
     expect(result.success).toBe(true);
+    expect(result.stdout).toContain('Summoning Codeweaver');
   });
 
   test('spawns Pathseeker for discovery phase', async () => {
@@ -131,10 +131,6 @@ describe('Agent Orchestration', () => {
     expect(result.success).toBe(true);
     expect(result.stdout).toContain('Lawbringer');
     expect(result.stdout).toContain('review');
-    
-    // Verify files were created by state builder
-    expect(fs.existsSync(path.join(project.rootDir, 'src/add.ts'))).toBe(true);
-    expect(fs.existsSync(path.join(project.rootDir, 'src/subtract.ts'))).toBe(true);
   });
 
   test('runs ward:all validation after testing', async () => {

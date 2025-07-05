@@ -26,7 +26,7 @@ describe('Quest Configuration', () => {
     const result = await runner.executeCommand(
       '/questmaestro',
       'list',
-      { killOnMatch: 'Quest Status' }
+      { killOnPostAction: true } // Kill when we see [🎁] (quest status displayed)
     );
     
     expect(result.success).toBe(true);
@@ -48,7 +48,7 @@ describe('Quest Configuration', () => {
     const result = await runner.executeCommand(
       '/questmaestro',
       'list',
-      { killOnMatch: 'Quest Status' }
+      { killOnPostAction: true } // Kill when we see [🎁] (quest status displayed)
     );
     
     expect(result.success).toBe(true);
@@ -62,7 +62,7 @@ describe('Quest Configuration', () => {
     const result = await runner.executeCommand(
       '/questmaestro',
       'list',
-      { killOnMatch: 'Quest Status' }
+      { killOnPostAction: true } // Kill when we see [🎁] (quest status displayed)
     );
     
     expect(result.success).toBe(true);

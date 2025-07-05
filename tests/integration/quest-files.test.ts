@@ -1,29 +1,21 @@
-// TODO: These imports are commented out for future implementation
-// import { ProjectBootstrapper } from '../utils/project-bootstrapper';
-// import { ClaudeE2ERunner } from '../utils/claude-runner';
-// import * as fs from 'fs';
-// import * as path from 'path';
-
 jest.setTimeout(60000); // 1 minute timeout
 
-describe('Quest File Updates', () => {
-  // TODO: These variables are commented out for future implementation
-  // const bootstrapper = new ProjectBootstrapper();
-  // let project;
-  // let runner;
-
+describe.skip('Quest File Updates', () => {
   // Cleanup happens on git commit, not after tests
   // This allows debugging of test artifacts
 
-  test('updates phase status after agent completion', async () => {
-    // TODO: Implement
+  test.skip('updates phase status after agent completion', async () => {
+    // NOTE: This test can't use killOn* flags because phase status updates
+    // happen AFTER agent completion and report parsing
   });
 
-  test('tracks component completion individually', async () => {
-    // TODO: Implement
+  test.skip('tracks component completion individually', async () => {
+    // NOTE: This test can't use killOn* flags because component status tracking
+    // happens AFTER the agent completes and reports are parsed
   });
 
-  test('maintains activity log with timestamps', async () => {
-    // TODO: Implement
+  test.skip('maintains activity log with timestamps', async () => {
+    // NOTE: This test can't use killOn* flags because activity log updates
+    // happen AFTER the agent operations complete
   });
 });

@@ -168,10 +168,10 @@ describe('Quest Command Routing', () => {
     const result = await runner.executeCommand(
       '/questmaestro',
       'add a function that validates email addresses',
-      { killOnAction: true }
+      { killOnPostAction: true }
     );
     
     expect(result.success).toBe(true);
-    expect(result.stdout).toContain('Taskweaver');
+    expect(result.stdout).toContain('new quest');
   });
 });

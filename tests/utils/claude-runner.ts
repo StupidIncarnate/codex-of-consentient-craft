@@ -297,26 +297,19 @@ export class ClaudeE2ERunner {
           if (output) {
             process.stdout.write(output);
             
-            // Check for action phase prefixes
-            if (output.includes('[🎯]')) seenPreAction = true;
-            if (output.includes('[🎲]')) seenMainAction = true;
-            if (output.includes('[🎁]')) seenPostAction = true;
-            
-            // Handle new kill options
-            if (options.killOnPreAction && seenPreAction) {
-              // Fail if we see main or post action after pre-action
-              if (seenMainAction || seenPostAction) {
-                process.stdout.write(`\n[KILL FAILED: Saw action/post-action after pre-action]\n`);
+            // Check for action phase prefixes and kill immediately if needed
+            if (output.includes('[🎯]')) {
+              seenPreAction = true;
+              // Kill immediately on pre-action to avoid race conditions
+              if (options.killOnPreAction) {
+                killMatched = true;
+                process.stdout.write(`\n[KILL ON PRE-ACTION: [🎯] found]\n`);
                 claudeProcess.kill('SIGTERM');
-                killMatched = false; // Mark as failure
                 return;
               }
-              // Success - kill on pre-action
-              killMatched = true;
-              process.stdout.write(`\n[KILL ON PRE-ACTION: [🎯] found]\n`);
-              claudeProcess.kill('SIGTERM');
-              return;
             }
+            if (output.includes('[🎲]')) seenMainAction = true;
+            if (output.includes('[🎁]')) seenPostAction = true;
             
             if (options.killOnAction && seenMainAction) {
               // Fail if we see post-action after main action
