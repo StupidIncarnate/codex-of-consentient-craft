@@ -81,6 +81,7 @@ TODO #3: VERIFY: All services follow consistent patterns
 
 2. Fix issues following Four Phases
 3. Run `npm run ward [filename]` after each fix
+4. **Final Integration Check**: Run `npm run ward:all` to verify all components work together
 
 ## Review Report
 
@@ -122,6 +123,7 @@ Manual Coverage Verification:
 - ServiceC: 18/18 branches covered
 
 Ward Status: All files passing
+Full Integration Check: `npm run ward:all` passing
 
 Files Modified:
 - path/to/serviceA.test.ts (added error tests)
@@ -136,6 +138,27 @@ Files Modified:
 2. **Check integration points**: Ensure services work together
 3. **Verify consistent patterns**: All Coders should follow same patterns
 4. **Fix systematically**: Update your TODOs as you fix issues
+
+## Final Integration Validation
+
+After completing all component reviews and fixes:
+
+1. **Run full project validation**:
+   ```bash
+   npm run ward:all
+   ```
+
+2. **Focus on integration issues**:
+   - Type mismatches between parallel components
+   - Missing exports/imports
+   - Integration test failures
+   - Build/typecheck failures
+
+3. **Fix integration issues**:
+   - Create TODOs for each integration problem
+   - Fix type compatibility between components
+   - Ensure all components work together as a system
+   - Re-run `npm run ward:all` until all checks pass
 
 ## Branch Coverage Checklist
 

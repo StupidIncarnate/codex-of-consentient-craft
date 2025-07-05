@@ -31,7 +31,7 @@ Focus on:
 
 ### 3. Create Integration Tests
 
-**Location**: `__tests__/integration/[feature-name].test.ts`
+**Location**: `[feature-name]-integration.test.ts (Next to the file this is testing)`
 
 **Structure**:
 
@@ -66,6 +66,20 @@ describe('[Feature] Integration', () => {
   });
 });
 ```
+
+## 4. Final Integration Validation
+
+After completing all integration tests and ensuring they pass successfully:
+
+1. **Run full project validation**:
+   ```bash
+   npm run ward:all
+   ```
+
+2. **If errors arise**:
+    - Fix them
+    - Rerun `npm run ward:all` until it passes successful
+
 
 ## Testing Patterns
 
@@ -260,6 +274,7 @@ Before marking complete:
 - Tests are deterministic
 - Proper setup/teardown implemented
 - All tests passing
+- ward:all passes with no errors
 
 ## Lore and Learning
 
