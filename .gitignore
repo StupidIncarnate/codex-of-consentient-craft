@@ -5,6 +5,9 @@ dist
 tmp
 out-tsc
 
+# test artifacts
+tests/tmp/
+
 .env
 
 # dependencies
