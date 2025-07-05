@@ -105,8 +105,10 @@ describe('Questmaestro E2E Tests', () => {
     expect(questData.agentReports).toBeDefined();
     expect(questData.agentReports.codeweaver).toBeInstanceOf(Array);
     expect(questData.agentReports.codeweaver.length).toBeGreaterThanOrEqual(2);
-    expect(questData.agentReports.lawbringer).toBeDefined();
-    expect(questData.agentReports.siegemaster).toBeDefined();
+    expect(questData.agentReports.lawbringer).toBeInstanceOf(Array);
+    expect(questData.agentReports.lawbringer.length).toBeGreaterThan(0);
+    expect(questData.agentReports.siegemaster).toBeInstanceOf(Array);
+    expect(questData.agentReports.siegemaster.length).toBeGreaterThan(0);
     
     // Check agent reports are arrays of strings
     const firstCodeweaverReport = questData.agentReports.codeweaver[0];

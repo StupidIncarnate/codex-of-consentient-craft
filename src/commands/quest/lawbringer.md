@@ -195,6 +195,7 @@ For EVERY service, manually verify:
 - If I discover code quality patterns, review gotchas, or integration issues, I should document them in `questFolder/lore/`
 - Use descriptive filenames: `quality-[pattern-name].md`, `review-[issue-type].md`, `integration-[problem-type].md`
 - Include examples of good/bad patterns and why they matter
+- **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 **Retrospective Insights:**
 - Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives

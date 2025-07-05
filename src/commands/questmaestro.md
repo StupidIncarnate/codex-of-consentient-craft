@@ -38,16 +38,20 @@ Quest file structure includes:
     { "timestamp": "...", "agent": "...", "action": "...", "details": "..." }
   ],
   "agentReports": {
-    "pathseeker": {
-      "timestamp": "...",
-      "fullReport": [
-        "=== PATHSEEKER REPORT ===",
-        "Quest: ...",
-        "..."
-      ]
-    },
+    "pathseeker": [
+      {
+        "agentId": "pathseeker-001",
+        "timestamp": "...",
+        "fullReport": [
+          "=== PATHSEEKER REPORT ===",
+          "Quest: ...",
+          "..."
+        ]
+      }
+    ],
     "codeweaver": [
       {
+        "agentId": "codeweaver-ProcessingModeManager-001",
         "component": "...",
         "timestamp": "...",
         "fullReport": [
@@ -58,18 +62,27 @@ Quest file structure includes:
         ]
       }
     ],
-    "lawbringer": {
-      "timestamp": "...",
-      "fullReport": ["=== LAWBRINGER REPORT ===", "..."]
-    },
-    "siegemaster": {
-      "timestamp": "...",
-      "fullReport": ["=== SIEGEMASTER REPORT ===", "..."]
-    },
-    "spiritmender": {
-      "timestamp": "...",
-      "fullReport": ["=== SPIRITMENDER REPORT ===", "..."]
-    }
+    "lawbringer": [
+      {
+        "agentId": "lawbringer-001",
+        "timestamp": "...",
+        "fullReport": ["=== LAWBRINGER REPORT ===", "..."]
+      }
+    ],
+    "siegemaster": [
+      {
+        "agentId": "siegemaster-001",
+        "timestamp": "...",
+        "fullReport": ["=== SIEGEMASTER REPORT ===", "..."]
+      }
+    ],
+    "spiritmender": [
+      {
+        "agentId": "spiritmender-001",
+        "timestamp": "...",
+        "fullReport": ["=== SPIRITMENDER REPORT ===", "..."]
+      }
+    ]
   }
 }
 ```
@@ -212,6 +225,16 @@ Exit when:
 
 Once you have an active quest:
 
+**CRITICAL RULE: ALWAYS FOLLOW QUEST PHASE ORDER**
+
+Even if the user asks you to run a specific agent or step out of order (unless the explicitly say to skip), after completing their request, you MUST:
+1. Recheck the current quest status
+2. Continue with the proper phase sequence
+3. Do not skip steps in the quest flow
+4. Always follow the standard quest phases in order
+
+### Quest Flow Process
+
 1. **Check Quest Status**
 
     - If status is "blocked", report blockers and ask for guidance
@@ -288,12 +311,14 @@ Note:
 
 To spawn any agent:
 
-1. First check your current working directory with `pwd` or look at the cwd in your environment
+1. **Generate Unique Agent ID**: Create unique identifier using format: `[agent-type]-[component-name-if-applicable]-[sequential-number]`
+   - Examples: `pathseeker-001`, `codeweaver-UserService-001`, `lawbringer-002`
+   - Check existing agentReports arrays to determine next sequential number
 2. Read the agent file using a path relative to YOUR CURRENT DIRECTORY:
     - If you're in `/some/test/dir/`, read from `/some/test/dir/.claude/commands/quest/[agent-name].md`
     - If not found, look in the `quest` folder on same level.
     - Do NOT go up directories or use absolute paths outside your working directory
-3. Replace `$ARGUMENTS` in the file with the specific context
+3. Replace `$ARGUMENTS` in the file with the specific context including the unique Agent ID
 4. Use the Task tool with the modified content as the prompt
 
 Agent files in your local .claude/commands/quest/ directory:
@@ -312,6 +337,7 @@ When spawning agents, provide clear context to replace $ARGUMENTS:
 User request: [USER REQUEST]
 Previous context: [ACCUMULATED CONTEXT FROM PLANNING MODE]
 Working directory: [CURRENT_WORKING_DIRECTORY]
+Agent ID: pathseeker-[UNIQUE_NUMBER]
 
 IMPORTANT: Stay within the current working directory for all operations.
 ```
@@ -322,6 +348,7 @@ IMPORTANT: Stay within the current working directory for all operations.
 Quest: [QUEST DESCRIPTION]
 Quest context: [QUEST TITLE]
 Working directory: [CURRENT_WORKING_DIRECTORY]
+Agent ID: pathseeker-[UNIQUE_NUMBER]
 
 IMPORTANT: Stay within the current working directory for all operations.
 ```
@@ -332,6 +359,7 @@ IMPORTANT: Stay within the current working directory for all operations.
 Quest context: [QUEST TITLE]
 Component to build: [SPECIFIC SERVICE/COMPONENT]
 Dependencies: [LIST FROM DISCOVERY]
+Agent ID: codeweaver-[COMPONENT_NAME]-[UNIQUE_NUMBER]
 
 IMPORTANT: You are working in [CURRENT_WORKING_DIRECTORY].
 - All file operations must be within this directory
@@ -346,6 +374,7 @@ Create the implementation and output your report (do not modify quest files).
 ```
 Review implementations for quest: [QUEST TITLE]
 Components to review: [LIST FROM DISCOVERY]
+Agent ID: lawbringer-[UNIQUE_NUMBER]
 Output your review report (do not modify quest files)
 
 IMPORTANT: Stay within the current working directory for all operations.
@@ -357,6 +386,7 @@ IMPORTANT: Stay within the current working directory for all operations.
 Create tests for quest: [QUEST TITLE]
 Components to test: [LIST FROM DISCOVERY]
 Test file location: [tests]/[quest-id].test.ts
+Agent ID: siegemaster-[UNIQUE_NUMBER]
 Output your testing report (do not modify quest files)
 
 IMPORTANT: Stay within the current working directory for all operations.
@@ -368,6 +398,7 @@ IMPORTANT: Stay within the current working directory for all operations.
 Fix build errors for quest: [QUEST TITLE]
 Error output: [ERROR DETAILS]
 Affected components: [LIST]
+Agent ID: spiritmender-[UNIQUE_NUMBER]
 If you discover gotchas, add to: [questFolder]/lore/[category]-[description].md
 Output your healing report (do not modify quest files)
 
@@ -469,7 +500,7 @@ After parsing a report:
         - Parse "Discovery Findings" JSON and add to phases.discovery.findings
         - Parse "Components Found" JSON array and add to phases.implementation.components
         - Parse "Key Decisions Made" JSON and add to decisions object
-    - Store full report in agentReports.pathseeker
+    - Store full report in agentReports.pathseeker array with unique agentId
 - If Status is "INSUFFICIENT_CONTEXT":
     - Parse "Suggested Questions for User" from report
     - Enter Planning Mode asking these specific questions
@@ -483,7 +514,7 @@ After parsing a report:
 - Add files created to component object
 - Remove agent from activeAgents
 - If all components complete, set implementation phase to "complete"
-- Store full report in agentReports.codeweaver array with component name
+- Store full report in agentReports.codeweaver array with unique agentId and component name
 
 **For Lawbringer Reports:**
 
@@ -491,28 +522,29 @@ After parsing a report:
 - Add any issues to phases.review.issues array
 - If issues were fixed, note in activity
 - If major issues found, may need to set implementation back to "in_progress"
-- Store full report in agentReports.lawbringer
+- Store full report in agentReports.lawbringer array with unique agentId
 
 **For Siegemaster Reports:**
 
 - Set phases.testing.status to "complete"
 - Update phases.testing.coverage with reported percentage
 - Add test files created to activity
-- Store full report in agentReports.siegemaster
+- Store full report in agentReports.siegemaster array with unique agentId
 
 **For Spiritmender Reports:**
 
 - Clear any blockers that were resolved
 - Update quest status from "blocked" to "active" if appropriate
 - Note all fixes in activity log
-- Store full report in agentReports.spiritmender
+- Store full report in agentReports.spiritmender array with unique agentId
 
 **Always:**
 
 - Add entry to activity array with timestamp, agent, action, and details
 - Store the complete agent report in agentReports object:
-    - For single-run agents (Pathseeker, Lawbringer, etc.): Store as object with timestamp and fullReport (array of strings)
-    - For multi-run agents (Codeweaver): Store as array with component name, timestamp, and fullReport (array of strings)
+    - All agents now store as arrays to support multiple runs
+    - Each entry includes: agentId, timestamp, fullReport (array of strings)
+    - For Codeweaver: Also include component name
     - Store each line of the report as a separate string in the fullReport array
     - Format:
       ```json

@@ -2,7 +2,7 @@
 
 You're working on Questmaestro, a fun quest-driven orchestration system that helps AI agents work together efficiently on coding tasks.
 
-## IMPORTANT: DO NOT MAKE ASSUMPTIONS
+## LITERAL COMPLIANCE REQUIRED
 
 When this command runs:
 - DO NOT run any tests
@@ -14,10 +14,15 @@ This is a context file only. Wait for the user to tell you what they need.
 
 ## When doing requests for user
 
-- Do exactly what the user asks you to do. DO NOT get ahead of yourself because you will make more work for both you and the user.
-- If a request is ambiguous, ASK for clarification. DO NOT assume anything.
-- **If you're not 100% certain about syntax or APIs, explicitly state your uncertainty level**
-- **Never present generated code patterns as if they're established syntax**
+1. **Use the user's EXACT syntax** - Don't translate, interpret, or "improve" their format
+2. **Bracket notation is literal** - If user writes `[agent-id]`, use exactly `[agent-id]` unless told to substitute
+3. **No helpful substitutions** - Don't replace placeholders or variables unless explicitly instructed
+4. **Mirror exact wording** - Use the user's precise language, not your interpretation of it
+5. **When syntax is unclear, ASK** - Don't guess what format means
+6. **No optimization** - Don't enhance or clarify the user's instructions
+7. **Assume literal meaning** - Take everything at face value unless told otherwise
+
+**The user knows what they want better than I do.** My job is to execute their exact instructions, not to interpret what I think they meant.
 
 ## TECHNICAL PRECISION
 
@@ -69,7 +74,7 @@ Create a delightful, easy-to-use orchestration system that:
 - **Lawbringer** - Reviews code quality
 - **Siegemaster** - Creates integration tests
 - **Spiritmender** - Fixes build errors
-- **Taskweaver** - Creates quest definitions from user requests
+- **Pathseeker** - Creates quest definitions and maps dependencies
 
 ### Ward Commands
 - `ward` = Lint/typecheck a single file (protection spell)
@@ -185,7 +190,7 @@ test('questmaestro spawns Lawbringer after implementation', async () => {
 ### Key Concept: Organic State Buildup
 
 When you call `.inLawbringerState()`, the builder automatically:
-1. Creates a quest via Taskweaver
+1. Creates a quest via Pathseeker
 2. Runs discovery via Pathseeker  
 3. Implements components via Codeweaver
 4. THEN sets up for Lawbringer
@@ -195,8 +200,7 @@ This mirrors how quests actually progress!
 ### State Builder Methods
 
 Each method configures a specific phase:
-- `inTaskweaverState(status)` - Quest creation
-- `inPathseekerState(status, options)` - Discovery phase
+- `inPathseekerState(status, options)` - Quest creation and discovery
 - `inCodeweaverState(status, options)` - Implementation 
 - `inLawbringerState(status, options)` - Code review
 - `inSiegemasterState(status, options)` - Testing

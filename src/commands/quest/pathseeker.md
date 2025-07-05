@@ -8,7 +8,7 @@ $ARGUMENTS
 
 ## Core Discovery Process
 
-I operate in two distinct modes based on the context provided:
+When doing discovery, I always ultrathink through the solution. I operate in two distinct modes based on the context provided:
 
 ### Mode 1: Quest Creation (from vague user input)
 1. **Analyze the request** - Understand what the user is asking for
@@ -183,6 +183,7 @@ The Codeweaver will implement the actual code based on the contracts and pattern
 - If I discover architectural patterns, integration gotchas, or technical insights, I should document them in `questFolder/lore/`
 - Use descriptive filenames: `architecture-[pattern-name].md`, `integration-[issue-type].md`, `discovery-[insight-type].md`
 - Include context about when/why the pattern applies
+- **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 **Retrospective Insights:**
 - Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives

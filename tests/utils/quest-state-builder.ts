@@ -56,12 +56,28 @@ export class QuestStateBuilder {
     // Quest creation is now done by Pathseeker, so mark discovery as complete
     this.quest.phases.discovery.status = PhaseStatus.COMPLETE;
     this.quest.phases.discovery.findings = {
-      components: options?.customComponents || [
+      components: (options?.customComponents || [
         { name: 'test-component', dependencies: [] }
-      ],
+      ]).map(c => ({ name: c.name, dependencies: c.dependencies || [] })),
       decisions: { approach: 'standard implementation' }
     };
     
+    // Add pathseeker report since quest creation is now handled by pathseeker
+    if (!this.quest.agentReports.pathseeker) {
+      this.quest.agentReports.pathseeker = [];
+    }
+    this.quest.agentReports.pathseeker.push({
+      agentId: `pathseeker-${String(this.quest.agentReports.pathseeker.length + 1).padStart(3, '0')}`,
+      timestamp: new Date().toISOString(),
+      fullReport: [
+        '=== PATHSEEKER REPORT ===',
+        `Quest: ${this.quest.title}`,
+        'Status: SUCCESS',
+        'Quest created from user request analysis',
+        '=== END REPORT ==='
+      ]
+    });
+
     // Add activity
     this.addActivity('Quest created from Pathseeker exploration', 'pathseeker', {
       questDefinition: {
@@ -153,10 +169,14 @@ export class QuestStateBuilder {
     });
     
     // Add Pathseeker report
-    this.quest.agentReports.pathseeker = {
+    if (!this.quest.agentReports.pathseeker) {
+      this.quest.agentReports.pathseeker = [];
+    }
+    this.quest.agentReports.pathseeker.push({
+      agentId: `pathseeker-${String(this.quest.agentReports.pathseeker.length + 1).padStart(3, '0')}`,
       timestamp: new Date().toISOString(),
       fullReport: AgentReportTemplates.pathseeker(this.quest.title, components)
-    };
+    });
     
     return this;
   }
@@ -281,10 +301,14 @@ export class QuestStateBuilder {
       }
       
       // Add Lawbringer report
-      this.quest.agentReports.lawbringer = {
+      if (!this.quest.agentReports.lawbringer) {
+        this.quest.agentReports.lawbringer = [];
+      }
+      this.quest.agentReports.lawbringer.push({
+        agentId: `lawbringer-${String(this.quest.agentReports.lawbringer.length + 1).padStart(3, '0')}`,
         timestamp: new Date().toISOString(),
         fullReport: AgentReportTemplates.lawbringer(issues, status)
-      };
+      });
       
     } else if (status === PhaseStatus.IN_PROGRESS) {
       this.quest.phases.review.progress = options?.percentComplete ? `${options.percentComplete}%` : '50%';
@@ -339,10 +363,14 @@ export class QuestStateBuilder {
       }
       
       // Add Siegemaster report
-      this.quest.agentReports.siegemaster = {
+      if (!this.quest.agentReports.siegemaster) {
+        this.quest.agentReports.siegemaster = [];
+      }
+      this.quest.agentReports.siegemaster.push({
+        agentId: `siegemaster-${String(this.quest.agentReports.siegemaster.length + 1).padStart(3, '0')}`,
         timestamp: new Date().toISOString(),
         fullReport: AgentReportTemplates.siegemaster(coverage, testFiles)
-      };
+      });
       
     } else if (status === PhaseStatus.BLOCKED) {
       this.quest.status = QuestStatus.BLOCKED;
@@ -407,10 +435,14 @@ export class QuestStateBuilder {
     }
     
     // Add Spiritmender report
-    this.quest.agentReports.spiritmender = {
+    if (!this.quest.agentReports.spiritmender) {
+      this.quest.agentReports.spiritmender = [];
+    }
+    this.quest.agentReports.spiritmender.push({
+      agentId: `spiritmender-${String(this.quest.agentReports.spiritmender.length + 1).padStart(3, '0')}`,
       timestamp: new Date().toISOString(),
       fullReport: AgentReportTemplates.spiritmender(blockers, resolved)
-    };
+    });
     
     this.addActivity(`Healing ${resolved ? 'complete' : 'in progress'}`, 'spiritmender', {
       blockersResolved: resolved ? blockers.length : 0
@@ -557,6 +589,7 @@ export class QuestStateBuilder {
       }
       
       this.quest.agentReports.codeweaver.push({
+        agentId: `codeweaver-${fileName}-${String(this.quest.agentReports.codeweaver.length + 1).padStart(3, '0')}`,
         component: component.name,
         timestamp: new Date().toISOString(),
         fullReport: AgentReportTemplates.codeweaver(component.name, 'Complete')

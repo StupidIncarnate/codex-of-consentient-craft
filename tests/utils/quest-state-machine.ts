@@ -89,6 +89,7 @@ export interface QuestPhases {
 }
 
 export interface AgentReport {
+  agentId: string;
   timestamp: string;
   fullReport: string[];
 }
@@ -98,11 +99,11 @@ export interface CodeweaverReport extends AgentReport {
 }
 
 export interface AgentReports {
-  pathseeker?: AgentReport;
+  pathseeker?: AgentReport[];
   codeweaver?: CodeweaverReport[];
-  lawbringer?: AgentReport;
-  siegemaster?: AgentReport;
-  spiritmender?: AgentReport;
+  lawbringer?: AgentReport[];
+  siegemaster?: AgentReport[];
+  spiritmender?: AgentReport[];
 }
 
 export interface QuestOutcome {
@@ -150,7 +151,7 @@ export class QuestStateMachine {
   private static phaseTransitions: Record<PhaseStatus, PhaseStatus[]> = {
     [PhaseStatus.NOT_STARTED]: [PhaseStatus.IN_PROGRESS],
     [PhaseStatus.IN_PROGRESS]: [PhaseStatus.COMPLETE, PhaseStatus.BLOCKED],
-    [PhaseStatus.COMPLETE]: [PhaseStatus.IN_PROGRESS], // can go back if issues found
+    [PhaseStatus.COMPLETE]: [PhaseStatus.IN_PROGRESS, PhaseStatus.BLOCKED], // can go back if issues found
     [PhaseStatus.BLOCKED]: [PhaseStatus.IN_PROGRESS]
   };
 

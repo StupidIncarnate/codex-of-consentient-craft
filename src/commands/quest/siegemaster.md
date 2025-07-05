@@ -282,6 +282,7 @@ Before marking complete:
 - If I discover testing patterns, integration gotchas, or test strategies, I should document them in `questFolder/lore/`
 - Use descriptive filenames: `testing-[strategy-name].md`, `integration-[pattern-type].md`, `test-setup-[scenario-type].md`
 - Include test examples and context about when/why the approach works
+- **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 **Retrospective Insights:**
 - Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives

@@ -120,6 +120,7 @@ Technical Decisions:
 - If I discover implementation patterns, technical debt, or coding gotchas, I should document them in `questFolder/lore/`
 - Use descriptive filenames: `implementation-[pattern-name].md`, `testing-[strategy-type].md`, `performance-[issue-type].md`
 - Include code examples and context about when/why the pattern applies
+- **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 **Retrospective Insights:**
 - Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives

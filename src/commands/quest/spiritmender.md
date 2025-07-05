@@ -135,6 +135,7 @@ Blockers Resolved:
 **Writing to Lore:**
 - Already documented above - create lore entries for error patterns, fix strategies, and gotchas in `questFolder/lore/`
 - Use descriptive filenames: `error-[pattern-name].md`, `fix-[strategy-type].md`, `build-[issue-type].md`
+- **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 **Retrospective Insights:**
 - Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives

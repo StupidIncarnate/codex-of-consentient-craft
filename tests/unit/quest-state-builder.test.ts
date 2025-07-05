@@ -53,7 +53,9 @@ describe('Quest State Builder', () => {
       expect(quest.status).toBe(QuestStatus.ACTIVE);
       expect(quest.complexity).toBe('medium');
       expect(quest.tags).toEqual(['test', 'automated']);
-      expect(quest.agentReports.taskweaver).toBeDefined();
+      expect(quest.agentReports.pathseeker).toBeDefined();
+      expect(quest.agentReports.pathseeker!.length).toBeGreaterThan(0);
+      expect(quest.agentReports.pathseeker![0].agentId).toMatch(/pathseeker-\d+/);
     });
 
     test('should handle blocked status with blockers', () => {
@@ -74,13 +76,13 @@ describe('Quest State Builder', () => {
       const quest = builder.getQuest();
       
       expect(quest.activity).toHaveLength(1);
-      expect(quest.activity[0].agent).toBe('taskweaver');
-      expect(quest.activity[0].action).toBe('Quest created');
+      expect(quest.activity[0].agent).toBe('pathseeker');
+      expect(quest.activity[0].action).toBe('Quest created from Pathseeker exploration');
     });
 
     test('should track state history', () => {
       builder.inTaskweaverState();
-      expect(builder.getStateHistory()).toContain('taskweaver');
+      expect(builder.getStateHistory()).toContain('quest_creation');
     });
   });
 
@@ -89,7 +91,7 @@ describe('Quest State Builder', () => {
       builder.inPathseekerState();
       const history = builder.getStateHistory();
       
-      expect(history).toEqual(['taskweaver', 'pathseeker']);
+      expect(history).toEqual(['quest_creation', 'pathseeker']);
     });
 
     test('should complete discovery phase', () => {
@@ -118,10 +120,16 @@ describe('Quest State Builder', () => {
     });
 
     test('should handle blocked discovery', () => {
-      builder.inPathseekerState(PhaseStatus.BLOCKED, {
+      // Create a builder without auto-running quest creation
+      const freshBuilder = new QuestStateBuilder(builder['projectDir'], 'Block Test');
+      // Don't call inTaskweaverState, just manually set up the minimal state
+      freshBuilder.getQuest().phases.discovery.status = PhaseStatus.NOT_STARTED;
+      
+      // Now call pathseeker directly with blocked status
+      freshBuilder.inPathseekerState(PhaseStatus.BLOCKED, {
         errorMessage: 'Cannot analyze codebase'
       });
-      const quest = builder.getQuest();
+      const quest = freshBuilder.getQuest();
       
       expect(quest.phases.discovery.status).toBe(PhaseStatus.BLOCKED);
       expect(quest.status).toBe(QuestStatus.BLOCKED);
@@ -220,6 +228,7 @@ describe('Quest State Builder', () => {
       
       expect(quest.agentReports.codeweaver).toBeDefined();
       expect(quest.agentReports.codeweaver!.length).toBe(quest.phases.implementation.components.length);
+      expect(quest.agentReports.codeweaver![0].agentId).toMatch(/codeweaver-.+-\d+/);
     });
   });
 
@@ -346,6 +355,8 @@ describe('Quest State Builder', () => {
       expect(quest.blockers).toBeDefined();
       expect(quest.blockers!.length).toBeGreaterThan(0);
       expect(quest.agentReports.spiritmender).toBeDefined();
+      expect(quest.agentReports.spiritmender!.length).toBeGreaterThan(0);
+      expect(quest.agentReports.spiritmender![0].agentId).toMatch(/spiritmender-\d+/);
     });
 
     test('should resolve blockers', () => {
@@ -559,7 +570,7 @@ describe('Quest State Builder', () => {
       
       expect(quest.status).toBe(QuestStatus.COMPLETED);
       expect(builder.getStateHistory()).toEqual([
-        'taskweaver',
+        'quest_creation',
         'pathseeker',
         'codeweaver',
         'lawbringer',
