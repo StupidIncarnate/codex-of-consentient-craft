@@ -15,7 +15,10 @@ interface CommandResult {
 interface CommandOptions {
   timeout?: number;
   debug?: boolean;
-  killOnMatch?: string;
+  killOnMatch?: string;  // Keep for backwards compatibility
+  killOnPreAction?: boolean;  // Kill when [🎯] appears (fail if [🎲] or [🎁] appear)
+  killOnAction?: boolean;     // Kill when [🎲] appears (fail if [🎁] appears after)
+  killOnPostAction?: boolean; // Kill when [🎁] appears
   streaming?: boolean;
 }
 
@@ -151,6 +154,11 @@ export class ClaudeE2ERunner {
       let finalResult: StreamJsonEvent | null = null;
       let killMatched = false;
       const killPhrase = options.killOnMatch;
+      
+      // Track action phases
+      let seenPreAction = false;
+      let seenMainAction = false;
+      let seenPostAction = false;
 
       // Create readline interface for line-by-line processing
       const rl = readline.createInterface({
@@ -289,7 +297,51 @@ export class ClaudeE2ERunner {
           if (output) {
             process.stdout.write(output);
             
-            // Check for kill phrase if specified
+            // Check for action phase prefixes
+            if (output.includes('[🎯]')) seenPreAction = true;
+            if (output.includes('[🎲]')) seenMainAction = true;
+            if (output.includes('[🎁]')) seenPostAction = true;
+            
+            // Handle new kill options
+            if (options.killOnPreAction && seenPreAction) {
+              // Fail if we see main or post action after pre-action
+              if (seenMainAction || seenPostAction) {
+                process.stdout.write(`\n[KILL FAILED: Saw action/post-action after pre-action]\n`);
+                claudeProcess.kill('SIGTERM');
+                killMatched = false; // Mark as failure
+                return;
+              }
+              // Success - kill on pre-action
+              killMatched = true;
+              process.stdout.write(`\n[KILL ON PRE-ACTION: [🎯] found]\n`);
+              claudeProcess.kill('SIGTERM');
+              return;
+            }
+            
+            if (options.killOnAction && seenMainAction) {
+              // Fail if we see post-action after main action
+              if (seenPostAction) {
+                process.stdout.write(`\n[KILL FAILED: Saw post-action after main action]\n`);
+                claudeProcess.kill('SIGTERM');
+                killMatched = false; // Mark as failure
+                return;
+              }
+              // Success - kill on main action
+              killMatched = true;
+              process.stdout.write(`\n[KILL ON ACTION: [🎲] found]\n`);
+              claudeProcess.kill('SIGTERM');
+              return;
+            }
+            
+            if (options.killOnPostAction && seenPostAction) {
+              // Success - kill on post-action
+              killMatched = true;
+              process.stdout.write(`\n[KILL ON POST-ACTION: [🎁] found]\n`);
+              claudeProcess.kill('SIGTERM');
+              return;
+            }
+            
+            // Check for legacy kill phrase if specified
             if (killPhrase && output.includes(killPhrase)) {
               killMatched = true;
               process.stdout.write(`\n[KILL MATCH FOUND: "${killPhrase}"]\n`);
@@ -304,7 +356,34 @@ export class ClaudeE2ERunner {
               if (item.type === 'text' && item.text) {
                 messages.push(item.text);
                 
-                // Also check text content for kill phrase
+                // Check for action phase prefixes in text content
+                if (item.text.includes('[🎯]')) seenPreAction = true;
+                if (item.text.includes('[🎲]')) seenMainAction = true;
+                if (item.text.includes('[🎁]')) seenPostAction = true;
+                
+                // Apply the same kill logic for text content
+                if (options.killOnPreAction && seenPreAction && !seenMainAction && !seenPostAction) {
+                  killMatched = true;
+                  process.stdout.write(`\n[KILL ON PRE-ACTION: [🎯] found in text]\n`);
+                  claudeProcess.kill('SIGTERM');
+                  return;
+                }
+                
+                if (options.killOnAction && seenMainAction && !seenPostAction) {
+                  killMatched = true;
+                  process.stdout.write(`\n[KILL ON ACTION: [🎲] found in text]\n`);
+                  claudeProcess.kill('SIGTERM');
+                  return;
+                }
+                
+                if (options.killOnPostAction && seenPostAction) {
+                  killMatched = true;
+                  process.stdout.write(`\n[KILL ON POST-ACTION: [🎁] found in text]\n`);
+                  claudeProcess.kill('SIGTERM');
+                  return;
+                }
+                
+                // Also check text content for legacy kill phrase
                 if (killPhrase && item.text.includes(killPhrase)) {
                   killMatched = true;
                   process.stdout.write(`\n[KILL MATCH FOUND: "${killPhrase}"]\n`);

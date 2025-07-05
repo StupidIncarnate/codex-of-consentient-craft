@@ -110,6 +110,200 @@ ls -la .claude/commands/
 ls -la questmaestro/
 ```
 
+## CRITICAL: Writing Tests for Questmaestro
+
+When writing integration or E2E tests for questmaestro functionality, you MUST use the Quest State Machine system. This ensures tests accurately reflect real quest states and are maintainable.
+
+### Why Use the State Machine?
+
+1. **Realistic Test Environments**: Manually creating quest JSON objects often results in invalid or unrealistic states
+2. **Organic State Flow**: Real quests go through phases in order - the state machine enforces this
+3. **Type Safety**: TypeScript enums and interfaces prevent invalid configurations
+4. **Consistency**: All tests use the same patterns and structures
+
+### The Quest State Machine System
+
+Located in `tests/utils/`:
+- **quest-state-machine.ts** - Core types, enums, state transitions, and validation
+- **quest-state-options.ts** - Templates for components, agent reports, and file generation
+- **quest-state-builder.ts** - Main builder class that creates test environments
+
+### How to Write Tests
+
+1. **Import the State Machine:**
+```typescript
+import { QuestStateBuilder } from '../utils/quest-state-builder';
+import { PhaseStatus, ComponentStatus, QuestStatus } from '../utils/quest-state-machine';
+```
+
+2. **Create Test Environment:**
+```typescript
+test('questmaestro spawns Lawbringer after implementation', async () => {
+  // Create project
+  project = await bootstrapper.createSimpleProject('test-name');
+  
+  // Use state builder to set up quest
+  const builder = new QuestStateBuilder(project.rootDir, 'Review Feature');
+  await builder
+    .inCodeweaverState(PhaseStatus.COMPLETE)  // Automatically creates all previous states!
+    .prepareTestEnvironment();
+  
+  // Now test questmaestro behavior
+  const result = await runner.executeCommand('/questmaestro', '', {
+    killOnMatch: 'Lawbringer'
+  });
+  
+  expect(result.stdout).toContain('Lawbringer');
+});
+```
+
+### Key Concept: Organic State Buildup
+
+When you call `.inLawbringerState()`, the builder automatically:
+1. Creates a quest via Taskweaver
+2. Runs discovery via Pathseeker  
+3. Implements components via Codeweaver
+4. THEN sets up for Lawbringer
+
+This mirrors how quests actually progress!
+
+### State Builder Methods
+
+Each method configures a specific phase:
+- `inTaskweaverState(status)` - Quest creation
+- `inPathseekerState(status, options)` - Discovery phase
+- `inCodeweaverState(status, options)` - Implementation 
+- `inLawbringerState(status, options)` - Code review
+- `inSiegemasterState(status, options)` - Testing
+- `inSpiritMenderState(resolved, options)` - Error fixing
+- `inCompletedState()` - Quest completion
+- `inAbandonedState(reason)` - Quest abandonment
+
+### Configuration Options
+
+```typescript
+// Test partial implementation
+.inCodeweaverState(PhaseStatus.IN_PROGRESS, {
+  partialOnly: true  // Only implements components without dependencies
+})
+
+// Test error scenarios
+.inLawbringerState(PhaseStatus.COMPLETE, {
+  withErrors: true,  // Injects review issues
+  reviewIssues: [
+    { severity: 'major', file: 'src/api.ts', message: 'Type error' }
+  ]
+})
+
+// Test custom components
+.inPathseekerState(PhaseStatus.COMPLETE, {
+  customComponents: [
+    { name: 'auth', description: 'authentication service' },
+    { name: 'database', description: 'database layer', dependencies: ['auth'] }
+  ]
+})
+```
+
+### What Gets Created
+
+The state builder creates:
+- Quest JSON files in proper directory structure
+- Agent report history (as if agents really ran)
+- TypeScript implementation files with actual code
+- Test files where appropriate
+- Proper quest-tracker.json
+- Activity logs with timestamps
+
+### Example: Testing Parallel Execution
+
+```typescript
+test('spawns parallel Codeweavers for independent components', async () => {
+  const builder = new QuestStateBuilder(project.rootDir, 'Create Services');
+  
+  // Set up quest with multiple independent components
+  await builder
+    .inPathseekerState(PhaseStatus.COMPLETE, {
+      customComponents: [
+        { name: 'userService', description: 'user management' },
+        { name: 'productService', description: 'product catalog' },
+        { name: 'orderService', description: 'order processing' }
+      ]
+    })
+    .prepareTestEnvironment();
+  
+  const result = await runner.executeCommand('/questmaestro', '', {
+    killOnMatch: 'parallel'
+  });
+  
+  expect(result.stdout).toContain('multiple Codeweavers');
+});
+```
+
+### Common Mistakes to Avoid
+
+❌ **DON'T** manually create quest objects:
+```typescript
+// BAD - This creates unrealistic state
+const quest = {
+  phases: { implementation: { status: 'complete' } }
+};
+```
+
+✅ **DO** use the state builder:
+```typescript
+// GOOD - Creates valid, complete state
+await builder.inCodeweaverState(PhaseStatus.COMPLETE).prepareTestEnvironment();
+```
+
+❌ **DON'T** write files directly:
+```typescript
+// BAD - Doesn't include proper quest tracking
+fs.writeFileSync('src/api.ts', 'export function api() {}');
+```
+
+✅ **DO** let the builder handle files:
+```typescript
+// GOOD - Creates files with proper quest association
+await builder.inCodeweaverState(PhaseStatus.COMPLETE).prepareTestEnvironment();
+// Files are automatically created with realistic content
+```
+
+### Testing Different Scenarios
+
+**Blocked Quest:**
+```typescript
+.inSiegemasterState(PhaseStatus.BLOCKED, {
+  errorMessage: 'Tests failing: Cannot connect to database'
+})
+```
+
+**Partial Implementation:**
+```typescript
+.inCodeweaverState(PhaseStatus.IN_PROGRESS, {
+  partialOnly: true  // Only non-dependent components done
+})
+```
+
+**Quest with Dependencies:**
+```typescript
+.inPathseekerState(PhaseStatus.COMPLETE, {
+  customComponents: [
+    { name: 'config', description: 'configuration' },
+    { name: 'logger', description: 'logging', dependencies: ['config'] }
+  ]
+})
+```
+
+### Remember
+
+- All files are TypeScript (`.ts` extension)
+- States build organically (can't skip phases)
+- Agent reports are included automatically
+- The builder validates state transitions
+- Use `killOnMatch` to stop tests early
+
+This system ensures your tests accurately reflect how questmaestro works in production!
+
 ## Important Notes
 
 - We use `$ARGUMENTS` in agent prompts for Questmaestro to inject context

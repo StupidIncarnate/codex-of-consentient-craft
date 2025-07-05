@@ -270,6 +270,36 @@ export class QuestStateMachine {
   }
 }
 
+// Standardized test phrases for orchestrator output
+export const TestPhrases = {
+  // Action prefixes
+  PRE_ACTION_PREFIX: '[🎯]',
+  MAIN_ACTION_PREFIX: '[🎲]',
+  POST_ACTION_PREFIX: '[🎁]',
+  
+  // Pre-actions (status/analysis)
+  CONTINUING_QUEST: '[🎯] ⚔️ Continuing quest:',
+  CHECKING_DEPENDENCIES: '[🎯] 🔍 Checking dependencies...',
+  
+  // Main actions (agent spawning)
+  SPAWNING_TASKWEAVER: '[🎲] ⚔️ Summoning Taskweaver...',
+  SPAWNING_PATHSEEKER: '[🎲] 🗺️ Summoning Pathseeker...',
+  SPAWNING_SINGLE_CODEWEAVER: '[🎲] 🧵 Summoning Codeweaver for',
+  SPAWNING_MULTIPLE_CODEWEAVERS: '[🎲] ⚔️⚔️ Summoning',
+  SPAWNING_LAWBRINGER: '[🎲] ⚖️ Summoning Lawbringer...',
+  SPAWNING_SIEGEMASTER: '[🎲] 🏰 Summoning Siegemaster...',
+  SPAWNING_SPIRITMENDER: '[🎲] ✨ Summoning Spiritmender...',
+  RUNNING_WARD_VALIDATION: '[🎲] 🛡️ Running ward validation...',
+  
+  // Post-actions (results/updates)
+  PARSING_REPORT: '[🎁] 📊 Parsing',
+  UPDATING_QUEST: '[🎁] 💾 Updating quest state...',
+  QUEST_COMPLETE: '[🎁] ✅ Quest complete!',
+  QUEST_ABANDONED: '[🎁] 💀 Quest abandoned:',
+  NO_ACTIVE_QUESTS: '[🎁] 📜 No active quests. Awaiting your command!',
+  QUEST_BLOCKED: '[🎁] 🚫 Quest blocked:'
+} as const;
+
 // Helper to create empty quest with valid initial state
 export function createEmptyQuest(id: string, title: string): QuestFile {
   const now = new Date().toISOString();
@@ -307,22 +337,26 @@ export function validateQuest(quest: QuestFile): string[] {
   }
 
   // Validate phases
-  const requiredPhases = ['discovery', 'implementation', 'review', 'testing'];
-  for (const phase of requiredPhases) {
-    if (!(phase in quest.phases)) {
-      errors.push(`Missing required phase: ${phase}`);
+  if (quest.phases) {
+    const requiredPhases = ['discovery', 'implementation', 'review', 'testing'];
+    for (const phase of requiredPhases) {
+      if (!(phase in quest.phases)) {
+        errors.push(`Missing required phase: ${phase}`);
+      }
     }
   }
 
   // Validate phase statuses
-  for (const [phaseName, phase] of Object.entries(quest.phases)) {
-    if (!Object.values(PhaseStatus).includes(phase.status)) {
-      errors.push(`Invalid status for phase ${phaseName}: ${phase.status}`);
+  if (quest.phases) {
+    for (const [phaseName, phase] of Object.entries(quest.phases)) {
+      if (!Object.values(PhaseStatus).includes(phase.status)) {
+        errors.push(`Invalid status for phase ${phaseName}: ${phase.status}`);
+      }
     }
   }
 
   // Validate components
-  if (quest.phases.implementation.components) {
+  if (quest.phases?.implementation?.components) {
     for (const component of quest.phases.implementation.components) {
       if (!component.name) errors.push('Component must have a name');
       if (!Object.values(ComponentStatus).includes(component.status)) {

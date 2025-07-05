@@ -85,9 +85,17 @@ export class QuestStateBuilder {
     
     this.stateHistory.push('pathseeker');
     
-    // Validate phase transition
-    QuestStateMachine.validatePhaseTransition(this.quest.phases.discovery.status, status);
-    this.quest.phases.discovery.status = status;
+    // Handle phase transition - if going from NOT_STARTED to COMPLETE or BLOCKED, go through IN_PROGRESS
+    const currentStatus = this.quest.phases.discovery.status;
+    if (currentStatus === PhaseStatus.NOT_STARTED && (status === PhaseStatus.COMPLETE || status === PhaseStatus.BLOCKED)) {
+      // Transition through IN_PROGRESS
+      this.quest.phases.discovery.status = PhaseStatus.IN_PROGRESS;
+    }
+    // Now validate and apply the final transition if needed
+    if (this.quest.phases.discovery.status !== status) {
+      QuestStateMachine.validatePhaseTransition(this.quest.phases.discovery.status, status);
+      this.quest.phases.discovery.status = status;
+    }
     
     // Determine components
     const components = options?.customComponents || this.generateDefaultComponents();
@@ -154,9 +162,17 @@ export class QuestStateBuilder {
     
     this.stateHistory.push('codeweaver');
     
-    // Validate transition
-    QuestStateMachine.validatePhaseTransition(this.quest.phases.implementation.status, status);
-    this.quest.phases.implementation.status = status;
+    // Handle phase transition - if going from NOT_STARTED to COMPLETE or BLOCKED, go through IN_PROGRESS
+    const currentStatus = this.quest.phases.implementation.status;
+    if (currentStatus === PhaseStatus.NOT_STARTED && (status === PhaseStatus.COMPLETE || status === PhaseStatus.BLOCKED)) {
+      // Transition through IN_PROGRESS
+      this.quest.phases.implementation.status = PhaseStatus.IN_PROGRESS;
+    }
+    // Now validate and apply the final transition if needed
+    if (this.quest.phases.implementation.status !== status) {
+      QuestStateMachine.validatePhaseTransition(this.quest.phases.implementation.status, status);
+      this.quest.phases.implementation.status = status;
+    }
     
     const components = this.quest.phases.implementation.components;
     
@@ -165,12 +181,19 @@ export class QuestStateBuilder {
       this.implementComponents(components, options);
       
     } else if (status === PhaseStatus.IN_PROGRESS) {
-      // Partial implementation - only components without dependencies
-      const independentComponents = options?.partialOnly
-        ? components.filter(c => c.dependencies.length === 0)
-        : components.slice(0, Math.ceil(components.length / 2));
+      // Partial implementation
+      let componentsToImplement: Component[];
       
-      this.implementComponents(independentComponents, options);
+      if (options?.partialOnly) {
+        // Only implement components without dependencies, up to half
+        const independentComponents = components.filter(c => c.dependencies.length === 0);
+        componentsToImplement = independentComponents.slice(0, Math.max(1, Math.floor(independentComponents.length / 2)));
+      } else {
+        // Implement half of all components
+        componentsToImplement = components.slice(0, Math.ceil(components.length / 2));
+      }
+      
+      this.implementComponents(componentsToImplement, options);
       
     } else if (status === PhaseStatus.BLOCKED) {
       // Implement first component, block on second
@@ -200,15 +223,34 @@ export class QuestStateBuilder {
     
     this.stateHistory.push('lawbringer');
     
-    QuestStateMachine.validatePhaseTransition(this.quest.phases.review.status, status);
-    this.quest.phases.review.status = status;
+    // Handle phase transition - if going from NOT_STARTED to COMPLETE, go through IN_PROGRESS
+    const currentStatus = this.quest.phases.review.status;
+    if (currentStatus === PhaseStatus.NOT_STARTED && status === PhaseStatus.COMPLETE) {
+      // Transition through IN_PROGRESS
+      this.quest.phases.review.status = PhaseStatus.IN_PROGRESS;
+    }
+    // Now validate and apply the final transition if needed
+    if (this.quest.phases.review.status !== status) {
+      QuestStateMachine.validatePhaseTransition(this.quest.phases.review.status, status);
+      this.quest.phases.review.status = status;
+    }
     
     if (status === PhaseStatus.COMPLETE) {
       // Generate review issues
-      const issues: any[] = options?.reviewIssues || (options?.withErrors ? [
-        { severity: 'minor' as const, file: 'src/add.ts', line: 5, message: 'Missing JSDoc comment' },
-        { severity: 'major' as const, file: 'src/multiply.ts', line: 10, message: 'Variable used before declaration' }
-      ] : []);
+      let issues: any[] = options?.reviewIssues || [];
+      
+      if (!issues.length && options?.withErrors && this.quest.phases.implementation.components.length > 0) {
+        // Generate default issues based on actual components
+        const firstComponent = this.quest.phases.implementation.components[0];
+        const firstFile = firstComponent.files?.[0] || 'src/unknown.ts';
+        const secondComponent = this.quest.phases.implementation.components[1];
+        const secondFile = secondComponent?.files?.[0] || firstFile;
+        
+        issues = [
+          { severity: 'minor' as const, file: firstFile, line: 5, message: 'Missing JSDoc comment' },
+          { severity: 'major' as const, file: secondFile, line: 10, message: 'Variable used before declaration' }
+        ];
+      }
       
       this.quest.phases.review.issues = issues;
       this.quest.phases.review.recommendations = [
@@ -256,8 +298,17 @@ export class QuestStateBuilder {
     
     this.stateHistory.push('siegemaster');
     
-    QuestStateMachine.validatePhaseTransition(this.quest.phases.testing.status, status);
-    this.quest.phases.testing.status = status;
+    // Handle phase transition - if going from NOT_STARTED to COMPLETE or BLOCKED, go through IN_PROGRESS
+    const currentStatus = this.quest.phases.testing.status;
+    if (currentStatus === PhaseStatus.NOT_STARTED && (status === PhaseStatus.COMPLETE || status === PhaseStatus.BLOCKED)) {
+      // Transition through IN_PROGRESS
+      this.quest.phases.testing.status = PhaseStatus.IN_PROGRESS;
+    }
+    // Now validate and apply the final transition if needed
+    if (this.quest.phases.testing.status !== status) {
+      QuestStateMachine.validatePhaseTransition(this.quest.phases.testing.status, status);
+      this.quest.phases.testing.status = status;
+    }
     
     if (status === PhaseStatus.COMPLETE) {
       const coverage = options?.testCoverage || (options?.withErrors ? '75%' : '95%');
@@ -302,9 +353,8 @@ export class QuestStateBuilder {
 
   // SPIRITMENDER STATE
   inSpiritMenderState(resolved: boolean = true, options?: StateOptions): this {
-    // Only run if there are blockers
+    // Create a blocker if none exist
     if (!this.quest.blockers || this.quest.blockers.length === 0) {
-      // Create a blocker if none exist
       this.quest.status = QuestStatus.BLOCKED;
       this.addBlocker(
         'ward_failure',
@@ -328,7 +378,21 @@ export class QuestStateBuilder {
         }
       });
       
-      // Update phase statuses
+      // Update phase statuses - if any phase is blocked, set it to IN_PROGRESS
+      if (this.quest.phases.discovery.status === PhaseStatus.BLOCKED) {
+        this.quest.phases.discovery.status = PhaseStatus.IN_PROGRESS;
+      }
+      if (this.quest.phases.implementation.status === PhaseStatus.BLOCKED) {
+        this.quest.phases.implementation.status = PhaseStatus.IN_PROGRESS;
+      }
+      if (this.quest.phases.review.status === PhaseStatus.BLOCKED) {
+        this.quest.phases.review.status = PhaseStatus.IN_PROGRESS;
+      }
+      if (this.quest.phases.testing.status === PhaseStatus.BLOCKED) {
+        this.quest.phases.testing.status = PhaseStatus.IN_PROGRESS;
+      }
+      
+      // If all implementation components are complete, mark the phase as complete
       if (this.quest.phases.implementation.components.every(c => c.status === ComponentStatus.COMPLETE)) {
         this.quest.phases.implementation.status = PhaseStatus.COMPLETE;
       }
@@ -461,13 +525,13 @@ export class QuestStateBuilder {
   }
 
   private implementComponents(components: Component[], options?: StateOptions) {
-    components.forEach(component => {
+    components.forEach((component, index) => {
       const match = component.name.match(/Create (\w+)\.ts/);
       const fileName = match ? match[1] : 'unknown';
       const description = component.name;
       
-      // Generate implementation
-      const hasError = options?.withErrors && component.name.includes('multiply');
+      // Generate implementation - inject error in first component if withErrors is true
+      const hasError = options?.withErrors && index === 0;
       const implementation = FileGenerators.implementation(fileName, description, hasError);
       const test = FileGenerators.test(fileName, description);
       

@@ -137,13 +137,13 @@ Once you have an active quest:
    - If status is "active", continue processing
 
 2. **Determine Next Action** based on phase statuses:
-   - If discovery is "not_started" → Spawn Pathseeker
+   - If discovery is "not_started" → Output: "Spawning Pathseeker for discovery phase..." → Spawn Pathseeker
    - If discovery is "complete" and implementation "not_started" → Check components
-   - If components exist with status "queued" and dependencies met → Spawn Codeweaver(s)
-   - If all implementation "complete" and review "not_started" → Spawn Lawbringer
-   - If review "complete" and testing "not_started" → Spawn Siegemaster
-   - If testing "complete" → Run ward:all validation
-   - If validation fails → Spawn Spiritmender
+   - If components exist with status "queued" and dependencies met → Spawn Codeweaver(s) (see Parallel Execution)
+   - If all implementation "complete" and review "not_started" → Output: "Spawning Lawbringer for code review..." → Spawn Lawbringer
+   - If review "complete" and testing "not_started" → Output: "Spawning Siegemaster for test creation..." → Spawn Siegemaster
+   - If testing "complete" → Output: "Running ward:all validation..." → Run ward:all validation
+   - If validation fails → Output: "Spawning Spiritmender to fix validation errors..." → Spawn Spiritmender
 
 3. **Parse Agent Output** - Extract specific data based on agent type
 4. **Update Quest File** - Update all relevant sections
@@ -155,15 +155,20 @@ For implementation phase:
 2. Find components where:
    - status is "queued" 
    - All dependencies have status "complete"
-3. For each eligible component:
-   - Spawn a Codeweaver with that specific component assignment
-   - Add to activeAgents array with agent ID and task
-   - Update component status to "in_progress" and assignedTo
-4. When parsing Codeweaver reports:
+3. If multiple components are eligible for parallel execution:
+   - Output: "Spawning multiple Codeweavers in parallel..."
+   - For each eligible component:
+     - Spawn a Codeweaver with that specific component assignment
+     - Add to activeAgents array with agent ID and task
+     - Update component status to "in_progress" and assignedTo
+4. If only one component is eligible:
+   - Output: "Spawning single Codeweaver for [component name]..."
+   - Proceed with single agent spawn
+5. When parsing Codeweaver reports:
    - Find the matching component by name
    - Update its status to "complete"
    - Remove agent from activeAgents array
-5. Only proceed to review when ALL components are "complete"
+6. Only proceed to review when ALL components are "complete"
 
 ### Standard Quest Phases
 1. **Discovery** (Pathseeker) - Analyze requirements, map dependencies
@@ -197,9 +202,8 @@ When spawning agents, provide clear context to replace $ARGUMENTS:
 
 ### Taskweaver Example
 ```
-You are the Taskweaver. Your role is to create well-structured quest definitions from user requests.
-
-User request: "fix user login timeout bug"
+Analyze this quest: [QUEST DESCRIPTION]
+Quest context: [QUEST TITLE]
 Working directory: [CURRENT_WORKING_DIRECTORY]
 
 IMPORTANT: Stay within the current working directory for all operations.
@@ -221,7 +225,7 @@ Quest Definition: [JSON object]
 
 ### Pathseeker Example
 ```
-You are the Pathseeker. Analyze this quest: [QUEST DESCRIPTION]
+Analyze this quest: [QUEST DESCRIPTION]
 Quest context: [QUEST TITLE]
 Map out dependencies, identify components needed, and potential challenges.
 Output your findings as a structured report (do not modify any files).
@@ -229,7 +233,6 @@ Output your findings as a structured report (do not modify any files).
 
 ### Codeweaver Example
 ```
-You are the Codeweaver. Implement this component for the quest.
 Quest context: [QUEST TITLE]
 Component to build: [SPECIFIC SERVICE/COMPONENT]
 Dependencies: [LIST FROM DISCOVERY]
@@ -383,6 +386,39 @@ After parsing a report:
     ```
 - Update quest status if needed (active/blocked/paused)
 - Save the updated quest file
+
+## Test-Friendly Output
+
+When performing ANY action, output these EXACT standardized phrases with their specific prefixes:
+
+**Agent Spawning:**
+- `[🎲] ⚔️ Summoning Taskweaver...`
+- `[🎲] 🗺️ Summoning Pathseeker...`
+- `[🎲] 🧵 Summoning Codeweaver for [component]...`
+- `[🎲] ⚔️⚔️ Summoning [N] Codeweavers in parallel...`
+- `[🎲] ⚖️ Summoning Lawbringer...`
+- `[🎲] 🏰 Summoning Siegemaster...`
+- `[🎲] ✨ Summoning Spiritmender...`
+
+**Pre-Actions (Status/Analysis):**
+- `[🎯] ⚔️ Continuing quest: [QUEST TITLE]`
+- `🔍 Checking dependencies...`
+
+**Main Actions:**
+- `[🎲] 🛡️ Running ward validation...`
+
+**Post-Actions (Results/Updates):**
+- `[🎁] 📊 Parsing [agent] report...`
+- `[🎁] 💾 Updating quest state...`
+- `[🎁] ✅ Quest complete! [QUEST TITLE] vanquished!`
+- `[🎁] 💀 Quest abandoned: [QUEST TITLE]`
+- `[🎁] 📜 No active quests. Awaiting your command!`
+- `[🎁] 🚫 Quest blocked: [reason]`
+
+IMPORTANT: Always use the appropriate prefix:
+- `[🎯]` for pre-actions (checking status, analyzing state)
+- `[🎲]` for main actions (spawning agents, running validation)
+- `[🎁]` for post-actions (parsing results, updating state, completion)
 
 ## Important Principles
 

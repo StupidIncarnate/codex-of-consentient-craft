@@ -1,5 +1,6 @@
 import { ProjectBootstrapper } from '../utils/project-bootstrapper';
 import { ClaudeE2ERunner } from '../utils/claude-runner';
+import { TestPhrases } from '../utils/quest-state-machine';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -81,7 +82,7 @@ describe('Quest State Management', () => {
     await runner.executeCommand(
       '/questmaestro',
       '',
-      { killOnMatch: 'Quest complete' }
+      { killOnMatch: TestPhrases.QUEST_COMPLETE }
     );
     
     const tracker = JSON.parse(
@@ -119,7 +120,7 @@ describe('Quest State Management', () => {
     const result = await runner.executeCommand(
       '/questmaestro',
       '',
-      { killOnMatch: 'blocked' }
+      { killOnMatch: TestPhrases.QUEST_BLOCKED }
     );
     
     expect(result.success).toBe(true);

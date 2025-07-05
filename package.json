@@ -6,9 +6,8 @@
     "questmaestro": "./bin/install.js"
   },
   "scripts": {
-    "test": "jest --testPathIgnorePatterns=e2e",
-    "test:watch": "jest --watch --testPathIgnorePatterns=e2e",
-    "test:coverage": "jest --coverage --testPathIgnorePatterns=e2e",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "test:e2e": "RUN_E2E_TESTS=true jest tests/e2e",
     "test:all": "npm test && npm run test:e2e",
     "lint": "eslint tests/**/*.ts --fix",
