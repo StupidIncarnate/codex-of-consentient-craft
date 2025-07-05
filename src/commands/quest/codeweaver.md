@@ -114,52 +114,6 @@ Technical Decisions:
 4. **Use TODO workflow**: Track all work with todos
 5. **Verify before complete**: Must run `npm run ward [filenames]`
 
-## Common Implementation Patterns
-
-**Service Structure**:
-
-```typescript
-export class ComponentService {
-  constructor(
-    private readonly db: DatabaseConnection,
-    private readonly logger: Logger
-  ) {}
-
-  async publicMethod(): Promise<Result> {
-    try {
-      // Implementation
-    } catch (error) {
-      this.logger.error('Context', error);
-      throw new ServiceError('Message');
-    }
-  }
-}
-```
-
-**Unit Test Structure**:
-
-```typescript
-describe('ComponentService', () => {
-  let service: ComponentService;
-  let mockDb: jest.Mocked<DatabaseConnection>;
-
-  beforeEach(() => {
-    mockDb = createMockDb();
-    service = new ComponentService(mockDb, mockLogger);
-  });
-
-  describe('publicMethod', () => {
-    it('should handle success case', async () => {
-      // Test implementation
-    });
-
-    it('should handle error case', async () => {
-      // Test error handling
-    });
-  });
-});
-```
-
 ## Lore and Learning
 
 **Writing to Lore:**

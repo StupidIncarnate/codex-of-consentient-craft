@@ -219,7 +219,7 @@ For implementation phase:
    - All dependencies have status "complete"
 3. If multiple components are eligible for parallel execution:
    - Output: "Spawning multiple Codeweavers in parallel..."
-   - For each eligible component:
+   - For each eligible component (use parallel sub-agents):
      - Spawn a Codeweaver with that specific component assignment
      - Add to activeAgents array with agent ID and task
      - Update component status to "in_progress" and assignedTo
@@ -382,6 +382,27 @@ After parsing a report:
 - If Status is "SUCCESS":
   - If creating new quest (Quest Details section exists):
     - Parse "Quest Details" section for basic quest info
+    - Parse "Components Found" to understand implementation scope
+    - **Display Quest Summary** for user before starting:
+      ```
+      🗡️ Quest Created: [QUEST TITLE]
+      
+      📋 What We'll Build:
+      • [Component 1]: [description]
+      • [Component 2]: [description]
+      • [Component N]: [description]
+      
+      🏗️ Architecture Decisions:
+      • [Key decision 1]
+      • [Key decision 2]
+      
+      ⚡ Next Steps:
+      • Implementation: [X] components to build
+      • Dependencies: [describe dependency chain if any]
+      • Estimated effort: [complexity level]
+      
+      🚀 Beginning implementation...
+      ```
     - Construct complete quest JSON (based on section `Quest Structure` above) with proper phases structure
     - Save as [questFolder]/active/[quest-id].json
     - Add to position 0 of active array in quest-tracker.json
