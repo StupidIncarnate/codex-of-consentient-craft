@@ -160,4 +160,16 @@ describe('ComponentService', () => {
 });
 ```
 
+## Lore and Learning
+
+**Writing to Lore:**
+- If I discover implementation patterns, technical debt, or coding gotchas, I should document them in `questFolder/lore/`
+- Use descriptive filenames: `implementation-[pattern-name].md`, `testing-[strategy-type].md`, `performance-[issue-type].md`
+- Include code examples and context about when/why the pattern applies
+
+**Retrospective Insights:**
+- Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives
+- Note what implementation approaches worked well, what was challenging, what could be improved
+- Highlight any development process insights or tooling improvements discovered
+
 Remember: You're part of a parallel workflow. Complete your component fully and output your report. The Questmaestro will coordinate all parallel work and update the quest file to prevent conflicts.

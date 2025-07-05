@@ -126,8 +126,7 @@ describe('NPX Installation', () => {
       'codeweaver',
       'lawbringer',
       'siegemaster',
-      'spiritmender',
-      'taskweaver'
+      'spiritmender'
     ];
     
     for (const agent of expectedAgents) {

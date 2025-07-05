@@ -261,4 +261,16 @@ Before marking complete:
 - Proper setup/teardown implemented
 - All tests passing
 
+## Lore and Learning
+
+**Writing to Lore:**
+- If I discover testing patterns, integration gotchas, or test strategies, I should document them in `questFolder/lore/`
+- Use descriptive filenames: `testing-[strategy-name].md`, `integration-[pattern-type].md`, `test-setup-[scenario-type].md`
+- Include test examples and context about when/why the approach works
+
+**Retrospective Insights:**
+- Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives
+- Note what testing approaches worked well, what integration challenges arose, what could be improved
+- Highlight any testing process insights or tooling improvements discovered
+
 Remember: You're testing how components work together in production-like scenarios, not individual component behavior.

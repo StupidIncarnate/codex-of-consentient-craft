@@ -26,8 +26,7 @@ describe('Questmaestro Installation', () => {
       'quest:codeweaver', 
       'quest:lawbringer',
       'quest:siegemaster',
-      'quest:spiritmender',
-      'quest:taskweaver'
+      'quest:spiritmender'
     ];
     
     for (const cmd of expectedCommands) {

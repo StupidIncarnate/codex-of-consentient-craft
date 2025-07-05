@@ -108,44 +108,52 @@ export const ComponentTemplates = {
 
 // Agent report templates
 export const AgentReportTemplates = {
-  taskweaver: (questTitle: string, status: string) => [
-    '=== TASKWEAVER QUEST REPORT ===',
-    `Suggested Filename: ${questTitle.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}`,
-    'Quest Definition:',
-    `{`,
-    `  "id": "${questTitle.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}",`,
-    `  "title": "${questTitle}",`,
-    `  "status": "${status}",`,
-    `  "complexity": "medium",`,
-    `  "phases": { ... }`,
-    `}`,
-    '=== END REPORT ==='
-  ],
 
-  pathseeker: (questTitle: string, components: any[]) => [
-    '=== PATHSEEKER DISCOVERY REPORT ===',
+  pathseeker: (questTitle: string, components: any[], status: string = 'SUCCESS') => [
+    '=== PATHSEEKER REPORT ===',
+    `Status: ${status}`,
     `Quest: ${questTitle}`,
-    'Phase: Discovery',
-    'Status: Complete',
     `Timestamp: ${new Date().toISOString()}`,
     '',
-    'Analysis Summary:',
-    '- Analyzed project structure',
-    '- Identified component requirements',
-    '- Mapped dependencies',
+    'Quest Details:',
+    `- Title: ${questTitle}`,
+    '- Description: Generated test quest',
+    '- Complexity: medium',
+    '- Tags: [test, automated]',
     '',
-    'Components Discovered:',
-    ...components.map(c => `- ${c.name}: ${c.description}`),
+    'Discovery Findings:',
+    '{',
+    '  "requestType": "feature",',
+    '  "codebaseContext": "TypeScript project with standard structure",',
+    '  "technicalRequirements": "Node.js, TypeScript, Jest"',
+    '}',
     '',
-    'Dependencies:',
-    ...components.filter(c => c.dependencies?.length).map(c => 
-      `- ${c.name} depends on: ${c.dependencies.join(', ')}`
+    'Components Found:',
+    '[',
+    ...components.map((c, i) => 
+      `  {` +
+      `    "name": "${c.name}",` +
+      `    "description": "${c.description}",` +
+      `    "files": ["src/${c.name}.ts", "tests/${c.name}.test.ts"],` +
+      `    "dependencies": ${JSON.stringify(c.dependencies || [])},` +
+      `    "complexity": "medium",` +
+      `    "status": "queued"` +
+      `  }${i < components.length - 1 ? ',' : ''}`
     ),
+    ']',
     '',
-    'Recommendations:',
-    '- Implement components without dependencies first',
+    'Key Decisions Made:',
+    '{',
+    '  "architecture": "modular TypeScript components",',
+    '  "testing": "Jest unit tests",',
+    '  "build": "standard npm scripts"',
+    '}',
+    '',
+    'Implementation Notes:',
     '- Use TypeScript for type safety',
+    '- Follow existing project conventions',
     '- Include comprehensive tests',
+    '',
     '=== END REPORT ==='
   ],
 

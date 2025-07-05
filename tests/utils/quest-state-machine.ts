@@ -98,7 +98,6 @@ export interface CodeweaverReport extends AgentReport {
 }
 
 export interface AgentReports {
-  taskweaver?: AgentReport;
   pathseeker?: AgentReport;
   codeweaver?: CodeweaverReport[];
   lawbringer?: AgentReport;
@@ -280,9 +279,12 @@ export const TestPhrases = {
   // Pre-actions (status/analysis)
   CONTINUING_QUEST: '[🎯] ⚔️ Continuing quest:',
   CHECKING_DEPENDENCIES: '[🎯] 🔍 Checking dependencies...',
+  ENTERING_PLANNING_MODE: '[🎯] 📋 Entering planning mode - Pathseeker needs more context...',
+  NEED_CLARIFICATION: '[🎯] ❓ Need clarification:',
+  COLLECTED_INFO: '[🎯] 📝 Collected:',
+  RESPAWNING_PATHSEEKER: '[🎯] 🗺️ Respawning Pathseeker with enhanced context...',
   
   // Main actions (agent spawning)
-  SPAWNING_TASKWEAVER: '[🎲] ⚔️ Summoning Taskweaver...',
   SPAWNING_PATHSEEKER: '[🎲] 🗺️ Summoning Pathseeker...',
   SPAWNING_SINGLE_CODEWEAVER: '[🎲] 🧵 Summoning Codeweaver for',
   SPAWNING_MULTIPLE_CODEWEAVERS: '[🎲] ⚔️⚔️ Summoning',

@@ -8,14 +8,16 @@ First, read `.questmaestro` configuration file for project settings. If it doesn
 - questFolder: "questmaestro"
 
 Within the quest folder, expect this structure:
-- `quest-tracker.json` - Simple arrays of quest filenames by status
-- `active/` - Currently active quests (top = current)
+- `quest-tracker.json` - Simple arrays of quest filenames by status; `active[0]` in the json is next quest to work on. 
+- `active/` - Currently active quests 
 - `completed/` - Finished quest files
 - `abandoned/` - Stopped quest files
 - `retros/` - Retrospectives and learnings
 - `lore/` - Accumulated wisdom and gotchas
 
 Each quest is a single JSON file containing all its activity and progress.
+
+### Quest Structure
 
 Quest file structure includes:
 ```json
@@ -97,10 +99,10 @@ Read quest-tracker.json and all referenced quest files to display:
 
 ### "abandon" → Abandon Current Quest
 If user wants to abandon the current quest:
-1. Ask for confirmation: "Are you sure you want to abandon '[quest title]'?"
+1. Ask for confirmation: "Are you sure you want to abandon '[quest title]'? Do you want to record any reason for abandoning it (optional)?"
 2. If confirmed:
    - Set quest status to "abandoned" in quest file
-   - Add outcome with status "abandoned" and reason
+   - Add outcome with status "abandoned" and reason (if one provided)
    - Remove from active array in quest-tracker.json
    - Add to abandoned array in quest-tracker.json
    - Move file from active/ to abandoned/ folder
@@ -111,21 +113,81 @@ If user wants to abandon the current quest:
 - If ambiguous match, ask for clarification
 - If found:
   1. Update current quest (if any) status to "paused" in its file
-  2. Remove the new quest from wherever it is in the active array
-  3. Insert the new quest at position 0 (top of active array)
-  4. Update quest-tracker.json with the new array order
-  5. Load the new quest file and check its status
-  6. Continue from its current phase
+  2. Insert the new quest at position 0 (top of active array)
+  3. Update quest-tracker.json with the new array order
+  4. Load the new quest file and check its status
+  5. Continue from its current phase
 
 ### Any Other Argument → Smart Quest Resolution
 1. Check if it matches or relates to an existing quest
 2. If unclear, ask: "I found 'Fix User Avatar Upload' - is that what you meant, or is this a new quest?"
 3. If clearly new:
-   - Spawn Taskweaver to generate quest definition
-   - Parse Taskweaver's report to get the quest JSON
-   - Save as [questFolder]/active/[quest-id].json
-   - Add to position 0 of active array in quest-tracker.json
-   - Begin working on it immediately
+   - Spawn Pathseeker to explore the request and codebase
+   - Parse Pathseeker's report for quest creation or feedback
+   - If Status is "SUCCESS": Save quest and begin execution
+   - If Status is "INSUFFICIENT_CONTEXT": Enter Planning Mode with user
+   - Continue until quest is complete
+
+## Planning Mode
+
+When Pathseeker reports "INSUFFICIENT_CONTEXT", enter Planning Mode to gather information through user conversation:
+
+### Entering Planning Mode
+Triggered when Pathseeker reports:
+- Status: INSUFFICIENT_CONTEXT
+- Missing specific information that codebase exploration couldn't resolve
+
+### Planning Mode Process
+1. **Parse Pathseeker's Report**: Extract current understanding and missing information
+
+2. **Display Planning Status** using this format:
+```
+🗡️ QUEST PLANNING MODE 🗡️
+
+Exploring: "[original user request]"
+
+🔍 Current Understanding:
+• Request type: [from Pathseeker report]
+• Working title: [from Pathseeker report]
+• Scope discovered: [from Pathseeker report]
+• Files involved: [from Pathseeker report]
+
+🏗️ Codebase Exploration Results:
+• Found patterns: [from Pathseeker report]
+• Similar implementations: [from Pathseeker report]
+• Technical context: [from Pathseeker report]
+
+❓ Still Need Clarification:
+• [specific missing info from Pathseeker]
+• [specific missing info from Pathseeker]
+
+📋 Next: [first question from Pathseeker's suggested questions]
+```
+
+3. **Ask Targeted Questions**: Use Pathseeker's "Suggested Questions for User"
+
+4. **Collect User Response**: Add response to accumulated context
+
+5. **Spawn Pathseeker Again**: With enhanced context including:
+   - Original request
+   - Previous findings
+   - User clarifications
+   - All accumulated context
+
+6. **Repeat**: Until Pathseeker returns "SUCCESS"
+
+### Planning Mode Output
+Use these standardized phrases:
+- `[🎯] 📋 Entering planning mode - Pathseeker needs more context...`
+- `[🎯] ❓ Need clarification: [specific question from Pathseeker]`
+- `[🎯] 📝 Collected: [summary of user response]`
+- `[🎯] 🗺️ Respawning Pathseeker with enhanced context...`
+
+### Exiting Planning Mode
+Exit when:
+- Pathseeker successfully completes discovery (Status: SUCCESS)
+- User provides "cancel" or "nevermind" (acknowledge and wait for next command)
+- User provides completely different request (start over with new context)
 
 ## Quest Execution Flow
 
@@ -171,14 +233,16 @@ For implementation phase:
 6. Only proceed to review when ALL components are "complete"
 
 ### Standard Quest Phases
-1. **Discovery** (Pathseeker) - Analyze requirements, map dependencies
+1. **Discovery** (Pathseeker) - Map dependencies and implementation plan
 2. **Implementation** (Codeweaver) - Build components in parallel
 3. **Review** (Lawbringer) - Ensure quality across all code  
 4. **Testing** (Siegemaster) - Create integration tests
 5. **Validation** (ward:all) - Run configured checks
 6. **Healing** (Spiritmender) - Fix any issues found
 
-After each phase, parse the agent's report and update the quest file before proceeding.
+Note: 
+- **Quest Creation**: When Pathseeker creates a new quest from user input, discovery phase is marked "complete" since exploration already happened
+- **Quest Discovery**: When Pathseeker does discovery for an existing quest, it transitions discovery from "not_started" to "complete"
 
 ## Spawning Agents
 
@@ -186,13 +250,13 @@ To spawn any agent:
 1. First check your current working directory with `pwd` or look at the cwd in your environment
 2. Read the agent file using a path relative to YOUR CURRENT DIRECTORY: 
    - If you're in `/some/test/dir/`, read from `/some/test/dir/.claude/commands/quest/[agent-name].md`
+   - If not found, look in the `quest` folder on same level.
    - Do NOT go up directories or use absolute paths outside your working directory
 3. Replace `$ARGUMENTS` in the file with the specific context
 4. Use the Task tool with the modified content as the prompt
 
 Agent files in your local .claude/commands/quest/ directory:
-- `taskweaver.md` - Quest definition generation
-- `pathseeker.md` - Discovery and dependency mapping
+- `pathseeker.md` - Quest definition and implementation discovery
 - `codeweaver.md` - Component implementation
 - `lawbringer.md` - Code quality review
 - `siegemaster.md` - Integration test creation
@@ -200,35 +264,22 @@ Agent files in your local .claude/commands/quest/ directory:
 
 When spawning agents, provide clear context to replace $ARGUMENTS:
 
-### Taskweaver Example
+### Pathseeker Example (Quest Creation)
 ```
-Analyze this quest: [QUEST DESCRIPTION]
+User request: [USER REQUEST]
+Previous context: [ACCUMULATED CONTEXT FROM PLANNING MODE]
+Working directory: [CURRENT_WORKING_DIRECTORY]
+
+IMPORTANT: Stay within the current working directory for all operations.
+```
+
+### Pathseeker Example (Quest Discovery)
+```
+Quest: [QUEST DESCRIPTION]
 Quest context: [QUEST TITLE]
 Working directory: [CURRENT_WORKING_DIRECTORY]
 
 IMPORTANT: Stay within the current working directory for all operations.
-
-Create a quest definition JSON with:
-- id: based on the task and today's date
-- title: clear description of the quest
-- description: what needs to be done
-- complexity: small/medium/large
-- phases: standard quest phases initialized
-- tags: relevant categorization
-
-Output a structured report with:
-=== TASKWEAVER QUEST REPORT ===
-Suggested Filename: [quest-name]-[YYYYMMDD]
-Quest Definition: [JSON object]
-=== END REPORT ===
-```
-
-### Pathseeker Example
-```
-Analyze this quest: [QUEST DESCRIPTION]
-Quest context: [QUEST TITLE]
-Map out dependencies, identify components needed, and potential challenges.
-Output your findings as a structured report (do not modify any files).
 ```
 
 ### Codeweaver Example
@@ -250,6 +301,8 @@ Create the implementation and output your report (do not modify quest files).
 Review implementations for quest: [QUEST TITLE]
 Components to review: [LIST FROM DISCOVERY]
 Output your review report (do not modify quest files)
+
+IMPORTANT: Stay within the current working directory for all operations.
 ```
 
 ### Siegemaster  
@@ -258,6 +311,8 @@ Create tests for quest: [QUEST TITLE]
 Components to test: [LIST FROM DISCOVERY]
 Test file location: [tests]/[quest-id].test.ts
 Output your testing report (do not modify quest files)
+
+IMPORTANT: Stay within the current working directory for all operations.
 ```
 
 ### Spiritmender
@@ -267,16 +322,10 @@ Error output: [ERROR DETAILS]
 Affected components: [LIST]
 If you discover gotchas, add to: [questFolder]/lore/[category]-[description].md
 Output your healing report (do not modify quest files)
+
+IMPORTANT: Stay within the current working directory for all operations.
 ```
 
-### Taskweaver
-```
-Create a quest definition for: [USER'S REQUEST]
-This appears to be: [bug fix/feature/investigation]
-Output a complete quest JSON structure
-Use the new format with phases object and status fields
-Set initial status to "active" and all phases to "not_started"
-```
 
 ## Quest Completion
 
@@ -289,7 +338,7 @@ When all phases show "complete" and ward:all passes:
 3. Remove quest filename from active array in quest-tracker.json
 4. Add quest filename to completed array in quest-tracker.json
 5. Move quest file from [questFolder]/active/ to [questFolder]/completed/
-6. Create retrospective in [questFolder]/retros/[YYYYMMDD]-[quest-name].md
+6. Create retrospective in [questFolder]/retros/[YYYYMMDD]-[quest-name].md using collected "Retrospective Notes" from all agent reports
 7. Celebrate briefly: "⚔️ Quest complete! The [quest title] has been vanquished!"
 8. If active array is not empty, start working on the new top quest
 
@@ -330,11 +379,24 @@ When agents complete their work, they output structured reports. Parse these to 
 After parsing a report:
 
 **For Pathseeker Reports:**
-- Set phases.discovery.status to "complete"
-- Add findings to phases.discovery.findings
-- Create component entries in phases.implementation.components
-- Add decisions from report to decisions object
-- Store full report in agentReports.pathseeker
+- If Status is "SUCCESS":
+  - If creating new quest (Quest Details section exists):
+    - Parse "Quest Details" section for basic quest info
+    - Construct complete quest JSON (based on section `Quest Structure` above) with proper phases structure
+    - Save as [questFolder]/active/[quest-id].json
+    - Add to position 0 of active array in quest-tracker.json
+    - Discovery already marked "complete"
+  - If updating existing quest (no Quest Details section):
+    - Set phases.discovery.status to "complete"
+    - Parse "Discovery Findings" JSON and add to phases.discovery.findings
+    - Parse "Components Found" JSON array and add to phases.implementation.components
+    - Parse "Key Decisions Made" JSON and add to decisions object
+  - Store full report in agentReports.pathseeker
+- If Status is "INSUFFICIENT_CONTEXT":
+  - Parse "Suggested Questions for User" from report
+  - Enter Planning Mode asking these specific questions
+  - Collect user responses and spawn Pathseeker again with enhanced context
+  - Store feedback in Planning Mode context for next attempt
 
 **For Codeweaver Reports:**
 - Find component in phases.implementation.components by name
@@ -384,6 +446,7 @@ After parsing a report:
       "=== END REPORT ==="
     ]
     ```
+- **Extract Retrospective Insights**: Look for "Retrospective Notes" section in each agent report and collect insights for quest completion retrospective
 - Update quest status if needed (active/blocked/paused)
 - Save the updated quest file
 
@@ -392,7 +455,6 @@ After parsing a report:
 When performing ANY action, output these EXACT standardized phrases with their specific prefixes:
 
 **Agent Spawning:**
-- `[🎲] ⚔️ Summoning Taskweaver...`
 - `[🎲] 🗺️ Summoning Pathseeker...`
 - `[🎲] 🧵 Summoning Codeweaver for [component]...`
 - `[🎲] ⚔️⚔️ Summoning [N] Codeweavers in parallel...`

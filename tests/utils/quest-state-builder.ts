@@ -40,9 +40,9 @@ export class QuestStateBuilder {
     };
   }
 
-  // TASKWEAVER STATE
-  inTaskweaverState(status: QuestStatus = QuestStatus.ACTIVE, options?: StateOptions): this {
-    this.stateHistory.push('taskweaver');
+  // QUEST CREATION STATE (replaces Taskweaver - now handled by Pathseeker)
+  inQuestCreationState(status: QuestStatus = QuestStatus.ACTIVE, options?: StateOptions): this {
+    this.stateHistory.push('quest_creation');
     
     // Validate transition
     if (this.quest.status !== status) {
@@ -53,20 +53,23 @@ export class QuestStateBuilder {
     this.quest.complexity = 'medium';
     this.quest.tags = ['test', 'automated'];
     
+    // Quest creation is now done by Pathseeker, so mark discovery as complete
+    this.quest.phases.discovery.status = PhaseStatus.COMPLETE;
+    this.quest.phases.discovery.findings = {
+      components: options?.customComponents || [
+        { name: 'test-component', dependencies: [] }
+      ],
+      decisions: { approach: 'standard implementation' }
+    };
+    
     // Add activity
-    this.addActivity('Quest created', 'taskweaver', {
+    this.addActivity('Quest created from Pathseeker exploration', 'pathseeker', {
       questDefinition: {
         id: this.quest.id,
         title: this.quest.title,
         status: status
       }
     });
-    
-    // Add Taskweaver report
-    this.quest.agentReports.taskweaver = {
-      timestamp: new Date().toISOString(),
-      fullReport: AgentReportTemplates.taskweaver(this.quest.title, status)
-    };
     
     // Handle blocked status
     if (status === QuestStatus.BLOCKED && options?.withBlockers) {
@@ -76,11 +79,16 @@ export class QuestStateBuilder {
     return this;
   }
 
-  // PATHSEEKER STATE
+  // BACKWARD COMPATIBILITY - remove after updating all tests
+  inTaskweaverState(status: QuestStatus = QuestStatus.ACTIVE, options?: StateOptions): this {
+    return this.inQuestCreationState(status, options);
+  }
+
+  // PATHSEEKER STATE  
   inPathseekerState(status: PhaseStatus = PhaseStatus.COMPLETE, options?: StateOptions): this {
-    // Ensure Taskweaver ran first
-    if (!this.stateHistory.includes('taskweaver')) {
-      this.inTaskweaverState();
+    // Ensure quest creation happened first
+    if (!this.stateHistory.includes('quest_creation') && !this.stateHistory.includes('taskweaver')) {
+      this.inQuestCreationState();
     }
     
     this.stateHistory.push('pathseeker');

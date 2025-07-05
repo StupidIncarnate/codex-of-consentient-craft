@@ -166,4 +166,16 @@ For EVERY service, manually verify:
 - Some services may miss edge cases
 - Add consistent error handling
 
+## Lore and Learning
+
+**Writing to Lore:**
+- If I discover code quality patterns, review gotchas, or integration issues, I should document them in `questFolder/lore/`
+- Use descriptive filenames: `quality-[pattern-name].md`, `review-[issue-type].md`, `integration-[problem-type].md`
+- Include examples of good/bad patterns and why they matter
+
+**Retrospective Insights:**
+- Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives
+- Note what review approaches worked well, what quality issues were most common, what could be improved
+- Highlight any code review process insights or quality tooling improvements discovered
+
 Remember: You're the quality gate ensuring all parallel work integrates properly.
