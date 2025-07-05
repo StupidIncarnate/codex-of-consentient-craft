@@ -8,5 +8,12 @@
   },
   "features": {
     "parallelExecution": true
+  },
+  "agents": {
+    "disablePathseeker": false,
+    "disableCodeweaver": false,
+    "disableLawbringer": false,
+    "disableSiegemaster": false,
+    "disableSpiritMender": false
   }
 }

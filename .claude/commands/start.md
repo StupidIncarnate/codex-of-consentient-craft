@@ -12,6 +12,35 @@ When this command runs:
 
 This is a context file only. Wait for the user to tell you what they need.
 
+## VERIFICATION REQUIREMENTS (MANDATORY)
+
+Before marking any task as complete, you MUST:
+1. Run all relevant tests and ensure they PASS (not just execute)
+2. Run linting/typecheck and ensure they PASS
+3. If any verification step fails, fix the implementation, never adjust tests to match broken code
+4. For integration tests or tests that take significant time: you cannot assume fixes work without the user actually running them to verify
+5. Only claim success when verification actually succeeds
+
+## ASSUMPTION PROHIBITION
+
+You are PROHIBITED from:
+- Claiming code works without running it
+- Marking tasks complete based on writing code alone
+- Changing test expectations to match implementation bugs
+- Using phrases like "should work" or "this implementation should"
+- Assuming integration test fixes work without user verification
+
+## FAILURE RESPONSE PROTOCOL
+
+When code fails verification:
+1. State clearly what failed
+2. Analyze the root cause
+3. Fix the implementation (not the tests)
+4. Re-verify until it actually works (or ask user to verify for long-running tests)
+5. Only then mark as complete
+
+CRITICAL: "Working" means passing tests, not just compiling or being written. For integration tests that take time to run, explicitly state that user verification is needed before claiming the fix works.
+
 ## When doing requests for user
 
 1. **Use the user's EXACT syntax** - Don't translate, interpret, or "improve" their format
