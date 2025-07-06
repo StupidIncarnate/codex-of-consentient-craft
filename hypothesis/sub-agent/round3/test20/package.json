@@ -1,0 +1,16 @@
+{
+  "name": "calculator-monorepo",
+  "version": "1.0.0",
+  "description": "Calculator library with backend and frontend components",
+  "scripts": {
+    "test": "jest",
+    "test:backend": "jest backend/",
+    "test:frontend": "jest frontend/"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.0.0"
+  }
+}

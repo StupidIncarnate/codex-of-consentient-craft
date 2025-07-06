@@ -369,10 +369,51 @@ This system ensures your tests accurately reflect how questmaestro works in prod
 - Agents are "one-and-done" - they execute once and terminate
 - Quest tracking happens through JSON files in the questmaestro/ folder
 
+## CLAUDE.md Context Inheritance Research
+
+**Research Objective**: Empirically determine how CLAUDE.md files work with Task-spawned sub-agents to solve the monorepo standards problem.
+
+### The Core Question
+Can CLAUDE.md files provide directory-specific context to Task-spawned sub-agents, enabling natural monorepo standards without complex configuration overhead?
+
+### The Business Problem
+- **Monorepo Challenge**: Different folders need different coding standards (`packages/api/` vs `packages/web/` vs `packages/shared/`)
+- **Refactor Complications**: Existing code patterns are inconsistent and unreliable as "source of truth"
+- **Configuration Overhead**: Path-aware config files feel heavy and duplicative of existing tool configs
+- **Sub-agent Consistency**: Need questmaestro's sub-agents (codeweaver, lawbringer, etc.) to follow project-specific patterns
+
+### Research Findings Summary
+**Status**: ✅ **HYPOTHESIS CONFIRMED** - CLAUDE.md files provide a viable solution
+
+**Key Discoveries**:
+1. **Context Inheritance**: Task-spawned agents inherit CLAUDE.md from their working directory (not spawn location)
+2. **Directory Hierarchy**: Local CLAUDE.md takes precedence over parent directories, no automatic fallback
+3. **Explicit Override**: Context passed via Task prompts overrides CLAUDE.md file content
+4. **Parallel Consistency**: Multiple parallel agents get consistent context without race conditions
+5. **Size Tolerance**: Files up to 5,000+ characters work without performance issues
+6. **Format Interference**: Large context can affect agent identity/formatting (partial concern)
+
+### Practical Implementation
+- **Use CLAUDE.md for universal standards**: Testing patterns, architecture decisions, code style
+- **Directory-specific placement**: 
+  - `packages/api/CLAUDE.md` - Backend-specific patterns
+  - `packages/web/CLAUDE.md` - Frontend-specific patterns  
+  - `packages/shared/CLAUDE.md` - Library-specific patterns
+- **Hybrid approach**: Use explicit context when agent identity preservation is critical
+- **Size guidelines**: Keep files under 5,000 characters for optimal performance
+
+### Research Location
+The complete empirical research is documented in `/hypothesis/sub-agent/` with:
+- **TEST_PLAN.md** - Original research objectives and methodology
+- **FINAL_RESEARCH_REPORT.md** - Complete findings and analysis
+- **testing-framework.md** - Framework for natural behavior observation
+- **Round 1 & 2 results** - Detailed test execution and outcomes
+
 ## Need Help?
 
 - Check `/info/ORCHESTRATION-GUIDE.md` for system overview
 - Review example quests in `/src/templates/quest-tracker.json`
 - Look at lore categories in `/src/templates/lore-categories.md`
+- See `/hypothesis/sub-agent/` for CLAUDE.md context research
 
 Welcome to the fellowship! May your quests be swift and your builds always green! ⚔️✨
