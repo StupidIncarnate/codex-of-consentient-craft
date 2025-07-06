@@ -142,7 +142,8 @@ export class QuestStateBuilder {
       this.quest.phases.implementation.components = components.map(c => ({
         name: `Create ${c.name}.ts with ${c.description}`,
         status: ComponentStatus.QUEUED,
-        dependencies: (c as any).dependencies || []
+        dependencies: (c as any).dependencies || [],
+        componentType: 'implementation'
       }));
       
       // Set implementation to not started (ready to begin)
@@ -321,45 +322,38 @@ export class QuestStateBuilder {
     return this;
   }
 
-  // SIEGEMASTER STATE
+  // GAP ANALYSIS STATE (Siegemaster)
   inSiegemasterState(status: PhaseStatus = PhaseStatus.COMPLETE, options?: StateOptions): this {
-    // Ensure review is complete
-    if (this.quest.phases.review.status !== PhaseStatus.COMPLETE) {
-      this.inLawbringerState();
+    // Ensure implementation is complete
+    if (this.quest.phases.implementation.status !== PhaseStatus.COMPLETE) {
+      this.inCodeweaverState();
     }
     
     this.stateHistory.push('siegemaster');
     
     // Handle phase transition - if going from NOT_STARTED to COMPLETE or BLOCKED, go through IN_PROGRESS
-    const currentStatus = this.quest.phases.testing.status;
+    const currentStatus = this.quest.phases.gapAnalysis.status;
     if (currentStatus === PhaseStatus.NOT_STARTED && (status === PhaseStatus.COMPLETE || status === PhaseStatus.BLOCKED)) {
       // Transition through IN_PROGRESS
-      this.quest.phases.testing.status = PhaseStatus.IN_PROGRESS;
+      this.quest.phases.gapAnalysis.status = PhaseStatus.IN_PROGRESS;
     }
     // Now validate and apply the final transition if needed
-    if (this.quest.phases.testing.status !== status) {
-      QuestStateMachine.validatePhaseTransition(this.quest.phases.testing.status, status);
-      this.quest.phases.testing.status = status;
+    if (this.quest.phases.gapAnalysis.status !== status) {
+      QuestStateMachine.validatePhaseTransition(this.quest.phases.gapAnalysis.status, status);
+      this.quest.phases.gapAnalysis.status = status;
     }
     
     if (status === PhaseStatus.COMPLETE) {
-      const coverage = options?.testCoverage || (options?.withErrors ? '75%' : '95%');
-      this.quest.phases.testing.coverage = coverage;
+      // Create gap analysis results
+      const gapsFound = options?.gapsFound || (options?.withErrors ? 5 : 2);
+      this.quest.phases.gapAnalysis.analysisResults = this.quest.phases.implementation.components.map(comp => ({
+        component: comp.name,
+        gapsFound: Math.floor(gapsFound / this.quest.phases.implementation.components.length),
+        priority: options?.withErrors ? 'high' : 'medium'
+      }));
       
-      // Create test files
-      const testFiles = ['tests/integration.test.ts', 'tests/e2e.test.ts'];
-      testFiles.forEach(file => {
-        const components = this.quest.phases.implementation.components
-          .map(c => c.name.match(/Create (\w+)\.ts/)?.[1])
-          .filter(Boolean) as string[];
-        
-        this.fileSystem.set(file, FileGenerators.integration(components));
-      });
-      
-      this.quest.phases.testing.testsCreated = testFiles;
-      
-      if (options?.failingTests) {
-        this.quest.phases.testing.failedTests = options.failingTests;
+      if (options?.additionalTestsNeeded) {
+        this.quest.phases.gapAnalysis.additionalTestsNeeded = options.additionalTestsNeeded;
       }
       
       // Add Siegemaster report
@@ -369,19 +363,19 @@ export class QuestStateBuilder {
       this.quest.agentReports.siegemaster.push({
         agentId: `siegemaster-${String(this.quest.agentReports.siegemaster.length + 1).padStart(3, '0')}`,
         timestamp: new Date().toISOString(),
-        fullReport: AgentReportTemplates.siegemaster(coverage, testFiles)
+        fullReport: AgentReportTemplates.siegemaster(String(gapsFound), this.quest.phases.gapAnalysis.analysisResults || [])
       });
       
     } else if (status === PhaseStatus.BLOCKED) {
       this.quest.status = QuestStatus.BLOCKED;
       this.addBlocker(
-        'test_failure',
-        options?.errorMessage || 'Integration tests failing: Cannot connect to test database'
+        'discovery_failed',
+        options?.errorMessage || 'Gap analysis failed: Unable to analyze test coverage'
       );
     }
     
-    this.addActivity(`Testing ${status}`, 'siegemaster', {
-      coverage: this.quest.phases.testing.coverage
+    this.addActivity(`Gap analysis ${status}`, 'siegemaster', {
+      gapsFound: this.quest.phases.gapAnalysis.analysisResults?.reduce((sum, r) => sum + r.gapsFound, 0) || 0
     });
     
     return this;
@@ -424,8 +418,8 @@ export class QuestStateBuilder {
       if (this.quest.phases.review.status === PhaseStatus.BLOCKED) {
         this.quest.phases.review.status = PhaseStatus.IN_PROGRESS;
       }
-      if (this.quest.phases.testing.status === PhaseStatus.BLOCKED) {
-        this.quest.phases.testing.status = PhaseStatus.IN_PROGRESS;
+      if (this.quest.phases.gapAnalysis.status === PhaseStatus.BLOCKED) {
+        this.quest.phases.gapAnalysis.status = PhaseStatus.IN_PROGRESS;
       }
       
       // If all implementation components are complete, mark the phase as complete
@@ -454,7 +448,7 @@ export class QuestStateBuilder {
   // COMPLETION STATE
   inCompletedState(): this {
     // Ensure all phases are complete
-    if (this.quest.phases.testing.status !== PhaseStatus.COMPLETE) {
+    if (this.quest.phases.gapAnalysis.status !== PhaseStatus.COMPLETE) {
       this.inSiegemasterState();
     }
     

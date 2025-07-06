@@ -40,8 +40,8 @@ describe('Quest State Builder', () => {
       const quest = builder.getQuest();
       expect(quest.phases.discovery.status).toBe(PhaseStatus.NOT_STARTED);
       expect(quest.phases.implementation.status).toBe(PhaseStatus.NOT_STARTED);
+      expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.NOT_STARTED);
       expect(quest.phases.review.status).toBe(PhaseStatus.NOT_STARTED);
-      expect(quest.phases.testing.status).toBe(PhaseStatus.NOT_STARTED);
     });
   });
 
@@ -298,7 +298,7 @@ describe('Quest State Builder', () => {
       const quest = builder.getQuest();
       
       expect(quest.phases.review.status).toBe(PhaseStatus.COMPLETE);
-      expect(quest.phases.testing.status).toBe(PhaseStatus.COMPLETE);
+      expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.COMPLETE);
     });
 
     test('should complete testing phase', () => {
@@ -306,10 +306,9 @@ describe('Quest State Builder', () => {
       const quest = builder.getQuest();
       const files = builder.getFiles();
       
-      expect(quest.phases.testing.status).toBe(PhaseStatus.COMPLETE);
-      expect(quest.phases.testing.coverage).toBe('95%');
-      expect(quest.phases.testing.testsCreated).toBeDefined();
-      expect(quest.phases.testing.testsCreated!.length).toBeGreaterThan(0);
+      expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.COMPLETE);
+      expect(quest.phases.gapAnalysis.analysisResults).toBeDefined();
+      expect(quest.phases.gapAnalysis.analysisResults!.length).toBeGreaterThan(0);
       
       const hasIntegrationTests = Array.from(files.keys()).some(
         path => path.includes('integration.test.ts')
@@ -317,22 +316,22 @@ describe('Quest State Builder', () => {
       expect(hasIntegrationTests).toBe(true);
     });
 
-    test('should handle custom test coverage', () => {
+    test('should handle custom gap analysis', () => {
       builder.inLawbringerState().inSiegemasterState(PhaseStatus.COMPLETE, {
-        testCoverage: '85%'
+        gapsFound: 3
       });
       const quest = builder.getQuest();
       
-      expect(quest.phases.testing.coverage).toBe('85%');
+      expect(quest.phases.gapAnalysis.analysisResults).toBeDefined();
     });
 
-    test('should handle failing tests', () => {
+    test('should handle additional tests needed', () => {
       builder.inLawbringerState().inSiegemasterState(PhaseStatus.COMPLETE, {
-        failingTests: ['test1', 'test2']
+        additionalTestsNeeded: ['test1', 'test2']
       });
       const quest = builder.getQuest();
       
-      expect(quest.phases.testing.failedTests).toEqual(['test1', 'test2']);
+      expect(quest.phases.gapAnalysis.additionalTestsNeeded).toBeDefined();
     });
 
     test('should handle blocked testing', () => {
@@ -341,7 +340,7 @@ describe('Quest State Builder', () => {
       });
       const quest = builder.getQuest();
       
-      expect(quest.phases.testing.status).toBe(PhaseStatus.BLOCKED);
+      expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.BLOCKED);
       expect(quest.status).toBe(QuestStatus.BLOCKED);
       expect(quest.blockers!.some(b => b.type === 'test_failure')).toBe(true);
     });
@@ -406,7 +405,7 @@ describe('Quest State Builder', () => {
       expect(quest.phases.discovery.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.review.status).toBe(PhaseStatus.COMPLETE);
-      expect(quest.phases.testing.status).toBe(PhaseStatus.COMPLETE);
+      expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.COMPLETE);
     });
 
     test('should set outcome', () => {

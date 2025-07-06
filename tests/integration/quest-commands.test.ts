@@ -73,7 +73,7 @@ describe('Quest Command Routing', () => {
             discovery: { status: 'complete' },
             implementation: { status: 'in_progress' },
             review: { status: 'not_started' },
-            testing: { status: 'not_started' }
+            gapAnalysis: { status: 'not_started' }
           }
         }
       }

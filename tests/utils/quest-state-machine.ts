@@ -29,6 +29,8 @@ export interface Component {
   dependencies: string[];
   files?: string[];
   assignedTo?: string;
+  componentType: 'implementation' | 'testing';
+  testType?: 'jest' | 'playwright' | 'cypress' | 'supertest';
 }
 
 export interface Blocker {
@@ -74,18 +76,21 @@ export interface ReviewPhase {
   progress?: string;
 }
 
-export interface TestingPhase {
+export interface GapAnalysisPhase {
   status: PhaseStatus;
-  coverage?: string;
-  testsCreated?: string[];
-  failedTests?: string[];
+  analysisResults?: Array<{
+    component: string;
+    gapsFound: number;
+    priority: 'high' | 'medium' | 'low';
+  }>;
+  additionalTestsNeeded?: string[];
 }
 
 export interface QuestPhases {
   discovery: DiscoveryPhase;
   implementation: ImplementationPhase;
+  gapAnalysis: GapAnalysisPhase;
   review: ReviewPhase;
-  testing: TestingPhase;
 }
 
 export interface AgentReport {
@@ -188,7 +193,7 @@ export class QuestStateMachine {
   }
 
   static getNextPhase(quest: QuestFile): string | null {
-    const phases = ['discovery', 'implementation', 'review', 'testing'];
+    const phases = ['discovery', 'implementation', 'gapAnalysis', 'review'];
     
     for (const phase of phases) {
       const phaseStatus = quest.phases[phase as keyof QuestPhases].status;
@@ -254,14 +259,14 @@ export class QuestStateMachine {
         }
         break;
 
+      case 'gapAnalysis':
+        if (phaseStatus === PhaseStatus.NOT_STARTED) return 'spawn_siegemasters';
+        if (phaseStatus === PhaseStatus.IN_PROGRESS) return 'continue_siegemasters';
+        break;
+
       case 'review':
         if (phaseStatus === PhaseStatus.NOT_STARTED) return 'spawn_lawbringer';
         if (phaseStatus === PhaseStatus.IN_PROGRESS) return 'continue_lawbringer';
-        break;
-
-      case 'testing':
-        if (phaseStatus === PhaseStatus.NOT_STARTED) return 'spawn_siegemaster';
-        if (phaseStatus === PhaseStatus.IN_PROGRESS) return 'continue_siegemaster';
         if (phaseStatus === PhaseStatus.COMPLETE) return 'run_ward_validation';
         break;
     }
@@ -290,7 +295,7 @@ export const TestPhrases = {
   SPAWNING_SINGLE_CODEWEAVER: '[🎲] 🧵 Summoning Codeweaver for',
   SPAWNING_MULTIPLE_CODEWEAVERS: '[🎲] ⚔️⚔️ Summoning',
   SPAWNING_LAWBRINGER: '[🎲] ⚖️ Summoning Lawbringer...',
-  SPAWNING_SIEGEMASTER: '[🎲] 🏰 Summoning Siegemaster...',
+  SPAWNING_SIEGEMASTERS: '[🎲] 🏰 Summoning Siegemasters...',
   SPAWNING_SPIRITMENDER: '[🎲] ✨ Summoning Spiritmender...',
   RUNNING_WARD_VALIDATION: '[🎲] 🛡️ Running ward validation...',
   
@@ -314,8 +319,8 @@ export function createEmptyQuest(id: string, title: string): QuestFile {
     phases: {
       discovery: { status: PhaseStatus.NOT_STARTED },
       implementation: { status: PhaseStatus.NOT_STARTED, components: [] },
-      review: { status: PhaseStatus.NOT_STARTED },
-      testing: { status: PhaseStatus.NOT_STARTED }
+      gapAnalysis: { status: PhaseStatus.NOT_STARTED },
+      review: { status: PhaseStatus.NOT_STARTED }
     },
     activity: [],
     agentReports: {},
@@ -341,7 +346,7 @@ export function validateQuest(quest: QuestFile): string[] {
 
   // Validate phases
   if (quest.phases) {
-    const requiredPhases = ['discovery', 'implementation', 'review', 'testing'];
+    const requiredPhases = ['discovery', 'implementation', 'gapAnalysis', 'review'];
     for (const phase of requiredPhases) {
       if (!(phase in quest.phases)) {
         errors.push(`Missing required phase: ${phase}`);

@@ -69,7 +69,7 @@ describe('Quest State Management', () => {
           discovery: { status: 'complete' },
           implementation: { status: 'complete' },
           review: { status: 'complete' },
-          testing: { status: 'complete' }
+          gapAnalysis: { status: 'complete' }
         }
       }
     };

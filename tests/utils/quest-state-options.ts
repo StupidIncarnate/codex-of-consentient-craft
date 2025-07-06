@@ -30,9 +30,9 @@ export interface StateOptions {
     message: string;
   }>;
   
-  // Test options
-  testCoverage?: string;
-  failingTests?: string[];
+  // Gap analysis options
+  gapsFound?: number;
+  additionalTestsNeeded?: string[];
   
   // Time simulation
   simulatedDuration?: number; // minutes
@@ -216,28 +216,28 @@ export const AgentReportTemplates = {
     '=== END REPORT ==='
   ],
 
-  siegemaster: (coverage: string, testFiles: string[]) => [
-    '=== SIEGEMASTER TEST REPORT ===',
-    'Phase: Integration Testing',
+  siegemaster: (gapsFound: string, analysisResults: any[]) => [
+    '=== SIEGEMASTER GAP ANALYSIS REPORT ===',
+    'Phase: Test Coverage Gap Analysis',
     'Status: Complete',
     `Timestamp: ${new Date().toISOString()}`,
     '',
-    'Test Creation Summary:',
-    ...testFiles.map(f => `- Created: ${f}`),
+    'Gap Analysis Summary:',
+    `- Total gaps identified: ${gapsFound}`,
+    `- Components analyzed: ${analysisResults.length}`,
     '',
-    'Test Results:',
-    `- Coverage: ${coverage}`,
-    '- All tests passing',
-    '- No flaky tests detected',
+    'Analysis Results:',
+    ...analysisResults.map(r => `- ${r.component}: ${r.gapsFound} gaps (${r.priority} priority)`),
     '',
-    'Test Categories:',
-    '- Unit tests: Complete',
-    '- Integration tests: Complete',
-    '- Edge cases: Covered',
+    'Coverage Assessment:',
+    '- Code paths analyzed: Complete',
+    '- Edge cases evaluated: Complete',
+    '- Test scenario gaps: Identified',
     '',
-    'Performance:',
-    '- Test execution time: 2.3s',
-    '- No memory leaks detected',
+    'Recommendations:',
+    '- Focus on high-priority gaps first',
+    '- Consider integration test scenarios',
+    '- Review error handling coverage',
     '=== END REPORT ==='
   ],
 

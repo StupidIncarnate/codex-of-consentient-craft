@@ -114,7 +114,7 @@ describe('Quest State Machine', () => {
       quest.phases.discovery.status = PhaseStatus.COMPLETE;
       quest.phases.implementation.status = PhaseStatus.COMPLETE;
       quest.phases.review.status = PhaseStatus.COMPLETE;
-      quest.phases.testing.status = PhaseStatus.COMPLETE;
+      quest.phases.gapAnalysis.status = PhaseStatus.COMPLETE;
       expect(QuestStateMachine.getNextPhase(quest)).toBe(null);
     });
 
@@ -135,9 +135,9 @@ describe('Quest State Machine', () => {
     test('should return components with no dependencies', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.QUEUED, dependencies: [] },
-        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: [] },
-        { name: 'comp3', status: ComponentStatus.QUEUED, dependencies: ['comp1'] }
+        { name: 'comp1', status: ComponentStatus.QUEUED, dependencies: [], componentType: 'implementation', componentType: 'implementation' },
+        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: [], componentType: 'implementation', componentType: 'implementation' },
+        { name: 'comp3', status: ComponentStatus.QUEUED, dependencies: ['comp1'], componentType: 'implementation' }
       ];
       
       const ready = QuestStateMachine.getReadyComponents(quest);
@@ -148,9 +148,9 @@ describe('Quest State Machine', () => {
     test('should return components with completed dependencies', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.COMPLETE, dependencies: [] },
-        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: ['comp1'] },
-        { name: 'comp3', status: ComponentStatus.QUEUED, dependencies: ['comp2'] }
+        { name: 'comp1', status: ComponentStatus.COMPLETE, dependencies: [], componentType: 'implementation' },
+        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: ['comp1'], componentType: 'implementation' },
+        { name: 'comp3', status: ComponentStatus.QUEUED, dependencies: ['comp2'], componentType: 'implementation' }
       ];
       
       const ready = QuestStateMachine.getReadyComponents(quest);
@@ -161,8 +161,8 @@ describe('Quest State Machine', () => {
     test('should not return in-progress components', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.IN_PROGRESS, dependencies: [] },
-        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: [] }
+        { name: 'comp1', status: ComponentStatus.IN_PROGRESS, dependencies: [], componentType: 'implementation' },
+        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: [], componentType: 'implementation' }
       ];
       
       const ready = QuestStateMachine.getReadyComponents(quest);
@@ -173,8 +173,8 @@ describe('Quest State Machine', () => {
     test('should handle partial name matches for dependencies', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.implementation.components = [
-        { name: 'Create config.ts with configuration', status: ComponentStatus.COMPLETE, dependencies: [] },
-        { name: 'Create logger.ts with logging', status: ComponentStatus.QUEUED, dependencies: ['config'] }
+        { name: 'Create config.ts with configuration', status: ComponentStatus.COMPLETE, dependencies: [], componentType: 'implementation' },
+        { name: 'Create logger.ts with logging', status: ComponentStatus.QUEUED, dependencies: ['config'], componentType: 'implementation' }
       ];
       
       const ready = QuestStateMachine.getReadyComponents(quest);
@@ -237,7 +237,7 @@ describe('Quest State Machine', () => {
       quest.phases.discovery.status = PhaseStatus.COMPLETE;
       quest.phases.implementation.status = PhaseStatus.COMPLETE;
       quest.phases.review.status = PhaseStatus.COMPLETE;
-      quest.phases.testing.status = PhaseStatus.COMPLETE;
+      quest.phases.gapAnalysis.status = PhaseStatus.COMPLETE;
       
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('complete_quest');
     });
@@ -264,7 +264,7 @@ describe('Quest State Machine', () => {
       quest.phases.discovery.status = PhaseStatus.COMPLETE;
       quest.phases.implementation.status = PhaseStatus.IN_PROGRESS;
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.QUEUED, dependencies: [] }
+        { name: 'comp1', status: ComponentStatus.QUEUED, dependencies: [], componentType: 'implementation' }
       ];
       
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('spawn_codeweaver');
@@ -275,8 +275,8 @@ describe('Quest State Machine', () => {
       quest.phases.discovery.status = PhaseStatus.COMPLETE;
       quest.phases.implementation.status = PhaseStatus.IN_PROGRESS;
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.IN_PROGRESS, dependencies: [] },
-        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: ['comp1'] }
+        { name: 'comp1', status: ComponentStatus.IN_PROGRESS, dependencies: [], componentType: 'implementation' },
+        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: ['comp1'], componentType: 'implementation' }
       ];
       
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('wait_for_dependencies');
@@ -302,7 +302,7 @@ describe('Quest State Machine', () => {
       quest.phases.discovery.status = PhaseStatus.COMPLETE;
       quest.phases.implementation.status = PhaseStatus.COMPLETE;
       quest.phases.review.status = PhaseStatus.COMPLETE;
-      quest.phases.testing.status = PhaseStatus.COMPLETE;
+      quest.phases.gapAnalysis.status = PhaseStatus.COMPLETE;
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('complete_quest');
     });
   });
@@ -317,7 +317,7 @@ describe('Quest State Machine', () => {
       expect(quest.phases.discovery.status).toBe(PhaseStatus.NOT_STARTED);
       expect(quest.phases.implementation.status).toBe(PhaseStatus.NOT_STARTED);
       expect(quest.phases.review.status).toBe(PhaseStatus.NOT_STARTED);
-      expect(quest.phases.testing.status).toBe(PhaseStatus.NOT_STARTED);
+      expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.NOT_STARTED);
       expect(quest.activity).toEqual([]);
       expect(quest.agentReports).toEqual({});
       expect(quest.createdAt).toBeDefined();
@@ -379,7 +379,7 @@ describe('Quest State Machine', () => {
     test('should validate components', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.implementation.components = [
-        { name: '', status: ComponentStatus.QUEUED, dependencies: [] },
+        { name: '', status: ComponentStatus.QUEUED, dependencies: [], componentType: 'implementation' },
         { name: 'comp2', status: 'invalid' as any, dependencies: [] }
       ];
       const errors = validateQuest(quest);
@@ -400,8 +400,8 @@ describe('Quest State Machine', () => {
       };
       quest.phases.implementation.status = PhaseStatus.IN_PROGRESS;
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.COMPLETE, dependencies: [] },
-        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: ['comp1'] }
+        { name: 'comp1', status: ComponentStatus.COMPLETE, dependencies: [], componentType: 'implementation' },
+        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: ['comp1'], componentType: 'implementation' }
       ];
       quest.activity = [
         { timestamp: new Date().toISOString(), agent: 'pathseeker', action: 'discovery complete', details: {} }

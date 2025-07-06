@@ -23,7 +23,7 @@ describe('Quest Completion', () => {
           discovery: { status: 'complete' },
           implementation: { status: 'complete', components: [] },
           review: { status: 'complete' },
-          testing: { status: 'complete' }
+          gapAnalysis: { status: 'complete' }
         }
       }
     };
