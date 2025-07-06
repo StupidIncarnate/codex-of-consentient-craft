@@ -9,7 +9,10 @@ Based on learnings and findings from repeated claude amnesia and hallucination s
 
 ### CLAUDE.md Optimization
 
-For optimal questmaestro performance, prepare your CLAUDE.md files by stripping any role or identity instructions. They should contain **only** information about your project and coding standards. Questmaestro agents have their own specialized identities and adding conflicting roles can degrade performance. If you still need certain personality layers on Claude, consider making a slash command for it: https://docs.anthropic.com/en/docs/claude-code/slash-commands
+For optimal questmaestro performance, prepare your CLAUDE.md files by stripping out:
+- any role or identity instructions
+
+They should contain **only** information about your project and coding standards and working methodologies. Questmaestro agents have their own specialized identities and adding conflicting roles can degrade performance. If you still need certain personality layers on Claude, consider making a slash command for it: https://docs.anthropic.com/en/docs/claude-code/slash-commands
 
 **Make sure you have nested CLAUDE.md files if code standards change between folders.** Each agent automatically inherits context from the directory it's working in, enabling seamless monorepo support without complex configuration.
 
