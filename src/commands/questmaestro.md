@@ -98,7 +98,9 @@ When invoked, check what argument (if any) was provided:
 - Read `quest-tracker.json` to get active array
 - Work on the first quest in the list (active[0])
 - If no active quests, tell user to create one with a specific task
-- Load the quest file from active[0] and continue from current phase
+- Load the quest file from active[0]
+- **Check quest freshness**: If quest was not created in this session (check timestamps), validate quest is still relevant
+- Continue from current phase
 
 ### "list" → Show Quest Status
 
@@ -246,9 +248,71 @@ Exit when:
 - User provides "cancel" or "nevermind" (acknowledge and wait for next command)
 - User provides completely different request (start over with new context)
 
+## Quest Validation
+
+Before working on any quest that wasn't created in the current session, validate its relevance:
+
+### Quest Freshness Check
+
+1. **Check Creation Time**: Compare quest creation timestamp with session start
+2. **Age Threshold**: If quest is older than current session, it may be stale
+3. **Validation Required**: Spawn Pathseeker to verify quest is still valid
+
+### Quest Validation Process
+
+When a quest needs validation:
+
+1. **Display Validation Status**:
+   ```
+   [🎯] 🔍 Validating quest relevance: [QUEST TITLE] (created [TIME_AGO])
+   ```
+
+2. **Display Context Being Sent**:
+   ```
+   🗺️ PATHSEEKER VALIDATION 🗺️
+   
+   📋 Quest to Validate: [QUEST TITLE]
+   🏗️ Working Directory: [CURRENT_WORKING_DIRECTORY]
+   🔍 Agent ID: pathseeker-validation-[UNIQUE_NUMBER]
+   
+   📝 Context Being Sent:
+   • Validation mode: Quest relevance check
+   • Original quest: [QUEST TITLE]
+   • Quest description: [QUEST DESCRIPTION]
+   • Original components: [COMPONENT LIST]
+   • Quest created: [ORIGINAL_TIMESTAMP]
+   • Working directory: [CURRENT_WORKING_DIRECTORY]
+   
+   🚀 Spawning Pathseeker for validation...
+   ```
+
+3. **Spawn Pathseeker** with validation context (see Pathseeker Validation Example)
+
+4. **Process Validation Results**:
+   - If **VALID**: Continue with quest as planned
+   - If **OUTDATED**: Update quest with new findings, reset components if needed
+   - If **IRRELEVANT**: Offer to abandon quest or transform it
+
+### Validation Context Format
+
+```
+Validation mode: Quest relevance check
+Quest to validate: [QUEST TITLE]
+Original description: [ORIGINAL DESCRIPTION]
+Original components planned: [COMPONENT LIST FROM ORIGINAL QUEST]
+Quest created: [ORIGINAL_TIMESTAMP]
+Current codebase context: Please analyze if this quest is still relevant
+Agent ID: pathseeker-validation-[UNIQUE_NUMBER]
+
+IMPORTANT: You are working in [CURRENT_WORKING_DIRECTORY].
+
+Determine if quest is: VALID (proceed as-is), OUTDATED (needs updates), or IRRELEVANT (no longer needed).
+Output your validation report (do not modify quest files).
+```
+
 ## Quest Execution Flow
 
-Once you have an active quest:
+Once you have an active quest (and it's been validated if needed):
 
 **CRITICAL RULE: ALWAYS FOLLOW QUEST PHASE ORDER**
 
@@ -299,6 +363,8 @@ For all component types (implementation and testing):
         - If multiple: Output: `[🎲] ⚔️⚔️ Summoning [N] Codeweavers for [testType] testing...`
         - If single: Output: `[🎲] 🧵 Summoning Codeweaver for [testType] tests...`
     - **CRITICAL**: Use a SINGLE message with multiple Task tool calls for parallel execution
+    - **EXAMPLE**: When spawning 3 components, use one message with 3 Task calls, not 3 separate messages
+    - **DO NOT**: Send one Task call, wait for response, then send another - this is sequential, not parallel
     - Update each component status to "in_progress" before spawning
 
 3. **Parallel Spawning Examples**:
@@ -339,6 +405,12 @@ Note:
 
 ## Spawning Agents
 
+**For Parallel Execution:**
+- When spawning multiple agents simultaneously, include ALL Task calls in ONE message
+- Example: `Task(...) Task(...) Task(...)` in a single response
+- **DO NOT**: Send one Task call, wait for response, then send another - this is sequential, not parallel
+
+**For Single Agent:**
 To spawn any agent:
 
 1. **Generate Unique Agent ID**: Create unique identifier using format: `[agent-type]-[component-name-if-applicable]-[sequential-number]`
@@ -375,6 +447,23 @@ Agent ID: pathseeker-[UNIQUE_NUMBER]
 IMPORTANT: You are working in [CURRENT_WORKING_DIRECTORY].
 
 Output your discovery report (do not modify quest files).
+```
+
+### Pathseeker Validation Example
+
+```
+Validation mode: Quest relevance check
+Quest to validate: [QUEST TITLE]
+Original description: [ORIGINAL DESCRIPTION]
+Original components planned: [COMPONENT LIST FROM ORIGINAL QUEST]
+Quest created: [ORIGINAL_TIMESTAMP]
+Current codebase context: Please analyze if this quest is still relevant
+Agent ID: pathseeker-validation-[UNIQUE_NUMBER]
+
+IMPORTANT: You are working in [CURRENT_WORKING_DIRECTORY].
+
+Determine if quest is: VALID (proceed as-is), OUTDATED (needs updates), or IRRELEVANT (no longer needed).
+Output your validation report (do not modify quest files).
 ```
 
 ### Codeweaver Example
@@ -453,11 +542,29 @@ When all phases show "complete" and ward:all passes:
 
 When agents complete their work, they output structured reports. Parse these to update the quest file:
 
+### Report Processing Flow
+
+1. **Parse Report**: Extract data using report markers
+2. **Display Full Report**: Show the complete agent output to the user
+3. **Update Quest**: Store parsed data in quest file
+
 ### Report Markers
 
 - Look for `=== [AGENT] REPORT ===` to start parsing
 - Extract key sections based on agent type
 - End parsing at `=== END REPORT ===`
+
+### Display Full Report
+
+After parsing but before updating the quest file, **ALWAYS display the complete agent report** using this format:
+
+```
+[🎁] 📋 Full [AGENT_TYPE] report:
+
+[COMPLETE_AGENT_OUTPUT_HERE]
+```
+
+This ensures users see exactly what each agent discovered and decided, providing full transparency into the quest process.
 
 ### Handling Edge Cases
 
@@ -493,6 +600,8 @@ After parsing a report:
 
 **For Pathseeker Reports:**
 
+- **FIRST**: Display the complete Pathseeker report using: `[🎁] 📋 Full Pathseeker report:` followed by the entire agent output
+- **If Validation Mode**: Process validation results (see Validation Results Processing)
 - If Status is "SUCCESS":
     - If creating new quest (Quest Details section exists):
         - Parse "Quest Details" section for basic quest info
@@ -574,6 +683,32 @@ After parsing a report:
 - Note all fixes in activity log
 - Store full report in agentReports.spiritmender array with unique agentId
 
+### Validation Results Processing
+
+**For Pathseeker Validation Reports:**
+
+- Look for validation result: `Validation Result: VALID|OUTDATED|IRRELEVANT`
+- Process based on result:
+
+**If VALID**:
+- Output: `[🎁] ✅ Quest validated - proceeding with original plan`
+- Continue with quest execution as normal
+
+**If OUTDATED**:
+- Output: `[🎁] 🔄 Quest needs updates - refreshing plan...`
+- Parse new component findings and update quest
+- Reset component statuses to "queued" if significant changes
+- Update quest description and decisions based on new findings
+- Continue with execution using updated plan
+
+**If IRRELEVANT**:
+- Output: `[🎁] ❌ Quest no longer relevant`
+- Ask user: `This quest appears outdated. Options: (1) abandon quest, (2) transform into new quest, (3) proceed anyway?`
+- Based on user choice:
+    - abandon: Follow abandon quest process
+    - transform: Enter planning mode with Pathseeker for new quest
+    - proceed: Continue with original quest
+
 **Always:**
 
 - Add entry to activity array with timestamp, agent, action, and details
@@ -617,6 +752,7 @@ When performing ANY action, output these EXACT standardized phrases with their s
 **Pre-Actions (Status/Analysis):**
 
 - `[🎯] ⚔️ Continuing quest: [QUEST TITLE]`
+- `[🎯] 🔍 Validating quest relevance: [QUEST TITLE] (created [TIME_AGO])`
 - `🔍 Checking dependencies...`
 
 **Main Actions:**
@@ -626,6 +762,7 @@ When performing ANY action, output these EXACT standardized phrases with their s
 **Post-Actions (Results/Updates):**
 
 - `[🎁] 📊 Parsing [agent] report...`
+- `[🎁] 📋 Full [agent] report:`
 - `[🎁] 💾 Updating quest state...`
 - `[🎁] ✅ Quest complete! [QUEST TITLE] vanquished!`
 - `[🎁] 💀 Quest abandoned: [QUEST TITLE]`
