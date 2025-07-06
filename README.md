@@ -5,6 +5,38 @@ Turn your Claude into a quest-driven development powerhouse! Questmaestro adds f
 ## Preamble
 Based on learnings and findings from repeated claude amnesia and hallucination sessions, as well as some really good information from https://github.com/davidkimai/Context-Engineering.
 
+## Prerequisites
+
+### CLAUDE.md Optimization
+
+For optimal questmaestro performance, prepare your CLAUDE.md files by stripping any role or identity instructions. They should contain **only** information about your project and coding standards. Questmaestro agents have their own specialized identities and adding conflicting roles can degrade performance. If you still need certain personality layers on Claude, consider making a slash command for it: https://docs.anthropic.com/en/docs/claude-code/slash-commands
+
+**Make sure you have nested CLAUDE.md files if code standards change between folders.** Each agent automatically inherits context from the directory it's working in, enabling seamless monorepo support without complex configuration.
+
+### CLAUDE.md Loading Behavior
+
+- **Directory Context**: Agents load CLAUDE.md from their working directory first
+- **Parent Inheritance**: If no local CLAUDE.md exists, agents inherit from parent directories
+- **Context Switching**: Moving between directories automatically switches context
+- **Link References**: Use `@folder/path` notation to reference shared standards documents
+
+**Example Structure**:
+```
+project/
+├── CLAUDE.md                    # Root project standards
+├── frontend/
+│   ├── CLAUDE.md               # React/TypeScript standards
+│   └── components/
+├── backend/
+│   ├── CLAUDE.md               # Node.js/API standards -> @docs/api-standards.md
+│   └── services/
+└── docs/
+    └── api-standards.md        # Shared API documentation standards
+```
+
+For more information on CLAUDE.md structure, take a look at this write-up: 
+- https://thomaslandgraf.substack.com/p/claude-codes-memory-working-with
+
 ## Quick Start
 
 ```bash
@@ -24,7 +56,7 @@ Questmaestro is an orchestration system that helps Claude manage complex develop
 
 - **🎯 Questmaestro** - The party leader who orchestrates your quests
 - **🗺️ Pathseeker** - Maps dependencies and discovers the optimal path  
-- **⚔️ Codeweaver** - Weaves elegant implementations
+- **🧵️ Codeweaver** - Weaves elegant implementations
 - **⚖️ Lawbringer** - Ensures code quality and standards
 - **🏰 Siegemaster** - Creates robust test fortifications
 - **✨ Spiritmender** - Heals build errors and failed tests
@@ -66,7 +98,6 @@ Edit `.questmaestro` to customize for your project:
     "questFolder": "./questmaestro"
   },
   "commands": {
-    "test": "npm test",
     "ward": "npm run lint -- $FILE",
     "ward:all": "npm run lint && npm run typecheck"
   },
@@ -148,12 +179,6 @@ Questmaestro will create a bug fix quest and orchestrate the fix.
 /questmaestro add user avatar upload
 ```
 Creates a feature quest with proper discovery and implementation phases.
-
-### Continue Where You Left Off
-```
-/questmaestro
-```
-Automatically resumes active quest or starts the next one.
 
 ## For Monorepos
 
