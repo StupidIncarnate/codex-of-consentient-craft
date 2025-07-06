@@ -47,7 +47,6 @@ export interface StateOptions {
 export interface PreparedEnvironment {
   questId: string;
   questPath: string;
-  trackerPath: string;
   files: string[];
   currentPhase: string;
   expectedNextAction: string;

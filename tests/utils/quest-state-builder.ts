@@ -7,7 +7,6 @@ import {
   QuestStatus,
   PhaseStatus,
   ComponentStatus,
-  QuestTracker,
   Component,
   Blocker,
   QuestStateMachine,
@@ -26,18 +25,12 @@ export class QuestStateBuilder {
   private quest: QuestFile;
   private projectDir: string;
   private fileSystem: Map<string, string> = new Map();
-  private questTracker: QuestTracker;
   private stateHistory: string[] = [];
 
   constructor(projectDir: string, questTitle: string, questId?: string) {
     this.projectDir = projectDir;
     const id = questId || `${questTitle.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
     this.quest = createEmptyQuest(id, questTitle);
-    this.questTracker = {
-      active: [`${id}.json`],
-      completed: [],
-      abandoned: []
-    };
   }
 
   // QUEST CREATION STATE (replaces Taskweaver - now handled by Pathseeker)
@@ -459,9 +452,7 @@ export class QuestStateBuilder {
       summary: `Successfully implemented ${this.quest.title}`
     };
     
-    // Update tracker
-    this.questTracker.active = this.questTracker.active.filter(q => q !== `${this.quest.id}.json`);
-    this.questTracker.completed.push(`${this.quest.id}.json`);
+    // No tracker updates needed - using file-based system
     
     this.addActivity('Quest completed', 'questmaestro', {
       duration: this.quest.activity.length * 5 // Simulated minutes
@@ -479,9 +470,7 @@ export class QuestStateBuilder {
       reason
     };
     
-    // Update tracker
-    this.questTracker.active = this.questTracker.active.filter(q => q !== `${this.quest.id}.json`);
-    this.questTracker.abandoned.push(`${this.quest.id}.json`);
+    // No tracker updates needed - using file-based system
     
     this.addActivity('Quest abandoned', 'questmaestro', { reason });
     
@@ -504,9 +493,7 @@ export class QuestStateBuilder {
     await fs.mkdir(path.join(questDir, 'retros'), { recursive: true });
     await fs.mkdir(path.join(questDir, 'lore'), { recursive: true });
     
-    // Write quest-tracker.json
-    const trackerPath = path.join(questDir, 'quest-tracker.json');
-    await fs.writeFile(trackerPath, JSON.stringify(this.questTracker, null, 2));
+    // No quest-tracker.json needed - using file-based system
     
     // Determine quest folder based on status
     let questFolder = 'active';
@@ -535,7 +522,6 @@ export class QuestStateBuilder {
     return {
       questId: this.quest.id,
       questPath,
-      trackerPath,
       files: Array.from(this.fileSystem.keys()),
       currentPhase: currentPhase || 'completed',
       expectedNextAction: expectedAction,

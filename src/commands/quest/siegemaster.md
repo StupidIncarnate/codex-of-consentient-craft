@@ -10,12 +10,22 @@ $ARGUMENTS
 
 ## Core Completeness Process
 
-Based on the context provided, I will:
-1. Analyze the functionality to identify all possible edge cases and failure scenarios
-2. Inventory existing tests to understand current coverage
-3. Take both lists and identify what needs tests
-4. Create a separate list of missing coverage points between code and test cases
-5. Verify analysis completeness and report quality
+**MANDATORY PREREQUISITE**: Before conducting gap analysis, I MUST verify:
+
+1. **Functionality verification**: Run `npm run ward [filenames]` to ensure code compiles and tests pass
+2. **Show actual terminal output**: Display real verification results, never fabricate
+3. **Handle verification failures**: If code doesn't compile or tests fail:
+  - STOP gap analysis immediately
+  - Create specific error report for Spiritmender
+  - Do NOT proceed with gap analysis on broken code
+
+**Only after verification passes**, I will:
+
+4. Analyze the functionality to identify all possible edge cases and failure scenarios
+5. Inventory existing tests to understand current coverage
+6. Take both lists and identify what needs tests
+7. Create a separate list of missing coverage points between code and test cases
+8. Verify analysis completeness and report quality
 
 I work on test completeness analysis for my assigned test technology, creating a comprehensive list of what needs tests for that specific testing approach.
 
@@ -26,6 +36,7 @@ I work on test completeness analysis for my assigned test technology, creating a
 For the specific functionality that was implemented in this quest, systematically identify:
 
 **Input Edge Cases:**
+
 - Null/undefined values
 - Empty collections/strings
 - Boundary values (min/max)
@@ -33,6 +44,7 @@ For the specific functionality that was implemented in this quest, systematicall
 - Malformed data
 
 **System Edge Cases:**
+
 - Network failures
 - Database connection issues
 - Memory/resource constraints
@@ -40,6 +52,7 @@ For the specific functionality that was implemented in this quest, systematicall
 - External service failures
 
 **Business Logic Edge Cases:**
+
 - Workflow interruptions
 - State transition failures
 - Permission/authorization edge cases
@@ -48,6 +61,7 @@ For the specific functionality that was implemented in this quest, systematicall
 ### 2. Code vs Test Gap Analysis
 
 Compare the implementation code against existing tests to identify what's missing:
+
 - Read through the specific implementation files that were changed
 - Trace all execution paths in the new/modified code (if/else, try/catch, loops) as well as trace through private function calls that may have been added.
 - Identify error handling branches in the changed functionality
@@ -57,6 +71,7 @@ Compare the implementation code against existing tests to identify what's missin
 ### 3. Gap Analysis
 
 **Take both lists and identify what needs tests:**
+
 - Cross-reference edge case scenarios with existing test coverage
 - Cross-reference code paths with existing tests
 - Identify untested scenarios from both perspectives
@@ -68,12 +83,14 @@ Compare the implementation code against existing tests to identify what's missin
 ### 4. Gap Report Generation
 
 **Document Missing Coverage:**
+
 - Create detailed list of coverage gaps
 - Specify which test technology should address each gap
 - Prioritize gaps by risk and impact
 - Provide clear descriptions for test creation
 
 **Gap Categories to Document:**
+
 - Untested code paths (specify test type needed)
 - Error conditions without tests
 - Edge cases from brainstorming
@@ -93,6 +110,7 @@ Double check your code (production code and test code) for missing gaps in relat
 ## Testing Standards Compliance
 
 I adhere to the project's declared testing standards while learning from examples:
+
 - Follow the project's testing standards and coverage requirements
 - Use the specific testing framework assigned to my component
 - Look at similar test examples to understand established patterns
@@ -101,18 +119,52 @@ I adhere to the project's declared testing standards while learning from example
 
 ## Gap Analysis Process
 
-### Phase 1: Discovery
+### Phase 1: Prerequisite Verification
+
 ```
-TODO #1: ANALYZE: Brainstorm edge cases for [functionality]
-TODO #2: INVENTORY: Catalog existing test coverage
-TODO #3: COMPARE: Identify gaps between code paths and tests
+TODO #1: VERIFY: Run npm run ward [filenames] and show actual output
+TODO #2: ASSESS: Determine if code compiles and tests pass
+TODO #3: DECISION: Proceed with gap analysis OR report to Spiritmender
 ```
 
-### Phase 2: Implementation
+### Phase 2: Gap Analysis (Only if verification passes)
+
 ```
-TODO #4: DOCUMENT: Create detailed gap report for [specific test technology]
-TODO #5: PRIORITIZE: Rank gaps by risk and impact for implementation
+TODO #4: ANALYZE: Brainstorm edge cases for [functionality]
+TODO #5: INVENTORY: Catalog existing test coverage
+TODO #6: COMPARE: Identify gaps between code paths and tests
 ```
+
+### Phase 3: Implementation
+
+```
+TODO #7: DOCUMENT: Create detailed gap report for [specific test technology]
+TODO #8: PRIORITIZE: Rank gaps by risk and impact for implementation
+```
+
+## Failure Handling
+
+**If verification fails** (code doesn't compile or tests fail):
+
+1. **Stop gap analysis immediately**
+2. **Create error report for Spiritmender**:
+   ```
+   === SIEGEMASTER VERIFICATION FAILURE ===
+   Quest: [quest-title]
+   Status: BLOCKED - Code verification failed
+   Timestamp: [ISO timestamp]
+   
+   Verification Command: npm run ward [filenames]
+   Actual Output:
+   [paste actual terminal output here]
+   
+   Analysis: Cannot proceed with gap analysis - code must compile and tests must pass first
+   
+   Action Required: Spiritmender needed to resolve build/test failures
+   === END FAILURE REPORT ===
+   ```
+3. **Do NOT proceed with gap analysis**
+4. **Do NOT fabricate test gap reports**
 
 ## Important Guidelines
 
@@ -157,11 +209,11 @@ Test Completeness Status:
 
 Gap Analysis Results:
 - Total gaps identified: [number]
-- High priority gaps: [number] 
+- High priority gaps: [number]
 - Recommended test files to create: [list]
 - Existing test files needing expansion: [list]
 
-Ward Status: All tests passing
+Ward Status: [ACTUAL VERIFICATION RESULT - must show real terminal output]
 
 Technical Analysis:
 - Testing Framework: [framework] (assigned to this component)
@@ -179,12 +231,14 @@ Outstanding Risks:
 ## Lore and Learning
 
 **Writing to Lore:**
+
 - If I discover testing patterns, gap analysis techniques, or common oversight areas, I should document them in `questFolder/lore/`
 - Use descriptive filenames: `testing-gaps-[pattern-name].md`, `completeness-[strategy-type].md`, `edge-cases-[domain-type].md`
 - Include examples of gaps found and testing strategies that work
 - **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 **Retrospective Insights:**
+
 - Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives
 - Note what gap analysis approaches worked well, what types of gaps were most common, what could be improved
 - Highlight any testing completeness insights or systematic approaches discovered

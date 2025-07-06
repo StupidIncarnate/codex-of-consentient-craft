@@ -126,15 +126,12 @@ describe('Questmaestro E2E Tests', () => {
     expect(questData.activity).toBeDefined();
     expect(questData.activity.length).toBeGreaterThan(5); // Should have many activities
     
-    // Check quest tracker is updated
-    const tracker = JSON.parse(
-      fs.readFileSync(
-        path.join(project.rootDir, 'questmaestro/quest-tracker.json'),
-        'utf8'
-      )
-    );
-    expect(tracker.active).toHaveLength(0);
-    expect(tracker.completed).toContain(completedQuests[0]);
+    // Check quest was moved to completed folder
+    const activeFiles = fs.readdirSync(path.join(project.rootDir, 'questmaestro/active'));
+    expect(activeFiles).toHaveLength(0);
+    
+    const completedFiles = fs.readdirSync(path.join(project.rootDir, 'questmaestro/completed'));
+    expect(completedFiles).toContain(completedQuests[0]);
   }, 1200000); // 20 minute timeout
 
 });

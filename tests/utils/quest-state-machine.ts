@@ -137,11 +137,7 @@ export interface QuestFile {
   updatedAt: string;
 }
 
-export interface QuestTracker {
-  active: string[];
-  completed: string[];
-  abandoned: string[];
-}
+// QuestTracker interface removed - using file-based quest management
 
 // State transition rules
 export class QuestStateMachine {

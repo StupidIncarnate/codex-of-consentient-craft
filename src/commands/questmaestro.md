@@ -10,14 +10,13 @@ First, read `.questmaestro` configuration file for project settings. If it doesn
 
 Within the quest folder, expect this structure:
 
-- `quest-tracker.json` - Simple arrays of quest filenames by status; `active[0]` in the json is next quest to work on.
 - `active/` - Currently active quests
 - `completed/` - Finished quest files
 - `abandoned/` - Stopped quest files
 - `retros/` - Retrospectives and learnings
 - `lore/` - Accumulated wisdom and gotchas
 
-Each quest is a single JSON file containing all its activity and progress.
+Each quest is a single JSON file containing all its activity and progress. Quest files are ordered alphabetically by filename.
 
 ### Quest Structure
 
@@ -87,7 +86,7 @@ Quest file structure includes:
 }
 ```
 
-Read `[questFolder]/quest-tracker.json` to understand the current quest state.
+Quest management is file-based using alphabetical ordering in the active/ folder.
 
 ## Core Commands
 
@@ -95,27 +94,25 @@ When invoked, check what argument (if any) was provided:
 
 ### No Argument → Continue Active Quest
 
-- Read `quest-tracker.json` to get active array
-- Work on the first quest in the list (active[0])
-- If no active quests, tell user to create one with a specific task
-- Load the quest file from active[0]
+- Read files in `[questFolder]/active/` folder
+- Work on the first quest alphabetically by filename
+- If no active quest files, tell user to create one with a specific task
+- Load the first quest file (alphabetically)
 - **Check quest freshness**: If quest was not created in this session (check timestamps), validate quest is still relevant
 - Continue from current phase
 
 ### "list" → Show Quest Status
 
-Read quest-tracker.json and all referenced quest files to display:
+Read all quest files in active/, completed/, and abandoned/ folders to display:
 
 ```
-🗡️ Active Quest: Fix User Avatar Upload (started 2 hours ago)
-   Progress: Discovery ✓ | Implementation ⚔️ | Testing ⏳ | Review ⏳
+🗡️ Active Quests (alphabetical order):
+   1. 01-fix-user-avatar-upload.json (started 2 hours ago)
+      Progress: Discovery ✓ | Implementation ⚔️ | Testing ⏳ | Review ⏳
+   2. setup-authentication-system.json (Large)
+   3. user-preferences-feature.json (Medium)
 
-📜 Quest Backlog:
-   1. Setup Authentication System (Large)
-   2. Add User Preferences (Medium)
-   3. Implement Search Feature (Medium)
-
-⚡ Stats: 5 quests completed | 1 abandoned | 3 day streak
+⚡ Stats: 5 quests completed | 1 abandoned
 ```
 
 ### "abandon" → Abandon Current Quest
@@ -126,32 +123,41 @@ If user wants to abandon the current quest:
 2. If confirmed:
     - Set quest status to "abandoned" in quest file
     - Add outcome with status "abandoned" and reason (if one provided)
-    - Remove from active array in quest-tracker.json
-    - Add to abandoned array in quest-tracker.json
     - Move file from active/ to abandoned/ folder
-3. Start working on the next quest in active array (if any)
+3. **Session ends**: Quest abandonment ends the current session; user must start new quest explicitly
+
+### "reorder" → Reorder Active Quests
+
+Allow user to reorganize quest priority by renaming files:
+
+1. Display current active quests with numbers
+2. Ask user for new order or specific quest to prioritize
+3. Rename files with numeric prefixes (01-, 02-, etc.) to establish new alphabetical order
+4. Confirm new order to user
 
 ### "start <quest-name>" → Jump to Specific Quest
 
-- Look for a quest that matches the name (fuzzy match)
+- Look for a quest that matches the name (fuzzy match) in active/ folder
 - If ambiguous match, ask for clarification
 - If found:
-    1. Update current quest (if any) status to "paused" in its file
-    2. Insert the new quest at position 0 (top of active array)
-    3. Update quest-tracker.json with the new array order
-    4. Load the new quest file and check its status
-    5. Continue from its current phase
+    1. **Set as session quest**: This quest becomes the active quest for this session
+    2. Update current quest (if any) status to "paused" in its file
+    3. Load the specified quest file and check its status
+    4. Continue from its current phase
+    5. **Session commitment**: Work on this quest regardless of alphabetical order until completion/abandonment
 
 ### Any Other Argument → Smart Quest Resolution
 
-1. Check if it matches or relates to an existing quest
+1. Check if it matches or relates to an existing quest in active/ folder
 2. If unclear, ask: "I found 'Fix User Avatar Upload' - is that what you meant, or is this a new quest?"
-3. If clearly new:
+3. If existing quest found: **Set as session quest** and work on it exclusively
+4. If clearly new:
     - Display context being sent to Pathseeker (see Context Display section)
     - Spawn Pathseeker to explore the request and codebase
     - Parse Pathseeker's report for quest creation or feedback
     - If Status is "SUCCESS": Display Quest Summary and request user approval before creating quest
     - If Status is "INSUFFICIENT_CONTEXT": Enter Planning Mode with user
+    - **Once created**: This becomes the session quest regardless of other active quests
     - Continue until quest is complete
 
 ## Context Display
@@ -568,12 +574,24 @@ When all phases show "complete" and ward:all passes:
     - status: "success"
     - completedAt: current timestamp
     - summary: brief description of what was accomplished
-3. Remove quest filename from active array in quest-tracker.json
-4. Add quest filename to completed array in quest-tracker.json
-5. Move quest file from [questFolder]/active/ to [questFolder]/completed/
-6. Create retrospective in [questFolder]/retros/[YYYYMMDD]-[quest-name].md using collected "Retrospective Notes" from all agent reports
-7. Celebrate briefly: "⚔️ Quest complete! The [quest title] has been vanquished!"
-8. If active array is not empty, start working on the new top quest
+3. Move quest file from [questFolder]/active/ to [questFolder]/completed/
+4. Create retrospective in [questFolder]/retros/[YYYYMMDD]-[quest-name].md using collected "Retrospective Notes" from all agent reports
+5. Celebrate briefly: "⚔️ Quest complete! The [quest title] has been vanquished!"
+6. **Session ends**: Quest completion ends the current session; user must start new quest explicitly
+
+## Session Quest Management
+
+**Session Quest Concept**:
+- When user specifies a quest (by name or creates new), it becomes THE quest for the session
+- Session quest takes priority over alphabetical ordering
+- Session continues until quest is completed, abandoned, or user explicitly switches
+- No automatic progression to "next" quest - user must be intentional about quest selection
+
+**Session Quest Rules**:
+1. **Explicit Selection**: User specifies quest by name or creates new quest
+2. **Session Lock**: Work only on session quest, ignore other active quests
+3. **Completion Reset**: Quest completion ends session, requires new quest selection
+4. **Switching Allowed**: User can explicitly switch to different quest (pauses current)
 
 ## Parsing Agent Reports
 
@@ -672,7 +690,7 @@ After parsing a report:
             - Only proceed after explicit user approval
         - Construct complete quest JSON (based on section `Quest Structure` above) with proper phases structure
         - Save as [questFolder]/active/[quest-id].json
-        - Add to position 0 of active array in quest-tracker.json
+        - **Set as session quest**: This quest becomes the active quest for this session
         - Discovery already marked "complete"
         - Output: "🚀 Quest approved! Beginning implementation..."
     - If updating existing quest (no Quest Details section):
@@ -818,8 +836,8 @@ IMPORTANT: Always use the appropriate prefix:
 2. **Natural Language** - Don't force rigid formats, understand intent
 3. **Single Writer** - Only Questmaestro updates quest files to prevent conflicts
 4. **Parse Don't Trust** - Validate agent reports before updating quest data
-5. **Array Order Matters** - The active array order is the priority order
-6. **First Quest is Current** - Always work on active[0]
+5. **Session Focus** - Once a quest is selected for the session, work only on that quest
+6. **Alphabetical Default** - When no session quest, work on first quest alphabetically
 7. **Check Dependencies** - Never spawn Codeweaver for component with unmet dependencies
 8. **Track Active Agents** - Maintain activeAgents array to know who's working
 9. **Context is Key** - Always read config and quest state before acting

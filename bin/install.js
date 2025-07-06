@@ -75,6 +75,38 @@ function copyCommands() {
   });
 }
 
+function updateGitignore() {
+  const gitignorePath = '.gitignore';
+  const questmaestroEntries = [
+    '# Questmaestro local quest folders',
+    'questmaestro/active/',
+    'questmaestro/completed/',
+    'questmaestro/abandoned/'
+  ];
+  
+  let gitignoreContent = '';
+  if (fs.existsSync(gitignorePath)) {
+    gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
+  }
+  
+  // Check if questmaestro entries already exist
+  const hasQuestmaestroEntries = questmaestroEntries.some(entry => 
+    gitignoreContent.includes(entry.replace('# ', '').trim())
+  );
+  
+  if (!hasQuestmaestroEntries) {
+    // Add questmaestro entries
+    const entriesToAdd = gitignoreContent.length > 0 ? 
+      '\n' + questmaestroEntries.join('\n') : 
+      questmaestroEntries.join('\n');
+    
+    fs.writeFileSync(gitignorePath, gitignoreContent + entriesToAdd + '\n');
+    log('  ✓ Added questmaestro folders to .gitignore', 'green');
+  } else {
+    log('  ⚠️  Questmaestro gitignore entries already exist, skipping...', 'yellow');
+  }
+}
+
 function createConfig() {
   log('\n📜 Creating Configuration...', 'bright');
   
@@ -111,15 +143,8 @@ function createConfig() {
     log('  ✓ Added lore categories guide', 'green');
   }
   
-  // Create quest-tracker.json in questmaestro folder
-  const questTrackerPath = path.join(questsDir, 'quest-tracker.json');
-  if (fs.existsSync(questTrackerPath)) {
-    log('  ⚠️  quest-tracker.json already exists, skipping...', 'yellow');
-  } else {
-    const trackerPath = path.join(__dirname, '..', 'src', 'templates', 'quest-tracker.json');
-    fs.copyFileSync(trackerPath, questTrackerPath);
-    log('  ✓ Created questmaestro/quest-tracker.json', 'green');
-  }
+  // Add gitignore entries for local quest folders
+  updateGitignore();
 }
 
 function printInstructions() {
@@ -136,8 +161,7 @@ function printInstructions() {
   
   log('\n📚 Next Steps:', 'yellow');
   log('  1. Edit .questmaestro to configure for your project');
-  log('  2. Add your quests to quest-tracker.json');
-  log('  3. Start questing with /questmaestro');
+  log('  2. Start questing with /questmaestro <task-description>');
   
   log('\n⚡ Quick Examples:', 'bright');
   log('  /questmaestro              - Work on next quest');

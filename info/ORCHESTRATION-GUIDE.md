@@ -109,29 +109,24 @@ Questmaestro → ward:all
 
 ```
 /questmaestro/
-├── quest-tracker.json     # Simple arrays of quest filenames
-├── active/                # Currently active quests
+├── active/                # Currently active quests (alphabetical order)
 │   └── [quest-name]-[date].json
-├── completed/             # Finished quests
+├── completed/             # Finished quests (local only)
 │   └── [quest-name]-[date].json
-├── abandoned/             # Stopped quests
+├── abandoned/             # Stopped quests (local only)
 │   └── [quest-name]-[date].json
-├── retros/                # Retrospectives and learnings
+├── retros/                # Retrospectives and learnings (shared via git)
 │   └── [date]-[topic].md
-└── lore/                  # Accumulated wisdom
+└── lore/                  # Accumulated wisdom (shared via git)
     └── [category]-[description].md
 ```
 
 ### Key Files
 
-**quest-tracker.json**: Simple filename lists
-```json
-{
-  "active": ["fix-login-20240115.json"],
-  "completed": ["setup-auth-20240110.json"],
-  "abandoned": []
-}
-```
+**File-Based Quest Management**: No central tracker needed
+- Quests are managed by file location in active/, completed/, abandoned/ folders
+- Quest ordering is alphabetical by filename
+- Session-based quest selection overrides alphabetical order
 
 **Quest Files**: Self-contained JSON with everything
 - Quest details and requirements

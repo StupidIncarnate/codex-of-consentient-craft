@@ -9,6 +9,7 @@ $ARGUMENTS
 ## Core Implementation Process
 
 I will:
+
 1. Understand what component to implement from the discovery
 2. Determine what needs to be created based on component type
 3. Follow established patterns found in the codebase
@@ -22,6 +23,7 @@ I handle my assigned component - whether that's implementation with primary test
 ### 1. Plan My Work
 
 I'll plan these steps based on component type:
+
 - Study existing patterns for similar components
 - For implementation components: Create code and primary tests
 - For testing components: Create additional test types for existing implementation
@@ -39,16 +41,19 @@ Research before working:
 
 ### 3. Component Creation Phase
 
-Follow coding standards for implementation order (tests-first vs implementation-first). 
+Follow coding standards for implementation order (tests-first vs implementation-first).
+
 - If no clear order, write test cases, then implementation.
 - If only assigned to do tests because implementation is already written, focus on tests only.
 
 **For Implementation Components:**
+
 - Adhere to coding standards when it comes to production code.
 - Use `npm run ward [filename]` to check tests run against implementation
 - Iteratively refine both tests and implementation until they work together
 
 **For Testing Components:**
+
 - Follow testing patterns found in existing test files for this test technology
 - Adhere to coding standards when it comes to testing code.
 - Create tests using the specified framework (Jest, Playwright, Supertest, etc.)
@@ -58,13 +63,26 @@ Follow coding standards for implementation order (tests-first vs implementation-
 
 ### 4. Validation Phase
 
-Double check your code (production code and test code) for missing gaps in relation to the requirements:
+**MANDATORY VERIFICATION REQUIREMENT**: Before proceeding to report generation, you MUST:
 
-- **Requirements Review**: Verify all component requirements are met
-- **Code Quality**: Check for clean, readable implementation following coding standards
-- **Test Coverage**: Ensure appropriate scenarios are covered for the component type
-- **Integration**: Verify component works with dependencies and existing code
-- **Final Verification**: Run `npm run ward [filenames]` to ensure everything passes
+1. **Run verification commands** and capture actual terminal output:
+   ```bash
+   npm run ward [filenames]
+   ```
+
+2. **Show actual terminal output** in your response - do not fabricate or assume results
+
+3. **Handle verification failures**: If verification fails:
+    - Create specific TODOs for each error found
+    - Fix errors systematically using TodoWrite workflow
+    - Re-run verification after each fix
+    - Do NOT proceed to report generation until verification passes
+
+4. **Complete validation checklist** only after verification passes:
+    - **Requirements Review**: Verify all component requirements are met
+    - **Code Quality**: Check for clean, readable implementation following coding standards
+    - **Test Coverage**: Ensure appropriate scenarios are covered for the component type
+    - **Integration**: Verify component works with dependencies and existing code
 
 ## Parallel Work Considerations
 
@@ -74,9 +92,30 @@ Since other Codeweavers may be working simultaneously:
 2. **Avoid modifying shared files**: Stay within your scope
 3. **Document integration points**: Note what your service exposes
 
+## Component Scope Boundaries
+
+**What you are responsible for**:
+- Your assigned component files only (implementation OR testing)
+- Primary test files if doing implementation component
+- Additional test files if doing testing component
+- Dependencies your component needs (imports/exports)
+
+**What you must NOT modify**:
+- Other components' files
+- Shared configuration files
+- Files outside your component scope
+
+**Integration requirements**:
+- Document what your component exposes (exports, interfaces)
+- Document what your component needs (imports, dependencies)
+- Use existing shared types/interfaces where possible
+- Create new shared types only if absolutely necessary
+
 ## Implementation Report
 
-After ALL your work is complete, output a structured report:
+**CRITICAL**: Only generate this report after verification passes. If verification fails, you MUST fix all issues first.
+
+After ALL your work is complete AND verification passes, output a structured report:
 
 ```
 === CODEWEAVER IMPLEMENTATION REPORT ===
@@ -105,7 +144,7 @@ Integration Points:
 - Dependencies: [what it needs from others]
 - Interfaces: [key interfaces exposed]
 
-Ward Status: Passing
+Ward Status: [ACTUAL VERIFICATION RESULT - must show real terminal output]
 
 Technical Decisions:
 - [Key decision 1]: [Reasoning]
@@ -120,17 +159,21 @@ Technical Decisions:
 2. **Complete atomically**: Finish everything before marking done
 3. **Test adequately**: Functionality and error conditions tested
 4. **Use TODO workflow**: Track all work with todos
-5. **Verify before complete**: Must run `npm run ward [filenames]`
+5. **MANDATORY VERIFICATION**: Must run `npm run ward [filenames]` and show actual output
+6. **NO FABRICATION**: Never claim "Ward Status: Passing" without actual terminal proof
+7. **Fix failures**: If verification fails, fix all issues before reporting completion
 
 ## Lore and Learning
 
 **Writing to Lore:**
+
 - If I discover implementation patterns, technical debt, or coding gotchas, I should document them in `questFolder/lore/`
 - Use descriptive filenames: `implementation-[pattern-name].md`, `testing-[strategy-type].md`, `performance-[issue-type].md`
 - Include code examples and context about when/why the pattern applies
 - **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 **Retrospective Insights:**
+
 - Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives
 - Note what implementation approaches worked well, what was challenging, what could be improved
 - Highlight any development process insights or tooling improvements discovered

@@ -4,11 +4,11 @@ This directory contains example quest files showing different states and scenari
 
 ## Files
 
-### quest-tracker.json
-The main tracker that shows which quests are in which state:
-- **active**: Currently being worked on
-- **completed**: Successfully finished
-- **abandoned**: Stopped without completion
+### File-Based Quest Management
+Quests are organized by folder location:
+- **active/**: Currently being worked on (alphabetical order)
+- **completed/**: Successfully finished (local only, not committed)
+- **abandoned/**: Stopped without completion (local only, not committed)
 
 ### Active Quest Examples
 

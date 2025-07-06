@@ -22,12 +22,7 @@ interface PackageJson {
   jest?: any;
 }
 
-interface QuestTracker {
-  active: string[];
-  completed: string[];
-  abandoned: string[];
-  [key: string]: any;
-}
+// QuestTracker interface removed - using file-based quest management
 
 export class TestProject {
   public name: string;
@@ -135,11 +130,22 @@ export class TestProject {
     }
   }
 
-  // Get quest tracker data
-  getQuestTracker(): QuestTracker | null {
-    const trackerPath = path.join(this.rootDir, 'questmaestro', 'quest-tracker.json');
-    if (fs.existsSync(trackerPath)) {
-      return JSON.parse(fs.readFileSync(trackerPath, 'utf8'));
+  // Get list of quest files in a folder
+  getQuestFiles(folder: 'active' | 'completed' | 'abandoned'): string[] {
+    const folderPath = path.join(this.rootDir, 'questmaestro', folder);
+    if (fs.existsSync(folderPath)) {
+      return fs.readdirSync(folderPath)
+        .filter(file => file.endsWith('.json'))
+        .sort(); // Alphabetical order
+    }
+    return [];
+  }
+
+  // Get a specific quest file
+  getQuest(questId: string, folder: 'active' | 'completed' | 'abandoned' = 'active'): any {
+    const questPath = path.join(this.rootDir, 'questmaestro', folder, `${questId}.json`);
+    if (fs.existsSync(questPath)) {
+      return JSON.parse(fs.readFileSync(questPath, 'utf8'));
     }
     return null;
   }

@@ -73,6 +73,6 @@ describe('Quest Configuration', () => {
     expect(fs.existsSync(path.join(questFolder, 'abandoned'))).toBe(true);
     expect(fs.existsSync(path.join(questFolder, 'retros'))).toBe(true);
     expect(fs.existsSync(path.join(questFolder, 'lore'))).toBe(true);
-    expect(fs.existsSync(path.join(questFolder, 'quest-tracker.json'))).toBe(true);
+    // No quest-tracker.json needed - using file-based system
   });
 });

@@ -8,15 +8,28 @@ $ARGUMENTS
 
 ## Core Review Process
 
-Based on the context provided, I will:
-1. Identify what needs to be reviewed
-2. Verify code follows established project standards and patterns
-3. Check for consistency and quality issues
-4. Fix any standards violations and problems found
-5. Verify all fixes work correctly
+**MANDATORY UPFRONT VERIFICATION**: Before conducting standards review, I MUST:
 
-**CRITICAL REQUIREMENT:** If you find ANY issues that need fixing, you MUST:
-- Use TodoWrite to create TODOs for each fix needed
+1. **Integration verification**: Run `npm run ward:all` to check if all components work together
+2. **Show actual terminal output**: Display real verification results, never fabricate
+3. **Triage failure types**: If verification fails, categorize errors:
+   - **Build failures**: Type errors, import errors, compilation issues → Route to Spiritmender
+   - **Standards violations**: Code style, pattern violations → Fix myself
+   - **Integration issues**: Component compatibility problems → Document and fix
+
+**Only after understanding failure types**, I will:
+
+4. Identify what needs to be reviewed
+5. Verify code follows established project standards and patterns
+6. Check for consistency and quality issues
+7. Fix standards violations and integration issues
+8. Re-verify all fixes work correctly
+
+**CRITICAL REQUIREMENT:** Based on verification results, you MUST:
+
+- **For build failures**: Document and fix build errors
+- **For standards violations**: Use TodoWrite to create TODOs and fix them yourself
+- **For integration issues**: Document and fix compatibility problems
 - Follow the TODO workflow when implementing fixes
 - Show verification output before marking complete
 
@@ -70,13 +83,19 @@ Since multiple Coders worked in parallel:
 
 ## Fix Implementation
 
-If you find issues:
+**Error Triage Process**:
 
-1. Create specific TODOs:
+1. **Run upfront verification**: `npm run ward:all`
+2. **Categorize errors by type**:
+   - Build failures (types, imports, compilation) → Document and fix
+   - Standards violations (code style, patterns) → Fix myself
+   - Integration issues (component compatibility) → Document and fix
+
+**For Standards Violations** (fix yourself):
 
 ```
 TODO #1: STANDARDS: Fix code that violates project standards
-TODO #2: FIX: Align ServiceB interface with ServiceA pattern
+TODO #2: FIX: Align ServiceB interface with ServiceA pattern  
 TODO #3: FIX: Update inconsistent naming conventions in ServiceC
 TODO #4: VERIFY: All services follow consistent patterns
 ```
@@ -124,8 +143,8 @@ Code Quality Assessment:
 - ServiceB: Consistent with established conventions
 - ServiceC: Proper error handling and type safety
 
-Ward Status: All files passing
-Full Integration Check: `npm run ward:all` passing
+Ward Status: [ACTUAL VERIFICATION RESULT - must show real terminal output]
+Full Integration Check: [ACTUAL npm run ward:all OUTPUT - must show real terminal output]
 
 Files Modified:
 - path/to/serviceA.ts (updated naming conventions)
@@ -146,11 +165,13 @@ Files Modified:
 After completing all component reviews and fixes:
 
 1. **Run full project validation**:
+
    ```bash
    npm run ward:all
    ```
 
 2. **Focus on integration issues**:
+
    - Type mismatches between parallel components
    - Missing exports/imports
    - Integration test failures
@@ -188,12 +209,14 @@ For EVERY production code file, verify:
 ## Lore and Learning
 
 **Writing to Lore:**
+
 - If I discover code quality patterns, review gotchas, or integration issues, I should document them in `questFolder/lore/`
 - Use descriptive filenames: `quality-[pattern-name].md`, `review-[issue-type].md`, `integration-[problem-type].md`
 - Include examples of good/bad patterns and why they matter
 - **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 **Retrospective Insights:**
+
 - Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives
 - Note what review approaches worked well, what quality issues were most common, what could be improved
 - Highlight any code review process insights or quality tooling improvements discovered

@@ -36,7 +36,6 @@ describe('Installer Error Handling', () => {
     const sourceFiles = [
       path.join(process.cwd(), 'src', 'commands', 'questmaestro.md'),
       path.join(process.cwd(), 'src', 'templates', 'questmaestro.json'),
-      path.join(process.cwd(), 'src', 'templates', 'quest-tracker.json'),
       path.join(process.cwd(), 'src', 'templates', 'lore-categories.md')
     ];
 

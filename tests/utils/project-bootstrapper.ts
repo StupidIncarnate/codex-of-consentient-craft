@@ -113,11 +113,7 @@ export class ProjectBootstrapper {
       fs.writeFileSync(questPath, JSON.stringify(quest.data, null, 2));
     }
     
-    // Update quest tracker
-    const trackerPath = path.join(questDir, 'quest-tracker.json');
-    const tracker = JSON.parse(fs.readFileSync(trackerPath, 'utf8'));
-    tracker.active = quests.map(q => q.filename);
-    fs.writeFileSync(trackerPath, JSON.stringify(tracker, null, 2));
+    // No quest tracker needed - files are managed by directory structure
     
     return project;
   }

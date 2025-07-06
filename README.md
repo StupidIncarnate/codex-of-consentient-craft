@@ -121,16 +121,15 @@ After installation, your quests are organized in:
 
 ```
 questmaestro/
-├── quest-tracker.json    # Simple list of quest filenames by status
-├── active/               # Currently active quests (ordered by priority)
+├── active/               # Currently active quests (alphabetical order)
 │   └── [quest-name]-[YYYYMMDD].json
-├── completed/            # Finished quests
+├── completed/            # Finished quests (local only)
 │   └── [quest-name]-[YYYYMMDD].json
-├── abandoned/            # Quests that were stopped
+├── abandoned/            # Quests that were stopped (local only)
 │   └── [quest-name]-[YYYYMMDD].json
-├── retros/               # Retrospectives and learnings
+├── retros/               # Retrospectives and learnings (shared via git)
 │   └── [YYYYMMDD]-[topic].md
-└── lore/                 # Accumulated wisdom and gotchas
+└── lore/                 # Accumulated wisdom and gotchas (shared via git)
     └── [category]-[description].md
 ```
 

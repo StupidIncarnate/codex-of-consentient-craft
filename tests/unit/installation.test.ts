@@ -47,14 +47,14 @@ describe('Questmaestro Installation', () => {
     expect(testProject.fileExists('questmaestro/lore/README.md')).toBe(true);
   });
 
-  test('should create quest-tracker.json', async () => {
+  test('should add questmaestro folders to .gitignore', async () => {
     await testProject.installQuestmaestro();
     
-    const tracker = testProject.getQuestTracker();
-    expect(tracker).toBeDefined();
-    expect(tracker?.active).toEqual([]);
-    expect(tracker?.completed).toEqual([]);
-    expect(tracker?.abandoned).toEqual([]);
+    const gitignoreContent = testProject.readFile('.gitignore');
+    expect(gitignoreContent).toContain('questmaestro/active/');
+    expect(gitignoreContent).toContain('questmaestro/completed/');
+    expect(gitignoreContent).toContain('questmaestro/abandoned/');
+    expect(gitignoreContent).toContain('# Questmaestro local quest folders');
   });
 
   test('should create .questmaestro config file', async () => {
@@ -68,25 +68,19 @@ describe('Questmaestro Installation', () => {
     expect(config.commands['ward:all']).toBeDefined();
   });
 
-  test('should not overwrite existing quest-tracker.json', async () => {
-    // Create existing quest tracker
-    const existingTracker = {
-      active: ['existing-quest.json'],
-      completed: ['done-quest.json'],
-      abandoned: []
-    };
-    
-    testProject.writeFile(
-      'questmaestro/quest-tracker.json',
-      JSON.stringify(existingTracker, null, 2)
-    );
+  test('should not duplicate gitignore entries if already present', async () => {
+    // Create existing gitignore with questmaestro entries
+    testProject.writeFile('.gitignore', 'node_modules/\nquestmaestro/active/\n');
     
     // Run installer
-    await testProject.installQuestmaestro();
+    const output = await testProject.installQuestmaestro();
     
-    // Check it wasn't overwritten
-    const tracker = testProject.getQuestTracker();
-    expect(tracker).toEqual(existingTracker);
+    // Check it didn't duplicate entries
+    expect(output).toContain('gitignore entries already exist, skipping');
+    
+    const gitignoreContent = testProject.readFile('.gitignore');
+    const activeLines = gitignoreContent.split('\n').filter(line => line.includes('questmaestro/active/'));
+    expect(activeLines).toHaveLength(1);
   });
 
   test('should not overwrite existing .questmaestro config', async () => {
@@ -104,5 +98,20 @@ describe('Questmaestro Installation', () => {
     // Check it wasn't overwritten
     const config = testProject.getConfig();
     expect(config).toEqual(existingConfig);
+  });
+
+  test('should create gitignore if it does not exist', async () => {
+    // Ensure no gitignore exists
+    expect(testProject.fileExists('.gitignore')).toBe(false);
+    
+    // Run installer
+    await testProject.installQuestmaestro();
+    
+    // Check gitignore was created with questmaestro entries
+    expect(testProject.fileExists('.gitignore')).toBe(true);
+    const gitignoreContent = testProject.readFile('.gitignore');
+    expect(gitignoreContent).toContain('questmaestro/active/');
+    expect(gitignoreContent).toContain('questmaestro/completed/');
+    expect(gitignoreContent).toContain('questmaestro/abandoned/');
   });
 });

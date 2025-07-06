@@ -32,7 +32,14 @@ describe('NPX Installation', () => {
     // Verify all files were created
     expect(testProject.fileExists('.claude/commands/questmaestro.md')).toBe(true);
     expect(testProject.fileExists('.questmaestro')).toBe(true);
-    expect(testProject.fileExists('questmaestro/quest-tracker.json')).toBe(true);
+    expect(testProject.fileExists('questmaestro/active')).toBe(true);
+    expect(testProject.fileExists('questmaestro/completed')).toBe(true);
+    expect(testProject.fileExists('questmaestro/abandoned')).toBe(true);
+    
+    // Verify gitignore entries were added
+    expect(testProject.fileExists('.gitignore')).toBe(true);
+    const gitignoreContent = testProject.readFile('.gitignore');
+    expect(gitignoreContent).toContain('questmaestro/active/');
   });
 
   test('should handle missing .claude directory', async () => {
@@ -72,13 +79,9 @@ describe('NPX Installation', () => {
     };
     testProject.writeFile('.questmaestro', JSON.stringify(customConfig, null, 2));
     
-    // Add some quests
-    const questTracker = {
-      active: ['existing-quest.json'],
-      completed: ['done-quest.json'],
-      abandoned: []
-    };
-    testProject.writeFile('questmaestro/quest-tracker.json', JSON.stringify(questTracker, null, 2));
+    // Add some existing quest files
+    testProject.writeFile('questmaestro/active/existing-quest.json', JSON.stringify({ id: 'existing-quest', title: 'Test Quest' }, null, 2));
+    testProject.writeFile('questmaestro/completed/done-quest.json', JSON.stringify({ id: 'done-quest', title: 'Completed Quest' }, null, 2));
     
     // Second installation
     const output = await testProject.installQuestmaestro();
@@ -88,12 +91,16 @@ describe('NPX Installation', () => {
     expect(config.paths.questFolder).toBe('./my-quests');
     expect(config.commands.ward).toBe('eslint $FILE');
     
-    const tracker = testProject.getQuestTracker();
-    expect(tracker!.active).toContain('existing-quest.json');
+    // Verify quest files were preserved
+    const activeQuests = testProject.getQuestFiles('active');
+    expect(activeQuests).toContain('existing-quest.json');
+    
+    const completedQuests = testProject.getQuestFiles('completed');
+    expect(completedQuests).toContain('done-quest.json');
     
     // Check warning was shown
     expect(output).toContain('.questmaestro already exists, skipping');
-    expect(output).toContain('quest-tracker.json already exists, skipping');
+    expect(output).toContain('gitignore entries already exist, skipping');
   });
 
   test('should create all required subdirectories', async () => {
