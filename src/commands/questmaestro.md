@@ -145,11 +145,34 @@ If user wants to abandon the current quest:
 1. Check if it matches or relates to an existing quest
 2. If unclear, ask: "I found 'Fix User Avatar Upload' - is that what you meant, or is this a new quest?"
 3. If clearly new:
+    - Display context being sent to Pathseeker (see Context Display section)
     - Spawn Pathseeker to explore the request and codebase
     - Parse Pathseeker's report for quest creation or feedback
-    - If Status is "SUCCESS": Save quest and begin execution
+    - If Status is "SUCCESS": Display Quest Summary and request user approval before creating quest
     - If Status is "INSUFFICIENT_CONTEXT": Enter Planning Mode with user
     - Continue until quest is complete
+
+## Context Display
+
+When spawning Pathseeker, ALWAYS display the context being sent using this format:
+
+```
+🗺️ PATHSEEKER CONTEXT 🗺️
+
+📋 Request: "[USER REQUEST]"
+🏗️ Working Directory: [CURRENT_WORKING_DIRECTORY]
+🔍 Agent ID: pathseeker-[UNIQUE_NUMBER]
+
+📝 Context Being Sent:
+• User request: [USER REQUEST]
+• Previous context: [ACCUMULATED CONTEXT] (if from planning mode)
+• Quest context: [QUEST TITLE] (if existing quest discovery)
+• Working directory: [CURRENT_WORKING_DIRECTORY]
+
+🚀 Spawning Pathseeker...
+```
+
+This transparency helps users understand what information Pathseeker is working with, especially when previous findings are being sent to subsequent Pathseeker instances.
 
 ## Planning Mode
 
@@ -195,14 +218,16 @@ Exploring: "[original user request]"
 
 2. **Collect User Response**: Add response to accumulated context
 
-3. **Spawn Pathseeker Again**: With enhanced context including:
+3. **Display Enhanced Context**: Show the context being sent (see Context Display section)
+
+4. **Spawn Pathseeker Again**: With enhanced context including:
 
     - Original request
     - Previous findings
     - User clarifications
     - All accumulated context
 
-4. **Repeat**: Until Pathseeker returns "SUCCESS"
+5. **Repeat**: Until Pathseeker returns "SUCCESS"
 
 ### Planning Mode Output
 
@@ -243,7 +268,7 @@ Even if the user asks you to run a specific agent or step out of order (unless t
 
 2. **Determine Next Action** based on phase statuses:
 
-    - If discovery is "not_started" → Output: "Spawning Pathseeker for discovery phase..." → Spawn Pathseeker
+    - If discovery is "not_started" → Display context being sent to Pathseeker → Output: "Spawning Pathseeker for discovery phase..." → Spawn Pathseeker
     - If discovery is "complete" → Check for eligible components (see Component Execution)
     - If eligible components exist → Spawn Codeweaver for each component
     - If all components "complete" and gap analysis "not_started" → Spawn equal number of Siegemasters to double-check each component's work
@@ -337,6 +362,8 @@ Agent files in your local .claude/commands/quest/ directory:
 When spawning agents, provide clear context to replace $ARGUMENTS:
 
 ### Pathseeker Example
+
+**IMPORTANT**: Always display context being sent before spawning (see Context Display section).
 
 ```
 User request: [USER REQUEST]
@@ -470,10 +497,10 @@ After parsing a report:
     - If creating new quest (Quest Details section exists):
         - Parse "Quest Details" section for basic quest info
         - Parse "Components Found" to understand implementation scope
-        - **Display Quest Summary** for user before starting:
+        - **Display Quest Summary** for user approval:
 
           ```
-          🗡️ Quest Created: [QUEST TITLE]
+          🗡️ Quest Analysis Complete: [QUEST TITLE]
     
           📋 What We'll Build:
           • [Component 1]: [description]
@@ -489,13 +516,19 @@ After parsing a report:
           • Dependencies: [describe dependency chain if any]
           • Estimated effort: [complexity level]
     
-          🚀 Beginning implementation...
+          ❓ Approve this quest plan? (yes/no)
+          📝 Or provide feedback for adjustments...
           ```
 
+        - **Wait for user approval**:
+            - If "yes" or similar approval: Continue with quest creation
+            - If "no" or feedback provided: Ask user what should be changed and re-spawn Pathseeker with the feedback
+            - Only proceed after explicit user approval
         - Construct complete quest JSON (based on section `Quest Structure` above) with proper phases structure
         - Save as [questFolder]/active/[quest-id].json
         - Add to position 0 of active array in quest-tracker.json
         - Discovery already marked "complete"
+        - Output: "🚀 Quest approved! Beginning implementation..."
     - If updating existing quest (no Quest Details section):
         - Set phases.discovery.status to "complete"
         - Parse "Discovery Findings" JSON and add to phases.discovery.findings
