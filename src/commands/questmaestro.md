@@ -289,9 +289,9 @@ When a quest needs validation:
 3. **Spawn Pathseeker** with validation context (see Pathseeker Validation Example)
 
 4. **Process Validation Results**:
-   - If **VALID**: Continue with quest as planned
-   - If **OUTDATED**: Update quest with new findings, reset components if needed
-   - If **IRRELEVANT**: Offer to abandon quest or transform it
+    - If **VALID**: Continue with quest as planned
+    - If **OUTDATED**: Update quest with new findings, reset components if needed
+    - If **IRRELEVANT**: Offer to abandon quest or transform it
 
 ### Validation Context Format
 
@@ -332,13 +332,24 @@ Even if the user asks you to run a specific agent or step out of order (unless t
 
 2. **Determine Next Action** based on phase statuses:
 
+   **Discovery Phase:**
     - If discovery is "not_started" → Display context being sent to Pathseeker → Output: "Spawning Pathseeker for discovery phase..." → Spawn Pathseeker
-    - If discovery is "complete" → Check for eligible components (see Component Execution)
-    - If eligible components exist → Spawn Codeweaver for each component
-    - If all components "complete" and gap analysis "not_started" → Spawn equal number of Siegemasters to double-check each component's work
-    - If all gap analysis "complete" and review "not_started" → Output: "Spawning Lawbringer for full changed file verification..." → Spawn Lawbringer
+
+   **Implementation Phase:**
+    - If discovery "complete" and implementation "not_started" → Check for eligible components (see Component Execution)
+    - If eligible components exist → Spawn Codeweavers for each component
+    - If all components "complete" but implementation still "in_progress" → Set implementation to "complete"
+
+   **Testing Phase:**
+    - If implementation "complete" and testing "not_started" → Spawn Siegemasters for gap analysis
+    - Spawn one Siegemaster per completed component to analyze test coverage
+    - If all Siegemasters complete → Set testing to "complete"
+
+   **Review Phase:**
+    - If testing "complete" and review "not_started" → Output: "Spawning Lawbringer for standards review..." → Spawn Lawbringer
     - If review "complete" → Output: "Running ward:all validation..." → Run ward:all validation
-    - If validation fails → Output: "Spawning Spiritmender to fix validation errors..." → Spawn Spiritmender
+    - If validation fails → Output: "Spawning Spiritmender for error healing..." → Spawn Spiritmender
+    - If validation passes → Complete quest
 
 3. **Parse Agent Output** - Extract specific data based on agent type
 4. **Update Quest File** - Update all relevant sections
@@ -391,12 +402,38 @@ For all component types (implementation and testing):
 
 ### Standard Quest Phases
 
-1. **Discovery** (Pathseeker) - Map dependencies and component plan
-2. **Component Building** (Codeweaver) - Build implementation and testing components in parallel
-3. **Gap Analysis** (Siegemaster) - Equal number of Siegemasters double-check each component's work
-4. **Standards Review** (Lawbringer) - Full changed file verification and fix standards violations
-5. **Validation** (ward:all) - Run configured checks
-6. **Error Healing** (Spiritmender) - Fix any remaining build/test failures if validation fails
+1. **Discovery Phase** (Pathseeker)
+    - Map dependencies and create component plan
+    - Status: "complete" when Pathseeker finishes discovery
+
+2. **Implementation Phase** (Codeweaver)
+    - Build all components with primary tests in parallel
+    - Status: "complete" when all components have status "complete"
+
+3. **Testing Phase** (Siegemaster)
+    - Analyze test coverage gaps for each component
+    - Create additional tests for missing scenarios
+    - Status: "complete" when all gap analyses finish
+
+4. **Review Phase** (Lawbringer + Validation + Spiritmender)
+    - Standards review and fix violations
+    - Run ward:all validation checks
+    - Fix any build/test failures if needed
+    - Status: "complete" when all checks pass
+
+### Phase Status Management
+
+**When to Update Phase Status:**
+
+- **Discovery**: Set to "complete" when Pathseeker report parsed
+- **Implementation**: Set to "complete" when ALL components have status "complete"
+- **Testing**: Set to "complete" when ALL Siegemaster reports parsed
+- **Review**: Set to "complete" when Lawbringer done AND ward:all passes
+
+**Component vs Phase Status:**
+- Components track individual completion within implementation phase
+- Phase status tracks overall phase completion
+- Only update phase status after ALL sub-agents complete
 
 Note:
 
@@ -414,8 +451,8 @@ Note:
 To spawn any agent:
 
 1. **Generate Unique Agent ID**: Create unique identifier using format: `[agent-type]-[component-name-if-applicable]-[sequential-number]`
-   - Examples: `pathseeker-001`, `codeweaver-UserService-001`, `lawbringer-002`
-   - Check existing agentReports arrays to determine next sequential number
+    - Examples: `pathseeker-001`, `codeweaver-UserService-001`, `lawbringer-002`
+    - Check existing agentReports arrays to determine next sequential number
 2. Read the agent file using a path relative to YOUR CURRENT DIRECTORY:
     - If you're in `/some/test/dir/`, read from `/some/test/dir/.claude/commands/quest/[agent-name].md`
     - If not found, look in the `quest` folder on same level.
