@@ -1,0 +1,15 @@
+{
+  "testName": "Working Directory Control",
+  "orchestratorContext": {
+    "contextMarker": "test5_root",
+    "workingDirectory": "/codex-of-consentient-craft/sub-agent/test5"
+  },
+  "workerReport": {
+    "contextMarker": "test5_work",
+    "workingDirectory": "/codex-of-consentient-craft/sub-agent/test5/work_dir",
+    "rawReport": "- Context marker: test5_work\n- Working directory: /codex-of-consentient-craft/sub-agent/test5/work_dir\n- Context message: I can see test5 work context"
+  },
+  "testResult": "PASS",
+  "conclusion": "Worker sees the work_dir CLAUDE.md context, not the root_dir context. Working directory determines which CLAUDE.md context is used.",
+  "timestamp": "2025-07-05T00:00:00Z"
+}

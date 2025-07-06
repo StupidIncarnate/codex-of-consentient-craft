@@ -1,0 +1,17 @@
+{
+  "testName": "Explicit Context Passing",
+  "orchestratorContext": {
+    "fileContextMarker": "test4_should_be_ignored",
+    "explicitContextMarker": "test4_explicit_override",
+    "workingDirectory": "/codex-of-consentient-craft/sub-agent/test4"
+  },
+  "workerReport": {
+    "contextMarker": "test4_explicit_override",
+    "explicitContextSeen": true,
+    "fileContextSeen": true,
+    "rawReport": "I can see test4 explicit override context.\n\nLooking at the context markers and instructions:\n\n**CONTEXT_MARKER observed:** `test4_explicit_override`\n\n**Context source:** Explicit context passed via Task prompt\n\n**What I'm seeing:**\n- The explicit context instructions state I should report \"I can see test4 explicit override context\"\n- The explicit context contains the marker `test4_explicit_override`\n- There's also a CLAUDE.md file context with marker `test4_should_be_ignored`, but the explicit context instructions indicate this should be overridden\n\n**Analysis:**\nThe explicit context passing is working correctly. I'm seeing the explicit context (`test4_explicit_override`) rather than being limited to just the file context (`test4_should_be_ignored`). The system is successfully prioritizing the explicitly passed context over the CLAUDE.md file context."
+  },
+  "testResult": "PASS",
+  "conclusion": "Explicit context successfully overrides file context. The worker saw both contexts but correctly prioritized the explicit context passed via Task prompt over the CLAUDE.md file context.",
+  "timestamp": "2025-07-05T00:00:00Z"
+}

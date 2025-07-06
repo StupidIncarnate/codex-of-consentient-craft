@@ -1,0 +1,16 @@
+{
+  "name": "legacy-migration",
+  "version": "1.0.0",
+  "description": "Legacy System Migration Project",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}

@@ -28,7 +28,6 @@ Questmaestro is an orchestration system that helps Claude manage complex develop
 - **⚖️ Lawbringer** - Ensures code quality and standards
 - **🏰 Siegemaster** - Creates robust test fortifications
 - **✨ Spiritmender** - Heals build errors and failed tests
-- **📜 Taskweaver** - Crafts new quest definitions
 
 ## Usage
 
@@ -70,6 +69,33 @@ Edit `.questmaestro` to customize for your project:
     "test": "npm test",
     "ward": "npm run lint -- $FILE",
     "ward:all": "npm run lint && npm run typecheck"
+  },
+  "agents": {
+    "disablePathseeker": false,
+    "disableCodeweaver": false,
+    "disableLawbringer": false,
+    "disableSiegemaster": false,
+    "disableSpiritmender": false
+  }
+}
+```
+
+### Agent Configuration
+
+Control which agents participate in your quests by setting disable flags:
+
+- `disablePathseeker` - Skip dependency mapping and path analysis
+- `disableCodeweaver` - Skip implementation tasks  
+- `disableLawbringer` - Skip code quality and standards enforcement
+- `disableSiegemaster` - Skip test creation and fortification
+- `disableSpiritmender` - Skip error healing and build fixes
+
+**Example**: For a documentation-only project, you might disable Siegemaster and Spiritmender:
+```json
+{
+  "agents": {
+    "disableSiegemaster": true,
+    "disableSpiritmender": true
   }
 }
 ```

@@ -1,0 +1,21 @@
+{
+  "testName": "Nested Context Hierarchy",
+  "hierarchyAnalysis": {
+    "rootLevel": "All describe text must begin with 'Platform', TypeScript, Jest, co-locate tests",
+    "apiLevel": "All describe text must begin with 'APIService', supertest, integration testing",
+    "v2Level": "All describe text must begin with 'V2Endpoint', GraphQL testing patterns, schema validation, performance testing",
+    "actualFormat": "V2Endpoint",
+    "contextLevelApplied": "V2"
+  },
+  "workerReport": {
+    "functionCreated": true,
+    "testCreated": true,
+    "describeFormat": "V2Endpoint User Resolver",
+    "contextSourceUsed": "Root/packages/api/v2/CLAUDE.md",
+    "developmentApproach": "GraphQL testing patterns with schema validation and performance testing",
+    "rawReport": "I used the V2 level standards from Root/packages/api/v2/CLAUDE.md since I was working in the v2/src/ directory, which is the deepest level of the nested context hierarchy. I used the 'V2Endpoint' prefix for all describe blocks as required by the V2 level standards. I followed the V2 specific requirements: GraphQL testing patterns, schema validation required, performance testing mandatory, and TypeScript usage. Created userResolver.ts, userResolver.test.ts, schema.ts, schema.test.ts, and index.ts files with comprehensive GraphQL resolver implementation and testing."
+  },
+  "testResult": "PASS",
+  "conclusion": "V2 context level took precedence - the deepest level in the hierarchy overrode parent contexts",
+  "timestamp": "2025-07-05T00:00:00.000Z"
+}

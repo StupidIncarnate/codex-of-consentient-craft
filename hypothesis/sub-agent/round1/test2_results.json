@@ -1,0 +1,16 @@
+{
+  "testName": "Nested Directory Context",
+  "orchestratorContext": {
+    "localContextMarker": "test2_root",
+    "parentContextMarker": "test2_root",
+    "workingDirectory": "/codex-of-consentient-craft/sub-agent/test2"
+  },
+  "workerReport": {
+    "contextMarker": "test2_subdir",
+    "workingDirectory": "/codex-of-consentient-craft/sub-agent/test2/subdir",
+    "rawReport": "Perfect! Now I can provide the detailed report as requested. Based on the context instructions I just read, I should report the specific message.\n\n## Detailed Test Report\n\n**Current Working Directory:** `/codex-of-consentient-craft/sub-agent/test2/subdir`\n\n**Context Marker:** `test2_subdir`\n\n**Specific Message (as instructed):** I can see test2 subdir context\n\n**Full CLAUDE.md Content Received:**\n```\nCONTEXT_MARKER: test2_subdir\n\n## Test 2 Subdir Context\nThis is the CLAUDE.md file in the test2 subdir directory.\n\n## Testing Instructions  \nWhen you see this context, you should report: \"I can see test2 subdir context\"\n\n## Project Info\n- Test scenario: Nested directory context (subdir level)\n- Location: sub-agent/test2/subdir/\n- Purpose: Check which CLAUDE.md takes precedence\n```\n\n## Test Results Analysis\n\nThe test shows that **the CLAUDE.md file in the subdirectory takes precedence** over the one in the parent directory. Even though I was initially provided with the root-level CLAUDE.md context (which had `CONTEXT_MARKER: test2_root` and instructed me to report \"I can see test2 root context\"), when I changed my working directory to the subdirectory, the system now provides me with the subdirectory-specific CLAUDE.md file.\n\nThis demonstrates that the CLAUDE.md context system follows a **directory-specific precedence model** where the most local/specific CLAUDE.md file (closest to the current working directory) takes priority over more general parent directory contexts."
+  },
+  "testResult": "PASS",
+  "conclusion": "The subdirectory CLAUDE.md takes precedence. The system follows directory-specific precedence where the most local CLAUDE.md file (closest to working directory) overrides parent directory contexts.",
+  "timestamp": "2025-07-05T12:00:00.000Z"
+}
