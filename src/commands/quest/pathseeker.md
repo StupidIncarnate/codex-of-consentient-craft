@@ -20,8 +20,9 @@ When doing discovery, I always ultrathink through the solution. I operate in two
 ### Mode 2: Implementation Discovery (for existing quest)
 1. **Analyze the quest** - Understand the quest requirements and scope
 2. **Explore the codebase** - Map dependencies and identify components
-3. **Plan implementation** - Determine build order and parallel opportunities
-4. **Output discovery findings** - Component mappings and implementation roadmap
+3. **Analyze testing requirements** - Identify testing technologies and requirements per directory (CLAUDE.md will inform you of these standards when you open various nested directories)
+4. **Plan implementation** - Determine build order, parallel opportunities, and test component breakdown
+5. **Output discovery findings** - Component mappings and implementation roadmap
 
 ## Discovery Output
 
@@ -50,14 +51,44 @@ Discovery Findings:
   "technicalRequirements": "[Redis, auth, etc.]"
 }
 
+Testing Technologies Found:
+{
+  "frameworks": {
+    "unit": "jest",
+    "integration": "supertest",
+    "e2e": "playwright"
+  },
+  "patterns": {
+    "unit": "colocated .test.ts files",
+    "integration": "tests/integration/ directory",
+    "e2e": "e2e/ directory"
+  },
+  "byDirectory": {
+    "src/api/": ["unit", "integration"],
+    "src/components/": ["unit", "e2e"]
+  }
+}
+
 Components Found:
 [
   {
-    "name": "component_1",
-    "description": "What this component does",
-    "files": ["path/to/file1.ts", "path/to/file1.test.ts"],
-    "dependencies": ["component_2"],
+    "name": "UserService",
+    "description": "Main implementation with primary tests",
+    "files": ["src/services/UserService.ts", "src/services/UserService.test.ts"],
+    "testType": "jest",
+    "componentType": "implementation",
+    "dependencies": [],
     "complexity": "medium",
+    "status": "queued"
+  },
+  {
+    "name": "UserService_e2e_tests",
+    "description": "E2E tests for UserService functionality",
+    "files": ["e2e/user-service.spec.ts"],
+    "testType": "playwright",
+    "componentType": "testing",
+    "dependencies": ["UserService"],
+    "complexity": "small",
     "status": "queued"
   }
 ]
@@ -131,11 +162,16 @@ Suggested Questions for User:
 - Look for similar implementations to guide approach
 - Check for reusable components or utilities
 - Research technical requirements (frameworks, libraries, etc.)
+- Scan existing test files to understand testing technologies and patterns
+- Check patterns in existing test files and project structure for testing approaches
 
 **Dependency Mapping** (when quest is clear):
 - Identify which components depend on others
 - Find opportunities for parallel work
 - Note shared resources or potential conflicts
+- Break down testing into separate components by technology
+- Ensure implementation components include primary test type
+- Create dependency chains: implementation → additional test types
 
 **Unknown Resolution**:
 - Don't leave questions unanswered if possible
@@ -155,6 +191,9 @@ Suggested Questions for User:
 - **Data contracts**: What data flows between components and in what format
 - **Architectural decisions**: Which patterns, libraries, or approaches to use
 - **Dependencies**: What each component needs from others
+- **Testing strategy**: Which test technologies are needed and how to break them into components
+- **Component types**: "implementation" (code + primary tests) vs "testing" (additional test types)
+- **Test technology mapping**: Which directories use which testing frameworks
 
 ## What I DON'T Do
 

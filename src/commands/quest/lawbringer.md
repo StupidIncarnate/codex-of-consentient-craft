@@ -10,9 +10,10 @@ $ARGUMENTS
 
 Based on the context provided, I will:
 1. Identify what needs to be reviewed
-2. Check for consistency and quality issues
-3. Fix any problems found
-4. Verify all fixes work correctly
+2. Verify code follows established project standards and patterns
+3. Check for consistency and quality issues
+4. Fix any standards violations and problems found
+5. Verify all fixes work correctly
 
 **CRITICAL REQUIREMENT:** If you find ANY issues that need fixing, you MUST:
 - Use TodoWrite to create TODOs for each fix needed
@@ -36,21 +37,21 @@ Files to Review:
 
 ### 2. Review Each Implementation
 
-For EACH file pair (implementation + tests):
+For EACH component (implementation or testing):
+
+**Standards Compliance Review**:
+
+- **First**: Verify code adheres to established project standards
+- **Check for standards violations**: Code that contradicts project conventions
+- **Validate against project patterns**: Testing approach, architectural patterns, naming conventions
 
 **Code Quality Review**:
 
-- Follows CLAUDE.md standards (no any, no console, etc.)
 - Uses established patterns from codebase
 - Proper error handling
 - Clear method signatures
-
-**Test Coverage Review**:
-
-- MANUALLY verify every branch has a test
-- Check all error paths tested
-- Verify edge cases covered
-- Ensure mocks are appropriate
+- Consistent naming conventions
+- Clean, readable code structure
 
 **Integration Review**:
 
@@ -74,14 +75,15 @@ If you find issues:
 1. Create specific TODOs:
 
 ```
-TODO #1: FIX: Add missing tests for error paths in ServiceA
+TODO #1: STANDARDS: Fix code that violates project standards
 TODO #2: FIX: Align ServiceB interface with ServiceA pattern
-TODO #3: VERIFY: All services follow consistent patterns
+TODO #3: FIX: Update inconsistent naming conventions in ServiceC
+TODO #4: VERIFY: All services follow consistent patterns
 ```
 
-2. Fix issues following Four Phases
-3. Run `npm run ward [filename]` after each fix
-4. **Final Integration Check**: Run `npm run ward:all` to verify all components work together
+1. Fix issues following Four Phases
+2. Run `npm run ward [filename]` after each fix
+3. **Final Integration Check**: Run `npm run ward:all` to verify all components work together
 
 ## Review Report
 
@@ -96,20 +98,20 @@ Timestamp: [ISO timestamp]
 Services Reviewed:
 1. ServiceA
    - Status: Fixed issues
-   - Issues Found: Missing error tests
-   - Resolution: Added 3 error case tests
-   - Coverage: 100% verified
+   - Issues Found: Inconsistent naming conventions
+   - Resolution: Updated to match project patterns
+   - Quality: Meets project standards
 
 2. ServiceB
    - Status: Well-implemented
    - Issues Found: None
-   - Coverage: 100% verified
+   - Quality: Meets project standards
 
 3. ServiceC
    - Status: Fixed issues
    - Issues Found: Inconsistent error handling
    - Resolution: Aligned with project patterns
-   - Coverage: 100% verified
+   - Quality: Meets project standards
 
 Cross-Component Validation:
 - ✓ Consistent error handling patterns
@@ -117,16 +119,16 @@ Cross-Component Validation:
 - ✓ Shared types used correctly
 - ✓ No duplicated logic found
 
-Manual Coverage Verification:
-- ServiceA: 15/15 branches covered
-- ServiceB: 22/22 branches covered  
-- ServiceC: 18/18 branches covered
+Code Quality Assessment:
+- ServiceA: Follows project patterns, clean implementation
+- ServiceB: Consistent with established conventions
+- ServiceC: Proper error handling and type safety
 
 Ward Status: All files passing
 Full Integration Check: `npm run ward:all` passing
 
 Files Modified:
-- path/to/serviceA.test.ts (added error tests)
+- path/to/serviceA.ts (updated naming conventions)
 - path/to/serviceC.ts (aligned error handling)
 
 === END REPORT ===
@@ -160,29 +162,23 @@ After completing all component reviews and fixes:
    - Ensure all components work together as a system
    - Re-run `npm run ward:all` until all checks pass
 
-## Branch Coverage Checklist
+## Code Quality Checklist
 
-For EVERY service, manually verify:
+For EVERY production code file, verify:
 
-- [ ] All if/else branches tested
-- [ ] All switch cases covered
-- [ ] Try/catch blocks tested
-- [ ] Optional chaining (?.) tested for null/undefined
-- [ ] All public methods tested
-- [ ] Error conditions tested
-- [ ] Edge cases (null, empty, extreme values) tested
+- [ ] Follows established project patterns
+- [ ] Uses consistent naming conventions
+- [ ] Error handling follows project patterns
+- [ ] No code duplication across components
+- [ ] Clean, readable implementation
 
 ## Common Issues in Parallel Development
 
 **Pattern Inconsistency**:
 
 - Different Coders may use different patterns
-- Align to most common or best pattern
-
-**Missing Integration Tests**:
-
-- Unit tests pass but services don't work together
-- Note for TestAgent to create integration tests
+- Different approaches to same problems
+- Align to established project patterns
 
 **Incomplete Error Handling**:
 

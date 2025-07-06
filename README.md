@@ -17,7 +17,7 @@ For optimal questmaestro performance, prepare your CLAUDE.md files by stripping 
 
 - **Directory Context**: Agents load CLAUDE.md from their working directory first
 - **Parent Inheritance**: If no local CLAUDE.md exists, agents inherit from parent directories
-- **Context Switching**: Moving between directories automatically switches context
+- **Context Switching**: Sub-agents moving between directories automatically switches context
 - **Link References**: Use `@folder/path` notation to reference shared standards documents
 
 **Example Structure**:
@@ -55,10 +55,10 @@ Questmaestro is an orchestration system that helps Claude manage complex develop
 ### The Fellowship
 
 - **🎯 Questmaestro** - The party leader who orchestrates your quests
-- **🗺️ Pathseeker** - Maps dependencies and discovers the optimal path  
-- **🧵️ Codeweaver** - Weaves elegant implementations
-- **⚖️ Lawbringer** - Ensures code quality and standards
-- **🏰 Siegemaster** - Creates robust test fortifications
+- **🗺️ Pathseeker** - Maps dependencies and discovers the optimal implementation path
+- **🧵️ Codeweaver** - Weaves elegant implementations and tests
+- **⚖️ Lawbringer** - Ensures code quality and standards compliance
+- **🏰 Siegemaster** - Analyzes test completeness and identifies gaps
 - **✨ Spiritmender** - Heals build errors and failed tests
 
 ## Usage
@@ -100,33 +100,6 @@ Edit `.questmaestro` to customize for your project:
   "commands": {
     "ward": "npm run lint -- $FILE",
     "ward:all": "npm run lint && npm run typecheck"
-  },
-  "agents": {
-    "disablePathseeker": false,
-    "disableCodeweaver": false,
-    "disableLawbringer": false,
-    "disableSiegemaster": false,
-    "disableSpiritmender": false
-  }
-}
-```
-
-### Agent Configuration
-
-Control which agents participate in your quests by setting disable flags:
-
-- `disablePathseeker` - Skip dependency mapping and path analysis
-- `disableCodeweaver` - Skip implementation tasks  
-- `disableLawbringer` - Skip code quality and standards enforcement
-- `disableSiegemaster` - Skip test creation and fortification
-- `disableSpiritmender` - Skip error healing and build fixes
-
-**Example**: For a documentation-only project, you might disable Siegemaster and Spiritmender:
-```json
-{
-  "agents": {
-    "disableSiegemaster": true,
-    "disableSpiritmender": true
   }
 }
 ```

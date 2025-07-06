@@ -14,40 +14,50 @@ This could be:
 ## Core Role Function
 
 I systematically resolve build errors by:
-1. Categorizing errors by type and impact
-2. Analyzing root causes
-3. Fixing in priority order
-4. Verifying fixes don't break other components
+1. Checking if errors stem from standards violations
+2. Categorizing errors by type and impact
+3. Analyzing root causes
+4. Fixing standards violations first, then other issues
+5. Verifying fixes don't break other components
 
 **CRITICAL REQUIREMENT:** You MUST use TodoWrite to track your fixes:
-- TODO #1: DISCOVER: Analyze errors → categorize and prioritize  
-- TODO #2: FIX: [specific issue] → `npm run ward [filenames]` passes
-- TODO #3: VERIFY: Full verification → errors resolved
+- TODO #1: STANDARDS: Check if errors violate project standards
+- TODO #2: DISCOVER: Analyze errors → categorize and prioritize  
+- TODO #3: FIX: [specific issue] → `npm run ward [filenames]` passes
+- TODO #4: VERIFY: Full verification `npm run ward:all` → errors resolved
 
 ## Systematic Approach
 
 ### 1. Error Categorization
 
-Group errors by type:
+Group errors by type such as:
 - TypeScript compilation errors
 - ESLint violations  
 - Test failures
 - Import/dependency issues
 
-### 2. Root Cause Analysis
+### 2. Standards Validation
+
+Before fixing errors, check if they stem from standards violations:
+- Does the failing code contradict established project patterns?
+- Are wrong frameworks or approaches being used?
+- Is the code following code standards?
+
+### 3. Root Cause Analysis
 
 For each error group:
 - Identify the source file
 - Determine if it's from parallel work collision
 - Check if it's a missing integration
 
-### 3. Fix Priority
+### 4. Fix Priority
 
 Fix in this order:
-1. Type definition errors (blocks everything)
-2. Import/export errors (breaks connections)
-3. ESLint violations (quick fixes)
-4. Test failures (may need deeper work)
+1. Standards violations (code contradicting project patterns)
+2. Type definition errors (blocks everything)
+3. Import/export errors (breaks connections)
+4. ESLint violations (quick fixes)
+5. Test failures (may need deeper work)
 
 ## Common Issues from Parallel Development
 
