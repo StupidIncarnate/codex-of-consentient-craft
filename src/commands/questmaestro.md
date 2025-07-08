@@ -348,7 +348,8 @@ Even if the user asks you to run a specific agent or step out of order (unless t
 
    **Testing Phase:**
     - If implementation "complete" and testing "not_started" → Spawn Siegemasters for gap analysis
-    - Spawn one Siegemaster per completed component to analyze test coverage
+    - Spawn one Siegemaster per completed component to analyze test coverage gaps
+    - Siegemasters must identify ALL missing coverage according to project standards
     - If all Siegemasters complete → Set testing to "complete"
 
    **Review Phase:**
@@ -413,12 +414,13 @@ For all component types (implementation and testing):
     - Status: "complete" when Pathseeker finishes discovery
 
 2. **Implementation Phase** (Codeweaver)
-    - Build all components with primary tests in parallel
+    - Build all components with comprehensive tests in parallel
     - Status: "complete" when all components have status "complete"
 
 3. **Testing Phase** (Siegemaster)
-    - Analyze test coverage gaps for each component
-    - Create additional tests for missing scenarios
+    - Act as safety net to catch any missed test holes
+    - Analyze test coverage gaps from user perspective
+    - ALL gaps must be addressed according to project standards
     - Status: "complete" when all gap analyses finish
 
 4. **Review Phase** (Lawbringer + Validation + Spiritmender)
@@ -727,7 +729,8 @@ After parsing a report:
 
 - Update the specific test technology analysis status
 - Note which test technology was analyzed (jest, playwright, etc.)
-- Add gap analysis findings and any additional tests created
+- Add gap analysis findings and ALL required tests identified
+- Verify ALL gaps are addressed according to project standards
 - If all test technologies have been analyzed, set phases.testing.status to "complete"
 - Store full report in agentReports.siegemaster array with unique agentId and test technology
 

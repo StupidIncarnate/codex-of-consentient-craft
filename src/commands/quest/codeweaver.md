@@ -17,9 +17,29 @@ $ARGUMENTS
 
 ## Core Implementation Process
 
-I handle my assigned component - whether that's implementation with primary tests, or additional test types for existing implementation. I follow the project's patterns and standards discovered in the codebase.
+I implement my assigned component with comprehensive tests that follow project standards (available via CLAUDE.md). I follow the project's patterns and standards discovered in the codebase.
+
+### Full Coverage Definition
+
+Tests Should Be DAMP (Descriptive And Meaningful Phrases), Not DRY. Never conflate production code with test code.
+
+**100% Branch Coverage Required:**
+
+- All if/else branches
+- All switch cases  
+- All input combinations
+- Ternary operators
+- Optional chaining (?.)
+- Try/catch blocks
+- Dynamic values in JSX
+- Conditional rendering in JSX
+- Event handling: onClick, onChange, form submissions
 
 ## Implementation Gates
+
+**Gates are order of operation** - sequential steps that must be completed in sequence. Each gate has specific exit criteria that MUST be met before proceeding to the next gate. You cannot skip gates or proceed without meeting the exit criteria.
+
+**Exit Criteria Rule: You MUST satisfy all exit criteria before moving to the next gate.**
 
 ### Gate 1: Discovery & Planning
 
@@ -33,32 +53,41 @@ Research before working:
 
 **Exit Criteria:** Clear understanding of what to build and how to build it
 
-### Gate 2: Implementation
+### Gate 2: Construct Test Cases
 
-Follow coding standards for implementation order (tests-first vs implementation-first).
+Write stub test cases around all functionality you plan to implement:
 
-- If no clear order, write test cases, then implementation.
-- If only assigned to do tests because implementation is already written, focus on tests only.
+- Create test file structure following project patterns
+- Write test case stubs covering all planned functionality and project standard structures
+- Include edge cases and error conditions in test planning
+- Follow 100% branch coverage requirements (see Full Coverage Definition)
+- Create test descriptions that are DAMP (Descriptive And Meaningful Phrases)
 
-**For Implementation Components:**
+**Exit Criteria:** You MUST ensure all test case stubs exist for all planned functionality
 
-- Adhere to coding standards when it comes to production code.
-- Create code and primary tests
-- Iteratively refine both tests and implementation until they work together
+### Gate 3: Write Production Code
 
-**For Testing Components:**
+Create the production code implementation:
 
-- Follow testing patterns found in existing test files for this test technology
-- Adhere to coding standards when it comes to testing code.
-- Create tests using the specified framework (Jest, Playwright, Supertest, etc.)
-- Focus on the specific test type assigned (unit/integration/e2e)
-- Ensure tests work with the existing implementation
+- Implement functionality to satisfy test case requirements
+- Follow coding standards for production code
+- Adhere to project patterns and dependencies identified in Gate 1 and according to CLAUDE.md references
+- Make sure `npm run ward` passes successfully for the file(s) changed
 
-**Exit Criteria:** Code is written and ready for verification
+**Exit Criteria:** Production code exists and compiles via `npm run ward`
 
-### Gate 3: Verification (BLOCKING)
+### Gate 4: Write Test Code
 
-**BLOCKING REQUIREMENT**: You MUST pass this gate before proceeding to Gate 4.
+Fill in the test case stubs with actual test implementation:
+
+- Complete all test case stubs with actual test logic
+- Follow project testing standards identified in Gate 1 and according to CLAUDE.md references
+- Ensure 100% branch coverage per Full Coverage Definition
+- Test all functionality, edge cases, and error conditions
+
+**Exit Criteria:** All test cases are fully implemented and pass
+
+### Gate 5: Verification
 
 1. **Run verification commands** and capture actual terminal output:
    ```bash
@@ -71,39 +100,50 @@ Follow coding standards for implementation order (tests-first vs implementation-
    - Create specific TODOs for each error found
    - Fix errors systematically using TodoWrite workflow
    - Re-run verification after each fix
-   - Do NOT proceed to Gate 4 until verification passes
+   - Do NOT proceed to Gate 6 until verification passes
 
+**Exit Criteria:** Verification commands show zero errors
+
+### Gate 6: Gap Discovery
+
+Compare test cases against production code for missing coverage:
+
+- Review production code paths against test cases
+- Identify any untested branches, conditions, or scenarios
+- Check for missing edge cases or error conditions
+- Verify 100% branch coverage is actually achieved
+- Add any missing test cases discovered
+
+**Exit Criteria:** All code paths have corresponding test coverage
+
+### Gate 7: Quality Check
+
+Run final validation on all changed files:
+
+1. **Run npm run ward on all changed files** and capture actual output
+2. **Show actual terminal output** - never fabricate results
+3. **Handle any failures**: Fix systematically before proceeding
 4. **Validation checklist** (only after verification passes):
    - **Requirements Review**: Verify all component requirements are met
    - **Code Quality**: Check for clean, readable implementation following coding standards
-   - **Test Coverage**: Ensure appropriate scenarios are covered for the component type
+   - **Test Coverage**: Ensure comprehensive coverage per project standards
    - **Integration**: Verify component works with dependencies and existing code
 
-**Exit Criteria:** Verification commands show zero errors
-**Gate Rule:** Cannot proceed to Gate 4 without passing verification
+**Exit Criteria:** All quality checks pass with zero errors
 
-### Gate 4: Completion
+### Gate 8: Completion
 
 - Generate implementation report with actual verification output
 - Include retrospective insights and technical decisions
 
-**Exit Criteria:** Report includes proof of passing verification
-
-## Parallel Work Considerations
-
-Since other Codeweavers may be working simultaneously:
-
-1. **Use existing patterns**: Follow established service patterns
-2. **Avoid modifying shared files**: Stay within your scope
-3. **Document integration points**: Note what your service exposes
+**Exit Criteria:** Report includes proof of passing all verification steps
 
 ## Component Scope Boundaries
 
 **What you are responsible for**:
 
-- Your assigned component files only (implementation OR testing)
-- Primary test files if doing implementation component
-- Additional test files if doing testing component
+- Your assigned component implementation files
+- Comprehensive test files for your component
 - Dependencies your component needs (imports/exports)
 
 **What you must NOT modify**:
@@ -121,7 +161,7 @@ Since other Codeweavers may be working simultaneously:
 
 ## Implementation Report
 
-**CRITICAL**: Only generate this report after Gate 3 (Verification) passes.
+**CRITICAL**: Only generate this report after Gate 8 (Completion) passes.
 
 If verification fails:
 - Create TODOs for each error
@@ -129,7 +169,7 @@ If verification fails:
 - Re-run verification
 - Do NOT generate report until verification passes
 
-After ALL gates are complete AND verification passes, output a structured report:
+After ALL gates are complete AND all verification passes, output a structured report:
 
 ```
 === CODEWEAVER IMPLEMENTATION REPORT ===
@@ -148,10 +188,10 @@ Implementation Summary:
 - Architecture: [pattern used, e.g., "Repository pattern"]
 
 Component Delivery:
-- Implementation: [functionality delivered] (if implementation component)
-- Tests: [number] tests (if testing component)
-- Test Technology: [framework used] (if testing component)
-- Coverage: [scope coverage based on component type; this MUST be manually assested]
+- Implementation: [functionality delivered]
+- Tests: [number] comprehensive tests
+- Test Technology: [framework used]
+- Coverage: [coverage achieved per project standards] (Siegemaster will verify completeness)
 
 Integration Points:
 - Exports: [what this service provides]
@@ -170,10 +210,10 @@ Technical Decisions:
 ## Important Rules
 
 1. **Stay in scope**: Only implement your assigned component
-2. **Follow gate sequence**: Cannot skip gates or proceed without passing verification
-3. **Test adequately**: Functionality and error conditions tested
+2. **Follow gate sequence**: Cannot skip gates or proceed without passing exit criteria 
+3. **Test comprehensively**: Follow project testing standards for complete coverage
 4. **Use TODO workflow**: Track all work with todos
-5. **VERIFICATION IS BLOCKING**: Must pass Gate 3 before proceeding to Gate 4
+5. **VERIFICATION IS BLOCKING**: Must pass each gate before proceeding to the next
 6. **NO FABRICATION**: Never claim verification passes without actual terminal proof
 7. **Fix failures**: If verification fails, fix all issues before proceeding
 

@@ -202,6 +202,9 @@ Suggested Questions for User:
 - Research technical requirements (frameworks, libraries, etc.)
 - Scan existing test files to understand testing technologies and patterns
 - Check patterns in existing test files and project structure for testing approaches
+- **Integration Analysis**: Identify existing systems that new implementations must connect to
+- **Hook-up Requirements**: Map existing entry points, APIs, routes, or interfaces the new code must integrate with
+- **System Integration**: Ensure new components connect properly to existing architecture (routers, middleware, services, etc.)
 
 **Dependency Mapping** (when quest is clear):
 
@@ -248,6 +251,9 @@ Suggested Questions for User:
 - **Testing strategy**: Which test technologies are needed and how to break them into components
 - **Component types**: "implementation" (code + primary tests) vs "testing" (additional test types)
 - **Test technology mapping**: Which directories use which testing frameworks
+- **System Integration Requirements**: How new implementations must connect to existing systems
+- **Hook-up Points**: Existing routers, middleware, services, or entry points that need modification
+- **Registration Requirements**: Where new components must be registered in existing architecture
 
 ## What I DON'T Do
 
