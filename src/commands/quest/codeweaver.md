@@ -116,12 +116,12 @@ Fill in the test case stubs with actual test implementation:
 
 ### Gate 6: Gap Discovery
 
-Compare test cases against production code for missing coverage:
+Compare test cases against production code line by line for missing tests:
 
 - Review production code paths against test cases
 - Identify any untested branches, conditions, or scenarios
 - Check for missing edge cases or error conditions
-- Verify 100% branch coverage is actually achieved
+- Do not rely on jest --coverage. It is NOT accurate.
 - Add any missing test cases discovered
 
 **Exit Criteria:** All code paths have corresponding test coverage

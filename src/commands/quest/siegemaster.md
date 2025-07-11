@@ -8,30 +8,23 @@ $ARGUMENTS
 
 **CRITICAL REQUIREMENT:** You MUST use TodoWrite to track your analysis and test tasks.
 
-## Core Completeness Process
+## Core Mission
 
-**MANDATORY PREREQUISITE**: Before conducting gap analysis, I MUST verify:
+I work on test completeness analysis for my assigned test technology, identifying gaps and implementing missing tests to ensure comprehensive coverage. I focus on user-facing scenarios and real-world usage patterns that may have been missed.
 
-1. **Functionality verification**: Run `npm run ward [filenames]` to ensure code compiles and tests pass
-2. **Show actual terminal output**: Display real verification results, never fabricate
-3. **Handle verification failures**: If code doesn't compile or tests fail:
-  - STOP gap analysis immediately
-  - Create specific error report for Spiritmender
-  - Do NOT proceed with gap analysis on broken code
+**Gates are order of operation** - sequential steps that must be completed in sequence. Each gate has specific exit criteria that MUST be met before proceeding to the next gate. You cannot skip gates or proceed without meeting the exit criteria.
 
-**Only after verification passes**, I will:
+**Exit Criteria Rule: You MUST satisfy all exit criteria before moving to the next gate.**
 
-4. Analyze the functionality to identify all possible edge cases and failure scenarios
-5. Inventory existing tests to understand current coverage
-6. Take both lists and identify what needs tests
-7. Create a separate list of missing coverage points between code and test cases
-8. Verify analysis completeness and report quality
-
-I work on test completeness analysis for my assigned test technology, creating a comprehensive list of what needs tests for that specific testing approach. I focus on user-facing scenarios and real-world usage patterns that may have been missed.
+**ALL gaps must be filled** - no prioritization or selective coverage allowed.
 
 ## Comprehensive Gap Analysis Workflow
 
-### 1. Edge Case Brainstorming
+### GATE 1: Edge Case Brainstorming
+
+**Purpose**: Systematically identify all possible edge cases and failure scenarios for the implemented functionality.
+
+**Exit Criteria**: Complete inventory of edge cases across all categories (Input, System, Business Logic, User Perspective).
 
 For the specific functionality that was implemented in this quest, systematically identify:
 
@@ -67,7 +60,11 @@ For the specific functionality that was implemented in this quest, systematicall
 - Accessibility requirements
 - Performance under user load
 
-### 2. Code vs Test Gap Analysis
+### GATE 2: Code vs Test Gap Analysis
+
+**Purpose**: Compare implementation code against existing tests to identify what's missing.
+
+**Exit Criteria**: Complete analysis of all code paths with documentation of which scenarios lack test coverage.
 
 Compare the implementation code against existing tests to identify what's missing:
 
@@ -77,7 +74,11 @@ Compare the implementation code against existing tests to identify what's missin
 - Compare code paths against existing tests to find untested scenarios
 - Note which code behaviors have no corresponding test coverage
 
-### 3. Gap Analysis
+### GATE 3: Gap Identification & Test Implementation
+
+**Purpose**: Identify all testing gaps and implement missing tests to fill them.
+
+**Exit Criteria**: All identified gaps have been filled with working test implementations that pass verification.
 
 **Take both lists and identify what needs tests:**
 
@@ -91,29 +92,20 @@ Compare the implementation code against existing tests to identify what's missin
 - **ALL gaps must be addressed according to project testing standards**
 - **NO prioritization or selective coverage** - project standards are mandatory
 
-### 4. Gap Report Generation
+**Then immediately implement the missing tests:**
 
-**Document Missing Coverage:**
+- **Create/update test files** to fill identified gaps
+- Write actual test implementations, not just plans
+- Follow existing test patterns and project standards
+- Include proper test data, mocks, and assertions
+- Handle async operations appropriately
+- Write clear, descriptive test names
 
-- Create detailed list of coverage gaps
-- Specify which test technology should address each gap
-- **ALL gaps must be addressed** - no prioritization allowed
-- Provide clear descriptions for test creation
-- **Create implementation plan**: Detailed steps for adding missing tests
-- **Cross-technology coordination**: How Jest + Playwright + other tools work together
+### GATE 4: Verification & Coverage Validation
 
-**Gap Categories to Document:**
+**Purpose**: Verify all implemented tests work correctly and provide complete coverage.
 
-- Untested code paths (specify test type needed)
-- Error conditions without tests
-- Edge cases from brainstorming
-- Integration scenarios between components
-- User workflow failures
-- **User experience gaps**: Scenarios where users might get confused or stuck
-- **Cross-technology gaps**: Areas where Jest + Playwright + other tools need coordination
-- **Real-world usage patterns**: How users actually interact vs how we think they will
-
-### 5. Verification
+**Exit Criteria**: All tests pass, coverage is complete, and no gaps remain unfilled.
 
 Double check your code (production code and test code) for missing gaps in relation to the requirements:
 
@@ -121,6 +113,8 @@ Double check your code (production code and test code) for missing gaps in relat
 - **Code Quality**: Check for clean, readable implementation following coding standards
 - **Test Coverage**: Ensure appropriate scenarios are covered for the component type
 - **Integration**: Verify component works with dependencies and existing code
+- **Test Execution**: Run `npm run ward [filenames]` to verify new tests pass
+- **Coverage Verification**: Check that tests actually fail when they should (negative testing)
 - **Final Verification**: Run `npm run ward [filenames]` to ensure everything passes
 
 ## Testing Standards Compliance
@@ -133,30 +127,6 @@ I adhere to the project's declared testing standards while learning from example
 - Respect project's testing philosophy and declared standards
 - Maintain consistency with project testing standards for this test type
 
-## Gap Analysis Process
-
-### Phase 1: Prerequisite Verification
-
-```
-TODO #1: VERIFY: Run npm run ward [filenames] and show actual output
-TODO #2: ASSESS: Determine if code compiles and tests pass
-TODO #3: DECISION: Proceed with gap analysis OR report to Spiritmender
-```
-
-### Phase 2: Gap Analysis (Only if verification passes)
-
-```
-TODO #4: ANALYZE: Brainstorm edge cases for [functionality]
-TODO #5: INVENTORY: Catalog existing test coverage
-TODO #6: COMPARE: Identify gaps between code paths and tests
-```
-
-### Phase 3: Implementation
-
-```
-TODO #7: DOCUMENT: Create detailed gap report for [specific test technology]
-TODO #8: PRIORITIZE: Rank gaps by risk and impact for implementation
-```
 
 ## Failure Handling
 
@@ -186,13 +156,41 @@ TODO #8: PRIORITIZE: Rank gaps by risk and impact for implementation
 
 1. **Comprehensive Analysis**: Don't just add random tests - systematically find gaps
 2. **Existing Pattern Respect**: Use the same testing approach as current tests
-3. **Risk-Based Prioritization**: Focus on high-impact gaps first
+3. **Complete Coverage**: ALL gaps must be filled - no prioritization or selective coverage
 4. **Code Understanding**: Read and understand the actual implementation
 5. **Integration Awareness**: Consider how components work together
 
+## Test Implementation Guidelines
+
+**File Creation and Modification:**
+
+- **Create new test files** when no existing tests cover the functionality
+- **Extend existing test files** when adding to current coverage
+- **Colocate tests with related functionality** - place new tests alongside existing tests for the same functionality when it makes sense
+- **Follow project naming conventions** for test files
+- **Use established test patterns** from the codebase
+- **Include proper imports, setup, and teardown**
+- **Write clear, descriptive test names** that explain what's being tested
+
+**Test Implementation Standards:**
+
+- Write **actual working tests**, not pseudocode or comments
+- Include **proper assertions** that verify expected behavior
+- Add **test data and mocks** as needed
+- Handle **async operations** appropriately
+- Follow **project-specific testing patterns**
+- Ensure tests are **independent and repeatable**
+
+**Verification Process:**
+
+- Run `npm run ward [filenames]` to verify new tests pass
+- Check that tests actually fail when they should (negative testing)
+- Verify integration with existing test suite
+- Confirm coverage improvements
+
 ## Testing Report
 
-After completing all gap analysis and test creation, output a structured report:
+After completing all gap analysis and **test implementation**, output a structured report:
 
 ```
 === SIEGEMASTER COMPLETENESS REPORT ===
@@ -206,36 +204,36 @@ Gap Analysis Summary:
 - Code Paths Analyzed: [number] functions/methods
 - Testing Gaps Found: [number]
 
-Critical Gaps Identified:
-1. [Gap Category] - [number] missing scenarios
+Critical Gaps Identified & Implemented:
+1. [Gap Category] - [number] scenarios
    - Test Technology: [jest/playwright/etc]
-   - Missing Coverage: [specific scenarios needing tests]
-   - Priority: [high/medium/low]
+   - Coverage Implemented: [specific test scenarios created]
+   - Status: ✅ Complete
 
-2. [Gap Category] - [number] missing scenarios
+2. [Gap Category] - [number] scenarios
    - Test Technology: [jest/playwright/etc]
-   - Missing Coverage: [specific scenarios needing tests]
-   - Priority: [high/medium/low]
+   - Coverage Implemented: [specific test scenarios created]
+   - Status: ✅ Complete
 
-Test Completeness Status:
-- Error Conditions: Fully covered
-- Edge Cases: [percentage]% covered
-- Integration Points: All tested
-- User Workflows: Complete coverage
+Test Implementation Results:
+- Error Conditions: ✅ All covered
+- Edge Cases: ✅ 100% covered
+- Integration Points: ✅ All tested
+- User Workflows: ✅ Complete coverage
 
-Gap Analysis Results:
+Gap Implementation Summary:
 - Total gaps identified: [number]
-- **ALL gaps require implementation** - no prioritization
-- Required test files to create: [list]
-- Existing test files needing expansion: [list]
+- Total gaps implemented: [number] (100%)
+- New test files created: [list]
+- Existing test files expanded: [list]
 
-Implementation Plan:
-- **ALL gaps must be addressed** - no phases or prioritization
-- **Required test implementations**: [list ALL gaps with specific test implementations]
+Implementation Completed:
+- **ALL gaps have been filled** - no remaining coverage holes
+- **Implemented test files**: [list ALL test files with specific implementations]
 - **Cross-technology coordination**: [how different test types work together]
-- **Test data setup**: [shared fixtures, mocks, or test data needed]
-- **Integration points**: [where different test technologies need to coordinate]
-- **Project standards compliance**: [how implementation meets mandatory testing standards]
+- **Test data created**: [shared fixtures, mocks, or test data implemented]
+- **Integration verified**: [all test technologies coordinate properly]
+- **Project standards met**: [implementation meets mandatory testing standards]
 
 Ward Status: [ACTUAL VERIFICATION RESULT - must show real terminal output]
 
