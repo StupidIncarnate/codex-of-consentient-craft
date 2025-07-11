@@ -20,6 +20,9 @@ interface PackageJson {
   };
   eslintConfig?: any;
   jest?: any;
+  devDependencies?: {
+    [key: string]: string;
+  };
 }
 
 // QuestTracker interface removed - using file-based quest management
@@ -157,6 +160,23 @@ export class TestProject {
       return JSON.parse(fs.readFileSync(configPath, 'utf8'));
     }
     return null;
+  }
+
+  // Get package.json
+  getPackageJson(): any {
+    const packagePath = path.join(this.rootDir, 'package.json');
+    if (fs.existsSync(packagePath)) {
+      return JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+    }
+    return null;
+  }
+
+  // Delete a file
+  deleteFile(relativePath: string): void {
+    const fullPath = path.join(this.rootDir, relativePath);
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+    }
   }
 
   // Clean up the test project

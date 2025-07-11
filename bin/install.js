@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const CLAUDE_DIR = '.claude';
 const COMMANDS_DIR = path.join(CLAUDE_DIR, 'commands');
@@ -73,6 +74,46 @@ function copyCommands() {
       log(`  ✓ quest:${agentName}`, 'green');
     }
   });
+}
+
+function installEslint() {
+  try {
+    log('    Installing ESLint...', 'blue');
+    execSync('npm install --save-dev eslint @eslint/js', { stdio: 'inherit' });
+    
+    // Create a basic ESLint configuration
+    const eslintConfig = {
+      extends: ['@eslint/js/recommended'],
+      env: {
+        node: true,
+        es2022: true
+      },
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module'
+      },
+      rules: {
+        'no-unused-vars': 'warn',
+        'no-console': 'off'
+      }
+    };
+    
+    fs.writeFileSync('.eslintrc.json', JSON.stringify(eslintConfig, null, 2));
+    log('    ✓ ESLint installed and configured', 'green');
+    
+    // Add lint script to package.json if missing
+    const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    if (!packageJson.scripts) packageJson.scripts = {};
+    if (!packageJson.scripts.lint) {
+      packageJson.scripts.lint = 'eslint . --ext .js,.ts,.jsx,.tsx';
+      fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
+      log('    ✓ Added lint script to package.json', 'green');
+    }
+    
+  } catch (error) {
+    log(`    ❌ Failed to install ESLint: ${error.message}`, 'red');
+    throw new Error('ESLint installation failed');
+  }
 }
 
 function updateGitignore() {
@@ -196,9 +237,11 @@ function validateProject() {
   const hasEslintInPackage = packageJson.eslintConfig !== undefined;
   
   if (!hasEslintFile && !hasEslintInPackage) {
-    throw new Error('No ESLint configuration found! Please set up ESLint before installing Questmaestro.');
+    log('  ⚠️  No ESLint configuration found, installing...', 'yellow');
+    installEslint();
+  } else {
+    log('  ✓ ESLint configuration found', 'green');
   }
-  log('  ✓ ESLint configuration found', 'green');
   
   // Check for Jest configuration
   const jestConfigs = [

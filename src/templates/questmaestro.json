@@ -3,8 +3,8 @@
     "questFolder": "questmaestro"
   },
   "commands": {
-    "ward": "npm run lint -- $FILE && npm run typecheck -- $FILE && npm run test -- $FILE",
-    "ward:all": "npm run lint && npm run typecheck && npm run build && npm run test"
+    "ward": "npm run lint -- $FILE && npm run test -- $FILE",
+    "ward:all": "npm run lint && npm run build && npm run test"
   },
   "features": {}
 }

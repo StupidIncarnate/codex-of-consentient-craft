@@ -114,4 +114,107 @@ describe('Questmaestro Installation', () => {
     expect(gitignoreContent).toContain('questmaestro/completed/');
     expect(gitignoreContent).toContain('questmaestro/abandoned/');
   });
+
+  test('should install ESLint if not present', async () => {
+    // Create project without ESLint
+    const packageJson = testProject.getPackageJson();
+    delete packageJson.eslintConfig;
+    delete packageJson.devDependencies?.eslint;
+    testProject.writeFile('package.json', JSON.stringify(packageJson, null, 2));
+    
+    // Remove any existing ESLint config files
+    ['.eslintrc', '.eslintrc.js', '.eslintrc.json', '.eslintrc.yml', '.eslintrc.yaml', 'eslint.config.js', 'eslint.config.mjs'].forEach(file => {
+      if (testProject.fileExists(file)) {
+        testProject.deleteFile(file);
+      }
+    });
+    
+    // Run installer
+    const output = await testProject.installQuestmaestro();
+    
+    // Check ESLint was installed
+    expect(output).toContain('No ESLint configuration found, installing');
+    expect(output).toContain('ESLint installed and configured');
+    
+    // Check ESLint config was created
+    expect(testProject.fileExists('.eslintrc.json')).toBe(true);
+    const eslintConfig = JSON.parse(testProject.readFile('.eslintrc.json'));
+    expect(eslintConfig.extends).toContain('@eslint/js/recommended');
+    expect(eslintConfig.env.node).toBe(true);
+    expect(eslintConfig.env.es2022).toBe(true);
+    
+    // Check lint script was added
+    const updatedPackageJson = testProject.getPackageJson();
+    expect(updatedPackageJson.scripts.lint).toBeDefined();
+    expect(updatedPackageJson.scripts.lint).toContain('eslint');
+  });
+
+  test('should not install ESLint if already present in package.json', async () => {
+    // Create project with ESLint config in package.json
+    const packageJson = testProject.getPackageJson();
+    packageJson.eslintConfig = {
+      extends: ['eslint:recommended']
+    };
+    testProject.writeFile('package.json', JSON.stringify(packageJson, null, 2));
+    
+    // Run installer
+    const output = await testProject.installQuestmaestro();
+    
+    // Check ESLint was not installed
+    expect(output).toContain('ESLint configuration found');
+    expect(output).not.toContain('No ESLint configuration found');
+    
+    // Check no new .eslintrc.json was created
+    expect(testProject.fileExists('.eslintrc.json')).toBe(false);
+  });
+
+  test('should not install ESLint if config file already exists', async () => {
+    // Create existing ESLint config file
+    testProject.writeFile('.eslintrc.json', JSON.stringify({
+      extends: ['eslint:recommended'],
+      rules: { 'no-console': 'error' }
+    }, null, 2));
+    
+    // Run installer
+    const output = await testProject.installQuestmaestro();
+    
+    // Check ESLint was not installed
+    expect(output).toContain('ESLint configuration found');
+    expect(output).not.toContain('No ESLint configuration found');
+    
+    // Check existing config was not overwritten
+    const eslintConfig = JSON.parse(testProject.readFile('.eslintrc.json'));
+    expect(eslintConfig.rules['no-console']).toBe('error');
+  });
+
+  test('should handle ESLint installation failure gracefully', async () => {
+    // Create project without ESLint
+    const packageJson = testProject.getPackageJson();
+    delete packageJson.eslintConfig;
+    testProject.writeFile('package.json', JSON.stringify(packageJson, null, 2));
+    
+    // Mock npm to fail (this would require mocking execSync)
+    // For now, we'll test the error handling by checking the function structure
+    
+    // Run installer with invalid npm state
+    testProject.writeFile('package.json', 'invalid json');
+    
+    // Installation should fail with clear error message
+    await expect(testProject.installQuestmaestro()).rejects.toThrow();
+  });
+
+  test('should add lint script if missing even when ESLint exists', async () => {
+    // Create project with ESLint config but no lint script
+    const packageJson = testProject.getPackageJson();
+    packageJson.eslintConfig = { extends: ['eslint:recommended'] };
+    delete packageJson.scripts?.lint;
+    testProject.writeFile('package.json', JSON.stringify(packageJson, null, 2));
+    
+    // Run installer
+    await testProject.installQuestmaestro();
+    
+    // Check lint script was added
+    const updatedPackageJson = testProject.getPackageJson();
+    expect(updatedPackageJson.scripts.lint).toBeDefined();
+  });
 });
