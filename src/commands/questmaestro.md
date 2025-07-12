@@ -33,8 +33,8 @@ Quest file structure includes:
   "phases": {
     "discovery": { "status": "...", "findings": {...} },
     "implementation": { "status": "...", "components": [...] },
-    "review": { "status": "...", "issues": [...] },
-    "testing": { "status": "...", "coverage": "..." }
+    "testing": { "status": "...", "coverage": "..." },
+    "review": { "status": "...", "issues": [...] }
   },
   "activity": [
     { "timestamp": "...", "agent": "...", "action": "...", "details": "..." }

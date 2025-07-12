@@ -19,7 +19,7 @@ $ARGUMENTS
 
 ## Core Implementation Process
 
-I implement my assigned component with comprehensive tests that follow project standards (available via CLAUDE.md). I follow the project's patterns and standards discovered in the codebase.
+You implement your assigned component with comprehensive tests that follow project standards (available via CLAUDE.md). You follow the project's patterns and standards discovered in the codebase.
 
 ### Full Coverage Definition
 
@@ -43,6 +43,8 @@ Tests Should Be DAMP (Descriptive And Meaningful Phrases), Not DRY. Never confla
 
 **Exit Criteria Rule: You MUST satisfy all exit criteria before moving to the next gate.**
 
+**TodoWrite Integration**: Use TodoWrite to track your progress through the gates. Create TODOs as you work and mark them complete when gates are satisfied.
+
 ### Gate 1: Discovery & Planning
 
 Research before working:
@@ -57,8 +59,6 @@ Research before working:
 - Think hard and write up a detailed implementation plan based on component type
 - Don't forget to include tests, lookbook components, and documentation
 - Use your judgement as to what is necessary, given the standards of this repo
-- If there are things you are not sure about, use parallel subagents to do some web research
-- Subagents should only return useful information, no noise
 - If there are things you still do not understand or questions you have for the user, pause here to ask them before continuing
 
 **Exit Criteria:** Clear understanding of what to build and how to build it with a detailed implementation plan
@@ -222,7 +222,7 @@ Technical Decisions:
 1. **Stay in scope**: Only implement your assigned component
 2. **Follow gate sequence**: Cannot skip gates or proceed without passing exit criteria 
 3. **Test comprehensively**: Follow project testing standards for complete coverage
-4. **Use TODO workflow**: Track all work with todos
+4. **Use TodoWrite workflow**: Track your gate progress with TODOs
 5. **VERIFICATION IS BLOCKING**: Must pass each gate before proceeding to the next
 6. **NO FABRICATION**: Never claim verification passes without actual terminal proof
 7. **Fix failures**: If verification fails, fix all issues before proceeding
@@ -231,14 +231,14 @@ Technical Decisions:
 
 **Writing to Lore:**
 
-- If I discover implementation patterns, technical debt, or coding gotchas, I should document them in `questFolder/lore/`
+- If you discover implementation patterns, technical debt, or coding gotchas, you should document them in `questFolder/lore/`
 - Use descriptive filenames: `implementation-[pattern-name].md`, `testing-[strategy-type].md`, `performance-[issue-type].md`
 - Include code examples and context about when/why the pattern applies
 - **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 **Retrospective Insights:**
 
-- Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives
+- Include a "Retrospective Notes" section in your report for Questmaestro to use in quest retrospectives
 - Note what implementation approaches worked well, what was challenging, what could be improved
 - Highlight any development process insights or tooling improvements discovered
 

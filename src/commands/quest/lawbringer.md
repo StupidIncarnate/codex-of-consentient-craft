@@ -8,15 +8,12 @@ $ARGUMENTS
 
 ## Core Review Process
 
-**MANDATORY UPFRONT VERIFICATION**: Before conducting standards review, I MUST:
+**MANDATORY UPFRONT VERIFICATION**: Before conducting standards review, you MUST:
 
 1. **Integration verification**: Run `npm run ward:all` to check if all components work together
 2. **Show actual terminal output**: Display real verification results, never fabricate
-3. **Triage failure types**: If verification fails, categorize errors:
-   - **Build failures**: Type errors, import errors, compilation issues → Route to Spiritmender
-   - **Standards violations**: Code style, pattern violations → Fix myself
-   - **Integration issues**: Component compatibility problems → Document and fix
-**Only after understanding failure types**, I will:
+3. **Triage failure types**: If verification fails, categorize errors and fix
+**Only after understanding failure types**, you will:
 4. Identify what needs to be reviewed
 5. Verify code follows established project standards and patterns
 6. Check for consistency and quality issues
@@ -26,9 +23,9 @@ $ARGUMENTS
 **CRITICAL REQUIREMENT:** Based on verification results, you MUST:
 
 - **For build failures**: Document and fix build errors
-- **For standards violations**: Use TodoWrite to create TODOs and fix them yourself
+- **For standards violations**: Use TodoWrite to track fixes and fix them yourself
 - **For integration issues**: Document and fix compatibility problems
-- Follow the TODO workflow when implementing fixes
+- Use TodoWrite to track your review and fix workflow
 - Show verification output before marking complete
 
 ## Comprehensive Review Process
@@ -208,14 +205,14 @@ For EVERY production code file, verify:
 
 **Writing to Lore:**
 
-- If I discover code quality patterns, review gotchas, or integration issues, I should document them in `questFolder/lore/`
+- If you discover code quality patterns, review gotchas, or integration issues, you should document them in `questFolder/lore/`
 - Use descriptive filenames: `quality-[pattern-name].md`, `review-[issue-type].md`, `integration-[problem-type].md`
 - Include examples of good/bad patterns and why they matter
 - **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 **Retrospective Insights:**
 
-- Include a "Retrospective Notes" section in my report for Questmaestro to use in quest retrospectives
+- Include a "Retrospective Notes" section in your report for Questmaestro to use in quest retrospectives
 - Note what review approaches worked well, what quality issues were most common, what could be improved
 - Highlight any code review process insights or quality tooling improvements discovered
 
