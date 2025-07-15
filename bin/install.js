@@ -116,6 +116,50 @@ function installEslint() {
   }
 }
 
+function setupClaudeSettings() {
+  const settingsPath = path.join(CLAUDE_DIR, 'settings.local.json');
+  
+  let settings = {};
+  let settingsExisted = false;
+  
+  // Read existing settings if file exists
+  if (fs.existsSync(settingsPath)) {
+    settingsExisted = true;
+    try {
+      const content = fs.readFileSync(settingsPath, 'utf8');
+      settings = JSON.parse(content);
+    } catch (error) {
+      log(`  ⚠️  Could not parse existing settings.local.json, creating backup...`, 'yellow');
+      fs.copyFileSync(settingsPath, settingsPath + '.backup');
+      settings = {};
+    }
+  }
+  
+  // Ensure permissions structure exists
+  if (!settings.permissions) {
+    settings.permissions = {};
+  }
+  if (!settings.permissions.allow) {
+    settings.permissions.allow = [];
+  }
+  
+  // Check if Write permission already exists
+  if (!settings.permissions.allow.includes('Write')) {
+    settings.permissions.allow.push('Write');
+    
+    // Write updated settings
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+    
+    if (settingsExisted) {
+      log('  ✓ Added Write permission to existing .claude/settings.local.json', 'green');
+    } else {
+      log('  ✓ Created .claude/settings.local.json with Write permission', 'green');
+    }
+  } else {
+    log('  ⚠️  Write permission already configured in settings.local.json', 'yellow');
+  }
+}
+
 function updateGitignore() {
   const gitignorePath = '.gitignore';
   const questmaestroEntries = [
@@ -186,6 +230,9 @@ function createConfig() {
   
   // Add gitignore entries for local quest folders
   updateGitignore();
+  
+  // Set up Claude settings for Write tool permission
+  setupClaudeSettings();
 }
 
 function printInstructions() {

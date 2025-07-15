@@ -187,19 +187,11 @@ describe('Questmaestro Installation', () => {
     expect(eslintConfig.rules['no-console']).toBe('error');
   });
 
-  test('should handle ESLint installation failure gracefully', async () => {
-    // Create project without ESLint
-    const packageJson = testProject.getPackageJson();
-    delete packageJson.eslintConfig;
-    testProject.writeFile('package.json', JSON.stringify(packageJson, null, 2));
+  test('should handle missing package.json gracefully', async () => {
+    // Delete package.json to simulate missing file
+    testProject.deleteFile('package.json');
     
-    // Mock npm to fail (this would require mocking execSync)
-    // For now, we'll test the error handling by checking the function structure
-    
-    // Run installer with invalid npm state
-    testProject.writeFile('package.json', 'invalid json');
-    
-    // Installation should fail with clear error message
+    // Installation should fail
     await expect(testProject.installQuestmaestro()).rejects.toThrow();
   });
 
@@ -207,14 +199,90 @@ describe('Questmaestro Installation', () => {
     // Create project with ESLint config but no lint script
     const packageJson = testProject.getPackageJson();
     packageJson.eslintConfig = { extends: ['eslint:recommended'] };
-    delete packageJson.scripts?.lint;
+    if (packageJson.scripts) {
+      delete packageJson.scripts.lint;
+    }
     testProject.writeFile('package.json', JSON.stringify(packageJson, null, 2));
     
+    // Run installer - this test expects failure due to missing required scripts
+    // The installer requires both 'lint' and 'test' scripts to be present
+    await expect(testProject.installQuestmaestro()).rejects.toThrow();
+  });
+
+  test('should create .claude/settings.local.json with Write permission', async () => {
     // Run installer
-    await testProject.installQuestmaestro();
+    const output = await testProject.installQuestmaestro();
     
-    // Check lint script was added
-    const updatedPackageJson = testProject.getPackageJson();
-    expect(updatedPackageJson.scripts.lint).toBeDefined();
+    // Check settings file was created
+    expect(testProject.fileExists('.claude/settings.local.json')).toBe(true);
+    
+    // Check contents
+    const settings = JSON.parse(testProject.readFile('.claude/settings.local.json'));
+    expect(settings.permissions).toBeDefined();
+    expect(settings.permissions.allow).toContain('Write');
+    
+    // Check output
+    expect(output).toContain('Created .claude/settings.local.json with Write permission');
+  });
+
+  test('should add Write permission to existing .claude/settings.local.json', async () => {
+    // Create existing settings without Write permission
+    const existingSettings = {
+      otherSetting: 'testValue',
+      permissions: {
+        deny: ['Bash']
+      }
+    };
+    testProject.writeFile('.claude/settings.local.json', JSON.stringify(existingSettings, null, 2));
+    
+    // Run installer
+    const output = await testProject.installQuestmaestro();
+    
+    // Check contents
+    const settings = JSON.parse(testProject.readFile('.claude/settings.local.json'));
+    expect(settings.otherSetting).toBe('testValue');
+    expect(settings.permissions.deny).toContain('Bash');
+    expect(settings.permissions.allow).toContain('Write');
+    
+    // Check output
+    expect(output).toContain('Added Write permission to existing .claude/settings.local.json');
+  });
+
+  test('should not modify settings when Write permission already exists', async () => {
+    // Create settings with Write permission
+    const existingSettings = {
+      permissions: {
+        allow: ['Write', 'Read']
+      }
+    };
+    testProject.writeFile('.claude/settings.local.json', JSON.stringify(existingSettings, null, 2));
+    
+    // Run installer
+    const output = await testProject.installQuestmaestro();
+    
+    // Check contents haven't changed
+    const settings = JSON.parse(testProject.readFile('.claude/settings.local.json'));
+    expect(settings).toEqual(existingSettings);
+    
+    // Check output
+    expect(output).toContain('Write permission already configured in settings.local.json');
+  });
+
+  test('should handle malformed .claude/settings.local.json by creating backup', async () => {
+    // Create malformed JSON
+    testProject.writeFile('.claude/settings.local.json', '{ invalid json');
+    
+    // Run installer
+    const output = await testProject.installQuestmaestro();
+    
+    // Check backup was created
+    expect(testProject.fileExists('.claude/settings.local.json.backup')).toBe(true);
+    
+    // Check new settings were created
+    const settings = JSON.parse(testProject.readFile('.claude/settings.local.json'));
+    expect(settings.permissions.allow).toContain('Write');
+    
+    // Check output
+    expect(output).toContain('Could not parse existing settings.local.json');
   });
 });

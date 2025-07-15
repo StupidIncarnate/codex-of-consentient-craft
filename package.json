@@ -14,7 +14,8 @@
     "lint:check": "eslint tests/**/*.ts",
     "typecheck": "tsc --noEmit",
     "claude": "claude",
-    "claude:version": "claude --version"
+    "claude:version": "claude --version",
+    "spike": "./spike/claude-interactive/joke-file-watcher.js"
   },
   "repository": {
     "type": "git",

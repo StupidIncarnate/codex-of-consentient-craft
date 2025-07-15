@@ -2,6 +2,8 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   testMatch: ['**/tests/**/*.test.[jt]s'],
+  testPathIgnorePatterns: ['/node_modules/', '/tests/tmp/'],
+  modulePathIgnorePatterns: ['/tests/tmp/'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
