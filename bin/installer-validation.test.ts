@@ -6,7 +6,7 @@ import * as os from 'os';
 
 describe('Installer Validation Tests', () => {
   let tempDir: string;
-  const installerPath = path.join(__dirname, '..', '..', 'bin', 'install.js');
+  const installerPath = path.join(__dirname, 'install.js');
 
   // Helper function to run installer and capture output
   const runInstaller = (cwd: string) => {

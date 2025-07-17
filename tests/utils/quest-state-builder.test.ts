@@ -1,12 +1,12 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { QuestStateBuilder } from '../utils/quest-state-builder';
+import { QuestStateBuilder } from './quest-state-builder';
 import {
   QuestStatus,
   PhaseStatus,
   ComponentStatus
-} from '../utils/quest-state-machine';
-import { TestProject, createTestProject } from '../utils/testbed';
+} from './quest-state-machine';
+import { TestProject, createTestProject } from './testbed';
 
 describe('Quest State Builder', () => {
   let testProject: TestProject;
@@ -293,27 +293,26 @@ describe('Quest State Builder', () => {
   });
 
   describe('inSiegemasterState', () => {
-    test('should auto-complete review if not done', () => {
-      builder.inSiegemasterState();
+    test('should complete gap analysis when called', () => {
+      builder.inCodeweaverState().inSiegemasterState();
       const quest = builder.getQuest();
       
-      expect(quest.phases.review.status).toBe(PhaseStatus.COMPLETE);
+      expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.COMPLETE);
     });
 
     test('should complete testing phase', () => {
       builder.inLawbringerState().inSiegemasterState(PhaseStatus.COMPLETE);
       const quest = builder.getQuest();
-      const files = builder.getFiles();
       
       expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.gapAnalysis.analysisResults).toBeDefined();
       expect(quest.phases.gapAnalysis.analysisResults!.length).toBeGreaterThan(0);
       
-      const hasIntegrationTests = Array.from(files.keys()).some(
-        path => path.includes('integration.test.ts')
-      );
-      expect(hasIntegrationTests).toBe(true);
+      // Verify gap analysis was performed
+      const analysisResult = quest.phases.gapAnalysis.analysisResults![0];
+      expect(analysisResult.gapsFound).toBeDefined();
+      expect(analysisResult.priority).toBeDefined();
     });
 
     test('should handle custom gap analysis', () => {
@@ -342,7 +341,7 @@ describe('Quest State Builder', () => {
       
       expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.BLOCKED);
       expect(quest.status).toBe(QuestStatus.BLOCKED);
-      expect(quest.blockers!.some(b => b.type === 'test_failure')).toBe(true);
+      expect(quest.blockers!.some(b => b.type === 'discovery_failed')).toBe(true);
     });
   });
 
@@ -397,15 +396,16 @@ describe('Quest State Builder', () => {
   });
 
   describe('inCompletedState', () => {
-    test('should auto-complete all phases', () => {
+    test('should auto-complete through gap analysis', () => {
       builder.inCompletedState();
       const quest = builder.getQuest();
       
       expect(quest.status).toBe(QuestStatus.COMPLETED);
       expect(quest.phases.discovery.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
-      expect(quest.phases.review.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.COMPLETE);
+      // Review phase is after gap analysis and not auto-completed
+      expect(quest.phases.review.status).toBe(PhaseStatus.NOT_STARTED);
     });
 
     test('should set outcome', () => {
@@ -461,15 +461,19 @@ describe('Quest State Builder', () => {
       }
     });
 
-    test('should write quest-tracker.json', async () => {
+    test('should write quest file in correct folder', async () => {
       const env = await builder.prepareTestEnvironment();
       
-      const trackerContent = await fs.readFile(env.trackerPath, 'utf-8');
-      const tracker = JSON.parse(trackerContent);
+      // Check quest file exists in active folder
+      const questFilePath = path.join(testProject.rootDir, 'questmaestro', 'active', `${env.questId}.json`);
+      const exists = await fs.access(questFilePath).then(() => true).catch(() => false);
+      expect(exists).toBe(true);
       
-      expect(tracker.active).toContain(`${builder.getQuest().id}.json`);
-      expect(tracker.completed).toEqual([]);
-      expect(tracker.abandoned).toEqual([]);
+      // Verify quest content
+      const questContent = await fs.readFile(questFilePath, 'utf-8');
+      const savedQuest = JSON.parse(questContent);
+      expect(savedQuest.id).toBe(env.questId);
+      expect(savedQuest.title).toBe('Test Quest');
     });
 
     test('should write quest file in correct folder', async () => {

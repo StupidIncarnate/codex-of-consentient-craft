@@ -8,6 +8,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:unit": "jest bin src tests/utils",
     "test:e2e": "RUN_E2E_TESTS=true jest tests/e2e",
     "test:all": "npm test && npm run test:e2e",
     "lint": "eslint tests/**/*.ts --fix",

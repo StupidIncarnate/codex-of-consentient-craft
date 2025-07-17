@@ -1,4 +1,4 @@
-import { TestProject, createTestProject } from "../utils/testbed";
+import { TestProject, createTestProject } from "../tests/utils/testbed";
 
 describe('Questmaestro Installation', () => {
   let testProject: TestProject;
