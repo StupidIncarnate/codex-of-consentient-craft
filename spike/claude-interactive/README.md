@@ -87,14 +87,15 @@ If the CLI hangs or doesn't work:
 The working approach uses file system signals to coordinate between the CLI wrapper and interactive Claude agents:
 
 1. **CLI spawns agent** in interactive mode (full UI experience)
-2. **Agent writes signal file** when task complete
+2. **Agent writes signal file** when task complete using Write tool
 3. **CLI monitors for file** and kills agent when detected
-4. **CLI spawns next agent** in sequence
+4. **CLI spawns next agent** in sequence automatically
+5. **No manual Ctrl+C required** - fully automated flow
 
 ### Working Example
 
 ```bash
-npm run spike:joke-file
+npm run spike
 ```
 
 This demonstrates:
@@ -105,6 +106,23 @@ This demonstrates:
 - CLI kills review agent
 - Process completes successfully
 
+### Key Implementation Details
+
+1. **Permission Management**: 
+   - Uses `.claude/settings.local.json` to allow Write tool without prompts
+   - Install script now automatically configures this
+   - Enables seamless agent chaining
+
+2. **Temporary Directory**:
+   - Uses project-local `spike-tmp/` directory
+   - Cleaned on each run for fresh state
+   - Agents write signals to `spike-tmp/[agent]-complete.txt`
+
+3. **Agent Protocol**:
+   - Agents use Write tool (not bash echo)
+   - Clear completion signals
+   - Interactive UI preserved throughout
+
 ### Files
 
 - `joke-file-watcher.js` - CLI wrapper that monitors files
@@ -114,18 +132,22 @@ This demonstrates:
 ## Key Findings
 
 ### ✅ What Works
-1. **Streaming Output** - Can parse and display Claude's responses in real-time using JSON stream
-2. **Marker Detection** - Successfully detects interaction markers (`<<WAITING_FOR_USER_INPUT>>`)
-3. **Context Preservation** - Can capture conversation history and restart with full context
-4. **Kill/Restart Pattern** - Claude exits after each response, we restart with accumulated context
-5. **Multi-turn Conversations** - Can maintain coherent conversation across multiple restarts
+1. **Interactive Mode with File Signals** - Full Claude UI while maintaining programmatic control
+2. **Automatic Agent Chaining** - Agents complete tasks and trigger next agent without manual intervention
+3. **Write Tool Integration** - Agents use Claude's Write tool to create signal files
+4. **Permission Configuration** - `.claude/settings.local.json` enables tool use without prompts
+5. **Clean State Management** - `spike-tmp/` directory ensures fresh state each run
 
 ### ❌ What Doesn't Work
-1. **Stdin Injection** - Cannot send input to running Claude process
-   - `stdin.write()` doesn't affect Claude's execution
-   - Claude doesn't read from stdin during streaming
-2. **True Bidirectional** - No way to have real back-and-forth without restart
-3. **Keep-Alive Sessions** - Claude always exits after completing its response
+1. **Self-Exit in Interactive Mode** - Claude cannot exit itself with `Bash(exit 0)` in interactive mode
+2. **Stdin Injection** - Cannot send input to running Claude process
+3. **--allowedTools CLI Flag** - Doesn't work properly in interactive mode (use settings.json instead)
+
+### 🎯 Key Pivots During Development
+1. **From JSON Streaming to Interactive UI** - User wanted to see "claude terminal stuff"
+2. **From Bash Echo to Write Tool** - More reliable and consistent with Claude's tooling
+3. **From System /tmp to Project spike-tmp/** - Better isolation and cleanup
+4. **From CLI Flags to Settings File** - More reliable permission management
 
 ### 🤔 Limitations Discovered
 1. **Claude is stateless** - Each invocation is independent
@@ -166,46 +188,51 @@ What's your name?
 ```
 **Result**: Can detect when to prompt user
 
-## Recommendations for Questmaestro
+## Recommendations for Questmaestro CLI Implementation
 
-### 1. **Use Kill/Restart Pattern**
-- Most reliable approach
-- Maintain conversation context
-- Clear state management
+### 1. **Use File Watcher Pattern**
+- Most reliable approach for interactive mode
+- Agents signal completion via Write tool
+- CLI monitors and manages agent lifecycle
+- No manual intervention required
 
-### 2. **Design Agent Protocols**
-```markdown
-## Status Markers
-- <<NEEDS_USER_INPUT: question>>
-- <<SPAWNING_AGENT: agent-name>>
-- <<TASK_COMPLETE: summary>>
-- <<TASK_FAILED: reason>>
+### 2. **Permission Setup**
+- Install script configures `.claude/settings.local.json`
+- Allows Write tool without prompts
+- Enables seamless agent chaining
+- Each developer gets their own settings
+
+### 3. **Agent Signal Protocol**
+```javascript
+// Agent completion signal
+Write("questmaestro/signals/[agent-name]-complete.txt", "status: complete")
+
+// Agent needs help signal  
+Write("questmaestro/signals/needs-help.txt", "reason: [details]")
+
+// Agent spawning sub-agent
+Write("questmaestro/signals/spawn-[sub-agent].txt", "context: [data]")
 ```
-
-### 3. **Context Management**
-- Keep running summary instead of full history
-- Use structured context format
-- Implement context windowing
 
 ### 4. **CLI Architecture**
 ```
 questmaestro
-├── spawn agent with role
-├── stream output to user
-├── detect interaction markers
-├── on marker:
-│   ├── NEEDS_INPUT → prompt user → restart with answer
-│   ├── SPAWN_AGENT → launch sub-agent → merge results
-│   └── COMPLETE → save state → exit
-└── maintain quest state throughout
+├── clean signal directory
+├── spawn agent in interactive mode
+├── monitor signal files
+├── on signal detection:
+│   ├── COMPLETE → kill agent → spawn next
+│   ├── NEEDS_HELP → kill agent → prompt user → respawn
+│   └── SPAWN → note request → kill → spawn sub-agent
+└── maintain quest flow throughout
 ```
 
-### 5. **Agent Design**
+### 5. **Agent Design Guidelines**
 Each agent should:
-- Output clear status markers
-- Summarize progress before asking for input
-- Be able to resume from context
-- Complete discrete tasks
+- Use Write tool for all signals
+- Create clear completion markers
+- Work within interactive mode constraints
+- Handle one discrete task per invocation
 
 ## Next Steps
 
@@ -246,19 +273,26 @@ Could build a socket server that:
 
 ## Conclusion
 
-For the Questmaestro pivot, we have two viable approaches:
+The spike successfully demonstrates a working pattern for the Questmaestro CLI pivot:
 
-### Approach 1: Streaming Monitor (Recommended)
-- Use non-interactive mode with JSON streaming
-- Programmatically detect markers
-- Kill and restart with context
-- Full automation possible
-- ~3-5 second restart overhead
+### Final Implementation: Interactive Mode + File Watcher
+- **Full Claude UI Experience** - Users see the interactive terminal interface
+- **Automatic Agent Management** - File signals enable programmatic control
+- **No Manual Intervention** - Agents complete and chain automatically
+- **Permission Configuration** - Settings file enables tool use without prompts
+- **Clean State Management** - Temporary directories cleaned on each run
 
-### Approach 2: Interactive Wrapper
-- Launch Claude in interactive mode
-- User manually watches for markers
-- Better UX but requires human monitoring
-- Good for development/debugging
+### Key Success Factors
+1. **File-based signaling** works reliably across all platforms
+2. **Write tool** provides consistent file creation without shell complications
+3. **Settings configuration** solves the permission prompt problem
+4. **Interactive mode** gives users the full Claude experience
 
-The streaming monitor approach is better for production use, while the interactive wrapper is useful for testing and development. Both support the kill/restart pattern needed for the Questmaestro CLI pivot.
+### Ready for Production
+The pattern is ready to be implemented in the full Questmaestro CLI:
+- Proven agent chaining mechanism
+- Reliable completion detection
+- User-friendly interactive experience
+- Automated flow management
+
+This spike validates that we can build a CLI that maintains the benefits of interactive Claude while adding the automation and chaining capabilities needed for the Questmaestro workflow.
