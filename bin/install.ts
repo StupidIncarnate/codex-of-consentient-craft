@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import * as fs from 'fs';
+import * as path from 'path';
+import { execSync } from 'child_process';
 
 const CLAUDE_DIR = '.claude';
 const COMMANDS_DIR = path.join(CLAUDE_DIR, 'commands');
@@ -16,20 +16,22 @@ const colors = {
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
   red: '\x1b[31m'
-};
+} as const;
 
-function log(message, color = 'reset') {
+type ColorKey = keyof typeof colors;
+
+function log(message: string, color: ColorKey = 'reset'): void {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
 
-function ensureDirectoryExists(dir) {
+function ensureDirectoryExists(dir: string): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 }
 
-function copyCommands() {
-  const sourceDir = path.join(__dirname, '..', 'src', 'commands');
+function copyCommands(): void {
+  const sourceDir = path.join(__dirname, '..', '..', 'src', 'commands');
   const targetDir = COMMANDS_DIR;
   
   log('\n⚔️  Installing Quest Commands...', 'bright');
@@ -76,7 +78,7 @@ function copyCommands() {
   });
 }
 
-function installEslint() {
+function installEslint(): void {
   try {
     log('    Installing ESLint...', 'blue');
     execSync('npm install --save-dev eslint @eslint/js', { stdio: 'inherit' });
@@ -111,15 +113,22 @@ function installEslint() {
     }
     
   } catch (error) {
-    log(`    ❌ Failed to install ESLint: ${error.message}`, 'red');
+    log(`    ❌ Failed to install ESLint: ${(error as Error).message}`, 'red');
     throw new Error('ESLint installation failed');
   }
 }
 
-function setupClaudeSettings() {
+interface ClaudeSettings {
+  permissions?: {
+    allow?: string[];
+  };
+  [key: string]: any;
+}
+
+function setupClaudeSettings(): void {
   const settingsPath = path.join(CLAUDE_DIR, 'settings.local.json');
   
-  let settings = {};
+  let settings: ClaudeSettings = {};
   let settingsExisted = false;
   
   // Read existing settings if file exists
@@ -160,7 +169,7 @@ function setupClaudeSettings() {
   }
 }
 
-function updateGitignore() {
+function updateGitignore(): void {
   const gitignorePath = '.gitignore';
   const questmaestroEntries = [
     '# Questmaestro local quest folders',
@@ -192,14 +201,14 @@ function updateGitignore() {
   }
 }
 
-function createConfig() {
+function createConfig(): void {
   log('\n📜 Creating Configuration...', 'bright');
   
   // Create .questmaestro config
   if (fs.existsSync(CONFIG_FILE)) {
     log('  ⚠️  .questmaestro already exists, skipping...', 'yellow');
   } else {
-    const templatePath = path.join(__dirname, '..', 'src', 'templates', 'questmaestro.json');
+    const templatePath = path.join(__dirname, '..', '..', 'src', 'templates', 'questmaestro.json');
     fs.copyFileSync(templatePath, CONFIG_FILE);
     log('  ✓ Created .questmaestro config file', 'green');
   }
@@ -223,7 +232,7 @@ function createConfig() {
   // Add lore categories guide
   const loreCategoriesPath = path.join(loreDir, 'README.md');
   if (!fs.existsSync(loreCategoriesPath)) {
-    const categoriesTemplate = path.join(__dirname, '..', 'src', 'templates', 'lore-categories.md');
+    const categoriesTemplate = path.join(__dirname, '..', '..', 'src', 'templates', 'lore-categories.md');
     fs.copyFileSync(categoriesTemplate, loreCategoriesPath);
     log('  ✓ Added lore categories guide', 'green');
   }
@@ -235,7 +244,7 @@ function createConfig() {
   setupClaudeSettings();
 }
 
-function printInstructions() {
+function printInstructions(): void {
   log('\n🏰 Quest System Installed!', 'bright');
   log('\nAvailable Commands:', 'blue');
   log('  /questmaestro              - Main orchestrator');
@@ -258,7 +267,14 @@ function printInstructions() {
   log('  /questmaestro start auth   - Jump to specific quest');
 }
 
-function validateProject() {
+interface PackageJson {
+  scripts?: Record<string, string>;
+  eslintConfig?: any;
+  jest?: any;
+  [key: string]: any;
+}
+
+function validateProject(): void {
   log('\n🔍 Validating Project Requirements...', 'bright');
   
   // Check for package.json
@@ -267,7 +283,7 @@ function validateProject() {
   }
   log('  ✓ package.json found', 'green');
   
-  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  const packageJson: PackageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
   
   // Check for ESLint configuration
   const eslintConfigs = [
@@ -318,7 +334,7 @@ function validateProject() {
   log('  ✓ Required scripts found', 'green');
 }
 
-function main() {
+function main(): void {
   log('🗡️  Questmaestro Installation', 'bright');
   log('================================\n', 'bright');
   
@@ -339,7 +355,7 @@ function main() {
     
     log('\n✨ May your quests be swift and your builds always green! ✨\n', 'bright');
   } catch (error) {
-    log(`\nError during installation: ${error.message}`, 'red');
+    log(`\nError during installation: ${(error as Error).message}`, 'red');
     process.exit(1);
   }
 }
