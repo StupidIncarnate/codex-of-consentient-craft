@@ -2,7 +2,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   testMatch: ['**/tests/**/*.test.[jt]s', '**/bin/**/*.test.[jt]s', '**/src/**/*.test.[jt]s'],
-  testPathIgnorePatterns: ['/node_modules/', '/tests/tmp/', '/hypothesis/'],
+  testPathIgnorePatterns: ['/node_modules/', '/tests/tmp/', '/hypothesis/', '/dist/'],
   modulePathIgnorePatterns: ['/tests/tmp/', '/hypothesis/'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {

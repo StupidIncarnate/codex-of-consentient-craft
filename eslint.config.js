@@ -1,8 +1,35 @@
+const tseslint = require('@typescript-eslint/eslint-plugin');
+const tsparser = require('@typescript-eslint/parser');
+const prettierConfig = require('eslint-config-prettier');
+const prettierPlugin = require('eslint-plugin-prettier');
+const jestPlugin = require('eslint-plugin-jest');
+
 module.exports = [
+  // Global ignores
   {
-    files: ['tests/**/*.ts'],
+    ignores: [
+      'node_modules/**',
+      'dist/**',
+      'coverage/**',
+      'tests/tmp/**',
+      'exploratories/**',
+      'plan/**',
+      'hypothesis/**',
+      '.vscode/**',
+      '.idea/**',
+      '.claude/**',
+      '**/*.log',
+      '**/*.min.js',
+      '**/*.min.css',
+      '.git/**',
+      'jest.config.js'
+    ]
+  },
+  // Main configuration for all TypeScript and JavaScript files
+  {
+    files: ['**/*.ts', '**/*.js'],
     languageOptions: {
-      parser: require('@typescript-eslint/parser'),
+      parser: tsparser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
@@ -10,13 +37,47 @@ module.exports = [
       }
     },
     plugins: {
-      '@typescript-eslint': require('@typescript-eslint/eslint-plugin')
+      '@typescript-eslint': tseslint,
+      'prettier': prettierPlugin
     },
     rules: {
-      '@typescript-eslint/no-unused-vars': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      'prefer-const': 'error',
-      'no-console': 'off'
+      ...tseslint.configs.recommended.rules,
+      ...tseslint.configs['recommended-requiring-type-checking'].rules,
+      ...prettierConfig.rules,
+      'prettier/prettier': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_'
+      }],
+      'arrow-body-style': ['error', 'as-needed'],
+      'prefer-arrow-callback': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  // Test files can be more relaxed
+  {
+    files: ['**/*.test.ts', '**/*.test.js', '**/tests/**/*.ts'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: 'module',
+        project: './tsconfig.json'
+      },
+      globals: {
+        ...jestPlugin.environments.globals.globals
+      }
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+      'jest': jestPlugin
+    },
+    rules: {
+      ...jestPlugin.configs.recommended.rules,
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      'jest/unbound-method': 'error'
     }
   }
 ];

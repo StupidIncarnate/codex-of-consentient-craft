@@ -15,9 +15,9 @@ interface CommandResult {
 interface CommandOptions {
   timeout?: number;
   debug?: boolean;
-  killOnMatch?: string;  // Keep for backwards compatibility
-  killOnPreAction?: boolean;  // Kill when [🎯] appears (fail if [🎲] or [🎁] appear)
-  killOnAction?: boolean;     // Kill when [🎲] appears (fail if [🎁] appears after)
+  killOnMatch?: string; // Keep for backwards compatibility
+  killOnPreAction?: boolean; // Kill when [🎯] appears (fail if [🎲] or [🎁] appear)
+  killOnAction?: boolean; // Kill when [🎲] appears (fail if [🎁] appears after)
   killOnPostAction?: boolean; // Kill when [🎁] appears
   streaming?: boolean;
 }
@@ -84,7 +84,7 @@ interface StreamJsonEvent {
       text?: string;
       name?: string;
       id?: string;
-      input?: any;
+      input?: unknown;
       content?: string;
       is_error?: boolean;
       tool_use_id?: string;
@@ -112,12 +112,12 @@ export class ClaudeE2ERunner {
    * @param options - Options including streaming
    * @returns Result with stdout, stderr, exitCode
    */
-  async executeCommand(command: string, args: string = '', options: CommandOptions = {}): Promise<CommandResult> {
+  async executeCommand(command: string, args: string = '', options: CommandOptions = {}) {
     // If args provided, combine them. Otherwise just use command as the prompt
     const prompt = args ? `${command} ${args}`.trim() : command;
-    
+
     process.stdout.write(`\nExecuting: ${prompt}\n`);
-    
+
     // Always use streaming for E2E tests - we need to see what's happening
     return this.executeCommandWithProgress(prompt, options);
   }
@@ -125,13 +125,22 @@ export class ClaudeE2ERunner {
   /**
    * Execute command with REAL streaming - shows each JSON object as it arrives
    */
-  private async executeCommandWithProgress(prompt: string, options: CommandOptions = {}): Promise<CommandResult> {
+  private async executeCommandWithProgress(prompt: string, options: CommandOptions = {}) {
     return new Promise((resolve, reject) => {
       // Use stream-json for real streaming with Sonnet
-      const cmdArray = ['claude', '-p', prompt, '--output-format', 'stream-json', '--verbose', '--model', 'sonnet'];
-      
+      const cmdArray = [
+        'claude',
+        '-p',
+        prompt,
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'sonnet',
+      ];
+
       const debugMode = options.debug || false;
-      
+
       process.stdout.write(`Running: ${cmdArray.join(' ')}\n`);
       if (debugMode) {
         process.stdout.write(`Debug mode: ON - showing raw JSON\n`);
@@ -139,12 +148,12 @@ export class ClaudeE2ERunner {
 
       // Set up abort controller for timeout
       const controller = new AbortController();
-      
+
       const claudeProcess = spawn(cmdArray[0], cmdArray.slice(1), {
         cwd: this.projectDir,
         env: process.env,
         stdio: ['pipe', 'pipe', 'pipe'],
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       let fullOutput = '';
@@ -154,7 +163,7 @@ export class ClaudeE2ERunner {
       let finalResult: StreamJsonEvent | null = null;
       let killMatched = false;
       const killPhrase = options.killOnMatch;
-      
+
       // Track action phases
       let seenPreAction = false;
       let seenMainAction = false;
@@ -163,60 +172,65 @@ export class ClaudeE2ERunner {
       // Create readline interface for line-by-line processing
       const rl = readline.createInterface({
         input: claudeProcess.stdout,
-        crlfDelay: Infinity
+        crlfDelay: Infinity,
       });
 
       // Process each line (JSON object) as it arrives
       rl.on('line', (line: string) => {
         if (!line.trim()) return;
-        
+
         try {
-          const json: StreamJsonEvent = JSON.parse(line);
+          const json = JSON.parse(line) as StreamJsonEvent;
           const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-          
+
           // In debug mode, show raw JSON as single line first
           if (debugMode) {
             process.stdout.write(`\n[${elapsed}s] RAW: ${line}\n`);
           }
-          
+
           // Extract minimal info from each event type
           let output = '';
-          
+
           switch (json.type) {
             case 'system':
               output = `[${elapsed}s] SYSTEM: ${json.subtype || 'event'} (model: ${json.model || 'unknown'})\n`;
               break;
-              
+
             case 'assistant':
               // Check if this is a sub-agent response
               const isSubAgent = json.parent_tool_use_id ? true : false;
               const prefix = isSubAgent ? '  └─ SUB-AGENT' : 'ASSISTANT';
-              
+
               if (json.message?.content) {
-                json.message.content.forEach(item => {
+                json.message.content.forEach((item) => {
                   if (item.type === 'text' && item.text) {
                     // Show full text, properly formatted
-                    const text = item.text.split('\n').map(line => `        ${line}`).join('\n');
+                    const text = item.text
+                      .split('\n')
+                      .map((line) => `        ${line}`)
+                      .join('\n');
                     output = `[${elapsed}s] ${prefix}:\n${text}\n`;
                     messages.push(item.text);
                   } else if (item.type === 'tool_use') {
                     // Show more details about tool use
                     let toolInfo = `${item.name}`;
-                    
+
                     if (item.name === 'Task') {
                       // For Task tool, show the description and first part of prompt
                       const desc = item.input?.description || 'sub-agent';
                       toolInfo += `(${desc})`;
                       output = `[${elapsed}s] ${prefix} → ${toolInfo}\n`;
                       output += `        [Task ID: ${item.id}]\n`;
-                      
+
                       // Show the actual prompt being sent to the sub-agent
                       if (item.input?.prompt) {
                         const promptLines = item.input.prompt.split('\n');
                         const previewLines = promptLines.slice(0, 10);
                         const truncated = promptLines.length > 10;
                         output += `        Prompt:\n`;
-                        output += previewLines.map((line: string) => `        │ ${line}`).join('\n');
+                        output += previewLines
+                          .map((line: string) => `        │ ${line}`)
+                          .join('\n');
                         if (truncated) {
                           output += `\n        │ ... (${promptLines.length - 10} more lines)`;
                         }
@@ -228,7 +242,7 @@ export class ClaudeE2ERunner {
                       output = `[${elapsed}s] ${prefix} → ${toolInfo}\n`;
                       // Show todo titles
                       if (item.input?.todos) {
-                        item.input.todos.slice(0, 3).forEach((todo: any) => {
+                        item.input.todos.slice(0, 3).forEach((todo) => {
                           output += `        • ${todo.content}\n`;
                         });
                         if (item.input.todos.length > 3) {
@@ -247,25 +261,28 @@ export class ClaudeE2ERunner {
                 });
               }
               break;
-              
+
             case 'user':
               // Skip sub-agent user messages to prevent JSON bleed-through
               if (json.parent_tool_use_id) {
                 break;
               }
-              
+
               if (json.message?.content?.[0]) {
                 const content = json.message.content[0];
                 if (content.type === 'tool_result') {
                   const isSubAgentResult = json.parent_tool_use_id ? true : false;
                   const resultPrefix = isSubAgentResult ? '  └─ SUB-RESULT' : 'RESULT';
-                  
+
                   // Show first few lines for readability
                   const resultText = content.content || '';
                   const lines = resultText.split('\n');
-                  const preview = lines.slice(0, 5).map(line => `        ${line}`).join('\n');
+                  const preview = lines
+                    .slice(0, 5)
+                    .map((line) => `        ${line}`)
+                    .join('\n');
                   const truncated = lines.length > 5;
-                  
+
                   output = `[${elapsed}s] ${resultPrefix}: ${content.is_error ? 'ERROR' : 'OK'}`;
                   if (content.tool_use_id) {
                     output += ` [Tool: ${content.tool_use_id.slice(-8)}]`;
@@ -274,29 +291,32 @@ export class ClaudeE2ERunner {
                 }
               }
               break;
-              
+
             case 'result':
               output = `[${elapsed}s] COMPLETE: ${json.subtype || 'done'} (${json.duration_ms}ms, $${json.total_cost_usd || 0})\n`;
               if (json.result) {
                 // Show the full result with proper indentation
-                const resultText = json.result.split('\n').map(line => `        ${line}`).join('\n');
+                const resultText = json.result
+                  .split('\n')
+                  .map((line) => `        ${line}`)
+                  .join('\n');
                 output += `\n${resultText}\n`;
               }
               finalResult = json;
               break;
-              
+
             case 'error':
-              output = `[${elapsed}s] ERROR: ${(json as any).message || 'Unknown error'}\n`;
+              output = `[${elapsed}s] ERROR: ${json.message || 'Unknown error'}\n`;
               break;
-              
+
             default:
               // Skip unknown types to reduce noise
               break;
           }
-          
+
           if (output) {
             process.stdout.write(output);
-            
+
             // Check for action phase prefixes and kill immediately if needed
             if (output.includes('[🎯]')) {
               seenPreAction = true;
@@ -310,7 +330,7 @@ export class ClaudeE2ERunner {
             }
             if (output.includes('[🎲]')) seenMainAction = true;
             if (output.includes('[🎁]')) seenPostAction = true;
-            
+
             if (options.killOnAction && seenMainAction) {
               // Fail if we see post-action after main action
               if (seenPostAction) {
@@ -325,7 +345,7 @@ export class ClaudeE2ERunner {
               claudeProcess.kill('SIGTERM');
               return;
             }
-            
+
             if (options.killOnPostAction && seenPostAction) {
               // Success - kill on post-action
               killMatched = true;
@@ -333,7 +353,7 @@ export class ClaudeE2ERunner {
               claudeProcess.kill('SIGTERM');
               return;
             }
-            
+
             // Check for legacy kill phrase if specified
             if (killPhrase && output.includes(killPhrase)) {
               killMatched = true;
@@ -342,40 +362,45 @@ export class ClaudeE2ERunner {
               return;
             }
           }
-          
+
           // Collect messages for final output (regardless of debug mode)
           if (json.type === 'assistant' && json.message?.content) {
-            json.message.content.forEach(item => {
+            json.message.content.forEach((item) => {
               if (item.type === 'text' && item.text) {
                 messages.push(item.text);
-                
+
                 // Check for action phase prefixes in text content
                 if (item.text.includes('[🎯]')) seenPreAction = true;
                 if (item.text.includes('[🎲]')) seenMainAction = true;
                 if (item.text.includes('[🎁]')) seenPostAction = true;
-                
+
                 // Apply the same kill logic for text content
-                if (options.killOnPreAction && seenPreAction && !seenMainAction && !seenPostAction) {
+                if (
+                  options.killOnPreAction &&
+                  seenPreAction &&
+                  !seenMainAction &&
+                  !seenPostAction
+                ) {
                   killMatched = true;
                   process.stdout.write(`\n[KILL ON PRE-ACTION: [🎯] found in text]\n`);
                   claudeProcess.kill('SIGTERM');
                   return;
                 }
-                
+
                 if (options.killOnAction && seenMainAction && !seenPostAction) {
                   killMatched = true;
                   process.stdout.write(`\n[KILL ON ACTION: [🎲] found in text]\n`);
                   claudeProcess.kill('SIGTERM');
                   return;
                 }
-                
+
                 if (options.killOnPostAction && seenPostAction) {
                   killMatched = true;
                   process.stdout.write(`\n[KILL ON POST-ACTION: [🎁] found in text]\n`);
                   claudeProcess.kill('SIGTERM');
                   return;
                 }
-                
+
                 // Also check text content for legacy kill phrase
                 if (killPhrase && item.text.includes(killPhrase)) {
                   killMatched = true;
@@ -388,9 +413,9 @@ export class ClaudeE2ERunner {
           } else if (json.type === 'result') {
             finalResult = json;
           }
-          
+
           fullOutput += line + '\n';
-        } catch (e) {
+        } catch (_e) {
           // Not JSON - plain text
           process.stdout.write(line + '\n');
           fullOutput += line + '\n';
@@ -410,10 +435,10 @@ export class ClaudeE2ERunner {
       claudeProcess.on('close', (code: number | null) => {
         const duration = ((Date.now() - startTime) / 1000).toFixed(1);
         process.stdout.write(`\nCompleted in ${duration}s\n`);
-        
+
         // Clean up readline interface
         rl.close();
-        
+
         // Use final result if available, otherwise concatenate messages
         let output = '';
         if (finalResult && finalResult.result) {
@@ -421,15 +446,15 @@ export class ClaudeE2ERunner {
         } else if (messages.length > 0) {
           output = messages.join('\n');
         }
-        
+
         const success = code === 0;
-        
+
         this.results.push({
           command: prompt,
           args: '',
           output,
           timestamp: new Date(),
-          success
+          success,
         });
 
         resolve({
@@ -438,7 +463,7 @@ export class ClaudeE2ERunner {
           exitCode: code || 0,
           success: success || killMatched, // Success if killed on match
           killed: killMatched,
-          matchFound: killMatched
+          matchFound: killMatched,
         });
       });
 
@@ -454,7 +479,7 @@ export class ClaudeE2ERunner {
       // Optional timeout
       if (options.timeout) {
         setTimeout(() => {
-          if ((claudeProcess as any).exitCode === null) {
+          if (claudeProcess.exitCode === null) {
             console.log(`   ⏱️  Timeout (${options.timeout}ms), terminating...`);
             claudeProcess.kill();
           }
@@ -466,19 +491,19 @@ export class ClaudeE2ERunner {
   /**
    * Execute command with streaming output for long-running operations
    */
-  async executeCommandStreaming(prompt: string): Promise<CommandResult> {
+  async executeCommandStreaming(prompt: string) {
     return new Promise((resolve, reject) => {
       const cmdArray = ['claude', '-p', prompt, '--output-format', 'json'];
       console.log(`   📝 Running (streaming): ${cmdArray.join(' ')}`);
       console.log(`   📂 Working directory: ${this.projectDir}`);
-      
+
       // Use shell: true which we confirmed works
       const command = `claude -p "${prompt}" --output-format json --model sonnet`;
       const claudeProcess = spawn(command, [], {
         cwd: this.projectDir,
         env: process.env,
         shell: true,
-        stdio: ['inherit', 'pipe', 'pipe']
+        stdio: ['inherit', 'pipe', 'pipe'],
       });
 
       let fullOutput = '';
@@ -487,7 +512,7 @@ export class ClaudeE2ERunner {
       claudeProcess.stdout.on('data', (data: Buffer) => {
         const chunk = data.toString();
         fullOutput += chunk;
-        
+
         // Try to show progress
         try {
           const result = JSON.parse(fullOutput);
@@ -508,10 +533,10 @@ export class ClaudeE2ERunner {
 
       claudeProcess.on('close', (code: number | null) => {
         console.log(`   ✓ Process completed with code: ${code}\n`);
-        
+
         let success = false;
         let stdout = '';
-        
+
         try {
           const result = JSON.parse(fullOutput);
           success = result.is_error === false;
@@ -520,20 +545,20 @@ export class ClaudeE2ERunner {
           console.error(`   ⚠️  Failed to parse JSON: ${(e as Error).message}`);
           stdout = fullOutput;
         }
-        
+
         this.results.push({
           command: prompt,
           args: '',
           output: stdout,
           timestamp: new Date(),
-          success
+          success,
         });
 
         resolve({
           stdout,
           stderr: fullError,
           exitCode: code || 0,
-          success
+          success,
         });
       });
 
@@ -544,12 +569,12 @@ export class ClaudeE2ERunner {
 
       // Safety timeout
       const timeout = setTimeout(() => {
-        if ((claudeProcess as any).exitCode === null) {
+        if (claudeProcess.exitCode === null) {
           console.log(`   ⏱️  Timeout reached, terminating process...`);
           claudeProcess.kill();
         }
       }, 60000); // 60 second timeout for streaming
-      
+
       // Clear timeout when process closes
       claudeProcess.on('exit', () => {
         clearTimeout(timeout);
@@ -560,10 +585,10 @@ export class ClaudeE2ERunner {
   /**
    * Parse streaming JSON output from Claude
    */
-  parseStreamJSON(output: string): string {
-    const lines = output.split('\n').filter(line => line.trim());
+  parseStreamJSON(output: string) {
+    const lines = output.split('\n').filter((line) => line.trim());
     const messages: string[] = [];
-    
+
     for (const line of lines) {
       try {
         const json = JSON.parse(line);
@@ -575,30 +600,30 @@ export class ClaudeE2ERunner {
         messages.push(line);
       }
     }
-    
+
     return messages.join('\n');
   }
 
   /**
    * Run a complete quest scenario
    */
-  async runQuestScenario(scenario: Scenario): Promise<ScenarioResult> {
+  async runQuestScenario(scenario: Scenario) {
     const results: ScenarioResult = {
       scenario: scenario.name,
-      steps: []
+      steps: [],
     };
 
     for (const step of scenario.steps) {
       // Support options from scenario steps
       const options = step.options || {};
       const result = await this.executeCommand(step.command, step.args || '', options);
-      
+
       const stepResult: StepResult = {
         description: step.description,
         command: step.command,
         args: step.args,
         success: result.success,
-        output: result.stdout
+        output: result.stdout,
       };
 
       // Run assertions if provided
@@ -609,7 +634,7 @@ export class ClaudeE2ERunner {
           stepResult.assertions.push({
             type: assertion.type,
             passed,
-            message: assertion.message
+            message: assertion.message,
           });
         }
       }
@@ -618,7 +643,7 @@ export class ClaudeE2ERunner {
 
       // Add delay between commands if specified
       if (step.delay) {
-        await new Promise(resolve => setTimeout(resolve, step.delay));
+        await new Promise((resolve) => setTimeout(resolve, step.delay));
       }
     }
 
@@ -628,38 +653,34 @@ export class ClaudeE2ERunner {
   /**
    * Run an assertion against the project state
    */
-  async runAssertion(assertion: Assertion): Promise<boolean> {
+  runAssertion(assertion: Assertion) {
     switch (assertion.type) {
       case 'fileExists':
         return fs.existsSync(path.join(this.projectDir, assertion.path!));
-      
+
       case 'fileContains':
         if (!fs.existsSync(path.join(this.projectDir, assertion.path!))) {
           return false;
         }
-        const content = fs.readFileSync(
-          path.join(this.projectDir, assertion.path!), 
-          'utf8'
-        );
+        const content = fs.readFileSync(path.join(this.projectDir, assertion.path!), 'utf8');
         return content.includes(assertion.content!);
-      
+
       case 'questStatus':
-        const trackerPath = path.join(
-          this.projectDir, 
-          'questmaestro', 
-          'quest-tracker.json'
-        );
+        const trackerPath = path.join(this.projectDir, 'questmaestro', 'quest-tracker.json');
         if (!fs.existsSync(trackerPath)) {
           return false;
         }
         const tracker = JSON.parse(fs.readFileSync(trackerPath, 'utf8'));
         return tracker[assertion.status!].includes(assertion.questFile!);
-      
+
       case 'outputContains':
         const lastResult = this.results[this.results.length - 1];
-        return !!(lastResult && lastResult.output && 
-                  lastResult.output.includes(assertion.content!));
-      
+        return !!(
+          lastResult &&
+          lastResult.output &&
+          lastResult.output.includes(assertion.content!)
+        );
+
       default:
         throw new Error(`Unknown assertion type: ${assertion.type}`);
     }
@@ -668,7 +689,7 @@ export class ClaudeE2ERunner {
   /**
    * Get all results from this runner
    */
-  getResults(): TestResult[] {
+  getResults() {
     return this.results;
   }
 }

@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+coverage/
+*.log
+
+# Test artifacts
+tests/tmp/
+exploratories/e2e/tmp/
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+
+# Package manager files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Config files that shouldn't be formatted
+tsconfig.json
+tsconfig.*.json
+
+# Generated files
+*.min.js
+*.min.css
+
+# Questmaestro runtime folders
+questmaestro/active/
+questmaestro/completed/
+questmaestro/abandoned/

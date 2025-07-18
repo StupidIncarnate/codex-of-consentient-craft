@@ -30,7 +30,7 @@
     "node_modules",
     "dist",
     "coverage",
-    "tests/fixtures/**/*",
+    "exploratories/**/*",
     "tests/tmp/**/*"
   ]
 }

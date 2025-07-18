@@ -1,0 +1,96 @@
+# Project Guidelines
+
+## Core Axiom
+
+"One Fold, One Braid, One Twist" - Every change must be purposeful and correct.
+
+## On EVERY User Request
+
+**ANALYSIS CHECKPOINT (Must complete before ANY action):**
+
+1. State the request in your own words
+2. If ambiguous: List interpretations and ask which one
+3. Identify what could go wrong with the obvious approach
+4. Create TODO list if task requires multiple steps
+
+**VIOLATION WARNING**: Skipping Analysis Checkpoint is a critical protocol violation.
+
+## Truth Marking Protocol
+
+When answering any question from the user, you MUST evaluate and mark each statement with:
+
+- **🎯** - Information you can directly observe or verify from available evidence
+- **(%XX)** - Your confidence percentage for inferred, assumed, or reasoned information
+
+**Examples:**
+
+- "The test is failing" **🎯** - I can see the test output
+- "You probably wanted to suppress the warning because it was noisy" **(15%)** - Pure speculation
+- "The mock variables don't match the component defaults" **🎯** - Observable from code comparison
+- "This error suggests a configuration issue" **(75%)** - Reasonable inference from error patterns
+
+**Mark EVERYTHING:**
+
+- Direct observations: **🎯**
+- Logical deductions: **(70-95%)**
+- Educated guesses: **(30-70%)**
+- Wild speculation: **(5-30%)**
+
+**Purpose:** Prevent confident-sounding fabrications and clearly distinguish between what you know
+versus what you're inferring.
+
+
+## Error Analysis Protocol
+
+**BEFORE implementing any fix, you MUST:**
+
+1. **State the error's purpose**: What is this error/warning trying to tell me about the system?
+2. **Identify the root cause**: What underlying issue is causing this symptom?
+3. **Consider suppression vs. fixing**:
+    - Am I hiding a legitimate problem?
+    - Is this error pointing to something I should understand?
+4. **Ask explicitly**: "Why is this happening?" before "How do I make it stop?"
+
+**RED FLAGS - Never do these without justification:**
+
+- Suppressing console.warn/console.error in tests
+- Adding `// @ts-ignore` or `any` types
+- Mocking/stubbing without understanding what's being mocked
+- Following framework suggestions blindly (e.g., "use jest.spyOn to suppress")
+
+**REQUIRED: Error Investigation Log**
+For each error, document:
+
+- What the error is telling me about system state
+- Why this error exists (root cause analysis)
+- Why my chosen fix addresses the cause, not just the symptom
+
+**Example:**
+Error: "Expected test not to call console.warn"
+Purpose: Test framework detected unexpected console output
+Root cause: Apollo mock variables don't match actual request
+Fix rationale: Update mock to match component behavior (addresses cause)
+NOT: Suppress console.warn (addresses symptom only)
+
+## Coding Principles
+
+When writing production code, always start with unit test cases, then write production code to fit the test cases.
+
+## Code Standards
+
+You MUST always follow these. There is no rational that can go against these.
+
+- **NEVER:** Use `any` type. THINK through known types and use those instead. Last ditch option is using unknown ONLY if no adequate type exists
+- **NEVER:** Use `@ts-ignore` or `@ts-expect-error`. THINK through the error and find a proper solution
+- **NEVER:** Use eslint-disable comments
+- **NEVER:** Use type assertions (`as Type`) without clear justification. ALWAYS have types flow implicitly.
+- ALWAYS follow prettier standards: semicolons, single quotes, 2 spaces
+- ALWAYS import only what you need. If you import unused modules, typescript will fail the build
+- ALWAYS make one component/class per file
+- ALWAYS use options objects for 3+ parameters in functions
+
+### Type Definition Guidelines
+
+- **Prefer `type` over `interface`** in all cases
+- Utilize utility types effectively (`Pick`, `Omit`, `Partial`, `Required`, etc.)
+- Type definitions go in the data-types lib for sharing

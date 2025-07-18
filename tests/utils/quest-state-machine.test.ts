@@ -4,35 +4,60 @@ import {
   ComponentStatus,
   QuestStateMachine,
   createEmptyQuest,
-  validateQuest
+  validateQuest,
+  QuestFile,
 } from './quest-state-machine';
 
 describe('Quest State Machine', () => {
   describe('Quest Status Transitions', () => {
     test('should allow valid quest transitions', () => {
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.ACTIVE, QuestStatus.BLOCKED)).toBe(true);
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.ACTIVE, QuestStatus.PAUSED)).toBe(true);
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.ACTIVE, QuestStatus.COMPLETED)).toBe(true);
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.ACTIVE, QuestStatus.ABANDONED)).toBe(true);
-      
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.BLOCKED, QuestStatus.ACTIVE)).toBe(true);
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.BLOCKED, QuestStatus.ABANDONED)).toBe(true);
-      
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.PAUSED, QuestStatus.ACTIVE)).toBe(true);
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.PAUSED, QuestStatus.ABANDONED)).toBe(true);
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.ACTIVE, QuestStatus.BLOCKED)).toBe(
+        true,
+      );
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.ACTIVE, QuestStatus.PAUSED)).toBe(
+        true,
+      );
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.ACTIVE, QuestStatus.COMPLETED)).toBe(
+        true,
+      );
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.ACTIVE, QuestStatus.ABANDONED)).toBe(
+        true,
+      );
+
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.BLOCKED, QuestStatus.ACTIVE)).toBe(
+        true,
+      );
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.BLOCKED, QuestStatus.ABANDONED)).toBe(
+        true,
+      );
+
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.PAUSED, QuestStatus.ACTIVE)).toBe(
+        true,
+      );
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.PAUSED, QuestStatus.ABANDONED)).toBe(
+        true,
+      );
     });
 
     test('should prevent invalid quest transitions', () => {
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.COMPLETED, QuestStatus.ACTIVE)).toBe(false);
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.ABANDONED, QuestStatus.ACTIVE)).toBe(false);
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.BLOCKED, QuestStatus.COMPLETED)).toBe(false);
-      expect(QuestStateMachine.canTransitionQuest(QuestStatus.PAUSED, QuestStatus.BLOCKED)).toBe(false);
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.COMPLETED, QuestStatus.ACTIVE)).toBe(
+        false,
+      );
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.ABANDONED, QuestStatus.ACTIVE)).toBe(
+        false,
+      );
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.BLOCKED, QuestStatus.COMPLETED)).toBe(
+        false,
+      );
+      expect(QuestStateMachine.canTransitionQuest(QuestStatus.PAUSED, QuestStatus.BLOCKED)).toBe(
+        false,
+      );
     });
 
     test('should throw error on invalid quest transition', () => {
       const quest = createEmptyQuest('test-quest', 'Test Quest');
       quest.status = QuestStatus.COMPLETED;
-      
+
       expect(() => {
         QuestStateMachine.validateQuestTransition(quest, QuestStatus.ACTIVE);
       }).toThrow('Invalid quest transition: completed -> active');
@@ -41,18 +66,36 @@ describe('Quest State Machine', () => {
 
   describe('Phase Status Transitions', () => {
     test('should allow valid phase transitions', () => {
-      expect(QuestStateMachine.canTransitionPhase(PhaseStatus.NOT_STARTED, PhaseStatus.IN_PROGRESS)).toBe(true);
-      expect(QuestStateMachine.canTransitionPhase(PhaseStatus.IN_PROGRESS, PhaseStatus.COMPLETE)).toBe(true);
-      expect(QuestStateMachine.canTransitionPhase(PhaseStatus.IN_PROGRESS, PhaseStatus.BLOCKED)).toBe(true);
-      expect(QuestStateMachine.canTransitionPhase(PhaseStatus.COMPLETE, PhaseStatus.IN_PROGRESS)).toBe(true);
-      expect(QuestStateMachine.canTransitionPhase(PhaseStatus.BLOCKED, PhaseStatus.IN_PROGRESS)).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionPhase(PhaseStatus.NOT_STARTED, PhaseStatus.IN_PROGRESS),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionPhase(PhaseStatus.IN_PROGRESS, PhaseStatus.COMPLETE),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionPhase(PhaseStatus.IN_PROGRESS, PhaseStatus.BLOCKED),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionPhase(PhaseStatus.COMPLETE, PhaseStatus.IN_PROGRESS),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionPhase(PhaseStatus.BLOCKED, PhaseStatus.IN_PROGRESS),
+      ).toBe(true);
     });
 
     test('should prevent invalid phase transitions', () => {
-      expect(QuestStateMachine.canTransitionPhase(PhaseStatus.NOT_STARTED, PhaseStatus.COMPLETE)).toBe(false);
-      expect(QuestStateMachine.canTransitionPhase(PhaseStatus.NOT_STARTED, PhaseStatus.BLOCKED)).toBe(false);
-      expect(QuestStateMachine.canTransitionPhase(PhaseStatus.COMPLETE, PhaseStatus.NOT_STARTED)).toBe(false);
-      expect(QuestStateMachine.canTransitionPhase(PhaseStatus.BLOCKED, PhaseStatus.COMPLETE)).toBe(false);
+      expect(
+        QuestStateMachine.canTransitionPhase(PhaseStatus.NOT_STARTED, PhaseStatus.COMPLETE),
+      ).toBe(false);
+      expect(
+        QuestStateMachine.canTransitionPhase(PhaseStatus.NOT_STARTED, PhaseStatus.BLOCKED),
+      ).toBe(false);
+      expect(
+        QuestStateMachine.canTransitionPhase(PhaseStatus.COMPLETE, PhaseStatus.NOT_STARTED),
+      ).toBe(false);
+      expect(QuestStateMachine.canTransitionPhase(PhaseStatus.BLOCKED, PhaseStatus.COMPLETE)).toBe(
+        false,
+      );
     });
 
     test('should throw error on invalid phase transition', () => {
@@ -64,21 +107,69 @@ describe('Quest State Machine', () => {
 
   describe('Component Status Transitions', () => {
     test('should allow valid component transitions', () => {
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.QUEUED, ComponentStatus.IN_PROGRESS)).toBe(true);
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.IN_PROGRESS, ComponentStatus.COMPLETE)).toBe(true);
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.IN_PROGRESS, ComponentStatus.BLOCKED)).toBe(true);
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.IN_PROGRESS, ComponentStatus.NEEDS_REVISION)).toBe(true);
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.COMPLETE, ComponentStatus.NEEDS_REVISION)).toBe(true);
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.NEEDS_REVISION, ComponentStatus.IN_PROGRESS)).toBe(true);
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.BLOCKED, ComponentStatus.IN_PROGRESS)).toBe(true);
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.BLOCKED, ComponentStatus.QUEUED)).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionComponent(
+          ComponentStatus.QUEUED,
+          ComponentStatus.IN_PROGRESS,
+        ),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionComponent(
+          ComponentStatus.IN_PROGRESS,
+          ComponentStatus.COMPLETE,
+        ),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionComponent(
+          ComponentStatus.IN_PROGRESS,
+          ComponentStatus.BLOCKED,
+        ),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionComponent(
+          ComponentStatus.IN_PROGRESS,
+          ComponentStatus.NEEDS_REVISION,
+        ),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionComponent(
+          ComponentStatus.COMPLETE,
+          ComponentStatus.NEEDS_REVISION,
+        ),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionComponent(
+          ComponentStatus.NEEDS_REVISION,
+          ComponentStatus.IN_PROGRESS,
+        ),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionComponent(
+          ComponentStatus.BLOCKED,
+          ComponentStatus.IN_PROGRESS,
+        ),
+      ).toBe(true);
+      expect(
+        QuestStateMachine.canTransitionComponent(ComponentStatus.BLOCKED, ComponentStatus.QUEUED),
+      ).toBe(true);
     });
 
     test('should prevent invalid component transitions', () => {
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.QUEUED, ComponentStatus.COMPLETE)).toBe(false);
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.QUEUED, ComponentStatus.BLOCKED)).toBe(false);
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.COMPLETE, ComponentStatus.QUEUED)).toBe(false);
-      expect(QuestStateMachine.canTransitionComponent(ComponentStatus.NEEDS_REVISION, ComponentStatus.COMPLETE)).toBe(false);
+      expect(
+        QuestStateMachine.canTransitionComponent(ComponentStatus.QUEUED, ComponentStatus.COMPLETE),
+      ).toBe(false);
+      expect(
+        QuestStateMachine.canTransitionComponent(ComponentStatus.QUEUED, ComponentStatus.BLOCKED),
+      ).toBe(false);
+      expect(
+        QuestStateMachine.canTransitionComponent(ComponentStatus.COMPLETE, ComponentStatus.QUEUED),
+      ).toBe(false);
+      expect(
+        QuestStateMachine.canTransitionComponent(
+          ComponentStatus.NEEDS_REVISION,
+          ComponentStatus.COMPLETE,
+        ),
+      ).toBe(false);
     });
   });
 
@@ -135,24 +226,54 @@ describe('Quest State Machine', () => {
     test('should return components with no dependencies', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.QUEUED, dependencies: [], componentType: 'implementation' },
-        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: [], componentType: 'implementation' },
-        { name: 'comp3', status: ComponentStatus.QUEUED, dependencies: ['comp1'], componentType: 'implementation' }
+        {
+          name: 'comp1',
+          status: ComponentStatus.QUEUED,
+          dependencies: [],
+          componentType: 'implementation',
+        },
+        {
+          name: 'comp2',
+          status: ComponentStatus.QUEUED,
+          dependencies: [],
+          componentType: 'implementation',
+        },
+        {
+          name: 'comp3',
+          status: ComponentStatus.QUEUED,
+          dependencies: ['comp1'],
+          componentType: 'implementation',
+        },
       ];
-      
+
       const ready = QuestStateMachine.getReadyComponents(quest);
       expect(ready).toHaveLength(2);
-      expect(ready.map(c => c.name)).toEqual(['comp1', 'comp2']);
+      expect(ready.map((c) => c.name)).toEqual(['comp1', 'comp2']);
     });
 
     test('should return components with completed dependencies', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.COMPLETE, dependencies: [], componentType: 'implementation' },
-        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: ['comp1'], componentType: 'implementation' },
-        { name: 'comp3', status: ComponentStatus.QUEUED, dependencies: ['comp2'], componentType: 'implementation' }
+        {
+          name: 'comp1',
+          status: ComponentStatus.COMPLETE,
+          dependencies: [],
+          componentType: 'implementation',
+        },
+        {
+          name: 'comp2',
+          status: ComponentStatus.QUEUED,
+          dependencies: ['comp1'],
+          componentType: 'implementation',
+        },
+        {
+          name: 'comp3',
+          status: ComponentStatus.QUEUED,
+          dependencies: ['comp2'],
+          componentType: 'implementation',
+        },
       ];
-      
+
       const ready = QuestStateMachine.getReadyComponents(quest);
       expect(ready).toHaveLength(1);
       expect(ready[0].name).toBe('comp2');
@@ -161,10 +282,20 @@ describe('Quest State Machine', () => {
     test('should not return in-progress components', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.IN_PROGRESS, dependencies: [], componentType: 'implementation' },
-        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: [], componentType: 'implementation' }
+        {
+          name: 'comp1',
+          status: ComponentStatus.IN_PROGRESS,
+          dependencies: [],
+          componentType: 'implementation',
+        },
+        {
+          name: 'comp2',
+          status: ComponentStatus.QUEUED,
+          dependencies: [],
+          componentType: 'implementation',
+        },
       ];
-      
+
       const ready = QuestStateMachine.getReadyComponents(quest);
       expect(ready).toHaveLength(1);
       expect(ready[0].name).toBe('comp2');
@@ -173,10 +304,20 @@ describe('Quest State Machine', () => {
     test('should handle partial name matches for dependencies', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.implementation.components = [
-        { name: 'Create config.ts with configuration', status: ComponentStatus.COMPLETE, dependencies: [], componentType: 'implementation' },
-        { name: 'Create logger.ts with logging', status: ComponentStatus.QUEUED, dependencies: ['config'], componentType: 'implementation' }
+        {
+          name: 'Create config.ts with configuration',
+          status: ComponentStatus.COMPLETE,
+          dependencies: [],
+          componentType: 'implementation',
+        },
+        {
+          name: 'Create logger.ts with logging',
+          status: ComponentStatus.QUEUED,
+          dependencies: ['config'],
+          componentType: 'implementation',
+        },
       ];
-      
+
       const ready = QuestStateMachine.getReadyComponents(quest);
       expect(ready).toHaveLength(1);
       expect(ready[0].name).toBe('Create logger.ts with logging');
@@ -188,16 +329,16 @@ describe('Quest State Machine', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.status = QuestStatus.BLOCKED;
       quest.blockers = [
-        { type: 'build_failure', description: 'Build failed', timestamp: new Date().toISOString() }
+        { type: 'build_failure', description: 'Build failed', timestamp: new Date().toISOString() },
       ];
-      
+
       expect(QuestStateMachine.shouldSpawnSpiritMender(quest)).toBe(true);
     });
 
     test('should return false when quest is blocked without blockers', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.status = QuestStatus.BLOCKED;
-      
+
       expect(QuestStateMachine.shouldSpawnSpiritMender(quest)).toBe(false);
     });
 
@@ -205,9 +346,9 @@ describe('Quest State Machine', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.status = QuestStatus.ACTIVE;
       quest.blockers = [
-        { type: 'build_failure', description: 'Build failed', timestamp: new Date().toISOString() }
+        { type: 'build_failure', description: 'Build failed', timestamp: new Date().toISOString() },
       ];
-      
+
       expect(QuestStateMachine.shouldSpawnSpiritMender(quest)).toBe(false);
     });
   });
@@ -217,9 +358,9 @@ describe('Quest State Machine', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.status = QuestStatus.BLOCKED;
       quest.blockers = [
-        { type: 'build_failure', description: 'Build failed', timestamp: new Date().toISOString() }
+        { type: 'build_failure', description: 'Build failed', timestamp: new Date().toISOString() },
       ];
-      
+
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('spawn_spiritmender');
     });
 
@@ -227,7 +368,7 @@ describe('Quest State Machine', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.status = QuestStatus.COMPLETED;
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('none');
-      
+
       quest.status = QuestStatus.ABANDONED;
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('none');
     });
@@ -238,7 +379,7 @@ describe('Quest State Machine', () => {
       quest.phases.implementation.status = PhaseStatus.COMPLETE;
       quest.phases.review.status = PhaseStatus.COMPLETE;
       quest.phases.gapAnalysis.status = PhaseStatus.COMPLETE;
-      
+
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('complete_quest');
     });
 
@@ -264,9 +405,14 @@ describe('Quest State Machine', () => {
       quest.phases.discovery.status = PhaseStatus.COMPLETE;
       quest.phases.implementation.status = PhaseStatus.IN_PROGRESS;
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.QUEUED, dependencies: [], componentType: 'implementation' }
+        {
+          name: 'comp1',
+          status: ComponentStatus.QUEUED,
+          dependencies: [],
+          componentType: 'implementation',
+        },
       ];
-      
+
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('spawn_codeweaver');
     });
 
@@ -275,10 +421,20 @@ describe('Quest State Machine', () => {
       quest.phases.discovery.status = PhaseStatus.COMPLETE;
       quest.phases.implementation.status = PhaseStatus.IN_PROGRESS;
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.IN_PROGRESS, dependencies: [], componentType: 'implementation' },
-        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: ['comp1'], componentType: 'implementation' }
+        {
+          name: 'comp1',
+          status: ComponentStatus.IN_PROGRESS,
+          dependencies: [],
+          componentType: 'implementation',
+        },
+        {
+          name: 'comp2',
+          status: ComponentStatus.QUEUED,
+          dependencies: ['comp1'],
+          componentType: 'implementation',
+        },
       ];
-      
+
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('wait_for_dependencies');
     });
 
@@ -310,7 +466,7 @@ describe('Quest State Machine', () => {
   describe('createEmptyQuest', () => {
     test('should create valid empty quest', () => {
       const quest = createEmptyQuest('test-123', 'Test Quest');
-      
+
       expect(quest.id).toBe('test-123');
       expect(quest.title).toBe('Test Quest');
       expect(quest.status).toBe(QuestStatus.ACTIVE);
@@ -328,7 +484,7 @@ describe('Quest State Machine', () => {
       const before = new Date().toISOString();
       const quest = createEmptyQuest('test', 'Test');
       const after = new Date().toISOString();
-      
+
       expect(quest.createdAt >= before).toBe(true);
       expect(quest.createdAt <= after).toBe(true);
       expect(quest.createdAt).toBe(quest.updatedAt);
@@ -343,9 +499,9 @@ describe('Quest State Machine', () => {
     });
 
     test('should catch missing required fields', () => {
-      const quest: any = {};
+      const quest = {} as QuestFile;
       const errors = validateQuest(quest);
-      
+
       expect(errors).toContain('Quest must have an id');
       expect(errors).toContain('Quest must have a title');
       expect(errors).toContain('Quest must have a status');
@@ -354,36 +510,46 @@ describe('Quest State Machine', () => {
 
     test('should catch invalid quest status', () => {
       const quest = createEmptyQuest('test', 'Test');
-      (quest as any).status = 'invalid';
+      quest.status = 'invalid';
       const errors = validateQuest(quest);
-      
+
       expect(errors).toContain('Invalid quest status: invalid');
     });
 
     test('should catch missing phases', () => {
       const quest = createEmptyQuest('test', 'Test');
-      delete (quest.phases as any).review;
+      delete quest.phases.review;
       const errors = validateQuest(quest);
-      
+
       expect(errors).toContain('Missing required phase: review');
     });
 
     test('should catch invalid phase status', () => {
       const quest = createEmptyQuest('test', 'Test');
-      (quest.phases.discovery as any).status = 'invalid';
+      quest.phases.discovery.status = 'invalid';
       const errors = validateQuest(quest);
-      
+
       expect(errors).toContain('Invalid status for phase discovery: invalid');
     });
 
     test('should validate components', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.implementation.components = [
-        { name: '', status: ComponentStatus.QUEUED, dependencies: [], componentType: 'implementation' },
-        { name: 'comp2', status: 'invalid' as any, dependencies: [], componentType: 'implementation' }
+        {
+          name: '',
+          status: ComponentStatus.QUEUED,
+          dependencies: [],
+          componentType: 'implementation',
+        },
+        {
+          name: 'comp2',
+          status: 'invalid',
+          dependencies: [],
+          componentType: 'implementation',
+        },
       ];
       const errors = validateQuest(quest);
-      
+
       expect(errors).toContain('Component must have a name');
       expect(errors).toContain('Invalid component status: invalid');
     });
@@ -395,21 +561,38 @@ describe('Quest State Machine', () => {
       quest.phases.discovery.findings = {
         components: [
           { name: 'comp1', dependencies: [] },
-          { name: 'comp2', dependencies: ['comp1'] }
-        ]
+          { name: 'comp2', dependencies: ['comp1'] },
+        ],
       };
       quest.phases.implementation.status = PhaseStatus.IN_PROGRESS;
       quest.phases.implementation.components = [
-        { name: 'comp1', status: ComponentStatus.COMPLETE, dependencies: [], componentType: 'implementation' },
-        { name: 'comp2', status: ComponentStatus.QUEUED, dependencies: ['comp1'], componentType: 'implementation' }
+        {
+          name: 'comp1',
+          status: ComponentStatus.COMPLETE,
+          dependencies: [],
+          componentType: 'implementation',
+        },
+        {
+          name: 'comp2',
+          status: ComponentStatus.QUEUED,
+          dependencies: ['comp1'],
+          componentType: 'implementation',
+        },
       ];
       quest.activity = [
-        { timestamp: new Date().toISOString(), agent: 'pathseeker', action: 'discovery complete', details: {} }
+        {
+          timestamp: new Date().toISOString(),
+          agent: 'pathseeker',
+          action: 'discovery complete',
+          details: {},
+        },
       ];
       quest.agentReports = {
-        pathseeker: [{ agentId: 'pathseeker-001', timestamp: new Date().toISOString(), fullReport: ['test'] }]
+        pathseeker: [
+          { agentId: 'pathseeker-001', timestamp: new Date().toISOString(), fullReport: ['test'] },
+        ],
       };
-      
+
       const errors = validateQuest(quest);
       expect(errors).toEqual([]);
     });

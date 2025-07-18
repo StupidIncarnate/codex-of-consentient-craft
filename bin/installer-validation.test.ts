@@ -1,35 +1,54 @@
-
-import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { main } from './install';
 
 describe('Installer Validation Tests', () => {
   let tempDir: string;
-  const installerPath = path.join(__dirname, 'install.js');
-
   // Helper function to run installer and capture output
   const runInstaller = (cwd: string) => {
-    try {
-      const output = execSync(`node ${installerPath}`, {
-        cwd,
-        encoding: 'utf8',
-        stdio: 'pipe'
+    // Mock process.exit
+    const mockExit = jest
+      .spyOn(process, 'exit')
+      .mockImplementation((code?: string | number | null) => {
+        throw new Error(`Process exit with code ${code}`);
       });
-      return { success: true, output };
+
+    // Capture console output
+    const consoleOutput: string[] = [];
+    const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation((...args) => {
+      consoleOutput.push(args.join(' '));
+    });
+
+    const originalCwd = process.cwd();
+    process.chdir(cwd);
+
+    let exitCode = 0;
+    let success = true;
+
+    try {
+      main();
     } catch (error) {
-      return { 
-        success: false, 
-        output: (error as any).stdout || (error as any).stderr || (error as Error).message,
-        error 
-      };
+      if (error.message.startsWith('Process exit with code')) {
+        exitCode = parseInt(error.message.match(/code (\d+)/)?.[1] || '1');
+        success = exitCode === 0;
+      } else {
+        success = false;
+      }
+    } finally {
+      process.chdir(originalCwd);
+      mockExit.mockRestore();
+      mockConsoleLog.mockRestore();
     }
+
+    const output = consoleOutput.join('\n');
+    return { success, output, exitCode };
   };
 
   beforeEach(() => {
     // Create a temporary directory for each test
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'questmaestro-test-'));
-    
+
     // Create .claude directory (required for all tests)
     fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
   });
@@ -50,13 +69,10 @@ describe('Installer Validation Tests', () => {
       version: '1.0.0',
       scripts: {
         lint: 'eslint',
-        test: 'jest'
-      }
+        test: 'jest',
+      },
     };
-    fs.writeFileSync(
-      path.join(tempDir, 'package.json'),
-      JSON.stringify(packageJson, null, 2)
-    );
+    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
     const result = runInstaller(tempDir);
     expect(result.success).toBe(false);
@@ -70,16 +86,13 @@ describe('Installer Validation Tests', () => {
       version: '1.0.0',
       scripts: {
         lint: 'eslint',
-        test: 'jest'
+        test: 'jest',
       },
       eslintConfig: {
-        env: { node: true }
-      }
+        env: { node: true },
+      },
     };
-    fs.writeFileSync(
-      path.join(tempDir, 'package.json'),
-      JSON.stringify(packageJson, null, 2)
-    );
+    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
     const result = runInstaller(tempDir);
     expect(result.success).toBe(false);
@@ -92,19 +105,16 @@ describe('Installer Validation Tests', () => {
       name: 'test-project',
       version: '1.0.0',
       scripts: {
-        build: 'echo building'
+        build: 'echo building',
       },
       eslintConfig: {
-        env: { node: true }
+        env: { node: true },
       },
       jest: {
-        testEnvironment: 'node'
-      }
+        testEnvironment: 'node',
+      },
     };
-    fs.writeFileSync(
-      path.join(tempDir, 'package.json'),
-      JSON.stringify(packageJson, null, 2)
-    );
+    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
     const result = runInstaller(tempDir);
     expect(result.success).toBe(false);
@@ -119,30 +129,21 @@ describe('Installer Validation Tests', () => {
       scripts: {
         lint: 'eslint',
         test: 'jest',
-        build: 'echo building'
+        build: 'echo building',
       },
       eslintConfig: {
-        env: { node: true }
+        env: { node: true },
       },
       jest: {
-        testEnvironment: 'node'
-      }
+        testEnvironment: 'node',
+      },
     };
-    fs.writeFileSync(
-      path.join(tempDir, 'package.json'),
-      JSON.stringify(packageJson, null, 2)
-    );
+    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-    // Create templates directory for installer to copy from
-    const templatesDir = path.join(__dirname, '..', 'src', 'templates');
-    if (!fs.existsSync(templatesDir)) {
-      // Skip test if templates don't exist
-      console.log('Skipping test - templates directory not found');
-      return;
-    }
+    // No need to check templates - they're in src/templates
 
     const result = runInstaller(tempDir);
-    
+
     expect(result.success).toBe(true);
     expect(result.output).toContain('✓ package.json found');
     expect(result.output).toContain('✓ ESLint configuration found');
@@ -156,28 +157,21 @@ describe('Installer Validation Tests', () => {
       version: '1.0.0',
       scripts: {
         lint: 'eslint',
-        test: 'jest'
+        test: 'jest',
       },
       jest: {
-        testEnvironment: 'node'
-      }
+        testEnvironment: 'node',
+      },
     };
-    fs.writeFileSync(
-      path.join(tempDir, 'package.json'),
-      JSON.stringify(packageJson, null, 2)
-    );
+    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
     // Create .eslintrc.json
     fs.writeFileSync(
       path.join(tempDir, '.eslintrc.json'),
-      JSON.stringify({ env: { node: true } }, null, 2)
+      JSON.stringify({ env: { node: true } }, null, 2),
     );
 
-    const templatesDir = path.join(__dirname, '..', 'src', 'templates');
-    if (!fs.existsSync(templatesDir)) {
-      console.log('Skipping test - templates directory not found');
-      return;
-    }
+    // No need to check templates - they're in src/templates
 
     const result = runInstaller(tempDir);
     expect(result.success).toBe(true);
@@ -190,28 +184,21 @@ describe('Installer Validation Tests', () => {
       version: '1.0.0',
       scripts: {
         lint: 'eslint',
-        test: 'jest'
+        test: 'jest',
       },
       eslintConfig: {
-        env: { node: true }
-      }
+        env: { node: true },
+      },
     };
-    fs.writeFileSync(
-      path.join(tempDir, 'package.json'),
-      JSON.stringify(packageJson, null, 2)
-    );
+    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
     // Create jest.config.js
     fs.writeFileSync(
       path.join(tempDir, 'jest.config.js'),
-      'module.exports = { testEnvironment: "node" };'
+      'module.exports = { testEnvironment: "node" };',
     );
 
-    const templatesDir = path.join(__dirname, '..', 'src', 'templates');
-    if (!fs.existsSync(templatesDir)) {
-      console.log('Skipping test - templates directory not found');
-      return;
-    }
+    // No need to check templates - they're in src/templates
 
     const result = runInstaller(tempDir);
     expect(result.success).toBe(true);

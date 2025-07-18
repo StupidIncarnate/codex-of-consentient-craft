@@ -6,37 +6,37 @@ export interface StateOptions {
   // Error injection
   withErrors?: boolean;
   withBlockers?: boolean;
-  
+
   // Partial completion
   partialOnly?: boolean;
   percentComplete?: number;
-  
+
   // Custom components
   customComponents?: Array<{
     name: string;
     description: string;
     dependencies?: string[];
   }>;
-  
+
   // Specific error scenarios
   errorType?: 'syntax' | 'type' | 'lint' | 'test' | 'build';
   errorLocation?: string;
   errorMessage?: string;
-  
+
   // Review options
   reviewIssues?: Array<{
     severity: 'minor' | 'major' | 'critical';
     file: string;
     message: string;
   }>;
-  
+
   // Gap analysis options
   gapsFound?: number;
   additionalTestsNeeded?: string[];
-  
+
   // Time simulation
   simulatedDuration?: number; // minutes
-  
+
   // Agent-specific options
   agentOptions?: {
     verbose?: boolean;
@@ -62,7 +62,7 @@ export interface FileContent {
 
 export interface ProjectTemplate {
   type: 'simple' | 'typescript' | 'monorepo';
-  fileExtension: '.ts';  // Always TypeScript
+  fileExtension: '.ts'; // Always TypeScript
   structure: {
     src: boolean;
     tests: boolean;
@@ -83,32 +83,35 @@ export const ComponentTemplates = {
     { name: 'add', description: 'function that adds two numbers' },
     { name: 'subtract', description: 'function that subtracts two numbers' },
     { name: 'multiply', description: 'function that multiplies two numbers' },
-    { name: 'divide', description: 'function that divides two numbers' }
+    { name: 'divide', description: 'function that divides two numbers' },
   ],
-  
+
   api: [
     { name: 'config', description: 'configuration module' },
     { name: 'logger', description: 'logging utility', dependencies: ['config'] },
     { name: 'database', description: 'database connection', dependencies: ['config'] },
-    { name: 'userService', description: 'user management service', dependencies: ['database', 'logger'] }
+    {
+      name: 'userService',
+      description: 'user management service',
+      dependencies: ['database', 'logger'],
+    },
   ],
-  
+
   utils: [
     { name: 'validators', description: 'input validation functions' },
     { name: 'formatters', description: 'data formatting utilities' },
-    { name: 'helpers', description: 'general helper functions' }
+    { name: 'helpers', description: 'general helper functions' },
   ],
-  
+
   simple: [
     { name: 'isEven', description: 'returns true if number is even' },
-    { name: 'isOdd', description: 'returns true if number is odd' }
-  ]
+    { name: 'isOdd', description: 'returns true if number is odd' },
+  ],
 };
 
 // Agent report templates
 export const AgentReportTemplates = {
-
-  pathseeker: (questTitle: string, components: any[], status: string = 'SUCCESS') => [
+  pathseeker: (questTitle: string, components: unknown[], status: string = 'SUCCESS') => [
     '=== PATHSEEKER REPORT ===',
     `Status: ${status}`,
     `Quest: ${questTitle}`,
@@ -129,15 +132,16 @@ export const AgentReportTemplates = {
     '',
     'Components Found:',
     '[',
-    ...components.map((c, i) => 
-      `  {` +
-      `    "name": "${c.name}",` +
-      `    "description": "${c.description}",` +
-      `    "files": ["src/${c.name}.ts", "tests/${c.name}.test.ts"],` +
-      `    "dependencies": ${JSON.stringify(c.dependencies || [])},` +
-      `    "complexity": "medium",` +
-      `    "status": "queued"` +
-      `  }${i < components.length - 1 ? ',' : ''}`
+    ...components.map(
+      (c, i) =>
+        `  {` +
+        `    "name": "${c.name}",` +
+        `    "description": "${c.description}",` +
+        `    "files": ["src/${c.name}.ts", "tests/${c.name}.test.ts"],` +
+        `    "dependencies": ${JSON.stringify(c.dependencies || [])},` +
+        `    "complexity": "medium",` +
+        `    "status": "queued"` +
+        `  }${i < components.length - 1 ? ',' : ''}`,
     ),
     ']',
     '',
@@ -153,7 +157,7 @@ export const AgentReportTemplates = {
     '- Follow existing project conventions',
     '- Include comprehensive tests',
     '',
-    '=== END REPORT ==='
+    '=== END REPORT ===',
   ],
 
   codeweaver: (component: string, status: string) => [
@@ -187,10 +191,10 @@ export const AgentReportTemplates = {
     '- Used TypeScript for type safety',
     '- Implemented comprehensive error handling',
     '- Added JSDoc documentation',
-    '=== END REPORT ==='
+    '=== END REPORT ===',
   ],
 
-  lawbringer: (issues: any[], status: string) => [
+  lawbringer: (issues: [], status: string) => [
     '=== LAWBRINGER REVIEW REPORT ===',
     'Phase: Code Review',
     `Status: ${status}`,
@@ -198,24 +202,24 @@ export const AgentReportTemplates = {
     '',
     'Review Summary:',
     `- Total Issues: ${issues.length}`,
-    `- Critical: ${issues.filter(i => i.severity === 'critical').length}`,
-    `- Major: ${issues.filter(i => i.severity === 'major').length}`,
-    `- Minor: ${issues.filter(i => i.severity === 'minor').length}`,
+    `- Critical: ${issues.filter((i) => i.severity === 'critical').length}`,
+    `- Major: ${issues.filter((i) => i.severity === 'major').length}`,
+    `- Minor: ${issues.filter((i) => i.severity === 'minor').length}`,
     '',
     'Files Reviewed:',
-    ...new Set(issues.map(i => `- ${i.file}`)),
+    ...new Set(issues.map((i) => `- ${i.file}`)),
     '',
     issues.length > 0 ? 'Issues Found:' : 'No issues found',
-    ...issues.map(i => `- [${i.severity.toUpperCase()}] ${i.file}: ${i.message}`),
+    ...issues.map((i) => `- [${i.severity.toUpperCase()}] ${i.file}: ${i.message}`),
     '',
     'Recommendations:',
     '- Maintain consistent code style',
     '- Add more comprehensive error handling',
     '- Consider edge cases in tests',
-    '=== END REPORT ==='
+    '=== END REPORT ===',
   ],
 
-  siegemaster: (gapsFound: string, analysisResults: any[]) => [
+  siegemaster: (gapsFound: string, analysisResults: unknown[]) => [
     '=== SIEGEMASTER GAP ANALYSIS REPORT ===',
     'Phase: Test Coverage Gap Analysis',
     'Status: Complete',
@@ -226,7 +230,7 @@ export const AgentReportTemplates = {
     `- Components analyzed: ${analysisResults.length}`,
     '',
     'Analysis Results:',
-    ...analysisResults.map(r => `- ${r.component}: ${r.gapsFound} gaps (${r.priority} priority)`),
+    ...analysisResults.map((r) => `- ${r.component}: ${r.gapsFound} gaps (${r.priority} priority)`),
     '',
     'Coverage Assessment:',
     '- Code paths analyzed: Complete',
@@ -237,20 +241,20 @@ export const AgentReportTemplates = {
     '- Focus on high-priority gaps first',
     '- Consider integration test scenarios',
     '- Review error handling coverage',
-    '=== END REPORT ==='
+    '=== END REPORT ===',
   ],
 
-  spiritmender: (blockers: any[], fixed: boolean) => [
+  spiritmender: (blockers: string[], fixed: boolean) => [
     '=== SPIRITMENDER HEALING REPORT ===',
     'Phase: Error Resolution',
     `Status: ${fixed ? 'Resolved' : 'In Progress'}`,
     `Timestamp: ${new Date().toISOString()}`,
     '',
     'Issues Identified:',
-    ...blockers.map(b => `- ${b.type}: ${b.description}`),
+    ...blockers.map((b) => `- ${b.type}: ${b.description}`),
     '',
     fixed ? 'Resolutions Applied:' : 'Attempting Resolutions:',
-    ...blockers.map(b => `- Fixed: ${b.description}`),
+    ...blockers.map((b) => `- Fixed: ${b.description}`),
     '',
     'Changes Made:',
     '- Updated type definitions',
@@ -261,15 +265,15 @@ export const AgentReportTemplates = {
     '- All tests passing',
     '- Build successful',
     '- No linting errors',
-    '=== END REPORT ==='
-  ]
+    '=== END REPORT ===',
+  ],
 };
 
 // File content generators
 export const FileGenerators = {
   implementation: (name: string, description: string, withError = false): string => {
     const functionName = name.replace(/\.(ts|js)$/, '');
-    
+
     if (withError) {
       return `/**
  * ${description}
@@ -283,7 +287,7 @@ export function ${functionName}(a: number, b: number): number {
 
     // Generate based on function name
     let implementation = '';
-    
+
     switch (functionName) {
       case 'add':
         implementation = 'return a + b;';
@@ -319,53 +323,64 @@ export function ${functionName}(${functionName.startsWith('is') ? 'n: number' : 
   test: (name: string, description: string): string => {
     const functionName = name.replace(/\.(ts|js)$/, '');
     const isBoolean = functionName.startsWith('is');
-    
+
     return `import { ${functionName} } from './${functionName}';
 
 describe('${functionName}', () => {
   test('${description}', () => {
-    ${isBoolean ? 
-      `expect(${functionName}(4)).toBe(true);
-    expect(${functionName}(5)).toBe(false);` :
-      `expect(${functionName}(2, 3)).toBe(${
-        functionName === 'add' ? '5' :
-        functionName === 'subtract' ? '-1' :
-        functionName === 'multiply' ? '6' :
-        '0.666...'
-      });`
+    ${
+      isBoolean
+        ? `expect(${functionName}(4)).toBe(true);
+    expect(${functionName}(5)).toBe(false);`
+        : `expect(${functionName}(2, 3)).toBe(${
+            functionName === 'add'
+              ? '5'
+              : functionName === 'subtract'
+                ? '-1'
+                : functionName === 'multiply'
+                  ? '6'
+                  : '0.666...'
+          });`
     }
   });
 
   test('handles zero', () => {
-    ${isBoolean ?
-      `expect(${functionName}(0)).toBe(true);` :
-      `expect(${functionName}(0, 5)).toBe(${
-        functionName === 'add' ? '5' :
-        functionName === 'subtract' ? '-5' :
-        functionName === 'multiply' ? '0' :
-        '0'
-      });`
+    ${
+      isBoolean
+        ? `expect(${functionName}(0)).toBe(true);`
+        : `expect(${functionName}(0, 5)).toBe(${
+            functionName === 'add'
+              ? '5'
+              : functionName === 'subtract'
+                ? '-5'
+                : functionName === 'multiply'
+                  ? '0'
+                  : '0'
+          });`
     }
   });
 
   test('handles negative numbers', () => {
-    ${isBoolean ?
-      `expect(${functionName}(-2)).toBe(true);
-    expect(${functionName}(-3)).toBe(false);` :
-      `expect(${functionName}(-2, -3)).toBe(${
-        functionName === 'add' ? '-5' :
-        functionName === 'subtract' ? '1' :
-        functionName === 'multiply' ? '6' :
-        '0.666...'
-      });`
+    ${
+      isBoolean
+        ? `expect(${functionName}(-2)).toBe(true);
+    expect(${functionName}(-3)).toBe(false);`
+        : `expect(${functionName}(-2, -3)).toBe(${
+            functionName === 'add'
+              ? '-5'
+              : functionName === 'subtract'
+                ? '1'
+                : functionName === 'multiply'
+                  ? '6'
+                  : '0.666...'
+          });`
     }
   });
 });
 `;
   },
 
-  integration: (components: string[]): string => {
-    return `import { ${components.join(', ')} } from '../src';
+  integration: (components: string[]): string => `import { ${components.join(', ')} } from '../src';
 
 describe('Integration Tests', () => {
   test('all functions work together', () => {
@@ -390,6 +405,5 @@ describe('Integration Tests', () => {
     expect(() => divide(5, 0)).toThrow('Division by zero');
   });
 });
-`;
-  }
+`,
 };

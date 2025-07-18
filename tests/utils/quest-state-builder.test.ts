@@ -1,19 +1,15 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { QuestStateBuilder } from './quest-state-builder';
-import {
-  QuestStatus,
-  PhaseStatus,
-  ComponentStatus
-} from './quest-state-machine';
+import { QuestStatus, PhaseStatus, ComponentStatus } from './quest-state-machine';
 import { TestProject, createTestProject } from './testbed';
 
 describe('Quest State Builder', () => {
   let testProject: TestProject;
   let builder: QuestStateBuilder;
 
-  beforeEach(async () => {
-    testProject = await createTestProject('state-builder-test');
+  beforeEach(() => {
+    testProject = createTestProject('state-builder-test');
     builder = new QuestStateBuilder(testProject.rootDir, 'Test Quest');
   });
 
@@ -31,7 +27,11 @@ describe('Quest State Builder', () => {
     });
 
     test('should accept custom quest id', () => {
-      const customBuilder = new QuestStateBuilder(testProject.rootDir, 'Custom Quest', 'custom-id-123');
+      const customBuilder = new QuestStateBuilder(
+        testProject.rootDir,
+        'Custom Quest',
+        'custom-id-123',
+      );
       const quest = customBuilder.getQuest();
       expect(quest.id).toBe('custom-id-123');
     });
@@ -49,7 +49,7 @@ describe('Quest State Builder', () => {
     test('should set quest to active state', () => {
       builder.inTaskweaverState();
       const quest = builder.getQuest();
-      
+
       expect(quest.status).toBe(QuestStatus.ACTIVE);
       expect(quest.complexity).toBe('medium');
       expect(quest.tags).toEqual(['test', 'automated']);
@@ -61,10 +61,10 @@ describe('Quest State Builder', () => {
     test('should handle blocked status with blockers', () => {
       builder.inTaskweaverState(QuestStatus.BLOCKED, {
         withBlockers: true,
-        errorMessage: 'Missing dependencies'
+        errorMessage: 'Missing dependencies',
       });
       const quest = builder.getQuest();
-      
+
       expect(quest.status).toBe(QuestStatus.BLOCKED);
       expect(quest.blockers).toHaveLength(1);
       expect(quest.blockers![0].type).toBe('missing_requirements');
@@ -74,7 +74,7 @@ describe('Quest State Builder', () => {
     test('should add activity log', () => {
       builder.inTaskweaverState();
       const quest = builder.getQuest();
-      
+
       expect(quest.activity).toHaveLength(1);
       expect(quest.activity[0].agent).toBe('pathseeker');
       expect(quest.activity[0].action).toBe('Quest created from Pathseeker exploration');
@@ -90,14 +90,14 @@ describe('Quest State Builder', () => {
     test('should auto-run taskweaver if not done', () => {
       builder.inPathseekerState();
       const history = builder.getStateHistory();
-      
+
       expect(history).toEqual(['quest_creation', 'pathseeker']);
     });
 
     test('should complete discovery phase', () => {
       builder.inPathseekerState(PhaseStatus.COMPLETE);
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.discovery.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.discovery.findings).toBeDefined();
       expect(quest.phases.discovery.findings!.components.length).toBeGreaterThan(0);
@@ -108,12 +108,12 @@ describe('Quest State Builder', () => {
     test('should handle custom components', () => {
       const customComponents = [
         { name: 'auth', description: 'authentication service' },
-        { name: 'db', description: 'database layer', dependencies: ['auth'] }
+        { name: 'db', description: 'database layer', dependencies: ['auth'] },
       ];
-      
+
       builder.inPathseekerState(PhaseStatus.COMPLETE, { customComponents });
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.discovery.findings!.components).toHaveLength(2);
       expect(quest.phases.discovery.findings!.components[0].name).toContain('auth');
       expect(quest.phases.discovery.findings!.components[1].dependencies).toEqual(['auth']);
@@ -124,13 +124,13 @@ describe('Quest State Builder', () => {
       const freshBuilder = new QuestStateBuilder(builder['projectDir'], 'Block Test');
       // Don't call inTaskweaverState, just manually set up the minimal state
       freshBuilder.getQuest().phases.discovery.status = PhaseStatus.NOT_STARTED;
-      
+
       // Now call pathseeker directly with blocked status
       freshBuilder.inPathseekerState(PhaseStatus.BLOCKED, {
-        errorMessage: 'Cannot analyze codebase'
+        errorMessage: 'Cannot analyze codebase',
       });
       const quest = freshBuilder.getQuest();
-      
+
       expect(quest.phases.discovery.status).toBe(PhaseStatus.BLOCKED);
       expect(quest.status).toBe(QuestStatus.BLOCKED);
       expect(quest.blockers).toHaveLength(1);
@@ -140,7 +140,7 @@ describe('Quest State Builder', () => {
     test('should handle partial discovery', () => {
       builder.inPathseekerState(PhaseStatus.IN_PROGRESS);
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.discovery.status).toBe(PhaseStatus.IN_PROGRESS);
       expect(quest.phases.discovery.findings).toBeDefined();
       expect(quest.phases.discovery.findings!.components.length).toBeGreaterThan(0);
@@ -150,10 +150,10 @@ describe('Quest State Builder', () => {
       const mathBuilder = new QuestStateBuilder(testProject.rootDir, 'Math Functions');
       mathBuilder.inPathseekerState(PhaseStatus.COMPLETE);
       const mathQuest = mathBuilder.getQuest();
-      
-      const componentNames = mathQuest.phases.implementation.components.map(c => c.name);
-      expect(componentNames.some(n => n.includes('add'))).toBe(true);
-      expect(componentNames.some(n => n.includes('subtract'))).toBe(true);
+
+      const componentNames = mathQuest.phases.implementation.components.map((c) => c.name);
+      expect(componentNames.some((n) => n.includes('add'))).toBe(true);
+      expect(componentNames.some((n) => n.includes('subtract'))).toBe(true);
     });
   });
 
@@ -161,7 +161,7 @@ describe('Quest State Builder', () => {
     test('should auto-complete discovery if not done', () => {
       builder.inCodeweaverState();
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.discovery.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
     });
@@ -170,54 +170,54 @@ describe('Quest State Builder', () => {
       builder.inPathseekerState().inCodeweaverState(PhaseStatus.COMPLETE);
       const quest = builder.getQuest();
       const files = builder.getFiles();
-      
+
       expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
-      quest.phases.implementation.components.forEach(component => {
+      quest.phases.implementation.components.forEach((component) => {
         expect(component.status).toBe(ComponentStatus.COMPLETE);
         expect(component.files).toBeDefined();
         expect(component.files!.length).toBe(2); // .ts and .test.ts
       });
-      
+
       expect(files.size).toBeGreaterThan(0);
     });
 
     test('should handle partial implementation', () => {
       builder.inPathseekerState().inCodeweaverState(PhaseStatus.IN_PROGRESS, {
-        partialOnly: true
+        partialOnly: true,
       });
       const quest = builder.getQuest();
-      
+
       const completedComponents = quest.phases.implementation.components.filter(
-        c => c.status === ComponentStatus.COMPLETE
+        (c) => c.status === ComponentStatus.COMPLETE,
       );
       const queuedComponents = quest.phases.implementation.components.filter(
-        c => c.status === ComponentStatus.QUEUED
+        (c) => c.status === ComponentStatus.QUEUED,
       );
-      
+
       expect(completedComponents.length).toBeGreaterThan(0);
       expect(queuedComponents.length).toBeGreaterThan(0);
     });
 
     test('should handle blocked implementation', () => {
       builder.inPathseekerState().inCodeweaverState(PhaseStatus.BLOCKED, {
-        errorMessage: 'Type errors in component'
+        errorMessage: 'Type errors in component',
       });
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.implementation.status).toBe(PhaseStatus.BLOCKED);
       expect(quest.status).toBe(QuestStatus.BLOCKED);
       expect(quest.blockers).toBeDefined();
-      expect(quest.blockers!.some(b => b.type === 'implementation_error')).toBe(true);
+      expect(quest.blockers!.some((b) => b.type === 'implementation_error')).toBe(true);
     });
 
     test('should generate files with errors when requested', () => {
       builder.inPathseekerState().inCodeweaverState(PhaseStatus.COMPLETE, {
-        withErrors: true
+        withErrors: true,
       });
       const files = builder.getFiles();
-      
-      const hasErrorFile = Array.from(files.values()).some(content => 
-        content.includes('// Error: \'c\' is not defined')
+
+      const hasErrorFile = Array.from(files.values()).some((content) =>
+        content.includes("// Error: 'c' is not defined"),
       );
       expect(hasErrorFile).toBe(true);
     });
@@ -225,9 +225,11 @@ describe('Quest State Builder', () => {
     test('should add codeweaver reports for each component', () => {
       builder.inPathseekerState().inCodeweaverState();
       const quest = builder.getQuest();
-      
+
       expect(quest.agentReports.codeweaver).toBeDefined();
-      expect(quest.agentReports.codeweaver!.length).toBe(quest.phases.implementation.components.length);
+      expect(quest.agentReports.codeweaver!.length).toBe(
+        quest.phases.implementation.components.length,
+      );
       expect(quest.agentReports.codeweaver![0].agentId).toMatch(/codeweaver-.+-\d+/);
     });
   });
@@ -236,7 +238,7 @@ describe('Quest State Builder', () => {
     test('should auto-implement if not done', () => {
       builder.inLawbringerState();
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.review.status).toBe(PhaseStatus.COMPLETE);
     });
@@ -244,7 +246,7 @@ describe('Quest State Builder', () => {
     test('should complete review with no issues', () => {
       builder.inCodeweaverState().inLawbringerState(PhaseStatus.COMPLETE);
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.review.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.review.issues).toEqual([]);
       expect(quest.phases.review.recommendations).toBeDefined();
@@ -252,30 +254,31 @@ describe('Quest State Builder', () => {
 
     test('should handle review with issues', () => {
       builder.inCodeweaverState().inLawbringerState(PhaseStatus.COMPLETE, {
-        withErrors: true
+        withErrors: true,
       });
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.review.issues!.length).toBeGreaterThan(0);
-      expect(quest.phases.review.issues!.some(i => i.severity === 'major')).toBe(true);
+      expect(quest.phases.review.issues!.some((i) => i.severity === 'major')).toBe(true);
     });
 
     test('should set components to need revision for major issues', () => {
       builder.inCodeweaverState();
       const quest = builder.getQuest();
-      
+
       // Get the first component file to use in the review issue
-      const firstComponentFile = quest.phases.implementation.components[0]?.files?.[0] || 'src/unknown.ts';
-      
+      const firstComponentFile =
+        quest.phases.implementation.components[0]?.files?.[0] || 'src/unknown.ts';
+
       builder.inLawbringerState(PhaseStatus.COMPLETE, {
         reviewIssues: [
-          { severity: 'major' as const, file: firstComponentFile, message: 'Critical error' }
-        ]
+          { severity: 'major' as const, file: firstComponentFile, message: 'Critical error' },
+        ],
       });
-      
+
       const updatedQuest = builder.getQuest();
       const needsRevision = updatedQuest.phases.implementation.components.some(
-        c => c.status === ComponentStatus.NEEDS_REVISION
+        (c) => c.status === ComponentStatus.NEEDS_REVISION,
       );
       expect(needsRevision).toBe(true);
       expect(updatedQuest.phases.implementation.status).toBe(PhaseStatus.IN_PROGRESS);
@@ -283,10 +286,10 @@ describe('Quest State Builder', () => {
 
     test('should handle in-progress review', () => {
       builder.inCodeweaverState().inLawbringerState(PhaseStatus.IN_PROGRESS, {
-        percentComplete: 75
+        percentComplete: 75,
       });
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.review.status).toBe(PhaseStatus.IN_PROGRESS);
       expect(quest.phases.review.progress).toBe('75%');
     });
@@ -296,7 +299,7 @@ describe('Quest State Builder', () => {
     test('should complete gap analysis when called', () => {
       builder.inCodeweaverState().inSiegemasterState();
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.COMPLETE);
     });
@@ -304,11 +307,11 @@ describe('Quest State Builder', () => {
     test('should complete testing phase', () => {
       builder.inLawbringerState().inSiegemasterState(PhaseStatus.COMPLETE);
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.gapAnalysis.analysisResults).toBeDefined();
       expect(quest.phases.gapAnalysis.analysisResults!.length).toBeGreaterThan(0);
-      
+
       // Verify gap analysis was performed
       const analysisResult = quest.phases.gapAnalysis.analysisResults![0];
       expect(analysisResult.gapsFound).toBeDefined();
@@ -317,31 +320,31 @@ describe('Quest State Builder', () => {
 
     test('should handle custom gap analysis', () => {
       builder.inLawbringerState().inSiegemasterState(PhaseStatus.COMPLETE, {
-        gapsFound: 3
+        gapsFound: 3,
       });
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.gapAnalysis.analysisResults).toBeDefined();
     });
 
     test('should handle additional tests needed', () => {
       builder.inLawbringerState().inSiegemasterState(PhaseStatus.COMPLETE, {
-        additionalTestsNeeded: ['test1', 'test2']
+        additionalTestsNeeded: ['test1', 'test2'],
       });
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.gapAnalysis.additionalTestsNeeded).toBeDefined();
     });
 
     test('should handle blocked testing', () => {
       builder.inLawbringerState().inSiegemasterState(PhaseStatus.BLOCKED, {
-        errorMessage: 'Database connection failed'
+        errorMessage: 'Database connection failed',
       });
       const quest = builder.getQuest();
-      
+
       expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.BLOCKED);
       expect(quest.status).toBe(QuestStatus.BLOCKED);
-      expect(quest.blockers!.some(b => b.type === 'discovery_failed')).toBe(true);
+      expect(quest.blockers!.some((b) => b.type === 'discovery_failed')).toBe(true);
     });
   });
 
@@ -349,7 +352,7 @@ describe('Quest State Builder', () => {
     test('should create blocker if none exist', () => {
       builder.inSpiritMenderState(false); // Don't resolve immediately
       const quest = builder.getQuest();
-      
+
       expect(quest.blockers).toBeDefined();
       expect(quest.blockers!.length).toBeGreaterThan(0);
       expect(quest.agentReports.spiritmender).toBeDefined();
@@ -365,22 +368,23 @@ describe('Quest State Builder', () => {
       // Then resolve with SpiritMender
       builder.inSpiritMenderState(true);
       const quest = builder.getQuest();
-      
+
       expect(quest.blockers).toEqual([]);
       expect(quest.status).toBe(QuestStatus.ACTIVE);
       // The partially implemented components should still be complete
       const completedComponents = quest.phases.implementation.components.filter(
-        c => c.status === ComponentStatus.COMPLETE
+        (c) => c.status === ComponentStatus.COMPLETE,
       );
       expect(completedComponents.length).toBeGreaterThan(0);
     });
 
     test('should handle unresolved blockers', () => {
-      builder.inCodeweaverState(PhaseStatus.IN_PROGRESS)
+      builder
+        .inCodeweaverState(PhaseStatus.IN_PROGRESS)
         .inCodeweaverState(PhaseStatus.BLOCKED)
         .inSpiritMenderState(false);
       const quest = builder.getQuest();
-      
+
       expect(quest.blockers!.length).toBeGreaterThan(0);
       expect(quest.status).toBe(QuestStatus.BLOCKED);
     });
@@ -388,8 +392,8 @@ describe('Quest State Builder', () => {
     test('should add activity for healing', () => {
       builder.inSpiritMenderState();
       const quest = builder.getQuest();
-      
-      const healingActivity = quest.activity.find(a => a.agent === 'spiritmender');
+
+      const healingActivity = quest.activity.find((a) => a.agent === 'spiritmender');
       expect(healingActivity).toBeDefined();
       expect(healingActivity!.action).toContain('Healing');
     });
@@ -399,7 +403,7 @@ describe('Quest State Builder', () => {
     test('should auto-complete through gap analysis', () => {
       builder.inCompletedState();
       const quest = builder.getQuest();
-      
+
       expect(quest.status).toBe(QuestStatus.COMPLETED);
       expect(quest.phases.discovery.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
@@ -411,7 +415,7 @@ describe('Quest State Builder', () => {
     test('should set outcome', () => {
       builder.inCompletedState();
       const quest = builder.getQuest();
-      
+
       expect(quest.outcome).toBeDefined();
       expect(quest.outcome!.status).toBe('success');
       expect(quest.outcome!.completedAt).toBeDefined();
@@ -421,7 +425,7 @@ describe('Quest State Builder', () => {
     test('should update tracker', () => {
       builder.inCompletedState();
       const quest = builder.getQuest();
-      
+
       // This would be tested in prepareTestEnvironment
       expect(quest.status).toBe(QuestStatus.COMPLETED);
     });
@@ -431,7 +435,7 @@ describe('Quest State Builder', () => {
     test('should abandon quest', () => {
       builder.inAbandonedState('User canceled');
       const quest = builder.getQuest();
-      
+
       expect(quest.status).toBe(QuestStatus.ABANDONED);
       expect(quest.outcome).toBeDefined();
       expect(quest.outcome!.status).toBe('abandoned');
@@ -442,7 +446,7 @@ describe('Quest State Builder', () => {
     test('should use default reason', () => {
       builder.inAbandonedState();
       const quest = builder.getQuest();
-      
+
       expect(quest.outcome!.reason).toBe('User requested abandonment');
     });
   });
@@ -450,25 +454,36 @@ describe('Quest State Builder', () => {
   describe('prepareTestEnvironment', () => {
     test('should create directory structure', async () => {
       await builder.prepareTestEnvironment();
-      
+
       const questDir = path.join(testProject.rootDir, 'questmaestro');
       const dirs = ['active', 'completed', 'abandoned', 'retros', 'lore'];
-      
+
       for (const dir of dirs) {
         const dirPath = path.join(questDir, dir);
-        const exists = await fs.access(dirPath).then(() => true).catch(() => false);
+        const exists = await fs
+          .access(dirPath)
+          .then(() => true)
+          .catch(() => false);
         expect(exists).toBe(true);
       }
     });
 
     test('should write quest file in correct folder', async () => {
       const env = await builder.prepareTestEnvironment();
-      
+
       // Check quest file exists in active folder
-      const questFilePath = path.join(testProject.rootDir, 'questmaestro', 'active', `${env.questId}.json`);
-      const exists = await fs.access(questFilePath).then(() => true).catch(() => false);
+      const questFilePath = path.join(
+        testProject.rootDir,
+        'questmaestro',
+        'active',
+        `${env.questId}.json`,
+      );
+      const exists = await fs
+        .access(questFilePath)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
-      
+
       // Verify quest content
       const questContent = await fs.readFile(questFilePath, 'utf-8');
       const savedQuest = JSON.parse(questContent);
@@ -478,19 +493,30 @@ describe('Quest State Builder', () => {
 
     test('should write quest file in correct folder', async () => {
       await builder.inCompletedState().prepareTestEnvironment();
-      
-      const completedPath = path.join(testProject.rootDir, 'questmaestro', 'completed', `${builder.getQuest().id}.json`);
-      const exists = await fs.access(completedPath).then(() => true).catch(() => false);
+
+      const completedPath = path.join(
+        testProject.rootDir,
+        'questmaestro',
+        'completed',
+        `${builder.getQuest().id}.json`,
+      );
+      const exists = await fs
+        .access(completedPath)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
     });
 
     test('should write code files', async () => {
       builder.inCodeweaverState();
       const env = await builder.prepareTestEnvironment();
-      
+
       for (const file of env.files) {
         const filePath = path.join(testProject.rootDir, file);
-        const exists = await fs.access(filePath).then(() => true).catch(() => false);
+        const exists = await fs
+          .access(filePath)
+          .then(() => true)
+          .catch(() => false);
         expect(exists).toBe(true);
       }
     });
@@ -498,7 +524,7 @@ describe('Quest State Builder', () => {
     test('should return environment info', async () => {
       builder.inCodeweaverState(PhaseStatus.IN_PROGRESS);
       const env = await builder.prepareTestEnvironment();
-      
+
       expect(env.questId).toBe(builder.getQuest().id);
       expect(env.questPath).toContain(builder.getQuest().id);
       expect(env.files.length).toBeGreaterThan(0);
@@ -509,8 +535,8 @@ describe('Quest State Builder', () => {
     test('should validate quest before writing', async () => {
       // Create an invalid quest by manually modifying it
       const quest = builder.getQuest();
-      (quest as any).status = 'invalid_status';
-      
+      quest.status = 'invalid_status';
+
       await expect(builder.prepareTestEnvironment()).rejects.toThrow('Invalid quest state');
     });
 
@@ -520,8 +546,8 @@ describe('Quest State Builder', () => {
         .inPathseekerState(PhaseStatus.COMPLETE, {
           customComponents: [
             { name: 'api', description: 'API service' },
-            { name: 'db', description: 'Database', dependencies: ['api'] }
-          ]
+            { name: 'db', description: 'Database', dependencies: ['api'] },
+          ],
         })
         .inCodeweaverState(PhaseStatus.IN_PROGRESS, { partialOnly: true })
         // Complete the implementation before moving on
@@ -533,10 +559,10 @@ describe('Quest State Builder', () => {
         .inSiegemasterState(PhaseStatus.COMPLETE) // Now complete it
         .inCompletedState()
         .prepareTestEnvironment();
-      
+
       expect(env.currentPhase).toBe('completed');
       expect(env.expectedNextAction).toBe('none');
-      
+
       // Verify quest was written correctly
       const questContent = await fs.readFile(env.questPath, 'utf-8');
       const savedQuest = JSON.parse(questContent);
@@ -549,14 +575,13 @@ describe('Quest State Builder', () => {
     test('should enforce organic state progression', () => {
       // Can't review before implementing
       expect(() => {
-        new QuestStateBuilder(testProject.rootDir, 'Test')
-          .inLawbringerState();
+        new QuestStateBuilder(testProject.rootDir, 'Test').inLawbringerState();
       }).not.toThrow(); // Auto-completes previous states
-      
+
       const quest = new QuestStateBuilder(testProject.rootDir, 'Test')
         .inLawbringerState()
         .getQuest();
-      
+
       expect(quest.phases.discovery.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
     });
@@ -570,14 +595,14 @@ describe('Quest State Builder', () => {
         .inSiegemasterState()
         .inCompletedState()
         .getQuest();
-      
+
       expect(quest.status).toBe(QuestStatus.COMPLETED);
       expect(builder.getStateHistory()).toEqual([
         'quest_creation',
         'pathseeker',
         'codeweaver',
         'lawbringer',
-        'siegemaster'
+        'siegemaster',
       ]);
     });
 
@@ -590,7 +615,7 @@ describe('Quest State Builder', () => {
         .inCodeweaverState(PhaseStatus.IN_PROGRESS) // Can't go directly from BLOCKED to COMPLETE
         .inCodeweaverState(PhaseStatus.COMPLETE)
         .getQuest();
-      
+
       expect(quest.status).toBe(QuestStatus.ACTIVE);
       expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
       expect(quest.blockers).toEqual([]);
@@ -598,20 +623,18 @@ describe('Quest State Builder', () => {
   });
 
   describe('file generation', () => {
-    test('should generate TypeScript files', async () => {
+    test('should generate TypeScript files', () => {
       builder.inCodeweaverState();
       const files = builder.getFiles();
-      
-      const allTypeScript = Array.from(files.keys()).every(
-        path => path.endsWith('.ts')
-      );
+
+      const allTypeScript = Array.from(files.keys()).every((path) => path.endsWith('.ts'));
       expect(allTypeScript).toBe(true);
     });
 
-    test('should generate valid code', async () => {
+    test('should generate valid code', () => {
       builder.inCodeweaverState();
       const files = builder.getFiles();
-      
+
       for (const [filePath, content] of files) {
         if (!filePath.includes('.test.ts')) {
           // Implementation files should have export function

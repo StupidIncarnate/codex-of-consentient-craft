@@ -5,14 +5,14 @@ export enum QuestStatus {
   BLOCKED = 'blocked',
   PAUSED = 'paused',
   COMPLETED = 'completed',
-  ABANDONED = 'abandoned'
+  ABANDONED = 'abandoned',
 }
 
 export enum PhaseStatus {
   NOT_STARTED = 'not_started',
   IN_PROGRESS = 'in_progress',
   COMPLETE = 'complete',
-  BLOCKED = 'blocked'
+  BLOCKED = 'blocked',
 }
 
 export enum ComponentStatus {
@@ -20,7 +20,7 @@ export enum ComponentStatus {
   IN_PROGRESS = 'in_progress',
   COMPLETE = 'complete',
   NEEDS_REVISION = 'needs_revision',
-  BLOCKED = 'blocked'
+  BLOCKED = 'blocked',
 }
 
 export interface Component {
@@ -34,7 +34,13 @@ export interface Component {
 }
 
 export interface Blocker {
-  type: 'build_failure' | 'test_failure' | 'missing_requirements' | 'discovery_failed' | 'implementation_error' | 'ward_failure';
+  type:
+    | 'build_failure'
+    | 'test_failure'
+    | 'missing_requirements'
+    | 'discovery_failed'
+    | 'implementation_error'
+    | 'ward_failure';
   description: string;
   timestamp: string;
 }
@@ -43,7 +49,7 @@ export interface Activity {
   timestamp: string;
   agent: string;
   action: string;
-  details: any;
+  details: unknown;
 }
 
 export interface Issue {
@@ -142,87 +148,96 @@ export interface QuestFile {
 // State transition rules
 export class QuestStateMachine {
   private static questTransitions: Record<QuestStatus, QuestStatus[]> = {
-    [QuestStatus.ACTIVE]: [QuestStatus.BLOCKED, QuestStatus.PAUSED, QuestStatus.COMPLETED, QuestStatus.ABANDONED],
+    [QuestStatus.ACTIVE]: [
+      QuestStatus.BLOCKED,
+      QuestStatus.PAUSED,
+      QuestStatus.COMPLETED,
+      QuestStatus.ABANDONED,
+    ],
     [QuestStatus.BLOCKED]: [QuestStatus.ACTIVE, QuestStatus.ABANDONED],
     [QuestStatus.PAUSED]: [QuestStatus.ACTIVE, QuestStatus.ABANDONED],
     [QuestStatus.COMPLETED]: [], // terminal state
-    [QuestStatus.ABANDONED]: []  // terminal state
+    [QuestStatus.ABANDONED]: [], // terminal state
   };
 
   private static phaseTransitions: Record<PhaseStatus, PhaseStatus[]> = {
     [PhaseStatus.NOT_STARTED]: [PhaseStatus.IN_PROGRESS],
     [PhaseStatus.IN_PROGRESS]: [PhaseStatus.COMPLETE, PhaseStatus.BLOCKED],
     [PhaseStatus.COMPLETE]: [PhaseStatus.IN_PROGRESS, PhaseStatus.BLOCKED], // can go back if issues found
-    [PhaseStatus.BLOCKED]: [PhaseStatus.IN_PROGRESS]
+    [PhaseStatus.BLOCKED]: [PhaseStatus.IN_PROGRESS],
   };
 
   private static componentTransitions: Record<ComponentStatus, ComponentStatus[]> = {
     [ComponentStatus.QUEUED]: [ComponentStatus.IN_PROGRESS],
-    [ComponentStatus.IN_PROGRESS]: [ComponentStatus.COMPLETE, ComponentStatus.BLOCKED, ComponentStatus.NEEDS_REVISION],
+    [ComponentStatus.IN_PROGRESS]: [
+      ComponentStatus.COMPLETE,
+      ComponentStatus.BLOCKED,
+      ComponentStatus.NEEDS_REVISION,
+    ],
     [ComponentStatus.COMPLETE]: [ComponentStatus.NEEDS_REVISION],
     [ComponentStatus.NEEDS_REVISION]: [ComponentStatus.IN_PROGRESS],
-    [ComponentStatus.BLOCKED]: [ComponentStatus.IN_PROGRESS, ComponentStatus.QUEUED]
+    [ComponentStatus.BLOCKED]: [ComponentStatus.IN_PROGRESS, ComponentStatus.QUEUED],
   };
 
-  static canTransitionQuest(from: QuestStatus, to: QuestStatus): boolean {
+  static canTransitionQuest(from: QuestStatus, to: QuestStatus) {
     return this.questTransitions[from]?.includes(to) ?? false;
   }
 
-  static canTransitionPhase(from: PhaseStatus, to: PhaseStatus): boolean {
+  static canTransitionPhase(from: PhaseStatus, to: PhaseStatus) {
     return this.phaseTransitions[from]?.includes(to) ?? false;
   }
 
-  static canTransitionComponent(from: ComponentStatus, to: ComponentStatus): boolean {
+  static canTransitionComponent(from: ComponentStatus, to: ComponentStatus) {
     return this.componentTransitions[from]?.includes(to) ?? false;
   }
 
-  static validateQuestTransition(quest: QuestFile, newStatus: QuestStatus): void {
+  static validateQuestTransition(quest: QuestFile, newStatus: QuestStatus) {
     if (!this.canTransitionQuest(quest.status, newStatus)) {
       throw new Error(`Invalid quest transition: ${quest.status} -> ${newStatus}`);
     }
   }
 
-  static validatePhaseTransition(currentStatus: PhaseStatus, newStatus: PhaseStatus): void {
+  static validatePhaseTransition(currentStatus: PhaseStatus, newStatus: PhaseStatus) {
     if (!this.canTransitionPhase(currentStatus, newStatus)) {
       throw new Error(`Invalid phase transition: ${currentStatus} -> ${newStatus}`);
     }
   }
 
-  static getNextPhase(quest: QuestFile): string | null {
+  static getNextPhase(quest: QuestFile) {
     const phases = ['discovery', 'implementation', 'gapAnalysis', 'review'];
-    
+
     for (const phase of phases) {
       const phaseStatus = quest.phases[phase as keyof QuestPhases].status;
       if (phaseStatus !== PhaseStatus.COMPLETE) {
         return phase;
       }
     }
-    
+
     return null; // All phases complete
   }
 
-  static getReadyComponents(quest: QuestFile): Component[] {
+  static getReadyComponents(quest: QuestFile) {
     const components = quest.phases.implementation.components;
-    
-    return components.filter(component => {
+
+    return components.filter((component) => {
       // Component must be queued
       if (component.status !== ComponentStatus.QUEUED) {
         return false;
       }
-      
+
       // All dependencies must be complete
-      return component.dependencies.every(dep => {
-        const depComponent = components.find(c => c.name.includes(dep));
+      return component.dependencies.every((dep) => {
+        const depComponent = components.find((c) => c.name.includes(dep));
         return depComponent?.status === ComponentStatus.COMPLETE;
       });
     });
   }
 
-  static shouldSpawnSpiritMender(quest: QuestFile): boolean {
+  static shouldSpawnSpiritMender(quest: QuestFile) {
     return quest.status === QuestStatus.BLOCKED && (quest.blockers?.length ?? 0) > 0;
   }
 
-  static getExpectedAction(quest: QuestFile): string {
+  static getExpectedAction(quest: QuestFile) {
     // Check for blockers first
     if (this.shouldSpawnSpiritMender(quest)) {
       return 'spawn_spiritmender';
@@ -277,7 +292,7 @@ export const TestPhrases = {
   PRE_ACTION_PREFIX: '[🎯]',
   MAIN_ACTION_PREFIX: '[🎲]',
   POST_ACTION_PREFIX: '[🎁]',
-  
+
   // Pre-actions (status/analysis)
   CONTINUING_QUEST: '[🎯] ⚔️ Continuing quest:',
   CHECKING_DEPENDENCIES: '[🎯] 🔍 Checking dependencies...',
@@ -285,7 +300,7 @@ export const TestPhrases = {
   NEED_CLARIFICATION: '[🎯] ❓ Need clarification:',
   COLLECTED_INFO: '[🎯] 📝 Collected:',
   RESPAWNING_PATHSEEKER: '[🎯] 🗺️ Respawning Pathseeker with enhanced context...',
-  
+
   // Main actions (agent spawning)
   SPAWNING_PATHSEEKER: '[🎲] 🗺️ Summoning Pathseeker...',
   SPAWNING_SINGLE_CODEWEAVER: '[🎲] 🧵 Summoning Codeweaver for',
@@ -294,20 +309,20 @@ export const TestPhrases = {
   SPAWNING_SIEGEMASTERS: '[🎲] 🏰 Summoning Siegemasters...',
   SPAWNING_SPIRITMENDER: '[🎲] ✨ Summoning Spiritmender...',
   RUNNING_WARD_VALIDATION: '[🎲] 🛡️ Running ward validation...',
-  
+
   // Post-actions (results/updates)
   PARSING_REPORT: '[🎁] 📊 Parsing',
   UPDATING_QUEST: '[🎁] 💾 Updating quest state...',
   QUEST_COMPLETE: '[🎁] ✅ Quest complete!',
   QUEST_ABANDONED: '[🎁] 💀 Quest abandoned:',
   NO_ACTIVE_QUESTS: '[🎁] 📜 No active quests. Awaiting your command!',
-  QUEST_BLOCKED: '[🎁] 🚫 Quest blocked:'
+  QUEST_BLOCKED: '[🎁] 🚫 Quest blocked:',
 } as const;
 
 // Helper to create empty quest with valid initial state
-export function createEmptyQuest(id: string, title: string): QuestFile {
+export function createEmptyQuest(id: string, title: string) {
   const now = new Date().toISOString();
-  
+
   return {
     id,
     title,
@@ -316,17 +331,17 @@ export function createEmptyQuest(id: string, title: string): QuestFile {
       discovery: { status: PhaseStatus.NOT_STARTED },
       implementation: { status: PhaseStatus.NOT_STARTED, components: [] },
       gapAnalysis: { status: PhaseStatus.NOT_STARTED },
-      review: { status: PhaseStatus.NOT_STARTED }
+      review: { status: PhaseStatus.NOT_STARTED },
     },
     activity: [],
     agentReports: {},
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   };
 }
 
 // Validation helpers
-export function validateQuest(quest: QuestFile): string[] {
+export function validateQuest(quest: QuestFile) {
   const errors: string[] = [];
 
   // Check required fields
