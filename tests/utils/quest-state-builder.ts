@@ -311,9 +311,11 @@ export class QuestStateBuilder {
       // If major issues found, set components to need revision
       if (issues.some((i) => i.severity === 'major')) {
         const problematicFile = issues.find((i) => i.severity === 'major')?.file;
-        const component = this.quest.phases.implementation.components.find((c) =>
-          c.files?.some((f) => f.includes(problematicFile)),
-        );
+        const component = problematicFile
+          ? this.quest.phases.implementation.components.find((c) =>
+              c.files?.some((f) => f.includes(problematicFile)),
+            )
+          : undefined;
 
         if (component) {
           component.status = ComponentStatus.NEEDS_REVISION;

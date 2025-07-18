@@ -6,6 +6,7 @@ import {
   createEmptyQuest,
   validateQuest,
   QuestFile,
+  QuestPhases,
 } from './quest-state-machine';
 
 describe('Quest State Machine', () => {
@@ -510,7 +511,7 @@ describe('Quest State Machine', () => {
 
     test('should catch invalid quest status', () => {
       const quest = createEmptyQuest('test', 'Test');
-      quest.status = 'invalid';
+      quest.status = 'invalid' as QuestStatus;
       const errors = validateQuest(quest);
 
       expect(errors).toContain('Invalid quest status: invalid');
@@ -518,7 +519,13 @@ describe('Quest State Machine', () => {
 
     test('should catch missing phases', () => {
       const quest = createEmptyQuest('test', 'Test');
-      delete quest.phases.review;
+      // Create a partial phases object without review
+      const phasesWithoutReview = {
+        discovery: quest.phases.discovery,
+        implementation: quest.phases.implementation,
+        gapAnalysis: quest.phases.gapAnalysis,
+      } as QuestPhases;
+      quest.phases = phasesWithoutReview;
       const errors = validateQuest(quest);
 
       expect(errors).toContain('Missing required phase: review');
@@ -526,7 +533,7 @@ describe('Quest State Machine', () => {
 
     test('should catch invalid phase status', () => {
       const quest = createEmptyQuest('test', 'Test');
-      quest.phases.discovery.status = 'invalid';
+      quest.phases.discovery.status = 'invalid' as PhaseStatus;
       const errors = validateQuest(quest);
 
       expect(errors).toContain('Invalid status for phase discovery: invalid');
@@ -543,7 +550,7 @@ describe('Quest State Machine', () => {
         },
         {
           name: 'comp2',
-          status: 'invalid',
+          status: 'invalid' as ComponentStatus,
           dependencies: [],
           componentType: 'implementation',
         },

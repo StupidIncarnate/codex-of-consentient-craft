@@ -1,5 +1,7 @@
 // Core state machine for quest testing
 
+import type { TaskStatus } from '../../src/models/quest';
+
 export enum QuestStatus {
   ACTIVE = 'active',
   BLOCKED = 'blocked',
@@ -55,7 +57,7 @@ export interface Activity {
 export interface Issue {
   severity: 'minor' | 'major' | 'critical';
   file: string;
-  line: number;
+  line?: number;
   message: string;
 }
 
@@ -99,6 +101,30 @@ export interface QuestPhases {
   review: ReviewPhase;
 }
 
+export interface ExecutionLogEntry {
+  report: string;
+  taskId?: string;
+  timestamp: string;
+  agentType?: string;
+  isRecovery?: boolean;
+}
+
+export interface QuestTask {
+  id: string;
+  name: string;
+  type: 'implementation' | 'testing';
+  description: string;
+  dependencies: string[];
+  filesToCreate: string[];
+  filesToEdit: string[];
+  status: TaskStatus;
+  completedBy?: string;
+  startedAt?: string;
+  completedAt?: string;
+  errorMessage?: string;
+  testTechnology?: string;
+}
+
 export interface AgentReport {
   agentId: string;
   timestamp: string;
@@ -127,20 +153,30 @@ export interface QuestOutcome {
 
 export interface QuestFile {
   id: string;
+  folder: string;
   title: string;
-  description?: string;
   status: QuestStatus;
-  complexity?: 'small' | 'medium' | 'large';
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
   phases: QuestPhases;
+  executionLog: ExecutionLogEntry[];
+  tasks: QuestTask[];
+  userRequest?: string;
+  abandonReason?: string;
+  recoveryAttempts?: number;
+  blockingErrors?: string[];
+
+  // Legacy properties for test compatibility
+  description?: string;
+  complexity?: 'small' | 'medium' | 'large';
   activity: Activity[];
   agentReports: AgentReports;
   blockers?: Blocker[];
   outcome?: QuestOutcome;
   activeAgents?: Array<{ id: string; task: string }>;
-  decisions?: Record<string, any>;
+  decisions?: Record<string, unknown>;
   tags?: string[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 // QuestTracker interface removed - using file-based quest management
@@ -320,11 +356,12 @@ export const TestPhrases = {
 } as const;
 
 // Helper to create empty quest with valid initial state
-export function createEmptyQuest(id: string, title: string) {
+export function createEmptyQuest(id: string, title: string): QuestFile {
   const now = new Date().toISOString();
 
   return {
     id,
+    folder: `001-${id}`,
     title,
     status: QuestStatus.ACTIVE,
     phases: {
@@ -333,6 +370,8 @@ export function createEmptyQuest(id: string, title: string) {
       gapAnalysis: { status: PhaseStatus.NOT_STARTED },
       review: { status: PhaseStatus.NOT_STARTED },
     },
+    executionLog: [],
+    tasks: [],
     activity: [],
     agentReports: {},
     createdAt: now,
@@ -368,8 +407,9 @@ export function validateQuest(quest: QuestFile) {
   // Validate phase statuses
   if (quest.phases) {
     for (const [phaseName, phase] of Object.entries(quest.phases)) {
-      if (!Object.values(PhaseStatus).includes(phase.status)) {
-        errors.push(`Invalid status for phase ${phaseName}: ${phase.status}`);
+      const typedPhase = phase as { status: PhaseStatus };
+      if (!Object.values(PhaseStatus).includes(typedPhase.status)) {
+        errors.push(`Invalid status for phase ${phaseName}: ${typedPhase.status}`);
       }
     }
   }

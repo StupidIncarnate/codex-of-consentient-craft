@@ -74,6 +74,28 @@ interface AssertionResult {
   message?: string;
 }
 
+// Tool input types
+interface TaskInput {
+  description?: string;
+  prompt?: string;
+}
+
+interface TodoWriteInput {
+  todos?: Array<{
+    content: string;
+    status?: string;
+    priority?: string;
+  }>;
+}
+
+interface FilePathInput {
+  file_path?: string;
+  path?: string;
+  pattern?: string;
+}
+
+type ToolInput = TaskInput | TodoWriteInput | FilePathInput;
+
 interface StreamJsonEvent {
   type: 'system' | 'assistant' | 'user' | 'result' | 'error';
   subtype?: string;
@@ -84,7 +106,7 @@ interface StreamJsonEvent {
       text?: string;
       name?: string;
       id?: string;
-      input?: unknown;
+      input?: ToolInput;
       content?: string;
       is_error?: boolean;
       tool_use_id?: string;
@@ -112,7 +134,11 @@ export class ClaudeE2ERunner {
    * @param options - Options including streaming
    * @returns Result with stdout, stderr, exitCode
    */
-  async executeCommand(command: string, args: string = '', options: CommandOptions = {}) {
+  async executeCommand(
+    command: string,
+    args: string = '',
+    options: CommandOptions = {},
+  ): Promise<CommandResult> {
     // If args provided, combine them. Otherwise just use command as the prompt
     const prompt = args ? `${command} ${args}`.trim() : command;
 
@@ -125,8 +151,11 @@ export class ClaudeE2ERunner {
   /**
    * Execute command with REAL streaming - shows each JSON object as it arrives
    */
-  private async executeCommandWithProgress(prompt: string, options: CommandOptions = {}) {
-    return new Promise((resolve, reject) => {
+  private async executeCommandWithProgress(
+    prompt: string,
+    options: CommandOptions = {},
+  ): Promise<CommandResult> {
+    return new Promise<CommandResult>((resolve, reject) => {
       // Use stream-json for real streaming with Sonnet
       const cmdArray = [
         'claude',
@@ -215,16 +244,17 @@ export class ClaudeE2ERunner {
                     // Show more details about tool use
                     let toolInfo = `${item.name}`;
 
-                    if (item.name === 'Task') {
+                    if (item.name === 'Task' && item.input) {
                       // For Task tool, show the description and first part of prompt
-                      const desc = item.input?.description || 'sub-agent';
+                      const taskInput = item.input as TaskInput;
+                      const desc = taskInput.description || 'sub-agent';
                       toolInfo += `(${desc})`;
                       output = `[${elapsed}s] ${prefix} → ${toolInfo}\n`;
                       output += `        [Task ID: ${item.id}]\n`;
 
                       // Show the actual prompt being sent to the sub-agent
-                      if (item.input?.prompt) {
-                        const promptLines = item.input.prompt.split('\n');
+                      if (taskInput.prompt) {
+                        const promptLines = taskInput.prompt.split('\n');
                         const previewLines = promptLines.slice(0, 10);
                         const truncated = promptLines.length > 10;
                         output += `        Prompt:\n`;
@@ -236,25 +266,29 @@ export class ClaudeE2ERunner {
                         }
                         output += '\n';
                       }
-                    } else if (item.name === 'TodoWrite') {
-                      const todoCount = item.input?.todos?.length || 0;
+                    } else if (item.name === 'TodoWrite' && item.input) {
+                      const todoInput = item.input as TodoWriteInput;
+                      const todoCount = todoInput.todos?.length || 0;
                       toolInfo += `(${todoCount} todos)`;
                       output = `[${elapsed}s] ${prefix} → ${toolInfo}\n`;
                       // Show todo titles
-                      if (item.input?.todos) {
-                        item.input.todos.slice(0, 3).forEach((todo) => {
+                      if (todoInput.todos) {
+                        todoInput.todos.slice(0, 3).forEach((todo) => {
                           output += `        • ${todo.content}\n`;
                         });
-                        if (item.input.todos.length > 3) {
-                          output += `        • ... (${item.input.todos.length - 3} more)\n`;
+                        if (todoInput.todos.length > 3) {
+                          output += `        • ... (${todoInput.todos.length - 3} more)\n`;
                         }
                       }
-                    } else {
+                    } else if (item.input) {
+                      const fileInput = item.input as FilePathInput;
                       const params: string[] = [];
-                      if (item.input?.file_path) params.push(item.input.file_path);
-                      else if (item.input?.path) params.push(item.input.path);
-                      else if (item.input?.pattern) params.push(item.input.pattern);
+                      if (fileInput.file_path) params.push(fileInput.file_path);
+                      else if (fileInput.path) params.push(fileInput.path);
+                      else if (fileInput.pattern) params.push(fileInput.pattern);
                       if (params.length > 0) toolInfo += `(${params.join(', ')})`;
+                      output = `[${elapsed}s] ${prefix} → ${toolInfo}\n`;
+                    } else {
                       output = `[${elapsed}s] ${prefix} → ${toolInfo}\n`;
                     }
                   }
@@ -306,7 +340,9 @@ export class ClaudeE2ERunner {
               break;
 
             case 'error':
-              output = `[${elapsed}s] ERROR: ${json.message || 'Unknown error'}\n`;
+              const errorMessage =
+                typeof json.message === 'string' ? json.message : 'Unknown error';
+              output = `[${elapsed}s] ERROR: ${errorMessage}\n`;
               break;
 
             default:
@@ -491,8 +527,8 @@ export class ClaudeE2ERunner {
   /**
    * Execute command with streaming output for long-running operations
    */
-  async executeCommandStreaming(prompt: string) {
-    return new Promise((resolve, reject) => {
+  async executeCommandStreaming(prompt: string): Promise<CommandResult> {
+    return new Promise<CommandResult>((resolve, reject) => {
       const cmdArray = ['claude', '-p', prompt, '--output-format', 'json'];
       console.log(`   📝 Running (streaming): ${cmdArray.join(' ')}`);
       console.log(`   📂 Working directory: ${this.projectDir}`);
@@ -515,12 +551,12 @@ export class ClaudeE2ERunner {
 
         // Try to show progress
         try {
-          const result = JSON.parse(fullOutput);
+          const result = JSON.parse(fullOutput) as { result?: string; is_error?: boolean };
           if (result.result) {
             const preview = result.result.substring(0, 100);
             console.log(`   📤 Output: ${preview}${result.result.length > 100 ? '...' : ''}`);
           }
-        } catch (e) {
+        } catch (_e) {
           // JSON not complete yet
         }
       });
@@ -538,7 +574,7 @@ export class ClaudeE2ERunner {
         let stdout = '';
 
         try {
-          const result = JSON.parse(fullOutput);
+          const result = JSON.parse(fullOutput) as { result?: string; is_error?: boolean };
           success = result.is_error === false;
           stdout = result.result || '';
         } catch (e) {
@@ -585,17 +621,17 @@ export class ClaudeE2ERunner {
   /**
    * Parse streaming JSON output from Claude
    */
-  parseStreamJSON(output: string) {
+  parseStreamJSON(output: string): string {
     const lines = output.split('\n').filter((line) => line.trim());
     const messages: string[] = [];
 
     for (const line of lines) {
       try {
-        const json = JSON.parse(line);
+        const json = JSON.parse(line) as { type?: string; content?: string };
         if (json.type === 'message' && json.content) {
           messages.push(json.content);
         }
-      } catch (e) {
+      } catch (_e) {
         // Not JSON, include as plain text
         messages.push(line);
       }
@@ -607,7 +643,7 @@ export class ClaudeE2ERunner {
   /**
    * Run a complete quest scenario
    */
-  async runQuestScenario(scenario: Scenario) {
+  async runQuestScenario(scenario: Scenario): Promise<ScenarioResult> {
     const results: ScenarioResult = {
       scenario: scenario.name,
       steps: [],
@@ -653,43 +689,46 @@ export class ClaudeE2ERunner {
   /**
    * Run an assertion against the project state
    */
-  runAssertion(assertion: Assertion) {
+  async runAssertion(assertion: Assertion): Promise<boolean> {
     switch (assertion.type) {
       case 'fileExists':
-        return fs.existsSync(path.join(this.projectDir, assertion.path!));
+        return Promise.resolve(fs.existsSync(path.join(this.projectDir, assertion.path!)));
 
       case 'fileContains':
         if (!fs.existsSync(path.join(this.projectDir, assertion.path!))) {
-          return false;
+          return Promise.resolve(false);
         }
         const content = fs.readFileSync(path.join(this.projectDir, assertion.path!), 'utf8');
-        return content.includes(assertion.content!);
+        return Promise.resolve(content.includes(assertion.content!));
 
       case 'questStatus':
         const trackerPath = path.join(this.projectDir, 'questmaestro', 'quest-tracker.json');
         if (!fs.existsSync(trackerPath)) {
-          return false;
+          return Promise.resolve(false);
         }
-        const tracker = JSON.parse(fs.readFileSync(trackerPath, 'utf8'));
-        return tracker[assertion.status!].includes(assertion.questFile!);
+        const tracker = JSON.parse(fs.readFileSync(trackerPath, 'utf8')) as Record<
+          string,
+          string[]
+        >;
+        const statusKey = assertion.status!;
+        const questFile = assertion.questFile!;
+        return Promise.resolve(tracker[statusKey]?.includes(questFile) || false);
 
       case 'outputContains':
         const lastResult = this.results[this.results.length - 1];
-        return !!(
-          lastResult &&
-          lastResult.output &&
-          lastResult.output.includes(assertion.content!)
+        return Promise.resolve(
+          !!(lastResult && lastResult.output && lastResult.output.includes(assertion.content!)),
         );
 
       default:
-        throw new Error(`Unknown assertion type: ${assertion.type}`);
+        throw new Error(`Unknown assertion type: ${assertion.type as string}`);
     }
   }
 
   /**
    * Get all results from this runner
    */
-  getResults() {
+  getResults(): TestResult[] {
     return this.results;
   }
 }

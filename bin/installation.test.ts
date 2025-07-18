@@ -5,6 +5,7 @@ import type { Linter } from 'eslint';
 interface ClaudeSettings {
   permissions?: {
     allow?: string[];
+    deny?: string[];
   };
   [key: string]: unknown;
 }
@@ -97,8 +98,10 @@ describe('Questmaestro Installation', () => {
   test('should not overwrite existing .questmaestro config', () => {
     // Create existing config
     const existingConfig = {
-      paths: { questFolder: './custom-quests' },
-      commands: { test: 'custom test' },
+      questFolder: './custom-quests',
+      wardCommands: {
+        test: 'custom test',
+      },
     };
 
     testProject.writeFile('.questmaestro', JSON.stringify(existingConfig, null, 2));
@@ -129,9 +132,20 @@ describe('Questmaestro Installation', () => {
   test('should install ESLint if not present', () => {
     // Create project without ESLint
     const packageJson = testProject.getPackageJson();
-    delete packageJson?.eslintConfig;
-    delete packageJson?.devDependencies?.eslint;
-    testProject.writeFile('package.json', JSON.stringify(packageJson, null, 2));
+    if (!packageJson) {
+      throw new Error('package.json not found');
+    }
+
+    // Create a new object without eslintConfig
+    const { eslintConfig: _eslintConfig, ...packageJsonWithoutEslint } = packageJson;
+
+    // Remove eslint from devDependencies if it exists
+    if (packageJsonWithoutEslint.devDependencies?.eslint) {
+      const { eslint: _eslint, ...devDepsWithoutEslint } = packageJsonWithoutEslint.devDependencies;
+      packageJsonWithoutEslint.devDependencies = devDepsWithoutEslint;
+    }
+
+    testProject.writeFile('package.json', JSON.stringify(packageJsonWithoutEslint, null, 2));
 
     // Remove any existing ESLint config files
     [
@@ -157,10 +171,12 @@ describe('Questmaestro Installation', () => {
 
     // Check ESLint config was created
     expect(testProject.fileExists('.eslintrc.json')).toBe(true);
-    const eslintConfig = JSON.parse(testProject.readFile('.eslintrc.json')) as Linter.LegacyConfig;
-    expect(eslintConfig.extends).toContain('@eslint/js/recommended');
-    expect(eslintConfig.env?.node).toBe(true);
-    expect(eslintConfig.env?.es2022).toBe(true);
+    const eslintConfigContent = JSON.parse(
+      testProject.readFile('.eslintrc.json'),
+    ) as Linter.LegacyConfig;
+    expect(eslintConfigContent.extends).toContain('@eslint/js/recommended');
+    expect(eslintConfigContent.env?.node).toBe(true);
+    expect(eslintConfigContent.env?.es2022).toBe(true);
 
     // Check lint script was added
     const updatedPackageJson = testProject.getPackageJson();
@@ -170,7 +186,10 @@ describe('Questmaestro Installation', () => {
 
   test('should not install ESLint if already present in package.json', () => {
     // Create project with ESLint config in package.json
-    const packageJson = testProject.getPackageJson() || {};
+    const packageJson = testProject.getPackageJson();
+    if (!packageJson) {
+      throw new Error('package.json not found');
+    }
     packageJson.eslintConfig = {
       extends: ['eslint:recommended'],
     };
@@ -209,8 +228,10 @@ describe('Questmaestro Installation', () => {
     expect(output).not.toContain('No ESLint configuration found');
 
     // Check existing config was not overwritten
-    const eslintConfig = JSON.parse(testProject.readFile('.eslintrc.json')) as Linter.LegacyConfig;
-    expect(eslintConfig.rules?.['no-console']).toBe('error');
+    const eslintConfigFile = JSON.parse(
+      testProject.readFile('.eslintrc.json'),
+    ) as Linter.LegacyConfig;
+    expect(eslintConfigFile.rules?.['no-console']).toBe('error');
   });
 
   test('should handle missing package.json gracefully', () => {
@@ -224,9 +245,13 @@ describe('Questmaestro Installation', () => {
   test('should add lint script if missing even when ESLint exists', () => {
     // Create project with ESLint config but no lint script
     const packageJson = testProject.getPackageJson();
+    if (!packageJson) {
+      throw new Error('package.json not found');
+    }
     packageJson.eslintConfig = { extends: ['eslint:recommended'] };
-    if (packageJson.scripts) {
-      delete packageJson.scripts.lint;
+    if (packageJson.scripts && 'lint' in packageJson.scripts) {
+      const { lint: _lint, ...scriptsWithoutLint } = packageJson.scripts;
+      packageJson.scripts = scriptsWithoutLint as typeof packageJson.scripts;
     }
     testProject.writeFile('package.json', JSON.stringify(packageJson, null, 2));
 
@@ -247,7 +272,7 @@ describe('Questmaestro Installation', () => {
       testProject.readFile('.claude/settings.local.json'),
     ) as ClaudeSettings;
     expect(settings.permissions).toBeDefined();
-    expect(settings.permissions.allow).toContain('Write');
+    expect(settings.permissions?.allow).toContain('Write');
 
     // Check output
     expect(output).toContain('Created .claude/settings.local.json with Write permission');
@@ -271,8 +296,8 @@ describe('Questmaestro Installation', () => {
       testProject.readFile('.claude/settings.local.json'),
     ) as ClaudeSettings;
     expect(settings.otherSetting).toBe('testValue');
-    expect(settings.permissions.deny).toContain('Bash');
-    expect(settings.permissions.allow).toContain('Write');
+    expect(settings.permissions?.deny).toContain('Bash');
+    expect(settings.permissions?.allow).toContain('Write');
 
     // Check output
     expect(output).toContain('Added Write permission to existing .claude/settings.local.json');
@@ -314,7 +339,7 @@ describe('Questmaestro Installation', () => {
     const settings = JSON.parse(
       testProject.readFile('.claude/settings.local.json'),
     ) as ClaudeSettings;
-    expect(settings.permissions.allow).toContain('Write');
+    expect(settings.permissions?.allow).toContain('Write');
 
     // Check output
     expect(output).toContain('Could not parse existing settings.local.json');

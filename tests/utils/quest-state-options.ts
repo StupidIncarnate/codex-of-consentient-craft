@@ -27,6 +27,7 @@ export interface StateOptions {
   reviewIssues?: Array<{
     severity: 'minor' | 'major' | 'critical';
     file: string;
+    line?: number;
     message: string;
   }>;
 
@@ -80,14 +81,14 @@ export interface ProjectTemplate {
 // Default component templates based on quest type
 export const ComponentTemplates = {
   math: [
-    { name: 'add', description: 'function that adds two numbers' },
-    { name: 'subtract', description: 'function that subtracts two numbers' },
-    { name: 'multiply', description: 'function that multiplies two numbers' },
-    { name: 'divide', description: 'function that divides two numbers' },
+    { name: 'add', description: 'function that adds two numbers', dependencies: [] },
+    { name: 'subtract', description: 'function that subtracts two numbers', dependencies: [] },
+    { name: 'multiply', description: 'function that multiplies two numbers', dependencies: [] },
+    { name: 'divide', description: 'function that divides two numbers', dependencies: [] },
   ],
 
   api: [
-    { name: 'config', description: 'configuration module' },
+    { name: 'config', description: 'configuration module', dependencies: [] },
     { name: 'logger', description: 'logging utility', dependencies: ['config'] },
     { name: 'database', description: 'database connection', dependencies: ['config'] },
     {
@@ -98,20 +99,24 @@ export const ComponentTemplates = {
   ],
 
   utils: [
-    { name: 'validators', description: 'input validation functions' },
-    { name: 'formatters', description: 'data formatting utilities' },
-    { name: 'helpers', description: 'general helper functions' },
+    { name: 'validators', description: 'input validation functions', dependencies: [] },
+    { name: 'formatters', description: 'data formatting utilities', dependencies: [] },
+    { name: 'helpers', description: 'general helper functions', dependencies: [] },
   ],
 
   simple: [
-    { name: 'isEven', description: 'returns true if number is even' },
-    { name: 'isOdd', description: 'returns true if number is odd' },
+    { name: 'isEven', description: 'returns true if number is even', dependencies: [] },
+    { name: 'isOdd', description: 'returns true if number is odd', dependencies: [] },
   ],
 };
 
 // Agent report templates
 export const AgentReportTemplates = {
-  pathseeker: (questTitle: string, components: unknown[], status: string = 'SUCCESS') => [
+  pathseeker: (
+    questTitle: string,
+    components: Array<{ name: string; description: string; dependencies?: string[] }>,
+    status: string = 'SUCCESS',
+  ) => [
     '=== PATHSEEKER REPORT ===',
     `Status: ${status}`,
     `Quest: ${questTitle}`,
@@ -194,7 +199,10 @@ export const AgentReportTemplates = {
     '=== END REPORT ===',
   ],
 
-  lawbringer: (issues: [], status: string) => [
+  lawbringer: (
+    issues: Array<{ severity: string; file: string; message: string }>,
+    status: string,
+  ) => [
     '=== LAWBRINGER REVIEW REPORT ===',
     'Phase: Code Review',
     `Status: ${status}`,
@@ -202,15 +210,18 @@ export const AgentReportTemplates = {
     '',
     'Review Summary:',
     `- Total Issues: ${issues.length}`,
-    `- Critical: ${issues.filter((i) => i.severity === 'critical').length}`,
-    `- Major: ${issues.filter((i) => i.severity === 'major').length}`,
-    `- Minor: ${issues.filter((i) => i.severity === 'minor').length}`,
+    `- Critical: ${issues.filter((i: { severity: string }) => i.severity === 'critical').length}`,
+    `- Major: ${issues.filter((i: { severity: string }) => i.severity === 'major').length}`,
+    `- Minor: ${issues.filter((i: { severity: string }) => i.severity === 'minor').length}`,
     '',
     'Files Reviewed:',
-    ...new Set(issues.map((i) => `- ${i.file}`)),
+    ...new Set(issues.map((i: { file: string }) => `- ${i.file}`)),
     '',
     issues.length > 0 ? 'Issues Found:' : 'No issues found',
-    ...issues.map((i) => `- [${i.severity.toUpperCase()}] ${i.file}: ${i.message}`),
+    ...issues.map(
+      (i: { severity: string; file: string; message: string }) =>
+        `- [${i.severity.toUpperCase()}] ${i.file}: ${i.message}`,
+    ),
     '',
     'Recommendations:',
     '- Maintain consistent code style',
@@ -219,7 +230,10 @@ export const AgentReportTemplates = {
     '=== END REPORT ===',
   ],
 
-  siegemaster: (gapsFound: string, analysisResults: unknown[]) => [
+  siegemaster: (
+    gapsFound: string,
+    analysisResults: Array<{ component: string; gapsFound: number; priority: string }>,
+  ) => [
     '=== SIEGEMASTER GAP ANALYSIS REPORT ===',
     'Phase: Test Coverage Gap Analysis',
     'Status: Complete',
@@ -244,7 +258,7 @@ export const AgentReportTemplates = {
     '=== END REPORT ===',
   ],
 
-  spiritmender: (blockers: string[], fixed: boolean) => [
+  spiritmender: (blockers: Array<{ type: string; description: string }>, fixed: boolean) => [
     '=== SPIRITMENDER HEALING REPORT ===',
     'Phase: Error Resolution',
     `Status: ${fixed ? 'Resolved' : 'In Progress'}`,

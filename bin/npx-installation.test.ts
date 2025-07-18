@@ -1,6 +1,6 @@
 import { TestProject, createTestProject } from '../tests/utils/testbed';
-import path from 'path';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 import { main } from './install';
 
 describe('NPX Installation', () => {
@@ -102,16 +102,15 @@ describe('NPX Installation', () => {
     expect(output).toContain('No .claude directory found');
   });
 
-  test('should preserve existing configurations on reinstall', async () => {
+  test('should preserve existing configurations on reinstall', () => {
     // First installation
     testProject.installQuestmaestro();
 
     // Modify config
     const customConfig = {
-      paths: { questFolder: './my-quests' },
-      commands: {
-        ward: 'eslint $FILE',
-        'ward:all': 'eslint .',
+      questFolder: './my-quests',
+      wardCommands: {
+        all: 'eslint .',
       },
     };
     testProject.writeFile('.questmaestro', JSON.stringify(customConfig, null, 2));
@@ -131,8 +130,8 @@ describe('NPX Installation', () => {
 
     // Verify configs were preserved
     const config = testProject.getConfig();
-    expect(config.paths.questFolder).toBe('./my-quests');
-    expect(config.commands.ward).toBe('eslint $FILE');
+    expect(config?.questFolder).toBe('./my-quests');
+    expect(config?.wardCommands?.all).toBe('eslint .');
 
     // Verify quest files were preserved
     const activeQuests = testProject.getQuestFiles('active');
@@ -146,7 +145,7 @@ describe('NPX Installation', () => {
     expect(output).toContain('gitignore entries already exist, skipping');
   });
 
-  test('should create all required subdirectories', async () => {
+  test('should create all required subdirectories', () => {
     testProject.installQuestmaestro();
 
     // Check all quest subdirectories
@@ -168,7 +167,7 @@ describe('NPX Installation', () => {
     expect(loreReadme).toContain('Lore Categories');
   });
 
-  test('should install all agent commands with correct names', async () => {
+  test('should install all agent commands with correct names', () => {
     testProject.installQuestmaestro();
 
     const expectedAgents = [

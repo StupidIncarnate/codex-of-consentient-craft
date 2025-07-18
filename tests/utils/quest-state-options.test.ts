@@ -8,6 +8,7 @@ describe('Quest State Options', () => {
       expect(ComponentTemplates.math[0]).toEqual({
         name: 'add',
         description: 'function that adds two numbers',
+        dependencies: [],
       });
       expect(ComponentTemplates.math.map((c) => c.name)).toEqual([
         'add',
@@ -22,7 +23,7 @@ describe('Quest State Options', () => {
       expect(ComponentTemplates.api).toHaveLength(4);
 
       const config = ComponentTemplates.api.find((c) => c.name === 'config');
-      expect(config?.dependencies).toBeUndefined();
+      expect(config?.dependencies).toEqual([]);
 
       const logger = ComponentTemplates.api.find((c) => c.name === 'logger');
       expect(logger?.dependencies).toEqual(['config']);
@@ -54,9 +55,9 @@ describe('Quest State Options', () => {
         const report = AgentReportTemplates.codeweaver('Create API', 'active');
 
         expect(report).toContain('=== CODEWEAVER IMPLEMENTATION REPORT ===');
-        expect(report.some((line: string) => line.includes('Create API'))).toBe(true);
-        expect(report.some((line: string) => line.includes('Component: Create API'))).toBe(true);
-        expect(report.some((line: string) => line.includes('Status: active'))).toBe(true);
+        expect(report.some((line) => line.includes('Create API'))).toBe(true);
+        expect(report.some((line) => line.includes('Component: Create API'))).toBe(true);
+        expect(report.some((line) => line.includes('Status: active'))).toBe(true);
         expect(report).toContain('=== END REPORT ===');
       });
 
@@ -73,12 +74,12 @@ describe('Quest State Options', () => {
         Date.now = originalNow;
 
         // Check that both reports contain the quest name
-        expect(report1.some((line: string) => line.includes('Component: Test Quest'))).toBe(true);
-        expect(report2.some((line: string) => line.includes('Component: Test Quest'))).toBe(true);
+        expect(report1.some((line) => line.includes('Component: Test Quest'))).toBe(true);
+        expect(report2.some((line) => line.includes('Component: Test Quest'))).toBe(true);
         // Since the template uses Date.now() in the id generation, they should be different
         // Both reports should have timestamps
-        expect(report1.some((line: string) => line.includes('Timestamp:'))).toBe(true);
-        expect(report2.some((line: string) => line.includes('Timestamp:'))).toBe(true);
+        expect(report1.some((line) => line.includes('Timestamp:'))).toBe(true);
+        expect(report2.some((line) => line.includes('Timestamp:'))).toBe(true);
       });
     });
 
@@ -92,11 +93,11 @@ describe('Quest State Options', () => {
 
         expect(report).toContain('=== PATHSEEKER REPORT ===');
         expect(report).toContain('Quest: Create API');
-        expect(report.some((line: string) => line.includes('Discovery Findings:'))).toBe(true);
-        expect(report.some((line: string) => line.includes('Status: SUCCESS'))).toBe(true);
-        expect(report.some((line: string) => line.includes('"config"'))).toBe(true);
-        expect(report.some((line: string) => line.includes('"logger"'))).toBe(true);
-        expect(report.some((line: string) => line.includes('["config"]'))).toBe(true);
+        expect(report.some((line) => line.includes('Discovery Findings:'))).toBe(true);
+        expect(report.some((line) => line.includes('Status: SUCCESS'))).toBe(true);
+        expect(report.some((line) => line.includes('"config"'))).toBe(true);
+        expect(report.some((line) => line.includes('"logger"'))).toBe(true);
+        expect(report.some((line) => line.includes('["config"]'))).toBe(true);
         expect(report).toContain('=== END REPORT ===');
       });
 
@@ -107,13 +108,13 @@ describe('Quest State Options', () => {
         ];
         const report = AgentReportTemplates.pathseeker('Math Functions', components);
 
-        expect(report.some((line: string) => line.includes('"add"'))).toBe(true);
-        expect(report.some((line: string) => line.includes('"subtract"'))).toBe(true);
-        expect(report.some((line: string) => line.includes('Discovery Findings:'))).toBe(true);
+        expect(report.some((line) => line.includes('"add"'))).toBe(true);
+        expect(report.some((line) => line.includes('"subtract"'))).toBe(true);
+        expect(report.some((line) => line.includes('Discovery Findings:'))).toBe(true);
       });
     });
 
-    describe('codeweaver', () => {
+    describe('codeweaver (detailed)', () => {
       test('should generate codeweaver report', () => {
         const report = AgentReportTemplates.codeweaver(
           'Create config.ts with configuration',
@@ -182,14 +183,12 @@ describe('Quest State Options', () => {
         expect(report).toContain('=== SIEGEMASTER GAP ANALYSIS REPORT ===');
         expect(report).toContain('Phase: Test Coverage Gap Analysis');
         expect(report).toContain('Status: Complete');
-        expect(report.some((line: string) => line.includes('Gap Analysis Summary:'))).toBe(true);
-        expect(report.some((line: string) => line.includes('Total gaps identified: 95%'))).toBe(
+        expect(report.some((line) => line.includes('Gap Analysis Summary:'))).toBe(true);
+        expect(report.some((line) => line.includes('Total gaps identified: 95%'))).toBe(true);
+        expect(report.some((line) => line.includes('Analysis Results:'))).toBe(true);
+        expect(report.some((line) => line.includes('UserService: 3 gaps (high priority)'))).toBe(
           true,
         );
-        expect(report.some((line: string) => line.includes('Analysis Results:'))).toBe(true);
-        expect(
-          report.some((line: string) => line.includes('UserService: 3 gaps (high priority)')),
-        ).toBe(true);
         expect(report).toContain('=== END REPORT ===');
       });
     });

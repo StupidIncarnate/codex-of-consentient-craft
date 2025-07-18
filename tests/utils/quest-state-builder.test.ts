@@ -486,12 +486,12 @@ describe('Quest State Builder', () => {
 
       // Verify quest content
       const questContent = await fs.readFile(questFilePath, 'utf-8');
-      const savedQuest = JSON.parse(questContent);
+      const savedQuest = JSON.parse(questContent) as { id: string; title: string };
       expect(savedQuest.id).toBe(env.questId);
       expect(savedQuest.title).toBe('Test Quest');
     });
 
-    test('should write quest file in correct folder', async () => {
+    test('should write completed quest file in correct folder', async () => {
       await builder.inCompletedState().prepareTestEnvironment();
 
       const completedPath = path.join(
@@ -535,7 +535,7 @@ describe('Quest State Builder', () => {
     test('should validate quest before writing', async () => {
       // Create an invalid quest by manually modifying it
       const quest = builder.getQuest();
-      quest.status = 'invalid_status';
+      quest.status = 'invalid_status' as QuestStatus;
 
       await expect(builder.prepareTestEnvironment()).rejects.toThrow('Invalid quest state');
     });
@@ -565,7 +565,10 @@ describe('Quest State Builder', () => {
 
       // Verify quest was written correctly
       const questContent = await fs.readFile(env.questPath, 'utf-8');
-      const savedQuest = JSON.parse(questContent);
+      const savedQuest = JSON.parse(questContent) as {
+        status: string;
+        outcome: { status: string };
+      };
       expect(savedQuest.status).toBe('completed');
       expect(savedQuest.outcome.status).toBe('success');
     });
@@ -635,18 +638,24 @@ describe('Quest State Builder', () => {
       builder.inCodeweaverState();
       const files = builder.getFiles();
 
-      for (const [filePath, content] of files) {
-        if (!filePath.includes('.test.ts')) {
-          // Implementation files should have export function
-          expect(content).toContain('export function');
-          expect(content.includes(': number') || content.includes(': boolean')).toBe(true);
-        } else {
-          // Test files should have test structure
-          expect(content).toContain('describe(');
-          expect(content).toContain('test(');
-          expect(content).toContain('expect(');
-        }
-      }
+      const implementationFiles = Array.from(files.entries()).filter(
+        ([path]) => !path.includes('.test.ts'),
+      );
+      const testFiles = Array.from(files.entries()).filter(([path]) => path.includes('.test.ts'));
+
+      // Check implementation files
+      implementationFiles.forEach(([_filePath, content]) => {
+        expect(content).toContain('export function');
+        const hasTyping = content.includes(': number') || content.includes(': boolean');
+        expect(hasTyping).toBe(true);
+      });
+
+      // Check test files
+      testFiles.forEach(([_filePath, content]) => {
+        expect(content).toContain('describe(');
+        expect(content).toContain('test(');
+        expect(content).toContain('expect(');
+      });
     });
   });
 });

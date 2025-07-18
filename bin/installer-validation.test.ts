@@ -29,8 +29,9 @@ describe('Installer Validation Tests', () => {
     try {
       main();
     } catch (error) {
-      if (error.message.startsWith('Process exit with code')) {
-        exitCode = parseInt(error.message.match(/code (\d+)/)?.[1] || '1');
+      if (error instanceof Error && error.message.startsWith('Process exit with code')) {
+        const match = error.message.match(/code (\d+)/);
+        exitCode = match ? parseInt(match[1], 10) : 1;
         success = exitCode === 0;
       } else {
         success = false;
