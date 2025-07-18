@@ -1,5 +1,5 @@
-const { ProjectBootstrapper } = require('../utils/project-bootstrapper');
-const { ClaudeE2ERunner } = require('../utils/claude-runner');
+const { ProjectBootstrapper } = require('../../tests/utils/project-bootstrapper');
+const { ClaudeE2ERunner } = require('../../tests/utils/claude-runner');
 const fs = require('fs');
 const path = require('path');
 

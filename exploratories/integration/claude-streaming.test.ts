@@ -1,5 +1,5 @@
-import { ClaudeE2ERunner } from '../utils/claude-runner';
-import { ProjectBootstrapper } from '../utils/project-bootstrapper';
+import { ClaudeE2ERunner } from '../../tests/utils/claude-runner';
+import { ProjectBootstrapper } from '../../tests/utils/project-bootstrapper';
 
 describe('Claude Streaming Test', () => {
   let project: any;

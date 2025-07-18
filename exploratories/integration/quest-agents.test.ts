@@ -1,7 +1,7 @@
-import { ProjectBootstrapper } from '../utils/project-bootstrapper';
-import { ClaudeE2ERunner } from '../utils/claude-runner';
-import { QuestStateBuilder } from '../utils/quest-state-builder';
-import { PhaseStatus, ComponentStatus, QuestStatus } from '../utils/quest-state-machine';
+import { ProjectBootstrapper } from '../../tests/utils/project-bootstrapper';
+import { ClaudeE2ERunner } from '../../tests/utils/claude-runner';
+import { QuestStateBuilder } from '../../tests/utils/quest-state-builder';
+import { PhaseStatus, ComponentStatus, QuestStatus } from '../../tests/utils/quest-state-machine';
 
 jest.setTimeout(120000); // 2 minute timeout for agent tests
 

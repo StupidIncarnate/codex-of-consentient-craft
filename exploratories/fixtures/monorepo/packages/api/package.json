@@ -1,11 +1,11 @@
 {
-  "name": "@monorepo/web",
+  "name": "@monorepo/api",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
     "test": "jest",
-    "lint": "eslint src/",
+    "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "build": "echo 'Building Web App'"
+    "build": "echo 'Building API'"
   }
 }
