@@ -176,6 +176,7 @@ describe('NPX Installation', () => {
       'lawbringer',
       'siegemaster',
       'spiritmender',
+      'voidpoker',
     ];
 
     for (const agent of expectedAgents) {
@@ -185,7 +186,9 @@ describe('NPX Installation', () => {
       // Verify file content is not empty
       const content = testProject.readFile(commandPath);
       expect(content.length).toBeGreaterThan(100); // Should have substantial content
-      expect(content).toContain(agent.toUpperCase()); // Should contain agent name
+      // Agent names in the files are capitalized, not uppercase
+      const capitalizedAgent = agent.charAt(0).toUpperCase() + agent.slice(1);
+      expect(content).toContain(capitalizedAgent); // Should contain agent name
     }
   });
 });

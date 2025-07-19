@@ -657,4 +657,149 @@ export class QuestManager {
 
     return true;
   }
+
+  /**
+   * Get all quests from all states
+   */
+  getAllQuests(basePath?: string): QuestTrackerEntry[] {
+    const allQuests: QuestTrackerEntry[] = [];
+    const states: Array<'active' | 'completed' | 'abandoned'> = [
+      'active',
+      'completed',
+      'abandoned',
+    ];
+
+    for (const state of states) {
+      const questsResult = this.fileSystem.listQuests(state, basePath);
+      if (questsResult.success && questsResult.data) {
+        for (const questFolder of questsResult.data) {
+          const loadResult = this.loadQuest(questFolder, basePath);
+          if (loadResult.success && loadResult.data) {
+            allQuests.push(toTrackerEntry(loadResult.data));
+          }
+        }
+      }
+    }
+
+    return allQuests.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }
+
+  /**
+   * Get quest by folder name
+   */
+  getQuest(questFolder: string, basePath?: string): Quest | null {
+    const loadResult = this.loadQuest(questFolder, basePath);
+    return loadResult.success && loadResult.data ? loadResult.data : null;
+  }
+
+  /**
+   * Get the next report number for a quest
+   */
+  getNextReportNumber(questFolder: string, basePath?: string): string {
+    const structure = this.fileSystem.getFolderStructure(basePath);
+    const questPath = path.join(structure.active, questFolder);
+
+    if (!this.fileSystem.directoryExists(questPath)) {
+      return '001';
+    }
+
+    const files = this.fileSystem.listFiles(questPath);
+    const reportNumbers = files
+      .filter((f) => f.match(/^\d{3}-.*-report\.json$/))
+      .map((f) => parseInt(f.substring(0, 3)))
+      .filter((n) => !isNaN(n));
+
+    const maxNumber = reportNumbers.length > 0 ? Math.max(...reportNumbers) : 0;
+    return (maxNumber + 1).toString().padStart(3, '0');
+  }
+
+  /**
+   * Complete a quest
+   */
+  completeQuest(questFolder: string, basePath?: string): FileOperationResult<Quest> {
+    const updateResult = this.updateQuestStatus(questFolder, 'complete', basePath);
+    if (!updateResult.success) {
+      return updateResult;
+    }
+
+    const moveResult = this.moveQuest(questFolder, 'active', 'completed', basePath);
+    if (!moveResult.success) {
+      return {
+        success: false,
+        error: moveResult.error || 'Failed to move quest to completed',
+      };
+    }
+
+    return updateResult;
+  }
+
+  /**
+   * Check if quest is complete
+   */
+  isQuestComplete(quest: Quest): boolean {
+    if (quest.status !== 'in_progress') {
+      return quest.status === 'complete';
+    }
+
+    // Check if all tasks are complete
+    const allTasksComplete = quest.tasks.every(
+      (task) => task.status === 'complete' || task.status === 'skipped',
+    );
+
+    // Check if all phases are complete
+    const allPhasesComplete = Object.values(quest.phases).every(
+      (phase) => phase.status === 'complete',
+    );
+
+    return allTasksComplete && allPhasesComplete;
+  }
+
+  /**
+   * Get current phase of a quest
+   */
+  getCurrentPhase(quest: Quest): PhaseType | null {
+    return getCurrentPhase(quest);
+  }
+
+  /**
+   * Get files created in a quest
+   */
+  getCreatedFiles(questFolder: string, basePath?: string): string[] {
+    const quest = this.getQuest(questFolder, basePath);
+    if (!quest) return [];
+
+    const createdFiles: string[] = [];
+
+    // Extract from execution log
+    quest.executionLog.forEach((entry) => {
+      if (entry.agentType === 'codeweaver') {
+        // For now, we can't extract files from the log since report is just a filename
+        // This would need to be enhanced to store actual report data
+      }
+    });
+
+    return [...new Set(createdFiles)]; // Remove duplicates
+  }
+
+  /**
+   * Get files changed in a quest
+   */
+  getChangedFiles(questFolder: string, basePath?: string): string[] {
+    const quest = this.getQuest(questFolder, basePath);
+    if (!quest) return [];
+
+    const changedFiles: string[] = [];
+
+    // Extract from execution log
+    quest.executionLog.forEach((entry) => {
+      if (entry.agentType === 'codeweaver' || entry.agentType === 'spiritmender') {
+        // For now, we can't extract files from the log since report is just a filename
+        // This would need to be enhanced to store actual report data
+      }
+    });
+
+    return [...new Set(changedFiles)]; // Remove duplicates
+  }
 }

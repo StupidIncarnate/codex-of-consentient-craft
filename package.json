@@ -3,7 +3,8 @@
   "version": "0.1.0-beta.1",
   "description": "A fun, quest-driven AI orchestration system for Claude that makes context windows work better",
   "bin": {
-    "questmaestro": "./dist/bin/install.js"
+    "questmaestro": "./dist/src/cli.js",
+    "questmaestro-setup": "./dist/bin/install.js"
   },
   "scripts": {
     "build": "tsc",
