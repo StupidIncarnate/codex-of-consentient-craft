@@ -1,7 +1,20 @@
 # Coding Principles
 
-## Development Workflow
-1. Write empty test cases with descriptive names that define expected behavior
+## Development Workflow (Mandatory for Production Code)
+
+**This workflow is MANDATORY when writing any production code. Following this process ensures code quality, maintainability, and alignment with team standards.**
+
+### Overview
+1. [Write empty test cases](#1-write-empty-test-cases)
+2. [Implement production code](#2-implement-production-code)  
+3. [Review for missing coverage](#3-review-for-missing-coverage)
+4. [Fill in test assertions](#4-fill-in-test-assertions)
+5. [Run tests and fix failures](#5-run-tests-and-fix-failures)
+6. [Refactor for clarity](#6-refactor-for-clarity)
+7. [Final verification](#7-final-verification)
+
+### 1. Write empty test cases
+Write empty test cases with descriptive names that define expected behavior. Follow the [Test Structure Patterns](./testing-standards.md#test-structure-patterns) for organizing test hierarchies.
    ```typescript
    // Step 1: Empty test cases - Build context with nested describes
    describe('UserService', () => {
@@ -22,31 +35,48 @@
      });
    });
    ```
-2. Fill in production code that aligns with expected behavior
-3. Review production code for missing test coverage: functional groupings, edge cases, and error paths
-   - **Functional groupings**: Related operations (e.g., all CRUD operations for a resource)
-   - **Edge cases**: Boundary values, empty inputs, maximum limits
-   - **Error paths**: Invalid inputs, network failures, permission denied
-4. Fill in test cases with assertions that match their descriptions
-   ```typescript
-   // Step 4: Fill in the test assertions
-   it('returns created user', async () => {
-     const user = await createUser({ email: 'new@example.com', name: 'Test User' });
-     expect(user).toStrictEqual({
-       id: expect.any(String),
-       email: 'new@example.com',
-       name: 'Test User',
-       createdAt: expect.any(Date)
-     });
-   });
-   
-   it('throws DuplicateUserError', async () => {
-     await createUser({ email: 'test@example.com', name: 'First User' });
-     await expect(createUser({ email: 'test@example.com', name: 'Second User' }))
-       .rejects.toThrow(DuplicateUserError);
-   });
-   ```
-5. Refactor code files for clarity, following DRY principle for production code, [DAMP (Descriptive And Meaningful Phrases)](./testing-standards.md) for test code, and verify all tests still pass
+
+### 2. Implement production code
+Fill in production code that aligns with expected behavior
+- Follow existing patterns in the project standards doc folder as well as examples in the codebase
+- Keep implementation simple and clear
+
+### 3. Review for missing coverage
+Review production code for missing test coverage based on [Coverage Requirements](./testing-standards.md#coverage-requirements)
+
+### 4. Fill in test assertions
+Fill in test cases with assertions that match their descriptions. Use [Arrange-Act-Assert Pattern](./testing-standards.md#arrange-act-assert-pattern) for complex tests and follow [Assertion Methods](./testing-standards.md#assertion-methods) guidelines
+```typescript
+// Fill in the test assertions
+it('returns created user', async () => {
+  const user = await createUser({ email: 'new@example.com', name: 'Test User' });
+  expect(user).toStrictEqual({
+    id: expect.any(String),
+    email: 'new@example.com',
+    name: 'Test User',
+    createdAt: expect.any(Date)
+  });
+});
+
+it('throws DuplicateUserError', async () => {
+  await createUser({ email: 'test@example.com', name: 'First User' });
+  await expect(createUser({ email: 'test@example.com', name: 'Second User' }))
+    .rejects.toThrow(DuplicateUserError);
+});
+```
+
+### 5. Run tests and fix failures
+- Execute the test suite
+- Fix any failing tests by updating production code or updating asserts if needed
+
+### 6. Refactor for clarity
+Refactor production and test files for clarity, following DRY principle for production code, [DAMP (Descriptive And Meaningful Phrases)](./testing-standards.md) for test code, and verify all tests still pass
+
+### 7. Final verification
+- Run all tests one more time
+- Execute linting and type checking
+- Ensure no console output or warnings
+- Verify code meets all standards
 
 ## Architecture Principles
 - Design components with single, clear responsibilities. If you need to explain why something exists, reconsider its design

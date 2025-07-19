@@ -88,7 +88,7 @@ tests/
 
 ## Test Structure Patterns
 
-### Test Organization Hierarchy
+### Test Case Description Standards and Organization Hierarchy
 - Use one root-level describe block per test file (matches the class/module being tested)
 - Nest describe blocks to build context: class/module → method → condition
 - Each describe adds one piece of context (when X, with Y, given Z)

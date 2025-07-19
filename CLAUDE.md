@@ -100,3 +100,17 @@ NOT: Suppress console.warn (addresses symptom only)
 
 - [Coding Principles](standards/coding-principles.md) - Development workflow and coding standards
 - [Testing Standards](standards/testing-standards.md) - Testing philosophy, patterns, and best practices
+
+## Project Overview
+
+**Tech Stack**: TypeScript, Node.js, Jest
+**Package Manager**: npm
+
+### Common Commands
+- **Run tests**: `npm test`
+- **Run specific test file**: `npm test -- path/to/file.test.ts`
+- **Lint all**: `npm run lint` (auto-fixes issues)
+- **Lint specific files**: `npx eslint path/to/file1.ts path/to/file2.ts --fix`
+- **Type check**: `npm run typecheck`
+- **Build**: `npm run build`
+- **All checks**: `npm run lint && npm run typecheck && npm test`
