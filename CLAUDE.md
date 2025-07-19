@@ -15,30 +15,6 @@
 
 **VIOLATION WARNING**: Skipping Analysis Checkpoint is a critical protocol violation.
 
-## Truth Marking Protocol
-
-When answering any question from the user, you MUST evaluate and mark each statement with:
-
-- **🎯** - Information you can directly observe or verify from available evidence
-- **(%XX)** - Your confidence percentage for inferred, assumed, or reasoned information
-
-**Examples:**
-
-- "The test is failing" **🎯** - I can see the test output
-- "You probably wanted to suppress the warning because it was noisy" **(15%)** - Pure speculation
-- "The mock variables don't match the component defaults" **🎯** - Observable from code comparison
-- "This error suggests a configuration issue" **(75%)** - Reasonable inference from error patterns
-
-**Mark EVERYTHING:**
-
-- Direct observations: **🎯**
-- Logical deductions: **(70-95%)**
-- Educated guesses: **(30-70%)**
-- Wild speculation: **(5-30%)**
-
-**Purpose:** Prevent confident-sounding fabrications and clearly distinguish between what you know
-versus what you're inferring.
-
 ## Documentation Update Protocol
 
 **BEFORE modifying any documentation, you MUST:**
