@@ -3,11 +3,23 @@
 ## Development Workflow
 1. Write empty test cases with descriptive names that define expected behavior
    ```typescript
-   // Step 1: Empty test cases
+   // Step 1: Empty test cases - Build context with nested describes
    describe('UserService', () => {
-     it('should create a new user with valid data');
-     it('should reject duplicate email addresses');
-     it('should hash passwords before storage');
+     describe('createUser()', () => {
+       describe('when email is new', () => {
+         it('returns created user');
+         it('sends welcome email');
+       });
+       
+       describe('when email already exists', () => {
+         it('throws DuplicateUserError');
+       });
+       
+       describe('when data is invalid', () => {
+         it('email === "" → throws ValidationError');
+         it('age < 0 → throws RangeError');
+       });
+     });
    });
    ```
 2. Fill in production code that aligns with expected behavior
@@ -18,10 +30,15 @@
 4. Fill in test cases with assertions that match their descriptions
    ```typescript
    // Step 4: Fill in the test
-   it('should reject duplicate email addresses', async () => {
-     await createUser({ email: 'test@example.com' });
-     await expect(createUser({ email: 'test@example.com' }))
-       .rejects.toThrow('Email already exists');
+   describe('when email already exists', () => {
+     it('throws DuplicateUserError', async () => {
+       // First create a user
+       await createUser({ email: 'test@example.com' });
+       
+       // Then try to create another with same email
+       await expect(createUser({ email: 'test@example.com' }))
+         .rejects.toThrow('DuplicateUserError');
+     });
    });
    ```
 5. Refactor for clarity, consolidate duplicated logic, simplify complex patterns, and verify all tests still pass
