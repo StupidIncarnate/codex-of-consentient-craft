@@ -57,152 +57,156 @@ describe('Installer Validation Tests', () => {
   // Cleanup happens on git commit, not after tests
   // This allows debugging of test artifacts
 
-  test('should fail without package.json', () => {
-    const result = runInstaller(tempDir);
-    expect(result.success).toBe(false);
-    expect(result.output).toContain('No package.json found');
+  describe('Validation Failures', () => {
+    it('should fail without package.json', () => {
+      const result = runInstaller(tempDir);
+      expect(result.success).toBe(false);
+      expect(result.output).toContain('No package.json found');
+    });
+
+    it('should fail without ESLint configuration', () => {
+      // Create minimal package.json
+      const packageJson = {
+        name: 'test-project',
+        version: '1.0.0',
+        scripts: {
+          lint: 'eslint',
+          test: 'jest',
+        },
+      };
+      fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+
+      const result = runInstaller(tempDir);
+      expect(result.success).toBe(false);
+      expect(result.output).toContain('No ESLint configuration found');
+    });
+
+    it('should fail without Jest configuration', () => {
+      // Create package.json with ESLint config
+      const packageJson = {
+        name: 'test-project',
+        version: '1.0.0',
+        scripts: {
+          lint: 'eslint',
+          test: 'jest',
+        },
+        eslintConfig: {
+          env: { node: true },
+        },
+      };
+      fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+
+      const result = runInstaller(tempDir);
+      expect(result.success).toBe(false);
+      expect(result.output).toContain('No Jest configuration found');
+    });
+
+    it('should fail without required scripts', () => {
+      // Create package.json with configs but missing scripts
+      const packageJson = {
+        name: 'test-project',
+        version: '1.0.0',
+        scripts: {
+          build: 'echo building',
+        },
+        eslintConfig: {
+          env: { node: true },
+        },
+        jest: {
+          testEnvironment: 'node',
+        },
+      };
+      fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+
+      const result = runInstaller(tempDir);
+      expect(result.success).toBe(false);
+      expect(result.output).toContain('Missing required scripts');
+    });
   });
 
-  test('should fail without ESLint configuration', () => {
-    // Create minimal package.json
-    const packageJson = {
-      name: 'test-project',
-      version: '1.0.0',
-      scripts: {
-        lint: 'eslint',
-        test: 'jest',
-      },
-    };
-    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+  describe('Validation Success', () => {
+    it('should succeed with all requirements met', () => {
+      // Create complete package.json
+      const packageJson = {
+        name: 'test-project',
+        version: '1.0.0',
+        scripts: {
+          lint: 'eslint',
+          test: 'jest',
+          build: 'echo building',
+        },
+        eslintConfig: {
+          env: { node: true },
+        },
+        jest: {
+          testEnvironment: 'node',
+        },
+      };
+      fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-    const result = runInstaller(tempDir);
-    expect(result.success).toBe(false);
-    expect(result.output).toContain('No ESLint configuration found');
-  });
+      // No need to check templates - they're in src/templates
 
-  test('should fail without Jest configuration', () => {
-    // Create package.json with ESLint config
-    const packageJson = {
-      name: 'test-project',
-      version: '1.0.0',
-      scripts: {
-        lint: 'eslint',
-        test: 'jest',
-      },
-      eslintConfig: {
-        env: { node: true },
-      },
-    };
-    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+      const result = runInstaller(tempDir);
 
-    const result = runInstaller(tempDir);
-    expect(result.success).toBe(false);
-    expect(result.output).toContain('No Jest configuration found');
-  });
+      expect(result.success).toBe(true);
+      expect(result.output).toContain('✓ package.json found');
+      expect(result.output).toContain('✓ ESLint configuration found');
+      expect(result.output).toContain('✓ Jest configuration found');
+      expect(result.output).toContain('✓ Required scripts found');
+    });
 
-  test('should fail without required scripts', () => {
-    // Create package.json with configs but missing scripts
-    const packageJson = {
-      name: 'test-project',
-      version: '1.0.0',
-      scripts: {
-        build: 'echo building',
-      },
-      eslintConfig: {
-        env: { node: true },
-      },
-      jest: {
-        testEnvironment: 'node',
-      },
-    };
-    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+    it('should accept ESLint config file', () => {
+      const packageJson = {
+        name: 'test-project',
+        version: '1.0.0',
+        scripts: {
+          lint: 'eslint',
+          test: 'jest',
+        },
+        jest: {
+          testEnvironment: 'node',
+        },
+      };
+      fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-    const result = runInstaller(tempDir);
-    expect(result.success).toBe(false);
-    expect(result.output).toContain('Missing required scripts');
-  });
+      // Create .eslintrc.json
+      fs.writeFileSync(
+        path.join(tempDir, '.eslintrc.json'),
+        JSON.stringify({ env: { node: true } }, null, 2),
+      );
 
-  test('should succeed with all requirements met', () => {
-    // Create complete package.json
-    const packageJson = {
-      name: 'test-project',
-      version: '1.0.0',
-      scripts: {
-        lint: 'eslint',
-        test: 'jest',
-        build: 'echo building',
-      },
-      eslintConfig: {
-        env: { node: true },
-      },
-      jest: {
-        testEnvironment: 'node',
-      },
-    };
-    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+      // No need to check templates - they're in src/templates
 
-    // No need to check templates - they're in src/templates
+      const result = runInstaller(tempDir);
+      expect(result.success).toBe(true);
+      expect(result.output).toContain('✓ ESLint configuration found');
+    });
 
-    const result = runInstaller(tempDir);
+    it('should accept Jest config file', () => {
+      const packageJson = {
+        name: 'test-project',
+        version: '1.0.0',
+        scripts: {
+          lint: 'eslint',
+          test: 'jest',
+        },
+        eslintConfig: {
+          env: { node: true },
+        },
+      };
+      fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-    expect(result.success).toBe(true);
-    expect(result.output).toContain('✓ package.json found');
-    expect(result.output).toContain('✓ ESLint configuration found');
-    expect(result.output).toContain('✓ Jest configuration found');
-    expect(result.output).toContain('✓ Required scripts found');
-  });
+      // Create jest.config.js
+      fs.writeFileSync(
+        path.join(tempDir, 'jest.config.js'),
+        'module.exports = { testEnvironment: "node" };',
+      );
 
-  test('should accept ESLint config file', () => {
-    const packageJson = {
-      name: 'test-project',
-      version: '1.0.0',
-      scripts: {
-        lint: 'eslint',
-        test: 'jest',
-      },
-      jest: {
-        testEnvironment: 'node',
-      },
-    };
-    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+      // No need to check templates - they're in src/templates
 
-    // Create .eslintrc.json
-    fs.writeFileSync(
-      path.join(tempDir, '.eslintrc.json'),
-      JSON.stringify({ env: { node: true } }, null, 2),
-    );
-
-    // No need to check templates - they're in src/templates
-
-    const result = runInstaller(tempDir);
-    expect(result.success).toBe(true);
-    expect(result.output).toContain('✓ ESLint configuration found');
-  });
-
-  test('should accept Jest config file', () => {
-    const packageJson = {
-      name: 'test-project',
-      version: '1.0.0',
-      scripts: {
-        lint: 'eslint',
-        test: 'jest',
-      },
-      eslintConfig: {
-        env: { node: true },
-      },
-    };
-    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
-
-    // Create jest.config.js
-    fs.writeFileSync(
-      path.join(tempDir, 'jest.config.js'),
-      'module.exports = { testEnvironment: "node" };',
-    );
-
-    // No need to check templates - they're in src/templates
-
-    const result = runInstaller(tempDir);
-    expect(result.success).toBe(true);
-    expect(result.output).toContain('✓ Jest configuration found');
+      const result = runInstaller(tempDir);
+      expect(result.success).toBe(true);
+      expect(result.output).toContain('✓ Jest configuration found');
+    });
   });
 });

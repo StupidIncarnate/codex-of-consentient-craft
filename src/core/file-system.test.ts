@@ -414,7 +414,7 @@ describe('FileSystem', () => {
       const result = fileSystem.findQuest('001-add-auth');
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({ folder: '001-add-auth', state: 'active' });
+      expect(result.data).toStrictEqual({ folder: '001-add-auth', state: 'active' });
     });
 
     it('should find quest by name without number', () => {
@@ -426,7 +426,7 @@ describe('FileSystem', () => {
       const result = fileSystem.findQuest('add-auth');
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({ folder: '001-add-auth', state: 'active' });
+      expect(result.data).toStrictEqual({ folder: '001-add-auth', state: 'active' });
     });
 
     it('should find quest by partial match', () => {
@@ -438,7 +438,7 @@ describe('FileSystem', () => {
       const result = fileSystem.findQuest('auth');
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({ folder: '001-add-authentication', state: 'active' });
+      expect(result.data).toStrictEqual({ folder: '001-add-authentication', state: 'active' });
     });
 
     it('should search in all states', () => {
@@ -455,7 +455,7 @@ describe('FileSystem', () => {
       const result = fileSystem.findQuest('fix-bug');
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({ folder: '002-fix-bug', state: 'completed' });
+      expect(result.data).toStrictEqual({ folder: '002-fix-bug', state: 'completed' });
     });
 
     it('should return error when quest not found', () => {
@@ -651,7 +651,7 @@ describe('FileSystem', () => {
 
       const result = fileSystem.cleanOldQuests();
 
-      expect(result).toEqual({ completed: 1, abandoned: 1 });
+      expect(result).toStrictEqual({ completed: 1, abandoned: 1 });
       expect(mockFs.rmSync).toHaveBeenCalledTimes(2);
       expect(mockFs.rmSync).toHaveBeenCalledWith(expect.stringContaining('001-old-quest'), {
         recursive: true,
@@ -668,7 +668,7 @@ describe('FileSystem', () => {
 
       const result = fileSystem.cleanOldQuests();
 
-      expect(result).toEqual({ completed: 0, abandoned: 0 });
+      expect(result).toStrictEqual({ completed: 0, abandoned: 0 });
       expect(mockFs.readdirSync).not.toHaveBeenCalled();
     });
 
@@ -687,7 +687,7 @@ describe('FileSystem', () => {
 
       const result = fileSystem.cleanOldQuests();
 
-      expect(result).toEqual({ completed: 0, abandoned: 0 });
+      expect(result).toStrictEqual({ completed: 0, abandoned: 0 });
       expect(mockFs.rmSync).not.toHaveBeenCalled();
     });
   });
@@ -728,11 +728,11 @@ describe('FileSystem', () => {
       const results = fileSystem.findPackageJsons('/test/project');
 
       expect(results).toHaveLength(2);
-      expect(results[0]).toEqual({
+      expect(results[0]).toStrictEqual({
         dir: '/test/project',
         packageJson: { name: 'root-package' },
       });
-      expect(results[1]).toEqual({
+      expect(results[1]).toStrictEqual({
         dir: path.join('/test/project', 'src'),
         packageJson: { name: 'src-package' },
       });

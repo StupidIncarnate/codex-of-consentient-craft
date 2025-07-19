@@ -24,6 +24,28 @@ import { PathseekerTask } from '../models/agent';
 import { FileOperationResult } from '../types';
 
 /**
+ * Options for updating task status
+ */
+export interface UpdateTaskStatusOptions {
+  questFolder: string;
+  taskId: string;
+  status: TaskStatus;
+  reportFile?: string;
+  basePath?: string;
+}
+
+/**
+ * Options for updating phase status
+ */
+export interface UpdatePhaseStatusOptions {
+  questFolder: string;
+  phase: PhaseType;
+  status: PhaseStatus;
+  reportFile?: string;
+  basePath?: string;
+}
+
+/**
  * QuestManager class for managing quest lifecycle
  */
 export class QuestManager {
@@ -235,13 +257,8 @@ export class QuestManager {
   /**
    * Update task status
    */
-  updateTaskStatus(
-    questFolder: string,
-    taskId: string,
-    status: TaskStatus,
-    reportFile?: string,
-    basePath?: string,
-  ): FileOperationResult<Quest> {
+  updateTaskStatus(options: UpdateTaskStatusOptions): FileOperationResult<Quest> {
+    const { questFolder, taskId, status, reportFile, basePath } = options;
     const loadResult = this.loadQuest(questFolder, basePath);
     if (!loadResult.success || !loadResult.data) {
       return {
@@ -293,13 +310,8 @@ export class QuestManager {
   /**
    * Update phase status
    */
-  updatePhaseStatus(
-    questFolder: string,
-    phase: PhaseType,
-    status: PhaseStatus,
-    reportFile?: string,
-    basePath?: string,
-  ): FileOperationResult<Quest> {
+  updatePhaseStatus(options: UpdatePhaseStatusOptions): FileOperationResult<Quest> {
+    const { questFolder, phase, status, reportFile, basePath } = options;
     const loadResult = this.loadQuest(questFolder, basePath);
     if (!loadResult.success || !loadResult.data) {
       return {
@@ -775,8 +787,7 @@ export class QuestManager {
     // Extract from execution log
     quest.executionLog.forEach((entry) => {
       if (entry.agentType === 'codeweaver') {
-        // For now, we can't extract files from the log since report is just a filename
-        // This would need to be enhanced to store actual report data
+        // TODO: Extract created files from report data
       }
     });
 
@@ -795,8 +806,7 @@ export class QuestManager {
     // Extract from execution log
     quest.executionLog.forEach((entry) => {
       if (entry.agentType === 'codeweaver' || entry.agentType === 'spiritmender') {
-        // For now, we can't extract files from the log since report is just a filename
-        // This would need to be enhanced to store actual report data
+        // TODO: Extract changed files from report data
       }
     });
 

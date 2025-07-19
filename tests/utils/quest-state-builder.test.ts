@@ -52,7 +52,7 @@ describe('Quest State Builder', () => {
 
       expect(quest.status).toBe(QuestStatus.ACTIVE);
       expect(quest.complexity).toBe('medium');
-      expect(quest.tags).toEqual(['test', 'automated']);
+      expect(quest.tags).toStrictEqual(['test', 'automated']);
       expect(quest.agentReports.pathseeker).toBeDefined();
       expect(quest.agentReports.pathseeker!.length).toBeGreaterThan(0);
       expect(quest.agentReports.pathseeker![0].agentId).toMatch(/pathseeker-\d+/);
@@ -91,7 +91,7 @@ describe('Quest State Builder', () => {
       builder.inPathseekerState();
       const history = builder.getStateHistory();
 
-      expect(history).toEqual(['quest_creation', 'pathseeker']);
+      expect(history).toStrictEqual(['quest_creation', 'pathseeker']);
     });
 
     test('should complete discovery phase', () => {
@@ -116,7 +116,7 @@ describe('Quest State Builder', () => {
 
       expect(quest.phases.discovery.findings!.components).toHaveLength(2);
       expect(quest.phases.discovery.findings!.components[0].name).toContain('auth');
-      expect(quest.phases.discovery.findings!.components[1].dependencies).toEqual(['auth']);
+      expect(quest.phases.discovery.findings!.components[1].dependencies).toStrictEqual(['auth']);
     });
 
     test('should handle blocked discovery', () => {
@@ -248,7 +248,7 @@ describe('Quest State Builder', () => {
       const quest = builder.getQuest();
 
       expect(quest.phases.review.status).toBe(PhaseStatus.COMPLETE);
-      expect(quest.phases.review.issues).toEqual([]);
+      expect(quest.phases.review.issues).toStrictEqual([]);
       expect(quest.phases.review.recommendations).toBeDefined();
     });
 
@@ -369,7 +369,7 @@ describe('Quest State Builder', () => {
       builder.inSpiritMenderState(true);
       const quest = builder.getQuest();
 
-      expect(quest.blockers).toEqual([]);
+      expect(quest.blockers).toStrictEqual([]);
       expect(quest.status).toBe(QuestStatus.ACTIVE);
       // The partially implemented components should still be complete
       const completedComponents = quest.phases.implementation.components.filter(
@@ -600,7 +600,7 @@ describe('Quest State Builder', () => {
         .getQuest();
 
       expect(quest.status).toBe(QuestStatus.COMPLETED);
-      expect(builder.getStateHistory()).toEqual([
+      expect(builder.getStateHistory()).toStrictEqual([
         'quest_creation',
         'pathseeker',
         'codeweaver',
@@ -621,7 +621,7 @@ describe('Quest State Builder', () => {
 
       expect(quest.status).toBe(QuestStatus.ACTIVE);
       expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
-      expect(quest.blockers).toEqual([]);
+      expect(quest.blockers).toStrictEqual([]);
     });
   });
 

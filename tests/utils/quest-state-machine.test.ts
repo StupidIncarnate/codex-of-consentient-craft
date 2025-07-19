@@ -475,8 +475,8 @@ describe('Quest State Machine', () => {
       expect(quest.phases.implementation.status).toBe(PhaseStatus.NOT_STARTED);
       expect(quest.phases.review.status).toBe(PhaseStatus.NOT_STARTED);
       expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.NOT_STARTED);
-      expect(quest.activity).toEqual([]);
-      expect(quest.agentReports).toEqual({});
+      expect(quest.activity).toStrictEqual([]);
+      expect(quest.agentReports).toStrictEqual({});
       expect(quest.createdAt).toBeDefined();
       expect(quest.updatedAt).toBeDefined();
     });

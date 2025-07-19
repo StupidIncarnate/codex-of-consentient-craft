@@ -3,14 +3,14 @@ import { ComponentTemplates, AgentReportTemplates, FileGenerators } from './ques
 describe('Quest State Options', () => {
   describe('ComponentTemplates', () => {
     test('should have math templates', () => {
-      expect(ComponentTemplates.math).toBeDefined();
+      expect(Array.isArray(ComponentTemplates.math)).toBe(true);
       expect(ComponentTemplates.math).toHaveLength(4);
-      expect(ComponentTemplates.math[0]).toEqual({
+      expect(ComponentTemplates.math[0]).toStrictEqual({
         name: 'add',
         description: 'function that adds two numbers',
         dependencies: [],
       });
-      expect(ComponentTemplates.math.map((c) => c.name)).toEqual([
+      expect(ComponentTemplates.math.map((c) => c.name)).toStrictEqual([
         'add',
         'subtract',
         'multiply',
@@ -19,7 +19,7 @@ describe('Quest State Options', () => {
     });
 
     test('should have api templates with dependencies', () => {
-      expect(ComponentTemplates.api).toBeDefined();
+      expect(Array.isArray(ComponentTemplates.api)).toBe(true);
       expect(ComponentTemplates.api).toHaveLength(4);
 
       const config = ComponentTemplates.api.find((c) => c.name === 'config');
@@ -33,7 +33,7 @@ describe('Quest State Options', () => {
     });
 
     test('should have utils templates', () => {
-      expect(ComponentTemplates.utils).toBeDefined();
+      expect(Array.isArray(ComponentTemplates.utils)).toBe(true);
       expect(ComponentTemplates.utils).toHaveLength(3);
       expect(ComponentTemplates.utils.map((c) => c.name)).toEqual([
         'validators',
@@ -43,7 +43,7 @@ describe('Quest State Options', () => {
     });
 
     test('should have simple templates', () => {
-      expect(ComponentTemplates.simple).toBeDefined();
+      expect(Array.isArray(ComponentTemplates.simple)).toBe(true);
       expect(ComponentTemplates.simple).toHaveLength(2);
       expect(ComponentTemplates.simple.map((c) => c.name)).toEqual(['isEven', 'isOdd']);
     });

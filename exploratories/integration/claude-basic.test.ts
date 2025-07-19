@@ -21,7 +21,7 @@ describe('Claude Headless Basic Test', () => {
     console.log('Result:', result);
     
     expect(result.success).toBe(true);
-    expect(result.stdout).toBeTruthy();
+    expect(result.stdout.length).toBeGreaterThan(0);
     expect(result.stdout.toLowerCase()).toMatch(/quack|duck/i);
   }, 30000);
 });

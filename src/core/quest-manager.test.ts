@@ -397,12 +397,12 @@ describe('QuestManager', () => {
         data: [],
       });
 
-      const result = questManager.updateTaskStatus(
-        '001-test',
-        'task1',
-        'complete',
-        '002-codeweaver-report.json',
-      );
+      const result = questManager.updateTaskStatus({
+        questFolder: '001-test',
+        taskId: 'task1',
+        status: 'complete',
+        reportFile: '002-codeweaver-report.json',
+      });
 
       expect(result.success).toBe(true);
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(
@@ -455,7 +455,11 @@ describe('QuestManager', () => {
         data: [],
       });
 
-      const result = questManager.updateTaskStatus('001-test', 'task2', 'complete');
+      const result = questManager.updateTaskStatus({
+        questFolder: '001-test',
+        taskId: 'task2',
+        status: 'complete',
+      });
 
       expect(result.success).toBe(true);
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(
@@ -481,7 +485,11 @@ describe('QuestManager', () => {
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-      const result = questManager.updateTaskStatus('001-test', 'non-existent', 'complete');
+      const result = questManager.updateTaskStatus({
+        questFolder: '001-test',
+        taskId: 'non-existent',
+        status: 'complete',
+      });
 
       expect(result.success).toBe(false);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -506,12 +514,12 @@ describe('QuestManager', () => {
         data: [],
       });
 
-      const result = questManager.updatePhaseStatus(
-        '001-test',
-        'discovery',
-        'complete',
-        '001-pathseeker-report.json',
-      );
+      const result = questManager.updatePhaseStatus({
+        questFolder: '001-test',
+        phase: 'discovery',
+        status: 'complete',
+        reportFile: '001-pathseeker-report.json',
+      });
 
       expect(result.success).toBe(true);
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(

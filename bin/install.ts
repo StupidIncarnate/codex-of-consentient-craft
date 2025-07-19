@@ -3,6 +3,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
+import {
+  isError,
+  isPackageJson,
+  parseJsonSafely,
+  isClaudeSettings,
+  type PackageJson,
+  type ClaudeSettings,
+} from '../src/utils/type-guards';
+import { Logger } from '../src/utils/logger';
 
 // Directory and file constants
 const CONFIG_FILE = '.questmaestro';
@@ -69,8 +78,8 @@ const DEFAULT_ESLINT_CONFIG = {
   },
 };
 
-// Colors for console output
-const colors = {
+// Colors for console output (used only for type)
+const _colors = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
   green: '\x1b[32m',
@@ -79,10 +88,30 @@ const colors = {
   red: '\x1b[31m',
 } as const;
 
-type ColorKey = keyof typeof colors;
+type ColorKey = keyof typeof _colors;
+
+const logger = new Logger({ useColors: true, useIcons: false });
 
 function log(message: string, color: ColorKey = 'reset') {
-  console.log(`${colors[color]}${message}${colors.reset}`);
+  switch (color) {
+    case 'bright':
+      logger.bright(message);
+      break;
+    case 'green':
+      logger.green(message);
+      break;
+    case 'yellow':
+      logger.yellow(message);
+      break;
+    case 'blue':
+      logger.blue(message);
+      break;
+    case 'red':
+      logger.red(message);
+      break;
+    default:
+      logger.info(message);
+  }
 }
 
 function ensureDirectoryExists(dir: string) {
@@ -120,13 +149,14 @@ function installEslint() {
     const packageJson = getPackageJson();
     if (!packageJson.scripts) packageJson.scripts = {};
     if (!packageJson.scripts.lint) {
-      packageJson.scripts.lint = 'eslint . --ext .js,.ts,.jsx,.tsx';
+      packageJson.scripts.lint = 'eslint .';
       fs.writeFileSync(PACKAGE_JSON, JSON.stringify(packageJson, null, 2));
       packageJsonCache = null; // Clear cache after modification
       log('    ✓ Added lint script to package.json', 'green');
     }
   } catch (error) {
-    log(`    ❌ Failed to install ESLint: ${(error as Error).message}`, 'red');
+    const message = isError(error) ? error.message : String(error);
+    log(`    ❌ Failed to install ESLint: ${message}`, 'red');
     throw new Error('ESLint installation failed');
   }
 }
@@ -193,22 +223,15 @@ function installClaudeCommands() {
   }
 }
 
-interface ClaudeSettings {
-  tools?: {
-    Write?: {
-      allowed_paths?: string[];
-    };
-  };
-}
-
 function updateClaudeSettings() {
   log('\n🔧 Updating Claude Settings...', 'bright');
 
   let settings: ClaudeSettings = {};
   if (fs.existsSync(CLAUDE_SETTINGS_FILE)) {
-    try {
-      settings = JSON.parse(fs.readFileSync(CLAUDE_SETTINGS_FILE, 'utf8'));
-    } catch (_error) {
+    const parsed = parseJsonSafely(fs.readFileSync(CLAUDE_SETTINGS_FILE, 'utf8'), isClaudeSettings);
+    if (parsed) {
+      settings = parsed;
+    } else {
       log('  ⚠️  Invalid settings.local.json, creating new', 'yellow');
     }
   }
@@ -280,13 +303,6 @@ function printInstructions() {
   log('  questmaestro start auth');
 }
 
-interface PackageJson {
-  scripts?: Record<string, string>;
-  eslintConfig?: Record<string, unknown>;
-  jest?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
 // Cache for package.json to avoid multiple reads
 let packageJsonCache: PackageJson | null = null;
 
@@ -295,7 +311,12 @@ function getPackageJson() {
     if (!fs.existsSync(PACKAGE_JSON)) {
       throw new Error('No package.json found! Questmaestro requires a Node.js project.');
     }
-    packageJsonCache = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')) as PackageJson;
+    const content = fs.readFileSync(PACKAGE_JSON, 'utf8');
+    const parsed = parseJsonSafely(content, isPackageJson);
+    if (!parsed) {
+      throw new Error('Invalid package.json format');
+    }
+    packageJsonCache = parsed;
   }
   return packageJsonCache;
 }
@@ -375,9 +396,9 @@ export function main() {
     printInstructions();
 
     log('\n✨ May your quests be swift and your builds always green! ✨\n', 'bright');
-  } catch (_error) {
-    const error = _error as Error;
-    log(`\nError during setup: ${error.message}`, 'red');
+  } catch (_error: unknown) {
+    const message = isError(_error) ? _error.message : String(_error);
+    log(`\nError during setup: ${message}`, 'red');
     process.exit(1);
   }
 }

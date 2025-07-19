@@ -9,7 +9,7 @@ import { FileSystem } from './core/file-system';
 import { Logger } from './utils/logger';
 import { AgentSpawner } from './agents/agent-spawner';
 import type { Quest } from './models/quest';
-import type { PathseekerTask } from './models/agent';
+import { isError, isPackageJson, parseJsonSafely, isObject } from './utils/type-guards';
 
 const logger = new Logger();
 const fileSystem = new FileSystem();
@@ -44,8 +44,8 @@ async function main() {
 
     // Execute command
     await command.handler(command.args);
-  } catch (error) {
-    logger.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+  } catch (error: unknown) {
+    logger.error(`Error: ${isError(error) ? error.message : String(error)}`);
     process.exit(1);
   }
 }
@@ -322,9 +322,9 @@ async function runPathseeker(quest: Quest, agentSpawner: AgentSpawner) {
 
   // Update quest with tasks from Pathseeker
   if (result.agentType === 'pathseeker' && result.report) {
-    const pathseekerReport = result.report as { tasks?: PathseekerTask[] };
-    if (pathseekerReport.tasks) {
-      questManager.addTasks(quest.folder, pathseekerReport.tasks);
+    const report = result.report;
+    if (isObject(report) && 'tasks' in report && Array.isArray(report.tasks)) {
+      questManager.addTasks(quest.folder, report.tasks);
     }
   }
 
@@ -430,7 +430,7 @@ function runWardAll(): boolean {
     execSync('npm run ward:all', { stdio: 'pipe' });
     return true;
   } catch (error) {
-    logger.error(`Ward failed: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(`Ward failed: ${isError(error) ? error.message : String(error)}`);
     return false;
   }
 }
@@ -454,7 +454,6 @@ async function handleWardFailure(quest: Quest, errors: string, agentSpawner: Age
   if (!wardCheck) {
     logger.error('Spiritmender could not fix all errors');
     quest.status = 'blocked';
-    // quest.blockReason = 'ward_validation_failed';
     questManager.saveQuest(quest);
     throw new Error('Quest blocked: Ward validation failed');
   }
@@ -466,10 +465,12 @@ function detectTestFramework(): string {
   // Simple detection based on package.json
   try {
     const packageJsonContent = fs.readFileSync('package.json', 'utf8');
-    const packageJson = JSON.parse(packageJsonContent) as {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
+    const packageJson = parseJsonSafely(packageJsonContent, isPackageJson);
+
+    if (!packageJson) {
+      return 'jest'; // default if parsing fails
+    }
+
     const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
 
     if (deps.jest) return 'jest';
@@ -486,9 +487,12 @@ function detectTestFramework(): string {
 function getWardCommands(): string {
   try {
     const packageJsonContent = fs.readFileSync('package.json', 'utf8');
-    const packageJson = JSON.parse(packageJsonContent) as {
-      scripts?: Record<string, string>;
-    };
+    const packageJson = parseJsonSafely(packageJsonContent, isPackageJson);
+
+    if (!packageJson) {
+      return 'npm run lint && npm run typecheck && npm run test';
+    }
+
     const scripts = packageJson.scripts || {};
 
     return (

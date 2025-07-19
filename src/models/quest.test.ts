@@ -13,19 +13,23 @@ describe('quest model', () => {
     it('should create a new quest with default values', () => {
       const quest = createQuest('add-auth', '001-add-auth', 'Add Authentication');
 
-      expect(quest.id).toBe('add-auth');
-      expect(quest.folder).toBe('001-add-auth');
-      expect(quest.title).toBe('Add Authentication');
-      expect(quest.status).toBe('in_progress');
-      expect(quest.createdAt).toBeDefined();
-      expect(quest.updatedAt).toBe(quest.createdAt);
-      expect(quest.phases.discovery.status).toBe('pending');
-      expect(quest.phases.implementation.status).toBe('pending');
-      expect(quest.phases.testing.status).toBe('pending');
-      expect(quest.phases.review.status).toBe('pending');
-      expect(quest.executionLog).toEqual([]);
-      expect(quest.tasks).toEqual([]);
-      expect(quest.userRequest).toBeUndefined();
+      expect(quest).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: expect.any(String),
+        updatedAt: quest.createdAt,
+        userRequest: undefined,
+        phases: {
+          discovery: { status: 'pending' },
+          implementation: { status: 'pending' },
+          testing: { status: 'pending' },
+          review: { status: 'pending' },
+        },
+        tasks: [],
+        executionLog: [],
+      });
     });
 
     it('should include user request when provided', () => {
@@ -258,13 +262,15 @@ describe('quest model', () => {
 
       const entry = toTrackerEntry(quest);
 
-      expect(entry.id).toBe('add-auth');
-      expect(entry.folder).toBe('001-add-auth');
-      expect(entry.title).toBe('Add Authentication');
-      expect(entry.status).toBe('in_progress');
-      expect(entry.createdAt).toBe(quest.createdAt);
-      expect(entry.currentPhase).toBe('implementation');
-      expect(entry.taskProgress).toBe('1/3');
+      expect(entry).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: quest.createdAt,
+        currentPhase: 'implementation',
+        taskProgress: '1/3',
+      });
     });
 
     it('should handle completed quest', () => {
@@ -277,8 +283,15 @@ describe('quest model', () => {
 
       const entry = toTrackerEntry(quest);
 
-      expect(entry.status).toBe('complete');
-      expect(entry.currentPhase).toBeUndefined();
+      expect(entry).toStrictEqual({
+        id: 'test',
+        folder: '001-test',
+        title: 'Test',
+        status: 'complete',
+        createdAt: quest.createdAt,
+        currentPhase: undefined,
+        taskProgress: '0/0',
+      });
     });
   });
 

@@ -120,9 +120,11 @@ describe('ConfigManager', () => {
 
       const config = configManager.loadConfig('/test/dir');
 
-      expect(config).toEqual({
+      expect(config).toStrictEqual({
         questFolder: DEFAULT_CONFIG.questFolder, // From defaults
         discoveryComplete: true, // From file
+        wardCommands: undefined,
+        project: undefined,
       });
     });
   });
@@ -327,7 +329,7 @@ describe('ConfigManager', () => {
 
       const result = configManager.getWardCommands('/test/dir');
 
-      expect(result).toEqual({});
+      expect(result).toStrictEqual({});
     });
   });
 
@@ -423,9 +425,13 @@ describe('ConfigManager', () => {
 
       const result = configManager.findNearestConfig('/test/dir/sub');
 
-      expect(result).toEqual({
+      expect(result).toStrictEqual({
         directory: path.resolve('/test/dir/sub'),
-        config: mockConfig,
+        config: {
+          ...mockConfig,
+          wardCommands: undefined,
+          project: undefined,
+        },
       });
     });
 
@@ -444,9 +450,13 @@ describe('ConfigManager', () => {
 
       const result = configManager.findNearestConfig('/test/dir/sub');
 
-      expect(result).toEqual({
+      expect(result).toStrictEqual({
         directory: path.resolve('/test/dir'),
-        config: mockConfig,
+        config: {
+          ...mockConfig,
+          wardCommands: undefined,
+          project: undefined,
+        },
       });
     });
 

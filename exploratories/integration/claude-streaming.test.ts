@@ -23,7 +23,7 @@ describe('Claude Streaming Test', () => {
     );
     
     expect(result.success).toBe(true);
-    expect(result.stdout).toBeTruthy();
+    expect(result.stdout.length).toBeGreaterThan(0);
     expect(result.stdout.toLowerCase()).toContain('hello');
   }, 30000);
 
@@ -32,7 +32,7 @@ describe('Claude Streaming Test', () => {
     const result = await runner.executeCommand('Say hello');
     
     expect(result.success).toBe(true);
-    expect(result.stdout).toBeTruthy();
+    expect(result.stdout.length).toBeGreaterThan(0);
     expect(result.stdout.toLowerCase()).toContain('hello');
   }, 30000);
 });
