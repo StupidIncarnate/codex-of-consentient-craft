@@ -3,7 +3,20 @@ import * as fs from 'fs';
 import { FileSystem } from './file-system';
 
 // Mock fs module
-jest.mock('fs');
+jest.mock('fs', () => {
+  const actual = jest.requireActual<typeof import('fs')>('fs');
+  return {
+    ...actual,
+    mkdirSync: jest.fn(),
+    statSync: jest.fn(),
+    readdirSync: jest.fn(),
+    readFileSync: jest.fn(),
+    writeFileSync: jest.fn(),
+    existsSync: jest.fn(),
+    renameSync: jest.fn(),
+    rmSync: jest.fn(),
+  };
+});
 
 // Get mocked functions
 const mockFs = jest.mocked(fs);
@@ -519,6 +532,276 @@ describe('FileSystem', () => {
       const exists = fileSystem.fileExists('/path/to/file.txt');
 
       expect(exists).toBe(false);
+    });
+  });
+
+  describe('directoryExists', () => {
+    it('should return true for existing directory', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.statSync.mockReturnValue(createMockStats({ isDirectory: true }));
+
+      const exists = fileSystem.directoryExists('/path/to/dir');
+
+      expect(exists).toBe(true);
+      expect(mockFs.existsSync).toHaveBeenCalledWith('/path/to/dir');
+      expect(mockFs.statSync).toHaveBeenCalledWith('/path/to/dir');
+    });
+
+    it('should return false for non-existent path', () => {
+      mockFs.existsSync.mockReturnValue(false);
+
+      const exists = fileSystem.directoryExists('/path/to/dir');
+
+      expect(exists).toBe(false);
+      expect(mockFs.statSync).not.toHaveBeenCalled();
+    });
+
+    it('should return false for file (not directory)', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.statSync.mockReturnValue(createMockStats({ isDirectory: false }));
+
+      const exists = fileSystem.directoryExists('/path/to/file.txt');
+
+      expect(exists).toBe(false);
+    });
+
+    it('should return false on stat error', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.statSync.mockImplementation(() => {
+        throw new Error('Permission denied');
+      });
+
+      const exists = fileSystem.directoryExists('/path/to/dir');
+
+      expect(exists).toBe(false);
+    });
+  });
+
+  describe('listFiles', () => {
+    it('should return list of files in directory', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.statSync.mockReturnValueOnce(createMockStats({ isDirectory: true }));
+      (mockFs.readdirSync as jest.Mock).mockReturnValue(['file1.txt', 'file2.js', 'subdir']);
+
+      // Mock stat calls for each item
+      mockFs.statSync
+        .mockReturnValueOnce(createMockStats({ isDirectory: false })) // file1.txt
+        .mockReturnValueOnce(createMockStats({ isDirectory: false })) // file2.js
+        .mockReturnValueOnce(createMockStats({ isDirectory: true })); // subdir
+
+      const files = fileSystem.listFiles('/path/to/dir');
+
+      expect(files).toEqual(['file1.txt', 'file2.js']);
+      expect(files).not.toContain('subdir');
+    });
+
+    it('should return empty array for non-existent directory', () => {
+      mockFs.existsSync.mockReturnValue(false);
+
+      const files = fileSystem.listFiles('/path/to/dir');
+
+      expect(files).toEqual([]);
+      expect(mockFs.readdirSync).not.toHaveBeenCalled();
+    });
+
+    it('should return empty array on read error', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.statSync.mockReturnValue(createMockStats({ isDirectory: true }));
+      mockFs.readdirSync.mockImplementation(() => {
+        throw new Error('Permission denied');
+      });
+
+      const files = fileSystem.listFiles('/path/to/dir');
+
+      expect(files).toEqual([]);
+    });
+  });
+
+  describe('cleanOldQuests', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2024-02-01'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should clean old completed and abandoned quests', () => {
+      const fileSystem = new FileSystem();
+
+      // Mock directory exists
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.statSync.mockReturnValue(createMockStats({ isDirectory: true }));
+
+      // Mock directory listings
+      (mockFs.readdirSync as jest.Mock)
+        .mockReturnValueOnce(['001-old-quest', '002-recent-quest']) // completed
+        .mockReturnValueOnce(['003-old-abandoned', '004-recent-abandoned']); // abandoned
+
+      // Mock quest.json reads
+      mockFs.readFileSync
+        .mockReturnValueOnce(JSON.stringify({ completedAt: '2024-01-01' })) // old completed
+        .mockReturnValueOnce(JSON.stringify({ completedAt: '2024-01-20' })) // recent completed
+        .mockReturnValueOnce(JSON.stringify({ updatedAt: '2023-12-01' })) // old abandoned
+        .mockReturnValueOnce(JSON.stringify({ updatedAt: '2024-01-25' })); // recent abandoned
+
+      // Clear previous rmSync calls
+      mockFs.rmSync.mockClear();
+
+      const result = fileSystem.cleanOldQuests();
+
+      expect(result).toEqual({ completed: 1, abandoned: 1 });
+      expect(mockFs.rmSync).toHaveBeenCalledTimes(2);
+      expect(mockFs.rmSync).toHaveBeenCalledWith(expect.stringContaining('001-old-quest'), {
+        recursive: true,
+      });
+      expect(mockFs.rmSync).toHaveBeenCalledWith(expect.stringContaining('003-old-abandoned'), {
+        recursive: true,
+      });
+    });
+
+    it('should handle missing directories gracefully', () => {
+      const fileSystem = new FileSystem();
+
+      mockFs.existsSync.mockReturnValue(false);
+
+      const result = fileSystem.cleanOldQuests();
+
+      expect(result).toEqual({ completed: 0, abandoned: 0 });
+      expect(mockFs.readdirSync).not.toHaveBeenCalled();
+    });
+
+    it('should skip quests with parse errors', () => {
+      const fileSystem = new FileSystem();
+
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.statSync.mockReturnValue(createMockStats({ isDirectory: true }));
+      (mockFs.readdirSync as jest.Mock)
+        .mockReturnValueOnce(['001-corrupt-quest']) // completed
+        .mockReturnValueOnce([]); // abandoned
+      mockFs.readFileSync.mockReturnValueOnce('invalid json');
+
+      // Clear previous rmSync calls
+      mockFs.rmSync.mockClear();
+
+      const result = fileSystem.cleanOldQuests();
+
+      expect(result).toEqual({ completed: 0, abandoned: 0 });
+      expect(mockFs.rmSync).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findPackageJsons', () => {
+    beforeEach(() => {
+      // Reset all mocks before each test
+      jest.clearAllMocks();
+      jest.resetAllMocks();
+    });
+
+    it('should find package.json files recursively', () => {
+      const fileSystem = new FileSystem();
+
+      // Set up directory structure mocks
+      mockFs.existsSync.mockImplementation((path) => {
+        const pathStr = String(path);
+        return pathStr.includes('package.json') || !pathStr.includes('.');
+      });
+
+      (mockFs.readdirSync as jest.Mock)
+        .mockReturnValueOnce(['src', 'package.json', 'node_modules']) // root
+        .mockReturnValueOnce(['lib', 'package.json']) // src
+        .mockReturnValueOnce([]); // src/lib
+
+      mockFs.statSync.mockImplementation((path) => {
+        const pathStr = String(path);
+        if (pathStr.includes('package.json')) {
+          return createMockStats({ isDirectory: false });
+        }
+        return createMockStats({ isDirectory: true });
+      });
+
+      mockFs.readFileSync
+        .mockReturnValueOnce('{"name": "root-package"}')
+        .mockReturnValueOnce('{"name": "src-package"}');
+
+      const results = fileSystem.findPackageJsons('/test/project');
+
+      expect(results).toHaveLength(2);
+      expect(results[0]).toEqual({
+        dir: '/test/project',
+        packageJson: { name: 'root-package' },
+      });
+      expect(results[1]).toEqual({
+        dir: path.join('/test/project', 'src'),
+        packageJson: { name: 'src-package' },
+      });
+    });
+
+    it('should skip node_modules and hidden directories', () => {
+      const fileSystem = new FileSystem();
+
+      mockFs.existsSync.mockReturnValue(true);
+      (mockFs.readdirSync as jest.Mock).mockReturnValueOnce([
+        'src',
+        'node_modules',
+        '.git',
+        'dist',
+        'build',
+      ]);
+
+      mockFs.statSync.mockReturnValue(createMockStats({ isDirectory: true }));
+
+      const results = fileSystem.findPackageJsons('/test/project');
+
+      expect(results).toEqual([]);
+      // Should only check src directory, not the others
+      expect(mockFs.readdirSync).toHaveBeenCalledTimes(2); // root + src
+    });
+
+    it('should handle max depth limit', () => {
+      const fileSystem = new FileSystem();
+
+      // Create a deep directory structure
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.statSync.mockReturnValue(createMockStats({ isDirectory: true }));
+
+      // Mock 7 levels deep
+      for (let i = 0; i < 7; i++) {
+        (mockFs.readdirSync as jest.Mock).mockReturnValueOnce([`level${i + 1}`]);
+      }
+
+      const results = fileSystem.findPackageJsons('/test/project');
+
+      expect(results).toEqual([]);
+      // Should stop at depth 5 (6 calls: root + 5 levels)
+      expect(mockFs.readdirSync).toHaveBeenCalledTimes(6);
+    });
+
+    it('should handle read errors gracefully', () => {
+      const fileSystem = new FileSystem();
+
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readdirSync.mockImplementation(() => {
+        throw new Error('Permission denied');
+      });
+
+      const results = fileSystem.findPackageJsons('/test/project');
+
+      expect(results).toEqual([]);
+    });
+
+    it('should skip invalid package.json files', () => {
+      const fileSystem = new FileSystem();
+
+      mockFs.existsSync.mockImplementation((path) => String(path).includes('package.json'));
+      (mockFs.readdirSync as jest.Mock).mockReturnValueOnce(['package.json']);
+      mockFs.statSync.mockReturnValue(createMockStats({ isDirectory: false }));
+      mockFs.readFileSync.mockReturnValueOnce('invalid json');
+
+      const results = fileSystem.findPackageJsons('/test/project');
+
+      expect(results).toEqual([]);
     });
   });
 });

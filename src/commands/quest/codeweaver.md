@@ -179,43 +179,7 @@ If verification fails:
 - Re-run verification
 - Do NOT generate report until verification passes
 
-After ALL gates are complete AND all verification passes, output a structured report:
-
-```
-=== CODEWEAVER IMPLEMENTATION REPORT ===
-Quest: [quest-title]
-Component: [Service Name]
-Status: Complete
-Timestamp: [ISO timestamp]
-
-Files Created:
-- path/to/service.ts
-- path/to/service.test.ts
-
-Implementation Summary:
-- Methods: [number] public methods implemented
-- Key Features: [list main functionality]
-- Architecture: [pattern used, e.g., "Repository pattern"]
-
-Component Delivery:
-- Implementation: [functionality delivered]
-- Tests: [number] comprehensive tests
-- Test Technology: [framework used]
-- Coverage: [coverage achieved per project standards] (Siegemaster will verify completeness)
-
-Integration Points:
-- Exports: [what this service provides]
-- Dependencies: [what it needs from others]
-- Interfaces: [key interfaces exposed]
-
-Ward Status: [ACTUAL VERIFICATION RESULT - must show real terminal output]
-
-Technical Decisions:
-- [Key decision 1]: [Reasoning]
-- [Key decision 2]: [Reasoning]
-
-=== END REPORT ===
-```
+After ALL gates are complete AND all verification passes, write your JSON report file as described in the Output Instructions section.
 
 ## Important Rules
 
@@ -242,4 +206,72 @@ Technical Decisions:
 - Note what implementation approaches worked well, what was challenging, what could be improved
 - Highlight any development process insights or tooling improvements discovered
 
-Remember: You're part of a parallel workflow. Complete your component fully and output your report. The Questmaestro will coordinate all parallel work and update the quest file to prevent conflicts.
+Remember: You're part of a workflow. Complete your task fully and write your JSON report. The Questmaestro will coordinate all work and update the quest file to prevent conflicts.
+
+## Output Instructions
+
+When you have completed your work, write your final report as a JSON file using the Write tool.
+
+File path: questmaestro/active/[quest-folder]/[number]-codeweaver-report.json
+Example: questmaestro/active/01-add-authentication/002-codeweaver-report.json
+
+Use this code pattern:
+```javascript
+const report = {
+  "status": "complete", // or "blocked" or "error"
+  "blockReason": "if blocked, describe what you need",
+  "agentType": "codeweaver",
+  "taskId": "create-auth-service", // the task ID you were assigned
+  "report": {
+    "quest": "Add User Authentication",
+    "component": "CreateAuthService",
+    "filesCreated": [
+      "src/auth/auth-service.ts",
+      "src/auth/auth-service.test.ts"
+    ],
+    "filesModified": [
+      "src/types/index.ts"
+    ],
+    "implementationSummary": "Created authentication service with JWT handling, including methods for login, logout, and token validation.",
+    "technicalDecisions": [
+      "Used bcrypt for password hashing with 10 rounds",
+      "Implemented JWT with RS256 algorithm for better security",
+      "Created separate methods for access and refresh token handling"
+    ],
+    "integrationPoints": [
+      "Exports AuthService class for middleware consumption",
+      "Depends on UserRepository from database layer",
+      "Implements IAuthService interface for type safety"
+    ]
+  },
+  "retrospectiveNotes": [
+    {
+      "category": "what_worked_well",
+      "note": "Found clear patterns in existing services to follow"
+    },
+    {
+      "category": "challenges_encountered",
+      "note": "Had to research best practices for refresh token rotation"
+    }
+  ]
+};
+
+Write("questmaestro/active/[quest-folder]/[report-filename].json", JSON.stringify(report, null, 2));
+```
+
+This signals questmaestro that you have completed your work.
+
+## Spawning Sub-Agents
+
+If you determine that spawning sub-agents would be more efficient, you can spawn them using the Task tool. When you have multiple independent implementation pieces, spawn agents in parallel by using multiple Task invocations in a single message.
+
+When spawning sub-agents:
+- Give each a clear, focused implementation task
+- Provide necessary context (interfaces, patterns, requirements)
+- Collect and verify their results
+- Include their work in your final report
+
+You are responsible for:
+- Deciding when delegation is more efficient
+- Ensuring quality of delegated work
+- Running ward validation on all created files

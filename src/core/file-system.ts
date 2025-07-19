@@ -365,4 +365,130 @@ export class FileSystem {
   fileExists(filePath: string): boolean {
     return fs.existsSync(filePath);
   }
+
+  /**
+   * Check if directory exists
+   */
+  directoryExists(dirPath: string): boolean {
+    try {
+      return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * List files in directory
+   */
+  listFiles(dirPath: string): string[] {
+    try {
+      if (!this.directoryExists(dirPath)) {
+        return [];
+      }
+      return fs.readdirSync(dirPath).filter((item) => {
+        const fullPath = path.join(dirPath, item);
+        return fs.statSync(fullPath).isFile();
+      });
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Clean old quests
+   */
+  cleanOldQuests(basePath?: string): { completed: number; abandoned: number } {
+    const structure = this.getFolderStructure(basePath);
+    let completedCount = 0;
+    let abandonedCount = 0;
+
+    // Clean completed quests older than 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const cleanState = (state: 'completed' | 'abandoned') => {
+      const stateDir = structure[state];
+      if (!this.directoryExists(stateDir)) return 0;
+
+      let count = 0;
+      const folders = fs.readdirSync(stateDir);
+
+      for (const folder of folders) {
+        const questPath = path.join(stateDir, folder, 'quest.json');
+        if (this.fileExists(questPath)) {
+          try {
+            const questDataContent = fs.readFileSync(questPath, 'utf-8');
+            const questData = JSON.parse(questDataContent) as {
+              completedAt?: string;
+              updatedAt?: string;
+            };
+            const questDate = new Date(questData.completedAt || questData.updatedAt || new Date());
+
+            if (questDate < thirtyDaysAgo) {
+              const folderPath = path.join(stateDir, folder);
+              fs.rmSync(folderPath, { recursive: true });
+              count++;
+            }
+          } catch {
+            // Skip if can't parse
+          }
+        }
+      }
+
+      return count;
+    };
+
+    completedCount = cleanState('completed');
+    abandonedCount = cleanState('abandoned');
+
+    return { completed: completedCount, abandoned: abandonedCount };
+  }
+
+  /**
+   * Find package.json files
+   */
+  findPackageJsons(basePath: string = process.cwd()): Array<{ dir: string; packageJson: unknown }> {
+    const results: Array<{ dir: string; packageJson: unknown }> = [];
+
+    const searchDir = (dir: string, depth: number = 0) => {
+      if (depth > 5) return; // Max depth to prevent infinite recursion
+
+      const packagePath = path.join(dir, 'package.json');
+      if (this.fileExists(packagePath)) {
+        try {
+          const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
+          results.push({ dir, packageJson });
+        } catch {
+          // Skip if can't parse
+        }
+      }
+
+      // Search subdirectories
+      try {
+        const items = fs.readdirSync(dir);
+        for (const item of items) {
+          const fullPath = path.join(dir, item);
+          // Skip node_modules, hidden folders, and common build directories
+          if (
+            item === 'node_modules' ||
+            item.startsWith('.') ||
+            item === 'dist' ||
+            item === 'build' ||
+            item === 'out'
+          ) {
+            continue;
+          }
+
+          if (fs.statSync(fullPath).isDirectory()) {
+            searchDir(fullPath, depth + 1);
+          }
+        }
+      } catch {
+        // Skip if can't read directory
+      }
+    };
+
+    searchDir(basePath);
+    return results;
+  }
 }

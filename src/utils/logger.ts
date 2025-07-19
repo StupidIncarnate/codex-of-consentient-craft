@@ -309,6 +309,46 @@ export class Logger {
     this.clearLine();
     process.stdout.write(message);
   }
+
+  /**
+   * Log with bright formatting
+   */
+  bright(message: string) {
+    const formatted = this.format(message, Colors.bright);
+    console.log(formatted);
+  }
+
+  /**
+   * Log with blue color
+   */
+  blue(message: string) {
+    const formatted = this.format(message, Colors.blue);
+    console.log(formatted);
+  }
+
+  /**
+   * Log with yellow color
+   */
+  yellow(message: string) {
+    const formatted = this.format(message, Colors.yellow);
+    console.log(formatted);
+  }
+
+  /**
+   * Log with green color
+   */
+  green(message: string) {
+    const formatted = this.format(message, Colors.green);
+    console.log(formatted);
+  }
+
+  /**
+   * Log with red color
+   */
+  red(message: string) {
+    const formatted = this.format(message, Colors.red);
+    console.log(formatted);
+  }
 }
 
 /**

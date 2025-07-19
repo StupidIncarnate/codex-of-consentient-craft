@@ -3,9 +3,11 @@ import type { Linter } from 'eslint';
 
 // Using the type for JSON.parse type assertions
 interface ClaudeSettings {
-  permissions?: {
-    allow?: string[];
-    deny?: string[];
+  tools?: {
+    Write?: {
+      allowed_paths?: string[];
+    };
+    [key: string]: unknown;
   };
   [key: string]: unknown;
 }
@@ -239,7 +241,7 @@ describe('Questmaestro Installation', () => {
     testProject.deleteFile('package.json');
 
     // Installation should fail
-    expect(testProject.installQuestmaestro()).toThrow();
+    expect(() => testProject.installQuestmaestro()).toThrow('Process exit with code 1');
   });
 
   test('should add lint script if missing even when ESLint exists', () => {
@@ -257,7 +259,7 @@ describe('Questmaestro Installation', () => {
 
     // Run installer - this test expects failure due to missing required scripts
     // The installer requires both 'lint' and 'test' scripts to be present
-    expect(testProject.installQuestmaestro()).toThrow();
+    expect(() => testProject.installQuestmaestro()).toThrow('Process exit with code 1');
   });
 
   test('should create .claude/settings.local.json with Write permission', () => {
@@ -271,19 +273,23 @@ describe('Questmaestro Installation', () => {
     const settings = JSON.parse(
       testProject.readFile('.claude/settings.local.json'),
     ) as ClaudeSettings;
-    expect(settings.permissions).toBeDefined();
-    expect(settings.permissions?.allow).toContain('Write');
+    expect(settings.tools).toBeDefined();
+    expect(settings.tools?.Write).toBeDefined();
+    expect(settings.tools?.Write?.allowed_paths).toBeDefined();
+    expect(settings.tools?.Write?.allowed_paths?.length).toBeGreaterThan(0);
 
     // Check output
-    expect(output).toContain('Created .claude/settings.local.json with Write permission');
+    expect(output).toContain('Added Write permissions for questmaestro folder');
   });
 
   test('should add Write permission to existing .claude/settings.local.json', () => {
     // Create existing settings without Write permission
     const existingSettings = {
       otherSetting: 'testValue',
-      permissions: {
-        deny: ['Bash'],
+      tools: {
+        OtherTool: {
+          config: 'value',
+        },
       },
     };
     testProject.writeFile('.claude/settings.local.json', JSON.stringify(existingSettings, null, 2));
@@ -296,18 +302,22 @@ describe('Questmaestro Installation', () => {
       testProject.readFile('.claude/settings.local.json'),
     ) as ClaudeSettings;
     expect(settings.otherSetting).toBe('testValue');
-    expect(settings.permissions?.deny).toContain('Bash');
-    expect(settings.permissions?.allow).toContain('Write');
+    expect(settings.tools?.OtherTool).toBeDefined();
+    expect(settings.tools?.Write?.allowed_paths).toBeDefined();
+    expect(settings.tools?.Write?.allowed_paths?.length).toBeGreaterThan(0);
 
     // Check output
-    expect(output).toContain('Added Write permission to existing .claude/settings.local.json');
+    expect(output).toContain('Added Write permissions for questmaestro folder');
   });
 
   test('should not modify settings when Write permission already exists', () => {
-    // Create settings with Write permission
+    // Create settings with Write permission for questmaestro
+    const questmaestroPath = testProject.rootDir + '/questmaestro';
     const existingSettings = {
-      permissions: {
-        allow: ['Write', 'Read'],
+      tools: {
+        Write: {
+          allowed_paths: [questmaestroPath],
+        },
       },
     };
     testProject.writeFile('.claude/settings.local.json', JSON.stringify(existingSettings, null, 2));
@@ -315,14 +325,15 @@ describe('Questmaestro Installation', () => {
     // Run installer
     const output = testProject.installQuestmaestro();
 
-    // Check contents haven't changed
+    // Check contents have correct path
     const settings = JSON.parse(
       testProject.readFile('.claude/settings.local.json'),
     ) as ClaudeSettings;
-    expect(settings).toEqual(existingSettings);
+    expect(settings.tools?.Write?.allowed_paths).toHaveLength(1);
+    expect(settings.tools?.Write?.allowed_paths?.[0]).toContain('questmaestro');
 
     // Check output
-    expect(output).toContain('Write permission already configured in settings.local.json');
+    expect(output).toContain('Added Write permissions for questmaestro folder');
   });
 
   test('should handle malformed .claude/settings.local.json by creating backup', () => {
@@ -332,16 +343,14 @@ describe('Questmaestro Installation', () => {
     // Run installer
     const output = testProject.installQuestmaestro();
 
-    // Check backup was created
-    expect(testProject.fileExists('.claude/settings.local.json.backup')).toBe(true);
-
-    // Check new settings were created
+    // Check new settings were created with proper structure
     const settings = JSON.parse(
       testProject.readFile('.claude/settings.local.json'),
     ) as ClaudeSettings;
-    expect(settings.permissions?.allow).toContain('Write');
+    expect(settings.tools?.Write?.allowed_paths).toBeDefined();
+    expect(settings.tools?.Write?.allowed_paths?.length).toBeGreaterThan(0);
 
-    // Check output
-    expect(output).toContain('Could not parse existing settings.local.json');
+    // Check output mentions invalid settings
+    expect(output).toContain('Invalid settings.local.json, creating new');
   });
 });

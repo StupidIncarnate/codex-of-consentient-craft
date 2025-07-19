@@ -1,10 +1,10 @@
 {
-  "paths": {
-    "questFolder": "questmaestro"
-  },
-  "commands": {
-    "ward": "npm run lint -- $FILE && npm run test -- $FILE",
-    "ward:all": "npm run lint && npm run build && npm run test"
-  },
-  "features": {}
+  "questFolder": "questmaestro",
+  "discoveryComplete": false,
+  "wardCommands": {
+    "all": "npm run lint && npm run typecheck && npm run test",
+    "lint": "npm run lint",
+    "typecheck": "npm run typecheck",
+    "test": "npm test"
+  }
 }

@@ -99,54 +99,12 @@ TODO #4: VERIFY: All services follow consistent patterns
 2. Run `npm run ward [filename]` after each fix
 3. **Final Integration Check**: Run `npm run ward:all` to verify all components work together
 
-## Review Report
+## Review Process Completion
 
-After reviewing ALL implementations, output a structured report:
-
-```
-=== LAWBRINGER REVIEW REPORT ===
-Quest: [quest-title]
-Status: Complete
-Timestamp: [ISO timestamp]
-
-Services Reviewed:
-1. ServiceA
-   - Status: Fixed issues
-   - Issues Found: Inconsistent naming conventions
-   - Resolution: Updated to match project patterns
-   - Quality: Meets project standards
-
-2. ServiceB
-   - Status: Well-implemented
-   - Issues Found: None
-   - Quality: Meets project standards
-
-3. ServiceC
-   - Status: Fixed issues
-   - Issues Found: Inconsistent error handling
-   - Resolution: Aligned with project patterns
-   - Quality: Meets project standards
-
-Cross-Component Validation:
-- ✓ Consistent error handling patterns
-- ✓ Compatible service interfaces
-- ✓ Shared types used correctly
-- ✓ No duplicated logic found
-
-Code Quality Assessment:
-- ServiceA: Follows project patterns, clean implementation
-- ServiceB: Consistent with established conventions
-- ServiceC: Proper error handling and type safety
-
-Ward Status: [ACTUAL VERIFICATION RESULT - must show real terminal output]
-Full Integration Check: [ACTUAL npm run ward:all OUTPUT - must show real terminal output]
-
-Files Modified:
-- path/to/serviceA.ts (updated naming conventions)
-- path/to/serviceC.ts (aligned error handling)
-
-=== END REPORT ===
-```
+After reviewing ALL implementations and fixing any issues:
+1. Run final ward validation to ensure everything passes
+2. Document all changes made
+3. Write your JSON report file as described in the Output Instructions section
 
 ## Important Parallel Considerations
 
@@ -216,4 +174,70 @@ For EVERY production code file, verify:
 - Note what review approaches worked well, what quality issues were most common, what could be improved
 - Highlight any code review process insights or quality tooling improvements discovered
 
-Remember: You're the quality gate ensuring all parallel work integrates properly.
+Remember: You're the quality gate ensuring all work meets standards and integrates properly.
+
+## Output Instructions
+
+When you have completed your work, write your final report as a JSON file using the Write tool.
+
+File path: questmaestro/active/[quest-folder]/[number]-lawbringer-report.json
+Example: questmaestro/active/01-add-authentication/009-lawbringer-report.json
+
+Use this code pattern:
+```javascript
+const report = {
+  "status": "complete", // or "blocked" or "error"
+  "blockReason": "if blocked, describe what you need",
+  "agentType": "lawbringer",
+  "report": {
+    "quest": "Add User Authentication",
+    "filesReviewed": [
+      "src/auth/auth-service.ts",
+      "src/auth/auth-service.test.ts",
+      "src/auth/auth-middleware.ts"
+    ],
+    "filesModified": [
+      {
+        "file": "src/auth/auth-service.ts",
+        "reason": "Updated error handling to match project patterns"
+      },
+      {
+        "file": "src/auth/auth-middleware.ts",
+        "reason": "Fixed naming conventions"
+      }
+    ],
+    "standardsViolationsFixed": [
+      "Inconsistent error handling patterns",
+      "Non-standard naming conventions for constants",
+      "Missing type annotations"
+    ],
+    "wardValidationPassed": true,
+    "integrationIssuesFound": [],
+    "qualityAssessment": "All components meet project standards after fixes. Code is consistent, well-tested, and properly integrated."
+  },
+  "retrospectiveNotes": [
+    {
+      "category": "what_worked_well",
+      "note": "Clear project standards made review straightforward"
+    },
+    {
+      "category": "common_issues",
+      "note": "Multiple components had similar error handling inconsistencies"
+    }
+  ]
+};
+
+Write("questmaestro/active/[quest-folder]/[report-filename].json", JSON.stringify(report, null, 2));
+```
+
+This signals questmaestro that you have completed your work.
+
+## Spawning Sub-Agents
+
+If you find significant issues that need fixing, you can spawn Spiritmender using the Task tool to help fix specific problems while you continue reviewing other files.
+
+When spawning sub-agents:
+- Give them specific files and issues to fix
+- Continue reviewing other files in parallel
+- Collect their results and re-run ward validation
+- Include all fixes in your final report

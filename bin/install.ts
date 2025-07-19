@@ -5,12 +5,13 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 
 // Directory and file constants
-const CLAUDE_DIR = '.claude';
-const COMMANDS_DIR = path.join(CLAUDE_DIR, 'commands');
 const CONFIG_FILE = '.questmaestro';
 const PACKAGE_JSON = 'package.json';
 const GITIGNORE_FILE = '.gitignore';
-const SETTINGS_FILE = 'settings.local.json';
+const CLAUDE_DIR = '.claude';
+const CLAUDE_COMMANDS_DIR = path.join(CLAUDE_DIR, 'commands');
+const CLAUDE_QUEST_COMMANDS_DIR = path.join(CLAUDE_COMMANDS_DIR, 'quest');
+const CLAUDE_SETTINGS_FILE = path.join(CLAUDE_DIR, 'settings.local.json');
 
 // Quest directory structure
 const QUEST_DIR = 'questmaestro';
@@ -20,6 +21,7 @@ const QUEST_SUBDIRS = {
   abandoned: 'abandoned',
   retros: 'retros',
   lore: 'lore',
+  discovery: 'discovery',
 } as const;
 
 // Gitignore entries
@@ -89,52 +91,21 @@ function ensureDirectoryExists(dir: string) {
   }
 }
 
-function copyCommands() {
-  const sourceDir = getTemplatePath('commands');
-  const targetDir = COMMANDS_DIR;
+function setupQuestmaestroDirectories() {
+  log('\n📁 Setting up Questmaestro directories...', 'bright');
 
-  log('\n⚔️  Installing Quest Commands...', 'bright');
-
-  // Ensure .claude/commands directory exists
-  ensureDirectoryExists(targetDir);
-
-  // Copy main questmaestro command
-  const questmaestroSrc = path.join(sourceDir, 'questmaestro.md');
-  const questmaestroDest = path.join(targetDir, 'questmaestro.md');
-  fs.copyFileSync(questmaestroSrc, questmaestroDest);
-  log('  ✓ Questmaestro (main orchestrator)', 'green');
-
-  // Copy quest sub-commands to quest/ subdirectory
-  const questSourceDir = path.join(sourceDir, 'quest');
-  const questTargetDir = path.join(targetDir, 'quest');
-
-  // Check if quest directory exists
-  if (!fs.existsSync(questSourceDir)) {
-    log(`  ❌ Quest directory not found: ${questSourceDir}`, 'red');
-    throw new Error(`Quest directory not found: ${questSourceDir}`);
-  }
-
-  // Create quest subdirectory in target
-  ensureDirectoryExists(questTargetDir);
-
-  const questFiles = fs.readdirSync(questSourceDir);
-
-  questFiles.forEach((file) => {
-    if (file.endsWith('.md')) {
-      const agentName = path.basename(file, '.md');
-      const srcPath = path.join(questSourceDir, file);
-      const destPath = path.join(questTargetDir, file);
-
-      // Verify source file exists
-      if (!fs.existsSync(srcPath)) {
-        log(`  ❌ Source file not found: ${srcPath}`, 'red');
-        throw new Error(`Source file not found: ${srcPath}`);
-      }
-
-      fs.copyFileSync(srcPath, destPath);
-      log(`  ✓ quest:${agentName}`, 'green');
-    }
+  // Create questmaestro directory structure
+  ensureDirectoryExists(QUEST_DIR);
+  Object.entries(QUEST_SUBDIRS).forEach(([_key, subdir]) => {
+    const dirPath = path.join(QUEST_DIR, subdir);
+    ensureDirectoryExists(dirPath);
+    log(`  ✓ Created ${dirPath}`, 'green');
   });
+
+  // Add discovery directory for Voidpoker
+  const discoveryDir = path.join(QUEST_DIR, 'discovery');
+  ensureDirectoryExists(discoveryDir);
+  log(`  ✓ Created ${discoveryDir}`, 'green');
 }
 
 function installEslint() {
@@ -157,57 +128,6 @@ function installEslint() {
   } catch (error) {
     log(`    ❌ Failed to install ESLint: ${(error as Error).message}`, 'red');
     throw new Error('ESLint installation failed');
-  }
-}
-
-interface ClaudeSettings {
-  permissions?: {
-    allow?: string[];
-  };
-  [key: string]: unknown;
-}
-
-function setupClaudeSettings() {
-  const settingsPath = path.join(CLAUDE_DIR, SETTINGS_FILE);
-
-  let settings: ClaudeSettings = {};
-  let settingsExisted = false;
-
-  // Read existing settings if file exists
-  if (fs.existsSync(settingsPath)) {
-    settingsExisted = true;
-    try {
-      const content = fs.readFileSync(settingsPath, 'utf8');
-      settings = JSON.parse(content) as ClaudeSettings;
-    } catch (_error) {
-      log(`  ⚠️  Could not parse existing settings.local.json, creating backup...`, 'yellow');
-      fs.copyFileSync(settingsPath, settingsPath + '.backup');
-      settings = {};
-    }
-  }
-
-  // Ensure permissions structure exists
-  if (!settings.permissions) {
-    settings.permissions = {};
-  }
-  if (!settings.permissions.allow) {
-    settings.permissions.allow = [];
-  }
-
-  // Check if Write permission already exists
-  if (!settings.permissions.allow.includes('Write')) {
-    settings.permissions.allow.push('Write');
-
-    // Write updated settings
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
-
-    if (settingsExisted) {
-      log('  ✓ Added Write permission to existing .claude/settings.local.json', 'green');
-    } else {
-      log('  ✓ Created .claude/settings.local.json with Write permission', 'green');
-    }
-  } else {
-    log('  ⚠️  Write permission already configured in settings.local.json', 'yellow');
   }
 }
 
@@ -238,6 +158,75 @@ function updateGitignore() {
   }
 }
 
+function installClaudeCommands() {
+  log('\n🔮 Installing Claude Commands...', 'bright');
+
+  // Check if .claude directory exists
+  if (!fs.existsSync(CLAUDE_DIR)) {
+    throw new Error('No .claude directory found! Please make sure you have Claude installed.');
+  }
+
+  // Create commands directories
+  ensureDirectoryExists(CLAUDE_COMMANDS_DIR);
+  ensureDirectoryExists(CLAUDE_QUEST_COMMANDS_DIR);
+
+  // Copy main questmaestro command
+  const mainCommandSrc = getTemplatePath('commands/questmaestro.md');
+  const mainCommandDest = path.join(CLAUDE_COMMANDS_DIR, 'questmaestro.md');
+  fs.copyFileSync(mainCommandSrc, mainCommandDest);
+  log('  ✓ Installed /questmaestro command', 'green');
+
+  // Copy agent commands
+  const agentCommands = [
+    'pathseeker',
+    'codeweaver',
+    'lawbringer',
+    'siegemaster',
+    'spiritmender',
+    'voidpoker',
+  ];
+  for (const agent of agentCommands) {
+    const src = getTemplatePath(`commands/quest/${agent}.md`);
+    const dest = path.join(CLAUDE_QUEST_COMMANDS_DIR, `${agent}.md`);
+    fs.copyFileSync(src, dest);
+    log(`  ✓ Installed /quest/${agent} command`, 'green');
+  }
+}
+
+interface ClaudeSettings {
+  tools?: {
+    Write?: {
+      allowed_paths?: string[];
+    };
+  };
+}
+
+function updateClaudeSettings() {
+  log('\n🔧 Updating Claude Settings...', 'bright');
+
+  let settings: ClaudeSettings = {};
+  if (fs.existsSync(CLAUDE_SETTINGS_FILE)) {
+    try {
+      settings = JSON.parse(fs.readFileSync(CLAUDE_SETTINGS_FILE, 'utf8'));
+    } catch (_error) {
+      log('  ⚠️  Invalid settings.local.json, creating new', 'yellow');
+    }
+  }
+
+  // Add Write permission for questmaestro
+  if (!settings.tools) settings.tools = {};
+  if (!settings.tools.Write) settings.tools.Write = {};
+  if (!settings.tools.Write.allowed_paths) settings.tools.Write.allowed_paths = [];
+
+  const questmaestroPath = path.resolve(QUEST_DIR);
+  if (!settings.tools.Write.allowed_paths.includes(questmaestroPath)) {
+    settings.tools.Write.allowed_paths.push(questmaestroPath);
+  }
+
+  fs.writeFileSync(CLAUDE_SETTINGS_FILE, JSON.stringify(settings, null, 2));
+  log('  ✓ Added Write permissions for questmaestro folder', 'green');
+}
+
 function createConfig() {
   log('\n📜 Creating Configuration...', 'bright');
 
@@ -250,13 +239,6 @@ function createConfig() {
     log('  ✓ Created .questmaestro config file', 'green');
   }
 
-  // Create questmaestro directory structure
-  ensureDirectoryExists(QUEST_DIR);
-  Object.values(QUEST_SUBDIRS).forEach((subdir) => {
-    ensureDirectoryExists(path.join(QUEST_DIR, subdir));
-  });
-  log('  ✓ Created questmaestro directory structure', 'green');
-
   // Add lore categories guide
   const loreCategoriesPath = path.join(QUEST_DIR, QUEST_SUBDIRS.lore, 'README.md');
   if (!fs.existsSync(loreCategoriesPath)) {
@@ -267,32 +249,35 @@ function createConfig() {
 
   // Add gitignore entries for local quest folders
   updateGitignore();
-
-  // Set up Claude settings for Write tool permission
-  setupClaudeSettings();
 }
 
 function printInstructions() {
   log('\n🏰 Quest System Installed!', 'bright');
   log('\nAvailable Commands:', 'blue');
-  log('  /questmaestro              - Main orchestrator');
-  log('  /questmaestro <task>       - Work on specific task');
-  log('  /quest:pathseeker <task>   - Map dependencies & discover paths');
-  log('  /quest:codeweaver <task>   - Implement services');
-  log('  /quest:lawbringer <task>   - Review code quality');
-  log('  /quest:siegemaster <task>  - Create integration tests');
-  log('  /quest:spiritmender <task> - Fix build errors');
-  log('  /quest:taskweaver <task>   - Generate task definitions');
+  log('  /questmaestro    - Launch quest mode');
+  log('  /quest/pathseeker - Discovery agent');
+  log('  /quest/codeweaver - Implementation agent');
+  log('  /quest/lawbringer - Testing agent');
+  log('  /quest/siegemaster - Build/execution agent');
+  log('  /quest/spiritmender - Bug fixing agent');
+  log('  /quest/voidpoker - Deep research agent');
+  log('\nThe Questmaestro CLI is now available:', 'blue');
+  log('  questmaestro               - Resume active quest or create new');
+  log('  questmaestro list          - See all your quests');
+  log('  questmaestro <task>        - Create new quest or work on existing');
+  log('  questmaestro abandon       - Abandon current quest');
+  log('  questmaestro start <name>  - Jump to specific quest');
+  log('  questmaestro clean         - Remove old completed/abandoned quests');
 
   log('\n📚 Next Steps:', 'yellow');
   log('  1. Edit .questmaestro to configure for your project');
-  log('  2. Start questing with /questmaestro <task-description>');
+  log('  2. Start your first quest with: questmaestro <task-description>');
 
   log('\n⚡ Quick Examples:', 'bright');
-  log('  /questmaestro              - Work on next quest');
-  log('  /questmaestro list         - See all your quests');
-  log('  /questmaestro fix login    - Create new quest or work on existing');
-  log('  /questmaestro start auth   - Jump to specific quest');
+  log('  questmaestro "add user authentication"');
+  log('  questmaestro "fix login bug"');
+  log('  questmaestro list');
+  log('  questmaestro start auth');
 }
 
 interface PackageJson {
@@ -341,13 +326,16 @@ function validateProject() {
   if (!hasEslintFile && !hasEslintInPackage) {
     log('  ⚠️  No ESLint configuration found, installing...', 'yellow');
     installEslint();
+    // Reload package.json after ESLint installation
+    packageJsonCache = null;
   } else {
     log('  ✓ ESLint configuration found', 'green');
   }
 
-  // Check for Jest configuration
+  // Check for Jest configuration (reload package.json in case it was modified)
+  const currentPackageJson1 = getPackageJson();
   const hasJestFile = JEST_CONFIG_FILES.some((file) => fs.existsSync(file));
-  const hasJestInPackage = packageJson.jest !== undefined;
+  const hasJestInPackage = currentPackageJson1.jest !== undefined;
 
   if (!hasJestFile && !hasJestInPackage) {
     throw new Error(
@@ -356,8 +344,9 @@ function validateProject() {
   }
   log('  ✓ Jest configuration found', 'green');
 
-  // Check for required scripts
-  const scripts = packageJson.scripts || {};
+  // Check for required scripts (reload package.json in case it was modified)
+  const currentPackageJson = getPackageJson();
+  const scripts = currentPackageJson.scripts || {};
   const requiredScripts = ['lint', 'test'];
   const missingScripts = requiredScripts.filter((script) => !scripts[script]);
 
@@ -369,27 +358,26 @@ function validateProject() {
 
 export function main() {
   log('🗡️  Questmaestro Installation', 'bright');
-  log('================================\n', 'bright');
+  log('========================\n', 'bright');
 
   try {
-    // Check if we're in a directory with .claude
-    if (!fs.existsSync(CLAUDE_DIR)) {
-      log('Error: No .claude directory found!', 'red');
-      log('Please run this from a directory with Claude configured.', 'red');
-      process.exit(1);
-    }
+    // Clear cache to ensure fresh reads
+    packageJsonCache = null;
 
     // Validate project requirements
     validateProject();
 
-    copyCommands();
+    // Setup directories and configuration
+    setupQuestmaestroDirectories();
     createConfig();
+    installClaudeCommands();
+    updateClaudeSettings();
     printInstructions();
 
     log('\n✨ May your quests be swift and your builds always green! ✨\n', 'bright');
   } catch (_error) {
     const error = _error as Error;
-    log(`\nError during installation: ${error.message}`, 'red');
+    log(`\nError during setup: ${error.message}`, 'red');
     process.exit(1);
   }
 }

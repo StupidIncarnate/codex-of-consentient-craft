@@ -181,7 +181,7 @@ describe('QuestManager', () => {
 
       const result = questManager.saveQuest(quest);
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
       expect(quest.updatedAt).toBeDefined();
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(
         '/test/questmaestro/active/001-test/quest.json',
@@ -202,7 +202,7 @@ describe('QuestManager', () => {
 
       const result = questManager.saveQuest(quest);
 
-      expect(result).toBe(false);
+      expect(result.success).toBe(false);
     });
   });
 
@@ -222,7 +222,8 @@ describe('QuestManager', () => {
 
       const result = questManager.updateQuestStatus('001-test', 'complete');
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.data?.status).toBe('complete');
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -240,7 +241,7 @@ describe('QuestManager', () => {
 
       const result = questManager.updateQuestStatus('001-test', 'complete');
 
-      expect(result).toBe(false);
+      expect(result.success).toBe(false);
     });
   });
 
@@ -280,7 +281,7 @@ describe('QuestManager', () => {
 
       const result = questManager.addTasks('001-test', tasks);
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -321,7 +322,7 @@ describe('QuestManager', () => {
 
       const result = questManager.addTasks('001-test', tasks);
 
-      expect(result).toBe(false);
+      expect(result.success).toBe(false);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('depends on non-existent task'),
       );
@@ -361,7 +362,7 @@ describe('QuestManager', () => {
 
       const result = questManager.addTasks('001-test', tasks);
 
-      expect(result).toBe(false);
+      expect(result.success).toBe(false);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Circular dependency detected'),
       );
@@ -403,7 +404,7 @@ describe('QuestManager', () => {
         '002-codeweaver-report.json',
       );
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -456,7 +457,7 @@ describe('QuestManager', () => {
 
       const result = questManager.updateTaskStatus('001-test', 'task2', 'complete');
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -482,7 +483,7 @@ describe('QuestManager', () => {
 
       const result = questManager.updateTaskStatus('001-test', 'non-existent', 'complete');
 
-      expect(result).toBe(false);
+      expect(result.success).toBe(false);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Task non-existent not found'),
       );
@@ -512,7 +513,7 @@ describe('QuestManager', () => {
         '001-pathseeker-report.json',
       );
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -547,7 +548,7 @@ describe('QuestManager', () => {
         agentType: 'pathseeker',
       });
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -652,7 +653,7 @@ describe('QuestManager', () => {
 
       const result = questManager.moveQuest('001-test', 'active', 'completed');
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
       expect(mockFileSystem.moveQuest).toHaveBeenCalledWith(
         '001-test',
         'active',
@@ -682,7 +683,7 @@ describe('QuestManager', () => {
 
       const result = questManager.abandonQuest('001-test', 'Requirements changed');
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
       expect(mockFileSystem.writeJson).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -817,6 +818,347 @@ describe('QuestManager', () => {
       expect(result.canProceed).toBe(false);
       expect(result.currentPhase).toBeNull();
       expect(result.nextPhase).toBeNull();
+    });
+  });
+
+  describe('getAllQuests', () => {
+    it('should return all quests from all states sorted by date', () => {
+      const quest1 = createQuest('test1', '001-test1', 'Test Quest 1');
+      quest1.createdAt = '2024-01-01T00:00:00Z';
+      quest1.status = 'in_progress';
+
+      const quest2 = createQuest('test2', '002-test2', 'Test Quest 2');
+      quest2.createdAt = '2024-01-02T00:00:00Z';
+      quest2.status = 'complete';
+
+      const quest3 = createQuest('test3', '003-test3', 'Test Quest 3');
+      quest3.createdAt = '2024-01-03T00:00:00Z';
+      quest3.status = 'abandoned';
+
+      mockFileSystem.listQuests
+        .mockReturnValueOnce({ success: true, data: ['001-test1'] }) // active
+        .mockReturnValueOnce({ success: true, data: ['002-test2'] }) // completed
+        .mockReturnValueOnce({ success: true, data: ['003-test3'] }); // abandoned
+
+      mockFileSystem.readJson
+        .mockReturnValueOnce({ success: true, data: quest1 })
+        .mockReturnValueOnce({ success: true, data: quest2 })
+        .mockReturnValueOnce({ success: true, data: quest3 });
+
+      const result = questManager.getAllQuests();
+
+      expect(result).toHaveLength(3);
+      expect(result[0].id).toBe('test3'); // Newest first
+      expect(result[1].id).toBe('test2');
+      expect(result[2].id).toBe('test1');
+    });
+
+    it('should handle empty results gracefully', () => {
+      mockFileSystem.listQuests.mockReturnValue({ success: false });
+
+      const result = questManager.getAllQuests();
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getQuest', () => {
+    it('should return quest by folder name', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+
+      mockFileSystem.readJson.mockReturnValue({
+        success: true,
+        data: quest,
+      });
+
+      const result = questManager.getQuest('001-test');
+
+      expect(result).toEqual(quest);
+    });
+
+    it('should return null if quest not found', () => {
+      mockFileSystem.readJson.mockReturnValue({
+        success: false,
+        error: 'Not found',
+      });
+
+      const result = questManager.getQuest('001-test');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getNextReportNumber', () => {
+    it('should return next report number based on existing files', () => {
+      mockFileSystem.directoryExists = jest.fn().mockReturnValue(true);
+      mockFileSystem.listFiles = jest.fn().mockReturnValue([
+        '001-pathseeker-report.json',
+        '002-codeweaver-report.json',
+        '003-siegemaster-report.json',
+        'quest.json', // Should be ignored
+        'notes.txt', // Should be ignored
+      ]);
+
+      const result = questManager.getNextReportNumber('001-test');
+
+      expect(result).toBe('004');
+    });
+
+    it('should return 001 if no report files exist', () => {
+      mockFileSystem.directoryExists = jest.fn().mockReturnValue(true);
+      mockFileSystem.listFiles = jest.fn().mockReturnValue(['quest.json']);
+
+      const result = questManager.getNextReportNumber('001-test');
+
+      expect(result).toBe('001');
+    });
+
+    it('should return 001 if directory does not exist', () => {
+      mockFileSystem.directoryExists = jest.fn().mockReturnValue(false);
+
+      const result = questManager.getNextReportNumber('001-test');
+
+      expect(result).toBe('001');
+    });
+  });
+
+  describe('completeQuest', () => {
+    it('should complete quest and move to completed folder', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+
+      mockFileSystem.readJson.mockReturnValue({
+        success: true,
+        data: quest,
+      });
+      mockFileSystem.writeJson.mockReturnValue({ success: true });
+      mockFileSystem.moveQuest.mockReturnValue({
+        success: true,
+        data: '/test/questmaestro/completed/001-test',
+      });
+      mockFileSystem.listQuests.mockReturnValue({
+        success: true,
+        data: [],
+      });
+
+      const result = questManager.completeQuest('001-test');
+
+      expect(result.success).toBe(true);
+      expect(result.data?.status).toBe('complete');
+      expect(result.data?.completedAt).toBeDefined();
+      expect(mockFileSystem.moveQuest).toHaveBeenCalledWith(
+        '001-test',
+        'active',
+        'completed',
+        undefined,
+      );
+    });
+
+    it('should handle update failure', () => {
+      mockFileSystem.readJson.mockReturnValue({
+        success: false,
+        error: 'Not found',
+      });
+
+      const result = questManager.completeQuest('001-test');
+
+      expect(result.success).toBe(false);
+    });
+
+    it('should handle move failure', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+
+      mockFileSystem.readJson.mockReturnValue({
+        success: true,
+        data: quest,
+      });
+      mockFileSystem.writeJson.mockReturnValue({ success: true });
+      mockFileSystem.moveQuest.mockReturnValue({
+        success: false,
+        error: 'Permission denied',
+      });
+      mockFileSystem.listQuests.mockReturnValue({
+        success: true,
+        data: [],
+      });
+
+      const result = questManager.completeQuest('001-test');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Permission denied');
+    });
+  });
+
+  describe('isQuestComplete', () => {
+    it('should return true if status is complete', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+      quest.status = 'complete';
+
+      const result = questManager.isQuestComplete(quest);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if status is not in_progress', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+      quest.status = 'blocked';
+
+      const result = questManager.isQuestComplete(quest);
+
+      expect(result).toBe(false);
+    });
+
+    it('should check tasks and phases for in_progress quests', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+      quest.status = 'in_progress';
+      quest.tasks = [
+        {
+          id: 'task1',
+          name: 'Task1',
+          type: 'implementation',
+          description: 'Test',
+          dependencies: [],
+          filesToCreate: [],
+          filesToEdit: [],
+          status: 'complete',
+        },
+      ];
+      quest.phases.discovery.status = 'complete';
+      quest.phases.implementation.status = 'complete';
+      quest.phases.testing.status = 'complete';
+      quest.phases.review.status = 'complete';
+
+      const result = questManager.isQuestComplete(quest);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if any task is not complete', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+      quest.status = 'in_progress';
+      quest.tasks = [
+        {
+          id: 'task1',
+          name: 'Task1',
+          type: 'implementation',
+          description: 'Test',
+          dependencies: [],
+          filesToCreate: [],
+          filesToEdit: [],
+          status: 'pending',
+        },
+      ];
+
+      const result = questManager.isQuestComplete(quest);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if any phase is not complete', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+      quest.status = 'in_progress';
+      quest.tasks = [];
+      quest.phases.review.status = 'pending';
+
+      const result = questManager.isQuestComplete(quest);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('getCurrentPhase', () => {
+    it('should return current phase from quest', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+      quest.phases.discovery.status = 'complete';
+      quest.phases.implementation.status = 'in_progress';
+
+      const result = questManager.getCurrentPhase(quest);
+
+      expect(result).toBe('implementation');
+    });
+
+    it('should return null if all phases complete', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+      quest.phases.discovery.status = 'complete';
+      quest.phases.implementation.status = 'complete';
+      quest.phases.testing.status = 'complete';
+      quest.phases.review.status = 'complete';
+
+      const result = questManager.getCurrentPhase(quest);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getCreatedFiles', () => {
+    it('should return empty array for now', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+      quest.executionLog = [
+        {
+          report: '001-codeweaver-report.json',
+          timestamp: '2024-01-01T00:00:00Z',
+          agentType: 'codeweaver',
+        },
+      ];
+
+      mockFileSystem.readJson.mockReturnValue({
+        success: true,
+        data: quest,
+      });
+
+      const result = questManager.getCreatedFiles('001-test');
+
+      // Currently returns empty as we can't extract from report filename
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array if quest not found', () => {
+      mockFileSystem.readJson.mockReturnValue({
+        success: false,
+        error: 'Not found',
+      });
+
+      const result = questManager.getCreatedFiles('001-test');
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getChangedFiles', () => {
+    it('should return empty array for now', () => {
+      const quest = createQuest('test', '001-test', 'Test Quest');
+      quest.executionLog = [
+        {
+          report: '001-codeweaver-report.json',
+          timestamp: '2024-01-01T00:00:00Z',
+          agentType: 'codeweaver',
+        },
+        {
+          report: '002-spiritmender-report.json',
+          timestamp: '2024-01-01T00:00:00Z',
+          agentType: 'spiritmender',
+        },
+      ];
+
+      mockFileSystem.readJson.mockReturnValue({
+        success: true,
+        data: quest,
+      });
+
+      const result = questManager.getChangedFiles('001-test');
+
+      // Currently returns empty as we can't extract from report filename
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array if quest not found', () => {
+      mockFileSystem.readJson.mockReturnValue({
+        success: false,
+        error: 'Not found',
+      });
+
+      const result = questManager.getChangedFiles('001-test');
+
+      expect(result).toEqual([]);
     });
   });
 });

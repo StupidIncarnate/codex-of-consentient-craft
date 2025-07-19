@@ -159,57 +159,12 @@ For each project analyzed, you assess confidence in understanding:
 - **Low**: Limited or conflicting evidence
 - **Unknown**: Insufficient information
 
-## Discovery Report Structure
+## Discovery Process Completion
 
-After analysis, you output a structured report:
-
-```
-=== VOIDPOKER DISCOVERY REPORT ===
-Quest: [quest-title]
-Package Location: [path to package.json directory]
-Root Directory: [root path provided by Questmaestro]
-Location Type: [Monorepo Folder | Project Folder]
-Timestamp: [ISO timestamp]
-
-Context Analysis:
-- Current Directory: [package.json directory]
-- Nested Package.json Found: [yes/no - determines monorepo vs project]
-- Parent Package.json Files: [list from current to root, showing tech inheritance]
-- CLAUDE.md Hierarchy: [files found from current to root with standards]
-- User Provided Standards: [relevance assessment for this project]
-
-Project Analysis (if Project Folder):
-- Project Type: [frontend/backend/shared/tool/etc]
-- Technology Stack: [inherited and local dependencies]
-- Testing Infrastructure: [Jest, Cypress, etc.]
-- Test Patterns: [file naming, types discovered]
-- Documentation: [README, docs found]
-
-Standards Analysis:
-- Monorepo-Level Standards: [shared/inherited standards from parent directories]
-- Project-Specific Standards: [standards unique to this project]
-- User Standards Applied: [which user-provided paths are relevant]
-- Local Configuration: [ESLint, TypeScript, etc.]
-- Testing Standards: [coverage, conventions discovered]
-
-Confidence Assessment:
-- Project Context: [High/Medium/Low/Unknown] - [reasoning]
-- Technology Stack: [High/Medium/Low/Unknown] - [reasoning]
-- Testing Setup: [High/Medium/Low/Unknown] - [reasoning]
-- Standards Coverage: [High/Medium/Low/Unknown] - [reasoning]
-
-CLAUDE.md Actions:
-- File Path: [path to CLAUDE.md created/updated]
-- Standards Written: [comprehensive list]
-- Context Integration: [how user standards and hierarchy were integrated]
-
-Ward Command Actions:
-- Commands Found: [existing ward commands or "none"]
-- Commands Created: [ward and ward:all compositions]
-- Verification Status: [tested successfully or failures noted]
-
-=== END REPORT ===
-```
+After completing all phases:
+1. Create or update CLAUDE.md with comprehensive standards
+2. Implement ward commands if needed (for project folders)  
+3. Write your JSON report file as described in the Output Instructions section
 
 ## Important Guidelines
 
@@ -238,3 +193,94 @@ Ward Command Actions:
 - **ALWAYS include** `author: [agent-id]` at the top of each lore file
 
 Remember: You're the project detective - analyze thoroughly and write comprehensive standards so other agents can build effectively. The better your standards, the better the entire quest execution will be.
+
+## Output Instructions
+
+When you have completed your work, write your final report as a JSON file using the Write tool.
+
+File path: questmaestro/discovery/voidpoker-[timestamp]-[package-name]-report.json
+Example: questmaestro/discovery/voidpoker-2024-03-15T10-00-00-000Z-core-report.json
+
+Use this code pattern:
+```javascript
+const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+const packageName = "core"; // or whatever package you analyzed
+
+const report = {
+  "status": "complete", // or "blocked" or "error"
+  "blockReason": "if blocked, describe what you need",
+  "agentType": "voidpoker",
+  "report": {
+    "packageLocation": "/path/to/package",
+    "projectType": "backend", // frontend/backend/shared/tool/etc
+    "locationClassification": "project_folder", // or "monorepo_folder"
+    "technologyStack": {
+      "primary": ["node", "express", "typescript"],
+      "testing": ["jest", "supertest"],
+      "build": ["tsc", "webpack"]
+    },
+    "standardsDiscovered": {
+      "monorepoLevel": [
+        "Shared ESLint configuration at root",
+        "Global TypeScript settings"
+      ],
+      "projectSpecific": [
+        "Jest configuration for unit tests",
+        "Express middleware patterns"
+      ],
+      "inherited": [
+        "Prettier formatting from root"
+      ]
+    },
+    "claudeMdActions": {
+      "filePath": "packages/core/CLAUDE.md",
+      "created": true, // or false if updated
+      "sectionsWritten": [
+        "Environment",
+        "Testing Standards",
+        "Coding Standards",
+        "Project Context"
+      ]
+    },
+    "wardCommands": {
+      "existing": {
+        "ward": "npm run lint && npm run typecheck",
+        "ward:all": "npm run lint && npm run typecheck && npm run test"
+      },
+      "created": false, // true if we had to create them
+      "verified": true
+    },
+    "confidenceAssessment": {
+      "projectContext": { "level": "high", "reasoning": "Clear package.json and structure" },
+      "technologyStack": { "level": "high", "reasoning": "All dependencies well documented" },
+      "testingSetup": { "level": "medium", "reasoning": "Test patterns found but no coverage config" },
+      "standardsCoverage": { "level": "high", "reasoning": "Comprehensive standards discovered" }
+    }
+  },
+  "retrospectiveNotes": [
+    {
+      "category": "discovery_insights",
+      "note": "Monorepo structure with shared tooling configuration"
+    },
+    {
+      "category": "standards_patterns",
+      "note": "Project uses consistent test file naming convention"
+    }
+  ]
+};
+
+const reportPath = `questmaestro/discovery/voidpoker-${timestamp}-${packageName}-report.json`;
+Write(reportPath, JSON.stringify(report, null, 2));
+```
+
+This signals questmaestro that you have completed your discovery work.
+
+## Spawning Sub-Agents
+
+If you need to analyze multiple packages or complex monorepo structures, you can spawn sub-agents using the Task tool.
+
+When spawning sub-agents:
+- Give them specific packages or directories to analyze
+- Provide context about the overall structure
+- Collect their findings for comprehensive standards
+- Synthesize insights across multiple analyses

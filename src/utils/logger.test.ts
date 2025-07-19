@@ -287,4 +287,72 @@ describe('Logger', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('QUEST'));
     });
   });
+
+  describe('bright', () => {
+    it('should log with bright formatting', () => {
+      logger.bright('Bright message');
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Bright message'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(Colors.bright));
+    });
+  });
+
+  describe('blue', () => {
+    it('should log with blue color', () => {
+      logger.blue('Blue message');
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Blue message'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(Colors.blue));
+    });
+  });
+
+  describe('yellow', () => {
+    it('should log with yellow color', () => {
+      logger.yellow('Yellow message');
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Yellow message'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(Colors.yellow));
+    });
+  });
+
+  describe('green', () => {
+    it('should log with green color', () => {
+      logger.green('Green message');
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Green message'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(Colors.green));
+    });
+  });
+
+  describe('red', () => {
+    it('should log with red color', () => {
+      logger.red('Red message');
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Red message'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(Colors.red));
+    });
+  });
+
+  describe('color methods without colors', () => {
+    it('should not apply colors when useColors is false', () => {
+      const noColorLogger = new Logger({ useColors: false });
+
+      noColorLogger.bright('Test');
+      noColorLogger.blue('Test');
+      noColorLogger.yellow('Test');
+      noColorLogger.green('Test');
+      noColorLogger.red('Test');
+
+      // All calls should not contain color codes
+      expect(consoleLogSpy).toHaveBeenCalledTimes(5);
+      consoleLogSpy.mock.calls.forEach((call) => {
+        expect(call[0]).not.toContain(Colors.bright);
+        expect(call[0]).not.toContain(Colors.blue);
+        expect(call[0]).not.toContain(Colors.yellow);
+        expect(call[0]).not.toContain(Colors.green);
+        expect(call[0]).not.toContain(Colors.red);
+        expect(call[0]).toContain('Test');
+      });
+    });
+  });
 });
