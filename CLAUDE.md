@@ -39,7 +39,6 @@ When answering any question from the user, you MUST evaluate and mark each state
 **Purpose:** Prevent confident-sounding fabrications and clearly distinguish between what you know
 versus what you're inferring.
 
-
 ## Error Analysis Protocol
 
 **BEFORE implementing any fix, you MUST:**
@@ -50,13 +49,6 @@ versus what you're inferring.
     - Am I hiding a legitimate problem?
     - Is this error pointing to something I should understand?
 4. **Ask explicitly**: "Why is this happening?" before "How do I make it stop?"
-
-**RED FLAGS - Never do these without justification:**
-
-- Suppressing console.warn/console.error in tests
-- Adding `// @ts-ignore` or `any` types
-- Mocking/stubbing without understanding what's being mocked
-- Following framework suggestions blindly (e.g., "use jest.spyOn to suppress")
 
 **REQUIRED: Error Investigation Log**
 For each error, document:
@@ -74,23 +66,4 @@ NOT: Suppress console.warn (addresses symptom only)
 
 ## Coding Principles
 
-When writing production code, always start with unit test cases, then write production code to fit the test cases.
-
-## Code Standards
-
-You MUST always follow these. There is no rational that can go against these.
-
-- **NEVER:** Use `any` type. THINK through known types and use those instead. Last ditch option is using unknown ONLY if no adequate type exists
-- **NEVER:** Use `@ts-ignore` or `@ts-expect-error`. THINK through the error and find a proper solution
-- **NEVER:** Use eslint-disable comments
-- **NEVER:** Use type assertions (`as Type`) without clear justification. ALWAYS have types flow implicitly.
-- ALWAYS follow prettier standards: semicolons, single quotes, 2 spaces
-- ALWAYS import only what you need. If you import unused modules, typescript will fail the build
-- ALWAYS make one component/class per file
-- ALWAYS use options objects for 3+ parameters in functions
-
-### Type Definition Guidelines
-
-- **Prefer `type` over `interface`** in all cases
-- Utilize utility types effectively (`Pick`, `Omit`, `Partial`, `Required`, etc.)
-- Type definitions go in the data-types lib for sharing
+See [Coding Principles](standards/coding-principles.md) for detailed development workflow and coding standards.
