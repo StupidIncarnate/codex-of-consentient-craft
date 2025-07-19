@@ -285,6 +285,11 @@ Test both success and failure cases. Error handling often has the most bugs.
 
 **Example using Jest:**
 ```typescript
+// Mock setup
+const mockNetworkError = () => {
+  jest.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('Network error'));
+};
+
 // ✅ CORRECT - Tests both paths
 describe('fetchUser()', () => {
   it('valid ID → returns user', async () => {
@@ -357,13 +362,13 @@ Property bleedthrough occurs when unexpected properties pass through your assert
 
 **Example using Jest:**
 ```typescript
-// ✅ SAFE - Strict equality
-const user = createUser({ id: 'b5d6e7f8-9abc-def0-1234-567890abcdef', name: 'John' });
-expect(user).toStrictEqual({ id: 'b5d6e7f8-9abc-def0-1234-567890abcdef', name: 'John', password: null });
+// ✅ SAFE - Strict equality catches all properties
+const user = { id: 'b5d6e7f8-9abc-def0-1234-567890abcdef', name: 'John' };
+expect(user).toStrictEqual({ id: 'b5d6e7f8-9abc-def0-1234-567890abcdef', name: 'John' });
 // PASSES - validates exact structure
 
-// ❌ DANGEROUS - Property bleedthrough
-const userWithPassword = createUser({ id: 'b5d6e7f8-9abc-def0-1234-567890abcdef', name: 'John', password: 'secret123' });
+// ❌ DANGEROUS - Property bleedthrough with partial matchers
+const userWithPassword = { id: 'b5d6e7f8-9abc-def0-1234-567890abcdef', name: 'John', password: 'secret123' };
 expect(userWithPassword).toEqual(expect.objectContaining({ id: 'b5d6e7f8-9abc-def0-1234-567890abcdef', name: 'John' }));
 // PASSES - even though password leaked through!
 ```
@@ -775,7 +780,7 @@ const cards = await screen.findAllByTestId('USER_CARD');
 
 ### User Interactions
 ```typescript
-import { userEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 // Click events
 await userEvent.click(screen.getByTestId('SUBMIT_BUTTON'));
@@ -852,8 +857,8 @@ const user = UserStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 expect(onEdit).toHaveBeenCalledWith('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
 // ❌ WRONG - Simple string IDs don't match production
-const user = UserStub({ id: '1a2b3c4d-5e6f-7890-abcd-ef1234567890' });
-expect(onEdit).toHaveBeenCalledWith('1a2b3c4d-5e6f-7890-abcd-ef1234567890');
+const user = UserStub({ id: 'user-123' });
+expect(onEdit).toHaveBeenCalledWith('user-123');
 
 // ✅ CORRECT - Provide explicit test values in stubs
 renderComponent({ 

@@ -30,8 +30,8 @@
 4. Fill in test cases with assertions that match their descriptions
    ```typescript
    // Step 4: Fill in the test assertions
-   it('returns created user', () => {
-     const user = createUser({ email: 'new@example.com', name: 'Test User' });
+   it('returns created user', async () => {
+     const user = await createUser({ email: 'new@example.com', name: 'Test User' });
      expect(user).toStrictEqual({
        id: expect.any(String),
        email: 'new@example.com',
@@ -41,12 +41,12 @@
    });
    
    it('throws DuplicateUserError', async () => {
-     await createUser({ email: 'test@example.com' });
-     await expect(createUser({ email: 'test@example.com' }))
-       .rejects.toThrow('DuplicateUserError');
+     await createUser({ email: 'test@example.com', name: 'First User' });
+     await expect(createUser({ email: 'test@example.com', name: 'Second User' }))
+       .rejects.toThrow(DuplicateUserError);
    });
    ```
-5. Refactor code files for clarity, following DRY principle for production code, DAMP for test code, and verify all tests still pass
+5. Refactor code files for clarity, following DRY principle for production code, [DAMP (Descriptive And Meaningful Phrases)](./testing-standards.md) for test code, and verify all tests still pass
 
 ## Architecture Principles
 - Design components with single, clear responsibilities. If you need to explain why something exists, reconsider its design
@@ -76,7 +76,8 @@
   try {
     await api.updateUser(data);
   } catch (error) {
-    showErrorToast(error.message);
+    const message = error instanceof Error ? error.message : 'An error occurred';
+    showErrorToast(message);
   }
   
   // Use the same pattern everywhere, not a different approach:
@@ -298,6 +299,10 @@
   export function ProductList() { /* ... */ }
   export function ShoppingCart() { /* ... */ }
   ```
+- File naming conventions:
+  - React Components: `PascalCase` (e.g., `UserProfile.tsx`, `ShoppingCart.tsx`)
+  - React Hooks: `camelCase` (e.g., `useAuth.ts`, `useLocalStorage.ts`)
+  - All other code files: `kebab-case` (e.g., `user-service.ts`, `api-client.ts`, `format-utils.ts`)
 - Remove unused local variables and function parameters
 - Delete unreachable code
 - Remove orphaned files and unused code
