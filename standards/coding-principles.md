@@ -29,19 +29,24 @@
    - **Error paths**: Invalid inputs, network failures, permission denied
 4. Fill in test cases with assertions that match their descriptions
    ```typescript
-   // Step 4: Fill in the test
-   describe('when email already exists', () => {
-     it('throws DuplicateUserError', async () => {
-       // First create a user
-       await createUser({ email: 'test@example.com' });
-       
-       // Then try to create another with same email
-       await expect(createUser({ email: 'test@example.com' }))
-         .rejects.toThrow('DuplicateUserError');
+   // Step 4: Fill in the test assertions
+   it('returns created user', () => {
+     const user = createUser({ email: 'new@example.com', name: 'Test User' });
+     expect(user).toStrictEqual({
+       id: expect.any(String),
+       email: 'new@example.com',
+       name: 'Test User',
+       createdAt: expect.any(Date)
      });
    });
+   
+   it('throws DuplicateUserError', async () => {
+     await createUser({ email: 'test@example.com' });
+     await expect(createUser({ email: 'test@example.com' }))
+       .rejects.toThrow('DuplicateUserError');
+   });
    ```
-5. Refactor for clarity, consolidate duplicated logic, simplify complex patterns, and verify all tests still pass
+5. Refactor code files for clarity, following DRY principle for production code, DAMP for test code, and verify all tests still pass
 
 ## Architecture Principles
 - Design components with single, clear responsibilities. If you need to explain why something exists, reconsider its design
@@ -148,7 +153,7 @@
   ```
 
 ## Type Design Patterns
-- Use `type` over `interface` in all cases
+- Prefer `type` over `interface`, especially for function arguments and simple object shapes
   ```typescript
   // ✅ CORRECT - type is more flexible
   type User = {
@@ -165,7 +170,7 @@
     id: string;
     name: string;
   }
-  // Cannot do: type UserId = IUser['id'] directly
+  // Note: You CAN do type UserId = IUser['id'], but prefer type aliases for consistency
   ```
 - Utilize TypeScript utility types effectively (`Pick`, `Omit`, `Partial`, `Required`, etc.)
   ```typescript
@@ -277,7 +282,7 @@
     // TypeScript error: Not all code paths return a value
   }
   ```
-- One primary export per file
+- One main export per file (supporting types, interfaces, and constants may be co-exported)
   ```typescript
   // ✅ CORRECT - Clear primary export with supporting types
   export type UserProps = { /* ... */ };

@@ -38,7 +38,7 @@ Each test must be completely independent. No shared state, no order dependencies
 // ✅ CORRECT - Each test is independent
 it('creates user', () => {
   const user = createUser({ name: 'John' });
-  expect(user.id).toBeDefined();
+  expect(user.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 });
 
 it('updates user', () => {
@@ -52,7 +52,7 @@ let user: User;
 
 it('creates user', () => {
   user = createUser({ name: 'John' });
-  expect(user.id).toBeDefined();
+  expect(user.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 });
 
 it('updates user', () => {
@@ -71,14 +71,19 @@ src/
   components/
     Button/
       Button.tsx
-      Button.test.tsx    ✅ Co-located
+      Button.test.tsx         ✅ Co-located unit/integration test
   utils/
     validators.ts
-    validators.test.ts   ✅ Co-located
+    validators.test.ts        ✅ Co-located unit test
     
 tests/
-  Button.test.tsx        ❌ Separated from source
+  e2e/
+    checkout-flow.test.ts     ✅ E2E tests cannot be co-located
+  unit/
+    Button.test.tsx           ❌ Separated unit tests from source
 ```
+
+**Note**: Unit and integration tests should be co-located with source code. E2E tests live in a separate test directory since they test across multiple components/pages.
 
 
 ## Test Structure Patterns
@@ -380,7 +385,7 @@ expect(itemsWithExtras).toEqual(expect.arrayContaining(['apple', 'banana']));
 - Create type-safe stubs for all data types. This maintains parity with production type safety
 - Use UUID format for IDs. Simple strings like 'user-123' don't match production data
 - Provide explicit values in test data. Relying on default stub values creates brittle tests
-- Keep test data minimal but realistic. Only include properties relevant to the test
+- Keep test data minimal but realistic. Override only properties your assertions verify (reference the code to determine what's needed)
 
 **Example using Jest:**
 ```typescript
@@ -412,9 +417,9 @@ const formatUserDisplay(user: Pick<User, 'name', 'email'>) => {
 }
 
 // ✅ CORRECT - Minimal stub overrides, complete object assertion
-it('user with firstName and lastName → returns formatted user', () => {
+it('user with custom name and email → returns formatted display', () => {
   const user = UserStub({ name: 'Mick Robberts', email: 'johnny@gmail.com' });
-  expect(formatUser(user)).toStrictEqual({
+  expect(formatUserDisplay(user)).toStrictEqual({
     displayName: "Display: Mick Robberts",
     email: 'johnny@gmail.com'
   });
@@ -439,8 +444,8 @@ it('formats user display name', () => {
   };
   expect(formatUserDisplay(user)).toStrictEqual({
     displayName: "Display: Mick Robberts",
-    email: 'johnny@gmail.com'
-  }) 
+    email: 'johnny@example.com'
+  }); 
 });
 ```
 
@@ -605,7 +610,7 @@ expect(items).toEqual(expect.arrayContaining(['apple']));
 // Specific matchers communicate intent better
 expect(items).toHaveLength(3);     // Better than expect(items.length).toBe(3)
 expect(error).toBeNull();          // Better than expect(error).toBe(null)
-expect(value).toBeUndefined();       // Better than expect(value === undefined).toBe(true)
+expect(deletedUser).toBeUndefined(); // Better than expect(deletedUser === undefined).toBe(true)
 
 // Async assertions
 await expect(fetchData()).resolves.toStrictEqual({ data: 'value' });
@@ -626,6 +631,7 @@ const userId = generateUserId();
 expect(userId).toBeDefined(); // Could be any value!
 expect(config.timeout).toBeDefined(); // Could be 1ms or 1 hour!
 expect(user.role).toBeDefined(); // Could be 'guest' when you need 'admin'!
+expect(user.isActive).toBeDefined(); // Could be true or false!
 ```
 
 ### Spying and Mocking
@@ -836,7 +842,7 @@ expect(screen.getByTestId('USER_GREETING')).toHaveTextContent(/^Welcome back, Jo
 
 // ❌ WRONG - Testing existence without verifying correctness
 expect(screen.getByTestId('TOTAL_PRICE')).toBeInTheDocument();
-expect(screen.getByTestId('USER_GREETING')).toBeDefined();
+expect(screen.getByTestId('USER_GREETING')).toBeInTheDocument();
 ```
 
 ### Test Data Standards
