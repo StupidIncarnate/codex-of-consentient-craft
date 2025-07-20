@@ -6,6 +6,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "jq -e '.tool_input.file_path | endswith(\"eslint.config.js\") or endswith(\"tsconfig.json\")' && exit 2 || exit 0"
+          },
+          {
+            "type": "command",
             "command": "npx tsx ./src/hooks/eslint-hook.ts --validate"
           }
         ]
@@ -57,7 +61,9 @@
       "Bash(npx ts-node:*)",
       "Bash(npx eslint:*)",
       "Bash(sed:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(./test-eslint-hook.sh:*)",
+      "WebFetch(domain:docs.anthropic.com)"
     ],
     "deny": []
   }

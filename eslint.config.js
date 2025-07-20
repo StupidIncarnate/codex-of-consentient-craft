@@ -3,6 +3,14 @@ const tsparser = require('@typescript-eslint/parser');
 const prettierConfig = require('eslint-config-prettier');
 const prettierPlugin = require('eslint-plugin-prettier');
 const jestPlugin = require('eslint-plugin-jest');
+const eslintCommentsPlugin = require('eslint-plugin-eslint-comments');
+const { fixupConfigRules } = require('@eslint/compat');
+const { FlatCompat } = require('@eslint/eslintrc');
+
+const compat = new FlatCompat();
+
+// When using stdin, disable rules that require type information
+const isStdin = process.env.ESLINT_STDIN === 'true';
 
 module.exports = [
   // Global ignores
@@ -39,7 +47,8 @@ module.exports = [
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      'prettier': prettierPlugin
+      'prettier': prettierPlugin,
+      'eslint-comments': eslintCommentsPlugin
     },
     rules: {
       ...tseslint.configs.recommended.rules,
@@ -53,7 +62,9 @@ module.exports = [
       }],
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': 'error',
-      '@typescript-eslint/no-unsafe-assignment': 'off'
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      'eslint-comments/no-unlimited-disable': 'error',
+      'eslint-comments/no-use': ['error', { allow: [] }]
     }
   },
   // Test files can be more relaxed
@@ -80,5 +91,13 @@ module.exports = [
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error'
     }
-  }
+  },
+  // Stdin override - disable type-checking when ESLINT_STDIN is set
+  ...(isStdin ? fixupConfigRules(
+          compat.extends('plugin:@typescript-eslint/disable-type-checked')
+      ).map(config => ({
+        ...config,
+        files: ['**/*.{ts,tsx}'],
+      }))
+      : [])
 ];

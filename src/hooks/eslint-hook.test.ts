@@ -237,7 +237,7 @@ some text after`;
           await expect(lintPromise).rejects.toThrow('Process exited with code 2');
           expect(exitCode).toBe(2);
           expect(consoleErrorSpy).toHaveBeenCalledWith(
-            expect.stringContaining('ESLint found 2 error(s) in test.ts:'),
+            expect.stringContaining('Lint found 2 error(s) in test.ts:'),
           );
         });
       });

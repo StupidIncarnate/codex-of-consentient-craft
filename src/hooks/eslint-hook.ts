@@ -118,7 +118,7 @@ async function runEslintCommand(
   env: Record<string, string>,
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
-    const eslintProcess = spawn('npm', ['run', ...command], {
+    const eslintProcess = spawn('npm', ['run', command[0], '--', ...command.slice(1)], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: process.cwd(),
       env: { ...process.env, ...env },
@@ -140,7 +140,7 @@ async function runEslintCommand(
     });
 
     eslintProcess.on('error', (error) => {
-      console.error(`Failed to spawn eslint process: ${error.message}`);
+      console.error(`Failed to spawn lint process: ${error.message}`);
       resolve({ code: 1, stdout: '', stderr: error.message });
     });
 
@@ -159,7 +159,7 @@ function parseEslintOutput(output: string): EslintResult[] {
     }
     return [];
   } catch (e) {
-    debug('Failed to parse ESLint output:', e);
+    debug('Failed to parse Lint output:', e);
     return [];
   }
 }
@@ -180,15 +180,15 @@ async function lintContent(
   }
 
   if (shouldFix) {
-    // In fix mode, just run eslint with --fix and let it do its job
+    // In fix mode, just run lint with --fix and let it do its job
     const fixResult = await runEslintCommand(
-      ['eslint', '--stdin', '--stdin-filename', filePath, '--fix', '--format', 'json'],
+      ['lint', '--stdin', '--stdin-filename', filePath, '--fix', '--format', 'json'],
       content,
       filePath,
       { ESLINT_STDIN: 'true' },
     );
 
-    debug('ESLint fix exit code:', fixResult.code);
+    debug('Lint fix exit code:', fixResult.code);
 
     // Check if file is lintable
     if (
@@ -207,13 +207,15 @@ async function lintContent(
     // Pre-hook validation mode
     // First, try to fix the content
     const fixResult = await runEslintCommand(
-      ['eslint', '--stdin', '--stdin-filename', filePath, '--fix-dry-run', '--format', 'json'],
+      ['lint', '--stdin', '--stdin-filename', filePath, '--fix-dry-run', '--format', 'json'],
       content,
       filePath,
-      { LINT_NEXT: '2', ESLINT_STDIN: 'true' },
+      { ESLINT_STDIN: 'true' },
     );
 
-    debug('ESLint fix exit code:', fixResult.code);
+    debug('Lint fix exit code:', fixResult.code);
+    debug('Lint stderr:', fixResult.stderr);
+    debug('Lint stdout:', fixResult.stdout);
 
     // Extract fixed content if available
     let contentToValidate = content;
@@ -223,7 +225,7 @@ async function lintContent(
       debug('Content was auto-fixed');
     }
 
-    // Check if ESLint considers this file lintable
+    // Check if Lint considers this file lintable
     if (
       fixResult.stderr.includes('No files matching') ||
       fixResult.stderr.includes('Ignore pattern') ||
@@ -235,18 +237,18 @@ async function lintContent(
 
     // Now validate the fixed content
     const validateResult = await runEslintCommand(
-      ['eslint', '--stdin', '--stdin-filename', filePath, '--format', 'json'],
+      ['lint', '--stdin', '--stdin-filename', filePath, '--format', 'json'],
       contentToValidate,
       filePath,
       { LINT_NEXT: '0', ESLINT_STDIN: 'true' },
     );
 
-    debug('ESLint validation exit code:', validateResult.code);
+    debug('Lint validation exit code:', validateResult.code);
 
     if (validateResult.code !== 0) {
       // Check for crashes
       if (validateResult.stderr.includes('Oops! Something went wrong!')) {
-        console.error('ESLint crashed during linting:');
+        console.error('Lint crashed during linting:');
         console.error(validateResult.stderr);
         process.exit(2);
       }
@@ -255,7 +257,7 @@ async function lintContent(
       const errors = lintResults[0]?.messages?.filter((msg) => msg.severity === 2) || [];
 
       if (errors.length > 0) {
-        const errorSummary = `ESLint found ${errors.length} error(s) in ${filePath}:\n`;
+        const errorSummary = `Lint found ${errors.length} error(s) in ${filePath}:\n`;
         const errorDetails = errors
           .slice(0, 3)
           .map((error) => `  Line ${error.line}: ${error.message}`)
