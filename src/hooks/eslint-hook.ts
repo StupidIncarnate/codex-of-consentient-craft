@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { spawn } from 'child_process';
-import { readFile, writeFile } from 'fs/promises';
 
 type WriteToolInput = {
   file_path: string;
@@ -44,12 +43,28 @@ type PostToolUseHookData = {
   tool_input: ToolInput;
 };
 
-type HookData = PreToolUseHookData | PostToolUseHookData;
+type UserPromptSubmitHookData = {
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  hook_event_name: 'UserPromptSubmit';
+  user_prompt: string;
+};
+
+type BaseHookData = {
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  hook_event_name: string;
+};
+
+type HookData = PreToolUseHookData | PostToolUseHookData | UserPromptSubmitHookData | BaseHookData;
 
 type EslintMessage = {
   line: number;
   message: string;
   severity: number;
+  ruleId?: string;
 };
 
 type EslintResult = {
@@ -59,30 +74,69 @@ type EslintResult = {
 
 const DEBUG = process.env.DEBUG === 'true';
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const options = {
-  fix: false,
-  validate: false,
-};
-
-for (const arg of args) {
-  if (arg === '--fix') {
-    options.fix = true;
-  } else if (arg === '--validate') {
-    options.validate = true;
-  }
-}
-
-// Default to validate mode if no option specified
-if (!options.fix && !options.validate) {
-  options.validate = true;
-}
-
 function debug(...args: unknown[]): void {
   if (DEBUG) {
     console.error(...args);
   }
+}
+
+function detectEscapeHatches(content: string): { found: boolean; message: string } {
+  const violations: string[] = [];
+
+  const thinkTypePhrase = `Take a step back, breath for a moment, and think through the issue at a high-level`;
+  // Check for 'any' usage
+  if (/:\s*any\b/.test(content)) {
+    violations.push(
+      `Syntax Violation Found ': any' - Use specific types instead. ${thinkTypePhrase}`,
+    );
+  }
+  if (/as\s+any\b/.test(content)) {
+    violations.push(
+      `Found 'as any' - Type assertions to 'any' bypass type safety. Use proper typing or 'as unknown as SpecificType' if absolutely necessary. ${thinkTypePhrase}`,
+    );
+  }
+  if (/<any>/.test(content)) {
+    violations.push(
+      `Found '<any>' - This TypeScript assertion bypasses type checking. Define proper types instead. ${thinkTypePhrase}`,
+    );
+  }
+
+  // Check for TypeScript escape comments
+  if (content.includes('@ts-ignore')) {
+    violations.push(
+      `Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. ${thinkTypePhrase}`,
+    );
+  }
+  if (content.includes('@ts-expect-error')) {
+    violations.push(
+      `Found '@ts-expect-error' - Don't suppress type errors. Fix the root cause. ${thinkTypePhrase}`,
+    );
+  }
+  if (content.includes('@ts-nocheck')) {
+    violations.push(
+      `Found '@ts-nocheck' - This disables TypeScript checking for the entire file. Remove it and fix type issues. ${thinkTypePhrase}`,
+    );
+  }
+
+  // Check for ESLint disable comments
+  if (/eslint-disable(?:-next-line|-line)?/.test(content)) {
+    violations.push(
+      `Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. ${thinkTypePhrase}`,
+    );
+  }
+
+  if (violations.length > 0) {
+    const message = [
+      '🛑 Code quality escape hatches detected:',
+      ...violations.map((v) => `  ❌ ${v}`),
+      '',
+      'These patterns bypass important safety checks. Please fix the underlying issues instead of suppressing them.',
+    ].join('\n');
+
+    return { found: true, message };
+  }
+
+  return { found: false, message: '' };
 }
 
 function extractContentFromToolInput(toolInput: ToolInput): string | null {
@@ -151,7 +205,7 @@ async function runEslintCommand(
 
 function parseEslintOutput(output: string): EslintResult[] {
   try {
-    const jsonMatch = output.match(/\[{[\s\S]*}\]/);
+    const jsonMatch = output.match(/\[{[\s\S]*}]/);
     if (!jsonMatch) return [];
     const parsed = JSON.parse(jsonMatch[0]) as unknown;
     if (Array.isArray(parsed)) {
@@ -167,148 +221,152 @@ function parseEslintOutput(output: string): EslintResult[] {
 async function lintContent(
   filePath: string,
   content: string,
-  shouldFix: boolean,
-): Promise<string | void> {
-  debug('Processing file:', filePath, 'fix mode:', shouldFix);
+): Promise<{ fixedContent: string; fixResults: EslintResult[] }> {
+  debug('Processing file:', filePath);
 
   if (!content) {
     debug('No content to lint');
-    if (shouldFix) {
-      return ''; // Return empty string for fix mode
-    }
-    process.exit(0);
+    return { fixedContent: '', fixResults: [] }; // Return empty string for empty content
   }
 
-  if (shouldFix) {
-    // In fix mode, just run lint with --fix and let it do its job
-    const fixResult = await runEslintCommand(
-      ['lint', '--stdin', '--stdin-filename', filePath, '--fix', '--format', 'json'],
-      content,
-      filePath,
-      { ESLINT_STDIN: 'true' },
-    );
+  // Always run fix (using --fix-dry-run for stdin)
+  const fixResult = await runEslintCommand(
+    ['lint', '--stdin', '--stdin-filename', filePath, '--fix-dry-run', '--format', 'json'],
+    content,
+    filePath,
+    {},
+  );
 
-    debug('Lint fix exit code:', fixResult.code);
+  debug('Lint fix exit code:', fixResult.code);
+  debug('Lint fix stdout:', fixResult.stdout);
+  debug('Lint fix stderr:', fixResult.stderr);
 
-    // Check if file is lintable
-    if (
-      fixResult.stderr.includes('No files matching') ||
-      fixResult.stderr.includes('Ignore pattern') ||
-      (fixResult.code === 0 && !parseEslintOutput(fixResult.stdout).length)
-    ) {
-      debug('File is not lintable, skipping');
-      return content; // Return original content for non-lintable files
-    }
-
-    // Return the fixed content (if any) for the post hook to write back
-    const fixResults = parseEslintOutput(fixResult.stdout);
-    return fixResults[0]?.output || content;
-  } else {
-    // Pre-hook validation mode
-    // First, try to fix the content
-    const fixResult = await runEslintCommand(
-      ['lint', '--stdin', '--stdin-filename', filePath, '--fix-dry-run', '--format', 'json'],
-      content,
-      filePath,
-      { ESLINT_STDIN: 'true' },
-    );
-
-    debug('Lint fix exit code:', fixResult.code);
-    debug('Lint stderr:', fixResult.stderr);
-    debug('Lint stdout:', fixResult.stdout);
-
-    // Extract fixed content if available
-    let contentToValidate = content;
-    const fixResults = parseEslintOutput(fixResult.stdout);
-    if (fixResults[0]?.output) {
-      contentToValidate = fixResults[0].output;
-      debug('Content was auto-fixed');
-    }
-
-    // Check if Lint considers this file lintable
-    if (
-      fixResult.stderr.includes('No files matching') ||
-      fixResult.stderr.includes('Ignore pattern') ||
-      (fixResult.code === 0 && !fixResults.length)
-    ) {
-      debug('File is not lintable, skipping');
-      process.exit(0);
-    }
-
-    // Now validate the fixed content
-    const validateResult = await runEslintCommand(
-      ['lint', '--stdin', '--stdin-filename', filePath, '--format', 'json'],
-      contentToValidate,
-      filePath,
-      { LINT_NEXT: '0', ESLINT_STDIN: 'true' },
-    );
-
-    debug('Lint validation exit code:', validateResult.code);
-
-    if (validateResult.code !== 0) {
-      // Check for crashes
-      if (validateResult.stderr.includes('Oops! Something went wrong!')) {
-        console.error('Lint crashed during linting:');
-        console.error(validateResult.stderr);
-        process.exit(2);
-      }
-
-      const lintResults = parseEslintOutput(validateResult.stdout);
-      const errors = lintResults[0]?.messages?.filter((msg) => msg.severity === 2) || [];
-
-      if (errors.length > 0) {
-        const errorSummary = `Lint found ${errors.length} error(s) in ${filePath}:\n`;
-        const errorDetails = errors
-          .slice(0, 3)
-          .map((error) => `  Line ${error.line}: ${error.message}`)
-          .join('\n');
-
-        console.error(errorSummary + errorDetails);
-        process.exit(2);
-      }
-    }
-
-    process.exit(0);
+  // Check for crashes
+  if (fixResult.stderr.includes('Oops! Something went wrong!')) {
+    console.error('Lint crashed during linting:');
+    console.error(fixResult.stderr);
+    process.exit(2);
   }
+
+  // Check if file is lintable
+  if (
+    fixResult.stderr.includes('No files matching') ||
+    fixResult.stderr.includes('Ignore pattern') ||
+    (fixResult.code === 0 && !parseEslintOutput(fixResult.stdout).length)
+  ) {
+    debug('File is not lintable, skipping');
+    return { fixedContent: content, fixResults: [] }; // Return original content for non-lintable files
+  }
+
+  // Parse the results
+  const fixResults = parseEslintOutput(fixResult.stdout);
+
+  // Check for TypeScript project errors (happens with new files)
+  if (fixResults.length > 0 && fixResults[0].messages) {
+    const hasParserProjectError = fixResults[0].messages.some(
+      (msg) => msg.message && msg.message.includes('parserOptions.project'),
+    );
+    if (hasParserProjectError) {
+      debug('File not in TypeScript project yet, skipping');
+      return { fixedContent: content, fixResults: [] };
+    }
+  }
+
+  // Return the fixed content (if any)
+  return {
+    fixedContent: fixResults[0]?.output || content,
+    fixResults: fixResults,
+  };
 }
 
-async function handlePostToolUse(hookData: PostToolUseHookData): Promise<void> {
-  const toolInput = hookData.tool_input;
-  const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
+async function lintContentWithFiltering(filePath: string, content: string): Promise<void> {
+  debug('Processing file with TypeScript rule filtering:', filePath);
 
-  if (!filePath) {
-    debug('No file path provided');
-    process.exit(0);
+  // First, get the fixed content and results
+  const { fixResults } = await lintContent(filePath, content);
+
+  // Check if there are any remaining errors after fixing
+  if (fixResults.length > 0 && fixResults[0].messages) {
+    let errors = fixResults[0].messages.filter((msg) => msg.severity === 2);
+
+    // Filter out @typescript-eslint errors in pre-hook mode
+    errors = errors.filter((error) => {
+      const ruleId = error.ruleId || '';
+      return !ruleId.startsWith('@typescript-eslint/');
+    });
+
+    if (errors.length > 0) {
+      const errorSummary = `Lint found ${errors.length} error(s) in ${filePath}:\n`;
+      const errorDetails = errors
+        .slice(0, 3)
+        .map((error) => `  Line ${error.line}: ${error.message}`)
+        .join('\n');
+
+      console.error(errorSummary + errorDetails);
+      process.exit(2);
+    }
   }
 
-  try {
-    // Read the actual file content from disk
-    const content = await readFile(filePath, 'utf-8');
-    const fixedContent = await lintContent(filePath, content, true);
+  process.exit(0);
+}
 
-    if (fixedContent && fixedContent !== content) {
-      // Write the fixed content back to the file
-      await writeFile(filePath, fixedContent, 'utf-8');
-      debug('Fixed content written back to file');
-    }
-
-    process.exit(0);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      debug('File does not exist:', filePath);
-      process.exit(0);
-    }
-
-    // Check if this is a process.exit error from lintContent
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    if (errorMessage.includes('Process exited with code 0')) {
-      // This means lintContent determined the file is not lintable
-      process.exit(0);
-    }
-
-    console.error(`Error reading/writing file: ${errorMessage}`);
-    process.exit(1);
-  }
+function handlePostToolUse(hookData: PostToolUseHookData): Promise<void> {
+  const errorReason =
+    `PostTool streaming seems to fire before typescript has time to process and if you have @typescript-eslint enabled, it throws errors because of that. Disabling post tool for now` +
+    JSON.stringify(hookData, null, 2);
+  throw new Error(errorReason);
+  // const toolInput = hookData.tool_input;
+  // const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
+  //
+  // if (!filePath) {
+  //   debug('No file path provided');
+  //   process.exit(0);
+  // }
+  //
+  // try {
+  //   // Read the actual file content from disk
+  //   const content = await readFile(filePath, 'utf-8');
+  //   const { fixedContent, fixResults } = await lintContent(filePath, content);
+  //
+  //   if (fixedContent && fixedContent !== content) {
+  //     // Write the fixed content back to the file
+  //     await writeFile(filePath, fixedContent, 'utf-8');
+  //     debug('Fixed content written back to file');
+  //   }
+  //
+  //   // Check for errors after fixing (including TypeScript errors)
+  //   if (fixResults.length > 0 && fixResults[0].messages) {
+  //     const errors = fixResults[0].messages.filter((msg) => msg.severity === 2);
+  //
+  //     if (errors.length > 0) {
+  //       const errorSummary = `Lint found ${errors.length} error(s) in ${filePath}:\n`;
+  //       const errorDetails = errors
+  //         .slice(0, 3)
+  //         .map((error) => `  Line ${error.line}: ${error.message}`)
+  //         .join('\n');
+  //
+  //       console.error(errorSummary + errorDetails);
+  //       process.exit(2);
+  //     }
+  //   }
+  //
+  //   process.exit(0);
+  // } catch (error) {
+  //   if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+  //     debug('File does not exist:', filePath);
+  //     process.exit(0);
+  //   }
+  //
+  //   // Check if this is a process.exit error from lintContent
+  //   const errorMessage = error instanceof Error ? error.message : String(error);
+  //   if (errorMessage.includes('Process exited with code 0')) {
+  //     // This means lintContent determined the file is not lintable
+  //     process.exit(0);
+  //   }
+  //
+  //   console.error(`Error reading/writing file: ${errorMessage}`);
+  //   process.exit(1);
+  // }
 }
 
 async function handlePreToolUse(hookData: PreToolUseHookData): Promise<void> {
@@ -326,7 +384,15 @@ async function handlePreToolUse(hookData: PreToolUseHookData): Promise<void> {
     process.exit(0);
   }
 
-  await lintContent(filePath, content, false);
+  // Check for escape hatches first
+  const escapeHatchCheck = detectEscapeHatches(content);
+  if (escapeHatchCheck.found) {
+    console.error(escapeHatchCheck.message);
+    process.exit(2);
+  }
+
+  // Run linting with TypeScript rule filtering
+  await lintContentWithFiltering(filePath, content);
 }
 
 function main(): void {
@@ -341,12 +407,13 @@ function main(): void {
       try {
         const hookData = JSON.parse(inputData) as HookData;
 
-        if (options.fix) {
-          // Fix mode - used as PostToolUse hook
-          await handlePostToolUse(hookData as PostToolUseHookData);
+        if (hookData.hook_event_name === 'PostToolUse' && 'tool_name' in hookData) {
+          await handlePostToolUse(hookData);
+        } else if (hookData.hook_event_name === 'PreToolUse' && 'tool_name' in hookData) {
+          await handlePreToolUse(hookData);
         } else {
-          // Validate mode - used as PreToolUse hook
-          await handlePreToolUse(hookData as PreToolUseHookData);
+          console.error(`Unknown or unsupported hook event: ${hookData.hook_event_name}`);
+          process.exit(1);
         }
       } catch (parseError) {
         console.error(

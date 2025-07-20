@@ -1,8 +1,0 @@
-...(process.env.ESLINT_STDIN === 'true'
-    ? fixupConfigRules(
-        compat.extends('plugin:@typescript-eslint/disable-type-checked')
-      ).map(config => ({
-        ...config,
-        files: ['**/*.{ts,tsx}'],
-      }))
-    : []),

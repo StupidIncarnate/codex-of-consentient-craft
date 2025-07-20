@@ -142,9 +142,9 @@ some text after`;
   describe('lintContent()', () => {
     describe('when content is empty', () => {
       it('exits with code 0', async () => {
-        await expect(lintContent('test.ts', '', false)).rejects.toThrow(
-          'Process exited with code 0',
-        );
+        const result = await lintContent('test.ts', '');
+        expect(result.fixedContent).toBe('');
+        expect(result.fixResults).toEqual([]);
         expect(exitCode).toBe(0);
         expect(mockSpawn).not.toHaveBeenCalled();
       });
@@ -153,7 +153,7 @@ some text after`;
     describe('in validation mode (shouldFix = false)', () => {
       describe('when file is not lintable', () => {
         it('exits with code 0 when stderr contains "No files matching"', async () => {
-          const lintPromise = lintContent('test.md', 'content', false);
+          const lintPromise = lintContent('test.md', 'content');
 
           setTimeout(() => {
             mockProcess.stderr.emit('data', 'No files matching');
@@ -167,7 +167,7 @@ some text after`;
 
       describe('when content has no errors', () => {
         it('exits with code 0', async () => {
-          const lintPromise = lintContent('test.ts', 'const x = 1;', false);
+          const lintPromise = lintContent('test.ts', 'const x = 1;');
 
           setTimeout(() => {
             // First call - fix dry run
@@ -199,7 +199,7 @@ some text after`;
 
       describe('when content has errors', () => {
         it('exits with code 2 and shows error summary', async () => {
-          const lintPromise = lintContent('test.ts', 'const x = ;', false);
+          const lintPromise = lintContent('test.ts', 'const x = ;');
 
           setTimeout(() => {
             // First call - fix dry run
@@ -245,7 +245,7 @@ some text after`;
 
     describe('in fix mode (shouldFix = true)', () => {
       it('returns fixed content when fixes are available', async () => {
-        const lintPromise = lintContent('test.ts', 'const x=1', true);
+        const lintPromise = lintContent('test.ts', 'const x=1');
 
         setTimeout(() => {
           mockProcess.stdout.emit('data', '[{"messages": [], "output": "const x = 1;"}]');
@@ -257,7 +257,7 @@ some text after`;
       });
 
       it('returns original content when no fixes needed', async () => {
-        const lintPromise = lintContent('test.ts', 'const x = 1;', true);
+        const lintPromise = lintContent('test.ts', 'const x = 1;');
 
         setTimeout(() => {
           mockProcess.stdout.emit('data', '[{"messages": []}]');
@@ -269,7 +269,7 @@ some text after`;
       });
 
       it('returns original content when file is not lintable', async () => {
-        const lintPromise = lintContent('test.md', 'content', true);
+        const lintPromise = lintContent('test.md', 'content');
 
         setTimeout(() => {
           mockProcess.stderr.emit('data', 'No files matching');

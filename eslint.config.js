@@ -9,9 +9,6 @@ const { FlatCompat } = require('@eslint/eslintrc');
 
 const compat = new FlatCompat();
 
-// When using stdin, disable rules that require type information
-const isStdin = process.env.ESLINT_STDIN === 'true';
-
 module.exports = [
   // Global ignores
   {
@@ -89,15 +86,7 @@ module.exports = [
       ...jestPlugin.configs.recommended.rules,
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/unbound-method': 'off',
-      'jest/unbound-method': 'error'
+      'jest/unbound-method': 'off'
     }
-  },
-  // Stdin override - disable type-checking when ESLINT_STDIN is set
-  ...(isStdin ? fixupConfigRules(
-          compat.extends('plugin:@typescript-eslint/disable-type-checked')
-      ).map(config => ({
-        ...config,
-        files: ['**/*.{ts,tsx}'],
-      }))
-      : [])
+  }
 ];
