@@ -7,6 +7,9 @@ Based on learnings and findings from repeated claude amnesia and hallucination s
 
 ## Prerequisites
 
+### Install (Linux)
+- Install jq: https://jqlang.org/download/
+
 ### CLAUDE.md Optimization
 
 For optimal questmaestro performance, prepare your CLAUDE.md files by stripping out:
