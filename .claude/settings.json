@@ -22,5 +22,43 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(chmod:*)",
+      "Bash(rg:*)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)",
+      "Bash(npm test)",
+      "Bash(rm:*)",
+      "Bash(node:*)",
+      "Bash(npm test:*)",
+      "Bash(ls *)",
+      "Write",
+      "Bash(find:*)",
+      "Bash(npm run:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(ls:*)",
+      "Bash(for i in {9..19})",
+      "Bash(do echo \"=== Test $i ===\")",
+      "Bash(done)",
+      "Bash(tree:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(../../node_modules/.bin/claude:*)",
+      "Bash(exit 0)",
+      "Bash(true)",
+      "Bash(env)",
+      "Bash(claude config*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(npx eslint:*)",
+      "Bash(sed:*)",
+      "Bash(cat:*)"
+    ],
+    "deny": []
   }
 }
