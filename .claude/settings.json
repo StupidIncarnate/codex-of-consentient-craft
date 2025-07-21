@@ -10,7 +10,7 @@
           },
           {
             "type": "command",
-            "command": "npx tsx ./src/hooks/eslint-hook.ts"
+            "command": "npx tsx ./src/hooks/sanitation-hook.ts"
           }
         ]
       }
@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx ./src/hooks/eslint-hook.ts"
+            "command": "npx tsx ./src/hooks/sanitation-hook.ts"
           }
         ]
       }
@@ -46,13 +46,10 @@
       "Bash(npm run:*)",
       "mcp__ide__getDiagnostics",
       "Bash(ls:*)",
-      "Bash(for i in {9..19})",
-      "Bash(do echo \"=== Test $i ===\")",
       "Bash(done)",
       "Bash(tree:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(../../node_modules/.bin/claude:*)",
       "Bash(exit 0)",
       "Bash(true)",
       "Bash(env)",
@@ -60,9 +57,7 @@
       "Bash(npx tsc:*)",
       "Bash(npx ts-node:*)",
       "Bash(npx eslint:*)",
-      "Bash(sed:*)",
       "Bash(cat:*)",
-      "Bash(./test-eslint-hook.sh:*)",
       "WebFetch(domain:docs.anthropic.com)"
     ],
     "deny": []

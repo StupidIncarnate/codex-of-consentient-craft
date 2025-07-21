@@ -25,7 +25,8 @@
   "include": [
     "src/**/*",
     "bin/**/*",
-    "tests/**/*"
+    "tests/**/*",
+    ".test-tmp/**/*"
   ],
   "exclude": [
     "node_modules",

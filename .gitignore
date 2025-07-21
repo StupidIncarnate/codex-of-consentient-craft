@@ -69,3 +69,4 @@ tsconfig.tsbuildinfo
 /static/
 dependency-graph.html
 .husky
+.test-tmp/
