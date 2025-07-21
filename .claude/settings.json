@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "file=$(jq -r '.tool_input.file_path'); npx eslint --fix \"$file\" >/dev/null 2>&1; npx eslint \"$file\" 2>&1 && exit 0 || exit 2"
+            "command": "npx tsx ./src/hooks/eslint-hook.ts"
           }
         ]
       }
