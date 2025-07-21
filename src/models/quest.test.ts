@@ -117,10 +117,10 @@ describe('quest model', () => {
     it('should calculate progress correctly', () => {
       const quest = createQuest('test', '001-test', 'Test');
       quest.tasks = [
-        { id: '1', status: 'complete' } as QuestTask,
-        { id: '2', status: 'complete' } as QuestTask,
-        { id: '3', status: 'in_progress' } as QuestTask,
-        { id: '4', status: 'pending' } as QuestTask,
+        { id: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', status: 'complete' } as QuestTask,
+        { id: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e', status: 'complete' } as QuestTask,
+        { id: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f', status: 'in_progress' } as QuestTask,
+        { id: 'd4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a', status: 'pending' } as QuestTask,
       ];
 
       expect(calculateTaskProgress(quest)).toBe('2/4');
@@ -129,9 +129,9 @@ describe('quest model', () => {
     it('should handle all tasks complete', () => {
       const quest = createQuest('test', '001-test', 'Test');
       quest.tasks = [
-        { id: '1', status: 'complete' } as QuestTask,
-        { id: '2', status: 'complete' } as QuestTask,
-        { id: '3', status: 'complete' } as QuestTask,
+        { id: 'e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b', status: 'complete' } as QuestTask,
+        { id: 'f6a7b8c9-d0e1-2f3a-4b5c-6d7e8f9a0b1c', status: 'complete' } as QuestTask,
+        { id: 'a7b8c9d0-e1f2-3a4b-5c6d-7e8f9a0b1c2d', status: 'complete' } as QuestTask,
       ];
 
       expect(calculateTaskProgress(quest)).toBe('3/3');
@@ -140,9 +140,9 @@ describe('quest model', () => {
     it('should not count failed or skipped as complete', () => {
       const quest = createQuest('test', '001-test', 'Test');
       quest.tasks = [
-        { id: '1', status: 'complete' } as QuestTask,
-        { id: '2', status: 'failed' } as QuestTask,
-        { id: '3', status: 'skipped' } as QuestTask,
+        { id: 'b8c9d0e1-f2a3-4b5c-6d7e-8f9a0b1c2d3e', status: 'complete' } as QuestTask,
+        { id: 'c9d0e1f2-a3b4-5c6d-7e8f-9a0b1c2d3e4f', status: 'failed' } as QuestTask,
+        { id: 'd0e1f2a3-b4c5-6d7e-8f9a-0b1c2d3e4f5a', status: 'skipped' } as QuestTask,
       ];
 
       expect(calculateTaskProgress(quest)).toBe('1/3');
@@ -154,7 +154,7 @@ describe('quest model', () => {
       it('should return true when discovery complete with tasks', () => {
         const quest = createQuest('test', '001-test', 'Test');
         quest.phases.discovery.status = 'complete';
-        quest.tasks = [{ id: '1' } as QuestTask];
+        quest.tasks = [{ id: 'e1f2a3b4-c5d6-7e8f-9a0b-1c2d3e4f5a6b' } as QuestTask];
 
         expect(canProceedToNextPhase(quest, 'discovery')).toBe(true);
       });
@@ -162,7 +162,7 @@ describe('quest model', () => {
       it('should return false when discovery not complete', () => {
         const quest = createQuest('test', '001-test', 'Test');
         quest.phases.discovery.status = 'in_progress';
-        quest.tasks = [{ id: '1' } as QuestTask];
+        quest.tasks = [{ id: 'f2a3b4c5-d6e7-8f9a-0b1c-2d3e4f5a6b7c' } as QuestTask];
 
         expect(canProceedToNextPhase(quest, 'discovery')).toBe(false);
       });
@@ -180,9 +180,21 @@ describe('quest model', () => {
       it('should return true when all implementation tasks complete', () => {
         const quest = createQuest('test', '001-test', 'Test');
         quest.tasks = [
-          { id: '1', type: 'implementation', status: 'complete' } as QuestTask,
-          { id: '2', type: 'implementation', status: 'complete' } as QuestTask,
-          { id: '3', type: 'testing', status: 'pending' } as QuestTask,
+          {
+            id: 'a3b4c5d6-e7f8-9a0b-1c2d-3e4f5a6b7c8d',
+            type: 'implementation',
+            status: 'complete',
+          } as QuestTask,
+          {
+            id: 'b4c5d6e7-f8a9-0b1c-2d3e-4f5a6b7c8d9e',
+            type: 'implementation',
+            status: 'complete',
+          } as QuestTask,
+          {
+            id: 'c5d6e7f8-a9b0-1c2d-3e4f-5a6b7c8d9e0f',
+            type: 'testing',
+            status: 'pending',
+          } as QuestTask,
         ];
 
         expect(canProceedToNextPhase(quest, 'implementation')).toBe(true);
@@ -191,8 +203,16 @@ describe('quest model', () => {
       it('should return false when implementation tasks pending', () => {
         const quest = createQuest('test', '001-test', 'Test');
         quest.tasks = [
-          { id: '1', type: 'implementation', status: 'complete' } as QuestTask,
-          { id: '2', type: 'implementation', status: 'in_progress' } as QuestTask,
+          {
+            id: 'd6e7f8a9-b0c1-2d3e-4f5a-6b7c8d9e0f1a',
+            type: 'implementation',
+            status: 'complete',
+          } as QuestTask,
+          {
+            id: 'e7f8a9b0-c1d2-3e4f-5a6b-7c8d9e0f1a2b',
+            type: 'implementation',
+            status: 'in_progress',
+          } as QuestTask,
         ];
 
         expect(canProceedToNextPhase(quest, 'implementation')).toBe(false);
@@ -201,8 +221,16 @@ describe('quest model', () => {
       it('should handle skipped tasks', () => {
         const quest = createQuest('test', '001-test', 'Test');
         quest.tasks = [
-          { id: '1', type: 'implementation', status: 'complete' } as QuestTask,
-          { id: '2', type: 'implementation', status: 'skipped' } as QuestTask,
+          {
+            id: 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+            type: 'implementation',
+            status: 'complete',
+          } as QuestTask,
+          {
+            id: 'a9b0c1d2-e3f4-5a6b-7c8d-9e0f1a2b3c4d',
+            type: 'implementation',
+            status: 'skipped',
+          } as QuestTask,
         ];
 
         expect(canProceedToNextPhase(quest, 'implementation')).toBe(true);
@@ -255,9 +283,9 @@ describe('quest model', () => {
       quest.phases.discovery.status = 'complete';
       quest.phases.implementation.status = 'in_progress';
       quest.tasks = [
-        { id: '1', status: 'complete' } as QuestTask,
-        { id: '2', status: 'in_progress' } as QuestTask,
-        { id: '3', status: 'pending' } as QuestTask,
+        { id: 'b0c1d2e3-f4a5-6b7c-8d9e-0f1a2b3c4d5e', status: 'complete' } as QuestTask,
+        { id: 'c1d2e3f4-a5b6-7c8d-9e0f-1a2b3c4d5e6f', status: 'in_progress' } as QuestTask,
+        { id: 'd2e3f4a5-b6c7-8d9e-0f1a-2b3c4d5e6f7a', status: 'pending' } as QuestTask,
       ];
 
       const entry = toTrackerEntry(quest);
@@ -319,7 +347,7 @@ describe('quest model', () => {
         ],
         tasks: [
           {
-            id: 'create-service',
+            id: 'e3f4a5b6-c7d8-9e0f-1a2b-3c4d5e6f7a8b',
             name: 'CreateService',
             type: 'implementation',
             description: 'Create the service',

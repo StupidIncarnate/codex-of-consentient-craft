@@ -68,7 +68,7 @@ describe('Type Guards', () => {
   describe('parseJsonSafely', () => {
     it('should parse valid JSON with passing validator', () => {
       const result = parseJsonSafely('{"name": "test"}', isPackageJson);
-      expect(result).toEqual({ name: 'test' });
+      expect(result).toStrictEqual({ name: 'test' });
     });
 
     it('should return null for invalid JSON', () => {

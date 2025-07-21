@@ -46,7 +46,7 @@ export class ConfigManager {
     if (result.success && result.data) {
       // Validate config
       if (!isValidConfig(result.data)) {
-        console.warn(`Invalid configuration in ${configPath}, using defaults`);
+        // Invalid configuration found, using defaults
         return this.getDefaultConfig();
       }
 
@@ -66,7 +66,7 @@ export class ConfigManager {
   saveConfig(config: QuestmaestroConfig, directory: string = process.cwd()): boolean {
     // Validate config before saving
     if (!isValidConfig(config)) {
-      console.error('Invalid configuration, cannot save');
+      // Invalid configuration, cannot save
       return false;
     }
 
@@ -79,7 +79,7 @@ export class ConfigManager {
       return true;
     }
 
-    console.error(`Failed to save config: ${result.error}`);
+    // Failed to save config: result.error contains details
     return false;
   }
 
@@ -93,7 +93,7 @@ export class ConfigManager {
     // Check if config already exists
     const configPath = path.join(directory, CONFIG_FILE_NAME);
     if (this.fileSystem.fileExists(configPath)) {
-      console.log(`Configuration already exists at ${configPath}`);
+      // Configuration already exists at configPath
       return false;
     }
 

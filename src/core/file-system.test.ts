@@ -214,7 +214,7 @@ describe('FileSystem', () => {
       const result = fileSystem.readJson<typeof testData>('/path/to/file.json');
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(testData);
+      expect(result.data).toStrictEqual(testData);
       expect(mockFs.readFileSync).toHaveBeenCalledWith('/path/to/file.json', 'utf-8');
     });
 
@@ -336,7 +336,7 @@ describe('FileSystem', () => {
       const result = fileSystem.listQuests('active');
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(['001-add-auth', '002-fix-bug']);
+      expect(result.data).toStrictEqual(['001-add-auth', '002-fix-bug']);
     });
 
     it("should return empty array if directory doesn't exist", () => {
@@ -345,7 +345,7 @@ describe('FileSystem', () => {
       const result = fileSystem.listQuests('active');
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual([]);
+      expect(result.data).toStrictEqual([]);
     });
 
     it('should handle read errors', () => {
@@ -591,7 +591,7 @@ describe('FileSystem', () => {
 
       const files = fileSystem.listFiles('/path/to/dir');
 
-      expect(files).toEqual(['file1.txt', 'file2.js']);
+      expect(files).toStrictEqual(['file1.txt', 'file2.js']);
       expect(files).not.toContain('subdir');
     });
 
@@ -600,7 +600,7 @@ describe('FileSystem', () => {
 
       const files = fileSystem.listFiles('/path/to/dir');
 
-      expect(files).toEqual([]);
+      expect(files).toStrictEqual([]);
       expect(mockFs.readdirSync).not.toHaveBeenCalled();
     });
 
@@ -613,7 +613,7 @@ describe('FileSystem', () => {
 
       const files = fileSystem.listFiles('/path/to/dir');
 
-      expect(files).toEqual([]);
+      expect(files).toStrictEqual([]);
     });
   });
 
@@ -754,7 +754,7 @@ describe('FileSystem', () => {
 
       const results = fileSystem.findPackageJsons('/test/project');
 
-      expect(results).toEqual([]);
+      expect(results).toStrictEqual([]);
       // Should only check src directory, not the others
       expect(mockFs.readdirSync).toHaveBeenCalledTimes(2); // root + src
     });
@@ -773,7 +773,7 @@ describe('FileSystem', () => {
 
       const results = fileSystem.findPackageJsons('/test/project');
 
-      expect(results).toEqual([]);
+      expect(results).toStrictEqual([]);
       // Should stop at depth 5 (6 calls: root + 5 levels)
       expect(mockFs.readdirSync).toHaveBeenCalledTimes(6);
     });
@@ -788,7 +788,7 @@ describe('FileSystem', () => {
 
       const results = fileSystem.findPackageJsons('/test/project');
 
-      expect(results).toEqual([]);
+      expect(results).toStrictEqual([]);
     });
 
     it('should skip invalid package.json files', () => {
@@ -801,7 +801,7 @@ describe('FileSystem', () => {
 
       const results = fileSystem.findPackageJsons('/test/project');
 
-      expect(results).toEqual([]);
+      expect(results).toStrictEqual([]);
     });
   });
 });

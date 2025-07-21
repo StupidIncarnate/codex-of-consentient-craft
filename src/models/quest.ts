@@ -231,8 +231,8 @@ export function createQuest(
       testing: { status: 'pending' as PhaseStatus },
       review: { status: 'pending' as PhaseStatus },
     },
-    executionLog: [],
-    tasks: [],
+    executionLog: [] as ExecutionLogEntry[],
+    tasks: [] as QuestTask[],
     userRequest,
   };
 }

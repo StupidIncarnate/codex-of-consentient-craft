@@ -160,9 +160,7 @@ export class QuestManager {
 
       return result;
     } catch (error) {
-      console.error(
-        `Failed to save quest: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      // Failed to save quest: error details in return value
       return {
         success: false,
         error: `Failed to save quest: ${error instanceof Error ? error.message : String(error)}`,
@@ -234,7 +232,7 @@ export class QuestManager {
 
     // Validate task dependencies
     if (!this.validateTaskDependencies(questTasks)) {
-      console.error('Invalid task dependencies detected');
+      // Invalid task dependencies detected
       return {
         success: false,
         error: 'Invalid task dependencies detected',
@@ -271,7 +269,7 @@ export class QuestManager {
     const task = quest.tasks.find((t) => t.id === taskId);
 
     if (!task) {
-      console.error(`Task ${taskId} not found in quest ${questFolder}`);
+      // Task not found in quest
       return {
         success: false,
         error: `Task ${taskId} not found in quest ${questFolder}`,
@@ -590,8 +588,8 @@ export class QuestManager {
       };
 
       this.fileSystem.writeJson(trackerPath, tracker);
-    } catch (error) {
-      console.error('Failed to update quest tracker:', error);
+    } catch (_error) {
+      // Failed to update quest tracker: error details captured
     }
   }
 
@@ -624,7 +622,7 @@ export class QuestManager {
     for (const task of tasks) {
       for (const depId of task.dependencies) {
         if (!taskIds.has(depId)) {
-          console.error(`Task ${task.id} depends on non-existent task ${depId}`);
+          // Task depends on non-existent task
           return false;
         }
       }
@@ -662,7 +660,7 @@ export class QuestManager {
 
     for (const task of tasks) {
       if (hasCycle(task.id)) {
-        console.error(`Circular dependency detected involving task ${task.id}`);
+        // Circular dependency detected
         return false;
       }
     }

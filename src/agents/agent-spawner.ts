@@ -48,7 +48,9 @@ export class AgentSpawner {
           // Clean up temp file
           try {
             fs.unlinkSync(tempPromptFile);
-          } catch {}
+          } catch (_error) {
+            // Ignore cleanup errors - file may already be deleted
+          }
 
           // Parse JSON report
           try {
@@ -67,10 +69,10 @@ export class AgentSpawner {
             } else {
               resolve(report);
             }
-          } catch (error) {
+          } catch (_error) {
             reject(
               new Error(
-                `Failed to parse report from ${agentType}: ${error instanceof Error ? error.message : String(error)}`,
+                `Failed to parse report from ${agentType}: ${_error instanceof Error ? _error.message : String(_error)}`,
               ),
             );
           }
@@ -91,7 +93,9 @@ export class AgentSpawner {
         // Clean up temp file
         try {
           fs.unlinkSync(tempPromptFile);
-        } catch {}
+        } catch (_error) {
+          // Ignore cleanup errors - file may already be deleted
+        }
 
         // Check if report was generated
         if (!fs.existsSync(reportPath)) {
@@ -107,7 +111,9 @@ export class AgentSpawner {
         clearInterval(watcher);
         try {
           fs.unlinkSync(tempPromptFile);
-        } catch {}
+        } catch (_error) {
+          // Ignore cleanup errors - file may already be deleted
+        }
         reject(new Error(`Failed to spawn ${agentType}: ${error.message}`));
       });
     });
@@ -267,7 +273,7 @@ export class AgentSpawner {
       // For now, just retry
       const recoveryContext = {
         ...originalContext,
-        reportNumber: originalContext.reportNumber + 1,
+        reportNumber: (parseInt(originalContext.reportNumber) + 1).toString(),
         recoveryMode: true,
         instruction: 'The previous agent exited unexpectedly. Continue the task.',
       };
@@ -277,7 +283,7 @@ export class AgentSpawner {
       // For non-implementation agents, just respawn
       const recoveryContext = {
         ...originalContext,
-        reportNumber: originalContext.reportNumber + 1,
+        reportNumber: (parseInt(originalContext.reportNumber) + 1).toString(),
         recoveryMode: true,
       };
 

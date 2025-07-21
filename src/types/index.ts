@@ -34,26 +34,26 @@ export type CliCommand = 'list' | 'abandon' | 'start' | 'clean' | 'default';
 /**
  * File operation result
  */
-export interface FileOperationResult<T = void> {
+export type FileOperationResult<T = void> = {
   success: boolean;
   data?: T;
   error?: string;
   path?: string;
-}
+};
 
 /**
  * Agent spawn options
  */
-export interface AgentSpawnOptions {
+export type AgentSpawnOptions = {
   timeout?: number;
   env?: NodeJS.ProcessEnv;
   cwd?: string;
-}
+};
 
 /**
  * Quest folder structure
  */
-export interface QuestFolderStructure {
+export type QuestFolderStructure = {
   root: string; // questmaestro/
   active: string; // questmaestro/active/
   completed: string; // questmaestro/completed/
@@ -61,85 +61,85 @@ export interface QuestFolderStructure {
   retros: string; // questmaestro/retros/
   lore: string; // questmaestro/lore/
   discovery: string; // questmaestro/discovery/
-}
+};
 
 /**
  * Quest folder patterns
  */
-export interface QuestFolderInfo {
+export type QuestFolderInfo = {
   number: string; // "001", "002", etc.
   name: string; // "add-authentication"
   fullPath: string;
-}
+};
 
 /**
  * Report file info
  */
-export interface ReportFileInfo {
+export type ReportFileInfo = {
   number: string; // "001", "002", etc.
   agentType: string; // "pathseeker", "codeweaver", etc.
   fullPath: string;
   exists: boolean;
-}
+};
 
 /**
  * Ward validation result
  */
-export interface WardResult {
+export type WardResult = {
   success: boolean;
   command: string;
   output: string;
   errors?: WardError[];
-}
+};
 
 /**
  * Ward error details
  */
-export interface WardError {
+export type WardError = {
   type: 'lint' | 'typecheck' | 'test' | 'build' | 'unknown';
   file?: string;
   line?: number;
   message: string;
   raw: string;
-}
+};
 
 /**
  * Quest list display entry
  */
-export interface QuestListEntry {
+export type QuestListEntry = {
   number: string;
   title: string;
   status: string;
   phase?: string;
   progress?: string;
   lastUpdated: string;
-}
+};
 
 /**
  * Lore entry structure
  */
-export interface LoreEntry {
+export type LoreEntry = {
   filename: string;
   category: string;
   title: string;
   content: string;
   relatedQuest?: string;
   createdAt: string;
-}
+};
 
 /**
  * File watcher event
  */
-export interface FileWatchEvent {
+export type FileWatchEvent = {
   type: 'created' | 'modified' | 'deleted';
   path: string;
   timestamp: number;
-}
+};
 
 /**
  * Agent execution context passed via $ARGUMENTS
  */
-export interface AgentExecutionContext {
+export type AgentExecutionContext = {
   userRequest?: string;
   workingDirectory: string;
   questFolder: string;
@@ -149,40 +149,40 @@ export interface AgentExecutionContext {
   wardErrors?: string; // For Spiritmender
   previousReports?: string[]; // For recovery/validation
   attemptNumber?: number; // For Spiritmender retries
-}
+};
 
 /**
  * CLI argument parsing result
  */
-export interface ParsedArgs {
+export type ParsedArgs = {
   command: CliCommand;
   args: string[];
   rawInput: string;
-}
+};
 
 /**
  * Quest creation options
  */
-export interface QuestCreationOptions {
+export type QuestCreationOptions = {
   title: string;
   userRequest: string;
   skipDiscovery?: boolean;
-}
+};
 
 /**
  * Discovery report reference
  */
-export interface DiscoveryReportRef {
+export type DiscoveryReportRef = {
   filename: string;
   packageName: string;
   timestamp: string;
   selected?: boolean;
-}
+};
 
 /**
  * Time formatting options
  */
-export interface TimeFormatOptions {
+export type TimeFormatOptions = {
   relative?: boolean;
   includeTime?: boolean;
-}
+};

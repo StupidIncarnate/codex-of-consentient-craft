@@ -34,7 +34,7 @@ describe('ReportParser', () => {
 
       const result = parser.parseReport('/path/to/report.json');
 
-      expect(result).toEqual(mockReport);
+      expect(result).toStrictEqual(mockReport);
       expect(mockFs.readFileSync).toHaveBeenCalledWith('/path/to/report.json', 'utf8');
     });
 
@@ -87,7 +87,7 @@ describe('ReportParser', () => {
         report: {
           tasks: [
             {
-              id: 'task1',
+              id: '550e8400-e29b-41d4-a716-446655440001',
               name: 'Create auth service',
               type: 'implementation',
               description: 'Create authentication service',
@@ -104,7 +104,7 @@ describe('ReportParser', () => {
 
       const result = parser.parsePathseekerReport('/path/to/report.json');
 
-      expect(result).toEqual(mockReport);
+      expect(result).toStrictEqual(mockReport);
     });
 
     it('should throw error for wrong agent type', () => {
@@ -140,7 +140,7 @@ describe('ReportParser', () => {
 
       const result = parser.parseCodeweaverReport('/path/to/report.json');
 
-      expect(result).toEqual(mockReport);
+      expect(result).toStrictEqual(mockReport);
     });
 
     it('should throw error for wrong agent type', () => {
@@ -181,7 +181,7 @@ describe('ReportParser', () => {
 
       const result = parser.parseSiegemasterReport('/path/to/report.json');
 
-      expect(result).toEqual(mockReport);
+      expect(result).toStrictEqual(mockReport);
     });
 
     it('should throw error for wrong agent type', () => {
@@ -217,7 +217,7 @@ describe('ReportParser', () => {
 
       const result = parser.parseLawbringerReport('/path/to/report.json');
 
-      expect(result).toEqual(mockReport);
+      expect(result).toStrictEqual(mockReport);
     });
 
     it('should throw error for wrong agent type', () => {
@@ -260,7 +260,7 @@ describe('ReportParser', () => {
 
       const result = parser.parseSpiritmenderReport('/path/to/report.json');
 
-      expect(result).toEqual(mockReport);
+      expect(result).toStrictEqual(mockReport);
     });
 
     it('should throw error for wrong agent type', () => {
@@ -321,7 +321,7 @@ describe('ReportParser', () => {
 
       const result = parser.parseVoidpokerReport('/path/to/report.json');
 
-      expect(result).toEqual(mockReport);
+      expect(result).toStrictEqual(mockReport);
     });
 
     it('should throw error for wrong agent type', () => {
@@ -348,7 +348,7 @@ describe('ReportParser', () => {
         report: {
           tasks: [
             {
-              id: 'task1',
+              id: '550e8400-e29b-41d4-a716-446655440001',
               name: 'Create auth service',
               type: 'implementation',
               description: 'Create authentication service',
@@ -357,11 +357,11 @@ describe('ReportParser', () => {
               filesToEdit: [],
             },
             {
-              id: 'task2',
+              id: '550e8400-e29b-41d4-a716-446655440002',
               name: 'Add auth middleware',
               type: 'implementation',
               description: 'Add authentication middleware',
-              dependencies: ['task1'],
+              dependencies: ['550e8400-e29b-41d4-a716-446655440001'],
               filesToCreate: ['auth.middleware.ts'],
               filesToEdit: ['app.ts'],
             },
@@ -372,8 +372,8 @@ describe('ReportParser', () => {
       const tasks = parser.extractTasksFromPathseeker(report);
 
       expect(tasks).toHaveLength(2);
-      expect(tasks[0].id).toBe('task1');
-      expect(tasks[1].id).toBe('task2');
+      expect(tasks[0].id).toBe('550e8400-e29b-41d4-a716-446655440001');
+      expect(tasks[1].id).toBe('550e8400-e29b-41d4-a716-446655440002');
     });
 
     it('should return empty array if no tasks', () => {
@@ -387,7 +387,7 @@ describe('ReportParser', () => {
 
       const tasks = parser.extractTasksFromPathseeker(report);
 
-      expect(tasks).toEqual([]);
+      expect(tasks).toStrictEqual([]);
     });
   });
 
@@ -432,7 +432,7 @@ describe('ReportParser', () => {
 
       const gaps = parser.extractGapsFromSiegemaster(report);
 
-      expect(gaps).toEqual([]);
+      expect(gaps).toStrictEqual([]);
     });
   });
 
@@ -481,7 +481,7 @@ describe('ReportParser', () => {
 
       const errors = parser.extractErrorsFromSpiritmender(report);
 
-      expect(errors).toEqual([]);
+      expect(errors).toStrictEqual([]);
     });
   });
 });

@@ -148,7 +148,9 @@ Quest mode: creation`;
         ...baseContext,
         mode: 'validation' as const,
         additionalContext: {
-          existingTasks: [{ id: 'task1', name: 'Create auth service' }],
+          existingTasks: [
+            { id: '550e8400-e29b-41d4-a716-446655440001', name: 'Create auth service' },
+          ],
         },
       };
 
@@ -161,7 +163,7 @@ Report number: 1
 Quest mode: validation
 
 Existing tasks:
-${JSON.stringify([{ id: 'task1', name: 'Create auth service' }], null, 2)}`;
+${JSON.stringify([{ id: '550e8400-e29b-41d4-a716-446655440001', name: 'Create auth service' }], null, 2)}`;
       expect(capturedContext.content).toBe(expectedContent);
     });
 
@@ -179,7 +181,7 @@ ${JSON.stringify([{ id: 'task1', name: 'Create auth service' }], null, 2)}`;
         ...baseContext,
         additionalContext: {
           questTitle: 'Add Authentication',
-          task: { id: 'task1', name: 'Create auth service' },
+          task: { id: '550e8400-e29b-41d4-a716-446655440002', name: 'Create auth service' },
         },
       };
 
@@ -188,7 +190,7 @@ ${JSON.stringify([{ id: 'task1', name: 'Create auth service' }], null, 2)}`;
       const expectedContent = `Agent markdown content with Quest: Add Authentication
 Quest folder: 001-add-auth
 Report number: 1
-Task: ${JSON.stringify({ id: 'task1', name: 'Create auth service' }, null, 2)}
+Task: ${JSON.stringify({ id: '550e8400-e29b-41d4-a716-446655440002', name: 'Create auth service' }, null, 2)}
 Ward commands: npm run ward:all`;
       expect(capturedContext.content).toBe(expectedContent);
     });
@@ -418,6 +420,205 @@ Report path: /path/to/report.json`;
       await expect(promise).rejects.toThrow('pathseeker is blocked: Insufficient context');
 
       expect(mockLogger.warn).toHaveBeenCalledWith('Agent blocked: Insufficient context');
+    });
+
+    it('should handle agent recovery when exit without report', async () => {
+      const context: AgentContext = {
+        userRequest: 'Test',
+        questFolder: '001-test',
+        reportNumber: '1',
+        wardCommands: {},
+        workingDirectory: '/test',
+      };
+
+      // Set up mock process
+      let exitCallback: ((code: number) => void) | undefined;
+      const mockProcess = {
+        kill: jest.fn(),
+        on: jest.fn().mockImplementation((event: string, callback: unknown) => {
+          if (event === 'exit') {
+            exitCallback = callback as (code: number) => void;
+          }
+          return mockProcess;
+        }),
+        pid: 1234,
+        stdin: null,
+        stdout: null,
+        stderr: null,
+        stdio: [null, null, null],
+        killed: false,
+        connected: false,
+        exitCode: null,
+        signalCode: null,
+        spawnargs: [],
+        spawnfile: '',
+        send: jest.fn(),
+        disconnect: jest.fn(),
+        unref: jest.fn(),
+        ref: jest.fn(),
+        addListener: jest.fn(),
+        emit: jest.fn(),
+        once: jest.fn(),
+        prependListener: jest.fn(),
+        prependOnceListener: jest.fn(),
+        removeListener: jest.fn(),
+        removeAllListeners: jest.fn(),
+        setMaxListeners: jest.fn(),
+        getMaxListeners: jest.fn(),
+        listeners: jest.fn(),
+        rawListeners: jest.fn(),
+        listenerCount: jest.fn(),
+        eventNames: jest.fn(),
+        off: jest.fn(),
+      } as unknown as ReturnType<typeof spawn>;
+      mockSpawn.mockReturnValue(mockProcess);
+
+      // Mock for the recovery spawn
+      let recoveryReportCheckCount = 0;
+      mockFs.existsSync.mockImplementation((path: fs.PathLike) => {
+        if (typeof path === 'string' && path.includes('-report.json')) {
+          // First call is for original spawn (no report)
+          // After recovery spawn, report exists
+          if (path.includes('002-')) {
+            recoveryReportCheckCount++;
+            return recoveryReportCheckCount > 1;
+          }
+          return false;
+        }
+        return true;
+      });
+
+      mockFs.readFileSync.mockImplementation((path: fs.PathOrFileDescriptor) => {
+        if (typeof path === 'string' && path.includes('002-pathseeker-report.json')) {
+          return JSON.stringify({
+            agentType: 'pathseeker',
+            status: 'complete',
+            report: {},
+          });
+        }
+        return 'Agent markdown content with $ARGUMENTS';
+      });
+
+      const promise = agentSpawner.spawnAndWait('pathseeker', context);
+
+      // Simulate process exit without report
+      if (exitCallback) {
+        exitCallback(0);
+      }
+
+      // Allow recovery to proceed
+      jest.advanceTimersByTime(1000);
+
+      const result = await promise;
+      expect(result.status).toBe('complete');
+      expect(mockLogger.info).toHaveBeenCalledWith('Attempting recovery for pathseeker...');
+    });
+
+    it('should handle recovery for codeweaver with special context', async () => {
+      const context: AgentContext = {
+        userRequest: 'Test',
+        questFolder: '001-test',
+        reportNumber: '1',
+        wardCommands: {},
+        workingDirectory: '/test',
+      };
+
+      // Set up mock process
+      let exitCallback: ((code: number) => void) | undefined;
+      const mockProcess = {
+        kill: jest.fn(),
+        on: jest.fn().mockImplementation((event: string, callback: unknown) => {
+          if (event === 'exit') {
+            exitCallback = callback as (code: number) => void;
+          }
+          return mockProcess;
+        }),
+        pid: 1234,
+        stdin: null,
+        stdout: null,
+        stderr: null,
+        stdio: [null, null, null],
+        killed: false,
+        connected: false,
+        exitCode: null,
+        signalCode: null,
+        spawnargs: [],
+        spawnfile: '',
+        send: jest.fn(),
+        disconnect: jest.fn(),
+        unref: jest.fn(),
+        ref: jest.fn(),
+        addListener: jest.fn(),
+        emit: jest.fn(),
+        once: jest.fn(),
+        prependListener: jest.fn(),
+        prependOnceListener: jest.fn(),
+        removeListener: jest.fn(),
+        removeAllListeners: jest.fn(),
+        setMaxListeners: jest.fn(),
+        getMaxListeners: jest.fn(),
+        listeners: jest.fn(),
+        rawListeners: jest.fn(),
+        listenerCount: jest.fn(),
+        eventNames: jest.fn(),
+        off: jest.fn(),
+      } as unknown as ReturnType<typeof spawn>;
+      mockSpawn.mockReturnValue(mockProcess);
+
+      // Mock for the recovery spawn
+      let recoveryReportCheckCount = 0;
+      mockFs.existsSync.mockImplementation((path: fs.PathLike) => {
+        if (typeof path === 'string' && path.includes('-report.json')) {
+          if (path.includes('002-')) {
+            recoveryReportCheckCount++;
+            return recoveryReportCheckCount > 1;
+          }
+          return false;
+        }
+        return true;
+      });
+
+      mockFs.readFileSync.mockImplementation((path: fs.PathOrFileDescriptor) => {
+        if (typeof path === 'string' && path.includes('002-codeweaver-report.json')) {
+          return JSON.stringify({
+            agentType: 'codeweaver',
+            status: 'complete',
+            report: {},
+          });
+        }
+        return 'Agent markdown content with $ARGUMENTS';
+      });
+
+      // Capture the recovery context
+      let recoveryContext:
+        | (AgentContext & { recoveryMode?: boolean; instruction?: string })
+        | undefined;
+      const originalSpawnAndWait = agentSpawner.spawnAndWait.bind(agentSpawner);
+      jest.spyOn(agentSpawner, 'spawnAndWait').mockImplementation(async (agentType, ctx) => {
+        if (ctx.reportNumber === '2') {
+          recoveryContext = ctx as AgentContext & { recoveryMode?: boolean; instruction?: string };
+        }
+        return originalSpawnAndWait(agentType, ctx);
+      });
+
+      const promise = agentSpawner.spawnAndWait('codeweaver', context);
+
+      // Simulate process exit without report
+      if (exitCallback) {
+        exitCallback(0);
+      }
+
+      // Allow recovery to proceed
+      jest.advanceTimersByTime(1000);
+
+      await promise;
+
+      expect(recoveryContext).toBeDefined();
+      expect(recoveryContext?.reportNumber).toBe('2');
+      expect(recoveryContext?.recoveryMode).toBe(true);
+      expect(recoveryContext?.instruction).toBe(
+        'The previous agent exited unexpectedly. Continue the task.',
+      );
     });
   });
 });

@@ -1,4 +1,3 @@
-import { QuestStatus, PhaseType } from '../types';
 import {
   validateQuestId,
   validateQuestFolder,
@@ -13,7 +12,7 @@ import {
   validatePhaseOrder,
   validateQuest,
 } from './validators';
-import { createQuest, QuestTask } from '../models/quest';
+import { createQuest, QuestTask, QuestStatus, PhaseType } from '../models/quest';
 
 describe('validators', () => {
   describe('validateQuestId', () => {

@@ -30,6 +30,8 @@ describe('QuestManager', () => {
       writeFile: jest.fn(),
       fileExists: jest.fn(),
       initializeFolderStructure: jest.fn(),
+      directoryExists: jest.fn(),
+      listFiles: jest.fn(),
     } as unknown as jest.Mocked<FileSystem>;
 
     mockConfigManager = {
@@ -146,7 +148,7 @@ describe('QuestManager', () => {
       const result = questManager.loadQuest('001-test');
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockQuest);
+      expect(result.data).toStrictEqual(mockQuest);
       expect(mockFileSystem.readJson).toHaveBeenCalledWith(
         '/test/questmaestro/active/001-test/quest.json',
       );
@@ -318,16 +320,10 @@ describe('QuestManager', () => {
         data: quest,
       });
 
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
       const result = questManager.addTasks('001-test', tasks);
 
       expect(result.success).toBe(false);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('depends on non-existent task'),
-      );
-
-      consoleErrorSpy.mockRestore();
+      expect(result.error).toBe('Invalid task dependencies detected');
     });
 
     it('should reject tasks with circular dependencies', () => {
@@ -358,16 +354,10 @@ describe('QuestManager', () => {
         data: quest,
       });
 
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
       const result = questManager.addTasks('001-test', tasks);
 
       expect(result.success).toBe(false);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Circular dependency detected'),
-      );
-
-      consoleErrorSpy.mockRestore();
+      expect(result.error).toBe('Invalid task dependencies detected');
     });
   });
 
@@ -483,8 +473,6 @@ describe('QuestManager', () => {
         data: quest,
       });
 
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
       const result = questManager.updateTaskStatus({
         questFolder: '001-test',
         taskId: 'non-existent',
@@ -492,11 +480,7 @@ describe('QuestManager', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Task non-existent not found'),
-      );
-
-      consoleErrorSpy.mockRestore();
+      expect(result.error).toContain('Task non-existent not found');
     });
   });
 
@@ -604,7 +588,7 @@ describe('QuestManager', () => {
 
       const result = questManager.getActiveQuests();
 
-      expect(result).toEqual([]);
+      expect(result).toStrictEqual([]);
     });
   });
 
@@ -624,7 +608,7 @@ describe('QuestManager', () => {
       const result = questManager.findQuest('test');
 
       expect(result.success).toBe(true);
-      expect(result.data?.quest).toEqual(quest);
+      expect(result.data?.quest).toStrictEqual(quest);
       expect(result.data?.state).toBe('active');
     });
 
@@ -866,7 +850,7 @@ describe('QuestManager', () => {
 
       const result = questManager.getAllQuests();
 
-      expect(result).toEqual([]);
+      expect(result).toStrictEqual([]);
     });
   });
 
@@ -881,7 +865,7 @@ describe('QuestManager', () => {
 
       const result = questManager.getQuest('001-test');
 
-      expect(result).toEqual(quest);
+      expect(result).toStrictEqual(quest);
     });
 
     it('should return null if quest not found', () => {
@@ -1116,7 +1100,7 @@ describe('QuestManager', () => {
       const result = questManager.getCreatedFiles('001-test');
 
       // Currently returns empty as we can't extract from report filename
-      expect(result).toEqual([]);
+      expect(result).toStrictEqual([]);
     });
 
     it('should return empty array if quest not found', () => {
@@ -1127,7 +1111,7 @@ describe('QuestManager', () => {
 
       const result = questManager.getCreatedFiles('001-test');
 
-      expect(result).toEqual([]);
+      expect(result).toStrictEqual([]);
     });
   });
 
@@ -1155,7 +1139,7 @@ describe('QuestManager', () => {
       const result = questManager.getChangedFiles('001-test');
 
       // Currently returns empty as we can't extract from report filename
-      expect(result).toEqual([]);
+      expect(result).toStrictEqual([]);
     });
 
     it('should return empty array if quest not found', () => {
@@ -1166,7 +1150,7 @@ describe('QuestManager', () => {
 
       const result = questManager.getChangedFiles('001-test');
 
-      expect(result).toEqual([]);
+      expect(result).toStrictEqual([]);
     });
   });
 });

@@ -40,7 +40,7 @@ describe('agent model', () => {
         report: {
           tasks: [
             {
-              id: 'create-auth-service',
+              id: '7f8a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c',
               name: 'CreateAuthService',
               type: 'implementation',
               description: 'Create authentication service',
@@ -59,7 +59,7 @@ describe('agent model', () => {
       const report: CodeweaverReport = {
         status: 'complete',
         agentType: 'codeweaver',
-        taskId: 'create-auth-service',
+        taskId: '8c9d0e1f-2g3h-4i5j-6k7l-8m9n0o1p2q3r',
         report: {
           filesCreated: ['src/auth/auth-service.ts'],
           filesModified: ['src/app.ts'],
@@ -177,11 +177,11 @@ describe('agent model', () => {
         report: {
           tasks: [
             {
-              id: 'test-task',
+              id: '1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d',
               name: 'TestTask',
               type: 'testing',
               description: 'Create unit tests',
-              dependencies: ['implementation-task'],
+              dependencies: ['2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e'],
               filesToCreate: ['src/test.spec.ts'],
               filesToEdit: [],
               testTechnology: 'jest',
@@ -205,7 +205,7 @@ describe('agent model', () => {
       const report: CodeweaverReport = {
         status: 'error',
         agentType: 'codeweaver',
-        taskId: 'create-service',
+        taskId: '3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f',
         report: {
           filesCreated: [],
           filesModified: [],

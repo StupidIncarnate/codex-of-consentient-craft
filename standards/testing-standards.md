@@ -661,10 +661,12 @@ expect(result).toStrictEqual({ id: 'e8f9a0b1-2cde-f345-6789-0123abcdef45', name:
 expect(items).toStrictEqual(['apple', 'banana']);
 
 // ✅ CORRECT - Test the whole object to catch property bleedthrough
-expect(result.current).toStrictEqual({
-  isLoading: true,
-  count: 5,
-  error: null
+expect(result).toStrictEqual({
+  current: {
+      isLoading: true,
+      count: 5,
+      error: null
+  },
 });
 
 // ❌ WRONG - Testing object properties individually misses property bleedthrough
@@ -702,10 +704,12 @@ expect(apiResponse).toEqual({ id: 'c6d7e8f9-0abc-def1-2345-678901abcdef', name: 
 // ✅ ALWAYS use strict equality instead
 expect(user).toStrictEqual({ id: 'b5d6e7f8-9abc-def0-1234-567890abcdef', name: 'John' });
 expect(items).toStrictEqual(['apple', 'banana']);
+expect(errorMsg).toBe("Your error number is 3237. Make it better");
 
 // ❌ NEVER use these - they allow property bleedthrough
 expect(user).toEqual(expect.objectContaining({ id: 'a0b1c2d3-4e5f-6789-0abc-def123456789' }));
 expect(items).toEqual(expect.arrayContaining(['apple']));
+expect(errorMsg).toEqual(expect.stringContaining('Your error number'))
 ```
 
 #### Other Assertions

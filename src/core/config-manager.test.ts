@@ -8,11 +8,7 @@ jest.mock('./file-system');
 
 describe('ConfigManager', () => {
   let configManager: ConfigManager;
-  let mockFileSystem: {
-    readJson: jest.Mock;
-    writeJson: jest.Mock;
-    fileExists: jest.Mock;
-  };
+  let mockFileSystem: jest.Mocked<Pick<FileSystem, 'readJson' | 'writeJson' | 'fileExists'>>;
 
   beforeEach(() => {
     // Create a mock FileSystem with only the methods used by ConfigManager
@@ -48,7 +44,10 @@ describe('ConfigManager', () => {
 
       const config = configManager.loadConfig('/test/dir');
 
-      expect(config).toEqual(mockConfig);
+      expect(config).toStrictEqual({
+        ...mockConfig,
+        project: undefined,
+      });
       expect(mockFileSystem.readJson).toHaveBeenCalledWith(
         path.join('/test/dir', CONFIG_FILE_NAME),
       );
@@ -62,7 +61,7 @@ describe('ConfigManager', () => {
 
       const config = configManager.loadConfig('/test/dir');
 
-      expect(config).toEqual(DEFAULT_CONFIG);
+      expect(config).toStrictEqual(DEFAULT_CONFIG);
     });
 
     it('should return default config for invalid configuration', () => {
@@ -76,15 +75,9 @@ describe('ConfigManager', () => {
         data: invalidConfig,
       });
 
-      // Mock console.warn to verify it's called
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
       const config = configManager.loadConfig('/test/dir');
 
-      expect(config).toEqual(DEFAULT_CONFIG);
-      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid configuration'));
-
-      consoleWarnSpy.mockRestore();
+      expect(config).toStrictEqual(DEFAULT_CONFIG);
     });
 
     it('should use cached config on subsequent calls', () => {
@@ -153,15 +146,10 @@ describe('ConfigManager', () => {
         discoveryComplete: true,
       } as unknown as QuestmaestroConfig;
 
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
       const result = configManager.saveConfig(invalidConfig, '/test/dir');
 
       expect(result).toBe(false);
       expect(mockFileSystem.writeJson).not.toHaveBeenCalled();
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid configuration, cannot save');
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should handle write errors', () => {
@@ -172,14 +160,9 @@ describe('ConfigManager', () => {
         error: 'Permission denied',
       });
 
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
       const result = configManager.saveConfig(config, '/test/dir');
 
       expect(result).toBe(false);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to save config: Permission denied');
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should update cache after successful save', () => {
@@ -196,7 +179,7 @@ describe('ConfigManager', () => {
       mockFileSystem.readJson.mockClear();
       const loadedConfig = configManager.loadConfig('/test/dir');
 
-      expect(loadedConfig).toEqual(config);
+      expect(loadedConfig).toStrictEqual(config);
       expect(mockFileSystem.readJson).not.toHaveBeenCalled();
     });
   });
@@ -240,17 +223,10 @@ describe('ConfigManager', () => {
     it('should not overwrite existing config', () => {
       mockFileSystem.fileExists.mockReturnValue(true);
 
-      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-
       const result = configManager.initializeConfig('/test/dir');
 
       expect(result).toBe(false);
       expect(mockFileSystem.writeJson).not.toHaveBeenCalled();
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Configuration already exists'),
-      );
-
-      consoleLogSpy.mockRestore();
     });
   });
 
@@ -318,7 +294,7 @@ describe('ConfigManager', () => {
 
       const result = configManager.getWardCommands('/test/dir');
 
-      expect(result).toEqual(wardCommands);
+      expect(result).toStrictEqual(wardCommands);
     });
 
     it('should return empty object when no ward commands', () => {
@@ -377,7 +353,7 @@ describe('ConfigManager', () => {
 
       const result = configManager.getProjectConfig('/test/dir');
 
-      expect(result).toEqual(projectConfig);
+      expect(result).toStrictEqual(projectConfig);
     });
 
     it('should return undefined when no project config', () => {
