@@ -62,6 +62,104 @@ it('updates user', () => {
 });
 ```
 
+### Test Data Factory Functions
+
+When multiple tests use similar data structures with only minor variations, use factory functions to reduce redundancy and improve maintainability.
+
+#### Naming Convention
+Use the pattern `[Type]Stub` for factory function names:
+```typescript
+// GOOD: Clear, concise naming
+const UserStub = (overrides: Partial<User> = {}) => ({ ... });
+const PreToolUseHookStub = (overrides: Partial<HookData> = {}) => ({ ... });
+const ErrorResponseStub = (overrides: Partial<ErrorResponse> = {}) => ({ ... });
+
+// BAD: Redundant "create" prefix
+const createUserStub = (overrides: Partial<User> = {}) => ({ ... });
+```
+
+#### Implementation Pattern
+
+Import stubs from the central `/tests/stubs` folder:
+
+```typescript
+// In test file
+import { PreToolUseHookStub } from '../../tests/stubs/hook-data.stub';
+
+it('valid TypeScript content → returns exit code 0', () => {
+  const hookData = PreToolUseHookStub({
+    cwd: projectDir,
+    tool_input: {
+      file_path: filePath,
+      content: 'export function add(a: number, b: number): number { return a + b; }',
+    },
+  });
+  
+  const result = runHook(hookData);
+  
+  expect(result).toStrictEqual({
+    exitCode: 0,
+    stdout: '',
+    stderr: ''
+  });
+});
+```
+
+#### File Organization
+Stub factories should be organized in a central `/tests/stubs` folder:
+
+```
+tests/
+  stubs/
+    hook-data.stub.ts         // Exports HookDataStub, PreToolUseHookStub, PostToolUseHookStub
+    tool-input.stub.ts        // Exports WriteToolInputStub, EditToolInputStub, etc.
+    user.stub.ts              // Exports UserStub, AdminUserStub, etc.
+src/
+  hooks/
+    sanitation-hook.ts
+    sanitation-hook.integration.test.ts
+  models/
+    user.ts
+    user.test.ts
+```
+
+Each stub file should:
+1. Export one primary stub and its variations
+2. Be named after the type it stubs (e.g., `user.stub.ts` for `User` type)
+3. Import types from the source files
+
+Example stub file:
+```typescript
+// tests/stubs/hook-data.stub.ts
+import type { HookData } from '../hooks/sanitation-hook';
+
+export const HookDataStub = (overrides: Partial<HookData> = {}): HookData => ({
+  session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  transcript_path: '/tmp/transcript.jsonl',
+  cwd: process.cwd(),
+  hook_event_name: 'PreToolUse',
+  tool_name: 'Write',
+  tool_input: {
+    file_path: '/test/file.ts',
+    content: '',
+  },
+  ...overrides,
+});
+
+export const PreToolUseHookStub = (overrides: Partial<HookData> = {}) => 
+  HookDataStub({ hook_event_name: 'PreToolUse', ...overrides });
+
+export const PostToolUseHookStub = (overrides: Partial<HookData> = {}) => 
+  HookDataStub({ hook_event_name: 'PostToolUse', ...overrides });
+```
+
+#### Guidelines
+1. **One stub file per type** - Keep related stubs together, but separate different types
+2. **Use deep merging for nested objects** - Ensure partial overrides don't replace entire nested structures
+3. **Generate unique IDs when needed** - Use a UUID generator for session IDs that must be unique
+4. **Extract common values as constants** - File paths, content snippets, etc.
+5. **Keep factories pure** - No side effects, just return data
+
 ### Test File Organization
 
 Keep tests close to the code they test for easy discovery and maintenance.

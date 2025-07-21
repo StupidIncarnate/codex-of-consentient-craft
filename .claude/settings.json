@@ -7,11 +7,8 @@
           {
             "type": "command",
             "command": "jq -e '.tool_input.file_path | endswith(\"eslint.config.js\") or endswith(\"tsconfig.json\")' && exit 2 || exit 0"
-          },
-          {
-            "type": "command",
-            "command": "npx tsx ./src/hooks/sanitation-hook.ts"
           }
+
         ]
       }
     ],
@@ -19,10 +16,6 @@
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "npx tsx ./src/hooks/sanitation-hook.ts"
-          }
         ]
       }
     ]

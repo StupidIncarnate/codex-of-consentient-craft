@@ -1,79 +1,19 @@
-#!/usr/bin/env node
-
 import { spawn } from 'child_process';
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { processEscapeHatchisms } from './process-escape-hatchisms';
+import type {
+  WriteToolInput,
+  MultiEditToolInput,
+  ToolInput,
+  PreToolUseHookData,
+  PostToolUseHookData,
+  HookData,
+  EslintMessage,
+  EslintResult,
+} from '../types/hooks';
 
-type WriteToolInput = {
-  file_path: string;
-  content: string;
-};
-
-type EditToolInput = {
-  file_path: string;
-  old_string: string;
-  new_string: string;
-  replace_all?: boolean;
-};
-
-type MultiEditToolInput = {
-  file_path: string;
-  edits: Array<{
-    old_string: string;
-    new_string: string;
-    replace_all?: boolean;
-  }>;
-};
-
-type ToolInput = WriteToolInput | EditToolInput | MultiEditToolInput;
-
-type PreToolUseHookData = {
-  session_id: string;
-  transcript_path: string;
-  cwd: string;
-  hook_event_name: 'PreToolUse';
-  tool_name: string;
-  tool_input: ToolInput;
-};
-
-type PostToolUseHookData = {
-  session_id: string;
-  transcript_path: string;
-  cwd: string;
-  hook_event_name: 'PostToolUse';
-  tool_name: string;
-  tool_input: ToolInput;
-};
-
-type UserPromptSubmitHookData = {
-  session_id: string;
-  transcript_path: string;
-  cwd: string;
-  hook_event_name: 'UserPromptSubmit';
-  user_prompt: string;
-};
-
-type BaseHookData = {
-  session_id: string;
-  transcript_path: string;
-  cwd: string;
-  hook_event_name: string;
-};
-
-type HookData = PreToolUseHookData | PostToolUseHookData | UserPromptSubmitHookData | BaseHookData;
-
-type EslintMessage = {
-  line: number;
-  message: string;
-  severity: number;
-  ruleId?: string;
-};
-
-type EslintResult = {
-  messages: EslintMessage[];
-  output?: string;
-};
+type SpawnResult = { code: number; stdout: string; stderr: string };
 
 const DEBUG = process.env.DEBUG === 'true';
 
@@ -82,23 +22,32 @@ const FILE_EXTENSIONS = {
   JAVASCRIPT: ['.js', '.jsx'],
 } as const;
 
+const TIMEOUTS = {
+  ESLINT: 30000, // 30 seconds
+  TYPESCRIPT_CHECK: 30000, // 30 seconds
+} as const;
+
 function debug(...args: unknown[]): void {
   if (DEBUG) {
     console.error(...args);
   }
 }
 
-type SpawnResult = { code: number; stdout: string; stderr: string };
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
-async function spawnPromise(
-  command: string,
-  args: string[],
-  options?: { cwd?: string; stdin?: string; timeout?: number },
-): Promise<SpawnResult> {
+async function spawnPromise(options: {
+  command: string;
+  args: string[];
+  cwd?: string;
+  stdin?: string;
+  timeout?: number;
+}): Promise<SpawnResult> {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const child = spawn(options.command, options.args, {
       stdio: ['pipe', 'pipe', 'pipe'],
-      cwd: options?.cwd || process.cwd(),
+      cwd: options.cwd || process.cwd(),
     });
 
     let stdout = '';
@@ -135,7 +84,7 @@ async function spawnPromise(
       }
     });
 
-    if (options?.stdin) {
+    if (options.stdin) {
       child.stdin.write(options.stdin);
       child.stdin.end();
     }
@@ -163,7 +112,7 @@ async function getFullFileContent(toolInput: ToolInput): Promise<string | null> 
       const editInput = toolInput;
       if (editInput.replace_all) {
         // Use global regex replace for replaceAll functionality
-        const regex = new RegExp(editInput.old_string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        const regex = new RegExp(escapeRegex(editInput.old_string), 'g');
         return existingContent.replace(regex, editInput.new_string);
       } else {
         return existingContent.replace(editInput.old_string, editInput.new_string);
@@ -178,7 +127,7 @@ async function getFullFileContent(toolInput: ToolInput): Promise<string | null> 
       for (const edit of multiEditInput.edits) {
         if (edit.replace_all) {
           // Use global regex replace for replaceAll functionality
-          const regex = new RegExp(edit.old_string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+          const regex = new RegExp(escapeRegex(edit.old_string), 'g');
           content = content.replace(regex, edit.new_string);
         } else {
           content = content.replace(edit.old_string, edit.new_string);
@@ -204,13 +153,34 @@ async function getFullFileContent(toolInput: ToolInput): Promise<string | null> 
   return null;
 }
 
+function isEslintMessage(obj: unknown): obj is EslintMessage {
+  if (!obj || typeof obj !== 'object') return false;
+  const msg = obj as Record<string, unknown>;
+  return (
+    typeof msg.line === 'number' &&
+    typeof msg.message === 'string' &&
+    typeof msg.severity === 'number' &&
+    (msg.ruleId === undefined || typeof msg.ruleId === 'string')
+  );
+}
+
+function isEslintResult(obj: unknown): obj is EslintResult {
+  if (!obj || typeof obj !== 'object') return false;
+  const result = obj as Record<string, unknown>;
+  return (
+    Array.isArray(result.messages) &&
+    result.messages.every(isEslintMessage) &&
+    (result.output === undefined || typeof result.output === 'string')
+  );
+}
+
 function parseEslintOutput(output: string): EslintResult[] {
   try {
     const jsonMatch = output.match(/\[{[\s\S]*}]/);
     if (!jsonMatch) return [];
     const parsed = JSON.parse(jsonMatch[0]) as unknown;
-    if (Array.isArray(parsed)) {
-      return parsed as EslintResult[];
+    if (Array.isArray(parsed) && parsed.every(isEslintResult)) {
+      return parsed;
     }
     return [];
   } catch (e) {
@@ -231,9 +201,9 @@ async function lintContent(
   }
 
   // Run ESLint through stdin with --fix-dry-run
-  const fixResult = await spawnPromise(
-    'npm',
-    [
+  const fixResult = await spawnPromise({
+    command: 'npm',
+    args: [
       'run',
       'lint',
       '--',
@@ -244,11 +214,9 @@ async function lintContent(
       '--format',
       'json',
     ],
-    {
-      stdin: content,
-      timeout: 30000, // 30 second timeout
-    },
-  ).catch((error) => {
+    stdin: content,
+    timeout: TIMEOUTS.ESLINT,
+  }).catch((error) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Failed to spawn lint process: ${errorMessage}`);
     return { code: 1, stdout: '', stderr: errorMessage };
@@ -334,8 +302,10 @@ async function runTypeScriptCheck(
   filePath: string,
 ): Promise<{ hasErrors: boolean; errors: string }> {
   try {
-    const result = await spawnPromise('npx', ['tsc', '--noEmit', filePath], {
-      timeout: 30000, // 30 second timeout
+    const result = await spawnPromise({
+      command: 'npx',
+      args: ['tsc', '--noEmit', filePath],
+      timeout: TIMEOUTS.TYPESCRIPT_CHECK,
     });
 
     return {
@@ -379,13 +349,11 @@ async function handlePostToolUse(hookData: PostToolUseHookData): Promise<void> {
     }
 
     // Then run ESLint directly on the file with --fix and JSON output
-    const eslintResult = await spawnPromise(
-      'npx',
-      ['eslint', '--fix', '--format', 'json', filePath],
-      {
-        timeout: 30000, // 30 second timeout
-      },
-    );
+    const eslintResult = await spawnPromise({
+      command: 'npx',
+      args: ['eslint', '--fix', '--format', 'json', filePath],
+      timeout: TIMEOUTS.ESLINT,
+    });
 
     debug('ESLint exit code:', eslintResult.code);
     debug('ESLint stdout:', eslintResult.stdout);
@@ -484,14 +452,3 @@ if (require.main === module) {
 }
 
 export { lintContent, parseEslintOutput, getFullFileContent, handlePostToolUse, handlePreToolUse };
-export type {
-  WriteToolInput,
-  EditToolInput,
-  MultiEditToolInput,
-  ToolInput,
-  HookData,
-  PreToolUseHookData,
-  PostToolUseHookData,
-  EslintMessage,
-  EslintResult,
-};

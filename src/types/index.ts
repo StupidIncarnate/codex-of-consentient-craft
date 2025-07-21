@@ -16,6 +16,9 @@ export * from '../models/agent';
 // Re-export all config-related types
 export * from '../models/config';
 
+// Re-export all hook-related types
+export * from './hooks';
+
 // Additional utility types that don't fit in specific model files
 
 /**
@@ -36,15 +39,6 @@ export interface FileOperationResult<T = void> {
   data?: T;
   error?: string;
   path?: string;
-}
-
-/**
- * Process spawning result
- */
-export interface SpawnResult {
-  exitCode: number;
-  signal?: NodeJS.Signals;
-  timedOut?: boolean;
 }
 
 /**
