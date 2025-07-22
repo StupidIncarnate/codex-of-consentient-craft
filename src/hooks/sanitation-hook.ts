@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
-import { processEscapeHatchisms } from './process-escape-hatchisms';
+import { hasNewEscapeHatches, getNewEscapeHatchMessage } from './process-escape-hatchisms';
 import type {
   WriteToolInput,
   MultiEditToolInput,
@@ -388,6 +388,44 @@ async function handlePostToolUse(hookData: PostToolUseHookData): Promise<void> {
   }
 }
 
+interface ContentChange {
+  oldContent: string;
+  newContent: string;
+}
+
+async function getContentChanges(toolInput: ToolInput): Promise<ContentChange[]> {
+  const changes: ContentChange[] = [];
+  const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
+
+  // For Write tool, need to check against existing file content
+  if ('content' in toolInput && filePath) {
+    let oldContent = '';
+    try {
+      // Try to read existing file content
+      oldContent = await readFile(filePath, 'utf-8');
+    } catch (error) {
+      // File doesn't exist - new file case
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+    }
+    changes.push({ oldContent, newContent: toolInput.content });
+  }
+  // For Edit tool, we have explicit old and new strings
+  else if ('new_string' in toolInput && 'old_string' in toolInput && !('edits' in toolInput)) {
+    changes.push({ oldContent: toolInput.old_string, newContent: toolInput.new_string });
+  }
+  // For MultiEdit tool, check each edit
+  else if ('edits' in toolInput) {
+    const multiEditInput = toolInput as MultiEditToolInput;
+    for (const edit of multiEditInput.edits) {
+      changes.push({ oldContent: edit.old_string, newContent: edit.new_string });
+    }
+  }
+
+  return changes;
+}
+
 async function handlePreToolUse(hookData: PreToolUseHookData): Promise<void> {
   const toolInput = hookData.tool_input;
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
@@ -397,19 +435,23 @@ async function handlePreToolUse(hookData: PreToolUseHookData): Promise<void> {
     process.exit(0);
   }
 
-  // Get the full file content after applying edits
+  // Check for newly introduced escape hatches
+  const contentChanges = await getContentChanges(toolInput);
+  for (const change of contentChanges) {
+    // Check if new content introduces escape hatches that weren't in old content
+    if (hasNewEscapeHatches(change.oldContent, change.newContent)) {
+      console.error('[PreToolUse Hook] New escape hatches detected:');
+      console.error(getNewEscapeHatchMessage(change.oldContent, change.newContent));
+      process.exit(2);
+    }
+  }
+
+  // Get the full file content after applying edits for linting
   const content = await getFullFileContent(toolInput);
 
   if (!content) {
     debug('No content to lint');
     process.exit(0);
-  }
-
-  // Check for escape hatches first
-  const escapeHatchCheck = processEscapeHatchisms(content);
-  if (escapeHatchCheck.found) {
-    console.error(escapeHatchCheck.message);
-    process.exit(2);
   }
 
   // Run linting with TypeScript rule filtering
@@ -451,4 +493,11 @@ if (require.main === module) {
   main();
 }
 
-export { lintContent, parseEslintOutput, getFullFileContent, handlePostToolUse, handlePreToolUse };
+export {
+  lintContent,
+  parseEslintOutput,
+  getFullFileContent,
+  handlePostToolUse,
+  handlePreToolUse,
+  getContentChanges,
+};

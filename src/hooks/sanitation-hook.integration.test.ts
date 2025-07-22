@@ -119,6 +119,41 @@ describe('sanitation-hook', () => {
             expect(result.stderr).toContain('@ts-ignore');
             expect(result.stderr).toContain(': any');
           });
+
+          it('Write overwriting file that already had escape hatches → allows if not adding new ones', () => {
+            const projectDir = createTestProject('escape-hatch-overwrite');
+            const filePath = path.join(projectDir, 'test.ts');
+
+            // Create file with existing escape hatches
+            fs.writeFileSync(
+              filePath,
+              `// @ts-ignore
+export function add(a: any, b: any): any {
+  return a + b;
+}
+`,
+            );
+
+            // Write new content that still has the same escape hatches
+            const hookData = WriteToolHookStub({
+              session_id: '550e8400-e29b-41d4-a716-446655440001',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `// @ts-ignore
+export function add(a: any, b: any): any {
+  console.log('Adding numbers');
+  return a + b;
+}
+`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should allow since not introducing NEW escape hatches
+            expect(result.exitCode).toBe(0);
+          });
         });
 
         describe('when content has ESLint escape hatches', () => {
@@ -181,6 +216,98 @@ describe('sanitation-hook', () => {
               stdout: '',
               stderr: '',
             });
+          });
+
+          it('edit adding new escape hatch → exits with code 2', () => {
+            const projectDir = createTestProject('edit-add-escape-hatch');
+            const filePath = path.join(projectDir, 'test.ts');
+
+            // Create initial file without escape hatches
+            const initialContent = `export function add(a: number, b: number): number {
+  return a + b;
+}
+`;
+            fs.writeFileSync(filePath, initialContent);
+
+            const hookData = EditToolHookStub({
+              session_id: '6ba7b811-9dad-11d1-80b4-00c04fd430c9',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: 'export function add(a: number, b: number): number {',
+                new_string: '// @ts-ignore\nexport function add(a: any, b: any): any {',
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('[PreToolUse Hook] New escape hatches detected');
+            expect(result.stderr).toContain('@ts-ignore');
+            expect(result.stderr).toContain(': any');
+          });
+
+          it('edit on line that already has escape hatch → allows preserving it', () => {
+            const projectDir = createTestProject('edit-preserve-escape-hatch');
+            const filePath = path.join(projectDir, 'test.ts');
+
+            // Create file with existing escape hatch
+            const initialContent = `// @ts-ignore
+export function add(a: any, b: any): any {
+  return a + b;
+}
+`;
+            fs.writeFileSync(filePath, initialContent);
+
+            // Edit that preserves the existing escape hatch
+            const hookData = EditToolHookStub({
+              session_id: '6ba7b811-9dad-11d1-80b4-00c04fd430ca',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: '// @ts-ignore\nexport function add(a: any, b: any): any {',
+                new_string: '// @ts-ignore\nexport function add(a: any, b: any, c: any = 0): any {',
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should allow since not introducing NEW escape hatches
+            expect(result.exitCode).toBe(0);
+          });
+
+          it('file has escape hatch, edit on different line → allows', () => {
+            const projectDir = createTestProject('edit-different-line');
+            const filePath = path.join(projectDir, 'test.ts');
+
+            // Create file with escape hatch in one function
+            const initialContent = `// @ts-ignore
+export function add(a: any, b: any): any {
+  return a + b;
+}
+
+export function subtract(a: number, b: number): number {
+  return a - b;
+}
+`;
+            fs.writeFileSync(filePath, initialContent);
+
+            // Edit the clean function (no escape hatches)
+            const hookData = EditToolHookStub({
+              session_id: '6ba7b811-9dad-11d1-80b4-00c04fd430cb',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: 'export function subtract(a: number, b: number): number {',
+                new_string:
+                  'export function subtract(a: number, b: number, c: number = 0): number {',
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should allow since not introducing NEW escape hatches
+            expect(result.exitCode).toBe(0);
           });
 
           it('edit that would create type errors → exits with code 0 (pre-hook filters TS errors)', () => {
@@ -270,6 +397,89 @@ export function getUser(id: string): User {
               stdout: '',
               stderr: '',
             });
+          });
+
+          it('multiedit with one edit adding escape hatch → exits with code 2', () => {
+            const projectDir = createTestProject('multiedit-add-escape');
+            const filePath = path.join(projectDir, 'test.ts');
+
+            // Create initial file without escape hatches
+            const initialContent = `export class Calculator {
+  add(a: number, b: number): number {
+    return a + b;
+  }
+
+  subtract(a: number, b: number): number {
+    return a - b;
+  }
+}
+`;
+            fs.writeFileSync(filePath, initialContent);
+
+            const hookData = MultiEditToolHookStub({
+              session_id: '6ba7b813-9dad-11d1-80b4-00c04fd430cc',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                edits: [
+                  {
+                    old_string: 'add(a: number, b: number): number',
+                    new_string: 'add(a: any, b: any): any',
+                  },
+                  {
+                    old_string: 'export class Calculator {',
+                    new_string: '// @ts-ignore\nexport class Calculator {',
+                  },
+                ],
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('[PreToolUse Hook] New escape hatches detected');
+          });
+
+          it('multiedit preserving existing escape hatches → allows', () => {
+            const projectDir = createTestProject('multiedit-preserve-escape');
+            const filePath = path.join(projectDir, 'test.ts');
+
+            // Create file with existing escape hatches
+            const initialContent = `// @ts-ignore
+export class Calculator {
+  add(a: any, b: any): any {
+    return a + b;
+  }
+
+  subtract(a: number, b: number): number {
+    return a - b;
+  }
+}
+`;
+            fs.writeFileSync(filePath, initialContent);
+
+            const hookData = MultiEditToolHookStub({
+              session_id: '6ba7b813-9dad-11d1-80b4-00c04fd430cd',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                edits: [
+                  {
+                    old_string: '// @ts-ignore\nexport class Calculator {',
+                    new_string: '// @ts-ignore\nexport class AdvancedCalculator {',
+                  },
+                  {
+                    old_string: 'add(a: any, b: any): any {',
+                    new_string: 'add(a: any, b: any, c: any = 0): any {',
+                  },
+                ],
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should allow since not introducing NEW escape hatches
+            expect(result.exitCode).toBe(0);
           });
 
           it('edits with replace_all → exits with appropriate code', () => {
