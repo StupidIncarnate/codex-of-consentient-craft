@@ -5,15 +5,15 @@
 **This workflow is MANDATORY when writing any production code. Following this process ensures code quality, maintainability, and alignment with team standards.**
 
 ### Overview
-1. [Write empty test cases](#1-write-empty-test-cases)
-2. [Implement production code](#2-implement-production-code)  
-3. [Review for missing coverage](#3-review-for-missing-coverage)
-4. [Fill in test assertions](#4-fill-in-test-assertions)
-5. [Run tests and fix failures](#5-run-tests-and-fix-failures)
-6. [Refactor for clarity](#6-refactor-for-clarity)
-7. [Final verification](#7-final-verification)
+1. **STUB-TESTS**: [Write empty test cases](#1-write-empty-test-cases-stub-tests)
+2. **CODE**: [Implement production code](#2-implement-production-code-code)  
+3. **GAP-REVIEW**: [Review for missing coverage](#3-review-for-missing-coverage-gap-review)
+4. **TEST**: [Fill in test assertions](#4-fill-in-test-assertions-test)
+5. **TEGRITY**: [Run tests and fix failures](#5-run-tests-and-fix-failures-tegrity)
+6. **REFACTOR**: [Refactor for clarity](#6-refactor-for-clarity-refactor)
+7. **TEGRITY**: [Final verification](#7-final-verification-tegrity)
 
-### 1. Write empty test cases
+### 1. Write empty test cases (STUB-TESTS)
 Write empty test cases with descriptive names that define expected behavior. Follow the [Test Structure Patterns](./testing-standards.md#test-structure-patterns) for organizing test hierarchies.
    ```typescript
    // Step 1: Empty test cases - Build context with nested describes
@@ -36,15 +36,15 @@ Write empty test cases with descriptive names that define expected behavior. Fol
    });
    ```
 
-### 2. Implement production code
+### 2. Implement production code (CODE)
 Fill in production code that aligns with expected behavior
 - Follow existing patterns in the project standards doc folder as well as examples in the codebase
 - Keep implementation simple and clear
 
-### 3. Review for missing coverage
+### 3. Review for missing coverage (GAP-REVIEW)
 Review production code for missing test coverage based on [Coverage Requirements](./testing-standards.md#coverage-requirements)
 
-### 4. Fill in test assertions
+### 4. Fill in test assertions (TEST)
 Fill in test cases with assertions that match their descriptions. Use [Arrange-Act-Assert Pattern](./testing-standards.md#arrange-act-assert-pattern) for complex tests and follow [Assertion Methods](./testing-standards.md#assertion-methods) guidelines
 ```typescript
 // Fill in the test assertions
@@ -65,14 +65,14 @@ it('throws DuplicateUserError', async () => {
 });
 ```
 
-### 5. Run tests and fix failures
+### 5. Run tests and fix failures (TEGRITY)
 - Execute the test suite
 - Fix any failing tests by updating production code or updating asserts if needed
 
-### 6. Refactor for clarity
+### 6. Refactor for clarity (REFACTOR)
 Refactor production and test files for clarity, following DRY principle for production code, [DAMP (Descriptive And Meaningful Phrases)](./testing-standards.md) for test code, and verify all tests still pass
 
-### 7. Final verification
+### 7. Final verification (TEGRITY)
 - Run all tests one more time
 - Execute linting and type checking
 - Ensure no console output or warnings

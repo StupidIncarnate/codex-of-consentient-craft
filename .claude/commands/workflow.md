@@ -45,65 +45,65 @@ Use TodoWrite to break down the task following the 7-step TDD process from `@./s
 
 **Single Component Example:**
 ```
-1. Write empty tests for UserService (Step 1: Write Empty Test Cases)
-2. Implement UserService (Step 2: Implement Production Code)
-3. Review production code for missing test coverage (Step 3: Review for Missing Coverage)
-4. Fill in test assertions (Step 4: Fill in Test Assertions)
-5. Run tests and fix failures (Step 5: Run Tests and Fix Failures)
-6. Refactor if needed (Step 6: Refactor for Clarity)
-7. Run linting/typecheck (Step 7: Final Verification)
+1. STUB-TESTS: UserService (Step 1: Write Empty Test Cases)
+2. CODE: UserService (Step 2: Implement Production Code)
+3. GAP-REVIEW: UserServer (Step 3: Review for Missing Coverage)
+4. TEST: UserServer (Step 4: Fill in Test Assertions)
+5. TEGRITY: Tests (Step 5: Run Tests and Fix Failures)
+6. REFACTOR: UserService (Step 6: Refactor for Clarity)
+7. TEGRITY: Lint+Types (Step 7: Final Verification)
 ```
 
 **Multiple Components Example:**
 ```
 # AuthService (complete before moving to next)
-1. Write empty tests for AuthService (Step 1: Write Empty Test Cases)
-2. Implement AuthService (Step 2: Implement Production Code)
-3. Review production code for missing test coverage (Step 3: Review for Missing Coverage)
-4. Fill in test assertions for AuthService (Step 4: Fill in Test Assertions)
-5. Run AuthService tests and fix failures (Step 5: Run Tests and Fix Failures)
+1. STUB-TESTS: AuthService (Step 1: Write Empty Test Cases)
+2. CODE: AuthService (Step 2: Implement Production Code)
+3. GAP-REVIEW: AuthService (Step 3: Review for Missing Coverage)
+4. TEST: AuthService (Step 4: Fill in Test Assertions)
+5. TEGRITY: AuthService Tests (Step 5: Run Tests and Fix Failures)
 
 # UserService (depends on AuthService)
-6. Write empty tests for UserService (Step 1: Write Empty Test Cases)
-7. Implement UserService (Step 2: Implement Production Code)
-8. Review production code for missing test coverage (Step 3: Review for Missing Coverage)
-9. Fill in test assertions for UserService (Step 4: Fill in Test Assertions)
-10. Run UserService tests and fix failures (Step 5: Run Tests and Fix Failures)
+6. STUB-TESTS: UserService (Step 1: Write Empty Test Cases)
+7. CODE: UserService (Step 2: Implement Production Code)
+8. GAP-REVIEW: UserService (Step 3: Review for Missing Coverage)
+9. TEST: UserService (Step 4: Fill in Test Assertions)
+10. TEGRITY: UserService Tests (Step 5: Run Tests and Fix Failures)
 
 # TokenService
-11. Write empty tests for TokenService (Step 1: Write Empty Test Cases)
-12. Implement TokenService (Step 2: Implement Production Code)
-13. Review production code for missing test coverage (Step 3: Review for Missing Coverage)
-14. Fill in test assertions for TokenService (Step 4: Fill in Test Assertions)
-15. Run TokenService tests and fix failures (Step 5: Run Tests and Fix Failures)
+11. STUB-TESTS: TokenService (Step 1: Write Empty Test Cases)
+12. CODE: TokenService (Step 2: Implement Production Code)
+13. GAP-REVIEW: TokenService (Step 3: Review for Missing Coverage)
+14. TEST: TokenService (Step 4: Fill in Test Assertions)
+15. TEGRITY: TokenService Tests (Step 5: Run Tests and Fix Failures)
 
 # Final verification
-16. Refactor all components if needed (Step 6: Refactor for Clarity)
-17. Run all tests together
-18. Run linting/typecheck (Step 7: Final Verification)
+16. REFACTOR: All Components (Step 6: Refactor for Clarity)
+17. TEGRITY: All Tests
+18. TEGRITY: Lint+Types (Step 7: Final Verification)
 ```
 
 **Parallel Work Opportunity:**
 When components are truly independent:
 ```
 [PARALLEL GROUP 1]
-- Write empty tests for PaymentService (Step 1: Write Empty Test Cases)
-- Implement PaymentService (Step 2: Implement Production Code)
-- Review production code for missing test coverage (Step 3: Review for Missing Coverage)
-- Fill in test assertions for PaymentService (Step 4: Fill in Test Assertions)
-- Run PaymentService tests (Step 5: Run Tests and Fix Failures)
+- STUB-TESTS: PaymentService (Step 1: Write Empty Test Cases)
+- CODE: PaymentService (Step 2: Implement Production Code)
+- GAP-REVIEW: PaymentService (Step 3: Review for Missing Coverage)
+- TEST: PaymentService (Step 4: Fill in Test Assertions)
+- TEGRITY: PaymentService Tests (Step 5: Run Tests and Fix Failures)
 
 [PARALLEL GROUP 2]
-- Write empty tests for NotificationService (Step 1: Write Empty Test Cases)
-- Implement NotificationService (Step 2: Implement Production Code)
-- Review production code for missing test coverage (Step 3: Review for Missing Coverage)
-- Fill in test assertions for NotificationService (Step 4: Fill in Test Assertions)
-- Run NotificationService tests (Step 5: Run Tests and Fix Failures)
+- STUB-TESTS: NotificationService (Step 1: Write Empty Test Cases)
+- CODE: NotificationService (Step 2: Implement Production Code)
+- GAP-REVIEW: NotificationService (Step 3: Review for Missing Coverage)
+- TEST: NotificationService (Step 4: Fill in Test Assertions)
+- TEGRITY: NotificationService Tests (Step 5: Run Tests and Fix Failures)
 
 [SEQUENTIAL]
-- Refactor all components if needed (Step 6: Refactor for Clarity)
-- Run all tests together
-- Run linting/typecheck (Step 7: Final Verification)
+- REFACTOR: All Components (Step 6: Refactor for Clarity)
+- TEGRITY: All Tests
+- TEGRITY: Lint+Types (Step 7: Final Verification)
 ```
 
 Keep each TODO focused and achievable. Group related work but maintain clear boundaries.
