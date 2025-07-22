@@ -27,7 +27,7 @@ describe('process-escape-hatchisms', () => {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -40,7 +40,7 @@ describe('process-escape-hatchisms', () => {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -55,7 +55,7 @@ describe('process-escape-hatchisms', () => {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Found 'as any' - Type assertions to 'any' bypass type safety. Use proper typing or 'as unknown as SpecificType' if absolutely necessary. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -70,7 +70,7 @@ describe('process-escape-hatchisms', () => {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Found '<any>' - This TypeScript assertion bypasses type checking. Define proper types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -180,8 +180,7 @@ function test(param: any): any {
         expect(result).toStrictEqual({
           found: true,
           message: buildExpectedMessage([
-            "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
-            "Found 'as any' - Type assertions to 'any' bypass type safety. Use proper typing or 'as unknown as SpecificType' if absolutely necessary. Take a step back, breath for a moment, and think through the issue at a high-level",
+            "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             "Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             "Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. Take a step back, breath for a moment, and think through the issue at a high-level",
           ]),
@@ -219,7 +218,7 @@ const c = evenMoreInvalidCode;`;
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -235,7 +234,7 @@ const d = ({ foo: a, bar: b } as any);`;
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Found 'as any' - Type assertions to 'any' bypass type safety. Use proper typing or 'as unknown as SpecificType' if absolutely necessary. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -268,7 +267,7 @@ const map: Map<string, any> = new Map();`;
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Found '<any>' - This TypeScript assertion bypasses type checking. Define proper types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -288,8 +287,7 @@ function test(a: any, b: any): any {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
-              "Found 'as any' - Type assertions to 'any' bypass type safety. Use proper typing or 'as unknown as SpecificType' if absolutely necessary. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
               "Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. Take a step back, breath for a moment, and think through the issue at a high-level",
               "Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
@@ -317,19 +315,21 @@ export interface User {
         });
       });
 
-      it('any in string literals → returns not found', () => {
+      it('any in string literals → detects any keyword', () => {
         const content = `const message = "You can use any value here";
 const comment = 'This accepts any type of input';`;
 
         const result = processEscapeHatchisms(content);
 
         expect(result).toStrictEqual({
-          found: false,
-          message: '',
+          found: true,
+          message: buildExpectedMessage([
+            "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+          ]),
         });
       });
 
-      it('any in comments → returns not found', () => {
+      it('any in comments → detects any keyword', () => {
         const content = `// This function can handle any type of input
 /* You can pass any value to this function */
 export function process(value: unknown): string {
@@ -339,8 +339,10 @@ export function process(value: unknown): string {
         const result = processEscapeHatchisms(content);
 
         expect(result).toStrictEqual({
-          found: false,
-          message: '',
+          found: true,
+          message: buildExpectedMessage([
+            "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+          ]),
         });
       });
     });
@@ -379,7 +381,7 @@ export function process(value: unknown): string {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -392,7 +394,178 @@ export function process(value: unknown): string {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Found 'as any' - Type assertions to 'any' bypass type safety. Use proper typing or 'as unknown as SpecificType' if absolutely necessary. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('no space after colon :any → detects', () => {
+          const content = 'const name:any = "test";';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('array with no spaces [any,any] → detects', () => {
+          const content = 'const arr: [any,any] = [1, 2];';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('object type {x:any,y:any} → detects', () => {
+          const content = 'type Obj = {x:any,y:any};';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+      });
+
+      describe('additional any patterns from manual testing', () => {
+        it('type alias = any → detects', () => {
+          const content = 'type AnyType = any;';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('array destructuring with any → detects', () => {
+          const content = 'const [x, y]: [any, any] = [1, 2];';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('union type with any → detects', () => {
+          const content = 'type Union = string | any;';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('intersection type with any → detects', () => {
+          const content = 'type Combined = string & any;';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('default generic parameter → detects', () => {
+          const content = 'interface Container<T = any> { value: T; }';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('extends any in generic constraint → detects', () => {
+          const content = 'function test<T extends any>(value: T): T { return value; }';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('keyof any → detects', () => {
+          const content = 'type Keys = keyof any;';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('readonly any[] → detects', () => {
+          const content = 'const arr: readonly any[] = [1, 2, 3];';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('any[] array syntax → detects', () => {
+          const content = 'const items: any[] = [];';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('nested any in complex type → detects', () => {
+          const content = 'type Complex = { data: { items: any[] } };';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -407,7 +580,7 @@ export function process(value: unknown): string {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Found '<any>' - This TypeScript assertion bypasses type checking. Define proper types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -420,7 +593,7 @@ export function process(value: unknown): string {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Found '<any>' - This TypeScript assertion bypasses type checking. Define proper types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -433,7 +606,7 @@ export function process(value: unknown): string {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -446,21 +619,23 @@ export function process(value: unknown): string {
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Found '<any>' - This TypeScript assertion bypasses type checking. Define proper types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
       });
 
       describe('escape hatches in URLs and identifiers', () => {
-        it('URL containing /any → returns not found', () => {
+        it('URL containing /any → detects any keyword', () => {
           const content = 'const url = "https://example.com/any/endpoint";';
 
           const result = processEscapeHatchisms(content);
 
           expect(result).toStrictEqual({
-            found: false,
-            message: '',
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
           });
         });
 
@@ -491,14 +666,16 @@ const company = "Any Corp";`;
           });
         });
 
-        it('property name any → returns not found', () => {
+        it('property name any → detects any keyword', () => {
           const content = 'const config = { any: true, some: { any: false } };';
 
           const result = processEscapeHatchisms(content);
 
           expect(result).toStrictEqual({
-            found: false,
-            message: '',
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
           });
         });
       });
@@ -513,7 +690,7 @@ const company = "Any Corp";`;
           expect(result).toStrictEqual({
             found: true,
             message: buildExpectedMessage([
-              "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             ]),
           });
         });
@@ -616,7 +793,7 @@ export function test() {}`;
         expect(result).toStrictEqual({
           found: true,
           message: buildExpectedMessage([
-            "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
           ]),
         });
       });
@@ -650,7 +827,7 @@ export function test(param: any) {
         expect(result).toStrictEqual({
           found: true,
           message: buildExpectedMessage([
-            "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             "Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. Take a step back, breath for a moment, and think through the issue at a high-level",
           ]),
         });
@@ -813,7 +990,7 @@ export function test() {}`;
 
         expect(message).toBe(
           buildExpectedMessage([
-            "Syntax Violation Found ': any' - Use specific types instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
             "Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. Take a step back, breath for a moment, and think through the issue at a high-level",
           ]),
         );

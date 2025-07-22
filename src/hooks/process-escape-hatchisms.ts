@@ -9,24 +9,11 @@ interface EscapeHatchPattern {
 
 const ESCAPE_HATCH_PATTERNS: EscapeHatchPattern[] = [
   {
-    selector: /:\s*any\b/,
-    error: `Syntax Violation Found ': any' - Use specific types instead. ${THINK_TYPE_PHRASE}`,
-    type: 'any-type',
-  },
-  {
-    selector: /as\s+any\b/,
-    error: `Found 'as any' - Type assertions to 'any' bypass type safety. Use proper typing or 'as unknown as SpecificType' if absolutely necessary. ${THINK_TYPE_PHRASE}`,
-    type: 'as-any',
-  },
-  {
-    selector: /<any>/,
-    error: `Found '<any>' - This TypeScript assertion bypasses type checking. Define proper types instead. ${THINK_TYPE_PHRASE}`,
-    type: 'angle-any',
-  },
-  {
-    selector: /,\s*any\s*>/,
-    error: `Found '<any>' - This TypeScript assertion bypasses type checking. Define proper types instead. ${THINK_TYPE_PHRASE}`,
-    type: 'angle-any',
+    // Catch all uses of 'any' as a complete word (type alias, union, intersection, etc.)
+    // This must come first to catch all edge cases
+    selector: /\bany\b/,
+    error: `Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. ${THINK_TYPE_PHRASE}`,
+    type: 'any-keyword',
   },
   {
     selector: '@ts-ignore',
