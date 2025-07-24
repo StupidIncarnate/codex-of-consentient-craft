@@ -14,8 +14,10 @@
     "test:unit": "jest",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "ward:all": "npm run lint && npm run typecheck && npm run test",
     "claude": "claude",
     "claude:version": "claude --version",
+    "tegrity": "npm run build:clean && npm run lint && npm run test",
     "spike": "plan/spike/claude-interactive/joke-file-watcher.js"
   },
   "repository": {

@@ -189,9 +189,44 @@ export interface Quest {
   recoveryAttempts?: number;
 
   /**
+   * Per-agent recovery attempts tracking
+   */
+  agentRecoveryAttempts?: {
+    [agentType: string]: {
+      [taskId: string]: number;
+    };
+  };
+
+  /**
+   * Recovery history with failure reasons
+   */
+  recoveryHistory?: Array<{
+    timestamp: string;
+    agentType: string;
+    taskId?: string;
+    attemptNumber: number;
+    failureReason: string;
+    previousReportNumber: string;
+  }>;
+
+  /**
    * Ward validation errors if blocked
    */
   blockingErrors?: string[];
+
+  /**
+   * Spiritmender attempt tracking per task
+   */
+  spiritmenderAttempts?: {
+    [taskId: string]: number;
+  };
+
+  /**
+   * Previous Spiritmender error messages for learning
+   */
+  spiritmenderErrors?: {
+    [taskId: string]: string[];
+  };
 }
 
 /**

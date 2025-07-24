@@ -1008,4 +1008,251 @@ export function test() {}`;
       });
     });
   });
+
+  describe('File Type Filtering', () => {
+    describe('processEscapeHatchisms() with filePath parameter', () => {
+      describe('when filePath is a TypeScript file', () => {
+        it('detects TypeScript-specific patterns in .ts files', () => {
+          const content = 'function test(param: any) { return param; }';
+
+          const result = processEscapeHatchisms(content, 'example.ts');
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('detects @ts-ignore in .tsx files', () => {
+          const content = '// @ts-ignore\nconst Component = () => <div>test</div>;';
+
+          const result = processEscapeHatchisms(content, 'Component.tsx');
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('detects eslint-disable in .ts files', () => {
+          const content = '/* eslint-disable */\nconst unused = 5;';
+
+          const result = processEscapeHatchisms(content, 'example.ts');
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+      });
+
+      describe('when filePath is a JavaScript file', () => {
+        it('ignores TypeScript-specific patterns but detects eslint-disable in .js files', () => {
+          const content =
+            'function test(param) {\n  // @ts-ignore\n  /* eslint-disable */\n  return param;\n}';
+
+          const result = processEscapeHatchisms(content, 'example.js');
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('ignores any type in .jsx files', () => {
+          const content =
+            'const Component = () => {\n  const value = "any value here";\n  return <div>{value}</div>;\n}';
+
+          const result = processEscapeHatchisms(content, 'Component.jsx');
+
+          expect(result).toStrictEqual({
+            found: false,
+            message: '',
+          });
+        });
+      });
+
+      describe('when filePath is a markdown file', () => {
+        it('ignores TypeScript patterns in .md files', () => {
+          const content = `# TypeScript Guide
+          
+Here's how to use \`any\` type:
+
+\`\`\`typescript
+function test(param: any) {
+  // @ts-ignore
+  return param;
+}
+\`\`\`
+
+You can also use \`eslint-disable\` to suppress linting.`;
+
+          const result = processEscapeHatchisms(content, 'guide.md');
+
+          expect(result).toStrictEqual({
+            found: false,
+            message: '',
+          });
+        });
+
+        it('ignores @ts-ignore in markdown code examples', () => {
+          const content = 'In your TypeScript code, avoid using `@ts-ignore` comments.';
+
+          const result = processEscapeHatchisms(content, 'README.md');
+
+          expect(result).toStrictEqual({
+            found: false,
+            message: '',
+          });
+        });
+
+        it('ignores eslint-disable in markdown documentation', () => {
+          const content = 'To fix linting errors, avoid using `eslint-disable-next-line`.';
+
+          const result = processEscapeHatchisms(content, 'docs.md');
+
+          expect(result).toStrictEqual({
+            found: false,
+            message: '',
+          });
+        });
+      });
+
+      describe('when filePath is a test file', () => {
+        it('detects escape hatches in .test.ts files', () => {
+          const content =
+            'function test(param: any) {\n  // @ts-ignore\n  /* eslint-disable */\n  return param;\n}';
+
+          const result = processEscapeHatchisms(content, 'example.test.ts');
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('detects escape hatches in .spec.js files', () => {
+          const content =
+            'function test(param: any) {\n  // @ts-ignore\n  /* eslint-disable */\n  return param;\n}';
+
+          const result = processEscapeHatchisms(content, 'example.spec.js');
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+
+        it('detects escape hatches in files ending with test.ts', () => {
+          const content =
+            'function test(param: any) {\n  // @ts-ignore\n  /* eslint-disable */\n  return param;\n}';
+
+          const result = processEscapeHatchisms(content, 'component.test.ts');
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+      });
+
+      describe('when no filePath is provided', () => {
+        it('applies all patterns for backward compatibility', () => {
+          const content =
+            'function test(param: any) {\n  // @ts-ignore\n  /* eslint-disable */\n  return param;\n}';
+
+          const result = processEscapeHatchisms(content);
+
+          expect(result).toStrictEqual({
+            found: true,
+            message: buildExpectedMessage([
+              "Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. Take a step back, breath for a moment, and think through the issue at a high-level",
+              "Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. Take a step back, breath for a moment, and think through the issue at a high-level",
+            ]),
+          });
+        });
+      });
+    });
+
+    describe('hasNewEscapeHatches() with filePath parameter', () => {
+      it('respects file type filtering when checking for new escape hatches', () => {
+        const oldContent = '# Documentation\n\nHere is some any content.';
+        const newContent = '# Documentation\n\nHere is some any content.\nAnd @ts-ignore examples.';
+
+        const result = hasNewEscapeHatches(oldContent, newContent, 'README.md');
+
+        expect(result).toBe(false); // Should ignore patterns in markdown files
+      });
+
+      it('detects new escape hatches in TypeScript files', () => {
+        const oldContent = 'function test(param: string) { return param; }';
+        const newContent = 'function test(param: any) { return param; }';
+
+        const result = hasNewEscapeHatches(oldContent, newContent, 'example.ts');
+
+        expect(result).toBe(true);
+      });
+
+      it('detects new eslint-disable in JavaScript files but ignores TypeScript patterns', () => {
+        const oldContent = 'function test(param) {\n  // @ts-ignore\n  return param;\n}';
+        const newContent =
+          'function test(param) {\n  // @ts-ignore\n  /* eslint-disable */\n  return param;\n}';
+
+        const result = hasNewEscapeHatches(oldContent, newContent, 'example.js');
+
+        expect(result).toBe(true); // eslint-disable is new and applies to JS files
+      });
+
+      it('detects new patterns in test files', () => {
+        const oldContent = 'function test(param: string) { return param; }';
+        const newContent =
+          'function test(param: any) {\n  // @ts-ignore\n  /* eslint-disable */\n  return param;\n}';
+
+        const result = hasNewEscapeHatches(oldContent, newContent, 'example.test.ts');
+
+        expect(result).toBe(true); // Test files should have protection
+      });
+    });
+
+    describe('processEscapeHatchismsInCode() with filePath parameter', () => {
+      it('strips strings and applies file type filtering', () => {
+        const content =
+          'const msg = "Use any type here";\nfunction test(param: any) { return param; }';
+
+        const resultTs = processEscapeHatchismsInCode(content, 'example.ts');
+        const resultMd = processEscapeHatchismsInCode(content, 'README.md');
+
+        expect(resultTs.found).toBe(true); // TypeScript file should detect 'any' in code
+        expect(resultMd.found).toBe(false); // Markdown file should ignore TypeScript patterns
+      });
+
+      it('detects patterns in test files with string stripping', () => {
+        const content =
+          'const msg = "Use any type here";\nfunction test(param: any) { return param; }';
+
+        const result = processEscapeHatchismsInCode(content, 'example.test.ts');
+
+        expect(result.found).toBe(true); // Test files should have protection
+      });
+    });
+  });
 });

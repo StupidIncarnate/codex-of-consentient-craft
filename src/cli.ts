@@ -10,8 +10,10 @@ import { Logger } from './utils/logger';
 import { AgentSpawner } from './agents/agent-spawner';
 import type { Quest } from './models/quest';
 import { isError, isPackageJson, parseJsonSafely, isObject } from './utils/type-guards';
+import { progress } from './utils/progress';
 
 const logger = new Logger();
+const MAX_SPIRITMENDER_ATTEMPTS = 3;
 const fileSystem = new FileSystem();
 const configManager = new ConfigManager(fileSystem);
 const questManager = new QuestManager(fileSystem, configManager);
@@ -27,11 +29,15 @@ const COMMANDS = {
 
 async function main() {
   try {
-    // Check if .questmaestro config exists
+    // Check if .questmaestro config exists, create if missing
     if (!fs.existsSync('.questmaestro')) {
-      logger.error('No .questmaestro config found!');
-      logger.info('Please run: npx questmaestro');
-      process.exit(1);
+      logger.info('No .questmaestro config found. Initializing...');
+      const initialized = configManager.initializeConfig();
+      if (!initialized) {
+        logger.error('Failed to initialize .questmaestro config');
+        process.exit(1);
+      }
+      logger.success('.questmaestro config created successfully!');
     }
 
     // Auto-launch Voidpoker if needed
@@ -248,6 +254,11 @@ async function checkProjectDiscovery() {
 async function runQuest(quest: Quest) {
   logger.bright(`\n⚔️ Quest: ${quest.title}\n`);
 
+  // Check quest freshness before continuing
+  if (!(await checkAndWarnStaleness(quest))) {
+    return;
+  }
+
   // Check if quest is blocked
   if (quest.status === 'blocked') {
     logger.yellow(`Quest is blocked`);
@@ -307,21 +318,50 @@ async function runQuest(quest: Quest) {
 }
 
 async function runPathseeker(quest: Quest, agentSpawner: AgentSpawner) {
-  logger.info('[🎯] Running Pathseeker for discovery...');
-
-  const result = await agentSpawner.spawnAndWait('pathseeker', {
-    questFolder: quest.folder,
-    reportNumber: questManager.getNextReportNumber(quest.folder),
-    workingDirectory: process.cwd(),
-    userRequest: quest.userRequest,
-    mode: quest.tasks.length > 0 ? 'validation' : 'creation',
-    additionalContext: {
-      existingTasks: quest.tasks,
+  const result = await spawnAgentWithProgress(
+    agentSpawner,
+    'pathseeker',
+    {
+      questFolder: quest.folder,
+      reportNumber: questManager.getNextReportNumber(quest.folder),
+      workingDirectory: process.cwd(),
+      userRequest: quest.userRequest,
+      mode: quest.tasks.length > 0 ? 'validation' : 'creation',
+      additionalContext: {
+        existingTasks: quest.tasks,
+        quest: quest,
+      },
     },
-  });
+    'Running Pathseeker for discovery',
+  );
 
-  // Update quest with tasks from Pathseeker
-  if (result.agentType === 'pathseeker' && result.report) {
+  // Handle reconciliation if in validation mode
+  if (result.agentType === 'pathseeker' && result.report && quest.tasks.length > 0) {
+    const report = result.report;
+
+    // Check for reconciliation plan
+    if ('reconciliationPlan' in report && report.reconciliationPlan) {
+      console.log(`\n📋 Applying task reconciliation: ${report.reconciliationPlan.mode}`);
+
+      try {
+        questManager.applyReconciliation(quest.id, report.reconciliationPlan);
+
+        // Reload quest to get updated tasks
+        const updatedQuest = questManager.loadQuest(quest.folder);
+        if (updatedQuest.success && updatedQuest.data) {
+          Object.assign(quest, updatedQuest.data);
+          console.log('✅ Task list updated successfully\n');
+        }
+      } catch (error) {
+        logger.error(`Failed to apply reconciliation: ${String(error)}`);
+        console.log('⚠️  Failed to update task list, continuing with existing tasks\n');
+      }
+    } else if ('tasks' in report && Array.isArray(report.tasks)) {
+      // Regular task update (creation mode)
+      questManager.addTasks(quest.folder, report.tasks);
+    }
+  } else if (result.agentType === 'pathseeker' && result.report) {
+    // Creation mode - just add tasks
     const report = result.report;
     if (isObject(report) && 'tasks' in report && Array.isArray(report.tasks)) {
       questManager.addTasks(quest.folder, report.tasks);
@@ -344,17 +384,20 @@ async function runCodeweavers(quest: Quest, agentSpawner: AgentSpawner) {
   logger.info(`[🎯] Running Codeweaver for ${implementationTasks.length} tasks...`);
 
   for (const task of implementationTasks) {
-    logger.info(`Working on: ${task.name}`);
-
-    await agentSpawner.spawnAndWait('codeweaver', {
-      questFolder: quest.folder,
-      reportNumber: questManager.getNextReportNumber(quest.folder),
-      workingDirectory: process.cwd(),
-      additionalContext: {
-        questTitle: quest.title,
-        task: task,
+    await spawnAgentWithProgress(
+      agentSpawner,
+      'codeweaver',
+      {
+        questFolder: quest.folder,
+        reportNumber: questManager.getNextReportNumber(quest.folder),
+        workingDirectory: process.cwd(),
+        additionalContext: {
+          questTitle: quest.title,
+          task: task,
+        },
       },
-    });
+      `Working on: ${task.name}`,
+    );
 
     // Update task status
     task.status = 'complete';
@@ -372,18 +415,21 @@ async function runCodeweavers(quest: Quest, agentSpawner: AgentSpawner) {
 }
 
 async function runSiegemaster(quest: Quest, agentSpawner: AgentSpawner) {
-  logger.info('[🎯] Running Siegemaster for test gap analysis...');
-
-  await agentSpawner.spawnAndWait('siegemaster', {
-    questFolder: quest.folder,
-    reportNumber: questManager.getNextReportNumber(quest.folder),
-    workingDirectory: process.cwd(),
-    additionalContext: {
-      questTitle: quest.title,
-      filesCreated: questManager.getCreatedFiles(quest.folder),
-      testFramework: detectTestFramework(),
+  await spawnAgentWithProgress(
+    agentSpawner,
+    'siegemaster',
+    {
+      questFolder: quest.folder,
+      reportNumber: questManager.getNextReportNumber(quest.folder),
+      workingDirectory: process.cwd(),
+      additionalContext: {
+        questTitle: quest.title,
+        filesCreated: questManager.getCreatedFiles(quest.folder),
+        testFramework: detectTestFramework(),
+      },
     },
-  });
+    'Running Siegemaster for test gap analysis',
+  );
 
   quest.phases.testing.status = 'complete';
   quest.phases.testing.report = `${questManager.getNextReportNumber(quest.folder)}-siegemaster-report.json`;
@@ -393,18 +439,21 @@ async function runSiegemaster(quest: Quest, agentSpawner: AgentSpawner) {
 }
 
 async function runLawbringer(quest: Quest, agentSpawner: AgentSpawner) {
-  logger.info('[🎯] Running Lawbringer for code review...');
-
-  await agentSpawner.spawnAndWait('lawbringer', {
-    questFolder: quest.folder,
-    reportNumber: questManager.getNextReportNumber(quest.folder),
-    workingDirectory: process.cwd(),
-    additionalContext: {
-      questTitle: quest.title,
-      changedFiles: questManager.getChangedFiles(quest.folder),
-      wardCommands: getWardCommands(),
+  await spawnAgentWithProgress(
+    agentSpawner,
+    'lawbringer',
+    {
+      questFolder: quest.folder,
+      reportNumber: questManager.getNextReportNumber(quest.folder),
+      workingDirectory: process.cwd(),
+      additionalContext: {
+        questTitle: quest.title,
+        changedFiles: questManager.getChangedFiles(quest.folder),
+        wardCommands: getWardCommands(),
+      },
     },
-  });
+    'Running Lawbringer for code review',
+  );
 
   quest.phases.review.status = 'complete';
   quest.phases.review.report = `${questManager.getNextReportNumber(quest.folder)}-lawbringer-report.json`;
@@ -415,6 +464,10 @@ async function runLawbringer(quest: Quest, agentSpawner: AgentSpawner) {
 
 function completeQuest(quest: Quest) {
   logger.bright(`\n✨ Quest Complete: ${quest.title} ✨\n`);
+
+  // Generate and save retrospective
+  const retrospective = questManager.generateRetrospective(quest.folder);
+  questManager.saveRetrospective(quest.folder, retrospective);
 
   // Move quest to completed
   questManager.completeQuest(quest.folder);
@@ -435,30 +488,160 @@ function runWardAll(): boolean {
   }
 }
 
-async function handleWardFailure(quest: Quest, errors: string, agentSpawner: AgentSpawner) {
+async function handleWardFailure(
+  quest: Quest,
+  errors: string,
+  agentSpawner: AgentSpawner,
+  taskId?: string,
+) {
   logger.error('[❌] Ward validation failed!');
-  logger.info('[🔧] Spawning Spiritmender to fix errors...');
 
-  await agentSpawner.spawnAndWait('spiritmender', {
-    questFolder: quest.folder,
-    reportNumber: questManager.getNextReportNumber(quest.folder),
-    workingDirectory: process.cwd(),
-    additionalContext: {
-      errors: errors,
-      attemptNumber: 1,
+  // Initialize Spiritmender tracking if needed
+  if (!quest.spiritmenderAttempts) {
+    quest.spiritmenderAttempts = {};
+  }
+  if (!quest.spiritmenderErrors) {
+    quest.spiritmenderErrors = {};
+  }
+
+  const effectiveTaskId = taskId || 'global';
+  const currentAttempts = quest.spiritmenderAttempts[effectiveTaskId] || 0;
+
+  // Check if max attempts reached
+  if (currentAttempts >= MAX_SPIRITMENDER_ATTEMPTS) {
+    logger.error(
+      `Maximum Spiritmender attempts (${MAX_SPIRITMENDER_ATTEMPTS}) reached for task ${effectiveTaskId}`,
+    );
+    quest.status = 'blocked';
+    questManager.saveQuest(quest);
+    throw new Error(`Quest blocked: Max Spiritmender attempts reached for task ${effectiveTaskId}`);
+  }
+
+  const attemptNumber = currentAttempts + 1;
+  // Save ward errors to file
+  const questPath = path.join('questmaestro', 'active', quest.folder);
+  saveWardErrors(questPath, errors, effectiveTaskId, attemptNumber);
+
+  // Get previous error messages for context
+  const previousErrors = quest.spiritmenderErrors[effectiveTaskId] || [];
+
+  // Determine attempt strategy based on attempt number
+  const attemptStrategy = getAttemptStrategy(attemptNumber);
+
+  await spawnAgentWithProgress(
+    agentSpawner,
+    'spiritmender',
+    {
+      questFolder: quest.folder,
+      reportNumber: questManager.getNextReportNumber(quest.folder),
+      workingDirectory: process.cwd(),
+      additionalContext: {
+        errors: errors,
+        attemptNumber: attemptNumber,
+        previousErrors: previousErrors,
+        attemptStrategy: attemptStrategy,
+        taskId: effectiveTaskId,
+      },
     },
-  });
+    `Spawning Spiritmender (attempt ${attemptNumber}/${MAX_SPIRITMENDER_ATTEMPTS})`,
+  );
+
+  // Update attempt tracking
+  quest.spiritmenderAttempts[effectiveTaskId] = attemptNumber;
+  if (!quest.spiritmenderErrors[effectiveTaskId]) {
+    quest.spiritmenderErrors[effectiveTaskId] = [];
+  }
+  quest.spiritmenderErrors[effectiveTaskId].push(errors);
+  questManager.saveQuest(quest);
 
   // Re-run ward to check if fixed
   const wardCheck = runWardAll();
   if (!wardCheck) {
-    logger.error('Spiritmender could not fix all errors');
-    quest.status = 'blocked';
-    questManager.saveQuest(quest);
-    throw new Error('Quest blocked: Ward validation failed');
+    logger.error(`Spiritmender attempt ${attemptNumber} could not fix all errors`);
+
+    // If this was the last attempt, block the quest
+    if (attemptNumber >= MAX_SPIRITMENDER_ATTEMPTS) {
+      quest.status = 'blocked';
+      questManager.saveQuest(quest);
+      throw new Error(
+        `Quest blocked: Spiritmender failed after ${MAX_SPIRITMENDER_ATTEMPTS} attempts`,
+      );
+    }
+
+    // Otherwise, try again
+    return handleWardFailure(quest, errors, agentSpawner, taskId);
   }
 
-  logger.success('[🎁] ✅ Ward validation passed after Spiritmender fixes!');
+  // Success! Remove resolved errors from tracking
+  cleanResolvedWardErrors(questPath, effectiveTaskId);
+  logger.success(`[🎁] ✅ Ward validation passed after Spiritmender attempt ${attemptNumber}!`);
+}
+
+function saveWardErrors(
+  questFolder: string,
+  errors: string,
+  taskId: string,
+  attemptNumber: number,
+): void {
+  const errorFile = path.join(questFolder, 'ward-errors-unresolved.txt');
+  const timestamp = new Date().toISOString();
+
+  // Format error entry with metadata
+  const errorEntry = `[${timestamp}] [attempt-${attemptNumber}] [task-${taskId}] ${errors}\n${'='.repeat(80)}\n`;
+
+  try {
+    // Append to existing file (create if doesn't exist)
+    const result = fileSystem.appendFile(errorFile, errorEntry);
+    if (!result.success) {
+      logger.error(`Failed to save ward errors: ${result.error}`);
+    }
+  } catch (error) {
+    logger.error(`Failed to save ward errors: ${String(error)}`);
+  }
+}
+
+// Add method to clean resolved errors
+function cleanResolvedWardErrors(questFolder: string, taskId: string): void {
+  const errorFile = path.join(questFolder, 'ward-errors-unresolved.txt');
+
+  try {
+    const result = fileSystem.readFile(errorFile);
+    if (!result.success || !result.data) return;
+
+    // Filter out lines for this task
+    const lines = result.data.split('\n');
+    const filteredLines: string[] = [];
+    let skipNext = false;
+
+    for (const line of lines) {
+      if (line.includes(`[task-${taskId}]`)) {
+        skipNext = true; // Skip this line and separator
+        continue;
+      }
+      if (skipNext && line.startsWith('='.repeat(80))) {
+        skipNext = false;
+        continue;
+      }
+      filteredLines.push(line);
+    }
+
+    fileSystem.writeFile(errorFile, filteredLines.join('\n'));
+  } catch (_error) {
+    // File might not exist, that's OK
+  }
+}
+
+function getAttemptStrategy(attemptNumber: number): string {
+  switch (attemptNumber) {
+    case 1:
+      return 'basic_fixes: Focus on imports, syntax errors, and basic type issues';
+    case 2:
+      return 'deeper_analysis: Analyze logic errors, test expectations, and component interactions';
+    case 3:
+      return 'last_resort: Consider refactoring approach and questioning assumptions';
+    default:
+      return 'basic_fixes: Focus on fundamental issues';
+  }
 }
 
 function detectTestFramework(): string {
@@ -510,6 +693,56 @@ async function getUserInput(prompt: string): Promise<string> {
       resolve(data.toString().trim());
     });
   });
+}
+
+async function spawnAgentWithProgress(
+  agentSpawner: AgentSpawner,
+  agentType: Parameters<AgentSpawner['spawnAndWait']>[0],
+  context: Parameters<AgentSpawner['spawnAndWait']>[1],
+  description: string,
+): Promise<ReturnType<AgentSpawner['spawnAndWait']>> {
+  progress.start(`${description}`);
+
+  try {
+    const report = await agentSpawner.spawnAndWait(agentType, context);
+
+    if (report) {
+      if (report.status === 'complete') {
+        progress.succeed(`${agentType} completed`);
+      } else if (report.status === 'blocked') {
+        progress.succeed(`${agentType} blocked (user input needed)`);
+      } else {
+        progress.fail(
+          `${agentType} failed: ${(report.report as { error?: string })?.error || 'Unknown error'}`,
+        );
+      }
+      return report;
+    } else {
+      progress.fail(`${agentType} failed to generate report`);
+      throw new Error('Failed to generate report');
+    }
+  } catch (error) {
+    progress.fail(`${agentType} crashed: ${String(error)}`);
+    throw error;
+  }
+}
+
+async function checkAndWarnStaleness(quest: Quest): Promise<boolean> {
+  const freshness = questManager.validateQuestFreshness(quest);
+
+  if (freshness.isStale) {
+    logger.warn(`⚠️  ${freshness.reason}`);
+    console.log('The codebase may have changed significantly since this quest was created.');
+    console.log('Continuing may lead to conflicts or errors.\n');
+
+    const answer = await getUserInput('Continue anyway? (y/n): ');
+    if (answer.toLowerCase() !== 'y') {
+      console.log('\nQuest cancelled. Create a fresh quest with: questmaestro "your request"');
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // Export for testing

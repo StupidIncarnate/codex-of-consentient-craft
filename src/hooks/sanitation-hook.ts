@@ -439,9 +439,9 @@ async function handlePreToolUse(hookData: PreToolUseHookData): Promise<void> {
   const contentChanges = await getContentChanges(toolInput);
   for (const change of contentChanges) {
     // Check if new content introduces escape hatches that weren't in old content
-    if (hasNewEscapeHatches(change.oldContent, change.newContent)) {
+    if (hasNewEscapeHatches(change.oldContent, change.newContent, filePath)) {
       console.error('[PreToolUse Hook] New escape hatches detected:');
-      console.error(getNewEscapeHatchMessage(change.oldContent, change.newContent));
+      console.error(getNewEscapeHatchMessage(change.oldContent, change.newContent, filePath));
       process.exit(2);
     }
   }

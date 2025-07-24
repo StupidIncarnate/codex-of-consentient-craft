@@ -360,6 +360,25 @@ export class FileSystem {
   }
 
   /**
+   * Append content to file
+   */
+  appendFile(filePath: string, content: string): FileOperationResult<void> {
+    try {
+      // Ensure directory exists
+      const dir = path.dirname(filePath);
+      fs.mkdirSync(dir, { recursive: true });
+
+      fs.appendFileSync(filePath, content, 'utf-8');
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to append to file: ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
+  }
+
+  /**
    * Check if file exists
    */
   fileExists(filePath: string): boolean {

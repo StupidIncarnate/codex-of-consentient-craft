@@ -107,6 +107,48 @@ export interface PathseekerTask {
 }
 
 /**
+ * Recovery assessment data
+ */
+export interface RecoveryAssessment {
+  /**
+   * Files that were fully completed
+   */
+  files_completed: string[];
+  /**
+   * Files that were partially modified
+   */
+  files_partial: string[];
+  /**
+   * Files that still need to be created/modified
+   */
+  files_missing: string[];
+  /**
+   * Recommendation for recovery approach
+   */
+  recommendation: 'continue' | 'restart' | 'manual_intervention';
+  /**
+   * Reason for the recommendation
+   */
+  reason: string;
+}
+
+/**
+ * Reconciliation plan for updating quest tasks
+ */
+export interface ReconciliationPlan {
+  mode: 'EXTEND' | 'CONTINUE' | 'REPLAN';
+  newTasks?: PathseekerTask[];
+  taskUpdates?: Array<{
+    taskId: string;
+    newDependencies: string[];
+  }>;
+  obsoleteTasks?: Array<{
+    taskId: string;
+    reason: string;
+  }>;
+}
+
+/**
  * Pathseeker-specific report
  */
 export interface PathseekerReport extends BaseAgentReport {
@@ -121,6 +163,14 @@ export interface PathseekerReport extends BaseAgentReport {
      * Any important notes or warnings
      */
     notes?: string[];
+    /**
+     * Recovery assessment when in recovery_assessment mode
+     */
+    recoveryAssessment?: RecoveryAssessment;
+    /**
+     * Reconciliation plan when in validation mode
+     */
+    reconciliationPlan?: ReconciliationPlan;
   };
 }
 
@@ -280,6 +330,31 @@ export interface AgentContext {
     all?: string;
     [key: string]: string | undefined;
   };
+
+  /**
+   * Recovery mode flag
+   */
+  recoveryMode?: boolean;
+
+  /**
+   * Previous report numbers if in recovery/continuation mode
+   */
+  previousReportNumbers?: string[];
+
+  /**
+   * User guidance for blocked agent continuation
+   */
+  userGuidance?: string;
+
+  /**
+   * Indicates continuation mode after being blocked
+   */
+  continuationMode?: boolean;
+
+  /**
+   * Previous report number for continuation
+   */
+  previousReportNumber?: string;
 
   /**
    * Additional context specific to agent type

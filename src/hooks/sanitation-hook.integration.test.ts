@@ -65,7 +65,7 @@ describe('sanitation-hook', () => {
         describe('when content is valid TypeScript', () => {
           it('returns exit code 0', () => {
             const projectDir = createTestProject('valid-write');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             const hookData = PreToolUseHookStub({
               cwd: projectDir,
@@ -92,7 +92,7 @@ describe('sanitation-hook', () => {
         describe('when content has TypeScript escape hatches', () => {
           it('content with @ts-ignore and : any → exits with code 2 and error message', () => {
             const projectDir = createTestProject('escape-hatch-write');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             const hookData = WriteToolHookStub({
               session_id: '550e8400-e29b-41d4-a716-446655440000',
@@ -117,12 +117,12 @@ describe('sanitation-hook', () => {
             expect(result.exitCode).toBe(2);
             expect(result.stderr).toContain('Code quality escape hatches detected');
             expect(result.stderr).toContain('@ts-ignore');
-            expect(result.stderr).toContain(': any');
+            expect(result.stderr).toContain("'any'");
           });
 
           it('Write overwriting file that already had escape hatches → allows if not adding new ones', () => {
             const projectDir = createTestProject('escape-hatch-overwrite');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Create file with existing escape hatches
             fs.writeFileSync(
@@ -159,7 +159,7 @@ export function add(a: any, b: any): any {
         describe('when content has ESLint escape hatches', () => {
           it('content with eslint-disable → exits with code 2 and error message', () => {
             const projectDir = createTestProject('lint-error-write');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             const hookData = WriteToolHookStub({
               session_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
@@ -189,7 +189,7 @@ export function add(a: any, b: any): any {
         describe('when editing existing file', () => {
           it('valid edit on existing file → exits with code 0', () => {
             const projectDir = createTestProject('edit-full-content');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Create initial file
             const initialContent = `export interface User {
@@ -220,7 +220,7 @@ export function add(a: any, b: any): any {
 
           it('edit adding new escape hatch → exits with code 2', () => {
             const projectDir = createTestProject('edit-add-escape-hatch');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Create initial file without escape hatches
             const initialContent = `export function add(a: number, b: number): number {
@@ -244,12 +244,12 @@ export function add(a: any, b: any): any {
             expect(result.exitCode).toBe(2);
             expect(result.stderr).toContain('[PreToolUse Hook] New escape hatches detected');
             expect(result.stderr).toContain('@ts-ignore');
-            expect(result.stderr).toContain(': any');
+            expect(result.stderr).toContain("'any'");
           });
 
           it('edit on line that already has escape hatch → allows preserving it', () => {
             const projectDir = createTestProject('edit-preserve-escape-hatch');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Create file with existing escape hatch
             const initialContent = `// @ts-ignore
@@ -278,7 +278,7 @@ export function add(a: any, b: any): any {
 
           it('file has escape hatch, edit on different line → allows', () => {
             const projectDir = createTestProject('edit-different-line');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Create file with escape hatch in one function
             const initialContent = `// @ts-ignore
@@ -312,7 +312,7 @@ export function subtract(a: number, b: number): number {
 
           it('edit that would create type errors → exits with code 0 (pre-hook filters TS errors)', () => {
             const projectDir = createTestProject('edit-detect-errors');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Create initial file
             const initialContent = `export interface User {
@@ -357,7 +357,7 @@ export function getUser(id: string): User {
         describe('when applying multiple edits', () => {
           it('valid edits → exits with code 0', () => {
             const projectDir = createTestProject('multiedit-test');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Create initial file
             const initialContent = `export class Calculator {
@@ -401,7 +401,7 @@ export function getUser(id: string): User {
 
           it('multiedit with one edit adding escape hatch → exits with code 2', () => {
             const projectDir = createTestProject('multiedit-add-escape');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Create initial file without escape hatches
             const initialContent = `export class Calculator {
@@ -442,7 +442,7 @@ export function getUser(id: string): User {
 
           it('multiedit preserving existing escape hatches → allows', () => {
             const projectDir = createTestProject('multiedit-preserve-escape');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Create file with existing escape hatches
             const initialContent = `// @ts-ignore
@@ -484,7 +484,7 @@ export class Calculator {
 
           it('edits with replace_all → exits with appropriate code', () => {
             const projectDir = createTestProject('multiedit-replace-all');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Create initial file with proper types
             const initialContent = `export function processItem(item: string): string {
@@ -554,7 +554,7 @@ export function processItems(items: string[]): string[] {
         describe('when content is empty', () => {
           it('Write with empty content → exits with code 0', () => {
             const projectDir = createTestProject('empty-content');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             const hookData = WriteToolHookStub({
               session_id: '6ba7b816-9dad-11d1-80b4-00c04fd430c8',
@@ -598,6 +598,184 @@ export function processItems(items: string[]): string[] {
             });
           });
         });
+
+        describe('file type filtering', () => {
+          it('Write to markdown file with TypeScript patterns → exits with code 0', () => {
+            const projectDir = createTestProject('md-with-ts-patterns');
+            const filePath = path.join(projectDir, 'guide.md');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430c9',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `# TypeScript Guide
+
+Here are some examples:
+
+\`\`\`typescript
+function test(param: any) {
+  // @ts-ignore
+  return param;
+}
+\`\`\`
+
+Use \`eslint-disable\` sparingly.`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should allow TypeScript patterns in markdown files
+            expect(result).toStrictEqual({
+              exitCode: 0,
+              stdout: '',
+              stderr: '',
+            });
+          });
+
+          it('Write to JavaScript file with TypeScript patterns → ignores TS patterns but checks ESLint', () => {
+            const projectDir = createTestProject('js-with-ts-patterns');
+            const filePath = path.join(projectDir, 'example.js');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430ca',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `function test(param) {
+  // @ts-ignore - this should be ignored in JS
+  /* eslint-disable */ // this should be caught
+  return param;
+}`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should catch eslint-disable but ignore @ts-ignore in JS files
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('eslint-disable');
+            expect(result.stderr).not.toContain('@ts-ignore');
+          });
+
+          it('Write to TypeScript file with all patterns → catches all patterns', () => {
+            const projectDir = createTestProject('ts-with-all-patterns');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430cb',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `function test(param: any) {
+  // @ts-ignore
+  /* eslint-disable */
+  return param;
+}`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should catch all patterns in TypeScript files
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('any');
+            expect(result.stderr).toContain('@ts-ignore');
+            expect(result.stderr).toContain('eslint-disable');
+          });
+
+          it('Write to test file with escape hatches → exits with code 2', () => {
+            const projectDir = createTestProject('test-file-with-escape-hatches');
+            const filePath = path.join(projectDir, 'example.test.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430cc',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `describe('test', () => {
+  it('should handle any type', () => {
+    // @ts-ignore
+    const mockFn = jest.fn() as any;
+    /* eslint-disable */
+    expect(mockFn).toBeDefined();
+  });
+});`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Test files should have escape hatch protection
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('Code quality escape hatches detected');
+          });
+
+          it('Edit adding TypeScript patterns to JavaScript file → ignores TS patterns', () => {
+            const projectDir = createTestProject('edit-js-with-ts');
+            const filePath = path.join(projectDir, 'example.js');
+
+            // Create initial JS file
+            fs.writeFileSync(
+              filePath,
+              `function test(param) {
+  return param;
+}`,
+            );
+
+            const hookData = EditToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430cd',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: 'function test(param) {',
+                new_string: '// @ts-ignore\nfunction test(param) { // any param',
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should ignore TypeScript patterns in JS files
+            expect(result).toStrictEqual({
+              exitCode: 0,
+              stdout: '',
+              stderr: '',
+            });
+          });
+
+          it('Edit adding eslint-disable to markdown file → ignores pattern', () => {
+            const projectDir = createTestProject('edit-md-with-eslint');
+            const filePath = path.join(projectDir, 'README.md');
+
+            // Create initial markdown file
+            fs.writeFileSync(
+              filePath,
+              `# Guide
+
+Some content here.`,
+            );
+
+            const hookData = EditToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430ce',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: 'Some content here.',
+                new_string: 'Use `eslint-disable` carefully in your code.',
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should ignore eslint-disable pattern in markdown files
+            expect(result).toStrictEqual({
+              exitCode: 0,
+              stdout: '',
+              stderr: '',
+            });
+          });
+        });
       });
     });
 
@@ -606,7 +784,7 @@ export function processItems(items: string[]): string[] {
         describe('when file has fixable linting issues', () => {
           it('missing semicolons → exits with code 0 and fixes file', () => {
             const projectDir = createTestProject('post-tool-autofix');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // First write a file with fixable issues (missing semicolons)
             fs.writeFileSync(
@@ -646,7 +824,7 @@ export function processItems(items: string[]): string[] {
         describe('when file has TypeScript errors', () => {
           it('type mismatch → exits with code 2 and error message', () => {
             const projectDir = createTestProject('post-tool-ts-errors');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             // Write a file with TypeScript type errors
             fs.writeFileSync(
@@ -745,7 +923,7 @@ export function processItems(items: string[]): string[] {
         describe('when file is already formatted', () => {
           it('properly formatted file → exits with code 0 and does not modify', () => {
             const projectDir = createTestProject('post-tool-no-changes');
-            const filePath = path.join(projectDir, 'test.ts');
+            const filePath = path.join(projectDir, 'example.ts');
 
             const originalContent = `export function add(a: number, b: number): number {
   return a + b;

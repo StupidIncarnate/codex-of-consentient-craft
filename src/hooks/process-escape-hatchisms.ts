@@ -5,6 +5,7 @@ interface EscapeHatchPattern {
   selector: RegExp | string;
   error: string;
   type: string;
+  fileTypes?: string[]; // File extensions this pattern applies to (e.g., ['.ts', '.tsx'])
 }
 
 const ESCAPE_HATCH_PATTERNS: EscapeHatchPattern[] = [
@@ -14,26 +15,31 @@ const ESCAPE_HATCH_PATTERNS: EscapeHatchPattern[] = [
     selector: /\bany\b/,
     error: `Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. ${THINK_TYPE_PHRASE}`,
     type: 'any-keyword',
+    fileTypes: ['.ts', '.tsx'], // Only check TypeScript files
   },
   {
     selector: '@ts-ignore',
     error: `Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. ${THINK_TYPE_PHRASE}`,
     type: 'ts-ignore',
+    fileTypes: ['.ts', '.tsx'], // Only check TypeScript files
   },
   {
     selector: '@ts-expect-error',
     error: `Found '@ts-expect-error' - Don't suppress type errors. Fix the root cause. ${THINK_TYPE_PHRASE}`,
     type: 'ts-expect-error',
+    fileTypes: ['.ts', '.tsx'], // Only check TypeScript files
   },
   {
     selector: '@ts-nocheck',
     error: `Found '@ts-nocheck' - This disables TypeScript checking for the entire file. Remove it and fix type issues. ${THINK_TYPE_PHRASE}`,
     type: 'ts-nocheck',
+    fileTypes: ['.ts', '.tsx'], // Only check TypeScript files
   },
   {
     selector: /eslint-disable(?:-next-line|-line)?/,
     error: `Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. ${THINK_TYPE_PHRASE}`,
     type: 'eslint-disable',
+    fileTypes: ['.ts', '.tsx', '.js', '.jsx'], // Check JS/TS files but not markdown
   },
 ];
 
@@ -44,15 +50,44 @@ function stripStringLiterals(content: string): string {
     .replace(/`(?:[^`\\]|\\.)*`/g, '``'); // Template literals
 }
 
+function getFileExtension(filePath: string): string {
+  const match = filePath.match(/\.[^.]*$/);
+  return match ? match[0] : '';
+}
+
+function filterPatternsForFile(
+  patterns: EscapeHatchPattern[],
+  filePath?: string,
+): EscapeHatchPattern[] {
+  if (!filePath) {
+    // No file path provided, apply all patterns (backward compatibility)
+    return patterns;
+  }
+
+  const fileExtension = getFileExtension(filePath);
+  return patterns.filter((pattern) => {
+    // If pattern has no fileTypes restriction, apply to all files
+    if (!pattern.fileTypes || pattern.fileTypes.length === 0) {
+      return true;
+    }
+    // Otherwise, only apply if file extension matches
+    return pattern.fileTypes.includes(fileExtension);
+  });
+}
+
 function checkContent(
   content: string,
   stripStrings = false,
+  filePath?: string,
 ): { violations: string[]; types: Set<string> } {
   const violations: string[] = [];
   const types = new Set<string>();
   const contentToCheck = stripStrings ? stripStringLiterals(content) : content;
 
-  for (const pattern of ESCAPE_HATCH_PATTERNS) {
+  // Filter patterns based on file type
+  const applicablePatterns = filterPatternsForFile(ESCAPE_HATCH_PATTERNS, filePath);
+
+  for (const pattern of applicablePatterns) {
     const matches =
       typeof pattern.selector === 'string'
         ? contentToCheck.includes(pattern.selector)
@@ -78,23 +113,33 @@ function buildErrorMessage(violations: string[]): string {
   ].join('\n');
 }
 
-export function processEscapeHatchisms(content: string): { found: boolean; message: string } {
-  const { violations } = checkContent(content);
+export function processEscapeHatchisms(
+  content: string,
+  filePath?: string,
+): { found: boolean; message: string } {
+  const { violations } = checkContent(content, false, filePath);
   return violations.length > 0
     ? { found: true, message: buildErrorMessage(violations) }
     : { found: false, message: '' };
 }
 
-export function processEscapeHatchismsInCode(content: string): { found: boolean; message: string } {
-  const { violations } = checkContent(content, true);
+export function processEscapeHatchismsInCode(
+  content: string,
+  filePath?: string,
+): { found: boolean; message: string } {
+  const { violations } = checkContent(content, true, filePath);
   return violations.length > 0
     ? { found: true, message: buildErrorMessage(violations) }
     : { found: false, message: '' };
 }
 
-export function hasNewEscapeHatches(oldContent: string, newContent: string): boolean {
-  const { types: oldTypes } = checkContent(oldContent, true);
-  const { types: newTypes } = checkContent(newContent, true);
+export function hasNewEscapeHatches(
+  oldContent: string,
+  newContent: string,
+  filePath?: string,
+): boolean {
+  const { types: oldTypes } = checkContent(oldContent, true, filePath);
+  const { types: newTypes } = checkContent(newContent, true, filePath);
 
   // Check if there are any escape hatch types in new that weren't in old
   for (const type of Array.from(newTypes)) {
@@ -106,6 +151,10 @@ export function hasNewEscapeHatches(oldContent: string, newContent: string): boo
   return false;
 }
 
-export function getNewEscapeHatchMessage(_oldContent: string, newContent: string): string {
-  return processEscapeHatchismsInCode(newContent).message;
+export function getNewEscapeHatchMessage(
+  _oldContent: string,
+  newContent: string,
+  filePath?: string,
+): string {
+  return processEscapeHatchismsInCode(newContent, filePath).message;
 }
