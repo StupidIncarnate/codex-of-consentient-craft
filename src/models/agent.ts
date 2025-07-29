@@ -31,6 +31,16 @@ export type AgentMode =
 export type AgentStatus = 'complete' | 'blocked' | 'error';
 
 /**
+ * Escape hatch reasons when agent hits limits
+ */
+export type EscapeReason =
+  | 'task_too_complex'
+  | 'context_exhaustion'
+  | 'unexpected_dependencies'
+  | 'integration_conflict'
+  | 'repeated_failures';
+
+/**
  * Retrospective note categories for lore accumulation
  */
 export type RetrospectiveCategory =
@@ -87,6 +97,17 @@ export interface BaseAgentReport {
    * Notes for the retrospective/lore system
    */
   retrospectiveNotes?: RetrospectiveNote[];
+
+  /**
+   * Escape hatch data when agent hits limits
+   */
+  escape?: {
+    reason: EscapeReason;
+    analysis: string;
+    recommendation: string;
+    retro: string;
+    partialWork?: string;
+  };
 }
 
 /**
@@ -149,12 +170,27 @@ export interface ReconciliationPlan {
 }
 
 /**
+ * Observable action definition from Pathseeker
+ */
+export interface PathseekerObservableAction {
+  id: string;
+  description: string;
+  successCriteria: string;
+  failureBehavior?: string;
+  implementedByTasks: string[];
+}
+
+/**
  * Pathseeker-specific report
  */
 export interface PathseekerReport extends BaseAgentReport {
   agentType: 'pathseeker';
   report: {
     tasks: PathseekerTask[];
+    /**
+     * Observable actions discovered through user dialogue
+     */
+    observableActions?: PathseekerObservableAction[];
     /**
      * Overall approach or strategy
      */

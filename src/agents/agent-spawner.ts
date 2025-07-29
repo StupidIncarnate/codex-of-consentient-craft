@@ -44,14 +44,13 @@ export class AgentSpawner {
     // Replace $ARGUMENTS with context
     const prompt = agentMd.replace('$ARGUMENTS', this.formatContext(agentType, context));
 
-    // Write prompt to temporary file (Claude reads from file)
-    const tempPromptFile = path.join('/tmp', `questmaestro-${agentType}-${Date.now()}.md`);
-    fs.writeFileSync(tempPromptFile, prompt);
-
     this.logger.info(`[🎲] Spawning ${agentType}...`);
 
-    // Spawn Claude in interactive mode
-    const claudeProcess = spawn('claude', ['-m', tempPromptFile], {
+    // Use claude from this package's node_modules (for npx usage)
+    const claudePath = path.join(__dirname, '../../../node_modules', '.bin', 'claude');
+
+    // Spawn Claude in interactive mode - pass prompt directly like in spike
+    const claudeProcess = spawn(claudePath, [prompt], {
       stdio: 'inherit',
       env: { ...process.env },
     });
@@ -61,21 +60,30 @@ export class AgentSpawner {
       const checkInterval = 500; // ms
       let checkCount = 0;
       const maxChecks = 7200; // 60 minutes max
+      let watcher: NodeJS.Timeout;
 
-      const watcher = setInterval(() => {
+      // Centralized cleanup function
+      const cleanup = (shouldExit: boolean = false) => {
+        if (watcher) clearInterval(watcher);
+        claudeProcess.kill('SIGTERM');
+        process.removeListener('SIGINT', handleSigInt);
+        process.removeListener('SIGTERM', handleSigTerm);
+        if (shouldExit) process.exit(0);
+      };
+
+      // Signal handlers
+      const handleSigInt = () => cleanup(true);
+      const handleSigTerm = () => cleanup(true);
+
+      process.on('SIGINT', handleSigInt);
+      process.on('SIGTERM', handleSigTerm);
+
+      watcher = setInterval(() => {
         checkCount++;
 
         // Check if report file exists
         if (fs.existsSync(reportPath)) {
-          clearInterval(watcher);
-          claudeProcess.kill();
-
-          // Clean up temp file
-          try {
-            fs.unlinkSync(tempPromptFile);
-          } catch (_error) {
-            // Ignore cleanup errors - file may already be deleted
-          }
+          cleanup();
 
           // Parse JSON report
           try {
@@ -83,6 +91,8 @@ export class AgentSpawner {
             const report = JSON.parse(reportContent) as AgentReport;
 
             this.logger.success(`[🎁] ${agentType} complete!`);
+
+            // Cleanup already done above
 
             if (report.status === 'blocked') {
               // Handle blocked agent
@@ -93,6 +103,7 @@ export class AgentSpawner {
               resolve(report);
             }
           } catch (_error) {
+            // Cleanup already done above
             reject(
               new Error(
                 `Failed to parse report from ${agentType}: ${_error instanceof Error ? _error.message : String(_error)}`,
@@ -103,22 +114,14 @@ export class AgentSpawner {
 
         // Check for timeout
         if (checkCount > maxChecks) {
-          clearInterval(watcher);
-          claudeProcess.kill();
+          cleanup();
           reject(new Error(`${agentType} timed out after 60 minutes`));
         }
       }, checkInterval);
 
       // Handle unexpected exit
       claudeProcess.on('exit', (_code) => {
-        clearInterval(watcher);
-
-        // Clean up temp file
-        try {
-          fs.unlinkSync(tempPromptFile);
-        } catch (_error) {
-          // Ignore cleanup errors - file may already be deleted
-        }
+        cleanup();
 
         // Check if report was generated
         if (!fs.existsSync(reportPath)) {
@@ -131,12 +134,7 @@ export class AgentSpawner {
 
       // Handle process errors
       claudeProcess.on('error', (error) => {
-        clearInterval(watcher);
-        try {
-          fs.unlinkSync(tempPromptFile);
-        } catch (_error) {
-          // Ignore cleanup errors - file may already be deleted
-        }
+        cleanup();
         reject(new Error(`Failed to spawn ${agentType}: ${error.message}`));
       });
     });
@@ -291,14 +289,21 @@ export class AgentSpawner {
         questTitle?: string;
         filesCreated?: string[];
         testFramework?: string;
+        observableActions?: unknown;
       }) || {};
-    return [
+    const parts = [
       `Quest: ${additionalCtx.questTitle || 'Unknown'}`,
       `Quest folder: ${context.questFolder}`,
       `Report number: ${context.reportNumber}`,
       `Files created: ${JSON.stringify(additionalCtx.filesCreated || [], null, 2)}`,
       `Test framework: ${additionalCtx.testFramework || 'unknown'}`,
-    ].join('\n');
+    ];
+
+    if (additionalCtx.observableActions) {
+      parts.push(`Observable actions: ${JSON.stringify(additionalCtx.observableActions, null, 2)}`);
+    }
+
+    return parts.join('\n');
   }
 
   private formatLawbringerContext(context: AgentContext): string {
@@ -400,8 +405,8 @@ export class AgentSpawner {
       }
     }
 
-    // For implementation agents, spawn Pathseeker for recovery assessment
-    if (agentType === 'codeweaver') {
+    // For all agents except voidpoker, spawn Pathseeker for recovery assessment
+    if (agentType !== 'voidpoker') {
       // First spawn Pathseeker to assess current state
       const assessmentContext: AgentContext = {
         ...originalContext,
@@ -410,6 +415,7 @@ export class AgentSpawner {
         additionalContext: {
           crashedAgent: agentType,
           originalTask: (originalContext.additionalContext as { task?: unknown })?.task,
+          originalContext: originalContext.additionalContext,
           crashReportNumber: originalContext.reportNumber,
         },
       };
@@ -478,17 +484,20 @@ export class AgentSpawner {
       }
 
       // Fallback to simple retry if assessment fails
-      const recoveryContext = {
+      const recoveryContext: AgentContext = {
         ...originalContext,
         reportNumber: (parseInt(originalContext.reportNumber) + 1).toString(),
         recoveryMode: true,
-        instruction: 'The previous agent exited unexpectedly. Continue the task.',
+        additionalContext: {
+          ...((originalContext.additionalContext as object) || {}),
+          instruction: 'The previous agent exited unexpectedly. Continue the task.',
+        },
       };
 
       return this.spawnAndWait(agentType, recoveryContext);
     } else {
-      // For non-implementation agents, just respawn
-      const recoveryContext = {
+      // For voidpoker, just respawn without assessment
+      const recoveryContext: AgentContext = {
         ...originalContext,
         reportNumber: (parseInt(originalContext.reportNumber) + 1).toString(),
         recoveryMode: true,

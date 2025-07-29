@@ -44,10 +44,17 @@ const ESCAPE_HATCH_PATTERNS: EscapeHatchPattern[] = [
 ];
 
 function stripStringLiterals(content: string): string {
-  return content
-    .replace(/'(?:[^'\\]|\\.)*'/g, "''") // Single quotes with proper escaping
-    .replace(/"(?:[^"\\]|\\.)*"/g, '""') // Double quotes with proper escaping
-    .replace(/`(?:[^`\\]|\\.)*`/g, '``'); // Template literals
+  return (
+    content
+      // Remove single-line comments
+      .replace(/\/\/.*$/gm, '')
+      // Remove multi-line comments
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      // Remove string literals after removing comments
+      .replace(/'(?:[^'\\]|\\.)*'/g, "''") // Single quotes with proper escaping
+      .replace(/"(?:[^"\\]|\\.)*"/g, '""') // Double quotes with proper escaping
+      .replace(/`(?:[^`\\]|\\.)*`/g, '``')
+  ); // Template literals
 }
 
 function getFileExtension(filePath: string): string {

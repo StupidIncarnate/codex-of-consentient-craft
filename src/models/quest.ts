@@ -85,6 +85,41 @@ export interface ExecutionLogEntry {
 }
 
 /**
+ * Observable atomic action that can be demonstrated
+ */
+export interface ObservableAction {
+  /**
+   * Unique identifier for the action
+   */
+  id: string;
+
+  /**
+   * Description of what the user can observe/demonstrate
+   */
+  description: string;
+
+  /**
+   * Expected outcome when action succeeds
+   */
+  successCriteria: string;
+
+  /**
+   * What happens when action fails
+   */
+  failureBehavior?: string;
+
+  /**
+   * Status of demonstration
+   */
+  status: 'pending' | 'demonstrated' | 'failed';
+
+  /**
+   * Task IDs that implement this action
+   */
+  implementedByTasks: string[];
+}
+
+/**
  * Extended task with status tracking
  */
 export interface QuestTask extends PathseekerTask {
@@ -112,6 +147,11 @@ export interface QuestTask extends PathseekerTask {
    * Error message if failed
    */
   errorMessage?: string;
+
+  /**
+   * Observable action IDs this task implements
+   */
+  implementsActions?: string[];
 }
 
 /**
@@ -172,6 +212,11 @@ export interface Quest {
    * All tasks discovered for this quest
    */
   tasks: QuestTask[];
+
+  /**
+   * Observable actions that can be demonstrated
+   */
+  observableActions?: ObservableAction[];
 
   /**
    * Original user request
