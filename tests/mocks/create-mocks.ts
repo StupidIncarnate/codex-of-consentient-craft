@@ -29,6 +29,9 @@ export function createMockFileSystem(): jest.Mocked<FileSystem> {
     initializeStructure: jest.fn(),
     cleanOldQuests: jest.fn(),
     findPackageJsons: jest.fn(),
+    readFile: jest.fn(),
+    writeFile: jest.fn(),
+    appendFile: jest.fn(),
   } as unknown as jest.Mocked<FileSystem>;
 }
 

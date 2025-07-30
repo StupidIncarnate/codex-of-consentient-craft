@@ -427,7 +427,7 @@ async function getContentChanges(toolInput: ToolInput): Promise<ContentChange[]>
         throw error;
       }
     }
-    
+
     // Get the full file content after applying all edits
     const newContent = await getFullFileContent(toolInput);
     if (newContent !== null) {

@@ -2,7 +2,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
 import { ConfigManager } from './core/config-manager';
 import { QuestManager } from './core/quest-manager';
 import { FileSystem } from './core/file-system';
@@ -18,7 +17,6 @@ import { ReviewPhaseRunner } from './core/review-phase-runner';
 import type { PhaseRunner } from './core/phase-runner-interface';
 
 const logger = new Logger();
-const MAX_SPIRITMENDER_ATTEMPTS = 3;
 const fileSystem = new FileSystem();
 const configManager = new ConfigManager(fileSystem);
 const questManager = new QuestManager(fileSystem, configManager);
@@ -372,174 +370,6 @@ function completeQuest(quest: Quest) {
   logger.info(`Retrospective saved to: questmaestro/retros/`);
 }
 
-function runWardAll(): boolean {
-  logger.info('[🎲] 🛡️ Running ward validation...');
-
-  try {
-    execSync('npm run ward:all', { stdio: 'pipe' });
-    return true;
-  } catch (error) {
-    logger.error(`Ward failed: ${isError(error) ? error.message : String(error)}`);
-    return false;
-  }
-}
-
-async function handleWardFailure(
-  quest: Quest,
-  errors: string,
-  agentSpawner: AgentSpawner,
-  taskId?: string,
-) {
-  logger.error('[❌] Ward validation failed!');
-
-  // Initialize Spiritmender tracking if needed
-  if (!quest.spiritmenderAttempts) {
-    quest.spiritmenderAttempts = {};
-  }
-  if (!quest.spiritmenderErrors) {
-    quest.spiritmenderErrors = {};
-  }
-
-  const effectiveTaskId = taskId || 'global';
-  const currentAttempts = quest.spiritmenderAttempts[effectiveTaskId] || 0;
-
-  // Check if max attempts reached
-  if (currentAttempts >= MAX_SPIRITMENDER_ATTEMPTS) {
-    logger.error(
-      `Maximum Spiritmender attempts (${MAX_SPIRITMENDER_ATTEMPTS}) reached for task ${effectiveTaskId}`,
-    );
-    quest.status = 'blocked';
-    questManager.saveQuest(quest);
-    throw new Error(`Quest blocked: Max Spiritmender attempts reached for task ${effectiveTaskId}`);
-  }
-
-  const attemptNumber = currentAttempts + 1;
-  // Save ward errors to file
-  const questPath = path.join('questmaestro', 'active', quest.folder);
-  saveWardErrors(questPath, errors, effectiveTaskId, attemptNumber);
-
-  // Get previous error messages for context
-  const previousErrors = quest.spiritmenderErrors[effectiveTaskId] || [];
-
-  // Determine attempt strategy based on attempt number
-  const attemptStrategy = getAttemptStrategy(attemptNumber);
-
-  await spawnAgentWithProgress(
-    agentSpawner,
-    'spiritmender',
-    {
-      questFolder: quest.folder,
-      reportNumber: questManager.getNextReportNumber(quest.folder),
-      workingDirectory: process.cwd(),
-      additionalContext: {
-        errors: errors,
-        attemptNumber: attemptNumber,
-        previousErrors: previousErrors,
-        attemptStrategy: attemptStrategy,
-        taskId: effectiveTaskId,
-      },
-    },
-    `Spawning Spiritmender (attempt ${attemptNumber}/${MAX_SPIRITMENDER_ATTEMPTS})`,
-  );
-
-  // Update attempt tracking
-  quest.spiritmenderAttempts[effectiveTaskId] = attemptNumber;
-  if (!quest.spiritmenderErrors[effectiveTaskId]) {
-    quest.spiritmenderErrors[effectiveTaskId] = [];
-  }
-  quest.spiritmenderErrors[effectiveTaskId].push(errors);
-  questManager.saveQuest(quest);
-
-  // Re-run ward to check if fixed
-  const wardCheck = runWardAll();
-  if (!wardCheck) {
-    logger.error(`Spiritmender attempt ${attemptNumber} could not fix all errors`);
-
-    // If this was the last attempt, block the quest
-    if (attemptNumber >= MAX_SPIRITMENDER_ATTEMPTS) {
-      quest.status = 'blocked';
-      questManager.saveQuest(quest);
-      throw new Error(
-        `Quest blocked: Spiritmender failed after ${MAX_SPIRITMENDER_ATTEMPTS} attempts`,
-      );
-    }
-
-    // Otherwise, try again
-    return handleWardFailure(quest, errors, agentSpawner, taskId);
-  }
-
-  // Success! Remove resolved errors from tracking
-  cleanResolvedWardErrors(questPath, effectiveTaskId);
-  logger.success(`[🎁] ✅ Ward validation passed after Spiritmender attempt ${attemptNumber}!`);
-}
-
-function saveWardErrors(
-  questFolder: string,
-  errors: string,
-  taskId: string,
-  attemptNumber: number,
-): void {
-  const errorFile = path.join(questFolder, 'ward-errors-unresolved.txt');
-  const timestamp = new Date().toISOString();
-
-  // Format error entry with metadata
-  const errorEntry = `[${timestamp}] [attempt-${attemptNumber}] [task-${taskId}] ${errors}\n${'='.repeat(80)}\n`;
-
-  try {
-    // Append to existing file (create if doesn't exist)
-    const result = fileSystem.appendFile(errorFile, errorEntry);
-    if (!result.success) {
-      logger.error(`Failed to save ward errors: ${result.error}`);
-    }
-  } catch (error) {
-    logger.error(`Failed to save ward errors: ${String(error)}`);
-  }
-}
-
-// Add method to clean resolved errors
-function cleanResolvedWardErrors(questFolder: string, taskId: string): void {
-  const errorFile = path.join(questFolder, 'ward-errors-unresolved.txt');
-
-  try {
-    const result = fileSystem.readFile(errorFile);
-    if (!result.success || !result.data) return;
-
-    // Filter out lines for this task
-    const lines = result.data.split('\n');
-    const filteredLines: string[] = [];
-    let skipNext = false;
-
-    for (const line of lines) {
-      if (line.includes(`[task-${taskId}]`)) {
-        skipNext = true; // Skip this line and separator
-        continue;
-      }
-      if (skipNext && line.startsWith('='.repeat(80))) {
-        skipNext = false;
-        continue;
-      }
-      filteredLines.push(line);
-    }
-
-    fileSystem.writeFile(errorFile, filteredLines.join('\n'));
-  } catch (_error) {
-    // File might not exist, that's OK
-  }
-}
-
-function getAttemptStrategy(attemptNumber: number): string {
-  switch (attemptNumber) {
-    case 1:
-      return 'basic_fixes: Focus on imports, syntax errors, and basic type issues';
-    case 2:
-      return 'deeper_analysis: Analyze logic errors, test expectations, and component interactions';
-    case 3:
-      return 'last_resort: Consider refactoring approach and questioning assumptions';
-    default:
-      return 'basic_fixes: Focus on fundamental issues';
-  }
-}
-
 function detectTestFramework(): string {
   // Simple detection based on package.json
   try {
@@ -591,43 +421,6 @@ async function getUserInput(prompt: string): Promise<string> {
   });
 }
 
-async function spawnAgentWithProgress(
-  agentSpawner: AgentSpawner,
-  agentType: Parameters<AgentSpawner['spawnAndWait']>[0],
-  context: Parameters<AgentSpawner['spawnAndWait']>[1],
-  description: string,
-): Promise<ReturnType<AgentSpawner['spawnAndWait']>> {
-  // Show the description without spinner since agent will output to terminal
-  logger.info(`[🎲] ${description}`);
-
-  try {
-    const report = await agentSpawner.spawnAndWait(agentType, context);
-
-    if (report) {
-      if (report.status === 'complete') {
-        logger.success(`[✓] ${agentType} completed`);
-      } else if (report.status === 'blocked') {
-        if (report.escape) {
-          logger.yellow(`[⚠] ${agentType} triggered escape hatch`);
-        } else {
-          logger.yellow(`[⚠] ${agentType} blocked (user input needed)`);
-        }
-      } else {
-        logger.error(
-          `[✗] ${agentType} failed: ${(report.report as { error?: string })?.error || 'Unknown error'}`,
-        );
-      }
-      return report;
-    } else {
-      logger.error(`[✗] ${agentType} failed to generate report`);
-      throw new Error('Failed to generate report');
-    }
-  } catch (error) {
-    logger.error(`[✗] ${agentType} crashed: ${String(error)}`);
-    throw error;
-  }
-}
-
 async function checkAndWarnStaleness(quest: Quest): Promise<boolean> {
   const freshness = questManager.validateQuestFreshness(quest);
 
@@ -657,8 +450,6 @@ export {
   checkProjectDiscovery,
   runQuest,
   completeQuest,
-  runWardAll,
-  handleWardFailure,
   detectTestFramework,
   getWardCommands,
   getUserInput,
