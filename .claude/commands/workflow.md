@@ -2,10 +2,11 @@
 
 Execute the development workflow in focused, iterative chunks based on the `## Task to Complete` information down below. Complete each step before moving to the next.
 
-## Step 0: Review Standards
+## Step 0: Review Standards and Types
 - Read `@./standards/coding-principles.md`
 - Read `@./standards/testing-standards.md`
 - Note key patterns to follow
+- Review existing types in `@./src/types`
 
 ## Step 1: Understand Task
 - Restate the task in one sentence
@@ -40,7 +41,10 @@ Based on exploration, think hard and plan the implementation:
 
 If you need to store your findings in a doc for referencing later, write it to `/tasks/YYYY-MM-DD-task-name.md` (e.g., `/tasks/2024-03-15-user-authentication.md`)
 
-## Step 3: Create TODO List
+## Step 3: Create any new types
+Before coding, make sure any types you need are created in `@./src/types`
+
+## Step 4: Create TODO List
 Use TodoWrite to break down the task following the 7-step TDD process from `@./standards/coding-principles.md#development-workflow-mandatory-for-production-code`:
 
 **Single Component Example:**
@@ -108,22 +112,22 @@ When components are truly independent:
 
 Keep each TODO focused and achievable. Group related work but maintain clear boundaries.
 
-## Step 4: Iterative Implementation
+## Step 5: Iterative Implementation
 For EACH TODO item:
 
-### 4a. Mark TODO as in_progress
+### 5a. Mark TODO as in_progress
 
-### 4b. Execute the TODO:
+### 5b. Execute the TODO:
 - Follow the specific step indicated in the TODO (e.g., "Step 1: Write Empty Test Cases")
 - Use relevant sections from standards docs as guidance
 
-### 4c. Verify and complete:
+### 5c. Verify and complete:
 - Run relevant tests
 - Fix any failures
 - Only mark TODO as completed when lint, tests and typecheck pass
 - Move to next TODO
 
-## Step 5: Final Verification
+## Step 6: Final Verification
 After ALL TODOs complete:
 - Run full test suite
 - Run linting/typecheck

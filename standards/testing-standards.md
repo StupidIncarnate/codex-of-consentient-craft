@@ -159,6 +159,7 @@ export const PostToolUseHookStub = (overrides: Partial<HookData> = {}) =>
 3. **Generate unique IDs when needed** - Use a UUID generator for session IDs that must be unique
 4. **Extract common values as constants** - File paths, content snippets, etc.
 5. **Keep factories pure** - No side effects, just return data
+6. **Use proper types** - Tests should be using Typescript types same as production code. Do not use `type any` or other escape hatch typings.
 
 ### Test File Organization
 

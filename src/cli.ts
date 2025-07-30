@@ -9,13 +9,13 @@ import { FileSystem } from './core/file-system';
 import { Logger } from './utils/logger';
 import { AgentSpawner } from './agents/agent-spawner';
 import type { Quest } from './models/quest';
-import type {
-  AgentReport,
-  ReconciliationPlan,
-  PathseekerTask,
-  PathseekerObservableAction,
-} from './models/agent';
 import { isError, isPackageJson, parseJsonSafely } from './utils/type-guards';
+import { EscapeHatchError } from './core/escape-hatch-error';
+import { DiscoveryPhaseRunner } from './core/discovery-phase-runner';
+import { ImplementationPhaseRunner } from './core/implementation-phase-runner';
+import { TestingPhaseRunner } from './core/testing-phase-runner';
+import { ReviewPhaseRunner } from './core/review-phase-runner';
+import type { PhaseRunner } from './core/phase-runner-interface';
 
 const logger = new Logger();
 const MAX_SPIRITMENDER_ATTEMPTS = 3;
@@ -301,36 +301,49 @@ async function runQuest(quest: Quest) {
   // Sequential phase execution
   const agentSpawner = new AgentSpawner();
 
+  // Create phase runners
+  const phaseRunners: Map<string, PhaseRunner> = new Map([
+    ['discovery', new DiscoveryPhaseRunner(questManager, fileSystem, logger)],
+    ['implementation', new ImplementationPhaseRunner(questManager, fileSystem, logger)],
+    ['testing', new TestingPhaseRunner(questManager, fileSystem, logger)],
+    ['review', new ReviewPhaseRunner(questManager, fileSystem, logger)],
+  ]);
+
   while (!questManager.isQuestComplete(quest)) {
     const phase = questManager.getCurrentPhase(quest);
 
     logger.info(`Current phase: ${phase}`);
 
-    switch (phase) {
-      case 'discovery':
-        await runPathseeker(quest, agentSpawner);
-        break;
+    if (phase === null) {
+      // All phases complete
+      completeQuest(quest);
+      return;
+    }
 
-      case 'implementation':
-        await runCodeweavers(quest, agentSpawner);
-        break;
+    const phaseRunner = phaseRunners.get(phase);
+    if (!phaseRunner) {
+      logger.error(`Unknown phase: ${String(phase)}`);
+      return;
+    }
 
-      case 'testing':
-        await runSiegemaster(quest, agentSpawner);
-        break;
-
-      case 'review':
-        await runLawbringer(quest, agentSpawner);
-        break;
-
-      default:
-        if (phase === null) {
-          // All phases complete
-          completeQuest(quest);
-          return;
-        }
-        logger.error(`Unknown phase: ${String(phase)}`);
+    try {
+      if (phaseRunner.canRun(quest)) {
+        await phaseRunner.run(quest, agentSpawner);
+      } else {
+        // Skip to next phase if can't run (e.g., no tasks for this phase)
+        quest.phases[phase].status = 'skipped';
+        questManager.saveQuest(quest);
+      }
+    } catch (error) {
+      if (error instanceof EscapeHatchError) {
+        logger.error(`Agent triggered escape hatch: ${error.escape.reason}`);
+        logger.info(`Analysis: ${error.escape.analysis}`);
+        logger.info(`Recommendation: ${error.escape.recommendation}`);
+        quest.status = 'blocked';
+        questManager.saveQuest(quest);
         return;
+      }
+      throw error;
     }
 
     // Reload quest to get latest state
@@ -343,286 +356,6 @@ async function runQuest(quest: Quest) {
   }
 
   completeQuest(quest);
-}
-
-async function runPathseeker(quest: Quest, agentSpawner: AgentSpawner) {
-  // Mark discovery phase as in progress
-  quest.phases.discovery.status = 'in_progress';
-  questManager.saveQuest(quest);
-
-  const reportNumber = questManager.getNextReportNumber(quest.folder);
-  const result = await spawnAgentWithProgress(
-    agentSpawner,
-    'pathseeker',
-    {
-      questFolder: quest.folder,
-      reportNumber: reportNumber,
-      workingDirectory: process.cwd(),
-      userRequest: quest.userRequest,
-      mode: quest.tasks.length > 0 ? 'validation' : 'creation',
-      additionalContext: {
-        existingTasks: quest.tasks,
-        quest: quest,
-      },
-    },
-    'Running Pathseeker for discovery',
-  );
-
-  // Check for escape hatch
-  if (result.escape) {
-    await handleEscapeHatch(quest, result, agentSpawner);
-    return;
-  }
-
-  // Handle reconciliation if in validation mode
-  if (result.agentType === 'pathseeker' && result.report && quest.tasks.length > 0) {
-    const report = result.report;
-
-    // Check for reconciliation plan
-    if ('reconciliationPlan' in report && report.reconciliationPlan) {
-      console.log(`\n📋 Applying task reconciliation: ${report.reconciliationPlan.mode}`);
-
-      try {
-        questManager.applyReconciliation(quest.id, report.reconciliationPlan);
-
-        // Reload quest to get updated tasks
-        const updatedQuest = questManager.loadQuest(quest.folder);
-        if (updatedQuest.success && updatedQuest.data) {
-          Object.assign(quest, updatedQuest.data);
-          console.log('✅ Task list updated successfully\n');
-        }
-      } catch (error) {
-        logger.error(`Failed to apply reconciliation: ${String(error)}`);
-        console.log('⚠️  Failed to update task list, continuing with existing tasks\n');
-      }
-    } else if ('tasks' in report && Array.isArray(report.tasks)) {
-      // Regular task update (creation mode)
-      questManager.addTasks(quest.folder, report.tasks);
-    }
-  } else if (result.agentType === 'pathseeker' && result.report) {
-    // Creation mode - add tasks and observable actions
-    const report = result.report as {
-      tasks?: PathseekerTask[];
-      observableActions?: PathseekerObservableAction[];
-    };
-
-    if (report.tasks && Array.isArray(report.tasks)) {
-      questManager.addTasks(quest.folder, report.tasks);
-    }
-
-    if (report.observableActions && Array.isArray(report.observableActions)) {
-      // Convert PathseekerObservableAction to ObservableAction and save
-      quest.observableActions = report.observableActions.map((action) => ({
-        ...action,
-        status: 'pending' as const,
-      }));
-      questManager.saveQuest(quest);
-    }
-  }
-
-  // Mark discovery phase as complete
-  quest.phases.discovery.status = 'complete';
-  quest.phases.discovery.report = `${reportNumber.toString().padStart(3, '0')}-pathseeker-report.json`;
-
-  // Reload quest to ensure we have the latest tasks
-  const reloadedQuest = questManager.getQuest(quest.folder);
-  if (reloadedQuest) {
-    Object.assign(quest, reloadedQuest);
-  }
-
-  questManager.saveQuest(quest);
-
-  logger.success('[🎁] Pathseeker complete!');
-}
-
-async function runCodeweavers(quest: Quest, agentSpawner: AgentSpawner) {
-  const implementationTasks = quest.tasks.filter(
-    (t) => t.type === 'implementation' && t.status !== 'complete',
-  );
-
-  if (implementationTasks.length === 0) {
-    logger.info('No implementation tasks to run');
-    // Only mark as complete if we have some tasks (meaning pathseeker already ran)
-    if (quest.tasks.length > 0) {
-      quest.phases.implementation.status = 'complete';
-    } else {
-      // No tasks at all yet - keep phase pending
-      quest.phases.implementation.status = 'pending';
-    }
-    questManager.saveQuest(quest);
-    return;
-  }
-
-  // Mark implementation phase as in progress
-  quest.phases.implementation.status = 'in_progress';
-  questManager.saveQuest(quest);
-
-  logger.info(`[🎯] Running Codeweaver for ${implementationTasks.length} tasks...`);
-
-  for (const task of implementationTasks) {
-    const result = await spawnAgentWithProgress(
-      agentSpawner,
-      'codeweaver',
-      {
-        questFolder: quest.folder,
-        reportNumber: questManager.getNextReportNumber(quest.folder),
-        workingDirectory: process.cwd(),
-        additionalContext: {
-          questTitle: quest.title,
-          task: task,
-        },
-      },
-      `Working on: ${task.name}`,
-    );
-
-    // Check for escape hatch
-    if (result.escape) {
-      await handleEscapeHatch(quest, result, agentSpawner);
-      return;
-    }
-
-    // Update task status
-    task.status = 'complete';
-    task.completedBy = `${questManager.getNextReportNumber(quest.folder)}-codeweaver-report.json`;
-
-    // Update observable action status if this task implements any actions
-    if (task.implementsActions && quest.observableActions) {
-      for (const actionId of task.implementsActions) {
-        const action = quest.observableActions.find((a) => a.id === actionId);
-        if (action) {
-          // Check if all tasks implementing this action are complete
-          const implementingTasks = quest.tasks.filter((t) =>
-            t.implementsActions?.includes(actionId),
-          );
-          const allComplete = implementingTasks.every(
-            (t) => t.status === 'complete' || t.status === 'skipped',
-          );
-          if (allComplete) {
-            action.status = 'demonstrated';
-          }
-        }
-      }
-    }
-
-    questManager.saveQuest(quest);
-
-    // Run ward validation
-    const wardOk = runWardAll();
-    if (!wardOk) {
-      await handleWardFailure(quest, 'Ward validation failed', agentSpawner);
-    }
-  }
-
-  // Mark implementation phase as complete
-  quest.phases.implementation.status = 'complete';
-  questManager.saveQuest(quest);
-
-  logger.success('[🎁] All Codeweaver tasks complete!');
-}
-
-async function runSiegemaster(quest: Quest, agentSpawner: AgentSpawner) {
-  // Check if there are any completed implementation tasks to test
-  const completedImplementationTasks = quest.tasks.filter(
-    (t) => t.type === 'implementation' && t.status === 'complete',
-  );
-
-  if (completedImplementationTasks.length === 0) {
-    logger.info('No completed implementation tasks to create tests for');
-    // Only mark as complete if we have some tasks
-    if (quest.tasks.length > 0) {
-      quest.phases.testing.status = 'complete';
-    } else {
-      // No tasks at all yet - keep phase pending
-      quest.phases.testing.status = 'pending';
-    }
-    questManager.saveQuest(quest);
-    return;
-  }
-
-  // Mark testing phase as in progress
-  quest.phases.testing.status = 'in_progress';
-  questManager.saveQuest(quest);
-
-  const reportNumber = questManager.getNextReportNumber(quest.folder);
-  const result = await spawnAgentWithProgress(
-    agentSpawner,
-    'siegemaster',
-    {
-      questFolder: quest.folder,
-      reportNumber: reportNumber,
-      workingDirectory: process.cwd(),
-      additionalContext: {
-        questTitle: quest.title,
-        filesCreated: questManager.getCreatedFiles(quest.folder),
-        testFramework: detectTestFramework(),
-        observableActions: quest.observableActions,
-      },
-    },
-    'Running Siegemaster for test gap analysis',
-  );
-
-  // Check for escape hatch
-  if (result.escape) {
-    await handleEscapeHatch(quest, result, agentSpawner);
-    return;
-  }
-
-  quest.phases.testing.status = 'complete';
-  quest.phases.testing.report = `${reportNumber.toString().padStart(3, '0')}-siegemaster-report.json`;
-  questManager.saveQuest(quest);
-
-  logger.success('[🎁] Siegemaster complete!');
-}
-
-async function runLawbringer(quest: Quest, agentSpawner: AgentSpawner) {
-  // Check if there are any files to review
-  const changedFiles = questManager.getChangedFiles(quest.folder);
-
-  if (changedFiles.length === 0) {
-    logger.info('No files to review');
-    // Only mark as complete if we have some tasks
-    if (quest.tasks.length > 0) {
-      quest.phases.review.status = 'complete';
-    } else {
-      // No tasks at all yet - keep phase pending
-      quest.phases.review.status = 'pending';
-    }
-    questManager.saveQuest(quest);
-    return;
-  }
-
-  // Mark review phase as in progress
-  quest.phases.review.status = 'in_progress';
-  questManager.saveQuest(quest);
-
-  const reportNumber = questManager.getNextReportNumber(quest.folder);
-  const result = await spawnAgentWithProgress(
-    agentSpawner,
-    'lawbringer',
-    {
-      questFolder: quest.folder,
-      reportNumber: reportNumber,
-      workingDirectory: process.cwd(),
-      additionalContext: {
-        questTitle: quest.title,
-        changedFiles: questManager.getChangedFiles(quest.folder),
-        wardCommands: getWardCommands(),
-      },
-    },
-    'Running Lawbringer for code review',
-  );
-
-  // Check for escape hatch
-  if (result.escape) {
-    await handleEscapeHatch(quest, result, agentSpawner);
-    return;
-  }
-
-  quest.phases.review.status = 'complete';
-  quest.phases.review.report = `${reportNumber.toString().padStart(3, '0')}-lawbringer-report.json`;
-  questManager.saveQuest(quest);
-
-  logger.success('[🎁] Lawbringer complete!');
 }
 
 function completeQuest(quest: Quest) {
@@ -913,54 +646,6 @@ async function checkAndWarnStaleness(quest: Quest): Promise<boolean> {
   return true;
 }
 
-async function handleEscapeHatch(
-  quest: Quest,
-  report: AgentReport,
-  agentSpawner: AgentSpawner,
-): Promise<void> {
-  if (!report.escape) return;
-
-  logger.warn(`\n⚠️  ${report.agentType} triggered escape hatch: ${report.escape.reason}`);
-  logger.info(`Analysis: ${report.escape.analysis}`);
-  logger.info(`Recommendation: ${report.escape.recommendation}`);
-
-  // Spawn fresh Pathseeker for re-decomposition
-  logger.info('Spawning fresh Pathseeker for task re-decomposition...');
-
-  const reportNumber = questManager.getNextReportNumber(quest.folder);
-  const pathseekerReport = await spawnAgentWithProgress(
-    agentSpawner,
-    'pathseeker',
-    {
-      questFolder: quest.folder,
-      reportNumber: reportNumber,
-      workingDirectory: process.cwd(),
-      userRequest: quest.userRequest,
-      mode: 'recovery_assessment',
-      additionalContext: {
-        escapeFrom: report.agentType,
-        escapeReason: report.escape.reason,
-        escapeAnalysis: report.escape.analysis,
-        partialWork: report.escape.partialWork,
-        originalTask: report.taskId,
-        quest: quest,
-      },
-    },
-    'Re-analyzing quest after escape hatch',
-  );
-
-  // Handle Pathseeker's recommendations
-  if (pathseekerReport.status === 'complete' && pathseekerReport.agentType === 'pathseeker') {
-    const pathReport = pathseekerReport.report as {
-      reconciliationPlan?: ReconciliationPlan;
-    };
-    if (pathReport.reconciliationPlan) {
-      logger.info('Applying new task decomposition...');
-      questManager.applyReconciliation(quest.id, pathReport.reconciliationPlan);
-    }
-  }
-}
-
 // Export for testing
 export {
   detectCommand,
@@ -971,10 +656,6 @@ export {
   handleQuestOrCreate,
   checkProjectDiscovery,
   runQuest,
-  runPathseeker,
-  runCodeweavers,
-  runSiegemaster,
-  runLawbringer,
   completeQuest,
   runWardAll,
   handleWardFailure,

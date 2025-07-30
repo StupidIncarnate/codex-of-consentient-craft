@@ -328,6 +328,11 @@ Refactor production and test files for clarity, following DRY principle for prod
   export function UserProfile() { /* ... */ }
   export function ProductList() { /* ... */ }
   export function ShoppingCart() { /* ... */ }
+  
+    // ❌ AVOID - Multiple classes
+  export abstract class BaseSomeClass { /* ... */ }
+  export class SomeClass extends BaseSomeClass{ /* ... */ }
+  export class SomeOtherClass extends BaseSomeClass { /* ... */ }
   ```
 - File naming conventions:
   - React Components: `PascalCase` (e.g., `UserProfile.tsx`, `ShoppingCart.tsx`)
