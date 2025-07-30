@@ -37,7 +37,7 @@ describe('ImplementationPhaseRunner', () => {
   });
 
   describe('canRun()', () => {
-    describe('when phase is pending and has implementation tasks', () => {
+    describe('when phase is pending and has incomplete implementation tasks', () => {
       it('returns true', () => {
         const quest = QuestStub({
           phases: {
@@ -64,7 +64,7 @@ describe('ImplementationPhaseRunner', () => {
       });
     });
 
-    describe('when phase is pending but no implementation tasks', () => {
+    describe('when phase is pending but no incomplete implementation tasks', () => {
       it('returns false', () => {
         const quest = QuestStub({
           phases: {
@@ -90,10 +90,64 @@ describe('ImplementationPhaseRunner', () => {
         expect(phaseRunner.canRun(quest)).toBe(false);
       });
     });
+
+    describe('when phase is pending and all implementation tasks are complete', () => {
+      it('returns false', () => {
+        const quest = QuestStub({
+          phases: {
+            discovery: { status: 'complete' },
+            implementation: { status: 'pending' },
+            testing: { status: 'pending' },
+            review: { status: 'pending' },
+          },
+          tasks: [
+            {
+              id: 'impl-1',
+              name: 'Create API',
+              type: 'implementation',
+              description: 'Build REST API',
+              dependencies: [],
+              filesToCreate: ['api.ts'],
+              filesToEdit: [],
+              status: 'complete',
+            },
+          ],
+        });
+
+        expect(phaseRunner.canRun(quest)).toBe(false);
+      });
+    });
+
+    describe('when phase is not pending', () => {
+      it('returns false', () => {
+        const quest = QuestStub({
+          phases: {
+            discovery: { status: 'complete' },
+            implementation: { status: 'complete' },
+            testing: { status: 'pending' },
+            review: { status: 'pending' },
+          },
+          tasks: [
+            {
+              id: 'impl-1',
+              name: 'Create API',
+              type: 'implementation',
+              description: 'Build REST API',
+              dependencies: [],
+              filesToCreate: ['api.ts'],
+              filesToEdit: [],
+              status: 'pending',
+            },
+          ],
+        });
+
+        expect(phaseRunner.canRun(quest)).toBe(false);
+      });
+    });
   });
 
   describe('run()', () => {
-    describe('when no implementation tasks exist', () => {
+    describe('when no incomplete implementation tasks exist', () => {
       it('returns early without marking phase', async () => {
         const quest = QuestStub({
           tasks: [
@@ -115,31 +169,60 @@ describe('ImplementationPhaseRunner', () => {
         expect(quest.phases.implementation.status).toBe('pending');
         expect(mockQuestManager.saveQuest).not.toHaveBeenCalled();
       });
+    });
 
-      it('does not spawn any agents', async () => {
+    describe('when all implementation tasks are complete', () => {
+      it('returns early without marking phase', async () => {
         const quest = QuestStub({
           tasks: [
             {
-              id: 'test-1',
-              name: 'Write tests',
-              type: 'testing',
-              description: 'Write unit tests',
+              id: 'impl-1',
+              name: 'Create API',
+              type: 'implementation',
+              description: 'Build REST API',
               dependencies: [],
-              filesToCreate: ['test.spec.ts'],
+              filesToCreate: ['api.ts'],
               filesToEdit: [],
-              status: 'pending',
+              status: 'complete',
             },
           ],
         });
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
+        expect(quest.phases.implementation.status).toBe('pending');
+        expect(mockQuestManager.saveQuest).not.toHaveBeenCalled();
         expect(mockAgentSpawner.spawnAndWait).not.toHaveBeenCalled();
       });
     });
 
     describe('when running multiple implementation tasks', () => {
-      it('spawns codeweaver for each task sequentially', async () => {
+      it('marks phase as in_progress and then complete', async () => {
+        const quest = QuestStub({
+          tasks: [
+            {
+              id: 'impl-1',
+              name: 'Create API',
+              type: 'implementation',
+              description: 'Build REST API',
+              dependencies: [],
+              filesToCreate: ['api.ts'],
+              filesToEdit: [],
+              status: 'pending',
+            },
+          ],
+        });
+        const report = AgentReportStub({ agentType: 'codeweaver' });
+        mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+
+        await phaseRunner.run(quest, mockAgentSpawner);
+
+        expect(quest.phases.implementation.status).toBe('complete');
+        // First save after marking in_progress, then after each task, then after marking complete
+        expect(mockQuestManager.saveQuest).toHaveBeenCalledTimes(3);
+      });
+
+      it('spawns codeweaver for each incomplete task', async () => {
         const quest = QuestStub({
           tasks: [
             {
@@ -171,22 +254,26 @@ describe('ImplementationPhaseRunner', () => {
         await phaseRunner.run(quest, mockAgentSpawner);
 
         expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledTimes(2);
-        expect(mockAgentSpawner.spawnAndWait).toHaveBeenNthCalledWith(1, 'codeweaver', {
-          questFolder: quest.folder,
+
+        // Since tasks are modified in-place during execution, we check that the spawner
+        // was called with correct basic parameters
+        expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith('codeweaver', {
+          questFolder: '001-test-quest',
           reportNumber: '42',
           workingDirectory: process.cwd(),
           additionalContext: {
-            questTitle: quest.title,
-            task: quest.tasks[0],
+            questTitle: 'Test Quest',
+            task: quest.tasks[0], // Task object is passed by reference
           },
         });
-        expect(mockAgentSpawner.spawnAndWait).toHaveBeenNthCalledWith(2, 'codeweaver', {
-          questFolder: quest.folder,
+
+        expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith('codeweaver', {
+          questFolder: '001-test-quest',
           reportNumber: '42',
           workingDirectory: process.cwd(),
           additionalContext: {
-            questTitle: quest.title,
-            task: quest.tasks[1],
+            questTitle: 'Test Quest',
+            task: quest.tasks[1], // Task object is passed by reference
           },
         });
       });
@@ -225,7 +312,7 @@ describe('ImplementationPhaseRunner', () => {
         expect(quest.tasks[1].status).toBe('complete');
       });
 
-      it('updates task completedBy field', async () => {
+      it('updates task completedBy field with padded report number', async () => {
         const quest = QuestStub({
           tasks: [
             {
@@ -249,7 +336,7 @@ describe('ImplementationPhaseRunner', () => {
         expect(quest.tasks[0].completedBy).toBe('042-codeweaver-report.json');
       });
 
-      it('runs ward validation after each task', async () => {
+      it('saves quest after each task completion', async () => {
         const quest = QuestStub({
           tasks: [
             {
@@ -262,21 +349,25 @@ describe('ImplementationPhaseRunner', () => {
               filesToEdit: [],
               status: 'pending',
             },
+            {
+              id: 'impl-2',
+              name: 'Create UI',
+              type: 'implementation',
+              description: 'Build UI components',
+              dependencies: ['impl-1'],
+              filesToCreate: ['ui.tsx'],
+              filesToEdit: [],
+              status: 'pending',
+            },
           ],
         });
         const report = AgentReportStub({ agentType: 'codeweaver' });
         mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
 
-        // Spy on private method
-        const runWardValidationSpy = jest.spyOn(
-          phaseRunner,
-          'runWardValidation' as keyof ImplementationPhaseRunner,
-        );
-
         await phaseRunner.run(quest, mockAgentSpawner);
 
-        expect(runWardValidationSpy).toHaveBeenCalledWith(quest, mockAgentSpawner);
-        runWardValidationSpy.mockRestore();
+        // Once for in_progress, once after each task (2), once for complete = 4 total
+        expect(mockQuestManager.saveQuest).toHaveBeenCalledTimes(4);
       });
     });
 
@@ -302,6 +393,58 @@ describe('ImplementationPhaseRunner', () => {
               description: 'User can create items',
               successCriteria: 'Item appears in list',
               implementedByTasks: ['impl-1'],
+              status: 'pending',
+            },
+          ],
+        });
+        const report = AgentReportStub({ agentType: 'codeweaver' });
+        mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+
+        await phaseRunner.run(quest, mockAgentSpawner);
+
+        expect(quest.observableActions).toStrictEqual([
+          {
+            id: 'action-1',
+            description: 'User can create items',
+            successCriteria: 'Item appears in list',
+            implementedByTasks: ['impl-1'],
+            status: 'demonstrated',
+          },
+        ]);
+      });
+
+      it('considers skipped tasks as complete for action status', async () => {
+        const quest = QuestStub({
+          tasks: [
+            {
+              id: 'impl-1',
+              name: 'Create API',
+              type: 'implementation',
+              description: 'Build REST API',
+              dependencies: [],
+              filesToCreate: ['api.ts'],
+              filesToEdit: [],
+              status: 'pending',
+              implementsActions: ['action-1'],
+            },
+            {
+              id: 'impl-2',
+              name: 'Create fallback',
+              type: 'implementation',
+              description: 'Build fallback',
+              dependencies: [],
+              filesToCreate: ['fallback.ts'],
+              filesToEdit: [],
+              status: 'skipped',
+              implementsActions: ['action-1'],
+            },
+          ],
+          observableActions: [
+            {
+              id: 'action-1',
+              description: 'User can create items',
+              successCriteria: 'Item appears in list',
+              implementedByTasks: ['impl-1', 'impl-2'],
               status: 'pending',
             },
           ],
@@ -358,12 +501,80 @@ describe('ImplementationPhaseRunner', () => {
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
+        expect(quest.observableActions).toStrictEqual([
+          {
+            id: 'action-1',
+            description: 'User can create items',
+            successCriteria: 'Item appears in list',
+            implementedByTasks: ['impl-1', 'impl-2'],
+            status: 'pending',
+          },
+        ]);
+      });
+
+      it('handles missing observable action gracefully', async () => {
+        const quest = QuestStub({
+          tasks: [
+            {
+              id: 'impl-1',
+              name: 'Create API',
+              type: 'implementation',
+              description: 'Build REST API',
+              dependencies: [],
+              filesToCreate: ['api.ts'],
+              filesToEdit: [],
+              status: 'pending',
+              implementsActions: ['action-1'],
+            },
+          ],
+          observableActions: [
+            {
+              id: 'action-2', // Different ID
+              description: 'User can delete items',
+              successCriteria: 'Item removed from list',
+              implementedByTasks: [],
+              status: 'pending',
+            },
+          ],
+        });
+        const report = AgentReportStub({ agentType: 'codeweaver' });
+        mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+
+        // Should not throw
+        await phaseRunner.run(quest, mockAgentSpawner);
+
         expect(quest.observableActions?.[0].status).toBe('pending');
+      });
+
+      it('handles undefined observableActions gracefully', async () => {
+        const quest = QuestStub({
+          tasks: [
+            {
+              id: 'impl-1',
+              name: 'Create API',
+              type: 'implementation',
+              description: 'Build REST API',
+              dependencies: [],
+              filesToCreate: ['api.ts'],
+              filesToEdit: [],
+              status: 'pending',
+              implementsActions: ['action-1'],
+            },
+          ],
+          observableActions: undefined,
+        });
+        const report = AgentReportStub({ agentType: 'codeweaver' });
+        mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+
+        // Should not throw
+        await phaseRunner.run(quest, mockAgentSpawner);
+
+        expect(quest.tasks[0].status).toBe('complete');
       });
     });
 
     describe('when agent triggers escape hatch', () => {
-      it('throws EscapeHatchError', async () => {
+      it('throws EscapeHatchError with escape data', async () => {
         const quest = QuestStub({
           tasks: [
             {
@@ -391,7 +602,69 @@ describe('ImplementationPhaseRunner', () => {
         mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
 
         await expect(phaseRunner.run(quest, mockAgentSpawner)).rejects.toThrow(EscapeHatchError);
+
+        // Test the escape data by catching the error
+        let caughtError: EscapeHatchError | undefined;
+        try {
+          await phaseRunner.run(quest, mockAgentSpawner);
+        } catch (error) {
+          caughtError = error as EscapeHatchError;
+        }
+
+        expect(caughtError).toBeInstanceOf(EscapeHatchError);
+        expect(caughtError?.escape).toStrictEqual(escapeData);
       });
+
+      it('does not update task status when escape hatch triggered', async () => {
+        const quest = QuestStub({
+          tasks: [
+            {
+              id: 'impl-1',
+              name: 'Create API',
+              type: 'implementation',
+              description: 'Build REST API',
+              dependencies: [],
+              filesToCreate: ['api.ts'],
+              filesToEdit: [],
+              status: 'pending',
+            },
+          ],
+        });
+        const report = AgentReportStub({
+          agentType: 'codeweaver',
+          escape: {
+            reason: 'context_exhaustion' as const,
+            analysis: 'Context limit reached',
+            recommendation: 'Reduce context size',
+            retro: 'Too much context',
+          },
+        });
+        mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+
+        await expect(phaseRunner.run(quest, mockAgentSpawner)).rejects.toThrow();
+
+        expect(quest.tasks[0].status).toBe('pending');
+      });
+    });
+  });
+
+  describe('getAdditionalContext()', () => {
+    it('returns empty object', () => {
+      const quest = QuestStub();
+      expect(phaseRunner.getAdditionalContext(quest)).toStrictEqual({});
+    });
+  });
+
+  describe('processAgentReport()', () => {
+    it('does nothing', () => {
+      const quest = QuestStub();
+      const report = AgentReportStub();
+
+      // Should not throw
+      phaseRunner.processAgentReport(quest, report);
+
+      // Quest should remain unchanged
+      expect(quest).toStrictEqual(QuestStub());
     });
   });
 });

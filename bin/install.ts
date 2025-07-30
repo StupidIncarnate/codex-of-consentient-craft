@@ -7,9 +7,7 @@ import {
   isError,
   isPackageJson,
   parseJsonSafely,
-  isClaudeSettings,
   type PackageJson,
-  type ClaudeSettings,
 } from '../src/utils/type-guards';
 import { Logger } from '../src/utils/logger';
 
@@ -17,10 +15,6 @@ import { Logger } from '../src/utils/logger';
 const CONFIG_FILE = '.questmaestro';
 const PACKAGE_JSON = 'package.json';
 const GITIGNORE_FILE = '.gitignore';
-const CLAUDE_DIR = '.claude';
-const CLAUDE_COMMANDS_DIR = path.join(CLAUDE_DIR, 'commands');
-const CLAUDE_QUEST_COMMANDS_DIR = path.join(CLAUDE_COMMANDS_DIR, 'quest');
-const CLAUDE_SETTINGS_FILE = path.join(CLAUDE_DIR, 'settings.local.json');
 
 // Quest directory structure
 const QUEST_DIR = 'questmaestro';
@@ -189,65 +183,19 @@ function updateGitignore() {
 }
 
 function installClaudeCommands() {
-  log('\n🔮 Installing Claude Commands...', 'bright');
+  log('\n🔮 Skipping Claude Commands (CLI mode)...', 'bright');
 
-  // Check if .claude directory exists
-  if (!fs.existsSync(CLAUDE_DIR)) {
-    throw new Error('No .claude directory found! Please make sure you have Claude installed.');
-  }
-
-  // Create commands directories
-  ensureDirectoryExists(CLAUDE_COMMANDS_DIR);
-  ensureDirectoryExists(CLAUDE_QUEST_COMMANDS_DIR);
-
-  // Copy main questmaestro command
-  const mainCommandSrc = getTemplatePath('commands/questmaestro.md');
-  const mainCommandDest = path.join(CLAUDE_COMMANDS_DIR, 'questmaestro.md');
-  fs.copyFileSync(mainCommandSrc, mainCommandDest);
-  log('  ✓ Installed /questmaestro command', 'green');
-
-  // Copy agent commands
-  const agentCommands = [
-    'pathseeker',
-    'codeweaver',
-    'lawbringer',
-    'siegemaster',
-    'spiritmender',
-    'voidpoker',
-  ];
-  for (const agent of agentCommands) {
-    const src = getTemplatePath(`commands/quest/${agent}.md`);
-    const dest = path.join(CLAUDE_QUEST_COMMANDS_DIR, `${agent}.md`);
-    fs.copyFileSync(src, dest);
-    log(`  ✓ Installed /quest/${agent} command`, 'green');
-  }
+  // In CLI mode, we don't install Claude commands anymore
+  // The CLI handles all quest functionality directly
+  log('  ✓ CLI mode active - no Claude commands needed', 'green');
 }
 
 function updateClaudeSettings() {
-  log('\n🔧 Updating Claude Settings...', 'bright');
+  log('\n🔧 Skipping Claude Settings (CLI mode)...', 'bright');
 
-  let settings: ClaudeSettings = {};
-  if (fs.existsSync(CLAUDE_SETTINGS_FILE)) {
-    const parsed = parseJsonSafely(fs.readFileSync(CLAUDE_SETTINGS_FILE, 'utf8'), isClaudeSettings);
-    if (parsed) {
-      settings = parsed;
-    } else {
-      log('  ⚠️  Invalid settings.local.json, creating new', 'yellow');
-    }
-  }
-
-  // Add Write permission for questmaestro
-  if (!settings.tools) settings.tools = {};
-  if (!settings.tools.Write) settings.tools.Write = {};
-  if (!settings.tools.Write.allowed_paths) settings.tools.Write.allowed_paths = [];
-
-  const questmaestroPath = path.resolve(QUEST_DIR);
-  if (!settings.tools.Write.allowed_paths.includes(questmaestroPath)) {
-    settings.tools.Write.allowed_paths.push(questmaestroPath);
-  }
-
-  fs.writeFileSync(CLAUDE_SETTINGS_FILE, JSON.stringify(settings, null, 2));
-  log('  ✓ Added Write permissions for questmaestro folder', 'green');
+  // In CLI mode, we don't need to update Claude settings
+  // The CLI operates independently of Claude
+  log('  ✓ CLI mode active - no Claude settings needed', 'green');
 }
 
 function createConfig() {
@@ -276,14 +224,6 @@ function createConfig() {
 
 function printInstructions() {
   log('\n🏰 Quest System Installed!', 'bright');
-  log('\nAvailable Commands:', 'blue');
-  log('  /questmaestro    - Launch quest mode');
-  log('  /quest/pathseeker - Discovery agent');
-  log('  /quest/codeweaver - Implementation agent');
-  log('  /quest/lawbringer - Testing agent');
-  log('  /quest/siegemaster - Build/execution agent');
-  log('  /quest/spiritmender - Bug fixing agent');
-  log('  /quest/voidpoker - Deep research agent');
   log('\nThe Questmaestro CLI is now available:', 'blue');
   log('  questmaestro               - Resume active quest or create new');
   log('  questmaestro list          - See all your quests');

@@ -47,10 +47,9 @@ describe('NPX Installation', () => {
       // Verify installation output
       expect(output).toContain('🗡️  Questmaestro Installation');
       expect(output).toContain('Quest System Installed!');
-      expect(output).toContain('Available Commands:');
+      expect(output).toContain('The Questmaestro CLI is now available');
 
-      // Verify all files were created
-      expect(testProject.fileExists('.claude/commands/questmaestro.md')).toBe(true);
+      // Verify all files were created (no Claude commands in CLI mode)
       expect(testProject.fileExists('.questmaestro')).toBe(true);
       expect(testProject.fileExists('questmaestro/active')).toBe(true);
       expect(testProject.fileExists('questmaestro/completed')).toBe(true);
@@ -64,11 +63,11 @@ describe('NPX Installation', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle missing .claude directory', () => {
-      // Remove .claude directory to test error handling
-      const claudeDir = path.join(testProject.rootDir, '.claude');
-      if (fs.existsSync(claudeDir)) {
-        fs.rmSync(claudeDir, { recursive: true });
+    it('should handle missing package.json', () => {
+      // Remove package.json to test error handling
+      const packageJsonPath = path.join(testProject.rootDir, 'package.json');
+      if (fs.existsSync(packageJsonPath)) {
+        fs.rmSync(packageJsonPath);
       }
 
       // Mock process.exit
@@ -82,7 +81,7 @@ describe('NPX Installation', () => {
         consoleOutput.push(args.join(' '));
       });
 
-      // Change to test directory (without .claude)
+      // Change to test directory (without package.json)
       const originalCwd = process.cwd();
       process.chdir(testProject.rootDir);
 
@@ -102,7 +101,7 @@ describe('NPX Installation', () => {
       const output = consoleOutput.join('\n');
 
       expect(exitCode).toBe(1);
-      expect(output).toContain('No .claude directory found');
+      expect(output).toContain('No package.json found');
     });
   });
 
@@ -174,29 +173,17 @@ describe('NPX Installation', () => {
       expect(loreReadme).toContain('Lore Categories');
     });
 
-    it('should install all agent commands with correct names', () => {
+    it('should create config file with correct structure', () => {
       testProject.installQuestmaestro();
 
-      const expectedAgents = [
-        'pathseeker',
-        'codeweaver',
-        'lawbringer',
-        'siegemaster',
-        'spiritmender',
-        'voidpoker',
-      ];
+      // Verify .questmaestro config was created
+      expect(testProject.fileExists('.questmaestro')).toBe(true);
 
-      for (const agent of expectedAgents) {
-        const commandPath = `.claude/commands/quest/${agent}.md`;
-        expect(testProject.fileExists(commandPath)).toBe(true);
-
-        // Verify file content is not empty
-        const content = testProject.readFile(commandPath);
-        expect(content.length).toBeGreaterThan(100); // Should have substantial content
-        // Agent names in the files are capitalized, not uppercase
-        const capitalizedAgent = agent.charAt(0).toUpperCase() + agent.slice(1);
-        expect(content).toContain(capitalizedAgent); // Should contain agent name
-      }
+      const config = testProject.getConfig();
+      expect(config).toBeDefined();
+      expect(config?.questFolder).toBe('questmaestro');
+      expect(config?.wardCommands).toHaveProperty('all');
+      expect(config?.wardCommands?.test).toBe('npm test');
     });
   });
 });

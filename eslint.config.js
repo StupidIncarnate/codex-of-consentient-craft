@@ -28,6 +28,7 @@ module.exports = [
       '**/*.min.css',
       '.git/**',
       'jest.config.js',
+      'jest.setup.js',
       'eslint.config.js'
     ]
   },

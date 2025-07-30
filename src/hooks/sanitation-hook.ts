@@ -415,11 +415,23 @@ async function getContentChanges(toolInput: ToolInput): Promise<ContentChange[]>
   else if ('new_string' in toolInput && 'old_string' in toolInput && !('edits' in toolInput)) {
     changes.push({ oldContent: toolInput.old_string, newContent: toolInput.new_string });
   }
-  // For MultiEdit tool, check each edit
-  else if ('edits' in toolInput) {
-    const multiEditInput = toolInput as MultiEditToolInput;
-    for (const edit of multiEditInput.edits) {
-      changes.push({ oldContent: edit.old_string, newContent: edit.new_string });
+  // For MultiEdit tool, check the full file content before and after all edits
+  else if ('edits' in toolInput && filePath) {
+    let oldContent = '';
+    try {
+      // Try to read existing file content
+      oldContent = await readFile(filePath, 'utf-8');
+    } catch (error) {
+      // File doesn't exist - new file case
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+    }
+    
+    // Get the full file content after applying all edits
+    const newContent = await getFullFileContent(toolInput);
+    if (newContent !== null) {
+      changes.push({ oldContent, newContent });
     }
   }
 

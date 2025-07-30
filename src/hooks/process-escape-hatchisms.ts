@@ -6,6 +6,7 @@ interface EscapeHatchPattern {
   error: string;
   type: string;
   fileTypes?: string[]; // File extensions this pattern applies to (e.g., ['.ts', '.tsx'])
+  isCommentBased?: boolean; // If true, this pattern should be checked in comments
 }
 
 const ESCAPE_HATCH_PATTERNS: EscapeHatchPattern[] = [
@@ -16,45 +17,44 @@ const ESCAPE_HATCH_PATTERNS: EscapeHatchPattern[] = [
     error: `Found 'any' type - This bypasses TypeScript's type safety. Use specific types, 'unknown', or generic constraints instead. ${THINK_TYPE_PHRASE}`,
     type: 'any-keyword',
     fileTypes: ['.ts', '.tsx'], // Only check TypeScript files
+    isCommentBased: false, // Check in code, not comments
   },
   {
     selector: '@ts-ignore',
     error: `Found '@ts-ignore' - This suppresses TypeScript errors. Fix the underlying type issue instead. ${THINK_TYPE_PHRASE}`,
     type: 'ts-ignore',
     fileTypes: ['.ts', '.tsx'], // Only check TypeScript files
+    isCommentBased: true, // This is a comment directive
   },
   {
     selector: '@ts-expect-error',
     error: `Found '@ts-expect-error' - Don't suppress type errors. Fix the root cause. ${THINK_TYPE_PHRASE}`,
     type: 'ts-expect-error',
     fileTypes: ['.ts', '.tsx'], // Only check TypeScript files
+    isCommentBased: true, // This is a comment directive
   },
   {
     selector: '@ts-nocheck',
     error: `Found '@ts-nocheck' - This disables TypeScript checking for the entire file. Remove it and fix type issues. ${THINK_TYPE_PHRASE}`,
     type: 'ts-nocheck',
     fileTypes: ['.ts', '.tsx'], // Only check TypeScript files
+    isCommentBased: true, // This is a comment directive
   },
   {
     selector: /eslint-disable(?:-next-line|-line)?/,
     error: `Found 'eslint-disable' - Don't suppress linting. Fix the issue that the linter is reporting. ${THINK_TYPE_PHRASE}`,
     type: 'eslint-disable',
     fileTypes: ['.ts', '.tsx', '.js', '.jsx'], // Check JS/TS files but not markdown
+    isCommentBased: true, // This is a comment directive
   },
 ];
 
 function stripStringLiterals(content: string): string {
-  return (
-    content
-      // Remove single-line comments
-      .replace(/\/\/.*$/gm, '')
-      // Remove multi-line comments
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      // Remove string literals after removing comments
-      .replace(/'(?:[^'\\]|\\.)*'/g, "''") // Single quotes with proper escaping
-      .replace(/"(?:[^"\\]|\\.)*"/g, '""') // Double quotes with proper escaping
-      .replace(/`(?:[^`\\]|\\.)*`/g, '``')
-  ); // Template literals
+  // Only remove string literals, preserve comments for comment-based pattern detection
+  return content
+    .replace(/'(?:[^'\\]|\\.)*'/g, "''") // Single quotes with proper escaping
+    .replace(/"(?:[^"\\]|\\.)*"/g, '""') // Double quotes with proper escaping
+    .replace(/`(?:[^`\\]|\\.)*`/g, '``'); // Template literals
 }
 
 function getFileExtension(filePath: string): string {
@@ -89,12 +89,22 @@ function checkContent(
 ): { violations: string[]; types: Set<string> } {
   const violations: string[] = [];
   const types = new Set<string>();
-  const contentToCheck = stripStrings ? stripStringLiterals(content) : content;
 
   // Filter patterns based on file type
   const applicablePatterns = filterPatternsForFile(ESCAPE_HATCH_PATTERNS, filePath);
 
   for (const pattern of applicablePatterns) {
+    // Determine which content to check based on pattern type and stripStrings flag
+    let contentToCheck: string;
+    if (stripStrings) {
+      // When stripStrings is true, we want to ignore patterns in string literals
+      // For comment-based patterns, we still need to strip strings first
+      contentToCheck = stripStringLiterals(content);
+    } else {
+      // When stripStrings is false, check the raw content
+      contentToCheck = content;
+    }
+
     const matches =
       typeof pattern.selector === 'string'
         ? contentToCheck.includes(pattern.selector)

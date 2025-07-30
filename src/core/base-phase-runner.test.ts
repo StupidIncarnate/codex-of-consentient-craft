@@ -6,18 +6,20 @@ import type { FileSystem } from './file-system';
 import type { AgentSpawner } from '../agents/agent-spawner';
 import { BasePhaseRunner } from './base-phase-runner';
 import { EscapeHatchError } from './escape-hatch-error';
+import { Logger } from '../utils/logger';
 import { QuestStub } from '../../tests/stubs/quest.stub';
 import { AgentReportStub } from '../../tests/stubs/agent-report.stub';
 import {
   createMockQuestManager,
   createMockFileSystem,
   createMockAgentSpawner,
+  createMockLogger,
 } from '../../tests/mocks/create-mocks';
 
 // Concrete test implementation of BasePhaseRunner
 class TestPhaseRunner extends BasePhaseRunner {
-  constructor(questManager: QuestManager, fileSystem: FileSystem) {
-    super(questManager, fileSystem);
+  constructor(questManager: QuestManager, fileSystem: FileSystem, logger?: Logger) {
+    super(questManager, fileSystem, logger);
   }
 
   getAgentType(): AgentType {
@@ -46,13 +48,27 @@ describe('BasePhaseRunner', () => {
   let mockQuestManager: jest.Mocked<QuestManager>;
   let mockFileSystem: jest.Mocked<FileSystem>;
   let mockAgentSpawner: jest.Mocked<AgentSpawner>;
+  let mockLogger: jest.Mocked<Logger>;
   let phaseRunner: TestPhaseRunner;
 
   beforeEach(() => {
     mockQuestManager = createMockQuestManager();
     mockFileSystem = createMockFileSystem();
     mockAgentSpawner = createMockAgentSpawner();
+    mockLogger = createMockLogger();
     phaseRunner = new TestPhaseRunner(mockQuestManager, mockFileSystem);
+  });
+
+  describe('constructor', () => {
+    it('uses default Logger when not provided', () => {
+      const runner = new TestPhaseRunner(mockQuestManager, mockFileSystem);
+      expect(runner).toBeInstanceOf(TestPhaseRunner);
+    });
+
+    it('uses provided Logger when given', () => {
+      const runner = new TestPhaseRunner(mockQuestManager, mockFileSystem, mockLogger);
+      expect(runner).toBeInstanceOf(TestPhaseRunner);
+    });
   });
 
   describe('canRun()', () => {
@@ -134,18 +150,28 @@ describe('BasePhaseRunner', () => {
 
   describe('run()', () => {
     describe('when starting a phase', () => {
-      it('marks phase as in_progress', async () => {
+      it('marks phase as in_progress before spawning agent', async () => {
         const quest = QuestStub();
         const report = AgentReportStub();
+        let phaseStatusWhenSaved: string | undefined;
+
+        mockQuestManager.saveQuest.mockImplementation((q: Quest) => {
+          // Capture the phase status when saveQuest is first called
+          if (!phaseStatusWhenSaved) {
+            phaseStatusWhenSaved = q.phases.discovery.status;
+          }
+          return { success: true };
+        });
+
         mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
         mockQuestManager.getNextReportNumber.mockReturnValue('42');
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
-        expect(quest.phases.discovery.status).toBe('complete');
+        expect(phaseStatusWhenSaved).toBe('in_progress');
       });
 
-      it('saves quest after marking phase', async () => {
+      it('saves quest after marking phase in_progress', async () => {
         const quest = QuestStub();
         const report = AgentReportStub();
         mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
@@ -158,19 +184,31 @@ describe('BasePhaseRunner', () => {
         expect(mockQuestManager.saveQuest).toHaveBeenNthCalledWith(2, quest);
       });
 
-      it('spawns agent with correct type', async () => {
+      it('spawns agent with correct parameters', async () => {
         const quest = QuestStub();
         const report = AgentReportStub();
         mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+        mockQuestManager.getNextReportNumber.mockReturnValue('42');
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
         expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith('pathseeker', {
           questFolder: quest.folder,
-          reportNumber: '001',
+          reportNumber: '42',
           workingDirectory: process.cwd(),
           additionalContext: { questId: quest.id },
         });
+      });
+
+      it('gets next report number with correct quest folder', async () => {
+        const quest = QuestStub({ folder: '123-custom-quest' });
+        const report = AgentReportStub();
+        mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+        mockQuestManager.getNextReportNumber.mockReturnValue('99');
+
+        await phaseRunner.run(quest, mockAgentSpawner);
+
+        expect(mockQuestManager.getNextReportNumber).toHaveBeenCalledWith('123-custom-quest');
       });
 
       it('passes questFolder to agent', async () => {
@@ -180,10 +218,12 @@ describe('BasePhaseRunner', () => {
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
-        expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith(
-          'pathseeker',
-          expect.objectContaining({ questFolder: '123-custom-quest' }),
-        );
+        expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith('pathseeker', {
+          questFolder: '123-custom-quest',
+          reportNumber: '001',
+          workingDirectory: process.cwd(),
+          additionalContext: { questId: quest.id },
+        });
       });
 
       it('passes reportNumber to agent', async () => {
@@ -194,10 +234,12 @@ describe('BasePhaseRunner', () => {
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
-        expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith(
-          'pathseeker',
-          expect.objectContaining({ reportNumber: '99' }),
-        );
+        expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith('pathseeker', {
+          questFolder: quest.folder,
+          reportNumber: '99',
+          workingDirectory: process.cwd(),
+          additionalContext: { questId: quest.id },
+        });
       });
 
       it('passes workingDirectory to agent', async () => {
@@ -208,10 +250,12 @@ describe('BasePhaseRunner', () => {
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
-        expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith(
-          'pathseeker',
-          expect.objectContaining({ workingDirectory: originalCwd }),
-        );
+        expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith('pathseeker', {
+          questFolder: quest.folder,
+          reportNumber: '001',
+          workingDirectory: originalCwd,
+          additionalContext: { questId: quest.id },
+        });
       });
 
       it('includes additional context from getAdditionalContext()', async () => {
@@ -221,12 +265,12 @@ describe('BasePhaseRunner', () => {
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
-        expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith(
-          'pathseeker',
-          expect.objectContaining({
-            additionalContext: { questId: 'abc-123-def' },
-          }),
-        );
+        expect(mockAgentSpawner.spawnAndWait).toHaveBeenCalledWith('pathseeker', {
+          questFolder: quest.folder,
+          reportNumber: '001',
+          workingDirectory: process.cwd(),
+          additionalContext: { questId: 'abc-123-def' },
+        });
       });
     });
 
@@ -239,10 +283,12 @@ describe('BasePhaseRunner', () => {
         await phaseRunner.run(quest, mockAgentSpawner);
 
         expect(quest.executionLog).toHaveLength(1);
-        expect(quest.executionLog[0]).toMatchObject({
-          report: 'test-report',
-          agentType: 'pathseeker',
-        });
+        // Check the structure and that timestamp is a valid ISO string
+        const logEntry = quest.executionLog[0];
+        expect(logEntry.report).toBe('test-report');
+        expect(logEntry.agentType).toBe('pathseeker');
+        expect(typeof logEntry.timestamp).toBe('string');
+        expect(new Date(logEntry.timestamp).toISOString()).toBe(logEntry.timestamp);
       });
 
       it('marks phase as complete', async () => {

@@ -33,6 +33,7 @@
     "dist",
     "coverage",
     "exploratories/**/*",
-    "tests/tmp/**/*"
+    "tests/tmp/**/*",
+    "jest.*.js"
   ]
 }

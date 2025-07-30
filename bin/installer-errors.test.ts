@@ -1,6 +1,6 @@
 import { TestProject, createTestProject } from '../tests/utils/testbed';
-import path from 'path';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 
 describe('Installer Error Handling', () => {
   let testProject: TestProject;
@@ -13,10 +13,13 @@ describe('Installer Error Handling', () => {
   // This allows debugging of test artifacts
 
   describe('Permission Errors', () => {
-    it('should handle read-only .claude/commands directory', () => {
-      // Make commands directory read-only
-      const commandsDir = path.join(testProject.rootDir, '.claude', 'commands');
-      fs.chmodSync(commandsDir, 0o444);
+    it('should handle read-only questmaestro directory', () => {
+      // Create questmaestro directory first
+      const questDir = path.join(testProject.rootDir, 'questmaestro');
+      fs.mkdirSync(questDir, { recursive: true });
+
+      // Make questmaestro directory read-only
+      fs.chmodSync(questDir, 0o444);
 
       let error;
       try {
@@ -25,7 +28,7 @@ describe('Installer Error Handling', () => {
         error = e;
       } finally {
         // Restore permissions for cleanup
-        fs.chmodSync(commandsDir, 0o755);
+        fs.chmodSync(questDir, 0o755);
       }
 
       // Should get permission error
@@ -37,7 +40,7 @@ describe('Installer Error Handling', () => {
     it('should handle missing source files gracefully', () => {
       // This tests if our package structure is intact
       const sourceFiles = [
-        path.join(process.cwd(), 'src', 'commands', 'questmaestro.md'),
+        path.join(process.cwd(), 'src', 'commands', 'quest', 'pathseeker.md'),
         path.join(process.cwd(), 'src', 'templates', 'questmaestro.json'),
         path.join(process.cwd(), 'src', 'templates', 'lore-categories.md'),
       ];
@@ -63,18 +66,19 @@ describe('Installer Error Handling', () => {
     });
 
     it('should handle partial installation state', () => {
-      // Create partial installation
-      testProject.writeFile('.claude/commands/questmaestro.md', 'partial content');
-      // But no quest:* commands
+      // Create partial installation - only config file
+      testProject.writeFile('.questmaestro', '{}');
+      // But no quest directories
 
       const output = testProject.installQuestmaestro();
 
       // Should complete installation
       expect(output).toContain('Quest System Installed!');
 
-      // Should have all commands now
-      expect(testProject.hasCommand('quest:pathseeker')).toBe(true);
-      expect(testProject.hasCommand('quest:codeweaver')).toBe(true);
+      // Should have all directories now
+      expect(testProject.fileExists('questmaestro')).toBe(true);
+      expect(testProject.fileExists('questmaestro/active')).toBe(true);
+      expect(testProject.fileExists('questmaestro/completed')).toBe(true);
     });
   });
 });

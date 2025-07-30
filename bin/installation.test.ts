@@ -1,6 +1,5 @@
 import { TestProject, createTestProject } from '../tests/utils/testbed';
 import type { Linter } from 'eslint';
-import { isClaudeSettings, parseJsonSafely } from '../src/utils/type-guards';
 
 describe('Questmaestro Installation', () => {
   let testProject: TestProject;
@@ -13,28 +12,20 @@ describe('Questmaestro Installation', () => {
   // This allows debugging of test artifacts
 
   describe('Installation Process', () => {
-    it('should install all quest commands to .claude/commands', () => {
+    it('should skip Claude commands in CLI mode', () => {
       // Run the installer
       const output = testProject.installQuestmaestro();
 
       // Check that installation succeeded
       expect(output).toContain('Quest System Installed!');
 
-      // Check main command exists
-      expect(testProject.hasCommand('questmaestro')).toBe(true);
+      // Check that CLI mode messages appear
+      expect(output).toContain('CLI mode active - no Claude commands needed');
+      expect(output).toContain('The Questmaestro CLI is now available');
 
-      // Check all sub-commands exist
-      const expectedCommands = [
-        'quest:pathseeker',
-        'quest:codeweaver',
-        'quest:lawbringer',
-        'quest:siegemaster',
-        'quest:spiritmender',
-      ];
-
-      for (const cmd of expectedCommands) {
-        expect(testProject.hasCommand(cmd)).toBe(true);
-      }
+      // Claude commands should NOT be installed in CLI mode
+      expect(testProject.hasCommand('questmaestro')).toBe(false);
+      expect(testProject.hasCommand('quest:pathseeker')).toBe(false);
     });
 
     it('should create questmaestro directory structure', () => {
@@ -259,28 +250,18 @@ describe('Questmaestro Installation', () => {
   });
 
   describe('Write Permissions', () => {
-    it('should create .claude/settings.local.json with Write permission', () => {
+    it('should skip Claude settings in CLI mode', () => {
       // Run installer
       const output = testProject.installQuestmaestro();
 
-      // Check settings file was created
-      expect(testProject.fileExists('.claude/settings.local.json')).toBe(true);
+      // Check that CLI mode skips Claude settings
+      expect(output).toContain('CLI mode active - no Claude settings needed');
 
-      // Check contents
-      const settingsRaw = testProject.readFile('.claude/settings.local.json');
-      const settings = parseJsonSafely(settingsRaw, isClaudeSettings);
-      expect(settings).not.toBeNull();
-      expect(settings?.tools).not.toBeNull();
-      expect(settings?.tools?.Write).not.toBeNull();
-      expect(settings?.tools?.Write?.allowed_paths).toStrictEqual([
-        testProject.rootDir + '/questmaestro',
-      ]);
-
-      // Check output
-      expect(output).toContain('Added Write permissions for questmaestro folder');
+      // Settings file should not be created in CLI mode
+      expect(testProject.fileExists('.claude/settings.local.json')).toBe(false);
     });
 
-    it('should add Write permission to existing .claude/settings.local.json', () => {
+    it('should not modify Claude settings in CLI mode', () => {
       // Create existing settings without Write permission
       const existingSettings = {
         otherSetting: 'testValue',
@@ -290,31 +271,21 @@ describe('Questmaestro Installation', () => {
           },
         },
       };
-      testProject.writeFile(
-        '.claude/settings.local.json',
-        JSON.stringify(existingSettings, null, 2),
-      );
+      const originalContent = JSON.stringify(existingSettings, null, 2);
+      testProject.writeFile('.claude/settings.local.json', originalContent);
 
       // Run installer
       const output = testProject.installQuestmaestro();
 
-      // Check contents
-      const settingsRaw = testProject.readFile('.claude/settings.local.json');
-      const settings = parseJsonSafely(settingsRaw, isClaudeSettings);
-      expect(settings).not.toBeNull();
-      expect(settings?.otherSetting).toBe('testValue');
-      expect(settings?.tools?.OtherTool).toStrictEqual({
-        config: 'value',
-      });
-      expect(settings?.tools?.Write?.allowed_paths).toStrictEqual([
-        testProject.rootDir + '/questmaestro',
-      ]);
+      // Check that CLI mode skipped settings
+      expect(output).toContain('CLI mode active - no Claude settings needed');
 
-      // Check output
-      expect(output).toContain('Added Write permissions for questmaestro folder');
+      // Settings should remain unchanged
+      const settingsRaw = testProject.readFile('.claude/settings.local.json');
+      expect(settingsRaw).toBe(originalContent);
     });
 
-    it('should not modify settings when Write permission already exists', () => {
+    it('should skip settings check even when permission exists', () => {
       // Create settings with Write permission for questmaestro
       const questmaestroPath = testProject.rootDir + '/questmaestro';
       const existingSettings = {
@@ -324,42 +295,34 @@ describe('Questmaestro Installation', () => {
           },
         },
       };
-      testProject.writeFile(
-        '.claude/settings.local.json',
-        JSON.stringify(existingSettings, null, 2),
-      );
+      const originalContent = JSON.stringify(existingSettings, null, 2);
+      testProject.writeFile('.claude/settings.local.json', originalContent);
 
       // Run installer
       const output = testProject.installQuestmaestro();
 
-      // Check contents have correct path
-      const settingsRaw = testProject.readFile('.claude/settings.local.json');
-      const settings = parseJsonSafely(settingsRaw, isClaudeSettings);
-      expect(settings).not.toBeNull();
-      expect(settings?.tools?.Write?.allowed_paths).toHaveLength(1);
-      expect(settings?.tools?.Write?.allowed_paths?.[0]).toContain('questmaestro');
+      // Check that CLI mode skipped settings
+      expect(output).toContain('CLI mode active - no Claude settings needed');
 
-      // Check output
-      expect(output).toContain('Added Write permissions for questmaestro folder');
+      // Settings should remain unchanged
+      const settingsRaw = testProject.readFile('.claude/settings.local.json');
+      expect(settingsRaw).toBe(originalContent);
     });
 
-    it('should handle malformed .claude/settings.local.json by creating backup', () => {
+    it('should skip settings even with malformed file in CLI mode', () => {
       // Create malformed JSON
-      testProject.writeFile('.claude/settings.local.json', '{ invalid json');
+      const malformedContent = '{ invalid json';
+      testProject.writeFile('.claude/settings.local.json', malformedContent);
 
       // Run installer
       const output = testProject.installQuestmaestro();
 
-      // Check new settings were created with proper structure
-      const settingsRaw = testProject.readFile('.claude/settings.local.json');
-      const settings = parseJsonSafely(settingsRaw, isClaudeSettings);
-      expect(settings).not.toBeNull();
-      expect(settings?.tools?.Write?.allowed_paths).toStrictEqual([
-        testProject.rootDir + '/questmaestro',
-      ]);
+      // Check that CLI mode skipped settings
+      expect(output).toContain('CLI mode active - no Claude settings needed');
 
-      // Check output mentions invalid settings
-      expect(output).toContain('Invalid settings.local.json, creating new');
+      // Malformed file should remain unchanged
+      const settingsRaw = testProject.readFile('.claude/settings.local.json');
+      expect(settingsRaw).toBe(malformedContent);
     });
   });
 });

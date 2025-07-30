@@ -116,7 +116,6 @@ describe('sanitation-hook', () => {
 
             expect(result.exitCode).toBe(2);
             expect(result.stderr).toContain('Code quality escape hatches detected');
-            expect(result.stderr).toContain('@ts-ignore');
             expect(result.stderr).toContain("'any'");
           });
 
@@ -599,6 +598,249 @@ export function processItems(items: string[]): string[] {
           });
         });
 
+        describe('escape hatch patterns in string literals', () => {
+          it('Write with escape hatches in string literals → exits with code 0', () => {
+            const projectDir = createTestProject('escape-in-strings');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430cf',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: [
+                  'export function getErrorMessage(): string {\n',
+                  '  return "Use @',
+                  "ts-ignore sparingly and avoid using '",
+                  'any\' type";\n',
+                  '}\n\n',
+                  "export const LINT_MESSAGE = 'Do not use eslint",
+                  "-disable comments';\n",
+                  'export const TEMPLATE = `\n',
+                  '  // This is a template with @',
+                  'ts-expect-error\n',
+                  '  const value: ',
+                  'any = getValue();\n',
+                  '`;',
+                ].join(''),
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should allow escape hatch patterns in string literals
+            expect(result).toStrictEqual({
+              exitCode: 0,
+              stdout: '',
+              stderr: '',
+            });
+          });
+
+          it('Edit changing string literal with escape hatches → exits with code 0', () => {
+            const projectDir = createTestProject('edit-string-with-escapes');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            // Create file with escape hatches in strings
+            fs.writeFileSync(
+              filePath,
+              [
+                'export const ERROR_MSG = "Do not use @',
+                'ts-ignore";\n',
+                'export const LINT_MSG = "Avoid eslint',
+                '-disable";',
+              ].join(''),
+            );
+
+            const hookData = EditToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430d0',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: ['export const ERROR_MSG = "Do not use @', 'ts-ignore";'].join(''),
+                new_string: [
+                  'export const ERROR_MSG = "Never use @',
+                  'ts-ignore or ',
+                  'any type";',
+                ].join(''),
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should allow because patterns are in string literals
+            expect(result).toStrictEqual({
+              exitCode: 0,
+              stdout: '',
+              stderr: '',
+            });
+          });
+
+          it('Write with escape hatches in comments about strings → exits with code 2', () => {
+            const projectDir = createTestProject('escape-in-comment-about-string');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430d1',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: [
+                  '// This function returns ',
+                  'any type\n',
+                  '// @',
+                  'ts-ignore\n',
+                  'export function getValue(): ',
+                  'any {\n',
+                  '  return "This string mentions @',
+                  'ts-ignore safely";\n',
+                  '}',
+                ].join(''),
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should detect escape hatches in actual code/comments, not in strings
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('ignore');
+            expect(result.stderr).toContain('any');
+          });
+        });
+
+        describe('complex escape hatch scenarios', () => {
+          it('Write with multiple escape hatch types together → reports all violations', () => {
+            const projectDir = createTestProject('multiple-escape-types');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430d2',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: [
+                  '// @',
+                  'ts-nocheck\n',
+                  '/* eslint',
+                  '-disable */\n',
+                  '// @',
+                  'ts-ignore\n',
+                  'export function process(data: ',
+                  'any): ',
+                  'any {\n',
+                  '  // @',
+                  'ts-expect-error\n',
+                  '  return data.nonExistent;\n',
+                  '}',
+                ].join(''),
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('nocheck');
+            expect(result.stderr).toContain('ignore');
+            expect(result.stderr).toContain('expect-error');
+            expect(result.stderr).toContain('eslint');
+            expect(result.stderr).toContain('any');
+          });
+
+          it('MultiEdit gradually adding escape hatches → detects new additions', () => {
+            const projectDir = createTestProject('gradual-escape-addition');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            // Start with clean code
+            fs.writeFileSync(
+              filePath,
+              `export function process(data: unknown): unknown {
+  return data;
+}`,
+            );
+
+            const hookData = MultiEditToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430d3',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                edits: [
+                  {
+                    old_string: 'data: unknown',
+                    new_string: ['data: ', 'any'].join(''),
+                  },
+                  {
+                    old_string: 'export function process',
+                    new_string: ['// @', 'ts-ignore\nexport function process'].join(''),
+                  },
+                  {
+                    old_string: '): unknown {',
+                    new_string: ['): ', 'any {'].join(''),
+                  },
+                ],
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('[PreToolUse Hook] New escape hatches detected');
+          });
+
+          it('Edit removing some but not all escape hatches → allows partial cleanup', () => {
+            const projectDir = createTestProject('partial-escape-cleanup');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            // Create file with multiple escape hatches
+            fs.writeFileSync(
+              filePath,
+              [
+                '// @',
+                'ts-ignore\n',
+                '// eslint',
+                '-disable-next-line\n',
+                'export function process(data: ',
+                'any): ',
+                'any {\n',
+                '  return data;\n',
+                '}',
+              ].join(''),
+            );
+
+            // Remove one escape hatch but keep others
+            const hookData = EditToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430d4',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: [
+                  '// @',
+                  'ts-ignore\n',
+                  '// eslint',
+                  '-disable-next-line\n',
+                  'export function process(data: ',
+                  'any): ',
+                  'any {',
+                ].join(''),
+                new_string: [
+                  '// @',
+                  'ts-ignore\n',
+                  'export function process(data: ',
+                  'any): ',
+                  'any {',
+                ].join(''),
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should allow because we're reducing escape hatches
+            expect(result).toStrictEqual({
+              exitCode: 0,
+              stdout: '',
+              stderr: '',
+            });
+          });
+        });
+
         describe('file type filtering', () => {
           it('Write to markdown file with TypeScript patterns → exits with code 0', () => {
             const projectDir = createTestProject('md-with-ts-patterns');
@@ -769,6 +1011,499 @@ Some content here.`,
             const result = runHook(hookData);
 
             // Should ignore eslint-disable pattern in markdown files
+            expect(result).toStrictEqual({
+              exitCode: 0,
+              stdout: '',
+              stderr: '',
+            });
+          });
+        });
+
+        describe('edge cases with special characters and escaping', () => {
+          it('Write with escape hatches in regex patterns → detects correctly', () => {
+            const projectDir = createTestProject('escape-in-regex');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430d5',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `const pattern = /any|@ts-ignore/;
+// But this is real: @ts-ignore
+export function test(param: any): void {
+  console.log(pattern);
+}`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should detect real escape hatches, not patterns in regex
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('@ts-ignore');
+            expect(result.stderr).toContain('any');
+          });
+
+          it('Write with escape hatches in backticks spanning lines → handles correctly', () => {
+            const projectDir = createTestProject('escape-in-multiline-template');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430d6',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `export const SQL_QUERY = \`
+  SELECT * FROM users
+  WHERE type = 'any'
+  -- @ts-ignore this SQL comment
+\`;
+
+// Real escape hatch outside string
+// @ts-ignore
+const result: any = executeQuery(SQL_QUERY);`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should only detect escape hatches outside template literals
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('@ts-ignore');
+            expect(result.stderr).toContain('any');
+          });
+
+          it('Write with escaped quotes containing escape hatches → handles correctly', () => {
+            const projectDir = createTestProject('escape-in-escaped-quotes');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430d9',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `export const MSG = "He said \\"Use any type carefully\\"";
+export const OTHER = 'Don\\'t use @ts-ignore';
+// But this is real
+const value: any = 42;`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should detect real escape hatch, not ones in strings
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('any');
+            expect(result.stderr).not.toContain('@ts-ignore'); // This one is only in a string
+          });
+        });
+
+        describe('escape hatches in different file locations', () => {
+          it('Write adding escape hatch at end of file → detects correctly', () => {
+            const projectDir = createTestProject('escape-at-eof');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430d7',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `export function clean(): void {
+  console.log('clean code');
+}
+// @ts-ignore`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('@ts-ignore');
+          });
+
+          it('MultiEdit with escape hatches in first and last edits → detects all', () => {
+            const projectDir = createTestProject('escape-first-last-edit');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            fs.writeFileSync(
+              filePath,
+              `export class Service {
+  method1(): void {}
+  method2(): void {}
+  method3(): void {}
+}`,
+            );
+
+            const hookData = MultiEditToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430d8',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                edits: [
+                  {
+                    old_string: 'export class Service {',
+                    new_string: '// @ts-nocheck\nexport class Service {',
+                  },
+                  {
+                    old_string: 'method2(): void {}',
+                    new_string: 'method2(): void { console.log("updated"); }',
+                  },
+                  {
+                    old_string: 'method3(): void {}',
+                    new_string: 'method3(): any { return "changed"; }',
+                  },
+                ],
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('@ts-nocheck');
+            expect(result.stderr).toContain('any');
+          });
+        });
+
+        describe('escape hatch detection with replace_all', () => {
+          it('MultiEdit with replace_all adding escape hatches → detects correctly', () => {
+            const projectDir = createTestProject('replace-all-escape');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            fs.writeFileSync(
+              filePath,
+              `export function process(data: unknown): unknown {
+  if (typeof data === 'unknown') {
+    return data;
+  }
+  return data;
+}`,
+            );
+
+            const hookData = MultiEditToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430da',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                edits: [
+                  {
+                    old_string: 'unknown',
+                    new_string: 'any',
+                    replace_all: true,
+                  },
+                ],
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('any');
+          });
+
+          it('Edit with replace_all preserving existing escape hatches → allows', () => {
+            const projectDir = createTestProject('replace-all-preserve');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            fs.writeFileSync(
+              filePath,
+              `// @ts-ignore
+export function oldName(data: any): any {
+  return data;
+}
+export function oldNameHelper() {}`,
+            );
+
+            const hookData = EditToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430db',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: 'oldName',
+                new_string: 'newName',
+                replace_all: true,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // Should allow because not adding NEW escape hatches
+            expect(result).toStrictEqual({
+              exitCode: 0,
+              stdout: '',
+              stderr: '',
+            });
+          });
+        });
+
+        describe('boundary conditions', () => {
+          it('Write with escape hatch as the only content → detects', () => {
+            const projectDir = createTestProject('only-escape-hatch');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430dc',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: '// @ts-ignore',
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('@ts-ignore');
+          });
+
+          it('Write with very long line containing escape hatch → detects', () => {
+            const projectDir = createTestProject('long-line-escape');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const longLine = 'x'.repeat(1000) + ': any = ' + "'y'".repeat(100) + ';';
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430dd',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `export const ${longLine}`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('any');
+          });
+
+          it('Edit on empty file adding escape hatch → detects', () => {
+            const projectDir = createTestProject('empty-file-escape');
+            const filePath = path.join(projectDir, 'empty.ts');
+
+            // Create empty file
+            fs.writeFileSync(filePath, '');
+
+            const hookData = EditToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430de',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: '',
+                new_string: '// @ts-ignore\nexport const x: any = 1;',
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('@ts-ignore');
+            expect(result.stderr).toContain('any');
+          });
+        });
+
+        describe('complex generic patterns', () => {
+          it('Write with any in complex generic types → detects all instances', () => {
+            const projectDir = createTestProject('complex-generics');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430df',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `type ComplexType<T> = {
+  data: Array<any>;
+  map: Map<string, any>;
+  promise: Promise<any>;
+  func: (x: any) => any;
+  conditional: T extends any ? true : false;
+  record: Record<string, any>;
+};`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('any');
+          });
+
+          it('Edit converting specific types to any → detects', () => {
+            const projectDir = createTestProject('type-to-any');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            fs.writeFileSync(
+              filePath,
+              `interface User {
+  id: string;
+  name: string;
+  age: number;
+}
+
+function processUser(user: User): string {
+  return user.name;
+}`,
+            );
+
+            const hookData = EditToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430e0',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: 'function processUser(user: User): string {',
+                new_string: 'function processUser(user: any): any {',
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('any');
+          });
+        });
+
+        describe('escape hatches with decorators and metadata', () => {
+          it('Write with escape hatches near decorators → detects correctly', () => {
+            const projectDir = createTestProject('decorator-escape');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430e1',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `@Injectable()
+// @ts-ignore
+export class UserService {
+  // eslint-disable-next-line
+  constructor(private db: any) {}
+  
+  @Get()
+  async getUser(id: any): Promise<any> {
+    return this.db.findOne(id);
+  }
+}`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('@ts-ignore');
+            expect(result.stderr).toContain('eslint-disable');
+            expect(result.stderr).toContain('any');
+          });
+        });
+
+        describe('escape hatches in imports and exports', () => {
+          it('Write with any in import/export statements → detects', () => {
+            const projectDir = createTestProject('import-export-any');
+            const filePath = path.join(projectDir, 'example.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430e2',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `// @ts-ignore
+import { someFunc } from './untyped-module';
+
+export const handler: any = someFunc;
+export type AnyAlias = any;
+export interface Config {
+  options: any;
+}`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('@ts-ignore');
+            expect(result.stderr).toContain('any');
+          });
+        });
+
+        describe('non-TypeScript file behavior', () => {
+          it('Write to .d.ts file with any → detects (declaration files need quality too)', () => {
+            const projectDir = createTestProject('dts-file-any');
+            const filePath = path.join(projectDir, 'types.d.ts');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430e3',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `declare module 'untyped-module' {
+  export function someFunc(): any;
+  export const config: any;
+}`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('any');
+          });
+
+          it('Write to .json file with escape hatch patterns → exits with code 0', () => {
+            const projectDir = createTestProject('json-file-patterns');
+            const filePath = path.join(projectDir, 'config.json');
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430e4',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `{
+  "rules": {
+    "no-any": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "description": "Use @ts-ignore carefully"
+  }
+}`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // JSON files should not trigger escape hatch detection
+            expect(result).toStrictEqual({
+              exitCode: 0,
+              stdout: '',
+              stderr: '',
+            });
+          });
+
+          it('Write to .yaml file with escape hatch patterns → exits with code 0', () => {
+            const projectDir = createTestProject('yaml-file-patterns');
+            const filePath = path.join(projectDir, '.github/workflows/test.yml');
+
+            fs.mkdirSync(path.dirname(filePath), { recursive: true });
+
+            const hookData = WriteToolHookStub({
+              session_id: '6ba7b817-9dad-11d1-80b4-00c04fd430e5',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                content: `name: Test
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        run: |
+          # Don't use any or @ts-ignore
+          npm test`,
+              },
+            });
+
+            const result = runHook(hookData);
+
+            // YAML files should not trigger escape hatch detection
             expect(result).toStrictEqual({
               exitCode: 0,
               stdout: '',
