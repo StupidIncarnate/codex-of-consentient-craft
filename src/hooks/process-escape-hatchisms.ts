@@ -57,6 +57,21 @@ function stripStringLiterals(content: string): string {
     .replace(/`(?:[^`\\]|\\.)*`/g, '``'); // Template literals
 }
 
+function stripCommentsAndStringLiterals(content: string): string {
+  // Remove both comments and string literals for code-only pattern detection
+  return (
+    content
+      // Remove single-line comments
+      .replace(/\/\/.*$/gm, '')
+      // Remove multi-line comments
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      // Remove string literals
+      .replace(/'(?:[^'\\]|\\.)*'/g, "''")
+      .replace(/"(?:[^"\\]|\\.)*"/g, '""')
+      .replace(/`(?:[^`\\]|\\.)*`/g, '``')
+  );
+}
+
 function getFileExtension(filePath: string): string {
   const match = filePath.match(/\.[^.]*$/);
   return match ? match[0] : '';
@@ -98,8 +113,13 @@ function checkContent(
     let contentToCheck: string;
     if (stripStrings) {
       // When stripStrings is true, we want to ignore patterns in string literals
-      // For comment-based patterns, we still need to strip strings first
-      contentToCheck = stripStringLiterals(content);
+      // For code-based patterns (like 'any'), also strip comments
+      // For comment-based patterns (like '@ts-ignore'), preserve comments
+      if (pattern.isCommentBased) {
+        contentToCheck = stripStringLiterals(content);
+      } else {
+        contentToCheck = stripCommentsAndStringLiterals(content);
+      }
     } else {
       // When stripStrings is false, check the raw content
       contentToCheck = content;

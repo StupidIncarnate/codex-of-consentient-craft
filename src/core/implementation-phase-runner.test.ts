@@ -1,6 +1,7 @@
 import type { QuestManager } from './quest-manager';
 import type { FileSystem } from './file-system';
 import type { AgentSpawner } from '../agents/agent-spawner';
+import type { WardValidator } from './ward-validator';
 import { ImplementationPhaseRunner } from './implementation-phase-runner';
 import { QuestStub } from '../../tests/stubs/quest.stub';
 import { AgentReportStub } from '../../tests/stubs/agent-report.stub';
@@ -8,6 +9,8 @@ import {
   createMockQuestManager,
   createMockFileSystem,
   createMockAgentSpawner,
+  createMockWardValidator,
+  createMockLogger,
 } from '../../tests/mocks/create-mocks';
 import { EscapeHatchError } from './escape-hatch-error';
 
@@ -21,7 +24,11 @@ describe('ImplementationPhaseRunner', () => {
     mockQuestManager = createMockQuestManager();
     mockFileSystem = createMockFileSystem();
     mockAgentSpawner = createMockAgentSpawner();
-    phaseRunner = new ImplementationPhaseRunner(mockQuestManager, mockFileSystem);
+    phaseRunner = new ImplementationPhaseRunner(
+      mockQuestManager,
+      mockFileSystem,
+      createMockLogger(),
+    );
   });
 
   describe('getAgentType()', () => {
@@ -665,6 +672,235 @@ describe('ImplementationPhaseRunner', () => {
 
       // Quest should remain unchanged
       expect(quest).toStrictEqual(QuestStub());
+    });
+  });
+
+  describe('ward validation integration', () => {
+    let mockWardValidator: jest.Mocked<WardValidator>;
+
+    beforeEach(() => {
+      mockWardValidator = createMockWardValidator();
+    });
+
+    describe('when wardValidator is provided', () => {
+      beforeEach(() => {
+        phaseRunner = new ImplementationPhaseRunner(
+          mockQuestManager,
+          mockFileSystem,
+          createMockLogger(),
+          mockWardValidator,
+        );
+      });
+
+      describe('when ward validation passes', () => {
+        it('continues without spawning Spiritmender', async () => {
+          const quest = QuestStub({
+            tasks: [
+              {
+                id: 'impl-1',
+                name: 'Create API',
+                type: 'implementation',
+                description: 'Build REST API',
+                dependencies: [],
+                filesToCreate: ['api.ts'],
+                filesToEdit: [],
+                status: 'pending',
+              },
+            ],
+          });
+          const report = AgentReportStub({ agentType: 'codeweaver' });
+          mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+          mockWardValidator.validate.mockReturnValue({ success: true });
+
+          await phaseRunner.run(quest, mockAgentSpawner);
+
+          expect(mockWardValidator.validate).toHaveBeenCalledTimes(1);
+          expect(mockWardValidator.handleFailure).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('when ward validation fails', () => {
+        it('calls wardValidator.handleFailure with correct parameters', async () => {
+          const quest = QuestStub({
+            tasks: [
+              {
+                id: 'impl-1',
+                name: 'Create API',
+                type: 'implementation',
+                description: 'Build REST API',
+                dependencies: [],
+                filesToCreate: ['api.ts'],
+                filesToEdit: [],
+                status: 'pending',
+              },
+            ],
+          });
+          const report = AgentReportStub({ agentType: 'codeweaver' });
+          mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+          const validationErrors = 'Linting failed\nType errors found';
+          mockWardValidator.validate.mockReturnValue({
+            success: false,
+            errors: validationErrors,
+          });
+
+          await phaseRunner.run(quest, mockAgentSpawner);
+
+          expect(mockWardValidator.handleFailure).toHaveBeenCalledWith(
+            quest,
+            validationErrors,
+            mockAgentSpawner,
+            mockQuestManager,
+            'impl-1',
+          );
+        });
+
+        it('passes task ID for each task', async () => {
+          const quest = QuestStub({
+            tasks: [
+              {
+                id: 'impl-1',
+                name: 'Create API',
+                type: 'implementation',
+                description: 'Build REST API',
+                dependencies: [],
+                filesToCreate: ['api.ts'],
+                filesToEdit: [],
+                status: 'pending',
+              },
+              {
+                id: 'impl-2',
+                name: 'Create UI',
+                type: 'implementation',
+                description: 'Build UI',
+                dependencies: [],
+                filesToCreate: ['ui.tsx'],
+                filesToEdit: [],
+                status: 'pending',
+              },
+            ],
+          });
+          const report = AgentReportStub({ agentType: 'codeweaver' });
+          mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+          mockWardValidator.validate.mockReturnValue({
+            success: false,
+            errors: 'Validation failed',
+          });
+
+          await phaseRunner.run(quest, mockAgentSpawner);
+
+          expect(mockWardValidator.handleFailure).toHaveBeenCalledTimes(2);
+          expect(mockWardValidator.handleFailure).toHaveBeenNthCalledWith(
+            1,
+            quest,
+            'Validation failed',
+            mockAgentSpawner,
+            mockQuestManager,
+            'impl-1',
+          );
+          expect(mockWardValidator.handleFailure).toHaveBeenNthCalledWith(
+            2,
+            quest,
+            'Validation failed',
+            mockAgentSpawner,
+            mockQuestManager,
+            'impl-2',
+          );
+        });
+
+        it('handles empty errors gracefully', async () => {
+          const quest = QuestStub({
+            tasks: [
+              {
+                id: 'impl-1',
+                name: 'Create API',
+                type: 'implementation',
+                description: 'Build REST API',
+                dependencies: [],
+                filesToCreate: ['api.ts'],
+                filesToEdit: [],
+                status: 'pending',
+              },
+            ],
+          });
+          const report = AgentReportStub({ agentType: 'codeweaver' });
+          mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+          mockWardValidator.validate.mockReturnValue({
+            success: false,
+            // errors field is optional and not provided
+          });
+
+          await phaseRunner.run(quest, mockAgentSpawner);
+
+          expect(mockWardValidator.handleFailure).toHaveBeenCalledWith(
+            quest,
+            '',
+            mockAgentSpawner,
+            mockQuestManager,
+            'impl-1',
+          );
+        });
+      });
+
+      describe('when maximum Spiritmender attempts are reached', () => {
+        it('propagates the error from wardValidator.handleFailure', async () => {
+          const quest = QuestStub({
+            tasks: [
+              {
+                id: 'impl-1',
+                name: 'Create API',
+                type: 'implementation',
+                description: 'Build REST API',
+                dependencies: [],
+                filesToCreate: ['api.ts'],
+                filesToEdit: [],
+                status: 'pending',
+              },
+            ],
+          });
+          const report = AgentReportStub({ agentType: 'codeweaver' });
+          mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+          mockWardValidator.validate.mockReturnValue({
+            success: false,
+            errors: 'Validation failed',
+          });
+          const maxAttemptsError = new Error(
+            'Quest blocked: Max Spiritmender attempts reached for task impl-1',
+          );
+          mockWardValidator.handleFailure.mockRejectedValue(maxAttemptsError);
+
+          await expect(phaseRunner.run(quest, mockAgentSpawner)).rejects.toThrow(
+            'Quest blocked: Max Spiritmender attempts reached for task impl-1',
+          );
+        });
+      });
+    });
+
+    describe('when wardValidator is not provided', () => {
+      it('continues without validation', async () => {
+        // phaseRunner already created without wardValidator in main beforeEach
+        const quest = QuestStub({
+          tasks: [
+            {
+              id: 'impl-1',
+              name: 'Create API',
+              type: 'implementation',
+              description: 'Build REST API',
+              dependencies: [],
+              filesToCreate: ['api.ts'],
+              filesToEdit: [],
+              status: 'pending',
+            },
+          ],
+        });
+        const report = AgentReportStub({ agentType: 'codeweaver' });
+        mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+
+        await phaseRunner.run(quest, mockAgentSpawner);
+
+        // Should complete successfully without calling ward validation
+        expect(quest.phases.implementation.status).toBe('complete');
+        expect(quest.tasks[0].status).toBe('complete');
+      });
     });
   });
 });

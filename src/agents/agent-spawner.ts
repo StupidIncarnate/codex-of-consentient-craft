@@ -278,7 +278,6 @@ export class AgentSpawner {
     }
 
     parts.push(`Task: ${JSON.stringify(additionalCtx.task || {}, null, 2)}`);
-    parts.push(`Ward commands: npm run ward:all`);
 
     return parts.join('\n');
   }
@@ -314,7 +313,6 @@ export class AgentSpawner {
       `Quest folder: ${context.questFolder}`,
       `Report number: ${context.reportNumber}`,
       `Changed files: ${JSON.stringify(additionalCtx.changedFiles || [], null, 2)}`,
-      `Ward commands: ${JSON.stringify(context.wardCommands || {})}`,
       `Standards: Check CLAUDE.md files in directory hierarchy`,
     ].join('\n');
   }

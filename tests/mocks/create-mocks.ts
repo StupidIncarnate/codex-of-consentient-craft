@@ -5,6 +5,7 @@ import type { Logger } from '../../src/utils/logger';
 import type { PhaseRunner } from '../../src/core/phase-runner-interface';
 import type { QuestOrchestrator } from '../../src/core/quest-orchestrator';
 import type { ConfigManager } from '../../src/core/config-manager';
+import type { WardValidator } from '../../src/core/ward-validator';
 import type { PhaseType } from '../../src/models/quest';
 import type { AgentType } from '../../src/models/agent';
 
@@ -108,4 +109,11 @@ export function createMockConfigManager(): jest.Mocked<ConfigManager> {
     loadConfig: jest.fn().mockReturnValue({ discoveryComplete: true }),
     saveConfig: jest.fn(),
   } as unknown as jest.Mocked<ConfigManager>;
+}
+
+export function createMockWardValidator(): jest.Mocked<WardValidator> {
+  return {
+    validate: jest.fn().mockReturnValue({ success: true }),
+    handleFailure: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<WardValidator>;
 }

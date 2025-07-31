@@ -350,6 +350,72 @@ export function getUser(id: string): User {
             });
           });
         });
+
+        describe('false positive detection for any type', () => {
+          it('test code with wardValidator comments should not trigger any type detection', () => {
+            const projectDir = createTestProject('ward-validator-test');
+            const filePath = path.join(projectDir, 'implementation-phase-runner.test.ts');
+            const hookData = EditToolHookStub({
+              session_id: '550e8400-e29b-41d4-a716-446655440000',
+              cwd: projectDir,
+              tool_input: {
+                file_path: filePath,
+                old_string: `      });
+      });
+    });
+  });`,
+                new_string: `      });
+      });
+
+      describe('when wardValidator is not provided', () => {
+        it('continues without validation', async () => {
+          // phaseRunner already created without wardValidator in main 
+  beforeEach
+          const quest = QuestStub({
+            tasks: [
+              {
+                id: 'impl-1',
+                name: 'Create API',
+                type: 'implementation',
+                description: 'Build REST API',
+                dependencies: [],
+                filesToCreate: ['api.ts'],
+                filesToEdit: [],
+                status: 'pending',
+              },
+            ],
+          });
+          const report = AgentReportStub({ agentType: 'codeweaver' });
+          mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+
+          await phaseRunner.run(quest, mockAgentSpawner);
+
+          // Should complete successfully without calling any ward 
+  validation
+          expect(quest.phases.implementation.status).toBe('complete');
+          expect(quest.tasks[0].status).toBe('complete');
+        });
+      });
+    });
+  });`,
+              },
+            });
+
+            // First create the file with initial content
+            fs.writeFileSync(
+              filePath,
+              `      });
+      });
+    });
+  });`,
+            );
+
+            const result = runHook(hookData);
+
+            expect(result.stderr).toBe('');
+            expect(result.exitCode).toBe(0);
+          });
+        });
       });
 
       describe('with MultiEdit tool', () => {
