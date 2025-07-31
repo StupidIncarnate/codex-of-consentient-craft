@@ -9,7 +9,7 @@ import { Logger } from './utils/logger';
 import { AgentSpawner } from './agents/agent-spawner';
 import type { Quest } from './models/quest';
 import { isError, isPackageJson, parseJsonSafely } from './utils/type-guards';
-import { EscapeHatchError } from './core/escape-hatch-error';
+import { QuestOrchestrator } from './core/quest-orchestrator';
 import { DiscoveryPhaseRunner } from './core/discovery-phase-runner';
 import { ImplementationPhaseRunner } from './core/implementation-phase-runner';
 import { TestingPhaseRunner } from './core/testing-phase-runner';
@@ -278,27 +278,6 @@ async function checkProjectDiscovery() {
 }
 
 async function runQuest(quest: Quest) {
-  logger.bright(`\n⚔️ Quest: ${quest.title}\n`);
-
-  // Check quest freshness before continuing
-  if (!(await checkAndWarnStaleness(quest))) {
-    return;
-  }
-
-  // Check if quest is blocked
-  if (quest.status === 'blocked') {
-    logger.yellow(`Quest is blocked`);
-    const resume = await getUserInput('Resume quest? (y/n): ');
-    if (resume.toLowerCase() !== 'y') {
-      return;
-    }
-    quest.status = 'in_progress';
-    questManager.saveQuest(quest);
-  }
-
-  // Sequential phase execution
-  const agentSpawner = new AgentSpawner();
-
   // Create phase runners
   const phaseRunners: Map<string, PhaseRunner> = new Map([
     ['discovery', new DiscoveryPhaseRunner(questManager, fileSystem, logger)],
@@ -307,67 +286,12 @@ async function runQuest(quest: Quest) {
     ['review', new ReviewPhaseRunner(questManager, fileSystem, logger)],
   ]);
 
-  while (!questManager.isQuestComplete(quest)) {
-    const phase = questManager.getCurrentPhase(quest);
+  // Create orchestrator and agent spawner
+  const orchestrator = new QuestOrchestrator(questManager, logger, phaseRunners);
+  const agentSpawner = new AgentSpawner();
 
-    logger.info(`Current phase: ${phase}`);
-
-    if (phase === null) {
-      // All phases complete
-      completeQuest(quest);
-      return;
-    }
-
-    const phaseRunner = phaseRunners.get(phase);
-    if (!phaseRunner) {
-      logger.error(`Unknown phase: ${String(phase)}`);
-      return;
-    }
-
-    try {
-      if (phaseRunner.canRun(quest)) {
-        await phaseRunner.run(quest, agentSpawner);
-      } else {
-        // Skip to next phase if can't run (e.g., no tasks for this phase)
-        quest.phases[phase].status = 'skipped';
-        questManager.saveQuest(quest);
-      }
-    } catch (error) {
-      if (error instanceof EscapeHatchError) {
-        logger.error(`Agent triggered escape hatch: ${error.escape.reason}`);
-        logger.info(`Analysis: ${error.escape.analysis}`);
-        logger.info(`Recommendation: ${error.escape.recommendation}`);
-        quest.status = 'blocked';
-        questManager.saveQuest(quest);
-        return;
-      }
-      throw error;
-    }
-
-    // Reload quest to get latest state
-    const reloadedQuest = questManager.getQuest(quest.folder);
-    if (!reloadedQuest) {
-      logger.error('Failed to reload quest');
-      return;
-    }
-    quest = reloadedQuest;
-  }
-
-  completeQuest(quest);
-}
-
-function completeQuest(quest: Quest) {
-  logger.bright(`\n✨ Quest Complete: ${quest.title} ✨\n`);
-
-  // Generate and save retrospective
-  const retrospective = questManager.generateRetrospective(quest.folder);
-  questManager.saveRetrospective(quest.folder, retrospective);
-
-  // Move quest to completed
-  questManager.completeQuest(quest.folder);
-
-  logger.info('Quest has been moved to completed folder.');
-  logger.info(`Retrospective saved to: questmaestro/retros/`);
+  // Delegate to orchestrator
+  await orchestrator.runQuest(quest, agentSpawner);
 }
 
 function detectTestFramework(): string {
@@ -421,24 +345,6 @@ async function getUserInput(prompt: string): Promise<string> {
   });
 }
 
-async function checkAndWarnStaleness(quest: Quest): Promise<boolean> {
-  const freshness = questManager.validateQuestFreshness(quest);
-
-  if (freshness.isStale) {
-    logger.warn(`⚠️  ${freshness.reason}`);
-    console.log('The codebase may have changed significantly since this quest was created.');
-    console.log('Continuing may lead to conflicts or errors.\n');
-
-    const answer = await getUserInput('Continue anyway? (y/n): ');
-    if (answer.toLowerCase() !== 'y') {
-      console.log('\nQuest cancelled. Create a fresh quest with: questmaestro "your request"');
-      return false;
-    }
-  }
-
-  return true;
-}
-
 // Export for testing
 export {
   detectCommand,
@@ -449,7 +355,6 @@ export {
   handleQuestOrCreate,
   checkProjectDiscovery,
   runQuest,
-  completeQuest,
   detectTestFramework,
   getWardCommands,
   getUserInput,
