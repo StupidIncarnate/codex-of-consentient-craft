@@ -758,9 +758,9 @@ export class QuestManager {
       (task) => task.status === 'complete' || task.status === 'skipped',
     );
 
-    // Check if all phases are complete
+    // Check if all phases are complete or skipped
     const allPhasesComplete = Object.values(quest.phases).every(
-      (phase) => phase.status === 'complete',
+      (phase) => phase.status === 'complete' || phase.status === 'skipped',
     );
 
     return allTasksComplete && allPhasesComplete;

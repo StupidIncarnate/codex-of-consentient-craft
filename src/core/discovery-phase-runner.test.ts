@@ -15,6 +15,12 @@ describe('DiscoveryPhaseRunner', () => {
     mockQuestManager = createMockQuestManager();
     mockFileSystem = createMockFileSystem();
     phaseRunner = new DiscoveryPhaseRunner(mockQuestManager, mockFileSystem);
+
+    // Setup default return value for addTasks
+    mockQuestManager.addTasks.mockReturnValue({
+      success: true,
+      data: QuestStub(),
+    });
   });
 
   describe('getAgentType()', () => {
@@ -139,9 +145,18 @@ describe('DiscoveryPhaseRunner', () => {
             report: { tasks },
           });
 
+          const updatedQuest = QuestStub({
+            tasks: tasks.map((t) => ({ ...t, status: 'pending' as const })),
+          });
+          mockQuestManager.addTasks.mockReturnValue({
+            success: true,
+            data: updatedQuest,
+          });
+
           phaseRunner.processAgentReport(quest, report);
 
           expect(mockQuestManager.addTasks).toHaveBeenCalledWith(quest.folder, tasks);
+          expect(quest.tasks).toEqual(updatedQuest.tasks);
         });
 
         it('handles when tasks is not an array', () => {

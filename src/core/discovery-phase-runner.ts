@@ -51,12 +51,20 @@ export class DiscoveryPhaseRunner extends BasePhaseRunner {
       if ('reconciliationPlan' in pathseekerReport && pathseekerReport.reconciliationPlan) {
         this.questManager.applyReconciliation(quest.id, pathseekerReport.reconciliationPlan);
       } else if ('tasks' in pathseekerReport && Array.isArray(pathseekerReport.tasks)) {
-        this.questManager.addTasks(quest.folder, pathseekerReport.tasks);
+        const result = this.questManager.addTasks(quest.folder, pathseekerReport.tasks);
+        if (result.success && result.data) {
+          // Update the quest object with the new tasks
+          quest.tasks = result.data.tasks;
+        }
       }
     } else {
       // Creation mode
       if (pathseekerReport.tasks && Array.isArray(pathseekerReport.tasks)) {
-        this.questManager.addTasks(quest.folder, pathseekerReport.tasks);
+        const result = this.questManager.addTasks(quest.folder, pathseekerReport.tasks);
+        if (result.success && result.data) {
+          // Update the quest object with the new tasks
+          quest.tasks = result.data.tasks;
+        }
       }
 
       if (pathseekerReport.observableActions && Array.isArray(pathseekerReport.observableActions)) {
