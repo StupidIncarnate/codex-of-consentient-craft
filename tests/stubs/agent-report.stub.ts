@@ -1,4 +1,4 @@
-import type { AgentReport, PathseekerReport } from '../../src/models/agent';
+import type { AgentReport, PathseekerReport } from '../../src/v1/models/agent';
 
 export const AgentReportStub = (overrides: Partial<AgentReport> = {}): AgentReport => {
   const defaultReport: AgentReport = {

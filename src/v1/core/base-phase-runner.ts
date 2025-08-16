@@ -37,15 +37,29 @@ export abstract class BasePhaseRunner implements PhaseRunner {
       throw new EscapeHatchError(report.escape);
     }
 
-    // Process report
-    this.processAgentReport(quest, report);
+    // Reload quest after agent completes to get fresh data
+    const freshQuest = this.questManager.getQuest(quest.folder);
+    if (!freshQuest) {
+      throw new Error(`Failed to reload quest: ${quest.folder}`);
+    }
+
+    // Process report with fresh quest data
+    this.processAgentReport(freshQuest, report);
 
     // Mark phase complete
-    quest.phases[this.getPhaseType()].status = 'complete';
-    this.questManager.saveQuest(quest);
+    freshQuest.phases[this.getPhaseType()].status = 'complete';
+    this.questManager.saveQuest(freshQuest);
   }
 
   canRun(quest: Quest): boolean {
-    return quest.phases[this.getPhaseType()].status === 'pending';
+    const phaseType = this.getPhaseType();
+    const phaseStatus = quest.phases[phaseType].status;
+
+    // Discovery can run if pending OR if refinement is needed
+    if (phaseType === 'discovery' && quest.needsRefinement) {
+      return true;
+    }
+
+    return phaseStatus === 'pending';
   }
 }

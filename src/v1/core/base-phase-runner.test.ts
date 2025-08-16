@@ -7,14 +7,14 @@ import type { AgentSpawner } from '../agents/agent-spawner';
 import { BasePhaseRunner } from './base-phase-runner';
 import { EscapeHatchError } from './escape-hatch-error';
 import { Logger } from '../utils/logger';
-import { QuestStub } from '../../tests/stubs/quest.stub';
-import { AgentReportStub } from '../../tests/stubs/agent-report.stub';
+import { QuestStub } from '../../../tests/stubs/quest.stub';
+import { AgentReportStub } from '../../../tests/stubs/agent-report.stub';
 import {
   createMockQuestManager,
   createMockFileSystem,
   createMockAgentSpawner,
   createMockLogger,
-} from '../../tests/mocks/create-mocks';
+} from '../../../tests/mocks/create-mocks';
 
 // Concrete test implementation of BasePhaseRunner
 class TestPhaseRunner extends BasePhaseRunner {
@@ -57,6 +57,9 @@ describe('BasePhaseRunner', () => {
     mockAgentSpawner = createMockAgentSpawner();
     mockLogger = createMockLogger();
     phaseRunner = new TestPhaseRunner(mockQuestManager, mockFileSystem);
+
+    // Default mock for getQuest to return the quest passed to run()
+    mockQuestManager.getQuest.mockImplementation((folder) => QuestStub({ folder }));
   });
 
   describe('constructor', () => {
@@ -181,7 +184,11 @@ describe('BasePhaseRunner', () => {
         // Should be called twice: once after marking in_progress, once after complete
         expect(mockQuestManager.saveQuest).toHaveBeenCalledTimes(2);
         expect(mockQuestManager.saveQuest).toHaveBeenNthCalledWith(1, quest);
-        expect(mockQuestManager.saveQuest).toHaveBeenNthCalledWith(2, quest);
+        // Second call is with the reloaded quest which has the same folder
+        expect(mockQuestManager.saveQuest).toHaveBeenNthCalledWith(
+          2,
+          expect.objectContaining({ folder: quest.folder }),
+        );
       });
 
       it('spawns agent with correct parameters', async () => {
@@ -277,14 +284,17 @@ describe('BasePhaseRunner', () => {
     describe('when agent completes successfully', () => {
       it('processes agent report via processAgentReport()', async () => {
         const quest = QuestStub();
+        const freshQuest = QuestStub({ folder: quest.folder });
         const report = AgentReportStub({ status: 'complete', agentType: 'pathseeker' });
         mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+        mockQuestManager.getQuest.mockReturnValue(freshQuest);
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
-        expect(quest.executionLog).toHaveLength(1);
+        // Check that processAgentReport was called on the fresh quest
+        expect(freshQuest.executionLog).toHaveLength(1);
         // Check the structure and that timestamp is a valid ISO string
-        const logEntry = quest.executionLog[0];
+        const logEntry = freshQuest.executionLog[0];
         expect(logEntry.report).toBe('test-report');
         expect(logEntry.agentType).toBe('pathseeker');
         expect(typeof logEntry.timestamp).toBe('string');
@@ -293,23 +303,34 @@ describe('BasePhaseRunner', () => {
 
       it('marks phase as complete', async () => {
         const quest = QuestStub();
+        const freshQuest = QuestStub({ folder: quest.folder });
         const report = AgentReportStub();
         mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+        mockQuestManager.getQuest.mockReturnValue(freshQuest);
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
-        expect(quest.phases.discovery.status).toBe('complete');
+        expect(freshQuest.phases.discovery.status).toBe('complete');
       });
 
       it('saves quest after completion', async () => {
         const quest = QuestStub();
+        const freshQuest = QuestStub({ folder: quest.folder });
         const report = AgentReportStub();
         mockAgentSpawner.spawnAndWait.mockResolvedValue(report);
+        mockQuestManager.getQuest.mockReturnValue(freshQuest);
 
         await phaseRunner.run(quest, mockAgentSpawner);
 
         expect(mockQuestManager.saveQuest).toHaveBeenCalledTimes(2);
-        expect(mockQuestManager.saveQuest).toHaveBeenLastCalledWith(quest);
+        expect(mockQuestManager.saveQuest).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            folder: quest.folder,
+            phases: expect.objectContaining({
+              discovery: expect.objectContaining({ status: 'complete' }),
+            }),
+          }),
+        );
       });
     });
 

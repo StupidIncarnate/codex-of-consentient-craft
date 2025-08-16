@@ -164,34 +164,37 @@ After writing the report, exit immediately so questmaestro knows you're done.
 
 ## Escape Hatch Mechanisms
 
-Every agent can escape when hitting limits to prevent unproductive cycles:
+Use the escape hatch when errors reveal deeper architectural issues that need replanning. This triggers a return to Pathseeker for refinement.
 
-### Escape Triggers
-1. **Task Complexity**: Failures reveal systemic architectural issues
-2. **Context Exhaustion**: Approaching context window limits (monitor usage)
-3. **Unexpected Dependencies**: Discovered conflicts beyond original scope
-4. **Integration Conflicts**: Multiple components have incompatible assumptions
-5. **Repeated Failures**: Stuck in fix-the-fix cycles
+### When to Escape (Request Refinement)
+1. **Architectural Issues**: Errors reveal fundamental design problems
+2. **Missing Components**: Errors show required dependencies don't exist
+3. **Incompatible Patterns**: Parallel agents made conflicting assumptions
+4. **Cascading Failures**: Fixing one error creates many more
+5. **Context Exhaustion**: Approaching context window limits
 
 ### Escape Process
 When triggering escape:
-1. Stop work immediately
-2. Report current state + failure analysis
-3. Write escape report and terminate
+1. Document all errors found and attempted fixes
+2. Explain the architectural issue discovered
+3. Suggest what needs to be redesigned or added
+4. Write escape report and terminate
 
 ### Escape Report Format
 ```json
 {
   "status": "blocked",
-  "reason": "task_too_complex|context_exhaustion|unexpected_dependencies|integration_conflict|repeated_failures",
-  "analysis": "Specific description of what caused the escape",
-  "recommendation": "Suggested re-decomposition or next steps",
-  "retro": "Insights for system learning about task boundaries",
-  "partialWork": "Description of any fixes completed before escape"
+  "escape": {
+    "reason": "integration_conflict",
+    "analysis": "Auth service expects UserRepository but it doesn't exist. Multiple services have incompatible user models.",
+    "recommendation": "Need to create shared user repository and align all services on single user model",
+    "retro": "Missing shared data layer caused parallel implementation conflicts",
+    "partialWork": "Fixed 3 type errors, documented 5 architectural conflicts"
+  }
 }
 ```
 
-After writing the report, exit immediately so questmaestro knows you're done.
+**Remember**: Escape when errors reveal the implementation plan needs adjustment. Pathseeker will revise based on your findings.
 
 ## Spawning Sub-Agents
 

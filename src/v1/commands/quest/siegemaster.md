@@ -176,34 +176,37 @@ After writing the report, exit immediately so questmaestro knows you're done.
 
 ## Escape Hatch Mechanisms
 
-Every agent can escape when hitting limits to prevent unproductive cycles:
+Use the escape hatch when you discover testing needs are different than expected. This triggers a return to Pathseeker for refinement.
 
-### Escape Triggers
-1. **Task Complexity**: Integration test suite exceeds single-agent capability
-2. **Context Exhaustion**: Approaching context window limits (monitor usage)
-3. **Unexpected Dependencies**: Discovered requirements not in task definition
-4. **Integration Conflicts**: Components don't work together as expected
-5. **Repeated Failures**: Stuck in fix-the-fix cycles
+### When to Escape (Request Refinement)
+1. **Missing Components**: Implementation incomplete, need more features first
+2. **Test Scope Too Large**: Need to split into multiple test suites
+3. **New Test Types Needed**: Discovered need for performance, security, or other test types
+4. **Integration Points Missing**: Required APIs or services not yet implemented
+5. **Context Exhaustion**: Approaching context window limits
 
 ### Escape Process
 When triggering escape:
-1. Stop work immediately
-2. Report current state + failure analysis
-3. Write escape report and terminate
+1. Save any tests already created
+2. Document what testing gaps you discovered
+3. Suggest what needs to be implemented or tested first
+4. Write escape report and terminate
 
 ### Escape Report Format
 ```json
 {
   "status": "blocked",
-  "reason": "task_too_complex|context_exhaustion|unexpected_dependencies|integration_conflict|repeated_failures",
-  "analysis": "Specific description of what caused the escape",
-  "recommendation": "Suggested re-decomposition or next steps",
-  "retro": "Insights for system learning about task boundaries",
-  "partialWork": "Description of any tests created before escape"
+  "escape": {
+    "reason": "unexpected_dependencies",
+    "analysis": "Auth flow testing requires rate limiting and session management components not yet implemented",
+    "recommendation": "Need to implement rate-limiter and session-manager before full integration tests",
+    "retro": "Integration tests revealed missing middleware components",
+    "partialWork": "Created basic auth endpoint tests"
+  }
 }
 ```
 
-After writing the report, exit immediately so questmaestro knows you're done.
+**Remember**: Escape helps discover the real implementation scope. Pathseeker will adjust the plan based on your testing insights.
 
 ## Spawning Sub-Agents
 

@@ -1,18 +1,45 @@
 import type { Quest } from '../models/quest';
 import type { QuestManager } from './quest-manager';
 import type { Logger } from '../utils/logger';
-import type { AgentSpawner } from '../agents/agent-spawner';
+import type { FileSystem } from './file-system';
+import { AgentSpawner } from '../agents/agent-spawner';
 import type { PhaseRunner } from './phase-runner-interface';
+import { DiscoveryPhaseRunner } from './discovery-phase-runner';
+import { ImplementationPhaseRunner } from './implementation-phase-runner';
+import { TestingPhaseRunner } from './testing-phase-runner';
+import { ReviewPhaseRunner } from './review-phase-runner';
+import { WardValidator } from './ward-validator';
 import { EscapeHatchError } from './escape-hatch-error';
 
 export class QuestOrchestrator {
+  private phaseRunners: Map<string, PhaseRunner>;
+  private agentSpawner: AgentSpawner;
+  private wardValidator: WardValidator;
+
   constructor(
     private questManager: QuestManager,
+    fileSystem: FileSystem,
     private logger: Logger,
-    private phaseRunners: Map<string, PhaseRunner>,
-  ) {}
+  ) {
+    // Initialize ward validator
+    this.wardValidator = new WardValidator(fileSystem, logger);
 
-  async runQuest(quest: Quest, agentSpawner: AgentSpawner): Promise<void> {
+    // Initialize phase runners
+    this.phaseRunners = new Map([
+      ['discovery', new DiscoveryPhaseRunner(questManager, fileSystem, logger)],
+      [
+        'implementation',
+        new ImplementationPhaseRunner(questManager, fileSystem, logger, this.wardValidator),
+      ],
+      ['testing', new TestingPhaseRunner(questManager, fileSystem, logger)],
+      ['review', new ReviewPhaseRunner(questManager, fileSystem, logger, this.wardValidator)],
+    ]);
+
+    // Initialize agent spawner with quest manager for recovery tracking
+    this.agentSpawner = new AgentSpawner(questManager);
+  }
+
+  async runQuest(quest: Quest): Promise<void> {
     this.logger.bright(`\n⚔️ Quest: ${quest.title}\n`);
 
     // Check quest freshness before continuing
@@ -27,41 +54,65 @@ export class QuestOrchestrator {
 
     // Sequential phase execution
     let currentQuest = quest;
-    while (!this.questManager.isQuestComplete(currentQuest)) {
-      const phase = this.questManager.getCurrentPhase(currentQuest);
 
-      this.logger.info(`Current phase: ${phase}`);
+    while (true) {
+      // ALWAYS reload quest at start of loop to get latest state
+      const latestQuest = this.questManager.getQuest(currentQuest.folder);
+      if (!latestQuest) {
+        this.logger.error('Failed to reload quest');
+        return;
+      }
+      currentQuest = latestQuest;
 
-      if (phase === null) {
-        // All phases complete
+      // Check if quest is complete with fresh data
+      if (this.questManager.isQuestComplete(currentQuest)) {
         this.completeQuest(currentQuest);
         return;
       }
 
-      try {
-        await this.executePhase(currentQuest, phase, agentSpawner);
-      } catch (error) {
-        if (error instanceof EscapeHatchError) {
-          this.logger.error(`Agent triggered escape hatch: ${error.escape.reason}`);
-          this.logger.info(`Analysis: ${error.escape.analysis}`);
-          this.logger.info(`Recommendation: ${error.escape.recommendation}`);
-          currentQuest.status = 'blocked';
-          this.questManager.saveQuest(currentQuest);
-          return;
-        }
-        throw error;
-      }
+      const phase = this.questManager.getCurrentPhase(currentQuest);
+      this.logger.info(`Current phase: ${phase}`);
 
-      // Reload quest to get latest state
-      const reloadedQuest = this.questManager.getQuest(currentQuest.folder);
-      if (!reloadedQuest) {
-        this.logger.error('Failed to reload quest');
+      if (phase === null) {
+        // All phases complete but quest not complete - likely pending tasks
+        this.logger.warn('All phases complete but quest has pending tasks. Unable to proceed.');
         return;
       }
-      currentQuest = reloadedQuest;
-    }
 
-    this.completeQuest(currentQuest);
+      try {
+        await this.executePhase(currentQuest, phase, this.agentSpawner);
+      } catch (error) {
+        if (error instanceof EscapeHatchError) {
+          this.logger.warn(`Agent requesting refinement: ${error.escape.reason}`);
+          this.logger.info(`Finding: ${error.escape.analysis}`);
+          this.logger.info(`Suggestion: ${error.escape.recommendation}`);
+
+          // Add refinement request
+          if (!currentQuest.refinementRequests) {
+            currentQuest.refinementRequests = [];
+          }
+
+          const currentAgent = this.phaseRunners.get(phase)?.getAgentType() || phase;
+          currentQuest.refinementRequests.push({
+            fromAgent: currentAgent,
+            timestamp: new Date().toISOString(),
+            finding: error.escape.analysis,
+            suggestion: error.escape.recommendation,
+            reportNumber: this.questManager.getNextReportNumber(currentQuest.folder).toString(),
+          });
+
+          // Mark discovery for refinement
+          currentQuest.phases.discovery.status = 'pending';
+          currentQuest.needsRefinement = true;
+
+          // Save and continue (not return)
+          this.questManager.saveQuest(currentQuest);
+          this.logger.info('Returning to discovery for refinement...');
+        } else {
+          throw error;
+        }
+      }
+    }
   }
 
   completeQuest(quest: Quest): void {

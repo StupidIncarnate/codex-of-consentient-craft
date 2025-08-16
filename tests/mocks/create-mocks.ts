@@ -1,13 +1,13 @@
-import type { QuestManager } from '../../src/core/quest-manager';
-import type { FileSystem } from '../../src/core/file-system';
-import type { AgentSpawner } from '../../src/agents/agent-spawner';
-import type { Logger } from '../../src/utils/logger';
-import type { PhaseRunner } from '../../src/core/phase-runner-interface';
-import type { QuestOrchestrator } from '../../src/core/quest-orchestrator';
-import type { ConfigManager } from '../../src/core/config-manager';
-import type { WardValidator } from '../../src/core/ward-validator';
-import type { PhaseType } from '../../src/models/quest';
-import type { AgentType } from '../../src/models/agent';
+import type { QuestManager } from '../../src/v1/core/quest-manager';
+import type { FileSystem } from '../../src/v1/core/file-system';
+import type { AgentSpawner } from '../../src/v1/agents/agent-spawner';
+import type { Logger } from '../../src/v1/utils/logger';
+import type { PhaseRunner } from '../../src/v1/core/phase-runner-interface';
+import type { QuestOrchestrator } from '../../src/v1/core/quest-orchestrator';
+import type { ConfigManager } from '../../src/v1/core/config-manager';
+import type { WardValidator } from '../../src/v1/core/ward-validator';
+import type { PhaseType } from '../../src/v1/models/quest';
+import type { AgentType } from '../../src/v1/models/agent';
 
 export function createMockQuestManager(): jest.Mocked<QuestManager> {
   return {
@@ -36,12 +36,21 @@ export function createMockQuestManager(): jest.Mocked<QuestManager> {
 export function createMockFileSystem(): jest.Mocked<FileSystem> {
   return {
     getFolderStructure: jest.fn(),
-    initializeStructure: jest.fn(),
+    initializeFolderStructure: jest.fn(),
     cleanOldQuests: jest.fn(),
     findPackageJsons: jest.fn(),
     readFile: jest.fn(),
     writeFile: jest.fn(),
     appendFile: jest.fn(),
+    readJson: jest.fn(),
+    writeJson: jest.fn(),
+    getNextQuestNumber: jest.fn(),
+    createQuestFolder: jest.fn(),
+    listQuests: jest.fn(),
+    listFiles: jest.fn(),
+    directoryExists: jest.fn(),
+    findQuest: jest.fn(),
+    moveQuest: jest.fn(),
   } as unknown as jest.Mocked<FileSystem>;
 }
 

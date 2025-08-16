@@ -749,16 +749,22 @@ export class QuestManager {
    * Check if quest is complete
    */
   isQuestComplete(quest: Quest): boolean {
-    if (quest.status !== 'in_progress') {
-      return quest.status === 'complete';
+    // If already marked complete, it's complete
+    if (quest.status === 'complete') {
+      return true;
     }
 
-    // Check if all tasks are complete
+    // If not in progress, it can't be completed
+    if (quest.status !== 'in_progress') {
+      return false;
+    }
+
+    // Quest is in progress - check if it SHOULD be complete
+    // Need both tasks and phases to be done
     const allTasksComplete = quest.tasks.every(
       (task) => task.status === 'complete' || task.status === 'skipped',
     );
 
-    // Check if all phases are complete or skipped
     const allPhasesComplete = Object.values(quest.phases).every(
       (phase) => phase.status === 'complete' || phase.status === 'skipped',
     );

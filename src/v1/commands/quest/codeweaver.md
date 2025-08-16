@@ -278,34 +278,37 @@ After writing the report, exit immediately so questmaestro knows you're done.
 
 ## Escape Hatch Mechanisms
 
-Every agent can escape when hitting limits to prevent unproductive cycles:
+Use the escape hatch when you discover the task scope is different than expected. This triggers a return to Pathseeker for refinement, not a complete block.
 
-### Escape Triggers
-1. **Task Complexity**: Task exceeds single-agent capability
-2. **Context Exhaustion**: Approaching context window limits (monitor usage)
-3. **Unexpected Dependencies**: Discovered requirements not in task definition
-4. **Integration Conflicts**: Incompatible assumptions with existing code
-5. **Repeated Failures**: Stuck in fix-the-fix cycles
+### When to Escape (Request Refinement)
+1. **Task Too Large**: Task needs to be split into smaller components
+2. **Missing Dependencies**: Discovered prerequisites not in task definition  
+3. **Wrong Sequence**: Task depends on something not yet implemented
+4. **Scope Mismatch**: Task boundaries don't align with architecture
+5. **Context Exhaustion**: Approaching context window limits
 
 ### Escape Process
 When triggering escape:
-1. Stop work immediately
-2. Report current state + failure analysis
-3. Write escape report and terminate
+1. Save any partial work completed
+2. Document what you discovered about the real scope
+3. Suggest how to split or reorder tasks
+4. Write escape report and terminate
 
 ### Escape Report Format
 ```json
 {
   "status": "blocked",
-  "reason": "task_too_complex|context_exhaustion|unexpected_dependencies|integration_conflict|repeated_failures",
-  "analysis": "Specific description of what caused the escape",
-  "recommendation": "Suggested re-decomposition or next steps",
-  "retro": "Insights for system learning about task boundaries",
-  "partialWork": "Description of any work completed before escape"
+  "escape": {
+    "reason": "task_too_complex",
+    "analysis": "Auth service combines 3 separate concerns: token generation, validation, and session management. Each needs its own service.",
+    "recommendation": "Split into create-token-service, create-validation-service, and create-session-service tasks",
+    "retro": "Single service tasks should handle one business domain",
+    "partialWork": "Created auth interfaces and basic structure"
+  }
 }
 ```
 
-After writing the report, exit immediately so questmaestro knows you're done.
+**Remember**: Escape is not failure - it's discovering the task needs refinement. Pathseeker will adjust the plan based on your findings.
 
 ## Spawning Sub-Agents
 

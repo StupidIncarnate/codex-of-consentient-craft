@@ -7,7 +7,7 @@
     "questmaestro-setup": "./dist/bin/install.js"
   },
   "scripts": {
-    "build": "tsc && cp -r src/commands dist/src/ && chmod +x dist/src/cli.js && chmod +x dist/bin/install.js",
+    "build": "tsc && cp -r src/v1/commands dist/src/ && chmod +x dist/src/cli.js && chmod +x dist/bin/install.js",
     "build:clean": "rm -rf dist && npm run build",
     "prepare": "npm run build",
     "test": "jest",

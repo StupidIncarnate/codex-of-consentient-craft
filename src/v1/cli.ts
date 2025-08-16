@@ -1,20 +1,14 @@
 #!/usr/bin/env node
 
 import * as fs from 'fs';
-import * as path from 'path';
 import { ConfigManager } from './core/config-manager';
 import { QuestManager } from './core/quest-manager';
 import { FileSystem } from './core/file-system';
 import { Logger } from './utils/logger';
-import { AgentSpawner } from './agents/agent-spawner';
 import type { Quest } from './models/quest';
 import { isError, isPackageJson, parseJsonSafely } from './utils/type-guards';
 import { QuestOrchestrator } from './core/quest-orchestrator';
-import { DiscoveryPhaseRunner } from './core/discovery-phase-runner';
-import { ImplementationPhaseRunner } from './core/implementation-phase-runner';
-import { TestingPhaseRunner } from './core/testing-phase-runner';
-import { ReviewPhaseRunner } from './core/review-phase-runner';
-import type { PhaseRunner } from './core/phase-runner-interface';
+import { DiscoveryManager } from './core/discovery-manager';
 
 const logger = new Logger();
 const fileSystem = new FileSystem();
@@ -228,70 +222,13 @@ async function handleQuestOrCreate(args: string[]) {
 }
 
 async function checkProjectDiscovery() {
-  const config = configManager.loadConfig();
-
-  if (!config.discoveryComplete) {
-    logger.bright('🔍 PROJECT DISCOVERY REQUIRED 🔍\n');
-
-    // Get user input for standards
-    const standards = await getUserInput('Any specific directories with standards? (or "none"): ');
-
-    // Find all package.json files
-    const packages = fileSystem.findPackageJsons();
-
-    if (packages.length === 0) {
-      logger.error('No package.json files found!');
-      process.exit(1);
-    }
-
-    logger.info(`Found ${packages.length} package(s) to analyze\n`);
-
-    // Sequential Voidpoker spawning
-    const agentSpawner = new AgentSpawner();
-
-    for (const pkg of packages) {
-      logger.info(`Analyzing: ${pkg.dir}`);
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const packageName = path.basename(pkg.dir);
-      const reportPath = `questmaestro/discovery/voidpoker-${timestamp}-${packageName}-report.json`;
-
-      await agentSpawner.spawnAndWait('voidpoker', {
-        workingDirectory: pkg.dir,
-        questFolder: 'discovery',
-        reportNumber: timestamp,
-        additionalContext: {
-          discoveryType: 'Project Analysis',
-          packageLocation: pkg.dir,
-          userStandards: standards,
-          reportPath: reportPath,
-        },
-      });
-    }
-
-    // Update config
-    config.discoveryComplete = true;
-    configManager.saveConfig(config);
-
-    logger.success('\n✅ Project discovery complete!\n');
-  }
+  const discoveryManager = new DiscoveryManager(configManager, fileSystem, logger);
+  await discoveryManager.runProjectDiscovery();
 }
 
 async function runQuest(quest: Quest) {
-  // Create phase runners
-  const phaseRunners: Map<string, PhaseRunner> = new Map([
-    ['discovery', new DiscoveryPhaseRunner(questManager, fileSystem, logger)],
-    ['implementation', new ImplementationPhaseRunner(questManager, fileSystem, logger)],
-    ['testing', new TestingPhaseRunner(questManager, fileSystem, logger)],
-    ['review', new ReviewPhaseRunner(questManager, fileSystem, logger)],
-  ]);
-
-  // Create orchestrator and agent spawner
-  const orchestrator = new QuestOrchestrator(questManager, logger, phaseRunners);
-  const agentSpawner = new AgentSpawner();
-
-  // Delegate to orchestrator
-  await orchestrator.runQuest(quest, agentSpawner);
+  const orchestrator = new QuestOrchestrator(questManager, fileSystem, logger);
+  await orchestrator.runQuest(quest);
 }
 
 function detectTestFramework(): string {
@@ -336,15 +273,6 @@ function getWardCommands(): string {
   }
 }
 
-async function getUserInput(prompt: string): Promise<string> {
-  return new Promise((resolve) => {
-    process.stdout.write(prompt);
-    process.stdin.once('data', (data) => {
-      resolve(data.toString().trim());
-    });
-  });
-}
-
 // Export for testing
 export {
   detectCommand,
@@ -357,7 +285,6 @@ export {
   runQuest,
   detectTestFramework,
   getWardCommands,
-  getUserInput,
   main,
 };
 

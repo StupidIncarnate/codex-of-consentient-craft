@@ -85,6 +85,36 @@ export interface ExecutionLogEntry {
 }
 
 /**
+ * Refinement request from an agent that needs discovery re-run
+ */
+export interface RefinementRequest {
+  /**
+   * Agent that requested refinement
+   */
+  fromAgent: string;
+
+  /**
+   * When the refinement was requested
+   */
+  timestamp: string;
+
+  /**
+   * What the agent discovered/needs
+   */
+  finding: string;
+
+  /**
+   * Agent's suggestion for resolution
+   */
+  suggestion: string;
+
+  /**
+   * Report number that triggered this
+   */
+  reportNumber?: string;
+}
+
+/**
  * Observable atomic action that can be demonstrated
  */
 export interface ObservableAction {
@@ -253,6 +283,16 @@ export interface Quest {
     failureReason: string;
     previousReportNumber: string;
   }>;
+
+  /**
+   * Refinement requests from agents needing discovery re-run
+   */
+  refinementRequests?: RefinementRequest[];
+
+  /**
+   * Flag indicating discovery needs to run for refinement
+   */
+  needsRefinement?: boolean;
 
   /**
    * Ward validation errors if blocked

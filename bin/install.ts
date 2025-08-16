@@ -8,8 +8,8 @@ import {
   isPackageJson,
   parseJsonSafely,
   type PackageJson,
-} from '../src/utils/type-guards';
-import { Logger } from '../src/utils/logger';
+} from '../src/v1/utils/type-guards';
+import { Logger } from '../src/v1/utils/logger';
 
 // Directory and file constants
 const CONFIG_FILE = '.questmaestro';

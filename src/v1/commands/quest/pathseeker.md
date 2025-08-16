@@ -57,6 +57,19 @@ Result: Observable atomic action: "User sees 'Invalid credentials' error for wro
 4. **Update task list** - Add new tasks, modify dependencies, mark obsolete tasks
 5. **Output validation report** - Updated task list with modifications
 
+### Mode 4: Refinement (when agents discover scope changes)
+
+**Context**: Another agent (Codeweaver, Siegemaster, etc.) discovered the task scope was different than expected and requested refinement.
+
+1. **Review refinement request** - Understand what the agent discovered
+2. **Analyze completed work** - See what's already been done and can't be changed
+3. **Adjust task list** - Based on the finding:
+   - **Split large tasks** - If task was too complex, break it down
+   - **Add missing tasks** - If dependencies were discovered
+   - **Reorder tasks** - If sequence needs adjustment
+4. **Create reconciliation plan** - Specify how to proceed with existing work
+5. **Output refinement report** - Updated task list preserving completed work
+
 **Task Definition Criteria**:
 - **Implementation Task**: Creates new code + primary tests (unit/integration)
 - **Testing Task**: Adds additional test types (e2e, performance, etc.) to existing code
@@ -349,6 +362,56 @@ For resume validation mode, use the validation report format:
   },
   "retrospectiveNotes": [
     { "category": "evolution", "note": "Quest evolved to include rate limiting after security review" }
+  ]
+}
+```
+
+For refinement mode (Mode 4), use the reconciliation plan format:
+```javascript
+{
+  "status": "complete",
+  "agentType": "pathseeker",
+  "report": {
+    "reconciliationPlan": {
+      "mode": "EXTEND",  // CONTINUE (no changes), EXTEND (add tasks), or REPLAN (replace pending)
+      "reason": "Codeweaver discovered task was too large and needs splitting",
+      "newTasks": [
+        {
+          "id": "create-auth-token-service",
+          "name": "CreateAuthTokenService",
+          "type": "implementation",
+          "description": "Separate service for JWT token generation",
+          "dependencies": ["create-auth-interface"],
+          "filesToCreate": ["src/auth/token-service.ts"],
+          "filesToEdit": []
+        },
+        {
+          "id": "create-auth-validation-service",
+          "name": "CreateAuthValidationService",
+          "type": "implementation",
+          "description": "Separate service for credential validation",
+          "dependencies": ["create-auth-interface"],
+          "filesToCreate": ["src/auth/validation-service.ts"],
+          "filesToEdit": []
+        }
+      ],
+      "taskUpdates": [
+        {
+          "taskId": "create-auth-service",
+          "newDependencies": ["create-auth-token-service", "create-auth-validation-service"]
+        }
+      ],
+      "obsoleteTasks": []  // Tasks to mark as skipped if no longer needed
+    },
+    "refinementContext": {
+      "requestFrom": "codeweaver",
+      "finding": "Task complexity exceeded single component scope",
+      "completedWork": ["auth interfaces created", "basic structure in place"],
+      "recommendation": "Split into token and validation services"
+    }
+  },
+  "retrospectiveNotes": [
+    { "category": "refinement", "note": "Auth service needed decomposition into smaller services" }
   ]
 }
 ```

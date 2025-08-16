@@ -261,34 +261,37 @@ After writing the report, exit immediately so questmaestro knows you're done.
 
 ## Escape Hatch Mechanisms
 
-Every agent can escape when hitting limits to prevent unproductive cycles:
+Use the escape hatch when you discover architectural or integration issues that need replanning. This triggers a return to Pathseeker for refinement.
 
-### Escape Triggers
-1. **Task Complexity**: Review exceeds single-agent capability
-2. **Context Exhaustion**: Approaching context window limits (monitor usage)
-3. **Unexpected Dependencies**: Discovered architectural conflicts
-4. **Integration Conflicts**: Incompatible patterns across parallel implementations
-5. **Repeated Failures**: Stuck in fix-the-fix cycles
+### When to Escape (Request Refinement)
+1. **Architectural Conflicts**: Parallel implementations incompatible
+2. **Missing Standards**: No documented standards for critical patterns
+3. **Integration Breakdown**: Components can't work together as designed
+4. **Scope Too Large**: Too many files to review effectively
+5. **Context Exhaustion**: Approaching context window limits
 
 ### Escape Process
 When triggering escape:
-1. Stop work immediately
-2. Report current state + failure analysis
-3. Write escape report and terminate
+1. Document all issues found so far
+2. Explain what architectural changes are needed
+3. Suggest how to restructure the implementation
+4. Write escape report and terminate
 
 ### Escape Report Format
 ```json
 {
   "status": "blocked",
-  "reason": "task_too_complex|context_exhaustion|unexpected_dependencies|integration_conflict|repeated_failures",
-  "analysis": "Specific description of what caused the escape",
-  "recommendation": "Suggested re-decomposition or next steps",
-  "retro": "Insights for system learning about task boundaries",
-  "partialWork": "Description of any review/fixes completed before escape"
+  "escape": {
+    "reason": "integration_conflict",
+    "analysis": "Auth service and middleware use incompatible session patterns. Service uses JWT while middleware expects cookies.",
+    "recommendation": "Need to align on single session strategy before proceeding. Suggest JWT throughout.",
+    "retro": "Parallel development needs shared architectural decisions upfront",
+    "partialWork": "Reviewed 3 of 8 components, fixed naming conventions"
+  }
 }
 ```
 
-After writing the report, exit immediately so questmaestro knows you're done.
+**Remember**: Escape helps identify architectural misalignments early. Pathseeker will coordinate a solution.
 
 ## Spawning Sub-Agents
 

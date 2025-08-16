@@ -12,6 +12,20 @@ export class DiscoveryPhaseRunner extends BasePhaseRunner {
   }
 
   getAdditionalContext(quest: Quest): Record<string, unknown> {
+    // Check if this is a refinement request
+    if (quest.needsRefinement && quest.refinementRequests && quest.refinementRequests.length > 0) {
+      const latestRequest = quest.refinementRequests[quest.refinementRequests.length - 1];
+      return {
+        mode: 'refinement',
+        latestRequest: latestRequest,
+        allRequests: quest.refinementRequests,
+        currentTasks: quest.tasks,
+        completedTasks: quest.tasks.filter((t) => t.status === 'complete'),
+        userRequest: quest.userRequest,
+        quest: quest,
+      };
+    }
+
     const hasExistingTasks = quest.tasks.length > 0;
 
     if (hasExistingTasks) {
@@ -32,6 +46,11 @@ export class DiscoveryPhaseRunner extends BasePhaseRunner {
   processAgentReport(quest: Quest, report: AgentReport): void {
     if (report.agentType !== 'pathseeker' || !report.report) {
       return;
+    }
+
+    // Clear refinement flag if we were in refinement mode
+    if (quest.needsRefinement) {
+      quest.needsRefinement = false;
     }
 
     const pathseekerReport = report.report as {
