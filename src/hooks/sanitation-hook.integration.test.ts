@@ -8,7 +8,7 @@ import {
   WriteToolHookStub,
   EditToolHookStub,
   MultiEditToolHookStub,
-} from '../../../tests/stubs/hook-data.stub';
+} from '../../tests/stubs/hook-data.stub';
 
 interface ExecError extends Error {
   status?: number;
