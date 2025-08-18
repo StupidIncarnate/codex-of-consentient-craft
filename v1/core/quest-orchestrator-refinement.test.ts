@@ -3,12 +3,12 @@ import type { Logger } from '../utils/logger';
 import type { FileSystem } from './file-system';
 import { QuestOrchestrator } from './quest-orchestrator';
 import { EscapeHatchError } from './escape-hatch-error';
-import { QuestStub } from '../../../tests/stubs/quest.stub';
+import { QuestStub } from '../../tests/stubs/quest.stub';
 import {
   createMockQuestManager,
   createMockLogger,
   createMockFileSystem,
-} from '../../../tests/mocks/create-mocks';
+} from '../../tests/mocks/create-mocks';
 
 describe('QuestOrchestrator - Refinement Flow', () => {
   let orchestrator: QuestOrchestrator;

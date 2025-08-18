@@ -1,6 +1,6 @@
 import { QuestManager } from './quest-manager';
 import { createQuest, Quest } from '../models/quest';
-import { createMockFileSystem, createMockConfigManager } from '../../../tests/mocks/create-mocks';
+import { createMockFileSystem, createMockConfigManager } from '../../tests/mocks/create-mocks';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as crypto from 'crypto';

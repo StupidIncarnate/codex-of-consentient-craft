@@ -4,14 +4,14 @@ import type { AgentSpawner } from '../agents/agent-spawner';
 import type { FileSystem } from './file-system';
 import type { Logger } from '../utils/logger';
 import type { QuestManager } from './quest-manager';
-import { QuestStub } from '../../../tests/stubs/quest.stub';
-import { AgentReportStub } from '../../../tests/stubs/agent-report.stub';
+import { QuestStub } from '../../tests/stubs/quest.stub';
+import { AgentReportStub } from '../../tests/stubs/agent-report.stub';
 import {
   createMockAgentSpawner,
   createMockFileSystem,
   createMockLogger,
   createMockQuestManager,
-} from '../../../tests/mocks/create-mocks';
+} from '../../tests/mocks/create-mocks';
 import { execSync } from 'child_process';
 
 describe('WardValidator', () => {

@@ -2,13 +2,13 @@ import type { QuestManager } from './quest-manager';
 import type { FileSystem } from './file-system';
 import type { Logger } from '../utils/logger';
 import { ReviewPhaseRunner } from './review-phase-runner';
-import { QuestStub } from '../../../tests/stubs/quest.stub';
-import { AgentReportStub } from '../../../tests/stubs/agent-report.stub';
+import { QuestStub } from '../../tests/stubs/quest.stub';
+import { AgentReportStub } from '../../tests/stubs/agent-report.stub';
 import {
   createMockQuestManager,
   createMockFileSystem,
   createMockLogger,
-} from '../../../tests/mocks/create-mocks';
+} from '../../tests/mocks/create-mocks';
 
 describe('ReviewPhaseRunner', () => {
   let mockQuestManager: jest.Mocked<QuestManager>;

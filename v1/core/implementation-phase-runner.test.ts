@@ -3,15 +3,15 @@ import type { FileSystem } from './file-system';
 import type { AgentSpawner } from '../agents/agent-spawner';
 import type { WardValidator } from './ward-validator';
 import { ImplementationPhaseRunner } from './implementation-phase-runner';
-import { QuestStub } from '../../../tests/stubs/quest.stub';
-import { AgentReportStub } from '../../../tests/stubs/agent-report.stub';
+import { QuestStub } from '../../tests/stubs/quest.stub';
+import { AgentReportStub } from '../../tests/stubs/agent-report.stub';
 import {
   createMockQuestManager,
   createMockFileSystem,
   createMockAgentSpawner,
   createMockWardValidator,
   createMockLogger,
-} from '../../../tests/mocks/create-mocks';
+} from '../../tests/mocks/create-mocks';
 import { EscapeHatchError } from './escape-hatch-error';
 
 describe('ImplementationPhaseRunner', () => {

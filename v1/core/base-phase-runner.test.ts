@@ -7,14 +7,14 @@ import type { AgentSpawner } from '../agents/agent-spawner';
 import { BasePhaseRunner } from './base-phase-runner';
 import { EscapeHatchError } from './escape-hatch-error';
 import { Logger } from '../utils/logger';
-import { QuestStub } from '../../../tests/stubs/quest.stub';
-import { AgentReportStub } from '../../../tests/stubs/agent-report.stub';
+import { QuestStub } from '../../tests/stubs/quest.stub';
+import { AgentReportStub } from '../../tests/stubs/agent-report.stub';
 import {
   createMockQuestManager,
   createMockFileSystem,
   createMockAgentSpawner,
   createMockLogger,
-} from '../../../tests/mocks/create-mocks';
+} from '../../tests/mocks/create-mocks';
 
 // Concrete test implementation of BasePhaseRunner
 class TestPhaseRunner extends BasePhaseRunner {
