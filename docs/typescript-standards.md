@@ -13,7 +13,6 @@ You MUST always follow these. There is no rational that can go against these.
 
 ### ALWAYS
 
-- ALWAYS use types from @tradesage/data-types
 - ALWAYS follow prettier standards: semicolons, single quotes, 2 spaces
 - ALWAYS import only what you need. If you import unused modules, typescript will fail the build
 - ALWAYS make one component/class per file

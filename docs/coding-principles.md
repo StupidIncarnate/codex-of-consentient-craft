@@ -14,7 +14,7 @@
 7. **TEGRITY**: [Final verification](#7-final-verification-tegrity)
 
 ### 1. Write empty test cases (STUB-TESTS)
-Write empty test cases with descriptive names that define expected behavior. Follow the [Test Structure Patterns](./testing-standards.md#test-structure-patterns) for organizing test hierarchies.
+Write empty test cases with descriptive names that define expected behavior. Follow the [Test Structure Patterns](../standards/testing-standards.md#test-structure-patterns) for organizing test hierarchies.
    ```typescript
    // Step 1: Empty test cases - Build context with nested describes
    describe('UserService', () => {
@@ -42,10 +42,10 @@ Fill in production code that aligns with expected behavior
 - Keep implementation simple and clear
 
 ### 3. Review for missing coverage (GAP-REVIEW)
-Review production code for missing test coverage based on [Coverage Requirements](./testing-standards.md#coverage-requirements)
+Review production code for missing test coverage based on [Coverage Requirements](../standards/testing-standards.md#coverage-requirements)
 
 ### 4. Fill in test assertions (TEST)
-Fill in test cases with assertions that match their descriptions. Use [Arrange-Act-Assert Pattern](./testing-standards.md#arrange-act-assert-pattern) for complex tests and follow [Assertion Methods](./testing-standards.md#assertion-methods) guidelines
+Fill in test cases with assertions that match their descriptions. Use [Arrange-Act-Assert Pattern](../standards/testing-standards.md#arrange-act-assert-pattern) for complex tests and follow [Assertion Methods](../standards/testing-standards.md#assertion-methods) guidelines
 ```typescript
 // Fill in the test assertions
 it('returns created user', async () => {
@@ -70,7 +70,7 @@ it('throws DuplicateUserError', async () => {
 - Fix any failing tests by updating production code or updating asserts if needed
 
 ### 6. Refactor for clarity (REFACTOR)
-Refactor production and test files for clarity, following DRY principle for production code, [DAMP (Descriptive And Meaningful Phrases)](./testing-standards.md) for test code, and verify all tests still pass
+Refactor production and test files for clarity, following DRY principle for production code, [DAMP (Descriptive And Meaningful Phrases)](../standards/testing-standards.md) for test code, and verify all tests still pass
 
 ### 7. Final verification (TEGRITY)
 - Run all tests one more time

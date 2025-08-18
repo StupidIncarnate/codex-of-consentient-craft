@@ -4,7 +4,7 @@
 
 ## Test Philosophy
 - Write tests that describe [behavior, not implementation](#behavior-vs-implementation). Implementation details change, behavior contracts do not change
-- Keep each test self-contained and readable. DAMP principle ensures that tests which fail are then readable (see [Test Structure Patterns](#test-structure-patterns)) 
+- Keep each test self-contained and readable. DAMP principle ensures that tests which fail are then readable (see [DAMP Coverage Standards](#damp-coverage-standards))
 - [Isolate tests](#test-isolation) from each other. Independent tests can run in any order without side effects - no shared state, no test depending on another test's execution
 - When doing unit and integration tests, [co-locate test files](#test-file-organization) with source code. Use .test.ts or .test.tsx suffix for easy discovery
 
@@ -64,7 +64,11 @@ it('updates user', () => {
 
 ### Test Data Factory Functions
 
-When multiple tests use similar data structures with only minor variations, use factory functions to reduce redundancy and improve maintainability.
+- When multiple tests use similar data structures with only minor variations, use factory functions to reduce redundancy and improve maintainability.
+- Create type-safe stubs for all data types. This maintains parity with production type safety
+- Use UUID format for IDs. Simple strings like 'user-123' don't match production data
+- Provide explicit values in test data. Relying on default stub values creates brittle tests
+- Keep test data minimal but realistic. Override only properties your assertions verify (reference the code to determine what's needed)
 
 #### Naming Convention
 Use the pattern `[Type]Stub` for factory function names:
@@ -102,6 +106,68 @@ it('valid TypeScript content → returns exit code 0', () => {
     stdout: '',
     stderr: ''
   });
+});
+```
+
+**Example using Jest:**
+```typescript
+// ✅ CORRECT - Type-safe stub factory
+export const UserStub = (props: Partial<User> = {}): User => ({
+  id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  name: 'John Doe',
+  email: 'john@example.com',
+  createdAt: new Date('2023-01-01'),
+  ...props,
+});
+
+// ✅ CORRECT - Test complete object with toStrictEqual
+it('email: "test@example.com" → sends welcome email', () => {
+  const user = UserStub({ email: 'test@example.com' });
+  const result = sendWelcomeEmail(user);
+  expect(result).toStrictEqual({
+    to: 'test@example.com',
+    subject: 'Welcome to our platform',
+    template: 'welcome-email'
+  });
+});
+
+const formatUserDisplay(user: Pick<User, 'name', 'email'>) => {
+  return {
+    displayName: "Display: " + user.name,
+    email: user.email
+  };
+}
+
+// ✅ CORRECT - Minimal stub overrides, complete object assertion
+it('user with custom name and email → returns formatted display', () => {
+  const user = UserStub({ name: 'Mick Robberts', email: 'johnny@gmail.com' });
+  expect(formatUserDisplay(user)).toStrictEqual({
+    displayName: "Display: Mick Robberts",
+    email: 'johnny@gmail.com'
+  });
+});
+
+// ❌ WRONG - Inline object without type safety
+const user = {
+  id: 'user-123',  // Not a valid UUID
+  name: 'Test User',
+  email: 'test@test.com'
+  // Missing required fields - TypeScript won't catch this!
+};
+
+// ❌ WRONG - Includes irrelevant data in test setup
+it('formats user display name', () => {
+  const user = {
+    id: 'd7e8f9a0-1bcd-ef23-4567-89012abcdef3',
+    name: 'Mick Robberts',
+    email: 'johnny@example.com',  // Not needed for name formatting
+    age: 30,                     // Not needed for name formatting
+    address: { street: '123 Main St' }  // Not needed for name formatting
+  };
+  expect(formatUserDisplay(user)).toStrictEqual({
+    displayName: "Display: Mick Robberts",
+    email: 'johnny@example.com'
+  }); 
 });
 ```
 
@@ -184,116 +250,37 @@ tests/
 
 **Note**: Unit and integration tests should be co-located with source code. E2E tests live in a separate test directory since they test across multiple components/pages.
 
+## DAMP Coverage Standards
+Tests Should Be DAMP (Descriptive And Meaningful Phrases), Not DRY. Never conflate production code with test code.
 
-## Test Structure Patterns
+**100% Branch Coverage Required:**
 
-### Test Case Description Standards and Organization Hierarchy
-- Use one root-level describe block per test file (matches the class/module being tested)
-- Nest describe blocks to build context: class/module → method → condition
-- Each describe adds one piece of context (when X, with Y, given Z)
-- `it` statements describe the outcome simply: "returns user", "throws Error", "emits event"
-- Use arrow notation (`→`) only within `it` descriptions when showing specific input/output mappings
-- Group tests by their most specific shared condition
-- Describe blocks should read naturally when Jest outputs them: "UserService › createUser() › when email is new › returns {id, name, created}"
+- All if/else branches
+- All switch cases
+- All input combinations
+- Ternary operators
+- Optional chaining (?.)
+- Try/catch blocks
+- Dynamic values in JSX
+- Conditional rendering in JSX
+- Event handling: onClick, onChange, form submissions
+
+**Example needing 3 tests:**
 
 ```typescript
-describe('UserService', () => {
-  describe('createUser()', () => {
-    describe('when email is new', () => {
-      it('returns {id, name, created}', () => {});
-      it('sends welcome email', () => {});
-    });
-    
-    describe('when email already exists', () => {
-      it('throws DuplicateUserError', () => {});
-    });
-    
-    describe('when data is invalid', () => {
-      it('email === "" → throws ValidationError', () => {});
-      it('email !== valid format → throws ValidationError', () => {});
-      it('age < 0 → throws RangeError', () => {});
-    });
-  });
-  
-  describe('updateUser()', () => {
-    describe('when user exists', () => {
-      it('returns updated user', () => {});
-      it('emits UserUpdated event', () => {});
-    });
-    
-    describe('when user not found', () => {
-      it('throws NotFoundError', () => {});
-    });
-  });
-});
+function processUser(user: User | null): string {
+  if (!user) return 'No user'; // Test 1
+  if (user.isAdmin) return 'Admin'; // Test 2
+  return user.name; // Test 3
+}
 ```
 
-### Arrange-Act-Assert Pattern
-The Arrange-Act-Assert pattern helps organize complex tests with multiple setup steps. Use it when tests have significant setup, not for simple assertions.
-
-**When to use AAA - Complex setup example using Jest:**
-```typescript
-it('processes order with multiple discounts and shipping rules', () => {
-  // Arrange - Multiple setup steps with readable data
-  const goldCustomer = createCustomer({
-    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-    membershipLevel: 'gold',
-    address: { country: 'US', state: 'CA' }
-  });
-  const orderItems = [
-    createOrderItem({ sku: 'WIDGET-1', price: 50, quantity: 2 }),
-    createOrderItem({ sku: 'GADGET-2', price: 30, quantity: 1 })
-  ];
-  const activePromotions = ['SUMMER20', 'GOLD_MEMBER'];
-  
-  // Act - The one action we're testing
-  const order = processOrder({
-    customer: goldCustomer,
-    items: orderItems,
-    promotions: activePromotions,
-  });
-  
-  // Assert - Test whole object to catch property bleedthrough
-  expect(order).toStrictEqual({
-    subtotal: 130,
-    discount: 26,      // 20% off
-    tax: 13.5,
-    shipping: 0,       // Free for gold members
-    total: 117.5
-  });
-});
-```
-
-**When NOT to use AAA - Simple tests:**
-```typescript
-// ✅ CORRECT - Simple assertions don't need AAA
-it('empty email → returns null', () => {
-  expect(parseUser({ email: '' })).toBeNull();
-});
-
-it('validates email format', () => {
-  expect(isValidEmail({ email: 'test@example.com' })).toBe(true);
-});
-
-// ❌ WRONG - AAA adds noise to simple tests
-it('empty email → returns null', () => {
-  // Arrange
-  const options = { email: '' };
-  
-  // Act
-  const result = parseUser(options);
-  
-  // Assert
-  expect(result).toBeNull();
-});
-```
-
-## Coverage Requirements
+### Coverage Requirements
 - Achieve [100% branch coverage](#branch-coverage) for conditional logic. This includes if/else, switch, ternary, optional chaining, try/catch
 - Focus on [dynamic behavior and computed values](#dynamic-vs-static-testing). Static props and hardcoded text provide no value to test
 - Test all code paths including [error cases](#error-path-testing). Both positive and negative cases reveal different bugs
 
-### Branch Coverage
+#### Branch Coverage
 
 Every conditional path must be tested. Missing branches often hide bugs.
 
@@ -356,7 +343,7 @@ describe('processPayment()', () => {
 });
 ```
 
-### Dynamic vs Static Testing
+#### Dynamic vs Static Testing
 
 Test computed values and conditional logic. Skip hardcoded values that never change.
 
@@ -378,7 +365,7 @@ Test computed values and conditional logic. Skip hardcoded values that never cha
 <Button color="primary" size="large">
 ```
 
-### Error Path Testing
+#### Error Path Testing
 
 Test both success and failure cases. Error handling often has the most bugs.
 
@@ -413,40 +400,159 @@ it('fetches user', async () => {
 });
 ```
 
-## Test Quality
-- Use async/await for asynchronous operations. Callbacks and promise chains act poorly in tests
-- Extract complex setup to helper functions. But keep the test body self-contained
-- Every test must have assertions. Tests without assertions are not testing anything and defeat the purpose of testing
+## Test Description Format
 
-**Example using Jest:**
+### Action => Expectation Pattern
+
+Test descriptions follow the `Action => Expectation` format using element monikers:
+
 ```typescript
-// ✅ CORRECT - Clean async/await
-it('fetches user data', async () => {
-  const user = await fetchUser({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-  expect(user.name).toBe('John');
+// ✅ Good: Clear action and expected outcome with monikers
+it('clicking [data-test="load-data-button"] => shows @progressbar', () => {
+  const mocks = MockTemplate.successfulLoadMarketData();
+  render(<VerificationDashboard />, { wrapper: WrapperTemplate.withProviders(mocks) });
+  
+  fireEvent.click(screen.getByTestId('load-data-button'));
+  
+  expect(screen.getByRole('progressbar')).toBeInTheDocument();
 });
 
-// ✅ CORRECT - Helper function but test remains readable
-function createTestUser(overrides = {}) {
-  return {
-    id: '550e8400-e29b-41d4-a716-446655440000',
-    name: 'Test User',
-    email: 'test@example.com',
-    ...overrides
-  };
-}
-
-it('updates user email', () => {
-  const user = createTestUser({ email: 'old@example.com' });
-  const updated = updateEmail(user, 'new@example.com');
-  expect(updated.email).toBe('new@example.com');
+// ❌ Bad: Verbose and unclear
+it('when user clicks the load data button it should show a loading spinner', () => {
+  // ...
 });
+```
 
-// ❌ WRONG - Promise chains are harder to read
-it('fetches user data', () => {
-  return fetchUser('a1b2c3d4-e5f6-7890-abcd-ef1234567890').then(user => {
-    expect(user.name).toBe('John');
+### Element Correlation Monikers (Unit/Component Tests Only)
+
+Use standardized monikers for clear correlation between test descriptions and implementation elements.
+
+#### Code Elements
+- **Functions**: `functionName()`
+- **Classes**: `class ClassName`
+- **Variables/Constants**: `$variableName`
+- **Methods**: `object.method()`
+- **Properties**: `object.property`
+- **Types/Interfaces**: `type TypeName`
+
+#### UI Elements
+- **data-testid**: `[data-test="element-name"]`
+- **CSS classes**: `.className`
+- **HTML elements**: `<elementName>`
+- **ARIA roles**: `@role-name`
+
+#### State/Logic
+- **React hooks**: `useHookName()`
+- **State variables**: `$stateName`
+- **Refs**: `$refName.current`
+- **Effects**: `useEffect[dependency]`
+
+#### Examples in Test Descriptions
+
+```typescript
+// Functions and methods
+'calling loadMarketData() => triggers $loading state'
+'user.authenticate() success => sets $isAuthenticated true'
+
+// UI elements  
+'clicking [data-test="submit-button"] => shows .loading-spinner'
+'typing in [data-test="email-input"] => enables [data-test="login-button"]'
+
+// State and logic
+'$symbol change after $hasLoadedDataRef.current true => triggers loadMarketData()'
+'useEffect[symbol, timeframe] dependency change => calls loadData()'
+
+// Classes and types
+'class AuthService.login() with invalid credentials => returns type AuthError'
+
+// Mixed elements
+'[data-test="form"] submission with invalid $credentials => shows .error-message'
+'$isLoading true => disables [data-test="submit-button"] and shows @progressbar'
+```
+
+#### Benefits
+- **Direct correlation**: LLMs can map descriptions to exact code elements
+- **Searchability**: Easy to find tests for specific functions/elements  
+- **Consistency**: Same element always uses same moniker
+- **Clarity**: Immediately obvious what type of element is being tested
+
+### Test Organization by Feature
+
+Organize tests by the feature or behavior being tested, with descriptive `describe` blocks:
+
+```typescript
+describe('processPayment()', () => {
+  describe('input validation', () => {
+    it('processPayment({amount: 0}) => returns error "Invalid payment amount"', () => {
+      const result = processPayment({ amount: 0, method: 'credit_card' });
+      
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid payment amount');
+    });
+    
+    it('processPayment({method: "cryptocurrency"}) => returns error "Unsupported payment method"', () => {
+      const result = processPayment({ amount: 100, method: 'cryptocurrency' });
+      
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Unsupported payment method');
+    });
   });
+  
+  describe('credit card processing', () => {
+    beforeEach(() => {
+      TestActions.setupSuccessfulCreditCard();
+    });
+    
+    it('processPayment({method: "credit_card"}) => returns success with transactionId', async () => {
+      const result = await processPayment({ amount: 100, method: 'credit_card' });
+      
+      expect(result.success).toBe(true);
+      expect(result.data.transactionId).toBeDefined();
+    });
+  });
+  
+  describe('bank transfer processing', () => {
+    it('processPayment({method: "bank_transfer"}) with network success => returns success', async () => {
+      TestActions.setupSuccessfulBankTransfer();
+      
+      const result = await processPayment({ amount: 100, method: 'bank_transfer' });
+      
+      expect(result.success).toBe(true);
+    });
+    
+    it('processPayment({method: "bank_transfer"}) with network error => returns "Bank transfer failed"', async () => {
+      TestActions.setupFailedBankTransfer('Network timeout');
+      
+      const result = await processPayment({ amount: 100, method: 'bank_transfer' });
+      
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Bank transfer failed');
+    });
+  });
+});
+```
+
+### E2E/Integration Test Descriptions
+
+E2E tests focus on user behavior and business outcomes, not implementation:
+
+```typescript
+// ✅ E2E: User behavior focused
+it('User enters valid login credentials => navigates to dashboard', () => {
+  // E2E test implementation
+});
+
+it('Admin creates new product => product appears in customer catalog', () => {
+  // E2E test implementation  
+});
+
+it('Customer completes checkout => receives order confirmation email', () => {
+  // E2E test implementation
+});
+
+// ❌ E2E: Don't use data-testids or implementation details
+it('login-button click after valid form-input => dashboard-page renders', () => {
+  // Wrong for E2E
 });
 ```
 
@@ -485,175 +591,6 @@ expect(itemsWithExtras).toEqual(expect.arrayContaining(['apple', 'banana']));
 // PASSES - despite extra unwanted items
 ```
 
-## Test Data Patterns
-- Create type-safe stubs for all data types. This maintains parity with production type safety
-- Use UUID format for IDs. Simple strings like 'user-123' don't match production data
-- Provide explicit values in test data. Relying on default stub values creates brittle tests
-- Keep test data minimal but realistic. Override only properties your assertions verify (reference the code to determine what's needed)
-
-**Example using Jest:**
-```typescript
-// ✅ CORRECT - Type-safe stub factory
-export const UserStub = (props: Partial<User> = {}): User => ({
-  id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-  name: 'John Doe',
-  email: 'john@example.com',
-  createdAt: new Date('2023-01-01'),
-  ...props,
-});
-
-// ✅ CORRECT - Test complete object with toStrictEqual
-it('email: "test@example.com" → sends welcome email', () => {
-  const user = UserStub({ email: 'test@example.com' });
-  const result = sendWelcomeEmail(user);
-  expect(result).toStrictEqual({
-    to: 'test@example.com',
-    subject: 'Welcome to our platform',
-    template: 'welcome-email'
-  });
-});
-
-const formatUserDisplay(user: Pick<User, 'name', 'email'>) => {
-  return {
-    displayName: "Display: " + user.name,
-    email: user.email
-  };
-}
-
-// ✅ CORRECT - Minimal stub overrides, complete object assertion
-it('user with custom name and email → returns formatted display', () => {
-  const user = UserStub({ name: 'Mick Robberts', email: 'johnny@gmail.com' });
-  expect(formatUserDisplay(user)).toStrictEqual({
-    displayName: "Display: Mick Robberts",
-    email: 'johnny@gmail.com'
-  });
-});
-
-// ❌ WRONG - Inline object without type safety
-const user = {
-  id: 'user-123',  // Not a valid UUID
-  name: 'Test User',
-  email: 'test@test.com'
-  // Missing required fields - TypeScript won't catch this!
-};
-
-// ❌ WRONG - Includes irrelevant data in test setup
-it('formats user display name', () => {
-  const user = {
-    id: 'd7e8f9a0-1bcd-ef23-4567-89012abcdef3',
-    name: 'Mick Robberts',
-    email: 'johnny@example.com',  // Not needed for name formatting
-    age: 30,                     // Not needed for name formatting
-    address: { street: '123 Main St' }  // Not needed for name formatting
-  };
-  expect(formatUserDisplay(user)).toStrictEqual({
-    displayName: "Display: Mick Robberts",
-    email: 'johnny@example.com'
-  }); 
-});
-```
-
-## Element Selection
-- Use data-test attributes for element queries. CSS classes and text content change with UI updates
-- Select by test ID exclusively. This survives refactoring better than any other selector
-
-**Example using React Testing Library:**
-```tsx
-// ✅ CORRECT - Using data-test attribute
-<button data-test="SUBMIT_BUTTON" onClick={handleSubmit}>
-  Submit
-</button>
-
-const button = screen.getByTestId('SUBMIT_BUTTON');
-
-// ❌ WRONG - Using CSS classes
-<button className="btn btn-primary" onClick={handleSubmit}>
-  Submit
-</button>
-
-const button = document.querySelector('.btn-primary'); // Breaks when styles change
-
-// ❌ WRONG - Using text content
-<button onClick={handleSubmit}>
-  {loading ? 'Submitting...' : 'Submit'}
-</button>
-
-const button = screen.getByText('Submit'); // Breaks when text changes
-```
-
-## Mocking Strategies
-- Mock only external system interfaces. This includes cookies, routing, window, and time utilities
-- Let the test framework handle cleanup. Manual restoration is error-prone and unnecessary
-
-**Example using Jest:**
-```typescript
-// ✅ CORRECT - Mock system utilities only
-beforeEach(() => {
-  jest.spyOn(window, 'location', 'get').mockReturnValue({
-    ...window.location,
-    href: 'https://test.com'
-  });
-});
-
-// ✅ CORRECT - Mock external time
-beforeEach(() => {
-  jest.useFakeTimers();
-  jest.setSystemTime(new Date('2023-01-01'));
-});
-
-// ❌ WRONG - Mocking internal application code
-beforeEach(() => {
-  jest.spyOn(userService, 'validateEmail').mockReturnValue(true);
-});
-
-// ❌ WRONG - Manual cleanup
-afterEach(() => {
-  mockFn.mockRestore(); // Jest handles this automatically
-});
-```
-
-## Jest Framework Syntax
-
-### Syntax Preferences
-- Use `describe`/`it` syntax over `describe`/`test` for consistency
-- `it` reads more naturally: "it should do something"
-- Place all setup/teardown hooks at the top of their describe block: `beforeAll`, `beforeEach`, `afterEach`, `afterAll` (in that order)
-
-### Test Organization
-```typescript
-describe('MathUtils', () => {
-  
-  beforeEach(() => { /*...*/})
-  
-  describe('calculateTotal()', () => {
-    it('sums positive numbers', () => {
-      expect(calculateTotal([1, 2, 3])).toBe(6);
-    });
-    
-    it('handles empty array → returns 0', () => {
-      expect(calculateTotal([])).toBe(0);
-    });
-    
-    describe('with negative numbers', () => {
-      it('sums correctly', () => {
-        expect(calculateTotal([-1, 2, -3])).toBe(-2);
-      });
-    });
-  });
-  
-  describe('formatCurrency()', () => {
-    it('adds $ prefix', () => {
-      expect(formatCurrency(42.5)).toBe('$42.50');
-    });
-    
-    it('rounds to 2 decimals', () => {
-      expect(formatCurrency(42.999)).toBe('$43.00');
-    });
-  });
-});
-```
-
-### Assertion Methods
 
 #### toStrictEqual vs toBe vs toEqual
 ```typescript
@@ -753,118 +690,272 @@ expect(cookieSpy).toHaveBeenCalledWith('auth-token');
 expect(routerPush).toHaveBeenCalledWith('/dashboard');
 ```
 
-### Parameterized Tests with .each
+## Helper Patterns
 
-Use `it.each` and `describe.each` to reduce boilerplate when testing multiple scenarios with similar structure.
+All test files follow standardized patterns using Jest with helper functions for common operations:
 
-#### it.each for Similar Test Cases
+### Data Templates
 ```typescript
-// ✅ CORRECT - Use it.each for repetitive test cases
-describe('validateEmail()', () => {
-  it.each([
-    ['valid@email.com', true],
-    ['also.valid+tag@domain.co.uk', true],
-    ['invalid.email', false],
-    ['@invalid.com', false],
-    ['invalid@', false],
-    ['', false],
-  ])('email: "%s" → returns %s', (email, expected) => {
-    expect(validateEmail(email)).toBe(expected);
-  });
-});
+const DataTemplate = {
+  // Reusable data structures for test scenarios
+  entityName: (overrides: Partial<EntityType> = {}) => ({
+    id: 'default-id',
+    name: 'Default Name',
+    status: 'active',
+    // ... default properties
+    ...overrides,
+  }),
+};
+```
 
-// ❌ WRONG - Repetitive individual tests
-describe('validateEmail()', () => {
-  it('valid@email.com → returns true', () => {
-    expect(validateEmail('valid@email.com')).toBe(true);
-  });
+### Mock Templates
+```typescript
+const MockTemplate = {
+  // Reusable mock patterns for external dependencies
+  successfulOperation: (customData?: EntityType) => ({
+    success: true,
+    data: customData || DataTemplate.entityName(),
+  }),
   
-  it('invalid.email → returns false', () => {
-    expect(validateEmail('invalid.email')).toBe(false);
+  failedOperation: (errorMessage = 'Default error') => ({
+    success: false,
+    error: errorMessage,
+  }),
+  
+  // Jest mock functions
+  mockFunction: () => jest.fn(),
+  mockDatabase: () => ({
+    findUser: jest.fn(),
+    saveUser: jest.fn(),
+    deleteUser: jest.fn(),
+  }),
+};
+```
+
+### Test Helper Patterns
+```typescript
+// File-scoped helper functions for setup and common operations
+const TestActions = {
+  // Setup functions for common scenarios
+  setupValidUser: () => {
+    mockDatabase.findUser.mockReturnValue(DataTemplate.user({ email: 'test@example.com' }));
+    mockDatabase.validatePassword.mockReturnValue(true);
+  },
+  
+  setupInvalidCredentials: () => {
+    mockDatabase.findUser.mockReturnValue(null);
+  },
+  
+  // Complex interaction sequences
+  performLogin: async (email: string, password: string) => {
+    fireEvent.change(screen.getByTestId('email-input'), { target: { value: email } });
+    fireEvent.change(screen.getByTestId('password-input'), { target: { value: password } });
+    fireEvent.click(screen.getByTestId('login-button'));
+    
+    await waitFor(() => {
+      expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
+    });
+  },
+};
+```
+
+### Helper Action Standards
+
+Define when to create reusable helper actions for common state bootstrapping and complex interactions.
+
+#### When to Create Helper Actions (Within Single Test File)
+
+1. **Repetition threshold**: Action sequence appears **3+ times** within the same test file
+2. **Complex state setup**: Multi-step process required to reach specific component state
+3. **Common prerequisites**: Standard setup needed for multiple tests in this component
+4. **Error-prone sequences**: Complex interactions that could be implemented incorrectly
+
+#### When NOT to Create Helper Actions
+
+1. **Simple single actions**: `fireEvent.click(button)` doesn't need abstraction
+2. **Short sequences**: 2-3 line action sequences that are already clear
+3. **Assertion combinations**: Keep test expectations explicit and visible
+4. **Cross-file sharing**: Don't create helpers that span multiple test files (use shared utilities instead)
+
+#### Helper Action Pattern (File-Scoped)
+
+```typescript
+// src/components/VerificationDashboard.test.tsx
+
+// Helper actions declared above describe block - scoped to this component only
+const TestActions = {
+  // Bootstrap to "data loaded" state for VerificationDashboard
+  loadMarketData: async () => {
+    const loadButton = screen.getByTestId('load-data-button');
+    fireEvent.click(loadButton);
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('pivot-test-button')).toBeEnabled();
+    });
+  },
+
+  // Bootstrap to "completed workflow" state for VerificationDashboard  
+  completeFullWorkflow: async () => {
+    await TestActions.loadMarketData();
+    
+    const pivotButton = screen.getByTestId('pivot-test-button');
+    fireEvent.click(pivotButton);
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('success-alert')).toBeInTheDocument();
+    });
+  },
+
+  // Fill date range inputs - specific to this component
+  setDateRange: async (startDate: string, endDate: string) => {
+    fireEvent.change(screen.getByTestId('start-date-input'), { target: { value: startDate } });
+    fireEvent.change(screen.getByTestId('end-date-input'), { target: { value: endDate } });
+  },
+};
+
+describe('VerificationDashboard', () => {
+  it('clicking [data-test="pivot-test-button"] after loadMarketData() => shows [data-test="success-alert"]', async () => {
+    const mocks = MockTemplate.successfulPivotTest();
+    render(<VerificationDashboard />, { wrapper: WrapperTemplate.withProviders(mocks) });
+    
+    await TestActions.loadMarketData(); // File-scoped helper
+    fireEvent.click(screen.getByTestId('pivot-test-button'));
+    
+    expect(screen.getByTestId('success-alert')).toBeInTheDocument();
   });
-  // ... many more repetitive tests
 });
 ```
 
-#### it.each with Objects for Complex Cases
+#### Usage Examples
+
 ```typescript
-// ✅ CORRECT - Named parameters for clarity
-describe('calculateShipping()', () => {
-  it.each([
-    { shipping: { weight: 1, distance: 100, express: false }, expected: 5.99 },
-    { shipping: { weight: 1, distance: 100, express: true }, expected: 12.99 },
-    { shipping: { weight: 5, distance: 500, express: false }, expected: 15.99 },
-    { shipping: { weight: 5, distance: 500, express: true }, expected: 29.99 },
-  ])('testing with %j → costs $%expected', 
-    ({ shipping, expected }) => {
-      expect(calculateShipping(shipping)).toBe(expected);
-    }
-  );
+// ✅ Good: File-scoped helper for complex prerequisite
+it('changing $symbol after loadMarketData() => triggers auto reload with @progressbar', async () => {
+  const mocks = MockTemplate.autoReloadMock();
+  render(<VerificationDashboard />, { wrapper: WrapperTemplate.withProviders(mocks) });
+  
+  await TestActions.loadMarketData(); // File-scoped helper for complex setup
+  fireEvent.change(screen.getByTestId('symbol-input'), { target: { value: 'AAPL' } });
+  
+  expect(screen.getByRole('progressbar')).toBeInTheDocument();
+});
+
+// ✅ Good: Multiple file-scoped helpers  
+it('completeFullWorkflow() with custom dates => shows [data-test="final-results"]', async () => {
+  const mocks = MockTemplate.successfulWorkflow();
+  render(<VerificationDashboard />, { wrapper: WrapperTemplate.withProviders(mocks) });
+  
+  TestActions.setDateRange('2023-01-01', '2023-12-31'); // File-scoped helper
+  await TestActions.completeFullWorkflow(); // File-scoped helper
+  
+  expect(screen.getByTestId('final-results')).toBeInTheDocument();
+});
+
+// ❌ Bad: Over-abstraction of simple actions  
+it('clicking load button => shows spinner', () => {
+  TestActions.clickLoadButton(); // Unnecessary - just use fireEvent.click directly
+  expect(screen.getByRole('progressbar')).toBeInTheDocument();
+});
+
+// ❌ Bad: Cross-file helper usage (use shared utilities instead)
+it('authenticated user loads data => success', () => {
+  LoginTestActions.authenticateUser(); // Wrong - from different test file
+  // ...
 });
 ```
 
-#### describe.each for Multiple Test Suites
+#### Helper Naming Conventions
+
+- **State-focused**: `loadMarketData()`, `authenticateUser()`, `completeCheckout()`
+- **Action-focused**: `fillLoginForm()`, `selectDateRange()`, `uploadFile()`
+- **Outcome-focused**: `reachErrorState()`, `setupEmptyState()`, `prepareDataForTest()`
+
+### Self-Contained Tests (Unit/Component)
+
+Each unit/component test should be independently readable:
+
 ```typescript
-// ✅ CORRECT - Test multiple implementations with same behavior
-describe.each([
-  ['ArrayStack', ArrayStack],
-  ['LinkedListStack', LinkedListStack],
-])('%s', (name, StackImplementation) => {
-  let stack: Stack<number>;
+// ✅ Good: Self-contained and descriptive
+it('retrying [data-test="load-data-button"] after network error => clears [data-test="error-alert"]', async () => {
+  const mocks = [
+    MockTemplate.failedLoadData('Network timeout'),
+    MockTemplate.successfulLoadData(),
+  ];
+  render(<VerificationDashboard />, { wrapper: WrapperTemplate.withProviders(mocks) });
   
-  beforeEach(() => {
-    stack = new StackImplementation<number>();
-  });
+  // First attempt fails
+  fireEvent.click(screen.getByTestId('load-data-button'));
+  await waitFor(() => screen.getByTestId('error-alert'));
   
-  it('starts empty', () => {
-    expect(stack.isEmpty()).toBe(true);
-  });
+  // Second attempt succeeds
+  fireEvent.click(screen.getByTestId('load-data-button'));
   
-  it('push then pop returns same value', () => {
-    stack.push(42);
-    expect(stack.pop()).toBe(42);
-  });
-  
-  it('throws when popping empty stack', () => {
-    expect(() => stack.pop()).toThrow('Stack is empty');
+  await waitFor(() => {
+    expect(screen.queryByTestId('error-alert')).not.toBeInTheDocument();
   });
 });
 ```
 
-#### When NOT to Use .each
+### Usage Pattern
+
+#### Using Helpers and Templates
 ```typescript
-// ❌ WRONG - Using .each obscures important differences
+// In test files
+import { DataTemplate, MockTemplate } from '@/tests/utils';
+
+// Example usage for simple validation tests
 it.each([
-  [{ role: 'admin' }, true, false],
-  [{ role: 'user' }, false, true],
-])('user %p can edit: %s, can delete: %s', (user, canEdit, canDelete) => {
-  expect(permissions.canEdit(user)).toBe(canEdit);
-  expect(permissions.canDelete(user)).toBe(canDelete);
+  ['user@example.com', true],
+  ['invalid-email', false],
+  ['', false],
+  [null, false]
+])('validateEmail("%s") => %s', (email, expected) => {
+  const result = validateEmail(email);
+  expect(result).toBe(expected);
 });
 
-// ✅ CORRECT - Explicit tests for different behaviors
-describe('permissions', () => {
-  describe('when user is admin', () => {
-    it('can edit', () => {
-      expect(permissions.canEdit({ role: 'admin' })).toBe(true);
-    });
-    
-    it('cannot delete', () => {
-      expect(permissions.canDelete({ role: 'admin' })).toBe(false);
-    });
-  });
+// Example usage for complex scenarios
+it('loginHandler() with valid credentials => returns success with token', async () => {
+  mockAuthService.authenticate.mockResolvedValue({ success: true, token: 'abc123' });
   
-  describe('when user is regular user', () => {
-    it('cannot edit', () => {
-      expect(permissions.canEdit({ role: 'user' })).toBe(false);
-    });
-    
-    it('can delete own items', () => {
-      expect(permissions.canDelete({ role: 'user' })).toBe(true);
-    });
-  });
+  const result = await loginHandler('user@test.com', 'password123');
+  
+  expect(result.success).toBe(true);
+  expect(result.data.token).toBe('abc123');
 });
 ```
+
+## Mocking Strategies
+- Mock only external system interfaces. This includes cookies, routing, window, and time utilities
+- Let the test framework handle cleanup. Manual restoration is error-prone and unnecessary
+
+**Example using Jest:**
+```typescript
+// ✅ CORRECT - Mock system utilities only
+beforeEach(() => {
+  jest.spyOn(window, 'location', 'get').mockReturnValue({
+    ...window.location,
+    href: 'https://test.com'
+  });
+});
+
+// ✅ CORRECT - Mock external time
+beforeEach(() => {
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date('2023-01-01'));
+});
+
+// ❌ WRONG - Mocking internal application code
+beforeEach(() => {
+  jest.spyOn(userService, 'validateEmail').mockReturnValue(true);
+});
+
+// ❌ WRONG - Manual cleanup
+afterEach(() => {
+  mockFn.mockRestore(); // Jest handles this automatically
+});
+```
+
 
 ## React Testing Library Syntax
 
@@ -974,3 +1065,25 @@ renderComponent({ product: ProductStub() });
 expect(screen.getByTestId("NAME")).toHaveTextContent(/^Donut Lover$/);
 ```
 
+## Enforcement
+
+### Unit/Component Tests
+- All new unit/component tests must use standard Jest patterns with helpers
+- Code reviews should verify DAMP coverage compliance  
+- Automated linting should check for proper test structure
+- data-test correlation is required for UI elements  
+- Element monikers should be used in test descriptions
+- LLMs should reference this document when writing/maintaining unit tests
+
+### E2E/Integration Tests
+- Focus on user behavior and business outcomes in descriptions
+- Cover critical user workflows and cross-system integration
+- Use natural language that maps to business requirements
+
+## Summary
+
+**Unit/Component Tests**: Use standard Jest patterns with helper functions, data-testid correlation, and element monikers for maximum LLM efficiency and precise test targeting.
+
+**E2E/Integration Tests**: Use user-behavior focused descriptions that emphasize business workflows and outcomes rather than implementation details.
+
+This approach provides maximum LLM efficiency while ensuring comprehensive, maintainable test coverage across different testing levels.

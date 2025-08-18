@@ -77,8 +77,9 @@ NOT: Suppress console.warn (addresses symptom only)
 
 ## Standards Documents
 
-- [Coding Principles](standards/coding-principles.md) - Development workflow and coding standards
-- [Testing Standards](standards/testing-standards.md) - Testing philosophy, patterns, and best practices
+- [Coding Principles](docs/coding-principles.md) - Development workflow and coding standards
+- [Typescript Standards](docs/typescript-standards.md) - Typescript standards and best practices
+- [Testing Standards](docs/testing-standards.md) - Testing philosophy, patterns, and best practices
 
 ## Project Overview
 
