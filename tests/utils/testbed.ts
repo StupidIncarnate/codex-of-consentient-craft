@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 import * as crypto from 'crypto';
 import { jest } from '@jest/globals';
 import { main as installMain } from '../../bin/install';
-import { QuestmaestroConfig, Quest } from '../../src/v1/types';
+import { QuestmaestroConfig, Quest } from '../../v1/types';
 
 interface ExecResult {
   stdout: string;

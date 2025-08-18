@@ -5,7 +5,7 @@ import type {
   WriteToolInput,
   EditToolInput,
   MultiEditToolInput,
-} from '../../src/v1/types/hooks';
+} from '../../src/types/hooks';
 
 // Base stub for generic hook data
 export const HookDataStub = (overrides: Partial<HookData> = {}): HookData => {

@@ -17,7 +17,7 @@ export * from '../models/agent';
 export * from '../models/config';
 
 // Re-export all hook-related types
-export * from './hooks';
+export * from '../../src/types/hooks';
 
 // Additional utility types that don't fit in specific model files
 

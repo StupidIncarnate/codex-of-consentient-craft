@@ -1,4 +1,4 @@
-import type { Quest } from '../../src/v1/models/quest';
+import type { Quest } from '../../v1/models/quest';
 
 export const QuestStub = (overrides: Partial<Quest> = {}): Quest => ({
   id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',

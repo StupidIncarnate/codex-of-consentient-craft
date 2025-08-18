@@ -1,6 +1,6 @@
 // Core state machine for quest testing
 
-import type { TaskStatus } from '../../src/v1/models/quest';
+import type { TaskStatus } from '../../v1/models/quest';
 
 export enum QuestStatus {
   ACTIVE = 'active',

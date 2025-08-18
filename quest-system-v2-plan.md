@@ -314,17 +314,19 @@ Ward:all ✓ → COMPLETE
 #### Agent MCP Tools
 ```typescript
 // Tools available to agents via MCP server
+// CRITICAL: Agents use MCP tools to write to THEIR OWN Redis keys only
+// Agents never modify shared quest state - that's QuestMaestro's job
 interface AgentMCPTools {
-  // Initialize agent session with clean context
+  // Initialize agent session with clean context (READ ONLY)
   startSession(questId: string, taskId: string, agentType: string): AgentSessionPayload;
   
-  // Write agent completion state (agent manages own state)
+  // Write agent completion state to agent:questId:taskId:completion key
   writeCompletionState(data: unknown): void;
   
-  // Request escape to replanning
+  // Write escape request to agent:questId:taskId:escape key
   requestEscape(escape: EscapeRequest): void;
   
-  // Update task progress
+  // Write progress update to agent:questId:taskId:progress key
   updateTaskProgress(taskId: string, stage: PipelineStage, status: string): void;
 }
 
@@ -728,7 +730,10 @@ class QuestStateManager {
     const key = `quest:${state.id}`;
     const version = state.version || 0;
     
-    // Atomic update with version checking using Lua script
+    // IMPORTANT: Only QuestMaestro calls this method
+    // Agents NEVER modify quest state directly - they write to their own session keys
+    // This Lua script provides atomic quest state updates when QuestMaestro 
+    // processes multiple agent completions in a single transaction
     const script = `
       local current = redis.call('GET', KEYS[1])
       if current then
@@ -778,7 +783,11 @@ class QuestStateManager {
     return state;
   }
   
-  // QuestMaestro polls agent completion states
+  // CRITICAL ARCHITECTURE: Agent Isolation Pattern
+  // - Agents write ONLY to their own session keys: agent:questId:taskId:completion
+  // - Agents NEVER modify main quest state directly
+  // - QuestMaestro is the ONLY component that updates quest state
+  // - This eliminates race conditions and ensures data consistency
   async pollAgentCompletions(questId: string): Promise<AgentCompletion[]> {
     const pattern = `agent:${questId}:*:completion`;
     const keys = await this.redis.keys(pattern);

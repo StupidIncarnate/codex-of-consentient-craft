@@ -11,7 +11,7 @@ import type {
   HookData,
   EslintMessage,
   EslintResult,
-} from '../v1/types/hooks';
+} from '../types/hooks';
 
 type SpawnResult = { code: number; stdout: string; stderr: string };
 

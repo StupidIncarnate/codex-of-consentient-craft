@@ -3,13 +3,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
-import {
-  isError,
-  isPackageJson,
-  parseJsonSafely,
-  type PackageJson,
-} from '../src/v1/utils/type-guards';
-import { Logger } from '../src/v1/utils/logger';
+import { isError, isPackageJson, parseJsonSafely, type PackageJson } from '../v1/utils/type-guards';
+import { Logger } from '../v1/utils/logger';
 
 // Directory and file constants
 const CONFIG_FILE = '.questmaestro';
