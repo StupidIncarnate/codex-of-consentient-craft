@@ -3,10 +3,11 @@
 Execute the development workflow in focused, iterative chunks based on the `## Task to Complete` information down below. Complete each step before moving to the next.
 
 ## Step 0: Review Standards and Types
-- Read `@./standards/coding-principles.md`
-- Read `@./standards/testing-standards.md`
+- Read `docs/coding-principles.md`
+- Read `docs/typescript-standards.md`
+- Read `docs/testing-standards.md`
 - Note key patterns to follow
-- Review existing types in `@./src/types`
+- Review existing types in `src/types`
 
 ## Step 1: Understand Task
 - Restate the task in one sentence
@@ -42,10 +43,10 @@ Based on exploration, think hard and plan the implementation:
 If you need to store your findings in a doc for referencing later, write it to `/tasks/YYYY-MM-DD-task-name.md` (e.g., `/tasks/2024-03-15-user-authentication.md`)
 
 ## Step 3: Create any new types
-Before coding, make sure any types you need are created in `@./src/types`
+Before coding, make sure any types you need are created in `src/types`
 
 ## Step 4: Create TODO List
-Use TodoWrite to break down the task following the 7-step TDD process from `@./standards/coding-principles.md#development-workflow-mandatory-for-production-code`:
+Use TodoWrite to break down the task following the 7-step TDD process from `docs/coding-principles.md#development-workflow-mandatory-for-production-code`:
 
 **Single Component Example:**
 ```
