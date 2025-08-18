@@ -1,4 +1,4 @@
-# Quest System V2 Architecture Plan
+# Quest System Architecture Plan
 
 ## Overview
 
@@ -1141,7 +1141,7 @@ class IntegrationValidator {
 ## System Integration Context
 
 ### Current System Overview
-This is a complete ground-up rebuild replacing the entire V1 quest system in `/src/v1/`. No backward compatibility - surgical rebuild of each component with clean architecture. The current V1 system has stale data issues and complex nested state management that this design eliminates.
+This is a complete ground-up rebuild replacing the entire V1 quest system. No backward compatibility - surgical rebuild of each component with clean architecture. The current V1 system has stale data issues and complex nested state management that this design eliminates.
 
 ### Agent Execution Model
 - **Agents are Claude instances**: Each agent spawns as a separate Claude Code session in child terminal
@@ -1157,18 +1157,17 @@ This is a complete ground-up rebuild replacing the entire V1 quest system in `/s
 
 ### Components to Rebuild vs Reuse
 - **Rebuild**: Complete new quest orchestration, state management, pipeline execution
-- **Reuse**: Agent role definitions from `/src/v1/commands/quest/` (may need interface updates)
+- **Reuse**: Agent role definitions from `/v1/commands/quest/` (may need interface updates)
 - **Reuse**: Quest folder structure in `/result/active/` (working directory pattern)
 - **Reuse**: Ward command integration (npm scripts)
 - **Replace**: All core logic, phase runners, quest manager, orchestrator
 
 ### Key Integration Points
-- **Quest initialization**: Leverage existing CLI flow in `/src/v1/cli.ts`:
+- **Quest initialization**: Leverage existing CLI flow in `/v1/cli.ts`:
   - `questManager.createNewQuest(input, input)` creates quest folder and metadata
-  - V2 system creates initial QuestState in Redis instead of running orchestrator
+  - System creates initial QuestState in Redis instead of running orchestrator
   - Quest ID/folder structure remains same (`/result/active/001-task-name/`)
 - **CLI command flow unchanged**: `questmaestro "task"` → detect/create quest → runQuest()
-- **Replace orchestrator call**: Instead of `new QuestOrchestrator().runQuest()`, call V2 system
 - **Agent communication**: Agents write their own completion state, QuestMaestro pulls and integrates into quest state  
 - **Progress monitoring**: Hotkey interface consumes Redis state to show agent selection menu, individual agent terminals for interaction
 - **File conflict prevention**: Pathseeker plans tasks with non-overlapping file sets to avoid simultaneous modification conflicts
@@ -1211,7 +1210,7 @@ Ward is an npm script installed by this CLI package:
 4. Implement PathseekerContextBuilder for proper context construction
 
 ### Phase 3: Orchestration & Control
-1. Build quest orchestrator v2 with state machine implementation
+1. Build quest orchestrator with state machine implementation
 2. Implement agent spawning with MCP server integration
 3. Create hotkey interface for agent switching
 4. Add timeout handling and crash recovery

@@ -15,14 +15,14 @@ Test what your code does, not how it does it. Internal implementation can change
 **Example using Jest:**
 ```typescript
 // ✅ CORRECT - Tests behavior
-it('calculates total price including tax', () => {
+it('cart.getTotal() with tax => returns calculated total', () => {
   const cart = new ShoppingCart();
   cart.addItem({ price: 100, taxRate: 0.1 });
   expect(cart.getTotal()).toBe(110);
 });
 
 // ❌ WRONG - Tests implementation
-it('calls calculateTax method', () => {
+it('cart.getTotal() => calls _calculateTax()', () => {
   const spy = jest.spyOn(cart, '_calculateTax');
   cart.getTotal();
   expect(spy).toHaveBeenCalled(); // Testing internal method
@@ -36,12 +36,12 @@ Each test must be completely independent. No shared state, no order dependencies
 **Example using Jest:**
 ```typescript
 // ✅ CORRECT - Each test is independent
-it('creates user', () => {
+it('createUser({name: "John"}) => returns user with ID', () => {
   const user = createUser({ name: 'John' });
   expect(user.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 });
 
-it('updates user', () => {
+it('updateUser() with valid ID => returns updated user', () => {
   const user = createUser({ name: 'John' });
   const updated = updateUser(user.id, { name: 'Jane' });
   expect(updated.name).toBe('Jane');
@@ -50,12 +50,12 @@ it('updates user', () => {
 // ❌ WRONG - Tests depend on shared state
 let user: User;
 
-it('creates user', () => {
+it('createUser({name: "John"}) => sets shared user state', () => {
   user = createUser({ name: 'John' });
   expect(user.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 });
 
-it('updates user', () => {
+it('updateUser() using shared state => depends on previous test', () => {
   // This fails if previous test didn't run!
   updateUser(user.id, { name: 'Jane' });
   expect(user.name).toBe('Jane');
@@ -90,7 +90,7 @@ Import stubs from the central `/tests/stubs` folder:
 // In test file
 import { PreToolUseHookStub } from '../../tests/stubs/hook-data.stub';
 
-it('valid TypeScript content → returns exit code 0', () => {
+it('runHook() with valid TypeScript content => returns exit code 0', () => {
   const hookData = PreToolUseHookStub({
     cwd: projectDir,
     tool_input: {
@@ -121,7 +121,7 @@ export const UserStub = (props: Partial<User> = {}): User => ({
 });
 
 // ✅ CORRECT - Test complete object with toStrictEqual
-it('email: "test@example.com" → sends welcome email', () => {
+it('sendWelcomeEmail() with email: "test@example.com" => returns welcome email config', () => {
   const user = UserStub({ email: 'test@example.com' });
   const result = sendWelcomeEmail(user);
   expect(result).toStrictEqual({
@@ -131,7 +131,7 @@ it('email: "test@example.com" → sends welcome email', () => {
   });
 });
 
-const formatUserDisplay(user: Pick<User, 'name', 'email'>) => {
+const formatUserDisplay = (user: Pick<User, 'name', 'email'>) => {
   return {
     displayName: "Display: " + user.name,
     email: user.email
@@ -139,7 +139,7 @@ const formatUserDisplay(user: Pick<User, 'name', 'email'>) => {
 }
 
 // ✅ CORRECT - Minimal stub overrides, complete object assertion
-it('user with custom name and email → returns formatted display', () => {
+it('formatUserDisplay() with custom name and email => returns formatted display', () => {
   const user = UserStub({ name: 'Mick Robberts', email: 'johnny@gmail.com' });
   expect(formatUserDisplay(user)).toStrictEqual({
     displayName: "Display: Mick Robberts",
@@ -156,7 +156,7 @@ const user = {
 };
 
 // ❌ WRONG - Includes irrelevant data in test setup
-it('formats user display name', () => {
+it('formatUserDisplay() with user data => returns formatted display', () => {
   const user = {
     id: 'd7e8f9a0-1bcd-ef23-4567-89012abcdef3',
     name: 'Mick Robberts',
@@ -302,7 +302,7 @@ function processPayment(options: {
 // Tests needed for 100% coverage
 describe('processPayment()', () => {
   describe('when amount is invalid', () => {
-    it('amount <= 0 → throws Error', () => {
+    it('processPayment({amount: 0}) => throws Error', () => {
       expect(() => processPayment({ amount: 0 })).toThrow('Invalid amount');
     });
   });
@@ -310,14 +310,14 @@ describe('processPayment()', () => {
   describe('when amount is valid', () => {
     describe('with discount', () => {
       describe('when total < 100', () => {
-        it('applies 10% discount and charges shipping', () => {
+        it('processPayment({amount: 50, hasDiscount: true}) => applies 10% discount and charges shipping', () => {
           expect(processPayment({ amount: 50, hasDiscount: true }))
             .toStrictEqual({ total: 45, shipping: 10 });
         });
       });
       
       describe('when total > 100', () => {
-        it('applies 10% discount and free shipping', () => {
+        it('processPayment({amount: 120, hasDiscount: true}) => applies 10% discount and free shipping', () => {
           expect(processPayment({ amount: 120, hasDiscount: true }))
             .toStrictEqual({ total: 108, shipping: 0 });
         });
@@ -326,14 +326,14 @@ describe('processPayment()', () => {
     
     describe('without discount', () => {
       describe('when total < 100', () => {
-        it('charges full price and shipping', () => {
+        it('processPayment({amount: 50, hasDiscount: false}) => charges full price and shipping', () => {
           expect(processPayment({ amount: 50, hasDiscount: false }))
             .toStrictEqual({ total: 50, shipping: 10 });
         });
       });
       
       describe('when total > 100', () => {
-        it('charges full price with free shipping', () => {
+        it('processPayment({amount: 150}) => charges full price with free shipping', () => {
           expect(processPayment({ amount: 150 }))
             .toStrictEqual({ total: 150, shipping: 0 });
         });
@@ -378,23 +378,23 @@ const mockNetworkError = () => {
 
 // ✅ CORRECT - Tests both paths
 describe('fetchUser()', () => {
-  it('valid ID → returns user', async () => {
+  it('fetchUser() with valid ID => returns user', async () => {
     const user = await fetchUser('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
     expect(user).toStrictEqual({ id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', name: 'John' });
   });
   
-  it('invalid ID → throws NotFoundError', async () => {
+  it('fetchUser() with invalid ID => throws NotFoundError', async () => {
     await expect(fetchUser('invalid')).rejects.toThrow('User not found');
   });
   
-  it('network error → throws NetworkError', async () => {
+  it('fetchUser() with network error => throws NetworkError', async () => {
     mockNetworkError();
     await expect(fetchUser('a1b2c3d4-e5f6-7890-abcd-ef1234567890')).rejects.toThrow('Network error');
   });
 });
 
 // ❌ WRONG - Only happy path
-it('fetches user', async () => {
+it('fetchUser() with valid ID => returns user name', async () => {
   const user = await fetchUser('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
   expect(user.name).toBe('John');
 });
@@ -418,7 +418,7 @@ it('clicking [data-test="load-data-button"] => shows @progressbar', () => {
 });
 
 // ❌ Bad: Verbose and unclear
-it('when user clicks the load data button it should show a loading spinner', () => {
+it('clicking [data-test="load-data-button"] => shows loading spinner', () => {
   // ...
 });
 ```
@@ -451,8 +451,8 @@ Use standardized monikers for clear correlation between test descriptions and im
 
 ```typescript
 // Functions and methods
-'calling loadMarketData() => triggers $loading state'
-'user.authenticate() success => sets $isAuthenticated true'
+'loadMarketData() => triggers $loading state'
+'user.authenticate() with success => sets $isAuthenticated true'
 
 // UI elements  
 'clicking [data-test="submit-button"] => shows .loading-spinner'
@@ -463,7 +463,7 @@ Use standardized monikers for clear correlation between test descriptions and im
 'useEffect[symbol, timeframe] dependency change => calls loadData()'
 
 // Classes and types
-'class AuthService.login() with invalid credentials => returns type AuthError'
+'AuthService.login() with invalid credentials => returns type AuthError'
 
 // Mixed elements
 '[data-test="form"] submission with invalid $credentials => shows .error-message'
@@ -551,7 +551,7 @@ it('Customer completes checkout => receives order confirmation email', () => {
 });
 
 // ❌ E2E: Don't use data-testids or implementation details
-it('login-button click after valid form-input => dashboard-page renders', () => {
+it('clicking login-button after valid form-input => dashboard-page renders', () => {
   // Wrong for E2E
 });
 ```
@@ -852,13 +852,13 @@ it('completeFullWorkflow() with custom dates => shows [data-test="final-results"
 });
 
 // ❌ Bad: Over-abstraction of simple actions  
-it('clicking load button => shows spinner', () => {
+it('clicking [data-test="load-button"] => shows @progressbar', () => {
   TestActions.clickLoadButton(); // Unnecessary - just use fireEvent.click directly
   expect(screen.getByRole('progressbar')).toBeInTheDocument();
 });
 
 // ❌ Bad: Cross-file helper usage (use shared utilities instead)
-it('authenticated user loads data => success', () => {
+it('loadData() with authenticated user => returns success', () => {
   LoginTestActions.authenticateUser(); // Wrong - from different test file
   // ...
 });

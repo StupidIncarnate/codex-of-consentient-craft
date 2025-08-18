@@ -14,23 +14,23 @@
 7. **TEGRITY**: [Final verification](#7-final-verification-tegrity)
 
 ### 1. Write empty test cases (STUB-TESTS)
-Write empty test cases with descriptive names that define expected behavior. Follow the [Test Structure Patterns](../standards/testing-standards.md#test-structure-patterns) for organizing test hierarchies.
+Write empty test cases using the "Action => Expectation" pattern from [Testing Standards](testing-standards.md#test-description-format). Use element monikers and specific input/output descriptions. Follow the [Test Organization by Feature](testing-standards.md#test-organization-by-feature) for organizing test hierarchies.
    ```typescript
-   // Step 1: Empty test cases - Build context with nested describes
+   // Step 1: Empty test cases - Follow Action => Expectation pattern with element monikers
    describe('UserService', () => {
      describe('createUser()', () => {
        describe('when email is new', () => {
-         it('returns created user');
-         it('sends welcome email');
+         it('createUser({email: "new@example.com", firstName: "Test", lastName: "User"}) => returns created user with id');
+         it('createUser({email: "new@example.com", firstName: "Test", lastName: "User"}) => triggers welcome email send');
        });
        
        describe('when email already exists', () => {
-         it('throws DuplicateUserError');
+         it('createUser({email: "test@example.com"}) => throws DuplicateUserError');
        });
        
        describe('when data is invalid', () => {
-         it('email === "" → throws ValidationError');
-         it('age < 0 → throws RangeError');
+         it('createUser({email: "", firstName: "Test", lastName: "User"}) => throws ValidationError');
+         it('createUser({email: "test@example.com", age: -1}) => throws RangeError');
        });
      });
    });
@@ -42,25 +42,26 @@ Fill in production code that aligns with expected behavior
 - Keep implementation simple and clear
 
 ### 3. Review for missing coverage (GAP-REVIEW)
-Review production code for missing test coverage based on [Coverage Requirements](../standards/testing-standards.md#coverage-requirements)
+Review production code for missing test coverage based on [Coverage Requirements](testing-standards.md#coverage-requirements)
 
 ### 4. Fill in test assertions (TEST)
-Fill in test cases with assertions that match their descriptions. Use [Arrange-Act-Assert Pattern](../standards/testing-standards.md#arrange-act-assert-pattern) for complex tests and follow [Assertion Methods](../standards/testing-standards.md#assertion-methods) guidelines
+Fill in test cases with assertions that match their descriptions. Follow [Assertion Methods](testing-standards.md#assertion-discipline) guidelines
 ```typescript
 // Fill in the test assertions
-it('returns created user', async () => {
-  const user = await createUser({ email: 'new@example.com', name: 'Test User' });
+it('createUser({email: "new@example.com", firstName: "Test", lastName: "User"}) => returns created user with id', async () => {
+  const user = await createUser({ email: 'new@example.com', firstName: 'Test', lastName: 'User' });
   expect(user).toStrictEqual({
-    id: expect.any(String),
+    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     email: 'new@example.com',
-    name: 'Test User',
-    createdAt: expect.any(Date)
+    firstName: 'Test',
+    lastName: 'User',
+    createdAt: new Date('2023-01-01')
   });
 });
 
-it('throws DuplicateUserError', async () => {
-  await createUser({ email: 'test@example.com', name: 'First User' });
-  await expect(createUser({ email: 'test@example.com', name: 'Second User' }))
+it('createUser({email: "test@example.com"}) => throws DuplicateUserError', async () => {
+  await createUser({ email: 'test@example.com', firstName: 'First', lastName: 'User' });
+  await expect(createUser({ email: 'test@example.com', firstName: 'Second', lastName: 'User' }))
     .rejects.toThrow(DuplicateUserError);
 });
 ```
@@ -70,7 +71,7 @@ it('throws DuplicateUserError', async () => {
 - Fix any failing tests by updating production code or updating asserts if needed
 
 ### 6. Refactor for clarity (REFACTOR)
-Refactor production and test files for clarity, following DRY principle for production code, [DAMP (Descriptive And Meaningful Phrases)](../standards/testing-standards.md) for test code, and verify all tests still pass
+Refactor production and test files for clarity, following DRY principle for production code, [DAMP (Descriptive And Meaningful Phrases)](testing-standards.md#damp-coverage-standards) for test code, and verify all tests still pass
 
 ### 7. Final verification (TEGRITY)
 - Run all tests one more time
@@ -125,21 +126,23 @@ Refactor production and test files for clarity, following DRY principle for prod
     await apiCall();
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error(error.message);
+      // Do something with error
     }
   }
   
   // ❌ AVOID
   catch (error: any) {
-    console.error(error.message); // Unsafe access
+    return error.message; // Unsafe access
   }
   ```
 - Let TypeScript infer types when the value makes it clear. Add explicit types for empty arrays, ambiguous objects, and when you need tighter constraints
   ```typescript
   // ✅ CORRECT - Explicit types for ambiguous cases
+  type UserConfig = { theme: string; language: string; notifications: boolean };
+  
   const items: string[] = []; // Empty array needs type
   const config: UserConfig = {}; // Empty object needs type
-  const data = { name: 'John', age: 30 }; // Clear from values, no type needed
+  const data = { firstName: 'John', lastName: 'Doe', age: 30 }; // Clear from values, no type needed
   
   // ❌ AVOID - Ambiguous without types
   // const items = []; // Type is any[]
@@ -149,25 +152,25 @@ Refactor production and test files for clarity, following DRY principle for prod
   ```typescript
   // ✅ CORRECT
   if (users[index]) {
-    console.log(users[index].name);
+    return users[index].name;
   }
   
   const value = config.settings?.theme ?? 'light';
   
   // ❌ AVOID
-  console.log(users[index].name); // May throw if index out of bounds
+  return users[index].name; // May throw if index out of bounds
   ```
 - Handle null/undefined values explicitly in your code to satisfy strict checking
   ```typescript
   // ✅ CORRECT
   function getUsername(user: User | null): string {
     if (!user) return 'Anonymous';
-    return user.name;
+    return `${user.firstName} ${user.lastName}`;
   }
   
   // ❌ AVOID
   function getUsername(user: User | null): string {
-    return user.name; // Error: Object is possibly 'null'
+    return `${user.firstName} ${user.lastName}`; // Error: Object is possibly 'null'
   }
   ```
 
@@ -177,7 +180,7 @@ Refactor production and test files for clarity, following DRY principle for prod
 - Let types flow naturally through your code. Use type assertions (`as SomeType`) only when you have information the compiler lacks
   ```typescript
   // ✅ CORRECT - You know the type from API docs
-  const data = JSON.parse(response) as { id: string; name: string };
+  const data = JSON.parse(response) as { id: string; firstName: string; lastName: string };
   
   // ❌ AVOID - Fighting TypeScript's inference
   const count = (items.length as number) + 1; // TypeScript already knows it's a number
@@ -189,7 +192,8 @@ Refactor production and test files for clarity, following DRY principle for prod
   // ✅ CORRECT - type is more flexible
   type User = {
     id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
   };
   
   type UserWithRole = User & { role: 'admin' | 'user' };
@@ -199,17 +203,18 @@ Refactor production and test files for clarity, following DRY principle for prod
   // ❌ AVOID - interface has limitations
   interface IUser {
     id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
   }
   // Note: You CAN do type UserId = IUser['id'], but prefer type aliases for consistency
   ```
 - Utilize TypeScript utility types effectively (`Pick`, `Omit`, `Partial`, `Required`, etc.)
   ```typescript
   // ✅ CORRECT - Effective utility type usage
-  type User = { id: string; name: string; email: string; role: string };
+  type User = { id: string; firstName: string; lastName: string; email: string; role: string; status: string; isActive: boolean; isPending: boolean };
   
   // Pick only what you need
-  type UserSummary = Pick<User, 'id' | 'name'>;
+  type UserSummary = Pick<User, 'id' | 'firstName' | 'lastName'>;
   
   // Remove sensitive fields
   type PublicUser = Omit<User, 'email'>;
@@ -218,12 +223,14 @@ Refactor production and test files for clarity, following DRY principle for prod
   type UserUpdate = Partial<User>;
   
   // ❌ AVOID - Manually redefining types
-  type UserSummaryManual = { id: string; name: string }; // Duplicates structure
+  type UserSummaryManual = { id: string; firstName: string; lastName: string }; // Duplicates structure
   ```
 
 ## Function Parameters
 - Pass complete objects to preserve type relationships. When you need just an ID, extract it with `Type['id']` rather than passing individual properties
   ```typescript
+  type Company = { id: string; name: string; industry: string };
+  
   // ✅ CORRECT
   function updateUser(user: User, companyId: Company['id']) {
     // user object maintains all type relationships
@@ -238,7 +245,8 @@ Refactor production and test files for clarity, following DRY principle for prod
   ```typescript
   // ✅ CORRECT - Options object for 3+ params
   function createUser(options: {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     role: string;
     department?: string;
@@ -254,7 +262,7 @@ Refactor production and test files for clarity, following DRY principle for prod
   function setPosition(x: number, y: number) { /* ... */ }
   
   // ❌ AVOID - Too many positional parameters
-  function createUser(name: string, email: string, role: string, department?: string) { /* ... */ }
+  function createUser(firstName: string, lastName: string, email: string, role: string, department?: string) { /* ... */ }
   ```
 - Reserve positional parameters for single-argument functions and well-established patterns
   ```typescript
@@ -284,9 +292,14 @@ Refactor production and test files for clarity, following DRY principle for prod
     };
   }
   
+  type Config = { apiUrl: string; timeout: number };
+  
   // ✅ CORRECT - Explicit type for exported module boundary
   export function getConfig(): Config {
-    return loadConfigFromFile();
+    return {
+      apiUrl: process.env.API_URL || 'http://localhost:3000',
+      timeout: 5000
+    };
   }
   
   // ❌ AVOID - Unnecessary explicit return type
@@ -329,9 +342,9 @@ Refactor production and test files for clarity, following DRY principle for prod
   export function ProductList() { /* ... */ }
   export function ShoppingCart() { /* ... */ }
   
-    // ❌ AVOID - Multiple classes
+  // ❌ AVOID - Multiple classes
   export abstract class BaseSomeClass { /* ... */ }
-  export class SomeClass extends BaseSomeClass{ /* ... */ }
+  export class SomeClass extends BaseSomeClass { /* ... */ }
   export class SomeOtherClass extends BaseSomeClass { /* ... */ }
   ```
 - File naming conventions:
