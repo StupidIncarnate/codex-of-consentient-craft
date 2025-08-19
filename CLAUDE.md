@@ -18,62 +18,19 @@
 
 **VIOLATION WARNING**: Skipping Analysis Checkpoint is a critical protocol violation.
 
-## Documentation Update Protocol
-
-**BEFORE modifying any documentation, you MUST:**
-
-1. **Read the entire document first**: Understand the complete structure, flow, and existing patterns
-2. **Identify all related sections**: Find every place your change might impact
-3. **Check for dependencies**: 
-    - Are examples referenced elsewhere?
-    - Do other documents link to this section?
-    - Will changing terminology break consistency?
-4. **Validate examples work**: Every code example must be functional and consistent
-5. **Maintain internal consistency**: 
-    - Use the same variable names across related examples
-    - Keep the same data/IDs when showing progression
-    - Ensure examples build on each other logically
-
-**REQUIRED: Pre-Change Analysis**
-Before making changes, document:
-
-- Current structure and pattern of the section
-- All places that reference or depend on this content  
-- Impact of proposed changes on document coherence
-- Which examples need updates to stay consistent
-
-**Example:**
-Task: "Update UserStub to include firstName"
-Analysis: 
-- UserStub used in 5 examples throughout doc
-- Examples expect 'name' property, not firstName/lastName
-- formatUserDisplay function uses 'name' property
-- Must update ALL examples or none to maintain consistency
-
-## Error Analysis Protocol
-
-**BEFORE implementing any fix, you MUST:**
-
-1. **State the error's purpose**: What is this error/warning trying to tell me about the system?
-2. **Identify the root cause**: What underlying issue is causing this symptom?
-3. **Consider suppression vs. fixing**:
-    - Am I hiding a legitimate problem?
-    - Is this error pointing to something I should understand?
-4. **Ask explicitly**: "Why is this happening?" before "How do I make it stop?"
-
-**REQUIRED: Error Investigation Log**
-For each error, document:
-
-- What the error is telling me about system state
-- Why this error exists (root cause analysis)
-- Why my chosen fix addresses the cause, not just the symptom
-
-**Example:**
-Error: "Expected test not to call console.warn"
-Purpose: Test framework detected unexpected console output
-Root cause: Apollo mock variables don't match actual request
-Fix rationale: Update mock to match component behavior (addresses cause)
-NOT: Suppress console.warn (addresses symptom only)
+## Optimization Tools
+1. Pattern Search:
+   - rg -n "pattern" --glob '!node_modules/*' instead of multiple Grep calls
+2. File Finding:
+   - fd filename or fd .ext directory instead of Glob tool
+3. File Preview:
+   - bat -n filepath for syntax-highlighted preview with line numbers
+4. Bulk Refactoring:
+   - rg -l "pattern" | xargs sed -i 's/old/new/g' for mass replacements
+5. Project Structure:
+   - tree -L 2 directories for quick overview
+6. JSON Inspection:
+   - jq '.key' file.json for quick JSON parsing
 
 ## Standards Documents
 

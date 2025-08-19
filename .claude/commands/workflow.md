@@ -17,9 +17,10 @@ Execute the development workflow in focused, iterative chunks based on the `## T
 Launch multiple Task agents concurrently to explore different aspects:
 
 ```
-Task 1: "Find all files related to [feature/component name]"
-Task 2: "Search for existing patterns and conventions for [task type]"
-Task 3: "Identify test files and testing patterns for similar features"
+Task 1: "Find all files related to [feature/component name] in the /src folder"
+Task 2: "Search for existing patterns and conventions for [task type] in the /src folder"
+Task 3: "Identify test files and testing patterns for similar features in the /src and /tests folders"
+[etc...]
 ```
 
 Wait for all agents to complete, then synthesize findings:

@@ -29,7 +29,8 @@ module.exports = [
       '.git/**',
       'jest.config.js',
       'jest.setup.js',
-      'eslint.config.js'
+      'eslint.config.js',
+      'v1'
     ]
   },
   // Main configuration for all TypeScript and JavaScript files
