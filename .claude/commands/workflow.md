@@ -55,9 +55,9 @@ You MUST use TodoWrite to break down the task following the 7-step TDD process f
 2. CODE: UserService (Step 2: Implement Production Code)
 3. GAP-REVIEW: UserServer (Step 3: Review for Missing Coverage)
 4. TEST: UserServer (Step 4: Fill in Test Assertions)
-5. TEGRITY: Tests (Step 5: Run Tests and Fix Failures)
+5. TEGRITY: Tests (Step 5: Run Tests and Fix Failures - tests only)
 6. REFACTOR: UserService (Step 6: Refactor for Clarity)
-7. TEGRITY: Lint+Types (Step 7: Final Verification)
+7. TEGRITY: Full Verification (Step 7: lint + typecheck + test + no warnings)
 ```
 
 **Multiple Components Example:**
@@ -67,26 +67,26 @@ You MUST use TodoWrite to break down the task following the 7-step TDD process f
 2. CODE: AuthService (Step 2: Implement Production Code)
 3. GAP-REVIEW: AuthService (Step 3: Review for Missing Coverage)
 4. TEST: AuthService (Step 4: Fill in Test Assertions)
-5. TEGRITY: AuthService Tests (Step 5: Run Tests and Fix Failures)
+5. TEGRITY: AuthService Tests (Step 5: Run Tests and Fix Failures - tests only)
 
 # UserService (depends on AuthService)
 6. STUB-TESTS: UserService (Step 1: Write Empty Test Cases)
 7. CODE: UserService (Step 2: Implement Production Code)
 8. GAP-REVIEW: UserService (Step 3: Review for Missing Coverage)
 9. TEST: UserService (Step 4: Fill in Test Assertions)
-10. TEGRITY: UserService Tests (Step 5: Run Tests and Fix Failures)
+10. TEGRITY: UserService Tests (Step 5: Run Tests and Fix Failures - tests only)
 
 # TokenService
 11. STUB-TESTS: TokenService (Step 1: Write Empty Test Cases)
 12. CODE: TokenService (Step 2: Implement Production Code)
 13. GAP-REVIEW: TokenService (Step 3: Review for Missing Coverage)
 14. TEST: TokenService (Step 4: Fill in Test Assertions)
-15. TEGRITY: TokenService Tests (Step 5: Run Tests and Fix Failures)
+15. TEGRITY: TokenService Tests (Step 5: Run Tests and Fix Failures - tests only)
 
 # Final verification
 16. REFACTOR: All Components (Step 6: Refactor for Clarity)
-17. TEGRITY: All Tests
-18. TEGRITY: Lint+Types (Step 7: Final Verification)
+17. TEGRITY: All Tests (Step 5: Run Tests and Fix Failures - tests only)
+18. TEGRITY: Full Verification (Step 7: lint + typecheck + test + no warnings)
 ```
 
 **Parallel Work Opportunity:**
@@ -97,19 +97,19 @@ When components are truly independent:
 - CODE: PaymentService (Step 2: Implement Production Code)
 - GAP-REVIEW: PaymentService (Step 3: Review for Missing Coverage)
 - TEST: PaymentService (Step 4: Fill in Test Assertions)
-- TEGRITY: PaymentService Tests (Step 5: Run Tests and Fix Failures)
+- TEGRITY: PaymentService Tests (Step 5: Run Tests and Fix Failures - tests only)
 
 [PARALLEL GROUP 2]
 - STUB-TESTS: NotificationService (Step 1: Write Empty Test Cases)
 - CODE: NotificationService (Step 2: Implement Production Code)
 - GAP-REVIEW: NotificationService (Step 3: Review for Missing Coverage)
 - TEST: NotificationService (Step 4: Fill in Test Assertions)
-- TEGRITY: NotificationService Tests (Step 5: Run Tests and Fix Failures)
+- TEGRITY: NotificationService Tests (Step 5: Run Tests and Fix Failures - tests only)
 
 [SEQUENTIAL]
 - REFACTOR: All Components (Step 6: Refactor for Clarity)
-- TEGRITY: All Tests
-- TEGRITY: Lint+Types (Step 7: Final Verification)
+- TEGRITY: All Tests (Step 5: Run Tests and Fix Failures - tests only)
+- TEGRITY: Full Verification (Step 7: lint + typecheck + test + no warnings)
 ```
 
 Keep each TODO focused and achievable. Group related work but maintain clear boundaries.
@@ -124,9 +124,9 @@ For EACH TODO item:
 - Use relevant sections from standards docs as guidance
 
 ### 5c. Verify and complete:
-- Run relevant tests
-- Fix any failures
-- Only mark TODO as completed when lint, tests and typecheck pass
+- For Step 5 TEGRITY: Run tests only, fix failures
+- For Step 7 TEGRITY: Run `npm run tegrity` (full lint + typecheck + test), fix all issues
+- Only mark TODO as completed when verification requirements are met
 - Move to next TODO
 
 ## Step 6: Final Verification
