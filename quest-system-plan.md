@@ -435,7 +435,7 @@ const EscapeRequestSchema = z.object({
   analysis: z.string().optional(),
   partialWork: z.string().optional(),
   timestamp: z.date(),
-  context: z.any().optional()
+  context: z.unknown().optional()
 });
 
 // MCP server validates all payloads against these schemas
