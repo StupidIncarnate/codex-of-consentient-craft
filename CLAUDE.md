@@ -35,7 +35,6 @@
 ## Standards Documents
 
 - [Coding Principles](docs/coding-principles.md) - Development workflow and coding standards
-- [Typescript Standards](docs/typescript-standards.md) - Typescript standards and best practices
 - [Testing Standards](docs/testing-standards.md) - Testing philosophy, patterns, and best practices
 
 ## Project Overview

@@ -22,3 +22,10 @@ afterEach(() => {
 });
 
 ```
+
+## console outputs in tests
+If claude console logs in files, they will bleed through tests and clog the display, which will lead to false positives of passing vs not.
+
+Similarly, if a console log in script says something happened without verification, it can lead claude to assume it worked and not double-check things.
+
+Console.logs need to be tailored and forbidden in most places.

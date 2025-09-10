@@ -1,84 +1,5 @@
 # Coding Principles
 
-## Development Workflow (Mandatory for Production Code)
-
-**This workflow is MANDATORY when writing any production code. Following this process ensures code quality, maintainability, and alignment with team standards.**
-
-### Overview
-1. **STUB-TESTS**: [Write empty test cases](#1-write-empty-test-cases-stub-tests)
-2. **CODE**: [Implement production code](#2-implement-production-code-code)  
-3. **GAP-REVIEW**: [Review for missing coverage](#3-review-for-missing-coverage-gap-review)
-4. **TEST**: [Fill in test assertions](#4-fill-in-test-assertions-test)
-5. **TEGRITY**: [Run tests and fix failures](#5-run-tests-and-fix-failures-tegrity)
-6. **REFACTOR**: [Refactor for clarity](#6-refactor-for-clarity-refactor)
-7. **TEGRITY**: [Final verification](#7-final-verification-tegrity)
-
-### 1. Write empty test cases (STUB-TESTS)
-Write empty test cases using the "Action => Expectation" pattern from [Testing Standards](testing-standards.md#test-description-format). Use element monikers and specific input/output descriptions. Follow the [Test Organization by Feature](testing-standards.md#test-organization-by-feature) for organizing test hierarchies.
-   ```typescript
-   // Step 1: Empty test cases - Follow Action => Expectation pattern with element monikers
-   describe('UserService', () => {
-     describe('createUser()', () => {
-       describe('when email is new', () => {
-         it('createUser({email: "new@example.com", firstName: "Test", lastName: "User"}) => returns created user with id');
-         it('createUser({email: "new@example.com", firstName: "Test", lastName: "User"}) => triggers welcome email send');
-       });
-       
-       describe('when email already exists', () => {
-         it('createUser({email: "test@example.com"}) => throws DuplicateUserError');
-       });
-       
-       describe('when data is invalid', () => {
-         it('createUser({email: "", firstName: "Test", lastName: "User"}) => throws ValidationError');
-         it('createUser({email: "test@example.com", age: -1}) => throws RangeError');
-       });
-     });
-   });
-   ```
-
-### 2. Implement production code (CODE)
-Fill in production code that aligns with expected behavior
-- Follow existing patterns in the project standards doc folder as well as examples in the codebase
-- Keep implementation simple and clear
-
-### 3. Review for missing coverage (GAP-REVIEW)
-Review production code for missing test coverage based on [Coverage Requirements](testing-standards.md#coverage-requirements)
-
-### 4. Fill in test assertions (TEST)
-Fill in test cases with assertions that match their descriptions. Follow [Assertion Methods](testing-standards.md#assertion-discipline) guidelines
-```typescript
-// Fill in the test assertions
-it('createUser({email: "new@example.com", firstName: "Test", lastName: "User"}) => returns created user with id', async () => {
-  const user = await createUser({ email: 'new@example.com', firstName: 'Test', lastName: 'User' });
-  expect(user).toStrictEqual({
-    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-    email: 'new@example.com',
-    firstName: 'Test',
-    lastName: 'User',
-    createdAt: new Date('2023-01-01')
-  });
-});
-
-it('createUser({email: "test@example.com"}) => throws DuplicateUserError', async () => {
-  await createUser({ email: 'test@example.com', firstName: 'First', lastName: 'User' });
-  await expect(createUser({ email: 'test@example.com', firstName: 'Second', lastName: 'User' }))
-    .rejects.toThrow(DuplicateUserError);
-});
-```
-
-### 5. Run tests and fix failures (TEGRITY)
-- Execute the test suite
-- Fix any failing tests by updating production code or updating asserts if needed
-
-### 6. Refactor for clarity (REFACTOR)
-Refactor production and test files for clarity, following DRY principle for production code, [DAMP (Descriptive And Meaningful Phrases)](testing-standards.md#damp-coverage-standards) for test code, and verify all tests still pass
-
-### 7. Final verification (TEGRITY)
-- Run all tests one more time
-- Execute linting and type checking
-- Ensure no console output or warnings
-- Verify code meets all standards
-
 ## Architecture Principles
 - Design components with single, clear responsibilities. If you need to explain why something exists, reconsider its design
   ```tsx
@@ -101,20 +22,6 @@ Refactor production and test files for clarity, following DRY principle for prod
   <UserAvatar userId={id} size="large" />
   <ProfilePicture user={user} dimensions={60} />
   ```
-- Apply the same solution to the same problem throughout the codebase
-  ```typescript
-  // If you handle errors with try/catch in one place:
-  try {
-    await api.updateUser(data);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'An error occurred';
-    showErrorToast(message);
-  }
-  
-  // Use the same pattern everywhere, not a different approach:
-  api.updateProfile(data).catch(handleError); // Different pattern = confusion
-  ```
-- Follow existing patterns in the codebase. Introduce new patterns only after confirming current ones cannot solve the problem
 - Complete all aspects of a task: passing tests, no TypeScript errors, no linting warnings, no test output spam, and no loose ends
   - **Loose ends include**: Unhandled error cases, missing test coverage, incomplete documentation, hardcoded values that should be configurable, accessibility attributes, loading states
 
@@ -163,13 +70,13 @@ Refactor production and test files for clarity, following DRY principle for prod
 - Handle null/undefined values explicitly in your code to satisfy strict checking
   ```typescript
   // ✅ CORRECT
-  function getUsername(user: User | null): string {
+  function getUsername({ user }: { user: User | null }): string {
     if (!user) return 'Anonymous';
     return `${user.firstName} ${user.lastName}`;
   }
   
   // ❌ AVOID
-  function getUsername(user: User | null): string {
+  function getUsername({ user }: { user: User | null }): string {
     return `${user.firstName} ${user.lastName}`; // Error: Object is possibly 'null'
   }
   ```
@@ -180,13 +87,69 @@ Refactor production and test files for clarity, following DRY principle for prod
 - Let types flow naturally through your code. Use type assertions (`as SomeType`) only when you have information the compiler lacks
   ```typescript
   // ✅ CORRECT - You know the type from API docs
-  const data = JSON.parse(response) as { id: string; firstName: string; lastName: string };
+  const data = JSON.parse(response) as SomeResponseType;
   
   // ❌ AVOID - Fighting TypeScript's inference
   const count = (items.length as number) + 1; // TypeScript already knows it's a number
   ```
 
+## Security & Safety 
+- Avoid shell injection by using Node.js APIs instead of shell commands when possible
+  ```typescript
+  // ✅ CORRECT - Use Node.js APIs
+  import { readFile } from 'fs/promises';
+  const content = await readFile(filePath, 'utf8');
+  
+  // ❌ AVOID - Shell command injection risk
+  exec(`cat ${filePath}`, callback);
+  ```
+- Validate and sanitize all user input before processing
+  ```typescript
+  // ✅ CORRECT - Input validation
+  function processUserId({ userId }: { userId: unknown }): string {
+    if (typeof userId !== 'string' || userId.length === 0) {
+      throw new Error('Invalid user ID');
+    }
+    return userId.trim();
+  }
+  
+  // ❌ AVOID - Direct usage without validation
+  function processUserId({ userId }: { userId: any }) {
+    return userId.toUpperCase(); // Unsafe
+  }
+  ```
+- Handle errors explicitly for every operation that can fail
+  ```typescript
+  // ✅ CORRECT - Explicit error handling
+  async function loadConfig({ path }: { path: string }) {
+    try {
+      const content = await readFile(path, 'utf8');
+      return JSON.parse(content);
+    } catch (error) {
+      throw new Error(`Failed to load config from ${path}: ${error}`);
+    }
+  }
+  
+  // ❌ AVOID - Silent failure
+  async function loadConfig({ path }: { path: string }) {
+    const content = await readFile(path, 'utf8'); // May throw
+    return JSON.parse(content); // May throw
+  }
+  ```
+- Never hardcode secrets or sensitive data. Use environment variables
+  ```typescript
+  // ✅ CORRECT - Environment variables
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error('API_KEY environment variable is required');
+  }
+  
+  // ❌ AVOID - Hardcoded secrets
+  const apiKey = 'sk-1234567890abcdef'; // Never do this
+  ```
+
 ## Type Design Patterns
+- Store all type definitions in `src/types` directory rather than inline with implementation files. This centralizes type definitions and prevents circular dependencies
 - Prefer `type` over `interface`, especially for function arguments and simple object shapes
   ```typescript
   // ✅ CORRECT - type is more flexible
@@ -212,14 +175,8 @@ Refactor production and test files for clarity, following DRY principle for prod
   ```typescript
   // ✅ CORRECT - Effective utility type usage
   type User = { id: string; firstName: string; lastName: string; email: string; role: string; status: string; isActive: boolean; isPending: boolean };
-  
-  // Pick only what you need
   type UserSummary = Pick<User, 'id' | 'firstName' | 'lastName'>;
-  
-  // Remove sensitive fields
   type PublicUser = Omit<User, 'email'>;
-  
-  // Make all fields optional for updates
   type UserUpdate = Partial<User>;
   
   // ❌ AVOID - Manually redefining types
@@ -227,56 +184,44 @@ Refactor production and test files for clarity, following DRY principle for prod
   ```
 
 ## Function Parameters
+- **All function parameters must use object destructuring with inline types**. This provides better semantic context and maintainability, especially for AI-assisted development
+  ```typescript
+  // ✅ CORRECT - Object destructuring with inline types
+  function updateUser({ user, companyId }: { user: User; companyId: Company['id'] }) {
+    // Clear parameter names and preserved type relationships
+  }
+  
+  function calculateArea({ width, height }: { width: number; height: number }) {
+    return width * height;
+  }
+  
+  function processPayment({ amount, method }: { amount: number; method: PaymentMethod }) {
+    // Even simple functions benefit from semantic parameter names
+  }
+  
+  // ❌ AVOID - Positional parameters
+  function updateUser(user: User, companyId: Company['id']) { /* ... */ }
+  function calculateArea(width: number, height: number) { /* ... */ }
+  function processPayment(amount: number, method: PaymentMethod) { /* ... */ }
+  ```
 - Pass complete objects to preserve type relationships. When you need just an ID, extract it with `Type['id']` rather than passing individual properties
   ```typescript
   type Company = { id: string; name: string; industry: string };
   
-  // ✅ CORRECT
-  function updateUser(user: User, companyId: Company['id']) {
+  // ✅ CORRECT - Complete objects with extracted types
+  function updateUser({ user, companyId }: { user: User; companyId: Company['id'] }) {
     // user object maintains all type relationships
   }
   
-  // ❌ AVOID
-  function updateUser(userName: string, userEmail: string, userRole: string, companyId: string) {
+  // ❌ AVOID - Individual properties lose type relationships
+  function updateUser({ userName, userEmail, userRole, companyId }: { 
+    userName: string; 
+    userEmail: string; 
+    userRole: string; 
+    companyId: string;
+  }) {
     // Lost type safety and relationships
   }
-  ```
-- Use options objects with descriptive property names for functions with 3+ parameters or any optional parameters
-  ```typescript
-  // ✅ CORRECT - Options object for 3+ params
-  function createUser(options: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    role: string;
-    department?: string;
-  }) { /* ... */ }
-  
-  // ✅ CORRECT - Options object for optional params
-  function search(options: {
-    query: string;
-    limit?: number;
-  }) { /* ... */ }
-  
-  // ✅ CORRECT - 2 required params is OK positional
-  function setPosition(x: number, y: number) { /* ... */ }
-  
-  // ❌ AVOID - Too many positional parameters
-  function createUser(firstName: string, lastName: string, email: string, role: string, department?: string) { /* ... */ }
-  ```
-- Reserve positional parameters for single-argument functions and well-established patterns
-  ```typescript
-  // ✅ CORRECT - Well-established patterns
-  array.map(item => item.id);
-  array.filter(user => user.isActive);
-  array.reduce((sum, n) => sum + n, 0);
-  
-  // ✅ CORRECT - Simple transforms
-  function double(n: number): number { return n * 2; }
-  function getId(user: User): string { return user.id; }
-  
-  // ❌ AVOID - Complex logic should use options
-  users.filter((user, index, array, includeInactive, includePending) => { /* ... */ });
   ```
 
 ## Return Type Inference
@@ -284,7 +229,7 @@ Refactor production and test files for clarity, following DRY principle for prod
 - Add explicit return types only for exported functions that other modules consume or when TypeScript infers `any`
   ```typescript
   // ✅ CORRECT - Let inference work
-  function processUser(user: User) {
+  function processUser({ user }: { user: User }) {
     return {
       ...user,
       displayName: `${user.firstName} ${user.lastName}`,
@@ -303,24 +248,25 @@ Refactor production and test files for clarity, following DRY principle for prod
   }
   
   // ❌ AVOID - Unnecessary explicit return type
-  function isEven(n: number): boolean {
+  function isEven({ n }: { n: number }): boolean {
     return n % 2 === 0; // TypeScript knows this returns boolean
   }
   ```
 
 ## Code Hygiene
-- Follow all eslint and prettier rules in your configuration
+- Keep functions focused and under 100 lines. Break larger functions into smaller, single-purpose helpers
+- Keep implementation files under 500 lines. Consider splitting larger files into focused modules
 - Ensure all code paths in functions return a value (let TypeScript infer the return type)
   ```typescript
   // ✅ CORRECT - All paths return, type inferred
-  function getStatus(user: User) {
+  export function getStatus({ user }: { user: User }) {
     if (user.isActive) return 'active';
     if (user.isPending) return 'pending';
     return 'inactive';
   }
   
   // ❌ AVOID - Missing return path
-  function getStatus(user: User) {
+  export function getStatus({ user }: { user: User }) {
     if (user.isActive) return 'active';
     if (user.isPending) return 'pending';
     // TypeScript error: Not all code paths return a value
@@ -331,7 +277,7 @@ Refactor production and test files for clarity, following DRY principle for prod
   // ✅ CORRECT - Clear primary export with supporting types
   export type UserProps = { /* ... */ };
   export type UserState = { /* ... */ };
-  export default function UserProfile(props: UserProps) { /* ... */ }
+  export function UserProfile({ props }: { props: UserProps }) { /* ... */ }
   
   // OR for non-default exports:
   export type Config = { /* ... */ };
@@ -347,12 +293,119 @@ Refactor production and test files for clarity, following DRY principle for prod
   export class SomeClass extends BaseSomeClass { /* ... */ }
   export class SomeOtherClass extends BaseSomeClass { /* ... */ }
   ```
-- File naming conventions:
+- Naming conventions:
   - React Components: `PascalCase` (e.g., `UserProfile.tsx`, `ShoppingCart.tsx`)
   - React Hooks: `camelCase` (e.g., `useAuth.ts`, `useLocalStorage.ts`)
   - All other code files: `kebab-case` (e.g., `user-service.ts`, `api-client.ts`, `format-utils.ts`)
+  - Constants: `UPPER_SNAKE_CASE` for configuration values and magic numbers
+    ```typescript
+    // ✅ CORRECT - Named constants
+    const MAX_RETRY_ATTEMPTS = 3;
+    const DEFAULT_TIMEOUT_MS = 5000;
+    const API_VERSION = 'v2';
+    
+    if (attempts > MAX_RETRY_ATTEMPTS) {
+      throw new Error('Max retries exceeded');
+    }
+    
+    // ❌ AVOID - Magic numbers
+    if (attempts > 3) {
+      throw new Error('Max retries exceeded');
+    }
+    ```
+- Be mindful of performance: read files efficiently, avoid O(n²) algorithms when O(n) or O(n log n) solutions exist
+  ```typescript
+  // ✅ CORRECT - O(n) lookup using Map
+  const userMap = new Map(users.map(user => [user.id, user]));
+  const targetUser = userMap.get(targetId);
+  
+  // ❌ AVOID - O(n) lookup in O(n) loop = O(n²)
+  const activeUsers = users.filter(user => {
+    return otherUsers.find(other => other.id === user.id)?.isActive;
+  });
+  ```
 - Remove unused local variables and function parameters
 - Delete unreachable code
 - Remove orphaned files and unused code
 - Delete commented-out code blocks and TODO comments from completed work
 - Remove console.log statements from production and test code (unless specifically testing console output)
+
+## Anti-Patterns to Avoid
+- **God functions**: Functions that handle multiple unrelated responsibilities. Break them into focused, single-purpose functions
+  ```typescript
+  // ❌ AVOID - God function doing too many things
+  function processUserData({ userData }: { userData: unknown }) {
+    // Validates input
+    if (!userData || typeof userData !== 'object') throw new Error('Invalid data');
+    
+    // Transforms data
+    const normalized = normalizeUserData({ userData });
+    
+    // Saves to database
+    database.save(normalized);
+    
+    // Sends email notification
+    emailService.sendWelcome(normalized.email);
+    
+    // Logs analytics
+    analytics.track('user_created', normalized.id);
+    
+    return normalized;
+  }
+  
+  // ✅ CORRECT - Separate functions for each concern
+  function validateUserData({ userData }: { userData: unknown }): UserData { /* ... */ }
+  function normalizeUserData({ userData }: { userData: UserData }): NormalizedUser { /* ... */ }
+  function saveUser({ user }: { user: NormalizedUser }): Promise<void> { /* ... */ }
+  function sendWelcomeEmail({ email }: { email: string }): Promise<void> { /* ... */ }
+  function trackUserCreation({ userId }: { userId: string }): void { /* ... */ }
+  ```
+- **Complex string manipulation**: Avoid regex for parsing structured data. Use proper parsers or APIs
+  ```typescript
+  // ✅ CORRECT - Use proper JSON parsing
+  function parseConfig({ configString }: { configString: string }) {
+    return JSON.parse(configString);
+  }
+  
+  // ❌ AVOID - Complex regex for structured data
+  function parseConfig({ configString }: { configString: string }) {
+    const match = configString.match(/key:\s*"([^"]*)".*value:\s*"([^"]*)"/);
+    return { key: match?.[1], value: match?.[2] };
+  }
+  ```
+- **Silent failures**: Always handle or propagate errors explicitly. Never ignore failures
+  ```typescript
+  // ✅ CORRECT - Explicit error handling
+  async function loadUserProfile({ userId }: { userId: string }) {
+    try {
+      const profile = await api.getUser(userId);
+      return profile;
+    } catch (error) {
+      logger.error(`Failed to load profile for user ${userId}:`, error);
+      throw new Error(`Profile not available for user ${userId}`);
+    }
+  }
+  
+  // ❌ AVOID - Silent failure
+  async function loadUserProfile({ userId }: { userId: string }) {
+    try {
+      return await api.getUser(userId);
+    } catch {
+      return null; // Silently fails without indication
+    }
+  }
+  ```
+- **Mixed concerns**: Don't mix business logic with I/O operations. Separate data access from business rules
+  ```typescript
+  // ✅ CORRECT - Separated concerns
+  async function calculateUserDiscount({ userId, getUserData }: { userId: string; getUserData: (id: string) => Promise<User> }) {
+    const user = await getUserData(userId);
+    return user.isPremium ? 0.2 : 0.1;
+  }
+  
+  // ❌ AVOID - Mixed concerns
+  async function calculateUserDiscount({ userId }: { userId: string }) {
+    const user = await database.users.findById(userId); // I/O mixed with logic
+    return user.isPremium ? 0.2 : 0.1;
+  }
+  ```
