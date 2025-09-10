@@ -34,3 +34,5 @@ tsconfig.*.json
 questmaestro/active/
 questmaestro/completed/
 questmaestro/abandoned/
+
+*.md
