@@ -34,7 +34,6 @@
 - Fix type errors at their source. Never suppress with `@ts-ignore` or `@ts-expect-error`
 - Let TypeScript infer types when values are clear. Add explicit types for:
     - Empty arrays and objects
-    - Exported function returns
     - Ambiguous values
 
 ### Type Guards & Validation
@@ -107,7 +106,8 @@ if (!apiKey) {
 ### Type Patterns
 
 - Store type definitions in `src/types` directory to prevent circular dependencies
-- Prefer `type` over `interface` for function arguments and simple shapes
+- Use `type` for function arguments, unions, intersections, and utility type operations
+- Use `interface` when you need to extend/implement contracts or for public API boundaries
 - Use TypeScript utility types (`Pick`, `Omit`, `Partial`, etc.) instead of redefining:
 
 ```typescript
@@ -159,21 +159,13 @@ type UserUpdate = Partial<User>;
   ```
 
 ## Return Type Inference
-- Let TypeScript infer return types from function implementations
-- Add explicit return types only for exported functions that other modules consume or when TypeScript infers `any`
+
+- For exported functions returning a defined type from `src/types`, add explicit return type annotation
+- For functions returning new shapes or internal functions, let TypeScript infer
   ```typescript
-  // ✅ CORRECT - Let inference work
-  function processUser({ user }: { user: User }) {
-    return {
-      ...user,
-      displayName: `${user.firstName} ${user.lastName}`,
-      isActive: user.status === 'active'
-    };
-  }
-  
   type Config = { apiUrl: string; timeout: number };
   
-  // ✅ CORRECT - Explicit type for exported module boundary
+  // ✅ CORRECT - Explicit type for exported function returning known type
   export function getConfig(): Config {
     return {
       apiUrl: process.env.API_URL || 'http://localhost:3000',
@@ -181,18 +173,27 @@ type UserUpdate = Partial<User>;
     };
   }
   
-  // ❌ AVOID - Unnecessary explicit return type
-  function isEven({ n }: { n: number }): boolean {
-    return n % 2 === 0; // TypeScript knows this returns boolean
+  // ✅ CORRECT - Let inference work for complex return shapes
+  export function processUser({ user }: { user: User }) {
+    return {
+      ...user,
+      displayName: `${user.firstName} ${user.lastName}`,
+      isActive: user.status === 'active'
+    };
+  }
+  
+  // ✅ CORRECT - Internal functions use inference
+  function isEven({ n }: { n: number }) {
+    return n % 2 === 0; // TypeScript infers boolean
   }
   ```
 
 ## Code Hygiene
 - Keep functions focused and under 100 lines. Break larger functions into smaller, single-purpose helpers
 - Keep implementation files under 500 lines. Consider splitting larger files into focused modules
-- Ensure all code paths in functions return a value (let TypeScript infer the return type)
+- Ensure all code paths in functions return a value
   ```typescript
-  // ✅ CORRECT - All paths return, type inferred
+  // ✅ CORRECT - All paths return
   export function getStatus({ user }: { user: User }) {
     if (user.isActive) return 'active';
     if (user.isPending) return 'pending';
@@ -206,54 +207,48 @@ type UserUpdate = Partial<User>;
     // TypeScript error: Not all code paths return a value
   }
   ```
-- One main export per file (supporting types, interfaces, and constants may be co-exported)
+- One primary export per file: one component (React), one utility function/object (utils), or one class. Supporting
+  types specific to that export may be co-exported
   ```typescript
-  // ✅ CORRECT - Clear primary export with supporting types
+  // ✅ CORRECT - React component with its types
   export type UserProps = { /* ... */ };
-  export type UserState = { /* ... */ };
-  export function UserProfile({ props }: { props: UserProps }) { /* ... */ }
+  export function UserProfile({ name, age }: UserProps ) { /* ... */ }
   
-  // OR for non-default exports:
+  // ✅ CORRECT - Utility functions grouped as object
+  export const UserUtils = {
+    formatName: ({ user }: { user: User }) => `${user.firstName} ${user.lastName}`,
+    validateEmail: ({ email }: { email: string }) => email.includes('@')
+  };
+  
+  // ✅ CORRECT - Single utility function with its types
   export type Config = { /* ... */ };
   export function loadConfig(): Config { /* ... */ }
   
-  // ❌ AVOID - Multiple unrelated exports
+  // ✅ CORRECT - Class with its types
+  export type ServiceOptions = { /* ... */ };
+  export class UserService { /* ... */ }
+  
+  // ❌ AVOID - Multiple primary exports
   export function UserProfile() { /* ... */ }
   export function ProductList() { /* ... */ }
-  export function ShoppingCart() { /* ... */ }
   
   // ❌ AVOID - Multiple classes
-  export abstract class BaseSomeClass { /* ... */ }
-  export class SomeClass extends BaseSomeClass { /* ... */ }
-  export class SomeOtherClass extends BaseSomeClass { /* ... */ }
+  export class UserService { /* ... */ }
+  export class ProductService { /* ... */ }
   ```
 - Naming conventions:
   - React Components: `PascalCase` (e.g., `UserProfile.tsx`, `ShoppingCart.tsx`)
   - React Hooks: `camelCase` (e.g., `useAuth.ts`, `useLocalStorage.ts`)
   - All other code files: `kebab-case` (e.g., `user-service.ts`, `api-client.ts`, `format-utils.ts`)
-  - Constants: `UPPER_SNAKE_CASE` for configuration values and magic numbers
-    ```typescript
-    // ✅ CORRECT - Named constants
-    const MAX_RETRY_ATTEMPTS = 3;
-    const DEFAULT_TIMEOUT_MS = 5000;
-    const API_VERSION = 'v2';
-    
-    if (attempts > MAX_RETRY_ATTEMPTS) {
-      throw new Error('Max retries exceeded');
-    }
-    
-    // ❌ AVOID - Magic numbers
-    if (attempts > 3) {
-      throw new Error('Max retries exceeded');
-    }
-    ```
-- Be mindful of performance: read files efficiently, avoid O(n²) algorithms when O(n) or O(n log n) solutions exist
+  - Constants: `UPPER_SNAKE_CASE` for configuration values and magic numbers (avoid inline literals)
+- Default to efficient algorithms since dataset sizes are unknown. Use Map/Set for lookups instead of nested array
+  searches
   ```typescript
-  // ✅ CORRECT - O(n) lookup using Map
+  // ✅ CORRECT - O(n) using Map for lookups
   const userMap = new Map(users.map(user => [user.id, user]));
   const targetUser = userMap.get(targetId);
   
-  // ❌ AVOID - O(n) lookup in O(n) loop = O(n²)
+  // ❌ AVOID - Nested loops create O(n²) complexity
   const activeUsers = users.filter(user => {
     return otherUsers.find(other => other.id === user.id)?.isActive;
   });
