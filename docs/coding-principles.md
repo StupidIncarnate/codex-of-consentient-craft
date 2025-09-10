@@ -1,29 +1,12 @@
 # Coding Principles
 
 ## Architecture Principles
-- Design components with single, clear responsibilities. If you need to explain why something exists, reconsider its design
-  ```tsx
-  // ✅ CORRECT - Clear single responsibility
-  function UserAvatar({ userId }: { userId: string }) {
-    // Only responsible for displaying user avatar
-  }
-  
-  // ❌ AVOID - Mixed responsibilities
-  function UserAvatarAndNotificationBadge({ userId }: { userId: string }) {
-    // Handles avatar display AND notification state - should be separate
-  }
-  ```
-- Consolidate components that serve the same purpose. Having multiple solutions for one problem creates confusion
-  ```tsx
-  // ✅ CORRECT: One component for displaying user images
-  <UserAvatar userId={id} size="large" />
-  
-  // ❌ AVOID: Two components doing the same thing
-  <UserAvatar userId={id} size="large" />
-  <ProfilePicture user={user} dimensions={60} />
-  ```
-- Complete all aspects of a task: passing tests, no TypeScript errors, no linting warnings, no test output spam, and no loose ends
-  - **Loose ends include**: Unhandled error cases, missing test coverage, incomplete documentation, hardcoded values that should be configurable, accessibility attributes, loading states
+
+- Design components/modules with single, clear responsibilities
+- Consolidate similar functionality - avoid multiple solutions for one problem
+- Complete all aspects of a task: passing tests, no TypeScript errors, no linting warnings
+- **Verify frequently**: Run `npm run lint` and `npm run typecheck` after each significant change to catch issues early
+- Handle edge cases and error conditions appropriately for the context
 
 ## TypeScript & Type Safety
 
@@ -44,8 +27,11 @@ try {
     await apiCall();
 } catch (error: unknown) {
     if (error instanceof Error) {
+        // Backend: use logger.error(error.message)
+        // Frontend: console.error or error service
+        // Library: throw/return, let consumer handle
         console.error(error.message);
-  }
+    }
 }
 
 // Check array/object access
@@ -72,40 +58,10 @@ const data = JSON.parse(response) as ApiResponse;
 const count = (items.length as number) + 1;
 ```
 
-## Error Handling & Security
-
-### Error Handling
-- Handle errors explicitly for every operation that can fail
-- Never silently swallow errors - always log, throw, or handle appropriately
-- Provide context in error messages:
-
-```typescript
-async function loadConfig({path}: { path: string }) {
-    try {
-        const content = await readFile(path, 'utf8');
-        return JSON.parse(content);
-    } catch (error) {
-        throw new Error(`Failed to load config from ${path}: ${error}`);
-    }
-}
-```
-
-### Security
-
-- Validate all user input before processing
-- Use Node.js APIs instead of shell commands to avoid injection
-- Never hardcode secrets - use environment variables:
-
-```typescript
-const apiKey = process.env.API_KEY;
-if (!apiKey) {
-    throw new Error('API_KEY environment variable is required');
-}
-```
-
 ### Type Patterns
 
-- Store type definitions in `src/types` directory to prevent circular dependencies
+- Store all data structures (types and interfaces) in `src/types` - these are shapes passed between modules
+- Keep function parameter types inline where they're used, not in `src/types`
 - Use `type` for function arguments, unions, intersections, and utility type operations
 - Use `interface` when you need to extend/implement contracts or for public API boundaries
 - Use TypeScript utility types (`Pick`, `Omit`, `Partial`, etc.) instead of redefining:
@@ -117,35 +73,115 @@ type PublicUser = Omit<User, 'email'>;
 type UserUpdate = Partial<User>;
 ```
 
+## Async/Await & Concurrency
+
+### Promise Handling
+
+- Always use async/await over `.then()` chains for readability
+- Handle errors at the appropriate level - not every async call needs try/catch
+- Use `Promise.all()` for parallel operations, await sequentially only when dependent
+
+```typescript
+// ✅ CORRECT - Parallel when independent
+const [user, config, permissions] = await Promise.all([
+    fetchUser(id),
+    loadConfig(),
+    getPermissions(id)
+]);
+
+// ❌ AVOID - Sequential when could be parallel
+const user = await fetchUser(id);
+const config = await loadConfig();
+const permissions = await getPermissions(id);
+```
+
+### Avoiding Race Conditions
+
+- Never mutate shared state from async operations without proper synchronization
+- Use local variables or immutable updates in concurrent code
+- Be explicit about operation order when it matters
+
+```typescript
+// ✅ CORRECT - Atomic operations or proper state management
+const results = await Promise.all(items.map(async (item) => {
+    const processed = await processItem(item);
+    return {id: item.id, result: processed};
+}));
+// Then update state once with all results
+setState(results); // React example - backend would persist to DB
+
+// ❌ AVOID - Race condition with shared state
+let counter = 0;
+
+async function increment() {
+    const current = counter;
+    await someAsyncOp();
+    counter = current + 1; // Another call may have changed counter
+}
+```
+
+## Error Handling & Security
+
+### Error Handling
+- Handle errors explicitly for every operation that can fail
+- Never silently swallow errors - always log, throw, or handle appropriately
+- Provide context in error messages:
+
+```typescript
+// Backend example - file system access
+async function loadConfig({path}: { path: string }) {
+    try {
+        const content = await readFile(path, 'utf8');
+        return JSON.parse(content);
+    } catch (error) {
+        throw new Error(`Failed to load config from ${path}: ${error}`);
+    }
+}
+
+// Frontend would fetch from API or import JSON directly
+```
+
+### Security
+- Validate all user input before processing
+- Backend: Use Node.js APIs instead of shell commands to avoid injection
+- Never hardcode secrets - use environment variables:
+
+```typescript
+// Backend: Direct process.env access
+const apiKey = process.env.API_KEY;
+
+// Frontend: Build-time replacement (REACT_APP_*, VITE_*, etc.)
+const apiKey = process.env.REACT_APP_API_KEY;
+
+// Library: Accept config as parameter
+function createClient({apiKey}: { apiKey: string }) {
+    if (!apiKey) throw new Error('API key required');
+}
+```
+
 ## Function Parameters
 - **All function parameters must use object destructuring with inline types**. This provides better semantic context and maintainability, especially for AI-assisted development
   ```typescript
   // ✅ CORRECT - Object destructuring with inline types
-  function updateUser({ user, companyId }: { user: User; companyId: Company['id'] }) {
-    // Clear parameter names and preserved type relationships
-  }
+  function updateUser({ user, companyId }: { user: User; companyId: Company['id'] }) { }
   
   function calculateArea({ width, height }: { width: number; height: number }) {
     return width * height;
   }
   
-  function processPayment({ amount, method }: { amount: number; method: PaymentMethod }) {
-    // Even simple functions benefit from semantic parameter names
-  }
+  function processPayment({ amount, method }: { amount: number; method: PaymentMethod }) { }
   
   // ❌ AVOID - Positional parameters
-  function updateUser(user: User, companyId: Company['id']) { /* ... */ }
-  function calculateArea(width: number, height: number) { /* ... */ }
-  function processPayment(amount: number, method: PaymentMethod) { /* ... */ }
+  function updateUser(user: User, companyId: Company['id']) { }
+  function calculateArea(width: number, height: number) { }
+  function processPayment(amount: number, method: PaymentMethod) { }
   ```
 - Pass complete objects to preserve type relationships. When you need just an ID, extract it with `Type['id']` rather than passing individual properties
   ```typescript
   type Company = { id: string; name: string; industry: string };
   
   // ✅ CORRECT - Complete objects with extracted types
-  function updateUser({ user, companyId }: { user: User; companyId: Company['id'] }) {
-    // user object maintains all type relationships
-  }
+  function updateUser({ user, companyId }: { user: User; companyId: Company['id'] }) { }
   
   // ❌ AVOID - Individual properties lose type relationships
   function updateUser({ userName, userEmail, userRole, companyId }: { 
@@ -153,9 +189,7 @@ type UserUpdate = Partial<User>;
     userEmail: string; 
     userRole: string; 
     companyId: string;
-  }) {
-    // Lost type safety and relationships
-  }
+  }) { }
   ```
 
 ## Return Type Inference
@@ -188,7 +222,7 @@ type UserUpdate = Partial<User>;
   }
   ```
 
-## Code Hygiene
+## Code Organization
 - Keep functions focused and under 100 lines. Break larger functions into smaller, single-purpose helpers
 - Keep implementation files under 500 lines. Consider splitting larger files into focused modules
 - Ensure all code paths in functions return a value
@@ -207,8 +241,9 @@ type UserUpdate = Partial<User>;
     // TypeScript error: Not all code paths return a value
   }
   ```
-- One primary export per file: one component (React), one utility function/object (utils), or one class. Supporting
-  types specific to that export may be co-exported
+- Always use named exports, never default exports
+- One primary export per file: one component (React), one utility function/object (utils), or one class
+- Supporting types specific to that export may be co-exported
   ```typescript
   // ✅ CORRECT - React component with its types
   export type UserProps = { /* ... */ };
@@ -241,6 +276,9 @@ type UserUpdate = Partial<User>;
   - React Hooks: `camelCase` (e.g., `useAuth.ts`, `useLocalStorage.ts`)
   - All other code files: `kebab-case` (e.g., `user-service.ts`, `api-client.ts`, `format-utils.ts`)
   - Constants: `UPPER_SNAKE_CASE` for configuration values and magic numbers (avoid inline literals)
+
+## Performance & Code Cleanup
+
 - Default to efficient algorithms since dataset sizes are unknown. Use Map/Set for lookups instead of nested array
   searches
   ```typescript
@@ -253,11 +291,7 @@ type UserUpdate = Partial<User>;
     return otherUsers.find(other => other.id === user.id)?.isActive;
   });
   ```
-- Remove unused local variables and function parameters
-- Delete unreachable code
-- Remove orphaned files and unused code
-- Delete commented-out code blocks and TODO comments from completed work
-- Remove console.log statements from production and test code (unless specifically testing console output)
+- Remove: unused variables/parameters, unreachable code, orphaned files, commented-out code, console.log statements
 
 ## Anti-Patterns to Avoid
 
