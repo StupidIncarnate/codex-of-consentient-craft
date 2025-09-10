@@ -25,163 +25,97 @@
 - Complete all aspects of a task: passing tests, no TypeScript errors, no linting warnings, no test output spam, and no loose ends
   - **Loose ends include**: Unhandled error cases, missing test coverage, incomplete documentation, hardcoded values that should be configurable, accessibility attributes, loading states
 
-## Type Safety Boundaries
-- Use existing types from the codebase when available. Make new types when needed. For uncertain data (including catch variables), use `unknown` and prove its shape through guards. This eliminates the need for `any`
-  ```typescript
-  // ✅ CORRECT
-  try {
+## TypeScript & Type Safety
+
+### Core Principles
+
+- Use existing types from the codebase when available. Make new types when needed
+- For uncertain data (including catch variables), use `unknown` and prove its shape through guards
+- Fix type errors at their source. Never suppress with `@ts-ignore` or `@ts-expect-error`
+- Let TypeScript infer types when values are clear. Add explicit types for:
+    - Empty arrays and objects
+    - Exported function returns
+    - Ambiguous values
+
+### Type Guards & Validation
+
+```typescript
+// Handle unknown data safely
+try {
     await apiCall();
-  } catch (error: unknown) {
+} catch (error: unknown) {
     if (error instanceof Error) {
-      // Do something with error
-    }
+        console.error(error.message);
   }
-  
-  // ❌ AVOID
-  catch (error: any) {
-    return error.message; // Unsafe access
-  }
-  ```
-- Let TypeScript infer types when the value makes it clear. Add explicit types for empty arrays, ambiguous objects, and when you need tighter constraints
-  ```typescript
-  // ✅ CORRECT - Explicit types for ambiguous cases
-  type UserConfig = { theme: string; language: string; notifications: boolean };
-  
-  const items: string[] = []; // Empty array needs type
-  const config: UserConfig = {}; // Empty object needs type
-  const data = { firstName: 'John', lastName: 'Doe', age: 30 }; // Clear from values, no type needed
-  
-  // ❌ AVOID - Ambiguous without types
-  // const items = []; // Type is any[]
-  // const config = {}; // Type is {}
-  ```
-- Check array/object access for undefined before use
-  ```typescript
-  // ✅ CORRECT
-  if (users[index]) {
+}
+
+// Check array/object access
+if (users[index]) {
     return users[index].name;
-  }
-  
-  const value = config.settings?.theme ?? 'light';
-  
-  // ❌ AVOID
-  return users[index].name; // May throw if index out of bounds
-  ```
-- Handle null/undefined values explicitly in your code to satisfy strict checking
-  ```typescript
-  // ✅ CORRECT
-  function getUsername({ user }: { user: User | null }): string {
+}
+
+// Handle null/undefined explicitly
+function getUsername({user}: { user: User | null }): string {
     if (!user) return 'Anonymous';
     return `${user.firstName} ${user.lastName}`;
-  }
-  
-  // ❌ AVOID
-  function getUsername({ user }: { user: User | null }): string {
-    return `${user.firstName} ${user.lastName}`; // Error: Object is possibly 'null'
-  }
-  ```
+}
+```
 
-## Type Discipline
-- Fix type errors at their source. Suppressing with `@ts-ignore` or `@ts-expect-error` hides real problems
-- Address linting violations directly. Disabling rules with eslint-disable comments accumulates technical debt
-- Let types flow naturally through your code. Use type assertions (`as SomeType`) only when you have information the compiler lacks
-  ```typescript
-  // ✅ CORRECT - You know the type from API docs
-  const data = JSON.parse(response) as SomeResponseType;
-  
-  // ❌ AVOID - Fighting TypeScript's inference
-  const count = (items.length as number) + 1; // TypeScript already knows it's a number
-  ```
+### Type Assertions
 
-## Security & Safety 
-- Avoid shell injection by using Node.js APIs instead of shell commands when possible
-  ```typescript
-  // ✅ CORRECT - Use Node.js APIs
-  import { readFile } from 'fs/promises';
-  const content = await readFile(filePath, 'utf8');
-  
-  // ❌ AVOID - Shell command injection risk
-  exec(`cat ${filePath}`, callback);
-  ```
-- Validate and sanitize all user input before processing
-  ```typescript
-  // ✅ CORRECT - Input validation
-  function processUserId({ userId }: { userId: unknown }): string {
-    if (typeof userId !== 'string' || userId.length === 0) {
-      throw new Error('Invalid user ID');
-    }
-    return userId.trim();
-  }
-  
-  // ❌ AVOID - Direct usage without validation
-  function processUserId({ userId }: { userId: any }) {
-    return userId.toUpperCase(); // Unsafe
-  }
-  ```
+Use type assertions only when you have information the compiler lacks:
+
+```typescript
+// ✅ CORRECT - You know the type from external source
+const data = JSON.parse(response) as ApiResponse;
+
+// ❌ AVOID - Fighting TypeScript's inference
+const count = (items.length as number) + 1;
+```
+
+## Error Handling & Security
+
+### Error Handling
 - Handle errors explicitly for every operation that can fail
-  ```typescript
-  // ✅ CORRECT - Explicit error handling
-  async function loadConfig({ path }: { path: string }) {
-    try {
-      const content = await readFile(path, 'utf8');
-      return JSON.parse(content);
-    } catch (error) {
-      throw new Error(`Failed to load config from ${path}: ${error}`);
-    }
-  }
-  
-  // ❌ AVOID - Silent failure
-  async function loadConfig({ path }: { path: string }) {
-    const content = await readFile(path, 'utf8'); // May throw
-    return JSON.parse(content); // May throw
-  }
-  ```
-- Never hardcode secrets or sensitive data. Use environment variables
-  ```typescript
-  // ✅ CORRECT - Environment variables
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error('API_KEY environment variable is required');
-  }
-  
-  // ❌ AVOID - Hardcoded secrets
-  const apiKey = 'sk-1234567890abcdef'; // Never do this
-  ```
+- Never silently swallow errors - always log, throw, or handle appropriately
+- Provide context in error messages:
 
-## Type Design Patterns
-- Store all type definitions in `src/types` directory rather than inline with implementation files. This centralizes type definitions and prevents circular dependencies
-- Prefer `type` over `interface`, especially for function arguments and simple object shapes
-  ```typescript
-  // ✅ CORRECT - type is more flexible
-  type User = {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  
-  type UserWithRole = User & { role: 'admin' | 'user' };
-  type UserId = User['id']; // Can extract properties
-  type UserMap = Record<string, User>; // Works with utility types
-  
-  // ❌ AVOID - interface has limitations
-  interface IUser {
-    id: string;
-    firstName: string;
-    lastName: string;
-  }
-  // Note: You CAN do type UserId = IUser['id'], but prefer type aliases for consistency
-  ```
-- Utilize TypeScript utility types effectively (`Pick`, `Omit`, `Partial`, `Required`, etc.)
-  ```typescript
-  // ✅ CORRECT - Effective utility type usage
-  type User = { id: string; firstName: string; lastName: string; email: string; role: string; status: string; isActive: boolean; isPending: boolean };
-  type UserSummary = Pick<User, 'id' | 'firstName' | 'lastName'>;
-  type PublicUser = Omit<User, 'email'>;
-  type UserUpdate = Partial<User>;
-  
-  // ❌ AVOID - Manually redefining types
-  type UserSummaryManual = { id: string; firstName: string; lastName: string }; // Duplicates structure
-  ```
+```typescript
+async function loadConfig({path}: { path: string }) {
+    try {
+        const content = await readFile(path, 'utf8');
+        return JSON.parse(content);
+    } catch (error) {
+        throw new Error(`Failed to load config from ${path}: ${error}`);
+    }
+}
+```
+
+### Security
+
+- Validate all user input before processing
+- Use Node.js APIs instead of shell commands to avoid injection
+- Never hardcode secrets - use environment variables:
+
+```typescript
+const apiKey = process.env.API_KEY;
+if (!apiKey) {
+    throw new Error('API_KEY environment variable is required');
+}
+```
+
+### Type Patterns
+
+- Store type definitions in `src/types` directory to prevent circular dependencies
+- Prefer `type` over `interface` for function arguments and simple shapes
+- Use TypeScript utility types (`Pick`, `Omit`, `Partial`, etc.) instead of redefining:
+
+```typescript
+type User = { id: string; firstName: string; lastName: string; email: string };
+type UserSummary = Pick<User, 'id' | 'firstName' | 'lastName'>;
+type PublicUser = Omit<User, 'email'>;
+type UserUpdate = Partial<User>;
+```
 
 ## Function Parameters
 - **All function parameters must use object destructuring with inline types**. This provides better semantic context and maintainability, especially for AI-assisted development
@@ -331,81 +265,7 @@
 - Remove console.log statements from production and test code (unless specifically testing console output)
 
 ## Anti-Patterns to Avoid
-- **God functions**: Functions that handle multiple unrelated responsibilities. Break them into focused, single-purpose functions
-  ```typescript
-  // ❌ AVOID - God function doing too many things
-  function processUserData({ userData }: { userData: unknown }) {
-    // Validates input
-    if (!userData || typeof userData !== 'object') throw new Error('Invalid data');
-    
-    // Transforms data
-    const normalized = normalizeUserData({ userData });
-    
-    // Saves to database
-    database.save(normalized);
-    
-    // Sends email notification
-    emailService.sendWelcome(normalized.email);
-    
-    // Logs analytics
-    analytics.track('user_created', normalized.id);
-    
-    return normalized;
-  }
-  
-  // ✅ CORRECT - Separate functions for each concern
-  function validateUserData({ userData }: { userData: unknown }): UserData { /* ... */ }
-  function normalizeUserData({ userData }: { userData: UserData }): NormalizedUser { /* ... */ }
-  function saveUser({ user }: { user: NormalizedUser }): Promise<void> { /* ... */ }
-  function sendWelcomeEmail({ email }: { email: string }): Promise<void> { /* ... */ }
-  function trackUserCreation({ userId }: { userId: string }): void { /* ... */ }
-  ```
-- **Complex string manipulation**: Avoid regex for parsing structured data. Use proper parsers or APIs
-  ```typescript
-  // ✅ CORRECT - Use proper JSON parsing
-  function parseConfig({ configString }: { configString: string }) {
-    return JSON.parse(configString);
-  }
-  
-  // ❌ AVOID - Complex regex for structured data
-  function parseConfig({ configString }: { configString: string }) {
-    const match = configString.match(/key:\s*"([^"]*)".*value:\s*"([^"]*)"/);
-    return { key: match?.[1], value: match?.[2] };
-  }
-  ```
-- **Silent failures**: Always handle or propagate errors explicitly. Never ignore failures
-  ```typescript
-  // ✅ CORRECT - Explicit error handling
-  async function loadUserProfile({ userId }: { userId: string }) {
-    try {
-      const profile = await api.getUser(userId);
-      return profile;
-    } catch (error) {
-      logger.error(`Failed to load profile for user ${userId}:`, error);
-      throw new Error(`Profile not available for user ${userId}`);
-    }
-  }
-  
-  // ❌ AVOID - Silent failure
-  async function loadUserProfile({ userId }: { userId: string }) {
-    try {
-      return await api.getUser(userId);
-    } catch {
-      return null; // Silently fails without indication
-    }
-  }
-  ```
-- **Mixed concerns**: Don't mix business logic with I/O operations. Separate data access from business rules
-  ```typescript
-  // ✅ CORRECT - Separated concerns
-  async function calculateUserDiscount({ userId, getUserData }: { userId: string; getUserData: (id: string) => Promise<User> }) {
-    const user = await getUserData(userId);
-    return user.isPremium ? 0.2 : 0.1;
-  }
-  
-  // ❌ AVOID - Mixed concerns
-  async function calculateUserDiscount({ userId }: { userId: string }) {
-    const user = await database.users.findById(userId); // I/O mixed with logic
-    return user.isPremium ? 0.2 : 0.1;
-  }
-  ```
+
+- **God functions**: Break functions handling multiple responsibilities into focused, single-purpose functions
+- **Complex string manipulation**: Use proper parsers (JSON.parse) instead of regex for structured data
+- **Mixed concerns**: Separate data access from business logic
