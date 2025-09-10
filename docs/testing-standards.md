@@ -247,13 +247,12 @@ await expect(failingCall()).rejects.toThrow('Error message');
 
 ## Forbidden Jest Matchers
 
-```typescript
+```tsx
 // ❌ NEVER USE THESE - They allow bugs through
 expect().toEqual()                     // → Use .toStrictEqual()
 expect().toMatchObject()               // → Use .toStrictEqual()
-expect().toContain()(
-for objects)     // → Use .toStrictEqual()
-    expect().toBeTruthy() / expect.toBeFalsy()   // → Use .toBe(true) / .toBe(false)
+expect().toContain()                   // → Use .toStrictEqual()
+expect().toBeTruthy() / expect.toBeFalsy()   // → Use .toBe(true) / .toBe(false)
 expect().toMatch('text')               // → Use .toMatch(/^exact text$/)
 expect().toHaveProperty('key')         // → Test actual value with .toBe()
 expect.objectContaining()      // → Test complete object
