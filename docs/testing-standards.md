@@ -249,20 +249,16 @@ await expect(failingCall()).rejects.toThrow('Error message');
 
 ```typescript
 // ❌ NEVER USE THESE - They allow bugs through
-.
-toEqual()                     // → Use .toStrictEqual()
-    .toMatchObject()               // → Use .toStrictEqual()
-    .toContain()(
+expect().toEqual()                     // → Use .toStrictEqual()
+expect().toMatchObject()               // → Use .toStrictEqual()
+expect().toContain()(
 for objects)     // → Use .toStrictEqual()
-    .
-toBeTruthy() /
-.
-toBeFalsy()   // → Use .toBe(true) / .toBe(false)
-    .toMatch('text')               // → Use .toMatch(/^exact text$/)
+    expect().toBeTruthy() / expect.toBeFalsy()   // → Use .toBe(true) / .toBe(false)
+expect().toMatch('text')               // → Use .toMatch(/^exact text$/)
+expect().toHaveProperty('key')         // → Test actual value with .toBe()
 expect.objectContaining()      // → Test complete object
 expect.arrayContaining()       // → Test complete array
 expect.stringContaining()      // → Use regex /^.*substring.*$/
-    .toHaveProperty('key')         // → Test actual value with .toBe()
 expect.any(String)             // → Test actual string value
 expect.any(Number)             // → Test actual number
 expect.any(Object)             // → Test complete object shape
