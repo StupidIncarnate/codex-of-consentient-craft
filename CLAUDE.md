@@ -31,8 +31,8 @@
 
 ## Standards Documents
 
-- [Coding Principles](docs/coding-principles.md) - Development workflow and coding standards
-- [Testing Standards](docs/testing-standards.md) - Testing format for LLMs and human scanning
+- [Coding Principles](packages/standards/coding-principles.md) - Development workflow and coding standards
+- [Testing Standards](packages/standards/testing-standards.md) - Testing format for LLMs and human scanning
 
 ## Project Overview
 

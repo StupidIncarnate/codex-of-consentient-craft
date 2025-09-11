@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { spawn } from 'child_process';
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
@@ -11,7 +13,7 @@ import type {
   HookData,
   EslintMessage,
   EslintResult,
-} from '../types/hooks';
+} from './types';
 
 type SpawnResult = { code: number; stdout: string; stderr: string };
 
@@ -249,7 +251,7 @@ async function lintContent(
   // Check for TypeScript project errors (happens with new files)
   if (fixResults.length > 0 && fixResults[0].messages) {
     const hasParserProjectError = fixResults[0].messages.some(
-      (msg) => msg.message && msg.message.includes('parserOptions.project'),
+        (msg: any) => msg.message && msg.message.includes('parserOptions.project'),
     );
     if (hasParserProjectError) {
       debug('File not in TypeScript project yet, skipping');
@@ -272,10 +274,10 @@ async function lintContentWithFiltering(filePath: string, content: string): Prom
 
   // Check if there are any remaining errors after fixing
   if (fixResults.length > 0 && fixResults[0].messages) {
-    let errors = fixResults[0].messages.filter((msg) => msg.severity === 2);
+      let errors = fixResults[0].messages.filter((msg: any) => msg.severity === 2);
 
     // Filter out @typescript-eslint errors in pre-hook mode
-    errors = errors.filter((error) => {
+      errors = errors.filter((error: any) => {
       const ruleId = error.ruleId || '';
       return !ruleId.startsWith('@typescript-eslint/');
     });
@@ -284,7 +286,7 @@ async function lintContentWithFiltering(filePath: string, content: string): Prom
       const errorSummary = `[PreToolUse Hook] ESLint found ${errors.length} error(s) in ${filePath}:\n`;
       const errorDetails = errors
         .slice(0, 10)
-        .map((error) => {
+          .map((error: any) => {
           const ruleInfo = error.ruleId ? ` [${error.ruleId}]` : '';
           return `  Line ${error.line}: ${error.message}${ruleInfo}`;
         })
@@ -363,13 +365,13 @@ async function handlePostToolUse(hookData: PostToolUseHookData): Promise<void> {
     const results = parseEslintOutput(eslintResult.stdout);
 
     if (results.length > 0 && results[0].messages) {
-      const errors = results[0].messages.filter((msg) => msg.severity === 2);
+        const errors = results[0].messages.filter((msg: any) => msg.severity === 2);
 
       if (errors.length > 0) {
         const errorSummary = `[PostToolUse Hook] ESLint found ${errors.length} error(s) in ${filePath}:\n`;
         const errorDetails = errors
           .slice(0, 10)
-          .map((error) => {
+            .map((error: any) => {
             const ruleInfo = error.ruleId ? ` [${error.ruleId}]` : '';
             return `  Line ${error.line}: ${error.message}${ruleInfo}`;
           })
@@ -505,11 +507,4 @@ if (require.main === module) {
   main();
 }
 
-export {
-  lintContent,
-  parseEslintOutput,
-  getFullFileContent,
-  handlePostToolUse,
-  handlePreToolUse,
-  getContentChanges,
-};
+export {main as sanitationHook};

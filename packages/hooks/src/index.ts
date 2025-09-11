@@ -1,0 +1,1 @@
+export {sanitationHook} from './sanitation-hook';

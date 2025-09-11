@@ -1,0 +1,25 @@
+{
+  "name": "@questmaestro/standards",
+  "version": "0.1.0",
+  "description": "Development standards and documentation for questmaestro",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'No build needed for docs package'",
+    "test": "echo 'No tests for docs package'",
+    "lint": "echo 'No linting for docs package'",
+    "typecheck": "echo 'No typecheck needed for docs package'"
+  },
+  "files": [
+    "*.md",
+    "README.md"
+  ],
+  "keywords": [
+    "questmaestro",
+    "standards",
+    "documentation",
+    "coding-principles",
+    "testing-standards"
+  ],
+  "author": "",
+  "license": "MIT"
+}
