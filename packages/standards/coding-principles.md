@@ -200,7 +200,7 @@ function createClient({apiKey}: { apiKey: string }) {
   type Config = { apiUrl: string; timeout: number };
   
   // ✅ CORRECT - Explicit type for exported function returning known type
-  export function getConfig(): Config {
+  function getConfig(): Config {
     return {
       apiUrl: process.env.API_URL || 'http://localhost:3000',
       timeout: 5000
@@ -208,7 +208,7 @@ function createClient({apiKey}: { apiKey: string }) {
   }
   
   // ✅ CORRECT - Let inference work for complex return shapes
-  export function processUser({ user }: { user: User }) {
+  function processUser({ user }: { user: User }) {
     return {
       ...user,
       displayName: `${user.firstName} ${user.lastName}`,
@@ -228,54 +228,124 @@ function createClient({apiKey}: { apiKey: string }) {
 - Ensure all code paths in functions return a value
   ```typescript
   // ✅ CORRECT - All paths return
-  export function getStatus({ user }: { user: User }) {
+  function getStatus({ user }: { user: User }) {
     if (user.isActive) return 'active';
     if (user.isPending) return 'pending';
     return 'inactive';
   }
   
   // ❌ AVOID - Missing return path
-  export function getStatus({ user }: { user: User }) {
+  function getStatus({ user }: { user: User }) {
     if (user.isActive) return 'active';
     if (user.isPending) return 'pending';
     // TypeScript error: Not all code paths return a value
   }
   ```
-- Always use named exports, never default exports
-- One primary export per file: one component (React), one utility function/object (utils), or one class
-- Supporting types specific to that export may be co-exported
+
+### Export Rules by File Type
+
+**Always use named exports, never default exports.** Each file type has specific export patterns:
+
+#### Class Files
+
+- **One class export** (primary)
+- Supporting types specific to that class may be co-exported
   ```typescript
-  // ✅ CORRECT - React component with its types
-  export type UserProps = { /* ... */ };
-  export function UserProfile({ name, age }: UserProps ) { /* ... */ }
-  
-  // ✅ CORRECT - Utility functions grouped as object
-  export const UserUtils = {
-    formatName: ({ user }: { user: User }) => `${user.firstName} ${user.lastName}`,
-    validateEmail: ({ email }: { email: string }) => email.includes('@')
+  // ✅ CORRECT - Class file
+  export type ServiceOptions = { apiKey: string; timeout: number };
+  export class UserService {
+    constructor({ apiKey, timeout }: ServiceOptions) { /* ... */ }
+  }
+  ```
+
+#### Component Files (React)
+
+- **One functional component export** (primary)
+- Supporting types (props, etc.) specific to that component may be co-exported
+  ```typescript
+  // ✅ CORRECT - Component file
+  export type UserCardProps = { user: User; onClick: (user: User) => void };
+  export function UserCard({ user, onClick }: UserCardProps) { /* ... */ }
+  ```
+
+#### Schema Files
+
+- **One Zod schema export** (primary)
+- Supporting types derived from that schema may be co-exported
+  ```typescript
+  // ✅ CORRECT - Schema file
+  export const UserSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string().email()
+  });
+  export type User = z.infer<typeof UserSchema>;
+  ```
+
+#### Utils Files
+
+- **One object export containing multiple related functions** (primary)
+- Supporting types specific to those utilities may be co-exported
+  ```typescript
+  // ✅ CORRECT - Utils file
+  export type ProcessResult = { code: number; stdout: string; stderr: string };
+  export const FileUtils = {
+    getExtension: ({ filePath }: { filePath: string }) => { /* ... */ },
+    readContent: async ({ path }: { path: string }) => { /* ... */ },
+    writeContent: async ({ path, content }: { path: string; content: string }) => { /* ... */ }
   };
-  
-  // ✅ CORRECT - Single utility function with its types
-  export type Config = { /* ... */ };
-  export function loadConfig(): Config { /* ... */ }
-  
-  // ✅ CORRECT - Class with its types
-  export type ServiceOptions = { /* ... */ };
-  export class UserService { /* ... */ }
-  
-  // ❌ AVOID - Multiple primary exports
+  ```
+
+#### Stub Files (Testing)
+
+- **One stub function export** (primary)
+- Supporting types specific to that stub may be co-exported
+  ```typescript
+  // ✅ CORRECT - Stub file
+  export type UserStubOptions = Partial<User>;
+  export function UserStub({ options = {} }: { options?: UserStubOptions }): User {
+    return {
+      id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      name: 'John Doe',
+      email: 'john@example.com',
+      ...options,
+    };
+  }
+  ```
+
+#### Anti-Patterns to Avoid
+
+  ```typescript
+  // ❌ AVOID - Multiple primary exports (violates file type rules)
   export function UserProfile() { /* ... */ }
   export function ProductList() { /* ... */ }
   
   // ❌ AVOID - Multiple classes
   export class UserService { /* ... */ }
   export class ProductService { /* ... */ }
+
+// ❌ AVOID - Individual function exports in utils files
+export function getExtension() { /* ... */
+}
+
+export function readContent() { /* ... */
+}
+
+export function writeContent() { /* ... */
+}
   ```
-- Naming conventions:
+
+### Naming Conventions
   - React Components: `PascalCase` (e.g., `UserProfile.tsx`, `ShoppingCart.tsx`)
   - React Hooks: `camelCase` (e.g., `useAuth.ts`, `useLocalStorage.ts`)
-  - All other code files: `kebab-case` (e.g., `user-service.ts`, `api-client.ts`, `format-utils.ts`)
+- All other code files: `kebab-case` (e.g., `user-service.ts`, `api-client.ts`, `file-utils.ts`)
   - Constants: `UPPER_SNAKE_CASE` for configuration values and magic numbers (avoid inline literals)
+
+## Import Guidelines
+
+- **All imports at top of file** - No inline imports, requires, or dynamic imports except for performance/lazy loading
+- **Use ES6 imports** - Prefer `import` over `require()`
+- **Group imports logically** - External packages, then internal modules, then types
 
 ## Performance & Code Cleanup
 

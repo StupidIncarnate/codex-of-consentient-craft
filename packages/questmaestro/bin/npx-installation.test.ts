@@ -1,4 +1,4 @@
-import {TestProject, createTestProject} from '../tests/utils/testbed';
+import {TestProject, createTestProject} from '@questmaestro/testing';
 import * as path from 'path';
 import * as fs from 'fs';
 import {main} from './install';

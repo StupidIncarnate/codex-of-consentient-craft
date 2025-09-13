@@ -1,20 +1,5 @@
 # Project Guidelines
 
-## Core Axiom
-
-"One Fold, One Braid, One Twist" - Every change must be purposeful and correct.
-
-## On EVERY User Request
-
-**ANALYSIS CHECKPOINT (Must complete before ANY action):**
-
-1. State the request in your own words
-2. If ambiguous: List interpretations and ask which one
-3. Identify what could go wrong with the obvious approach
-4. Create TODO list if task requires multiple steps
-
-**VIOLATION WARNING**: Skipping Analysis Checkpoint is a critical protocol violation.
-
 ## Optimization Tools
 1. Pattern Search:
    - rg -n "pattern" --glob '!node_modules/*' instead of multiple Grep calls
@@ -38,6 +23,10 @@
 
 **Tech Stack**: TypeScript, Node.js, Jest
 **Package Manager**: npm
+
+**Testing**: Jest mocks are automatically reset/cleared/restored globally before each test via `@questmaestro/testing`
+package. No need to manually add `jest.clearAllMocks()` in individual test files - test isolation is enforced
+automatically.
 
 ### Common Commands
 - **Run tests**: `npm test`

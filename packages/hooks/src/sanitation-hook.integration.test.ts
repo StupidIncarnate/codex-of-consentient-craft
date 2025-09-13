@@ -8,7 +8,7 @@ import {
   WriteToolHookStub,
   EditToolHookStub,
   MultiEditToolHookStub,
-} from '../../tests/stubs/hook-data.stub';
+} from '../test/stubs/hook-data.stub';
 
 interface ExecError extends Error {
   status?: number;
@@ -18,7 +18,7 @@ interface ExecError extends Error {
 
 describe('sanitation-hook', () => {
   const tempRoot = path.join(process.cwd(), '.test-tmp', 'sanitation-hook-tests');
-  const hookPath = path.join(process.cwd(), 'src', 'hooks', 'sanitation-hook.ts');
+    const hookPath = path.join(process.cwd(), 'src', 'sanitation-hook.ts');
 
   beforeEach(() => {
     // Ensure temp directory exists

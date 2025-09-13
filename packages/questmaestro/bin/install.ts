@@ -3,7 +3,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import {execSync} from 'child_process';
-import {isError, isPackageJson, parseJsonSafely, type PackageJson} from '../src/utils/type-guards';
+import {
+    isError,
+    isPackageJson,
+    parseJsonSafely,
+    type PackageJson,
+} from '../src/utils/type-guards';
 import {Logger} from '../src/utils/logger';
 
 // Directory and file constants

@@ -251,7 +251,7 @@ async function lintContent(
   // Check for TypeScript project errors (happens with new files)
   if (fixResults.length > 0 && fixResults[0].messages) {
     const hasParserProjectError = fixResults[0].messages.some(
-        (msg: any) => msg.message && msg.message.includes('parserOptions.project'),
+        (msg: EslintMessage) => msg.message && msg.message.includes('parserOptions.project'),
     );
     if (hasParserProjectError) {
       debug('File not in TypeScript project yet, skipping');
@@ -274,10 +274,10 @@ async function lintContentWithFiltering(filePath: string, content: string): Prom
 
   // Check if there are any remaining errors after fixing
   if (fixResults.length > 0 && fixResults[0].messages) {
-      let errors = fixResults[0].messages.filter((msg: any) => msg.severity === 2);
+      let errors = fixResults[0].messages.filter((msg: EslintMessage) => msg.severity === 2);
 
     // Filter out @typescript-eslint errors in pre-hook mode
-      errors = errors.filter((error: any) => {
+      errors = errors.filter((error: EslintMessage) => {
       const ruleId = error.ruleId || '';
       return !ruleId.startsWith('@typescript-eslint/');
     });
@@ -286,7 +286,7 @@ async function lintContentWithFiltering(filePath: string, content: string): Prom
       const errorSummary = `[PreToolUse Hook] ESLint found ${errors.length} error(s) in ${filePath}:\n`;
       const errorDetails = errors
         .slice(0, 10)
-          .map((error: any) => {
+          .map((error: EslintMessage) => {
           const ruleInfo = error.ruleId ? ` [${error.ruleId}]` : '';
           return `  Line ${error.line}: ${error.message}${ruleInfo}`;
         })
@@ -365,13 +365,13 @@ async function handlePostToolUse(hookData: PostToolUseHookData): Promise<void> {
     const results = parseEslintOutput(eslintResult.stdout);
 
     if (results.length > 0 && results[0].messages) {
-        const errors = results[0].messages.filter((msg: any) => msg.severity === 2);
+        const errors = results[0].messages.filter((msg: EslintMessage) => msg.severity === 2);
 
       if (errors.length > 0) {
         const errorSummary = `[PostToolUse Hook] ESLint found ${errors.length} error(s) in ${filePath}:\n`;
         const errorDetails = errors
           .slice(0, 10)
-            .map((error: any) => {
+            .map((error: EslintMessage) => {
             const ruleInfo = error.ruleId ? ` [${error.ruleId}]` : '';
             return `  Line ${error.line}: ${error.message}${ruleInfo}`;
           })

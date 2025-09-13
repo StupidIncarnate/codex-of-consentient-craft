@@ -1,14 +1,9 @@
+// Extend shared Jest configuration
+const baseConfig = require('../../jest.config.base.js');
+
 module.exports = {
-    preset: 'ts-jest',
-    testEnvironment: 'node',
+    ...baseConfig,
     roots: ['<rootDir>/src'],
-    testMatch: ['**/*.test.ts'],
-    transform: {
-        '^.+\\.ts$': 'ts-jest',
-    },
-    collectCoverageFrom: [
-        'src/**/*.ts',
-        '!src/**/*.test.ts',
-        '!src/**/*.d.ts',
-    ],
+    // Override setupFilesAfterEnv to use correct relative path from this package
+    setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
 };

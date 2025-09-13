@@ -1,4 +1,4 @@
-import {TestProject, createTestProject} from '../tests/utils/testbed';
+import {TestProject, createTestProject} from '@questmaestro/testing';
 import type {Linter} from 'eslint';
 
 describe('Questmaestro Installation', () => {
@@ -239,7 +239,7 @@ describe('Questmaestro Installation', () => {
             packageJson.eslintConfig = {extends: ['eslint:recommended']};
             if (packageJson.scripts && 'lint' in packageJson.scripts) {
                 const {lint: _lint, ...scriptsWithoutLint} = packageJson.scripts;
-                packageJson.scripts = scriptsWithoutLint as typeof packageJson.scripts;
+                packageJson.scripts = scriptsWithoutLint;
             }
             testProject.writeFile('package.json', JSON.stringify(packageJson, null, 2));
 

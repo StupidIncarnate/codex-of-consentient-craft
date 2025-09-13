@@ -3,16 +3,12 @@
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020"],
-    "outDir": "./dist",
-    "rootDir": "./",
+    "noEmit": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
     "moduleResolution": "node",
     "allowJs": true,
     "checkJs": false,
@@ -23,10 +19,10 @@
     "allowUnreachableCode": false
   },
   "include": [
-    "src/**/*",
-    "bin/**/*",
     "tests/**/*",
-    ".test-tmp/**/*"
+    "packages/*/src/**/*",
+    "packages/*/bin/**/*",
+    "packages/*/tests/**/*"
   ],
   "exclude": [
     "node_modules",
@@ -34,6 +30,8 @@
     "coverage",
     "exploratories/**/*",
     "tests/tmp/**/*",
-    "jest.*.js"
+    "jest.*.js",
+    ".test-tmp/**/*",
+    "v1/**/*"
   ]
 }
