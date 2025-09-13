@@ -19,7 +19,6 @@ module.exports = {
       ],
   },
   collectCoverageFrom: [
-    'bin/**/*.js',
     'src/**/*.js',
     'tests/utils/**/*.ts',
     '!**/node_modules/**',
