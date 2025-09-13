@@ -18,7 +18,7 @@ interface ExecError extends Error {
 
 describe('sanitation-hook', () => {
   const tempRoot = path.join(process.cwd(), '.test-tmp', 'sanitation-hook-tests');
-    const hookPath = path.join(process.cwd(), 'src', 'sanitation-hook.ts');
+  const hookPath = path.join(process.cwd(), 'src', 'sanitation-hook.ts');
 
   beforeEach(() => {
     // Ensure temp directory exists

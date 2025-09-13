@@ -1,15 +1,15 @@
-import type {MockPattern} from '../types';
+import type { MockPattern } from '../types';
 
 export const APPLICATION_CODE_PATTERNS: MockPattern[] = [
-    {
-        id: 'application-code.relative-import',
-        module: 'application-code',
-        pattern: /jest\.mock\(['"]\.\.?\/[^'"]*['"]\)/,
-        category: 'application-code',
-        testTypes: [], // Never appropriate
-        risk: 'extreme',
-        implementation: {
-            code: `// ❌ BAD - Don't mock application code:
+  {
+    id: 'application-code.relative-import',
+    module: 'application-code',
+    pattern: /jest\.mock\(['"]\.\.?\/[^'"]*['"]\)/,
+    category: 'application-code',
+    testTypes: [], // Never appropriate
+    risk: 'extreme',
+    implementation: {
+      code: `// ❌ BAD - Don't mock application code:
 // jest.mock('./my-module');
 // jest.mock('../utils/helper');
 
@@ -23,27 +23,27 @@ jest.spyOn(fs, 'readFile').mockResolvedValue('test data');
 // Test the real application logic
 const result = await myFunction();
 expect(result).toStrictEqual({ processed: 'test data' });`,
-            imports: ['import * as fs from "fs/promises"'],
-        },
-        education: {
-            why: 'Mocking your own application code defeats the purpose of testing - you want to verify the real integration between your modules',
-            falsePositiveRisk:
-                'Extreme - test passes even when actual module logic is broken or integration fails',
-            whenAppropriate: 'Never - test through the real application code',
-            alternative:
-                'Mock only external dependencies at system boundaries (child_process, fs, network)',
-        },
+      imports: ['import * as fs from "fs/promises"'],
     },
+    education: {
+      why: 'Mocking your own application code defeats the purpose of testing - you want to verify the real integration between your modules',
+      falsePositiveRisk:
+        'Extreme - test passes even when actual module logic is broken or integration fails',
+      whenAppropriate: 'Never - test through the real application code',
+      alternative:
+        'Mock only external dependencies at system boundaries (child_process, fs, network)',
+    },
+  },
 
-    {
-        id: 'application-code.utils-mock',
-        module: 'application-code',
-        pattern: /jest\.mock\(['"][^'"]*\/utils\/[^'"]*['"]\)/,
-        category: 'application-code',
-        testTypes: [], // Never appropriate
-        risk: 'extreme',
-        implementation: {
-            code: `// ❌ BAD - Don't mock utility functions:
+  {
+    id: 'application-code.utils-mock',
+    module: 'application-code',
+    pattern: /jest\.mock\(['"][^'"]*\/utils\/[^'"]*['"]\)/,
+    category: 'application-code',
+    testTypes: [], // Never appropriate
+    risk: 'extreme',
+    implementation: {
+      code: `// ❌ BAD - Don't mock utility functions:
 // jest.mock('./utils/file-helper');
 // jest.mock('../utils/string-utils');
 
@@ -59,26 +59,26 @@ it('processes file content correctly', async () => {
   const result = await processFile('test.txt');
   expect(result).toStrictEqual({ lines: 1, words: 2 });
 });`,
-            imports: ['import * as fs from "fs/promises"'],
-        },
-        education: {
-            why: 'Utility functions are core application logic that should be tested, not mocked',
-            falsePositiveRisk: 'Extreme - utility bugs will not be caught since the real code never runs',
-            whenAppropriate:
-                'Never - utilities should be fast and pure, making them ideal for real testing',
-            alternative: "Test the real utilities - if they're slow, refactor them to be faster",
-        },
+      imports: ['import * as fs from "fs/promises"'],
     },
+    education: {
+      why: 'Utility functions are core application logic that should be tested, not mocked',
+      falsePositiveRisk: 'Extreme - utility bugs will not be caught since the real code never runs',
+      whenAppropriate:
+        'Never - utilities should be fast and pure, making them ideal for real testing',
+      alternative: "Test the real utilities - if they're slow, refactor them to be faster",
+    },
+  },
 
-    {
-        id: 'application-code.service-mock',
-        module: 'application-code',
-        pattern: /jest\.mock\(['"][^'"]*\/(?:services?|controllers?)\/[^'"]*['"]\)/,
-        category: 'application-code',
-        testTypes: [], // Never appropriate
-        risk: 'extreme',
-        implementation: {
-            code: `// ❌ BAD - Don't mock services/controllers:
+  {
+    id: 'application-code.service-mock',
+    module: 'application-code',
+    pattern: /jest\.mock\(['"][^'"]*\/(?:services?|controllers?)\/[^'"]*['"]\)/,
+    category: 'application-code',
+    testTypes: [], // Never appropriate
+    risk: 'extreme',
+    implementation: {
+      code: `// ❌ BAD - Don't mock services/controllers:
 // jest.mock('./services/user-service');
 // jest.mock('../controllers/auth-controller');
 
@@ -103,26 +103,26 @@ it('creates user successfully', async () => {
     body: JSON.stringify({ name: 'John' })
   });
 });`,
-            imports: [],
-        },
-        education: {
-            why: "Services and controllers contain your business logic - mocking them means you're not testing your actual application",
-            falsePositiveRisk: 'Extreme - business logic bugs will not be caught',
-            whenAppropriate: 'Never - use dependency injection and mock external dependencies instead',
-            alternative:
-                'Mock the external dependencies (database, APIs) that services use, not the services themselves',
-        },
+      imports: [],
     },
+    education: {
+      why: "Services and controllers contain your business logic - mocking them means you're not testing your actual application",
+      falsePositiveRisk: 'Extreme - business logic bugs will not be caught',
+      whenAppropriate: 'Never - use dependency injection and mock external dependencies instead',
+      alternative:
+        'Mock the external dependencies (database, APIs) that services use, not the services themselves',
+    },
+  },
 
-    {
-        id: 'application-code.config-mock',
-        module: 'application-code',
-        pattern: /jest\.mock\(['"][^'"]*\/config[^'"]*['"]\)/,
-        category: 'application-code',
-        testTypes: [], // Usually inappropriate
-        risk: 'high',
-        implementation: {
-            code: `// ❌ BAD - Don't mock configuration:
+  {
+    id: 'application-code.config-mock',
+    module: 'application-code',
+    pattern: /jest\.mock\(['"][^'"]*\/config[^'"]*['"]\)/,
+    category: 'application-code',
+    testTypes: [], // Usually inappropriate
+    risk: 'high',
+    implementation: {
+      code: `// ❌ BAD - Don't mock configuration:
 // jest.mock('./config/database');
 // jest.mock('../config/app-config');
 
@@ -147,26 +147,26 @@ it('loads test configuration', () => {
   expect(config.database.url).toBe('sqlite::memory:');
   expect(config.apiKey).toBe('test-key');
 });`,
-            imports: [],
-        },
-        education: {
-            why: 'Config modules should provide real configuration during testing - mocking them hides configuration errors',
-            falsePositiveRisk: 'High - configuration bugs and validation errors will not be caught',
-            whenAppropriate:
-                'Rarely - only when config has side effects like connecting to external services',
-            alternative: 'Use test-specific config files or environment variables instead of mocking',
-        },
+      imports: [],
     },
+    education: {
+      why: 'Config modules should provide real configuration during testing - mocking them hides configuration errors',
+      falsePositiveRisk: 'High - configuration bugs and validation errors will not be caught',
+      whenAppropriate:
+        'Rarely - only when config has side effects like connecting to external services',
+      alternative: 'Use test-specific config files or environment variables instead of mocking',
+    },
+  },
 
-    {
-        id: 'application-code.internal-class',
-        module: 'application-code',
-        pattern: /jest\.spyOn\([^)]*,\s*['"]_[^'"]*['"]\)/,
-        category: 'application-code',
-        testTypes: [], // Never appropriate
-        risk: 'extreme',
-        implementation: {
-            code: `// ❌ BAD - Don't test private methods:
+  {
+    id: 'application-code.internal-class',
+    module: 'application-code',
+    pattern: /jest\.spyOn\([^)]*,\s*['"]_[^'"]*['"]\)/,
+    category: 'application-code',
+    testTypes: [], // Never appropriate
+    risk: 'extreme',
+    implementation: {
+      code: `// ❌ BAD - Don't test private methods:
 // jest.spyOn(myObject, '_privateMethod');
 // jest.spyOn(instance, '_internalHelper');
 
@@ -195,26 +195,26 @@ it('logs processing activity', () => {
   
   expect(consoleSpy).toHaveBeenCalledWith('Processed 1 items');
 });`,
-            imports: [],
-        },
-        education: {
-            why: 'Testing private/internal methods couples tests to implementation details instead of behavior',
-            falsePositiveRisk:
-                'Extreme - tests break when you refactor internal implementation, even if behavior is unchanged',
-            whenAppropriate: 'Never - test the public interface and verify the observable behavior',
-            alternative: 'Test through public methods and verify the final output/side effects',
-        },
+      imports: [],
     },
+    education: {
+      why: 'Testing private/internal methods couples tests to implementation details instead of behavior',
+      falsePositiveRisk:
+        'Extreme - tests break when you refactor internal implementation, even if behavior is unchanged',
+      whenAppropriate: 'Never - test the public interface and verify the observable behavior',
+      alternative: 'Test through public methods and verify the final output/side effects',
+    },
+  },
 
-    {
-        id: 'application-code.constructor-spy',
-        module: 'application-code',
-        pattern: /jest\.spyOn\([^)]*,\s*['"]constructor['"]\)/,
-        category: 'application-code',
-        testTypes: [], // Usually inappropriate
-        risk: 'high',
-        implementation: {
-            code: `// ❌ BAD - Don't spy on constructors:
+  {
+    id: 'application-code.constructor-spy',
+    module: 'application-code',
+    pattern: /jest\.spyOn\([^)]*,\s*['"]constructor['"]\)/,
+    category: 'application-code',
+    testTypes: [], // Usually inappropriate
+    risk: 'high',
+    implementation: {
+      code: `// ❌ BAD - Don't spy on constructors:
 // jest.spyOn(MyClass, 'constructor');
 
 // ✅ GOOD - Test object behavior, not construction:
@@ -236,25 +236,25 @@ it('factory creates service correctly', () => {
   expect(createUserService).toHaveBeenCalledWith({ apiUrl: 'test.com' });
   expect(service).toBeInstanceOf(UserService);
 });`,
-            imports: [],
-        },
-        education: {
-            why: 'Spying on constructors typically indicates testing implementation rather than behavior',
-            falsePositiveRisk: 'High - focuses on how objects are created rather than what they do',
-            whenAppropriate: 'Rarely - only when constructor has important side effects',
-            alternative: 'Test the behavior of the created objects, not their construction',
-        },
+      imports: [],
     },
+    education: {
+      why: 'Spying on constructors typically indicates testing implementation rather than behavior',
+      falsePositiveRisk: 'High - focuses on how objects are created rather than what they do',
+      whenAppropriate: 'Rarely - only when constructor has important side effects',
+      alternative: 'Test the behavior of the created objects, not their construction',
+    },
+  },
 
-    {
-        id: 'application-code.module-internals',
-        module: 'application-code',
-        pattern: /\.__esModule\s*=|\.default\s*=.*mock/,
-        category: 'application-code',
-        testTypes: [], // Usually inappropriate
-        risk: 'high',
-        implementation: {
-            code: `// ❌ BAD - Don't manipulate module internals:
+  {
+    id: 'application-code.module-internals',
+    module: 'application-code',
+    pattern: /\.__esModule\s*=|\.default\s*=.*mock/,
+    category: 'application-code',
+    testTypes: [], // Usually inappropriate
+    risk: 'high',
+    implementation: {
+      code: `// ❌ BAD - Don't manipulate module internals:
 // jest.mock('./my-module');
 // (MyModule as any).__esModule = true;
 // (MyModule as any).default = mockImplementation;
@@ -277,25 +277,25 @@ it('processes data correctly', async () => {
   const result = await processData('input');
   expect(result).toBe('processed test data');
 });`,
-            imports: ['import * as fs from "fs/promises"'],
-        },
-        education: {
-            why: 'Manipulating module internals creates brittle tests tied to bundler implementation details',
-            falsePositiveRisk: 'High - tests may pass in Jest but fail in actual bundled code',
-            whenAppropriate: 'Rarely - only for very specific module loading edge cases',
-            alternative: 'Mock at system boundaries or use dependency injection',
-        },
+      imports: ['import * as fs from "fs/promises"'],
     },
+    education: {
+      why: 'Manipulating module internals creates brittle tests tied to bundler implementation details',
+      falsePositiveRisk: 'High - tests may pass in Jest but fail in actual bundled code',
+      whenAppropriate: 'Rarely - only for very specific module loading edge cases',
+      alternative: 'Mock at system boundaries or use dependency injection',
+    },
+  },
 
-    {
-        id: 'application-code.deep-property-mock',
-        module: 'application-code',
-        pattern: /\w+\.\w+\.\w+\.mock(?:Implementation|ReturnValue)/,
-        category: 'application-code',
-        testTypes: [], // Usually inappropriate
-        risk: 'high',
-        implementation: {
-            code: `// ❌ BAD - Don't mock deep object properties:
+  {
+    id: 'application-code.deep-property-mock',
+    module: 'application-code',
+    pattern: /\w+\.\w+\.\w+\.mock(?:Implementation|ReturnValue)/,
+    category: 'application-code',
+    testTypes: [], // Usually inappropriate
+    risk: 'high',
+    implementation: {
+      code: `// ❌ BAD - Don't mock deep object properties:
 // myObject.service.api.mockImplementation(() => 'fake');
 // app.database.connection.mockReturnValue(mockDb);
 
@@ -321,26 +321,26 @@ it('processes data correctly', async () => {
 
 // Or use factory/builder pattern:
 const createService = ({ api = defaultApi } = {}) => new MyService({ api });`,
-            imports: [],
-        },
-        education: {
-            why: 'Deep property mocking creates tight coupling to internal object structure',
-            falsePositiveRisk:
-                'High - tests break when internal structure changes, even if behavior is correct',
-            whenAppropriate: "Rarely - only when you can't control the dependency injection",
-            alternative: 'Inject dependencies at construction time and mock at the boundaries',
-        },
+      imports: [],
     },
+    education: {
+      why: 'Deep property mocking creates tight coupling to internal object structure',
+      falsePositiveRisk:
+        'High - tests break when internal structure changes, even if behavior is correct',
+      whenAppropriate: "Rarely - only when you can't control the dependency injection",
+      alternative: 'Inject dependencies at construction time and mock at the boundaries',
+    },
+  },
 
-    {
-        id: 'application-code.prototype-mock',
-        module: 'application-code',
-        pattern: /\.prototype\.[a-zA-Z]+\s*=.*jest/,
-        category: 'application-code',
-        testTypes: [], // Never appropriate
-        risk: 'extreme',
-        implementation: {
-            code: `// ❌ BAD - Don't do this:
+  {
+    id: 'application-code.prototype-mock',
+    module: 'application-code',
+    pattern: /\.prototype\.[a-zA-Z]+\s*=.*jest/,
+    category: 'application-code',
+    testTypes: [], // Never appropriate
+    risk: 'extreme',
+    implementation: {
+      code: `// ❌ BAD - Don't do this:
 // MyClass.prototype.method = jest.fn();
 
 // ✅ GOOD - Use dependency injection instead:
@@ -355,26 +355,26 @@ class MyClass {
 // In tests:
 const mockService = { doSomething: jest.fn() };
 const instance = new MyClass({ service: mockService });`,
-            imports: [],
-        },
-        education: {
-            why: 'Modifying prototypes affects global state and can break other tests',
-            falsePositiveRisk:
-                'Extreme - creates test pollution and unpredictable behavior across test suite',
-            whenAppropriate: 'Never - use proper dependency injection or factory patterns',
-            alternative: 'Create instances with injected dependencies or use factory functions',
-        },
+      imports: [],
     },
+    education: {
+      why: 'Modifying prototypes affects global state and can break other tests',
+      falsePositiveRisk:
+        'Extreme - creates test pollution and unpredictable behavior across test suite',
+      whenAppropriate: 'Never - use proper dependency injection or factory patterns',
+      alternative: 'Create instances with injected dependencies or use factory functions',
+    },
+  },
 
-    {
-        id: 'application-code.constants-mock',
-        module: 'application-code',
-        pattern: /jest\.mock\(['"][^'"]*\/(?:constants?|enums?)\/[^'"]*['"]\)/,
-        category: 'application-code',
-        testTypes: [], // Usually inappropriate
-        risk: 'medium',
-        implementation: {
-            code: `// ❌ BAD - Don't mock constants/enums:
+  {
+    id: 'application-code.constants-mock',
+    module: 'application-code',
+    pattern: /jest\.mock\(['"][^'"]*\/(?:constants?|enums?)\/[^'"]*['"]\)/,
+    category: 'application-code',
+    testTypes: [], // Usually inappropriate
+    risk: 'medium',
+    implementation: {
+      code: `// ❌ BAD - Don't mock constants/enums:
 // jest.mock('./constants/api-endpoints');
 // jest.mock('../enums/user-roles');
 
@@ -408,14 +408,14 @@ it('validates user role correctly', () => {
   expect(UserRole.ADMIN).toBe('admin');
   expect(Object.values(UserRole)).toContain('admin');
 });`,
-            imports: [],
-        },
-        education: {
-            why: 'Constants and enums are static values that should be used as-is in tests',
-            falsePositiveRisk: 'Medium - hides issues with constant values or enum usage',
-            whenAppropriate: 'Rarely - only when constants have dynamic behavior or side effects',
-            alternative:
-                'Use real constants - if they need to change per test, they should be parameters',
-        },
+      imports: [],
     },
+    education: {
+      why: 'Constants and enums are static values that should be used as-is in tests',
+      falsePositiveRisk: 'Medium - hides issues with constant values or enum usage',
+      whenAppropriate: 'Rarely - only when constants have dynamic behavior or side effects',
+      alternative:
+        'Use real constants - if they need to change per test, they should be parameters',
+    },
+  },
 ];

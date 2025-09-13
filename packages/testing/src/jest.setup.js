@@ -15,9 +15,9 @@ afterEach(() => {
   const currentTest = expect.getState().currentTestName;
   const assertionsMade = expect.getState().assertionCalls;
 
-    if (assertionsMade === 0) {
-        throw new Error(
-            `Test "${currentTest}" has no assertions. Add expect() calls or remove the test.`,
-        );
+  if (assertionsMade === 0) {
+    throw new Error(
+      `Test "${currentTest}" has no assertions. Add expect() calls or remove the test.`,
+    );
   }
 });

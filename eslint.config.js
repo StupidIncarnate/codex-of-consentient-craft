@@ -17,9 +17,9 @@ module.exports = [
       'dist/**',
       'coverage/**',
       'tests/tmp/**',
-        '.test-tmp/**',
-        'packages/*/.test-tmp/**',
-        'packages/*/dist/**',
+      '.test-tmp/**',
+      'packages/*/.test-tmp/**',
+      'packages/*/dist/**',
       'exploratories/**',
       'plan/**',
       'hypothesis/**',
@@ -30,97 +30,97 @@ module.exports = [
       '**/*.min.js',
       '**/*.min.css',
       '.git/**',
-        'v1/**',
+      'v1/**',
     ],
   },
-    // Configuration for TypeScript files
+  // Configuration for TypeScript files
   {
-      files: ['**/*.ts'],
+    files: ['**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
-          project: './tsconfig.json',
+        project: './tsconfig.json',
       },
     },
     plugins: {
       '@typescript-eslint': tseslint,
-        prettier: prettierPlugin,
-        'eslint-comments': eslintCommentsPlugin,
+      prettier: prettierPlugin,
+      'eslint-comments': eslintCommentsPlugin,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
       ...tseslint.configs['recommended-requiring-type-checking'].rules,
       ...prettierConfig.rules,
       'prettier/prettier': 'error',
-        '@typescript-eslint/no-unused-vars': [
-            'error',
-            {
-                argsIgnorePattern: '^_',
-                varsIgnorePattern: '^_',
-                caughtErrorsIgnorePattern: '^_',
-            },
-        ],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': 'error',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       'eslint-comments/no-unlimited-disable': 'error',
-        'eslint-comments/no-use': ['error', {allow: []}],
+      'eslint-comments/no-use': ['error', { allow: [] }],
     },
   },
-    // Configuration for JavaScript files
-    {
-        files: ['**/*.js'],
-        languageOptions: {
-            ecmaVersion: 2020,
-            sourceType: 'module',
+  // Configuration for JavaScript files
+  {
+    files: ['**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: 'module',
+    },
+    plugins: {
+      prettier: prettierPlugin,
+      'eslint-comments': eslintCommentsPlugin,
+    },
+    rules: {
+      ...prettierConfig.rules,
+      'prettier/prettier': 'error',
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
-        plugins: {
-            prettier: prettierPlugin,
-            'eslint-comments': eslintCommentsPlugin,
-        },
-        rules: {
-            ...prettierConfig.rules,
-            'prettier/prettier': 'error',
-            'no-unused-vars': [
-                'error',
-                {
-                    argsIgnorePattern: '^_',
-                    varsIgnorePattern: '^_',
-                    caughtErrorsIgnorePattern: '^_',
-                },
-            ],
-            'arrow-body-style': ['error', 'as-needed'],
-            'prefer-arrow-callback': 'error',
-            'eslint-comments/no-unlimited-disable': 'error',
-            'eslint-comments/no-use': ['error', {allow: []}],
-        },
+      ],
+      'arrow-body-style': ['error', 'as-needed'],
+      'prefer-arrow-callback': 'error',
+      'eslint-comments/no-unlimited-disable': 'error',
+      'eslint-comments/no-use': ['error', { allow: [] }],
+    },
   },
   // Test files can be more relaxed
   {
-      files: ['**/*.test.ts', '**/tests/**/*.ts'],
+    files: ['**/*.test.ts', '**/tests/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
-          project: './tsconfig.json',
+        project: './tsconfig.json',
       },
       globals: {
-          ...jestPlugin.environments.globals.globals,
+        ...jestPlugin.environments.globals.globals,
       },
     },
     plugins: {
       '@typescript-eslint': tseslint,
-        jest: jestPlugin,
+      jest: jestPlugin,
     },
     rules: {
       ...jestPlugin.configs.recommended.rules,
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/unbound-method': 'off',
-        '@typescript-eslint/no-require-imports': 'off',
-        'jest/unbound-method': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      'jest/unbound-method': 'off',
     },
   },
 ];
