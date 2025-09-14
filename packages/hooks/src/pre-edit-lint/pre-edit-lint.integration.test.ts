@@ -1,0 +1,852 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import { execSync } from 'child_process';
+import * as crypto from 'crypto';
+import {
+  WriteToolHookStub,
+  EditToolHookStub,
+  MultiEditToolHookStub,
+} from '../../test/stubs/hook-data.stub';
+
+interface ExecError extends Error {
+  status?: number;
+  stdout?: Buffer;
+  stderr?: Buffer;
+}
+
+const tempRoot = path.join(process.cwd(), '.test-tmp', 'pre-edit-lint-tests');
+const hookPath = path.join(process.cwd(), 'src', 'pre-edit-lint', 'pre-edit-hook.ts');
+
+function createTestProject({ name }: { name: string }): string {
+  const testId = crypto.randomBytes(4).toString('hex');
+  const projectDir = path.join(tempRoot, `${name}-${testId}`);
+  fs.mkdirSync(projectDir, { recursive: true });
+  return projectDir;
+}
+
+function runHook({ hookData }: { hookData: unknown }): {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+} {
+  const input = JSON.stringify(hookData);
+
+  try {
+    const stdout = execSync(`npx tsx ${hookPath}`, {
+      input,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: process.cwd(),
+    });
+    return { exitCode: 0, stdout, stderr: '' };
+  } catch (error) {
+    const execError = error as ExecError;
+    return {
+      exitCode: execError.status || 1,
+      stdout: execError.stdout?.toString() || '',
+      stderr: execError.stderr?.toString() || '',
+    };
+  }
+}
+
+describe('pre-edit-lint', () => {
+  beforeEach(() => {
+    // Ensure temp directory exists
+    fs.mkdirSync(tempRoot, { recursive: true });
+  });
+
+  afterEach(() => {
+    // Clean up temp directory
+    if (fs.existsSync(tempRoot)) {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
+  });
+
+  describe('with Write tool', () => {
+    describe('success cases', () => {
+      it('VALID: {content: clean TypeScript code} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'clean-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const hookData = WriteToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            content: `export function add({ a, b }: { a: number; b: number }): number {
+  return a + b;
+}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+
+      it('VALID: {content: string containing "any"} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'string-any-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const hookData = WriteToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            content: `export const message = 'This can be any string you want';`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+
+      it('VALID: {content: comment containing "any"} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'comment-any-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const hookData = WriteToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            content: `export function test(): void {
+  // This function can accept any parameter type
+}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+
+      it('EMPTY: {content: empty file} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'empty-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const hookData = WriteToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            content: '',
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+
+      it('VALID: {content: overwrites existing file with same violations} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'overwrite-same-violations' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        // Create file with existing violations
+        fs.writeFileSync(filePath, `const bad: any = 'test';`);
+
+        const hookData = WriteToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            content: `const bad: any = 'updated test';`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+    });
+
+    describe('failure cases', () => {
+      it('INVALID_ANY: {content: new explicit any type} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'any-violation-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const hookData = WriteToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            content: `export function test({ param }: { param: any }): void {}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+      });
+
+      it('INVALID_TS_IGNORE: {content: @ts-ignore comment} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'ts-ignore-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const hookData = WriteToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            content: `// @ts-ignore
+export function test(): void {}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('@typescript-eslint/ban-ts-comment');
+      });
+
+      it('INVALID_TS_EXPECT_ERROR: {content: @ts-expect-error comment} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'ts-expect-error-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const hookData = WriteToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            content: `// @ts-expect-error
+export function test(): void {}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('@typescript-eslint/ban-ts-comment');
+      });
+
+      it('INVALID_ESLINT_DISABLE: {content: eslint-disable comment} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'eslint-disable-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const hookData = WriteToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            content: `// eslint-disable-next-line no-console
+console.log('test');`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('eslint-comments/no-use');
+      });
+
+      it('INVALID_MULTIPLE: {content: multiple violations} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'multiple-violations-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const hookData = WriteToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            content: `// @ts-ignore
+export function dirty({ param }: { param: any }): any {
+  return param;
+}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+        expect(result.stderr).toContain('@typescript-eslint/ban-ts-comment');
+      });
+    });
+  });
+
+  describe('with Edit tool', () => {
+    describe('success cases', () => {
+      it('VALID: {old_string: clean code, new_string: clean code} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'clean-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        // Create initial file
+        const initialContent = `export function oldFunction(): string {
+  return 'hello';
+}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = EditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            old_string: `export function oldFunction(): string {
+  return 'hello';
+}`,
+            new_string: `export function newFunction(): string {
+  return 'hello world';
+}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+
+      it('VALID: {old_string: existing violation, new_string: same violation} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'preserve-violation-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        // Create file with existing violation
+        const initialContent = `const bad: any = 'test';
+export function oldFunc(): void {}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = EditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            old_string: `const bad: any = 'test';
+export function oldFunc(): void {}`,
+            new_string: `const bad: any = 'test';  // Same violation
+export function newFunc(): void {}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+
+      it('VALID: {old_string: text, new_string: text with "any" in string} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'string-any-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `const message = 'hello';`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = EditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            old_string: `const message = 'hello';`,
+            new_string: `const message = 'This can be any string you want';`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+
+      it('EDGE: {old_string: code, new_string: whitespace change only} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'whitespace-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `function test(){return 'hello';}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = EditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            old_string: `function test(){return 'hello';}`,
+            new_string: `function test() {
+  return 'hello';
+}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+    });
+
+    describe('failure cases', () => {
+      it('INVALID_ANY: {old_string: clean code, new_string: adds any type} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'add-any-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `export function test(): void {}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = EditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            old_string: `export function test(): void {}`,
+            new_string: `export function test({ param }: { param: any }): void {}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+      });
+
+      it('INVALID_TS_IGNORE: {old_string: clean code, new_string: adds @ts-ignore} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'add-ts-ignore-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `export function test(): void {}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = EditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            old_string: `export function test(): void {}`,
+            new_string: `// @ts-ignore
+export function test(): void {}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('@typescript-eslint/ban-ts-comment');
+      });
+
+      it('INVALID_ESLINT_DISABLE: {old_string: console.log, new_string: adds eslint-disable} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'add-eslint-disable-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `console.log('test');`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = EditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            old_string: `console.log('test');`,
+            new_string: `// eslint-disable-next-line no-console
+console.log('test');`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('eslint-comments/no-use');
+      });
+
+      it('ERROR: {old_string: existing violation, new_string: adds second violation} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'add-second-violation-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        // File with existing violation
+        const initialContent = `const bad: any = 'test';`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = EditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            old_string: `const bad: any = 'test';`,
+            new_string: `const bad: any = 'test';
+export function test({ param }: { param: any }): void {}`,
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+      });
+    });
+
+    describe('edge cases', () => {
+      it('EDGE: {file_path: non-existent file} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'non-existent-edit' });
+        const filePath = path.join(projectDir, 'does-not-exist.ts');
+
+        const hookData = EditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            old_string: 'old',
+            new_string: 'new',
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+    });
+  });
+
+  describe('with MultiEdit tool', () => {
+    describe('success cases', () => {
+      it('VALID: {edits: multiple clean changes} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'clean-multiedit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `export class Calculator {
+  add({ a, b }: { a: number; b: number }): number {
+    return a + b;
+  }
+
+  subtract({ a, b }: { a: number; b: number }): number {
+    return a - b;
+  }
+}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = MultiEditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            edits: [
+              {
+                old_string: 'add({ a, b }: { a: number; b: number }): number',
+                new_string: 'add({ a, b, c = 0 }: { a: number; b: number; c?: number }): number',
+              },
+              {
+                old_string: 'return a + b;',
+                new_string: 'return a + b + c;',
+              },
+            ],
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+
+      it('VALID: {edits: preserves existing violations without adding new ones} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'preserve-violations-multiedit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        // File with existing violations
+        const initialContent = `// @ts-ignore
+export class Calculator {
+  add({ a, b }: { a: any; b: any }): any {
+    return a + b;
+  }
+
+  subtract({ a, b }: { a: number; b: number }): number {
+    return a - b;
+  }
+}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = MultiEditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            edits: [
+              {
+                old_string: '// @ts-ignore\nexport class Calculator {',
+                new_string: '// @ts-ignore\nexport class AdvancedCalculator {',
+              },
+              {
+                old_string: 'add({ a, b }: { a: any; b: any }): any {',
+                new_string: 'add({ a, b, c = 0 }: { a: any; b: any; c?: number }): any {',
+              },
+            ],
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result).toStrictEqual({
+          exitCode: 0,
+          stdout: '',
+          stderr: '',
+        });
+      });
+    });
+
+    describe('failure cases', () => {
+      it('INVALID_ANY: {edits: one edit adds any violation} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'add-any-multiedit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `export class Calculator {
+  add({ a, b }: { a: number; b: number }): number {
+    return a + b;
+  }
+
+  subtract({ a, b }: { a: number; b: number }): number {
+    return a - b;
+  }
+}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = MultiEditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            edits: [
+              {
+                old_string: 'add({ a, b }: { a: number; b: number }): number',
+                new_string: 'add({ a, b }: { a: any; b: any }): any',
+              },
+              {
+                old_string: 'export class Calculator {',
+                new_string: '// @ts-ignore\nexport class Calculator {',
+              },
+            ],
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+      });
+
+      it('INVALID_MULTIPLE: {edits: multiple edits add different violations} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'multiple-violations-multiedit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `export function processData({ data }: { data: string }): string {
+  return data;
+}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = MultiEditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            edits: [
+              {
+                old_string: 'data: string',
+                new_string: 'data: any',
+              },
+              {
+                old_string: 'export function processData',
+                new_string: '// @ts-ignore\nexport function processData',
+              },
+              {
+                old_string: '): string {',
+                new_string: '): any {',
+              },
+            ],
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+      });
+
+      it('EDGE: {edits: replace_all adds violations} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'replace-all-violations-multiedit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `export function processItem({ item }: { item: string }): string {
+  if (item === '') {
+    return '';
+  }
+  return item;
+}
+
+export function processItems({ items }: { items: string[] }): string[] {
+  return items.map((item: string) => processItem({ item }));
+}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = MultiEditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            edits: [
+              {
+                old_string: 'string',
+                new_string: 'any',
+                replace_all: true,
+              },
+            ],
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+      });
+    });
+  });
+
+  describe('edge cases', () => {
+    it('EDGE: {tool_input: non-TypeScript file} => returns exit code 0', () => {
+      const projectDir = createTestProject({ name: 'non-ts-file' });
+      const filePath = path.join(projectDir, 'README.md');
+
+      const hookData = WriteToolHookStub({
+        cwd: projectDir,
+        tool_input: {
+          file_path: filePath,
+          content: `# TypeScript Guide
+
+Here are some examples with any type and @ts-ignore patterns:
+
+\`\`\`typescript
+function test({ param }: { param: any }): void {
+  // @ts-ignore
+  return param;
+}
+\`\`\``,
+        },
+      });
+
+      const result = runHook({ hookData });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
+      });
+    });
+
+    it('EDGE: {tool_input: JavaScript file with TypeScript patterns} => ignores TypeScript patterns', () => {
+      const projectDir = createTestProject({ name: 'js-file-ts-patterns' });
+      const filePath = path.join(projectDir, 'example.js');
+
+      const hookData = WriteToolHookStub({
+        cwd: projectDir,
+        tool_input: {
+          file_path: filePath,
+          content: `function test(param) {
+  // @ts-ignore - this should be ignored in JS
+  return param;
+}`,
+        },
+      });
+
+      const result = runHook({ hookData });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
+      });
+    });
+
+    it('ERROR: {tool_input: violations in string literals and code} => detects only code violations', () => {
+      const projectDir = createTestProject({ name: 'mixed-violations' });
+      const filePath = path.join(projectDir, 'example.ts');
+
+      const hookData = WriteToolHookStub({
+        cwd: projectDir,
+        tool_input: {
+          file_path: filePath,
+          content: `export const ERROR_MSG = "Never use @ts-ignore or any type";
+
+// Real violations below:
+// @ts-ignore
+export const handler: any = getValue();`,
+        },
+      });
+
+      const result = runHook({ hookData });
+
+      expect(result.exitCode).toBe(2);
+      expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+      expect(result.stderr).toContain('@typescript-eslint/ban-ts-comment');
+    });
+
+    it('EDGE: {tool_input: very large file with violations} => detects violations', () => {
+      const projectDir = createTestProject({ name: 'large-file-violations' });
+      const filePath = path.join(projectDir, 'example.ts');
+
+      const largeContent = `export function processData({ data }: { data: unknown }): unknown {
+  ${'  return data;\n'.repeat(100)}
+}
+
+// Violation at the end:
+export const handler: any = processData;`;
+
+      const hookData = WriteToolHookStub({
+        cwd: projectDir,
+        tool_input: {
+          file_path: filePath,
+          content: largeContent,
+        },
+      });
+
+      const result = runHook({ hookData });
+
+      expect(result.exitCode).toBe(2);
+      expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+    });
+
+    it('EMPTY: {tool_input: empty old_string to empty new_string} => returns exit code 0', () => {
+      const projectDir = createTestProject({ name: 'empty-to-empty' });
+      const filePath = path.join(projectDir, 'empty.ts');
+
+      fs.writeFileSync(filePath, '');
+
+      const hookData = EditToolHookStub({
+        cwd: projectDir,
+        tool_input: {
+          file_path: filePath,
+          old_string: '',
+          new_string: '',
+        },
+      });
+
+      const result = runHook({ hookData });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
+      });
+    });
+  });
+});
