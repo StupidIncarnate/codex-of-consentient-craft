@@ -12,12 +12,19 @@
 
 ### Core Principles
 
+- This repo and all typescript files, both implementation and testing, MUST be strictly typed. The following usages
+  violates that principle:
+    - `as any` / `var: any`: There is always a type you can use in place of `any`
+    - `@ts-ignore` / `@ts-expect-error`: These suppress typescript and jeopardizes the integrity of the codebase
+    - `eslint-disabled`: Lint is as critical as typescript types and must be followed
 - Use existing types from the codebase when available. Make new types when needed
 - For uncertain data (including catch variables), use `unknown` and prove its shape through guards
 - Fix type errors at their source. Never suppress with `@ts-ignore` or `@ts-expect-error`
 - Let TypeScript infer types when values are clear. Add explicit types for:
     - Empty arrays and objects
     - Ambiguous values
+
+For any conflicts between lint/typescript and successful implementation, notify the user to make a decision call.
 
 ### Type Guards & Validation
 

@@ -32,7 +32,7 @@ automatically.
 - **Run tests**: `npm test`
 - **Run specific test file**: `npm test -- path/to/file.test.ts`
 - **Lint all**: `npm run lint` (auto-fixes issues)
-- **Lint specific files**: `npx eslint path/to/file1.ts path/to/file2.ts --fix`
-- **Type check**: `npm run typecheck`
+- **Lint specific files**: `npm run lint -- path/to/file1.ts path/to/file2.ts --fix`
+- **Type check**: `npm run typecheck` (checks entire project with proper tsconfig.json)
 - **Build**: `npm run build`
 - **All checks**: `npm run lint && npm run typecheck && npm test`
