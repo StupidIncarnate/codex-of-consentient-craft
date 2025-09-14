@@ -113,6 +113,8 @@ module.exports = [
     },
     plugins: {
       '@typescript-eslint': tseslint,
+      prettier: prettierPlugin,
+      'eslint-comments': eslintCommentsPlugin,
       jest: jestPlugin,
     },
     rules: {
