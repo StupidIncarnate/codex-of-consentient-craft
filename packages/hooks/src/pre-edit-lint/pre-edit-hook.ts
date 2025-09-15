@@ -24,6 +24,7 @@ function main(): void {
         // Check for newly introduced violations
         const result = await PreEditLint.checkForNewViolations({
           toolInput: hookData.tool_input,
+          cwd: process.cwd(),
         });
 
         if (result.hasNewViolations) {

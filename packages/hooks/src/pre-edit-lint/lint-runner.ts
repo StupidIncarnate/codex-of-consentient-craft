@@ -1,39 +1,7 @@
 import { ESLint } from 'eslint';
 import { resolve } from 'path';
+import type { Linter } from 'eslint';
 import type { LintResult } from './types';
-
-const createEslintInstance = (): ESLint => {
-  const tseslint = require('@typescript-eslint/eslint-plugin');
-  const tsparser = require('@typescript-eslint/parser');
-  const eslintCommentsPlugin = require('eslint-plugin-eslint-comments');
-
-  return new ESLint({
-    overrideConfigFile: true, // Don't load any config files - ESLint v9 API
-    baseConfig: [
-      {
-        files: ['**/*.ts', '**/*.tsx'], // Ensure TypeScript files are handled
-        languageOptions: {
-          parser: tsparser,
-          parserOptions: {
-            ecmaVersion: 2020,
-            sourceType: 'module',
-            // Remove project requirement to allow linting any TypeScript file
-          },
-        },
-        plugins: {
-          '@typescript-eslint': tseslint,
-          'eslint-comments': eslintCommentsPlugin,
-        },
-        rules: {
-          // Only enable specific blocking rules for performance
-          '@typescript-eslint/no-explicit-any': 'error',
-          '@typescript-eslint/ban-ts-comment': 'error',
-          'eslint-comments/no-use': 'error',
-        },
-      }
-    ],
-  });
-};
 
 const convertEslintResultToLintResult = ({
   result,
@@ -56,23 +24,32 @@ export const LintRunner = {
   runTargetedLint: async ({
     content,
     filePath,
+    config,
+    cwd = process.cwd(),
   }: {
     content: string;
     filePath: string;
+    config: Linter.FlatConfig[];
+    cwd?: string;
   }): Promise<LintResult[]> => {
     if (!content.trim()) {
       return [];
     }
 
     try {
-      const eslint = createEslintInstance();
+      // Create ESLint instance with the filtered configuration
+      const eslint = new ESLint({
+        overrideConfigFile: true, // Don't load config files
+        baseConfig: config,
+        cwd,
+      });
 
       // Ensure we have an absolute path for ESLint
       // For new files that don't exist yet, ESLint just needs the path for:
       // - File extension detection (.ts, .tsx, etc.)
       // - Rule pattern matching
       // It doesn't actually read from disk since we're using lintText()
-      const absolutePath = resolve(filePath);
+      const absolutePath = resolve(cwd, filePath);
 
       const results = await eslint.lintText(content, { filePath: absolutePath });
 

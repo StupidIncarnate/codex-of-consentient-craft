@@ -1,8 +1,3 @@
-export interface BlockingRule {
-  ruleId: string;
-  severity: 'error' | 'warn';
-}
-
 export interface LintMessage {
   line: number;
   column: number;
@@ -30,6 +25,12 @@ export interface ViolationComparison {
 }
 
 export interface PreEditLintConfig {
-  blockingRules: BlockingRule[];
-  timeout: number;
+  rules: string[];
+  messages?: Record<string, string | ((hookData: unknown) => string)>;
+  timeout?: number;
+  validateRules?: boolean;
+}
+
+export interface QuestmaestroHooksConfig {
+  preEditLint?: PreEditLintConfig;
 }

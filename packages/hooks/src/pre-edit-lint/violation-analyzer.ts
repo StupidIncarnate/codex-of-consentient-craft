@@ -1,4 +1,5 @@
 import type { LintResult, ViolationCount, ViolationComparison } from './types';
+import { MessageFormatter } from './message-formatter';
 
 export const ViolationAnalyzer = {
   countViolationsByRule: ({ results }: { results: LintResult[] }): ViolationCount[] => {
@@ -60,9 +61,13 @@ export const ViolationAnalyzer = {
   hasNewViolations: ({
     oldResults,
     newResults,
+    config,
+    hookData,
   }: {
     oldResults: LintResult[];
     newResults: LintResult[];
+    config?: import('./types').PreEditLintConfig;
+    hookData?: unknown;
   }): ViolationComparison => {
     const oldViolations = ViolationAnalyzer.countViolationsByRule({ results: oldResults });
     const newViolations = ViolationAnalyzer.countViolationsByRule({ results: newResults });
@@ -74,12 +79,25 @@ export const ViolationAnalyzer = {
 
     const hasNewViolations = newlyIntroduced.length > 0;
 
+    let message: string | undefined;
+    if (hasNewViolations) {
+      if (config && hookData) {
+        // Use the message formatter for custom messages
+        message = MessageFormatter.formatViolationMessage({
+          violations: newlyIntroduced,
+          config,
+          hookData,
+        });
+      } else {
+        // Fall back to default formatting
+        message = ViolationAnalyzer.formatViolationMessage({ violations: newlyIntroduced });
+      }
+    }
+
     return {
       hasNewViolations,
       newViolations: newlyIntroduced,
-      message: hasNewViolations
-        ? ViolationAnalyzer.formatViolationMessage({ violations: newlyIntroduced })
-        : undefined,
+      message,
     };
   },
 };

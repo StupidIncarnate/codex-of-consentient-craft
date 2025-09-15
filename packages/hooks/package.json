@@ -6,10 +6,11 @@
   "types": "dist/index.d.ts",
   "bin": {
     "questmaestro-sanitation-hook": "./dist/sanitation-hook.js",
-    "questmaestro-session-start-hook": "./dist/session-start-hook.js"
+    "questmaestro-session-start-hook": "./dist/session-start-hook.js",
+    "questmaestro-pre-edit-lint": "./dist/pre-edit-lint/pre-edit-hook.js"
   },
   "scripts": {
-    "build": "tsc && chmod +x dist/sanitation-hook.js && chmod +x dist/session-start-hook.js",
+    "build": "tsc && chmod +x dist/sanitation-hook.js && chmod +x dist/session-start-hook.js && chmod +x dist/pre-edit-lint/pre-edit-hook.js",
     "build:clean": "rm -rf dist && npm run build",
     "test": "jest",
     "test:unit": "jest",
@@ -40,6 +41,11 @@
     "jest": "^30.0.4",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0"
   },
   "dependencies": {
     "debug": "^4.4.1",
