@@ -29,7 +29,7 @@ export const LintRunner = {
   }: {
     content: string;
     filePath: string;
-    config: Linter.FlatConfig[];
+    config: Linter.Config;
     cwd?: string;
   }): Promise<LintResult[]> => {
     if (!content.trim()) {
@@ -37,11 +37,11 @@ export const LintRunner = {
     }
 
     try {
-      // Create ESLint instance with the filtered configuration
+      // Create ESLint instance with ONLY the filtered rules
       const eslint = new ESLint({
-        overrideConfigFile: true, // Don't load config files
-        baseConfig: config,
         cwd,
+        overrideConfigFile: true, // Completely bypass project config
+        overrideConfig: [config], // Use only our filtered rules
       });
 
       // Ensure we have an absolute path for ESLint
@@ -50,8 +50,36 @@ export const LintRunner = {
       // - Rule pattern matching
       // It doesn't actually read from disk since we're using lintText()
       const absolutePath = resolve(cwd, filePath);
+      let results = await eslint.lintText(content, { filePath: absolutePath });
 
-      const results = await eslint.lintText(content, { filePath: absolutePath });
+      // If we get a TypeScript project parsing error, try again without project reference
+      if (
+        results[0]?.messages?.some(
+          (msg) =>
+            msg.message.includes('parserOptions.project') &&
+            msg.message.includes('TSConfig does not include this file'),
+        )
+      ) {
+        // Create a simplified config without project reference
+        const simplifiedConfig = {
+          ...config,
+          languageOptions: {
+            ...config.languageOptions,
+            parserOptions: {
+              ...config.languageOptions?.parserOptions,
+              project: undefined, // Remove project reference
+            },
+          },
+        };
+
+        const fallbackEslint = new ESLint({
+          cwd,
+          overrideConfigFile: true, // Completely bypass project config
+          overrideConfig: [simplifiedConfig],
+        });
+
+        results = await fallbackEslint.lintText(content, { filePath: absolutePath });
+      }
 
       return results.map((result) => convertEslintResultToLintResult({ result }));
     } catch (error) {

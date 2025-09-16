@@ -849,4 +849,253 @@ export const handler: any = processData;`;
       });
     });
   });
+
+  describe('performance tests', () => {
+    it('PERF: typical file processing should be under 3 seconds', () => {
+      const projectDir = createTestProject({ name: 'perf-test-typical' });
+      const filePath = path.join(projectDir, 'example.ts');
+
+      const typicalContent = `export interface UserConfig {
+  name: string;
+  email: string;
+  preferences: {
+    theme: 'light' | 'dark';
+    notifications: boolean;
+  };
+}
+
+export class UserService {
+  private users = new Map<string, UserConfig>();
+
+  addUser(config: UserConfig): void {
+    this.users.set(config.email, config);
+  }
+
+  getUser(email: string): UserConfig | undefined {
+    return this.users.get(email);
+  }
+
+  updatePreferences(email: string, prefs: Partial<UserConfig['preferences']>): boolean {
+    const user = this.users.get(email);
+    if (!user) return false;
+
+    user.preferences = { ...user.preferences, ...prefs };
+    return true;
+  }
+}`;
+
+      const hookData = WriteToolHookStub({
+        cwd: projectDir,
+        tool_input: {
+          file_path: filePath,
+          content: typicalContent,
+        },
+      });
+
+      const startTime = Date.now();
+      const result = runHook({ hookData });
+      const endTime = Date.now();
+      const executionTime = endTime - startTime;
+
+      expect(result.exitCode).toBe(0);
+      expect(executionTime).toBeLessThan(3000); // ESLint initialization overhead
+    });
+
+    it('PERF: large file processing should be under 3 seconds', () => {
+      const projectDir = createTestProject({ name: 'perf-test-large' });
+      const filePath = path.join(projectDir, 'example.ts');
+
+      // Generate a large file with multiple classes and methods
+      const largeContent = Array.from(
+        { length: 20 },
+        (_, i) => `
+export class Service${i} {
+  private data = new Map<string, unknown>();
+
+  ${Array.from(
+    { length: 10 },
+    (_, j) => `
+  method${j}(param: string): string {
+    const result = this.processData(param);
+    return result || '';
+  }`,
+  ).join('\n')}
+
+  private processData(input: string): string | null {
+    if (!input || input.length === 0) {
+      return null;
+    }
+    return input.toUpperCase();
+  }
+
+  getData(key: string): unknown {
+    return this.data.get(key);
+  }
+
+  setData(key: string, value: unknown): void {
+    this.data.set(key, value);
+  }
+}`,
+      ).join('\n');
+
+      const hookData = WriteToolHookStub({
+        cwd: projectDir,
+        tool_input: {
+          file_path: filePath,
+          content: largeContent,
+        },
+      });
+
+      const startTime = Date.now();
+      const result = runHook({ hookData });
+      const endTime = Date.now();
+      const executionTime = endTime - startTime;
+
+      expect(result.exitCode).toBe(0);
+      expect(executionTime).toBeLessThan(3000); // Large files still bound by ESLint initialization
+    });
+
+    it('PERF: violation detection should be under 3 seconds', () => {
+      const projectDir = createTestProject({ name: 'perf-test-violations' });
+      const filePath = path.join(projectDir, 'example.ts');
+
+      const contentWithViolations = `// @ts-ignore
+export function badFunction(param: any): any {
+  // eslint-disable-next-line no-console
+  console.log(param);
+  return param;
+}
+
+export class BadService {
+  processItem(item: any): any {
+    return item;
+  }
+
+  handleError(error: any): void {
+    // @ts-ignore
+    throw error;
+  }
+}`;
+
+      const hookData = WriteToolHookStub({
+        cwd: projectDir,
+        tool_input: {
+          file_path: filePath,
+          content: contentWithViolations,
+        },
+      });
+
+      const startTime = Date.now();
+      const result = runHook({ hookData });
+      const endTime = Date.now();
+      const executionTime = endTime - startTime;
+
+      expect(result.exitCode).toBe(2); // Should block due to violations
+      expect(executionTime).toBeLessThan(3000); // Violation detection still requires ESLint initialization
+    });
+
+    it('PERF: edit operation should be under 3 seconds', () => {
+      const projectDir = createTestProject({ name: 'perf-test-edit' });
+      const filePath = path.join(projectDir, 'example.ts');
+
+      const initialContent = `export class Calculator {
+  add(a: number, b: number): number {
+    return a + b;
+  }
+
+  subtract(a: number, b: number): number {
+    return a - b;
+  }
+
+  multiply(a: number, b: number): number {
+    return a * b;
+  }
+
+  divide(a: number, b: number): number {
+    if (b === 0) throw new Error('Division by zero');
+    return a / b;
+  }
+}`;
+      fs.writeFileSync(filePath, initialContent);
+
+      const hookData = EditToolHookStub({
+        cwd: projectDir,
+        tool_input: {
+          file_path: filePath,
+          old_string: 'add(a: number, b: number): number',
+          new_string: 'add(a: number, b: number, c = 0): number',
+        },
+      });
+
+      const startTime = Date.now();
+      const result = runHook({ hookData });
+      const endTime = Date.now();
+      const executionTime = endTime - startTime;
+
+      expect(result.exitCode).toBe(0);
+      expect(executionTime).toBeLessThan(3000); // Edit operations bound by ESLint initialization
+    });
+
+    it('PERF: multiedit operation should be under 3 seconds', () => {
+      const projectDir = createTestProject({ name: 'perf-test-multiedit' });
+      const filePath = path.join(projectDir, 'example.ts');
+
+      const initialContent = `export class UserManager {
+  private users: User[] = [];
+
+  addUser(user: User): void {
+    this.users.push(user);
+  }
+
+  removeUser(id: string): boolean {
+    const index = this.users.findIndex(u => u.id === id);
+    if (index === -1) return false;
+    this.users.splice(index, 1);
+    return true;
+  }
+
+  findUser(id: string): User | undefined {
+    return this.users.find(u => u.id === id);
+  }
+
+  getAllUsers(): User[] {
+    return [...this.users];
+  }
+}`;
+      fs.writeFileSync(filePath, initialContent);
+
+      const hookData = MultiEditToolHookStub({
+        cwd: projectDir,
+        tool_input: {
+          file_path: filePath,
+          edits: [
+            {
+              old_string: 'addUser(user: User): void',
+              new_string: 'addUser(user: User): Promise<void>',
+            },
+            {
+              old_string: 'removeUser(id: string): boolean',
+              new_string: 'removeUser(id: string): Promise<boolean>',
+            },
+            {
+              old_string: 'findUser(id: string): User | undefined',
+              new_string: 'findUser(id: string): Promise<User | undefined>',
+            },
+            {
+              old_string: 'getAllUsers(): User[]',
+              new_string: 'getAllUsers(): Promise<User[]>',
+            },
+          ],
+        },
+      });
+
+      const startTime = Date.now();
+      const result = runHook({ hookData });
+      const endTime = Date.now();
+      const executionTime = endTime - startTime;
+
+      expect(result.exitCode).toBe(0);
+      expect(executionTime).toBeLessThan(3000); // MultiEdit operations bound by ESLint initialization
+    });
+  });
 });

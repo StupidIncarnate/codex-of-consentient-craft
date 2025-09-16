@@ -27,8 +27,6 @@ export interface ViolationComparison {
 export interface PreEditLintConfig {
   rules: string[];
   messages?: Record<string, string | ((hookData: unknown) => string)>;
-  timeout?: number;
-  validateRules?: boolean;
 }
 
 export interface QuestmaestroHooksConfig {

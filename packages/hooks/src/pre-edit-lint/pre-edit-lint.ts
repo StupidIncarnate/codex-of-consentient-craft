@@ -1,20 +1,17 @@
 import { FileUtils } from '../utils/file-utils';
 import { LintRunner } from './lint-runner';
 import { ViolationAnalyzer } from './violation-analyzer';
-import { ConfigLoader } from './config-loader';
-import { ConfigValidator } from './config-validator';
-import { ESLintIntegration } from './eslint-integration';
+import { HookConfigLoader } from '../utils/hook-config-loader';
+import { EslintConfig } from './eslint-config';
 import type { ToolInput } from '../types';
-import type { ViolationComparison, PreEditLintConfig } from './types';
+import type { ViolationComparison } from './types';
 
 export const PreEditLint = {
   checkForNewViolations: async ({
     toolInput,
-    config,
     cwd = process.cwd(),
   }: {
     toolInput: ToolInput;
-    config?: PreEditLintConfig;
     cwd?: string;
   }): Promise<ViolationComparison> => {
     const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
@@ -27,16 +24,13 @@ export const PreEditLint = {
     }
 
     // Load configuration if not provided
-    const lintConfig = config || ConfigLoader.loadConfig({ cwd });
-
-    // Validate configuration
-    await ConfigValidator.validateConfig({ config: lintConfig, cwd });
+    const hookConfig = HookConfigLoader.loadConfig({ cwd });
 
     // Load and filter the host ESLint configuration for the actual file
-    const hostConfig = await ESLintIntegration.loadHostConfig({ cwd, filePath });
-    const filteredConfig = ESLintIntegration.createFilteredConfig({
-      hostConfig,
-      allowedRules: lintConfig.rules,
+    const eslintConfig = await EslintConfig.loadConfigByFile({ cwd, filePath });
+    const filteredConfig = EslintConfig.createFilteredConfig({
+      eslintConfig: eslintConfig,
+      hookConfig: hookConfig,
     });
 
     // Get content changes using existing utilities
@@ -80,7 +74,7 @@ export const PreEditLint = {
     return ViolationAnalyzer.hasNewViolations({
       oldResults,
       newResults,
-      config: lintConfig,
+      config: hookConfig,
       hookData: { tool_input: toolInput },
     });
   },
