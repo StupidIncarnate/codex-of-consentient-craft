@@ -1,6 +1,7 @@
 import { ESLint } from 'eslint';
 import type { Linter } from 'eslint';
 import type { PreEditLintConfig } from './types';
+import { HookConfigLoader } from '../utils/hook-config-loader';
 
 // Cache the config to avoid repeated expensive loading
 let configCache: { cwd: string; config: Linter.Config } | null = null;
@@ -47,7 +48,8 @@ export const EslintConfig = {
 
     // Only keep allowed rules, set others to 'off'
     if (eslintConfig.rules) {
-      hookConfig.rules.forEach((rule) => {
+      const ruleNames = HookConfigLoader.getRuleNames({ config: hookConfig });
+      ruleNames.forEach((rule) => {
         if (eslintConfig.rules?.[rule]) {
           filteredRules[rule] = eslintConfig.rules[rule];
         }

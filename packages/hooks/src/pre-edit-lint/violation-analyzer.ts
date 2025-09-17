@@ -1,23 +1,32 @@
-import type { LintResult, ViolationCount, ViolationComparison } from './types';
+import type { LintResult, ViolationCount, ViolationComparison, ViolationDetail } from './types';
 import { MessageFormatter } from './message-formatter';
 
 export const ViolationAnalyzer = {
   countViolationsByRule: ({ results }: { results: LintResult[] }): ViolationCount[] => {
-    const counts = new Map<string, number>();
+    const violationMap = new Map<string, ViolationDetail[]>();
 
     for (const result of results) {
       for (const message of result.messages) {
         if (message.severity === 2 && message.ruleId) {
           // Only count errors (severity 2), not warnings
-          const current = counts.get(message.ruleId) || 0;
-          counts.set(message.ruleId, current + 1);
+          if (!violationMap.has(message.ruleId)) {
+            violationMap.set(message.ruleId, []);
+          }
+
+          violationMap.get(message.ruleId)!.push({
+            ruleId: message.ruleId,
+            line: message.line,
+            column: message.column,
+            message: message.message,
+          });
         }
       }
     }
 
-    return Array.from(counts.entries()).map(([ruleId, count]) => ({
+    return Array.from(violationMap.entries()).map(([ruleId, details]) => ({
       ruleId,
-      count,
+      count: details.length,
+      details,
     }));
   },
 
@@ -34,9 +43,14 @@ export const ViolationAnalyzer = {
     for (const newViolation of newViolations) {
       const oldCount = oldCounts.get(newViolation.ruleId) || 0;
       if (newViolation.count > oldCount) {
+        const newCount = newViolation.count - oldCount;
+        // Take the last N details as the "new" violations (simplistic approach)
+        const newDetails = newViolation.details.slice(-newCount);
+
         newlyIntroduced.push({
           ruleId: newViolation.ruleId,
-          count: newViolation.count - oldCount,
+          count: newCount,
+          details: newDetails,
         });
       }
     }
@@ -49,7 +63,12 @@ export const ViolationAnalyzer = {
 
     for (const violation of violations) {
       const count = violation.count === 1 ? '1 violation' : `${violation.count} violations`;
-      lines.push(`  ❌ ${violation.ruleId}: ${count}`);
+      lines.push(`  ❌ Code Quality Issue: ${count}`);
+
+      // Show line:column info for each violation
+      for (const detail of violation.details) {
+        lines.push(`     Line ${detail.line}:${detail.column} - ${detail.message}`);
+      }
     }
 
     lines.push('');

@@ -31,12 +31,12 @@ You are a seasoned unit test writer with a practical, non-mocking approach to te
 
 ### 4. Implementation Phase (Iterative)
 
-- Fill in 2-3 test stubs initially
+- Fill in the test stubs of one of the nested-most describes
 - Run validation checks:
     - Tests: `npm test -- path/to/test.file.ts`
     - Lint: `npm run lint -- path/to/test.file.ts --fix`
     - Types: `npm run typecheck` (checks entire project with proper config)
-- Fix errors, then continue with next batch
+- Fix errors, then continue with next nested-most describe
 - Increase batch size if all checks pass on first attempt
 
 ## Test Case Stub Format

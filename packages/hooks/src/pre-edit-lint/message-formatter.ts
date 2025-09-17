@@ -1,4 +1,5 @@
 import type { ViolationCount, PreEditLintConfig } from './types';
+import { HookConfigLoader } from '../utils/hook-config-loader';
 
 export const MessageFormatter = {
   formatViolationMessage: ({
@@ -15,29 +16,40 @@ export const MessageFormatter = {
     for (const violation of violations) {
       const count = violation.count === 1 ? '1 violation' : `${violation.count} violations`;
 
-      // Check if there's a custom message for this rule
-      const customMessage = config.messages?.[violation.ruleId];
+      // Get display config for this rule
+      const displayConfig = HookConfigLoader.getRuleDisplayConfig({
+        config,
+        ruleId: violation.ruleId,
+      });
 
-      if (customMessage) {
-        let message: string;
+      // Use display name instead of rule ID (hide rule ID from LLM)
+      const displayName =
+        displayConfig.displayName ||
+        MessageFormatter.getDefaultDisplayName({ ruleId: violation.ruleId });
 
-        if (typeof customMessage === 'function') {
+      lines.push(`  ❌ ${displayName}: ${count}`);
+
+      // Get custom or default message
+      let message: string;
+      if (displayConfig.message) {
+        if (typeof displayConfig.message === 'function') {
           try {
-            message = customMessage(hookData);
+            message = displayConfig.message(hookData);
           } catch (error) {
-            // If custom message function fails, fall back to default
             message = `Custom message function failed: ${error instanceof Error ? error.message : String(error)}`;
           }
         } else {
-          message = customMessage;
+          message = displayConfig.message;
         }
-
-        lines.push(`  ❌ ${violation.ruleId}: ${count}`);
-        lines.push(`     ${message}`);
       } else {
-        // Use default message
-        lines.push(`  ❌ ${violation.ruleId}: ${count}`);
-        lines.push(`     ${MessageFormatter.getDefaultRuleMessage({ ruleId: violation.ruleId })}`);
+        message = MessageFormatter.getDefaultRuleMessage({ ruleId: violation.ruleId });
+      }
+
+      lines.push(`     ${message}`);
+
+      // Show specific line:column locations
+      for (const detail of violation.details) {
+        lines.push(`     Line ${detail.line}:${detail.column} - ${detail.message}`);
       }
     }
 
@@ -47,58 +59,28 @@ export const MessageFormatter = {
     return lines.join('\n');
   },
 
+  getDefaultDisplayName: ({ ruleId }: { ruleId: string }): string => {
+    const defaultDisplayNames: Record<string, string> = {
+      '@typescript-eslint/no-explicit-any': 'Type Safety Violation',
+      '@typescript-eslint/ban-ts-comment': 'Type Error Suppression',
+      'eslint-comments/no-use': 'Code Quality Rule Bypass',
+    };
+
+    return defaultDisplayNames[ruleId] || 'Code Quality Issue';
+  },
+
   getDefaultRuleMessage: ({ ruleId }: { ruleId: string }): string => {
     const defaultMessages: Record<string, string> = {
       '@typescript-eslint/no-explicit-any':
-        'Using "any" type defeats TypeScript\'s type safety benefits.',
+        'Using type "any" violates TypeScript\'s type safety rules. Go explore types for this project and use a known or make a new type to use.',
       '@typescript-eslint/ban-ts-comment':
-        'TypeScript error suppression comments (@ts-ignore, @ts-expect-error) should be avoided.',
+        'TypeScript error suppression comments (@ts-ignore, @ts-expect-error) cannot be used. Explore root cause and fix the underlying issue.',
       'eslint-comments/no-use':
-        'ESLint disable comments should not be used. Fix the underlying issue instead.',
-      'no-console': 'Console statements should not be committed to production code.',
-      'no-debugger': 'Debugger statements should not be committed to production code.',
-      'no-unused-vars': 'Unused variables should be removed to keep code clean.',
-      '@typescript-eslint/no-unused-vars': 'Unused variables should be removed to keep code clean.',
+        'ESLint disable comments should not be used. Explore root cause and fix the underlying issue',
     };
 
     return (
       defaultMessages[ruleId] || 'This rule violation should be fixed to maintain code quality.'
     );
-  },
-
-  validateMessageFunction: ({
-    messageFunction,
-    hookData,
-  }: {
-    messageFunction: (hookData: unknown) => string;
-    hookData: unknown;
-  }): { isValid: boolean; error?: string; result?: string } => {
-    try {
-      const result = messageFunction(hookData);
-
-      if (typeof result !== 'string') {
-        return {
-          isValid: false,
-          error: `Message function must return a string, got ${typeof result}`,
-        };
-      }
-
-      if (result.trim() === '') {
-        return {
-          isValid: false,
-          error: 'Message function returned empty string',
-        };
-      }
-
-      return {
-        isValid: true,
-        result,
-      };
-    } catch (error) {
-      return {
-        isValid: false,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
   },
 };

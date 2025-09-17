@@ -13,9 +13,17 @@ export interface LintResult {
   warningCount: number;
 }
 
+export interface ViolationDetail {
+  ruleId: string;
+  line: number;
+  column: number;
+  message: string;
+}
+
 export interface ViolationCount {
   ruleId: string;
   count: number;
+  details: ViolationDetail[];
 }
 
 export interface ViolationComparison {
@@ -24,9 +32,14 @@ export interface ViolationComparison {
   message?: string;
 }
 
+export interface RuleConfig {
+  rule: string;
+  displayName?: string;
+  message?: string | ((hookData: unknown) => string);
+}
+
 export interface PreEditLintConfig {
-  rules: string[];
-  messages?: Record<string, string | ((hookData: unknown) => string)>;
+  rules: (string | RuleConfig)[];
 }
 
 export interface QuestmaestroHooksConfig {

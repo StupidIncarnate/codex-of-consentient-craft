@@ -125,4 +125,10 @@ module.exports = [
       'jest/unbound-method': 'off',
     },
   },
+  {
+    files: ['packages/hooks/src/utils/hook-config-loader.ts'],
+    rules: {
+      'eslint-comments/no-use': 'off',
+    },
+  },
 ];

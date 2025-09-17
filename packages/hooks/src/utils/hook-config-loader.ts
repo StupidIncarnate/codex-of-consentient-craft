@@ -39,7 +39,6 @@ export const HookConfigLoader = {
 
     return {
       rules: config.rules || defaults.rules,
-      messages: config.messages || {},
     };
   },
 
@@ -49,6 +48,25 @@ export const HookConfigLoader = {
       '@typescript-eslint/ban-ts-comment',
       'eslint-comments/no-use',
     ],
-    messages: {},
   }),
+
+  // Helper to extract rule names from mixed config format
+  getRuleNames: ({ config }: { config: PreEditLintConfig }): string[] =>
+    config.rules.map((rule) => (typeof rule === 'string' ? rule : rule.rule)),
+
+  // Helper to get display config for a rule
+  getRuleDisplayConfig: ({ config, ruleId }: { config: PreEditLintConfig; ruleId: string }) => {
+    const ruleConfig = config.rules.find(
+      (rule) => typeof rule === 'object' && rule.rule === ruleId,
+    );
+
+    if (typeof ruleConfig === 'object') {
+      return {
+        displayName: ruleConfig.displayName,
+        message: ruleConfig.message,
+      };
+    }
+
+    return {};
+  },
 };

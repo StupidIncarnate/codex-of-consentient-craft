@@ -1,5 +1,6 @@
 import { ViolationAnalyzer } from './violation-analyzer';
 import type { LintResult, LintMessage, ViolationCount } from './types';
+import { ViolationCountStub } from '../../test/stubs/violation.stub';
 
 describe('ViolationAnalyzer', () => {
   describe('countViolationsByRule()', () => {
@@ -35,6 +36,14 @@ describe('ViolationAnalyzer', () => {
         {
           ruleId: '@typescript-eslint/no-explicit-any',
           count: 1,
+          details: [
+            {
+              ruleId: '@typescript-eslint/no-explicit-any',
+              line: 1,
+              column: 15,
+              message: 'Unexpected any. Specify a different type.',
+            },
+          ],
         },
       ]);
     });
@@ -71,6 +80,20 @@ describe('ViolationAnalyzer', () => {
         {
           ruleId: '@typescript-eslint/no-explicit-any',
           count: 2,
+          details: [
+            {
+              ruleId: '@typescript-eslint/no-explicit-any',
+              line: 1,
+              column: 15,
+              message: 'Unexpected any. Specify a different type.',
+            },
+            {
+              ruleId: '@typescript-eslint/no-explicit-any',
+              line: 2,
+              column: 20,
+              message: 'Unexpected any. Specify a different type.',
+            },
+          ],
         },
       ]);
     });
@@ -107,10 +130,26 @@ describe('ViolationAnalyzer', () => {
         {
           ruleId: '@typescript-eslint/no-explicit-any',
           count: 1,
+          details: [
+            {
+              ruleId: '@typescript-eslint/no-explicit-any',
+              line: 1,
+              column: 15,
+              message: 'Unexpected any. Specify a different type.',
+            },
+          ],
         },
         {
           ruleId: '@typescript-eslint/ban-ts-comment',
           count: 1,
+          details: [
+            {
+              ruleId: '@typescript-eslint/ban-ts-comment',
+              line: 2,
+              column: 1,
+              message: 'Do not use "@ts-ignore" because it alters compilation errors.',
+            },
+          ],
         },
       ]);
     });
@@ -147,6 +186,14 @@ describe('ViolationAnalyzer', () => {
         {
           ruleId: '@typescript-eslint/no-explicit-any',
           count: 1,
+          details: [
+            {
+              ruleId: '@typescript-eslint/no-explicit-any',
+              line: 1,
+              column: 15,
+              message: 'Unexpected any. Specify a different type.',
+            },
+          ],
         },
       ]);
     });
@@ -183,6 +230,14 @@ describe('ViolationAnalyzer', () => {
         {
           ruleId: '@typescript-eslint/no-explicit-any',
           count: 1,
+          details: [
+            {
+              ruleId: '@typescript-eslint/no-explicit-any',
+              line: 1,
+              column: 15,
+              message: 'Unexpected any. Specify a different type.',
+            },
+          ],
         },
       ]);
     });
@@ -201,11 +256,11 @@ describe('ViolationAnalyzer', () => {
 
       it('VALID: {oldViolations: [1 any], newViolations: [same 1 any]} => returns no new violations', () => {
         const oldViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
         ];
 
         const newViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
         ];
 
         const result = ViolationAnalyzer.findNewViolations({ oldViolations, newViolations });
@@ -215,11 +270,11 @@ describe('ViolationAnalyzer', () => {
 
       it('VALID: {oldViolations: [2 any], newViolations: [1 any]} => returns no new violations (removing violations)', () => {
         const oldViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 2 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
         ];
 
         const newViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
         ];
 
         const result = ViolationAnalyzer.findNewViolations({ oldViolations, newViolations });
@@ -229,13 +284,13 @@ describe('ViolationAnalyzer', () => {
 
       it('VALID: {oldViolations: [mixed], newViolations: [same counts]} => returns no new violations', () => {
         const oldViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 2 },
-          { ruleId: '@typescript-eslint/ban-ts-comment', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
+          ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
         ];
 
         const newViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 2 },
-          { ruleId: '@typescript-eslint/ban-ts-comment', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
+          ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
         ];
 
         const result = ViolationAnalyzer.findNewViolations({ oldViolations, newViolations });
@@ -249,77 +304,83 @@ describe('ViolationAnalyzer', () => {
         const oldViolations: ViolationCount[] = [];
 
         const newViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
         ];
 
         const result = ViolationAnalyzer.findNewViolations({ oldViolations, newViolations });
 
-        expect(result).toStrictEqual([{ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }]);
+        expect(result).toStrictEqual([
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
+        ]);
       });
 
       it('INVALID: {oldViolations: [1 any], newViolations: [2 any]} => returns 1 new violation', () => {
         const oldViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
         ];
 
         const newViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 2 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
         ];
 
         const result = ViolationAnalyzer.findNewViolations({ oldViolations, newViolations });
 
-        expect(result).toStrictEqual([{ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }]);
+        expect(result).toStrictEqual([
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
+        ]);
       });
 
       it('INVALID: {oldViolations: [1 any], newViolations: [1 ts-ignore]} => returns new violations (different rule)', () => {
         const oldViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
         ];
 
         const newViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/ban-ts-comment', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
         ];
 
         const result = ViolationAnalyzer.findNewViolations({ oldViolations, newViolations });
 
-        expect(result).toStrictEqual([{ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }]);
+        expect(result).toStrictEqual([
+          ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
+        ]);
       });
 
       it('INVALID: {oldViolations: [], newViolations: [multiple violations]} => returns all as new violations', () => {
         const oldViolations: ViolationCount[] = [];
 
         const newViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 2 },
-          { ruleId: '@typescript-eslint/ban-ts-comment', count: 1 },
-          { ruleId: 'eslint-comments/no-use', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
+          ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
+          ViolationCountStub({ ruleId: 'eslint-comments/no-use', count: 1 }),
         ];
 
         const result = ViolationAnalyzer.findNewViolations({ oldViolations, newViolations });
 
         expect(result).toStrictEqual([
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 2 },
-          { ruleId: '@typescript-eslint/ban-ts-comment', count: 1 },
-          { ruleId: 'eslint-comments/no-use', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
+          ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
+          ViolationCountStub({ ruleId: 'eslint-comments/no-use', count: 1 }),
         ]);
       });
 
       it('COMPLEX: {oldViolations: [mixed], newViolations: [some removed, some added]} => returns only new violations', () => {
         const oldViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 1 },
-          { ruleId: '@typescript-eslint/ban-ts-comment', count: 2 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
+          ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 2 }),
         ];
 
         const newViolations: ViolationCount[] = [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 3 }, // +2 new
-          { ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }, // -1 (removed, no new)
-          { ruleId: 'eslint-comments/no-use', count: 1 }, // +1 new rule
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 3 }), // +2 new
+          ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }), // -1 (removed, no new)
+          ViolationCountStub({ ruleId: 'eslint-comments/no-use', count: 1 }), // +1 new rule
         ];
 
         const result = ViolationAnalyzer.findNewViolations({ oldViolations, newViolations });
 
         expect(result).toStrictEqual([
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 2 },
-          { ruleId: 'eslint-comments/no-use', count: 1 },
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
+          ViolationCountStub({ ruleId: 'eslint-comments/no-use', count: 1 }),
         ]);
       });
     });
@@ -399,11 +460,13 @@ describe('ViolationAnalyzer', () => {
 
       expect(result).toStrictEqual({
         hasNewViolations: true,
-        newViolations: [{ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }],
+        newViolations: [
+          ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
+        ],
         message: expect.stringContaining('🛑 New code quality violations detected:'),
       });
 
-      expect(result.message).toContain('@typescript-eslint/no-explicit-any: 1 violation');
+      expect(result.message).toContain('Code Quality Issue: 1 violation');
     });
 
     it('INVALID: {oldResults: [1 any], newResults: [3 any, 1 ts-ignore]} => returns new violations with formatted message', () => {
@@ -470,14 +533,42 @@ describe('ViolationAnalyzer', () => {
       expect(result).toStrictEqual({
         hasNewViolations: true,
         newViolations: [
-          { ruleId: '@typescript-eslint/no-explicit-any', count: 2 },
-          { ruleId: '@typescript-eslint/ban-ts-comment', count: 1 },
+          ViolationCountStub({
+            ruleId: '@typescript-eslint/no-explicit-any',
+            count: 2,
+            details: [
+              {
+                ruleId: '@typescript-eslint/no-explicit-any',
+                line: 2,
+                column: 20,
+                message: 'Unexpected any. Specify a different type.',
+              },
+              {
+                ruleId: '@typescript-eslint/no-explicit-any',
+                line: 3,
+                column: 25,
+                message: 'Unexpected any. Specify a different type.',
+              },
+            ],
+          }),
+          ViolationCountStub({
+            ruleId: '@typescript-eslint/ban-ts-comment',
+            count: 1,
+            details: [
+              {
+                ruleId: '@typescript-eslint/ban-ts-comment',
+                line: 4,
+                column: 1,
+                message: 'Do not use "@ts-ignore" because it alters compilation errors.',
+              },
+            ],
+          }),
         ],
         message: expect.stringContaining('🛑 New code quality violations detected:'),
       });
 
-      expect(result.message).toContain('@typescript-eslint/no-explicit-any: 2 violations');
-      expect(result.message).toContain('@typescript-eslint/ban-ts-comment: 1 violation');
+      expect(result.message).toContain('Code Quality Issue: 2 violations');
+      expect(result.message).toContain('Code Quality Issue: 1 violation');
     });
   });
 
@@ -494,30 +585,34 @@ These rules help maintain code quality and safety. Please fix the violations.`);
 
     it('VALID: {violations: [1 any]} => returns formatted message', () => {
       const violations: ViolationCount[] = [
-        { ruleId: '@typescript-eslint/no-explicit-any', count: 1 },
+        ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
       ];
 
       const message = ViolationAnalyzer.formatViolationMessage({ violations });
 
       expect(message).toBe(`🛑 New code quality violations detected:
-  ❌ @typescript-eslint/no-explicit-any: 1 violation
+  ❌ Code Quality Issue: 1 violation
+     Line 1:15 - Unexpected any. Specify a different type.
 
 These rules help maintain code quality and safety. Please fix the violations.`);
     });
 
     it('VALID: {violations: [multiple violations]} => returns formatted message with plurals', () => {
       const violations: ViolationCount[] = [
-        { ruleId: '@typescript-eslint/no-explicit-any', count: 3 },
-        { ruleId: '@typescript-eslint/ban-ts-comment', count: 1 },
-        { ruleId: 'eslint-comments/no-use', count: 2 },
+        ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 3 }),
+        ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
+        ViolationCountStub({ ruleId: 'eslint-comments/no-use', count: 2 }),
       ];
 
       const message = ViolationAnalyzer.formatViolationMessage({ violations });
 
       expect(message).toBe(`🛑 New code quality violations detected:
-  ❌ @typescript-eslint/no-explicit-any: 3 violations
-  ❌ @typescript-eslint/ban-ts-comment: 1 violation
-  ❌ eslint-comments/no-use: 2 violations
+  ❌ Code Quality Issue: 3 violations
+     Line 1:15 - Unexpected any. Specify a different type.
+  ❌ Code Quality Issue: 1 violation
+     Line 1:15 - Unexpected any. Specify a different type.
+  ❌ Code Quality Issue: 2 violations
+     Line 1:15 - Unexpected any. Specify a different type.
 
 These rules help maintain code quality and safety. Please fix the violations.`);
     });

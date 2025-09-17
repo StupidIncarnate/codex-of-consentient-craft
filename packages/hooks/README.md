@@ -38,13 +38,43 @@ Create `.questmaestro-hooks.config.js` in your project root:
 module.exports = {
   preEditLint: {
     rules: [
+        // Simple format - uses default display name and message
       '@typescript-eslint/no-explicit-any',
-      '@typescript-eslint/ban-ts-comment',
       'eslint-comments/no-use',
-      // Add more rules as needed
+
+        // Rich format - custom display for LLMs
+        {
+            rule: '@typescript-eslint/ban-ts-comment',
+            displayName: 'Type Error Suppression', // What LLMs see instead of rule name
+            message: 'Fix the underlying TypeScript error instead of suppressing it.'
+        },
+
+        // Mix and match as needed
+        {
+            rule: 'no-console',
+            displayName: 'Debug Code',
+            message: 'Remove console statements before committing.'
+        }
     ],
   },
 };
+```
+
+**Why Custom Display Names?**
+
+- **Prevents LLM confusion** - LLMs won't try to "fix" violations by adding `eslint-disable` comments
+- **User-friendly messages** - Shows "Type Safety Violation" instead of technical rule names
+- **Configurable per project** - Teams can customize messaging for their context
+
+**Error Output:**
+
+```
+🛑 New code quality violations detected:
+  ❌ Type Safety Violation: 1 violation
+     Using "any" type defeats TypeScript's type safety benefits.
+     Line 5:23 - Unexpected any. Specify a different type.
+
+These rules help maintain code quality and safety. Please fix the violations.
 ```
 
 **Performance:**
