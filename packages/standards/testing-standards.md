@@ -68,21 +68,21 @@ Every conditional path must have a test:
 
 ```typescript
 // Needs 3 tests:
-function processUser(user: User | null): string {
+const processUser = (user: User | null): string => {
     if (!user) return 'No user';        // Test 1
     if (user.isAdmin) return 'Admin';   // Test 2
     return user.name;                   // Test 3
 }
 
 // Arrays need 3 tests:
-function formatList(items: string[]): string {
+const formatList = (items: string[]): string => {
     if (items.length === 0) return 'No items';      // Test 1: []
     if (items.length === 1) return items[0];        // Test 2: ['apple']
     return items.join(', ');                        // Test 3: ['apple', 'banana']
 }
 
 // Strings need edge cases (even when typed as string):
-function formatTitle(title: string): string {
+const formatTitle = (title: string): string => {
     if (title === '') return 'Untitled';            // Test 1: ''
     if (title.length === 1) return title.toUpperCase(); // Test 2: 'a'
     return title.charAt(0).toUpperCase() + title.slice(1); // Test 3: 'hello'
@@ -99,10 +99,59 @@ describe("ExportedClass", () => {
 })
 ```
 
+**Always use describe blocks - never comments for test organization.**
+
+```typescript
+// ✅ CORRECT - Nested describe blocks for functions and code paths
+describe("UserValidator", () => {
+    describe("validateAge()", () => {
+        describe("valid input", () => {
+            it("VALID: {age: 18} => returns true")
+            it("VALID: {age: 65} => returns true")
+        })
+
+        describe("invalid input", () => {
+            it("INVALID_AGE: {age: -1} => throws 'Age must be positive'")
+            it("INVALID_AGE: {age: 'twenty'} => throws 'Must be number'")
+        })
+
+        describe("edge cases", () => {
+            it("EDGE: {age: 150} => throws 'Unrealistic age'")
+            it("EMPTY: {age: null} => throws 'Age required'")
+        })
+    })
+
+    describe("createUser()", () => {
+        describe("valid input", () => {
+            it("VALID: {name: 'John', email: 'john@test.com'} => returns User object")
+        })
+
+        describe("validation errors", () => {
+            it("INVALID_NAME: {name: ''} => throws 'Name required'")
+            it("INVALID_EMAIL: {email: 'bad'} => throws 'Invalid email'")
+            it("ERROR: {name: 'John', email: 'taken@test.com'} => throws 'Email exists'")
+        })
+    })
+})
+
+// ❌ WRONG - Using comments instead of describe blocks
+describe("UserValidator", () => {
+    // validateAge tests - valid cases
+    it("VALID: {age: 18} => returns true")
+
+    // validateAge tests - invalid cases
+    it("INVALID_AGE: {age: -1} => throws 'Age must be positive'")
+
+    // createUser tests
+    it("VALID: {name: 'John'} => returns User object")
+})
+```
+
 ### Why This Structure
 
 - **describe(class)**: Groups all tests for an export
 - **describe(function)**: Isolates function behavior
+- **describe(code path)**: Groups related test scenarios (valid/invalid/edge cases)
 - **PREFIX**: Immediately shows test category
 - **{input} => outcome**: Pure data transformation visibility
 
@@ -211,6 +260,64 @@ expect(result).toStrictEqual({
 jest.spyOn(userService, 'validateEmail').mockReturnValue(true);
 ```
 
+### Avoiding Conditionals in Mocks
+
+**General Rule: Mocks are test smells.** They should be avoided whenever possible. Use them ONLY for external systems
+you cannot control (APIs, file system, crypto, Date, etc.).
+
+When you must use mocks, never use conditional logic inside mock implementations. Conditionals make tests brittle and
+hard to debug.
+
+```typescript
+// ❌ WRONG - Conditional logic in mock creates test complexity
+let callCount = 0;
+mockESLint.mockImplementation((options) => {
+    callCount++;
+    if (callCount === 1) {
+        return {lintText: mockFirstCall};
+    } else {
+        return {lintText: mockSecondCall};
+    }
+});
+
+// ❌ WRONG - State tracking makes tests fragile
+const mockInstances = [];
+mockESLint.mockImplementation((options) => {
+    const instance = mockInstances.length === 0 ? firstInstance : secondInstance;
+    mockInstances.push(instance);
+    return instance;
+});
+
+// ✅ CORRECT - Explicit call ordering without conditionals
+mockESLint
+    .mockImplementationOnce(() => ({lintText: mockFirstCall}))
+    .mockImplementationOnce(() => ({lintText: mockSecondCall}));
+
+// ✅ CORRECT - Verify specific calls with exact arguments
+expect(mockESLint).toHaveBeenNthCalledWith(1, {
+    cwd: '/expected/path',
+    overrideConfig: [originalConfig]
+});
+expect(mockESLint).toHaveBeenNthCalledWith(2, {
+    cwd: '/expected/path',
+    overrideConfig: [simplifiedConfig]
+});
+```
+
+**Why conditionals in mocks are bad:**
+
+- Hide test intent - unclear what behavior is being tested
+- Create debugging nightmares - failures don't show which path failed
+- Introduce race conditions - call order becomes critical
+- Make tests brittle - small changes break unrelated tests
+
+**Better patterns:**
+
+- Use `mockImplementationOnce()` for sequential calls
+- Use `mockResolvedValueOnce()` for async sequential calls
+- Verify exact call arguments with `toHaveBeenNthCalledWith()`
+- Keep each test's mock setup isolated and explicit
+
 ### Test Mock Calls Completely
 ```typescript
 // ✅ CORRECT - Test both count AND arguments
@@ -241,9 +348,11 @@ await expect(failingCall()).rejects.toThrow('Error message');
 4. **Existence-Only Checks**: Using toBeDefined() instead of actual values
 5. **Count-Only Checks**: Testing length without verifying content
 6. **Over-Mocking**: Mocking internal code instead of just external systems
-7. **String IDs**: Using 'user-123' instead of proper UUIDs
-8. **Manual Mock Cleanup**: Jest handles this automatically
-9. **Type Escape Hatches**: Using `any`, `as`, `@ts-ignore` in tests
+7. **Conditional Mocking**: Using if/else logic inside mock implementations
+8. **String IDs**: Using 'user-123' instead of proper UUIDs
+9. **Comment Organization**: Using comments instead of describe blocks for test structure
+10. **Manual Mock Cleanup**: Jest handles this automatically
+11. **Type Escape Hatches**: Using `any`, `as`, `@ts-ignore` in tests
 
 ## Forbidden Jest Matchers
 
