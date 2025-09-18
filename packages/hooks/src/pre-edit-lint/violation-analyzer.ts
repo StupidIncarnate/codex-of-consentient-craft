@@ -1,4 +1,9 @@
-import type { LintResult, ViolationCount, ViolationComparison, ViolationDetail } from '../types/lint-type';
+import type {
+  LintResult,
+  ViolationCount,
+  ViolationComparison,
+  ViolationDetail,
+} from '../types/lint-type';
 import type { PreEditLintConfig } from '../types/config-type';
 import { MessageFormatter } from './message-formatter';
 

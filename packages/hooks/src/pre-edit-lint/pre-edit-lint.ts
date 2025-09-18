@@ -2,7 +2,7 @@ import { FileUtils } from '../utils/file-utils';
 import { LintRunner } from './lint-runner';
 import { ViolationAnalyzer } from './violation-analyzer';
 import { HookConfigLoader } from '../utils/hook-config-loader';
-import { EslintConfig } from './eslint-config';
+import { EslintUtils } from '../utils/eslint-utils';
 import type { ToolInput } from '../types/tool-type';
 import type { ViolationComparison } from '../types/lint-type';
 
@@ -27,8 +27,8 @@ export const PreEditLint = {
     const hookConfig = HookConfigLoader.loadConfig({ cwd });
 
     // Load and filter the host ESLint configuration for the actual file
-    const eslintConfig = await EslintConfig.loadConfigByFile({ cwd, filePath });
-    const filteredConfig = EslintConfig.createFilteredConfig({
+    const eslintConfig = await EslintUtils.loadConfigByFile({ cwd, filePath });
+    const filteredConfig = EslintUtils.createFilteredConfig({
       eslintConfig: eslintConfig,
       hookConfig: hookConfig,
     });
