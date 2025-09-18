@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { PreEditLint } from './pre-edit-lint';
-import type { HookData } from '../types';
+import type { HookData } from '../types/hook-type';
 
 function main(): void {
   let inputData = '';

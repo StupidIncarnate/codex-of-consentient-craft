@@ -29,3 +29,12 @@ If claude console logs in files, they will bleed through tests and clog the disp
 Similarly, if a console log in script says something happened without verification, it can lead claude to assume it worked and not double-check things.
 
 Console.logs need to be tailored and forbidden in most places.
+
+## clearAllMocks
+
+This needs to be setup in globals and a lint rule/prehook forbidding it
+
+## inline imports
+
+Claude does a lot of inline imports. Needs line/hook blocker
+config?: import('../types/config-type').PreEditLintConfig;

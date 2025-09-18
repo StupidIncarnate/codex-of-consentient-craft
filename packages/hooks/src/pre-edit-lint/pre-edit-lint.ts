@@ -3,8 +3,8 @@ import { LintRunner } from './lint-runner';
 import { ViolationAnalyzer } from './violation-analyzer';
 import { HookConfigLoader } from '../utils/hook-config-loader';
 import { EslintConfig } from './eslint-config';
-import type { ToolInput } from '../types';
-import type { ViolationComparison } from './types';
+import type { ToolInput } from '../types/tool-type';
+import type { ViolationComparison } from '../types/lint-type';
 
 export const PreEditLint = {
   checkForNewViolations: async ({

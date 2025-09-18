@@ -2,7 +2,7 @@ import { readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import debug from 'debug';
-import type { ToolInput, WriteToolInput, MultiEditToolInput } from '../types';
+import type { ToolInput, WriteToolInput, MultiEditToolInput } from '../types/tool-type';
 
 const log = debug('questmaestro:session-start-hook');
 

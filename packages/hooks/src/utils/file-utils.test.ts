@@ -1,5 +1,5 @@
 import { FileUtils } from './file-utils';
-import type { WriteToolInput, EditToolInput, MultiEditToolInput } from '../types';
+import type { WriteToolInput, EditToolInput, MultiEditToolInput } from '../types/tool-type';
 import { readFile } from 'fs/promises';
 
 // Mock fs modules

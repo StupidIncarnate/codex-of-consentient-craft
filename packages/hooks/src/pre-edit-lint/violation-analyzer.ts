@@ -1,4 +1,5 @@
-import type { LintResult, ViolationCount, ViolationComparison, ViolationDetail } from './types';
+import type { LintResult, ViolationCount, ViolationComparison, ViolationDetail } from '../types/lint-type';
+import type { PreEditLintConfig } from '../types/config-type';
 import { MessageFormatter } from './message-formatter';
 
 export const ViolationAnalyzer = {
@@ -85,7 +86,7 @@ export const ViolationAnalyzer = {
   }: {
     oldResults: LintResult[];
     newResults: LintResult[];
-    config?: import('./types').PreEditLintConfig;
+    config?: PreEditLintConfig;
     hookData?: unknown;
   }): ViolationComparison => {
     const oldViolations = ViolationAnalyzer.countViolationsByRule({ results: oldResults });

@@ -10,6 +10,9 @@ export type {
   LintResult,
   ViolationCount,
   ViolationComparison,
+} from '../types/lint-type';
+
+export type {
   PreEditLintConfig,
   QuestmaestroHooksConfig,
-} from './types';
+} from '../types/config-type';

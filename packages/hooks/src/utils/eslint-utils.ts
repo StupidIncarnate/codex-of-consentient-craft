@@ -1,4 +1,4 @@
-import type { EslintMessage, EslintResult } from '../types';
+import type { EslintMessage, EslintResult } from '../types/eslint-type';
 import { ProcessUtils, type SpawnResult } from './process-utils';
 import debug from 'debug';
 

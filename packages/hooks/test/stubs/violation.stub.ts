@@ -3,7 +3,7 @@ import type {
   ViolationDetail,
   LintMessage,
   LintResult,
-} from '../../src/pre-edit-lint/types';
+} from '../../src/types/lint-type';
 
 export const ViolationDetailStub = (overrides: Partial<ViolationDetail> = {}): ViolationDetail => ({
   ruleId: '@typescript-eslint/no-explicit-any',

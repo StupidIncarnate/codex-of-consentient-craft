@@ -1,5 +1,5 @@
 import { ViolationAnalyzer } from './violation-analyzer';
-import type { LintResult, LintMessage, ViolationCount } from './types';
+import type { LintResult, LintMessage, ViolationCount } from '../types/lint-type';
 import { ViolationCountStub } from '../../test/stubs/violation.stub';
 
 describe('ViolationAnalyzer', () => {

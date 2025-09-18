@@ -1,6 +1,6 @@
 import { resolve } from 'path';
 import { existsSync } from 'fs';
-import type { PreEditLintConfig, QuestmaestroHooksConfig } from '../pre-edit-lint/types';
+import type { PreEditLintConfig, QuestmaestroHooksConfig } from '../types/config-type';
 
 export const HookConfigLoader = {
   loadConfig: ({ cwd = process.cwd() }: { cwd?: string } = {}): PreEditLintConfig => {

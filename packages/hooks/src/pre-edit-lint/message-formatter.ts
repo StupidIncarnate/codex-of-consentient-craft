@@ -1,4 +1,5 @@
-import type { ViolationCount, PreEditLintConfig } from './types';
+import type { ViolationCount } from '../types/lint-type';
+import type { PreEditLintConfig } from '../types/config-type';
 import { HookConfigLoader } from '../utils/hook-config-loader';
 
 export const MessageFormatter = {

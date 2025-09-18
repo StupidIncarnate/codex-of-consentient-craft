@@ -1,6 +1,6 @@
 import { ESLint } from 'eslint';
 import type { Linter } from 'eslint';
-import type { PreEditLintConfig } from './types';
+import type { PreEditLintConfig } from '../types/config-type';
 import { HookConfigLoader } from '../utils/hook-config-loader';
 
 // Cache the config to avoid repeated expensive loading
