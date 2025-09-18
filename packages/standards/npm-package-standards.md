@@ -16,14 +16,20 @@ src/
   errors/             # Error classes (one per file)
     package-error.ts
     validation-error.ts
-  utils/              # Pure functions (can import: types, other utils)
-    data-formatter.ts
-    validation-util.ts
+  utils/              # Pure functions (folder pattern - can import: types, other utils)
+    data/
+      data-util.ts
+      data-util-format.ts
+      data-util-transform.ts
+    validation/
+      validation-util.ts
+      validation-util-email.ts
+      validation-util-phone.ts
   modules/            # Business features (can import: types, utils, errors)
     feature-name/
-      feature-name.ts # Module file - no index.ts
+      feature-name-module.ts # Module file - no index.ts
     core-logic/
-      core-logic.ts   # Module file - no index.ts
+      core-logic-module.ts   # Module file - no index.ts
   index.ts            # Package entry point - ONLY index.ts in entire package
 ```
 
@@ -61,14 +67,17 @@ src/
       UserProfile.tsx # Component file - no index.ts
   modules/            # Business logic
     cli-runner/
-      cli-runner.ts   # Module file - no index.ts
+      cli-runner-module.ts   # Module file - no index.ts
     data-processor/
-      data-processor.ts # Module file - no index.ts
+      data-processor-module.ts # Module file - no index.ts
   errors/             # Error classes (one per file)
     package-error.ts
     validation-error.ts
-  utils/              # Pure functions
-    string-util.ts
+  utils/              # Pure functions (folder pattern)
+    string/
+      string-util.ts
+      string-util-capitalize.ts
+      string-util-slugify.ts
   types/              # Type definitions
     component-type.ts
   index.ts            # ONLY index.ts in entire package
@@ -89,8 +98,8 @@ src/
 
 ```typescript
 // src/index.ts - The ONLY public interface
-export {PreEditLint} from './modules/pre-edit-lint/pre-edit-lint'
-export {LintRunner} from './modules/lint-runner/lint-runner'
+export {PreEditLint} from './modules/pre-edit-lint/pre-edit-lint-module'
+export {LintRunner} from './modules/lint-runner/lint-runner-module'
 export type {PreEditLintConfig, LintResult} from './types/public-api-type'
 
 // Do NOT export internal utilities
@@ -114,20 +123,24 @@ import {validateConfig} from 'my-package/dist/modules/pre-edit-lint/validators'
 **Never exported to consumers** - only used within your package:
 
 ```typescript
-// src/utils/string-util.ts - INTERNAL ONLY
+// src/utils/string/string-util.ts - INTERNAL ONLY (Main export aggregator)
+import {capitalize} from './string-util-capitalize';
+import {slugify} from './string-util-slugify';
+import {truncate} from './string-util-truncate';
+
 export const StringUtil = {
-    capitalize: ({str}: { str: User['name'] | Company['name'] | string }) => str.charAt(0).toUpperCase() + str.slice(1),
-    slugify: ({str}: { str: User['name'] | Company['name'] | string }) => str.toLowerCase().replace(/\s+/g, '-'),
-    truncate: ({str, length}: {
-        str: string;
-        length: number
-    }) => str.length > length ? str.slice(0, length) + '...' : str
+    capitalize,
+    slugify,
+    truncate
 }
 
-// src/utils/validation-util.ts - INTERNAL ONLY
+// src/utils/validation/validation-util.ts - INTERNAL ONLY (Main export aggregator)
+import {isValidEmail} from './validation-util-email';
+import {isStrongPassword} from './validation-util-password';
+
 export const ValidationUtil = {
-    isValidEmail: ({email}: { email: User['email'] }) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
-    isStrongPassword: ({password}: { password: User['password'] }) => password.length >= 8 && /[A-Z]/.test(password)
+    isValidEmail,
+    isStrongPassword
 }
 ```
 
@@ -138,16 +151,16 @@ export const ValidationUtil = {
 **These ARE your public API** - consumed by other projects:
 
 ```typescript
-// src/modules/user-manager.ts - EXTERNAL (one export per file)
-import {StringUtil} from '../utils/string-util'  // ✅ Internal util usage
-import {ValidationUtil} from '../utils/validation-util'
+// src/modules/user-manager/user-manager-module.ts - EXTERNAL (one export per file)
+import {StringUtil} from '../utils/string/string-util'  // ✅ Internal util usage
+import {ValidationUtil} from '../utils/validation/validation-util'
 
 export class UserManager {  // ✅ Single export for tree-shaking
     constructor(private config: UserConfig) {
     } // Exception: class constructor signature
 
     createUser({userData}: { userData: UserData }) {
-        const email = StringUtil.normalize({str: userData.email})  // Internal util
+        const email = StringUtil.slugify({str: userData.email})  // Internal util
         if (!ValidationUtil.isValidEmail({email})) {
             throw new Error('Invalid email')
         }
@@ -155,8 +168,8 @@ export class UserManager {  // ✅ Single export for tree-shaking
     }
 }
 
-// src/modules/data-formatter.ts - EXTERNAL (one export per file)
-import {StringUtil} from '../utils/string-util'
+// src/modules/data-formatter/data-formatter-module.ts - EXTERNAL (one export per file)
+import {StringUtil} from '../utils/string/string-util'
 
 export const formatUserData = ({user}: { user: User }): FormattedUser => {  // ✅ Single export
     return {
@@ -172,12 +185,12 @@ export const formatUserData = ({user}: { user: User }): FormattedUser => {  // �
 
 ```typescript
 // src/index.ts - Package entry point
-export {UserManager} from './modules/user-manager'
-export {formatUserData} from './modules/data-formatter'
-export type {UserConfig, UserData} from './types/public-api-types'
+export {UserManager} from './modules/user-manager/user-manager-module'
+export {formatUserData} from './modules/data-formatter/data-formatter-module'
+export type {UserConfig, UserData} from './types/public-api-type'
 
 // ❌ NEVER export utils
-// export { StringUtil } from './utils/string-util'  // DON'T DO THIS
+// export { StringUtil } from './utils/string/string-util'  // DON'T DO THIS
 ```
 
 ## Version Management and Breaking Changes
@@ -248,12 +261,12 @@ export const createUserManager = ({ config }: { config: UserConfig }): UserManag
 
 ```typescript
 // ✅ CORRECT - Modules are self-contained
-// src/modules/auth/auth.ts
+// src/modules/auth/auth-module.ts
 export { AuthHandler } from './auth-handler'
 export type { AuthConfig } from './auth-type'
 
-// src/modules/auth/auth-handler.ts
-import { validateInput } from '../../utils/validation'  // ✅ Shared utility
+// src/modules/auth/auth-handler-module.ts
+import {ValidationUtil} from '../../utils/validation/validation-util'  // ✅ Shared utility
 import { AuthUser } from './types'  // ✅ Internal type
 
 export class AuthHandler {
@@ -261,7 +274,7 @@ export class AuthHandler {
 }
 
 // ❌ AVOID - Cross-module dependencies
-// src/modules/auth/auth-handler.ts
+// src/modules/auth/auth-handler-module.ts
 import { UserManager } from '../user-management/user-manager'  // ❌ Module coupling
 import { formatUserData } from '../user-management/formatters'  // ❌ Internal import
 ```
@@ -269,10 +282,13 @@ import { formatUserData } from '../user-management/formatters'  // ❌ Internal 
 ### Shared Code Organization
 
 ```typescript
-// src/utils/ - Shared across ALL modules
+// src/utils/validation/validation-util.ts - Shared across ALL modules (Main export aggregator)
+import {isValidEmail} from './validation-util-email';
+import {isNonEmpty} from './validation-util-empty';
+
 export const ValidationUtil = {
-    isValidEmail: ({email}: { email: User['email'] }) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
-    isNonEmpty: ({value}: { value: string }) => value.trim().length > 0
+    isValidEmail,
+    isNonEmpty
 }
 
 // src/types/ - Shared type definitions
@@ -362,7 +378,7 @@ export class ValidationError extends PackageError {
     }
 }
 
-// modules/user-management/user-manager.ts
+// modules/user-management/user-manager-module.ts
 export class UserManager {
     constructor({config}: { config: UserConfig }) {
         if (!config.apiKey) {
@@ -435,8 +451,8 @@ describe('createPackage', () => {
 ### Internal Module Testing
 
 ```typescript
-// src/modules/user-manager/user-manager.test.ts - Test internal modules directly (when needed)
-import { UserManager } from './user-manager'
+// src/modules/user-manager/user-manager-module.test.ts - Test internal modules directly (when needed)
+import { UserManager } from './user-manager-module'
 import { UserStub } from '../../test-stubs/user-stub'
 
 describe('UserManager', () => {
@@ -509,28 +525,28 @@ describe('UserManager', () => {
 
 ```typescript
 // ✅ CORRECT - One export per file
-// src/modules/user-manager.ts
+// src/modules/user-manager/user-manager-module.ts
 export class UserManager { /* */
 }  // Single export
 
-// src/modules/auth-handler.ts
+// src/modules/auth-handler/auth-handler-module.ts
 export class AuthHandler { /* */
 }  // Single export
 
-// src/modules/data-formatter.ts
+// src/modules/data-formatter/data-formatter-module.ts
 export const formatUserData = ({data}: { data: UserData }) => { /* */
 }  // Single export
 
 // src/index.ts - Clean public API
-export {UserManager} from './modules/user-manager'
-export {AuthHandler} from './modules/auth-handler'
-export {formatUserData} from './modules/data-formatter'
+export {UserManager} from './modules/user-manager/user-manager-module'
+export {AuthHandler} from './modules/auth-handler/auth-handler-module'
+export {formatUserData} from './modules/data-formatter/data-formatter-module'
 
 // Consumer can import only what they need:
 import {UserManager} from 'my-package'  // Only UserManager code is bundled
 
 // ❌ AVOID - Multiple exports per file
-// src/modules/user-stuff.ts
+// src/modules/user-stuff/user-stuff-module.ts
 export class UserManager { /* */
 }
 

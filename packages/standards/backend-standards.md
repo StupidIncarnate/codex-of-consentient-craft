@@ -14,18 +14,42 @@ src/
     user-type.ts
     api-type.ts
     dto-type.ts
-  utils/              # Pure functions (can import: types, other utils)
-    data-util.ts
-    validation-util.ts
-  repositories/       # Data access (can import: types, utils)
-    user-repository.ts
-    payment-repository.ts
-  services/           # Business logic (can import: types, utils, repositories)
-    user-service.ts
-    payment-service.ts
-  controllers/        # Request handling (can import: types, utils, services)
-    user-controller.ts
-    payment-controller.ts
+  utils/              # Pure functions (folder pattern - can import: types, other utils)
+    data/
+      data-util.ts
+      data-util-transform.ts
+      data-util-validate.ts
+    validation/
+      validation-util.ts
+      validation-util-email.ts
+      validation-util-phone.ts
+  repositories/       # Data access (folder pattern - can import: types, utils)
+    user/
+      user-repository.ts
+      user-repository-find.ts
+      user-repository-create.ts
+    payment/
+      payment-repository.ts
+      payment-repository-process.ts
+      payment-repository-refund.ts
+  services/           # Business logic (folder pattern - can import: types, utils, repositories)
+    user/
+      user-service.ts
+      user-service-create.ts
+      user-service-signup.ts
+    payment/
+      payment-service.ts
+      payment-service-process.ts
+      payment-service-validate.ts
+  controllers/        # Request handling (folder pattern - can import: types, utils, services)
+    user/
+      user-controller.ts
+      user-controller-get.ts
+      user-controller-post.ts
+    payment/
+      payment-controller.ts
+      payment-controller-process.ts
+      payment-controller-webhook.ts
   routes/             # HTTP endpoints (can import: controllers)
     user-route.ts
     payment-route.ts
@@ -58,7 +82,7 @@ types (type definitions only)
 
 ```typescript
 // ✅ CORRECT - Single responsibility repository
-// repositories/user-repository.ts
+// repositories/user/user-repository.ts
 export const UserRepository = {
     async findById({id}: { id: User['id'] }): Promise<User | null> {
         return await db.users.findUnique({where: {id}})
@@ -120,12 +144,52 @@ const UserRepository = {
 }
 ```
 
+## Folder Pattern for Object Exports
+
+All object export categories (`-util`, `-repository`, `-service`, `-controller`) must use the folder pattern.
+See [coding-standards.md](coding-standards.md) for complete folder pattern specification.
+
+**Backend-Specific Structure:**
+
+```
+repositories/
+  user/
+    user-repository.ts                  # Main export aggregator (only importable file)
+    user-repository-find.ts             # Individual method implementation
+    user-repository-find.test.ts        # Individual method test
+    user-repository-create.ts           # Another method
+    user-repository-create.test.ts      # Its test
+
+services/
+  user/
+    user-service.ts                     # Main export aggregator
+    user-service-create.ts              # Individual method implementation
+    user-service-create.test.ts         # Individual method test
+    user-service-signup.ts              # Another method
+    user-service-signup.test.ts         # Its test
+
+controllers/
+  user/
+    user-controller.ts                  # Main export aggregator
+    user-controller-get.ts              # Individual method implementation
+    user-controller-get.test.ts         # Individual method test
+    user-controller-post.ts             # Another method
+    user-controller-post.test.ts        # Its test
+```
+
+**Rules:**
+
+1. Only the main export file can be imported by other modules
+2. Each child file contains ONE exported function
+3. Each child file has its own test file
+4. Import only from main export: `import { UserRepository } from '../repositories/user/user-repository'`
+
 ## Service Layer Patterns
 
 ### Transaction Boundaries and Orchestration
 
 ```typescript
-// services/user-service.ts - Business logic orchestration
+// services/user/user-service.ts - Business logic orchestration
 export const UserService = {
     async createUserWithTeam({userData, teamData}: { userData: CreateUserData; teamData: CreateTeamData }) {
         // Service handles transaction boundary
@@ -190,7 +254,7 @@ const UserService = {
 ### Request/Response Handling Only
 
 ```typescript
-// controllers/user-controller.ts
+// controllers/user/user-controller.ts
 export const UserController = {
     async createUser({req, res}: { req: Request; res: Response }) {
         try {
@@ -228,7 +292,7 @@ export const UserController = {
 
 // routes/user-route.ts
 import express from 'express'
-import {UserController} from '../controllers/user-controller'
+import {UserController} from '../controllers/user/user-controller'
 
 const router = express.Router()
 
@@ -291,7 +355,7 @@ const UserController = {
 ### Never Return Database Entities Directly
 
 ```typescript
-// types/dto-types.ts
+// types/dto-type.ts
 export type UserDTO = {
     id: User['id']
     firstName: User['firstName']
@@ -376,7 +440,7 @@ export class ValidationError extends Error {
     }
 }
 
-// services/user-service.ts
+// services/user/user-service.ts
 export const UserService = {
     async createUser({userData}: { userData: CreateUserData }) {
         const existingUser = await UserRepository.findByEmail({email: userData.email})
@@ -459,19 +523,19 @@ export {app}
 ```typescript
 // ❌ PURITY VIOLATIONS
 // utils/ importing data access
-import {UserRepository} from '../repositories/user-repository'  // Utils must stay pure
+import {UserRepository} from '../repositories/user/user-repository'  // Utils must stay pure
 
 // ❌ UPWARD DEPENDENCIES
 // repositories/ importing business logic
-import {UserService} from '../services/user-service'  // Repository doesn't orchestrate
+import {UserService} from '../services/user/user-service'  // Repository doesn't orchestrate
 
 // ❌ LAYER SKIPPING
 // controllers/ importing repositories directly
-import {UserRepository} from '../repositories/user-repository'  // Bypass service layer
+import {UserRepository} from '../repositories/user/user-repository'  // Bypass service layer
 
 // ❌ CIRCULAR DEPENDENCIES
 // services/ importing controllers
-import {UserController} from '../controllers/user-controller'  // Wrong direction
+import {UserController} from '../controllers/user/user-controller'  // Wrong direction
 ```
 
 ## Security Patterns
@@ -491,7 +555,7 @@ export const CreateUserSchema = z.object({
 
 export const UpdateUserSchema = CreateUserSchema.partial()
 
-// controllers/user-controller.ts
+// controllers/user/user-controller.ts
 export const UserController = {
     async createUser({req, res}: { req: Request; res: Response }) {
         try {
@@ -565,7 +629,7 @@ export const LoggerUtil = winston.createLogger({
     ]
 })
 
-// services/user-service.ts
+// services/user/user-service.ts
 export const UserService = {
     async createUser({userData}: { userData: CreateUserData }) {
         logger.info('Creating user', {email: userData.email})

@@ -267,7 +267,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 ## Code Organization
 - Keep functions focused and under 100 lines. Break larger functions into smaller, single-purpose helpers
-- Keep implementation files under 500 lines. Consider splitting larger files into focused modules
+- Keep implementation AND test files under 500 lines
 - Ensure all code paths in functions return a value
   ```typescript
   // ✅ CORRECT - All paths return
@@ -293,7 +293,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 **Object Exports** (multiple related operations with semantic discoverability):
 
-- Files ending in: `-controller`, `-api`, `-service`, `-repository`, `-util`, `-formatter`, `-validator`
+- Categories: `-controller`, `-api`, `-service`, `-repository`, `-util`, `-formatter`, `-validator`
+- Always use folder pattern (see Folder Pattern section below)
 - Pattern: `export const CategoryName = { method1, method2, ... }`
 - Usage: `UserController.get()`, `StringUtil.capitalize()` - immediately clear what category
 
@@ -335,17 +336,53 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 #### Utils Files
 
-- **Object export pattern** (default for internal code)
-- Supporting types specific to those utilities may be co-exported
-  ```typescript
-  // ✅ CORRECT - Utils file (internal to your project)
-  export type ProcessResult = { code: number; stdout: string; stderr: string };
-  export const FileUtil = {
-    getExtension: ({ filePath }: { filePath: string }) => { /* ... */ },
-    readContent: async ({ path }: { path: string }) => { /* ... */ },
-    writeContent: async ({ path, content }: { path: string; content: string }) => { /* ... */ }
-  };
-  ```
+- **Always use folder pattern** for utils
+- See "Folder Pattern for Object Exports" section below
+
+#### Folder Pattern for Object Exports
+
+All object export categories (`-util`, `-controller`, `-api`, `-service`, `-repository`, `-formatter`, `-validator`)
+must use the folder pattern:
+
+**Structure:**
+
+```
+utils/
+  eslint/
+    eslint-util.ts                      # Main export aggregator (only importable file)
+    eslint-util-parse-output.ts         # Individual method implementation
+    eslint-util-parse-output.test.ts    # Individual method test
+    eslint-util-is-message.ts           # Another method
+    eslint-util-is-message.test.ts      # Its test
+```
+
+**Main Export File Pattern:**
+
+```typescript
+// utils/eslint/eslint-util.ts
+import {parseOutput} from './eslint-util-parse-output';
+import {isMessage} from './eslint-util-is-message';
+
+export const EslintUtil = {
+    parseOutput,
+    isMessage,
+    // All methods aggregated here
+};
+```
+
+**Naming Convention:**
+
+- Folder: Category name (e.g., `eslint/`)
+- Main file: `[category]-[type].ts` (e.g., `eslint-util.ts`)
+- Child files: `[category]-[type]-[method].ts` (e.g., `eslint-util-parse-output.ts`)
+- Test files: `[category]-[type]-[method].test.ts`
+
+**Rules:**
+
+1. Only the main export file can be imported by other modules
+2. Each child file contains ONE exported function
+3. Each child file has its own test file
+4. Main export file only aggregates, no logic
 
 **External Consumption**: For code consumed by other projects (NPM packages), different patterns apply.
 See [npm-package-standards.md](npm-package-standards.md) for external consumption patterns.
@@ -391,7 +428,7 @@ export function writeContent() { /* ... */
 
 ### Universal Naming Conventions
 
-- **Default**: All code files use `kebab-case` (e.g., `user-service.ts`, `api-client.ts`, `file-util.ts`) and are single
+- **Default**: All code files use `kebab-case` (e.g., `user-type.ts`, `auth-service.ts`) and are single
   case instead of plural case
 - **Export objects**: Use `PascalCase` without acronym caps (e.g., `UserApi` not `UserAPI`, `FileUtil` not `FileUtils`)
 - **Constants**: `UPPER_SNAKE_CASE` for configuration values and magic numbers (avoid inline literals)
@@ -494,14 +531,14 @@ import {validatePassword} from '../UserAuth/password-validator'  // Bypass publi
 **Always ask these questions first:**
 
 1. **"Is this a type definition?"** → `types/domain-type.ts`
-2. **"Is this a pure function with no side effects?"** → `utils/category-util.ts`
+2. **"Is this a utility function?"** → `utils/category/category-util.ts`
 
 **File Placement Anti-Patterns:**
 
 - **Never** create files in project root beyond entry points
-- **Never** create nested utility folders (`utils/formatters/date/`)
 - **Never** mix categories in one folder (`api-and-utils/`)
 - **Never** create god modules (`user-everything.ts`)
+- **Never** create individual function exports in object export categories (use folder pattern instead)
 
 *For project-specific file placement rules, see the appropriate principles document.*
 
@@ -592,17 +629,22 @@ export const useUser = (
 ```
 src/
   hooks/
-    use-user.ts         # ALL user hook logic
-    use-auth.ts         # ALL auth hook logic
-    use-payment.ts      # ALL payment hook logic
+    use-user.ts         # User hook logic (single exports)
+    use-auth.ts         # Auth hook logic (single exports)
+    use-payment.ts      # Payment hook logic (single exports)
 
   api/
-    user-api.ts        # ALL user endpoints
-    auth-api.ts        # ALL auth endpoints
-    payment-api.ts     # ALL payment endpoints
+    user/
+      user-api.ts       # Main export aggregator
+      user-api-get.ts   # Individual method files
+      user-api-create.ts
+    auth/
+      auth-api.ts       # Main export aggregator
+      auth-api-login.ts # Individual method files
+      auth-api-logout.ts
 ```
 
-**Rule**: One file per domain concept. Extend, don't duplicate.
+**Rule**: Single exports use one file per domain. Object exports use folder pattern.
 
 #### 5. README-Driven Extension
 
@@ -621,6 +663,14 @@ export const useUser = (options?: UserOptions) => {
 - **All imports at top of file** - No inline imports, requires, or dynamic imports except for performance/lazy loading
 - **Use ES6 imports** - Prefer `import` over `require()`
 - **Group imports logically** - External packages, then internal modules, then types
+- **Never import child implementation files** - When using folder pattern, only import from the main export file:
+  ```typescript
+  // ✅ CORRECT
+  import { EslintUtil } from '../utils/eslint/eslint-util';
+
+  // ❌ INCORRECT - Never import child files directly
+  import { parseOutput } from '../utils/eslint/eslint-util-parse-output';
+  ```
 
 ## Performance & Code Cleanup
 

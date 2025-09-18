@@ -14,12 +14,24 @@ src/
   errors/             # Error classes (one per file)
     api-error.ts
     validation-error.ts
-  utils/              # Pure functions (can import: types, other utils)
-    date-formatter.ts
-    validation-util.ts
-  api/                # External API calls (can import: types, utils, errors)
-    user-api.ts
-    payment-api.ts
+  utils/              # Pure functions (folder pattern - can import: types, other utils)
+    date/
+      date-util.ts
+      date-util-format.ts
+      date-util-parse.ts
+    validation/
+      validation-util.ts
+      validation-util-email.ts
+      validation-util-phone.ts
+  api/                # External API calls (folder pattern - can import: types, utils, errors)
+    user/
+      user-api.ts
+      user-api-get.ts
+      user-api-create.ts
+    payment/
+      payment-api.ts
+      payment-api-process.ts
+      payment-api-refund.ts
   hooks/              # React state logic (can import: types, utils, api, errors)
     use-user.ts
     use-auth.ts
@@ -194,7 +206,7 @@ export const useUserWithCompany = ({id}: { id: string }) => {
 ### Api Layer: Endpoint Orchestration
 
 ```typescript
-// api/user-api.ts - Handles multiple endpoint coordination
+// api/user/user-api.ts - Handles multiple endpoint coordination
 export const UserApi = {
     getUser: ({id}: { id: string }) => fetch(`/api/users/${id}`).then(r => r.json()),
 
@@ -205,6 +217,38 @@ export const UserApi = {
     }
 }
 ```
+
+## Folder Pattern for Object Exports
+
+All object export categories (`-util`, `-api`) must use the folder pattern.
+See [coding-standards.md](coding-standards.md) for complete folder pattern specification.
+
+**Frontend-Specific Structure:**
+
+```
+utils/
+  date/
+    date-util.ts                    # Main export aggregator (only importable file)
+    date-util-format.ts             # Individual method implementation
+    date-util-format.test.ts        # Individual method test
+    date-util-parse.ts              # Another method
+    date-util-parse.test.ts         # Its test
+
+api/
+  user/
+    user-api.ts                     # Main export aggregator
+    user-api-get.ts                 # Individual method implementation
+    user-api-get.test.ts            # Individual method test
+    user-api-create.ts              # Another method
+    user-api-create.test.ts         # Its test
+```
+
+**Rules:**
+
+1. Only the main export file can be imported by other modules
+2. Each child file contains ONE exported function
+3. Each child file has its own test file
+4. Import only from main export: `import { UserApi } from '../api/user/user-api'`
 
 ## React State Management Anti-Patterns
 
@@ -252,8 +296,8 @@ const UserForm = () => {
 **Valid Import Patterns for Frontend:**
 
 - `types/` → `types/` (type composition)
-- `utils/` → `types/`, `utils/` (pure functions)
-- `api/` → `types/`, `utils/` (external calls)
+- `utils/[category]/[category]-util.ts` → `types/`, other `utils/` (pure functions)
+- `api/[category]/[category]-api.ts` → `types/`, `utils/` (external calls)
 - `hooks/` → `types/`, `utils/`, `api/` (React state)
 - `components/` → `types/`, `utils/`, `hooks/`, `api/` (UI rendering)
 - `pages/` → `types/`, `utils/`, `hooks/`, `api/`, `components/` (route handling)
