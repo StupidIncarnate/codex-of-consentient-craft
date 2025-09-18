@@ -84,7 +84,10 @@ export const LintRunner = {
       return results.map((result) => convertEslintResultToLintResult({ result }));
     } catch (error) {
       // Log error but don't fail - return empty results
-      console.error('ESLint error:', error instanceof Error ? error.message : String(error));
+      console.error(
+        'ESLint error:',
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
       return [];
     }
   },
