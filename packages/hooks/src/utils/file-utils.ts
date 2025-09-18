@@ -146,7 +146,7 @@ export const FileUtils = {
   },
 
   loadStandardsFiles: async ({ cwd }: { cwd: string }) => {
-    const standardsFiles = ['coding-principles.md', 'testing-standards.md'];
+    const standardsFiles = ['coding-standards.md', 'testing-standards.md'];
 
     const standardsPath = resolve(cwd, 'node_modules/@questmaestro/standards');
     let content = '';

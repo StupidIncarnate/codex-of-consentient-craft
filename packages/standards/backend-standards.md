@@ -1,6 +1,6 @@
-# Backend Development Principles
+# Backend Code Standards
 
-*Read this document alongside [coding-principles.md](./coding-principles.md) for universal development standards.*
+*Read this document alongside [coding-standards.md](coding-standards.md) for universal development standards.*
 
 **Note**: This document extends universal principles with backend-specific patterns. All app code follows the universal
 object destructuring rule. **Exception**: 3rd party integrations that require specific signatures (e.g., Express

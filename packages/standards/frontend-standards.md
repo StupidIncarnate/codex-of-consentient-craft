@@ -1,6 +1,6 @@
-# Frontend Development Principles
+# Frontend Code Standards
 
-*Read this document alongside [coding-principles.md](./coding-principles.md) for universal development standards.*
+*Read this document alongside [coding-standards.md](coding-standards.md) for universal development standards.*
 
 **Note**: This document extends and sometimes overrides universal principles for React development patterns.
 

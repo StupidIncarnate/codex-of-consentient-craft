@@ -1,11 +1,11 @@
-# Coding Principles
+# Coding Standards
 
 *This document contains universal principles that apply to all projects. For project-specific guidance, also read the
 appropriate document:*
 
-- **Frontend Projects**: [frontend-principles.md](./frontend-principles.md)
-- **Backend Projects**: [backend-principles.md](./backend-principles.md)
-- **NPM Packages**: [npm-package-principles.md](./npm-package-principles.md)
+- **Frontend Projects**: [frontend-standards.md](frontend-standards.md)
+- **Backend Projects**: [backend-standards.md](backend-standards.md)
+- **NPM Packages**: [npm-package-standards.md](npm-package-standards.md)
 
 **Precedence Rule**: When project-specific documents conflict with this document, the project-specific guidance takes
 precedence.
@@ -348,7 +348,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   ```
 
 **External Consumption**: For code consumed by other projects (NPM packages), different patterns apply.
-See [npm-package-principles.md](./npm-package-principles.md) for external consumption patterns.
+See [npm-package-standards.md](npm-package-standards.md) for external consumption patterns.
 
 #### Stub Files (Testing)
 
@@ -434,9 +434,9 @@ apply to all projects.*
 
 *For detailed project structures, see the appropriate principles document:*
 
-- **Frontend Projects**: See [frontend-principles.md](./frontend-principles.md)
-- **Backend Projects**: See [backend-principles.md](./backend-principles.md)
-- **NPM Packages**: See [npm-package-principles.md](./npm-package-principles.md)
+- **Frontend Projects**: See [frontend-standards.md](frontend-standards.md)
+- **Backend Projects**: See [backend-standards.md](backend-standards.md)
+- **NPM Packages**: See [npm-package-standards.md](npm-package-standards.md)
 
 ### Module Boundary Rules
 

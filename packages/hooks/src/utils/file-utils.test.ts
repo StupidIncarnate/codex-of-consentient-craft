@@ -433,7 +433,7 @@ describe('FileUtils', () => {
       const resolveSpy = jest
         .spyOn(path, 'resolve')
         .mockReturnValueOnce('/test/node_modules/@questmaestro/standards')
-        .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/coding-principles.md')
+        .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/coding-standards.md')
         .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/testing-standards.md');
 
       const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
@@ -453,7 +453,7 @@ describe('FileUtils', () => {
       readSpy.mockRestore();
     });
 
-    it('VALID: only coding-principles.md exists => returns partial content', async () => {
+    it('VALID: only coding-standards.md exists => returns partial content', async () => {
       const path = require('path');
       const fs = require('fs');
       const fsPromises = require('fs/promises');
@@ -461,12 +461,12 @@ describe('FileUtils', () => {
       const resolveSpy = jest
         .spyOn(path, 'resolve')
         .mockReturnValueOnce('/test/node_modules/@questmaestro/standards')
-        .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/coding-principles.md')
+        .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/coding-standards.md')
         .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/testing-standards.md');
 
       const existsSpy = jest
         .spyOn(fs, 'existsSync')
-        .mockReturnValueOnce(true) // coding-principles.md exists
+        .mockReturnValueOnce(true) // coding-standards.md exists
         .mockReturnValueOnce(false); // testing-standards.md doesn't exist
 
       const readSpy = jest
@@ -490,12 +490,12 @@ describe('FileUtils', () => {
       const resolveSpy = jest
         .spyOn(path, 'resolve')
         .mockReturnValueOnce('/test/node_modules/@questmaestro/standards')
-        .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/coding-principles.md')
+        .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/coding-standards.md')
         .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/testing-standards.md');
 
       const existsSpy = jest
         .spyOn(fs, 'existsSync')
-        .mockReturnValueOnce(false) // coding-principles.md doesn't exist
+        .mockReturnValueOnce(false) // coding-standards.md doesn't exist
         .mockReturnValueOnce(true); // testing-standards.md exists
 
       const readSpy = jest
@@ -518,7 +518,7 @@ describe('FileUtils', () => {
       const resolveSpy = jest
         .spyOn(path, 'resolve')
         .mockReturnValueOnce('/test/node_modules/@questmaestro/standards')
-        .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/coding-principles.md')
+        .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/coding-standards.md')
         .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/testing-standards.md');
 
       const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(false);
@@ -539,7 +539,7 @@ describe('FileUtils', () => {
       const resolveSpy = jest
         .spyOn(path, 'resolve')
         .mockReturnValueOnce('/test/node_modules/@questmaestro/standards')
-        .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/coding-principles.md')
+        .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/coding-standards.md')
         .mockReturnValueOnce('/test/node_modules/@questmaestro/standards/testing-standards.md');
 
       const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);

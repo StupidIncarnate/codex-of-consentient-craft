@@ -1,6 +1,6 @@
-# NPM Package Development Principles
+# Npm Package Standards
 
-*Read this document alongside [coding-principles.md](./coding-principles.md) for universal development standards.*
+*Read this document alongside [coding-standards.md](coding-standards.md) for universal development standards.*
 
 **Note**: This document extends universal principles for package development. **All functions we write** (both internal
 app code and public API exports) follow the universal object destructuring rule. **Exception**: Only when integrating
@@ -52,7 +52,7 @@ follows frontend principles:
 
 ```
 src/
-  components/         # React components (follow frontend-principles.md)
+  components/         # React components (follow frontend-standards.md)
     InkApp/
       InkApp.tsx      # Component file - no index.ts
     InkDetailView/

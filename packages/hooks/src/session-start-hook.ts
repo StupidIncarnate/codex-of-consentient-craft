@@ -32,7 +32,7 @@ async function isNewSession(transcriptPath: string): Promise<boolean> {
 }
 
 async function loadStandardsFiles(cwd: string): Promise<string> {
-  const standardsFiles = ['coding-principles.md', 'testing-standards.md'];
+  const standardsFiles = ['coding-standards.md', 'testing-standards.md'];
 
   const standardsPath = resolve(cwd, 'node_modules/@questmaestro/standards');
   let content = '';

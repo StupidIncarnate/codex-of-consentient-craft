@@ -16,8 +16,11 @@
 
 ## Standards Documents
 
-- [Coding Principles](packages/standards/coding-principles.md) - Development workflow and coding standards
+- [Coding Standards](packages/standards/coding-standards.md) - Universal development workflow and coding standards
 - [Testing Standards](packages/standards/testing-standards.md) - Testing format for LLMs and human scanning
+- [Frontend Standards](packages/standards/frontend-standards.md) - React development patterns and architecture
+- [Backend Standards](packages/standards/backend-standards.md) - Server-side architecture and API patterns
+- [NPM Package Standards](packages/standards/npm-package-standards.md) - Library and package development guidelines
 
 ## Project Overview
 
