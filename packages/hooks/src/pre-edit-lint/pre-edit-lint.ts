@@ -1,6 +1,6 @@
 import { FileUtil } from '../utils/file/file-util';
 import { LintRunner } from './lint-runner';
-import { ViolationAnalyzer } from './violation-analyzer';
+import { ViolationAnalyzerUtil } from '../utils/violation-analyzer/violation-analyzer-util';
 import { HookConfigUtil } from '../utils/hook-config/hook-config-util';
 import { EslintUtil } from '../utils/eslint/eslint-util';
 import type { ToolInput } from '../types/tool-type';
@@ -71,7 +71,7 @@ export const PreEditLint = {
     ]);
 
     // Analyze violations to find newly introduced ones
-    return ViolationAnalyzer.hasNewViolations({
+    return ViolationAnalyzerUtil.hasNewViolations({
       oldResults,
       newResults,
       config: hookConfig,

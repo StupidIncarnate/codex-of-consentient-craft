@@ -469,8 +469,10 @@ apply to all projects.*
 
 **Critical Rules:**
 
-- **Purity Boundary**: Utils and types are pure (no side effects) - they cannot import from api, hooks, services, or
-  modules
+- **Layer Boundary**: Types are pure definitions, utils are reusable tools (pure or impure), modules orchestrate
+  features
+- **Utils Classification**: Utils are classified by reusability, not purity. FileUtil with I/O is still a util if
+  multiple modules use it
 - **One-Way Dependencies**: Higher layers orchestrate lower layers, never the reverse
 - **Flat Structure**: Keep folder depth minimal (max 3-4 levels) for LLM findability
 
@@ -556,32 +558,41 @@ never up.
 
 **Universal Layer Rules:**
 
-- **utils/**: Pure functions (no API, no state, no side effects)
+- **utils/**: Reusable tools (can have side effects like file I/O, network calls)
 - **types/**: Type definitions only (no implementation)
 
-**Universal Anti-Patterns:**
+**Utils Classification Examples:**
 
 ```typescript
-// 🚨 RED FLAGS - Always wrong regardless of project type:
-
-// Util with side effects (purity violation)
-const utilFunc = () => {
-    localStorage.setItem('key', value)  // Side effect!
-    return processedData
+// ✅ CORRECT - Utils can have side effects if they're reusable tools
+// utils/file/file-util.ts
+const readConfig = async () => {
+    return await fs.readFile('config.json')  // Side effect is OK in utils!
 }
 
-// Util with API calls (purity violation)
-const utilFunc = async () => {
-    const data = await fetch('/api/data')  // Side effect!
-    return processData(data)
+// utils/lint-runner/lint-runner-util.ts
+const runLint = async () => {
+    const eslint = new ESLint()  // Side effect is OK in utils!
+    return await eslint.lintText(content)
 }
 
-// Type files with implementation (responsibility violation)
-// types/user-types.ts
-export type User = { id: string; name: string }
-export const validateUser = (user: User) => { /* logic */
-}  // Wrong file!
+// ✅ CORRECT - Pure utils are also utils
+// utils/string/string-util.ts
+const capitalize = ({str}: { str: string }) => {
+    return str.charAt(0).toUpperCase() + str.slice(1)  // Pure function
+}
+
+// ❌ WRONG - Business orchestration belongs in modules
+// utils/user-registration.ts
+const registerUser = async ({data}: { data: UserData }) => {
+    await validateEmail(data.email)     // Orchestrating
+    await checkDuplicate(data.email)    // multiple
+    await createUser(data)               // operations
+    await sendWelcomeEmail(data.email)  // = MODULE not util!
+}
 ```
+
+**Key Distinction**: Utils are TOOLS (pure or impure). Modules are ORCHESTRATORS.
 
 *For project-specific orchestration patterns and layer responsibilities, see the appropriate principles document.*
 

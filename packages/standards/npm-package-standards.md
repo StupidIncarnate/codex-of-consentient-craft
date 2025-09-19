@@ -33,23 +33,95 @@ src/
   index.ts            # Package entry point - ONLY index.ts in entire package
 ```
 
-## Package-Specific Layer Responsibilities
+## Layer Definitions and Responsibilities
+
+### Decision Tree for Classification
+
+```
+Is it a CLI executable (#!/usr/bin/env node)?
+  → bin/ (or keep in feature-folder/feature-hook.ts)
+
+Is it exported in index.ts (part of public API)?
+  → modules/
+
+Is it a reusable tool used by modules?
+  → utils/
+
+Is it a type definition?
+  → types/
+
+Is it a custom error class?
+  → errors/
+```
+
+### Layer Details
 
 ```
 index.ts (single public entry point)
     ↑
-modules/ (feature implementations)
+bin/ (CLI executables - alternative entry point)
+    ↑
+modules/ (exported features and orchestrators)
     ↑
 components/ (React components, when applicable)
     ↑
-PURITY BOUNDARY
+utils/ (reusable tools - pure or impure)
     ↑
-errors (error classes, no side effects)
+errors/ (custom error classes)
     ↑
-utils (pure functions, no side effects)
-    ↑
-types (type definitions only)
+types/ (type definitions only)
 ```
+
+**Modules**: Feature orchestrators that coordinate workflows
+
+- Exported in index.ts (public API)
+- Make business decisions (if/else logic)
+- Coordinate multiple utilities
+- Example: `PreEditLint` orchestrates linting workflow
+
+**Utils**: Reusable tools that do one specific thing
+
+- NOT exported in index.ts (internal only)
+- Single responsibility tools
+- Can be pure OR have side effects (file I/O, network, etc.)
+- Example: `FileUtil` (file I/O), `LintRunner` (ESLint execution), `ViolationAnalyzer` (data analysis)
+
+**Types**: TypeScript type definitions only (no implementation)
+
+**Errors**: Custom error classes (no side effects beyond construction)
+
+## Real Example: @questmaestro/hooks Package
+
+```
+packages/hooks/src/
+  bin/
+    pre-edit-hook.ts          # CLI executable (#!/usr/bin/env node)
+
+  modules/
+    pre-edit-lint/
+      pre-edit-lint-module.ts # Orchestrates linting workflow (exported)
+
+  utils/
+    file/                     # File operations tool (has I/O - still a util!)
+      file-util.ts
+    lint-runner/              # ESLint execution tool (has side effects - still a util!)
+      lint-runner-util.ts
+    violation-analyzer/       # Data analysis tool (pure - also a util!)
+      violation-analyzer-util.ts
+
+  types/
+    lint-type.ts              # Type definitions
+
+  index.ts                    # Exports: PreEditLint from modules
+```
+
+**Why this classification:**
+
+- `pre-edit-hook.ts`: CLI entry point → bin/
+- `PreEditLint`: Orchestrates the feature → modules/
+- `FileUtil`: Reusable file tool (even with I/O) → utils/
+- `LintRunner`: Reusable lint tool (even with side effects) → utils/
+- `ViolationAnalyzer`: Reusable analysis tool (pure) → utils/
 
 ## React Component Libraries
 
