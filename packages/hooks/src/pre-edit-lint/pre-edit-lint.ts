@@ -1,8 +1,8 @@
-import { FileUtils } from '../utils/file-utils';
+import { FileUtil } from '../utils/file/file-util';
 import { LintRunner } from './lint-runner';
 import { ViolationAnalyzer } from './violation-analyzer';
-import { HookConfigLoader } from '../utils/hook-config-loader';
-import { EslintUtils } from '../utils/eslint-utils';
+import { HookConfigUtil } from '../utils/hook-config/hook-config-util';
+import { EslintUtil } from '../utils/eslint/eslint-util';
 import type { ToolInput } from '../types/tool-type';
 import type { ViolationComparison } from '../types/lint-type';
 
@@ -24,17 +24,17 @@ export const PreEditLint = {
     }
 
     // Load configuration if not provided
-    const hookConfig = HookConfigLoader.loadConfig({ cwd });
+    const hookConfig = HookConfigUtil.loadConfig({ cwd });
 
     // Load and filter the host ESLint configuration for the actual file
-    const eslintConfig = await EslintUtils.loadConfigByFile({ cwd, filePath });
-    const filteredConfig = EslintUtils.createFilteredConfig({
+    const eslintConfig = await EslintUtil.loadConfigByFile({ cwd, filePath });
+    const filteredConfig = EslintUtil.createFilteredConfig({
       eslintConfig: eslintConfig,
       hookConfig: hookConfig,
     });
 
     // Get content changes using existing utilities
-    const contentChanges = await FileUtils.getContentChanges({ toolInput });
+    const contentChanges = await FileUtil.getContentChanges({ toolInput });
 
     if (contentChanges.length === 0) {
       return {

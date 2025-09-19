@@ -41,5 +41,6 @@ Err toward lower confidence rather than higher.
 
 ## PROCESS THE FOLLOWING USER REQUEST
 
-Read all docs in `packages/standards/*.md` and then process the following request:
+Read `packages/standards/coding-standards.md`, `packages/standards/npm-package-standards.md`, and
+`packages/standards/testing-standards.md` and then process the following request:
 $ARGUMENTS

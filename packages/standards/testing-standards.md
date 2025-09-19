@@ -92,6 +92,7 @@ const formatTitle = (title: string): string => {
 ## Core Pattern
 
 ```typescript
+// Class Test
 describe("ExportedClass", () => {
     describe("functionName()", () => {
         it("PREFIX: {input} => outcome")
@@ -99,10 +100,18 @@ describe("ExportedClass", () => {
 })
 ```
 
+```typescript
+describe("functionName", () => {
+    it("PREFIX: {input} => outcome")
+})
+
+```
+
+
 **Always use describe blocks - never comments for test organization.**
 
 ```typescript
-// ✅ CORRECT - Nested describe blocks for functions and code paths
+// ✅ CORRECT - Nested describe blocks if testing a class with functions and code paths
 describe("UserValidator", () => {
     describe("validateAge()", () => {
         describe("valid input", () => {

@@ -194,7 +194,7 @@ describe('pre-edit-lint', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('🛑 New code quality violations detected');
-        expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+        expect(result.stderr).toContain('Type Safety Violation');
       });
 
       it('INVALID_TS_IGNORE: {content: @ts-ignore comment} => returns exit code 2', () => {
@@ -214,7 +214,7 @@ export function test(): void {}`,
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('🛑 New code quality violations detected');
-        expect(result.stderr).toContain('@typescript-eslint/ban-ts-comment');
+        expect(result.stderr).toContain('Type Error Suppression');
       });
 
       it('INVALID_TS_EXPECT_ERROR: {content: @ts-expect-error comment} => returns exit code 2', () => {
@@ -234,7 +234,7 @@ export function test(): void {}`,
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('🛑 New code quality violations detected');
-        expect(result.stderr).toContain('@typescript-eslint/ban-ts-comment');
+        expect(result.stderr).toContain('Type Error Suppression');
       });
 
       it('INVALID_ESLINT_DISABLE: {content: eslint-disable comment} => returns exit code 2', () => {
@@ -254,7 +254,7 @@ console.log('test');`,
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('🛑 New code quality violations detected');
-        expect(result.stderr).toContain('eslint-comments/no-use');
+        expect(result.stderr).toContain('Code Quality Rule Bypass');
       });
 
       it('INVALID_MULTIPLE: {content: multiple violations} => returns exit code 2', () => {
@@ -276,8 +276,8 @@ export function dirty({ param }: { param: any }): any {
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('🛑 New code quality violations detected');
-        expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
-        expect(result.stderr).toContain('@typescript-eslint/ban-ts-comment');
+        expect(result.stderr).toContain('Type Safety Violation');
+        expect(result.stderr).toContain('Type Error Suppression');
       });
     });
   });
@@ -419,7 +419,32 @@ export function newFunc(): void {}`,
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('🛑 New code quality violations detected');
-        expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+        expect(result.stderr).toContain('Type Safety Violation');
+      });
+
+      it('INVALID_ANY: {old_string: partial function signature, new_string: adds any type} => returns exit code 2', () => {
+        const projectDir = createTestProject({ name: 'add-any-partial-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `function testClean(param: string): void {
+    console.log(param);
+}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const hookData = EditToolHookStub({
+          cwd: projectDir,
+          tool_input: {
+            file_path: filePath,
+            old_string: 'function testClean(param: string): void {',
+            new_string: 'function testClean(param: any): void {',
+          },
+        });
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('🛑 New code quality violations detected');
+        expect(result.stderr).toContain('Type Safety Violation');
       });
 
       it('INVALID_TS_IGNORE: {old_string: clean code, new_string: adds @ts-ignore} => returns exit code 2', () => {
@@ -443,7 +468,7 @@ export function test(): void {}`,
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('🛑 New code quality violations detected');
-        expect(result.stderr).toContain('@typescript-eslint/ban-ts-comment');
+        expect(result.stderr).toContain('Type Error Suppression');
       });
 
       it('INVALID_ESLINT_DISABLE: {old_string: console.log, new_string: adds eslint-disable} => returns exit code 2', () => {
@@ -467,7 +492,7 @@ console.log('test');`,
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('🛑 New code quality violations detected');
-        expect(result.stderr).toContain('eslint-comments/no-use');
+        expect(result.stderr).toContain('Code Quality Rule Bypass');
       });
 
       it('ERROR: {old_string: existing violation, new_string: adds second violation} => returns exit code 2', () => {
@@ -492,7 +517,7 @@ export function test({ param }: { param: any }): void {}`,
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('🛑 New code quality violations detected');
-        expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+        expect(result.stderr).toContain('Type Safety Violation');
       });
     });
 
@@ -717,7 +742,7 @@ export function processItems({ items }: { items: string[] }): string[] {
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('🛑 New code quality violations detected');
-        expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+        expect(result.stderr).toContain('Type Safety Violation');
       });
     });
   });
@@ -796,8 +821,8 @@ export const handler: any = getValue();`,
       const result = runHook({ hookData });
 
       expect(result.exitCode).toBe(2);
-      expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
-      expect(result.stderr).toContain('@typescript-eslint/ban-ts-comment');
+      expect(result.stderr).toContain('Type Safety Violation');
+      expect(result.stderr).toContain('Type Error Suppression');
     });
 
     it('EDGE: {tool_input: very large file with violations} => detects violations', () => {
@@ -822,7 +847,7 @@ export const handler: any = processData;`;
       const result = runHook({ hookData });
 
       expect(result.exitCode).toBe(2);
-      expect(result.stderr).toContain('@typescript-eslint/no-explicit-any');
+      expect(result.stderr).toContain('Type Safety Violation');
     });
 
     it('EMPTY: {tool_input: empty old_string to empty new_string} => returns exit code 0', () => {

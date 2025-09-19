@@ -126,7 +126,7 @@ module.exports = [
     },
   },
   {
-    files: ['packages/hooks/src/utils/hook-config-loader.ts'],
+    files: ['packages/hooks/src/utils/hook-config/*.ts'],
     rules: {
       'eslint-comments/no-use': 'off',
     },

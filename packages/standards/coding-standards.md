@@ -360,13 +360,13 @@ utils/
 
 ```typescript
 // utils/eslint/eslint-util.ts
-import {parseOutput} from './eslint-util-parse-output';
-import {isMessage} from './eslint-util-is-message';
+import {eslintUtilParseOutput} from './eslint-util-parse-output';
+import {eslintUtilIsMessage} from './eslint-util-is-message';
 
 export const EslintUtil = {
-    parseOutput,
-    isMessage,
-    // All methods aggregated here
+    parseOutput: eslintUtilParseOutput,
+    isMessage: eslintUtilIsMessage,
+    // All methods aggregated here with semantic names
 };
 ```
 
@@ -383,6 +383,9 @@ export const EslintUtil = {
 2. Each child file contains ONE exported function
 3. Each child file has its own test file
 4. Main export file only aggregates, no logic
+5. **Export name must match the complete filename** (folder pattern only): `eslint-util-parse-output.ts` exports
+   `eslintUtilParseOutput`, `eslint-util-is-message.ts` exports `eslintUtilIsMessage` (camelCase conversion of the
+   entire kebab-case filename)
 
 **External Consumption**: For code consumed by other projects (NPM packages), different patterns apply.
 See [npm-package-standards.md](npm-package-standards.md) for external consumption patterns.
@@ -433,10 +436,14 @@ export function writeContent() { /* ... */
 - **Export objects**: Use `PascalCase` without acronym caps (e.g., `UserApi` not `UserAPI`, `FileUtil` not `FileUtils`)
 - **Constants**: `UPPER_SNAKE_CASE` for configuration values and magic numbers (avoid inline literals)
 
-**Project-Specific Exceptions**:
+**Export Name to Filename Mapping**:
 
-- React Components: `PascalCase` for both export and file name (e.g., `UserProfile.tsx`, `export const UserProfile`)
-- React Hooks: `camelCase` export with `kebab-case` file name (e.g., `use-user.ts`, `export const useUser`)
+- **React Components**: `PascalCase` export, `PascalCase` filename (e.g., `UserProfile.tsx`, `export const UserProfile`)
+- **React Hooks**: `camelCase` export, `kebab-case` filename (e.g., `use-user.ts`, `export const useUser`)
+- **Classes**: `PascalCase` export, `kebab-case` filename (e.g., `user-service.ts`, `export class UserService`)
+- **Functions**: `camelCase` export, `kebab-case` filename (e.g., `format-user.ts`, `export const formatUser`)
+- **Folder Pattern Utils**: `camelCase` export matching full filename (e.g., `eslint-util-parse-output.ts`,
+  `export const eslintUtilParseOutput`)
 
 ## Project Structure & Module Boundaries
 

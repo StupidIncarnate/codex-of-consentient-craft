@@ -1,10 +1,9 @@
-import { ProcessUtils } from './process-utils';
+import { processUtilSpawnPromise } from './process-util-spawn-promise';
 
-describe('ProcessUtils', () => {
-  describe('spawnPromise()', () => {
-    // VALID cases - successful command execution
+describe('processUtilSpawnPromise', () => {
+  describe('valid command execution', () => {
     it('VALID: {command: "echo", args: ["hello"]} => returns {code: 0, stdout: "hello\\n", stderr: ""}', async () => {
-      const result = await ProcessUtils.spawnPromise({
+      const result = await processUtilSpawnPromise({
         command: 'echo',
         args: ['hello'],
       });
@@ -17,7 +16,7 @@ describe('ProcessUtils', () => {
     });
 
     it('VALID: {command: "echo", args: ["test"], cwd: "/tmp"} => returns result with correct output', async () => {
-      const result = await ProcessUtils.spawnPromise({
+      const result = await processUtilSpawnPromise({
         command: 'echo',
         args: ['test'],
         cwd: '/tmp',
@@ -31,7 +30,7 @@ describe('ProcessUtils', () => {
     });
 
     it('VALID: {command: "cat", args: [], stdin: "input text"} => returns stdin content in stdout', async () => {
-      const result = await ProcessUtils.spawnPromise({
+      const result = await processUtilSpawnPromise({
         command: 'cat',
         args: [],
         stdin: 'input text',
@@ -45,7 +44,7 @@ describe('ProcessUtils', () => {
     });
 
     it('VALID: {command: "node", args: ["-e", "process.exit(2)"]} => returns {code: 2, stdout: "", stderr: ""}', async () => {
-      const result = await ProcessUtils.spawnPromise({
+      const result = await processUtilSpawnPromise({
         command: 'node',
         args: ['-e', 'process.exit(2)'],
       });
@@ -56,10 +55,11 @@ describe('ProcessUtils', () => {
         stderr: '',
       });
     });
+  });
 
-    // INVALID cases - command failures
+  describe('command failures', () => {
     it('INVALID_COMMAND: {command: "nonexistent-command", args: []} => returns {code: 1, stdout: "", stderr: error message}', async () => {
-      const result = await ProcessUtils.spawnPromise({
+      const result = await processUtilSpawnPromise({
         command: 'nonexistent-command-12345',
         args: [],
       });
@@ -70,21 +70,23 @@ describe('ProcessUtils', () => {
         stderr: 'spawn nonexistent-command-12345 ENOENT',
       });
     });
+  });
 
-    // ERROR cases - system/runtime errors
+  describe('system errors', () => {
     it('ERROR: {command: "sleep", args: ["5"], timeout: 100} => throws "Process timed out after 100ms"', async () => {
       await expect(
-        ProcessUtils.spawnPromise({
+        processUtilSpawnPromise({
           command: 'sleep',
           args: ['5'],
           timeout: 100,
         }),
       ).rejects.toThrow('Process timed out after 100ms');
     });
+  });
 
-    // EDGE cases - boundary conditions
+  describe('edge cases', () => {
     it('EDGE: {command: "echo", args: []} => returns {code: 0, stdout: "\\n", stderr: ""}', async () => {
-      const result = await ProcessUtils.spawnPromise({
+      const result = await processUtilSpawnPromise({
         command: 'echo',
         args: [],
       });
@@ -97,7 +99,7 @@ describe('ProcessUtils', () => {
     });
 
     it('EDGE: {command: "node", args: ["-e", "console.error(\\"error\\"); process.exit(1)"]} => returns {code: 1, stdout: "", stderr: "error\\n"}', async () => {
-      const result = await ProcessUtils.spawnPromise({
+      const result = await processUtilSpawnPromise({
         command: 'node',
         args: ['-e', 'console.error("error"); process.exit(1)'],
       });
@@ -110,7 +112,7 @@ describe('ProcessUtils', () => {
     });
 
     it('EDGE: {command: "echo", args: [""], timeout: 5000} => completes before timeout', async () => {
-      const result = await ProcessUtils.spawnPromise({
+      const result = await processUtilSpawnPromise({
         command: 'echo',
         args: [''],
         timeout: 5000,
@@ -122,10 +124,11 @@ describe('ProcessUtils', () => {
         stderr: '',
       });
     });
+  });
 
-    // EMPTY cases - null/undefined inputs
+  describe('empty input cases', () => {
     it('EMPTY: {command: "true", args: [], stdin: ""} => returns {code: 0, stdout: "", stderr: ""}', async () => {
-      const result = await ProcessUtils.spawnPromise({
+      const result = await processUtilSpawnPromise({
         command: 'true',
         args: [],
         stdin: '',
@@ -139,7 +142,7 @@ describe('ProcessUtils', () => {
     });
 
     it('EMPTY: {command: "echo", args: ["test"], cwd: undefined} => uses process.cwd() as default', async () => {
-      const result = await ProcessUtils.spawnPromise({
+      const result = await processUtilSpawnPromise({
         command: 'echo',
         args: ['test'],
         cwd: undefined,

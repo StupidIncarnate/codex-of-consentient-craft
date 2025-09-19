@@ -134,6 +134,28 @@ console.log(param); → console.log("Processing:", param);
 
 **Expected:** ALLOWED - Should apply both edits successfully
 
+### Test 7.1: MultiEdit with multiple `any` violations
+
+**Setup:** Use file from Test 2
+**Command:**
+
+```typescript
+MultiEdit: packages / hooks / src / test - tmp / write - clean - test.ts
+Edit
+1
+:
+
+function testClean(param: string): void { → function testClean(param: any): any {
+    Edit
+    2
+:
+    console.log("Processing:", param); → const result: any = param;
+    console.log("Processing:", result);
+    return result;
+```
+
+**Expected:** BLOCKED - Should show multiple `@typescript-eslint/no-explicit-any` violations with count
+
 ---
 
 ## Rule-Specific Tests

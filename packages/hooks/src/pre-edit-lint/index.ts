@@ -1,6 +1,6 @@
 export { PreEditLint } from './pre-edit-lint';
-export { HookConfigLoader } from '../utils/hook-config-loader';
-export { EslintUtils } from '../utils/eslint-utils';
+export { HookConfigUtil } from '../utils/hook-config/hook-config-util';
+export { EslintUtil } from '../utils/eslint/eslint-util';
 export { LintRunner } from './lint-runner';
 export { MessageFormatter } from './message-formatter';
 export { ViolationAnalyzer } from './violation-analyzer';
