@@ -17,12 +17,12 @@ src/
   utils/              # Pure functions (folder pattern - can import: types, other utils)
     date/
       date-util.ts
-      date-util-format.ts
-      date-util-parse.ts
+      format.ts
+      parse.ts
     validation/
       validation-util.ts
-      validation-util-email.ts
-      validation-util-phone.ts
+      email.ts
+      phone.ts
   api/                # External API calls (folder pattern - can import: types, utils, errors)
     user/
       user-api.ts
@@ -229,18 +229,18 @@ See [coding-standards.md](coding-standards.md) for complete folder pattern speci
 utils/
   date/
     date-util.ts                    # Main export aggregator (only importable file)
-    date-util-format.ts             # Individual method implementation
-    date-util-format.test.ts        # Individual method test
-    date-util-parse.ts              # Another method
-    date-util-parse.test.ts         # Its test
+    format.ts             # Individual method implementation
+    format.test.ts        # Individual method test
+    parse.ts              # Another method
+    parse.test.ts         # Its test
 
 api/
   user/
     user-api.ts                     # Main export aggregator
-    user-api-get.ts                 # Individual method implementation
-    user-api-get.test.ts            # Individual method test
-    user-api-create.ts              # Another method
-    user-api-create.test.ts         # Its test
+    get.ts                 # Individual method implementation
+    get.test.ts            # Individual method test
+    create.ts              # Another method
+    create.test.ts         # Its test
 ```
 
 **Rules:**

@@ -1,20 +1,20 @@
-import { fileUtilEscapeRegex } from './file-util-escape-regex';
-import { fileUtilGetFileExtension } from './file-util-get-extension';
-import { fileUtilGetFullFileContent } from './file-util-get-full-content';
-import { fileUtilGetContentChanges } from './file-util-get-content-changes';
-import { fileUtilIsNewSession } from './file-util-is-new-session';
-import { fileUtilLoadStandardsFiles } from './file-util-load-standards-files';
-import { fileUtilIsNodeError } from './file-util-is-node-error';
+import { escapeRegex } from './escape-regex';
+import { fileUtilGetFileExtension } from './get-extension';
+import { fileUtilGetFullFileContent } from './get-full-content';
+import { getContentChanges } from './get-content-changes';
+import { isNewSession } from './is-new-session';
+import { loadStandardsFiles } from './load-standards-files';
+import { isNodeError } from './is-node-error';
 
 export const FileUtil = {
-  escapeRegex: fileUtilEscapeRegex,
+  escapeRegex: escapeRegex,
   getFileExtension: fileUtilGetFileExtension,
   getFullFileContent: fileUtilGetFullFileContent,
-  getContentChanges: fileUtilGetContentChanges,
-  isNewSession: fileUtilIsNewSession,
-  loadStandardsFiles: fileUtilLoadStandardsFiles,
-  isNodeError: fileUtilIsNodeError,
+  getContentChanges: getContentChanges,
+  isNewSession: isNewSession,
+  loadStandardsFiles: loadStandardsFiles,
+  isNodeError: isNodeError,
 };
 
 // Re-export the ContentChange interface for backward compatibility
-export type { ContentChange } from './file-util-get-content-changes';
+export type { ContentChange } from './get-content-changes';

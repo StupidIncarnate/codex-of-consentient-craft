@@ -17,12 +17,12 @@ src/
   utils/              # Pure functions (folder pattern - can import: types, other utils)
     data/
       data-util.ts
-      data-util-transform.ts
-      data-util-validate.ts
+      transform.ts
+      validate.ts
     validation/
       validation-util.ts
-      validation-util-email.ts
-      validation-util-phone.ts
+      email.ts
+      phone.ts
   repositories/       # Data access (folder pattern - can import: types, utils)
     user/
       user-repository.ts
@@ -155,26 +155,26 @@ See [coding-standards.md](coding-standards.md) for complete folder pattern speci
 repositories/
   user/
     user-repository.ts                  # Main export aggregator (only importable file)
-    user-repository-find.ts             # Individual method implementation
-    user-repository-find.test.ts        # Individual method test
-    user-repository-create.ts           # Another method
-    user-repository-create.test.ts      # Its test
+    find.ts             # Individual method implementation
+    find.test.ts        # Individual method test
+    create.ts           # Another method
+    create.test.ts      # Its test
 
 services/
   user/
     user-service.ts                     # Main export aggregator
-    user-service-create.ts              # Individual method implementation
-    user-service-create.test.ts         # Individual method test
-    user-service-signup.ts              # Another method
-    user-service-signup.test.ts         # Its test
+    create.ts              # Individual method implementation
+    create.test.ts         # Individual method test
+    signup.ts              # Another method
+    signup.test.ts         # Its test
 
 controllers/
   user/
     user-controller.ts                  # Main export aggregator
-    user-controller-get.ts              # Individual method implementation
-    user-controller-get.test.ts         # Individual method test
-    user-controller-post.ts             # Another method
-    user-controller-post.test.ts        # Its test
+    get.ts              # Individual method implementation
+    get.test.ts         # Individual method test
+    post.ts             # Another method
+    post.test.ts        # Its test
 ```
 
 **Rules:**

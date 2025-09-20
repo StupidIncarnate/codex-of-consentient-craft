@@ -350,22 +350,22 @@ must use the folder pattern:
 utils/
   eslint/
     eslint-util.ts                      # Main export aggregator (only importable file)
-    eslint-util-parse-output.ts         # Individual method implementation
-    eslint-util-parse-output.test.ts    # Individual method test
-    eslint-util-is-message.ts           # Another method
-    eslint-util-is-message.test.ts      # Its test
+    parse-output.ts         # Individual method implementation
+    parse-output.test.ts    # Individual method test
+    is-message.ts           # Another method
+    is-message.test.ts      # Its test
 ```
 
 **Main Export File Pattern:**
 
 ```typescript
 // utils/eslint/eslint-util.ts
-import {eslintUtilParseOutput} from './eslint-util-parse-output';
-import {eslintUtilIsMessage} from './eslint-util-is-message';
+import {parseOutput} from './parse-output';
+import {isMessage} from './is-message';
 
 export const EslintUtil = {
-    parseOutput: eslintUtilParseOutput,
-    isMessage: eslintUtilIsMessage,
+    parseOutput: parseOutput,
+    isMessage: isMessage,
     // All methods aggregated here with semantic names
 };
 ```
@@ -374,8 +374,8 @@ export const EslintUtil = {
 
 - Folder: Category name (e.g., `eslint/`)
 - Main file: `[category]-[type].ts` (e.g., `eslint-util.ts`)
-- Child files: `[category]-[type]-[method].ts` (e.g., `eslint-util-parse-output.ts`)
-- Test files: `[category]-[type]-[method].test.ts`
+- Child files: `[method].ts` (e.g., `parse-output.ts`)
+- Test files: `[method].test.ts`
 
 **Rules:**
 
@@ -383,8 +383,8 @@ export const EslintUtil = {
 2. Each child file contains ONE exported function
 3. Each child file has its own test file
 4. Main export file only aggregates, no logic
-5. **Export name must match the complete filename** (folder pattern only): `eslint-util-parse-output.ts` exports
-   `eslintUtilParseOutput`, `eslint-util-is-message.ts` exports `eslintUtilIsMessage` (camelCase conversion of the
+5. **Export name must match the complete filename** (folder pattern only): `parse-output.ts` exports
+   `parseOutput`, `is-message.ts` exports `isMessage` (camelCase conversion of the
    entire kebab-case filename)
 
 **External Consumption**: For code consumed by other projects (NPM packages), different patterns apply.
@@ -442,8 +442,8 @@ export function writeContent() { /* ... */
 - **React Hooks**: `camelCase` export, `kebab-case` filename (e.g., `use-user.ts`, `export const useUser`)
 - **Classes**: `PascalCase` export, `kebab-case` filename (e.g., `user-service.ts`, `export class UserService`)
 - **Functions**: `camelCase` export, `kebab-case` filename (e.g., `format-user.ts`, `export const formatUser`)
-- **Folder Pattern Utils**: `camelCase` export matching full filename (e.g., `eslint-util-parse-output.ts`,
-  `export const eslintUtilParseOutput`)
+- **Folder Pattern Utils**: `camelCase` export matching full filename (e.g., `parse-output.ts`,
+  `export const parseOutput`)
 
 ## Project Structure & Module Boundaries
 
@@ -687,7 +687,7 @@ export const useUser = (options?: UserOptions) => {
   import { EslintUtil } from '../utils/eslint/eslint-util';
 
   // ❌ INCORRECT - Never import child files directly
-  import { parseOutput } from '../utils/eslint/eslint-util-parse-output';
+  import { parseOutput } from '../utils/eslint/parse-output';
   ```
 
 ## Performance & Code Cleanup

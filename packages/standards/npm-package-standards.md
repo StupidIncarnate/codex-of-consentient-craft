@@ -19,12 +19,12 @@ src/
   utils/              # Pure functions (folder pattern - can import: types, other utils)
     data/
       data-util.ts
-      data-util-format.ts
-      data-util-transform.ts
+      format.ts
+      transform.ts
     validation/
       validation-util.ts
-      validation-util-email.ts
-      validation-util-phone.ts
+      email.ts
+      phone.ts
   modules/            # Business features (can import: types, utils, errors)
     feature-name/
       feature-name-module.ts # Module file - no index.ts
@@ -148,8 +148,8 @@ src/
   utils/              # Pure functions (folder pattern)
     string/
       string-util.ts
-      string-util-capitalize.ts
-      string-util-slugify.ts
+      capitalize.ts
+      slugify.ts
   types/              # Type definitions
     component-type.ts
   index.ts            # ONLY index.ts in entire package
@@ -196,9 +196,9 @@ import {validateConfig} from 'my-package/dist/modules/pre-edit-lint/validators'
 
 ```typescript
 // src/utils/string/string-util.ts - INTERNAL ONLY (Main export aggregator)
-import {capitalize} from './string-util-capitalize';
-import {slugify} from './string-util-slugify';
-import {truncate} from './string-util-truncate';
+import {capitalize} from './capitalize';
+import {slugify} from './slugify';
+import {truncate} from './truncate';
 
 export const StringUtil = {
     capitalize,
@@ -207,8 +207,8 @@ export const StringUtil = {
 }
 
 // src/utils/validation/validation-util.ts - INTERNAL ONLY (Main export aggregator)
-import {isValidEmail} from './validation-util-email';
-import {isStrongPassword} from './validation-util-password';
+import {isValidEmail} from './email';
+import {isStrongPassword} from './password';
 
 export const ValidationUtil = {
     isValidEmail,
@@ -355,8 +355,8 @@ import { formatUserData } from '../user-management/formatters'  // ❌ Internal 
 
 ```typescript
 // src/utils/validation/validation-util.ts - Shared across ALL modules (Main export aggregator)
-import {isValidEmail} from './validation-util-email';
-import {isNonEmpty} from './validation-util-empty';
+import {isValidEmail} from './email';
+import {isNonEmpty} from './empty';
 
 export const ValidationUtil = {
     isValidEmail,
