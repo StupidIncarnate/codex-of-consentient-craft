@@ -225,7 +225,9 @@ violations and maintain code organization according to our universal terms.
                     mustImport: ['react'],
                     mustReturn: 'JSX.Element',
                     exportPattern: /Page$|Section$/,
-                    canOnlyBeImportedBy: ['../flows/**']
+                    canOnlyBeImportedBy: ['../flows/**'],
+                    maxBrokerCalls: 1,
+                    message: 'Responders can call max 1 broker directly. Use trigger for 2+ brokers.'
                 }
             },
             'responders/**/*.ts': {
@@ -233,7 +235,9 @@ violations and maintain code organization according to our universal terms.
                     signature: '(req: Request, res: Response) => Promise<void>',
                     mustCall: ['res.json', 'res.send', 'res.status'],
                     exportPattern: /Controller$/,
-                    canOnlyBeImportedBy: ['../flows/**', '../startup/**']
+                    canOnlyBeImportedBy: ['../flows/**', '../startup/**'],
+                    maxBrokerCalls: 1,
+                    message: 'Responders can call max 1 broker directly. Use trigger for 2+ brokers.'
                 }
             },
 
@@ -524,6 +528,11 @@ Cannot import 'axios' directly. Use: import { get } from '../adapters/axios/get/
 Main file must match folder name
 Expected: user-fetch/user-fetch.ts
 Found: user-fetch/index.ts
+
+❌ ESLint Error: universal-term-patterns
+Responders can call max 1 broker directly. Use trigger for 2+ brokers.
+Found 3 broker calls in user-register-controller.ts: userCreate, emailSend, analyticsTrack
+Extract orchestration to triggers/
 ```
 
 These rules enforce all the universal terminology patterns, preventing code from being organized incorrectly.
