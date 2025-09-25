@@ -473,6 +473,7 @@ describe("UserValidator", () => {
 - **Data factories**: When multiple tests use similar data with minor variations
 - **Action helpers**: When same setup/action sequence appears 3+ times in a file
 - **Complex state**: Multi-step process to reach specific test state
+- **One stub function export** (primary)
 
 ### Stub Factory Pattern (Type-Safe)
 ```typescript

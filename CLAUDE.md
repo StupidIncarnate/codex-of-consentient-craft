@@ -16,7 +16,8 @@
 
 ## Standards Documents
 
-- [Coding Standards](packages/standards/coding-standards.md) - Universal development workflow and coding standards
+- [Project Standards](packages/standards/project-standards.md) - Universal project structure, naming conventions, and
+  architectural patterns
 - [Testing Standards](packages/standards/testing-standards.md) - Testing format for LLMs and human scanning
 
 ## Project Overview

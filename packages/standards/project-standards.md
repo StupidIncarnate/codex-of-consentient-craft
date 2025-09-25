@@ -18,6 +18,213 @@
 - Supporting types and interfaces directly related to that functionality may be co-exported
 - No additional functions, classes, or unrelated exports allowed
 
+**Function Parameters:**
+
+- **All app code functions must use object destructuring with inline types**
+- Exception: Only when integrating with external APIs that require specific signatures
+- **Pass complete objects** to preserve type relationships
+- When you need just an ID, extract it with `Type['id']` notation
+
+```typescript
+// ✅ CORRECT - Object destructuring with type relationships
+const updateUser = ({user, companyId}: { user: User; companyId: Company['id'] }) => {
+}
+
+// ❌ AVOID - Positional parameters
+const updateUser = (user: User, companyId: string) => {
+}
+
+// ✅ CORRECT - Complete objects preserve type relationships
+const processOrder = ({user, companyId}: { user: User; companyId: Company['id'] }) => {
+    // Type safety maintained - companyId is Company['id'], not just string
+}
+
+// ❌ AVOID - Individual properties lose type relationships
+const processOrder = ({userName, userEmail, companyId}: {
+    userName: string;
+    userEmail: string;
+    companyId: string;  // Lost relationship to Company type
+}) => {
+}
+```
+
+**Import Rules:**
+
+- **All imports at top of file** - No inline imports, requires, or dynamic imports except for performance/lazy loading
+- **Use ES6 imports** - Prefer `import` over `require()`
+- **Group imports logically** - External packages, then internal modules, then types
+
+**Type Export Rules:**
+
+- **All files except index.ts**: Only define types with `export type Name = { ... }`
+- **index.ts files only**: Only re-export with `export type { Name } from './types'`
+- **Never anywhere**: `export { type Name }` (forbidden inline syntax)
+
+**TypeScript & Type Safety:**
+
+- **Strict typing required** - No type suppression allowed
+- **Use existing types** from codebase or create new ones
+- **For uncertain data** (including catch variables): Use `unknown` and prove shape through guards
+- **Fix at source** - Never suppress errors with `@ts-ignore` or `@ts-expect-error`
+- **Type inference** - Let TypeScript infer when values are clear, be explicit for:
+    - Empty arrays and objects
+    - Ambiguous values
+    - Exported functions returning known types from contracts/
+- **Type assertions** - Only use when you have information the compiler lacks (e.g., `JSON.parse`)
+
+```typescript
+// ✅ CORRECT - Strict typing with unknown
+const handleError = ({error}: { error: unknown }) => {
+    if (error instanceof Error) {
+        return error.message;
+    }
+    if (typeof error === 'string') {
+        return error;
+    }
+    return 'Unknown error';
+};
+
+// ✅ CORRECT - Explicit types for empty values
+const users: User[] = [];  // Clear intent
+const config: Record<string, string> = {};
+
+// ✅ CORRECT - Type inference for clear values
+const userId = user.id;  // Inferred from user type
+const names = users.map(u => u.name);  // Inferred from array
+
+// ❌ WRONG - Using 'any' type
+const data: any = response.data;  // Loses all type safety
+const processItem = (item: any) => {
+};  // Dangerous
+
+// ❌ WRONG - Suppressing TypeScript errors
+// @ts-ignore
+const result = dangerousOperation();
+
+// @ts-expect-error
+const value = user.nonExistentProperty;
+
+// ❌ WRONG - Disabling lint
+/* eslint-disable */
+const badCode = () => {
+};  // Bypasses critical checks
+
+// ✅ CORRECT - Create proper types instead
+type ApiResponse = {
+    data: User[];
+    meta: { total: number };
+};
+const processItem = ({item}: { item: User }) => {
+};
+
+// ✅ CORRECT - Type assertion when you have info compiler lacks
+const data = JSON.parse(response) as ApiResponse;
+
+// ❌ AVOID - Fighting TypeScript's inference
+const count = (items.length as number) + 1;  // TypeScript already knows this
+
+// ✅ CORRECT - Explicit return type for exported function returning known type
+export const loadConfig = (): Config => {
+    return {
+        apiUrl: process.env.API_URL || 'http://localhost:3000',
+        timeout: 5000
+    };
+};
+
+// ✅ CORRECT - Let inference work for complex return shapes
+const processUser = ({user}: { user: User }) => {
+    return {
+        ...user,
+        displayName: `${user.firstName} ${user.lastName}`,
+        isActive: user.status === 'active'
+    };  // TypeScript infers complex shape automatically
+};
+
+// ✅ CORRECT - Internal functions use inference
+const isEven = ({n}: { n: number }) => {
+    return n % 2 === 0;  // TypeScript infers boolean
+};
+```
+
+**Promise Handling:**
+
+- **Always use async/await** over `.then()` chains for readability
+- **Handle errors at appropriate level** - Not every async call needs try/catch
+- **Use `Promise.all()`** for parallel operations when independent
+- **Await sequentially** only when operations are dependent
+
+```typescript
+// ✅ CORRECT - Parallel when independent
+const [user, config, permissions] = await Promise.all([
+    fetchUser({id}),
+    loadConfig(),
+    getPermissions({id})
+]);
+
+// ❌ AVOID - Sequential when could be parallel
+const user = await fetchUser({id});
+const config = await loadConfig();
+const permissions = await getPermissions({id});
+
+// ✅ CORRECT - Sequential when dependent
+const user = await fetchUser({id});
+const company = await fetchCompany({companyId: user.companyId});  // Needs user first
+```
+
+**Error Handling:**
+
+- **Handle errors explicitly** for every operation that can fail
+- **Never silently swallow errors** - Always log, throw, or handle appropriately
+- **Provide context** in error messages with relevant data
+
+```typescript
+// ✅ CORRECT - Error with context
+const loadConfig = async ({path}: { path: string }) => {
+    try {
+        const content = await readFile(path, 'utf8');
+        return JSON.parse(content);
+    } catch (error) {
+        throw new Error(`Failed to load config from ${path}: ${error}`);
+    }
+};
+
+// ✅ CORRECT - Handle at appropriate level
+const processUser = async ({userId}: { userId: string }) => {
+    // Let broker throw, catch at responder level
+    const user = await userFetchBroker({userId});
+    return user;
+};
+
+// ❌ AVOID - Silent error swallowing
+const loadConfig = async ({path}: { path: string }) => {
+    try {
+        return JSON.parse(await readFile(path, 'utf8'));
+    } catch (error) {
+        return {};  // Silent failure loses critical information!
+    }
+};
+
+// ❌ AVOID - Generic error without context
+throw new Error('Config load failed');  // What path? What error?
+```
+
+**Performance & Code Cleanup:**
+
+- **Default to efficient algorithms** - Dataset sizes are unknown; use Map/Set for lookups over nested array searches
+- **Remove dead code** - Unused variables/parameters, unreachable code, orphaned files, commented-out code, console.log
+  statements
+
+```typescript
+// ✅ CORRECT - O(n) using Map for lookups
+const userMap = new Map(users.map(user => [user.id, user]));
+const targetUser = userMap.get(targetId);
+
+// ❌ AVOID - O(n²) nested loops
+const activeUsers = users.filter(user => {
+    return otherUsers.find(other => other.id === user.id)?.isActive;
+});
+```
+
 ## Critical Context: Why This Structure Exists
 
 LLMs instinctively "squirrel away" code based on semantic linking from training data. This creates organizational chaos,
@@ -122,7 +329,7 @@ contracts/
 - **CAN** export validation schemas (Zod, Yup, Joi)
 - **CAN** export pure functions returning booleans (no external calls)
 - **CAN** export validate functions (exception to boolean-only rule)
-- **Must** have explicit return types on all exported functions
+- **Must** have explicit return types on all exported boolean/validate functions
 - **CAN** import errors/ only
 
 **Example:**
@@ -459,11 +666,18 @@ import {useState, useEffect} from 'react';
 import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker';
 
 export const useUserDataBinding = ({userId}: { userId: string }) => {
-    const [user, setUser] = useState(null);
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     useEffect(() => {
-        userFetchBroker({userId}).then(setUser);
+        userFetchBroker({userId})
+            .then(setData)
+            .catch(setError)
+            .finally(() => setLoading(false));
     }, [userId]);
-    return user;
+
+    return {data, loading, error};
 };
 ```
 
@@ -493,8 +707,8 @@ state/
 
 - **Frontend:** React contexts, Zustand/Redux stores
 - **Backend:** Caches, session stores, connection pools
-- **Pure storage:** No side effects, no external calls
-- **Configuration:** Dynamic/runtime config lives here
+- **Pure storage:** In-memory only, no external API calls or database operations
+- **Configuration:** App-wide constants, feature flags, API base URLs live here
 - **Must** export as objects with methods/properties (not individual functions)
 - **CAN** import contracts/ and errors/ only
 
@@ -625,11 +839,17 @@ export type UserCardWidgetProps = {
 };
 
 export const UserCardWidget = ({userId, onUpdate}: UserCardWidgetProps) => {
-    const userData = useUserDataBinding({userId});
+    const {data: user, loading, error} = useUserDataBinding({userId});
     const handleUpdate = async () => {
-        await userUpdateBroker({userId, data});
+        await userUpdateBroker({userId, data: user});
         onUpdate?.({userId});
     };
+
+    if (loading) return <div>Loading
+...
+    </div>;
+    if (error) return <div>Error < /div>;
+
     return (
         <div>
             <AvatarWidget userId = {userId}
@@ -768,7 +988,7 @@ export const UserCardWidget = ({userId}) => {
 };
 
 // ❌ WRONG - Binding with multiple brokers (orchestration)
-export const useUserWithCompanyBinding = ({userId}) => {
+export const useUserDataBinding = ({userId}) => {
     useEffect(() => {
         const user = await userFetchBroker({userId});  // First await
         const company = await companyFetchBroker({companyId: user.companyId});  // Second await - orchestration!
@@ -776,7 +996,7 @@ export const useUserWithCompanyBinding = ({userId}) => {
     }, [userId]);
 };
 
-// ✅ CORRECT - Move orchestration to broker
+// ✅ CORRECT - Create orchestration broker, then extend binding with option
 // brokers/user/fetch-with-company/user-fetch-with-company-broker.ts
 export const userFetchWithCompanyBroker = async ({userId}) => {
     const user = await userFetchBroker({userId});
@@ -784,25 +1004,32 @@ export const userFetchWithCompanyBroker = async ({userId}) => {
     return {user, company};
 };
 
-// bindings/use-user-with-company/use-user-with-company-binding.ts
-export const useUserWithCompanyBinding = ({userId}) => {
+// bindings/use-user-data/use-user-data-binding.ts (EXTEND existing file)
+export const useUserDataBinding = ({
+                                       userId,
+                                       includeCompany = false
+                                   }: {
+    userId: string;
+    includeCompany?: boolean;
+}) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        userFetchWithCompanyBroker({userId})  // Single broker call
-            .then(setData)  // data = {user, company}
+        const broker = includeCompany ? userFetchWithCompanyBroker : userFetchBroker;
+        broker({userId})
+            .then(setData)
             .catch(setError)
             .finally(() => setLoading(false));
-    }, [userId]);
+    }, [userId, includeCompany]);
 
-    return {data, loading, error};  // data.user, data.company accessible in widget
+    return {data, loading, error};
 };
 
 // widgets/user-profile/user-profile-widget.tsx
 export const UserProfileWidget = ({userId}) => {
-    const {data, loading, error} = useUserWithCompanyBinding({userId});
+    const {data, loading, error} = useUserDataBinding({userId, includeCompany: true});
     if (loading) return <div>Loading
 ...
     </div>;
@@ -933,3 +1160,227 @@ export const UserSignupResponder = async ({req, res}) => {
     res.status(201).json(userDto);
 };
 ```
+
+## File Discovery and Extension Rules
+
+**CRITICAL: Before creating any new file, you MUST explore first to prevent file proliferation.**
+
+### Extension Over Creation
+
+**Rule:** If a domain file exists, extend it with options - never create variant files.
+
+```bash
+# 1. Search for existing domain files
+rg -l "userFetchBroker" src/brokers/
+rg -l "useUserDataBinding" src/bindings/
+
+# 2. Search for similar patterns
+rg "export const.*Broker" src/brokers/user/
+rg "export const use.*Binding" src/bindings/
+```
+
+**If domain exists → MUST extend existing files, not create new ones**
+
+### Examples by Folder Type
+
+**Bindings (extend with options):**
+
+```typescript
+// ✅ CORRECT - Extend existing binding with options
+// bindings/use-user-data/use-user-data-binding.ts
+export const useUserDataBinding = ({
+                                       userId,
+                                       includeCompany = false,
+                                       includeRoles = false
+                                   }: {
+    userId: string;
+    includeCompany?: boolean;
+    includeRoles?: boolean;
+}) => {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const broker = includeCompany
+            ? userFetchWithCompanyBroker
+            : userFetchBroker;
+
+        broker({userId})
+            .then(setData)
+            .catch(setError)
+            .finally(() => setLoading(false));
+    }, [userId, includeCompany, includeRoles]);
+
+    return {data, loading, error};
+};
+
+// ❌ WRONG - Creating variant files
+// bindings/use-user-with-company/use-user-with-company-binding.ts  // DON'T CREATE!
+// bindings/use-user-with-roles/use-user-with-roles-binding.ts      // DON'T CREATE!
+```
+
+**Brokers (create orchestration brokers for complex operations):**
+
+```typescript
+// ✅ CORRECT - Extend through orchestration broker
+// brokers/user/fetch-with-company/user-fetch-with-company-broker.ts
+export const userFetchWithCompanyBroker = async ({userId}: { userId: string }) => {
+    const user = await userFetchBroker({userId});
+    const company = await companyFetchBroker({companyId: user.companyId});
+    return {user, company};
+};
+
+// Then use in binding:
+// bindings/use-user-data/use-user-data-binding.ts (extended with option)
+```
+
+**Transformers (create variants, never use options):**
+
+```typescript
+// ✅ CORRECT - Each output shape is a separate transformer
+// transformers/user-to-dto/user-to-dto-transformer.ts
+export const userToDtoTransformer = ({user}: { user: User }) => {
+    return {
+        id: user.id,
+        name: user.name,
+        email: user.email  // Public API response
+    };
+};
+
+// transformers/user-to-summary/user-to-summary-transformer.ts
+export const userToSummaryTransformer = ({user}: { user: User }) => {
+    return {
+        id: user.id,
+        displayName: `${user.firstName} ${user.lastName}`  // Different output shape
+    };
+};
+
+// transformers/user-to-admin-dto/user-to-admin-dto-transformer.ts
+export const userToAdminDtoTransformer = ({user}: { user: User }) => {
+    return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        passwordHash: user.passwordHash  // Admin-only fields
+    };
+};
+
+// ❌ WRONG - Using options for security-sensitive transformations
+export const userToDtoTransformer = ({user, includePassword}: { user: User; includePassword?: boolean }) => {
+    return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        ...(includePassword && {passwordHash: user.passwordHash})  // DANGEROUS!
+    };
+};
+
+// ❌ WRONG - Multiple transformations in one file
+// transformers/user-transformer/user-transformer.ts
+// export const userToDtoTransformer = ...
+// export const userToSummaryTransformer = ...  // Violates single responsibility!
+```
+
+**Rule:** Each distinct output shape = separate transformer file. Never use options to conditionally include/exclude
+fields (security risk).
+
+**Widgets (extend with props, not new files):**
+
+```typescript
+// ✅ CORRECT - Extend existing widget with props
+// widgets/user-card/user-card-widget.tsx
+export type UserCardWidgetProps = {
+    userId: string;
+    showCompany?: boolean;  // Add new prop
+    showRoles?: boolean;    // Add new prop
+};
+
+export const UserCardWidget = ({userId, showCompany, showRoles}: UserCardWidgetProps) => {
+    const {data: user, loading, error} = useUserDataBinding({
+        userId,
+        includeCompany: showCompany,
+        includeRoles: showRoles
+    });
+    // Render logic with conditional display
+};
+
+// ❌ WRONG - Creating variant widgets
+// widgets/user-card-with-company/user-card-with-company-widget.tsx  // DON'T CREATE!
+```
+
+### When to Create New Files
+
+**DO create new files when:**
+
+1. **New domain** - First time handling this domain (e.g., first payment broker)
+2. **New action** - New business operation (e.g., `user-delete-broker.ts` when only `user-fetch-broker.ts` exists)
+3. **Different folder type** - Same domain, different layer (e.g., `user-contract.ts`, `user-fetch-broker.ts`,
+   `use-user-data-binding.ts`)
+4. **Single responsibility violation** - Existing file does something fundamentally different
+
+**DON'T create new files when:**
+
+1. **Adding optional behavior** - Extend with options/props instead (e.g., `includeCompany`, `includeRoles`)
+2. **Adding filters** - Extend with filter options instead (e.g., `{status?: 'active' | 'inactive'}`)
+3. **Adding joins/relations** - Extend with include options instead (e.g., `{includeCompany?: boolean}`)
+4. **Composing existing operations** - Create orchestration broker, then extend binding with option
+
+**Examples of extending vs creating:**
+
+```typescript
+// ✅ EXTEND - Filtering is an option, not new action
+export const userFetchBroker = async ({
+                                          companyId,
+                                          status
+                                      }: {
+    companyId: string;
+    status?: 'active' | 'inactive';  // Filter option
+}) => {
+    const users = await axiosGet({url: `/api/companies/${companyId}/users`});
+    return status ? users.filter(u => u.status === status) : users;
+};
+
+// ❌ DON'T CREATE - user-fetch-active-broker.ts (this is a filter variant!)
+
+// ✅ EXTEND - Lookup method is an option
+export const userFetchBroker = async ({
+                                          userId,
+                                          email
+                                      }: {
+    userId?: string;
+    email?: string;
+}) => {
+    if (userId) return await axiosGet({url: `/api/users/${userId}`});
+    if (email) return await axiosGet({url: `/api/users?email=${email}`});
+    throw new Error('Must provide userId or email');
+};
+
+// ❌ DON'T CREATE - user-fetch-by-email-broker.ts (this is a lookup variant!)
+```
+
+### Discovery Checklist
+
+Before creating any file, ask:
+
+1. ✅ Does a file for this domain already exist in this folder?
+2. ✅ Can I add an option/parameter to the existing file?
+3. ✅ Can I create an orchestration broker and extend the binding?
+4. ✅ Is this truly a new domain/action, not a variant?
+
+**Only create new files after confirming all NO answers.**
+
+## Lint-Enforced Rules
+
+Some architectural rules are enforced by lint rather than documented here, as they require dynamic analysis:
+
+### Responder Multi-Broker Calls
+
+**Rule:** Responders calling multiple brokers will be caught and flagged by lint.
+
+- If responder needs data from multiple sources, lint will detect multiple broker calls
+- Lint will suggest creating an orchestration broker instead
+- This ensures responders remain thin and orchestration stays in brokers/
+
+**Why lint instead of docs:** Whether a responder "needs" multiple brokers depends on runtime business logic, not file
+structure. Lint can analyze actual calls dynamically.
