@@ -107,7 +107,6 @@ describe("functionName", () => {
 
 ```
 
-
 **Always use describe blocks - never comments for test organization.**
 
 ```typescript
@@ -477,7 +476,7 @@ describe("UserValidator", () => {
 
 ### Stub Factory Pattern (Type-Safe)
 ```typescript
-// tests/stubs/user.stub.ts
+// tests/stubs/user-stub.ts
 import type {User} from '../../src/types'; // Real types, not any!
 
 export const UserStub = (props: Partial<User> = {}): User => ({
