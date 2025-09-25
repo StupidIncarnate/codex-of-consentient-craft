@@ -1,11 +1,6 @@
 # Coding Standards
 
-*This document contains universal principles that apply to all projects. For project-specific guidance, also read the
-appropriate document:*
-
-- **Frontend Projects**: [frontend-standards.md](frontend-standards.md)
-- **Backend Projects**: [backend-standards.md](backend-standards.md)
-- **NPM Packages**: [npm-package-standards.md](npm-package-standards.md)
+*This document contains universal principles that apply to all projects.
 
 **Precedence Rule**: When project-specific documents conflict with this document, the project-specific guidance takes
 precedence.
@@ -387,9 +382,6 @@ export const EslintUtil = {
    `parseOutput`, `is-message.ts` exports `isMessage` (camelCase conversion of the
    entire kebab-case filename)
 
-**External Consumption**: For code consumed by other projects (NPM packages), different patterns apply.
-See [npm-package-standards.md](npm-package-standards.md) for external consumption patterns.
-
 #### Stub Files (Testing)
 
 - **One stub function export** (primary)
@@ -475,14 +467,6 @@ apply to all projects.*
   multiple modules use it
 - **One-Way Dependencies**: Higher layers orchestrate lower layers, never the reverse
 - **Flat Structure**: Keep folder depth minimal (max 3-4 levels) for LLM findability
-
-### Project-Specific Structures
-
-*For detailed project structures, see the appropriate principles document:*
-
-- **Frontend Projects**: See [frontend-standards.md](frontend-standards.md)
-- **Backend Projects**: See [backend-standards.md](backend-standards.md)
-- **NPM Packages**: See [npm-package-standards.md](npm-package-standards.md)
 
 ### Module Boundary Rules
 

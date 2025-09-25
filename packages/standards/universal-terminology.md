@@ -380,7 +380,7 @@ contracts/
 
 - **Types/Interfaces:** PascalCase (e.g., `User`, `StripeWebhookEvent`)
 - **Enums:** SCREAMING_SNAKE_CASE (e.g., `USER_ROLE`, `STATUS_CODE`)
-- **Schemas:** Must end with `Schema` (e.g., `userSchema`, `emailSchema`, `configSchema`)
+- **Schemas:** Must end with `Contract` (e.g., `userContract`, `emailContract`, `configContract`)
 - **Boolean functions:** Must start with:
     - `is` - type checks/guards (e.g., `isValidEmail`, `isEslintMessage`, `isAuthenticated`)
     - `has` - existence/possession checks (e.g., `hasPermission`, `hasAccess`, `hasFeature`)
@@ -421,7 +421,7 @@ booleans" rule. This is a deliberate exception because:
 
 1. **Zod/Yup/Joi schemas inherently combine validation + transformation** - Separating them is artificial
 2. **The transformation is inseparable from validation** - You can't validate without parsing
-3. **TypeScript type inference depends on this** - `z.infer<typeof schema>` needs the schema
+3. **TypeScript type inference depends on this** - `z.infer<typeof contract>` needs the schema
 4. **Splitting would create worse problems:**
     - Duplicate validation logic
     - Loss of type safety
@@ -436,7 +436,7 @@ actually work.
 // contracts/user-contract/user-contract.ts
 import { z } from 'zod';
 
-export const userSchema = z.object({
+export const userContract = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   name: z.string().min(1).max(100),
@@ -444,12 +444,10 @@ export const userSchema = z.object({
   createdAt: z.date()
 });
 
-export type User = z.infer<typeof userSchema>;
+export type User = z.infer<typeof userContract>;
 
-export const parseUser = ({data}: {data: unknown}): User => {
-  return userSchema.parse(data);
-};
-
+// contracts/validate-user/validate-user.ts
+export const validateUser = ({data}: { data: unknown }): User => userContract.parse(data);
 
 // contracts/stripe-webhook-contract/stripe-webhook-contract.ts
 // Pure type for external API we don't validate
@@ -645,7 +643,7 @@ const router = Router();
 // Define routes - flows adapt Express (req, res) to responder object arguments
 router.post('/posts/:postId/comments', async (req, res, next) => {
   try {
-    await createController({ req, res });
+    await createResponder({ req, res });
   } catch (error) {
     next(error);
   }
@@ -653,7 +651,7 @@ router.post('/posts/:postId/comments', async (req, res, next) => {
 
 router.put('/comments/:id', async (req, res, next) => {
   try {
-    await updateController({ req, res });
+    await updateResponder({ req, res });
   } catch (error) {
     next(error);
   }
@@ -661,7 +659,7 @@ router.put('/comments/:id', async (req, res, next) => {
 
 router.delete('/comments/:id', async (req, res, next) => {
   try {
-    await deleteController({ req, res });
+    await deleteResponder({ req, res });
   } catch (error) {
     next(error);
   }
@@ -669,7 +667,7 @@ router.delete('/comments/:id', async (req, res, next) => {
 
 router.get('/posts/:postId/comments', async (req, res, next) => {
   try {
-    await getByPostController({ req, res });
+    await getByPostResponder({ req, res });
   } catch (error) {
     next(error);
   }
@@ -677,7 +675,7 @@ router.get('/posts/:postId/comments', async (req, res, next) => {
 
 router.post('/comments/:id/moderate', async (req, res, next) => {
   try {
-    await moderateController({ req, res });
+    await moderateResponder({ req, res });
   } catch (error) {
     next(error);
   }
@@ -1458,12 +1456,12 @@ export const setUserInCache = ({id, user}: {id: string; user: User}): void => {
 
 ```
 responders/
-  user-profile-page/
-    user-profile-page.tsx       // Frontend page responder
-    user-profile-page.test.tsx
-  user-get-controller/
-    user-get-controller.ts      // Backend controller responder
-    user-get-controller.test.ts
+  user-profile-responder/
+    user-profile-responder.tsx       // Frontend page responder
+    user-profile-responder.test.tsx
+  user-get-responder/
+    user-get-responder.ts      // Backend controller responder
+    user-get-responder.test.ts
   process-email-queue/
     process-email-queue.ts      // Queue processor
     process-email-queue.test.ts
