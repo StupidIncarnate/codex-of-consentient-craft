@@ -489,9 +489,17 @@ adapters/
   axios/
     axios-get.ts
     axios-get.test.ts
+    axios-post.ts
+    axios-post.test.ts
+    axios-put.ts
+    axios-put.test.ts
   aws-sdk-client-s3/
     aws-sdk-client-s3-upload.ts
     aws-sdk-client-s3-upload.test.ts
+    aws-sdk-client-s3-download.ts
+    aws-sdk-client-s3-download.test.ts
+    aws-sdk-client-s3-delete.ts
+    aws-sdk-client-s3-delete.test.ts
 ```
 
 **Naming Conventions:**
@@ -502,6 +510,10 @@ adapters/
 
 **Constraints:**
 
+- **CRITICAL: One export per file** - Each adapter file must export exactly one function
+    - ✅ `adapters/axios/axios-get.ts` (single export: axiosGet)
+    - ✅ `adapters/axios/axios-post.ts` (single export: axiosPost)
+    - ❌ `adapters/axios/axios-requests.ts` with multiple exports (violates single responsibility)
 - **EVOLUTION RULE:** Created on-demand when lint detects duplicate package usage
 - **Naming:** Based on package's function names, NOT business domain
     - ✅ `adapters/stripe/stripe-charges-create.ts` (wraps stripe.charges.create)

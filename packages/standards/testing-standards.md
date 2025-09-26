@@ -33,7 +33,10 @@ Each test MUST be independent. No shared state, no order dependencies.
 
 ### 100% Branch Coverage
 
-Every conditional path must have a test:
+**CRITICAL:** You must manually verify test cases against implementation code. Jest's `--coverage` reports can miss
+logical branches and give false confidence.
+
+**Method:** Read the implementation line by line and create a test for every conditional path:
 
 **Control Flow:**
 
@@ -66,27 +69,57 @@ Every conditional path must have a test:
 - Conditional rendering (&&, ternary)
 - Event handlers (onClick, onChange, onSubmit)
 
+**Why Manual Verification:**
+
+- Jest coverage counts lines hit, not logical conditions tested
+- Coverage can show 100% but miss critical edge cases
+- Conditional logic creates multiple execution paths that tools can't detect
+
+**How to Verify Branches:**
+
+1. **Read implementation code** line by line
+2. **Identify every conditional** (if/else, ternary, switch, try/catch)
+3. **Create test for each path** through the logic
+4. **Test edge cases** even when types suggest they won't occur
+
 ```typescript
-// Needs 3 tests:
+// Manual analysis: Needs 3 tests (not what coverage tools show)
 const processUser = (user: User | null): string => {
-    if (!user) return 'No user';        // Test 1
-    if (user.isAdmin) return 'Admin';   // Test 2
-    return user.name;                   // Test 3
+    if (!user) return 'No user';        // Branch 1: null input
+    if (user.isAdmin) return 'Admin';   // Branch 2: admin user
+    return user.name;                   // Branch 3: regular user
 }
+// Tests needed: EMPTY: {user: null}, VALID: {user: adminUser}, VALID: {user: regularUser}
 
-// Arrays need 3 tests:
+// Manual analysis: Arrays need 3 tests (coverage might show 100% with just 1)
 const formatList = (items: string[]): string => {
-    if (items.length === 0) return 'No items';      // Test 1: []
-    if (items.length === 1) return items[0];        // Test 2: ['apple']
-    return items.join(', ');                        // Test 3: ['apple', 'banana']
+    if (items.length === 0) return 'No items';      // Branch 1: empty array
+    if (items.length === 1) return items[0];        // Branch 2: single item
+    return items.join(', ');                        // Branch 3: multiple items
 }
+// Tests needed: EMPTY: {items: []}, VALID: {items: ['apple']}, VALID: {items: ['apple', 'banana']}
 
-// Strings need edge cases (even when typed as string):
+// Manual analysis: Even with string type, test empty and edge cases
 const formatTitle = (title: string): string => {
-    if (title === '') return 'Untitled';            // Test 1: ''
-    if (title.length === 1) return title.toUpperCase(); // Test 2: 'a'
-    return title.charAt(0).toUpperCase() + title.slice(1); // Test 3: 'hello'
+    if (title === '') return 'Untitled';            // Branch 1: empty string
+    if (title.length === 1) return title.toUpperCase(); // Branch 2: single char
+    return title.charAt(0).toUpperCase() + title.slice(1); // Branch 3: normal string
 }
+// Tests needed: EMPTY: {title: ''}, EDGE: {title: 'a'}, VALID: {title: 'hello'}
+```
+
+**Hidden Branches Jest Misses:**
+
+```typescript
+// Coverage might show 100% with one test, but 4 logical branches exist:
+const getUserStatus = (user?: User) => {
+    return user?.isActive ? 'active' : 'inactive';  // 4 branches: user exists+active, user exists+inactive, user undefined, user null
+}
+// Tests needed:
+// VALID: {user: activeUser} => 'active'
+// VALID: {user: inactiveUser} => 'inactive'
+// EMPTY: {user: undefined} => 'inactive'
+// EMPTY: {user: null} => 'inactive'
 ```
 
 ## Core Pattern

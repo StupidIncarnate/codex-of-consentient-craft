@@ -103,224 +103,158 @@ Each framework automatically configures the appropriate packages for each folder
 
 #### Frontend Presets (react, vue, angular, svelte, solid, preact)
 
-```javascript
+```json
 // Example: framework: "react" automatically provides:
 {
-    "widgets"
-:
-    "react",      // Framework determines packages (react, react-dom)
-        "bindings"
-:
-    "react",     // Framework determines packages (react, react-dom)
-        "state"
-:
-    "react",        // Framework determines packages (react, react-dom)
-        "flows"
-:
-    [routing],      // Uses your routing field value
-        "contracts"
-:
-    [schema],   // Uses your schema field value
-        "brokers"
-:
-    [],
-        "transformers"
-:
-    [],
-        "errors"
-:
-    [],
-        "middleware"
-:
-    [],
-        "responders"
-:
-    [],
-        "startup"
-:
-    ["*"]
+  "widgets": "react",
+  // Framework determines packages (react, react-dom)
+  "bindings": "react",
+  // Framework determines packages (react, react-dom)
+  "state": "react",
+  // Framework determines packages (react, react-dom)
+  "flows": [
+    routing
+  ],
+  // Uses your routing field value
+  "contracts": [
+    schema
+  ],
+  // Uses your schema field value
+  "brokers": [],
+  "transformers": [],
+  "errors": [],
+  "middleware": [],
+  "responders": [],
+  "startup": [
+    "*"
+  ]
 }
 ```
 
 #### Backend Presets (express, fastify, koa, hapi, nestjs)
 
-```javascript
+```json
 // Example: framework: "express" automatically provides:
 {
-    "flows"
-:
-    "express",      // Backend framework is its own router
-        "contracts"
-:
-    [schema],   // Uses your schema field value
-        "brokers"
-:
-    [],
-        "transformers"
-:
-    [],
-        "errors"
-:
-    [],
-        "middleware"
-:
-    [],
-        "responders"
-:
-    [],
-        "state"
-:
-    null,           // No UI packages in backend
-        "widgets"
-:
-    null,         // No widgets in backend
-        "bindings"
-:
-    null,        // No bindings in backend
-        "startup"
-:
-    ["*"]
+  "flows": "express",
+  // Backend framework is its own router
+  "contracts": [
+    schema
+  ],
+  // Uses your schema field value
+  "brokers": [],
+  "transformers": [],
+  "errors": [],
+  "middleware": [],
+  "responders": [],
+  "state": null,
+  // No UI packages in backend
+  "widgets": null,
+  // No widgets in backend
+  "bindings": null,
+  // No bindings in backend
+  "startup": [
+    "*"
+  ]
 }
 ```
 
 #### Library Presets (node-library, react-library)
 
-```javascript
+```json
 // Example: framework: "react-library" automatically provides:
 {
-    "widgets"
-:
-    "react",      // Framework determines packages
-        "bindings"
-:
-    "react",     // Framework determines packages
-        "state"
-:
-    "react",        // Framework determines packages
-        "contracts"
-:
-    [schema],   // Uses your schema field value
-        "transformers"
-:
-    [],
-        "brokers"
-:
-    [],
-        "errors"
-:
-    [],
-        "flows"
-:
-    null,           // No flows in libraries
-        "responders"
-:
-    null       // No responders in libraries
+  "widgets": "react",
+  // Framework determines packages
+  "bindings": "react",
+  // Framework determines packages
+  "state": "react",
+  // Framework determines packages
+  "contracts": [
+    schema
+  ],
+  // Uses your schema field value
+  "transformers": [],
+  "brokers": [],
+  "errors": [],
+  "flows": null,
+  // No flows in libraries
+  "responders": null
+  // No responders in libraries
 }
 
 // Example: framework: "node-library" automatically provides:
 {
-    "contracts"
-:
-    [schema],   // Uses your schema field value
-        "transformers"
-:
-    [],
-        "brokers"
-:
-    [],
-        "errors"
-:
-    [],
-        "state"
-:
-    [],
-        "widgets"
-:
-    null,         // No UI folders in node libraries
-        "bindings"
-:
-    null,        // No UI folders in node libraries
-        "flows"
-:
-    null,           // No flows in libraries
-        "responders"
-:
-    null       // No responders in libraries
+  "contracts": [
+    schema
+  ],
+  // Uses your schema field value
+  "transformers": [],
+  "brokers": [],
+  "errors": [],
+  "state": [],
+  "widgets": null,
+  // No UI folders in node libraries
+  "bindings": null,
+  // No UI folders in node libraries
+  "flows": null,
+  // No flows in libraries
+  "responders": null
+  // No responders in libraries
 }
 ```
 
 #### CLI Presets (cli, ink-cli)
 
-```javascript
+```json
 // Example: framework: "ink-cli" automatically provides:
 {
-    "widgets"
-:
-    "ink",        // Ink framework (includes react)
-        "bindings"
-:
-    "ink",       // Ink framework (includes react)
-        "state"
-:
-    "ink",          // Ink framework (includes react)
-        "flows"
-:
-    null,           // CLI screens/commands instead of routes
-        "responders"
-:
-    null,      // Commands handle their own responses
-        "contracts"
-:
-    [schema],   // Uses your schema field value(s)
-        "brokers"
-:
-    [],
-        "transformers"
-:
-    [],
-        "errors"
-:
-    [],
-        "middleware"
-:
-    [],
-        "startup"
-:
-    ["*"]         // CLI entry point and command setup
+  "widgets": "ink",
+  // Ink framework (includes react)
+  "bindings": "ink",
+  // Ink framework (includes react)
+  "state": "ink",
+  // Ink framework (includes react)
+  "flows": null,
+  // CLI screens/commands instead of routes
+  "responders": null,
+  // Commands handle their own responses
+  "contracts": [
+    schema
+  ],
+  // Uses your schema field value(s)
+  "brokers": [],
+  "transformers": [],
+  "errors": [],
+  "middleware": [],
+  "startup": [
+    "*"
+  ]
+  // CLI entry point and command setup
 }
 
 // Example: framework: "cli" automatically provides:
 {
-    "contracts"
-:
-    [schema],   // Uses your schema field value(s)
-        "brokers"
-:
-    [],
-        "transformers"
-:
-    [],
-        "errors"
-:
-    [],
-        "state"
-:
-    [],
-        "startup"
-:
-    ["*"],        // CLI entry point
-        "widgets"
-:
-    null,         // No UI folders for non-Ink CLIs
-        "bindings"
-:
-    null,        // No UI folders for non-Ink CLIs
-        "flows"
-:
-    null,           // No flows in CLIs
-        "responders"
-:
-    null       // No responders in CLIs
+  "contracts": [
+    schema
+  ],
+  // Uses your schema field value(s)
+  "brokers": [],
+  "transformers": [],
+  "errors": [],
+  "state": [],
+  "startup": [
+    "*"
+  ],
+  // CLI entry point
+  "widgets": null,
+  // No UI folders for non-Ink CLIs
+  "bindings": null,
+  // No UI folders for non-Ink CLIs
+  "flows": null,
+  // No flows in CLIs
+  "responders": null
+  // No responders in CLIs
 }
 ```
 
@@ -560,48 +494,41 @@ function computeAllowedExternalImports(config) {
 
 ### Output (What Lint Rules Use)
 
-```javascript
+```json
 // The computed structure that lint rules actually check:
 {
-    "allowedExternalImports"
-:
-    {
-        "widgets"
-    :
-        ["react", "react-dom"],
-            "bindings"
-    :
-        ["react", "react-dom"],
-            "state"
-    :
-        ["react", "react-dom", "zustand"],  // Added zustand via override
-            "flows"
-    :
-        ["react-router-dom"],
-            "contracts"
-    :
-        ["zod"],
-            "brokers"
-    :
-        [],
-            "transformers"
-    :
-        [],
-            "errors"
-    :
-        [],
-            "middleware"
-    :
-        [],
-            "responders"
-    :
-        [],
-            "startup"
-    :
-        ["*"],
-            "adapters"
-    :
-        ["*"]
+  "allowedExternalImports": {
+    "widgets": [
+      "react",
+      "react-dom"
+    ],
+    "bindings": [
+      "react",
+      "react-dom"
+    ],
+    "state": [
+      "react",
+      "react-dom",
+      "zustand"
+    ],
+    // Added zustand via override
+    "flows": [
+      "react-router-dom"
+    ],
+    "contracts": [
+      "zod"
+    ],
+    "brokers": [],
+    "transformers": [],
+    "errors": [],
+    "middleware": [],
+    "responders": [],
+    "startup": [
+      "*"
+    ],
+    "adapters": [
+      "*"
+    ]
     }
 }
 ```

@@ -1,0 +1,34 @@
+{
+  "name": "@questmaestro/config",
+  "version": "0.1.0",
+  "description": "Configuration parser and resolver for QuestMaestro architecture lint rules",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "questmaestro",
+    "config",
+    "lint",
+    "architecture"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@types/node": "^24.0.15",
+    "@questmaestro/testing": "*",
+    "jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {},
+  "publishConfig": {
+    "access": "public"
+  }
+}
