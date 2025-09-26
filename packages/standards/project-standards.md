@@ -375,7 +375,7 @@ transformers/
 **Constraints:**
 
 - **Must** be pure functions (no side effects)
-- **Must** return non-boolean values
+- **Must** have explicitly typed returns of non-boolean values
 - **CAN** import contracts/ and errors/
 
 **Example:**
@@ -438,9 +438,9 @@ flows/
 
 **Naming Conventions:**
 
-- **Filename:** kebab-case ending with `-flow.ts` (e.g., `user-flow.ts`)
-- **Export:** camelCase ending with `Flow` (e.g., `userFlow`, `checkoutFlow`)
-- **Pattern:** flows/[domain]/[domain]-flow.ts
+- **Filename:** kebab-case ending with `-flow.ts` or `-flow.tsx` (e.g., `user-flow.tsx`)
+- **Export:** PascalCase ending with `Flow` (e.g., `UserFlow`, `CheckoutFlow`)
+- **Pattern:** flows/[domain]/[domain]-flow.ts(x)
 
 **Constraints:**
 
@@ -451,20 +451,16 @@ flows/
 
 **Example:**
 
-```typescript
+```tsx
 // flows/user/user-flow.tsx (Frontend)
 import {Route} from 'react-router-dom';
 import {UserProfileResponder} from '../../responders/user/profile/user-profile-responder';
 
-export const userFlow = (
-    <Route path = "/users" >
-    <Route path = ":id"
-element = { < UserProfileResponder / >
-}
-/>
-< /Route>
-)
-;
+export const UserFlow = () => (
+    <Route path="/users">
+        <Route path=":id" element={<UserProfileResponder />} />
+    </Route>
+);
 
 // flows/user/user-flow.ts (Backend)
 import {Router} from 'express';
@@ -479,7 +475,7 @@ router.get('/users/:id', async (req, res, next) => {
     }
 });
 
-export const userFlow = router;
+export const UserFlow = router;
 ```
 
 ### adapters/ - External Package Configuration
@@ -493,9 +489,9 @@ adapters/
   axios/
     axios-get.ts
     axios-get.test.ts
-  mongoose/
-    mongoose-find.ts
-    mongoose-find.test.ts
+  aws-sdk-client-s3/
+    aws-sdk-client-s3-upload.ts
+    aws-sdk-client-s3-upload.test.ts
 ```
 
 **Naming Conventions:**
@@ -733,6 +729,22 @@ export const userCacheState = {
 export const appConfigState = {
     apiUrl: process.env.API_URL || 'https://api.example.com',
     timeout: parseInt(process.env.TIMEOUT || '10000')
+};
+
+// state/user-context/user-context-state.ts (React Context example)
+import {createContext, useContext} from 'react';
+import {User} from '../../contracts/user-contract/user-contract';
+
+const UserContext = createContext<User | null>(null);
+
+export const userContextState = {
+    context: UserContext,
+    Provider: UserContext.Provider,
+    useContext: () => {
+        const context = useContext(UserContext);
+        if (!context) throw new Error('UserContext not found');
+        return context;
+    }
 };
 ```
 
