@@ -5,12 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "questmaestro-sanitation-hook": "./dist/sanitation-hook.js",
+    "questmaestro-mock-boundary-hook": "./dist/mock-boundary-hook.js",
     "questmaestro-session-start-hook": "./dist/session-start-hook.js",
     "questmaestro-pre-edit-lint": "./dist/pre-edit-lint/pre-edit-hook.js"
   },
   "scripts": {
-    "build": "tsc && chmod +x dist/sanitation-hook.js && chmod +x dist/session-start-hook.js && chmod +x dist/pre-edit-lint/pre-edit-hook.js",
+    "build": "tsc",
     "build:clean": "rm -rf dist && npm run build",
     "test": "jest",
     "test:unit": "jest",
