@@ -35,7 +35,6 @@ Console.logs need to be tailored and forbidden in most places.
 This needs to be setup in globals and a lint rule/prehook forbidding it
 
 ## forbid
-
 jest.clearAllMocks(); - Tell claude its handled in jest.config
 
 Exported jest config (or ones made in external repo needs a jest setup function file to add to a project's jest config)
@@ -46,13 +45,13 @@ Claude does a lot of inline imports. Needs line/hook blocker
 config?: import('../types/config-type').PreEditLintConfig;
 
 ## coverage
-
 Dont let it run jest --coverage, because then it starts hallucination.
 
 ## PLanning
 
 Getting clade to make a plan and list out entire folder structure with comments for each file is really helpful for
 getting it to generate properly.
+
 
 packages/config/
 ├── package.json // NPM package definition for @questmaestro/config

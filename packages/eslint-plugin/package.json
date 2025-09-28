@@ -1,0 +1,60 @@
+{
+  "name": "@questmaestro/eslint-plugin",
+  "version": "0.1.0",
+  "description": "ESLint plugin enforcing QuestMaestro architecture standards with custom rules for Zod contracts, folder structure, and type safety",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "configs/**/*"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./tsconfig": "./configs/tsconfig.json",
+    "./config": "./configs/eslint.questmaestro.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:clean": "rm -rf dist && npm run build",
+    "test": "jest",
+    "test:unit": "jest",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "typescript",
+    "zod",
+    "architecture",
+    "questmaestro",
+    "type-safety",
+    "folder-structure"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@questmaestro/testing": "*",
+    "@types/eslint": "^9.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.15",
+    "eslint": "^9.30.1",
+    "@typescript-eslint/eslint-plugin": "^8.35.1",
+    "@typescript-eslint/parser": "^8.35.1",
+    "jest": "^30.0.4",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

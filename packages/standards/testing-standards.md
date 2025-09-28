@@ -70,13 +70,11 @@ logical branches and give false confidence.
 - Event handlers (onClick, onChange, onSubmit)
 
 **Why Manual Verification:**
-
 - Jest coverage counts lines hit, not logical conditions tested
 - Coverage can show 100% but miss critical edge cases
 - Conditional logic creates multiple execution paths that tools can't detect
 
 **How to Verify Branches:**
-
 1. **Read implementation code** line by line
 2. **Identify every conditional** (if/else, ternary, switch, try/catch)
 3. **Create test for each path** through the logic
@@ -109,7 +107,6 @@ const formatTitle = (title: string): string => {
 ```
 
 **Hidden Branches Jest Misses:**
-
 ```typescript
 // Coverage might show 100% with one test, but 4 logical branches exist:
 const getUserStatus = (user?: User) => {

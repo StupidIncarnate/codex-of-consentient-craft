@@ -26,25 +26,25 @@
 - When you need just an ID, extract it with `Type['id']` notation
 
 ```typescript
-// ✅ CORRECT - Object destructuring with type relationships
-const updateUser = ({user, companyId}: { user: User; companyId: Company['id'] }) => {
+// ✅ CORRECT - Object destructuring with Zod contract types
+const updateUser = ({user, companyId}: { user: User; companyId: CompanyId }): Promise<User> => {
 }
 
 // ❌ AVOID - Positional parameters
 const updateUser = (user: User, companyId: string) => {
 }
 
-// ✅ CORRECT - Complete objects preserve type relationships
-const processOrder = ({user, companyId}: { user: User; companyId: Company['id'] }) => {
-    // Type safety maintained - companyId is Company['id'], not just string
+// ✅ CORRECT - Complete objects preserve type relationships using contracts
+const processOrder = ({user, companyId}: { user: User; companyId: CompanyId }): Promise<Order> => {
+    // Type safety maintained - companyId is CompanyId branded type, not raw string
 }
 
-// ❌ AVOID - Individual properties lose type relationships
+// ❌ AVOID - Individual properties using raw primitives
 const processOrder = ({userName, userEmail, companyId}: {
-    userName: string;
-    userEmail: string;
-    companyId: string;  // Lost relationship to Company type
-}) => {
+    userName: string;     // Use UserName contract
+    userEmail: string;    // Use EmailAddress contract
+    companyId: string;    // Use CompanyId contract
+}): Promise<Order> => {
 }
 ```
 
@@ -63,39 +63,46 @@ const processOrder = ({userName, userEmail, companyId}: {
 **TypeScript & Type Safety:**
 
 - **Strict typing required** - No type suppression allowed
+- **Use Zod contracts instead of primitives** - All `string`/`number` parameters must use branded Zod types
+- **Explicit return types required** - All exported functions must have explicit return types using Zod contracts
 - **Use existing types** from codebase or create new ones
 - **For uncertain data** (including catch variables): Use `unknown` and prove shape through guards
 - **Fix at source** - Never suppress errors with `@ts-ignore` or `@ts-expect-error`
 - **Type inference** - Let TypeScript infer when values are clear, be explicit for:
     - Empty arrays and objects
     - Ambiguous values
-    - Exported functions returning known types from contracts/
+  - ALL exported functions (explicit return types mandatory)
 - **Type assertions** - Only use when you have information the compiler lacks (e.g., `JSON.parse`)
 
 ```typescript
-// ✅ CORRECT - Strict typing with unknown
-const handleError = ({error}: { error: unknown }) => {
+// ✅ CORRECT - Strict typing with unknown and explicit return type
+export const handleError = ({error}: { error: unknown }): ErrorMessage => {
     if (error instanceof Error) {
-        return error.message;
+        return errorMessageContract.parse(error.message);
     }
     if (typeof error === 'string') {
-        return error;
+        return errorMessageContract.parse(error);
     }
-    return 'Unknown error';
+    return errorMessageContract.parse('Unknown error');
 };
 
 // ✅ CORRECT - Explicit types for empty values
 const users: User[] = [];  // Clear intent
-const config: Record<string, string> = {};
+const config: Record<UserId, User> = {};  // Use branded types in generics
 
 // ✅ CORRECT - Type inference for clear values
-const userId = user.id;  // Inferred from user type
-const names = users.map(u => u.name);  // Inferred from array
+const userId = user.id;  // Inferred from user type (already branded)
+const names = users.map(u => u.name);  // Inferred from array (already branded)
 
 // ❌ WRONG - Using 'any' type
 const data: any = response.data;  // Loses all type safety
 const processItem = (item: any) => {
 };  // Dangerous
+
+// ❌ WRONG - Using raw primitives in function signatures
+export const badFunction = ({userId, name}: { userId: string; name: string }) => {
+    // Use UserId and UserName contracts instead
+};
 
 // ❌ WRONG - Suppressing TypeScript errors
 // @ts-ignore
@@ -109,12 +116,15 @@ const value = user.nonExistentProperty;
 const badCode = () => {
 };  // Bypasses critical checks
 
-// ✅ CORRECT - Create proper types instead
-type ApiResponse = {
-    data: User[];
-    meta: { total: number };
-};
-const processItem = ({item}: { item: User }) => {
+// ✅ CORRECT - Create proper Zod contracts instead
+export const apiResponseContract = z.object({
+    data: z.array(userContract),
+    meta: z.object({total: z.number().int().brand<'TotalCount'>()})
+});
+export type ApiResponse = z.infer<typeof apiResponseContract>;
+
+export const processItem = ({item}: { item: User }): ProcessedUser => {
+    return processedUserContract.parse({...item, processed: true});
 };
 
 // ✅ CORRECT - Type assertion when you have info compiler lacks
@@ -123,25 +133,25 @@ const data = JSON.parse(response) as ApiResponse;
 // ❌ AVOID - Fighting TypeScript's inference
 const count = (items.length as number) + 1;  // TypeScript already knows this
 
-// ✅ CORRECT - Explicit return type for exported function returning known type
+// ✅ CORRECT - Explicit return type for exported function using contracts
 export const loadConfig = (): Config => {
-    return {
+    return configContract.parse({
         apiUrl: process.env.API_URL || 'http://localhost:3000',
-        timeout: 5000
-    };
+        timeout: parseInt(process.env.TIMEOUT || '5000')
+    });
 };
 
-// ✅ CORRECT - Let inference work for complex return shapes
-const processUser = ({user}: { user: User }) => {
-    return {
+// ✅ CORRECT - Exported functions must have explicit return type
+export const processUser = ({user}: { user: User }): ProcessedUser => {
+    return processedUserContract.parse({
         ...user,
         displayName: `${user.firstName} ${user.lastName}`,
         isActive: user.status === 'active'
-    };  // TypeScript infers complex shape automatically
+    });
 };
 
-// ✅ CORRECT - Internal functions use inference
-const isEven = ({n}: { n: number }) => {
+// ✅ CORRECT - Internal functions can use inference
+const isEven = ({n}: { n: PositiveNumber }) => {
     return n % 2 === 0;  // TypeScript infers boolean
 };
 ```
@@ -154,21 +164,21 @@ const isEven = ({n}: { n: number }) => {
 - **Await sequentially** only when operations are dependent
 
 ```typescript
-// ✅ CORRECT - Parallel when independent
+// ✅ CORRECT - Parallel when independent with explicit types
 const [user, config, permissions] = await Promise.all([
-    fetchUser({id}),
-    loadConfig(),
-    getPermissions({id})
+    fetchUser({id: userId}),     // userId is UserId branded type
+    loadConfig(),                // Returns Config contract
+    getPermissions({id: userId}) // userId is UserId branded type
 ]);
 
 // ❌ AVOID - Sequential when could be parallel
-const user = await fetchUser({id});
+const user = await fetchUser({id: userId});
 const config = await loadConfig();
-const permissions = await getPermissions({id});
+const permissions = await getPermissions({id: userId});
 
-// ✅ CORRECT - Sequential when dependent
-const user = await fetchUser({id});
-const company = await fetchCompany({companyId: user.companyId});  // Needs user first
+// ✅ CORRECT - Sequential when dependent with branded types
+const user = await fetchUser({id: userId});
+const company = await fetchCompany({companyId: user.companyId});  // companyId is CompanyId branded type
 ```
 
 **Error Handling:**
@@ -178,25 +188,25 @@ const company = await fetchCompany({companyId: user.companyId});  // Needs user 
 - **Provide context** in error messages with relevant data
 
 ```typescript
-// ✅ CORRECT - Error with context
-const loadConfig = async ({path}: { path: string }) => {
+// ✅ CORRECT - Error with context using path contracts and explicit return type
+export const loadConfig = async ({path}: { path: AbsoluteFilePath }): Promise<Config> => {
     try {
         const content = await readFile(path, 'utf8');
-        return JSON.parse(content);
+        return configContract.parse(JSON.parse(content));
     } catch (error) {
         throw new Error(`Failed to load config from ${path}: ${error}`);
     }
 };
 
-// ✅ CORRECT - Handle at appropriate level
-const processUser = async ({userId}: { userId: string }) => {
+// ✅ CORRECT - Handle at appropriate level with branded types and explicit return type
+export const processUser = async ({userId}: { userId: UserId }): Promise<User> => {
     // Let broker throw, catch at responder level
     const user = await userFetchBroker({userId});
     return user;
 };
 
 // ❌ AVOID - Silent error swallowing
-const loadConfig = async ({path}: { path: string }) => {
+const loadConfig = async ({path}: { path: string }) => {  // Use AbsoluteFilePath
     try {
         return JSON.parse(await readFile(path, 'utf8'));
     } catch (error) {
@@ -204,7 +214,7 @@ const loadConfig = async ({path}: { path: string }) => {
     }
 };
 
-// ❌ AVOID - Generic error without context
+// ❌ AVOID - Generic error without context and raw string path
 throw new Error('Config load failed');  // What path? What error?
 ```
 
@@ -327,6 +337,7 @@ contracts/
 
 - **CAN** export TypeScript types/interfaces (all types go here)
 - **CAN** export validation schemas (Zod, Yup, Joi)
+- **MUST** use `.brand<'TypeName'>()` on all Zod string/number schemas (no raw primitives)
 - **CAN** export pure functions returning booleans (no external calls)
 - **CAN** export validate functions (exception to boolean-only rule)
 - **Must** have explicit return types on all exported boolean/validate functions
@@ -335,23 +346,54 @@ contracts/
 **Example:**
 
 ```typescript
-// contracts/user-contract/user-contract.ts
+// contracts/user-id/user-id-contract.ts
 import {z} from 'zod';
 
+export const userIdContract = z.string()
+    .uuid()
+    .brand<'UserId'>();
+export type UserId = z.infer<typeof userIdContract>;
+
+// contracts/email-address/email-address-contract.ts
+import {z} from 'zod';
+
+export const emailAddressContract = z.string()
+    .email()
+    .brand<'EmailAddress'>();
+export type EmailAddress = z.infer<typeof emailAddressContract>;
+
+// contracts/permission/permission-contract.ts
+import {z} from 'zod';
+
+export const permissionContract = z.string()
+    .min(1)
+    .brand<'Permission'>();
+export type Permission = z.infer<typeof permissionContract>;
+
+// contracts/user/user-contract.ts
+import {z} from 'zod';
+import {userIdContract} from '../user-id/user-id-contract';
+import {emailAddressContract} from '../email-address/email-address-contract';
+import {permissionContract} from '../permission/permission-contract';
+
 export const userContract = z.object({
-    id: z.string().uuid(),
-    email: z.string().email()
+    id: userIdContract,
+    email: emailAddressContract,
+    permissions: z.array(permissionContract)
 });
 
 export type User = z.infer<typeof userContract>;
 
 // contracts/has-permission/has-permission.ts
-export const hasPermission = ({user, action}: { user: User; action: string }) => {
+import type {User} from '../user/user-contract';
+import type {Permission} from '../permission/permission-contract';
+
+export const hasPermission = ({user, action}: { user: User; action: Permission }): boolean => {
     return user.permissions.includes(action);  // ✅ Pure, no external calls
 };
 
 // ❌ WRONG: Needs database, goes in brokers/
-// export const userExists = async ({email}) => await db.find({email});
+export const userExists = async ({email}) => await db.find({email});
 ```
 
 ### transformers/ - Pure Data Transformation
@@ -375,15 +417,20 @@ transformers/
 **Constraints:**
 
 - **Must** be pure functions (no side effects)
-- **Must** have explicitly typed returns of non-boolean values
+- **Must** have explicit return types using Zod contracts (no raw primitives)
+- **Must** validate output using appropriate contract before returning
 - **CAN** import contracts/ and errors/
 
 **Example:**
 
 ```typescript
 // transformers/format-date/format-date-transformer.ts
-export const formatDateTransformer = ({date}: { date: Date }) => {
-    return date.toISOString().split('T')[0];
+import {dateStringContract} from '../../contracts/date-string/date-string-contract';
+import type {DateString} from '../../contracts/date-string/date-string-contract';
+
+export const formatDateTransformer = ({date}: { date: Date }): DateString => {
+    const formatted = date.toISOString().split('T')[0];
+    return dateStringContract.parse(formatted);
 };
 ```
 
@@ -520,15 +567,21 @@ adapters/
     - ❌ `adapters/stripe/payment.ts` (business domain)
 - **Must** add project-specific configuration (timeout, auth, retry)
 - **Must** know NOTHING about business logic
+- **Must** use Zod contract types for parameters and explicit return types
+- **CAN** re-export library types for consumer convenience
 - **CAN** import node_modules and middleware/ (when coupled)
 
 **Example:**
 
 ```typescript
 // adapters/axios/axios-get.ts
-import axios from 'axios';
+import axios, {type AxiosResponse} from 'axios';
+import type {Url} from '../../contracts/url/url-contract';
 
-export const axiosGet = async ({url}: { url: string }) => {
+// Re-export library types for consumers
+export type {AxiosResponse};
+
+export const axiosGet = async ({url}: { url: Url }): Promise<AxiosResponse> => {
     return await axios.get(url, {
         headers: {'Authorization': `Bearer ${getToken()}`},
         timeout: 10000
@@ -620,19 +673,35 @@ brokers/
 ```typescript
 // brokers/user/fetch/user-fetch-broker.ts (Atomic)
 import {axiosGet} from '../../../adapters/axios/axios-get';
+import type {UserId, User} from '../../../contracts/user/user-contract';
+import type {Url} from '../../../contracts/url/url-contract';
 
-export const userFetchBroker = async ({userId}: { userId: string }) => {
-    const response = await axiosGet({url: `/api/users/${userId}`});
-    return response.data;
+export const userFetchBroker = async ({userId}: { userId: UserId }): Promise<User> => {
+    const url = `/api/users/${userId}` as Url;
+    const response = await axiosGet({url});
+    return userContract.parse(response.data);
 };
 
 // brokers/comment/create-process/comment-create-process-broker.ts (Orchestration)
 import {commentCreateBroker} from '../create/comment-create-broker';
 import {notificationSendBroker} from '../../notification/send/notification-send-broker';
+import type {CommentContent, PostId, UserId, Comment} from '../../../contracts';
 
-export const commentCreateProcessBroker = async ({content, postId, userId}) => {
+export const commentCreateProcessBroker = async ({
+                                                     content,
+                                                     postId,
+                                                     userId
+                                                 }: {
+    content: CommentContent;
+    postId: PostId;
+    userId: UserId;
+}): Promise<Comment> => {
     const comment = await commentCreateBroker({content, postId, userId});
-    await notificationSendBroker({userId, type: 'new_comment', data: {commentId: comment.id}});
+    await notificationSendBroker({
+        userId,
+        type: 'new_comment',
+        data: {commentId: comment.id}
+    });
     return comment;
 };
 ```
@@ -672,11 +741,16 @@ bindings/
 // bindings/use-user-data/use-user-data-binding.ts
 import {useState, useEffect} from 'react';
 import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker';
+import type {UserId, User} from '../../contracts/user/user-contract';
 
-export const useUserDataBinding = ({userId}: { userId: string }) => {
-    const [data, setData] = useState(null);
+export const useUserDataBinding = ({userId}: { userId: UserId }): {
+    data: User | null;
+    loading: boolean;
+    error: Error | null;
+} => {
+    const [data, setData] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
         userFetchBroker({userId})
@@ -724,35 +798,40 @@ state/
 
 ```typescript
 // state/user-cache/user-cache-state.ts
-import {User} from '../../contracts/user-contract/user-contract';
+import type {User, UserId} from '../../contracts/user/user-contract';
 
-const cache = new Map<string, User>();
+const cache = new Map<UserId, User>();
 
 export const userCacheState = {
-    get: ({id}: { id: string }): User | undefined => {
+    get: ({id}: { id: UserId }): User | undefined => {
         return cache.get(id);
     },
-    set: ({id, user}: { id: string; user: User }): void => {
+    set: ({id, user}: { id: UserId; user: User }): void => {
         cache.set(id, user);
     }
 };
 
 // state/app-config/app-config-state.ts
+import {urlContract} from '../../contracts/url/url-contract';
+import {timeoutMsContract} from '../../contracts/timeout-ms/timeout-ms-contract';
+import type {Url} from '../../contracts/url/url-contract';
+import type {TimeoutMs} from '../../contracts/timeout-ms/timeout-ms-contract';
+
 export const appConfigState = {
-    apiUrl: process.env.API_URL || 'https://api.example.com',
-    timeout: parseInt(process.env.TIMEOUT || '10000')
-};
+    apiUrl: urlContract.parse(process.env.API_URL || 'https://api.example.com'),
+    timeout: timeoutMsContract.parse(parseInt(process.env.TIMEOUT || '10000'))
+} satisfies { apiUrl: Url; timeout: TimeoutMs };
 
 // state/user-context/user-context-state.ts (React Context example)
 import {createContext, useContext} from 'react';
-import {User} from '../../contracts/user-contract/user-contract';
+import type {User} from '../../contracts/user/user-contract';
 
 const UserContext = createContext<User | null>(null);
 
 export const userContextState = {
     context: UserContext,
     Provider: UserContext.Provider,
-    useContext: () => {
+    useContext: (): User => {
         const context = useContext(UserContext);
         if (!context) throw new Error('UserContext not found');
         return context;
@@ -802,17 +881,31 @@ responders/
 ```typescript
 // responders/user/get/user-get-responder.ts
 import {userFetchBroker} from '../../../brokers/user/fetch/user-fetch-broker';
+import {userToDtoTransformer} from '../../../transformers/user-to-dto/user-to-dto-transformer';
+import type {UserId} from '../../../contracts/user/user-contract';
+import type {Request, Response} from 'express';
 
-export const UserGetResponder = async ({req, res}) => {
-    const user = await userFetchBroker({userId: req.params.id});
-    res.json(user);
+export const UserGetResponder = async ({req, res}: {
+    req: Request;
+    res: Response;
+}): Promise<void> => {
+    const userId = req.params.id as UserId;
+    const user = await userFetchBroker({userId});
+    const userDto = userToDtoTransformer({user});
+    res.json(userDto);
 };
 
 // responders/email/process-queue/email-process-queue-responder.ts (Queue)
 import {emailSendBroker} from '../../../brokers/email/send/email-send-broker';
+import type {EmailAddress, EmailSubject} from '../../../contracts';
 
-export const EmailProcessQueueResponder = async ({job}) => {
-    await emailSendBroker({to: job.data.email, subject: job.data.subject});
+export const EmailProcessQueueResponder = async ({job}: {
+    job: { data: { email: EmailAddress; subject: EmailSubject } };
+}): Promise<void> => {
+    await emailSendBroker({
+        to: job.data.email,
+        subject: job.data.subject
+    });
 };
 ```
 
@@ -856,23 +949,35 @@ import {useState} from 'react';
 import {useUserDataBinding} from '../../bindings/use-user-data/use-user-data-binding';
 import {userUpdateBroker} from '../../brokers/user/update/user-update-broker';
 import {AvatarWidget} from './avatar-widget';
+import type {UserId} from '../../contracts/user/user-contract';
 
 export type UserCardWidgetProps = {
-    userId: string;
-    onUpdate?: ({userId}: { userId: string }) => void;
+    userId: UserId;
+    onUpdate?: ({userId}: { userId: UserId }) => void;
 };
 
-export const UserCardWidget = ({userId, onUpdate}: UserCardWidgetProps) => {
+export const UserCardWidget = ({userId, onUpdate}: UserCardWidgetProps): JSX.Element => {
     const {data: user, loading, error} = useUserDataBinding({userId});
-    const handleUpdate = async () => {
-        await userUpdateBroker({userId, data: user});
-        onUpdate?.({userId});
+
+    const handleUpdate = async (): Promise<void> => {
+        if (user) {
+            await userUpdateBroker({userId, data: user});
+            onUpdate?.({userId});
+        }
     };
 
     if (loading) return <div>Loading
 ...
     </div>;
-    if (error) return <div>Error < /div>;
+    if (error) return <div>Error
+:
+    {
+        error.message
+    }
+    </div>;
+    if (!user) return <div>No
+    user
+    found < /div>;
 
     return (
         <div>
@@ -1124,8 +1229,11 @@ export const UserGetResponder = async ({req, res}) => {
 **Critical:** ALL responder inputs must be validated/sanitized through contracts before use.
 
 ```typescript
-// ✅ CORRECT - Responder with validation
-export const UserCreateResponder = async ({req, res}) => {
+// ✅ CORRECT - Responder with validation using contracts
+export const UserCreateResponder = async ({req, res}: {
+    req: Request;
+    res: Response;
+}): Promise<void> => {
     const userData = userCreateContract.parse(req.body);  // MUST validate first
     const user = await userCreateBroker({userData});
     const userDto = userToDtoTransformer({user});
@@ -1158,10 +1266,14 @@ export const UserCreateResponder = async ({req, res}) => {
     res.json(user);
 };
 
-// ✅ CORRECT - Move orchestration to broker
+// ✅ CORRECT - Move orchestration to broker with proper types
 // brokers/user/signup-process/user-signup-process-broker.ts
-export const userSignupProcessBroker = async ({userData}) => {
-    // Business validation
+export const userSignupProcessBroker = async ({
+                                                  userData
+                                              }: {
+    userData: UserCreateData;
+}): Promise<User> => {
+    // Business validation using branded types
     if (userData.email.includes('@competitor.com')) {
         throw new ValidationError({message: 'Competitor emails not allowed'});
     }
@@ -1170,14 +1282,20 @@ export const userSignupProcessBroker = async ({userData}) => {
     const user = await userCreateBroker({userData});
     if (userData.plan === 'premium') {
         await subscriptionCreateBroker({userId: user.id});
-        await emailSendBroker({to: user.email, template: 'premium-welcome'});
+        await emailSendBroker({
+            to: user.email,
+            template: 'premium-welcome'
+        });
     }
 
     return user;
 };
 
 // responders/user/signup/user-signup-responder.ts
-export const UserSignupResponder = async ({req, res}) => {
+export const UserSignupResponder = async ({req, res}: {
+    req: Request;
+    res: Response;
+}): Promise<void> => {
     const userData = userSignupContract.parse(req.body);
     const user = await userSignupProcessBroker({userData});
     const userDto = userToDtoTransformer({user});
@@ -1262,32 +1380,32 @@ export const userFetchWithCompanyBroker = async ({userId}: { userId: string }) =
 **Transformers (create variants, never use options):**
 
 ```typescript
-// ✅ CORRECT - Each output shape is a separate transformer
+// ✅ CORRECT - Each output shape is a separate transformer with contracts
 // transformers/user-to-dto/user-to-dto-transformer.ts
-export const userToDtoTransformer = ({user}: { user: User }) => {
-    return {
+export const userToDtoTransformer = ({user}: { user: User }): UserDto => {
+    return userDtoContract.parse({
         id: user.id,
         name: user.name,
-        email: user.email  // Public API response
-    };
+        email: user.email  // Public API response - validated
+    });
 };
 
 // transformers/user-to-summary/user-to-summary-transformer.ts
-export const userToSummaryTransformer = ({user}: { user: User }) => {
-    return {
+export const userToSummaryTransformer = ({user}: { user: User }): UserSummary => {
+    return userSummaryContract.parse({
         id: user.id,
-        displayName: `${user.firstName} ${user.lastName}`  // Different output shape
-    };
+        displayName: `${user.firstName} ${user.lastName}`
+    });
 };
 
 // transformers/user-to-admin-dto/user-to-admin-dto-transformer.ts
-export const userToAdminDtoTransformer = ({user}: { user: User }) => {
-    return {
+export const userToAdminDtoTransformer = ({user}: { user: User }): UserAdminDto => {
+    return userAdminDtoContract.parse({
         id: user.id,
         name: user.name,
         email: user.email,
-        passwordHash: user.passwordHash  // Admin-only fields
-    };
+        passwordHash: user.passwordHash  // Admin-only fields - validated
+    });
 };
 
 // ❌ WRONG - Using options for security-sensitive transformations
@@ -1354,29 +1472,39 @@ export const UserCardWidget = ({userId, showCompany, showRoles}: UserCardWidgetP
 
 ```typescript
 // ✅ EXTEND - Filtering is an option, not new action
-export const userFetchBroker = async ({
-                                          companyId,
-                                          status
-                                      }: {
-    companyId: string;
-    status?: 'active' | 'inactive';  // Filter option
-}) => {
-    const users = await axiosGet({url: `/api/companies/${companyId}/users`});
+export const userListBroker = async ({
+                                         companyId,
+                                         status
+                                     }: {
+    companyId: CompanyId;
+    status?: UserStatus;  // Filter option using branded type
+}): Promise<User[]> => {
+    const url = `/api/companies/${companyId}/users` as Url;
+    const response = await axiosGet({url});
+    const users = z.array(userContract).parse(response.data);
     return status ? users.filter(u => u.status === status) : users;
 };
 
 // ❌ DON'T CREATE - user-fetch-active-broker.ts (this is a filter variant!)
 
-// ✅ EXTEND - Lookup method is an option
+// ✅ EXTEND - Lookup method is an option with proper types
 export const userFetchBroker = async ({
                                           userId,
                                           email
                                       }: {
-    userId?: string;
-    email?: string;
-}) => {
-    if (userId) return await axiosGet({url: `/api/users/${userId}`});
-    if (email) return await axiosGet({url: `/api/users?email=${email}`});
+    userId?: UserId;
+    email?: EmailAddress;
+}): Promise<User> => {
+    if (userId) {
+        const url = `/api/users/${userId}` as Url;
+        const response = await axiosGet({url});
+        return userContract.parse(response.data);
+    }
+    if (email) {
+        const url = `/api/users?email=${email}` as Url;
+        const response = await axiosGet({url});
+        return userContract.parse(response.data);
+    }
     throw new Error('Must provide userId or email');
 };
 
