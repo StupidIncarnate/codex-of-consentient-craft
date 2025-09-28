@@ -54,8 +54,9 @@ export const lintContent = async ({ filePath, content }: { filePath: string; con
   const fixResults = parseOutput({ output: fixResult.stdout });
 
   // Check for TypeScript project errors (happens with new files)
-  if (fixResults.length > 0 && fixResults[0].messages) {
-    const hasParserProjectError = fixResults[0].messages.some(
+  const firstResult = fixResults[0];
+  if (firstResult?.messages) {
+    const hasParserProjectError = firstResult.messages.some(
       (msg: EslintMessage) => msg.message && msg.message.includes('parserOptions.project'),
     );
     if (hasParserProjectError) {

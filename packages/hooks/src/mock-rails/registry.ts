@@ -112,7 +112,10 @@ export function getPatternsByModule(): Record<string, MockPattern[]> {
     if (!grouped[pattern.module]) {
       grouped[pattern.module] = [];
     }
-    grouped[pattern.module].push(pattern);
+    const moduleGroup = grouped[pattern.module];
+    if (moduleGroup) {
+      moduleGroup.push(pattern);
+    }
   }
 
   return grouped;

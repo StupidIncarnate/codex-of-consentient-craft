@@ -142,9 +142,7 @@ describe('createFilteredConfig', () => {
     it('EDGE: {eslintConfig with undefined rules property, hookConfig} => returns config with empty rules', () => {
       mockHookConfigUtilWithRules(['no-unused-vars']);
 
-      const eslintConfig: Linter.Config = {
-        rules: undefined,
-      };
+      const eslintConfig: Linter.Config = {};
       const hookConfig = {
         rules: ['no-unused-vars'],
       };

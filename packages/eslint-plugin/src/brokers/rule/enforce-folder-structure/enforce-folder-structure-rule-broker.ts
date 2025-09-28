@@ -58,13 +58,17 @@ export const enforceFolderStructureRuleBroker = () => ({
         const pathParts = filename.split('/src/')[1]?.split('/') || [];
         const firstFolder = pathParts[0];
 
+        if (!firstFolder) {
+          return; // No folder to check
+        }
+
         if (forbiddenFolders.includes(firstFolder)) {
           const suggestion = getFolderSuggestion(firstFolder);
           context.report({
             node,
             message: `Folder "${firstFolder}/" is forbidden. Use "${suggestion}/" instead according to project standards.`,
           });
-        } else if (firstFolder && !allowedFolders.includes(firstFolder)) {
+        } else if (!allowedFolders.includes(firstFolder)) {
           context.report({
             node,
             message: `Unknown folder "${firstFolder}/". Must use one of: ${allowedFolders.join(', ')}`,

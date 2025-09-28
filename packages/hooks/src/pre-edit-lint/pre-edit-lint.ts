@@ -44,7 +44,16 @@ export const PreEditLint = {
     }
 
     // Process the first content change (typically there's only one)
-    const { oldContent, newContent } = contentChanges[0];
+    const firstChange = contentChanges[0];
+    if (!firstChange) {
+      return {
+        hasNewViolations: false,
+        message: 'No content changes detected',
+        newViolations: [],
+      };
+    }
+
+    const { oldContent, newContent } = firstChange;
 
     // Skip if content is identical
     if (oldContent === newContent) {

@@ -41,9 +41,14 @@ export const hasNewViolations = ({
     }
   }
 
-  return {
+  const result: ViolationComparison = {
     hasNewViolations,
     newViolations: newlyIntroduced,
-    message,
   };
+
+  if (message) {
+    result.message = message;
+  }
+
+  return result;
 };

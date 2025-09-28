@@ -1,7 +1,7 @@
 import { ESLint } from 'eslint';
 import { resolve } from 'path';
 import type { Linter } from 'eslint';
-import type { LintResult } from '../types/lint-type';
+import type { LintResult, LintMessage } from '../types/lint-type';
 
 const convertEslintResultToLintResult = ({
   result,
@@ -9,13 +9,20 @@ const convertEslintResultToLintResult = ({
   result: ESLint.LintResult;
 }): LintResult => ({
   filePath: result.filePath,
-  messages: result.messages.map((msg) => ({
-    line: msg.line,
-    column: msg.column,
-    message: msg.message,
-    severity: msg.severity,
-    ruleId: msg.ruleId || undefined,
-  })),
+  messages: result.messages.map((msg) => {
+    const lintMessage: LintMessage = {
+      line: msg.line,
+      column: msg.column,
+      message: msg.message,
+      severity: msg.severity,
+    };
+
+    if (msg.ruleId) {
+      lintMessage.ruleId = msg.ruleId;
+    }
+
+    return lintMessage;
+  }),
   errorCount: result.errorCount,
   warningCount: result.warningCount,
 });

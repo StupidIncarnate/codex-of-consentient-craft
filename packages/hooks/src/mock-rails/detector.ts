@@ -73,11 +73,14 @@ export function findJestMocks(content: string): Array<{
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (!line) continue;
+
     const jestMockMatch = line.match(/jest\.mock\(['"]([^'"]+)['"]\)/);
 
     if (jestMockMatch) {
       const column = line.indexOf('jest.mock') + 1;
       const module = jestMockMatch[1];
+      if (!module) continue;
       const mockType = 'full'; // jest.mock() is always a full mock
 
       mocks.push({
@@ -115,20 +118,25 @@ export function findJestSpies(content: string): Array<{
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (!line) continue;
+
     // Match patterns like jest.spyOn(target, 'method') or jest.spyOn(module.object, 'method')
     const spyMatch = line.match(/jest\.spyOn\(\s*([^,]+)\s*,\s*['"]([^'"]+)['"]\s*\)/);
 
     if (spyMatch) {
       const column = line.indexOf('jest.spyOn') + 1;
-      const target = spyMatch[1].trim();
+      const target = spyMatch[1]?.trim();
       const method = spyMatch[2];
+      const matchedCode = spyMatch[0];
+
+      if (!target || !method || !matchedCode) continue;
 
       spies.push({
         line: i + 1,
         column,
         target,
         method,
-        matchedCode: spyMatch[0],
+        matchedCode,
       });
     }
   }
@@ -266,14 +274,19 @@ export function extractImports(content: string): Array<{
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (!line) continue;
 
     // Named imports: import { a, b } from 'module'
     const namedMatch = line.match(/import\s*\{\s*([^}]+)\s*\}\s*from\s*['"]([^'"]+)['"]/);
     if (namedMatch) {
-      const importNames = namedMatch[1].split(',').map((name) => name.trim());
+      const importNamesStr = namedMatch[1];
+      const module = namedMatch[2];
+      if (!importNamesStr || !module) continue;
+
+      const importNames = importNamesStr.split(',').map((name) => name.trim());
       imports.push({
         line: i + 1,
-        module: namedMatch[2],
+        module,
         type: 'named',
         imports: importNames,
       });
@@ -283,11 +296,15 @@ export function extractImports(content: string): Array<{
     // Default import: import name from 'module'
     const defaultMatch = line.match(/import\s+([^{][^\s]+)\s+from\s+['"]([^'"]+)['"]/);
     if (defaultMatch) {
+      const importName = defaultMatch[1];
+      const module = defaultMatch[2];
+      if (!importName || !module) continue;
+
       imports.push({
         line: i + 1,
-        module: defaultMatch[2],
+        module,
         type: 'default',
-        imports: [defaultMatch[1]],
+        imports: [importName],
       });
       continue;
     }
@@ -295,11 +312,15 @@ export function extractImports(content: string): Array<{
     // Namespace import: import * as name from 'module'
     const namespaceMatch = line.match(/import\s+\*\s+as\s+([^\s]+)\s+from\s+['"]([^'"]+)['"]/);
     if (namespaceMatch) {
+      const namespaceName = namespaceMatch[1];
+      const module = namespaceMatch[2];
+      if (!namespaceName || !module) continue;
+
       imports.push({
         line: i + 1,
-        module: namespaceMatch[2],
+        module,
         type: 'namespace',
-        imports: [namespaceMatch[1]],
+        imports: [namespaceName],
       });
     }
   }

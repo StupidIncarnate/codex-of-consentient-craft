@@ -531,7 +531,6 @@ describe('mergeConfigsTransformer', () => {
       const baseConfig: QuestmaestroConfig = {
         framework: 'node-library',
         schema: 'zod',
-        routing: undefined,
       };
 
       const packageConfig: QuestmaestroConfig = {
@@ -546,7 +545,6 @@ describe('mergeConfigsTransformer', () => {
       expect(result).toStrictEqual({
         framework: 'node-library',
         schema: 'yup',
-        routing: undefined,
       });
     });
   });

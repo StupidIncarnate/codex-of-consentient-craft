@@ -65,7 +65,11 @@ function isTestFile(filePath: string): boolean {
 
 // Main execution when run as CLI
 if (require.main === module) {
-  const data = JSON.parse(process.argv[2]) as PreToolUseHookData;
+  const argData = process.argv[2];
+  if (!argData) {
+    throw new Error('Missing required argument data');
+  }
+  const data = JSON.parse(argData) as PreToolUseHookData;
   try {
     mockBoundaryHook(data);
   } catch (error) {

@@ -12,7 +12,6 @@ describe('hasNewViolations', () => {
     expect(result).toStrictEqual({
       hasNewViolations: false,
       newViolations: [],
-      message: undefined,
     });
   });
 
@@ -48,7 +47,6 @@ describe('hasNewViolations', () => {
     expect(result).toStrictEqual({
       hasNewViolations: false,
       newViolations: [],
-      message: undefined,
     });
   });
 

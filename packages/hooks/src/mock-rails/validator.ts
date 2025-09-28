@@ -121,7 +121,10 @@ function formatViolationMessage({
   );
 
   for (const [patternId, detections] of Object.entries(violationGroups)) {
-    const pattern = detections[0].pattern;
+    const firstDetection = detections[0];
+    if (!firstDetection) continue;
+
+    const pattern = firstDetection.pattern;
     const lines = detections.map((d) => d.line).join(', ');
 
     message += `Pattern: ${patternId}\n`;

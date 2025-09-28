@@ -17,8 +17,9 @@ export const lintContentWithFiltering = async ({
   const { fixResults } = await lintContent({ filePath, content });
 
   // Check if there are any remaining errors after fixing
-  if (fixResults.length > 0 && fixResults[0].messages) {
-    let errors = fixResults[0].messages.filter((msg: EslintMessage) => msg.severity === 2);
+  const firstResult = fixResults[0];
+  if (firstResult?.messages) {
+    let errors = firstResult.messages.filter((msg: EslintMessage) => msg.severity === 2);
 
     // Filter out @typescript-eslint errors in pre-hook mode
     errors = errors.filter((error: EslintMessage) => {

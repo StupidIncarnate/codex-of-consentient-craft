@@ -9,16 +9,24 @@ export const mergeConfigsTransformer = ({
     throw new Error('Cannot merge empty configs array');
   }
 
+  const firstConfig = configs[0];
+  if (!firstConfig) {
+    throw new Error('First config is undefined');
+  }
+
   if (configs.length === 1) {
-    return configs[0];
+    return firstConfig;
   }
 
   // Start with the first config (usually monorepo root)
-  let merged = { ...configs[0] };
+  let merged = { ...firstConfig };
 
   // Merge each subsequent config
   for (let i = 1; i < configs.length; i++) {
     const config = configs[i];
+    if (!config) {
+      continue; // Skip undefined configs
+    }
 
     // Framework from package-specific config always wins
     merged.framework = config.framework;

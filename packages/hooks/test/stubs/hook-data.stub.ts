@@ -86,7 +86,7 @@ export const EditToolHookStub = (
       file_path: tool_input?.file_path || '/test/file.ts',
       old_string: tool_input?.old_string || 'old',
       new_string: tool_input?.new_string || 'new',
-      replace_all: tool_input?.replace_all,
+      ...(tool_input?.replace_all !== undefined && { replace_all: tool_input.replace_all }),
     },
   };
   return { ...base, ...rest };

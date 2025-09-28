@@ -489,7 +489,6 @@ describe('LintRunner', () => {
                 column: 1,
                 message: 'Syntax error',
                 severity: 2,
-                ruleId: undefined,
               },
             ],
             errorCount: 1,
@@ -1003,11 +1002,7 @@ describe('LintRunner', () => {
         mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
 
         const config: Linter.Config = {
-          rules: undefined,
-          languageOptions: {
-            parserOptions: undefined,
-            ecmaVersion: undefined,
-          },
+          languageOptions: {},
         };
 
         const results = await LintRunner.runTargetedLint({
@@ -1150,7 +1145,9 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(results[0].messages[0]).toStrictEqual({
+        const firstResult = results[0];
+        const firstMessage = firstResult?.messages[0];
+        expect(firstMessage).toStrictEqual({
           line: 10,
           column: 15,
           message: 'Basic lint message',
@@ -1187,7 +1184,9 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(results[0].messages[0].ruleId).toBeUndefined();
+        const firstResult = results[0];
+        const firstMessage = firstResult?.messages[0];
+        expect(firstMessage?.ruleId).toBeUndefined();
       });
 
       it('VALID: {result with message with ruleId} => preserves ruleId', async () => {
@@ -1218,7 +1217,9 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(results[0].messages[0].ruleId).toBe('specific-rule');
+        const firstResult = results[0];
+        const firstMessage = firstResult?.messages[0];
+        expect(firstMessage?.ruleId).toBe('specific-rule');
       });
 
       it('VALID: {result with multiple messages} => transforms all messages', async () => {
@@ -1263,7 +1264,8 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(results[0].messages).toStrictEqual([
+        const firstResult = results[0];
+        expect(firstResult?.messages).toStrictEqual([
           {
             line: 1,
             column: 1,
@@ -1276,7 +1278,6 @@ describe('LintRunner', () => {
             column: 5,
             message: 'Second message',
             severity: 1,
-            ruleId: undefined,
           },
           {
             line: 3,
@@ -1310,8 +1311,9 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(results[0].errorCount).toBe(5);
-        expect(results[0].warningCount).toBe(3);
+        const firstResult = results[0];
+        expect(firstResult?.errorCount).toBe(5);
+        expect(firstResult?.warningCount).toBe(3);
       });
 
       it('EDGE: {result with zero counts} => preserves zero counts', async () => {
@@ -1334,8 +1336,9 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(results[0].errorCount).toBe(0);
-        expect(results[0].warningCount).toBe(0);
+        const firstResult = results[0];
+        expect(firstResult?.errorCount).toBe(0);
+        expect(firstResult?.warningCount).toBe(0);
       });
 
       it('EDGE: {result with high counts} => preserves large counts', async () => {
@@ -1358,8 +1361,9 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(results[0].errorCount).toBe(999);
-        expect(results[0].warningCount).toBe(1500);
+        const firstResult = results[0];
+        expect(firstResult?.errorCount).toBe(999);
+        expect(firstResult?.warningCount).toBe(1500);
       });
     });
 
@@ -1384,7 +1388,8 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(results[0].filePath).toBe('/absolute/path/to/file.ts');
+        const firstResult = results[0];
+        expect(firstResult?.filePath).toBe('/absolute/path/to/file.ts');
       });
 
       it('VALID: {result with relative path} => preserves file path', async () => {
@@ -1407,7 +1412,8 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(results[0].filePath).toBe('relative/path/file.ts');
+        const firstResult = results[0];
+        expect(firstResult?.filePath).toBe('relative/path/file.ts');
       });
 
       it('VALID: {result with special characters in path} => preserves path correctly', async () => {
@@ -1430,7 +1436,8 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(results[0].filePath).toBe('/path/with spaces/and-special_chars/file (1).ts');
+        const firstResult = results[0];
+        expect(firstResult?.filePath).toBe('/path/with spaces/and-special_chars/file (1).ts');
       });
     });
   });

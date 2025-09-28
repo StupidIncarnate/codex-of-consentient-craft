@@ -145,7 +145,6 @@ describe('spawnPromise', () => {
       const result = await spawnPromise({
         command: 'echo',
         args: ['test'],
-        cwd: undefined,
       });
 
       expect(result).toStrictEqual({
