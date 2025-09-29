@@ -10,7 +10,8 @@
 
 - All functions must use `export const` with arrow function syntax
 - Exception: Error classes use `export class`
-- **Always use named exports** - never use `export default`
+- **Always use named exports** - never use `export default` unless it's the index file and only if its connecting to a
+  system that requires it.
 
 **Single Responsibility Per File:**
 

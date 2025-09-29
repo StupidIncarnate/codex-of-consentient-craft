@@ -4,10 +4,14 @@ const prettierConfig = require('eslint-config-prettier');
 const prettierPlugin = require('eslint-plugin-prettier');
 const jestPlugin = require('eslint-plugin-jest');
 const eslintCommentsPlugin = require('eslint-plugin-eslint-comments');
-const { fixupConfigRules } = require('@eslint/compat');
-const { FlatCompat } = require('@eslint/eslintrc');
+// Import our own questmaestro plugin and config
+const questmaestroPlugin = require('./packages/eslint-plugin/dist/index.js').default;
+const {
+  questmaestroConfigBroker,
+} = require('./packages/eslint-plugin/dist/brokers/config/questmaestro/questmaestro-config-broker.js');
 
-const compat = new FlatCompat();
+// Get the questmaestro config
+const questmaestroConfig = questmaestroConfigBroker();
 
 module.exports = [
   // Global ignores
@@ -48,23 +52,17 @@ module.exports = [
       '@typescript-eslint': tseslint,
       prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
+      '@questmaestro': questmaestroPlugin,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
       ...tseslint.configs['recommended-requiring-type-checking'].rules,
       ...prettierConfig.rules,
+      ...questmaestroConfig.rules,
       'prettier/prettier': 'error',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
-        },
-      ],
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': 'error',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
+      // '@typescript-eslint/no-unsafe-assignment': 'off',
       'eslint-comments/no-unlimited-disable': 'error',
       'eslint-comments/no-use': ['error', { allow: [] }],
     },

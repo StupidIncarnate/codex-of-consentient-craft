@@ -13,6 +13,7 @@ export { requireZodOnPrimitivesRuleBroker } from './brokers/rule/require-zod-on-
 export { explicitReturnTypesRuleBroker } from './brokers/rule/explicit-return-types/explicit-return-types-rule-broker';
 export { enforceFolderStructureRuleBroker } from './brokers/rule/enforce-folder-structure/enforce-folder-structure-rule-broker';
 export { questmaestroConfigBroker } from './brokers/config/questmaestro/questmaestro-config-broker';
+export { questmaestroConfigEslintBroker } from './brokers/config/eslint/questmaestro-config-eslint-broker';
 export { tsconfigBroker } from './brokers/config/tsconfig/tsconfig-broker';
 
 // Export transformers for advanced usage
