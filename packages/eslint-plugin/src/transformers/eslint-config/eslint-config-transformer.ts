@@ -1,6 +1,6 @@
-import type { EslintConfig } from '../../../contracts/eslint-config/eslint-config-contract';
+import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
 
-export const questmaestroConfigEslintBroker = ({
+export const eslintConfigTransformer = ({
   forTesting = false,
 }: {
   forTesting?: boolean;

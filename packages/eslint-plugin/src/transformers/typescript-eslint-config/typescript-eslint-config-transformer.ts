@@ -1,13 +1,13 @@
-import type { EslintConfig } from '../../../contracts/eslint-config/eslint-config-contract';
-import typescriptEslintPlugin from '@typescript-eslint/eslint-plugin';
+import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
+import { typescriptEslintEslintPlugin } from '../../adapters/typescript-eslint-eslint-plugin/typescript-eslint-eslint-plugin';
 
-export const questmaestroConfigTypescriptEslintBroker = ({
+export const typescriptEslintConfigTransformer = ({
   forTesting = false,
 }: {
   forTesting?: boolean;
 } = {}): EslintConfig => ({
   plugins: {
-    '@typescript-eslint': typescriptEslintPlugin,
+    '@typescript-eslint': typescriptEslintEslintPlugin,
   },
   rules: {
     // ✅ function foo(); function foo(x: string): void; function foo(x?: string) {}

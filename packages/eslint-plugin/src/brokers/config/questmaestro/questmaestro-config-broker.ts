@@ -1,6 +1,6 @@
 import type { EslintConfig } from '../../../contracts/eslint-config/eslint-config-contract';
-import { questmaestroConfigEslintBroker } from '../eslint/questmaestro-config-eslint-broker';
-import { questmaestroConfigTypescriptEslintBroker } from '../typescript-eslint/questmaestro-config-typescript-eslint-broker';
+import { eslintConfigTransformer } from '../../../transformers/eslint-config/eslint-config-transformer';
+import { typescriptEslintConfigTransformer } from '../../../transformers/typescript-eslint-config/typescript-eslint-config-transformer';
 import { eslintConflictResolverTransformer } from '../../../transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer';
 
 export const questmaestroConfigBroker = ({
@@ -8,8 +8,8 @@ export const questmaestroConfigBroker = ({
 }: {
   forTesting?: boolean;
 } = {}): EslintConfig => {
-  const eslintConfig = questmaestroConfigEslintBroker({ forTesting });
-  const typescriptEslintConfig = questmaestroConfigTypescriptEslintBroker({ forTesting });
+  const eslintConfig = eslintConfigTransformer({ forTesting });
+  const typescriptEslintConfig = typescriptEslintConfigTransformer({ forTesting });
 
   const mergedConfig = eslintConflictResolverTransformer({
     reference: eslintConfig,
