@@ -13,6 +13,22 @@ Minimize tokens while maintaining clarity for LLMs and humans scanning test suit
 Tests MUST use proper TypeScript types. **Never use `any`, `as`, or `@ts-ignore`** - if types don't match, fix the code
 or types, not the test.
 
+**Exception for mocks:** Use `jest.mocked()` instead of type assertions. When mocking functions that return branded
+types (Zod `.brand<'Type'>()`), use the contract to create the branded value:
+
+```typescript
+// ✅ CORRECT - Mock with branded type
+import {fileContentsContract} from './contracts/file-contents-contract';
+
+mockFsReadFile.mockResolvedValue(fileContentsContract.parse('content'));
+
+// ❌ WRONG - Type error
+mockFsReadFile.mockResolvedValue('content'); // string is not FileContents
+
+// ❌ WRONG - Type escape hatch
+mockFsReadFile.mockResolvedValue('content' as FileContents);
+```
+
 ### DAMP > DRY
 
 Tests should be **Descriptive And Meaningful**, not DRY. Each test must be readable standalone without looking at
@@ -280,33 +296,241 @@ expect(items[0]).toBe('apple');
 expect(items[1]).toBe('banana'); // Use toStrictEqual instead!
 ```
 
-### Mock Only External Systems (With Exact Values)
-```typescript
-// ✅ CORRECT - Mock external dependencies with predictable values
-jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-jest.spyOn(Date, 'now').mockReturnValue(1609459200000); // Exact timestamp
-jest.spyOn(window, 'fetch').mockResolvedValue(response);
+## Mocking Pattern (Universal)
 
-// Then test the complete object with exact values
-expect(result).toStrictEqual({
-    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-    timestamp: 1609459200000,
-    // ALL other properties that result should have
+### The One Pattern: `jest.mock()` + `jest.mocked()`
+
+**Use this pattern for ALL mocking:** adapters, brokers, npm packages, Node.js built-ins.
+
+```typescript
+// ✅ CORRECT - Universal pattern for module imports
+import {fsReadFile} from '../../../adapters/fs/fs-read-file';
+import {apiClient} from '../../../adapters/api/api-client';
+import {fileContentsContract} from '../../../contracts/file-contents/file-contents-contract';
+import {filePathContract} from '../../../contracts/file-path/file-path-contract';
+
+// Mock before using (automatically hoisted)
+jest.mock('../../../adapters/fs/fs-read-file');
+jest.mock('../../../adapters/api/api-client');
+
+// Type-safe mock access
+const mockFsReadFile = jest.mocked(fsReadFile);
+const mockApiClient = jest.mocked(apiClient);
+
+describe('myFunction', () => {
+    // No beforeEach needed - mocks auto-reset via @questmaestro/testing
+
+    it('VALID: reads file and makes request', async () => {
+        const filePath = filePathContract.parse('/config.json');
+        const fileContents = fileContentsContract.parse('{"framework": "react"}');
+
+        mockFsReadFile.mockResolvedValue(fileContents);
+        mockApiClient.post.mockResolvedValue({success: true});
+
+        const result = await myFunction({filePath});
+
+        expect(result).toStrictEqual({ /* complete result */});
+        expect(mockFsReadFile).toHaveBeenCalledTimes(1);
+        expect(mockFsReadFile).toHaveBeenCalledWith({filePath});
+    });
+});
+```
+
+### Why This Pattern Works
+
+**`jest.mock()` is hoisted** - even though it appears after imports, Jest automatically moves it to run FIRST:
+
+```typescript
+// You write this:
+import {fsReadFile} from './adapter';
+
+jest.mock('./adapter');
+
+// Jest executes as:
+jest.mock('./adapter');  // Runs FIRST
+import {fsReadFile} from './adapter';  // Gets mocked version
+```
+
+**`jest.mocked()` provides type safety** - no unsafe type assertions needed:
+
+```typescript
+// ✅ CORRECT - Type-safe
+const mockFn = jest.mocked(myFunction);
+mockFn.mockReturnValue('value'); // TypeScript knows the return type
+
+// ❌ WRONG - Unsafe type assertion (causes ESLint errors)
+const mockFn = myFunction as jest.MockedFunction<typeof myFunction>;
+```
+
+### When to Use `jest.spyOn()` Instead
+
+**ONLY use `jest.spyOn()` for global objects** (crypto, Date, window, console):
+
+```typescript
+// ✅ CORRECT - spyOn for global objects
+jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
+jest.spyOn(console, 'log').mockImplementation();
+
+// ❌ WRONG - Don't use spyOn for module imports
+import * as adapter from './adapter';
+
+jest.spyOn(adapter, 'fsReadFile'); // Doesn't work! Use jest.mock() instead
+```
+
+**Why spyOn doesn't work for module imports:** When your code does `import { fsReadFile }`, it creates a direct binding
+to the real function, bypassing any spy on the namespace object.
+
+### Mocking with Branded Types
+
+When using Zod branded types, mocks must use the branded type:
+
+```typescript
+// contracts/file-contents/file-contents-contract.ts
+export const fileContentsContract = z.string().brand<'FileContents'>();
+export type FileContents = z.infer<typeof fileContentsContract>;
+
+// adapter returns branded type
+export const fsReadFile = async ({filePath}: { filePath: FilePath }): Promise<FileContents> =>
+    fileContentsContract.parse(await readFile(filePath, 'utf8'));
+
+// test - must use branded type
+jest.mock('../../../adapters/fs/fs-read-file');
+const mockFsReadFile = jest.mocked(fsReadFile);
+
+it('VALID: reads file', async () => {
+    // ❌ WRONG - Type error: string is not FileContents
+    mockFsReadFile.mockResolvedValue('plain string');
+
+    // ✅ CORRECT - Use contract to create branded type
+    const contents = fileContentsContract.parse('mocked content');
+    mockFsReadFile.mockResolvedValue(contents);
+
+    // ✅ CORRECT - Or inline
+    mockFsReadFile.mockResolvedValue(fileContentsContract.parse('mocked content'));
+});
+```
+
+**Create test stubs for commonly mocked branded types:**
+
+```typescript
+// tests/stubs/file-contents-stub.ts
+import {fileContentsContract, type FileContents} from '../../src/contracts/file-contents/file-contents-contract';
+
+export const FileContentsStub = (value: string): FileContents =>
+    fileContentsContract.parse(value);
+
+// tests/stubs/file-path-stub.ts
+import {filePathContract, type FilePath} from '../../src/contracts/file-path/file-path-contract';
+
+export const FilePathStub = (value: string): FilePath =>
+    filePathContract.parse(value);
+
+// Usage in tests
+import {FileContentsStub} from '../../../../../tests/stubs/file-contents-stub';
+import {FilePathStub} from '../../../../../tests/stubs/file-path-stub';
+
+const filePath = FilePathStub('/config.json');
+const fileContents = FileContentsStub('mocked content');
+
+mockFsReadFile.mockResolvedValue(fileContents);
+expect(mockFsReadFile).toHaveBeenCalledWith({filePath});
+```
+
+### What to Mock (Unit Tests)
+
+**Mock ALL imports except pure functions:**
+
+**MUST mock:**
+
+- **Adapters** - External system wrappers (fs, db, api, etc.)
+- **Brokers** - Business logic functions (both atomic and orchestration)
+- **Transformers** - Data transformation functions (unless pure and side-effect free)
+- **Global objects** - Mock using `jest.spyOn()` on crypto, Date, console, window
+
+**DO NOT mock:**
+
+- **Contracts** - Pure Zod schemas and type definitions (no side effects)
+- **Pure utility functions** - Functions that only transform data with no I/O
+- **Type imports** - `import type { ... }`
+
+**Why mock everything:** With branded types on all returns, you need to control the exact typed values in tests. Mocking
+ensures unit isolation and prevents tests from becoming integration tests.
+
+```typescript
+// ✅ CORRECT - Mock ALL imports (adapters, brokers, transformers)
+import {fsReadFile} from '../../../adapters/fs/fs-read-file';
+import {configParseBroker} from '../../../brokers/config/parse/config-parse-broker';
+import {apiClient} from '../../../adapters/api/api-client';
+import {FileContentsStub} from '../../../../../tests/stubs/file-contents-stub';
+import {FilePathStub} from '../../../../../tests/stubs/file-path-stub';
+import {ConfigStub} from '../../../../../tests/stubs/config-stub';
+
+jest.mock('../../../adapters/fs/fs-read-file');
+jest.mock('../../../brokers/config/parse/config-parse-broker');
+jest.mock('../../../adapters/api/api-client');
+
+const mockFsReadFile = jest.mocked(fsReadFile);
+const mockConfigParseBroker = jest.mocked(configParseBroker);
+const mockApiClient = jest.mocked(apiClient);
+
+describe('configLoadBroker', () => {
+    beforeEach(() => {
+        // Mock globals for predictable IDs/timestamps
+        jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+        jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
+    });
+
+    it('VALID: loads config and creates record', async () => {
+        const filePath = FilePathStub('/config.json');
+        const fileContents = FileContentsStub('{ "framework": "react" }');
+        const parsedConfig = ConfigStub({framework: 'react'});
+
+        mockFsReadFile.mockResolvedValue(fileContents);
+        mockConfigParseBroker.mockResolvedValue(parsedConfig);
+        mockApiClient.post.mockResolvedValue({success: true});
+
+        const result = await configLoadBroker({filePath});
+
+        // Test complete object with exact mocked values
+        expect(result).toStrictEqual({
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            timestamp: 1609459200000,
+            config: parsedConfig,
+            synced: true
+            // ALL properties
+        });
+
+        // Verify all mocks were called correctly
+        expect(mockFsReadFile).toHaveBeenCalledWith({filePath});
+        expect(mockConfigParseBroker).toHaveBeenCalledWith({contents: fileContents});
+        expect(mockApiClient.post).toHaveBeenCalledTimes(1);
+    });
 });
 
-// ❌ WRONG - Mocking internal application code
-jest.spyOn(userService, 'validateEmail').mockReturnValue(true);
+// ❌ WRONG - Not mocking imported broker
+import {configParseBroker} from '../../../brokers/config/parse';
+// Missing: jest.mock('../../../brokers/config/parse');
+// This becomes an integration test, testing BOTH brokers together!
+
+// ✅ CORRECT - Don't mock pure contracts
+import {configContract} from '../../../contracts/config/config-contract';
+// No jest.mock needed - contracts are pure schemas
+const validConfig = configContract.parse({framework: 'react'});
 ```
 
 ### Avoiding Conditionals in Mocks
 
-**General Rule: Mocks are test smells.** They should be avoided whenever possible. Use them ONLY for external systems
-you cannot control (APIs, file system, crypto, Date, etc.).
-
-When you must use mocks, never use conditional logic inside mock implementations. Conditionals make tests brittle and
+When using mocks, never use conditional logic inside mock implementations. Conditionals make tests brittle and
 hard to debug.
 
 ```typescript
+// Setup for examples below
+import {ESLint} from 'eslint';
+
+jest.mock('eslint');
+const mockESLint = jest.mocked(ESLint);
+
 // ❌ WRONG - Conditional logic in mock creates test complexity
 let callCount = 0;
 mockESLint.mockImplementation((options) => {
@@ -385,12 +609,17 @@ await expect(failingCall()).rejects.toThrow('Error message');
 3. **Shared Test State**: Tests depending on each other
 4. **Existence-Only Checks**: Using toBeDefined() instead of actual values
 5. **Count-Only Checks**: Testing length without verifying content
-6. **Over-Mocking**: Mocking internal code instead of just external systems
+6. **Under-Mocking**: Not mocking imported brokers/transformers (creates integration tests, not unit tests)
 7. **Conditional Mocking**: Using if/else logic inside mock implementations
 8. **String IDs**: Using 'user-123' instead of proper UUIDs
 9. **Comment Organization**: Using comments instead of describe blocks for test structure
-10. **Manual Mock Cleanup**: Jest handles this automatically
+10. **Manual Mock Cleanup**: Calling `mockReset()`, `mockClear()`, `clearAllMocks()` - @questmaestro/testing handles
+    this globally
 11. **Type Escape Hatches**: Using `any`, `as`, `@ts-ignore` in tests
+12. **Using `jest.spyOn()` for Module Imports**: Only use spyOn for global objects (crypto, Date, window)
+13. **Unsafe Type Assertions in Mocks**: Using `as jest.MockedFunction<typeof fn>` instead of `jest.mocked()`
+14. **Manual Mock Factories**: Using `jest.mock('module', () => ({ fn: jest.fn() }))` when auto-mocking works
+15. **Importing Before Mocking**: Worrying about import order (jest.mock is hoisted automatically)
 
 ## Forbidden Jest Matchers
 
@@ -636,25 +865,56 @@ expect(element).toHaveTextContent(/^Exact Text$/);
 
 ### Node.js API Testing
 ```typescript
+// Mock adapters that controllers use
+import {dbCreateUser} from '../../../adapters/database/db-create-user';
+import {emailSendWelcome} from '../../../adapters/email/email-send-welcome';
+
+jest.mock('../../../adapters/database/db-create-user');
+jest.mock('../../../adapters/email/email-send-welcome');
+
+const mockDbCreateUser = jest.mocked(dbCreateUser);
+const mockEmailSendWelcome = jest.mocked(emailSendWelcome);
+
 describe("UserController", () => {
     beforeEach(() => {
-        // Mock ID generation for predictable tests
+        // Mock globals for predictable IDs/timestamps
         jest.spyOn(crypto, 'randomUUID')
             .mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+        jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
+
+        // No mockReset needed - mocks auto-reset via @questmaestro/testing
     });
 
     describe("POST /users", () => {
         it("VALID: {name: 'John', email: 'john@test.com'} => returns 201", async () => {
+            mockDbCreateUser.mockResolvedValue({
+                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                name: 'John',
+                email: 'john@test.com',
+                createdAt: 1609459200000
+            });
+            mockEmailSendWelcome.mockResolvedValue({sent: true});
+
             const res = await request(app)
                 .post('/users')
                 .send({name: 'John', email: 'john@test.com'});
+
             expect(res.status).toBe(201);
             expect(res.body).toStrictEqual({
                 id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',  // Exact mocked ID
                 name: 'John',
-                email: 'john@test.com'
+                email: 'john@test.com',
+                createdAt: 1609459200000
                 // Must test ALL properties to prevent bleedthrough
             });
+
+            // Verify adapter calls
+            expect(mockDbCreateUser).toHaveBeenCalledTimes(1);
+            expect(mockDbCreateUser).toHaveBeenCalledWith({
+                name: 'John',
+                email: 'john@test.com'
+            });
+            expect(mockEmailSendWelcome).toHaveBeenCalledTimes(1);
         })
 
         it("INVALID_EMAIL: {email: 'bad'} => returns 400", async () => {

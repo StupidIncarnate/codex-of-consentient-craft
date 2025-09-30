@@ -287,7 +287,7 @@ export const questmaestroConfigTypescriptEslintBroker = ({
       : [
           'error',
           {
-            // Ignore: [-1, 0, 1],
+            ignore: [-1, 0, 1],
             ignoreArrayIndexes: true,
             ignoreDefaultValues: true,
             ignoreClassFieldInitialValues: true,

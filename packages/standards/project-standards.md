@@ -568,18 +568,26 @@ adapters/
     - ❌ `adapters/stripe/payment.ts` (business domain)
 - **Must** add project-specific configuration (timeout, auth, retry)
 - **Must** know NOTHING about business logic
-- **Must** use Zod contract types for parameters and explicit return types
-- **CAN** re-export library types for consumer convenience
+- **Must** use Zod contract types for all parameters (inputs)
+- **Return types** - Choose based on consumer needs:
+
+| Consumer Needs                              | Return Type   | Re-export | Example                  |
+|---------------------------------------------|---------------|-----------|--------------------------|
+| Library features (status, headers, methods) | npm type      | Yes       | `Promise<AxiosResponse>` |
+| Primitives or simple data only              | Contract type | No        | `Promise<FileContents>`  |
+
+- **Must** re-export npm types when using them as return types
+- **Must** validate and brand primitive returns through contracts before returning
 - **CAN** import node_modules and middleware/ (when coupled)
 
-**Example:**
+**Examples:**
 
 ```typescript
+// Pattern 1: Return npm type (broker needs library features)
 // adapters/axios/axios-get.ts
 import axios, {type AxiosResponse} from 'axios';
 import type {Url} from '../../contracts/url/url-contract';
 
-// Re-export library types for consumers
 export type {AxiosResponse};
 
 export const axiosGet = async ({url}: { url: Url }): Promise<AxiosResponse> => {
@@ -587,6 +595,24 @@ export const axiosGet = async ({url}: { url: Url }): Promise<AxiosResponse> => {
         headers: {'Authorization': `Bearer ${getToken()}`},
         timeout: 10000
     });
+};
+```
+
+```typescript
+// Pattern 2: Return contract (broker only needs data)
+// adapters/fs/fs-read-file.ts
+import {readFile} from 'fs/promises';
+import {fileContentsContract} from '../../contracts/file-contents/file-contents-contract';
+import type {FilePath} from '../../contracts/file-path/file-path-contract';
+import type {FileContents} from '../../contracts/file-contents/file-contents-contract';
+
+export const fsReadFile = async ({filePath}: { filePath: FilePath }): Promise<FileContents> => {
+    try {
+        const content = await readFile(filePath, 'utf8');
+        return fileContentsContract.parse(content);
+    } catch (error) {
+        throw new Error(`Failed to read file at ${filePath}: ${error}`);
+    }
 };
 ```
 
