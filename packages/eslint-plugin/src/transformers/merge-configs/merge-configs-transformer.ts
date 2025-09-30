@@ -10,25 +10,11 @@ export const mergeConfigsTransformer = ({ configs }: { configs: EslintConfig[] }
   };
 
   for (const config of configs) {
-    if (config.plugins) {
-      merged.plugins = { ...merged.plugins, ...config.plugins };
-    }
-
-    if (config.rules) {
-      merged.rules = { ...merged.rules, ...config.rules };
-    }
-
-    if (config.languageOptions) {
-      merged.languageOptions = { ...merged.languageOptions, ...config.languageOptions };
-    }
-
-    if (config.files) {
-      merged.files = [...(merged.files || []), ...config.files];
-    }
-
-    if (config.ignores) {
-      merged.ignores = [...(merged.ignores || []), ...config.ignores];
-    }
+    merged.plugins = { ...merged.plugins, ...config.plugins };
+    merged.rules = { ...merged.rules, ...config.rules };
+    merged.languageOptions = { ...merged.languageOptions, ...config.languageOptions };
+    merged.files = [...(merged.files ?? []), ...(config.files ?? [])];
+    merged.ignores = [...(merged.ignores ?? []), ...(config.ignores ?? [])];
   }
 
   return merged;

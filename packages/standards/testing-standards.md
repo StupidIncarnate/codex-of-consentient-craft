@@ -413,22 +413,24 @@ it('VALID: reads file', async () => {
 
 **Create test stubs for commonly mocked branded types:**
 
+Stubs are co-located with their contracts using the `.stub.ts` extension:
+
 ```typescript
-// tests/stubs/file-contents-stub.ts
-import {fileContentsContract, type FileContents} from '../../src/contracts/file-contents/file-contents-contract';
+// contracts/file-contents/file-contents.stub.ts
+import {fileContentsContract, type FileContents} from './file-contents-contract';
 
 export const FileContentsStub = (value: string): FileContents =>
     fileContentsContract.parse(value);
 
-// tests/stubs/file-path-stub.ts
-import {filePathContract, type FilePath} from '../../src/contracts/file-path/file-path-contract';
+// contracts/file-path/file-path.stub.ts
+import {filePathContract, type FilePath} from './file-path-contract';
 
 export const FilePathStub = (value: string): FilePath =>
     filePathContract.parse(value);
 
-// Usage in tests
-import {FileContentsStub} from '../../../../../tests/stubs/file-contents-stub';
-import {FilePathStub} from '../../../../../tests/stubs/file-path-stub';
+// Usage in tests (from adapters/fs/fs-read-file.test.ts)
+import {FileContentsStub} from '../../contracts/file-contents/file-contents.stub';
+import {FilePathStub} from '../../contracts/file-path/file-path.stub';
 
 const filePath = FilePathStub('/config.json');
 const fileContents = FileContentsStub('mocked content');
@@ -462,9 +464,9 @@ ensures unit isolation and prevents tests from becoming integration tests.
 import {fsReadFile} from '../../../adapters/fs/fs-read-file';
 import {configParseBroker} from '../../../brokers/config/parse/config-parse-broker';
 import {apiClient} from '../../../adapters/api/api-client';
-import {FileContentsStub} from '../../../../../tests/stubs/file-contents-stub';
-import {FilePathStub} from '../../../../../tests/stubs/file-path-stub';
-import {ConfigStub} from '../../../../../tests/stubs/config-stub';
+import {FileContentsStub} from '../../../contracts/file-contents/file-contents.stub';
+import {FilePathStub} from '../../../contracts/file-path/file-path.stub';
+import {ConfigStub} from '../../../contracts/config/config.stub';
 
 jest.mock('../../../adapters/fs/fs-read-file');
 jest.mock('../../../brokers/config/parse/config-parse-broker');
@@ -734,9 +736,12 @@ describe("UserValidator", () => {
 - **One stub function export** (primary)
 
 ### Stub Factory Pattern (Type-Safe)
+
+**Stubs are co-located with contracts using `.stub.ts` extension:**
+
 ```typescript
-// tests/stubs/user-stub.ts
-import type {User} from '../../src/types'; // Real types, not any!
+// contracts/user/user.stub.ts
+import type {User} from './user-contract'; // Co-located with contract
 
 export const UserStub = (props: Partial<User> = {}): User => ({
     id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', // Always use UUIDs
@@ -815,12 +820,21 @@ it.each(['', null, undefined])(
 
 ```
 src/
-  user-validator.ts
-  user-validator.test.ts  // Co-located unit tests
+  contracts/
+    user/
+      user-contract.ts
+      user-contract.test.ts
+      user.stub.ts          // Co-located stub for tests
+  adapters/
+    fs/
+      fs-read-file.ts
+      fs-read-file.test.ts  // Co-located unit tests
 tests/
-  stubs/                  // Shared test factories
-  e2e/                    // End-to-end only
+  e2e/                      // End-to-end tests only
 ```
+
+**Stub files are co-located with their contracts using `.stub.ts` extension**, not in a separate `tests/stubs/`
+directory.
 
 ## Framework-Specific Patterns
 

@@ -50,7 +50,7 @@ export const enforceFolderStructureRuleBroker = (): Rule.RuleModule => ({
     schema: [],
   },
   create: (context: Rule.RuleContext) => {
-    const filename = context.filename;
+    const { filename } = context;
 
     const isInSrcFolder = filename.includes('/src/');
     if (!isInSrcFolder) {

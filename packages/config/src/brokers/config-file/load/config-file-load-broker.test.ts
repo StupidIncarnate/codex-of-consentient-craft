@@ -3,7 +3,7 @@ import { InvalidConfigError } from '../../../errors/invalid-config/invalid-confi
 import { fsReadFile } from '../../../adapters/fs/fs-read-file';
 import { nodeRequire } from '../../../adapters/node/node-require-single';
 import { nodeRequireClearCache } from '../../../adapters/node/node-require-clear-cache';
-import { FileContentsStub } from '../../../../tests/stubs/file-contents-stub';
+import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 
 // Mock adapters (the boundary)
 jest.mock('../../../adapters/fs/fs-read-file');

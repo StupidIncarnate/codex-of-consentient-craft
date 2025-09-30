@@ -1,7 +1,7 @@
 import { readFile } from 'fs/promises';
 import { fsReadFile } from './fs-read-file';
-import { FilePathStub } from '../../../tests/stubs/file-path-stub';
-import { FileContentsStub } from '../../../tests/stubs/file-contents-stub';
+import { FilePathStub } from '../../contracts/file-path/file-path.stub';
+import { FileContentsStub } from '../../contracts/file-contents/file-contents.stub';
 
 jest.mock('fs/promises');
 
