@@ -3,17 +3,16 @@ import { InvalidConfigError } from '../../../errors/invalid-config/invalid-confi
 import { fsReadFile } from '../../../adapters/fs/fs-read-file';
 import { nodeRequire } from '../../../adapters/node/node-require-single';
 import { nodeRequireClearCache } from '../../../adapters/node/node-require-clear-cache';
+import { FileContentsStub } from '../../../../tests/stubs/file-contents-stub';
 
-// Mock dependencies
+// Mock adapters (the boundary)
 jest.mock('../../../adapters/fs/fs-read-file');
 jest.mock('../../../adapters/node/node-require-single');
 jest.mock('../../../adapters/node/node-require-clear-cache');
 
-const mockFsReadFile = fsReadFile as jest.MockedFunction<typeof fsReadFile>;
-const mockNodeRequire = nodeRequire as jest.MockedFunction<typeof nodeRequire>;
-const mockNodeRequireClearCache = nodeRequireClearCache as jest.MockedFunction<
-  typeof nodeRequireClearCache
->;
+const mockFsReadFile = jest.mocked(fsReadFile);
+const mockNodeRequire = jest.mocked(nodeRequire);
+const mockNodeRequireClearCache = jest.mocked(nodeRequireClearCache);
 
 describe('configFileLoadBroker', () => {
   beforeEach(() => {
@@ -30,8 +29,8 @@ describe('configFileLoadBroker', () => {
         schema: 'zod',
       };
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = {...}');
-      mockNodeRequire.mockReturnValueOnce(mockConfig);
+      mockFsReadFile.mockResolvedValue(FileContentsStub('module.exports = {...}'));
+      mockNodeRequire.mockReturnValue(mockConfig);
 
       const result = await configFileLoadBroker({ configPath });
 
@@ -55,7 +54,7 @@ describe('configFileLoadBroker', () => {
         someOtherExport: 'value',
       };
 
-      mockFsReadFile.mockResolvedValueOnce('export default {...}');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('export default {...}'));
       mockNodeRequire.mockReturnValueOnce(mockModule);
 
       const result = await configFileLoadBroker({ configPath });
@@ -79,7 +78,7 @@ describe('configFileLoadBroker', () => {
         },
       };
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = {...}');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockReturnValueOnce(mockConfig);
 
       const result = await configFileLoadBroker({ configPath });
@@ -92,7 +91,7 @@ describe('configFileLoadBroker', () => {
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is null', async () => {
       const configPath = '/project/.questmaestro';
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = null');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = null'));
       mockNodeRequire.mockReturnValueOnce(null);
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
@@ -106,7 +105,7 @@ describe('configFileLoadBroker', () => {
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is undefined', async () => {
       const configPath = '/project/.questmaestro';
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = undefined');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = undefined'));
       mockNodeRequire.mockReturnValueOnce(undefined);
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
@@ -120,7 +119,7 @@ describe('configFileLoadBroker', () => {
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is string', async () => {
       const configPath = '/project/.questmaestro';
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = "invalid"');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = "invalid"'));
       mockNodeRequire.mockReturnValueOnce('invalid');
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
@@ -134,7 +133,7 @@ describe('configFileLoadBroker', () => {
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is number', async () => {
       const configPath = '/project/.questmaestro';
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = 123');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = 123'));
       mockNodeRequire.mockReturnValueOnce(123);
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
@@ -151,7 +150,7 @@ describe('configFileLoadBroker', () => {
         schema: 'zod',
       };
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = {...}');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockReturnValueOnce(mockConfig);
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
@@ -169,7 +168,7 @@ describe('configFileLoadBroker', () => {
         schema: 'zod',
       };
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = {...}');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockReturnValueOnce(mockConfig);
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
@@ -187,7 +186,7 @@ describe('configFileLoadBroker', () => {
         schema: 'zod',
       };
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = {...}');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockReturnValueOnce(mockConfig);
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
@@ -220,7 +219,7 @@ describe('configFileLoadBroker', () => {
       const configPath = '/corrupted/.questmaestro';
       const requireError = new Error('Unexpected token in JSON');
 
-      mockFsReadFile.mockResolvedValueOnce('corrupted content');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('corrupted content'));
       mockNodeRequire.mockImplementationOnce(() => {
         throw requireError;
       });
@@ -240,7 +239,7 @@ describe('configFileLoadBroker', () => {
         configPath,
       });
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = {...}');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockReturnValueOnce({});
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(invalidConfigError);
@@ -250,7 +249,7 @@ describe('configFileLoadBroker', () => {
       const configPath = '/project/.questmaestro';
       const customError = new Error('Custom error message');
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = {...}');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockImplementationOnce(() => {
         throw customError;
       });
@@ -273,7 +272,7 @@ describe('configFileLoadBroker', () => {
         notDefault: true,
       };
 
-      mockFsReadFile.mockResolvedValueOnce('export {...}');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('export {...}'));
       mockNodeRequire.mockReturnValueOnce(mockModule);
 
       const result = await configFileLoadBroker({ configPath });
@@ -288,7 +287,7 @@ describe('configFileLoadBroker', () => {
         schema: 'joi',
       };
 
-      mockFsReadFile.mockResolvedValueOnce('module.exports = {...}');
+      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockReturnValueOnce(mockConfig);
 
       const result = await configFileLoadBroker({ configPath });

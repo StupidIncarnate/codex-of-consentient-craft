@@ -1,143 +1,122 @@
 import { readFile } from 'fs/promises';
 import { fsReadFile } from './fs-read-file';
+import { FilePathStub } from '../../../tests/stubs/file-path-stub';
+import { FileContentsStub } from '../../../tests/stubs/file-contents-stub';
 
-jest.mock('fs/promises', () => {
-  return {
-    readFile: jest.fn(),
-  };
-});
+jest.mock('fs/promises');
 
-const mockReadFile = readFile as jest.MockedFunction<typeof readFile>;
+const mockReadFile = jest.mocked(readFile);
 
 type NodeError = Error & {
   code: string;
 };
 
 describe('fsReadFile', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('successful operations', () => {
     it("VALID: {filePath: '/path/to/file.txt'} => returns file content", async () => {
+      const filePath = FilePathStub('/path/to/file.txt');
       const expectedContent = 'file content here';
       mockReadFile.mockResolvedValue(expectedContent);
 
-      const result = await fsReadFile({ filePath: '/path/to/file.txt' });
+      const result = await fsReadFile({ filePath });
 
-      expect(result).toBe(expectedContent);
+      expect(result).toBe(FileContentsStub(expectedContent));
       expect(mockReadFile).toHaveBeenCalledTimes(1);
-      expect(mockReadFile).toHaveBeenCalledWith('/path/to/file.txt', 'utf8');
+      expect(mockReadFile).toHaveBeenCalledWith(filePath, 'utf8');
     });
 
     it("VALID: {filePath: 'relative/path/config.json'} => returns JSON content", async () => {
+      const filePath = FilePathStub('relative/path/config.json');
       const jsonContent = '{"key": "value", "number": 42}';
       mockReadFile.mockResolvedValue(jsonContent);
 
-      const result = await fsReadFile({ filePath: 'relative/path/config.json' });
+      const result = await fsReadFile({ filePath });
 
-      expect(result).toBe(jsonContent);
+      expect(result).toBe(FileContentsStub(jsonContent));
       expect(mockReadFile).toHaveBeenCalledTimes(1);
-      expect(mockReadFile).toHaveBeenCalledWith('relative/path/config.json', 'utf8');
+      expect(mockReadFile).toHaveBeenCalledWith(filePath, 'utf8');
     });
 
     it("VALID: {filePath: '/absolute/path/empty.txt'} => returns empty string", async () => {
+      const filePath = FilePathStub('/absolute/path/empty.txt');
       mockReadFile.mockResolvedValue('');
 
-      const result = await fsReadFile({ filePath: '/absolute/path/empty.txt' });
+      const result = await fsReadFile({ filePath });
 
-      expect(result).toBe('');
+      expect(result).toBe(FileContentsStub(''));
       expect(mockReadFile).toHaveBeenCalledTimes(1);
-      expect(mockReadFile).toHaveBeenCalledWith('/absolute/path/empty.txt', 'utf8');
+      expect(mockReadFile).toHaveBeenCalledWith(filePath, 'utf8');
     });
   });
 
   describe('error conditions', () => {
-    it("ERROR: {filePath: '/non/existent/file.txt'} => throws ENOENT error", async () => {
+    it("ERROR: {filePath: '/non/existent/file.txt'} => throws wrapped error with context", async () => {
+      const filePath = FilePathStub('/non/existent/file.txt');
       const fileNotFoundError: NodeError = Object.assign(
         new Error('ENOENT: no such file or directory'),
         { code: 'ENOENT' },
       );
       mockReadFile.mockRejectedValue(fileNotFoundError);
 
-      await expect(fsReadFile({ filePath: '/non/existent/file.txt' })).rejects.toThrow(
-        'ENOENT: no such file or directory',
-      );
+      await expect(fsReadFile({ filePath })).rejects.toThrow(`Failed to read file at ${filePath}`);
 
       expect(mockReadFile).toHaveBeenCalledTimes(1);
-      expect(mockReadFile).toHaveBeenCalledWith('/non/existent/file.txt', 'utf8');
+      expect(mockReadFile).toHaveBeenCalledWith(filePath, 'utf8');
     });
 
-    it("ERROR: {filePath: '/restricted/file.txt'} => throws EACCES error", async () => {
+    it("ERROR: {filePath: '/restricted/file.txt'} => throws wrapped error with context", async () => {
+      const filePath = FilePathStub('/restricted/file.txt');
       const permissionError: NodeError = Object.assign(new Error('EACCES: permission denied'), {
         code: 'EACCES',
       });
       mockReadFile.mockRejectedValue(permissionError);
 
-      await expect(fsReadFile({ filePath: '/restricted/file.txt' })).rejects.toThrow(
-        'EACCES: permission denied',
-      );
+      await expect(fsReadFile({ filePath })).rejects.toThrow(`Failed to read file at ${filePath}`);
 
       expect(mockReadFile).toHaveBeenCalledTimes(1);
-      expect(mockReadFile).toHaveBeenCalledWith('/restricted/file.txt', 'utf8');
+      expect(mockReadFile).toHaveBeenCalledWith(filePath, 'utf8');
     });
 
-    it("ERROR: {filePath: '/path/to/directory'} => throws EISDIR error", async () => {
+    it("ERROR: {filePath: '/path/to/directory'} => throws wrapped error with context", async () => {
+      const filePath = FilePathStub('/path/to/directory');
       const isDirError: NodeError = Object.assign(
         new Error('EISDIR: illegal operation on a directory'),
         { code: 'EISDIR' },
       );
       mockReadFile.mockRejectedValue(isDirError);
 
-      await expect(fsReadFile({ filePath: '/path/to/directory' })).rejects.toThrow(
-        'EISDIR: illegal operation on a directory',
-      );
+      await expect(fsReadFile({ filePath })).rejects.toThrow(`Failed to read file at ${filePath}`);
 
       expect(mockReadFile).toHaveBeenCalledTimes(1);
-      expect(mockReadFile).toHaveBeenCalledWith('/path/to/directory', 'utf8');
+      expect(mockReadFile).toHaveBeenCalledWith(filePath, 'utf8');
     });
   });
 
   describe('edge cases', () => {
-    it("EDGE: {filePath: '.'} => throws or returns directory content error", async () => {
+    it("EDGE: {filePath: '.'} => throws wrapped error with context", async () => {
+      const filePath = FilePathStub('.');
       const currentDirError: NodeError = Object.assign(
         new Error('EISDIR: illegal operation on a directory'),
         { code: 'EISDIR' },
       );
       mockReadFile.mockRejectedValue(currentDirError);
 
-      await expect(fsReadFile({ filePath: '.' })).rejects.toThrow(
-        'EISDIR: illegal operation on a directory',
-      );
+      await expect(fsReadFile({ filePath })).rejects.toThrow(`Failed to read file at ${filePath}`);
 
       expect(mockReadFile).toHaveBeenCalledTimes(1);
-      expect(mockReadFile).toHaveBeenCalledWith('.', 'utf8');
-    });
-
-    it("EDGE: {filePath: ''} => passes empty string to readFile", async () => {
-      const emptyPathError: NodeError = Object.assign(
-        new Error('ENOENT: no such file or directory'),
-        { code: 'ENOENT' },
-      );
-      mockReadFile.mockRejectedValue(emptyPathError);
-
-      await expect(fsReadFile({ filePath: '' })).rejects.toThrow(
-        'ENOENT: no such file or directory',
-      );
-
-      expect(mockReadFile).toHaveBeenCalledTimes(1);
-      expect(mockReadFile).toHaveBeenCalledWith('', 'utf8');
+      expect(mockReadFile).toHaveBeenCalledWith(filePath, 'utf8');
     });
 
     it("EDGE: {filePath: '/path/with/unicode/файл.txt'} => returns unicode content", async () => {
+      const filePath = FilePathStub('/path/with/unicode/файл.txt');
       const unicodeContent = '🚀 Unicode content with специальные символы';
       mockReadFile.mockResolvedValue(unicodeContent);
 
-      const result = await fsReadFile({ filePath: '/path/with/unicode/файл.txt' });
+      const result = await fsReadFile({ filePath });
 
-      expect(result).toBe(unicodeContent);
+      expect(result).toBe(FileContentsStub(unicodeContent));
       expect(mockReadFile).toHaveBeenCalledTimes(1);
-      expect(mockReadFile).toHaveBeenCalledWith('/path/with/unicode/файл.txt', 'utf8');
+      expect(mockReadFile).toHaveBeenCalledWith(filePath, 'utf8');
     });
   });
 });

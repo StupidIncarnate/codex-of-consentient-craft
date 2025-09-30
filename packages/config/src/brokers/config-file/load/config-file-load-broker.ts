@@ -2,6 +2,7 @@ import { fsReadFile } from '../../../adapters/fs/fs-read-file';
 import { nodeRequire } from '../../../adapters/node/node-require-single';
 import { nodeRequireClearCache } from '../../../adapters/node/node-require-clear-cache';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
+import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { QuestmaestroConfig } from '../../../contracts/questmaestro-config/questmaestro-config-contract';
 
 const loadConfigModule = (configPath: string): unknown => {
@@ -44,7 +45,8 @@ export const configFileLoadBroker = async ({
 }): Promise<QuestmaestroConfig> => {
   try {
     // Read file to ensure it exists and is accessible
-    await fsReadFile({ filePath: configPath });
+    const filePath = filePathContract.parse(configPath);
+    await fsReadFile({ filePath });
 
     // Load and validate the config
     const config = loadConfigModule(configPath);
