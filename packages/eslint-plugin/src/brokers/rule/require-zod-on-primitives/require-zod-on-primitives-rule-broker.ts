@@ -1,27 +1,33 @@
-import type { AstNode } from '../../../contracts/ast-node/ast-node-contract';
+import type { Rule } from 'eslint';
+import type { TSESTree } from '@typescript-eslint/utils';
 
-export const requireZodOnPrimitivesRuleBroker = () => ({
+export const requireZodOnPrimitivesRuleBroker = (): Rule.RuleModule => ({
   meta: {
-    type: 'problem' as const,
+    type: 'problem',
     docs: {
       description: 'Require .brand() chaining on z.string() and z.number() calls',
     },
+    messages: {
+      requireBrandString:
+        "z.string() must be chained with .brand() - use z.string().email().brand<'EmailAddress'>() instead of z.string().email()",
+      requireBrandNumber:
+        "z.number() must be chained with .brand() - use z.number().positive().brand<'PositiveNumber'>() instead of z.number().positive()",
+    },
+    schema: [],
   },
-  create: (context: { report: (violation: { node: unknown; message: string }) => void }) => ({
+  create: (context: Rule.RuleContext) => ({
     'CallExpression[callee.object.name="z"][callee.property.name="string"]:not(:has(MemberExpression[property.name="brand"]))':
-      (node: AstNode) => {
+      (node: TSESTree.Node): void => {
         context.report({
           node,
-          message:
-            "z.string() must be chained with .brand() - use z.string().email().brand<'EmailAddress'>() instead of z.string().email()",
+          messageId: 'requireBrandString',
         });
       },
     'CallExpression[callee.object.name="z"][callee.property.name="number"]:not(:has(MemberExpression[property.name="brand"]))':
-      (node: AstNode) => {
+      (node: TSESTree.Node): void => {
         context.report({
           node,
-          message:
-            "z.number() must be chained with .brand() - use z.number().positive().brand<'PositiveNumber'>() instead of z.number().positive()",
+          messageId: 'requireBrandNumber',
         });
       },
   }),

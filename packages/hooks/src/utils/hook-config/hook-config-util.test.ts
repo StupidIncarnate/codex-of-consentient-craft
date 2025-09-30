@@ -9,11 +9,11 @@ describe('HookConfigUtil', () => {
   describe('object structure', () => {
     it('VALID: HookConfigUtil => exports all expected methods', () => {
       expect(HookConfigUtil).toStrictEqual({
-        loadConfig: loadConfig,
-        mergeWithDefaults: mergeWithDefaults,
+        loadConfig,
+        mergeWithDefaults,
         getPreEditLintDefaultConfig: getDefaultConfig,
-        getRuleNames: getRuleNames,
-        getRuleDisplayConfig: getRuleDisplayConfig,
+        getRuleNames,
+        getRuleDisplayConfig,
       });
     });
   });

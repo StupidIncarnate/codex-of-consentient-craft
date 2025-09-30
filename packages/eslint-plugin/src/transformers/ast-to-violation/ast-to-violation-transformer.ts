@@ -8,12 +8,12 @@ export const astToViolationTransformer = ({
   data,
 }: {
   node: AstNode;
-  message: string;
-  messageId?: string;
+  message: RuleViolation['message'];
+  messageId?: RuleViolation['messageId'];
   data?: Record<string, unknown>;
 }): RuleViolation => ({
   node,
-  message: message as RuleViolation['message'],
-  messageId: messageId as RuleViolation['messageId'],
+  message,
+  messageId,
   data,
 });

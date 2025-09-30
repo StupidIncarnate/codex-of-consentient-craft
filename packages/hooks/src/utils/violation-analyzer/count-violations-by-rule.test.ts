@@ -1,5 +1,5 @@
 import { countViolationsByRule } from './count-violations-by-rule';
-import type { LintResult, LintMessage } from '../../types/lint-type';
+import type { LintMessage, LintResult } from '../../types/lint-type';
 
 describe('countViolationsByRule', () => {
   it('VALID: {results: []} => returns empty array', () => {
@@ -15,7 +15,7 @@ describe('countViolationsByRule', () => {
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
-      severity: 2, // error
+      severity: 2, // Error
       ruleId: '@typescript-eslint/no-explicit-any',
     };
 
@@ -51,7 +51,7 @@ describe('countViolationsByRule', () => {
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
-      severity: 2, // error
+      severity: 2, // Error
       ruleId: '@typescript-eslint/no-explicit-any',
     };
 
@@ -59,7 +59,7 @@ describe('countViolationsByRule', () => {
       line: 2,
       column: 20,
       message: 'Unexpected any. Specify a different type.',
-      severity: 2, // error
+      severity: 2, // Error
       ruleId: '@typescript-eslint/no-explicit-any',
     };
 
@@ -157,7 +157,7 @@ describe('countViolationsByRule', () => {
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
-      severity: 2, // error
+      severity: 2, // Error
       ruleId: '@typescript-eslint/no-explicit-any',
     };
 
@@ -165,7 +165,7 @@ describe('countViolationsByRule', () => {
       line: 2,
       column: 10,
       message: 'Some warning message.',
-      severity: 1, // warning
+      severity: 1, // Warning
       ruleId: 'some-warning-rule',
     };
 
@@ -210,7 +210,7 @@ describe('countViolationsByRule', () => {
       column: 10,
       message: 'Parse error message.',
       severity: 2,
-      // no ruleId
+      // No ruleId
     };
 
     const results: LintResult[] = [

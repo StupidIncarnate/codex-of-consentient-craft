@@ -1,17 +1,20 @@
-const tseslint = require('@typescript-eslint/eslint-plugin');
+// Register TypeScript loader for development
+require('ts-node/register');
+
 const tsparser = require('@typescript-eslint/parser');
 const prettierConfig = require('eslint-config-prettier');
 const prettierPlugin = require('eslint-plugin-prettier');
 const jestPlugin = require('eslint-plugin-jest');
 const eslintCommentsPlugin = require('eslint-plugin-eslint-comments');
-// Import our own questmaestro plugin and config
-const questmaestroPlugin = require('./packages/eslint-plugin/dist/index.js').default;
+// Import our own questmaestro plugin and config directly from TypeScript source
+const questmaestroPlugin = require('./packages/eslint-plugin/src/index.ts').default;
 const {
   questmaestroConfigBroker,
-} = require('./packages/eslint-plugin/dist/brokers/config/questmaestro/questmaestro-config-broker.js');
+} = require('./packages/eslint-plugin/src/brokers/config/questmaestro/questmaestro-config-broker.ts');
 
-// Get the questmaestro config
+// Get the questmaestro configs
 const questmaestroConfig = questmaestroConfigBroker();
+const questmaestroTestConfig = questmaestroConfigBroker({ forTesting: true });
 
 module.exports = [
   // Global ignores
@@ -39,7 +42,8 @@ module.exports = [
   },
   // Configuration for TypeScript files
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts', '**/*.tsx', '**/*.js'],
+    ignores: ['eslint.config.js', '**/jest.config.js', 'jest.config.base.js'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -49,46 +53,15 @@ module.exports = [
       },
     },
     plugins: {
-      '@typescript-eslint': tseslint,
+      ...questmaestroConfig.plugins,
       prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
       '@questmaestro': questmaestroPlugin,
     },
     rules: {
-      ...tseslint.configs.recommended.rules,
-      ...tseslint.configs['recommended-requiring-type-checking'].rules,
-      ...prettierConfig.rules,
       ...questmaestroConfig.rules,
-      'prettier/prettier': 'error',
-      'arrow-body-style': ['error', 'as-needed'],
-      'prefer-arrow-callback': 'error',
-      // '@typescript-eslint/no-unsafe-assignment': 'off',
-      'eslint-comments/no-unlimited-disable': 'error',
-      'eslint-comments/no-use': ['error', { allow: [] }],
-    },
-  },
-  // Configuration for JavaScript files
-  {
-    files: ['**/*.js'],
-    languageOptions: {
-      ecmaVersion: 2020,
-      sourceType: 'module',
-    },
-    plugins: {
-      prettier: prettierPlugin,
-      'eslint-comments': eslintCommentsPlugin,
-    },
-    rules: {
       ...prettierConfig.rules,
       'prettier/prettier': 'error',
-      'no-unused-vars': [
-        'error',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
-        },
-      ],
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': 'error',
       'eslint-comments/no-unlimited-disable': 'error',
@@ -110,23 +83,26 @@ module.exports = [
       },
     },
     plugins: {
-      '@typescript-eslint': tseslint,
+      ...questmaestroTestConfig.plugins,
       prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
       jest: jestPlugin,
     },
     rules: {
+      ...questmaestroTestConfig.rules,
       ...jestPlugin.configs.recommended.rules,
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      'max-lines-per-function': 'off',
       'jest/unbound-method': 'off',
     },
   },
-  {
-    files: ['packages/hooks/src/utils/hook-config/*.ts'],
-    rules: {
-      'eslint-comments/no-use': 'off',
-    },
-  },
+  // {
+  //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
+  //   rules: {
+  //     'eslint-comments/no-use': 'off',
+  //   },
+  // },
 ];

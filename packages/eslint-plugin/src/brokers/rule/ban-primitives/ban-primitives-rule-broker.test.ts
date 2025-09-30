@@ -1,3 +1,4 @@
+import type { Rule } from 'eslint';
 import { banPrimitivesRuleBroker } from './ban-primitives-rule-broker';
 import { astNodeContract } from '../../../contracts/ast-node/ast-node-contract';
 import { z } from 'zod';
@@ -16,6 +17,11 @@ describe('banPrimitivesRuleBroker', () => {
               'Ban raw string and number types in favor of Zod contract types',
             ),
           },
+          messages: {
+            banPrimitive:
+              'Raw {{typeName}} type is not allowed. Use Zod contract types like {{suggestion}} instead.',
+          },
+          schema: [],
         },
         create: expect.any(Function),
       });
@@ -25,7 +31,7 @@ describe('banPrimitivesRuleBroker', () => {
       const rule = banPrimitivesRuleBroker();
       const mockContext = {
         report: jest.fn(),
-      };
+      } as unknown as Rule.RuleContext;
 
       const visitor = rule.create(mockContext);
 
@@ -37,7 +43,7 @@ describe('banPrimitivesRuleBroker', () => {
       const rule = banPrimitivesRuleBroker();
       const mockContext = {
         report: jest.fn(),
-      };
+      } as unknown as Rule.RuleContext;
       const visitor = rule.create(mockContext);
       const mockNode = astNodeContract.parse({
         type: 'TSStringKeyword',
@@ -49,8 +55,11 @@ describe('banPrimitivesRuleBroker', () => {
       expect(mockContext.report).toHaveBeenCalledTimes(1);
       expect(mockContext.report).toHaveBeenCalledWith({
         node: mockNode,
-        message:
-          'Raw string type is not allowed. Use Zod contract types like EmailAddress, UserName, FilePath, etc. instead.',
+        messageId: 'banPrimitive',
+        data: {
+          typeName: 'string',
+          suggestion: 'EmailAddress, UserName, FilePath, etc.',
+        },
       });
     });
 
@@ -58,7 +67,7 @@ describe('banPrimitivesRuleBroker', () => {
       const rule = banPrimitivesRuleBroker();
       const mockContext = {
         report: jest.fn(),
-      };
+      } as unknown as Rule.RuleContext;
       const visitor = rule.create(mockContext);
       const mockNode = astNodeContract.parse({
         type: 'TSNumberKeyword',
@@ -70,8 +79,11 @@ describe('banPrimitivesRuleBroker', () => {
       expect(mockContext.report).toHaveBeenCalledTimes(1);
       expect(mockContext.report).toHaveBeenCalledWith({
         node: mockNode,
-        message:
-          'Raw number type is not allowed. Use Zod contract types like Currency, PositiveNumber, Age, etc. instead.',
+        messageId: 'banPrimitive',
+        data: {
+          typeName: 'number',
+          suggestion: 'Currency, PositiveNumber, Age, etc.',
+        },
       });
     });
   });

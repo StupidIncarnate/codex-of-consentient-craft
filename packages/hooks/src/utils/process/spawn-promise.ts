@@ -1,6 +1,10 @@
 import { spawn } from 'child_process';
 
-export type SpawnResult = { code: number; stdout: string; stderr: string };
+export interface SpawnResult {
+  code: number;
+  stdout: string;
+  stderr: string;
+}
 
 export const spawnPromise = async ({
   command,
@@ -42,14 +46,18 @@ export const spawnPromise = async ({
     });
 
     child.on('close', (code) => {
-      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
       if (!timedOut) {
         resolve({ code: code || 0, stdout, stderr });
       }
     });
 
     child.on('error', (error) => {
-      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
       if (!timedOut) {
         resolve({ code: 1, stdout: '', stderr: error.message });
       }

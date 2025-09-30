@@ -1,7 +1,7 @@
 import { spawnPromise } from './spawn-promise';
 
 export const ProcessUtil = {
-  spawnPromise: spawnPromise,
+  spawnPromise,
 };
 
 // Re-export types for backward compatibility

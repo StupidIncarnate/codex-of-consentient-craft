@@ -1,9 +1,11 @@
 import { join } from 'path';
 import { pathJoin } from './path-join';
 
-jest.mock('path', () => ({
-  join: jest.fn(),
-}));
+jest.mock('path', () => {
+  return {
+    join: jest.fn(),
+  };
+});
 
 const mockJoin = join as jest.MockedFunction<typeof join>;
 

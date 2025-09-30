@@ -71,10 +71,10 @@ export interface MockValidationResult {
   violations: MockDetection[];
 
   /** Suggested alternatives for violations */
-  alternatives: Array<{
+  alternatives: {
     violation: MockDetection;
     suggested: MockPattern;
-  }>;
+  }[];
 }
 
 export interface MockRailsConfig {

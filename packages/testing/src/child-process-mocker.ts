@@ -1,17 +1,17 @@
 import { EventEmitter } from 'events';
 
-export type MockSpawnResult = {
+export interface MockSpawnResult {
   code: number;
   stdout: string;
   stderr: string;
-};
+}
 
-export type MockProcessBehavior = {
+export interface MockProcessBehavior {
   shouldThrow?: boolean;
   throwError?: Error;
   result?: MockSpawnResult;
   delay?: number;
-};
+}
 
 class MockChildProcess extends EventEmitter {
   stdout = new EventEmitter();
@@ -21,7 +21,7 @@ class MockChildProcess extends EventEmitter {
     end: jest.fn(),
   };
 
-  constructor(private behavior: MockProcessBehavior) {
+  constructor(private readonly behavior: MockProcessBehavior) {
     super();
   }
 
@@ -63,7 +63,7 @@ export const ChildProcessMocker = {
       const mockProcess = new MockChildProcess(behavior);
 
       // Start the simulation asynchronously
-      process.nextTick(() => mockProcess.simulateProcess());
+      process.nextTick(async () => mockProcess.simulateProcess());
 
       return mockProcess;
     });

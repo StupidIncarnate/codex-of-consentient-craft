@@ -1,6 +1,7 @@
 import { explicitReturnTypesRuleBroker } from './explicit-return-types-rule-broker';
 import { astNodeContract } from '../../../contracts/ast-node/ast-node-contract';
 import { z } from 'zod';
+import { RuleContextStub } from '../../../../test/stubs/rule-context-stub';
 
 describe('explicitReturnTypesRuleBroker', () => {
   describe('create()', () => {
@@ -16,6 +17,11 @@ describe('explicitReturnTypesRuleBroker', () => {
               'Require explicit return types on exported functions using Zod contracts',
             ),
           },
+          messages: {
+            missingReturnType:
+              'Exported functions must have explicit return types using Zod contracts',
+          },
+          schema: [],
         },
         create: expect.any(Function),
       });
@@ -23,9 +29,7 @@ describe('explicitReturnTypesRuleBroker', () => {
 
     it('VALID: rule.create() => returns visitor object with export selectors', () => {
       const rule = explicitReturnTypesRuleBroker();
-      const mockContext = {
-        report: jest.fn(),
-      };
+      const mockContext = RuleContextStub();
 
       const visitor = rule.create(mockContext);
       const keys = Object.keys(visitor);
@@ -42,9 +46,7 @@ describe('explicitReturnTypesRuleBroker', () => {
 
     it('VALID: exported arrow function without return type => reports violation', () => {
       const rule = explicitReturnTypesRuleBroker();
-      const mockContext = {
-        report: jest.fn(),
-      };
+      const mockContext = RuleContextStub();
       const visitor = rule.create(mockContext);
       const mockNode = astNodeContract.parse({
         type: 'ArrowFunctionExpression',
@@ -58,15 +60,13 @@ describe('explicitReturnTypesRuleBroker', () => {
       expect(mockContext.report).toHaveBeenCalledTimes(1);
       expect(mockContext.report).toHaveBeenCalledWith({
         node: mockNode,
-        message: 'Exported functions must have explicit return types using Zod contracts',
+        messageId: 'missingReturnType',
       });
     });
 
     it('VALID: exported function declaration without return type => reports violation', () => {
       const rule = explicitReturnTypesRuleBroker();
-      const mockContext = {
-        report: jest.fn(),
-      };
+      const mockContext = RuleContextStub();
       const visitor = rule.create(mockContext);
       const mockNode = astNodeContract.parse({
         type: 'FunctionDeclaration',
@@ -78,15 +78,13 @@ describe('explicitReturnTypesRuleBroker', () => {
       expect(mockContext.report).toHaveBeenCalledTimes(1);
       expect(mockContext.report).toHaveBeenCalledWith({
         node: mockNode,
-        message: 'Exported functions must have explicit return types using Zod contracts',
+        messageId: 'missingReturnType',
       });
     });
 
     it('VALID: default exported function without return type => reports violation', () => {
       const rule = explicitReturnTypesRuleBroker();
-      const mockContext = {
-        report: jest.fn(),
-      };
+      const mockContext = RuleContextStub();
       const visitor = rule.create(mockContext);
       const mockNode = astNodeContract.parse({
         type: 'FunctionDeclaration',
@@ -98,7 +96,7 @@ describe('explicitReturnTypesRuleBroker', () => {
       expect(mockContext.report).toHaveBeenCalledTimes(1);
       expect(mockContext.report).toHaveBeenCalledWith({
         node: mockNode,
-        message: 'Exported functions must have explicit return types using Zod contracts',
+        messageId: 'missingReturnType',
       });
     });
   });

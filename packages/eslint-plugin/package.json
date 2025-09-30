@@ -44,16 +44,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@questmaestro/testing": "*",
-    "@types/eslint": "^9.0.0",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^24.0.15",
-    "eslint": "^9.30.1",
-    "@typescript-eslint/eslint-plugin": "^8.35.1",
-    "@typescript-eslint/parser": "^8.35.1",
-    "jest": "^30.0.4",
-    "ts-jest": "^29.4.0",
-    "typescript": "^5.8.3"
+    "@questmaestro/testing": "*"
   },
   "publishConfig": {
     "access": "public"

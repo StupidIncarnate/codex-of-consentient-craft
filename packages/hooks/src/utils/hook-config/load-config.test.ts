@@ -74,7 +74,7 @@ describe('loadConfig', () => {
     it('ERROR: config file loading errors are handled', () => {
       // Note: Testing actual require() error handling requires complex mocking
       // This test documents the expected behavior - errors should be caught
-      // and re-thrown with context about which config file failed
+      // And re-thrown with context about which config file failed
       const testCwd = '/test/path';
 
       // Test that function doesn't crash when file system operations fail

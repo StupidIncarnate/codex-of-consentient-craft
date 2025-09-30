@@ -7,27 +7,30 @@ export const parseOutput = ({ output }: { output: string }) => {
   try {
     // TODO: ARCHITECTURAL CONCERN - Bracket counting algorithm has limitations:
     // 1. Doesn't properly parse JSON string boundaries - treats brackets inside
-    //    string values as array brackets (e.g. {"message": "Error [line 5]"})
+    //    String values as array brackets (e.g. {"message": "Error [line 5]"})
     // 2. Works by luck because JSON.parse() validates candidates and fails gracefully
     // 3. Could be inefficient with deeply nested or malformed JSON
     // 4. More robust solution would be a proper JSON tokenizer/parser
     // Current implementation works well for ESLint output but consider refactoring
-    // if used for general JSON parsing or performance becomes an issue.
+    // If used for general JSON parsing or performance becomes an issue.
 
     // Find potential JSON array starting positions
     let startIndex = 0;
 
     while (true) {
       const arrayStart = output.indexOf('[', startIndex);
-      if (arrayStart === -1) break;
+      if (arrayStart === -1) {
+        break;
+      }
 
       // Try to find the matching closing bracket
       let bracketCount = 0;
       let endIndex = arrayStart;
 
       for (let i = arrayStart; i < output.length; i++) {
-        if (output[i] === '[') bracketCount++;
-        else if (output[i] === ']') {
+        if (output[i] === '[') {
+          bracketCount++;
+        } else if (output[i] === ']') {
           bracketCount--;
           if (bracketCount === 0) {
             endIndex = i;

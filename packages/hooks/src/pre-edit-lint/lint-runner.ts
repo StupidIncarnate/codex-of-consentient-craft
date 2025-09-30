@@ -1,7 +1,7 @@
 import { ESLint } from 'eslint';
 import { resolve } from 'path';
 import type { Linter } from 'eslint';
-import type { LintResult, LintMessage } from '../types/lint-type';
+import type { LintMessage, LintResult } from '../types/lint-type';
 
 const convertEslintResultToLintResult = ({
   result,

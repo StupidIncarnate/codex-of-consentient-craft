@@ -1,5 +1,5 @@
 import { getContentChanges } from './get-content-changes';
-import type { WriteToolInput, EditToolInput, MultiEditToolInput } from '../../types/tool-type';
+import type { EditToolInput, MultiEditToolInput, WriteToolInput } from '../../types/tool-type';
 import { readFile } from 'fs/promises';
 
 // Mock fs modules
@@ -93,11 +93,11 @@ describe('getContentChanges', () => {
     // Currently this test FAILS because Edit tool only returns fragments
     // This makes ESLint unable to properly analyze TypeScript violations
     // The bug is that we get fragments instead of full file context:
-    //   oldContent: 'function test(param: string): void {'
-    //   newContent: 'function test(param: any): void {'
+    //   OldContent: 'function test(param: string): void {'
+    //   NewContent: 'function test(param: any): void {'
     // Instead of:
-    //   oldContent: 'function test(param: string): void {\n  console.log(param);\n}'
-    //   newContent: 'function test(param: any): void {\n  console.log(param);\n}'
+    //   OldContent: 'function test(param: string): void {\n  console.log(param);\n}'
+    //   NewContent: 'function test(param: any): void {\n  console.log(param);\n}'
 
     expect(result).toStrictEqual([
       {

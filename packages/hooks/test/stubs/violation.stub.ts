@@ -1,8 +1,8 @@
 import type {
-  ViolationCount,
-  ViolationDetail,
   LintMessage,
   LintResult,
+  ViolationCount,
+  ViolationDetail,
 } from '../../src/types/lint-type';
 
 export const ViolationDetailStub = (overrides: Partial<ViolationDetail> = {}): ViolationDetail => ({

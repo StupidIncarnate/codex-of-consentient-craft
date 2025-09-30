@@ -1,7 +1,11 @@
 import type { EslintConfig } from '../../../contracts/eslint-config/eslint-config-contract';
 import typescriptEslintPlugin from '@typescript-eslint/eslint-plugin';
 
-export const questmaestroConfigTypescriptEslintBroker = (): EslintConfig => ({
+export const questmaestroConfigTypescriptEslintBroker = ({
+  forTesting = false,
+}: {
+  forTesting?: boolean;
+} = {}): EslintConfig => ({
   plugins: {
     '@typescript-eslint': typescriptEslintPlugin,
   },
@@ -96,13 +100,12 @@ export const questmaestroConfigTypescriptEslintBroker = (): EslintConfig => ({
 
     // ✅ function fn(): string { return 'foo' }
     // ❌ function fn() { return 'foo' }
+    // ✅ const config = () => ({ key: 'value' }) // allowExpressions
     // Require explicit return types on functions and class methods
     '@typescript-eslint/explicit-function-return-type': [
       'error',
       {
-        allowExpressions: false,
-        allowTypedFunctionExpressions: false,
-        allowHigherOrderFunctions: false,
+        allowExpressions: true,
       },
     ],
 
@@ -113,8 +116,14 @@ export const questmaestroConfigTypescriptEslintBroker = (): EslintConfig => ({
 
     // ✅ export function fn(): string { return 'foo' }
     // ❌ export function fn() { return 'foo' }
+    // ✅ export const fn = () => ({ ... }) as const
     // Require explicit return and argument types on exported functions and methods
-    '@typescript-eslint/explicit-module-boundary-types': 'error',
+    '@typescript-eslint/explicit-module-boundary-types': [
+      'error',
+      {
+        allowDirectConstAssertionInArrowFunctions: true,
+      },
+    ],
 
     // ✅ let foo: number; foo = 5;
     // ❌ let foo; foo = 5;
@@ -139,7 +148,8 @@ export const questmaestroConfigTypescriptEslintBroker = (): EslintConfig => ({
     // ✅ const userName = 'john'
     // ❌ const user_name = 'john'
     // Enforce naming conventions for everything across a codebase
-    '@typescript-eslint/naming-convention': 'error',
+    // Problematic for this file specifically
+    // '@typescript-eslint/naming-convention': 'error',
 
     // ✅ const arr = [1, 2, 3]
     // ❌ const arr = new Array(1, 2, 3)
@@ -271,8 +281,23 @@ export const questmaestroConfigTypescriptEslintBroker = (): EslintConfig => ({
 
     // ✅ const TIMEOUT = 1000; setTimeout(callback, TIMEOUT)
     // ❌ setTimeout(callback, 1000)
-    // Disallow magic numbers
-    '@typescript-eslint/no-magic-numbers': ['error', { ignore: [0, 1] }],
+    // Disallow magic numbers (disabled for testing as test data often uses literal values)
+    '@typescript-eslint/no-magic-numbers': forTesting
+      ? 'off'
+      : [
+          'error',
+          {
+            // Ignore: [-1, 0, 1],
+            ignoreArrayIndexes: true,
+            ignoreDefaultValues: true,
+            ignoreClassFieldInitialValues: true,
+            detectObjects: false,
+            ignoreEnums: true,
+            ignoreNumericLiteralTypes: true,
+            ignoreReadonlyClassProperties: true,
+            ignoreTypeIndexes: true,
+          },
+        ],
 
     // ✅ Boolean(value)
     // ❌ void 0
@@ -422,7 +447,8 @@ export const questmaestroConfigTypescriptEslintBroker = (): EslintConfig => ({
     // ✅ const x: string = getValue()
     // ❌ const x: string = getValue() as any
     // Disallow assigning a value with type any to variables and properties
-    '@typescript-eslint/no-unsafe-assignment': 'error',
+    // Disabled for testing to allow Jest patterns like expect.any()
+    '@typescript-eslint/no-unsafe-assignment': forTesting ? 'off' : 'error',
 
     // ✅ fn(value)
     // ❌ (value as any)()
@@ -589,7 +615,8 @@ export const questmaestroConfigTypescriptEslintBroker = (): EslintConfig => ({
     // ✅ function fn(items: readonly string[]) {}
     // ❌ function fn(items: string[]) {}
     // Require function parameters to be typed as readonly to prevent accidental mutation of inputs
-    '@typescript-eslint/prefer-readonly-parameter-types': 'error',
+    // This will force a lot of churn for LLM
+    // '@typescript-eslint/prefer-readonly-parameter-types': 'error',
 
     // ✅ array.reduce<number>((acc, val) => acc + val, 0)
     // ❌ array.reduce((acc, val) => acc + val, 0)

@@ -1,36 +1,47 @@
-import type { AstNode } from '../../../contracts/ast-node/ast-node-contract';
+import type { Rule } from 'eslint';
+import type { TSESTree } from '@typescript-eslint/utils';
 
-export const explicitReturnTypesRuleBroker = () => ({
+export const explicitReturnTypesRuleBroker = (): Rule.RuleModule => ({
   meta: {
-    type: 'problem' as const,
+    type: 'problem',
     docs: {
       description: 'Require explicit return types on exported functions using Zod contracts',
     },
+    messages: {
+      missingReturnType: 'Exported functions must have explicit return types using Zod contracts',
+    },
+    schema: [],
   },
-  create: (context: { report: (violation: { node: unknown; message: string }) => void }) => ({
+  create: (context: Rule.RuleContext) => ({
     'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.type="Identifier"] > ArrowFunctionExpression:not([returnType])':
-      (node: AstNode) => {
+      (node: TSESTree.Node): void => {
         context.report({
           node,
-          message: 'Exported functions must have explicit return types using Zod contracts',
+          messageId: 'missingReturnType',
         });
       },
-    'ExportNamedDeclaration > FunctionDeclaration:not([returnType])': (node: AstNode) => {
+    'ExportNamedDeclaration > FunctionDeclaration:not([returnType])': (
+      node: TSESTree.Node,
+    ): void => {
       context.report({
         node,
-        message: 'Exported functions must have explicit return types using Zod contracts',
+        messageId: 'missingReturnType',
       });
     },
-    'ExportDefaultDeclaration > FunctionDeclaration:not([returnType])': (node: AstNode) => {
+    'ExportDefaultDeclaration > FunctionDeclaration:not([returnType])': (
+      node: TSESTree.Node,
+    ): void => {
       context.report({
         node,
-        message: 'Exported functions must have explicit return types using Zod contracts',
+        messageId: 'missingReturnType',
       });
     },
-    'ExportDefaultDeclaration > ArrowFunctionExpression:not([returnType])': (node: AstNode) => {
+    'ExportDefaultDeclaration > ArrowFunctionExpression:not([returnType])': (
+      node: TSESTree.Node,
+    ): void => {
       context.report({
         node,
-        message: 'Exported functions must have explicit return types using Zod contracts',
+        messageId: 'missingReturnType',
       });
     },
   }),

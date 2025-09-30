@@ -1,10 +1,10 @@
 // The computed structure that lint rules actually check
-export type AllowedExternalImports = {
-  widgets: string[] | null; // null means folder not allowed in this framework
-  bindings: string[] | null; // null means folder not allowed in this framework
-  state: string[] | null; // null means folder not allowed in this framework
-  flows: string[] | null; // null means folder not allowed in this framework
-  responders: string[] | null; // null means folder not allowed in this framework
+export interface AllowedExternalImports {
+  widgets: string[] | null; // Null means folder not allowed in this framework
+  bindings: string[] | null; // Null means folder not allowed in this framework
+  state: string[] | null; // Null means folder not allowed in this framework
+  flows: string[] | null; // Null means folder not allowed in this framework
+  responders: string[] | null; // Null means folder not allowed in this framework
   contracts: string[]; // Always allowed, contains schema libraries
   brokers: string[]; // Always allowed, usually empty
   transformers: string[]; // Always allowed, usually empty
@@ -12,7 +12,7 @@ export type AllowedExternalImports = {
   middleware: string[]; // Always allowed, usually empty
   adapters: string[]; // Always allowed, usually ["*"] (unrestricted)
   startup: string[]; // Always allowed, usually ["*"] (unrestricted)
-};
+}
 
 export const VALID_ARCHITECTURE_FOLDERS = [
   'contracts',

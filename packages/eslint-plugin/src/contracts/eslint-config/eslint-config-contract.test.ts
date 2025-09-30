@@ -74,7 +74,9 @@ describe('eslintConfigContract', () => {
         },
       };
 
-      expect(() => eslintConfigContract.parse(invalidConfig)).toThrow();
+      expect(() => {
+        return eslintConfigContract.parse(invalidConfig);
+      }).toThrow();
     });
 
     it('INVALID_FILES: {files: [123]} => throws ZodError', () => {
@@ -82,7 +84,9 @@ describe('eslintConfigContract', () => {
         files: [123],
       };
 
-      expect(() => eslintConfigContract.parse(invalidConfig)).toThrow();
+      expect(() => {
+        return eslintConfigContract.parse(invalidConfig);
+      }).toThrow();
     });
   });
 });

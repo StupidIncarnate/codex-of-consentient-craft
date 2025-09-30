@@ -29,8 +29,8 @@ export const PreEditLint = {
     // Load and filter the host ESLint configuration for the actual file
     const eslintConfig = await EslintUtil.loadConfigByFile({ cwd, filePath });
     const filteredConfig = EslintUtil.createFilteredConfig({
-      eslintConfig: eslintConfig,
-      hookConfig: hookConfig,
+      eslintConfig,
+      hookConfig,
     });
 
     // Get content changes using existing utilities

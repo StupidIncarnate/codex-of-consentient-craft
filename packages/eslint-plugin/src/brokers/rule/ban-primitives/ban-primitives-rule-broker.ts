@@ -1,14 +1,20 @@
-import type { AstNode } from '../../../contracts/ast-node/ast-node-contract';
+import type { Rule } from 'eslint';
+import type { TSESTree } from '@typescript-eslint/utils';
 
-export const banPrimitivesRuleBroker = () => ({
+export const banPrimitivesRuleBroker = (): Rule.RuleModule => ({
   meta: {
-    type: 'problem' as const,
+    type: 'problem',
     docs: {
       description: 'Ban raw string and number types in favor of Zod contract types',
     },
+    messages: {
+      banPrimitive:
+        'Raw {{typeName}} type is not allowed. Use Zod contract types like {{suggestion}} instead.',
+    },
+    schema: [],
   },
-  create: (context: { report: (violation: { node: unknown; message: string }) => void }) => ({
-    'TSStringKeyword, TSNumberKeyword': (node: AstNode) => {
+  create: (context: Rule.RuleContext) => ({
+    'TSStringKeyword, TSNumberKeyword': (node: TSESTree.Node): void => {
       const typeName = node.type === 'TSStringKeyword' ? 'string' : 'number';
       const suggestion =
         typeName === 'string'
@@ -17,7 +23,11 @@ export const banPrimitivesRuleBroker = () => ({
 
       context.report({
         node,
-        message: `Raw ${typeName} type is not allowed. Use Zod contract types like ${suggestion} instead.`,
+        messageId: 'banPrimitive',
+        data: {
+          typeName,
+          suggestion,
+        },
       });
     },
   }),

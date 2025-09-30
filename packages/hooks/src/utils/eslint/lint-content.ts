@@ -68,6 +68,6 @@ export const lintContent = async ({ filePath, content }: { filePath: string; con
   // Return the fixed content (if any)
   return {
     fixedContent: fixResults[0]?.output || content,
-    fixResults: fixResults,
+    fixResults,
   };
 };

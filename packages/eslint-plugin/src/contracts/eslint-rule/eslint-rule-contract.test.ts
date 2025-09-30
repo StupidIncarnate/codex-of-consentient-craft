@@ -13,7 +13,9 @@ describe('eslintRuleContract', () => {
             description: ruleDescriptionContract.parse('Test rule description'),
           },
         },
-        create: () => ({}),
+        create: () => {
+          return {};
+        },
       };
 
       const result = eslintRuleContract.parse(validRule);
@@ -39,7 +41,9 @@ describe('eslintRuleContract', () => {
             error: 'Error message',
           },
         },
-        create: () => ({}),
+        create: () => {
+          return {};
+        },
       };
 
       const result = eslintRuleContract.parse(validRule);
@@ -56,10 +60,14 @@ describe('eslintRuleContract', () => {
             description: 'Test',
           },
         },
-        create: () => ({}),
+        create: () => {
+          return {};
+        },
       };
 
-      expect(() => eslintRuleContract.parse(invalidRule)).toThrow();
+      expect(() => {
+        return eslintRuleContract.parse(invalidRule);
+      }).toThrow();
     });
 
     it('INVALID_DESCRIPTION: {meta: {docs: {description: ""}}} => throws ZodError', () => {
@@ -70,19 +78,27 @@ describe('eslintRuleContract', () => {
             description: '',
           },
         },
-        create: () => ({}),
+        create: () => {
+          return {};
+        },
       };
 
-      expect(() => eslintRuleContract.parse(invalidRule)).toThrow();
+      expect(() => {
+        return eslintRuleContract.parse(invalidRule);
+      }).toThrow();
     });
 
     it('EMPTY: {meta: {}} => throws ZodError', () => {
       const invalidRule = {
         meta: {},
-        create: () => ({}),
+        create: () => {
+          return {};
+        },
       };
 
-      expect(() => eslintRuleContract.parse(invalidRule)).toThrow();
+      expect(() => {
+        return eslintRuleContract.parse(invalidRule);
+      }).toThrow();
     });
   });
 });

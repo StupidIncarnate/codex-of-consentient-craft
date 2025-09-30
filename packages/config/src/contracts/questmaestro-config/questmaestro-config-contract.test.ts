@@ -1,5 +1,5 @@
+import type { QuestmaestroConfig } from './questmaestro-config-contract';
 import {
-  QuestmaestroConfig,
   DEFAULT_ALLOWED_ROOT_FILES,
   DEFAULT_BOOLEAN_FUNCTION_PREFIXES,
 } from './questmaestro-config-contract';

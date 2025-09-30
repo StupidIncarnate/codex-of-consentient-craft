@@ -1,5 +1,5 @@
 import { fileUtilGetFullFileContent } from './get-full-content';
-import type { WriteToolInput, EditToolInput, MultiEditToolInput } from '../../types/tool-type';
+import type { EditToolInput, MultiEditToolInput, WriteToolInput } from '../../types/tool-type';
 import { readFile } from 'fs/promises';
 
 // Mock fs modules

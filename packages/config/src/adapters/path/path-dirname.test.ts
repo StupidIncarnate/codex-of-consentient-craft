@@ -1,9 +1,11 @@
 import { dirname } from 'path';
 import { pathDirname } from './path-dirname';
 
-jest.mock('path', () => ({
-  dirname: jest.fn(),
-}));
+jest.mock('path', () => {
+  return {
+    dirname: jest.fn(),
+  };
+});
 
 const mockDirname = dirname as jest.MockedFunction<typeof dirname>;
 

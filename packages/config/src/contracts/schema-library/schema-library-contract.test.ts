@@ -1,8 +1,5 @@
-import {
-  SchemaLibrary,
-  ALL_SCHEMA_LIBRARIES,
-  isValidSchemaLibrary,
-} from './schema-library-contract';
+import type { SchemaLibrary } from './schema-library-contract';
+import { ALL_SCHEMA_LIBRARIES, isValidSchemaLibrary } from './schema-library-contract';
 
 describe('schema-library-contract', () => {
   describe('ALL_SCHEMA_LIBRARIES', () => {

@@ -1,15 +1,13 @@
-export type EslintMessage = {
+export interface EslintMessage {
   line: number;
   message: string;
   severity: number;
   ruleId?: string;
-};
+}
 
-export type EslintResult = {
+export interface EslintResult {
   messages: EslintMessage[];
   output?: string;
-};
+}
 
-export type FullFileContentChanges = {
-  [filePath: string]: string;
-};
+export type FullFileContentChanges = Record<string, string>;

@@ -1,6 +1,6 @@
 import {
-  tsconfigOptionsContract,
   type TsconfigOptions,
+  tsconfigOptionsContract,
 } from '../../../contracts/tsconfig-options/tsconfig-options-contract';
 
 export const tsconfigBroker = (): TsconfigOptions =>

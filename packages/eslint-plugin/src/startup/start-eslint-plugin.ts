@@ -4,14 +4,15 @@ import { explicitReturnTypesRuleBroker } from '../brokers/rule/explicit-return-t
 import { enforceFolderStructureRuleBroker } from '../brokers/rule/enforce-folder-structure/enforce-folder-structure-rule-broker';
 import { questmaestroConfigBroker } from '../brokers/config/questmaestro/questmaestro-config-broker';
 
-export const startEslintPlugin = () => ({
-  rules: {
-    'ban-primitives': banPrimitivesRuleBroker(),
-    'require-zod-on-primitives': requireZodOnPrimitivesRuleBroker(),
-    'explicit-return-types': explicitReturnTypesRuleBroker(),
-    'enforce-folder-structure': enforceFolderStructureRuleBroker(),
-  },
-  configs: {
-    questmaestro: questmaestroConfigBroker(),
-  },
-});
+export const startEslintPlugin = () =>
+  ({
+    rules: {
+      'ban-primitives': banPrimitivesRuleBroker(),
+      'require-zod-on-primitives': requireZodOnPrimitivesRuleBroker(),
+      'explicit-return-types': explicitReturnTypesRuleBroker(),
+      'enforce-folder-structure': enforceFolderStructureRuleBroker(),
+    },
+    configs: {
+      questmaestro: questmaestroConfigBroker(),
+    },
+  }) as const;

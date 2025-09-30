@@ -1,8 +1,5 @@
-import {
-  RoutingLibrary,
-  ALL_ROUTING_LIBRARIES,
-  isValidRoutingLibrary,
-} from './routing-library-contract';
+import type { RoutingLibrary } from './routing-library-contract';
+import { ALL_ROUTING_LIBRARIES, isValidRoutingLibrary } from './routing-library-contract';
 
 describe('routing-library-contract', () => {
   describe('ALL_ROUTING_LIBRARIES', () => {

@@ -13,6 +13,12 @@
     "allowJs": true,
     "checkJs": false
   },
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
   "include": [
     "tests/**/*",
     "packages/*/src/**/*",
@@ -28,5 +34,7 @@
     "jest.*.js",
     ".test-tmp/**/*",
     "v1/**/*"
+    //    "**/*.test.ts",
+    //    "**/*.spec.ts"
   ]
 }

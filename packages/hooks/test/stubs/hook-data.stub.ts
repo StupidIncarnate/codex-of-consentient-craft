@@ -1,5 +1,5 @@
-import type { HookData, PreToolUseHookData, PostToolUseHookData } from '../../src/types/hook-type';
-import type { WriteToolInput, EditToolInput, MultiEditToolInput } from '../../src/types/tool-type';
+import type { HookData, PostToolUseHookData, PreToolUseHookData } from '../../src/types/hook-type';
+import type { EditToolInput, MultiEditToolInput, WriteToolInput } from '../../src/types/tool-type';
 
 // Base stub for generic hook data
 export const HookDataStub = (overrides: Partial<HookData> = {}): HookData => {

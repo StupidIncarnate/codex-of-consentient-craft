@@ -4,9 +4,9 @@ import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/que
 describe('mergeConfigsTransformer', () => {
   describe('empty configs array', () => {
     it('EMPTY: {configs: []} => throws "Cannot merge empty configs array"', () => {
-      expect(() => mergeConfigsTransformer({ configs: [] })).toThrow(
-        'Cannot merge empty configs array',
-      );
+      expect(() => {
+        return mergeConfigsTransformer({ configs: [] });
+      }).toThrow('Cannot merge empty configs array');
     });
   });
 

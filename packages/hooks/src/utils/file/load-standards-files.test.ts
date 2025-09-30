@@ -42,8 +42,8 @@ describe('loadStandardsFiles', () => {
 
     const existsSpy = jest
       .spyOn(fs, 'existsSync')
-      .mockReturnValueOnce(true) // coding-standards.md exists
-      .mockReturnValueOnce(false); // testing-standards.md doesn't exist
+      .mockReturnValueOnce(true) // Coding-standards.md exists
+      .mockReturnValueOnce(false); // Testing-standards.md doesn't exist
 
     const readSpy = jest.spyOn(fsPromises, 'readFile').mockResolvedValueOnce('Coding content only');
 
@@ -69,8 +69,8 @@ describe('loadStandardsFiles', () => {
 
     const existsSpy = jest
       .spyOn(fs, 'existsSync')
-      .mockReturnValueOnce(false) // coding-standards.md doesn't exist
-      .mockReturnValueOnce(true); // testing-standards.md exists
+      .mockReturnValueOnce(false) // Coding-standards.md doesn't exist
+      .mockReturnValueOnce(true); // Testing-standards.md exists
 
     const readSpy = jest
       .spyOn(fsPromises, 'readFile')

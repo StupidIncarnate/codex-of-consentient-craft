@@ -20,7 +20,7 @@ async function isNewSession(transcriptPath: string): Promise<boolean> {
       return true; // No transcript = new session
     }
 
-    const stats = await import('fs').then((fs) => fs.promises.stat(transcriptPath));
+    const stats = await import('fs').then(async (fs) => fs.promises.stat(transcriptPath));
     const fileSize = stats.size;
 
     // If transcript is very small (< 1KB), likely a new session

@@ -1,5 +1,5 @@
 import { readFile } from 'fs/promises';
-import type { ToolInput, WriteToolInput, MultiEditToolInput } from '../../types/tool-type';
+import type { MultiEditToolInput, ToolInput, WriteToolInput } from '../../types/tool-type';
 import { escapeRegex } from './escape-regex';
 import { isNodeError } from './is-node-error';
 
@@ -26,9 +26,8 @@ export const fileUtilGetFullFileContent = async ({ toolInput }: { toolInput: Too
         // Use global regex replace for replaceAll functionality
         const regex = new RegExp(escapeRegex({ str: editInput.old_string }), 'g');
         return existingContent.replace(regex, editInput.new_string);
-      } else {
-        return existingContent.replace(editInput.old_string, editInput.new_string);
       }
+      return existingContent.replace(editInput.old_string, editInput.new_string);
     }
 
     // For MultiEdit tool, apply all edits sequentially

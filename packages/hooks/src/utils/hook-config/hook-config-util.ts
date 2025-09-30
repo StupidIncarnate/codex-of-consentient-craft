@@ -5,9 +5,9 @@ import { getRuleNames } from './get-rule-names';
 import { getRuleDisplayConfig } from './get-rule-display-config';
 
 export const HookConfigUtil = {
-  loadConfig: loadConfig,
-  mergeWithDefaults: mergeWithDefaults,
+  loadConfig,
+  mergeWithDefaults,
   getPreEditLintDefaultConfig: getDefaultConfig,
-  getRuleNames: getRuleNames,
-  getRuleDisplayConfig: getRuleDisplayConfig,
+  getRuleNames,
+  getRuleDisplayConfig,
 };

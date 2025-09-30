@@ -1,9 +1,11 @@
 import { resolve } from 'path';
 import { pathResolve } from './path-resolve-single';
 
-jest.mock('path', () => ({
-  resolve: jest.fn(),
-}));
+jest.mock('path', () => {
+  return {
+    resolve: jest.fn(),
+  };
+});
 
 const mockResolve = resolve as jest.MockedFunction<typeof resolve>;
 

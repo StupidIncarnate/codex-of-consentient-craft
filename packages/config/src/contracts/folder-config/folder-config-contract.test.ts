@@ -1,9 +1,5 @@
-import {
-  AllowedExternalImports,
-  VALID_ARCHITECTURE_FOLDERS,
-  ArchitectureFolder,
-  isValidArchitectureFolder,
-} from './folder-config-contract';
+import type { AllowedExternalImports, ArchitectureFolder } from './folder-config-contract';
+import { VALID_ARCHITECTURE_FOLDERS, isValidArchitectureFolder } from './folder-config-contract';
 
 describe('folder-config-contract', () => {
   describe('VALID_ARCHITECTURE_FOLDERS', () => {

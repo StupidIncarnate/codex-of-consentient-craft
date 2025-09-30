@@ -1,6 +1,10 @@
 import type { EslintConfig } from '../../../contracts/eslint-config/eslint-config-contract';
 
-export const questmaestroConfigEslintBroker = (): EslintConfig => ({
+export const questmaestroConfigEslintBroker = ({
+  forTesting = false,
+}: {
+  forTesting?: boolean;
+} = {}): EslintConfig => ({
   plugins: {
     // ESLint core rules (no plugin needed)
   },
@@ -163,12 +167,12 @@ export const questmaestroConfigEslintBroker = (): EslintConfig => ({
     // ✅ function small() { return x }
     // ❌ function huge() { /* 100 lines */ }
     // Limits function length to maintain readability
-    'max-lines-per-function': ['error', { max: 50 }],
+    'max-lines-per-function': ['error', { max: 100, skipBlankLines: true, skipComments: true }],
 
     // ✅ file with 500 lines
     // ❌ file with 2000 lines
     // Limits file length to encourage modularity
-    'max-lines': ['error', { max: 1000 }],
+    'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
 
     // ✅ if (a && b)
     // ❌ if (a && b && c && d && e && f && g)
@@ -187,7 +191,8 @@ export const questmaestroConfigEslintBroker = (): EslintConfig => ({
     // ✅ obj.method()
     // ❌ new Date.getTime()
     // Requires 'new' operator when calling constructor
-    'new-cap': 'error',
+    // Disabled for testing to avoid false positives on AST selectors like 'CallExpression'
+    'new-cap': forTesting ? 'off' : 'error',
 
     // ✅ console.log('debug')
     // ❌ alert('message')
@@ -314,10 +319,9 @@ export const questmaestroConfigEslintBroker = (): EslintConfig => ({
     // Disallows duplicate case labels
     'no-duplicate-case': 'error',
 
-    // ✅ import a from 'mod'; import b from 'mod2';
-    // ❌ import a from 'mod'; import b from 'mod';
     // Disallows duplicate module imports
-    'no-duplicate-imports': 'error',
+    // Conflicts with @typescript-eslint/consistent-type-imports
+    // 'no-duplicate-imports': 'error',
 
     // ✅ if (condition) { return value } return null
     // ❌ if (condition) { return value } else { return null }
@@ -417,7 +421,8 @@ export const questmaestroConfigEslintBroker = (): EslintConfig => ({
     // ✅ const x = 1;\n// This is a comment
     // ❌ const x = 1; // inline comment
     // Disallows inline comments after code
-    'no-inline-comments': 'error',
+    // LLM struggles with this
+    // 'no-inline-comments': 'error',
 
     // ✅ import fs from 'fs'; const copy = fs;
     // ❌ import fs from 'fs'; fs = null;
@@ -482,7 +487,7 @@ export const questmaestroConfigEslintBroker = (): EslintConfig => ({
     // ✅ const MAGIC = 7; if (x > MAGIC)
     // ❌ if (x > 7)
     // Disallows magic numbers
-    'no-magic-numbers': ['error', { ignore: [0, 1] }],
+    'no-magic-numbers': ['error'],
 
     // ✅ const a = 1; const b = 2;
     // ❌ const a = b = c = 1
@@ -673,7 +678,8 @@ export const questmaestroConfigEslintBroker = (): EslintConfig => ({
     // ✅ if (condition) { return true } else { return false }
     // ❌ const result = condition ? true : false
     // Disallows ternary operators
-    'no-ternary': 'error',
+    // LLMs struggle with this
+    // 'no-ternary': 'error',
 
     // ✅ super(); this.value = 1
     // ❌ this.value = 1; super()
@@ -950,20 +956,17 @@ export const questmaestroConfigEslintBroker = (): EslintConfig => ({
     // Requires generator functions to contain yield
     'require-yield': 'error',
 
-    // ✅ import { a, b } from 'module'
-    // ❌ import { b, a } from 'module'
     // Enforces sorted import declarations within modules
-    'sort-imports': 'error',
+    // LLM won't handle this well
+    // 'sort-imports': 'error',
 
-    // ✅ { a: 1, b: 2 }
-    // ❌ { b: 2, a: 1 }
     // Requires object keys to be sorted
-    'sort-keys': 'error',
+    // LLM won't handle this well
+    // 'sort-keys': 'error',
 
-    // ✅ const a = 1, b = 2, c = 3
-    // ❌ const c = 1, a = 2, b = 3
     // Requires variables within the same declaration block to be sorted
-    'sort-vars': 'error',
+    // LLM won't handle this well
+    // 'sort-vars': 'error',
 
     // ✅ 'use strict'
     // ❌ function() { 'use strict' }

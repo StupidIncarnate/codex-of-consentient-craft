@@ -4,8 +4,8 @@ import { formatViolationMessage } from './format-violation-message';
 import { hasNewViolations } from './has-new-violations';
 
 export const ViolationAnalyzerUtil = {
-  countViolationsByRule: countViolationsByRule,
-  findNewViolations: findNewViolations,
-  formatViolationMessage: formatViolationMessage,
-  hasNewViolations: hasNewViolations,
+  countViolationsByRule,
+  findNewViolations,
+  formatViolationMessage,
+  hasNewViolations,
 };

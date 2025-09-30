@@ -19,7 +19,7 @@ export const mergeConfigsTransformer = ({
   }
 
   // Start with the first config (usually monorepo root)
-  let merged = { ...firstConfig };
+  const merged = { ...firstConfig };
 
   // Merge each subsequent config
   for (let i = 1; i < configs.length; i++) {

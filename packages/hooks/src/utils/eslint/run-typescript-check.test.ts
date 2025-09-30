@@ -69,7 +69,7 @@ describe('runTypescriptCheck', () => {
       await runTypescriptCheck({ filePath: 'src/example.ts' });
 
       // We can't easily verify the exact call args without mocking ProcessUtils,
-      // but we can verify the function completes successfully
+      // But we can verify the function completes successfully
       expect(true).toBe(true);
     });
 

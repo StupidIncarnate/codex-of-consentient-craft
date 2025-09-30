@@ -3,12 +3,14 @@ import { ConfigNotFoundError } from '../../../errors/config-not-found/config-not
 import { access } from 'fs/promises';
 
 // Mock fs/promises
-jest.mock('fs/promises', () => ({
-  access: jest.fn(),
-  constants: {
-    R_OK: 4,
-  },
-}));
+jest.mock('fs/promises', () => {
+  return {
+    access: jest.fn(),
+    constants: {
+      R_OK: 4,
+    },
+  };
+});
 
 const mockAccess = access as jest.MockedFunction<typeof access>;
 

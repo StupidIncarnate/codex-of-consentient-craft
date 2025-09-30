@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { validateMockBoundaries, DEFAULT_CONFIGS } from './mock-rails';
+import { DEFAULT_CONFIGS, validateMockBoundaries } from './mock-rails';
 import type { PreToolUseHookData } from './types/hook-type';
 
 /**

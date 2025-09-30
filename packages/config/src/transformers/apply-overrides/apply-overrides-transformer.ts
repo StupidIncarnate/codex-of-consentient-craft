@@ -22,7 +22,7 @@ export const applyOverridesTransformer = ({
 
       // Only add to folders that allow packages (not null)
       if (Array.isArray(currentValues)) {
-        (result[folderKey] as string[]) = [...currentValues, ...override.add];
+        result[folderKey] = [...currentValues, ...override.add];
       }
     }
   }

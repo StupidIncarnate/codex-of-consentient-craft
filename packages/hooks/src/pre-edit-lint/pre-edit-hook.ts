@@ -45,7 +45,7 @@ function main(): void {
 }
 
 if (require.main === module) {
-  void main();
+  main();
 }
 
 export { main as preEditHook };

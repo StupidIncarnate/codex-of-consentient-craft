@@ -1,4 +1,5 @@
-import { FrameworkPreset, FRAMEWORK_PRESETS } from './framework-presets';
+import type { FrameworkPreset } from './framework-presets';
+import { FRAMEWORK_PRESETS } from './framework-presets';
 import { ALL_FRAMEWORKS } from '../framework/framework-contract';
 
 describe('framework-presets', () => {
@@ -409,40 +410,40 @@ describe('framework-presets', () => {
     describe('preset structure validation', () => {
       it('VALID: all presets have correct property types => returns valid structures', () => {
         Object.entries(FRAMEWORK_PRESETS).forEach(([, preset]) => {
-          // widgets must be array or null
+          // Widgets must be array or null
           expect(preset.widgets === null || Array.isArray(preset.widgets)).toBe(true);
 
-          // bindings must be array or null
+          // Bindings must be array or null
           expect(preset.bindings === null || Array.isArray(preset.bindings)).toBe(true);
 
-          // state must be array or null
+          // State must be array or null
           expect(preset.state === null || Array.isArray(preset.state)).toBe(true);
 
-          // flows must be array or null
+          // Flows must be array or null
           expect(preset.flows === null || Array.isArray(preset.flows)).toBe(true);
 
-          // responders must be array or null
+          // Responders must be array or null
           expect(preset.responders === null || Array.isArray(preset.responders)).toBe(true);
 
-          // contracts must always be array
+          // Contracts must always be array
           expect(Array.isArray(preset.contracts)).toBe(true);
 
-          // brokers must always be array
+          // Brokers must always be array
           expect(Array.isArray(preset.brokers)).toBe(true);
 
-          // transformers must always be array
+          // Transformers must always be array
           expect(Array.isArray(preset.transformers)).toBe(true);
 
-          // errors must always be array
+          // Errors must always be array
           expect(Array.isArray(preset.errors)).toBe(true);
 
-          // middleware must always be array
+          // Middleware must always be array
           expect(Array.isArray(preset.middleware)).toBe(true);
 
-          // adapters must always be array
+          // Adapters must always be array
           expect(Array.isArray(preset.adapters)).toBe(true);
 
-          // startup must always be array
+          // Startup must always be array
           expect(Array.isArray(preset.startup)).toBe(true);
         });
       });

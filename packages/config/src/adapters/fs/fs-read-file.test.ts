@@ -1,9 +1,11 @@
 import { readFile } from 'fs/promises';
 import { fsReadFile } from './fs-read-file';
 
-jest.mock('fs/promises', () => ({
-  readFile: jest.fn(),
-}));
+jest.mock('fs/promises', () => {
+  return {
+    readFile: jest.fn(),
+  };
+});
 
 const mockReadFile = readFile as jest.MockedFunction<typeof readFile>;
 

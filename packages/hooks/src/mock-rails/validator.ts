@@ -1,15 +1,15 @@
 import type {
+  MockDetection,
+  MockPattern,
   MockRailsConfig,
   MockValidationResult,
-  MockDetection,
   TestType,
-  MockPattern,
 } from './types';
 import {
-  detectTestType,
-  extractMockPatterns,
   analyzeMockComplexity,
   detectAsyncPatterns,
+  detectTestType,
+  extractMockPatterns,
 } from './detector';
 import { findBestAlternative, validatePatternIds } from './registry';
 
@@ -52,7 +52,7 @@ export function validateMockBoundaries({
   }
 
   const violations: MockDetection[] = [];
-  const alternatives: Array<{ violation: MockDetection; suggested: MockPattern }> = [];
+  const alternatives: { violation: MockDetection; suggested: MockPattern }[] = [];
 
   // Check each detected mock against allowed patterns
   for (const detection of detectedMocks) {
@@ -96,7 +96,7 @@ function formatViolationMessage({
   config,
 }: {
   violations: MockDetection[];
-  alternatives: Array<{ violation: MockDetection; suggested: MockPattern }>;
+  alternatives: { violation: MockDetection; suggested: MockPattern }[];
   testType: TestType;
   config: MockRailsConfig;
 }): string {
@@ -108,7 +108,7 @@ function formatViolationMessage({
   let message = '❌ Mock Boundary Violation\n\n';
 
   // Group violations by pattern for cleaner output
-  const violationGroups = violations.reduce(
+  const violationGroups = violations.reduce<Record<string, MockDetection[]>>(
     (groups, violation) => {
       const key = violation.pattern.id;
       if (!groups[key]) {
@@ -117,14 +117,16 @@ function formatViolationMessage({
       groups[key].push(violation);
       return groups;
     },
-    {} as Record<string, MockDetection[]>,
+    {},
   );
 
   for (const [patternId, detections] of Object.entries(violationGroups)) {
     const firstDetection = detections[0];
-    if (!firstDetection) continue;
+    if (!firstDetection) {
+      continue;
+    }
 
-    const pattern = firstDetection.pattern;
+    const { pattern } = firstDetection;
     const lines = detections.map((d) => d.line).join(', ');
 
     message += `Pattern: ${patternId}\n`;
@@ -163,7 +165,7 @@ function formatViolationMessage({
       message += `Consider refactoring to test through system boundaries only\n\n`;
     }
 
-    message += '─'.repeat(50) + '\n\n';
+    message += `${'─'.repeat(50)}\n\n`;
   }
 
   // Add general guidance based on education level

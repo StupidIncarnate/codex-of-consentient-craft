@@ -1,13 +1,13 @@
-export type RuleConfig = {
+export interface RuleConfig {
   rule: string;
   displayName?: string;
   message?: string | ((hookData: unknown) => string);
-};
+}
 
-export type PreEditLintConfig = {
+export interface PreEditLintConfig {
   rules: (string | RuleConfig)[];
-};
+}
 
-export type QuestmaestroHooksConfig = {
+export interface QuestmaestroHooksConfig {
   preEditLint?: PreEditLintConfig;
-};
+}

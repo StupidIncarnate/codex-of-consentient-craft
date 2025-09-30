@@ -1,4 +1,5 @@
-import { Framework, ALL_FRAMEWORKS, isValidFramework } from './framework-contract';
+import type { Framework } from './framework-contract';
+import { ALL_FRAMEWORKS, isValidFramework } from './framework-contract';
 
 describe('framework-contract', () => {
   describe('ALL_FRAMEWORKS', () => {

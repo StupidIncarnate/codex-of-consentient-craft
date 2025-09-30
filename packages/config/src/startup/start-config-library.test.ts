@@ -1,10 +1,10 @@
 import {
-  resolveConfigForFile,
-  getFrameworkPreset,
-  validateConfig,
+  checkArchitectureFolder,
   getAllFrameworks,
   getAllSchemaLibraries,
-  checkArchitectureFolder,
+  getFrameworkPreset,
+  resolveConfigForFile,
+  validateConfig,
 } from './start-config-library';
 import { configResolveBroker } from '../brokers/config/resolve/config-resolve-broker';
 import { computeAllowedImportsTransformer } from '../transformers/compute-allowed-imports/compute-allowed-imports-transformer';
@@ -247,23 +247,33 @@ describe('start-config-library', () => {
 
     describe('invalid configs', () => {
       it('INVALID_CONFIG: {config: null} => throws error for null config', () => {
-        expect(() => validateConfig({ config: null })).toThrow('Config must be an object');
+        expect(() => {
+          return validateConfig({ config: null });
+        }).toThrow('Config must be an object');
       });
 
       it('INVALID_CONFIG: {config: undefined} => throws error for undefined config', () => {
-        expect(() => validateConfig({ config: undefined })).toThrow('Config must be an object');
+        expect(() => {
+          return validateConfig({ config: undefined });
+        }).toThrow('Config must be an object');
       });
 
       it('INVALID_CONFIG: {config: "string"} => throws error for string config', () => {
-        expect(() => validateConfig({ config: 'string' })).toThrow('Config must be an object');
+        expect(() => {
+          return validateConfig({ config: 'string' });
+        }).toThrow('Config must be an object');
       });
 
       it('INVALID_CONFIG: {config: 123} => throws error for number config', () => {
-        expect(() => validateConfig({ config: 123 })).toThrow('Config must be an object');
+        expect(() => {
+          return validateConfig({ config: 123 });
+        }).toThrow('Config must be an object');
       });
 
       it('INVALID_CONFIG: {config: true} => throws error for boolean config', () => {
-        expect(() => validateConfig({ config: true })).toThrow('Config must be an object');
+        expect(() => {
+          return validateConfig({ config: true });
+        }).toThrow('Config must be an object');
       });
 
       it('INVALID_FRAMEWORK: {framework: missing} => throws error when framework is missing', () => {
@@ -271,7 +281,9 @@ describe('start-config-library', () => {
           schema: 'zod',
         };
 
-        expect(() => validateConfig({ config })).toThrow('Config must specify a valid framework');
+        expect(() => {
+          return validateConfig({ config });
+        }).toThrow('Config must specify a valid framework');
       });
 
       it('INVALID_FRAMEWORK: {framework: null} => throws error when framework is null', () => {
@@ -280,7 +292,9 @@ describe('start-config-library', () => {
           schema: 'zod',
         };
 
-        expect(() => validateConfig({ config })).toThrow('Config must specify a valid framework');
+        expect(() => {
+          return validateConfig({ config });
+        }).toThrow('Config must specify a valid framework');
       });
 
       it('INVALID_FRAMEWORK: {framework: "unknown"} => throws error for invalid framework', () => {
@@ -289,7 +303,9 @@ describe('start-config-library', () => {
           schema: 'zod',
         };
 
-        expect(() => validateConfig({ config })).toThrow('Config must specify a valid framework');
+        expect(() => {
+          return validateConfig({ config });
+        }).toThrow('Config must specify a valid framework');
       });
 
       it('INVALID_SCHEMA: {schema: missing} => throws error when schema is missing', () => {
@@ -297,9 +313,9 @@ describe('start-config-library', () => {
           framework: 'react',
         };
 
-        expect(() => validateConfig({ config })).toThrow(
-          'Config must specify schema library/libraries',
-        );
+        expect(() => {
+          return validateConfig({ config });
+        }).toThrow('Config must specify schema library/libraries');
       });
 
       it('INVALID_SCHEMA: {schema: null} => throws error when schema is null', () => {
@@ -308,9 +324,9 @@ describe('start-config-library', () => {
           schema: null,
         };
 
-        expect(() => validateConfig({ config })).toThrow(
-          'Config must specify schema library/libraries',
-        );
+        expect(() => {
+          return validateConfig({ config });
+        }).toThrow('Config must specify schema library/libraries');
       });
 
       it('INVALID_SCHEMA: {schema: undefined} => throws error when schema is undefined', () => {
@@ -319,9 +335,9 @@ describe('start-config-library', () => {
           schema: undefined,
         };
 
-        expect(() => validateConfig({ config })).toThrow(
-          'Config must specify schema library/libraries',
-        );
+        expect(() => {
+          return validateConfig({ config });
+        }).toThrow('Config must specify schema library/libraries');
       });
     });
   });

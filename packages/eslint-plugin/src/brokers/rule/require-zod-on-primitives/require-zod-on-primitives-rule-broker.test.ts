@@ -1,3 +1,4 @@
+import type { Rule } from 'eslint';
 import { requireZodOnPrimitivesRuleBroker } from './require-zod-on-primitives-rule-broker';
 import { astNodeContract } from '../../../contracts/ast-node/ast-node-contract';
 import { z } from 'zod';
@@ -16,6 +17,13 @@ describe('requireZodOnPrimitivesRuleBroker', () => {
               'Require .brand() chaining on z.string() and z.number() calls',
             ),
           },
+          messages: {
+            requireBrandString:
+              "z.string() must be chained with .brand() - use z.string().email().brand<'EmailAddress'>() instead of z.string().email()",
+            requireBrandNumber:
+              "z.number() must be chained with .brand() - use z.number().positive().brand<'PositiveNumber'>() instead of z.number().positive()",
+          },
+          schema: [],
         },
         create: expect.any(Function),
       });
@@ -25,7 +33,7 @@ describe('requireZodOnPrimitivesRuleBroker', () => {
       const rule = requireZodOnPrimitivesRuleBroker();
       const mockContext = {
         report: jest.fn(),
-      };
+      } as unknown as Rule.RuleContext;
 
       const visitor = rule.create(mockContext);
       const keys = Object.keys(visitor);
@@ -42,7 +50,7 @@ describe('requireZodOnPrimitivesRuleBroker', () => {
       const rule = requireZodOnPrimitivesRuleBroker();
       const mockContext = {
         report: jest.fn(),
-      };
+      } as unknown as Rule.RuleContext;
       const visitor = rule.create(mockContext);
       const mockNode = astNodeContract.parse({
         type: 'CallExpression',
@@ -56,8 +64,7 @@ describe('requireZodOnPrimitivesRuleBroker', () => {
       expect(mockContext.report).toHaveBeenCalledTimes(1);
       expect(mockContext.report).toHaveBeenCalledWith({
         node: mockNode,
-        message:
-          "z.string() must be chained with .brand() - use z.string().email().brand<'EmailAddress'>() instead of z.string().email()",
+        messageId: 'requireBrandString',
       });
     });
 
@@ -65,7 +72,7 @@ describe('requireZodOnPrimitivesRuleBroker', () => {
       const rule = requireZodOnPrimitivesRuleBroker();
       const mockContext = {
         report: jest.fn(),
-      };
+      } as unknown as Rule.RuleContext;
       const visitor = rule.create(mockContext);
       const mockNode = astNodeContract.parse({
         type: 'CallExpression',
@@ -79,8 +86,7 @@ describe('requireZodOnPrimitivesRuleBroker', () => {
       expect(mockContext.report).toHaveBeenCalledTimes(1);
       expect(mockContext.report).toHaveBeenCalledWith({
         node: mockNode,
-        message:
-          "z.number() must be chained with .brand() - use z.number().positive().brand<'PositiveNumber'>() instead of z.number().positive()",
+        messageId: 'requireBrandNumber',
       });
     });
   });

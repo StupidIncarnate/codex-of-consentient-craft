@@ -1,5 +1,5 @@
 import { hasNewViolations } from './has-new-violations';
-import type { LintResult, LintMessage } from '../../types/lint-type';
+import type { LintMessage, LintResult } from '../../types/lint-type';
 import { ViolationCountStub } from '../../../test/stubs/violation.stub';
 
 describe('hasNewViolations', () => {

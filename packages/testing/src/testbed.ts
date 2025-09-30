@@ -3,7 +3,7 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import * as crypto from 'crypto';
 
-// import { jest } from '@jest/globals'; // Not needed in this version
+// Import { jest } from '@jest/globals'; // Not needed in this version
 
 interface ExecResult {
   stdout: string;
@@ -22,16 +22,12 @@ interface PackageJson {
   };
   eslintConfig?: unknown;
   jest?: unknown;
-  devDependencies?: {
-    [key: string]: string;
-  };
+  devDependencies?: Record<string, string>;
 }
 
 export interface QuestmaestroConfig {
   questFolder: string;
-  wardCommands: {
-    [key: string]: unknown;
-  };
+  wardCommands: Record<string, unknown>;
 
   [key: string]: unknown;
 }
@@ -41,27 +37,27 @@ export interface TestProject {
   readonly projectName: string;
   readonly rootDir: string;
 
-  installQuestmaestro(): string;
+  installQuestmaestro: () => string;
 
-  hasCommand(command: string): boolean;
+  hasCommand: (command: string) => boolean;
 
-  fileExists(fileName: string): boolean;
+  fileExists: (fileName: string) => boolean;
 
-  readFile(fileName: string): string;
+  readFile: (fileName: string) => string;
 
-  writeFile(fileName: string, content: string): void;
+  writeFile: (fileName: string, content: string) => void;
 
-  deleteFile(fileName: string): void;
+  deleteFile: (fileName: string) => void;
 
-  getConfig(): QuestmaestroConfig | null;
+  getConfig: () => QuestmaestroConfig | null;
 
-  getPackageJson(): PackageJson;
+  getPackageJson: () => PackageJson;
 
-  getQuestFiles(subdir?: string): string[];
+  getQuestFiles: (subdir?: string) => string[];
 
-  executeCommand(command: string): ExecResult;
+  executeCommand: (command: string) => ExecResult;
 
-  cleanup(): void;
+  cleanup: () => void;
 }
 
 export function createTestProject(baseName: string): TestProject {
@@ -111,10 +107,12 @@ export function createTestProject(baseName: string): TestProject {
 
     hasCommand(command: string): boolean {
       const packageJsonPath = path.join(projectPath, 'package.json');
-      if (!fs.existsSync(packageJsonPath)) return false;
+      if (!fs.existsSync(packageJsonPath)) {
+        return false;
+      }
 
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
-      return !!(packageJson.scripts && packageJson.scripts[command]);
+      return Boolean(packageJson.scripts?.[command]);
     },
 
     fileExists(fileName: string): boolean {
@@ -143,7 +141,9 @@ export function createTestProject(baseName: string): TestProject {
 
     getConfig(): QuestmaestroConfig | null {
       const configPath = path.join(projectPath, '.questmaestro');
-      if (!fs.existsSync(configPath)) return null;
+      if (!fs.existsSync(configPath)) {
+        return null;
+      }
       return JSON.parse(fs.readFileSync(configPath, 'utf-8')) as QuestmaestroConfig;
     },
 
@@ -158,7 +158,9 @@ export function createTestProject(baseName: string): TestProject {
         ? path.join(projectPath, 'questmaestro', subdir)
         : path.join(projectPath, 'questmaestro');
 
-      if (!fs.existsSync(questDir)) return [];
+      if (!fs.existsSync(questDir)) {
+        return [];
+      }
 
       const extension = subdir ? '.json' : '.md';
       const basePath = subdir ? path.join('questmaestro', subdir) : 'questmaestro';

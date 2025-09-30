@@ -3,9 +3,9 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import * as crypto from 'crypto';
 import {
-  WriteToolHookStub,
   EditToolHookStub,
   MultiEditToolHookStub,
+  WriteToolHookStub,
 } from '../../test/stubs/hook-data.stub';
 
 interface ExecError extends Error {

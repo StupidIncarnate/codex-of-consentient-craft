@@ -1,12 +1,12 @@
 import type { Framework } from '../framework/framework-contract';
 
 // Base preset structure - what each framework allows by default
-export type FrameworkPreset = {
-  widgets: string[] | null; // null = folder not allowed
-  bindings: string[] | null; // null = folder not allowed
-  state: string[] | null; // null = folder not allowed
-  flows: string[] | null; // null = folder not allowed
-  responders: string[] | null; // null = folder not allowed
+export interface FrameworkPreset {
+  widgets: string[] | null; // Null = folder not allowed
+  bindings: string[] | null; // Null = folder not allowed
+  state: string[] | null; // Null = folder not allowed
+  flows: string[] | null; // Null = folder not allowed
+  responders: string[] | null; // Null = folder not allowed
   contracts: string[]; // Schema libraries will be added here
   brokers: string[]; // Usually empty
   transformers: string[]; // Usually empty
@@ -14,7 +14,7 @@ export type FrameworkPreset = {
   middleware: string[]; // Usually empty
   adapters: string[]; // Usually ["*"] (unrestricted)
   startup: string[]; // Usually ["*"] (unrestricted)
-};
+}
 
 // Frontend frameworks (have UI components)
 const FRONTEND_BASE_PRESET: FrameworkPreset = {
