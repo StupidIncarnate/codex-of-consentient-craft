@@ -17,7 +17,6 @@ export const loadConfig = ({ cwd = process.cwd() }: { cwd?: string } = {}): PreE
         // Clear require cache to ensure fresh config loading
         delete require.cache[configPath];
 
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const config = require(configPath) as QuestmaestroHooksConfig;
 
         if (config.preEditLint) {

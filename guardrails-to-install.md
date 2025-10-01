@@ -55,6 +55,13 @@ LLm likes to do this when file path searching. They need to use recursion instea
 
 LLM seems to just placearrays of string const everywhere. We need a standard and probably a lint rule. ex
 
+## allow inline imports only for file paths
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const config = require(configPath) as QuestmaestroHooksConfig;
+
+That way they can be imported in a function. npm packages however must be excluded. Have to turn off this rule for now
+
 ```angular2html
 nly has certain keys, so I should validate against those:
 ⎿  Updated src/transformers/apply-overrides/apply-overrides-transformer.ts with 21 additions and 4

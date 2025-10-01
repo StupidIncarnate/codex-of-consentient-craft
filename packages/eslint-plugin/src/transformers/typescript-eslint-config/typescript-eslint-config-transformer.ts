@@ -357,7 +357,8 @@ export const typescriptEslintConfigTransformer = ({
     // ✅ import foo from 'foo'
     // ❌ const foo = require('foo'), import foo = require('foo')
     // Disallow invocation of require()
-    '@typescript-eslint/no-require-imports': 'error',
+    // Will need to cover with a special rule cause of file config importing
+    '@typescript-eslint/no-require-imports': 'off',
 
     // ✅ import { allowed } from 'allowed-module'
     // ❌ import { denied } from 'denied-module'

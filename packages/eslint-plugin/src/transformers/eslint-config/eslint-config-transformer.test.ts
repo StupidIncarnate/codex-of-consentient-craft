@@ -52,7 +52,7 @@ describe('eslintConfigTransformer', () => {
     it('VALID: {} => returns config with camelcase as error', () => {
       const result = eslintConfigTransformer();
 
-      expect(result.rules?.camelcase).toBe('error');
+      expect(result.rules?.camelcase).toBe('off');
     });
 
     it('VALID: {} => returns config with complexity configured with max 10', () => {
@@ -221,7 +221,7 @@ describe('eslintConfigTransformer', () => {
           'array-callback-return': 'error',
           'arrow-body-style': ['error', 'always'],
           'block-scoped-var': 'error',
-          camelcase: 'error',
+          camelcase: 'off',
           'capitalized-comments': 'error',
           'class-methods-use-this': 'error',
           complexity: ['error', { max: 10 }],
@@ -348,7 +348,7 @@ describe('eslintConfigTransformer', () => {
           'no-template-curly-in-string': 'error',
           'no-this-before-super': 'error',
           'no-throw-literal': 'error',
-          'no-undef': 'error',
+          'no-undef': 'off',
           'no-undef-init': 'error',
           'no-undefined': 'off',
           'no-underscore-dangle': 'error',
@@ -422,7 +422,7 @@ describe('eslintConfigTransformer', () => {
           'array-callback-return': 'error',
           'arrow-body-style': ['error', 'always'],
           'block-scoped-var': 'error',
-          camelcase: 'error',
+          camelcase: 'off',
           'capitalized-comments': 'error',
           'class-methods-use-this': 'error',
           complexity: ['error', { max: 10 }],
@@ -549,7 +549,7 @@ describe('eslintConfigTransformer', () => {
           'no-template-curly-in-string': 'error',
           'no-this-before-super': 'error',
           'no-throw-literal': 'error',
-          'no-undef': 'error',
+          'no-undef': 'off',
           'no-undef-init': 'error',
           'no-undefined': 'off',
           'no-underscore-dangle': 'error',

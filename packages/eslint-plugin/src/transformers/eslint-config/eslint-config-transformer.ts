@@ -32,7 +32,8 @@ export const eslintConfigTransformer = ({
     // ✅ userName = true
     // ❌ user_name = true
     // Enforces camelCase naming for variables and functions
-    camelcase: 'error',
+    // Problematic, even when dealing with Tool structures from anthropic
+    camelcase: 'off',
 
     // ✅ 'UPPER_CASE'
     // ❌ 'Upper_Case'
@@ -699,7 +700,8 @@ export const eslintConfigTransformer = ({
     // ✅ const x = defined
     // ❌ const x = undefined
     // Disallows the use of undeclared variables
-    'no-undef': 'error',
+    // Typescript handles this
+    'no-undef': 'off',
 
     // ✅ let x = null
     // ❌ let x = undefined
