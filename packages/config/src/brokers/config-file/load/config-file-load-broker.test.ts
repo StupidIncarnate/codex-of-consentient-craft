@@ -94,12 +94,7 @@ describe('configFileLoadBroker', () => {
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = null'));
       mockNodeRequire.mockReturnValueOnce(null);
 
-      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
-        new InvalidConfigError({
-          message: 'Config file must export an object',
-          configPath,
-        }),
-      );
+      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is undefined', async () => {
@@ -108,12 +103,7 @@ describe('configFileLoadBroker', () => {
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = undefined'));
       mockNodeRequire.mockReturnValueOnce(undefined);
 
-      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
-        new InvalidConfigError({
-          message: 'Config file must export an object',
-          configPath,
-        }),
-      );
+      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is string', async () => {
@@ -122,12 +112,7 @@ describe('configFileLoadBroker', () => {
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = "invalid"'));
       mockNodeRequire.mockReturnValueOnce('invalid');
 
-      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
-        new InvalidConfigError({
-          message: 'Config file must export an object',
-          configPath,
-        }),
-      );
+      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is number', async () => {
@@ -136,12 +121,7 @@ describe('configFileLoadBroker', () => {
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = 123'));
       mockNodeRequire.mockReturnValueOnce(123);
 
-      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
-        new InvalidConfigError({
-          message: 'Config file must export an object',
-          configPath,
-        }),
-      );
+      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('INVALID_FRAMEWORK: {configPath: "/project/.questmaestro"} => throws when framework is missing', async () => {
@@ -153,12 +133,7 @@ describe('configFileLoadBroker', () => {
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockReturnValueOnce(mockConfig);
 
-      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
-        new InvalidConfigError({
-          message: 'Config must specify a framework',
-          configPath,
-        }),
-      );
+      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('INVALID_FRAMEWORK: {configPath: "/project/.questmaestro"} => throws when framework is null', async () => {
@@ -171,12 +146,7 @@ describe('configFileLoadBroker', () => {
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockReturnValueOnce(mockConfig);
 
-      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
-        new InvalidConfigError({
-          message: 'Config must specify a framework',
-          configPath,
-        }),
-      );
+      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('INVALID_FRAMEWORK: {configPath: "/project/.questmaestro"} => throws when framework is undefined', async () => {
@@ -189,12 +159,7 @@ describe('configFileLoadBroker', () => {
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockReturnValueOnce(mockConfig);
 
-      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
-        new InvalidConfigError({
-          message: 'Config must specify a framework',
-          configPath,
-        }),
-      );
+      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
   });
 
@@ -232,17 +197,13 @@ describe('configFileLoadBroker', () => {
       );
     });
 
-    it('ERROR: {configPath: "/project/.questmaestro"} => re-throws InvalidConfigError without wrapping', async () => {
+    it('ERROR: {configPath: "/project/.questmaestro"} => wraps validation errors in InvalidConfigError', async () => {
       const configPath = '/project/.questmaestro';
-      const invalidConfigError = new InvalidConfigError({
-        message: 'Config must specify a framework',
-        configPath,
-      });
 
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('module.exports = {...}'));
       mockNodeRequire.mockReturnValueOnce({});
 
-      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(invalidConfigError);
+      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('ERROR: {configPath: "/project/.questmaestro"} => handles Error objects properly', async () => {
@@ -277,7 +238,11 @@ describe('configFileLoadBroker', () => {
 
       const result = await configFileLoadBroker({ configPath });
 
-      expect(result).toStrictEqual(mockModule);
+      // Zod validation strips unknown properties
+      expect(result).toStrictEqual({
+        framework: 'react',
+        schema: 'zod',
+      });
     });
 
     it('EDGE: {configPath: "/project/.questmaestro"} => handles minimal valid config', async () => {

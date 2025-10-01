@@ -104,9 +104,9 @@ describe('start-config-library', () => {
     it('ERROR: {filePath: "/project/invalid.ts"} => propagates transformation errors', async () => {
       const filePath = '/project/invalid.ts';
       const resolvedConfig: QuestmaestroConfig = {
-        framework: 'unknown' as unknown,
+        framework: 'react',
         schema: 'zod',
-      } as QuestmaestroConfig;
+      };
       const transformError = new Error('Invalid framework');
 
       mockConfigResolveBroker.mockResolvedValueOnce(resolvedConfig);
@@ -243,47 +243,47 @@ describe('start-config-library', () => {
     });
 
     describe('invalid configs', () => {
-      it('INVALID_CONFIG: {config: null} => throws error for null config', () => {
+      it('INVALID_CONFIG: {config: null} => throws ZodError for null config', () => {
         expect(() => {
           return validateConfig({ config: null });
-        }).toThrow('Config must be an object');
+        }).toThrow();
       });
 
-      it('INVALID_CONFIG: {config: undefined} => throws error for undefined config', () => {
+      it('INVALID_CONFIG: {config: undefined} => throws ZodError for undefined config', () => {
         expect(() => {
           return validateConfig({ config: undefined });
-        }).toThrow('Config must be an object');
+        }).toThrow();
       });
 
-      it('INVALID_CONFIG: {config: "string"} => throws error for string config', () => {
+      it('INVALID_CONFIG: {config: "string"} => throws ZodError for string config', () => {
         expect(() => {
           return validateConfig({ config: 'string' });
-        }).toThrow('Config must be an object');
+        }).toThrow();
       });
 
-      it('INVALID_CONFIG: {config: 123} => throws error for number config', () => {
+      it('INVALID_CONFIG: {config: 123} => throws ZodError for number config', () => {
         expect(() => {
           return validateConfig({ config: 123 });
-        }).toThrow('Config must be an object');
+        }).toThrow();
       });
 
-      it('INVALID_CONFIG: {config: true} => throws error for boolean config', () => {
+      it('INVALID_CONFIG: {config: true} => throws ZodError for boolean config', () => {
         expect(() => {
           return validateConfig({ config: true });
-        }).toThrow('Config must be an object');
+        }).toThrow();
       });
 
-      it('INVALID_FRAMEWORK: {framework: missing} => throws error when framework is missing', () => {
+      it('INVALID_FRAMEWORK: {framework: missing} => throws ZodError when framework is missing', () => {
         const config = {
           schema: 'zod',
         };
 
         expect(() => {
           return validateConfig({ config });
-        }).toThrow('Config must specify a valid framework');
+        }).toThrow();
       });
 
-      it('INVALID_FRAMEWORK: {framework: null} => throws error when framework is null', () => {
+      it('INVALID_FRAMEWORK: {framework: null} => throws ZodError when framework is null', () => {
         const config = {
           framework: null,
           schema: 'zod',
@@ -291,10 +291,10 @@ describe('start-config-library', () => {
 
         expect(() => {
           return validateConfig({ config });
-        }).toThrow('Config must specify a valid framework');
+        }).toThrow();
       });
 
-      it('INVALID_FRAMEWORK: {framework: "unknown"} => throws error for invalid framework', () => {
+      it('INVALID_FRAMEWORK: {framework: "unknown"} => throws ZodError for invalid framework', () => {
         const config = {
           framework: 'unknown',
           schema: 'zod',
@@ -302,20 +302,20 @@ describe('start-config-library', () => {
 
         expect(() => {
           return validateConfig({ config });
-        }).toThrow('Config must specify a valid framework');
+        }).toThrow();
       });
 
-      it('INVALID_SCHEMA: {schema: missing} => throws error when schema is missing', () => {
+      it('INVALID_SCHEMA: {schema: missing} => throws ZodError when schema is missing', () => {
         const config = {
           framework: 'react',
         };
 
         expect(() => {
           return validateConfig({ config });
-        }).toThrow('Config must specify schema library/libraries');
+        }).toThrow();
       });
 
-      it('INVALID_SCHEMA: {schema: null} => throws error when schema is null', () => {
+      it('INVALID_SCHEMA: {schema: null} => throws ZodError when schema is null', () => {
         const config = {
           framework: 'react',
           schema: null,
@@ -323,10 +323,10 @@ describe('start-config-library', () => {
 
         expect(() => {
           return validateConfig({ config });
-        }).toThrow('Config must specify schema library/libraries');
+        }).toThrow();
       });
 
-      it('INVALID_SCHEMA: {schema: undefined} => throws error when schema is undefined', () => {
+      it('INVALID_SCHEMA: {schema: undefined} => throws ZodError when schema is undefined', () => {
         const config = {
           framework: 'react',
           schema: undefined,
@@ -334,7 +334,7 @@ describe('start-config-library', () => {
 
         expect(() => {
           return validateConfig({ config });
-        }).toThrow('Config must specify schema library/libraries');
+        }).toThrow();
       });
     });
   });

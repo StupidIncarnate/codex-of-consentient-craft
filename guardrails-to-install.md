@@ -51,6 +51,58 @@ Dont let it run jest --coverage, because then it starts hallucination.
 
 LLm likes to do this when file path searching. They need to use recursion instead
 
+## Squirreling lists of strings
+
+LLM seems to just placearrays of string const everywhere. We need a standard and probably a lint rule. ex
+
+```angular2html
+nly has certain keys, so I should validate against those:
+⎿  Updated src/transformers/apply-overrides/apply-overrides-transformer.ts with 21 additions and 4
+removals
+1    import type { FrameworkPreset } from
+'../../contracts/framework-presets/framework-presets';
+2    import type { QuestmaestroConfig } from
+'../../contracts/questmaestro-config/questmaestro-config-contract';
+3
+4 +  const isFrameworkPresetKey = (key: string): key is keyof FrameworkPreset => {
+5 +    const validKeys: Array<keyof FrameworkPreset> = [
+6 +      'widgets',
+7 +      'bindings',
+8 +      'state',
+9 +      'flows',
+10 +      'responders',
+11 +      'contracts',
+12 +      'brokers',
+13 +      'transformers',
+14 +      'errors',
+15 +      'middleware',
+16 +      'adapters',
+17 +      'startup',
+18 +    ];
+19 +    return validKeys.includes(key as keyof FrameworkPreset);
+20 +  };
+21 +
+22    export const applyOverridesTransformer = ({
+23      preset,
+24      config,
+...
+16
+17      // Apply each override
+18      for (const [folder, override] of Object.entries(config.architecture.overrides)) {
+19 -      if (override.add) {
+20 -        const folderKey = folder as keyof FrameworkPreset;
+21 -        const currentValues = result[folderKey];
+19 +      if (override.add && isFrameworkPresetKey(folder)) {
+20 +        const currentValues = result[folder];
+21
+22          // Only add to folders that allow packages (not null)
+23          if (Array.isArray(currentValues)) {
+24 -          result[folderKey] = [...currentValues, ...override.add];
+24 +          result[folder] = [...currentValues, ...override.add];
+25          }
+26        }
+```
+
 ## PLanning
 
 Getting clade to make a plan and list out entire folder structure with comments for each file is really helpful for

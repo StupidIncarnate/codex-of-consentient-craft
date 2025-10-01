@@ -97,7 +97,7 @@ module.exports = [
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-empty-function': 'off',
-      'complexity': 'off',
+      complexity: 'off',
       'max-lines-per-function': 'off',
       'max-nested-callbacks': 'off',
       'jest/unbound-method': 'off',

@@ -2,18 +2,14 @@ import { FRAMEWORK_PRESETS } from '../../contracts/framework-presets/framework-p
 import { applyOverridesTransformer } from '../apply-overrides/apply-overrides-transformer';
 import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/questmaestro-config-contract';
 import type { AllowedExternalImports } from '../../contracts/folder-config/folder-config-contract';
-import { InvalidFrameworkError } from '../../errors/invalid-framework/invalid-framework-error';
 
 export const computeAllowedImportsTransformer = ({
   config,
 }: {
   config: QuestmaestroConfig;
 }): AllowedExternalImports => {
-  // Get the base preset for the framework
+  // Get the base preset for the framework (guaranteed to exist by Zod validation)
   const basePreset = FRAMEWORK_PRESETS[config.framework];
-  if (!basePreset) {
-    throw new InvalidFrameworkError({ framework: config.framework });
-  }
 
   // Apply user overrides to the preset
   const preset = applyOverridesTransformer({ preset: basePreset, config });

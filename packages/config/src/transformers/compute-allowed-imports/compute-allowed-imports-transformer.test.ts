@@ -1,5 +1,4 @@
 import { computeAllowedImportsTransformer } from './compute-allowed-imports-transformer';
-import { InvalidFrameworkError } from '../../errors/invalid-framework/invalid-framework-error';
 import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/questmaestro-config-contract';
 
 describe('computeAllowedImportsTransformer', () => {
@@ -235,41 +234,6 @@ describe('computeAllowedImportsTransformer', () => {
         adapters: ['*'],
         startup: ['*'],
       });
-    });
-  });
-
-  describe('error cases', () => {
-    it('ERROR: {framework: "unknown"} => throws InvalidFrameworkError', () => {
-      const config = {
-        framework: 'unknown' as unknown,
-        schema: 'zod',
-      } as QuestmaestroConfig;
-
-      expect(() => {
-        return computeAllowedImportsTransformer({ config });
-      }).toThrow(new InvalidFrameworkError({ framework: 'unknown' }));
-    });
-
-    it('ERROR: {framework: null} => throws InvalidFrameworkError', () => {
-      const config = {
-        framework: null as unknown,
-        schema: 'zod',
-      } as QuestmaestroConfig;
-
-      expect(() => {
-        return computeAllowedImportsTransformer({ config });
-      }).toThrow(new InvalidFrameworkError({ framework: null }));
-    });
-
-    it('ERROR: {framework: undefined} => throws InvalidFrameworkError', () => {
-      const config = {
-        framework: undefined as unknown,
-        schema: 'zod',
-      } as QuestmaestroConfig;
-
-      expect(() => {
-        return computeAllowedImportsTransformer({ config });
-      }).toThrow(new InvalidFrameworkError({ framework: undefined }));
     });
   });
 });

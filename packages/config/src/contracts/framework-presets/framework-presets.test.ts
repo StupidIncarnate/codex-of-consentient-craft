@@ -1,5 +1,6 @@
 import type { FrameworkPreset } from './framework-presets';
 import { FRAMEWORK_PRESETS } from './framework-presets';
+import type { Framework } from '../framework/framework-contract';
 import { ALL_FRAMEWORKS } from '../framework/framework-contract';
 
 describe('framework-presets', () => {
@@ -449,10 +450,17 @@ describe('framework-presets', () => {
       });
 
       it('VALID: frontend frameworks have UI folders => returns array values', () => {
-        const frontendFrameworks = ['react', 'vue', 'angular', 'svelte', 'solid', 'preact'];
+        const frontendFrameworks: Framework[] = [
+          'react',
+          'vue',
+          'angular',
+          'svelte',
+          'solid',
+          'preact',
+        ];
 
         frontendFrameworks.forEach((framework) => {
-          const preset = FRAMEWORK_PRESETS[framework as keyof typeof FRAMEWORK_PRESETS];
+          const preset = FRAMEWORK_PRESETS[framework];
           expect(Array.isArray(preset.widgets)).toBe(true);
           expect(Array.isArray(preset.bindings)).toBe(true);
           expect(Array.isArray(preset.state)).toBe(true);
@@ -463,20 +471,20 @@ describe('framework-presets', () => {
       });
 
       it('VALID: backend frameworks have no UI folders => returns null values', () => {
-        const backendFrameworks = ['express', 'fastify', 'koa', 'hapi', 'nestjs'];
+        const backendFrameworks: Framework[] = ['express', 'fastify', 'koa', 'hapi', 'nestjs'];
 
         backendFrameworks.forEach((framework) => {
-          const preset = FRAMEWORK_PRESETS[framework as keyof typeof FRAMEWORK_PRESETS];
+          const preset = FRAMEWORK_PRESETS[framework];
           expect(preset.widgets).toBe(null);
           expect(preset.bindings).toBe(null);
         });
       });
 
       it('VALID: fullstack frameworks have UI folders => returns array values', () => {
-        const fullstackFrameworks = ['nextjs', 'nuxtjs', 'remix'];
+        const fullstackFrameworks: Framework[] = ['nextjs', 'nuxtjs', 'remix'];
 
         fullstackFrameworks.forEach((framework) => {
-          const preset = FRAMEWORK_PRESETS[framework as keyof typeof FRAMEWORK_PRESETS];
+          const preset = FRAMEWORK_PRESETS[framework];
           expect(Array.isArray(preset.widgets)).toBe(true);
           expect(Array.isArray(preset.bindings)).toBe(true);
           expect(Array.isArray(preset.state)).toBe(true);
@@ -487,20 +495,20 @@ describe('framework-presets', () => {
       });
 
       it('VALID: library frameworks have no flows/responders => returns null values', () => {
-        const libraryFrameworks = ['node-library', 'react-library'];
+        const libraryFrameworks: Framework[] = ['node-library', 'react-library'];
 
         libraryFrameworks.forEach((framework) => {
-          const preset = FRAMEWORK_PRESETS[framework as keyof typeof FRAMEWORK_PRESETS];
+          const preset = FRAMEWORK_PRESETS[framework];
           expect(preset.flows).toBe(null);
           expect(preset.responders).toBe(null);
         });
       });
 
       it('VALID: CLI frameworks have no flows/responders => returns null values', () => {
-        const cliFrameworks = ['cli', 'ink-cli'];
+        const cliFrameworks: Framework[] = ['cli', 'ink-cli'];
 
         cliFrameworks.forEach((framework) => {
-          const preset = FRAMEWORK_PRESETS[framework as keyof typeof FRAMEWORK_PRESETS];
+          const preset = FRAMEWORK_PRESETS[framework];
           expect(preset.flows).toBe(null);
           expect(preset.responders).toBe(null);
         });

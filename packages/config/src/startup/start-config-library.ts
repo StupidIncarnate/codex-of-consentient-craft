@@ -2,9 +2,10 @@
 import { configResolveBroker } from '../brokers/config/resolve/config-resolve-broker';
 import { computeAllowedImportsTransformer } from '../transformers/compute-allowed-imports/compute-allowed-imports-transformer';
 import { FRAMEWORK_PRESETS } from '../contracts/framework-presets/framework-presets';
-import { ALL_FRAMEWORKS, isValidFramework } from '../contracts/framework/framework-contract';
+import { ALL_FRAMEWORKS } from '../contracts/framework/framework-contract';
 import { ALL_SCHEMA_LIBRARIES } from '../contracts/schema-library/schema-library-contract';
 import { isValidArchitectureFolder as checkValidArchitectureFolder } from '../contracts/folder-config/folder-config-contract';
+import { questmaestroConfigContract } from '../contracts/questmaestro-config/questmaestro-config-contract';
 import type { Framework } from '../contracts/framework/framework-contract';
 import type { SchemaLibrary } from '../contracts/schema-library/schema-library-contract';
 import type { QuestmaestroConfig } from '../contracts/questmaestro-config/questmaestro-config-contract';
@@ -35,23 +36,8 @@ export const getFrameworkPreset = ({ framework }: { framework: Framework }): Fra
 /**
  * Validate a configuration object
  */
-export const validateConfig = ({ config }: { config: unknown }): QuestmaestroConfig => {
-  if (!config || typeof config !== 'object') {
-    throw new Error('Config must be an object');
-  }
-
-  const configObj = config as Record<string, unknown>;
-
-  if (!configObj.framework || !isValidFramework(configObj.framework)) {
-    throw new Error('Config must specify a valid framework');
-  }
-
-  if (!configObj.schema) {
-    throw new Error('Config must specify schema library/libraries');
-  }
-
-  return config as QuestmaestroConfig;
-};
+export const validateConfig = ({ config }: { config: unknown }): QuestmaestroConfig =>
+  questmaestroConfigContract.parse(config);
 
 /**
  * Get list of all valid frameworks

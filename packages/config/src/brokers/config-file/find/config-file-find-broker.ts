@@ -14,34 +14,35 @@ const checkConfigExists = async ({ configPath }: { configPath: string }): Promis
   }
 };
 
+const searchConfigRecursive = async ({
+  currentPath,
+  originalPath,
+}: {
+  currentPath: string;
+  originalPath: string;
+}): Promise<string> => {
+  const configPath = pathJoin({ paths: [currentPath, CONFIG_FILENAME] });
+
+  const exists = await checkConfigExists({ configPath });
+  if (exists) {
+    return configPath;
+  }
+
+  // Check if we've reached the root directory
+  const parentPath = pathDirname({ path: currentPath });
+  if (parentPath === currentPath) {
+    // We've reached the root directory
+    throw new ConfigNotFoundError({ startPath: originalPath });
+  }
+
+  return searchConfigRecursive({ currentPath: parentPath, originalPath });
+};
+
 export const configFileFindBroker = async ({
   startPath,
 }: {
   startPath: string;
 }): Promise<string> => {
-  let currentPath = pathDirname({ path: startPath });
-  const originalPath = startPath;
-  const searching = true;
-
-  // Walk up the directory tree looking for .questmaestro
-  while (searching) {
-    const configPath = pathJoin({ paths: [currentPath, CONFIG_FILENAME] });
-
-    const exists = await checkConfigExists({ configPath });
-    if (exists) {
-      return configPath;
-    }
-
-    // Check if we've reached the root directory
-    const parentPath = pathDirname({ path: currentPath });
-    if (parentPath === currentPath) {
-      // We've reached the root directory
-      throw new ConfigNotFoundError({ startPath: originalPath });
-    }
-
-    currentPath = parentPath;
-  }
-
-  // This line is unreachable but satisfies TypeScript
-  throw new ConfigNotFoundError({ startPath: originalPath });
+  const currentPath = pathDirname({ path: startPath });
+  return searchConfigRecursive({ currentPath, originalPath: startPath });
 };
