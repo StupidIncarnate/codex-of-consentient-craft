@@ -9,15 +9,9 @@ jest.mock('../../config-file/find/config-file-find-broker');
 jest.mock('../../config-file/load/config-file-load-broker');
 jest.mock('../../../transformers/merge-configs/merge-configs-transformer');
 
-const mockConfigFileFindBroker = configFileFindBroker as jest.MockedFunction<
-  typeof configFileFindBroker
->;
-const mockConfigFileLoadBroker = configFileLoadBroker as jest.MockedFunction<
-  typeof configFileLoadBroker
->;
-const mockMergeConfigsTransformer = mergeConfigsTransformer as jest.MockedFunction<
-  typeof mergeConfigsTransformer
->;
+const mockConfigFileFindBroker = jest.mocked(configFileFindBroker);
+const mockConfigFileLoadBroker = jest.mocked(configFileLoadBroker);
+const mockMergeConfigsTransformer = jest.mocked(mergeConfigsTransformer);
 
 describe('configResolveBroker', () => {
   beforeEach(() => {

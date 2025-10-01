@@ -7,7 +7,7 @@ jest.mock('path', () => {
   };
 });
 
-const mockResolve = resolve as jest.MockedFunction<typeof resolve>;
+const mockResolve = jest.mocked(resolve);
 
 describe('pathResolve', () => {
   beforeEach(() => {

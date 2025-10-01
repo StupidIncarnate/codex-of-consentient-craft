@@ -7,7 +7,7 @@ jest.mock('path', () => {
   };
 });
 
-const mockDirname = dirname as jest.MockedFunction<typeof dirname>;
+const mockDirname = jest.mocked(dirname);
 
 describe('pathDirname', () => {
   beforeEach(() => {

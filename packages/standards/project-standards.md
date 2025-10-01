@@ -179,6 +179,11 @@ const isEven = ({n}: { n: PositiveNumber }) => {
 - **Use `Promise.all()`** for parallel operations when independent
 - **Await sequentially** only when operations are dependent
 
+**Loop Control:**
+
+- **Use recursion for indeterminate loops** - Never use `while (true)` or loops with unchanging conditions
+- **Recursion with early returns** for tree traversal, file system walking, config resolution
+
 ```typescript
 // ✅ CORRECT - Parallel when independent with explicit types
 const [user, config, permissions] = await Promise.all([
@@ -239,6 +244,7 @@ throw new Error('Config load failed');  // What path? What error?
 - **Default to efficient algorithms** - Dataset sizes are unknown; use Map/Set for lookups over nested array searches
 - **Remove dead code** - Unused variables/parameters, unreachable code, orphaned files, commented-out code, console.log
   statements
+- **Use Reflect.deleteProperty()** - Never use `delete obj[key]` with computed keys (lint error)
 
 ```typescript
 // ✅ CORRECT - O(n) using Map for lookups
@@ -249,6 +255,30 @@ const targetUser = userMap.get(targetId);
 const activeUsers = users.filter(user => {
     return otherUsers.find(other => other.id === user.id)?.isActive;
 });
+
+// ✅ CORRECT - Reflect.deleteProperty for computed keys
+Reflect.deleteProperty(require.cache, resolvedPath);
+
+// ❌ AVOID - delete with computed key
+delete require.cache[resolvedPath];  // Lint error
+
+// ✅ CORRECT - Recursion for indeterminate loops
+const findConfig = async ({path}: { path: string }): Promise<string> => {
+    try {
+        const config = await loadConfig({path});
+        return config;
+    } catch {
+        const parent = getParent({path});
+        return await findConfig({path: parent});  // Recurse with early return
+    }
+};
+
+// ❌ AVOID - while (true) triggers lint errors
+while (true) {
+    const config = await loadConfig({path});  // Lint: await in loop, unnecessary condition
+    if (config) break;
+    path = getParent({path});
+}
 ```
 
 ## Critical Context: Why This Structure Exists
@@ -478,7 +508,7 @@ errors/
 ```typescript
 // errors/validation/validation-error.ts
 export class ValidationError extends Error {
-    constructor({message, field}: { message: string; field?: string }) {
+    public constructor({message, field}: { message: string; field?: string }) {
         super(message);
         this.field = field;
         this.name = 'ValidationError';

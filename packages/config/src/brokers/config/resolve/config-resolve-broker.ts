@@ -4,6 +4,41 @@ import { mergeConfigsTransformer } from '../../../transformers/merge-configs/mer
 import { pathDirname } from '../../../adapters/path/path-dirname';
 import type { QuestmaestroConfig } from '../../../contracts/questmaestro-config/questmaestro-config-contract';
 
+const findParentConfigs = async ({
+  currentPath,
+  originalConfigPath,
+  configs,
+}: {
+  currentPath: string;
+  originalConfigPath: string;
+  configs: QuestmaestroConfig[];
+}): Promise<void> => {
+  try {
+    const parentConfigPath = await configFileFindBroker({ startPath: currentPath });
+
+    // Stop if we found the same config (no parent)
+    if (parentConfigPath === originalConfigPath) {
+      return;
+    }
+
+    const parentConfig = await configFileLoadBroker({ configPath: parentConfigPath });
+
+    // Add parent config to the front of the array (for proper merging order)
+    configs.unshift(parentConfig);
+
+    // If parent is monorepo root, stop looking
+    if (parentConfig.framework === 'monorepo') {
+      return;
+    }
+
+    // Continue searching up the tree
+    const nextPath = pathDirname({ path: parentConfigPath });
+    await findParentConfigs({ currentPath: nextPath, originalConfigPath, configs });
+  } catch {
+    // No more parent configs found
+  }
+};
+
 export const configResolveBroker = async ({
   filePath,
 }: {
@@ -18,34 +53,8 @@ export const configResolveBroker = async ({
 
   // If this isn't a monorepo root, look for parent configs
   if (packageConfig.framework !== 'monorepo') {
-    let currentPath = pathDirname({ path: configPath });
-
-    // Look for monorepo root configs up the tree
-    while (true) {
-      try {
-        const parentConfigPath = await configFileFindBroker({ startPath: currentPath });
-
-        // Stop if we found the same config (no parent)
-        if (parentConfigPath === configPath) {
-          break;
-        }
-
-        const parentConfig = await configFileLoadBroker({ configPath: parentConfigPath });
-
-        // Add parent config to the front of the array (for proper merging order)
-        configs.unshift(parentConfig);
-
-        // If parent is monorepo root, stop looking
-        if (parentConfig.framework === 'monorepo') {
-          break;
-        }
-
-        currentPath = pathDirname({ path: parentConfigPath });
-      } catch {
-        // No more parent configs found
-        break;
-      }
-    }
+    const startPath = pathDirname({ path: configPath });
+    await findParentConfigs({ currentPath: startPath, originalConfigPath: configPath, configs });
   }
 
   // Merge all configs (root configs first, package-specific last)

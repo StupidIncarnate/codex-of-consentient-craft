@@ -570,7 +570,7 @@ errors/
 ```typescript
 // errors/validation-error/validation-error.ts
 export class ValidationError extends Error {
-  constructor({
+    public constructor({
     message,
     field,
     value

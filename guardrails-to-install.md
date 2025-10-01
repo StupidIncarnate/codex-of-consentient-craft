@@ -47,6 +47,10 @@ config?: import('../types/config-type').PreEditLintConfig;
 ## coverage
 Dont let it run jest --coverage, because then it starts hallucination.
 
+## while(true)
+
+LLm likes to do this when file path searching. They need to use recursion instead
+
 ## PLanning
 
 Getting clade to make a plan and list out entire folder structure with comments for each file is really helpful for

@@ -12,7 +12,7 @@ jest.mock('fs/promises', () => {
   };
 });
 
-const mockAccess = access as jest.MockedFunction<typeof access>;
+const mockAccess = jest.mocked(access);
 
 describe('configFileFindBroker', () => {
   beforeEach(() => {

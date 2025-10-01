@@ -15,11 +15,8 @@ import type { AllowedExternalImports } from '../contracts/folder-config/folder-c
 jest.mock('../brokers/config/resolve/config-resolve-broker');
 jest.mock('../transformers/compute-allowed-imports/compute-allowed-imports-transformer');
 
-const mockConfigResolveBroker = configResolveBroker as jest.MockedFunction<
-  typeof configResolveBroker
->;
-const mockComputeAllowedImportsTransformer =
-  computeAllowedImportsTransformer as jest.MockedFunction<typeof computeAllowedImportsTransformer>;
+const mockConfigResolveBroker = jest.mocked(configResolveBroker);
+const mockComputeAllowedImportsTransformer = jest.mocked(computeAllowedImportsTransformer);
 
 describe('start-config-library', () => {
   beforeEach(() => {

@@ -1,54 +1,37 @@
-export type Framework =
+import { isInReadonlyArray } from '../is-in-readonly-array/is-in-readonly-array';
+
+export const ALL_FRAMEWORKS = [
   // Frontend frameworks (implies widgets/, bindings/, frontend responders)
-  | 'react'
-  | 'vue'
-  | 'angular'
-  | 'svelte'
-  | 'solid'
-  | 'preact'
-
-  // Backend frameworks (implies no widgets/, backend responders)
-  | 'express'
-  | 'fastify'
-  | 'koa'
-  | 'hapi'
-  | 'nestjs'
-
-  // Fullstack
-  | 'nextjs'
-  | 'nuxtjs'
-  | 'remix'
-
-  // Libraries/Tools
-  | 'node-library' // No flows/, pure Node.js library
-  | 'react-library' // Component library with widgets/
-  | 'cli' // CLI tool with startup/
-  | 'ink-cli' // React-based terminal UI with Ink
-
-  // Monorepo
-  | 'monorepo'; // Root of monorepo, packages have their own frameworks
-
-export const ALL_FRAMEWORKS: readonly Framework[] = [
   'react',
   'vue',
   'angular',
   'svelte',
   'solid',
   'preact',
+
+  // Backend frameworks (implies no widgets/, backend responders)
   'express',
   'fastify',
   'koa',
   'hapi',
   'nestjs',
+
+  // Fullstack
   'nextjs',
   'nuxtjs',
   'remix',
-  'node-library',
-  'react-library',
-  'cli',
-  'ink-cli',
-  'monorepo',
+
+  // Libraries/Tools
+  'node-library', // No flows/, pure Node.js library
+  'react-library', // Component library with widgets/
+  'cli', // CLI tool with startup/
+  'ink-cli', // React-based terminal UI with Ink
+
+  // Monorepo
+  'monorepo', // Root of monorepo, packages have their own frameworks
 ] as const;
 
+export type Framework = (typeof ALL_FRAMEWORKS)[number];
+
 export const isValidFramework = (framework: unknown): framework is Framework =>
-  typeof framework === 'string' && ALL_FRAMEWORKS.includes(framework as Framework);
+  isInReadonlyArray({ value: framework, array: ALL_FRAMEWORKS });

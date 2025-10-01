@@ -1,3 +1,5 @@
+import { isInReadonlyArray } from '../is-in-readonly-array/is-in-readonly-array';
+
 // The computed structure that lint rules actually check
 export interface AllowedExternalImports {
   widgets: string[] | null; // Null means folder not allowed in this framework
@@ -34,4 +36,4 @@ export const VALID_ARCHITECTURE_FOLDERS = [
 export type ArchitectureFolder = (typeof VALID_ARCHITECTURE_FOLDERS)[number];
 
 export const isValidArchitectureFolder = (folder: unknown): folder is ArchitectureFolder =>
-  typeof folder === 'string' && VALID_ARCHITECTURE_FOLDERS.includes(folder as ArchitectureFolder);
+  isInReadonlyArray({ value: folder, array: VALID_ARCHITECTURE_FOLDERS });

@@ -7,7 +7,7 @@ jest.mock('path', () => {
   };
 });
 
-const mockJoin = join as jest.MockedFunction<typeof join>;
+const mockJoin = jest.mocked(join);
 
 describe('pathJoin', () => {
   beforeEach(() => {

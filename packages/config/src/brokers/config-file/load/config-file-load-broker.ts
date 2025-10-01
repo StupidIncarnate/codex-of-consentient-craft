@@ -3,39 +3,28 @@ import { nodeRequire } from '../../../adapters/node/node-require-single';
 import { nodeRequireClearCache } from '../../../adapters/node/node-require-clear-cache';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import type { QuestmaestroConfig } from '../../../contracts/questmaestro-config/questmaestro-config-contract';
+import {
+  questmaestroConfigContract,
+  type QuestmaestroConfig,
+} from '../../../contracts/questmaestro-config/questmaestro-config-contract';
 
-const loadConfigModule = (configPath: string): unknown => {
+const loadConfigModule = ({ configPath }: { configPath: string }): unknown => {
   // Clear require cache to ensure fresh load
   nodeRequireClearCache({ modulePath: configPath });
 
   // Load the config file (assumes it's a .js module)
   const configModule = nodeRequire({ modulePath: configPath });
 
-  if (configModule && typeof configModule === 'object' && 'default' in configModule) {
-    return (configModule as { default: unknown }).default;
+  if (
+    configModule !== null &&
+    configModule !== undefined &&
+    typeof configModule === 'object' &&
+    'default' in configModule
+  ) {
+    return (configModule as Record<string, unknown>).default;
   }
 
   return configModule;
-};
-
-const validateConfigStructure = (config: unknown, configPath: string): QuestmaestroConfig => {
-  if (!config || typeof config !== 'object') {
-    throw new InvalidConfigError({
-      message: 'Config file must export an object',
-      configPath,
-    });
-  }
-
-  const configObj = config as Record<string, unknown>;
-  if (!configObj.framework) {
-    throw new InvalidConfigError({
-      message: 'Config must specify a framework',
-      configPath,
-    });
-  }
-
-  return config as QuestmaestroConfig;
 };
 
 export const configFileLoadBroker = async ({
@@ -48,9 +37,9 @@ export const configFileLoadBroker = async ({
     const filePath = filePathContract.parse(configPath);
     await fsReadFile({ filePath });
 
-    // Load and validate the config
-    const config = loadConfigModule(configPath);
-    return validateConfigStructure(config, configPath);
+    // Load and parse the config
+    const config = loadConfigModule({ configPath });
+    return questmaestroConfigContract.parse(config);
   } catch (error) {
     if (error instanceof InvalidConfigError) {
       throw error;

@@ -1,6 +1,6 @@
-export type SchemaLibrary = 'zod' | 'yup' | 'joi' | 'io-ts' | 'typebox' | 'class-validator';
+import { isInReadonlyArray } from '../is-in-readonly-array/is-in-readonly-array';
 
-export const ALL_SCHEMA_LIBRARIES: readonly SchemaLibrary[] = [
+export const ALL_SCHEMA_LIBRARIES = [
   'zod',
   'yup',
   'joi',
@@ -9,5 +9,7 @@ export const ALL_SCHEMA_LIBRARIES: readonly SchemaLibrary[] = [
   'class-validator',
 ] as const;
 
+export type SchemaLibrary = (typeof ALL_SCHEMA_LIBRARIES)[number];
+
 export const isValidSchemaLibrary = (library: unknown): library is SchemaLibrary =>
-  typeof library === 'string' && ALL_SCHEMA_LIBRARIES.includes(library as SchemaLibrary);
+  isInReadonlyArray({ value: library, array: ALL_SCHEMA_LIBRARIES });

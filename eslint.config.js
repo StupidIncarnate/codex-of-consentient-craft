@@ -38,18 +38,13 @@ module.exports = [
       '**/*.min.css',
       '.git/**',
       'v1/**',
-      '**/test/**'
+      '**/test/**',
     ],
   },
   // Configuration for TypeScript files
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js'],
-    ignores: [
-      'eslint.config.js',
-      '**/jest.config.js',
-      'jest.config.base.js',
-      '**/configs/**/*.js',
-    ],
+    ignores: ['eslint.config.js', '**/jest.config.js', 'jest.config.base.js', '**/configs/**/*.js'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -101,7 +96,10 @@ module.exports = [
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
+      'complexity': 'off',
       'max-lines-per-function': 'off',
+      'max-nested-callbacks': 'off',
       'jest/unbound-method': 'off',
     },
   },

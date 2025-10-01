@@ -1,21 +1,19 @@
-export type RoutingLibrary =
-  | 'react-router-dom'
-  | 'vue-router'
-  | '@angular/router' // Frontend routers
-  | 'express'
-  | 'fastify'
-  | 'koa'
-  | 'hapi'; // Backend frameworks (act as routers)
+import { isInReadonlyArray } from '../is-in-readonly-array/is-in-readonly-array';
 
-export const ALL_ROUTING_LIBRARIES: readonly RoutingLibrary[] = [
+export const ALL_ROUTING_LIBRARIES = [
+  // Frontend routers
   'react-router-dom',
   'vue-router',
   '@angular/router',
+
+  // Backend frameworks (act as routers)
   'express',
   'fastify',
   'koa',
   'hapi',
 ] as const;
 
+export type RoutingLibrary = (typeof ALL_ROUTING_LIBRARIES)[number];
+
 export const isValidRoutingLibrary = (library: unknown): library is RoutingLibrary =>
-  typeof library === 'string' && ALL_ROUTING_LIBRARIES.includes(library as RoutingLibrary);
+  isInReadonlyArray({ value: library, array: ALL_ROUTING_LIBRARIES });
