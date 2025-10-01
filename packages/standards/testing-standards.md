@@ -47,6 +47,55 @@ it("VALID: {price: 100} => calls _calculateTax()")
 
 Each test MUST be independent. No shared state, no order dependencies.
 
+### Unit Tests vs Integration Tests
+
+**Unit Test (mock dependencies):**
+
+- Pure transformation logic you control
+- Business rules, data transformations, validation
+- Input → Logic → Output with clear boundaries
+
+**Integration Test (real dependencies):**
+
+- Logic expressed in external system's DSL/query language
+- Pattern matching, querying, selecting against external structures
+- The external system must interpret your logic to validate it works
+
+```typescript
+// ❌ WRONG - Unit test for DSL-based logic
+it('VALID: rule detects missing return type', () => {
+    const mockContext = {report: jest.fn()};
+    const fakeNode = {type: 'ArrowFunctionExpression'};
+    rule.create(mockContext)['some-selector'](fakeNode);
+    expect(mockContext.report).toHaveBeenCalled();
+    // CSS selector never validated against real AST!
+});
+
+// ✅ CORRECT - Integration test with real parsing
+it('INVALID: exported arrow function without return type => reports violation', () => {
+    const code = `export const foo = () => { return 'bar'; }`;
+    const results = ruleTester.run('explicit-return-types', rule, {
+        invalid: [{code, errors: [{messageId: 'missingReturnType'}]}]
+    });
+    // ESLint parses real code, validates selectors match actual AST
+});
+```
+
+**Integration test when:**
+
+- ESLint rules (CSS selectors on AST)
+- SQL queries (SQL syntax against DB schema)
+- GraphQL resolvers (resolver signatures against schema)
+- Regex patterns (pattern syntax against strings)
+- Template engines (template syntax against data)
+
+**Unit test when:**
+
+- Transformers (pure data mapping)
+- Contracts (validation rules)
+- Business logic (calculations, conditionals)
+- Utilities (string formatting, array operations)
+
 ### 100% Branch Coverage
 
 **CRITICAL:** You must manually verify test cases against implementation code. Jest's `--coverage` reports can miss
@@ -612,16 +661,22 @@ await expect(failingCall()).rejects.toThrow('Error message');
 4. **Existence-Only Checks**: Using toBeDefined() instead of actual values
 5. **Count-Only Checks**: Testing length without verifying content
 6. **Under-Mocking**: Not mocking imported brokers/transformers (creates integration tests, not unit tests)
-7. **Conditional Mocking**: Using if/else logic inside mock implementations
-8. **String IDs**: Using 'user-123' instead of proper UUIDs
-9. **Comment Organization**: Using comments instead of describe blocks for test structure
-10. **Manual Mock Cleanup**: Calling `mockReset()`, `mockClear()`, `clearAllMocks()` - @questmaestro/testing handles
+7. **Unit Testing DSL Logic**: Mocking systems that interpret your DSL/query language (ESLint selectors, SQL queries,
+   GraphQL schemas)
+8. **Conditional Mocking**: Using if/else logic inside mock implementations
+9. **String IDs**: Using 'user-123' instead of proper UUIDs
+10. **Comment Organization**: Using comments instead of describe blocks for test structure
+11. **Manual Mock Cleanup**: Calling `mockReset()`, `mockClear()`, `clearAllMocks()` - @questmaestro/testing handles
     this globally
-11. **Type Escape Hatches**: Using `any`, `as`, `@ts-ignore` in tests
-12. **Using `jest.spyOn()` for Module Imports**: Only use spyOn for global objects (crypto, Date, window)
-13. **Unsafe Type Assertions in Mocks**: Using `as jest.MockedFunction<typeof fn>` instead of `jest.mocked()`
-14. **Manual Mock Factories**: Using `jest.mock('module', () => ({ fn: jest.fn() }))` when auto-mocking works
-15. **Importing Before Mocking**: Worrying about import order (jest.mock is hoisted automatically)
+12. **Type Escape Hatches**: Using `any`, `as`, `@ts-ignore` in tests
+13. **Using `jest.spyOn()` for Module Imports**: Only use spyOn for global objects (crypto, Date, window)
+14. **Unsafe Type Assertions in Mocks**: Using `as jest.MockedFunction<typeof fn>` instead of `jest.mocked()`
+15. **Manual Mock Factories**: Using `jest.mock('module', () => ({ fn: jest.fn() }))` when auto-mocking works
+16. **Importing Before Mocking**: Worrying about import order (jest.mock is hoisted automatically)
+17. **Using Jest in Stubs**: Calling `jest.fn()` inside stub files - stubs accept mocks via props instead
+18. **Wrong Stub Type**: Using contract stubs for external library types (or vice versa) - use adapter stubs for npm
+    packages
+19. **Stub Type Mismatch**: Creating a simplified contract stub when the consumer needs the full external library type
 
 ## Forbidden Jest Matchers
 
@@ -755,6 +810,66 @@ const BadStub = (props: any = {}): any => ({ // NO!
     ...props
 });
 ```
+
+### Stub Pattern
+
+**Stubs are data factories that create valid instances of a type with sensible defaults.**
+
+Stubs provide default values and accept overrides via props. When tests need to verify function calls, they pass
+`jest.fn()` to the stub:
+
+```typescript
+// ✅ CORRECT - Stub provides defaults, accepts overrides
+export const ThingStub = (props: Partial<Thing> = {}): Thing => ({
+    someFunction: (): void => {
+    }, // Default no-op
+    ...props, // Test overrides here
+});
+
+// ✅ CORRECT - Test passes jest.fn() when needed
+it('VALID: calls function', () => {
+    const mockFn = jest.fn();
+    const thing = ThingStub({someFunction: mockFn});
+
+    doSomething(thing);
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+});
+```
+
+**Stubs never use `jest.fn()` internally** - they accept mocks via props.
+
+### Contract Stubs vs Adapter Stubs
+
+**Contract stubs:** `contracts/[name]/[name].stub.ts` - for project types
+**Adapter stubs:** `adapters/[package]/[package]-[type].stub.ts` - for npm package types
+
+```typescript
+// Contract stub - project-defined type
+// contracts/user/user.stub.ts
+export const UserStub = (props: Partial<User> = {}): User => ({
+    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    name: 'John Doe',
+    ...props,
+});
+
+// Adapter stub - external library class
+// adapters/eslint/eslint-rule-context.stub.ts
+export const EslintRuleContextStub = (props: Partial<EslintRuleContext> = {}): EslintRuleContext => ({
+    id: 'test-rule',
+    filename: '/test/file.ts',
+    sourceCode: new SourceCode('', minimalAST),  // Use real class when available
+    report: (): void => {
+    },
+    ...props,
+});
+```
+
+**Stub Type Strategy:**
+
+- **Class types**: Use `new ClassName()` with minimal constructor args (avoids manual property implementation)
+- **Interface types**: Use object literal with `satisfies Partial<Type>`
+- **Complex nested types**: Build minimal structure with `satisfies` on each level
 
 ### Usage (Always Provide Explicit Values)
 

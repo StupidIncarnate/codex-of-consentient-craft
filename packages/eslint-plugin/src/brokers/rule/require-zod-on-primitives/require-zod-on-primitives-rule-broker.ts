@@ -1,5 +1,18 @@
-import type { Rule } from 'eslint';
-import type { TSESTree } from '@typescript-eslint/utils';
+import type { Rule } from '../../../adapters/eslint/eslint-rule';
+import type { TSESTree } from '../../../adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree';
+
+const hasBrandInChain = (node: TSESTree.Node): boolean => {
+  let current = node.parent;
+
+  while (current) {
+    if ('property' in current && 'name' in current.property && current.property.name === 'brand') {
+      return true;
+    }
+    current = current.parent;
+  }
+
+  return false;
+};
 
 export const requireZodOnPrimitivesRuleBroker = (): Rule.RuleModule => ({
   meta: {
@@ -16,19 +29,25 @@ export const requireZodOnPrimitivesRuleBroker = (): Rule.RuleModule => ({
     schema: [],
   },
   create: (context: Rule.RuleContext) => ({
-    'CallExpression[callee.object.name="z"][callee.property.name="string"]:not(:has(MemberExpression[property.name="brand"]))':
-      (node: TSESTree.Node): void => {
+    'CallExpression[callee.object.name="z"][callee.property.name="string"]': (
+      node: TSESTree.Node,
+    ): void => {
+      if (!hasBrandInChain(node)) {
         context.report({
           node,
           messageId: 'requireBrandString',
         });
-      },
-    'CallExpression[callee.object.name="z"][callee.property.name="number"]:not(:has(MemberExpression[property.name="brand"]))':
-      (node: TSESTree.Node): void => {
+      }
+    },
+    'CallExpression[callee.object.name="z"][callee.property.name="number"]': (
+      node: TSESTree.Node,
+    ): void => {
+      if (!hasBrandInChain(node)) {
         context.report({
           node,
           messageId: 'requireBrandNumber',
         });
-      },
+      }
+    },
   }),
 });

@@ -15,7 +15,12 @@ afterEach(() => {
   const currentTest = expect.getState().currentTestName;
   const assertionsMade = expect.getState().assertionCalls;
 
-  if (assertionsMade === 0) {
+  // Skip assertion check for ESLint RuleTester integration tests
+  // RuleTester.run() creates its own assertions internally
+  const testPath = expect.getState().testPath || '';
+  const isRuleTesterTest = testPath.includes('RuleTester') || global.RuleTester !== undefined;
+
+  if (assertionsMade === 0 && !isRuleTesterTest) {
     throw new Error(
       `Test "${currentTest}" has no assertions. Add expect() calls or remove the test.`,
     );

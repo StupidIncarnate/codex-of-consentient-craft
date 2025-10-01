@@ -1,5 +1,4 @@
-import type { Rule } from 'eslint';
-import type { TSESTree } from '@typescript-eslint/utils';
+import type { Rule } from '../../../adapters/eslint/eslint-rule';
 
 const allowedFolders = [
   'contracts',
@@ -36,61 +35,6 @@ const forbiddenFolders = [
   'converters',
 ];
 
-export const enforceFolderStructureRuleBroker = (): Rule.RuleModule => ({
-  meta: {
-    type: 'problem',
-    docs: {
-      description: 'Enforce QuestMaestro project folder structure standards',
-    },
-    messages: {
-      forbiddenFolder:
-        'Folder "{{folder}}/" is forbidden. Use "{{suggestion}}/" instead according to project standards.',
-      unknownFolder: 'Unknown folder "{{folder}}/". Must use one of: {{allowed}}',
-    },
-    schema: [],
-  },
-  create: (context: Rule.RuleContext) => {
-    const { filename } = context;
-
-    const isInSrcFolder = filename.includes('/src/');
-    if (!isInSrcFolder) {
-      return {};
-    }
-
-    return {
-      Program: (node: TSESTree.Node) => {
-        const pathParts = filename.split('/src/')[1]?.split('/') || [];
-        const firstFolder = pathParts[0];
-
-        if (!firstFolder) {
-          return; // No folder to check
-        }
-
-        if (forbiddenFolders.includes(firstFolder)) {
-          const suggestion = getFolderSuggestion(firstFolder);
-          context.report({
-            node,
-            messageId: 'forbiddenFolder',
-            data: {
-              folder: firstFolder,
-              suggestion,
-            },
-          });
-        } else if (!allowedFolders.includes(firstFolder)) {
-          context.report({
-            node,
-            messageId: 'unknownFolder',
-            data: {
-              folder: firstFolder,
-              allowed: allowedFolders.join(', '),
-            },
-          });
-        }
-      },
-    } as Rule.RuleListener;
-  },
-});
-
 const getFolderSuggestion = (forbiddenFolder: string): string => {
   const suggestions: Record<string, string> = {
     utils: 'adapters or transformers',
@@ -110,5 +54,62 @@ const getFolderSuggestion = (forbiddenFolder: string): string => {
     converters: 'transformers',
   };
 
-  return suggestions[forbiddenFolder] || 'contracts';
+  return suggestions[forbiddenFolder] ?? 'contracts';
 };
+
+export const enforceFolderStructureRuleBroker = (): Rule.RuleModule => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Enforce QuestMaestro project folder structure standards',
+    },
+    messages: {
+      forbiddenFolder:
+        'Folder "{{folder}}/" is forbidden. Use "{{suggestion}}/" instead according to project standards.',
+      unknownFolder: 'Unknown folder "{{folder}}/". Must use one of: {{allowed}}',
+    },
+    schema: [],
+  },
+  create: (context: Rule.RuleContext) => ({
+    Program: (node): void => {
+      const { filename } = context;
+
+      const isInSrcFolder = filename.includes('/src/');
+      if (!isInSrcFolder) {
+        return;
+      }
+
+      const [, pathAfterSrc] = filename.split('/src/');
+      if (pathAfterSrc === undefined || pathAfterSrc === '') {
+        return;
+      }
+
+      const [firstFolder] = pathAfterSrc.split('/');
+
+      if (firstFolder === undefined || firstFolder === '') {
+        return;
+      }
+
+      if (forbiddenFolders.includes(firstFolder)) {
+        const suggestion = getFolderSuggestion(firstFolder);
+        context.report({
+          node,
+          messageId: 'forbiddenFolder',
+          data: {
+            folder: firstFolder,
+            suggestion,
+          },
+        });
+      } else if (!allowedFolders.includes(firstFolder)) {
+        context.report({
+          node,
+          messageId: 'unknownFolder',
+          data: {
+            folder: firstFolder,
+            allowed: allowedFolders.join(', '),
+          },
+        });
+      }
+    },
+  }),
+});

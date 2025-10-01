@@ -1,5 +1,25 @@
 import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
 
+const disableConflictingRules = ({
+  mergedRules,
+  overrideRules,
+}: {
+  mergedRules: Record<string, 'off' | 'warn' | 'error' | unknown[]>;
+  overrideRules: Record<string, 'off' | 'warn' | 'error' | unknown[]>;
+}): void => {
+  for (const ruleKey of Object.keys(overrideRules)) {
+    const slashIndex = ruleKey.indexOf('/');
+    if (slashIndex !== -1) {
+      const baseRuleName = ruleKey.substring(slashIndex + 1);
+
+      // If reference has this base rule, turn it off
+      if (baseRuleName in mergedRules) {
+        mergedRules[baseRuleName] = 'off';
+      }
+    }
+  }
+};
+
 export const eslintConflictResolverTransformer = ({
   reference,
   overrides,
@@ -13,17 +33,7 @@ export const eslintConflictResolverTransformer = ({
   for (const override of overrides) {
     // Extract rule names from plugin rules like '@typescript-eslint/rule-name' → 'rule-name'
     if (override.rules) {
-      for (const ruleKey of Object.keys(override.rules)) {
-        const slashIndex = ruleKey.indexOf('/');
-        if (slashIndex !== -1) {
-          const baseRuleName = ruleKey.substring(slashIndex + 1);
-
-          // If reference has this base rule, turn it off
-          if (baseRuleName in mergedRules) {
-            mergedRules[baseRuleName] = 'off';
-          }
-        }
-      }
+      disableConflictingRules({ mergedRules, overrideRules: override.rules });
     }
   }
 

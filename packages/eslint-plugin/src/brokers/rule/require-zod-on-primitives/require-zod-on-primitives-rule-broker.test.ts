@@ -1,93 +1,67 @@
-import type { Rule } from 'eslint';
+import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
 import { requireZodOnPrimitivesRuleBroker } from './require-zod-on-primitives-rule-broker';
-import { astNodeContract } from '../../../contracts/ast-node/ast-node-contract';
-import { z } from 'zod';
 
-describe('requireZodOnPrimitivesRuleBroker', () => {
-  describe('create()', () => {
-    it('VALID: => returns ESLint rule object', () => {
-      const rule = requireZodOnPrimitivesRuleBroker();
-      const ruleDescriptionContract = z.string().min(1).brand<'RuleDescription'>();
+const ruleTester = createEslintRuleTester();
 
-      expect(rule).toStrictEqual({
-        meta: {
-          type: 'problem',
-          docs: {
-            description: ruleDescriptionContract.parse(
-              'Require .brand() chaining on z.string() and z.number() calls',
-            ),
-          },
-          messages: {
-            requireBrandString:
-              "z.string() must be chained with .brand() - use z.string().email().brand<'EmailAddress'>() instead of z.string().email()",
-            requireBrandNumber:
-              "z.number() must be chained with .brand() - use z.number().positive().brand<'PositiveNumber'>() instead of z.number().positive()",
-          },
-          schema: [],
-        },
-        create: expect.any(Function),
-      });
-    });
-
-    it('VALID: rule.create() => returns visitor object with string and number selectors', () => {
-      const rule = requireZodOnPrimitivesRuleBroker();
-      const mockContext = {
-        report: jest.fn(),
-      } as unknown as Rule.RuleContext;
-
-      const visitor = rule.create(mockContext);
-      const keys = Object.keys(visitor);
-
-      expect(keys).toContain(
-        'CallExpression[callee.object.name="z"][callee.property.name="string"]:not(:has(MemberExpression[property.name="brand"]))',
-      );
-      expect(keys).toContain(
-        'CallExpression[callee.object.name="z"][callee.property.name="number"]:not(:has(MemberExpression[property.name="brand"]))',
-      );
-    });
-
-    it('VALID: z.string() without .brand() => reports string branding violation', () => {
-      const rule = requireZodOnPrimitivesRuleBroker();
-      const mockContext = {
-        report: jest.fn(),
-      } as unknown as Rule.RuleContext;
-      const visitor = rule.create(mockContext);
-      const mockNode = astNodeContract.parse({
-        type: 'CallExpression',
-        range: [0, 10] as [number, number],
-      });
-
-      visitor[
-        'CallExpression[callee.object.name="z"][callee.property.name="string"]:not(:has(MemberExpression[property.name="brand"]))'
-      ]?.(mockNode);
-
-      expect(mockContext.report).toHaveBeenCalledTimes(1);
-      expect(mockContext.report).toHaveBeenCalledWith({
-        node: mockNode,
-        messageId: 'requireBrandString',
-      });
-    });
-
-    it('VALID: z.number() without .brand() => reports number branding violation', () => {
-      const rule = requireZodOnPrimitivesRuleBroker();
-      const mockContext = {
-        report: jest.fn(),
-      } as unknown as Rule.RuleContext;
-      const visitor = rule.create(mockContext);
-      const mockNode = astNodeContract.parse({
-        type: 'CallExpression',
-        range: [0, 10] as [number, number],
-      });
-
-      visitor[
-        'CallExpression[callee.object.name="z"][callee.property.name="number"]:not(:has(MemberExpression[property.name="brand"]))'
-      ]?.(mockNode);
-
-      expect(mockContext.report).toHaveBeenCalledTimes(1);
-      expect(mockContext.report).toHaveBeenCalledWith({
-        node: mockNode,
-        messageId: 'requireBrandNumber',
-      });
-    });
-  });
+ruleTester.run('require-zod-on-primitives', requireZodOnPrimitivesRuleBroker(), {
+  valid: [
+    "const schema = z.string().email().brand<'EmailAddress'>()",
+    "const schema = z.number().positive().brand<'PositiveNumber'>()",
+    "const schema = z.string().brand<'UserName'>()",
+    "const schema = z.number().brand<'Age'>()",
+    "const schema = z.object({ id: z.string().brand<'UserId'>() })",
+    "const schema = z.array(z.string().brand<'Tag'>())",
+    "const schema = z.object({ name: z.string().brand<'Name'>(), age: z.number().brand<'Age'>() })",
+    "const schema = z.string().min(1).max(100).brand<'LimitedString'>()",
+    "const schema = z.number().int().positive().brand<'PositiveInt'>()",
+  ],
+  invalid: [
+    {
+      code: 'const schema = z.string()',
+      errors: [{ messageId: 'requireBrandString' }],
+    },
+    {
+      code: 'const schema = z.number()',
+      errors: [{ messageId: 'requireBrandNumber' }],
+    },
+    {
+      code: 'const schema = z.string().email()',
+      errors: [{ messageId: 'requireBrandString' }],
+    },
+    {
+      code: 'const schema = z.number().positive()',
+      errors: [{ messageId: 'requireBrandNumber' }],
+    },
+    {
+      code: 'const schema = z.string().min(1)',
+      errors: [{ messageId: 'requireBrandString' }],
+    },
+    {
+      code: 'const schema = z.number().int()',
+      errors: [{ messageId: 'requireBrandNumber' }],
+    },
+    {
+      code: `
+        const nameSchema = z.string();
+        const ageSchema = z.number();
+      `,
+      errors: [{ messageId: 'requireBrandString' }, { messageId: 'requireBrandNumber' }],
+    },
+    {
+      code: 'const schema = z.object({ id: z.string(), count: z.number() })',
+      errors: [{ messageId: 'requireBrandString' }, { messageId: 'requireBrandNumber' }],
+    },
+    {
+      code: 'const schema = z.array(z.string())',
+      errors: [{ messageId: 'requireBrandString' }],
+    },
+    {
+      code: 'const schema = z.string().optional()',
+      errors: [{ messageId: 'requireBrandString' }],
+    },
+    {
+      code: 'const schema = z.number().nullable()',
+      errors: [{ messageId: 'requireBrandNumber' }],
+    },
+  ],
 });

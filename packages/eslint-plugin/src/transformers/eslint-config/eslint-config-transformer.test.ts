@@ -98,19 +98,13 @@ describe('eslintConfigTransformer', () => {
     it('VALID: {} => returns config with max-lines-per-function configured', () => {
       const result = eslintConfigTransformer();
 
-      expect(result.rules?.['max-lines-per-function']).toStrictEqual([
-        'error',
-        { max: 100, skipBlankLines: true, skipComments: true },
-      ]);
+      expect(result.rules?.['max-lines-per-function']).toStrictEqual('off');
     });
 
     it('VALID: {} => returns config with max-lines configured', () => {
       const result = eslintConfigTransformer();
 
-      expect(result.rules?.['max-lines']).toStrictEqual([
-        'error',
-        { max: 500, skipBlankLines: true, skipComments: true },
-      ]);
+      expect(result.rules?.['max-lines']).toStrictEqual('off');
     });
 
     it('VALID: {} => returns config with max-nested-callbacks configured with max 4', () => {
@@ -128,7 +122,7 @@ describe('eslintConfigTransformer', () => {
     it('VALID: {} => returns config with max-statements configured with max 20', () => {
       const result = eslintConfigTransformer();
 
-      expect(result.rules?.['max-statements']).toStrictEqual(['error', { max: 20 }]);
+      expect(result.rules?.['max-statements']).toStrictEqual('off');
     });
 
     it('VALID: {} => returns config with no-console as error', () => {
@@ -254,14 +248,11 @@ describe('eslintConfigTransformer', () => {
           'logical-assignment-operators': 'error',
           'max-classes-per-file': ['error', { max: 1 }],
           'max-depth': ['error', { max: 4 }],
-          'max-lines-per-function': [
-            'error',
-            { max: 100, skipBlankLines: true, skipComments: true },
-          ],
-          'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
+          'max-lines-per-function': 'off',
+          'max-lines': 'off',
           'max-nested-callbacks': ['error', { max: 4 }],
           'max-params': ['error', { max: 1 }],
-          'max-statements': ['error', { max: 20 }],
+          'max-statements': 'off',
           'new-cap': 'error',
           'no-alert': 'error',
           'no-array-constructor': 'error',
@@ -359,7 +350,7 @@ describe('eslintConfigTransformer', () => {
           'no-throw-literal': 'error',
           'no-undef': 'error',
           'no-undef-init': 'error',
-          'no-undefined': 'error',
+          'no-undefined': 'off',
           'no-underscore-dangle': 'error',
           'no-unexpected-multiline': 'error',
           'no-unused-expressions': 'error',
@@ -458,14 +449,11 @@ describe('eslintConfigTransformer', () => {
           'logical-assignment-operators': 'error',
           'max-classes-per-file': ['error', { max: 1 }],
           'max-depth': ['error', { max: 4 }],
-          'max-lines-per-function': [
-            'error',
-            { max: 100, skipBlankLines: true, skipComments: true },
-          ],
-          'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
+          'max-lines-per-function': 'off',
+          'max-lines': 'off',
           'max-nested-callbacks': ['error', { max: 4 }],
           'max-params': ['error', { max: 1 }],
-          'max-statements': ['error', { max: 20 }],
+          'max-statements': 'off',
           'new-cap': 'off',
           'no-alert': 'error',
           'no-array-constructor': 'error',
@@ -563,7 +551,7 @@ describe('eslintConfigTransformer', () => {
           'no-throw-literal': 'error',
           'no-undef': 'error',
           'no-undef-init': 'error',
-          'no-undefined': 'error',
+          'no-undefined': 'off',
           'no-underscore-dangle': 'error',
           'no-unexpected-multiline': 'error',
           'no-unused-expressions': 'error',

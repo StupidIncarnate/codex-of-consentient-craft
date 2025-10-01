@@ -73,9 +73,24 @@ const processOrder = ({userName, userEmail, companyId}: {
     - Empty arrays and objects
     - Ambiguous values
   - ALL exported functions (explicit return types mandatory)
-- **Type assertions** - Only use when you have information the compiler lacks (e.g., `JSON.parse`)
+- **Type assertions vs satisfies**
+    - Use `satisfies` to validate object structure while preserving inference
+    - Use `as` only when you have information compiler lacks (JSON.parse, external data)
+    - Never use `as` to bypass type errors - fix the type instead
 
 ```typescript
+// ✅ CORRECT - satisfies validates without widening type
+const config = {
+    apiUrl: 'http://localhost',
+    port: 3000,
+} satisfies Partial<Config>;  // Validates structure, keeps literal types
+
+// ✅ CORRECT - as for external data where you have guarantees
+const data = JSON.parse(response) as ApiResponse;
+
+// ❌ WRONG - as to bypass type errors
+const broken = {} as ComplexType;  // Hides missing properties
+
 // ✅ CORRECT - Strict typing with unknown and explicit return type
 export const handleError = ({error}: { error: unknown }): ErrorMessage => {
     if (error instanceof Error) {
@@ -552,15 +567,19 @@ adapters/
 
 **Naming Conventions:**
 
-- **Filename:** kebab-case `[package-name]-[function-name].ts` (e.g., `axios-get.ts`, `stripe-charges-create.ts`)
-- **Export:** camelCase `[packageName][Function]` (e.g., `axiosGet`, `mongooseFind`, `stripeChargesCreate`)
-- **Pattern:** adapters/[package-name]/[package-name]-[function-name].ts
+- **Filename:** kebab-case `[package-name]-[export-name].ts` (e.g., `axios-get.ts`, `eslint-rule.ts`,
+  `typescript-eslint-utils-tsestree.ts`)
+- **Export:** Match package export name exactly - camelCase for functions (e.g., `axiosGet`), PascalCase for
+  types/classes (e.g., `Rule`, `TSESTree`, `RuleTester`)
+- **Pattern:** adapters/[package-name]/[package-name]-[export-name].ts
+- **Discovery:** `ls adapters/[package]/` shows all available exports from that package
 
 **Constraints:**
 
-- **CRITICAL: One export per file** - Each adapter file must export exactly one function
-    - ✅ `adapters/axios/axios-get.ts` (single export: axiosGet)
-    - ✅ `adapters/axios/axios-post.ts` (single export: axiosPost)
+- **CRITICAL: One export per file** - Each adapter file must export exactly one function, type, or class
+    - ✅ `adapters/axios/axios-get.ts` (single export: `axiosGet`)
+    - ✅ `adapters/eslint/eslint-rule.ts` (single export: `Rule` type)
+    - ✅ `adapters/eslint/eslint-rule-tester.ts` (single export: `RuleTester` class)
     - ❌ `adapters/axios/axios-requests.ts` with multiple exports (violates single responsibility)
 - **EVOLUTION RULE:** Created on-demand when lint detects duplicate package usage
 - **Naming:** Based on package's function names, NOT business domain

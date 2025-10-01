@@ -167,12 +167,15 @@ export const eslintConfigTransformer = ({
     // ✅ function small() { return x }
     // ❌ function huge() { /* 100 lines */ }
     // Limits function length to maintain readability
-    'max-lines-per-function': ['error', { max: 100, skipBlankLines: true, skipComments: true }],
-
+    // 'max-lines-per-function': ['error', { max: 100, skipBlankLines: true, skipComments: true }],
+    // LATER: Seeing if this is still needed with current file splits
+    'max-lines-per-function': 'off',
     // ✅ file with 500 lines
     // ❌ file with 2000 lines
     // Limits file length to encourage modularity
-    'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
+    // 'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
+    // LATER: Seeing if this is still needed with current file splits
+    'max-lines': 'off',
 
     // ✅ if (a && b)
     // ❌ if (a && b && c && d && e && f && g)
@@ -186,7 +189,9 @@ export const eslintConfigTransformer = ({
     // ✅ const { a, b } = obj
     // ❌ const a = obj.a; const b = obj.b; const c = obj.c;
     // Limits variable declarations per scope
-    'max-statements': ['error', { max: 20 }],
+    // 'max-statements': ['error', { max: 20 }],
+    // LATER: Seeing if this is still needed with current file splits
+    'max-statements': 'off',
 
     // ✅ obj.method()
     // ❌ new Date.getTime()
@@ -704,7 +709,8 @@ export const eslintConfigTransformer = ({
     // ✅ const x = null
     // ❌ let x = undefined
     // Disallows the use of undefined as an identifier
-    'no-undefined': 'error',
+    // This complicates Typescript's type refinement system
+    'no-undefined': 'off',
 
     // ✅ const value = 1
     // ❌ const _value = 1

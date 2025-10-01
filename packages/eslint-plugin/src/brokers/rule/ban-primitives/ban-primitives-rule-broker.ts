@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import type { TSESTree } from '@typescript-eslint/utils';
+import type { Rule } from '../../../adapters/eslint/eslint-rule';
+import type { TSESTree } from '../../../adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree';
 
 export const banPrimitivesRuleBroker = (): Rule.RuleModule => ({
   meta: {
@@ -14,19 +14,23 @@ export const banPrimitivesRuleBroker = (): Rule.RuleModule => ({
     schema: [],
   },
   create: (context: Rule.RuleContext) => ({
-    'TSStringKeyword, TSNumberKeyword': (node: TSESTree.Node): void => {
-      const typeName = node.type === 'TSStringKeyword' ? 'string' : 'number';
-      const suggestion =
-        typeName === 'string'
-          ? 'EmailAddress, UserName, FilePath, etc.'
-          : 'Currency, PositiveNumber, Age, etc.';
-
+    TSStringKeyword: (node: TSESTree.Node): void => {
       context.report({
         node,
         messageId: 'banPrimitive',
         data: {
-          typeName,
-          suggestion,
+          typeName: 'string',
+          suggestion: 'EmailAddress, UserName, FilePath, etc.',
+        },
+      });
+    },
+    TSNumberKeyword: (node: TSESTree.Node): void => {
+      context.report({
+        node,
+        messageId: 'banPrimitive',
+        data: {
+          typeName: 'number',
+          suggestion: 'Currency, PositiveNumber, Age, etc.',
         },
       });
     },

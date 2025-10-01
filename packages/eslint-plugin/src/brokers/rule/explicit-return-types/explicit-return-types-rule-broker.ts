@@ -1,14 +1,14 @@
-import type { Rule } from 'eslint';
-import type { TSESTree } from '@typescript-eslint/utils';
+import type { Rule } from '../../../adapters/eslint/eslint-rule';
+import type { TSESTree } from '../../../adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree';
 
 export const explicitReturnTypesRuleBroker = (): Rule.RuleModule => ({
   meta: {
     type: 'problem',
     docs: {
-      description: 'Require explicit return types on exported functions using Zod contracts',
+      description: 'Require explicit return types on exported functions',
     },
     messages: {
-      missingReturnType: 'Exported functions must have explicit return types using Zod contracts',
+      missingReturnType: 'Exported functions must have explicit return types',
     },
     schema: [],
   },

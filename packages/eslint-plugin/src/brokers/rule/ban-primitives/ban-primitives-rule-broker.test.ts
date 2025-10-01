@@ -1,90 +1,54 @@
-import type { Rule } from 'eslint';
+import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
 import { banPrimitivesRuleBroker } from './ban-primitives-rule-broker';
-import { astNodeContract } from '../../../contracts/ast-node/ast-node-contract';
-import { z } from 'zod';
 
-describe('banPrimitivesRuleBroker', () => {
-  describe('create()', () => {
-    it('VALID: => returns ESLint rule object', () => {
-      const rule = banPrimitivesRuleBroker();
-      const ruleDescriptionContract = z.string().min(1).brand<'RuleDescription'>();
+const ruleTester = createEslintRuleTester();
 
-      expect(rule).toStrictEqual({
-        meta: {
-          type: 'problem',
-          docs: {
-            description: ruleDescriptionContract.parse(
-              'Ban raw string and number types in favor of Zod contract types',
-            ),
-          },
-          messages: {
-            banPrimitive:
-              'Raw {{typeName}} type is not allowed. Use Zod contract types like {{suggestion}} instead.',
-          },
-          schema: [],
-        },
-        create: expect.any(Function),
-      });
-    });
-
-    it('VALID: rule.create() => returns visitor object with TSStringKeyword and TSNumberKeyword', () => {
-      const rule = banPrimitivesRuleBroker();
-      const mockContext = {
-        report: jest.fn(),
-      } as unknown as Rule.RuleContext;
-
-      const visitor = rule.create(mockContext);
-
-      expect(visitor).toHaveProperty('TSStringKeyword, TSNumberKeyword');
-      expect(typeof visitor['TSStringKeyword, TSNumberKeyword']).toBe('function');
-    });
-
-    it('VALID: TSStringKeyword node => reports string type violation', () => {
-      const rule = banPrimitivesRuleBroker();
-      const mockContext = {
-        report: jest.fn(),
-      } as unknown as Rule.RuleContext;
-      const visitor = rule.create(mockContext);
-      const mockNode = astNodeContract.parse({
-        type: 'TSStringKeyword',
-        range: [0, 6] as [number, number],
-      });
-
-      visitor['TSStringKeyword, TSNumberKeyword']?.(mockNode);
-
-      expect(mockContext.report).toHaveBeenCalledTimes(1);
-      expect(mockContext.report).toHaveBeenCalledWith({
-        node: mockNode,
-        messageId: 'banPrimitive',
-        data: {
-          typeName: 'string',
-          suggestion: 'EmailAddress, UserName, FilePath, etc.',
-        },
-      });
-    });
-
-    it('VALID: TSNumberKeyword node => reports number type violation', () => {
-      const rule = banPrimitivesRuleBroker();
-      const mockContext = {
-        report: jest.fn(),
-      } as unknown as Rule.RuleContext;
-      const visitor = rule.create(mockContext);
-      const mockNode = astNodeContract.parse({
-        type: 'TSNumberKeyword',
-        range: [0, 6] as [number, number],
-      });
-
-      visitor['TSStringKeyword, TSNumberKeyword']?.(mockNode);
-
-      expect(mockContext.report).toHaveBeenCalledTimes(1);
-      expect(mockContext.report).toHaveBeenCalledWith({
-        node: mockNode,
-        messageId: 'banPrimitive',
-        data: {
-          typeName: 'number',
-          suggestion: 'Currency, PositiveNumber, Age, etc.',
-        },
-      });
-    });
-  });
+ruleTester.run('ban-primitives', banPrimitivesRuleBroker(), {
+  valid: [
+    'const foo: UserId = "123"',
+    'const bar: EmailAddress = "test@example.com"',
+    'function baz(id: UserId): UserName { return "John" as UserName; }',
+    'type User = { id: UserId; name: UserName; }',
+    'const count: PositiveNumber = 42 as PositiveNumber;',
+    'type User = { tags: Tag[]; scores: Score[]; }',
+    'const foo = (tags: Tag[]): Score[] => []',
+  ],
+  invalid: [
+    {
+      code: 'const foo: string = "bar"',
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    {
+      code: 'const count: number = 42',
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    {
+      code: 'function foo(name: string): void {}',
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    {
+      code: 'function foo(age: number): void {}',
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    {
+      code: 'type User = { id: string; age: number; }',
+      errors: [{ messageId: 'banPrimitive' }, { messageId: 'banPrimitive' }],
+    },
+    {
+      code: 'const foo = (bar: string): number => 42',
+      errors: [{ messageId: 'banPrimitive' }, { messageId: 'banPrimitive' }],
+    },
+    {
+      code: 'const foo = (items: string[]): number[] => []',
+      errors: [{ messageId: 'banPrimitive' }, { messageId: 'banPrimitive' }],
+    },
+    {
+      code: 'type Config = { url: string; port: number; timeout: number; }',
+      errors: [
+        { messageId: 'banPrimitive' },
+        { messageId: 'banPrimitive' },
+        { messageId: 'banPrimitive' },
+      ],
+    },
+  ],
 });
