@@ -3,12 +3,7 @@
     "PreToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/pre-edit-lint/pre-edit-hook.ts"
-          }
-        ]
+        "hooks": []
       }
     ],
     "PostToolUse": [
