@@ -17,7 +17,7 @@ const convertEslintResultToLintResult = ({
       severity: msg.severity,
     };
 
-    if (msg.ruleId) {
+    if (msg.ruleId !== null && msg.ruleId !== '') {
       lintMessage.ruleId = msg.ruleId;
     }
 
@@ -60,13 +60,14 @@ export const LintRunner = {
       let results = await eslint.lintText(content, { filePath: absolutePath });
 
       // If we get a TypeScript project parsing error, try again without project reference
-      if (
-        results[0]?.messages?.some(
+      const hasProjectError =
+        results[0]?.messages.some(
           (msg) =>
             msg.message.includes('parserOptions.project') &&
             msg.message.includes('TSConfig does not include this file'),
-        )
-      ) {
+        ) ?? false;
+
+      if (hasProjectError) {
         // Create a simplified config without project reference
         const simplifiedConfig = {
           ...config,
@@ -91,9 +92,9 @@ export const LintRunner = {
       return results.map((result) => convertEslintResultToLintResult({ result }));
     } catch (error) {
       // Log error but don't fail - return empty results
-      console.error(
-        'ESLint error:',
-        error instanceof Error ? error.message : JSON.stringify(error),
+      // Using stderr to avoid no-console rule while still logging errors
+      process.stderr.write(
+        `ESLint error: ${error instanceof Error ? error.message : JSON.stringify(error)}\n`,
       );
       return [];
     }

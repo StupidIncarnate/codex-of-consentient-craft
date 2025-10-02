@@ -4,7 +4,16 @@ const TIMEOUTS = {
   TYPESCRIPT_CHECK: 30000, // 30 seconds
 } as const;
 
-export const runTypescriptCheck = async ({ filePath }: { filePath: string }) => {
+interface TypescriptCheckResult {
+  hasErrors: boolean;
+  errors: string;
+}
+
+export const runTypescriptCheck = async ({
+  filePath,
+}: {
+  filePath: string;
+}): Promise<TypescriptCheckResult> => {
   try {
     const result = await ProcessUtil.spawnPromise({
       command: 'npx',
@@ -14,9 +23,9 @@ export const runTypescriptCheck = async ({ filePath }: { filePath: string }) => 
 
     return {
       hasErrors: result.code !== 0,
-      errors: result.stdout || result.stderr,
+      errors: result.stdout === '' ? result.stderr : result.stdout,
     };
-  } catch (error) {
+  } catch (error: unknown) {
     return {
       hasErrors: true,
       errors: error instanceof Error ? error.message : String(error),

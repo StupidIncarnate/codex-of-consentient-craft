@@ -8,67 +8,104 @@ export interface ContentChange {
   newContent: string;
 }
 
-export const getContentChanges = async ({ toolInput }: { toolInput: ToolInput }) => {
-  const changes: ContentChange[] = [];
+const readOldContent = async (filePath: string): Promise<string> => {
+  try {
+    return await readFile(filePath, 'utf-8');
+  } catch (error) {
+    // File doesn't exist - new file case
+    if (isNodeError(error) && error.code !== 'ENOENT') {
+      throw error;
+    }
+    return '';
+  }
+};
+
+const handleWriteToolInput = async ({
+  toolInput,
+  filePath,
+}: {
+  toolInput: ToolInput;
+  filePath: string;
+}): Promise<ContentChange | null> => {
+  if (!('content' in toolInput)) {
+    return null;
+  }
+
+  const oldContent = await readOldContent(filePath);
+  return { oldContent, newContent: toolInput.content };
+};
+
+const handleEditToolInput = async ({
+  toolInput,
+  filePath,
+}: {
+  toolInput: ToolInput;
+  filePath: string;
+}): Promise<ContentChange | null> => {
+  const isEditTool =
+    'new_string' in toolInput && 'old_string' in toolInput && !('edits' in toolInput);
+
+  if (!isEditTool) {
+    return null;
+  }
+
+  const oldContent = await readOldContent(filePath);
+  const newContent = await fileUtilGetFullFileContent({ toolInput });
+
+  if (newContent === null) {
+    return null;
+  }
+
+  return { oldContent, newContent };
+};
+
+const handleMultiEditToolInput = async ({
+  toolInput,
+  filePath,
+}: {
+  toolInput: ToolInput;
+  filePath: string;
+}): Promise<ContentChange | null> => {
+  if (!('edits' in toolInput)) {
+    return null;
+  }
+
+  const oldContent = await readOldContent(filePath);
+  const newContent = await fileUtilGetFullFileContent({ toolInput });
+
+  if (newContent === null) {
+    return null;
+  }
+
+  return { oldContent, newContent };
+};
+
+export const getContentChanges = async ({
+  toolInput,
+}: {
+  toolInput: ToolInput;
+}): Promise<ContentChange[]> => {
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
-  // For Write tool, need to check against existing file content
-  if ('content' in toolInput && filePath) {
-    let oldContent = '';
-    try {
-      // Try to read existing file content
-      oldContent = await readFile(filePath, 'utf-8');
-    } catch (error) {
-      // File doesn't exist - new file case
-      if (isNodeError(error) && error.code !== 'ENOENT') {
-        throw error;
-      }
-    }
-    changes.push({ oldContent, newContent: toolInput.content });
-  }
-  // For Edit tool, check the full file content before and after the edit
-  else if (
-    'new_string' in toolInput &&
-    'old_string' in toolInput &&
-    !('edits' in toolInput) &&
-    filePath
-  ) {
-    let oldContent = '';
-    try {
-      // Try to read existing file content
-      oldContent = await readFile(filePath, 'utf-8');
-    } catch (error) {
-      // File doesn't exist - new file case
-      if (isNodeError(error) && error.code !== 'ENOENT') {
-        throw error;
-      }
-    }
-
-    // Get the full file content after applying the edit
-    const newContent = await fileUtilGetFullFileContent({ toolInput });
-    if (newContent !== null) {
-      changes.push({ oldContent, newContent });
-    }
-  }
-  // For MultiEdit tool, check the full file content before and after all edits
-  else if ('edits' in toolInput && filePath) {
-    let oldContent = '';
-    try {
-      // Try to read existing file content
-      oldContent = await readFile(filePath, 'utf-8');
-    } catch (error) {
-      // File doesn't exist - new file case
-      if (isNodeError(error) && error.code !== 'ENOENT') {
-        throw error;
-      }
-    }
-
-    // Get the full file content after applying all edits
-    const newContent = await fileUtilGetFullFileContent({ toolInput });
-    if (newContent !== null) {
-      changes.push({ oldContent, newContent });
-    }
+  if (filePath === '') {
+    return [];
   }
 
-  return changes;
+  // Try each handler in order
+  const writeChange = await handleWriteToolInput({ toolInput, filePath });
+  if (writeChange !== null) {
+    return [writeChange];
+  }
+
+  const editChange = await handleEditToolInput({ toolInput, filePath });
+  if (editChange !== null) {
+    return [editChange];
+  }
+
+  const multiEditChange = await handleMultiEditToolInput({ toolInput, filePath });
+  if (multiEditChange !== null) {
+    return [multiEditChange];
+  }
+
+  return [];
 };

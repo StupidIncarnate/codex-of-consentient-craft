@@ -5,7 +5,7 @@ import { readFile } from 'fs/promises';
 // Mock fs modules
 jest.mock('fs/promises');
 
-const mockReadFile = readFile as jest.MockedFunction<typeof readFile>;
+const mockReadFile = jest.mocked(readFile);
 
 describe('getContentChanges', () => {
   beforeEach(() => {

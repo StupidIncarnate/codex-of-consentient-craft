@@ -14,21 +14,29 @@ interface ExecError extends Error {
   stderr?: Buffer;
 }
 
+const isExecError = (error: unknown): error is ExecError => {
+  return error instanceof Error;
+};
+
 const tempRoot = path.join(process.cwd(), '.test-tmp', 'pre-edit-lint-tests');
 const hookPath = path.join(process.cwd(), 'src', 'pre-edit-lint', 'pre-edit-hook.ts');
 
-function createTestProject({ name }: { name: string }): string {
+const createTestProject = ({ name }: { name: string }): string => {
   const testId = crypto.randomBytes(4).toString('hex');
   const projectDir = path.join(tempRoot, `${name}-${testId}`);
   fs.mkdirSync(projectDir, { recursive: true });
   return projectDir;
-}
+};
 
-function runHook({ hookData }: { hookData: unknown }): {
+const runHook = ({
+  hookData,
+}: {
+  hookData: unknown;
+}): {
   exitCode: number;
   stdout: string;
   stderr: string;
-} {
+} => {
   const input = JSON.stringify(hookData);
 
   try {
@@ -40,14 +48,21 @@ function runHook({ hookData }: { hookData: unknown }): {
     });
     return { exitCode: 0, stdout, stderr: '' };
   } catch (error) {
-    const execError = error as ExecError;
+    if (!isExecError(error)) {
+      throw error;
+    }
+    const execError = error;
+    const DEFAULT_EXIT_CODE = 1;
+    const exitCode = execError.status ?? DEFAULT_EXIT_CODE;
+    const stdout = execError.stdout?.toString() ?? '';
+    const stderr = execError.stderr?.toString() ?? '';
     return {
-      exitCode: execError.status || 1,
-      stdout: execError.stdout?.toString() || '',
-      stderr: execError.stderr?.toString() || '',
+      exitCode,
+      stdout,
+      stderr,
     };
   }
-}
+};
 
 describe('pre-edit-lint', () => {
   beforeEach(() => {
@@ -931,20 +946,24 @@ export class UserService {
       const filePath = path.join(projectDir, 'example.ts');
 
       // Generate a large file with multiple classes and methods
-      const largeContent = Array.from(
-        { length: 20 },
-        (_, i) => `
-export class Service${i} {
-  private data = new Map<string, unknown>();
-
-  ${Array.from(
-    { length: 10 },
-    (_, j) => `
-  method${j}(param: string): string {
+      const CLASS_COUNT = 20;
+      const METHOD_COUNT = 10;
+      const classes: string[] = [];
+      for (let classIndex = 0; classIndex < CLASS_COUNT; classIndex += 1) {
+        const methods: string[] = [];
+        for (let methodIndex = 0; methodIndex < METHOD_COUNT; methodIndex += 1) {
+          methods.push(`
+  method${methodIndex}(param: string): string {
     const result = this.processData(param);
     return result || '';
-  }`,
-  ).join('\n')}
+  }`);
+        }
+        const methodsCode = methods.join('\n');
+        classes.push(`
+export class Service${classIndex} {
+  private data = new Map<string, unknown>();
+
+  ${methodsCode}
 
   private processData(input: string): string | null {
     if (!input || input.length === 0) {
@@ -960,8 +979,9 @@ export class Service${i} {
   setData(key: string, value: unknown): void {
     this.data.set(key, value);
   }
-}`,
-      ).join('\n');
+}`);
+      }
+      const largeContent = classes.join('\n');
 
       const hookData = WriteToolHookStub({
         cwd: projectDir,

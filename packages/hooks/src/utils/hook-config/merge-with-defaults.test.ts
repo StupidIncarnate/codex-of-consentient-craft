@@ -29,8 +29,12 @@ describe('mergeWithDefaults', () => {
   });
 
   describe('edge cases', () => {
-    it('EDGE: {config: {}} => returns default rules', () => {
-      const config = {} as PreEditLintConfig;
+    it('EDGE: {config: {rules: []}} with empty array => returns default rules', () => {
+      // When config has empty rules array, mergeWithDefaults should return defaults
+      // This test was originally testing undefined rules, but that violates the type contract
+      const config: PreEditLintConfig = {
+        rules: [],
+      };
 
       const result = mergeWithDefaults({ config });
 

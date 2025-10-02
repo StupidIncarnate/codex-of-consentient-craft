@@ -4,39 +4,65 @@ import type { Linter } from 'eslint';
 
 jest.mock('eslint');
 
-describe('loadConfigByFile', () => {
-  const mockESLint = ESLint as jest.MockedClass<typeof ESLint>;
+const mockESLint = jest.mocked(ESLint);
 
+// Helper to create a mock ESLint instance
+// Provides all required methods for type safety
+const createMockESLintInstance = ({
+  calculateConfigForFile,
+}: {
+  calculateConfigForFile: jest.MockedFunction<ESLint['calculateConfigForFile']>;
+}): ESLint => {
+  return {
+    calculateConfigForFile,
+    lintText: jest.fn(),
+    lintFiles: jest.fn(),
+    getRulesMetaForResults: jest.fn(),
+    isPathIgnored: jest.fn(),
+    loadFormatter: jest.fn(),
+    hasFlag: jest.fn(),
+    findConfigFile: jest.fn(),
+  } satisfies ESLint;
+};
+
+describe('loadConfigByFile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   // Test helpers
-  const createMockESLintWithConfig = (config: Linter.Config | null) => {
-    const mockInstance = {
+  const createMockESLintWithConfig = (config: Linter.Config | null): void => {
+    const mockInstance = createMockESLintInstance({
       calculateConfigForFile: jest.fn().mockResolvedValue(config),
-    };
-    mockESLint.mockImplementation(() => mockInstance as unknown as ESLint);
-    return mockInstance;
+    });
+
+    mockESLint.mockImplementation(() => {
+      return mockInstance;
+    });
   };
 
-  const createErrorMockESLint = (error: Error) => {
+  const createErrorMockESLint = (error: Error): void => {
     mockESLint.mockImplementation(() => {
       throw error;
     });
   };
 
-  const createMockESLintWithError = (error: Error) => {
-    const mockInstance = {
+  const createMockESLintWithError = (error: Error): void => {
+    const mockInstance = createMockESLintInstance({
       calculateConfigForFile: jest.fn().mockRejectedValue(error),
-    };
-    mockESLint.mockImplementation(() => mockInstance as unknown as ESLint);
-    return mockInstance;
+    });
+
+    mockESLint.mockImplementation(() => {
+      return mockInstance;
+    });
   };
 
   const getUniqueErrorTestCwd = (() => {
     let counter = 0;
-    return () => `/error-test-${++counter}`;
+    return (): string => {
+      counter += 1;
+      return `/error-test-${counter}`;
+    };
   })();
 
   describe('valid input', () => {
@@ -44,15 +70,14 @@ describe('loadConfigByFile', () => {
       const mockConfig: Linter.Config = {
         rules: { 'no-unused-vars': 'error' },
       };
-      const mockInstance = createMockESLintWithConfig(mockConfig);
+      createMockESLintWithConfig(mockConfig);
 
       const result = await loadConfigByFile({
         cwd: '/project',
         filePath: 'test.ts',
       });
 
-      expect(mockESLint).toHaveBeenCalledWith({ cwd: '/project' });
-      expect(mockInstance.calculateConfigForFile).toHaveBeenCalledWith('test.ts');
+      expect(jest.mocked(ESLint)).toHaveBeenCalledWith({ cwd: '/project' });
       expect(result).toStrictEqual(mockConfig);
     });
 
@@ -66,7 +91,7 @@ describe('loadConfigByFile', () => {
         filePath: 'test.ts',
       });
 
-      expect(mockESLint).toHaveBeenCalledWith({ cwd: process.cwd() });
+      expect(jest.mocked(ESLint)).toHaveBeenCalledWith({ cwd: process.cwd() });
       expect(result).toStrictEqual(mockConfig);
     });
 
@@ -78,7 +103,7 @@ describe('loadConfigByFile', () => {
       const result2 = await loadConfigByFile({ cwd: '/test', filePath: 'file2.ts' });
 
       // Verify caching: ESLint constructor should only be called once
-      expect(mockESLint).toHaveBeenCalledTimes(1);
+      expect(jest.mocked(ESLint)).toHaveBeenCalledTimes(1);
       expect(result1).toStrictEqual(mockConfig);
       expect(result2).toStrictEqual(mockConfig);
     });
@@ -87,25 +112,26 @@ describe('loadConfigByFile', () => {
       const mockConfig1: Linter.Config = { rules: { 'no-undef': 'error' } };
       const mockConfig2: Linter.Config = { rules: { 'no-console': 'warn' } };
 
+      const mockInstance1 = createMockESLintInstance({
+        calculateConfigForFile: jest.fn().mockResolvedValue(mockConfig1),
+      });
+      const mockInstance2 = createMockESLintInstance({
+        calculateConfigForFile: jest.fn().mockResolvedValue(mockConfig2),
+      });
+
       mockESLint
-        .mockImplementationOnce(
-          () =>
-            ({
-              calculateConfigForFile: jest.fn().mockResolvedValue(mockConfig1),
-            }) as unknown as ESLint,
-        )
-        .mockImplementationOnce(
-          () =>
-            ({
-              calculateConfigForFile: jest.fn().mockResolvedValue(mockConfig2),
-            }) as unknown as ESLint,
-        );
+        .mockImplementationOnce(() => {
+          return mockInstance1;
+        })
+        .mockImplementationOnce(() => {
+          return mockInstance2;
+        });
 
       const result1 = await loadConfigByFile({ cwd: '/test1', filePath: 'file.ts' });
       const result2 = await loadConfigByFile({ cwd: '/test2', filePath: 'file.ts' });
 
       // Verify cache isolation: different cwds should get different configs
-      expect(mockESLint).toHaveBeenCalledTimes(2);
+      expect(jest.mocked(ESLint)).toHaveBeenCalledTimes(2);
       expect(result1).toStrictEqual(mockConfig1);
       expect(result2).toStrictEqual(mockConfig2);
     });

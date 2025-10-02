@@ -12,9 +12,28 @@ interface SessionStartHookData {
   hook_event_name: 'SessionStart';
 }
 
+const isSessionStartHookData = (data: unknown): data is SessionStartHookData => {
+  if (typeof data !== 'object' || data === null) {
+    return false;
+  }
+  if (!('session_id' in data)) {
+    return false;
+  }
+  const record = data as Record<string, unknown>;
+  return (
+    typeof record.session_id === 'string' &&
+    typeof record.transcript_path === 'string' &&
+    typeof record.cwd === 'string' &&
+    record.hook_event_name === 'SessionStart'
+  );
+};
+
 const log = debug('questmaestro:session-start-hook');
 
-async function isNewSession(transcriptPath: string): Promise<boolean> {
+const KB_SIZE = 1024;
+const DEFAULT_EXIT_CODE = 1;
+
+const isNewSession = async (transcriptPath: string): Promise<boolean> => {
   try {
     if (!existsSync(transcriptPath)) {
       return true; // No transcript = new session
@@ -25,39 +44,39 @@ async function isNewSession(transcriptPath: string): Promise<boolean> {
 
     // If transcript is very small (< 1KB), likely a new session
     // You could also check content or timestamp
-    return fileSize < 1024;
+    return fileSize < KB_SIZE;
   } catch {
     return true; // Error reading = treat as new
   }
-}
+};
 
-async function loadStandardsFiles(cwd: string): Promise<string> {
+const loadStandardsFiles = async (cwd: string): Promise<string> => {
   const standardsFiles = ['coding-standards.md', 'testing-standards.md'];
 
   const standardsPath = resolve(cwd, 'node_modules/@questmaestro/standards');
-  let content = '';
 
-  for (const file of standardsFiles) {
+  const filePromises = standardsFiles.map(async (file) => {
     const filePath = resolve(standardsPath, file);
 
     if (existsSync(filePath)) {
       try {
         const fileContent = await readFile(filePath, 'utf8');
-        content += `\n\n# ${file.replace('.md', '').replace('-', ' ').toUpperCase()}\n\n`;
-        content += fileContent;
         log(`Loaded standards file: ${file}`);
+        return `\n\n# ${file.replace('.md', '').replace('-', ' ').toUpperCase()}\n\n${fileContent}`;
       } catch (error) {
         log(`Failed to load ${file}:`, error);
+        return '';
       }
-    } else {
-      log(`Standards file not found: ${filePath}`);
     }
-  }
+    log(`Standards file not found: ${filePath}`);
+    return '';
+  });
 
-  return content;
-}
+  const fileContents = await Promise.all(filePromises);
+  return fileContents.join('');
+};
 
-function main(): void {
+const main = (): void => {
   let inputData = '';
 
   process.stdin.on('data', (chunk) => {
@@ -65,10 +84,15 @@ function main(): void {
   });
 
   process.stdin.on('end', () => {
-    void (async () => {
+    const runAsync = async (): Promise<void> => {
       try {
-        const hookData = JSON.parse(inputData) as SessionStartHookData;
-        log('Session start hook data:', JSON.stringify(hookData, null, 2));
+        const parsedData: unknown = JSON.parse(inputData);
+        if (!isSessionStartHookData(parsedData)) {
+          log('Invalid hook data format');
+          process.exit(DEFAULT_EXIT_CODE);
+        }
+        const hookData = parsedData;
+        log('Session start hook data:', JSON.stringify(hookData, undefined, DEFAULT_EXIT_CODE + 1));
 
         const isNew = await isNewSession(hookData.transcript_path);
         log('Is new session:', isNew);
@@ -83,13 +107,13 @@ function main(): void {
           if (standardsContent.trim()) {
             const sessionType = isNew ? 'NEW SESSION' : 'RESUMED SESSION';
             // Output the standards content that Claude will see
-            console.log(`<questmaestro-standards>
+            process.stdout.write(`<questmaestro-standards>
 [${sessionType}] The following coding and testing standards should be followed throughout this session:
 
 ${standardsContent}
 
 Please refer to these standards when writing, reviewing, or suggesting code changes.
-</questmaestro-standards>`);
+</questmaestro-standards>\n`);
 
             log(`Standards loaded successfully into ${sessionType.toLowerCase()} context`);
           } else {
@@ -100,11 +124,12 @@ Please refer to these standards when writing, reviewing, or suggesting code chan
         }
       } catch (error) {
         log('Error in session start hook:', error);
-        process.exit(1);
+        process.exit(DEFAULT_EXIT_CODE);
       }
-    })();
+    };
+    runAsync().catch(() => undefined);
   });
-}
+};
 
 if (require.main === module) {
   main();

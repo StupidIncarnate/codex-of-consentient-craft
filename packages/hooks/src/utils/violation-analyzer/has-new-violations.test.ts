@@ -77,7 +77,7 @@ describe('hasNewViolations', () => {
       newViolations: [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
       ],
-      message: expect.stringMatching(/🛑 New code quality violations detected:/),
+      message: expect.stringMatching(/🛑 New code quality violations detected:/u),
     });
 
     expect(result.message).toContain('Code Quality Issue: 1 violation');
@@ -178,7 +178,7 @@ describe('hasNewViolations', () => {
           ],
         }),
       ],
-      message: expect.stringMatching(/🛑 New code quality violations detected:/),
+      message: expect.stringMatching(/🛑 New code quality violations detected:/u),
     });
 
     expect(result.message).toContain('Code Quality Issue: 2 violations');

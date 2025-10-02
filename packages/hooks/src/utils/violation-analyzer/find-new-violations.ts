@@ -11,7 +11,7 @@ export const findNewViolations = ({
   const newlyIntroduced: ViolationCount[] = [];
 
   for (const newViolation of newViolations) {
-    const oldCount = oldCounts.get(newViolation.ruleId) || 0;
+    const oldCount = oldCounts.get(newViolation.ruleId) ?? 0;
     if (newViolation.count > oldCount) {
       const newCount = newViolation.count - oldCount;
       // Take the last N details as the "new" violations (simplistic approach)

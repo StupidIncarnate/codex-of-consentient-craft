@@ -25,26 +25,32 @@ export const MessageFormatter = {
 
       // Use display name instead of rule ID (hide rule ID from LLM)
       const displayName =
-        displayConfig.displayName ||
+        displayConfig.displayName ??
         MessageFormatter.getDefaultDisplayName({ ruleId: violation.ruleId });
 
       lines.push(`  ❌ ${displayName}: ${count}`);
 
       // Get custom or default message
-      let message: string;
-      if (displayConfig.message) {
-        if (typeof displayConfig.message === 'function') {
-          try {
-            message = displayConfig.message(hookData);
-          } catch (error) {
-            message = `Custom message function failed: ${error instanceof Error ? error.message : String(error)}`;
-          }
-        } else {
-          message = displayConfig.message;
+      const getMessage = (): string => {
+        const configMessage = displayConfig.message;
+
+        if (configMessage === undefined) {
+          return MessageFormatter.getDefaultRuleMessage({ ruleId: violation.ruleId });
         }
-      } else {
-        message = MessageFormatter.getDefaultRuleMessage({ ruleId: violation.ruleId });
-      }
+
+        if (typeof configMessage === 'string') {
+          return configMessage;
+        }
+
+        // If it's a function, call it
+        try {
+          const result = configMessage(hookData);
+          return typeof result === 'string' ? result : String(result);
+        } catch (error: unknown) {
+          return `Custom message function failed: ${error instanceof Error ? error.message : String(error)}`;
+        }
+      };
+      const message = getMessage();
 
       lines.push(`     ${message}`);
 
@@ -67,7 +73,7 @@ export const MessageFormatter = {
       'eslint-comments/no-use': 'Code Quality Rule Bypass',
     };
 
-    return defaultDisplayNames[ruleId] || 'Code Quality Issue';
+    return defaultDisplayNames[ruleId] ?? 'Code Quality Issue';
   },
 
   getDefaultRuleMessage: ({ ruleId }: { ruleId: string }): string => {
@@ -81,7 +87,7 @@ export const MessageFormatter = {
     };
 
     return (
-      defaultMessages[ruleId] || 'This rule violation should be fixed to maintain code quality.'
+      defaultMessages[ruleId] ?? 'This rule violation should be fixed to maintain code quality.'
     );
   },
 };

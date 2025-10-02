@@ -5,14 +5,16 @@ jest.mock('./lint-content');
 
 describe('lintContentWithFiltering', () => {
   beforeEach(() => {
-    jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+    jest.spyOn(process, 'exit').mockImplementation((): never => {
+      throw new Error('process.exit called');
+    });
   });
 
   describe('valid input', () => {
     it('VALID: no errors after filtering => process exits with code 0', async () => {
-      const mockProcessExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation(() => undefined as never);
+      const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation((): never => {
+        throw new Error('process.exit called');
+      });
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [{ messages: [] }],
@@ -27,9 +29,9 @@ describe('lintContentWithFiltering', () => {
     });
 
     it('VALID: only typescript-eslint errors => filters out and exits with code 0', async () => {
-      const mockProcessExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation(() => undefined as never);
+      const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation((): never => {
+        throw new Error('process.exit called');
+      });
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [
@@ -55,9 +57,9 @@ describe('lintContentWithFiltering', () => {
     });
 
     it('VALID: errors without ruleId => formats without rule info', async () => {
-      const mockProcessExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation(() => undefined as never);
+      const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation((): never => {
+        throw new Error('process.exit called');
+      });
       const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
@@ -78,9 +80,9 @@ describe('lintContentWithFiltering', () => {
 
   describe('error handling', () => {
     it('ERROR: non-typescript errors present => logs errors and exits with code 2', async () => {
-      const mockProcessExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation(() => undefined as never);
+      const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation((): never => {
+        throw new Error('process.exit called');
+      });
       const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
@@ -103,9 +105,9 @@ describe('lintContentWithFiltering', () => {
     });
 
     it('ERROR: mixed errors with non-typescript => filters typescript but exits for others', async () => {
-      const mockProcessExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation(() => undefined as never);
+      const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation((): never => {
+        throw new Error('process.exit called');
+      });
       const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
@@ -181,12 +183,16 @@ describe('lintContentWithFiltering', () => {
 
     it('ERROR: exactly 10 errors => shows all 10 errors', async () => {
       const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-      const errors = Array.from({ length: 10 }, (_, i) => ({
-        line: i + 1,
-        message: `Error ${i + 1}`,
-        severity: 2 as const,
-        ruleId: 'test-rule',
-      }));
+      const errorCount = 10;
+      const errors = [];
+      for (let index = 0; index < errorCount; index += 1) {
+        errors.push({
+          line: index + 1,
+          message: `Error ${index + 1}`,
+          severity: 2 as const,
+          ruleId: 'test-rule',
+        });
+      }
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [{ messages: errors }],
@@ -198,7 +204,9 @@ describe('lintContentWithFiltering', () => {
       await lintContentWithFiltering({ filePath, content });
 
       const expectedDetails = errors
-        .map((_, i) => `  Line ${i + 1}: Error ${i + 1} [test-rule]`)
+        .map((error) => {
+          return `  Line ${error.line}: ${error.message} [${error.ruleId}]`;
+        })
         .join('\n');
       expect(mockConsoleError).toHaveBeenCalledWith(
         `[PreToolUse Hook] ESLint found 10 error(s) in test.ts:\n${expectedDetails}`,
@@ -230,9 +238,9 @@ describe('lintContentWithFiltering', () => {
 
   describe('edge cases', () => {
     it('EDGE: severity 1 warnings only => exits with code 0', async () => {
-      const mockProcessExit = jest
-        .spyOn(process, 'exit')
-        .mockImplementation(() => undefined as never);
+      const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation((): never => {
+        throw new Error('process.exit called');
+      });
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [
@@ -254,12 +262,16 @@ describe('lintContentWithFiltering', () => {
 
     it('EDGE: more than 10 errors => shows only first 10 in output', async () => {
       const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-      const errors = Array.from({ length: 15 }, (_, i) => ({
-        line: i + 1,
-        message: `Error ${i + 1}`,
-        severity: 2 as const,
-        ruleId: 'test-rule',
-      }));
+      const errorCount = 15;
+      const errors = [];
+      for (let index = 0; index < errorCount; index += 1) {
+        errors.push({
+          line: index + 1,
+          message: `Error ${index + 1}`,
+          severity: 2 as const,
+          ruleId: 'test-rule',
+        });
+      }
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [{ messages: errors }],
@@ -270,9 +282,12 @@ describe('lintContentWithFiltering', () => {
 
       await lintContentWithFiltering({ filePath, content });
 
+      const maxErrors = 10;
       const expectedDetails = errors
-        .slice(0, 10)
-        .map((_, i) => `  Line ${i + 1}: Error ${i + 1} [test-rule]`)
+        .slice(0, maxErrors)
+        .map((error) => {
+          return `  Line ${error.line}: ${error.message} [${error.ruleId}]`;
+        })
         .join('\n');
       expect(mockConsoleError).toHaveBeenCalledWith(
         `[PreToolUse Hook] ESLint found 15 error(s) in test.ts:\n${expectedDetails}`,

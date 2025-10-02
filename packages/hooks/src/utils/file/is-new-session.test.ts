@@ -1,5 +1,10 @@
 import { isNewSession } from './is-new-session';
 
+// Helper to create mock Stats for testing - intentionally using minimal mock for testing
+const createMockStats = (size: number): unknown => {
+  return { size };
+};
+
 describe('isNewSession', () => {
   it("VALID: file doesn't exist => returns true", async () => {
     const fs = require('fs');
@@ -15,9 +20,7 @@ describe('isNewSession', () => {
     const fs = require('fs');
     const fsPromises = require('fs/promises');
     const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    const statSpy = jest
-      .spyOn(fsPromises, 'stat')
-      .mockResolvedValue({ size: 500 } as import('fs').Stats);
+    const statSpy = jest.spyOn(fsPromises, 'stat').mockResolvedValue(createMockStats(500));
 
     const result = await isNewSession({ transcriptPath: '/test/small.txt' });
 
@@ -30,9 +33,7 @@ describe('isNewSession', () => {
     const fs = require('fs');
     const fsPromises = require('fs/promises');
     const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    const statSpy = jest
-      .spyOn(fsPromises, 'stat')
-      .mockResolvedValue({ size: 2048 } as import('fs').Stats);
+    const statSpy = jest.spyOn(fsPromises, 'stat').mockResolvedValue(createMockStats(2048));
 
     const result = await isNewSession({ transcriptPath: '/test/large.txt' });
 

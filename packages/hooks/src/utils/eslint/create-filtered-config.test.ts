@@ -5,15 +5,13 @@ import type { Linter } from 'eslint';
 jest.mock('../hook-config/hook-config-util');
 
 describe('createFilteredConfig', () => {
-  const mockHookConfigUtil = HookConfigUtil as jest.Mocked<typeof HookConfigUtil>;
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   // Test helper
-  const mockHookConfigUtilWithRules = (rules: string[]) => {
-    mockHookConfigUtil.getRuleNames.mockReturnValue(rules);
+  const mockHookConfigUtilWithRules = (rules: string[]): void => {
+    jest.mocked(HookConfigUtil.getRuleNames).mockReturnValue(rules);
   };
 
   describe('valid input', () => {

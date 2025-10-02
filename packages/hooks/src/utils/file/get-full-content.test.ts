@@ -5,7 +5,7 @@ import { readFile } from 'fs/promises';
 // Mock fs modules
 jest.mock('fs/promises');
 
-const mockReadFile = readFile as jest.MockedFunction<typeof readFile>;
+const mockReadFile = jest.mocked(readFile);
 
 describe('fileUtilGetFullFileContent', () => {
   beforeEach(() => {
@@ -57,12 +57,13 @@ describe('fileUtilGetFullFileContent', () => {
   });
 
   it('EDGE: toolInput without file_path => returns null', async () => {
-    const toolInput = {
+    const toolInput: WriteToolInput = {
       content: 'Hello world',
-    } as WriteToolInput;
+      file_path: '',
+    };
 
     const result = await fileUtilGetFullFileContent({
-      toolInput: { ...toolInput, file_path: '' },
+      toolInput,
     });
 
     expect(result).toBeNull();

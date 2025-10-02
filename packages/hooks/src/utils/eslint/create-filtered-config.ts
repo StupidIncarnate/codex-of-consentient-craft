@@ -13,11 +13,13 @@ export const createFilteredConfig = ({
   const filteredRules: Record<string, Linter.RuleEntry> = {};
 
   // Only keep allowed rules, set others to 'off'
-  if (eslintConfig.rules) {
+  const eslintRules = eslintConfig.rules;
+  if (eslintRules !== undefined) {
     const ruleNames = HookConfigUtil.getRuleNames({ config: hookConfig });
     ruleNames.forEach((rule) => {
-      if (eslintConfig.rules?.[rule]) {
-        filteredRules[rule] = eslintConfig.rules[rule];
+      const ruleValue = eslintRules[rule];
+      if (ruleValue !== undefined) {
+        filteredRules[rule] = ruleValue;
       }
     });
   }

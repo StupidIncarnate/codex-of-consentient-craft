@@ -3,67 +3,90 @@ import { isEslintResult } from './is-eslint-result';
 import debug from 'debug';
 const log = debug('questmaestro:eslint-utils');
 
-export const parseOutput = ({ output }: { output: string }) => {
-  try {
-    // TODO: ARCHITECTURAL CONCERN - Bracket counting algorithm has limitations:
-    // 1. Doesn't properly parse JSON string boundaries - treats brackets inside
-    //    String values as array brackets (e.g. {"message": "Error [line 5]"})
-    // 2. Works by luck because JSON.parse() validates candidates and fails gracefully
-    // 3. Could be inefficient with deeply nested or malformed JSON
-    // 4. More robust solution would be a proper JSON tokenizer/parser
-    // Current implementation works well for ESLint output but consider refactoring
-    // If used for general JSON parsing or performance becomes an issue.
+/**
+ * Finds the closing bracket index for an array starting at arrayStart
+ * Returns the index of the closing bracket, or -1 if no matching bracket found
+ */
+const findMatchingBracket = ({
+  output,
+  arrayStart,
+}: {
+  output: string;
+  arrayStart: number;
+}): number => {
+  let bracketCount = 0;
 
-    // Find potential JSON array starting positions
+  for (let index = arrayStart; index < output.length; index += 1) {
+    const char = output[index];
+    if (char === '[') {
+      bracketCount += 1;
+    } else if (char === ']') {
+      bracketCount -= 1;
+      if (bracketCount === 0) {
+        return index;
+      }
+    }
+  }
+
+  return -1;
+};
+
+/**
+ * Attempts to parse a JSON array candidate and extract valid EslintResult items
+ * Returns the valid results, or null if parsing fails or no valid results found
+ */
+const tryParseCandidate = ({ candidate }: { candidate: string }): EslintResult[] | null => {
+  try {
+    const parsed = JSON.parse(candidate) as unknown;
+    if (!Array.isArray(parsed)) {
+      return null;
+    }
+
+    const validResults = parsed.filter((item: unknown): item is EslintResult =>
+      isEslintResult(item),
+    );
+
+    return validResults.length > 0 ? validResults : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Parses ESLint output to extract lint results
+ *
+ * ARCHITECTURAL NOTE: Uses bracket counting to find JSON arrays in output.
+ * This approach has limitations (doesn't handle brackets in strings properly)
+ * but works reliably for ESLint output format. Consider using a proper JSON
+ * tokenizer if adapting for other use cases.
+ */
+export const parseOutput = ({ output }: { output: string }): EslintResult[] => {
+  try {
     let startIndex = 0;
 
-    while (true) {
+    while (startIndex < output.length) {
       const arrayStart = output.indexOf('[', startIndex);
       if (arrayStart === -1) {
         break;
       }
 
-      // Try to find the matching closing bracket
-      let bracketCount = 0;
-      let endIndex = arrayStart;
+      const endIndex = findMatchingBracket({ output, arrayStart });
 
-      for (let i = arrayStart; i < output.length; i++) {
-        if (output[i] === '[') {
-          bracketCount++;
-        } else if (output[i] === ']') {
-          bracketCount--;
-          if (bracketCount === 0) {
-            endIndex = i;
-            break;
-          }
-        }
-      }
-
-      if (bracketCount === 0) {
-        // Found a complete array, try to parse it
+      if (endIndex !== -1) {
         const candidate = output.substring(arrayStart, endIndex + 1);
-        try {
-          const parsed = JSON.parse(candidate) as unknown;
-          if (Array.isArray(parsed)) {
-            // Filter to keep only valid EslintResult items
-            const validResults = parsed.filter((item: unknown) => isEslintResult(item));
+        const results = tryParseCandidate({ candidate });
 
-            // If we found any valid results, return them
-            if (validResults.length > 0) {
-              return validResults;
-            }
-          }
-        } catch {
-          // Continue searching if this candidate fails to parse
+        if (results !== null) {
+          return results;
         }
       }
 
       startIndex = arrayStart + 1;
     }
 
-    return [] as EslintResult[];
-  } catch (e) {
-    log('Failed to parse Lint output:', e);
-    return [] as EslintResult[];
+    return [];
+  } catch (error: unknown) {
+    log('Failed to parse Lint output:', error);
+    return [];
   }
 };

@@ -4,7 +4,26 @@ import { LintRunner } from './lint-runner';
 
 jest.mock('eslint');
 
-const mockESLint = ESLint as jest.MockedClass<typeof ESLint>;
+const mockESLint = jest.mocked(ESLint);
+
+// Helper to create a mock ESLint instance
+// Provides all required methods, but only lintText is actually used in tests
+const createMockESLintInstance = ({
+  lintText,
+}: {
+  lintText: jest.MockedFunction<ESLint['lintText']>;
+}): ESLint => {
+  return {
+    lintText,
+    lintFiles: jest.fn(),
+    getRulesMetaForResults: jest.fn(),
+    calculateConfigForFile: jest.fn(),
+    isPathIgnored: jest.fn(),
+    loadFormatter: jest.fn(),
+    hasFlag: jest.fn(),
+    findConfigFile: jest.fn(),
+  } satisfies ESLint;
+};
 
 describe('LintRunner', () => {
   beforeEach(() => {
@@ -31,8 +50,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = { rules: { 'prefer-const': 'warn' } };
         const results = await LintRunner.runTargetedLint({
@@ -69,8 +90,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -106,8 +129,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         await LintRunner.runTargetedLint({
@@ -171,8 +196,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {
           rules: {
@@ -205,8 +232,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {
           rules: {
@@ -254,8 +283,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         await LintRunner.runTargetedLint({
@@ -290,8 +321,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -350,8 +383,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -417,8 +452,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -470,8 +507,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -536,8 +575,12 @@ describe('LintRunner', () => {
         ]);
 
         mockESLint
-          .mockImplementationOnce(() => ({ lintText: mockLintTextFirst }) as unknown as ESLint)
-          .mockImplementationOnce(() => ({ lintText: mockLintTextSecond }) as unknown as ESLint);
+          .mockImplementationOnce(() => {
+            return createMockESLintInstance({ lintText: mockLintTextFirst });
+          })
+          .mockImplementationOnce(() => {
+            return createMockESLintInstance({ lintText: mockLintTextSecond });
+          });
 
         const config: Linter.Config = {
           languageOptions: {
@@ -601,8 +644,12 @@ describe('LintRunner', () => {
         ]);
 
         mockESLint
-          .mockImplementationOnce(() => ({ lintText: mockLintTextFirst }) as unknown as ESLint)
-          .mockImplementationOnce(() => ({ lintText: mockLintTextSecond }) as unknown as ESLint);
+          .mockImplementationOnce(() => {
+            return createMockESLintInstance({ lintText: mockLintTextFirst });
+          })
+          .mockImplementationOnce(() => {
+            return createMockESLintInstance({ lintText: mockLintTextSecond });
+          });
 
         const config: Linter.Config = {
           languageOptions: {
@@ -687,8 +734,12 @@ describe('LintRunner', () => {
         ]);
 
         mockESLint
-          .mockImplementationOnce(() => ({ lintText: mockLintTextFirst }) as unknown as ESLint)
-          .mockImplementationOnce(() => ({ lintText: mockLintTextSecond }) as unknown as ESLint);
+          .mockImplementationOnce(() => {
+            return createMockESLintInstance({ lintText: mockLintTextFirst });
+          })
+          .mockImplementationOnce(() => {
+            return createMockESLintInstance({ lintText: mockLintTextSecond });
+          });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -753,8 +804,12 @@ describe('LintRunner', () => {
         ]);
 
         mockESLint
-          .mockImplementationOnce(() => ({ lintText: mockLintTextFirst }) as unknown as ESLint)
-          .mockImplementationOnce(() => ({ lintText: mockLintTextSecond }) as unknown as ESLint);
+          .mockImplementationOnce(() => {
+            return createMockESLintInstance({ lintText: mockLintTextFirst });
+          })
+          .mockImplementationOnce(() => {
+            return createMockESLintInstance({ lintText: mockLintTextSecond });
+          });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -784,7 +839,9 @@ describe('LintRunner', () => {
 
     describe('error handling', () => {
       it('ERROR: {ESLint constructor throws} => logs error and returns empty array', async () => {
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+          return true;
+        });
 
         mockESLint.mockImplementation(() => {
           throw new Error('ESLint initialization failed');
@@ -797,18 +854,22 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(consoleSpy).toHaveBeenCalledWith('ESLint error:', 'ESLint initialization failed');
+        expect(stderrSpy).toHaveBeenCalledWith('ESLint error: ESLint initialization failed\n');
         expect(results).toStrictEqual([]);
 
-        consoleSpy.mockRestore();
+        stderrSpy.mockRestore();
       });
 
       it('ERROR: {lintText throws} => logs error and returns empty array', async () => {
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+          return true;
+        });
 
         const mockLintText = jest.fn().mockRejectedValue(new Error('Lint processing failed'));
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -817,14 +878,16 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(consoleSpy).toHaveBeenCalledWith('ESLint error:', 'Lint processing failed');
+        expect(stderrSpy).toHaveBeenCalledWith('ESLint error: Lint processing failed\n');
         expect(results).toStrictEqual([]);
 
-        consoleSpy.mockRestore();
+        stderrSpy.mockRestore();
       });
 
       it('ERROR: {fallback ESLint throws} => logs error and returns empty array', async () => {
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+          return true;
+        });
 
         // First ESLint instance returns TSConfig error
         const mockLintTextFirst = jest.fn().mockResolvedValueOnce([
@@ -847,7 +910,9 @@ describe('LintRunner', () => {
 
         // Second ESLint instance (fallback) throws
         mockESLint
-          .mockImplementationOnce(() => ({ lintText: mockLintTextFirst }) as unknown as ESLint)
+          .mockImplementationOnce(() => {
+            return createMockESLintInstance({ lintText: mockLintTextFirst });
+          })
           .mockImplementationOnce(() => {
             throw new Error('Fallback ESLint failed');
           });
@@ -866,20 +931,24 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(consoleSpy).toHaveBeenCalledWith('ESLint error:', 'Fallback ESLint failed');
+        expect(stderrSpy).toHaveBeenCalledWith('ESLint error: Fallback ESLint failed\n');
         expect(results).toStrictEqual([]);
 
-        consoleSpy.mockRestore();
+        stderrSpy.mockRestore();
       });
 
       it('ERROR: {non-Error thrown} => logs string representation and returns empty array', async () => {
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+          return true;
+        });
 
         const mockLintText = jest
           .fn()
           .mockRejectedValue({ message: 'Custom error object', code: 500 });
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -888,13 +957,12 @@ describe('LintRunner', () => {
           config,
         });
 
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'ESLint error:',
-          '{"message":"Custom error object","code":500}',
+        expect(stderrSpy).toHaveBeenCalledWith(
+          'ESLint error: {"message":"Custom error object","code":500}\n',
         );
         expect(results).toStrictEqual([]);
 
-        consoleSpy.mockRestore();
+        stderrSpy.mockRestore();
       });
     });
 
@@ -917,8 +985,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -964,8 +1034,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -998,8 +1070,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {
           languageOptions: {},
@@ -1065,8 +1139,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1135,8 +1211,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1145,7 +1223,7 @@ describe('LintRunner', () => {
           config,
         });
 
-        const firstResult = results[0];
+        const [firstResult] = results;
         const firstMessage = firstResult?.messages[0];
         expect(firstMessage).toStrictEqual({
           line: 10,
@@ -1174,8 +1252,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1184,7 +1264,7 @@ describe('LintRunner', () => {
           config,
         });
 
-        const firstResult = results[0];
+        const [firstResult] = results;
         const firstMessage = firstResult?.messages[0];
         expect(firstMessage?.ruleId).toBeUndefined();
       });
@@ -1207,8 +1287,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1217,7 +1299,7 @@ describe('LintRunner', () => {
           config,
         });
 
-        const firstResult = results[0];
+        const [firstResult] = results;
         const firstMessage = firstResult?.messages[0];
         expect(firstMessage?.ruleId).toBe('specific-rule');
       });
@@ -1254,8 +1336,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1264,7 +1348,7 @@ describe('LintRunner', () => {
           config,
         });
 
-        const firstResult = results[0];
+        const [firstResult] = results;
         expect(firstResult?.messages).toStrictEqual([
           {
             line: 1,
@@ -1301,8 +1385,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1311,7 +1397,7 @@ describe('LintRunner', () => {
           config,
         });
 
-        const firstResult = results[0];
+        const [firstResult] = results;
         expect(firstResult?.errorCount).toBe(5);
         expect(firstResult?.warningCount).toBe(3);
       });
@@ -1326,8 +1412,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1336,7 +1424,7 @@ describe('LintRunner', () => {
           config,
         });
 
-        const firstResult = results[0];
+        const [firstResult] = results;
         expect(firstResult?.errorCount).toBe(0);
         expect(firstResult?.warningCount).toBe(0);
       });
@@ -1351,8 +1439,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1361,7 +1451,7 @@ describe('LintRunner', () => {
           config,
         });
 
-        const firstResult = results[0];
+        const [firstResult] = results;
         expect(firstResult?.errorCount).toBe(999);
         expect(firstResult?.warningCount).toBe(1500);
       });
@@ -1378,8 +1468,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1388,7 +1480,7 @@ describe('LintRunner', () => {
           config,
         });
 
-        const firstResult = results[0];
+        const [firstResult] = results;
         expect(firstResult?.filePath).toBe('/absolute/path/to/file.ts');
       });
 
@@ -1402,8 +1494,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1412,7 +1506,7 @@ describe('LintRunner', () => {
           config,
         });
 
-        const firstResult = results[0];
+        const [firstResult] = results;
         expect(firstResult?.filePath).toBe('relative/path/file.ts');
       });
 
@@ -1426,8 +1520,10 @@ describe('LintRunner', () => {
           },
         ]);
 
-        const mockESLintInstance = { lintText: mockLintText };
-        mockESLint.mockImplementation(() => mockESLintInstance as unknown as ESLint);
+        const mockESLintInstance = createMockESLintInstance({ lintText: mockLintText });
+        mockESLint.mockImplementation(() => {
+          return mockESLintInstance;
+        });
 
         const config: Linter.Config = {};
         const results = await LintRunner.runTargetedLint({
@@ -1436,7 +1532,7 @@ describe('LintRunner', () => {
           config,
         });
 
-        const firstResult = results[0];
+        const [firstResult] = results;
         expect(firstResult?.filePath).toBe('/path/with spaces/and-special_chars/file (1).ts');
       });
     });

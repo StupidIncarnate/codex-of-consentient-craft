@@ -5,6 +5,6 @@ export const mergeWithDefaults = ({ config }: { config: PreEditLintConfig }): Pr
   const defaults = getDefaultConfig();
 
   return {
-    rules: config.rules || defaults.rules,
+    rules: config.rules.length > 0 ? config.rules : defaults.rules,
   };
 };

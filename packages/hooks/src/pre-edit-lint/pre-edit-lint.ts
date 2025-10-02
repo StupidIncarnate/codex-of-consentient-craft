@@ -44,7 +44,7 @@ export const PreEditLint = {
     }
 
     // Process the first content change (typically there's only one)
-    const firstChange = contentChanges[0];
+    const { 0: firstChange } = contentChanges;
     if (!firstChange) {
       return {
         hasNewViolations: false,

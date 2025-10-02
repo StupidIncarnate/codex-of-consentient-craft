@@ -3,17 +3,17 @@ import { existsSync } from 'fs';
 import { resolve } from 'path';
 
 jest.mock('fs');
-const mockExistsSync = existsSync as jest.MockedFunction<typeof existsSync>;
+const mockExistsSync = jest.mocked(existsSync);
 
 jest.mock('path');
-const mockResolve = resolve as jest.MockedFunction<typeof resolve>;
+const mockResolve = jest.mocked(resolve);
 
 describe('loadConfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Clear require cache
     Object.keys(require.cache).forEach((key) => {
-      delete require.cache[key];
+      Reflect.deleteProperty(require.cache, key);
     });
   });
 
@@ -38,7 +38,13 @@ describe('loadConfig', () => {
         },
       };
 
-      jest.doMock(configPath, () => mockConfig, { virtual: true });
+      jest.doMock(
+        configPath,
+        () => {
+          return mockConfig;
+        },
+        { virtual: true },
+      );
 
       const result = loadConfig({ cwd: testCwd });
 
@@ -78,7 +84,9 @@ describe('loadConfig', () => {
       const testCwd = '/test/path';
 
       // Test that function doesn't crash when file system operations fail
-      expect(() => loadConfig({ cwd: testCwd })).not.toThrow();
+      expect(() => {
+        return loadConfig({ cwd: testCwd });
+      }).not.toThrow();
     });
   });
 

@@ -24,30 +24,31 @@ export const hasNewViolations = ({
     newViolations,
   });
 
-  const hasNewViolations = newlyIntroduced.length > 0;
+  const hasViolations = newlyIntroduced.length > 0;
 
-  let message: string | undefined;
-  if (hasNewViolations) {
-    if (config && hookData) {
-      // Use the message formatter for custom messages
-      message = MessageFormatter.formatViolationMessage({
+  if (!hasViolations) {
+    return {
+      hasNewViolations: false,
+      newViolations: newlyIntroduced,
+    };
+  }
+
+  const hasConfigAndData = config !== undefined && hookData !== undefined;
+  const violationMessage = hasConfigAndData
+    ? MessageFormatter.formatViolationMessage({
         violations: newlyIntroduced,
         config,
         hookData,
-      });
-    } else {
-      // Fall back to default formatting
-      message = formatViolationMessage({ violations: newlyIntroduced });
-    }
-  }
+      })
+    : formatViolationMessage({ violations: newlyIntroduced });
 
   const result: ViolationComparison = {
-    hasNewViolations,
+    hasNewViolations: hasViolations,
     newViolations: newlyIntroduced,
   };
 
-  if (message) {
-    result.message = message;
+  if (violationMessage !== '') {
+    result.message = violationMessage;
   }
 
   return result;
