@@ -1,8 +1,9 @@
-import { FileUtil } from '../utils/file/file-util';
+import { toolInputGetContentChangesBroker } from '../brokers/tool-input/get-content-changes/tool-input-get-content-changes-broker';
+import { hookConfigLoadBroker } from '../brokers/hook-config/load/hook-config-load-broker';
+import { eslintLoadConfigBroker } from '../brokers/eslint/load-config/eslint-load-config-broker';
+import { eslintConfigFilterTransformer } from '../transformers/eslint-config-filter/eslint-config-filter-transformer';
+import { violationsAnalyzeBroker } from '../brokers/violations/analyze/violations-analyze-broker';
 import { LintRunner } from './lint-runner';
-import { ViolationAnalyzerUtil } from '../utils/violation-analyzer/violation-analyzer-util';
-import { HookConfigUtil } from '../utils/hook-config/hook-config-util';
-import { EslintUtil } from '../utils/eslint/eslint-util';
 import type { ToolInput } from '../types/tool-type';
 import type { ViolationComparison } from '../types/lint-type';
 
@@ -24,17 +25,17 @@ export const PreEditLint = {
     }
 
     // Load configuration if not provided
-    const hookConfig = HookConfigUtil.loadConfig({ cwd });
+    const hookConfig = hookConfigLoadBroker({ cwd });
 
     // Load and filter the host ESLint configuration for the actual file
-    const eslintConfig = await EslintUtil.loadConfigByFile({ cwd, filePath });
-    const filteredConfig = EslintUtil.createFilteredConfig({
+    const eslintConfig = await eslintLoadConfigBroker({ cwd, filePath });
+    const filteredConfig = eslintConfigFilterTransformer({
       eslintConfig,
       hookConfig,
     });
 
     // Get content changes using existing utilities
-    const contentChanges = await FileUtil.getContentChanges({ toolInput });
+    const contentChanges = await toolInputGetContentChangesBroker({ toolInput });
 
     if (contentChanges.length === 0) {
       return {
@@ -80,7 +81,7 @@ export const PreEditLint = {
     ]);
 
     // Analyze violations to find newly introduced ones
-    return ViolationAnalyzerUtil.hasNewViolations({
+    return violationsAnalyzeBroker({
       oldResults,
       newResults,
       config: hookConfig,

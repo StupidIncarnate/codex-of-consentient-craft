@@ -103,6 +103,13 @@ module.exports = [
       'jest/unbound-method': 'off',
     },
   },
+  // Promise constructor unavoidably requires 2 parameters (resolve, reject)
+  {
+    files: ['**/adapters/**/*-promise.ts'],
+    rules: {
+      '@typescript-eslint/max-params': ['error', { max: 2 }],
+    },
+  },
   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {

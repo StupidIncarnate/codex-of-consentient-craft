@@ -1,11 +1,8 @@
 #!/usr/bin/env node
 
-import { fsReadFile } from './adapters/fs/fs-read-file';
-import { fsExistsSync } from './adapters/fs/fs-exists-sync';
-import { fsStat } from './adapters/fs/fs-stat';
-import { pathResolve } from './adapters/path/path-resolve';
 import { debugDebug } from './adapters/debug/debug-debug';
-import { filePathContract } from './contracts/file-path/file-path-contract';
+import { isNewSession } from './contracts/is-new-session/is-new-session';
+import { standardsLoadFilesBroker } from './brokers/standards/load-files/standards-load-files-broker';
 
 interface SessionStartHookData {
   session_id: string;
@@ -32,52 +29,7 @@ const isSessionStartHookData = (data: unknown): data is SessionStartHookData => 
 
 const log = debugDebug({ namespace: 'questmaestro:session-start-hook' });
 
-const KB_SIZE = 1024;
 const DEFAULT_EXIT_CODE = 1;
-
-const isNewSession = async (transcriptPath: string): Promise<boolean> => {
-  try {
-    const parsedPath = filePathContract.parse(transcriptPath);
-    if (!fsExistsSync({ filePath: parsedPath })) {
-      return true; // No transcript = new session
-    }
-
-    const stats = await fsStat({ filePath: parsedPath });
-    const fileSize = stats.size;
-
-    // If transcript is very small (< 1KB), likely a new session
-    // You could also check content or timestamp
-    return fileSize < KB_SIZE;
-  } catch {
-    return true; // Error reading = treat as new
-  }
-};
-
-const loadStandardsFiles = async (cwd: string): Promise<string> => {
-  const standardsFiles = ['coding-standards.md', 'testing-standards.md'];
-
-  const standardsPath = pathResolve({ paths: [cwd, 'node_modules/@questmaestro/standards'] });
-
-  const filePromises = standardsFiles.map(async (file) => {
-    const filePath = pathResolve({ paths: [standardsPath, file] });
-
-    if (fsExistsSync({ filePath })) {
-      try {
-        const fileContent = await fsReadFile({ filePath });
-        log(`Loaded standards file: ${file}`);
-        return `\n\n# ${file.replace('.md', '').replace('-', ' ').toUpperCase()}\n\n${fileContent}`;
-      } catch (error) {
-        log(`Failed to load ${file}:`, error);
-        return '';
-      }
-    }
-    log(`Standards file not found: ${filePath}`);
-    return '';
-  });
-
-  const fileContents = await Promise.all(filePromises);
-  return fileContents.join('');
-};
 
 const main = (): void => {
   let inputData = '';
@@ -97,7 +49,7 @@ const main = (): void => {
         const hookData = parsedData;
         log('Session start hook data:', JSON.stringify(hookData, undefined, DEFAULT_EXIT_CODE + 1));
 
-        const isNew = await isNewSession(hookData.transcript_path);
+        const isNew = await isNewSession({ transcriptPath: hookData.transcript_path });
         log('Is new session:', isNew);
 
         // Only load standards for new sessions (or always, based on preference)
@@ -105,7 +57,7 @@ const main = (): void => {
           isNew || process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS === 'true';
 
         if (shouldLoadStandards) {
-          const standardsContent = await loadStandardsFiles(hookData.cwd);
+          const standardsContent = await standardsLoadFilesBroker({ cwd: hookData.cwd });
 
           if (standardsContent.trim()) {
             const sessionType = isNew ? 'NEW SESSION' : 'RESUMED SESSION';

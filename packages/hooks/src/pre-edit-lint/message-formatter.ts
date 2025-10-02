@@ -1,6 +1,6 @@
 import type { ViolationCount } from '../types/lint-type';
 import type { PreEditLintConfig } from '../types/config-type';
-import { HookConfigUtil } from '../utils/hook-config/hook-config-util';
+import { ruleDisplayConfigExtractTransformer } from '../transformers/rule-display-config-extract/rule-display-config-extract-transformer';
 
 export const MessageFormatter = {
   formatViolationMessage: ({
@@ -18,7 +18,7 @@ export const MessageFormatter = {
       const count = violation.count === 1 ? '1 violation' : `${violation.count} violations`;
 
       // Get display config for this rule
-      const displayConfig = HookConfigUtil.getRuleDisplayConfig({
+      const displayConfig = ruleDisplayConfigExtractTransformer({
         config,
         ruleId: violation.ruleId,
       });
