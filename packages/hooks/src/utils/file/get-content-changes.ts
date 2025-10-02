@@ -1,7 +1,8 @@
-import { readFile } from 'fs/promises';
+import { fsReadFile } from '../../adapters/fs/fs-read-file';
 import type { ToolInput } from '../../types/tool-type';
 import { fileUtilGetFullFileContent } from './get-full-content';
 import { isNodeError } from './is-node-error';
+import { filePathContract } from '../../contracts/file-path/file-path-contract';
 
 export interface ContentChange {
   oldContent: string;
@@ -10,7 +11,7 @@ export interface ContentChange {
 
 const readOldContent = async (filePath: string): Promise<string> => {
   try {
-    return await readFile(filePath, 'utf-8');
+    return await fsReadFile({ filePath: filePathContract.parse(filePath) });
   } catch (error) {
     // File doesn't exist - new file case
     if (isNodeError(error) && error.code !== 'ENOENT') {

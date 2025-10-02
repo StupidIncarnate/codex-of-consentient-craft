@@ -15,7 +15,7 @@ describe('mergeWithDefaults', () => {
       });
     });
 
-    it('VALID: {config: {rules: []}} => returns empty rules array', () => {
+    it('VALID: {config: {rules: []}} => returns defaults array', () => {
       const config: PreEditLintConfig = {
         rules: [],
       };
@@ -23,7 +23,11 @@ describe('mergeWithDefaults', () => {
       const result = mergeWithDefaults({ config });
 
       expect(result).toStrictEqual({
-        rules: [],
+        rules: [
+          '@typescript-eslint/no-explicit-any',
+          '@typescript-eslint/ban-ts-comment',
+          'eslint-comments/no-use',
+        ],
       });
     });
   });

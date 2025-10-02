@@ -139,7 +139,9 @@ describe('lintContent', () => {
     });
 
     it('ERROR: eslint crashes with exit code 2 and stderr => throws error', async () => {
-      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+        return true;
+      });
 
       // Mock ProcessUtil.spawnPromise directly to ensure the result is returned
       jest.spyOn(ProcessUtil, 'spawnPromise').mockResolvedValue({
@@ -155,9 +157,9 @@ describe('lintContent', () => {
         'ESLint crashed during linting',
       );
 
-      expect(mockConsoleError).toHaveBeenCalledWith('Lint crashed during linting:');
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        'The --fix option and the --fix-dry-run option cannot be used together.',
+      expect(mockStderrWrite).toHaveBeenCalledWith('Lint crashed during linting:\n');
+      expect(mockStderrWrite).toHaveBeenCalledWith(
+        'The --fix option and the --fix-dry-run option cannot be used together.\n',
       );
     });
 

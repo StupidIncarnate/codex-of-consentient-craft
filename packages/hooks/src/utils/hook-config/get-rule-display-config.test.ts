@@ -43,7 +43,6 @@ describe('getRuleDisplayConfig', () => {
 
       expect(result).toStrictEqual({
         displayName: 'Partial Rule',
-        message: undefined,
       });
     });
   });

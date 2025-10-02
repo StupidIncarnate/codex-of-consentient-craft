@@ -1,5 +1,5 @@
-import { resolve } from 'path';
-import { existsSync } from 'fs';
+import { pathResolve } from '../../adapters/path/path-resolve';
+import { fsExistsSync } from '../../adapters/fs/fs-exists-sync';
 import type { PreEditLintConfig, QuestmaestroHooksConfig } from '../../types/config-type';
 import { mergeWithDefaults } from './merge-with-defaults';
 import { getDefaultConfig } from './get-default-config';
@@ -27,13 +27,13 @@ const loadConfigFile = ({ configPath }: { configPath: string }): PreEditLintConf
 
 export const loadConfig = ({ cwd = process.cwd() }: { cwd?: string } = {}): PreEditLintConfig => {
   const configPaths = [
-    resolve(cwd, '.questmaestro-hooks.config.js'),
-    resolve(cwd, '.questmaestro-hooks.config.mjs'),
-    resolve(cwd, '.questmaestro-hooks.config.cjs'),
+    pathResolve({ paths: [cwd, '.questmaestro-hooks.config.js'] }),
+    pathResolve({ paths: [cwd, '.questmaestro-hooks.config.mjs'] }),
+    pathResolve({ paths: [cwd, '.questmaestro-hooks.config.cjs'] }),
   ];
 
   for (const configPath of configPaths) {
-    if (existsSync(configPath)) {
+    if (fsExistsSync({ filePath: configPath })) {
       const config = loadConfigFile({ configPath });
       if (config !== null) {
         return config;

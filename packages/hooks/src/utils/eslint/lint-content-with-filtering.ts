@@ -1,8 +1,8 @@
 import type { EslintMessage } from '../../types/eslint-type';
 import { lintContent } from './lint-content';
-import debug from 'debug';
+import { debugDebug } from '../../adapters/debug/debug-debug';
 
-const log = debug('questmaestro:eslint-utils');
+const log = debugDebug({ namespace: 'questmaestro:eslint-utils' });
 
 const ERROR_SEVERITY = 2;
 const MAX_ERRORS_TO_DISPLAY = 10;

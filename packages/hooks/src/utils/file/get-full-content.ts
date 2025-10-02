@@ -1,7 +1,8 @@
-import { readFile } from 'fs/promises';
+import { fsReadFile } from '../../adapters/fs/fs-read-file';
 import type { ToolInput } from '../../types/tool-type';
 import { escapeRegex } from './escape-regex';
 import { isNodeError } from './is-node-error';
+import { filePathContract } from '../../contracts/file-path/file-path-contract';
 
 interface Edit {
   old_string: string;
@@ -58,7 +59,7 @@ const applyMultipleEdits = ({ content, edits }: { content: string; edits: Edit[]
 
 const readFileContent = async (filePath: string): Promise<string | null> => {
   try {
-    return await readFile(filePath, 'utf-8');
+    return await fsReadFile({ filePath: filePathContract.parse(filePath) });
   } catch (error) {
     if (isNodeError(error) && error.code === 'ENOENT') {
       return null;

@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-import { readFile } from 'fs/promises';
-import { existsSync } from 'fs';
-import { resolve } from 'path';
-import debug from 'debug';
+import { fsReadFile } from './adapters/fs/fs-read-file';
+import { fsExistsSync } from './adapters/fs/fs-exists-sync';
+import { fsStat } from './adapters/fs/fs-stat';
+import { pathResolve } from './adapters/path/path-resolve';
+import { debugDebug } from './adapters/debug/debug-debug';
+import { filePathContract } from './contracts/file-path/file-path-contract';
 
 interface SessionStartHookData {
   session_id: string;
@@ -28,18 +30,19 @@ const isSessionStartHookData = (data: unknown): data is SessionStartHookData => 
   );
 };
 
-const log = debug('questmaestro:session-start-hook');
+const log = debugDebug({ namespace: 'questmaestro:session-start-hook' });
 
 const KB_SIZE = 1024;
 const DEFAULT_EXIT_CODE = 1;
 
 const isNewSession = async (transcriptPath: string): Promise<boolean> => {
   try {
-    if (!existsSync(transcriptPath)) {
+    const parsedPath = filePathContract.parse(transcriptPath);
+    if (!fsExistsSync({ filePath: parsedPath })) {
       return true; // No transcript = new session
     }
 
-    const stats = await import('fs').then(async (fs) => fs.promises.stat(transcriptPath));
+    const stats = await fsStat({ filePath: parsedPath });
     const fileSize = stats.size;
 
     // If transcript is very small (< 1KB), likely a new session
@@ -53,14 +56,14 @@ const isNewSession = async (transcriptPath: string): Promise<boolean> => {
 const loadStandardsFiles = async (cwd: string): Promise<string> => {
   const standardsFiles = ['coding-standards.md', 'testing-standards.md'];
 
-  const standardsPath = resolve(cwd, 'node_modules/@questmaestro/standards');
+  const standardsPath = pathResolve({ paths: [cwd, 'node_modules/@questmaestro/standards'] });
 
   const filePromises = standardsFiles.map(async (file) => {
-    const filePath = resolve(standardsPath, file);
+    const filePath = pathResolve({ paths: [standardsPath, file] });
 
-    if (existsSync(filePath)) {
+    if (fsExistsSync({ filePath })) {
       try {
-        const fileContent = await readFile(filePath, 'utf8');
+        const fileContent = await fsReadFile({ filePath });
         log(`Loaded standards file: ${file}`);
         return `\n\n# ${file.replace('.md', '').replace('-', ' ').toUpperCase()}\n\n${fileContent}`;
       } catch (error) {

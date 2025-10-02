@@ -1,11 +1,13 @@
 import { getContentChanges } from './get-content-changes';
 import type { EditToolInput, MultiEditToolInput, WriteToolInput } from '../../types/tool-type';
-import { readFile } from 'fs/promises';
+import { fsReadFile } from '../../adapters/fs/fs-read-file';
+import { fileContentsContract } from '../../contracts/file-contents/file-contents-contract';
+import { filePathContract } from '../../contracts/file-path/file-path-contract';
 
 // Mock fs modules
-jest.mock('fs/promises');
+jest.mock('../../adapters/fs/fs-read-file');
 
-const mockReadFile = jest.mocked(readFile);
+const mockReadFile = jest.mocked(fsReadFile);
 
 describe('getContentChanges', () => {
   beforeEach(() => {
@@ -18,7 +20,7 @@ describe('getContentChanges', () => {
       content: 'New content',
     };
 
-    mockReadFile.mockResolvedValue('Old content');
+    mockReadFile.mockResolvedValue(fileContentsContract.parse('Old content'));
 
     const result = await getContentChanges({ toolInput });
 
@@ -29,7 +31,9 @@ describe('getContentChanges', () => {
       },
     ]);
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/file.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/file.txt'),
+    });
   });
 
   it('VALID: WriteToolInput with new file (ENOENT) => returns empty old content and new content', async () => {
@@ -51,7 +55,9 @@ describe('getContentChanges', () => {
       },
     ]);
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/newfile.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/newfile.txt'),
+    });
   });
 
   it('VALID: EditToolInput simple text replacement => returns full file content with changes applied', async () => {
@@ -62,7 +68,7 @@ describe('getContentChanges', () => {
     };
 
     const existingContent = 'Hello world!';
-    mockReadFile.mockResolvedValue(existingContent);
+    mockReadFile.mockResolvedValue(fileContentsContract.parse(existingContent));
 
     const result = await getContentChanges({ toolInput });
 
@@ -86,7 +92,7 @@ describe('getContentChanges', () => {
   console.log(param);
 }`;
 
-    mockReadFile.mockResolvedValue(existingFileContent);
+    mockReadFile.mockResolvedValue(fileContentsContract.parse(existingFileContent));
 
     const result = await getContentChanges({ toolInput });
 
@@ -119,7 +125,7 @@ describe('getContentChanges', () => {
       ],
     };
 
-    mockReadFile.mockResolvedValue('Hello world');
+    mockReadFile.mockResolvedValue(fileContentsContract.parse('Hello world'));
 
     const result = await getContentChanges({ toolInput });
 
@@ -159,7 +165,9 @@ describe('getContentChanges', () => {
 
     await expect(getContentChanges({ toolInput })).rejects.toThrow('Permission denied');
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/file.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/file.txt'),
+    });
   });
 
   it('ERROR: MultiEditToolInput file read error (not ENOENT) => throws error', async () => {
@@ -174,6 +182,8 @@ describe('getContentChanges', () => {
 
     await expect(getContentChanges({ toolInput })).rejects.toThrow('Permission denied');
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/file.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/file.txt'),
+    });
   });
 });

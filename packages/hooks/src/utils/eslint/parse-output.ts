@@ -1,7 +1,7 @@
 import type { EslintResult } from '../../types/eslint-type';
 import { isEslintResult } from './is-eslint-result';
-import debug from 'debug';
-const log = debug('questmaestro:eslint-utils');
+import { debugDebug } from '../../adapters/debug/debug-debug';
+const log = debugDebug({ namespace: 'questmaestro:eslint-utils' });
 
 /**
  * Finds the closing bracket index for an array starting at arrayStart

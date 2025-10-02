@@ -1,11 +1,13 @@
 import { fileUtilGetFullFileContent } from './get-full-content';
 import type { EditToolInput, MultiEditToolInput, WriteToolInput } from '../../types/tool-type';
-import { readFile } from 'fs/promises';
+import { fsReadFile } from '../../adapters/fs/fs-read-file';
+import { fileContentsContract } from '../../contracts/file-contents/file-contents-contract';
+import { filePathContract } from '../../contracts/file-path/file-path-contract';
 
 // Mock fs modules
-jest.mock('fs/promises');
+jest.mock('../../adapters/fs/fs-read-file');
 
-const mockReadFile = jest.mocked(readFile);
+const mockReadFile = jest.mocked(fsReadFile);
 
 describe('fileUtilGetFullFileContent', () => {
   beforeEach(() => {
@@ -30,13 +32,15 @@ describe('fileUtilGetFullFileContent', () => {
       new_string: 'Hi',
     };
 
-    mockReadFile.mockResolvedValue('Hello world');
+    mockReadFile.mockResolvedValue(fileContentsContract.parse('Hello world'));
 
     const result = await fileUtilGetFullFileContent({ toolInput });
 
     expect(result).toBe('Hi world');
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/file.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/file.txt'),
+    });
   });
 
   it('VALID: EditToolInput with replace_all => returns content with all replacements', async () => {
@@ -47,13 +51,17 @@ describe('fileUtilGetFullFileContent', () => {
       replace_all: true,
     };
 
-    mockReadFile.mockResolvedValue('test file with test content and test data');
+    mockReadFile.mockResolvedValue(
+      fileContentsContract.parse('test file with test content and test data'),
+    );
 
     const result = await fileUtilGetFullFileContent({ toolInput });
 
     expect(result).toBe('demo file with demo content and demo data');
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/file.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/file.txt'),
+    });
   });
 
   it('EDGE: toolInput without file_path => returns null', async () => {
@@ -84,7 +92,9 @@ describe('fileUtilGetFullFileContent', () => {
 
     expect(result).toBeNull();
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/nonexistent.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/nonexistent.txt'),
+    });
   });
 
   it('ERROR: file read error (not ENOENT) => throws error', async () => {
@@ -100,7 +110,9 @@ describe('fileUtilGetFullFileContent', () => {
 
     await expect(fileUtilGetFullFileContent({ toolInput })).rejects.toThrow('Permission denied');
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/file.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/file.txt'),
+    });
   });
 
   it('VALID: MultiEditToolInput single edit => returns content with edit applied', async () => {
@@ -109,13 +121,15 @@ describe('fileUtilGetFullFileContent', () => {
       edits: [{ old_string: 'Hello', new_string: 'Hi' }],
     };
 
-    mockReadFile.mockResolvedValue('Hello world');
+    mockReadFile.mockResolvedValue(fileContentsContract.parse('Hello world'));
 
     const result = await fileUtilGetFullFileContent({ toolInput });
 
     expect(result).toBe('Hi world');
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/file.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/file.txt'),
+    });
   });
 
   it('VALID: MultiEditToolInput multiple edits => returns content with all edits applied', async () => {
@@ -127,13 +141,15 @@ describe('fileUtilGetFullFileContent', () => {
       ],
     };
 
-    mockReadFile.mockResolvedValue('Hello world');
+    mockReadFile.mockResolvedValue(fileContentsContract.parse('Hello world'));
 
     const result = await fileUtilGetFullFileContent({ toolInput });
 
     expect(result).toBe('Hi universe');
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/file.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/file.txt'),
+    });
   });
 
   it('VALID: MultiEditToolInput with replace_all edits => returns content with all replacements', async () => {
@@ -145,13 +161,17 @@ describe('fileUtilGetFullFileContent', () => {
       ],
     };
 
-    mockReadFile.mockResolvedValue('test file with test content in test file');
+    mockReadFile.mockResolvedValue(
+      fileContentsContract.parse('test file with test content in test file'),
+    );
 
     const result = await fileUtilGetFullFileContent({ toolInput });
 
     expect(result).toBe('demo document with demo content in demo file');
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/file.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/file.txt'),
+    });
   });
 
   it("ERROR: file doesn't exist for MultiEdit tool => returns null", async () => {
@@ -168,7 +188,9 @@ describe('fileUtilGetFullFileContent', () => {
 
     expect(result).toBeNull();
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith('/test/nonexistent.txt', 'utf-8');
+    expect(mockReadFile).toHaveBeenCalledWith({
+      filePath: filePathContract.parse('/test/nonexistent.txt'),
+    });
   });
 
   it("EDGE: file doesn't exist for Write tool => returns content", async () => {

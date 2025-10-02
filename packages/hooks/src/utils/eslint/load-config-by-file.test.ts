@@ -1,10 +1,10 @@
 import { loadConfigByFile } from './load-config-by-file';
-import { ESLint } from 'eslint';
-import type { Linter } from 'eslint';
+import { eslintEslint, type ESLint } from '../../adapters/eslint/eslint-eslint';
+import type { Linter } from '../../adapters/eslint/eslint-linter';
 
-jest.mock('eslint');
+jest.mock('../../adapters/eslint/eslint-eslint');
 
-const mockESLint = jest.mocked(ESLint);
+const mockEslintEslint = jest.mocked(eslintEslint);
 
 // Helper to create a mock ESLint instance
 // Provides all required methods for type safety
@@ -36,13 +36,11 @@ describe('loadConfigByFile', () => {
       calculateConfigForFile: jest.fn().mockResolvedValue(config),
     });
 
-    mockESLint.mockImplementation(() => {
-      return mockInstance;
-    });
+    mockEslintEslint.mockReturnValue(mockInstance);
   };
 
   const createErrorMockESLint = (error: Error): void => {
-    mockESLint.mockImplementation(() => {
+    mockEslintEslint.mockImplementation(() => {
       throw error;
     });
   };
@@ -52,9 +50,7 @@ describe('loadConfigByFile', () => {
       calculateConfigForFile: jest.fn().mockRejectedValue(error),
     });
 
-    mockESLint.mockImplementation(() => {
-      return mockInstance;
-    });
+    mockEslintEslint.mockReturnValue(mockInstance);
   };
 
   const getUniqueErrorTestCwd = (() => {
@@ -77,7 +73,7 @@ describe('loadConfigByFile', () => {
         filePath: 'test.ts',
       });
 
-      expect(jest.mocked(ESLint)).toHaveBeenCalledWith({ cwd: '/project' });
+      expect(mockEslintEslint).toHaveBeenCalledWith({ options: { cwd: '/project' } });
       expect(result).toStrictEqual(mockConfig);
     });
 
@@ -91,7 +87,7 @@ describe('loadConfigByFile', () => {
         filePath: 'test.ts',
       });
 
-      expect(jest.mocked(ESLint)).toHaveBeenCalledWith({ cwd: process.cwd() });
+      expect(mockEslintEslint).toHaveBeenCalledWith({ options: { cwd: process.cwd() } });
       expect(result).toStrictEqual(mockConfig);
     });
 
@@ -103,7 +99,7 @@ describe('loadConfigByFile', () => {
       const result2 = await loadConfigByFile({ cwd: '/test', filePath: 'file2.ts' });
 
       // Verify caching: ESLint constructor should only be called once
-      expect(jest.mocked(ESLint)).toHaveBeenCalledTimes(1);
+      expect(mockEslintEslint).toHaveBeenCalledTimes(1);
       expect(result1).toStrictEqual(mockConfig);
       expect(result2).toStrictEqual(mockConfig);
     });
@@ -119,7 +115,7 @@ describe('loadConfigByFile', () => {
         calculateConfigForFile: jest.fn().mockResolvedValue(mockConfig2),
       });
 
-      mockESLint
+      mockEslintEslint
         .mockImplementationOnce(() => {
           return mockInstance1;
         })
@@ -131,7 +127,7 @@ describe('loadConfigByFile', () => {
       const result2 = await loadConfigByFile({ cwd: '/test2', filePath: 'file.ts' });
 
       // Verify cache isolation: different cwds should get different configs
-      expect(jest.mocked(ESLint)).toHaveBeenCalledTimes(2);
+      expect(mockEslintEslint).toHaveBeenCalledTimes(2);
       expect(result1).toStrictEqual(mockConfig1);
       expect(result2).toStrictEqual(mockConfig2);
     });

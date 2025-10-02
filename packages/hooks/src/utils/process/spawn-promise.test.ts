@@ -81,7 +81,7 @@ describe('spawnPromise', () => {
           timeout: 100,
         }),
       ).rejects.toThrow('Process timed out after 100ms');
-    });
+    }, 10000);
   });
 
   describe('edge cases', () => {

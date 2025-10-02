@@ -1,12 +1,13 @@
 import { loadConfig } from './load-config';
-import { existsSync } from 'fs';
-import { resolve } from 'path';
+import { fsExistsSync } from '../../adapters/fs/fs-exists-sync';
+import { pathResolve } from '../../adapters/path/path-resolve';
+import { filePathContract } from '../../contracts/file-path/file-path-contract';
 
-jest.mock('fs');
-const mockExistsSync = jest.mocked(existsSync);
+jest.mock('../../adapters/fs/fs-exists-sync');
+const mockExistsSync = jest.mocked(fsExistsSync);
 
-jest.mock('path');
-const mockResolve = jest.mocked(resolve);
+jest.mock('../../adapters/path/path-resolve');
+const mockResolve = jest.mocked(pathResolve);
 
 describe('loadConfig', () => {
   beforeEach(() => {
@@ -23,9 +24,9 @@ describe('loadConfig', () => {
       const configPath = '/test/path/.questmaestro-hooks.config.js';
 
       mockResolve
-        .mockReturnValueOnce(configPath)
-        .mockReturnValueOnce('/test/path/.questmaestro-hooks.config.mjs')
-        .mockReturnValueOnce('/test/path/.questmaestro-hooks.config.cjs');
+        .mockReturnValueOnce(filePathContract.parse(configPath))
+        .mockReturnValueOnce(filePathContract.parse('/test/path/.questmaestro-hooks.config.mjs'))
+        .mockReturnValueOnce(filePathContract.parse('/test/path/.questmaestro-hooks.config.cjs'));
 
       mockExistsSync
         .mockReturnValueOnce(true)
@@ -52,15 +53,17 @@ describe('loadConfig', () => {
         rules: ['custom-rule'],
       });
       expect(mockResolve).toHaveBeenCalledTimes(3);
-      expect(mockResolve).toHaveBeenNthCalledWith(1, testCwd, '.questmaestro-hooks.config.js');
-      expect(mockExistsSync).toHaveBeenCalledWith(configPath);
+      expect(mockResolve).toHaveBeenNthCalledWith(1, {
+        paths: [testCwd, '.questmaestro-hooks.config.js'],
+      });
+      expect(mockExistsSync).toHaveBeenCalledWith({ filePath: configPath });
     });
 
     it('VALID: {} with default cwd => uses process.cwd()', () => {
       const processCwd = process.cwd();
       const configPath = `${processCwd}/.questmaestro-hooks.config.js`;
 
-      mockResolve.mockReturnValueOnce(configPath);
+      mockResolve.mockReturnValueOnce(filePathContract.parse(configPath));
       mockExistsSync.mockReturnValueOnce(false);
 
       const result = loadConfig();
@@ -72,7 +75,9 @@ describe('loadConfig', () => {
           'eslint-comments/no-use',
         ],
       });
-      expect(mockResolve).toHaveBeenCalledWith(processCwd, '.questmaestro-hooks.config.js');
+      expect(mockResolve).toHaveBeenCalledWith({
+        paths: [processCwd, '.questmaestro-hooks.config.js'],
+      });
     });
   });
 
@@ -95,9 +100,9 @@ describe('loadConfig', () => {
       const testCwd = '/test/path';
 
       mockResolve
-        .mockReturnValueOnce('/test/path/.questmaestro-hooks.config.js')
-        .mockReturnValueOnce('/test/path/.questmaestro-hooks.config.mjs')
-        .mockReturnValueOnce('/test/path/.questmaestro-hooks.config.cjs');
+        .mockReturnValueOnce(filePathContract.parse('/test/path/.questmaestro-hooks.config.js'))
+        .mockReturnValueOnce(filePathContract.parse('/test/path/.questmaestro-hooks.config.mjs'))
+        .mockReturnValueOnce(filePathContract.parse('/test/path/.questmaestro-hooks.config.cjs'));
 
       mockExistsSync
         .mockReturnValueOnce(false)
@@ -119,9 +124,9 @@ describe('loadConfig', () => {
       const testCwd = '/test/path';
 
       mockResolve
-        .mockReturnValueOnce('/test/path/.questmaestro-hooks.config.js')
-        .mockReturnValueOnce('/test/path/.questmaestro-hooks.config.mjs')
-        .mockReturnValueOnce('/test/path/.questmaestro-hooks.config.cjs');
+        .mockReturnValueOnce(filePathContract.parse('/test/path/.questmaestro-hooks.config.js'))
+        .mockReturnValueOnce(filePathContract.parse('/test/path/.questmaestro-hooks.config.mjs'))
+        .mockReturnValueOnce(filePathContract.parse('/test/path/.questmaestro-hooks.config.cjs'));
 
       mockExistsSync
         .mockReturnValueOnce(false)

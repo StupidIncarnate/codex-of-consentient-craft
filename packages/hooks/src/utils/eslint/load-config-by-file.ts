@@ -1,5 +1,5 @@
-import { ESLint } from 'eslint';
-import type { Linter } from 'eslint';
+import { eslintEslint } from '../../adapters/eslint/eslint-eslint';
+import type { Linter } from '../../adapters/eslint/eslint-linter';
 import { eslintCalculateConfigForFile } from '../../adapters/eslint/eslint-calculate-config-for-file';
 
 interface ConfigCache {
@@ -33,7 +33,7 @@ export const loadConfigByFile = async ({
   const targetCwd = cwd;
 
   try {
-    const eslint = new ESLint({ cwd: targetCwd });
+    const eslint = eslintEslint({ options: { cwd: targetCwd } });
     const config = await eslintCalculateConfigForFile({ eslint, filePath });
 
     // Only update cache if no other call has changed it

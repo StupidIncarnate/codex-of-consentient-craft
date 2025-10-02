@@ -1,9 +1,9 @@
 import type { EslintMessage, EslintResult } from '../../types/eslint-type';
 import { ProcessUtil, type SpawnResult } from '../process/process-util';
 import { parseOutput } from './parse-output';
-import debug from 'debug';
+import { debugDebug } from '../../adapters/debug/debug-debug';
 
-const log = debug('questmaestro:eslint-utils');
+const log = debugDebug({ namespace: 'questmaestro:eslint-utils' });
 
 const ESLINT_TIMEOUT_MS = 30000; // 30 seconds
 const ESLINT_CRASH_EXIT_CODE = 2;

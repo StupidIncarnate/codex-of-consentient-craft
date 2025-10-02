@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { childProcessSpawn } from '../../adapters/child_process/child-process-spawn';
 
 export interface SpawnResult {
   code: number;
@@ -31,9 +31,13 @@ class SpawnExecutor {
 
   public execute(params: SpawnPromiseParams): void {
     const { command, args, cwd, stdin, timeout } = params;
-    const child = spawn(command, args, {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      cwd: cwd ?? process.cwd(),
+    const child = childProcessSpawn({
+      command,
+      args,
+      options: {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: cwd ?? process.cwd(),
+      },
     });
 
     let stdout = '';
@@ -49,11 +53,11 @@ class SpawnExecutor {
             this.reject(new Error(`Process timed out after ${timeout}ms`));
           }, timeout);
 
-    child.stdout.on('data', (data) => {
+    child.stdout?.on('data', (data) => {
       stdout += data;
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr?.on('data', (data) => {
       stderr += data;
     });
 
@@ -76,8 +80,8 @@ class SpawnExecutor {
     });
 
     if (stdin !== undefined && stdin !== '') {
-      child.stdin.write(stdin);
-      child.stdin.end();
+      child.stdin?.write(stdin);
+      child.stdin?.end();
     }
   }
 
@@ -96,12 +100,12 @@ class SpawnExecutor {
 
 export const spawnPromise = async (params: SpawnPromiseParams): Promise<SpawnResult> => {
   const executor = new SpawnExecutor();
-  const promise = new Promise<SpawnResult>((promiseResolver) => {
+  const promise = new Promise<SpawnResult>((promiseResolver, promiseRejector) => {
     const resolve = (value: SpawnResult): void => {
       promiseResolver(value);
     };
     const reject = (reason: Error): void => {
-      throw reason;
+      promiseRejector(reason);
     };
     executor.setCallbacks({ resolve, reject });
   });

@@ -1,6 +1,6 @@
-import { ESLint } from 'eslint';
-import { resolve } from 'path';
-import type { Linter } from 'eslint';
+import { eslintEslint, type ESLint } from '../adapters/eslint/eslint-eslint';
+import { pathResolve } from '../adapters/path/path-resolve';
+import type { Linter } from '../adapters/eslint/eslint-linter';
 import type { LintMessage, LintResult } from '../types/lint-type';
 
 const convertEslintResultToLintResult = ({
@@ -45,10 +45,12 @@ export const LintRunner = {
 
     try {
       // Create ESLint instance with ONLY the filtered rules
-      const eslint = new ESLint({
-        cwd,
-        overrideConfigFile: true, // Completely bypass project config
-        overrideConfig: [config], // Use only our filtered rules
+      const eslint = eslintEslint({
+        options: {
+          cwd,
+          overrideConfigFile: true, // Completely bypass project config
+          overrideConfig: [config], // Use only our filtered rules
+        },
       });
 
       // Ensure we have an absolute path for ESLint
@@ -56,7 +58,7 @@ export const LintRunner = {
       // - File extension detection (.ts, .tsx, etc.)
       // - Rule pattern matching
       // It doesn't actually read from disk since we're using lintText()
-      const absolutePath = resolve(cwd, filePath);
+      const absolutePath = pathResolve({ paths: [cwd, filePath] });
       let results = await eslint.lintText(content, { filePath: absolutePath });
 
       // If we get a TypeScript project parsing error, try again without project reference
@@ -80,10 +82,12 @@ export const LintRunner = {
           },
         };
 
-        const fallbackEslint = new ESLint({
-          cwd,
-          overrideConfigFile: true, // Completely bypass project config
-          overrideConfig: [simplifiedConfig],
+        const fallbackEslint = eslintEslint({
+          options: {
+            cwd,
+            overrideConfigFile: true, // Completely bypass project config
+            overrideConfig: [simplifiedConfig],
+          },
         });
 
         results = await fallbackEslint.lintText(content, { filePath: absolutePath });

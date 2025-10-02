@@ -23,7 +23,9 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'test.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
       expect(mockProcessExit).toHaveBeenCalledWith(0);
     });
@@ -51,7 +53,9 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'test.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
       expect(mockProcessExit).toHaveBeenCalledWith(0);
     });
@@ -60,7 +64,9 @@ describe('lintContentWithFiltering', () => {
       const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation((): never => {
         throw new Error('process.exit called');
       });
-      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+        return true;
+      });
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [{ messages: [{ line: 5, message: 'Parsing error', severity: 2 }] }],
@@ -69,10 +75,12 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'test.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        '[PreToolUse Hook] ESLint found 1 error(s) in test.ts:\n  Line 5: Parsing error',
+      expect(mockStderrWrite).toHaveBeenCalledWith(
+        '[PreToolUse Hook] ESLint found 1 error(s) in test.ts:\n  Line 5: Parsing error\n',
       );
       expect(mockProcessExit).toHaveBeenCalledWith(2);
     });
@@ -83,7 +91,9 @@ describe('lintContentWithFiltering', () => {
       const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation((): never => {
         throw new Error('process.exit called');
       });
-      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+        return true;
+      });
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [
@@ -96,10 +106,12 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'test.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        '[PreToolUse Hook] ESLint found 1 error(s) in test.ts:\n  Line 1: Missing semicolon [semi]',
+      expect(mockStderrWrite).toHaveBeenCalledWith(
+        '[PreToolUse Hook] ESLint found 1 error(s) in test.ts:\n  Line 1: Missing semicolon [semi]\n',
       );
       expect(mockProcessExit).toHaveBeenCalledWith(2);
     });
@@ -108,7 +120,9 @@ describe('lintContentWithFiltering', () => {
       const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation((): never => {
         throw new Error('process.exit called');
       });
-      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+        return true;
+      });
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [
@@ -129,16 +143,20 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'test.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        '[PreToolUse Hook] ESLint found 1 error(s) in test.ts:\n  Line 2: Missing semicolon [semi]',
+      expect(mockStderrWrite).toHaveBeenCalledWith(
+        '[PreToolUse Hook] ESLint found 1 error(s) in test.ts:\n  Line 2: Missing semicolon [semi]\n',
       );
       expect(mockProcessExit).toHaveBeenCalledWith(2);
     });
 
     it("ERROR: error message format includes '[PreToolUse Hook] ESLint found X error(s) in file'", async () => {
-      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+        return true;
+      });
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [
@@ -151,15 +169,19 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'src/example.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        '[PreToolUse Hook] ESLint found 1 error(s) in src/example.ts:\n  Line 1: Error message [some-rule]',
+      expect(mockStderrWrite).toHaveBeenCalledWith(
+        '[PreToolUse Hook] ESLint found 1 error(s) in src/example.ts:\n  Line 1: Error message [some-rule]\n',
       );
     });
 
     it("ERROR: error details format includes 'Line X: message [ruleId]'", async () => {
-      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+        return true;
+      });
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [
@@ -174,15 +196,19 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'test.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        '[PreToolUse Hook] ESLint found 1 error(s) in test.ts:\n  Line 42: Variable not used [no-unused-vars]',
+      expect(mockStderrWrite).toHaveBeenCalledWith(
+        '[PreToolUse Hook] ESLint found 1 error(s) in test.ts:\n  Line 42: Variable not used [no-unused-vars]\n',
       );
     });
 
     it('ERROR: exactly 10 errors => shows all 10 errors', async () => {
-      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+        return true;
+      });
       const errorCount = 10;
       const errors = [];
       for (let index = 0; index < errorCount; index += 1) {
@@ -201,20 +227,24 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'test.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
       const expectedDetails = errors
         .map((error) => {
           return `  Line ${error.line}: ${error.message} [${error.ruleId}]`;
         })
         .join('\n');
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        `[PreToolUse Hook] ESLint found 10 error(s) in test.ts:\n${expectedDetails}`,
+      expect(mockStderrWrite).toHaveBeenCalledWith(
+        `[PreToolUse Hook] ESLint found 10 error(s) in test.ts:\n${expectedDetails}\n`,
       );
     });
 
-    it('ERROR: console.error called with complete error summary', async () => {
-      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    it('ERROR: process.stderr.write called with complete error summary', async () => {
+      const mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+        return true;
+      });
       jest.mocked(lintContent).mockResolvedValue({
         fixedContent: 'const x = 1;',
         fixResults: [
@@ -227,11 +257,13 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'test.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
-      expect(mockConsoleError).toHaveBeenCalledTimes(1);
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        '[PreToolUse Hook] ESLint found 1 error(s) in test.ts:\n  Line 5: Test error [test-rule]',
+      expect(mockStderrWrite).toHaveBeenCalledTimes(1);
+      expect(mockStderrWrite).toHaveBeenCalledWith(
+        '[PreToolUse Hook] ESLint found 1 error(s) in test.ts:\n  Line 5: Test error [test-rule]\n',
       );
     });
   });
@@ -255,13 +287,17 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'test.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
       expect(mockProcessExit).toHaveBeenCalledWith(0);
     });
 
     it('EDGE: more than 10 errors => shows only first 10 in output', async () => {
-      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {
+        return true;
+      });
       const errorCount = 15;
       const errors = [];
       for (let index = 0; index < errorCount; index += 1) {
@@ -280,7 +316,9 @@ describe('lintContentWithFiltering', () => {
       const filePath = 'test.ts';
       const content = 'const x = 1;';
 
-      await lintContentWithFiltering({ filePath, content });
+      await expect(lintContentWithFiltering({ filePath, content })).rejects.toThrow(
+        'process.exit called',
+      );
 
       const maxErrors = 10;
       const expectedDetails = errors
@@ -289,8 +327,8 @@ describe('lintContentWithFiltering', () => {
           return `  Line ${error.line}: ${error.message} [${error.ruleId}]`;
         })
         .join('\n');
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        `[PreToolUse Hook] ESLint found 15 error(s) in test.ts:\n${expectedDetails}`,
+      expect(mockStderrWrite).toHaveBeenCalledWith(
+        `[PreToolUse Hook] ESLint found 15 error(s) in test.ts:\n${expectedDetails}\n`,
       );
     });
   });
