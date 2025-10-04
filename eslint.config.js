@@ -40,7 +40,7 @@ module.exports = [
       '.git/**',
       'v1/**',
       '**/test/**',
-      'packages/testing/**'
+      'packages/testing/**',
     ],
   },
   // Configuration for TypeScript files
