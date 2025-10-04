@@ -119,7 +119,11 @@ Each framework automatically configures the appropriate packages for each folder
   "contracts": [
     schema
   ],
-  // Uses your schema field value
+  // Uses your schema field value (validation libraries only)
+  "guards": [],
+  // Pure boolean functions - no external packages
+  "statics": [],
+  // Immutable values - no external packages (foundational)
   "brokers": [],
   "transformers": [],
   "errors": [],
@@ -141,7 +145,11 @@ Each framework automatically configures the appropriate packages for each folder
   "contracts": [
     schema
   ],
-  // Uses your schema field value
+  // Uses your schema field value (validation libraries only)
+  "guards": [],
+  // Pure boolean functions - no external packages
+  "statics": [],
+  // Immutable values - no external packages (foundational)
   "brokers": [],
   "transformers": [],
   "errors": [],
@@ -173,7 +181,11 @@ Each framework automatically configures the appropriate packages for each folder
   "contracts": [
     schema
   ],
-  // Uses your schema field value
+  // Uses your schema field value (validation libraries only)
+  "guards": [],
+  // Pure boolean functions - no external packages
+  "statics": [],
+  // Immutable values - no external packages (foundational)
   "transformers": [],
   "brokers": [],
   "errors": [],
@@ -188,7 +200,11 @@ Each framework automatically configures the appropriate packages for each folder
   "contracts": [
     schema
   ],
-  // Uses your schema field value
+  // Uses your schema field value (validation libraries only)
+  "guards": [],
+  // Pure boolean functions - no external packages
+  "statics": [],
+  // Immutable values - no external packages (foundational)
   "transformers": [],
   "brokers": [],
   "errors": [],
@@ -222,7 +238,11 @@ Each framework automatically configures the appropriate packages for each folder
   "contracts": [
     schema
   ],
-  // Uses your schema field value(s)
+  // Uses your schema field value(s) (validation libraries only)
+  "guards": [],
+  // Pure boolean functions - no external packages
+  "statics": [],
+  // Immutable values - no external packages (foundational)
   "brokers": [],
   "transformers": [],
   "errors": [],
@@ -238,7 +258,11 @@ Each framework automatically configures the appropriate packages for each folder
   "contracts": [
     schema
   ],
-  // Uses your schema field value(s)
+  // Uses your schema field value(s) (validation libraries only)
+  "guards": [],
+  // Pure boolean functions - no external packages
+  "statics": [],
+  // Immutable values - no external packages (foundational)
   "brokers": [],
   "transformers": [],
   "errors": [],
@@ -469,7 +493,9 @@ function computeAllowedExternalImports(config) {
         // Schema field populates contracts (can be array)
         "contracts": Array.isArray(config.schema) ? config.schema : [config.schema],
 
-        // Fixed presets
+        // Fixed presets - no external packages
+        "guards": [],
+        "statics": [],
         "brokers": [],
         "transformers": [],
         "errors": [],
@@ -518,6 +544,8 @@ function computeAllowedExternalImports(config) {
     "contracts": [
       "zod"
     ],
+    "guards": [],
+    "statics": [],
     "brokers": [],
     "transformers": [],
     "errors": [],

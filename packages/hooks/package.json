@@ -2,12 +2,9 @@
   "name": "@questmaestro/hooks",
   "version": "0.1.0",
   "description": "Claude hooks for questmaestro - sanitization and process escape handling",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "bin": {
-    "questmaestro-mock-boundary-hook": "./dist/mock-boundary-hook.js",
-    "questmaestro-session-start-hook": "./dist/session-start-hook.js",
-    "questmaestro-pre-edit-lint": "./dist/pre-edit-lint/pre-edit-hook.js"
+    "questmaestro-session-start-hook": "./dist/startup/start-session-start-hook.js",
+    "questmaestro-pre-edit-lint": "./dist/startup/start-pre-edit-hook.js"
   },
   "scripts": {
     "build": "tsc",
@@ -36,7 +33,8 @@
   "peerDependencies": {
     "eslint": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0"
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint-plugin-eslint-comments": "^3.2.0"
   },
   "dependencies": {
     "debug": "^4.4.1",

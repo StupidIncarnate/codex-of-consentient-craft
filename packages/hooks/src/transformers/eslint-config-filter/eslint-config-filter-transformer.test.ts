@@ -1,6 +1,7 @@
 import { eslintConfigFilterTransformer } from './eslint-config-filter-transformer';
 import { ruleNamesExtractTransformer } from '../rule-names-extract/rule-names-extract-transformer';
 import type { Linter } from 'eslint';
+import { preEditLintConfigContract } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 
 jest.mock('../rule-names-extract/rule-names-extract-transformer');
 
@@ -25,9 +26,9 @@ describe('eslintConfigFilterTransformer', () => {
           'prefer-const': 'error',
         },
       };
-      const hookConfig = {
+      const hookConfig = preEditLintConfigContract.parse({
         rules: ['no-unused-vars', 'no-console'],
-      };
+      });
 
       const result = eslintConfigFilterTransformer({
         eslintConfig,
@@ -53,9 +54,9 @@ describe('eslintConfigFilterTransformer', () => {
           'no-var': 'error',
         },
       };
-      const hookConfig = {
+      const hookConfig = preEditLintConfigContract.parse({
         rules: ['no-unused-vars'],
-      };
+      });
 
       const result = eslintConfigFilterTransformer({
         eslintConfig,
@@ -77,9 +78,9 @@ describe('eslintConfigFilterTransformer', () => {
         rules: { 'no-unused-vars': 'error' },
         language: 'typescript',
       };
-      const hookConfig = {
+      const hookConfig = preEditLintConfigContract.parse({
         rules: ['no-unused-vars'],
-      };
+      });
 
       const result = eslintConfigFilterTransformer({
         eslintConfig,
@@ -98,9 +99,9 @@ describe('eslintConfigFilterTransformer', () => {
       mockHookConfigUtilWithRules(['no-unused-vars']);
 
       const eslintConfig: Linter.Config = {};
-      const hookConfig = {
+      const hookConfig = preEditLintConfigContract.parse({
         rules: ['no-unused-vars'],
-      };
+      });
 
       const result = eslintConfigFilterTransformer({
         eslintConfig,
@@ -122,9 +123,9 @@ describe('eslintConfigFilterTransformer', () => {
           'no-console': 'warn',
         },
       };
-      const hookConfig = {
+      const hookConfig = preEditLintConfigContract.parse({
         rules: ['prefer-const'],
-      };
+      });
 
       const result = eslintConfigFilterTransformer({
         eslintConfig,
@@ -141,9 +142,9 @@ describe('eslintConfigFilterTransformer', () => {
       mockHookConfigUtilWithRules(['no-unused-vars']);
 
       const eslintConfig: Linter.Config = {};
-      const hookConfig = {
+      const hookConfig = preEditLintConfigContract.parse({
         rules: ['no-unused-vars'],
-      };
+      });
 
       const result = eslintConfigFilterTransformer({
         eslintConfig,

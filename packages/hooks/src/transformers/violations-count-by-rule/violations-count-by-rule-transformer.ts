@@ -1,4 +1,8 @@
-import type { LintResult, ViolationCount, ViolationDetail } from '../../types/lint-type';
+import type { LintResult } from '../../contracts/lint-result/lint-result-contract';
+import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
+import type { ViolationDetail } from '../../contracts/violation-detail/violation-detail-contract';
+import { violationDetailContract } from '../../contracts/violation-detail/violation-detail-contract';
+import { violationCountContract } from '../../contracts/violation-count/violation-count-contract';
 
 const ERROR_SEVERITY = 2;
 
@@ -19,20 +23,24 @@ export const violationsCountByRuleTransformer = ({
 
         const violationList = violationMap.get(message.ruleId);
         if (violationList !== undefined) {
-          violationList.push({
-            ruleId: message.ruleId,
-            line: message.line,
-            column: message.column,
-            message: message.message,
-          });
+          violationList.push(
+            violationDetailContract.parse({
+              ruleId: message.ruleId,
+              line: message.line,
+              column: message.column,
+              message: message.message,
+            }),
+          );
         }
       }
     }
   }
 
-  return Array.from(violationMap.entries()).map(([ruleId, details]) => ({
-    ruleId,
-    count: details.length,
-    details,
-  }));
+  return Array.from(violationMap.entries()).map(([ruleId, details]) =>
+    violationCountContract.parse({
+      ruleId,
+      count: details.length,
+      details,
+    }),
+  );
 };

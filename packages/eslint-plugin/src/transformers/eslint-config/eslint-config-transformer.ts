@@ -1,5 +1,7 @@
 import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
 
+const MAX_DEPTH = 4;
+
 export const eslintConfigTransformer = ({
   forTesting = false,
 }: {
@@ -163,7 +165,7 @@ export const eslintConfigTransformer = ({
     // ✅ if (a) { if (b) { } }
     // ❌ if (a) { if (b) { if (c) { if (d) { } } } }
     // Enforces maximum depth that blocks can be nested
-    'max-depth': ['error', { max: 4 }],
+    'max-depth': forTesting ? 'off' : ['error', { max: MAX_DEPTH }],
 
     // ✅ function small() { return x }
     // ❌ function huge() { /* 100 lines */ }
@@ -198,7 +200,8 @@ export const eslintConfigTransformer = ({
     // ❌ new Date.getTime()
     // Requires 'new' operator when calling constructor
     // Disabled for testing to avoid false positives on AST selectors like 'CallExpression'
-    'new-cap': forTesting ? 'off' : 'error',
+    // Disabled because we've said responders have to be PascalCase
+    'new-cap': 'off',
 
     // ✅ console.log('debug')
     // ❌ alert('message')

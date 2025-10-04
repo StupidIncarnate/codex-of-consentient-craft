@@ -1,6 +1,7 @@
 import { pathResolve } from '../../../adapters/path/path-resolve';
 import { fsExistsSync } from '../../../adapters/fs/fs-exists-sync';
-import type { PreEditLintConfig, QuestmaestroHooksConfig } from '../../../types/config-type';
+import type { PreEditLintConfig } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
+import type { QuestmaestroHooksConfig } from '../../../contracts/questmaestro-hooks-config/questmaestro-hooks-config-contract';
 import { hookConfigMergeTransformer } from '../../../transformers/hook-config-merge/hook-config-merge-transformer';
 import { hookConfigDefaultTransformer } from '../../../transformers/hook-config-default/hook-config-default-transformer';
 

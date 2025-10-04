@@ -53,7 +53,22 @@ LLm likes to do this when file path searching. They need to use recursion instea
 
 ## Squirreling lists of strings
 
-LLM seems to just placearrays of string const everywhere. We need a standard and probably a lint rule. ex
+LLM seems to just place arrays of string const everywhere. We need a standard and probably a lint rule. ex
+
+## add a rule for @types at same level as src
+
+It can only store .d.ts files
+
+## Forbid as and something:type
+
+const toolInput: EditToolInput = editToolInputContract.parse({
+file_path: '/test/file.txt',
+old_string: 'test',
+new_string: 'demo',
+replace_all: true,
+});
+
+These should be linted against because of how we've structured the project
 
 ## allow inline imports only for file paths
 
@@ -62,7 +77,7 @@ LLM seems to just placearrays of string const everywhere. We need a standard and
 
 That way they can be imported in a function. npm packages however must be excluded. Have to turn off this rule for now
 
-```angular2html
+```text
 nly has certain keys, so I should validate against those:
 ⎿  Updated src/transformers/apply-overrides/apply-overrides-transformer.ts with 21 additions and 4
 removals

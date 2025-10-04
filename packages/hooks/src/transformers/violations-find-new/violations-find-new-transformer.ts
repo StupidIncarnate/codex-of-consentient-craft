@@ -1,4 +1,5 @@
-import type { ViolationCount } from '../../types/lint-type';
+import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
+import { violationCountContract } from '../../contracts/violation-count/violation-count-contract';
 
 export const violationsFindNewTransformer = ({
   oldViolations,
@@ -17,11 +18,13 @@ export const violationsFindNewTransformer = ({
       // Take the last N details as the "new" violations (simplistic approach)
       const newDetails = newViolation.details.slice(-newCount);
 
-      newlyIntroduced.push({
-        ruleId: newViolation.ruleId,
-        count: newCount,
-        details: newDetails,
-      });
+      newlyIntroduced.push(
+        violationCountContract.parse({
+          ruleId: newViolation.ruleId,
+          count: newCount,
+          details: newDetails,
+        }),
+      );
     }
   }
 

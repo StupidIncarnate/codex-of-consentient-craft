@@ -1,6 +1,6 @@
 import { violationsFindNewTransformer } from './violations-find-new-transformer';
-import type { ViolationCount } from '../../types/lint-type';
-import { ViolationCountStub } from '../../../test/stubs/violation.stub';
+import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
+import { ViolationCountStub } from '../../contracts/violation-count/violation-count.stub';
 
 describe('violationsFindNewTransformer', () => {
   describe('success cases', () => {

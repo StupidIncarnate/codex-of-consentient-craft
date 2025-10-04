@@ -1,6 +1,6 @@
 import { violationMessageFormatTransformer } from './violation-message-format-transformer';
-import type { ViolationCount } from '../../types/lint-type';
-import { ViolationCountStub } from '../../../test/stubs/violation.stub';
+import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
+import { ViolationCountStub } from '../../contracts/violation-count/violation-count.stub';
 
 describe('violationMessageFormatTransformer', () => {
   it('VALID: {violations: []} => returns basic message', () => {

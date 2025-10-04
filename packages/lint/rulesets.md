@@ -160,37 +160,137 @@ be enforced via ESLint (existing or custom rules) using AST/TypeScript type anal
 
 ## Folder-Specific Lintable Rules
 
-### contracts/ - Data Contracts and Validation
+### statics/ - Immutable Values
 
 **1. File Naming Pattern**
 
-- **Rule**: Filename must be kebab-case
-- **AST Check**: Filename pattern `^[a-z]+(-[a-z]+)*\.(ts|tsx)$`
-- **Violation**: `UserContract.ts`, `is_valid_email.ts`
-- **Valid**: `user-contract.ts`, `is-valid-email.ts`
+- **Rule**: Filename must be kebab-case ending with `-statics.ts`
+- **AST Check**: Filename pattern `^[a-z]+(-[a-z]+)*-statics\.ts$`
+- **Violation**: `user.ts`, `UserStatics.ts`, `user-static.ts`
+- **Valid**: `user-statics.ts`, `eslint-statics.ts`
 
 **2. Folder Structure Pattern**
 
-- **Rule**: Files must be in `contracts/[name]/[name].ts` pattern
+- **Rule**: Files must be in `statics/[name]/[name]-statics.ts` pattern
+- **AST Check**: File path pattern matching
+- **Violation**: `statics/user-statics.ts` (missing folder)
+- **Valid**: `statics/user/user-statics.ts`
+
+**3. Export Naming**
+
+- **Rule**: Export must be camelCase ending with `Statics`
+- **AST Check**: ExportNamedDeclaration → VariableDeclarator → name pattern `^[a-z][a-zA-Z0-9]*Statics$`
+- **Violation**: `export const user = {}`, `export const USER_STATICS = {}`
+- **Valid**: `export const userStatics = {}`
+
+**4. Single Export Per File**
+
+- **Rule**: Each file must export exactly one object ending with `Statics`
+- **AST Check**: Count ExportNamedDeclarations (excluding types) - must equal 1
+- **Violation**: Multiple `export const` statements
+- **Valid**: Single `export const userStatics = {} as const`
+
+**5. Root Object Structure**
+
+- **Rule**: Root object must contain only objects or arrays (no primitives at root level)
+- **AST Check**: Object expression properties must all be ObjectExpression or ArrayExpression
+- **Violation**: `export const userStatics = { maxAge: 100 } as const` (primitive at root)
+- **Valid**: `export const userStatics = { limits: { maxAge: 100 } } as const`
+
+**6. Must Use `as const`**
+
+- **Rule**: Static exports must use `as const` assertion
+- **AST Check**: VariableDeclarator with `as const` assertion
+- **Violation**: `export const userStatics = { ... }`
+- **Valid**: `export const userStatics = { ... } as const`
+
+**7. No Imports Allowed**
+
+- **Rule**: statics/ cannot import anything (foundational layer)
+- **AST Check**: ImportDeclaration presence
+- **Violation**: `import {User} from '../../contracts/user/user-contract'`
+- **Valid**: No imports
+
+---
+
+### guards/ - Type Guards and Boolean Checks
+
+**1. File Naming Pattern**
+
+- **Rule**: Filename must be kebab-case ending with `-guard.ts`
+- **AST Check**: Filename pattern `^[a-z]+(-[a-z]+)*-guard\.ts$`
+- **Violation**: `has-permission.ts`, `HasPermissionGuard.ts`, `has-permission.guard.ts`
+- **Valid**: `has-permission-guard.ts`, `is-admin-guard.ts`
+
+**2. Folder Structure Pattern**
+
+- **Rule**: Files must be in `guards/[name]/[name]-guard.ts` pattern
+- **AST Check**: File path pattern matching
+- **Violation**: `guards/has-permission-guard.ts` (missing folder)
+- **Valid**: `guards/has-permission/has-permission-guard.ts`
+
+**3. Export Naming**
+
+- **Rule**: Export must be camelCase ending with `Guard`, starting with `is/has/can/should/will/was`
+- **AST Check**: ExportNamedDeclaration → name pattern `^(is|has|can|should|will|was)[A-Z][a-zA-Z0-9]*Guard$`
+- **Violation**: `export const checkPermission = () => {}`, `export const hasPermission = () => {}`
+- **Valid**: `export const hasPermissionGuard = (): boolean => {}`
+
+**4. Must Return Boolean**
+
+- **Rule**: Guard functions must explicitly return boolean type
+- **AST Check**: Return type annotation must be TSBooleanKeyword
+- **Violation**: `export const hasPermissionGuard = () => true` (no return type)
+- **Valid**: `export const hasPermissionGuard = (): boolean => true`
+
+**5. Purity Enforcement (No Async)**
+
+- **Rule**: No async functions (must be pure)
+- **AST Check**: ArrowFunctionExpression/FunctionDeclaration with async === true
+- **Violation**: `export const hasPermissionGuard = async (): boolean => {}`
+- **Valid**: `export const hasPermissionGuard = (): boolean => {}`
+
+**6. No External Calls**
+
+- **Rule**: No await expressions, no side effects
+- **AST Check**: See "Purity Enforcement Rules" in Cross-Cutting Rules section
+- **Violation**: `const result = await fetch()`
+- **Valid**: Pure computation only
+
+**7. Import Restrictions**
+
+- **Rule**: guards/ can import contracts/ (types only), statics/, errors/
+- **AST Check**: ImportDeclaration → source path must match `contracts/`, `statics/`, or `errors/`
+- **Violation**: `import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker'`
+- **Valid**: `import type {User} from '../../contracts/user/user-contract'`,
+  `import {userStatics} from '../../statics/user/user-statics'`
+
+---
+
+### contracts/ - Data Contracts (RESTRICTED)
+
+**1. File Naming Pattern**
+
+- **Rule**: Filename must be kebab-case ending with `-contract.ts` or `.stub.ts`
+- **AST Check**: Filename pattern `^[a-z]+(-[a-z]+)*(-contract\.ts|\.stub\.ts)$`
+- **Violation**: `UserContract.ts`, `user.ts`
+- **Valid**: `user-contract.ts`, `user.stub.ts`
+
+**2. Folder Structure Pattern**
+
+- **Rule**: Files must be in `contracts/[name]/[name]-contract.ts` pattern
 - **AST Check**: File path pattern matching
 - **Violation**: `contracts/user-contract.ts` (missing folder)
-- **Valid**: `contracts/user-contract/user-contract.ts`
+- **Valid**: `contracts/user/user-contract.ts`, `contracts/user/user.stub.ts`
 
 **3. Export Naming - Types/Interfaces**
 
 - **Rule**: Type/interface exports must be PascalCase
 - **AST Check**: TSTypeAliasDeclaration/TSInterfaceDeclaration → name pattern
 - **Violation**: `export type user = {}`
-- **Valid**: `export type User = {}`
+- **Valid**: `export type User = z.infer<typeof userContract>`
 
-**4. Export Naming - Enums**
-
-- **Rule**: Enum exports must be SCREAMING_SNAKE_CASE
-- **AST Check**: TSEnumDeclaration → name pattern `^[A-Z]+(_[A-Z]+)*$`
-- **Violation**: `export enum UserRole {}`
-- **Valid**: `export enum USER_ROLE {}`
-
-**5. Export Naming - Schemas**
+**4. Export Naming - Schemas**
 
 - **Rule**: Schema exports must be camelCase ending with `Contract`
 - **AST Check**: VariableDeclarator where name ends with 'Contract' and uses a library from
@@ -199,51 +299,36 @@ be enforced via ESLint (existing or custom rules) using AST/TypeScript type anal
 - **Valid**: `export const userContract = z.object({})`
 - **Config-driven**: Checks if imported library is in `allowedExternalImports.contracts` (e.g., ["zod", "yup", "joi"])
 
-**6. Export Naming - Boolean Functions**
+**5. Export Naming - Stubs**
 
-- **Rule**: Boolean-returning functions must start with configured prefixes
-- **AST Check**: FunctionDeclaration/VariableDeclarator → name pattern from `booleanFunctionPrefixes` config + return
-  type is boolean
-- **Violation**: `export const validEmail = (): boolean => {}`
-- **Valid**: `export const isValidEmail = (): boolean => {}`
-- **Config-driven**: Uses `booleanFunctionPrefixes` config (default: ["is", "has", "can", "should", "will", "was"])
+- **Rule**: Stub exports must be PascalCase ending with `Stub`
+- **AST Check**: ExportNamedDeclaration in `.stub.ts` files → name pattern `^[A-Z][a-zA-Z0-9]*Stub$`
+- **Violation**: `export const userStub = () => {}`
+- **Valid**: `export const UserStub = (props: Partial<User> = {}): User => {}`
 
-**7. Export Naming - Validate Functions**
+**6. Stubs Must Validate**
 
-- **Rule**: Validate functions must start with `validate`
-- **AST Check**: FunctionDeclaration/VariableDeclarator → name pattern `^validate[A-Z]`
-- **Violation**: `export const checkUser = () => {}`
-- **Valid**: `export const validateUser = () => {}`
+- **Rule**: Stub functions must call `.parse()` on the contract to validate the result
+- **AST Check**: Stub function body must contain CallExpression with `parse` method on contract
+- **Violation**: `return { id: 'test' as UserId }` (type assertion)
+- **Valid**: `return userContract.parse({ id: 'test' })`
 
-**8. Return Type Requirement**
+**7. Must Use Branding**
 
-- **Rule**: All exported boolean/validate functions must have explicit return types
-- **AST Check**: ExportNamedDeclaration → ArrowFunctionExpression with missing typeAnnotation on return
-- **Violation**: `export const isValid = () => true`
-- **Valid**: `export const isValid = (): boolean => true`
+- **Rule**: All Zod string/number schemas must use `.brand<'Type'>()`
+- **AST Check**: Zod string() or number() calls must chain to `.brand()`
+- **Violation**: `z.string().email()`
+- **Valid**: `z.string().email().brand<'EmailAddress'>()`
 
-**9. Import Restrictions**
+**8. Import Restrictions**
 
-- **Rule**: contracts/ can only import from errors/ (internal) and configured external packages
-- **AST Check**: ImportDeclaration → source path must match `errors/` or packages in `allowedExternalImports.contracts`
-  config
+- **Rule**: contracts/ can only import from statics/, errors/ (internal) and configured external packages
+- **AST Check**: ImportDeclaration → source path must match `statics/`, `errors/`, or packages in
+  `allowedExternalImports.contracts` config
 - **Violation**: `import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker'`
-- **Valid**: `import {ValidationError} from '../../errors/validation/validation-error'`
+- **Valid**: `import {ValidationError} from '../../errors/validation/validation-error'`,
+  `import {userStatics} from '../../statics/user/user-statics'`
 - **Config-driven**: External packages from `allowedExternalImports.contracts` (e.g., ["zod", "yup", "joi"])
-
-**10. Purity Enforcement (Async Detection)**
-
-- **Rule**: No async functions (indicates external calls)
-- **AST Check**: ArrowFunctionExpression/FunctionDeclaration with async === true
-- **Violation**: `export const hasPermission = async () => {}`
-- **Valid**: `export const hasPermission = (): boolean => {}`
-
-**11. No External Calls**
-
-- **Rule**: No await expressions (indicates external calls)
-- **AST Check**: See "Purity Enforcement Rules" in Cross-Cutting Rules section
-- **Violation**: `const result = await fetch()`
-- **Valid**: Pure computation only
 
 ---
 
@@ -296,11 +381,12 @@ be enforced via ESLint (existing or custom rules) using AST/TypeScript type anal
 
 **7. Import Restrictions**
 
-- **Rule**: transformers/ can only import from contracts/ and errors/ (no external packages)
-- **AST Check**: ImportDeclaration → source path must match `contracts/` or `errors/` only
+- **Rule**: transformers/ can only import from contracts/, statics/, and errors/ (no external packages)
+- **AST Check**: ImportDeclaration → source path must match `contracts/`, `statics/`, or `errors/` only
 - **Violation**: `import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker'`,
   `import moment from 'moment'`
-- **Valid**: `import {User} from '../../contracts/user-contract/user-contract'`
+- **Valid**: `import {User} from '../../contracts/user/user-contract'`,
+  `import {userStatics} from '../../statics/user/user-statics'`
 - **Note**: transformers/ is NOT in `allowedExternalImports` config, so cannot import npm packages
 
 ---
@@ -896,15 +982,17 @@ These rules apply across multiple folder types and enforce architectural pattern
 - **AST Check**: For each file, validate all ImportDeclarations against the allowed import map:
     - startup/ → ALL
     - flows/ → responders/ ONLY
-    - responders/ → widgets/, brokers/, bindings/, state/, contracts/, transformers/, errors/
-    - widgets/ → bindings/, brokers/, state/, contracts/, transformers/, errors/
-    - bindings/ → brokers/, state/, contracts/, errors/
-    - brokers/ → brokers/, adapters/, contracts/, errors/
-    - middleware/ → adapters/, middleware/
-    - adapters/ → node_modules, middleware/
-    - transformers/ → contracts/, errors/
-    - state/ → contracts/, errors/
-    - contracts/ → errors/
+  - responders/ → widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/
+  - widgets/ → bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/
+  - bindings/ → brokers/, state/, contracts/, statics/, errors/
+  - brokers/ → brokers/, adapters/, contracts/, statics/, errors/
+  - middleware/ → adapters/, middleware/, statics/
+  - adapters/ → node_modules, middleware/, statics/
+  - transformers/ → contracts/, statics/, errors/
+  - guards/ → contracts/, statics/, errors/
+  - state/ → contracts/, statics/, errors/
+  - contracts/ → statics/, errors/
+  - statics/ → (no imports)
     - errors/ → (no imports)
 - **Violation**: Any import outside the allowed set for a folder
 - **Valid**: All imports match the dependency graph
@@ -959,13 +1047,15 @@ These rules apply across multiple folder types and enforce architectural pattern
 
 - **Rule**: Only the approved folder structure is allowed in src/. Any folder not in the whitelist is forbidden.
 - **AST Check**: Scan src/ directory structure, validate all folders against whitelist
-- **Whitelist**: contracts/, transformers/, errors/, flows/, adapters/, middleware/, brokers/, bindings/, state/,
+- **Whitelist**: statics/, guards/, contracts/, transformers/, errors/, flows/, adapters/, middleware/, brokers/,
+  bindings/, state/,
   responders/, widgets/, startup/, assets/, migrations/
 - **Violation**: Any folder in src/ not in the whitelist (e.g., utils/, lib/, helpers/, common/, shared/, core/,
-  services/, repositories/, models/, types/, interfaces/, validators/, formatters/, mappers/, converters/)
+  services/, repositories/, models/, types/, interfaces/, validators/, constants/, enums/, formatters/, mappers/,
+  converters/)
 - **Valid**: Only folders from the whitelist exist in src/
 - **Note**: Common violations list (for tests): utils/, lib/, helpers/, common/, shared/, core/, services/,
-  repositories/, models/, types/, interfaces/ validators/, formatters/, mappers/, converters/
+  repositories/, models/, types/, interfaces/, validators/, constants/, enums/, formatters/, mappers/, converters/
 
 ### File Path Structure Enforcement
 
@@ -976,7 +1066,10 @@ These rules apply across multiple folder types and enforce architectural pattern
 - **AST Check**: For each file, validate path matches one of the patterns below. If no pattern matches, fail.
 - **Approved Patterns:**
     - **startup/**: `startup/start-[name].(ts|tsx)` (0 nesting levels)
-    - **contracts/**: `contracts/[name]/[name].(ts|test.ts)` (1 nesting level)
+  - **statics/**: `statics/[name]/[name]-statics.(ts|test.ts)` (1 nesting level)
+  - **guards/**: `guards/[name]/[name]-guard.(ts|test.ts)` (1 nesting level)
+  - **contracts/**: `contracts/[name]/[name]-contract.(ts|test.ts)` or `contracts/[name]/[name].stub.ts` (1 nesting
+    level)
     - **transformers/**: `transformers/[name]/[name]-transformer.(ts|test.ts)` (1 nesting level)
     - **errors/**: `errors/[name]/[name]-error.(ts|test.ts)` (1 nesting level)
     - **flows/**: `flows/[domain]/[domain]-flow.(ts|tsx|test.ts|test.tsx)` (1 nesting level)
@@ -1167,7 +1260,9 @@ export const validateAge = ({age}: { age: number }): { valid: boolean; error?: s
 
 **By Folder:**
 
-- contracts/: 11 rules
+- statics/: 7 rules
+- guards/: 7 rules
+- contracts/: 8 rules (restricted to Zod schemas and stubs)
 - transformers/: 7 rules
 - errors/: 8 rules (added constructor destructuring, name property)
 - flows/: 6 rules
@@ -1181,7 +1276,7 @@ export const validateAge = ({age}: { age: number }): { valid: boolean; error?: s
 - startup/: 5 rules
 - Global/Cross-cutting: 21 rules (added index.ts, test naming, external packages)
 
-**Total Deterministic Rules: 111+**
+**Total Deterministic Rules: 119+**
 
 ### Implementation Approaches
 

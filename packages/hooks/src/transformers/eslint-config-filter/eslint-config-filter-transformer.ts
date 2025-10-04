@@ -1,4 +1,4 @@
-import type { PreEditLintConfig } from '../../types/config-type';
+import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import type { Linter } from 'eslint';
 import { ruleNamesExtractTransformer } from '../rule-names-extract/rule-names-extract-transformer';
 

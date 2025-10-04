@@ -1,5 +1,5 @@
 import { fsReadFile } from '../../../adapters/fs/fs-read-file';
-import type { ToolInput } from '../../../types/tool-type';
+import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
 import { toolInputGetFullContentBroker } from '../get-full-content/tool-input-get-full-content-broker';
 import { isNodeError } from '../../../contracts/is-node-error/is-node-error';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';

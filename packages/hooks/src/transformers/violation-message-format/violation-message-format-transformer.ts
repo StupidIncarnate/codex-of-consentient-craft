@@ -1,4 +1,4 @@
-import type { ViolationCount } from '../../types/lint-type';
+import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
 
 export const violationMessageFormatTransformer = ({
   violations,

@@ -6,7 +6,7 @@ import {
   EditToolHookStub,
   MultiEditToolHookStub,
   WriteToolHookStub,
-} from '../../test/stubs/hook-data.stub';
+} from '../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub';
 
 interface ExecError extends Error {
   status?: number;
@@ -24,7 +24,7 @@ const isExecError = (error: unknown): error is ExecError => {
 };
 
 const tempRoot = path.join(process.cwd(), '.test-tmp', 'pre-edit-lint-tests');
-const hookPath = path.join(process.cwd(), 'src', 'pre-edit-lint', 'pre-edit-hook.ts');
+const hookPath = path.join(process.cwd(), 'src', 'startup', 'start-pre-edit-hook.ts');
 
 const createTestProject = ({ name }: { name: string }): string => {
   const testId = crypto.randomBytes(4).toString('hex');

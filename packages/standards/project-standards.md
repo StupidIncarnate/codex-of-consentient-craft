@@ -67,7 +67,8 @@ const processOrder = ({userName, userEmail, companyId}: {
 - **Use Zod contracts instead of primitives** - All `string`/`number` parameters must use branded Zod types
 - **Explicit return types required** - All exported functions must have explicit return types using Zod contracts
 - **Use existing types** from codebase or create new ones
-- **For uncertain data** (including catch variables): Use `unknown` and prove shape through guards
+- **For uncertain data** (external inputs, API responses, catch variables, JSON.parse): Use `unknown` and validate
+  through contracts
 - **Fix at source** - Never suppress errors with `@ts-ignore` or `@ts-expect-error`
 - **Type inference** - Let TypeScript infer when values are clear, be explicit for:
     - Empty arrays and objects
@@ -245,6 +246,8 @@ throw new Error('Config load failed');  // What path? What error?
 - **Remove dead code** - Unused variables/parameters, unreachable code, orphaned files, commented-out code, console.log
   statements
 - **Use Reflect.deleteProperty()** - Never use `delete obj[key]` with computed keys (lint error)
+- **Use Reflect.get()** - For accessing properties on objects when TypeScript narrows to `object` type (avoids unsafe
+  type assertions from `object` to `Record<string, unknown>`)
 
 ```typescript
 // ✅ CORRECT - O(n) using Map for lookups
@@ -261,6 +264,24 @@ Reflect.deleteProperty(require.cache, resolvedPath);
 
 // ❌ AVOID - delete with computed key
 delete require.cache[resolvedPath];  // Lint error
+
+// ✅ CORRECT - Reflect.get() to avoid unsafe type assertions
+export const hasStringProperty = (params: {
+  obj: unknown;
+  property: string;
+}): params is { obj: Record<string, string>; property: string } => {
+  const { obj, property } = params;
+  if (typeof obj !== 'object' || obj === null) {
+    return false;
+  }
+  // After narrowing, obj is type `object` (broad: arrays, functions, classes, plain objects)
+  // Reflect.get() safely accesses properties without asserting to Record<string, unknown>
+  return property in obj && typeof Reflect.get(obj, property) === 'string';
+};
+
+// ❌ AVOID - Type assertion from object to Record
+const record = obj as Record<string, unknown>;  // Lint error: unsafe type assertion
+return typeof record[property] === 'string';
 
 // ✅ CORRECT - Recursion for indeterminate loops
 const findConfig = async ({path}: { path: string }): Promise<string> => {
@@ -297,9 +318,12 @@ especially with folders like "utils/", "lib/", and "helpers/". This structure fo
 ### The Only Allowed Folders
 
 ```
+@types/             Typescript *.d.ts files
 src/
-├── contracts/      # Types, schemas, validation, boolean functions
-├── transformers/   # Pure data transformation (non-boolean returns)
+├── statics/        # Immutable values (constants, enums, configs)
+├── contracts/      # Zod schemas, types, and stubs ONLY
+├── guards/         # Pure boolean functions (type guards)
+├── transformers/   # Pure data transformation
 ├── errors/         # Error classes
 ├── flows/          # Route definitions and entry points
 ├── adapters/       # External package configuration/policy
@@ -314,80 +338,168 @@ src/
 ├── migrations/     # Version upgrades
 ```
 
+**Special Case: Global Type Declarations**
+
+The `@types/` folder is allowed **at package root only** (not in `src/`) for global TypeScript type augmentations:
+
+```
+package-root/
+├── @types/
+│   └── error-cause.d.ts     # Global type augmentations (e.g., extending Error)
+├── src/
+│   └── contracts/           # Application contracts (NOT @types or types/)
+└── package.json
+```
+
+- **Use for:** Extending built-in JavaScript/TypeScript types (`Error`, `Window`, etc.)
+- **Do NOT use for:** Application types (those go in `src/contracts/`)
+- **Files:** Only `.d.ts` declaration files allowed
+
 ### Forbidden Folders - Where Code Actually Goes
 
-| ❌ FORBIDDEN   | ✅ USE INSTEAD               | WHY                                                            |
-|---------------|-----------------------------|----------------------------------------------------------------|
-| utils/        | adapters/ or transformers/  | Based on whether it wraps external packages or transforms data |
-| lib/          | adapters/                   | External package wrappers only                                 |
-| helpers/      | contracts/ or transformers/ | Boolean functions → contracts/, others → transformers/         |
-| common/       | Distribute by function      | No catch-all folders allowed                                   |
-| shared/       | Distribute by function      | No catch-all folders allowed                                   |
-| core/         | brokers/                    | Business logic operations                                      |
-| services/     | brokers/                    | Business operations                                            |
-| repositories/ | brokers/                    | Data access operations                                         |
-| models/       | contracts/                  | Data definitions and validation                                |
-| types/        | contracts/                  | All types and interfaces                                       |
-| interfaces/   | contracts/                  | Type definitions                                               |
-| validators/   | contracts/                  | Validation logic                                               |
-| formatters/   | transformers/               | Data formatting                                                |
-| mappers/      | transformers/               | Data mapping                                                   |
-| converters/   | transformers/               | Data conversion                                                |
+| ❌ FORBIDDEN   | ✅ USE INSTEAD              | WHY                                                            |
+|---------------|----------------------------|----------------------------------------------------------------|
+| utils/        | adapters/ or transformers/ | Based on whether it wraps external packages or transforms data |
+| lib/          | adapters/                  | External package wrappers only                                 |
+| helpers/      | guards/ or transformers/   | Boolean functions → guards/, others → transformers/            |
+| common/       | Distribute by function     | No catch-all folders allowed                                   |
+| shared/       | Distribute by function     | No catch-all folders allowed                                   |
+| core/         | brokers/                   | Business logic operations                                      |
+| services/     | brokers/                   | Business operations                                            |
+| repositories/ | brokers/                   | Data access operations                                         |
+| models/       | contracts/                 | Data definitions and validation                                |
+| types/        | contracts/                 | All types and interfaces                                       |
+| interfaces/   | contracts/                 | Type definitions                                               |
+| validators/   | contracts/                 | Validation schemas only                                        |
+| constants/    | statics/                   | Immutable values, enums, config objects                        |
+| config/       | statics/                   | Static configuration values                                    |
+| enums/        | statics/                   | Enumerations                                                   |
+| formatters/   | transformers/              | Data formatting                                                |
+| mappers/      | transformers/              | Data mapping                                                   |
+| converters/   | transformers/              | Data conversion                                                |
 
 ## Import Rules - What Can Import What
 
 ```
 startup/ → ALL (bootstrap only, no business logic)
 flows/ → responders/ (ONLY)
-responders/ → widgets/ (UI only), brokers/, bindings/ (UI only), state/, contracts/, transformers/, errors/
-widgets/ → bindings/, brokers/, state/, contracts/, transformers/, errors/ (UI only)
-bindings/ → brokers/, state/, contracts/, errors/ (UI only)
-brokers/ → brokers/, adapters/, contracts/, errors/
-middleware/ → adapters/, middleware/
-adapters/ → node_modules, middleware/ (when coupled)
-transformers/ → contracts/, errors/
-state/ → contracts/, errors/
-contracts/ → errors/
+responders/ → widgets/ (UI only), brokers/, bindings/ (UI only), state/, contracts/, transformers/, guards/, statics/, errors/
+widgets/ → bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/ (UI only)
+bindings/ → brokers/, state/, contracts/, statics/, errors/ (UI only)
+brokers/ → brokers/, adapters/, contracts/, statics/, errors/
+middleware/ → adapters/, middleware/, statics/
+adapters/ → node_modules, middleware/, statics/ (when coupled)
+transformers/ → contracts/, statics/, errors/
+guards/ → contracts/, statics/, errors/
+state/ → contracts/, statics/, errors/
+contracts/ → statics/, errors/
+statics/ → (no imports)
 errors/ → (no imports)
 ```
 
 ## Folder Definitions, Constraints, and Examples
 
-### contracts/ - Data Contracts and Validation
+### statics/ - Immutable Values
 
-**Purpose:** Complete data contract enforcement - types, validation, and pure boolean checks
+**Purpose:** Immutable configuration values, constants, and enums
+
+**Folder Structure:**
+
+```
+statics/
+  user/
+    user-statics.ts
+    user-statics.test.ts
+  eslint/
+    eslint-statics.ts
+    eslint-statics.test.ts
+```
+
+**Naming Conventions:**
+
+- **Filename:** kebab-case ending with `-statics.ts` (e.g., `user-statics.ts`, `api-statics.ts`)
+- **Export:** camelCase ending with `Statics` (e.g., `userStatics`, `apiStatics`)
+
+**Constraints:**
+
+- **One export per file:** Single object with `Statics` suffix
+- **Root must contain only objects or arrays** (no primitives at root level - enforced by lint)
+- **Always use `as const`** for readonly enforcement
+- **CAN import:** Nothing (foundational layer)
+
+**Example:**
+
+```typescript
+// statics/user/user-statics.ts
+export const userStatics = {
+  roles: {
+    admin: 'admin',
+    user: 'user',
+    guest: 'guest'
+  },
+  limits: {
+    maxLoginAttempts: 5,
+    sessionTimeout: 3600
+  }
+} as const;
+
+// statics/eslint/eslint-statics.ts
+export const eslintStatics = {
+  rules: {
+    maxDepth: 4,
+    maxNestedCallbacks: 4
+  },
+  config: {
+    ignorePatterns: ['node_modules', 'dist']
+  }
+} as const;
+
+// statics/api/api-statics.ts
+export const apiStatics = {
+  timeout: {
+    default: 5000,
+    long: 30000
+  },
+  endpoints: {
+    users: '/api/users',
+    posts: '/api/posts'
+  }
+} as const;
+```
+
+### contracts/ - Data Contracts
+
+**Purpose:** Zod schemas, inferred types, and test stubs
 
 **Folder Structure:**
 
 ```
 contracts/
-  user-contract/
+  user/
     user-contract.ts
     user-contract.test.ts
-  has-permission/
-    has-permission.ts
-    has-permission.test.ts
+    user.stub.ts
+  user-id/
+    user-id-contract.ts
+    user-id-contract.test.ts
 ```
 
 **Naming Conventions:**
 
-- **Filename:** kebab-case (e.g., `user-contract.ts`, `is-valid-email.ts`)
+- **Filename:** kebab-case ending with `-contract.ts` (e.g., `user-contract.ts`, `email-contract.ts`)
 - **Exports:**
-    - Types/Interfaces: PascalCase (e.g., `User`, `StripeWebhookEvent`)
-    - Enums: SCREAMING_SNAKE_CASE (e.g., `USER_ROLE`)
     - Schemas: camelCase ending with `Contract` (e.g., `userContract`, `emailContract`)
-    - Boolean functions: camelCase starting with `is/has/can/should/will/was` (e.g., `isValidEmail`, `hasPermission`)
-    - Validate functions: camelCase starting with `validate` (e.g., `validateUser`)
+  - Types: PascalCase (e.g., `User`, `EmailAddress`)
+- **Stubs:** kebab-case with `.stub.ts` extension (e.g., `user.stub.ts`)
 
 **Constraints:**
 
-- **CAN** export TypeScript types/interfaces (all types go here)
-- **CAN** export validation schemas (Zod, Yup, Joi)
+- **ONLY ALLOWED:**
+    - Zod schemas (or configured validation library)
+    - TypeScript types inferred from schemas: `export type User = z.infer<typeof userContract>`
+    - Stub files (`.stub.ts`) for testing
 - **MUST** use `.brand<'TypeName'>()` on all Zod string/number schemas (no raw primitives)
-- **CAN** export pure functions returning booleans (no external calls)
-- **CAN** export validate functions (exception to boolean-only rule)
-- **Must** have explicit return types on all exported boolean/validate functions
-- **CAN** import errors/ only
+- **CAN** import statics/, errors/
 
 **Example:**
 
@@ -408,38 +520,94 @@ export const emailAddressContract = z.string()
     .brand<'EmailAddress'>();
 export type EmailAddress = z.infer<typeof emailAddressContract>;
 
-// contracts/permission/permission-contract.ts
-import {z} from 'zod';
-
-export const permissionContract = z.string()
-    .min(1)
-    .brand<'Permission'>();
-export type Permission = z.infer<typeof permissionContract>;
-
 // contracts/user/user-contract.ts
 import {z} from 'zod';
 import {userIdContract} from '../user-id/user-id-contract';
 import {emailAddressContract} from '../email-address/email-address-contract';
-import {permissionContract} from '../permission/permission-contract';
 
 export const userContract = z.object({
     id: userIdContract,
     email: emailAddressContract,
-    permissions: z.array(permissionContract)
+    name: z.string().min(1).brand<'UserName'>()
 });
 
 export type User = z.infer<typeof userContract>;
 
-// contracts/has-permission/has-permission.ts
-import type {User} from '../user/user-contract';
-import type {Permission} from '../permission/permission-contract';
+// contracts/user/user.stub.ts
+import {userContract} from './user-contract';
+import type {User} from './user-contract';
 
-export const hasPermission = ({user, action}: { user: User; action: Permission }): boolean => {
-    return user.permissions.includes(action);  // ✅ Pure, no external calls
+export const UserStub = (props: Partial<User> = {}): User => {
+  return userContract.parse({
+    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    email: 'john@example.com',
+    name: 'John Doe',
+    ...props,
+  });
+};
+```
+
+### guards/ - Type Guards and Boolean Checks
+
+**Purpose:** Pure boolean functions for type guards and business logic checks
+
+**Folder Structure:**
+
+```
+guards/
+  has-permission/
+    has-permission-guard.ts
+    has-permission-guard.test.ts
+  is-valid-email/
+    is-valid-email-guard.ts
+    is-valid-email-guard.test.ts
+```
+
+**Naming Conventions:**
+
+- **Filename:** kebab-case ending with `-guard.ts` (e.g., `has-permission-guard.ts`, `is-admin-guard.ts`)
+- **Export:** camelCase ending with `Guard`, starting with `is/has/can/should/will/was` (e.g., `hasPermissionGuard`,
+  `isValidEmailGuard`)
+
+**Constraints:**
+
+- **MUST be pure functions** (no external calls, no side effects)
+- **MUST return boolean**
+- **MUST have explicit return types**
+- **CAN** import contracts/ (types only), statics/, errors/
+
+**Example:**
+
+```typescript
+// guards/has-permission/has-permission-guard.ts
+import type {User} from '../../contracts/user/user-contract';
+import type {Permission} from '../../contracts/permission/permission-contract';
+
+export const hasPermissionGuard = ({user, permission}: {
+  user: User;
+  permission: Permission;
+}): boolean => {
+  return user.permissions.includes(permission);
 };
 
-// ❌ WRONG: Needs database, goes in brokers/
-export const userExists = async ({email}) => await db.find({email});
+// guards/is-admin/is-admin-guard.ts
+import type {User} from '../../contracts/user/user-contract';
+import {userStatics} from '../../statics/user/user-statics';
+
+export const isAdminGuard = ({user}: { user: User }): boolean => {
+  return user.role === userStatics.roles.ADMIN;
+};
+
+// guards/can-edit-post/can-edit-post-guard.ts
+import type {User} from '../../contracts/user/user-contract';
+import type {Post} from '../../contracts/post/post-contract';
+
+export const canEditPostGuard = ({user, post}: {
+  user: User;
+  post: Post;
+}): boolean => {
+  return user.id === post.authorId || user.role === 'admin';
+};
 ```
 
 ### transformers/ - Pure Data Transformation
@@ -1303,6 +1471,66 @@ export const UserGetResponder = async ({req, res}) => {
 **Rule:** Responders handle ONLY: input validation/parsing, calling brokers, output formatting, HTTP status codes.
 
 **Critical:** ALL responder inputs must be validated/sanitized through contracts before use.
+
+**Boundary Function Input Types:**
+
+Functions that receive data from external sources MUST accept `unknown` and validate immediately:
+
+**External Sources:**
+
+- stdin/stdout handlers (hook responders, CLI processors)
+- HTTP request handlers (`req.body`, `req.params`, `req.query`)
+- File parsers (JSON.parse results, CSV rows)
+- Message queue processors (job.data)
+- WebSocket message handlers
+- React Router params (useParams(), useSearchParams())
+- Browser storage (localStorage, sessionStorage)
+
+**Pattern:**
+
+```typescript
+// Backend boundary
+export const BoundaryResponder = async ({
+  req,
+  res
+}: {
+  req: Request;
+  res: Response;
+}): Promise<void> => {
+  const body: unknown = req.body;  // Explicit unknown
+  const validated = requestContract.safeParse(body);
+  if (!validated.success) {
+    return res.status(400).json({ error: validated.error });
+  }
+  // Use validated.data with full type safety
+};
+
+// Frontend boundary
+export const RouteResponder = (): JSX.Element => {
+  const params = useParams();  // External source
+  const validated = paramsContract.safeParse(params.id);
+  if (!validated.success) {
+    return <ErrorWidget message="Invalid ID" />;
+  }
+  // Use validated.data with full type safety
+};
+
+// Hook/CLI boundary
+export const HookResponder = async ({
+  input
+}: {
+  input: unknown;  // stdin is always unknown
+}): Promise<Result> => {
+  const validated = hookDataContract.safeParse(input);
+  if (!validated.success) {
+    throw new Error(`Invalid input: ${validated.error}`);
+  }
+  // Use validated.data with full type safety
+};
+```
+
+**See [Boundary Validation Enforcement](../../lint/boundary-validation.md) for complete validation patterns and lint
+rules.**
 
 ```typescript
 // ✅ CORRECT - Responder with validation using contracts

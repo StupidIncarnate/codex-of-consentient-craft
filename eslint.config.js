@@ -27,6 +27,7 @@ module.exports = [
       // '.test-tmp/**',
       // 'packages/*/.test-tmp/**',
       'packages/*/dist/**',
+      '@types/**',
       'exploratories/**',
       'plan/**',
       'hypothesis/**',
@@ -65,8 +66,8 @@ module.exports = [
       'prettier/prettier': 'error',
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': 'error',
-      'eslint-comments/no-unlimited-disable': 'error',
-      'eslint-comments/no-use': ['error', { allow: [] }],
+      // 'eslint-comments/no-unlimited-disable': 'error',
+      // 'eslint-comments/no-use': ['error', { allow: [] }],
     },
   },
   // Test files can be more relaxed

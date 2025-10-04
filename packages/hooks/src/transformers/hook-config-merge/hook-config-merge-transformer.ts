@@ -1,4 +1,4 @@
-import type { PreEditLintConfig } from '../../types/config-type';
+import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { hookConfigDefaultTransformer } from '../hook-config-default/hook-config-default-transformer';
 
 export const hookConfigMergeTransformer = ({

@@ -3,10 +3,10 @@ import { eslintConfigTransformer } from './eslint-config-transformer';
 
 describe('eslintConfigTransformer', () => {
   describe('forTesting parameter', () => {
-    it("VALID: {forTesting: false} => returns config with 'new-cap' as 'error'", () => {
+    it("VALID: {forTesting: false} => returns config with 'new-cap' as 'off'", () => {
       const result = eslintConfigTransformer({ forTesting: false });
 
-      expect(result.rules?.['new-cap']).toBe('error');
+      expect(result.rules?.['new-cap']).toBe('off');
     });
 
     it("VALID: {forTesting: true} => returns config with 'new-cap' as 'off'", () => {
@@ -15,10 +15,10 @@ describe('eslintConfigTransformer', () => {
       expect(result.rules?.['new-cap']).toBe('off');
     });
 
-    it("VALID: {} (no params) => returns config with default 'new-cap' as 'error'", () => {
+    it("VALID: {} (no params) => returns config with default 'new-cap' as 'off'", () => {
       const result = eslintConfigTransformer();
 
-      expect(result.rules?.['new-cap']).toBe('error');
+      expect(result.rules?.['new-cap']).toBe('off');
     });
   });
 
@@ -253,7 +253,7 @@ describe('eslintConfigTransformer', () => {
           'max-nested-callbacks': ['error', { max: 4 }],
           'max-params': ['error', { max: 1 }],
           'max-statements': 'off',
-          'new-cap': 'error',
+          'new-cap': 'off',
           'no-alert': 'error',
           'no-array-constructor': 'error',
           'no-bitwise': 'error',
@@ -448,7 +448,7 @@ describe('eslintConfigTransformer', () => {
           'init-declarations': 'error',
           'logical-assignment-operators': 'error',
           'max-classes-per-file': ['error', { max: 1 }],
-          'max-depth': ['error', { max: 4 }],
+          'max-depth': ['error', { max: 0 }],
           'max-lines-per-function': 'off',
           'max-lines': 'off',
           'max-nested-callbacks': ['error', { max: 4 }],

@@ -1,5 +1,10 @@
 import { toolInputGetFullContentBroker } from './tool-input-get-full-content-broker';
-import type { EditToolInput, MultiEditToolInput, WriteToolInput } from '../../../types/tool-type';
+import { editToolInputContract } from '../../../contracts/edit-tool-input/edit-tool-input-contract';
+import type { EditToolInput } from '../../../contracts/edit-tool-input/edit-tool-input-contract';
+import { multiEditToolInputContract } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input-contract';
+import type { MultiEditToolInput } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input-contract';
+import { writeToolInputContract } from '../../../contracts/write-tool-input/write-tool-input-contract';
+import { WriteToolInputStub } from '../../../contracts/write-tool-input/write-tool-input.stub';
 import { fsReadFile } from '../../../adapters/fs/fs-read-file';
 import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
@@ -15,10 +20,10 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it('VALID: WriteToolInput with content => returns content', async () => {
-    const toolInput: WriteToolInput = {
+    const toolInput = writeToolInputContract.parse({
       file_path: '/test/file.txt',
       content: 'Hello world',
-    };
+    });
 
     const result = await toolInputGetFullContentBroker({ toolInput });
 
@@ -26,11 +31,11 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it('VALID: EditToolInput single edit => returns modified content', async () => {
-    const toolInput: EditToolInput = {
+    const toolInput = editToolInputContract.parse({
       file_path: '/test/file.txt',
       old_string: 'Hello',
       new_string: 'Hi',
-    };
+    });
 
     mockReadFile.mockResolvedValue(fileContentsContract.parse('Hello world'));
 
@@ -44,12 +49,12 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it('VALID: EditToolInput with replace_all => returns content with all replacements', async () => {
-    const toolInput: EditToolInput = {
+    const toolInput = editToolInputContract.parse({
       file_path: '/test/file.txt',
       old_string: 'test',
       new_string: 'demo',
       replace_all: true,
-    };
+    });
 
     mockReadFile.mockResolvedValue(
       fileContentsContract.parse('test file with test content and test data'),
@@ -65,10 +70,10 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it('EDGE: toolInput without file_path => returns null', async () => {
-    const toolInput: WriteToolInput = {
+    const toolInput = WriteToolInputStub({
       content: 'Hello world',
       file_path: '',
-    };
+    });
 
     const result = await toolInputGetFullContentBroker({
       toolInput,
@@ -78,11 +83,11 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it("ERROR: file doesn't exist for Edit tool => returns null", async () => {
-    const toolInput: EditToolInput = {
+    const toolInput = editToolInputContract.parse({
       file_path: '/test/nonexistent.txt',
       old_string: 'Hello',
       new_string: 'Hi',
-    };
+    });
 
     const error = new Error('File not found') as NodeJS.ErrnoException;
     error.code = 'ENOENT';
@@ -98,11 +103,11 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it('ERROR: file read error (not ENOENT) => throws error', async () => {
-    const toolInput: EditToolInput = {
+    const toolInput: EditToolInput = editToolInputContract.parse({
       file_path: '/test/file.txt',
       old_string: 'Hello',
       new_string: 'Hi',
-    };
+    });
 
     const error = new Error('Permission denied') as NodeJS.ErrnoException;
     error.code = 'EACCES';
@@ -116,10 +121,10 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it('VALID: MultiEditToolInput single edit => returns content with edit applied', async () => {
-    const toolInput: MultiEditToolInput = {
+    const toolInput: MultiEditToolInput = multiEditToolInputContract.parse({
       file_path: '/test/file.txt',
       edits: [{ old_string: 'Hello', new_string: 'Hi' }],
-    };
+    });
 
     mockReadFile.mockResolvedValue(fileContentsContract.parse('Hello world'));
 
@@ -133,13 +138,13 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it('VALID: MultiEditToolInput multiple edits => returns content with all edits applied', async () => {
-    const toolInput: MultiEditToolInput = {
+    const toolInput: MultiEditToolInput = multiEditToolInputContract.parse({
       file_path: '/test/file.txt',
       edits: [
         { old_string: 'Hello', new_string: 'Hi' },
         { old_string: 'world', new_string: 'universe' },
       ],
-    };
+    });
 
     mockReadFile.mockResolvedValue(fileContentsContract.parse('Hello world'));
 
@@ -153,13 +158,13 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it('VALID: MultiEditToolInput with replace_all edits => returns content with all replacements', async () => {
-    const toolInput: MultiEditToolInput = {
+    const toolInput: MultiEditToolInput = multiEditToolInputContract.parse({
       file_path: '/test/file.txt',
       edits: [
         { old_string: 'test', new_string: 'demo', replace_all: true },
         { old_string: 'file', new_string: 'document' },
       ],
-    };
+    });
 
     mockReadFile.mockResolvedValue(
       fileContentsContract.parse('test file with test content in test file'),
@@ -175,10 +180,10 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it("ERROR: file doesn't exist for MultiEdit tool => returns null", async () => {
-    const toolInput: MultiEditToolInput = {
+    const toolInput: MultiEditToolInput = multiEditToolInputContract.parse({
       file_path: '/test/nonexistent.txt',
       edits: [{ old_string: 'Hello', new_string: 'Hi' }],
-    };
+    });
 
     const error = new Error('File not found') as NodeJS.ErrnoException;
     error.code = 'ENOENT';
@@ -194,10 +199,10 @@ describe('toolInputGetFullContentBroker', () => {
   });
 
   it("EDGE: file doesn't exist for Write tool => returns content", async () => {
-    const toolInput: WriteToolInput = {
+    const toolInput = writeToolInputContract.parse({
       file_path: '/test/newfile.txt',
       content: 'New file content',
-    };
+    });
 
     const error = new Error('File not found') as NodeJS.ErrnoException;
     error.code = 'ENOENT';

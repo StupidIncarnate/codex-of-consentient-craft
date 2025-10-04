@@ -41,6 +41,10 @@ Err toward lower confidence rather than higher.
 
 ## PROCESS THE FOLLOWING USER REQUEST
 
-Read `packages/standards/project-standards.md` and `packages/standards/testing-standards.md` and then process the
-following request:
+Read:
+
+- `@packages/standards/project-standards.md`
+- `packages/standards/testing-standards.md`
+
+and then process the following request:
 $ARGUMENTS
