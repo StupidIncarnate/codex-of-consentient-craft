@@ -1,7 +1,9 @@
 import type { Rule } from '../../../adapters/eslint/eslint-rule';
 
 const allowedFolders = [
+  'statics',
   'contracts',
+  'guards',
   'transformers',
   'errors',
   'flows',
@@ -30,6 +32,9 @@ const forbiddenFolders = [
   'types',
   'interfaces',
   'validators',
+  'constants',
+  'config',
+  'enums',
   'formatters',
   'mappers',
   'converters',
@@ -39,7 +44,7 @@ const getFolderSuggestion = (forbiddenFolder: string): string => {
   const suggestions: Record<string, string> = {
     utils: 'adapters or transformers',
     lib: 'adapters',
-    helpers: 'contracts or transformers',
+    helpers: 'guards or transformers',
     common: 'distribute by function',
     shared: 'distribute by function',
     core: 'brokers',
@@ -49,6 +54,9 @@ const getFolderSuggestion = (forbiddenFolder: string): string => {
     types: 'contracts',
     interfaces: 'contracts',
     validators: 'contracts',
+    constants: 'statics',
+    config: 'statics',
+    enums: 'statics',
     formatters: 'transformers',
     mappers: 'transformers',
     converters: 'transformers',
@@ -81,6 +89,11 @@ export const enforceFolderStructureRuleBroker = (): Rule.RuleModule => ({
 
       const [, pathAfterSrc] = filename.split('/src/');
       if (pathAfterSrc === undefined || pathAfterSrc === '') {
+        return;
+      }
+
+      // Allow files directly in src/ (no subfolder) like index.ts
+      if (!pathAfterSrc.includes('/')) {
         return;
       }
 

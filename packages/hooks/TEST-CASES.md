@@ -13,7 +13,7 @@ Edit, MultiEdit) and only enforcing the configured rules.
 
 ## Test Setup
 
-Run tests in `packages/hooks/src/test-tmp/` directory with hook enabled.
+Run tests in `packages/hooks/src/.test-tmp/` directory with hook enabled.
 
 ---
 
@@ -196,7 +196,7 @@ Content:
 ## Post-Test Cleanup
 
 ```bash
-rm packages/hooks/src/test-tmp/*
+rm packages/hooks/src/.test-tmp/*
 ```
 
 ## Success Criteria

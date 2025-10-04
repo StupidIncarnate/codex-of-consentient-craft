@@ -6,7 +6,7 @@ import {
   EditToolHookStub,
   MultiEditToolHookStub,
   WriteToolHookStub,
-} from '../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub';
+} from '../src/contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub';
 
 interface ExecError extends Error {
   status?: number;

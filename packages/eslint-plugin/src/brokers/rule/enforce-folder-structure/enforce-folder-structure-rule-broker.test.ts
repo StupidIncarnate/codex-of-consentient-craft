@@ -27,7 +27,27 @@ ruleTester.run('enforce-folder-structure', enforceFolderStructureRuleBroker(), {
     },
     {
       code: 'const foo = "bar"',
+      filename: '/project/src/statics/user/user-statics.ts',
+    },
+    {
+      code: 'const foo = "bar"',
+      filename: '/project/src/guards/has-permission/has-permission-guard.ts',
+    },
+    {
+      code: 'const foo = "bar"',
       filename: '/project/not-in-src/utils/helper.ts',
+    },
+    {
+      code: 'const foo = "bar"',
+      filename: '/project/src/index.ts',
+    },
+    {
+      code: 'const foo = "bar"',
+      filename: '/project/src/index.tsx',
+    },
+    {
+      code: 'const foo = "bar"',
+      filename: '/project/src/main.js',
     },
   ],
   invalid: [
@@ -65,6 +85,21 @@ ruleTester.run('enforce-folder-structure', enforceFolderStructureRuleBroker(), {
       code: 'const foo = "bar"',
       filename: '/project/src/donut/donut-maker.ts',
       errors: [{ messageId: 'unknownFolder' }],
+    },
+    {
+      code: 'const foo = "bar"',
+      filename: '/project/src/constants/api-constants.ts',
+      errors: [{ messageId: 'forbiddenFolder' }],
+    },
+    {
+      code: 'const foo = "bar"',
+      filename: '/project/src/config/app-config.ts',
+      errors: [{ messageId: 'forbiddenFolder' }],
+    },
+    {
+      code: 'const foo = "bar"',
+      filename: '/project/src/enums/user-role.ts',
+      errors: [{ messageId: 'forbiddenFolder' }],
     },
   ],
 });
