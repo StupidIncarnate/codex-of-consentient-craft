@@ -25,8 +25,12 @@ export const questmaestroConfigBroker = ({
       'eslint-comments/no-use': ['error', { allow: [] }],
       // '@questmaestro/ban-primitives': 'error',
       // '@questmaestro/require-zod-on-primitives': 'error',
-      '@questmaestro/explicit-return-types': 'error',
-      '@questmaestro/enforce-folder-structure': 'error',
+      // '@questmaestro/explicit-return-types': 'error',
+      // '@questmaestro/enforce-single-export': 'error',
+      // '@questmaestro/enforce-import-dependencies': 'error',
+      '@questmaestro/enforce-object-destructuring-params': 'error',
+      // '@questmaestro/enforce-test-colocation': 'error',
+      '@questmaestro/enforce-project-structure': 'error',
     },
   };
 };

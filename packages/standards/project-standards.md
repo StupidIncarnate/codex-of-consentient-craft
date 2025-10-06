@@ -748,41 +748,45 @@ export const UserFlow = router;
 ```
 adapters/
   axios/
-    axios-get.ts
-    axios-get.test.ts
-    axios-post.ts
-    axios-post.test.ts
-    axios-put.ts
-    axios-put.test.ts
+    axios-get-adapter.ts
+    axios-get-adapter.test.ts
+    axios-post-adapter.ts
+    axios-post-adapter.test.ts
+    axios-put-adapter.ts
+    axios-put-adapter.test.ts
   aws-sdk-client-s3/
-    aws-sdk-client-s3-upload.ts
-    aws-sdk-client-s3-upload.test.ts
-    aws-sdk-client-s3-download.ts
-    aws-sdk-client-s3-download.test.ts
-    aws-sdk-client-s3-delete.ts
-    aws-sdk-client-s3-delete.test.ts
+    aws-sdk-client-s3-upload-adapter.ts
+    aws-sdk-client-s3-upload-adapter.test.ts
+    aws-sdk-client-s3-download-adapter.ts
+    aws-sdk-client-s3-download-adapter.test.ts
+    aws-sdk-client-s3-delete-adapter.ts
+    aws-sdk-client-s3-delete-adapter.test.ts
 ```
 
 **Naming Conventions:**
 
-- **Filename:** kebab-case `[package-name]-[export-name].ts` (e.g., `axios-get.ts`, `eslint-rule.ts`,
-  `typescript-eslint-utils-tsestree.ts`)
-- **Export:** Match package export name exactly - camelCase for functions (e.g., `axiosGet`), PascalCase for
-  types/classes (e.g., `Rule`, `TSESTree`, `RuleTester`)
-- **Pattern:** adapters/[package-name]/[package-name]-[export-name].ts
+- **Filename:** kebab-case `[package-name]-[export-name]-adapter.ts` (ALL adapters require -adapter.ts suffix)
+- **Export:**
+    - **Value adapters:** camelCase ending with `Adapter` (e.g., `axiosGetAdapter`, `fsReadFileAdapter`)
+    - **Type re-exports:** Re-exported with alias ending in `Adapter` (e.g.,
+      `export { RuleTester as eslintRuleTesterAdapter }`)
+    - **Type-only re-exports:** Can skip export name validation but MUST have -adapter.ts file suffix
+- **Pattern:** adapters/[package-name]/[package-name]-[export-name]-adapter.ts (ALL files require -adapter.ts)
 - **Discovery:** `ls adapters/[package]/` shows all available exports from that package
 
 **Constraints:**
 
 - **CRITICAL: One export per file** - Each adapter file must export exactly one function, type, or class
-    - ✅ `adapters/axios/axios-get.ts` (single export: `axiosGet`)
-    - ✅ `adapters/eslint/eslint-rule.ts` (single export: `Rule` type)
-    - ✅ `adapters/eslint/eslint-rule-tester.ts` (single export: `RuleTester` class)
-    - ❌ `adapters/axios/axios-requests.ts` with multiple exports (violates single responsibility)
+    - ✅ `adapters/axios/axios-get-adapter.ts` (single export: `axiosGetAdapter`)
+    - ✅ `adapters/eslint/eslint-rule-adapter.ts` (type re-export: `export type { Rule } from "eslint"`)
+    - ✅ `adapters/eslint/eslint-rule-tester-adapter.ts` (class re-export:
+      `export { RuleTester as eslintRuleTesterAdapter } from "eslint"`)
+    - ❌ `adapters/axios/axios-requests-adapter.ts` with multiple exports (violates single responsibility)
 - **EVOLUTION RULE:** Created on-demand when lint detects duplicate package usage
 - **Naming:** Based on package's function names, NOT business domain
-    - ✅ `adapters/stripe/stripe-charges-create.ts` (wraps stripe.charges.create)
-    - ❌ `adapters/stripe/payment.ts` (business domain)
+    - ✅ `adapters/stripe/stripe-charges-create-adapter.ts` (wraps stripe.charges.create, exports
+      `stripeChargesCreateAdapter`)
+    - ❌ `adapters/stripe/payment-adapter.ts` (business domain)
 - **Must** add project-specific configuration (timeout, auth, retry)
 - **Must** know NOTHING about business logic
 - **Must** use Zod contract types for all parameters (inputs)
@@ -801,13 +805,13 @@ adapters/
 
 ```typescript
 // Pattern 1: Return npm type (broker needs library features)
-// adapters/axios/axios-get.ts
+// adapters/axios/axios-get-adapter.ts
 import axios, {type AxiosResponse} from 'axios';
 import type {Url} from '../../contracts/url/url-contract';
 
 export type {AxiosResponse};
 
-export const axiosGet = async ({url}: { url: Url }): Promise<AxiosResponse> => {
+export const axiosGetAdapter = async ({url}: { url: Url }): Promise<AxiosResponse> => {
     return await axios.get(url, {
         headers: {'Authorization': `Bearer ${getToken()}`},
         timeout: 10000
@@ -817,13 +821,13 @@ export const axiosGet = async ({url}: { url: Url }): Promise<AxiosResponse> => {
 
 ```typescript
 // Pattern 2: Return contract (broker only needs data)
-// adapters/fs/fs-read-file.ts
+// adapters/fs/fs-read-file-adapter.ts
 import {readFile} from 'fs/promises';
 import {fileContentsContract} from '../../contracts/file-contents/file-contents-contract';
 import type {FilePath} from '../../contracts/file-path/file-path-contract';
 import type {FileContents} from '../../contracts/file-contents/file-contents-contract';
 
-export const fsReadFile = async ({filePath}: { filePath: FilePath }): Promise<FileContents> => {
+export const fsReadFileAdapter = async ({filePath}: { filePath: FilePath }): Promise<FileContents> => {
     try {
         const content = await readFile(filePath, 'utf8');
         return fileContentsContract.parse(content);
@@ -864,12 +868,15 @@ middleware/
 
 ```typescript
 // middleware/http-telemetry/http-telemetry-middleware.ts
-import {winstonLog} from '../../adapters/winston/winston-log';
-import {prometheusIncrementCounter} from '../../adapters/prometheus/prometheus-increment-counter';
+import {winstonLogAdapter} from '../../adapters/winston/winston-log-adapter';
+import {prometheusIncrementCounterAdapter} from '../../adapters/prometheus/prometheus-increment-counter-adapter';
 
 export const httpTelemetryMiddleware = async ({method, url, statusCode, duration}) => {
-    await winstonLog({level: 'info', message: `${method} ${url} - ${statusCode}`});
-    await prometheusIncrementCounter({name: 'http_requests_total', labels: {method, status: String(statusCode)}});
+    await winstonLogAdapter({level: 'info', message: `${method} ${url} - ${statusCode}`});
+    await prometheusIncrementCounterAdapter({
+        name: 'http_requests_total',
+        labels: {method, status: String(statusCode)}
+    });
 };
 ```
 
@@ -916,13 +923,13 @@ brokers/
 
 ```typescript
 // brokers/user/fetch/user-fetch-broker.ts (Atomic)
-import {axiosGet} from '../../../adapters/axios/axios-get';
+import {axiosGetAdapter} from '../../../adapters/axios/axios-get-adapter';
 import type {UserId, User} from '../../../contracts/user/user-contract';
 import type {Url} from '../../../contracts/url/url-contract';
 
 export const userFetchBroker = async ({userId}: { userId: UserId }): Promise<User> => {
     const url = `/api/users/${userId}` as Url;
-    const response = await axiosGet({url});
+    const response = await axiosGetAdapter({url});
     return userContract.parse(response.data);
 };
 

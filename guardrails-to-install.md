@@ -70,6 +70,77 @@ replace_all: true,
 
 These should be linted against because of how we've structured the project
 
+## Every file needs a comment at top explaining what it does
+
+Thisll give llm more context on the file
+
+## need a lint guard / warning looking for dup strings
+
+LLM is still doing a lot of magic strings everywhere. We need a lint rule finding them and force them to get stored in
+statics or something.
+
+- Strings
+- Regex
+
+## Lint rules to stop it from declaring one off types/interfaces inside a function (or maybe in a file at all?):
+
+```typescript
+interface ExportInfo {
+    type: string;
+    name?: string;
+    isTypeOnly: boolean;
+}
+
+const programNode = node as unknown as {
+    body: {
+        type: string;
+        exportKind?: 'type' | 'value';
+        declaration?: {
+            type?: string;
+            id?: { name?: string };
+            declarations?: { id?: { type?: string; name?: string } }[];
+        };
+        specifiers?: unknown[];
+        source?: { value?: string };
+    }[];
+}
+```
+
+## transformers need another layer.
+
+LLM was making a is-structure-valid transformer and other generic ones, so we need a domain/subject nesting like brokers
+
+## Need a lint rule that forbids inline functions in theyre not part of the return type.
+
+Seeing this a lot in lint rules.
+
+```typescript
+create: (context: Rule.RuleContext) => {
+    const {filename} = context;
+
+    // PRE-VALIDATION: Exclude files from structure validation
+    if (shouldExcludeFileFromProjectStructureRulesGuard({filename})) {
+        return {};
+    }
+
+    // Extract project folder type (brokers, contracts, guards, etc.)
+    const firstFolder = projectFolderTypeFromFilePathTransformer({filename});
+    if (!firstFolder) {
+        return {};
+    }
+
+    // Helper to check if string is kebab-case
+    const isKebabCase = (str: string): boolean => /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u.test(str);
+
+    // Helper to extract folder path segments from filename
+    const getFolderSegments = (filePath: string): string[] => {
+        const afterSrc = filePath.split('/src/')[1];
+        if (!afterSrc) return [];
+        const parts = afterSrc.split('/');
+        return parts.slice(0, -1); // Remove filename, keep folders
+    };
+```
+
 ## allow inline imports only for file paths
 
       // eslint-disable-next-line @typescript-eslint/no-require-imports

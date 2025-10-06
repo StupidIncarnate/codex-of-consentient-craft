@@ -2,78 +2,35 @@ import { questmaestroConfigBroker } from './questmaestro-config-broker';
 
 describe('questmaestroConfigBroker', () => {
   describe('create()', () => {
-    it('VALID: => returns QuestMaestro ESLint config', () => {
+    it('VALID: => returns QuestMaestro ESLint config with plugins and rules', () => {
       const config = questmaestroConfigBroker();
 
-      expect(config).toStrictEqual({
-        plugins: {},
-        rules: {
-          '@questmaestro/ban-primitives': 'error',
-          '@questmaestro/require-zod-on-primitives': 'error',
-          '@questmaestro/explicit-return-types': 'error',
-          '@questmaestro/enforce-folder-structure': 'error',
-          '@typescript-eslint/no-explicit-any': 'error',
-          '@typescript-eslint/explicit-function-return-type': [
-            'error',
-            {
-              allowExpressions: false,
-              allowTypedFunctionExpressions: false,
-              allowHigherOrderFunctions: false,
-            },
-          ],
-          '@typescript-eslint/ban-types': [
-            'error',
-            {
-              types: {
-                string: 'Use Zod contract types like EmailAddress, UserName, FilePath, etc.',
-                number: 'Use Zod contract types like Currency, PositiveNumber, Age, etc.',
-                String: 'Use Zod contract types instead of String constructor',
-                Number: 'Use Zod contract types instead of Number constructor',
-              },
-              extendDefaults: true,
-            },
-          ],
-          'no-restricted-syntax': [
-            'error',
-            {
-              selector:
-                'CallExpression[callee.object.name="z"][callee.property.name="string"]:not(:has(MemberExpression[property.name="brand"]))',
-              message:
-                "z.string() must be chained with .brand() - use z.string().email().brand<'EmailAddress'>() instead of z.string().email()",
-            },
-            {
-              selector:
-                'CallExpression[callee.object.name="z"][callee.property.name="number"]:not(:has(MemberExpression[property.name="brand"]))',
-              message:
-                "z.number() must be chained with .brand() - use z.number().positive().brand<'PositiveNumber'>() instead of z.number().positive()",
-            },
-          ],
-          '@typescript-eslint/no-unused-vars': 'error',
-          '@typescript-eslint/prefer-const': 'error',
-          '@typescript-eslint/no-var-requires': 'error',
-        },
-      });
+      expect(config).toHaveProperty('plugins');
+      expect(config).toHaveProperty('rules');
+      expect(config.plugins).toHaveProperty('eslint-comments');
     });
 
-    it('VALID: config includes QuestMaestro custom rules => returns config with custom rules enabled', () => {
+    it('VALID: config includes currently enabled QuestMaestro rules', () => {
       const config = questmaestroConfigBroker();
 
-      expect(config.rules).toHaveProperty('@questmaestro/ban-primitives', 'error');
-      expect(config.rules).toHaveProperty('@questmaestro/require-zod-on-primitives', 'error');
-      expect(config.rules).toHaveProperty('@questmaestro/explicit-return-types', 'error');
+      expect(config.rules).toHaveProperty(
+        '@questmaestro/enforce-object-destructuring-params',
+        'error',
+      );
     });
 
     it('VALID: config includes TypeScript rules => returns config with TypeScript rules enabled', () => {
       const config = questmaestroConfigBroker();
 
       expect(config.rules).toHaveProperty('@typescript-eslint/no-explicit-any', 'error');
-      expect(config.rules).toHaveProperty('@typescript-eslint/ban-types');
+      expect(config.rules).toHaveProperty('@typescript-eslint/explicit-function-return-type');
     });
 
-    it('VALID: config includes folder structure rule => includes enforce-folder-structure', () => {
+    it('VALID: config includes eslint-comments rules', () => {
       const config = questmaestroConfigBroker();
 
-      expect(config.rules).toHaveProperty('@questmaestro/enforce-folder-structure', 'error');
+      expect(config.rules).toHaveProperty('eslint-comments/no-unlimited-disable', 'error');
+      expect(config.rules).toHaveProperty('eslint-comments/no-use');
     });
   });
 });

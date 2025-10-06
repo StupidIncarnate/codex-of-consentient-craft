@@ -353,18 +353,18 @@ expect(items[1]).toBe('banana'); // Use toStrictEqual instead!
 
 ```typescript
 // ✅ CORRECT - Universal pattern for module imports
-import {fsReadFile} from '../../../adapters/fs/fs-read-file';
-import {apiClient} from '../../../adapters/api/api-client';
+import {fsReadFileAdapter} from '../../../adapters/fs/fs-read-file-adapter';
+import {apiClientAdapter} from '../../../adapters/api/api-client-adapter';
 import {fileContentsContract} from '../../../contracts/file-contents/file-contents-contract';
 import {filePathContract} from '../../../contracts/file-path/file-path-contract';
 
 // Mock before using (automatically hoisted)
-jest.mock('../../../adapters/fs/fs-read-file');
-jest.mock('../../../adapters/api/api-client');
+jest.mock('../../../adapters/fs/fs-read-file-adapter');
+jest.mock('../../../adapters/api/api-client-adapter');
 
 // Type-safe mock access
-const mockFsReadFile = jest.mocked(fsReadFile);
-const mockApiClient = jest.mocked(apiClient);
+const mockFsReadFileAdapter = jest.mocked(fsReadFileAdapter);
+const mockApiClientAdapter = jest.mocked(apiClientAdapter);
 
 describe('myFunction', () => {
     // No beforeEach needed - mocks auto-reset via @questmaestro/testing
@@ -373,14 +373,14 @@ describe('myFunction', () => {
         const filePath = filePathContract.parse('/config.json');
         const fileContents = fileContentsContract.parse('{"framework": "react"}');
 
-        mockFsReadFile.mockResolvedValue(fileContents);
-        mockApiClient.post.mockResolvedValue({success: true});
+        mockFsReadFileAdapter.mockResolvedValue(fileContents);
+        mockApiClientAdapter.post.mockResolvedValue({success: true});
 
         const result = await myFunction({filePath});
 
         expect(result).toStrictEqual({ /* complete result */});
-        expect(mockFsReadFile).toHaveBeenCalledTimes(1);
-        expect(mockFsReadFile).toHaveBeenCalledWith({filePath});
+        expect(mockFsReadFileAdapter).toHaveBeenCalledTimes(1);
+        expect(mockFsReadFileAdapter).toHaveBeenCalledWith({filePath});
     });
 });
 ```
@@ -427,7 +427,8 @@ import * as adapter from './adapter';
 jest.spyOn(adapter, 'fsReadFile'); // Doesn't work! Use jest.mock() instead
 ```
 
-**Why spyOn doesn't work for module imports:** When your code does `import { fsReadFile }`, it creates a direct binding
+**Why spyOn doesn't work for module imports:** When your code does `import { fsReadFileAdapter }`, it creates a direct
+binding
 to the real function, bypassing any spy on the namespace object.
 
 ### Mocking with Branded Types
@@ -440,23 +441,23 @@ export const fileContentsContract = z.string().brand<'FileContents'>();
 export type FileContents = z.infer<typeof fileContentsContract>;
 
 // adapter returns branded type
-export const fsReadFile = async ({filePath}: { filePath: FilePath }): Promise<FileContents> =>
+export const fsReadFileAdapter = async ({filePath}: { filePath: FilePath }): Promise<FileContents> =>
     fileContentsContract.parse(await readFile(filePath, 'utf8'));
 
 // test - must use branded type
-jest.mock('../../../adapters/fs/fs-read-file');
-const mockFsReadFile = jest.mocked(fsReadFile);
+jest.mock('../../../adapters/fs/fs-read-file-adapter');
+const mockFsReadFileAdapter = jest.mocked(fsReadFileAdapter);
 
 it('VALID: reads file', async () => {
     // ❌ WRONG - Type error: string is not FileContents
-    mockFsReadFile.mockResolvedValue('plain string');
+    mockFsReadFileAdapter.mockResolvedValue('plain string');
 
     // ✅ CORRECT - Use contract to create branded type
     const contents = fileContentsContract.parse('mocked content');
-    mockFsReadFile.mockResolvedValue(contents);
+    mockFsReadFileAdapter.mockResolvedValue(contents);
 
     // ✅ CORRECT - Or inline
-    mockFsReadFile.mockResolvedValue(fileContentsContract.parse('mocked content'));
+    mockFsReadFileAdapter.mockResolvedValue(fileContentsContract.parse('mocked content'));
 });
 ```
 
@@ -477,15 +478,15 @@ import {filePathContract, type FilePath} from './file-path-contract';
 export const FilePathStub = (value: string): FilePath =>
     filePathContract.parse(value);
 
-// Usage in tests (from adapters/fs/fs-read-file.test.ts)
+// Usage in tests (from adapters/fs/fs-read-file-adapter.test.ts)
 import {FileContentsStub} from '../../contracts/file-contents/file-contents.stub';
 import {FilePathStub} from '../../contracts/file-path/file-path.stub';
 
 const filePath = FilePathStub('/config.json');
 const fileContents = FileContentsStub('mocked content');
 
-mockFsReadFile.mockResolvedValue(fileContents);
-expect(mockFsReadFile).toHaveBeenCalledWith({filePath});
+mockFsReadFileAdapter.mockResolvedValue(fileContents);
+expect(mockFsReadFileAdapter).toHaveBeenCalledWith({filePath});
 ```
 
 ### What to Mock (Unit Tests)
@@ -510,20 +511,20 @@ ensures unit isolation and prevents tests from becoming integration tests.
 
 ```typescript
 // ✅ CORRECT - Mock ALL imports (adapters, brokers, transformers)
-import {fsReadFile} from '../../../adapters/fs/fs-read-file';
+import {fsReadFileAdapter} from '../../../adapters/fs/fs-read-file-adapter';
 import {configParseBroker} from '../../../brokers/config/parse/config-parse-broker';
-import {apiClient} from '../../../adapters/api/api-client';
+import {apiClientAdapter} from '../../../adapters/api/api-client-adapter';
 import {FileContentsStub} from '../../../contracts/file-contents/file-contents.stub';
 import {FilePathStub} from '../../../contracts/file-path/file-path.stub';
 import {ConfigStub} from '../../../contracts/config/config.stub';
 
-jest.mock('../../../adapters/fs/fs-read-file');
+jest.mock('../../../adapters/fs/fs-read-file-adapter');
 jest.mock('../../../brokers/config/parse/config-parse-broker');
-jest.mock('../../../adapters/api/api-client');
+jest.mock('../../../adapters/api/api-client-adapter');
 
-const mockFsReadFile = jest.mocked(fsReadFile);
+const mockFsReadFileAdapter = jest.mocked(fsReadFileAdapter);
 const mockConfigParseBroker = jest.mocked(configParseBroker);
-const mockApiClient = jest.mocked(apiClient);
+const mockApiClientAdapter = jest.mocked(apiClientAdapter);
 
 describe('configLoadBroker', () => {
     beforeEach(() => {
@@ -537,9 +538,9 @@ describe('configLoadBroker', () => {
         const fileContents = FileContentsStub('{ "framework": "react" }');
         const parsedConfig = ConfigStub({framework: 'react'});
 
-        mockFsReadFile.mockResolvedValue(fileContents);
+        mockFsReadFileAdapter.mockResolvedValue(fileContents);
         mockConfigParseBroker.mockResolvedValue(parsedConfig);
-        mockApiClient.post.mockResolvedValue({success: true});
+        mockApiClientAdapter.post.mockResolvedValue({success: true});
 
         const result = await configLoadBroker({filePath});
 
@@ -553,9 +554,9 @@ describe('configLoadBroker', () => {
         });
 
         // Verify all mocks were called correctly
-        expect(mockFsReadFile).toHaveBeenCalledWith({filePath});
+        expect(mockFsReadFileAdapter).toHaveBeenCalledWith({filePath});
         expect(mockConfigParseBroker).toHaveBeenCalledWith({contents: fileContents});
-        expect(mockApiClient.post).toHaveBeenCalledTimes(1);
+        expect(mockApiClientAdapter.post).toHaveBeenCalledTimes(1);
     });
 });
 
@@ -995,14 +996,14 @@ expect(element).toHaveTextContent(/^Exact Text$/);
 ### Node.js API Testing
 ```typescript
 // Mock adapters that controllers use
-import {dbCreateUser} from '../../../adapters/database/db-create-user';
-import {emailSendWelcome} from '../../../adapters/email/email-send-welcome';
+import {dbCreateUserAdapter} from '../../../adapters/database/db-create-user-adapter';
+import {emailSendWelcomeAdapter} from '../../../adapters/email/email-send-welcome-adapter';
 
-jest.mock('../../../adapters/database/db-create-user');
-jest.mock('../../../adapters/email/email-send-welcome');
+jest.mock('../../../adapters/database/db-create-user-adapter');
+jest.mock('../../../adapters/email/email-send-welcome-adapter');
 
-const mockDbCreateUser = jest.mocked(dbCreateUser);
-const mockEmailSendWelcome = jest.mocked(emailSendWelcome);
+const mockDbCreateUserAdapter = jest.mocked(dbCreateUserAdapter);
+const mockEmailSendWelcomeAdapter = jest.mocked(emailSendWelcomeAdapter);
 
 describe("UserController", () => {
     beforeEach(() => {
@@ -1016,13 +1017,13 @@ describe("UserController", () => {
 
     describe("POST /users", () => {
         it("VALID: {name: 'John', email: 'john@test.com'} => returns 201", async () => {
-            mockDbCreateUser.mockResolvedValue({
+            mockDbCreateUserAdapter.mockResolvedValue({
                 id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
                 name: 'John',
                 email: 'john@test.com',
                 createdAt: 1609459200000
             });
-            mockEmailSendWelcome.mockResolvedValue({sent: true});
+            mockEmailSendWelcomeAdapter.mockResolvedValue({sent: true});
 
             const res = await request(app)
                 .post('/users')
@@ -1038,12 +1039,12 @@ describe("UserController", () => {
             });
 
             // Verify adapter calls
-            expect(mockDbCreateUser).toHaveBeenCalledTimes(1);
-            expect(mockDbCreateUser).toHaveBeenCalledWith({
+            expect(mockDbCreateUserAdapter).toHaveBeenCalledTimes(1);
+            expect(mockDbCreateUserAdapter).toHaveBeenCalledWith({
                 name: 'John',
                 email: 'john@test.com'
             });
-            expect(mockEmailSendWelcome).toHaveBeenCalledTimes(1);
+            expect(mockEmailSendWelcomeAdapter).toHaveBeenCalledTimes(1);
         })
 
         it("INVALID_EMAIL: {email: 'bad'} => returns 400", async () => {

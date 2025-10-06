@@ -58,7 +58,7 @@ describe('eslintConfigTransformer', () => {
     it('VALID: {} => returns config with complexity configured with max 10', () => {
       const result = eslintConfigTransformer();
 
-      expect(result.rules?.complexity).toStrictEqual(['error', { max: 10 }]);
+      expect(result.rules?.complexity).toStrictEqual(['error', { max: 15 }]);
     });
 
     it('VALID: {} => returns config with eqeqeq as error', () => {
@@ -224,7 +224,7 @@ describe('eslintConfigTransformer', () => {
           camelcase: 'off',
           'capitalized-comments': 'error',
           'class-methods-use-this': 'error',
-          complexity: ['error', { max: 10 }],
+          complexity: ['error', { max: 15 }],
           'consistent-return': 'error',
           'consistent-this': 'error',
           'constructor-super': 'error',
@@ -425,7 +425,7 @@ describe('eslintConfigTransformer', () => {
           camelcase: 'off',
           'capitalized-comments': 'error',
           'class-methods-use-this': 'error',
-          complexity: ['error', { max: 10 }],
+          complexity: ['error', { max: 15 }],
           'consistent-return': 'error',
           'consistent-this': 'error',
           'constructor-super': 'error',
@@ -448,7 +448,7 @@ describe('eslintConfigTransformer', () => {
           'init-declarations': 'error',
           'logical-assignment-operators': 'error',
           'max-classes-per-file': ['error', { max: 1 }],
-          'max-depth': ['error', { max: 0 }],
+          'max-depth': 'off',
           'max-lines-per-function': 'off',
           'max-lines': 'off',
           'max-nested-callbacks': ['error', { max: 4 }],

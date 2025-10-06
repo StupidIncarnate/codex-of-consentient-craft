@@ -484,7 +484,7 @@ export const typescriptEslintConfigTransformer = ({
     // ✅ const x = value as string
     // ❌ const x = value as any
     // Disallow type assertions that narrow the type to less safe alternatives
-    '@typescript-eslint/no-unsafe-type-assertion': 'error',
+    '@typescript-eslint/no-unsafe-type-assertion': 'warn',
 
     // ✅ const x = -5
     // ❌ const x = -(value as any)

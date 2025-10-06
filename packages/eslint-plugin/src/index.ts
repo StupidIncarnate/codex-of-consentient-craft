@@ -11,7 +11,6 @@ export type { RuleViolation } from './contracts/rule-violation/rule-violation-co
 export { banPrimitivesRuleBroker } from './brokers/rule/ban-primitives/ban-primitives-rule-broker';
 export { requireZodOnPrimitivesRuleBroker } from './brokers/rule/require-zod-on-primitives/require-zod-on-primitives-rule-broker';
 export { explicitReturnTypesRuleBroker } from './brokers/rule/explicit-return-types/explicit-return-types-rule-broker';
-export { enforceFolderStructureRuleBroker } from './brokers/rule/enforce-folder-structure/enforce-folder-structure-rule-broker';
 export { questmaestroConfigBroker } from './brokers/config/questmaestro/questmaestro-config-broker';
 export { eslintConfigTransformer } from './transformers/eslint-config/eslint-config-transformer';
 export { tsconfigBroker } from './brokers/config/tsconfig/tsconfig-broker';

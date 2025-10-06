@@ -138,7 +138,7 @@ describe('typescriptEslintConfigTransformer', () => {
           '@typescript-eslint/no-unsafe-function-type': 'error',
           '@typescript-eslint/no-unsafe-member-access': 'error',
           '@typescript-eslint/no-unsafe-return': 'error',
-          '@typescript-eslint/no-unsafe-type-assertion': 'error',
+          '@typescript-eslint/no-unsafe-type-assertion': 'warn',
           '@typescript-eslint/no-unsafe-unary-minus': 'error',
           '@typescript-eslint/no-unused-expressions': 'error',
           '@typescript-eslint/no-unused-vars': [
@@ -304,7 +304,7 @@ describe('typescriptEslintConfigTransformer', () => {
           '@typescript-eslint/no-unsafe-function-type': 'error',
           '@typescript-eslint/no-unsafe-member-access': 'error',
           '@typescript-eslint/no-unsafe-return': 'error',
-          '@typescript-eslint/no-unsafe-type-assertion': 'error',
+          '@typescript-eslint/no-unsafe-type-assertion': 'warn',
           '@typescript-eslint/no-unsafe-unary-minus': 'error',
           '@typescript-eslint/no-unused-expressions': 'error',
           '@typescript-eslint/no-unused-vars': [

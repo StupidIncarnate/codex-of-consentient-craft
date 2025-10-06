@@ -14,6 +14,11 @@ ruleTester.run('explicit-return-types', explicitReturnTypesRuleBroker(), {
     'function internal() { return "not exported"; }',
     'export const foo = (): Promise<string> => Promise.resolve("bar")',
     'export async function bar(): Promise<void> {}',
+    'export const a = (): void => {}, b = (): number => 42',
+    'export function* gen(): Generator<number> { yield 1; }',
+    'export const higherOrder = (): (() => void) => () => {}',
+    'export class ValidationError extends Error { constructor(message: string) { super(message); } }',
+    'class InternalClass { method() { return "ok"; } }',
   ],
   invalid: [
     {
@@ -38,6 +43,18 @@ ruleTester.run('explicit-return-types', explicitReturnTypesRuleBroker(), {
     },
     {
       code: 'export const foo = async () => "bar"',
+      errors: [{ messageId: 'missingReturnType' }],
+    },
+    {
+      code: 'export const a = (): void => {}, b = () => 42',
+      errors: [{ messageId: 'missingReturnType' }],
+    },
+    {
+      code: 'export function* gen() { yield 1; }',
+      errors: [{ messageId: 'missingReturnType' }],
+    },
+    {
+      code: 'export const higherOrder = () => () => {}',
       errors: [{ messageId: 'missingReturnType' }],
     },
     {
