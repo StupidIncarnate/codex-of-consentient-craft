@@ -1,4 +1,4 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule';
+import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
 import type { TSESTree } from '../../../adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree';
 
 export const explicitReturnTypesRuleBroker = (): Rule.RuleModule => ({

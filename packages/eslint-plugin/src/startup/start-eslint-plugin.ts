@@ -7,7 +7,7 @@ import { enforceObjectDestructuringParamsRuleBroker } from '../brokers/rule/enfo
 import { enforceTestColocationRuleBroker } from '../brokers/rule/enforce-test-colocation/enforce-test-colocation-rule-broker';
 import { enforceImplementationTestingRuleBroker } from '../brokers/rule/enforce-implementation-testing/enforce-implementation-testing-rule-broker';
 import { questmaestroConfigBroker } from '../brokers/config/questmaestro/questmaestro-config-broker';
-import type { Rule } from '../adapters/eslint/eslint-rule';
+import type { Rule } from '../adapters/eslint/eslint-rule-adapter';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
 
 export const startEslintPlugin = (): {

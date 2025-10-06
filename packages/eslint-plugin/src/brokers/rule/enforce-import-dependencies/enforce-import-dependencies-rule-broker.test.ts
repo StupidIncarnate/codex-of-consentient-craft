@@ -21,24 +21,24 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
 
     // Brokers can import from brokers, adapters, contracts, statics, errors
     {
-      code: 'import { userBroker } from "../../brokers/user/user-broker";',
-      filename: '/project/src/brokers/auth/auth-broker.ts',
+      code: 'import { userBroker } from "../../user/fetch/user-fetch-broker";',
+      filename: '/project/src/brokers/auth/login/auth-login-broker.ts',
     },
     {
-      code: 'import { httpAdapter } from "../../adapters/http/http-adapter";',
-      filename: '/project/src/brokers/api/api-broker.ts',
+      code: 'import { httpAdapter } from "../../../adapters/http/http-adapter";',
+      filename: '/project/src/brokers/api/fetch/api-fetch-broker.ts',
     },
     {
-      code: 'import { userContract } from "../../contracts/user/user-contract";',
+      code: 'import { userContract } from "../../../contracts/user/user-contract";',
       filename: '/project/src/brokers/user/fetch/fetch-user-broker.ts',
     },
     {
-      code: 'import { configStatics } from "../../statics/config/config-statics";',
-      filename: '/project/src/brokers/app/app-broker.ts',
+      code: 'import { configStatics } from "../../../statics/config/config-statics";',
+      filename: '/project/src/brokers/app/start/app-start-broker.ts',
     },
     {
-      code: 'import { NetworkError } from "../../errors/network/network-error";',
-      filename: '/project/src/brokers/api/api-broker.ts',
+      code: 'import { NetworkError } from "../../../errors/network/network-error";',
+      filename: '/project/src/brokers/api/fetch/api-fetch-broker.ts',
     },
 
     // Adapters can import external packages (node_modules)
@@ -57,6 +57,84 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
     {
       code: 'import { configStatics } from "../../statics/config/config-statics";',
       filename: '/project/src/adapters/config/config-adapter.ts',
+    },
+    {
+      code: 'import { userContract } from "../../contracts/user/user-contract";',
+      filename: '/project/src/adapters/api/api-adapter.ts',
+    },
+    // Adapters can import scoped npm packages
+    {
+      code: 'import { ESLint } from "@typescript-eslint/utils";',
+      filename: '/project/src/adapters/typescript-eslint/typescript-eslint-adapter.ts',
+    },
+    {
+      code: 'import { parseAsync } from "@babel/parser";',
+      filename: '/project/src/adapters/babel/babel-parser-adapter.ts',
+    },
+    {
+      code: 'import type { Rule } from "@typescript-eslint/utils/ts-eslint";',
+      filename: '/project/src/adapters/typescript-eslint/typescript-eslint-rule-adapter.ts',
+    },
+
+    // Files in the same domain folder can import each other
+    {
+      code: 'import { fsExistsSyncAdapter } from "./fs-exists-sync-adapter";',
+      filename: '/project/src/adapters/fs/fs-exists-sync-adapter.test.ts',
+    },
+    {
+      code: 'import { userContract } from "./user-contract";',
+      filename: '/project/src/contracts/user/user.stub.ts',
+    },
+    {
+      code: 'import { helperFunction } from "./helper";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+
+    // Brokers (depth 2) can import from other broker actions (same domain, different action)
+    {
+      code: 'import { userCreateBroker } from "../create/user-create-broker";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+    {
+      code: 'import { userOther } from "./user-other";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+    {
+      code: 'import { userFetchBroker } from "../fetch/user-fetch-broker";',
+      filename: '/project/src/brokers/user/update/user-update-broker.ts',
+    },
+    // Brokers can import from different broker domain (cross-domain, same layer)
+    {
+      code: 'import { emailSendBroker } from "../../email/send/email-send-broker";',
+      filename: '/project/src/brokers/user/create/user-create-broker.ts',
+    },
+    {
+      code: 'import { authVerifyBroker } from "../../auth/verify/auth-verify-broker";',
+      filename: '/project/src/brokers/payment/process/payment-process-broker.ts',
+    },
+    // Brokers (depth 2) importing from depth-1 adapters - requires 3 levels up
+    {
+      code: 'import { postgresQueryAdapter } from "../../../adapters/postgres-query/postgres-query-adapter";',
+      filename: '/project/src/brokers/database/query/database-query-broker.ts',
+    },
+    {
+      code: 'import { redisSetAdapter } from "../../../adapters/redis-set/redis-set-adapter";',
+      filename: '/project/src/brokers/cache/set/cache-set-broker.ts',
+    },
+    // Brokers (depth 2) importing from depth-1 contracts - requires 3 levels up
+    {
+      code: 'import { paymentContract } from "../../../contracts/payment/payment-contract";',
+      filename: '/project/src/brokers/payment/validate/payment-validate-broker.ts',
+    },
+    // Brokers (depth 2) importing from depth-1 statics - requires 3 levels up
+    {
+      code: 'import { apiUrlStatics } from "../../../statics/api-url/api-url-statics";',
+      filename: '/project/src/brokers/http/request/http-request-broker.ts',
+    },
+    // Brokers (depth 2) importing from depth-1 errors - requires 3 levels up
+    {
+      code: 'import { DatabaseError } from "../../../errors/database/database-error";',
+      filename: '/project/src/brokers/user/delete/user-delete-broker.ts',
     },
 
     // Transformers can import from contracts, statics, errors
@@ -93,7 +171,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
 
     // Startup can import anything (*)
     {
-      code: 'import { appBroker } from "../brokers/app/app-broker";',
+      code: 'import { appStartBroker } from "../brokers/app/start/app-start-broker";',
       filename: '/project/src/startup/index.ts',
     },
     {
@@ -103,6 +181,134 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
     {
       code: 'import { userWidget } from "../widgets/user/user-widget";',
       filename: '/project/src/startup/app.ts',
+    },
+
+    // Responders (depth 2) can import from widgets, brokers, bindings, state, contracts, transformers, guards, statics, errors
+    {
+      code: 'import { UserCardWidget } from "../../../widgets/user-card/user-card-widget";',
+      filename: '/project/src/responders/user/profile/user-profile-responder.ts',
+    },
+    {
+      code: 'import { userFetchBroker } from "../../../brokers/user/fetch/user-fetch-broker";',
+      filename: '/project/src/responders/user/profile/user-profile-responder.ts',
+    },
+    {
+      code: 'import { useUserDataBinding } from "../../../bindings/use-user-data/use-user-data-binding";',
+      filename: '/project/src/responders/user/profile/user-profile-responder.ts',
+    },
+    {
+      code: 'import { userCacheState } from "../../../state/user-cache/user-cache-state";',
+      filename: '/project/src/responders/user/profile/user-profile-responder.ts',
+    },
+    {
+      code: 'import { userContract } from "../../../contracts/user/user-contract";',
+      filename: '/project/src/responders/user/create/user-create-responder.ts',
+    },
+    {
+      code: 'import { userToDtoTransformer } from "../../../transformers/user-to-dto/user-to-dto-transformer";',
+      filename: '/project/src/responders/user/get/user-get-responder.ts',
+    },
+    {
+      code: 'import { hasPermissionGuard } from "../../../guards/has-permission/has-permission-guard";',
+      filename: '/project/src/responders/admin/delete/admin-delete-responder.ts',
+    },
+    {
+      code: 'import { apiStatics } from "../../../statics/api/api-statics";',
+      filename: '/project/src/responders/health/check/health-check-responder.ts',
+    },
+    {
+      code: 'import { ValidationError } from "../../../errors/validation/validation-error";',
+      filename: '/project/src/responders/user/create/user-create-responder.ts',
+    },
+
+    // Widgets (depth 1) can import from bindings, brokers, state, contracts, transformers, guards, statics, errors
+    {
+      code: 'import { useUserDataBinding } from "../../bindings/use-user-data/use-user-data-binding";',
+      filename: '/project/src/widgets/user-card/user-card-widget.tsx',
+    },
+    {
+      code: 'import { userUpdateBroker } from "../../brokers/user/update/user-update-broker";',
+      filename: '/project/src/widgets/user-form/user-form-widget.tsx',
+    },
+    {
+      code: 'import { appConfigState } from "../../state/app-config/app-config-state";',
+      filename: '/project/src/widgets/settings/settings-widget.tsx',
+    },
+    {
+      code: 'import { userContract } from "../../contracts/user/user-contract";',
+      filename: '/project/src/widgets/user-card/user-card-widget.tsx',
+    },
+    {
+      code: 'import { formatDateTransformer } from "../../transformers/format-date/format-date-transformer";',
+      filename: '/project/src/widgets/date-display/date-display-widget.tsx',
+    },
+    {
+      code: 'import { isAdminGuard } from "../../guards/is-admin/is-admin-guard";',
+      filename: '/project/src/widgets/admin-panel/admin-panel-widget.tsx',
+    },
+    {
+      code: 'import { themeStatics } from "../../statics/theme/theme-statics";',
+      filename: '/project/src/widgets/layout/layout-widget.tsx',
+    },
+    {
+      code: 'import { ValidationError } from "../../errors/validation/validation-error";',
+      filename: '/project/src/widgets/error-boundary/error-boundary-widget.tsx',
+    },
+
+    // Bindings (depth 1) can import from brokers, state, contracts, statics, errors
+    {
+      code: 'import { userFetchBroker } from "../../brokers/user/fetch/user-fetch-broker";',
+      filename: '/project/src/bindings/use-user-data/use-user-data-binding.ts',
+    },
+    {
+      code: 'import { userCacheState } from "../../state/user-cache/user-cache-state";',
+      filename: '/project/src/bindings/use-cached-user/use-cached-user-binding.ts',
+    },
+    {
+      code: 'import { userContract } from "../../contracts/user/user-contract";',
+      filename: '/project/src/bindings/use-user-data/use-user-data-binding.ts',
+    },
+    {
+      code: 'import { apiStatics } from "../../statics/api/api-statics";',
+      filename: '/project/src/bindings/use-api-config/use-api-config-binding.ts',
+    },
+    {
+      code: 'import { NetworkError } from "../../errors/network/network-error";',
+      filename: '/project/src/bindings/use-fetch-data/use-fetch-data-binding.ts',
+    },
+
+    // State (depth 1) can import from contracts, statics, errors
+    {
+      code: 'import { userContract } from "../../contracts/user/user-contract";',
+      filename: '/project/src/state/user-cache/user-cache-state.ts',
+    },
+    {
+      code: 'import { configStatics } from "../../statics/config/config-statics";',
+      filename: '/project/src/state/app-config/app-config-state.ts',
+    },
+    {
+      code: 'import { StateError } from "../../errors/state/state-error";',
+      filename: '/project/src/state/store/store-state.ts',
+    },
+
+    // Middleware (depth 1) can import from adapters, middleware, statics
+    {
+      code: 'import { winstonLogAdapter } from "../../adapters/winston-log/winston-log-adapter";',
+      filename: '/project/src/middleware/http-telemetry/http-telemetry-middleware.ts',
+    },
+    {
+      code: 'import { errorTrackingMiddleware } from "../error-tracking/error-tracking-middleware";',
+      filename: '/project/src/middleware/request-logger/request-logger-middleware.ts',
+    },
+    {
+      code: 'import { serverStatics } from "../../statics/server/server-statics";',
+      filename: '/project/src/middleware/cors/cors-middleware.ts',
+    },
+
+    // Flows (depth 1) can ONLY import from responders
+    {
+      code: 'import { UserProfileResponder } from "../../responders/user/profile/user-profile-responder";',
+      filename: '/project/src/flows/user/user-flow.tsx',
     },
 
     // Files not in src/ folder should be ignored
@@ -352,6 +558,456 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
             folderType: 'brokers',
             importedFolder: 'responders',
             allowed: 'brokers/, adapters/, contracts/, statics/, errors/',
+          },
+        },
+      ],
+    },
+
+    // Cannot import non-entry files across domain folders
+    {
+      code: 'import { helper } from "../../contracts/user/helper";',
+      filename: '/project/src/guards/auth/auth-guard.ts',
+      errors: [
+        {
+          messageId: 'nonEntryFileImport',
+          data: {
+            folderType: 'guards',
+            importedFile: 'helper',
+            importedFolder: 'contracts',
+            pattern: '-contract.ts',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { utility } from "../../../adapters/axios/utility";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [
+        {
+          messageId: 'nonEntryFileImport',
+          data: {
+            folderType: 'brokers',
+            importedFile: 'utility',
+            importedFolder: 'adapters',
+            pattern: '-adapter.ts',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { helper } from "../../statics/config/helper";',
+      filename: '/project/src/transformers/user/user-transformer.ts',
+      errors: [
+        {
+          messageId: 'nonEntryFileImport',
+          data: {
+            folderType: 'transformers',
+            importedFile: 'helper',
+            importedFolder: 'statics',
+            pattern: '-statics.ts',
+          },
+        },
+      ],
+    },
+
+    // Cannot import helper files from different action folders (brokers depth 2)
+    {
+      code: 'import { helper } from "../create/helper";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [
+        {
+          messageId: 'nonEntryFileImport',
+          data: {
+            folderType: 'brokers',
+            importedFile: 'helper',
+            importedFolder: 'brokers',
+            pattern: '-broker.ts',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { utils } from "../get/utils";',
+      filename: '/project/src/responders/user/create/user-create-responder.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'responders',
+            importedFolder: 'responders',
+            allowed:
+              'widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/',
+          },
+        },
+      ],
+    },
+
+    // Cannot import multi-dot files (.stub.ts, .mock.ts, .test.ts) across domain folders
+    {
+      code: 'import { UserStub } from "../../contracts/user/user.stub";',
+      filename: '/project/src/guards/auth/auth-guard.ts',
+      errors: [
+        {
+          messageId: 'nonEntryFileImport',
+          data: {
+            folderType: 'guards',
+            importedFile: 'user.stub',
+            importedFolder: 'contracts',
+            pattern: '-contract.ts',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { axiosMock } from "../../../adapters/axios/axios-get.mock";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [
+        {
+          messageId: 'nonEntryFileImport',
+          data: {
+            folderType: 'brokers',
+            importedFile: 'axios-get.mock',
+            importedFolder: 'adapters',
+            pattern: '-adapter.ts',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { userContractTest } from "../../contracts/user/user-contract.test";',
+      filename: '/project/src/guards/auth/auth-guard.ts',
+      errors: [
+        {
+          messageId: 'nonEntryFileImport',
+          data: {
+            folderType: 'guards',
+            importedFile: 'user-contract.test',
+            importedFolder: 'contracts',
+            pattern: '-contract.ts',
+          },
+        },
+      ],
+    },
+
+    // Responders cannot import from adapters or flows
+    {
+      code: 'import { axiosGetAdapter } from "../../../adapters/axios/axios-get-adapter";',
+      filename: '/project/src/responders/user/get/user-get-responder.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'responders',
+            importedFolder: 'adapters',
+            allowed:
+              'widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { UserFlow } from "../../../flows/user/user-flow";',
+      filename: '/project/src/responders/user/profile/user-profile-responder.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'responders',
+            importedFolder: 'flows',
+            allowed:
+              'widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/',
+          },
+        },
+      ],
+    },
+
+    // Widgets cannot import from adapters, flows, or responders
+    {
+      code: 'import { axiosGetAdapter } from "../../adapters/axios/axios-get-adapter";',
+      filename: '/project/src/widgets/user-list/user-list-widget.tsx',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'widgets',
+            importedFolder: 'adapters',
+            allowed:
+              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { UserFlow } from "../../flows/user/user-flow";',
+      filename: '/project/src/widgets/router/router-widget.tsx',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'widgets',
+            importedFolder: 'flows',
+            allowed:
+              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { UserProfileResponder } from "../../responders/user/profile/user-profile-responder";',
+      filename: '/project/src/widgets/page/page-widget.tsx',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'widgets',
+            importedFolder: 'responders',
+            allowed:
+              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import axios from "axios";',
+      filename: '/project/src/widgets/http-client/http-client-widget.tsx',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'widgets',
+            packageName: 'axios',
+          },
+        },
+      ],
+    },
+
+    // Bindings cannot import from adapters, flows, responders, widgets, transformers, guards
+    {
+      code: 'import { axiosGetAdapter } from "../../adapters/axios/axios-get-adapter";',
+      filename: '/project/src/bindings/use-api/use-api-binding.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'bindings',
+            importedFolder: 'adapters',
+            allowed: 'brokers/, state/, contracts/, statics/, errors/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { userToDtoTransformer } from "../../transformers/user-to-dto/user-to-dto-transformer";',
+      filename: '/project/src/bindings/use-user/use-user-binding.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'bindings',
+            importedFolder: 'transformers',
+            allowed: 'brokers/, state/, contracts/, statics/, errors/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import express from "express";',
+      filename: '/project/src/bindings/use-server/use-server-binding.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'bindings',
+            packageName: 'express',
+          },
+        },
+      ],
+    },
+
+    // State cannot import from brokers, transformers, guards, or external packages
+    {
+      code: 'import { userFetchBroker } from "../../brokers/user/fetch/user-fetch-broker";',
+      filename: '/project/src/state/user-data/user-data-state.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'state',
+            importedFolder: 'brokers',
+            allowed: 'contracts/, statics/, errors/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { formatDateTransformer } from "../../transformers/format-date/format-date-transformer";',
+      filename: '/project/src/state/cache/cache-state.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'state',
+            importedFolder: 'transformers',
+            allowed: 'contracts/, statics/, errors/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { z } from "zod";',
+      filename: '/project/src/state/store/store-state.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'state',
+            packageName: 'zod',
+          },
+        },
+      ],
+    },
+
+    // Middleware cannot import from brokers, contracts, guards, transformers, or external packages
+    {
+      code: 'import { userFetchBroker } from "../../brokers/user/fetch/user-fetch-broker";',
+      filename: '/project/src/middleware/auth/auth-middleware.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'middleware',
+            importedFolder: 'brokers',
+            allowed: 'adapters/, middleware/, statics/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { userContract } from "../../contracts/user/user-contract";',
+      filename: '/project/src/middleware/validation/validation-middleware.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'middleware',
+            importedFolder: 'contracts',
+            allowed: 'adapters/, middleware/, statics/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import express from "express";',
+      filename: '/project/src/middleware/cors/cors-middleware.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'middleware',
+            packageName: 'express',
+          },
+        },
+      ],
+    },
+
+    // Flows cannot import from anything except responders
+    {
+      code: 'import { userFetchBroker } from "../../brokers/user/fetch/user-fetch-broker";',
+      filename: '/project/src/flows/api/api-flow.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'flows',
+            importedFolder: 'brokers',
+            allowed: 'responders/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { UserCardWidget } from "../../widgets/user-card/user-card-widget";',
+      filename: '/project/src/flows/user/user-flow.tsx',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'flows',
+            importedFolder: 'widgets',
+            allowed: 'responders/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { userContract } from "../../contracts/user/user-contract";',
+      filename: '/project/src/flows/validation/validation-flow.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'flows',
+            importedFolder: 'contracts',
+            allowed: 'responders/',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import express from "express";',
+      filename: '/project/src/flows/server/server-flow.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'flows',
+            packageName: 'express',
+          },
+        },
+      ],
+    },
+
+    // Same-layer imports should NOT repeat the category name in the path
+    // Brokers importing from brokers - should use ../../domain/ not ../../../brokers/domain/
+    {
+      code: 'import { userCreateBroker } from "../../../brokers/user/create/user-create-broker";',
+      filename: '/project/src/brokers/auth/login/auth-login-broker.ts',
+      errors: [
+        {
+          messageId: 'unnecessaryCategoryInPath',
+          data: {
+            folderType: 'brokers',
+            importPath: '../../../brokers/user/create/user-create-broker',
+            suggestedPath: '../../user/create/user-create-broker',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { emailSendBroker } from "../../../brokers/email/send/email-send-broker";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [
+        {
+          messageId: 'unnecessaryCategoryInPath',
+          data: {
+            folderType: 'brokers',
+            importPath: '../../../brokers/email/send/email-send-broker',
+            suggestedPath: '../../email/send/email-send-broker',
+          },
+        },
+      ],
+    },
+    // Middleware importing from middleware - should use ../name/ not ../../middleware/name/
+    {
+      code: 'import { errorTrackingMiddleware } from "../../middleware/error-tracking/error-tracking-middleware";',
+      filename: '/project/src/middleware/http-telemetry/http-telemetry-middleware.ts',
+      errors: [
+        {
+          messageId: 'unnecessaryCategoryInPath',
+          data: {
+            folderType: 'middleware',
+            importPath: '../../middleware/error-tracking/error-tracking-middleware',
+            suggestedPath: '../error-tracking/error-tracking-middleware',
           },
         },
       ],

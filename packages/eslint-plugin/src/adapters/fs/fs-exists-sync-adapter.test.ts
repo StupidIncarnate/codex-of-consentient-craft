@@ -1,4 +1,4 @@
-import { fsExistsSync } from './fs-exists-sync';
+import { fsExistsSyncAdapter } from './fs-exists-sync-adapter';
 import { existsSync } from 'fs';
 import { filePathContract } from '../../contracts/file-path/file-path-contract';
 
@@ -6,12 +6,12 @@ jest.mock('fs');
 
 const mockExistsSync = jest.mocked(existsSync);
 
-describe('fsExistsSync', () => {
+describe('fsExistsSyncAdapter', () => {
   it('VALID: {filePath: "/exists.ts"} => returns true', () => {
     const filePath = filePathContract.parse('/exists.ts');
     mockExistsSync.mockReturnValue(true);
 
-    const result = fsExistsSync({ filePath });
+    const result = fsExistsSyncAdapter({ filePath });
 
     expect(result).toBe(true);
     expect(mockExistsSync).toHaveBeenCalledTimes(1);
@@ -22,7 +22,7 @@ describe('fsExistsSync', () => {
     const filePath = filePathContract.parse('/not-exists.ts');
     mockExistsSync.mockReturnValue(false);
 
-    const result = fsExistsSync({ filePath });
+    const result = fsExistsSyncAdapter({ filePath });
 
     expect(result).toBe(false);
     expect(mockExistsSync).toHaveBeenCalledTimes(1);

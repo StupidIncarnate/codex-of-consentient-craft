@@ -1,4 +1,4 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule';
+import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
 
 interface FunctionLike {
   params: {

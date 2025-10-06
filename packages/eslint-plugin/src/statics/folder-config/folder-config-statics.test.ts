@@ -20,7 +20,7 @@ describe('folderConfigStatics', () => {
         exportCase: 'camelCase',
         folderDepth: 1,
         folderPattern: 'contracts/[domain]/[domain]-contract.ts',
-        allowedImports: ['statics/', 'errors/', 'node_modules'],
+        allowedImports: ['statics/', 'errors/', 'zod'],
       });
     });
 
@@ -75,7 +75,7 @@ describe('folderConfigStatics', () => {
         exportCase: 'camelCase',
         folderDepth: 1,
         folderPattern: 'adapters/[package]/[package]-[export]-adapter.ts',
-        allowedImports: ['node_modules', 'middleware/', 'statics/'],
+        allowedImports: ['node_modules', 'middleware/', 'statics/', 'contracts/'],
       });
     });
 
@@ -229,7 +229,7 @@ describe('folderConfigStatics', () => {
 
       // Verify allowedImports array is preserved
       expect(Array.isArray(contractsConfig.allowedImports)).toBe(true);
-      expect(contractsConfig.allowedImports).toStrictEqual(['statics/', 'errors/', 'node_modules']);
+      expect(contractsConfig.allowedImports).toStrictEqual(['statics/', 'errors/', 'zod']);
     });
   });
 });

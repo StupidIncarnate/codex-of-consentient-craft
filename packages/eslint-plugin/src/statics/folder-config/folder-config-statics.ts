@@ -53,7 +53,7 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'adapters/[package]/[package]-[export]-adapter.ts',
-    allowedImports: ['node_modules', 'middleware/', 'statics/'],
+    allowedImports: ['node_modules', 'middleware/', 'statics/', 'contracts/'],
   },
   middleware: {
     fileSuffix: '-middleware.ts',

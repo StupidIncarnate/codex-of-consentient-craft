@@ -1,22 +1,41 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule';
+import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
 import {
   allowedImportContract,
   type AllowedImport,
 } from '../../../contracts/allowed-import/allowed-import-contract';
 import type { FolderType } from '../../../contracts/folder-type/folder-type-contract';
+import { isEntryFileGuard } from '../../../guards/is-entry-file/is-entry-file-guard';
+import { isSameDomainFolderGuard } from '../../../guards/is-same-domain-folder/is-same-domain-folder-guard';
+import { fileBasenameTransformer } from '../../../transformers/file-basename/file-basename-transformer';
 import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
 import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
 
-const extractFolderFromPath = (importPath: string): string | null => {
-  const parts = importPath.split('/');
+/**
+ * Resolves a relative import path to an absolute path.
+ * Used to determine the actual folder type of cross-folder imports.
+ */
+const resolveImportPath = ({
+  currentFilePath,
+  importPath,
+}: {
+  currentFilePath: string;
+  importPath: string;
+}): string => {
+  const currentDir = currentFilePath.substring(0, currentFilePath.lastIndexOf('/'));
+  const parts = currentDir.split('/').filter((p) => p !== '');
 
-  for (const part of parts) {
-    if (part !== '.' && part !== '..' && part !== 'src') {
-      return part;
+  // Remove any extension from importPath and split by '/'
+  const relParts = importPath.replace(/\.(ts|tsx|js|jsx)$/u, '').split('/');
+
+  for (const part of relParts) {
+    if (part === '..') {
+      parts.pop();
+    } else if (part !== '.' && part !== '') {
+      parts.push(part);
     }
   }
 
-  return null;
+  return `/${parts.join('/')}.ts`;
 };
 
 const getAllowedImportsForFolder = ({
@@ -39,6 +58,10 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
         '{{folderType}}/ cannot import from {{importedFolder}}/. Allowed imports: {{allowed}}',
       forbiddenExternalImport:
         '{{folderType}}/ cannot import external package "{{packageName}}". Only internal imports allowed.',
+      nonEntryFileImport:
+        'Cannot import non-entry file "{{importedFile}}" from {{folderType}}/. Only entry files matching pattern {{pattern}} can be imported across folders.',
+      unnecessaryCategoryInPath:
+        'Unnecessary category name in import path. When importing within {{folderType}}/, use "{{suggestedPath}}" instead of "{{importPath}}".',
     },
     schema: [],
   },
@@ -65,12 +88,59 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
       const isRelativeImport = importSource.startsWith('.');
 
       if (isRelativeImport) {
-        const importedFolder = extractFolderFromPath(importSource);
+        // Check if import is from the same domain folder
+        const isSameFolder = isSameDomainFolderGuard({
+          currentFilePath: context.filename,
+          importPath: importSource,
+        });
 
-        if (importedFolder === null || importedFolder === '') {
+        // Same-folder imports are always allowed
+        if (isSameFolder) {
           return;
         }
 
+        // For cross-folder imports, determine the imported folder type by resolving the path
+        const resolvedImportPath = resolveImportPath({
+          currentFilePath: context.filename,
+          importPath: importSource,
+        });
+
+        const importedFolderType = folderTypeTransformer({ filename: resolvedImportPath });
+
+        if (importedFolderType === null) {
+          return;
+        }
+
+        const importedFolder = importedFolderType;
+
+        // Check if importing from same category with unnecessary category name in path
+        // e.g., brokers importing from ../../../brokers/ instead of ../../
+        if (importedFolder === folderType) {
+          // Check if the import path explicitly contains the category name
+          const pathSegments = importSource.split('/');
+          const categoryInPath = pathSegments.find((segment) => segment === folderType);
+
+          if (categoryInPath !== undefined) {
+            // Calculate the suggested path by removing the category segment
+            const levelsUp = pathSegments.filter((seg) => seg === '..').length;
+            const pathAfterCategory = pathSegments.slice(pathSegments.indexOf(folderType) + 1);
+            const suggestedLevels = levelsUp - 1; // One less level since we're not exiting the category
+            const suggestedPath = `${'../'.repeat(suggestedLevels)}${pathAfterCategory.join('/')}`;
+
+            context.report({
+              node,
+              messageId: 'unnecessaryCategoryInPath',
+              data: {
+                folderType,
+                importPath: importSource,
+                suggestedPath,
+              },
+            });
+            return;
+          }
+        }
+
+        // Check if the folder is allowed
         const isAllowed = allowedImports.some((allowed: string) => {
           if (allowed === '*') {
             return true;
@@ -92,6 +162,44 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
               folderType,
               importedFolder,
               allowed: allowedImports.join(', '),
+            },
+          });
+          return;
+        }
+
+        // Folder is allowed, but check if importing an entry file
+        const isEntryFile = isEntryFileGuard({
+          filePath: resolvedImportPath,
+          folderType: importedFolderType,
+        });
+
+        if (!isEntryFile) {
+          const importedFolderConfig = folderConfigTransformer({
+            folderType: importedFolderType,
+          });
+
+          // Filter out multi-dot patterns (.stub.ts, .mock.ts, .test.ts) from display
+          // These can't be imported cross-folder even though they're in fileSuffix
+          const suffixes = Array.isArray(importedFolderConfig.fileSuffix)
+            ? importedFolderConfig.fileSuffix
+            : [importedFolderConfig.fileSuffix];
+
+          const importableSuffixes = suffixes.filter((suffix: string) => {
+            const dotCount = (suffix.match(/\./gu) ?? []).length;
+            return dotCount <= 1;
+          });
+
+          const patternDisplay = importableSuffixes.join(' or ');
+          const displayFilename = fileBasenameTransformer({ filename: importSource });
+
+          context.report({
+            node,
+            messageId: 'nonEntryFileImport',
+            data: {
+              folderType,
+              importedFile: displayFilename,
+              importedFolder,
+              pattern: patternDisplay,
             },
           });
         }

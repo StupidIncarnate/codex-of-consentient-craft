@@ -1,10 +1,10 @@
 import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
 import { enforceImplementationTestingRuleBroker } from './enforce-implementation-testing-rule-broker';
-import { fsExistsSync } from '../../../adapters/fs/fs-exists-sync';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
 
-jest.mock('../../../adapters/fs/fs-exists-sync');
+jest.mock('../../../adapters/fs/fs-exists-sync-adapter');
 
-const mockFsExistsSync = jest.mocked(fsExistsSync);
+const mockFsExistsSync = jest.mocked(fsExistsSyncAdapter);
 const ruleTester = createEslintRuleTester();
 
 // Mock setup: return true only for specific existing files

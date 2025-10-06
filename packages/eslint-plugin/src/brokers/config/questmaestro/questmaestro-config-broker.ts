@@ -23,13 +23,14 @@ export const questmaestroConfigBroker = ({
       ...mergedConfig.rules,
       'eslint-comments/no-unlimited-disable': 'error',
       'eslint-comments/no-use': ['error', { allow: [] }],
-      // '@questmaestro/ban-primitives': 'error',
-      // '@questmaestro/require-zod-on-primitives': 'error',
-      // '@questmaestro/explicit-return-types': 'error',
+      '@questmaestro/ban-primitives': 'error',
+      '@questmaestro/enforce-implementation-testing': 'error',
       '@questmaestro/enforce-import-dependencies': 'error',
       '@questmaestro/enforce-object-destructuring-params': 'error',
-      // '@questmaestro/enforce-test-colocation': 'error',
       '@questmaestro/enforce-project-structure': 'error',
+      '@questmaestro/enforce-test-colocation': 'error',
+      '@questmaestro/explicit-return-types': 'error',
+      '@questmaestro/require-zod-on-primitives': 'error',
     },
   };
 };

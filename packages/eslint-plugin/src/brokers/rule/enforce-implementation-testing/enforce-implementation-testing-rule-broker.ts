@@ -1,5 +1,5 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule';
-import { fsExistsSync } from '../../../adapters/fs/fs-exists-sync';
+import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
 
@@ -45,7 +45,7 @@ export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({
       // Check if any test file exists
       const hasTestFile = testFilePaths.some((testFilePath) => {
         const parsedPath = filePathContract.parse(testFilePath);
-        return fsExistsSync({ filePath: parsedPath });
+        return fsExistsSyncAdapter({ filePath: parsedPath });
       });
 
       if (!hasTestFile) {
@@ -65,7 +65,7 @@ export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({
       if (isContract) {
         const stubFileName = filename.replace(/-contract\.ts$/u, '.stub.ts');
         const stubFilePath = filePathContract.parse(stubFileName);
-        const hasStubFile = fsExistsSync({ filePath: stubFilePath });
+        const hasStubFile = fsExistsSyncAdapter({ filePath: stubFilePath });
 
         if (!hasStubFile) {
           context.report({

@@ -380,6 +380,8 @@ package-root/
 
 ## Import Rules - What Can Import What
 
+### Layer-to-Layer Imports
+
 ```
 startup/ → ALL (bootstrap only, no business logic)
 flows/ → responders/ (ONLY)
@@ -388,7 +390,7 @@ widgets/ → bindings/, brokers/, state/, contracts/, transformers/, guards/, st
 bindings/ → brokers/, state/, contracts/, statics/, errors/ (UI only)
 brokers/ → brokers/, adapters/, contracts/, statics/, errors/
 middleware/ → adapters/, middleware/, statics/
-adapters/ → node_modules, middleware/, statics/ (when coupled)
+adapters/ → node_modules, middleware/, statics/, contracts/
 transformers/ → contracts/, statics/, errors/
 guards/ → contracts/, statics/, errors/
 state/ → contracts/, statics/, errors/
@@ -396,6 +398,24 @@ contracts/ → statics/, errors/, validation-library-only (zod)
 statics/ → (no imports)
 errors/ → (no imports)
 ```
+
+### Domain Folder Import Rules
+
+**Same-folder imports:** Files within the same domain folder can import each other
+
+- `adapters/fs/fs-exists-sync-adapter.test.ts` → `./fs-exists-sync-adapter` ✅
+- `contracts/user/user.stub.ts` → `./user-contract` ✅
+
+**Cross-folder imports:** Only entry files can be imported across domain folders
+
+- Entry files = files matching folder's suffix pattern (`-adapter.ts`, `-contract.ts`, `-broker.ts`, etc.)
+- `guards/auth/auth-guard.ts` → `../../contracts/user/user-contract` ✅ (entry file)
+- `guards/auth/auth-guard.ts` → `../../contracts/user/helper` ❌ (not entry file)
+
+**Multi-dot files cannot be imported cross-folder:**
+
+- `.stub.ts`, `.mock.ts`, `.test.ts` files are same-folder only
+- Test files can import stubs/mocks from same folder only
 
 ## Folder Definitions, Constraints, and Examples
 
@@ -799,7 +819,7 @@ adapters/
 
 - **Must** re-export npm types when using them as return types
 - **Must** validate and brand primitive returns through contracts before returning
-- **CAN** import node_modules and middleware/ (when coupled)
+- **CAN** import node_modules, middleware/ (when coupled), statics/, and contracts/
 
 **Examples:**
 

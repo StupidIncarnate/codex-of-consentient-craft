@@ -34,7 +34,12 @@ describe('folderConfigTransformer', () => {
       const result = folderConfigTransformer({ folderType });
 
       expect(result).toStrictEqual(folderConfigStatics.adapters);
-      expect(result.allowedImports).toStrictEqual(['node_modules', 'middleware/', 'statics/']);
+      expect(result.allowedImports).toStrictEqual([
+        'node_modules',
+        'middleware/',
+        'statics/',
+        'contracts/',
+      ]);
     });
 
     it("VALID: {folderType: 'startup'} => returns startup config with wildcard imports", () => {

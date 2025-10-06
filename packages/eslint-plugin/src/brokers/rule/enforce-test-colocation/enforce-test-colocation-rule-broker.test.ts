@@ -1,10 +1,10 @@
-import { fsExistsSync } from '../../../adapters/fs/fs-exists-sync';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
 import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
 import { enforceTestColocationRuleBroker } from './enforce-test-colocation-rule-broker';
 
-jest.mock('../../../adapters/fs/fs-exists-sync');
+jest.mock('../../../adapters/fs/fs-exists-sync-adapter');
 
-const mockFsExistsSync = jest.mocked(fsExistsSync);
+const mockFsExistsSync = jest.mocked(fsExistsSyncAdapter);
 
 const ruleTester = createEslintRuleTester();
 

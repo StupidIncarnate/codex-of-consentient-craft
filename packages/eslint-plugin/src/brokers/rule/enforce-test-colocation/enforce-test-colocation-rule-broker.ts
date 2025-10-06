@@ -1,5 +1,5 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule';
-import { fsExistsSync } from '../../../adapters/fs/fs-exists-sync';
+import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
@@ -45,7 +45,7 @@ export const enforceTestColocationRuleBroker = (): Rule.RuleModule => ({
       // Non-e2e tests must have colocated implementation file
       const implementationPath = testFilePathToImplementationPathTransformer({ testFilePath });
 
-      if (!fsExistsSync({ filePath: implementationPath })) {
+      if (!fsExistsSyncAdapter({ filePath: implementationPath })) {
         context.report({
           node,
           messageId: 'testNotColocated',

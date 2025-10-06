@@ -1,4 +1,4 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule';
+import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
 import { hasValidFileSuffixGuard } from '../../../guards/has-valid-file-suffix/has-valid-file-suffix-guard';
 import { isCamelCaseGuard } from '../../../guards/is-camel-case/is-camel-case-guard';
 import { isPascalCaseGuard } from '../../../guards/is-pascal-case/is-pascal-case-guard';
