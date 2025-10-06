@@ -133,7 +133,9 @@ export const typescriptEslintConfigTransformer = ({
     // ✅ function fn(a: string, b: number) {}
     // ❌ function fn(a: string, b: number, c: boolean, d: object, e: any) {}
     // Enforce a maximum number of parameters in function definitions
-    '@typescript-eslint/max-params': ['error', { max: 1 }],
+    // This is problematic for baked in usages like if we set to 1
+    // .filter((value, index, self) => self.indexOf(value) === index);
+    '@typescript-eslint/max-params': 'off', //['error', { max: 1 }],
 
     // ✅ class Foo { private _bar: string; constructor() {} getBar() {} }
     // ❌ class Foo { constructor() {} private _bar: string; getBar() {} }
