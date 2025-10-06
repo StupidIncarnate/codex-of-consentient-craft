@@ -392,7 +392,7 @@ adapters/ → node_modules, middleware/, statics/ (when coupled)
 transformers/ → contracts/, statics/, errors/
 guards/ → contracts/, statics/, errors/
 state/ → contracts/, statics/, errors/
-contracts/ → statics/, errors/
+contracts/ → statics/, errors/, validation-library-only (zod)
 statics/ → (no imports)
 errors/ → (no imports)
 ```
@@ -499,7 +499,7 @@ contracts/
     - TypeScript types inferred from schemas: `export type User = z.infer<typeof userContract>`
     - Stub files (`.stub.ts`) for testing
 - **MUST** use `.brand<'TypeName'>()` on all Zod string/number schemas (no raw primitives)
-- **CAN** import statics/, errors/
+- **CAN** import statics/, errors/, and validation library (zod) ONLY
 
 **Example:**
 

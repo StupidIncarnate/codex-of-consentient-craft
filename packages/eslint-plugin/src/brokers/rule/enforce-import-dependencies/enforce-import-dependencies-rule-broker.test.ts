@@ -73,7 +73,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       filename: '/project/src/transformers/data/data-transformer.ts',
     },
 
-    // Contracts can import from statics, errors, node_modules
+    // Contracts can import from statics, errors, and zod (specific package)
     {
       code: 'import { z } from "zod";',
       filename: '/project/src/contracts/user/user-contract.ts',
@@ -85,6 +85,10 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
     {
       code: 'import { ValidationError } from "../../errors/validation/validation-error";',
       filename: '/project/src/contracts/input/input-contract.ts',
+    },
+    {
+      code: 'import type { ZodError } from "zod";',
+      filename: '/project/src/contracts/validation/validation-contract.ts',
     },
 
     // Startup can import anything (*)
@@ -182,7 +186,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'contracts',
             importedFolder: 'brokers',
-            allowed: 'statics/, errors/, node_modules',
+            allowed: 'statics/, errors/, zod',
           },
         },
       ],
@@ -198,7 +202,35 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'contracts',
             importedFolder: 'guards',
-            allowed: 'statics/, errors/, node_modules',
+            allowed: 'statics/, errors/, zod',
+          },
+        },
+      ],
+    },
+
+    // Contracts cannot import external packages (except zod)
+    {
+      code: 'import axios from "axios";',
+      filename: '/project/src/contracts/api/api-contract.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'contracts',
+            packageName: 'axios',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { existsSync } from "fs";',
+      filename: '/project/src/contracts/file/file-contract.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'contracts',
+            packageName: 'fs',
           },
         },
       ],

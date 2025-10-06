@@ -96,11 +96,22 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
           });
         }
       } else {
+        // Check if external imports are allowed
         const canImportExternal =
           allowedImports.includes(allowedImportContract.parse('node_modules')) ||
           allowedImports.includes(allowedImportContract.parse('*'));
 
-        if (!canImportExternal) {
+        // Check if this specific package is explicitly allowed
+        const isSpecificPackageAllowed = allowedImports.some((allowed: string) => {
+          // Don't treat folder paths as package names
+          if (allowed.endsWith('/') || allowed === 'node_modules' || allowed === '*') {
+            return false;
+          }
+          // Check if the import source matches the allowed package name
+          return importSource === allowed || importSource.startsWith(`${allowed}/`);
+        });
+
+        if (!canImportExternal && !isSpecificPackageAllowed) {
           context.report({
             node,
             messageId: 'forbiddenExternalImport',
