@@ -1,16 +1,18 @@
 export const jestRuleStatics = {
   rules: {
     // Enforce consistent test or it keyword
-    'jest/consistent-test-it': 'error',
+    'jest/consistent-test-it': ['error', { fn: 'it' }],
 
     // Enforce assertion to be made in a test body
     'jest/expect-expect': 'error',
 
     // Enforce a maximum number of expect per test
+    // Max is 5 currently
     'jest/max-expects': 'error',
 
-    // Enforce a maximum depth to nested describe calls
-    'jest/max-nested-describe': 'error',
+    // Enforce a maximum depth to nested describe calls - Default: 5
+    // Don't need to enforce this right now
+    'jest/max-nested-describe': 'off',
 
     // Disallow alias methods
     'jest/no-alias-methods': 'error',
@@ -46,6 +48,7 @@ export const jestRuleStatics = {
     'jest/no-focused-tests': 'error',
 
     // Disallow setup and teardown hooks
+    // Makes it so no tests can have before*/after* hooks
     'jest/no-hooks': 'error',
 
     // Disallow identical titles
@@ -64,9 +67,38 @@ export const jestRuleStatics = {
     'jest/no-mocks-import': 'error',
 
     // Disallow specific jest methods
+    // Disabling use of spyOn for instance
+    /*
+    {
+      "jest/no-restricted-jest-methods": [
+        "error",
+        {
+          "advanceTimersByTime": null,
+          "spyOn": "Don't use spies"
+        }
+      ]
+    }
+     */
     'jest/no-restricted-jest-methods': 'error',
 
     // Disallow specific matchers
+    /* Example of how to specify matchers
+    {
+      "jest/no-restricted-matchers": [
+          "error",
+          {
+            "toBeFalsy": null,
+            "resolves": "Use `expect(await promise)` instead.",
+            "toHaveBeenCalledWith": null,
+            "not.toHaveBeenCalledWith": null,
+            "resolves.toHaveBeenCalledWith": null,
+            "rejects.toHaveBeenCalledWith": null,
+            "resolves.not.toHaveBeenCalledWith": null,
+            "rejects.not.toHaveBeenCalledWith": null
+          }
+        ]
+      }
+     */
     'jest/no-restricted-matchers': 'error',
 
     // Disallow using expect outside of it or test blocks
@@ -79,31 +111,32 @@ export const jestRuleStatics = {
     'jest/no-test-return-statement': 'error',
 
     // Disallow using jest.mock() factories without an explicit type parameter
-    'jest/no-untyped-mock-factory': 'error',
+    // Strict typing should already be handled with mocks
+    'jest/no-untyped-mock-factory': 'off',
 
     // Enforce padding around afterAll blocks
-    'jest/padding-around-after-all-blocks': 'error',
+    // 'jest/padding-around-after-all-blocks': 'error',
 
     // Enforce padding around afterEach blocks
-    'jest/padding-around-after-each-blocks': 'error',
+    // 'jest/padding-around-after-each-blocks': 'error',
 
     // Enforce padding around expect groups
     'jest/padding-around-all': 'error',
 
     // Enforce padding around beforeAll blocks
-    'jest/padding-around-before-all-blocks': 'error',
+    // 'jest/padding-around-before-all-blocks': 'error',
 
     // Enforce padding around beforeEach blocks
-    'jest/padding-around-before-each-blocks': 'error',
+    // 'jest/padding-around-before-each-blocks': 'error',
 
     // Enforce padding around describe blocks
-    'jest/padding-around-describe-blocks': 'error',
+    // 'jest/padding-around-describe-blocks': 'error',
 
     // Enforce padding around expect groups
-    'jest/padding-around-expect-groups': 'error',
+    // 'jest/padding-around-expect-groups': 'error',
 
     // Enforce padding around test blocks
-    'jest/padding-around-test-blocks': 'error',
+    // 'jest/padding-around-test-blocks': 'error',
 
     // Suggest using toBeCalledWith() or toHaveBeenCalledWith()
     'jest/prefer-called-with': 'error',
@@ -121,7 +154,8 @@ export const jestRuleStatics = {
     'jest/prefer-equality-matcher': 'error',
 
     // Suggest using expect.assertions() or expect.hasAssertions()
-    'jest/prefer-expect-assertions': 'error',
+    // Not really sure this is needed with LLM
+    'jest/prefer-expect-assertions': 'off',
 
     // Suggest using resolves over promise.then() for async tests
     'jest/prefer-expect-resolves': 'error',
@@ -133,21 +167,66 @@ export const jestRuleStatics = {
     'jest/prefer-hooks-on-top': 'error',
 
     // Suggest importing Jest globals instead of using them without import
-    'jest/prefer-importing-jest-globals': 'error',
+    // Not needed
+    'jest/prefer-importing-jest-globals': 'off',
 
     // Suggest using jest.mocked() over fn as jest.Mock
     'jest/prefer-jest-mocked': 'error',
 
     // Enforce lowercase test names
-    'jest/prefer-lowercase-title': 'error',
+    // Our standards have starter tags that are all caps
+    'jest/prefer-lowercase-title': 'off',
 
     // Suggest using the built-in mock promise shorthand
     'jest/prefer-mock-promise-shorthand': 'error',
 
     // Suggest using toMatchSnapshot() hint
-    'jest/prefer-snapshot-hint': 'error',
+    // No snapshots
+    'jest/prefer-snapshot-hint': 'off',
 
     // Suggest using jest.spyOn()
     'jest/prefer-spy-on': 'error',
+
+    // Requires toStrictEquals()
+    'jest/prefer-strict-equal': 'error',
+
+    // Enforces toBe on primitive literals
+    'jest/prefer-to-be': 'error',
+
+    // Enforces toContains on array evals
+    // ToContain should not be used
+    'jest/prefer-to-contain': 'off',
+
+    // Enforces toHaveLength() for length checks
+    'jest/to-have-length': 'error',
+
+    // Requires it.todo for empty tests
+    // Problematic for llm filling in tests in chunks
+    'jest/prefer-todo': 'off',
+
+    // Makes sure hook calls are used for build up/tear down
+    'jest/require-hook': 'error',
+
+    // Requires use of toThrow instead of toThrowError
+    'jest/require-to-throw-message': 'error',
+
+    // Requires root describe only
+    'jest/require-top-level-describe': 'error',
+
+    // Augments @typescript-eslint/unbound-method
+    '@typescript-eslint/unbound-method': 'off',
+    'jest/unbound-method': 'error',
+
+    // Enforces 2nd arg setup for describes
+    'jest/valid-describe-callback': 'error',
+
+    // Ensures proper promise handling
+    'jest/valid-expect-in-promise': 'error',
+
+    // Enforces valid expect structure
+    'jest/valid-expect': 'error',
+
+    // Enforce valid tiles
+    'jest/valid-title': 'error',
   },
 } as const;

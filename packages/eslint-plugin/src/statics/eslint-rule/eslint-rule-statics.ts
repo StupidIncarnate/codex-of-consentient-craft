@@ -29,7 +29,8 @@ export const eslintRuleStatics = {
     // ✅ 'UPPER_CASE'
     // ❌ 'Upper_Case'
     // Enforces consistent case in literals and template strings
-    'capitalized-comments': 'error',
+    // LLMs dont need this
+    'capitalized-comments': 'off',
 
     // ✅ class Foo { method() { this.bar } }
     // ❌ class Foo { method() { return 5 } }
