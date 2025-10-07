@@ -69,6 +69,7 @@ export const questmaestroConfigBroker = ({
       '@questmaestro/enforce-project-structure': 'error',
       '@questmaestro/enforce-test-colocation': 'error',
       '@questmaestro/explicit-return-types': 'error',
+      '@questmaestro/forbid-non-exported-functions': 'error',
       '@questmaestro/require-zod-on-primitives': 'error',
     },
   };

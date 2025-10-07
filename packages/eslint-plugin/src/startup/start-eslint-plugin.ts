@@ -6,6 +6,7 @@ import { enforceImportDependenciesRuleBroker } from '../brokers/rule/enforce-imp
 import { enforceObjectDestructuringParamsRuleBroker } from '../brokers/rule/enforce-object-destructuring-params/enforce-object-destructuring-params-rule-broker';
 import { enforceTestColocationRuleBroker } from '../brokers/rule/enforce-test-colocation/enforce-test-colocation-rule-broker';
 import { enforceImplementationTestingRuleBroker } from '../brokers/rule/enforce-implementation-testing/enforce-implementation-testing-rule-broker';
+import { forbidNonExportedFunctionsRuleBroker } from '../brokers/rule/forbid-non-exported-functions/forbid-non-exported-functions-rule-broker';
 import { questmaestroConfigBroker } from '../brokers/config/questmaestro/questmaestro-config-broker';
 import type { Rule } from '../adapters/eslint/eslint-rule-adapter';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
@@ -20,6 +21,7 @@ export const startEslintPlugin = (): {
     readonly 'enforce-object-destructuring-params': Rule.RuleModule;
     readonly 'enforce-test-colocation': Rule.RuleModule;
     readonly 'enforce-implementation-testing': Rule.RuleModule;
+    readonly 'forbid-non-exported-functions': Rule.RuleModule;
   };
   readonly configs: {
     readonly questmaestro: EslintConfig;
@@ -35,6 +37,7 @@ export const startEslintPlugin = (): {
       'enforce-object-destructuring-params': enforceObjectDestructuringParamsRuleBroker(),
       'enforce-test-colocation': enforceTestColocationRuleBroker(),
       'enforce-implementation-testing': enforceImplementationTestingRuleBroker(),
+      'forbid-non-exported-functions': forbidNonExportedFunctionsRuleBroker(),
     },
     configs: {
       questmaestro: questmaestroConfigBroker(),

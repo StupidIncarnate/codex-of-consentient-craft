@@ -1,4 +1,5 @@
 import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
+import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import { enforceImportDependenciesRuleBroker } from './enforce-import-dependencies-rule-broker';
 
 const ruleTester = createEslintRuleTester();
@@ -320,6 +321,32 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       code: 'import { something } from "../../../node_modules/package";',
       filename: '/project/scripts/build.ts',
     },
+
+    // Type-only imports from adapters are allowed in ALL layers (dynamic coverage)
+    ...Object.keys(folderConfigStatics).flatMap((folderKey) => {
+      const folderType = folderKey as keyof typeof folderConfigStatics;
+      const config = folderConfigStatics[folderType];
+
+      // Skip non-code folders
+      if (folderType === 'assets' || folderType === 'migrations') {
+        return [];
+      }
+
+      // Determine path depth based on folder config
+      const levelsUp = config.folderDepth === 2 ? '../../../' : '../../';
+
+      // Get appropriate file suffix
+      const suffix = Array.isArray(config.fileSuffix) ? config.fileSuffix[0] : config.fileSuffix;
+
+      return [
+        {
+          code: `import type { TSESTree } from "${
+            levelsUp
+          }adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree-adapter";`,
+          filename: `/project/src/${folderType}/example/example${suffix}`,
+        },
+      ];
+    }),
   ],
   invalid: [
     // Guards cannot import from brokers
@@ -541,7 +568,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'brokers',
             importedFolder: 'widgets',
-            allowed: 'brokers/, adapters/, contracts/, statics/, errors/',
+            allowed: 'brokers/, adapters/, contracts/, statics/, errors/, guards/, transformers/',
           },
         },
       ],
@@ -557,7 +584,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'brokers',
             importedFolder: 'responders',
-            allowed: 'brokers/, adapters/, contracts/, statics/, errors/',
+            allowed: 'brokers/, adapters/, contracts/, statics/, errors/, guards/, transformers/',
           },
         },
       ],
@@ -781,7 +808,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       ],
     },
 
-    // Bindings cannot import from adapters, flows, responders, widgets, transformers, guards
+    // Bindings cannot import from adapters, flows, responders, widgets
     {
       code: 'import { axiosGetAdapter } from "../../adapters/axios/axios-get-adapter";',
       filename: '/project/src/bindings/use-api/use-api-binding.ts',
@@ -791,21 +818,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'bindings',
             importedFolder: 'adapters',
-            allowed: 'brokers/, state/, contracts/, statics/, errors/',
-          },
-        },
-      ],
-    },
-    {
-      code: 'import { userToDtoTransformer } from "../../transformers/user-to-dto/user-to-dto-transformer";',
-      filename: '/project/src/bindings/use-user/use-user-binding.ts',
-      errors: [
-        {
-          messageId: 'forbiddenImport',
-          data: {
-            folderType: 'bindings',
-            importedFolder: 'transformers',
-            allowed: 'brokers/, state/, contracts/, statics/, errors/',
+            allowed: 'brokers/, state/, contracts/, statics/, errors/, guards/, transformers/',
           },
         },
       ],
@@ -824,7 +837,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       ],
     },
 
-    // State cannot import from brokers, transformers, guards, or external packages
+    // State cannot import from brokers or external packages
     {
       code: 'import { userFetchBroker } from "../../brokers/user/fetch/user-fetch-broker";',
       filename: '/project/src/state/user-data/user-data-state.ts',
@@ -834,21 +847,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'state',
             importedFolder: 'brokers',
-            allowed: 'contracts/, statics/, errors/',
-          },
-        },
-      ],
-    },
-    {
-      code: 'import { formatDateTransformer } from "../../transformers/format-date/format-date-transformer";',
-      filename: '/project/src/state/cache/cache-state.ts',
-      errors: [
-        {
-          messageId: 'forbiddenImport',
-          data: {
-            folderType: 'state',
-            importedFolder: 'transformers',
-            allowed: 'contracts/, statics/, errors/',
+            allowed: 'contracts/, statics/, errors/, guards/, transformers/',
           },
         },
       ],
