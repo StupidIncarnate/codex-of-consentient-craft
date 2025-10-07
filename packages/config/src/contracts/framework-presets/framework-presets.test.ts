@@ -8,6 +8,7 @@ describe('framework-presets', () => {
     describe('complete framework coverage', () => {
       it('VALID: contains preset for every framework => returns complete mapping', () => {
         const presetFrameworks = Object.keys(FRAMEWORK_PRESETS);
+
         expect(presetFrameworks.sort()).toStrictEqual(ALL_FRAMEWORKS.slice().sort());
       });
 
@@ -20,6 +21,7 @@ describe('framework-presets', () => {
       describe('React preset', () => {
         it('VALID: React preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.react;
+
           expect(preset).toStrictEqual({
             widgets: ['react', 'react-dom'],
             bindings: ['react', 'react-dom'],
@@ -40,6 +42,7 @@ describe('framework-presets', () => {
       describe('Vue preset', () => {
         it('VALID: Vue preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.vue;
+
           expect(preset).toStrictEqual({
             widgets: ['vue'],
             bindings: ['vue'],
@@ -60,6 +63,7 @@ describe('framework-presets', () => {
       describe('Angular preset', () => {
         it('VALID: Angular preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.angular;
+
           expect(preset).toStrictEqual({
             widgets: ['@angular/core', '@angular/common'],
             bindings: ['@angular/core', '@angular/common'],
@@ -80,6 +84,7 @@ describe('framework-presets', () => {
       describe('Svelte preset', () => {
         it('VALID: Svelte preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.svelte;
+
           expect(preset).toStrictEqual({
             widgets: ['svelte'],
             bindings: ['svelte'],
@@ -100,6 +105,7 @@ describe('framework-presets', () => {
       describe('Solid preset', () => {
         it('VALID: Solid preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.solid;
+
           expect(preset).toStrictEqual({
             widgets: ['solid-js'],
             bindings: ['solid-js'],
@@ -120,6 +126,7 @@ describe('framework-presets', () => {
       describe('Preact preset', () => {
         it('VALID: Preact preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.preact;
+
           expect(preset).toStrictEqual({
             widgets: ['preact'],
             bindings: ['preact'],
@@ -142,6 +149,7 @@ describe('framework-presets', () => {
       describe('Express preset', () => {
         it('VALID: Express preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.express;
+
           expect(preset).toStrictEqual({
             widgets: null,
             bindings: null,
@@ -162,6 +170,7 @@ describe('framework-presets', () => {
       describe('Fastify preset', () => {
         it('VALID: Fastify preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.fastify;
+
           expect(preset).toStrictEqual({
             widgets: null,
             bindings: null,
@@ -182,6 +191,7 @@ describe('framework-presets', () => {
       describe('Koa preset', () => {
         it('VALID: Koa preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.koa;
+
           expect(preset).toStrictEqual({
             widgets: null,
             bindings: null,
@@ -202,6 +212,7 @@ describe('framework-presets', () => {
       describe('Hapi preset', () => {
         it('VALID: Hapi preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.hapi;
+
           expect(preset).toStrictEqual({
             widgets: null,
             bindings: null,
@@ -222,6 +233,7 @@ describe('framework-presets', () => {
       describe('NestJS preset', () => {
         it('VALID: NestJS preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.nestjs;
+
           expect(preset).toStrictEqual({
             widgets: null,
             bindings: null,
@@ -244,6 +256,7 @@ describe('framework-presets', () => {
       describe('Next.js preset', () => {
         it('VALID: Next.js preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.nextjs;
+
           expect(preset).toStrictEqual({
             widgets: ['react', 'react-dom', 'next'],
             bindings: ['react', 'react-dom', 'next'],
@@ -264,6 +277,7 @@ describe('framework-presets', () => {
       describe('Nuxt.js preset', () => {
         it('VALID: Nuxt.js preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.nuxtjs;
+
           expect(preset).toStrictEqual({
             widgets: ['vue', 'nuxt'],
             bindings: ['vue', 'nuxt'],
@@ -284,6 +298,7 @@ describe('framework-presets', () => {
       describe('Remix preset', () => {
         it('VALID: Remix preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.remix;
+
           expect(preset).toStrictEqual({
             widgets: ['react', 'react-dom', '@remix-run/react'],
             bindings: ['react', 'react-dom', '@remix-run/react'],
@@ -306,6 +321,7 @@ describe('framework-presets', () => {
       describe('Node library preset', () => {
         it('VALID: Node library preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS['node-library'];
+
           expect(preset).toStrictEqual({
             widgets: null,
             bindings: null,
@@ -326,6 +342,7 @@ describe('framework-presets', () => {
       describe('React library preset', () => {
         it('VALID: React library preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS['react-library'];
+
           expect(preset).toStrictEqual({
             widgets: ['react', 'react-dom'],
             bindings: ['react', 'react-dom'],
@@ -348,6 +365,7 @@ describe('framework-presets', () => {
       describe('CLI preset', () => {
         it('VALID: CLI preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.cli;
+
           expect(preset).toStrictEqual({
             widgets: null,
             bindings: null,
@@ -368,6 +386,7 @@ describe('framework-presets', () => {
       describe('Ink CLI preset', () => {
         it('VALID: Ink CLI preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS['ink-cli'];
+
           expect(preset).toStrictEqual({
             widgets: ['ink', 'react'],
             bindings: ['ink', 'react'],
@@ -390,6 +409,7 @@ describe('framework-presets', () => {
       describe('Monorepo preset', () => {
         it('VALID: Monorepo preset => returns correct structure', () => {
           const preset = FRAMEWORK_PRESETS.monorepo;
+
           expect(preset).toStrictEqual({
             widgets: null,
             bindings: null,
@@ -461,6 +481,7 @@ describe('framework-presets', () => {
 
         frontendFrameworks.forEach((framework) => {
           const preset = FRAMEWORK_PRESETS[framework];
+
           expect(Array.isArray(preset.widgets)).toBe(true);
           expect(Array.isArray(preset.bindings)).toBe(true);
           expect(Array.isArray(preset.state)).toBe(true);
@@ -475,8 +496,9 @@ describe('framework-presets', () => {
 
         backendFrameworks.forEach((framework) => {
           const preset = FRAMEWORK_PRESETS[framework];
-          expect(preset.widgets).toBe(null);
-          expect(preset.bindings).toBe(null);
+
+          expect(preset.widgets).toBeNull();
+          expect(preset.bindings).toBeNull();
         });
       });
 
@@ -485,6 +507,7 @@ describe('framework-presets', () => {
 
         fullstackFrameworks.forEach((framework) => {
           const preset = FRAMEWORK_PRESETS[framework];
+
           expect(Array.isArray(preset.widgets)).toBe(true);
           expect(Array.isArray(preset.bindings)).toBe(true);
           expect(Array.isArray(preset.state)).toBe(true);
@@ -499,8 +522,9 @@ describe('framework-presets', () => {
 
         libraryFrameworks.forEach((framework) => {
           const preset = FRAMEWORK_PRESETS[framework];
-          expect(preset.flows).toBe(null);
-          expect(preset.responders).toBe(null);
+
+          expect(preset.flows).toBeNull();
+          expect(preset.responders).toBeNull();
         });
       });
 
@@ -509,8 +533,9 @@ describe('framework-presets', () => {
 
         cliFrameworks.forEach((framework) => {
           const preset = FRAMEWORK_PRESETS[framework];
-          expect(preset.flows).toBe(null);
-          expect(preset.responders).toBe(null);
+
+          expect(preset.flows).toBeNull();
+          expect(preset.responders).toBeNull();
         });
       });
 
@@ -591,8 +616,8 @@ describe('framework-presets', () => {
           startup: ['*'],
         };
 
-        expect(preset.widgets).toBe(null);
-        expect(preset.bindings).toBe(null);
+        expect(preset.widgets).toBeNull();
+        expect(preset.bindings).toBeNull();
         expect(preset.state).toStrictEqual([]);
         expect(preset.flows).toStrictEqual(['express']);
         expect(preset.responders).toStrictEqual([]);
@@ -621,11 +646,11 @@ describe('framework-presets', () => {
           startup: ['*'],
         };
 
-        expect(preset.widgets).toBe(null);
-        expect(preset.bindings).toBe(null);
+        expect(preset.widgets).toBeNull();
+        expect(preset.bindings).toBeNull();
         expect(preset.state).toStrictEqual([]);
-        expect(preset.flows).toBe(null);
-        expect(preset.responders).toBe(null);
+        expect(preset.flows).toBeNull();
+        expect(preset.responders).toBeNull();
         expect(preset.contracts).toStrictEqual(['yup']);
         expect(preset.brokers).toStrictEqual([]);
         expect(preset.transformers).toStrictEqual([]);

@@ -10,6 +10,7 @@ describe('isValidHookData()', () => {
         cwd: '/current/working/directory',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(true);
     });
 
@@ -23,6 +24,7 @@ describe('isValidHookData()', () => {
         extra_field: 'extra',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(true);
     });
 
@@ -34,6 +36,7 @@ describe('isValidHookData()', () => {
         cwd: '/c',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(true);
     });
   });
@@ -46,6 +49,7 @@ describe('isValidHookData()', () => {
         cwd: '/cwd',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -56,6 +60,7 @@ describe('isValidHookData()', () => {
         cwd: '/cwd',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -66,6 +71,7 @@ describe('isValidHookData()', () => {
         cwd: '/cwd',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -76,6 +82,7 @@ describe('isValidHookData()', () => {
         transcript_path: '/path/to/transcript',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(false);
     });
   });
@@ -89,6 +96,7 @@ describe('isValidHookData()', () => {
         cwd: '/cwd',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -100,6 +108,7 @@ describe('isValidHookData()', () => {
         cwd: '/cwd',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -111,6 +120,7 @@ describe('isValidHookData()', () => {
         cwd: '/cwd',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -122,6 +132,7 @@ describe('isValidHookData()', () => {
         cwd: { path: '/cwd' },
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(false);
     });
   });
@@ -129,26 +140,31 @@ describe('isValidHookData()', () => {
   describe('invalid inputs - non-objects', () => {
     it('INVALID: {data: null} => returns false', () => {
       const result = isValidHookData({ data: null });
+
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: undefined} => returns false', () => {
       const result = isValidHookData({ data: undefined });
+
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: string} => returns false', () => {
       const result = isValidHookData({ data: 'not an object' });
+
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: number} => returns false', () => {
       const result = isValidHookData({ data: 42 });
+
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: array} => returns false', () => {
       const result = isValidHookData({ data: [] });
+
       expect(result).toBe(false);
     });
   });
@@ -156,6 +172,7 @@ describe('isValidHookData()', () => {
   describe('edge cases', () => {
     it('EDGE: {data: empty object} => returns false', () => {
       const result = isValidHookData({ data: {} });
+
       expect(result).toBe(false);
     });
 
@@ -167,6 +184,7 @@ describe('isValidHookData()', () => {
         cwd: '',
       };
       const result = isValidHookData({ data });
+
       expect(result).toBe(true);
     });
   });

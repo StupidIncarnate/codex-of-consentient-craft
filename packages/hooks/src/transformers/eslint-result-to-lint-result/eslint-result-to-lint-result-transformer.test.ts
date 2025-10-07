@@ -39,6 +39,7 @@ describe('eslintResultToLintResultTransformer()', () => {
       const result = eslintResultToLintResultTransformer({ eslintResult });
 
       const [firstMessage] = result.messages;
+
       expect(firstMessage).toStrictEqual({
         line: 10,
         column: 15,
@@ -68,6 +69,7 @@ describe('eslintResultToLintResultTransformer()', () => {
       const result = eslintResultToLintResultTransformer({ eslintResult });
 
       const [firstMessage] = result.messages;
+
       expect(firstMessage?.ruleId).toBeUndefined();
     });
 
@@ -91,6 +93,7 @@ describe('eslintResultToLintResultTransformer()', () => {
       const result = eslintResultToLintResultTransformer({ eslintResult });
 
       const [firstMessage] = result.messages;
+
       expect(firstMessage?.ruleId).toBe('specific-rule');
     });
 
@@ -260,6 +263,7 @@ describe('eslintResultToLintResultTransformer()', () => {
       const result = eslintResultToLintResultTransformer({ eslintResult });
 
       const [firstMessage] = result.messages;
+
       expect(firstMessage?.ruleId).toBeUndefined();
     });
 

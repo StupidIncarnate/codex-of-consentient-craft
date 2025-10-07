@@ -1,4 +1,5 @@
 import { InvalidConfigError } from './invalid-config-error';
+
 describe('InvalidConfigError', () => {
   describe('constructor()', () => {
     it('VALID: {message: "test error"} => creates error without config path', () => {

@@ -47,7 +47,7 @@ describe('folderNameTransformer', () => {
         filePath: 'index.ts',
       });
 
-      expect(result).toBe(null);
+      expect(result).toBeNull();
     });
 
     it('EDGE: {filePath: "folder/file.ts"} => returns "folder"', () => {

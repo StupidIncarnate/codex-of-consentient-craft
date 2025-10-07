@@ -198,7 +198,7 @@ export const jestRuleStatics = {
     'jest/prefer-to-contain': 'off',
 
     // Enforces toHaveLength() for length checks
-    'jest/to-have-length': 'error',
+    'jest/prefer-to-have-length': 'error',
 
     // Requires it.todo for empty tests
     // Problematic for llm filling in tests in chunks

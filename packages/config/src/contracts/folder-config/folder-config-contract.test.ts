@@ -293,8 +293,8 @@ describe('folder-config-contract', () => {
           startup: ['*'],
         };
 
-        expect(backendImports.widgets).toBe(null);
-        expect(backendImports.bindings).toBe(null);
+        expect(backendImports.widgets).toBeNull();
+        expect(backendImports.bindings).toBeNull();
         expect(backendImports.state).toStrictEqual([]);
         expect(backendImports.flows).toStrictEqual(['express']);
         expect(backendImports.responders).toStrictEqual([]);
@@ -323,11 +323,11 @@ describe('folder-config-contract', () => {
           startup: ['*'],
         };
 
-        expect(libraryImports.widgets).toBe(null);
-        expect(libraryImports.bindings).toBe(null);
+        expect(libraryImports.widgets).toBeNull();
+        expect(libraryImports.bindings).toBeNull();
         expect(libraryImports.state).toStrictEqual([]);
-        expect(libraryImports.flows).toBe(null);
-        expect(libraryImports.responders).toBe(null);
+        expect(libraryImports.flows).toBeNull();
+        expect(libraryImports.responders).toBeNull();
         expect(libraryImports.contracts).toStrictEqual(['joi']);
         expect(libraryImports.brokers).toStrictEqual([]);
         expect(libraryImports.transformers).toStrictEqual([]);

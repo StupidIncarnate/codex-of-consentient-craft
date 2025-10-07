@@ -10,6 +10,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'SessionStart',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(true);
     });
 
@@ -21,6 +22,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'SessionStart',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(true);
     });
 
@@ -33,6 +35,7 @@ describe('isSessionStartHookData()', () => {
         extra_field: 'extra',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(true);
     });
   });
@@ -45,6 +48,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'SessionStart',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -55,6 +59,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'SessionStart',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -65,6 +70,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'SessionStart',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -75,6 +81,7 @@ describe('isSessionStartHookData()', () => {
         cwd: '/cwd',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(false);
     });
   });
@@ -88,6 +95,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'PreToolUse',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -99,6 +107,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'PostToolUse',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -110,6 +119,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 123,
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(false);
     });
   });
@@ -123,6 +133,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'SessionStart',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -134,6 +145,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'SessionStart',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(false);
     });
 
@@ -145,6 +157,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'SessionStart',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(false);
     });
   });
@@ -152,26 +165,31 @@ describe('isSessionStartHookData()', () => {
   describe('invalid inputs - non-objects', () => {
     it('INVALID: {data: null} => returns false', () => {
       const result = isSessionStartHookData({ data: null });
+
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: undefined} => returns false', () => {
       const result = isSessionStartHookData({ data: undefined });
+
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: string} => returns false', () => {
       const result = isSessionStartHookData({ data: 'not an object' });
+
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: number} => returns false', () => {
       const result = isSessionStartHookData({ data: 42 });
+
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: array} => returns false', () => {
       const result = isSessionStartHookData({ data: [] });
+
       expect(result).toBe(false);
     });
   });
@@ -179,6 +197,7 @@ describe('isSessionStartHookData()', () => {
   describe('edge cases', () => {
     it('EDGE: {data: empty object} => returns false', () => {
       const result = isSessionStartHookData({ data: {} });
+
       expect(result).toBe(false);
     });
 
@@ -190,6 +209,7 @@ describe('isSessionStartHookData()', () => {
         hook_event_name: 'SessionStart',
       };
       const result = isSessionStartHookData({ data });
+
       expect(result).toBe(true);
     });
   });

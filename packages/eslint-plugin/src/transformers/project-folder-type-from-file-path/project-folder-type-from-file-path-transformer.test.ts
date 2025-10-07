@@ -41,43 +41,43 @@ describe('projectFolderTypeFromFilePathTransformer', () => {
 
   describe('files directly in /src/ (no subfolders)', () => {
     it('NULL: {filename: "/project/src/index.ts"} => returns null', () => {
-      expect(projectFolderTypeFromFilePathTransformer({ filename: '/project/src/index.ts' })).toBe(
-        null,
-      );
+      expect(
+        projectFolderTypeFromFilePathTransformer({ filename: '/project/src/index.ts' }),
+      ).toBeNull();
     });
 
     it('NULL: {filename: "/project/src/main.ts"} => returns null', () => {
-      expect(projectFolderTypeFromFilePathTransformer({ filename: '/project/src/main.ts' })).toBe(
-        null,
-      );
+      expect(
+        projectFolderTypeFromFilePathTransformer({ filename: '/project/src/main.ts' }),
+      ).toBeNull();
     });
   });
 
   describe('files not in /src/', () => {
     it('NULL: {filename: "/project/lib/utils.ts"} => returns null', () => {
-      expect(projectFolderTypeFromFilePathTransformer({ filename: '/project/lib/utils.ts' })).toBe(
-        null,
-      );
+      expect(
+        projectFolderTypeFromFilePathTransformer({ filename: '/project/lib/utils.ts' }),
+      ).toBeNull();
     });
 
     it('NULL: {filename: "/project/test/helper.ts"} => returns null', () => {
       expect(
         projectFolderTypeFromFilePathTransformer({ filename: '/project/test/helper.ts' }),
-      ).toBe(null);
+      ).toBeNull();
     });
 
     it('NULL: {filename: "utils.ts"} => returns null', () => {
-      expect(projectFolderTypeFromFilePathTransformer({ filename: 'utils.ts' })).toBe(null);
+      expect(projectFolderTypeFromFilePathTransformer({ filename: 'utils.ts' })).toBeNull();
     });
   });
 
   describe('edge cases', () => {
     it('NULL: {filename: "/project/src/"} => returns null', () => {
-      expect(projectFolderTypeFromFilePathTransformer({ filename: '/project/src/' })).toBe(null);
+      expect(projectFolderTypeFromFilePathTransformer({ filename: '/project/src/' })).toBeNull();
     });
 
     it('NULL: {filename: ""} => returns null', () => {
-      expect(projectFolderTypeFromFilePathTransformer({ filename: '' })).toBe(null);
+      expect(projectFolderTypeFromFilePathTransformer({ filename: '' })).toBeNull();
     });
   });
 });

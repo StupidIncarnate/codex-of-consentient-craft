@@ -38,16 +38,19 @@ describe('framework-contract', () => {
     describe('valid frameworks', () => {
       it('VALID: "react" => returns true', () => {
         const result = isValidFramework('react');
+
         expect(result).toBe(true);
       });
 
       it('VALID: "express" => returns true', () => {
         const result = isValidFramework('express');
+
         expect(result).toBe(true);
       });
 
       it('VALID: "monorepo" => returns true', () => {
         const result = isValidFramework('monorepo');
+
         expect(result).toBe(true);
       });
     });
@@ -55,16 +58,19 @@ describe('framework-contract', () => {
     describe('invalid frameworks', () => {
       it('INVALID_FRAMEWORK: "invalid" => returns false', () => {
         const result = isValidFramework('invalid');
+
         expect(result).toBe(false);
       });
 
       it('INVALID_FRAMEWORK: "React" => returns false', () => {
         const result = isValidFramework('React');
+
         expect(result).toBe(false);
       });
 
       it('INVALID_FRAMEWORK: "" => returns false', () => {
         const result = isValidFramework('');
+
         expect(result).toBe(false);
       });
     });
@@ -72,31 +78,37 @@ describe('framework-contract', () => {
     describe('non-string inputs', () => {
       it('INVALID_TYPE: null => returns false', () => {
         const result = isValidFramework(null);
+
         expect(result).toBe(false);
       });
 
       it('INVALID_TYPE: undefined => returns false', () => {
         const result = isValidFramework(undefined);
+
         expect(result).toBe(false);
       });
 
       it('INVALID_TYPE: 123 => returns false', () => {
         const result = isValidFramework(123);
+
         expect(result).toBe(false);
       });
 
       it('INVALID_TYPE: {} => returns false', () => {
         const result = isValidFramework({});
+
         expect(result).toBe(false);
       });
 
       it('INVALID_TYPE: [] => returns false', () => {
         const result = isValidFramework([]);
+
         expect(result).toBe(false);
       });
 
       it('INVALID_TYPE: true => returns false', () => {
         const result = isValidFramework(true);
+
         expect(result).toBe(false);
       });
     });

@@ -365,7 +365,7 @@ describe('start-config-library', () => {
         'monorepo',
       ]);
       expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(19);
+      expect(result).toHaveLength(19);
     });
   });
 
@@ -375,7 +375,7 @@ describe('start-config-library', () => {
 
       expect(result).toStrictEqual(['zod', 'yup', 'joi', 'io-ts', 'typebox', 'class-validator']);
       expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(6);
+      expect(result).toHaveLength(6);
     });
   });
 

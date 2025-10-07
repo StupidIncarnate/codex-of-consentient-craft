@@ -6,6 +6,7 @@ describe('violationDisplayNameDefaultTransformer()', () => {
       const result = violationDisplayNameDefaultTransformer({
         ruleId: '@typescript-eslint/no-explicit-any',
       });
+
       expect(result).toBe('Type Safety Violation');
     });
 
@@ -13,6 +14,7 @@ describe('violationDisplayNameDefaultTransformer()', () => {
       const result = violationDisplayNameDefaultTransformer({
         ruleId: '@typescript-eslint/ban-ts-comment',
       });
+
       expect(result).toBe('Type Error Suppression');
     });
 
@@ -20,6 +22,7 @@ describe('violationDisplayNameDefaultTransformer()', () => {
       const result = violationDisplayNameDefaultTransformer({
         ruleId: 'eslint-comments/no-use',
       });
+
       expect(result).toBe('Code Quality Rule Bypass');
     });
   });
@@ -27,21 +30,25 @@ describe('violationDisplayNameDefaultTransformer()', () => {
   describe('unknown rules', () => {
     it('VALID: {ruleId: "unknown-rule"} => returns "Code Quality Issue"', () => {
       const result = violationDisplayNameDefaultTransformer({ ruleId: 'unknown-rule' });
+
       expect(result).toBe('Code Quality Issue');
     });
 
     it('VALID: {ruleId: "prefer-const"} => returns "Code Quality Issue"', () => {
       const result = violationDisplayNameDefaultTransformer({ ruleId: 'prefer-const' });
+
       expect(result).toBe('Code Quality Issue');
     });
 
     it('VALID: {ruleId: "no-console"} => returns "Code Quality Issue"', () => {
       const result = violationDisplayNameDefaultTransformer({ ruleId: 'no-console' });
+
       expect(result).toBe('Code Quality Issue');
     });
 
     it('VALID: {ruleId: "custom-rule-123"} => returns "Code Quality Issue"', () => {
       const result = violationDisplayNameDefaultTransformer({ ruleId: 'custom-rule-123' });
+
       expect(result).toBe('Code Quality Issue');
     });
   });
@@ -49,11 +56,13 @@ describe('violationDisplayNameDefaultTransformer()', () => {
   describe('edge cases', () => {
     it('EDGE: {ruleId: ""} => returns "Code Quality Issue"', () => {
       const result = violationDisplayNameDefaultTransformer({ ruleId: '' });
+
       expect(result).toBe('Code Quality Issue');
     });
 
     it('EDGE: {ruleId: "   "} => returns "Code Quality Issue"', () => {
       const result = violationDisplayNameDefaultTransformer({ ruleId: '   ' });
+
       expect(result).toBe('Code Quality Issue');
     });
 
@@ -61,6 +70,7 @@ describe('violationDisplayNameDefaultTransformer()', () => {
       const result = violationDisplayNameDefaultTransformer({
         ruleId: '@typescript-eslint/NO-EXPLICIT-ANY',
       });
+
       expect(result).toBe('Code Quality Issue');
     });
   });

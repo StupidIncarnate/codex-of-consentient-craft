@@ -1,4 +1,5 @@
 import { ConfigNotFoundError } from './config-not-found-error';
+
 describe('ConfigNotFoundError', () => {
   describe('constructor()', () => {
     it('VALID: {startPath: "/path/to/file.js"} => creates error with start path in message', () => {

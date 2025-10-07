@@ -13,6 +13,7 @@ describe('isNewSession', () => {
     const result = await isNewSession({ transcriptPath: '/test/nonexistent.txt' });
 
     expect(result).toBe(true);
+
     spy.mockRestore();
   });
 
@@ -25,6 +26,7 @@ describe('isNewSession', () => {
     const result = await isNewSession({ transcriptPath: '/test/small.txt' });
 
     expect(result).toBe(true);
+
     existsSpy.mockRestore();
     statSpy.mockRestore();
   });
@@ -38,6 +40,7 @@ describe('isNewSession', () => {
     const result = await isNewSession({ transcriptPath: '/test/large.txt' });
 
     expect(result).toBe(false);
+
     existsSpy.mockRestore();
     statSpy.mockRestore();
   });
@@ -53,6 +56,7 @@ describe('isNewSession', () => {
     const result = await isNewSession({ transcriptPath: '/test/error.txt' });
 
     expect(result).toBe(true);
+
     existsSpy.mockRestore();
     statSpy.mockRestore();
   });

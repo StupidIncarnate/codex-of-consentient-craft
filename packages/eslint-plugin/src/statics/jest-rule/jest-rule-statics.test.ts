@@ -28,18 +28,13 @@ describe('jestRuleStatics', () => {
         'jest/no-restricted-jest-methods': [
           'error',
           {
-            clearAllMocks:
-              '@questmaestro/testing handles this globally - no manual cleanup needed',
-            resetAllMocks:
-              '@questmaestro/testing handles this globally - no manual cleanup needed',
+            clearAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
+            resetAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
             restoreAllMocks:
               '@questmaestro/testing handles this globally - no manual cleanup needed',
-            mockClear:
-              '@questmaestro/testing handles this globally - no manual cleanup needed',
-            mockReset:
-              '@questmaestro/testing handles this globally - no manual cleanup needed',
-            mockRestore:
-              '@questmaestro/testing handles this globally - no manual cleanup needed',
+            mockClear: '@questmaestro/testing handles this globally - no manual cleanup needed',
+            mockReset: '@questmaestro/testing handles this globally - no manual cleanup needed',
+            mockRestore: '@questmaestro/testing handles this globally - no manual cleanup needed',
           },
         ],
         'jest/no-restricted-matchers': [
@@ -99,8 +94,7 @@ describe('jestRuleStatics', () => {
 
   describe('restricted matchers', () => {
     it('VALID: no-restricted-matchers configuration includes forbidden matchers from testing standards', () => {
-      const restrictedMatchers =
-        jestRuleStatics.rules['jest/no-restricted-matchers'];
+      const restrictedMatchers = jestRuleStatics.rules['jest/no-restricted-matchers'];
 
       expect(Array.isArray(restrictedMatchers)).toBe(true);
       expect(restrictedMatchers[0]).toBe('error');
@@ -123,31 +117,24 @@ describe('jestRuleStatics', () => {
 
   describe('restricted jest methods', () => {
     it('VALID: no-restricted-jest-methods configuration includes manual mock cleanup methods', () => {
-      const restrictedMethods =
-        jestRuleStatics.rules['jest/no-restricted-jest-methods'];
+      const restrictedMethods = jestRuleStatics.rules['jest/no-restricted-jest-methods'];
 
       expect(Array.isArray(restrictedMethods)).toBe(true);
       expect(restrictedMethods[0]).toBe('error');
       expect(restrictedMethods[1]).toStrictEqual({
-        clearAllMocks:
-          '@questmaestro/testing handles this globally - no manual cleanup needed',
-        resetAllMocks:
-          '@questmaestro/testing handles this globally - no manual cleanup needed',
-        restoreAllMocks:
-          '@questmaestro/testing handles this globally - no manual cleanup needed',
-        mockClear:
-          '@questmaestro/testing handles this globally - no manual cleanup needed',
-        mockReset:
-          '@questmaestro/testing handles this globally - no manual cleanup needed',
-        mockRestore:
-          '@questmaestro/testing handles this globally - no manual cleanup needed',
+        clearAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        resetAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        restoreAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        mockClear: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        mockReset: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        mockRestore: '@questmaestro/testing handles this globally - no manual cleanup needed',
       });
     });
   });
 
   describe('immutability', () => {
     it('EDGE: as const makes rules object readonly at type level', () => {
-      const rules = jestRuleStatics.rules;
+      const { rules } = jestRuleStatics;
 
       expect(rules['jest/prefer-strict-equal']).toBe('error');
       expect(rules['jest/no-hooks']).toBe('error');

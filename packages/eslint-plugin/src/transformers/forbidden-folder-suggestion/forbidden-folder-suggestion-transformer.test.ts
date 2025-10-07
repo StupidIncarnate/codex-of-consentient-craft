@@ -5,6 +5,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: 'utils',
     });
+
     expect(result).toBe('adapters or transformers');
   });
 
@@ -12,6 +13,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: 'lib',
     });
+
     expect(result).toBe('adapters');
   });
 
@@ -19,6 +21,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: 'helpers',
     });
+
     expect(result).toBe('guards or transformers');
   });
 
@@ -26,6 +29,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: 'services',
     });
+
     expect(result).toBe('brokers');
   });
 
@@ -33,6 +37,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: 'types',
     });
+
     expect(result).toBe('contracts');
   });
 
@@ -40,6 +45,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: 'constants',
     });
+
     expect(result).toBe('statics');
   });
 
@@ -47,6 +53,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: 'formatters',
     });
+
     expect(result).toBe('transformers');
   });
 
@@ -54,6 +61,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: 'common',
     });
+
     expect(result).toBe('distribute by function');
   });
 
@@ -61,6 +69,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: 'unknown-folder',
     });
+
     expect(result).toBe('contracts');
   });
 
@@ -68,6 +77,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: '',
     });
+
     expect(result).toBe('contracts');
   });
 });
