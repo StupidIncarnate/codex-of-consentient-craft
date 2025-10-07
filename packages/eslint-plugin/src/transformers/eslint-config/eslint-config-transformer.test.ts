@@ -77,10 +77,10 @@ describe('eslintConfigTransformer', () => {
       ]);
     });
 
-    it('VALID: {} => returns config with id-length configured with min 2', () => {
+    it('VALID: {} => returns config with id-length configured with "off"', () => {
       const result = eslintConfigTransformer();
 
-      expect(result.rules?.['id-length']).toStrictEqual(['error', { min: 2 }]);
+      expect(result.rules?.['id-length']).toStrictEqual('off');
     });
 
     it('VALID: {} => returns config with max-classes-per-file configured with max 1', () => {
@@ -242,7 +242,7 @@ describe('eslintConfigTransformer', () => {
           'guard-for-in': 'error',
           'grouped-accessor-pairs': 'error',
           'id-denylist': 'off',
-          'id-length': ['error', { min: 2 }],
+          'id-length': 'off',
           'id-match': 'error',
           'init-declarations': 'error',
           'logical-assignment-operators': 'error',
@@ -443,7 +443,7 @@ describe('eslintConfigTransformer', () => {
           'guard-for-in': 'error',
           'grouped-accessor-pairs': 'error',
           'id-denylist': 'off',
-          'id-length': ['error', { min: 2 }],
+          'id-length': 'off',
           'id-match': 'error',
           'init-declarations': 'error',
           'logical-assignment-operators': 'error',

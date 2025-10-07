@@ -54,9 +54,7 @@ export const isEntryFileGuard = ({
     return false;
   }
 
-  const suffixPattern = Array.isArray(config.fileSuffix)
-    ? config.fileSuffix[0]
-    : config.fileSuffix;
+  const suffixPattern = Array.isArray(config.fileSuffix) ? config.fileSuffix[0] : config.fileSuffix;
 
   // Extract domain folders from file path based on folderDepth
   // Expected patterns:
@@ -83,8 +81,8 @@ export const isEntryFileGuard = ({
   }
 
   // Build expected filename prefix from domain folders
-  // e.g., ["user"] → "user"
-  // e.g., ["user", "fetch"] → "user-fetch"
+  // E.g., ["user"] → "user"
+  // E.g., ["user", "fetch"] → "user-fetch"
   const expectedPrefix = domainFolders.join('-');
 
   // Extract actual prefix from filename by removing suffix

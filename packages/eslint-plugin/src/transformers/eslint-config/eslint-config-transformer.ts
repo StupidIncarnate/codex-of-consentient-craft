@@ -140,7 +140,8 @@ export const eslintConfigTransformer = ({
     // ✅ const userName = 'john'
     // ❌ const x = 'john'
     // Enforces minimum identifier length
-    'id-length': ['error', { min: 2 }],
+    // LLM does this pretty well anyway and only seems to do for for loops
+    'id-length': 'off',
 
     // ✅ const validName = 'test' (matches configured pattern)
     // ❌ const invalid_name = 'test' (doesn't match pattern)

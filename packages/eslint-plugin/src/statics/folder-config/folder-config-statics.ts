@@ -53,7 +53,7 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'adapters/[package]/[package]-[export]-adapter.ts',
-    allowedImports: ['node_modules', 'middleware/', 'statics/', 'contracts/'],
+    allowedImports: ['node_modules', 'middleware/', 'statics/', 'contracts/', 'guards/'],
   },
   middleware: {
     fileSuffix: '-middleware.ts',
@@ -69,7 +69,15 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 2,
     folderPattern: 'brokers/[domain]/[action]/[domain]-[action]-broker.ts',
-    allowedImports: ['brokers/', 'adapters/', 'contracts/', 'statics/', 'errors/'],
+    allowedImports: [
+      'brokers/',
+      'adapters/',
+      'contracts/',
+      'statics/',
+      'errors/',
+      'guards/',
+      'transformers/',
+    ],
   },
   bindings: {
     fileSuffix: '-binding.ts',
@@ -77,7 +85,15 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'bindings/[name]/[name]-binding.ts',
-    allowedImports: ['brokers/', 'state/', 'contracts/', 'statics/', 'errors/'],
+    allowedImports: [
+      'brokers/',
+      'state/',
+      'contracts/',
+      'statics/',
+      'errors/',
+      'guards/',
+      'transformers/',
+    ],
   },
   state: {
     fileSuffix: '-state.ts',
@@ -85,7 +101,7 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'state/[name]/[name]-state.ts',
-    allowedImports: ['contracts/', 'statics/', 'errors/'],
+    allowedImports: ['contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
   },
   responders: {
     fileSuffix: '-responder.ts',
