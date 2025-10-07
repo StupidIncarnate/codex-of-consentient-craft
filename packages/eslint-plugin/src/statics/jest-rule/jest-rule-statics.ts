@@ -67,39 +67,39 @@ export const jestRuleStatics = {
     'jest/no-mocks-import': 'error',
 
     // Disallow specific jest methods
-    // Disabling use of spyOn for instance
-    /*
-    {
-      "jest/no-restricted-jest-methods": [
-        "error",
-        {
-          "advanceTimersByTime": null,
-          "spyOn": "Don't use spies"
-        }
-      ]
-    }
-     */
-    'jest/no-restricted-jest-methods': 'error',
+    // Based on testing-standards.md - Anti-Patterns section
+    // @questmaestro/testing handles mock cleanup globally
+    'jest/no-restricted-jest-methods': [
+      'error',
+      {
+        clearAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        resetAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        restoreAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        mockClear: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        mockReset: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        mockRestore: '@questmaestro/testing handles this globally - no manual cleanup needed',
+      },
+    ],
 
     // Disallow specific matchers
-    /* Example of how to specify matchers
-    {
-      "jest/no-restricted-matchers": [
-          "error",
-          {
-            "toBeFalsy": null,
-            "resolves": "Use `expect(await promise)` instead.",
-            "toHaveBeenCalledWith": null,
-            "not.toHaveBeenCalledWith": null,
-            "resolves.toHaveBeenCalledWith": null,
-            "rejects.toHaveBeenCalledWith": null,
-            "resolves.not.toHaveBeenCalledWith": null,
-            "rejects.not.toHaveBeenCalledWith": null
-          }
-        ]
-      }
-     */
-    'jest/no-restricted-matchers': 'error',
+    // Based on testing-standards.md - Forbidden Jest Matchers section
+    'jest/no-restricted-matchers': [
+      'error',
+      {
+        toEqual: 'Use .toStrictEqual() instead',
+        toMatchObject: 'Use .toStrictEqual() instead',
+        toContain: 'Use .toStrictEqual() instead',
+        toBeTruthy: 'Use .toBe(true) instead',
+        toBeFalsy: 'Use .toBe(false) instead',
+        toHaveProperty: 'Test actual value with .toBe() instead',
+        objectContaining: 'Test complete object instead',
+        arrayContaining: 'Test complete array instead',
+        stringContaining: 'Use regex /^.*substring.*$/ instead',
+        'any(String)': 'Test actual string value instead',
+        'any(Number)': 'Test actual number instead',
+        'any(Object)': 'Test complete object shape instead',
+      },
+    ],
 
     // Disallow using expect outside of it or test blocks
     'jest/no-standalone-expect': 'error',

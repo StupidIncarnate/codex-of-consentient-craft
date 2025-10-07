@@ -7,5 +7,7 @@ export const hookConfigDefaultTransformer = (): PreEditLintConfig =>
       '@typescript-eslint/no-explicit-any',
       '@typescript-eslint/ban-ts-comment',
       'eslint-comments/no-use',
+      'jest/no-restricted-jest-methods',
+      'jest/no-restricted-matchers',
     ],
   });
