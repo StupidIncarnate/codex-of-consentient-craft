@@ -12,7 +12,6 @@ export { banPrimitivesRuleBroker } from './brokers/rule/ban-primitives/ban-primi
 export { requireZodOnPrimitivesRuleBroker } from './brokers/rule/require-zod-on-primitives/require-zod-on-primitives-rule-broker';
 export { explicitReturnTypesRuleBroker } from './brokers/rule/explicit-return-types/explicit-return-types-rule-broker';
 export { questmaestroConfigBroker } from './brokers/config/questmaestro/questmaestro-config-broker';
-export { eslintConfigTransformer } from './transformers/eslint-config/eslint-config-transformer';
 export { tsconfigBroker } from './brokers/config/tsconfig/tsconfig-broker';
 
 // Export transformers for advanced usage

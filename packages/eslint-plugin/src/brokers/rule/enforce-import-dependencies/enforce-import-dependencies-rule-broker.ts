@@ -114,7 +114,7 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
         const importedFolder = importedFolderType;
 
         // Check if importing from same category with unnecessary category name in path
-        // e.g., brokers importing from ../../../brokers/ instead of ../../
+        // E.g., brokers importing from ../../../brokers/ instead of ../../
         if (importedFolder === folderType) {
           // Check if the import path explicitly contains the category name
           const pathSegments = importSource.split('/');

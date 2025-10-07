@@ -1,15 +1,4 @@
-import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
-
-const MAX_DEPTH = 4;
-
-export const eslintConfigTransformer = ({
-  forTesting = false,
-}: {
-  forTesting?: boolean;
-} = {}): EslintConfig => ({
-  plugins: {
-    // ESLint core rules (no plugin needed)
-  },
+export const eslintRuleStatics = {
   rules: {
     // ✅ { get foo() {}, set foo(val) {} }
     // ❌ { get foo() {} }
@@ -166,7 +155,7 @@ export const eslintConfigTransformer = ({
     // ✅ if (a) { if (b) { } }
     // ❌ if (a) { if (b) { if (c) { if (d) { } } } }
     // Enforces maximum depth that blocks can be nested
-    'max-depth': forTesting ? 'off' : ['error', { max: MAX_DEPTH }],
+    'max-depth': ['error', { max: 4 }],
 
     // ✅ function small() { return x }
     // ❌ function huge() { /* 100 lines */ }
@@ -1015,4 +1004,4 @@ export const eslintConfigTransformer = ({
     // Requires or disallows Yoda conditions
     yoda: 'error',
   },
-});
+} as const;

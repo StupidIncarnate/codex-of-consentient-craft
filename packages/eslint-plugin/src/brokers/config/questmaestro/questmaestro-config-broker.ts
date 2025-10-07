@@ -1,26 +1,65 @@
 import type { EslintConfig } from '../../../contracts/eslint-config/eslint-config-contract';
-import { eslintConfigTransformer } from '../../../transformers/eslint-config/eslint-config-transformer';
-import { typescriptEslintConfigTransformer } from '../../../transformers/typescript-eslint-config/typescript-eslint-config-transformer';
+import { eslintRuleStatics } from '../../../statics/eslint-rule/eslint-rule-statics';
+import { typescriptEslintRuleStatics } from '../../../statics/typescript-eslint-rule/typescript-eslint-rule-statics';
+import { jestRuleStatics } from '../../../statics/jest-rule/jest-rule-statics';
+import { typescriptEslintEslintPlugin } from '../../../adapters/typescript-eslint-eslint-plugin/typescript-eslint-eslint-plugin-adapter';
+import { eslintPluginJestAdapter } from '../../../adapters/eslint-plugin-jest/eslint-plugin-jest-adapter';
+import { eslintPluginEslintCommentsAdapter } from '../../../adapters/eslint-plugin-eslint-comments/eslint-plugin-eslint-comments-adapter';
 import { eslintConflictResolverTransformer } from '../../../transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer';
-import eslintCommentsPlugin from 'eslint-plugin-eslint-comments';
+
+type DeepWritable<T> = T extends readonly (infer U)[]
+  ? DeepWritable<U>[]
+  : T extends object
+    ? { -readonly [K in keyof T]: DeepWritable<T[K]> }
+    : T;
 
 export const questmaestroConfigBroker = ({
   forTesting = false,
 }: {
   forTesting?: boolean;
 } = {}): EslintConfig => {
-  const eslintConfig = eslintConfigTransformer({ forTesting });
-  const typescriptEslintConfig = typescriptEslintConfigTransformer({ forTesting });
+  // Build base configs
+  const eslintConfig: EslintConfig = {
+    plugins: {},
+    rules: {
+      ...(eslintRuleStatics.rules as unknown as DeepWritable<typeof eslintRuleStatics.rules>),
+      ...(forTesting ? { 'max-depth': 'off' } : {}),
+    },
+  };
 
+  const typescriptConfig: EslintConfig = {
+    plugins: { '@typescript-eslint': typescriptEslintEslintPlugin },
+    rules: {
+      ...(typescriptEslintRuleStatics.rules as unknown as DeepWritable<
+        typeof typescriptEslintRuleStatics.rules
+      >),
+      ...(forTesting
+        ? {
+            '@typescript-eslint/no-magic-numbers': 'off',
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+          }
+        : {}),
+    },
+  };
+
+  // Merge eslint and typescript with conflict resolution
   const mergedConfig = eslintConflictResolverTransformer({
     reference: eslintConfig,
-    overrides: [typescriptEslintConfig],
+    overrides: [typescriptConfig],
   });
 
   return {
-    plugins: { ...mergedConfig.plugins, 'eslint-comments': eslintCommentsPlugin as unknown },
+    plugins: {
+      ...mergedConfig.plugins,
+      'eslint-comments': eslintPluginEslintCommentsAdapter as unknown,
+      ...(forTesting ? { jest: eslintPluginJestAdapter } : {}),
+    },
     rules: {
       ...mergedConfig.rules,
+      ...(forTesting
+        ? (jestRuleStatics.rules as unknown as DeepWritable<typeof jestRuleStatics.rules>)
+        : {}),
+      // Questmaestro custom rules
       'eslint-comments/no-unlimited-disable': 'error',
       'eslint-comments/no-use': ['error', { allow: [] }],
       '@questmaestro/ban-primitives': 'error',

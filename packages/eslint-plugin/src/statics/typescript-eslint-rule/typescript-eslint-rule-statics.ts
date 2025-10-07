@@ -1,14 +1,4 @@
-import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
-import { typescriptEslintEslintPlugin } from '../../adapters/typescript-eslint-eslint-plugin/typescript-eslint-eslint-plugin';
-
-export const typescriptEslintConfigTransformer = ({
-  forTesting = false,
-}: {
-  forTesting?: boolean;
-} = {}): EslintConfig => ({
-  plugins: {
-    '@typescript-eslint': typescriptEslintEslintPlugin,
-  },
+export const typescriptEslintRuleStatics = {
   rules: {
     // ✅ function foo(); function foo(x: string): void; function foo(x?: string) {}
     // ❌ function foo(x?: string): void; function foo(x: string) {}
@@ -135,7 +125,7 @@ export const typescriptEslintConfigTransformer = ({
     // Enforce a maximum number of parameters in function definitions
     // This is problematic for baked in usages like if we set to 1
     // .filter((value, index, self) => self.indexOf(value) === index);
-    '@typescript-eslint/max-params': 'off', //['error', { max: 1 }],
+    '@typescript-eslint/max-params': 'off',
 
     // ✅ class Foo { private _bar: string; constructor() {} getBar() {} }
     // ❌ class Foo { constructor() {} private _bar: string; getBar() {} }
@@ -284,22 +274,20 @@ export const typescriptEslintConfigTransformer = ({
     // ✅ const TIMEOUT = 1000; setTimeout(callback, TIMEOUT)
     // ❌ setTimeout(callback, 1000)
     // Disallow magic numbers (disabled for testing as test data often uses literal values)
-    '@typescript-eslint/no-magic-numbers': forTesting
-      ? 'off'
-      : [
-          'error',
-          {
-            ignore: [-1, 0, 1],
-            ignoreArrayIndexes: true,
-            ignoreDefaultValues: true,
-            ignoreClassFieldInitialValues: true,
-            detectObjects: false,
-            ignoreEnums: true,
-            ignoreNumericLiteralTypes: true,
-            ignoreReadonlyClassProperties: true,
-            ignoreTypeIndexes: true,
-          },
-        ],
+    '@typescript-eslint/no-magic-numbers': [
+      'error',
+      {
+        ignore: [-1, 0, 1],
+        ignoreArrayIndexes: true,
+        ignoreDefaultValues: true,
+        ignoreClassFieldInitialValues: true,
+        detectObjects: false,
+        ignoreEnums: true,
+        ignoreNumericLiteralTypes: true,
+        ignoreReadonlyClassProperties: true,
+        ignoreTypeIndexes: true,
+      },
+    ],
 
     // ✅ Boolean(value)
     // ❌ void 0
@@ -451,7 +439,7 @@ export const typescriptEslintConfigTransformer = ({
     // ❌ const x: string = getValue() as any
     // Disallow assigning a value with type any to variables and properties
     // Disabled for testing to allow Jest patterns like expect.any()
-    '@typescript-eslint/no-unsafe-assignment': forTesting ? 'off' : 'error',
+    '@typescript-eslint/no-unsafe-assignment': 'error',
 
     // ✅ fn(value)
     // ❌ (value as any)()
@@ -724,4 +712,4 @@ export const typescriptEslintConfigTransformer = ({
     // Enforce typing arguments in .catch() callbacks as unknown
     '@typescript-eslint/use-unknown-in-catch-callback-variable': 'error',
   },
-});
+} as const;
