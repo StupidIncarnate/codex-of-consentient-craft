@@ -1,5 +1,4 @@
 import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
-import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import { enforceImportDependenciesRuleBroker } from './enforce-import-dependencies-rule-broker';
 
 const ruleTester = createEslintRuleTester();
@@ -321,32 +320,6 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       code: 'import { something } from "../../../node_modules/package";',
       filename: '/project/scripts/build.ts',
     },
-
-    // Type-only imports from adapters are allowed in ALL layers (dynamic coverage)
-    ...Object.keys(folderConfigStatics).flatMap((folderKey) => {
-      const folderType = folderKey as keyof typeof folderConfigStatics;
-      const config = folderConfigStatics[folderType];
-
-      // Skip non-code folders
-      if (folderType === 'assets' || folderType === 'migrations') {
-        return [];
-      }
-
-      // Determine path depth based on folder config
-      const levelsUp = config.folderDepth === 2 ? '../../../' : '../../';
-
-      // Get appropriate file suffix
-      const suffix = Array.isArray(config.fileSuffix) ? config.fileSuffix[0] : config.fileSuffix;
-
-      return [
-        {
-          code: `import type { TSESTree } from "${
-            levelsUp
-          }adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree-adapter";`,
-          filename: `/project/src/${folderType}/example/example${suffix}`,
-        },
-      ];
-    }),
   ],
   invalid: [
     // Guards cannot import from brokers

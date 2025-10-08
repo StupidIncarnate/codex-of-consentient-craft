@@ -91,7 +91,7 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
       filename: '/project/src/middleware/auth/auth-middleware.ts',
     },
 
-    // Adapters (depth 1, camelCase + Adapter OR just type re-exports)
+    // Adapters (depth 1, camelCase + Adapter, ONE function export only)
     {
       code: 'export const axiosGetAdapter = () => {};',
       filename: '/project/src/adapters/axios/axios-get-adapter.ts',
@@ -100,20 +100,10 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
       code: 'export const fsReadFileAdapter = () => {};',
       filename: '/project/src/adapters/fs/fs-read-file-adapter.ts',
     },
-    // Adapters can re-export types (must have -adapter suffix)
+    // Adapters can compose multiple package functions for one operation
     {
-      code: 'export type { Rule } from "eslint";',
-      filename: '/project/src/adapters/eslint/eslint-rule-adapter.ts',
-    },
-    // Adapters can re-export classes with alias (inline from)
-    {
-      code: 'export { RuleTester as eslintRuleTesterAdapter } from "eslint";',
-      filename: '/project/src/adapters/eslint/eslint-rule-tester-adapter.ts',
-    },
-    // Adapters can re-export classes with alias (import then export)
-    {
-      code: 'import { RuleTester } from "eslint";\nexport { RuleTester as eslintRuleTesterAdapter };',
-      filename: '/project/src/adapters/eslint/eslint-rule-tester-adapter.ts',
+      code: 'export const fsEnsureWriteAdapter = async () => {};',
+      filename: '/project/src/adapters/fs/fs-ensure-write-adapter.ts',
     },
 
     // Startup (depth 0, PascalCase, 0 or 1 exports allowed)
@@ -582,6 +572,42 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
       code: 'export const fetchDataAdapter = () => {};',
       filename: '/project/src/adapters/axios/axios-get-adapter.ts',
       errors: [{ messageId: 'filenameMismatch' }],
+    },
+    // Adapters cannot have type-only re-exports (new pivot: must export functions returning contracts)
+    {
+      code: 'export type { Rule } from "eslint";',
+      filename: '/project/src/adapters/eslint/eslint-rule-adapter.ts',
+      errors: [{ messageId: 'missingExpectedExport' }],
+    },
+    // Adapters cannot have class re-exports (must be functions returning contracts)
+    {
+      code: 'export { RuleTester as eslintRuleTesterAdapter } from "eslint";',
+      filename: '/project/src/adapters/eslint/eslint-rule-tester-adapter.ts',
+      errors: [{ messageId: 'noReExport' }],
+    },
+    // Adapters cannot have value re-exports (must be local function definitions)
+    {
+      code: 'import { get } from "axios";\nexport { get as axiosGetAdapter };',
+      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      errors: [{ messageId: 'noReExport' }],
+    },
+    // Adapters cannot re-export via variable assignment (must be arrow functions)
+    {
+      code: 'import plugin from "@typescript-eslint/eslint-plugin";\nexport const typescriptEslintEslintPluginAdapter = plugin;',
+      filename: '/project/src/adapters/typescript-eslint-eslint-plugin/typescript-eslint-eslint-plugin-adapter.ts',
+      errors: [{ messageId: 'adapterMustBeArrowFunction' }],
+    },
+    // Adapters cannot use function declarations (must be arrow functions)
+    {
+      code: 'export function axiosGetAdapter() { return null; }',
+      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      errors: [{ messageId: 'adapterMustBeArrowFunction' }],
+    },
+    // Adapters cannot export classes (must be arrow functions)
+    {
+      code: 'export class AxiosGetAdapter {}',
+      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      errors: [{ messageId: 'adapterMustBeArrowFunction' }],
     },
 
     // ========== STARTUP: Export validation ==========

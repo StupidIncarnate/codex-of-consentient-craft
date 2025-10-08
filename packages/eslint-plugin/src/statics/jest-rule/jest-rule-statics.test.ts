@@ -77,7 +77,7 @@ describe('jestRuleStatics', () => {
         'jest/prefer-strict-equal': 'error',
         'jest/prefer-to-be': 'error',
         'jest/prefer-to-contain': 'off',
-        'jest/to-have-length': 'error',
+        'jest/prefer-to-have-length': 'error',
         'jest/prefer-todo': 'off',
         'jest/require-hook': 'error',
         'jest/require-to-throw-message': 'error',

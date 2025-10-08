@@ -51,6 +51,8 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
       invalidExportCase: 'Lvl4: Export must use {{expected}} for {{folderType}}/ folder',
       filenameMismatch:
         'Lvl4: Export name "{{exportName}}" does not match expected "{{expectedName}}" based on filename',
+      adapterMustBeArrowFunction:
+        'Lvl4: Adapters must export arrow functions (export const x = () => {}), not {{actualType}}',
     },
     schema: [],
   },
@@ -210,24 +212,6 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
         }
 
         // LEVEL 4: Export Validation (Structure is valid, now check exports)
-        // Check if file has only type re-exports (export type { X } from 'pkg') - skip Level 4 validation
-        const programNodeForTypeCheck = node as unknown as {
-          body: {
-            type: string;
-            exportKind?: 'type' | 'value';
-            source?: unknown;
-          }[];
-        };
-        const hasOnlyTypeReExports = programNodeForTypeCheck.body.every(
-          (statement) =>
-            statement.type !== 'ExportNamedDeclaration' ||
-            (statement.exportKind === 'type' && statement.source !== undefined),
-        );
-
-        // Skip export validation for type re-export files (adapters only)
-        if (hasOnlyTypeReExports && firstFolder === 'adapters') {
-          return;
-        }
 
         interface ExportInfo {
           type: string;
@@ -270,37 +254,59 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
             return; // STOP - namespace exports are forbidden
           }
 
-          // Check for re-exports (export { X } from) - allow in adapters, forbid elsewhere
-          if (statement.type === 'ExportNamedDeclaration' && statement.source) {
-            if (firstFolder !== 'adapters') {
-              context.report({
-                node,
-                messageId: 'noReExport',
-                data: { folderType: firstFolder },
-              });
-              return; // STOP - re-exports are forbidden outside adapters
-            }
-          }
-
-          // Collect named value exports (skip type-only exports)
+          // Collect named value exports and check for forbidden re-exports
           if (statement.type === 'ExportNamedDeclaration') {
             const isTypeOnly = statement.exportKind === 'type';
-            const { declaration, source, specifiers } = statement as {
+            const { declaration, source } = statement as {
               declaration?: {
                 type?: string;
                 id?: { name?: string };
                 declarations?: { id?: { type?: string; name?: string } }[];
               };
               source?: unknown;
-              specifiers?: { exported?: { name?: string } }[];
             };
 
+            // Check for value re-exports - forbidden
+            // Pattern 1: export { X } from 'pkg' (has source, value export)
+            // Pattern 2: import { X }; export { X }; (no source, no declaration, value export)
+            const hasSource = source !== null && source !== undefined;
+            const hasDeclaration = declaration !== null && declaration !== undefined;
+
+            if (!isTypeOnly && (hasSource || !hasDeclaration)) {
+              // Either re-export from source OR re-export after import (no declaration)
+              context.report({
+                node,
+                messageId: 'noReExport',
+                data: { folderType: firstFolder },
+              });
+              return; // STOP - value re-exports are forbidden
+            }
+
             // Handle declarations (export const x = ...)
-            if (!isTypeOnly && declaration && !source) {
+            if (!isTypeOnly && declaration) {
               // VariableDeclaration
               if (declaration.type === 'VariableDeclaration' && declaration.declarations) {
                 for (const declarator of declaration.declarations) {
                   if (declarator.id?.type === 'Identifier' && declarator.id.name) {
+                    // ADAPTER-SPECIFIC: Must be arrow function
+                    if (firstFolder === 'adapters') {
+                      const init = (declarator as { init?: { type?: string } }).init;
+                      const isArrowFunction = init?.type === 'ArrowFunctionExpression';
+
+                      if (!isArrowFunction) {
+                        const actualType =
+                          init?.type === 'Identifier'
+                            ? 're-exported variable'
+                            : init?.type || 'non-function value';
+                        context.report({
+                          node,
+                          messageId: 'adapterMustBeArrowFunction',
+                          data: { actualType },
+                        });
+                        return; // STOP - adapters must be arrow functions
+                      }
+                    }
+
                     exports.push({
                       type: 'VariableDeclaration',
                       name: declarator.id.name,
@@ -310,8 +316,17 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
                 }
               }
 
-              // FunctionDeclaration
+              // FunctionDeclaration - forbidden in adapters
               if (declaration.type === 'FunctionDeclaration' && declaration.id?.name) {
+                if (firstFolder === 'adapters') {
+                  context.report({
+                    node,
+                    messageId: 'adapterMustBeArrowFunction',
+                    data: { actualType: 'function declaration' },
+                  });
+                  return; // STOP - adapters must be arrow functions
+                }
+
                 exports.push({
                   type: 'FunctionDeclaration',
                   name: declaration.id.name,
@@ -319,28 +334,22 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
                 });
               }
 
-              // ClassDeclaration
+              // ClassDeclaration - forbidden in adapters
               if (declaration.type === 'ClassDeclaration' && declaration.id?.name) {
+                if (firstFolder === 'adapters') {
+                  context.report({
+                    node,
+                    messageId: 'adapterMustBeArrowFunction',
+                    data: { actualType: 'class' },
+                  });
+                  return; // STOP - adapters must be arrow functions
+                }
+
                 exports.push({
                   type: 'ClassDeclaration',
                   name: declaration.id.name,
                   isTypeOnly: false,
                 });
-              }
-            }
-
-            // Handle re-exports in adapters only
-            // Pattern 1: export { X } from 'pkg' or export { X as Y } from 'pkg'
-            // Pattern 2: export { X } or export { X as Y } (after importing)
-            if (!isTypeOnly && firstFolder === 'adapters' && specifiers && !declaration) {
-              for (const specifier of specifiers) {
-                if (specifier.exported?.name) {
-                  exports.push({
-                    type: 'ReExport',
-                    name: specifier.exported.name,
-                    isTypeOnly: false,
-                  });
-                }
               }
             }
           }

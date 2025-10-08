@@ -675,9 +675,8 @@ await expect(failingCall()).rejects.toThrow('Error message');
 15. **Manual Mock Factories**: Using `jest.mock('module', () => ({ fn: jest.fn() }))` when auto-mocking works
 16. **Importing Before Mocking**: Worrying about import order (jest.mock is hoisted automatically)
 17. **Using Jest in Stubs**: Calling `jest.fn()` inside stub files - stubs accept mocks via props instead
-18. **Wrong Stub Type**: Using contract stubs for external library types (or vice versa) - use adapter stubs for npm
-    packages
-19. **Stub Type Mismatch**: Creating a simplified contract stub when the consumer needs the full external library type
+18. **Missing Contract Stubs**: Not creating stubs for contracts used in tests - every contract needs a `.stub.ts`
+19. **Mocking npm Types Directly**: Trying to mock library types instead of using contract stubs for translated types
 
 ## Forbidden Jest Matchers
 
@@ -840,10 +839,11 @@ it('VALID: calls function', () => {
 
 **Stubs never use `jest.fn()` internally** - they accept mocks via props.
 
-### Contract Stubs vs Adapter Stubs
+### Contract Stubs
 
-**Contract stubs:** `contracts/[name]/[name].stub.ts` - for project types
-**Adapter stubs:** `adapters/[package]/[package]-[type].stub.ts` - for npm package types
+**All stubs live in contracts/:** `contracts/[name]/[name].stub.ts`
+
+With the adapter pivot, adapters translate npm types → contract types. Tests use contract stubs, not npm types:
 
 ```typescript
 // Contract stub - project-defined type
@@ -854,23 +854,38 @@ export const UserStub = (props: Partial<User> = {}): User => ({
     ...props,
 });
 
-// Adapter stub - external library class
-// adapters/eslint/eslint-rule-context.stub.ts
-export const EslintRuleContextStub = (props: Partial<EslintRuleContext> = {}): EslintRuleContext => ({
-    id: 'test-rule',
-    filename: '/test/file.ts',
-    sourceCode: new SourceCode('', minimalAST),  // Use real class when available
-    report: (): void => {
+// Contract stub - translated from npm package
+// contracts/http-response/http-response.stub.ts
+export const HttpResponseStub = (props: Partial<HttpResponse> = {}): HttpResponse => ({
+    body: {},
+    statusCode: httpResponseContract.shape.statusCode.parse(200),
+    headers: {},
+    ...props,
+});
+
+// Contract stub - complex type with functions
+// contracts/eslint-rule-module/eslint-rule-module.stub.ts
+export const EslintRuleModuleStub = (
+    props: Partial<EslintRuleModule> = {}
+): EslintRuleModule => ({
+    meta: {
+        type: 'problem',
+        messages: eslintRuleMetaContract.shape.messages.parse({
+            error: 'Default error'
+        }),
+        schema: [],
     },
+    create: () => ({}),  // Default no-op function
     ...props,
 });
 ```
 
 **Stub Type Strategy:**
 
-- **Class types**: Use `new ClassName()` with minimal constructor args (avoids manual property implementation)
-- **Interface types**: Use object literal with `satisfies Partial<Type>`
-- **Complex nested types**: Build minimal structure with `satisfies` on each level
+- **Branded primitives**: Use contract to parse value (e.g., `filePathContract.parse('/path')`)
+- **Objects with branded fields**: Use contract shape to parse fields individually
+- **Functions**: Provide no-op default, tests override with `jest.fn()` via props
+- **Complex types**: Build minimal structure that satisfies the contract
 
 ### Usage (Always Provide Explicit Values)
 

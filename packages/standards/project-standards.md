@@ -10,7 +10,7 @@
 
 - All functions must use `export const` with arrow function syntax
 - Exception: Error classes use `export class`
-- **Always use named exports** - never use `export default` unless it's the index file and only if its connecting to a
+- **Always use named exports** - never use `export default` unless it's the index file and only if it's connecting to a
   system that requires it.
 
 **Single Responsibility Per File:**
@@ -51,7 +51,7 @@ const processOrder = ({userName, userEmail, companyId}: {
 
 **Import Rules:**
 
-- **All imports at top of file** - No inline imports, requires, or dynamic imports except for performance/lazy loading
+- **All imports at top of file** - No inline imports, requires, or dynamic imports
 - **Use ES6 imports** - Prefer `import` over `require()`
 - **Group imports logically** - External packages, then internal modules, then types
 
@@ -380,24 +380,7 @@ package-root/
 
 ## Import Rules - What Can Import What
 
-### Layer-to-Layer Imports
-
-```
-startup/ → ALL (bootstrap only, no business logic)
-flows/ → responders/ (ONLY)
-responders/ → widgets/ (UI only), brokers/, bindings/ (UI only), state/, contracts/, transformers/, guards/, statics/, errors/
-widgets/ → bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/ (UI only)
-bindings/ → brokers/, state/, contracts/, statics/, errors/ (UI only)
-brokers/ → brokers/, adapters/, contracts/, statics/, errors/
-middleware/ → adapters/, middleware/, statics/
-adapters/ → node_modules, middleware/, statics/, contracts/
-transformers/ → contracts/, statics/, errors/
-guards/ → contracts/, statics/, errors/
-state/ → contracts/, statics/, errors/
-contracts/ → statics/, errors/, validation-library-only (zod)
-statics/ → (no imports)
-errors/ → (no imports)
-```
+See `packages/eslint-plugin/src/statics/folder-config/folder-config-statics.ts` for full import mapping rules.
 
 ### Domain Folder Import Rules
 
@@ -445,7 +428,6 @@ statics/
 - **One export per file:** Single object with `Statics` suffix
 - **Root must contain only objects or arrays** (no primitives at root level - enforced by lint)
 - **Always use `as const`** for readonly enforcement
-- **CAN import:** Nothing (foundational layer)
 
 **Example:**
 
@@ -471,18 +453,6 @@ export const eslintStatics = {
   },
   config: {
     ignorePatterns: ['node_modules', 'dist']
-  }
-} as const;
-
-// statics/api/api-statics.ts
-export const apiStatics = {
-  timeout: {
-    default: 5000,
-    long: 30000
-  },
-  endpoints: {
-    users: '/api/users',
-    posts: '/api/posts'
   }
 } as const;
 ```
@@ -519,7 +489,6 @@ contracts/
     - TypeScript types inferred from schemas: `export type User = z.infer<typeof userContract>`
     - Stub files (`.stub.ts`) for testing
 - **MUST** use `.brand<'TypeName'>()` on all Zod string/number schemas (no raw primitives)
-- **CAN** import statics/, errors/, and validation library (zod) ONLY
 
 **Example:**
 
@@ -594,7 +563,6 @@ guards/
 - **MUST be pure functions** (no external calls, no side effects)
 - **MUST return boolean**
 - **MUST have explicit return types**
-- **CAN** import contracts/ (types only), statics/, errors/
 
 **Example:**
 
@@ -653,7 +621,6 @@ transformers/
 - **Must** be pure functions (no side effects)
 - **Must** have explicit return types using Zod contracts (no raw primitives)
 - **Must** validate output using appropriate contract before returning
-- **CAN** import contracts/ and errors/
 
 **Example:**
 
@@ -689,7 +656,6 @@ errors/
 **Constraints:**
 
 - **Must** extend Error class
-- **No imports** (foundational layer)
 
 **Example:**
 
@@ -725,7 +691,6 @@ flows/
 
 **Constraints:**
 
-- **CAN ONLY** import responders/
 - **Frontend:** Use react-router-dom Route/Routes
 - **Backend:** Use express.Router
 - **Package:** Entry files that compose public API
@@ -759,9 +724,9 @@ router.get('/users/:id', async (req, res, next) => {
 export const UserFlow = router;
 ```
 
-### adapters/ - External Package Configuration
+### adapters/ - External Package Boundary Translation
 
-**Purpose:** Add project-wide policies to external packages (auth, timeout, retry, logging)
+**Purpose:** Translate between external package APIs and application contracts
 
 **Folder Structure:**
 
@@ -772,89 +737,273 @@ adapters/
     axios-get-adapter.test.ts
     axios-post-adapter.ts
     axios-post-adapter.test.ts
-    axios-put-adapter.ts
-    axios-put-adapter.test.ts
-  aws-sdk-client-s3/
-    aws-sdk-client-s3-upload-adapter.ts
-    aws-sdk-client-s3-upload-adapter.test.ts
-    aws-sdk-client-s3-download-adapter.ts
-    aws-sdk-client-s3-download-adapter.test.ts
-    aws-sdk-client-s3-delete-adapter.ts
-    aws-sdk-client-s3-delete-adapter.test.ts
+  fs/
+    fs-read-file-adapter.ts
+    fs-read-file-adapter.test.ts
+    fs-ensure-write-adapter.ts      # Composes mkdir + writeFile
+    fs-ensure-write-adapter.test.ts
 ```
 
 **Naming Conventions:**
 
-- **Filename:** kebab-case `[package-name]-[export-name]-adapter.ts` (ALL adapters require -adapter.ts suffix)
-- **Export:**
-    - **Value adapters:** camelCase ending with `Adapter` (e.g., `axiosGetAdapter`, `fsReadFileAdapter`)
-    - **Type re-exports:** Re-exported with alias ending in `Adapter` (e.g.,
-      `export { RuleTester as eslintRuleTesterAdapter }`)
-    - **Type-only re-exports:** Can skip export name validation but MUST have -adapter.ts file suffix
-- **Pattern:** adapters/[package-name]/[package-name]-[export-name]-adapter.ts (ALL files require -adapter.ts)
-- **Discovery:** `ls adapters/[package]/` shows all available exports from that package
+- **Filename:** kebab-case `[package-name]-[operation]-adapter.ts`
+- **Export:** camelCase ending with `Adapter` (e.g., `axiosGetAdapter`, `fsEnsureWriteAdapter`)
+- **Pattern:** adapters/[package-name]/[package-name]-[operation]-adapter.ts
 
 **Constraints:**
 
-- **CRITICAL: One export per file** - Each adapter file must export exactly one function, type, or class
-    - ✅ `adapters/axios/axios-get-adapter.ts` (single export: `axiosGetAdapter`)
-    - ✅ `adapters/eslint/eslint-rule-adapter.ts` (type re-export: `export type { Rule } from "eslint"`)
-    - ✅ `adapters/eslint/eslint-rule-tester-adapter.ts` (class re-export:
-      `export { RuleTester as eslintRuleTesterAdapter } from "eslint"`)
-    - ❌ `adapters/axios/axios-requests-adapter.ts` with multiple exports (violates single responsibility)
-- **EVOLUTION RULE:** Created on-demand when lint detects duplicate package usage
-- **Naming:** Based on package's function names, NOT business domain
-    - ✅ `adapters/stripe/stripe-charges-create-adapter.ts` (wraps stripe.charges.create, exports
-      `stripeChargesCreateAdapter`)
-    - ❌ `adapters/stripe/payment-adapter.ts` (business domain)
-- **Must** add project-specific configuration (timeout, auth, retry)
+- **CRITICAL: One export per file** - Each adapter file exports exactly one arrow function
+- **MUST be arrow function** - `export const x = () => {}` NOT `export function x() {}` or re-exports
+- **ALL inputs MUST use contracts** - No raw `string`, `number`, etc.
+- **ALL outputs MUST use contracts** - No returning npm package types
+- **Every contract MUST have a stub** - For type-safe testing
+- **Contracts don't need to match npm types** - Adapter translates app contracts ↔ npm types
+- **Type only what you use** - Expand contracts incrementally as needed
+- **Can compose multiple package functions** - If they accomplish one app operation
+- **Package name prefixes filename** - `axios-get-adapter.ts` not `http-get-adapter.ts`
+- **Brands on primitives** - Brand `string`/`number`, not objects
+- **Must** add project-specific configuration (timeout, auth, retry, logging)
 - **Must** know NOTHING about business logic
-- **Must** use Zod contract types for all parameters (inputs)
-- **Return types** - Choose based on consumer needs:
 
-| Consumer Needs                              | Return Type   | Re-export | Example                  |
-|---------------------------------------------|---------------|-----------|--------------------------|
-| Library features (status, headers, methods) | npm type      | Yes       | `Promise<AxiosResponse>` |
-| Primitives or simple data only              | Contract type | No        | `Promise<FileContents>`  |
+**Translation Pattern:**
 
-- **Must** re-export npm types when using them as return types
-- **Must** validate and brand primitive returns through contracts before returning
-- **CAN** import node_modules, middleware/ (when coupled), statics/, and contracts/
+```typescript
+// App uses our contracts
+FilePath → Adapter
+translates → string(
+for fs.readFile)
+    Adapter
+translates ← Buffer(from
+fs.readFile
+)
+FileContents ← Result
+
+// Adapter is the boundary translator
+export const fsReadFileAdapter = async ({
+                                            filePath
+                                        }: {
+    filePath: FilePath;  // Input: our contract
+}): Promise<FileContents> => {  // Output: our contract
+    // Translate contract → npm type
+    const rawPath: string = filePath; // FilePath is branded string
+
+    // Call npm package with its types
+    const buffer = await readFile(rawPath);
+
+    // Translate npm type → contract
+    return fileContentsContract.parse(buffer.toString('utf8'));
+};
+```
+
+**Composition Example:**
+
+One adapter can use multiple functions from the same package:
+
+```typescript
+// adapters/fs/fs-ensure-write-adapter.ts
+import {mkdir, writeFile} from 'fs/promises';
+import {dirname} from 'path';
+import type {FilePath} from '../../contracts/file-path/file-path-contract';
+import type {FileContents} from '../../contracts/file-contents/file-contents-contract';
+
+export const fsEnsureWriteAdapter = async ({
+  filePath,
+  content
+}: {
+  filePath: FilePath;
+  content: FileContents;
+}): Promise<void> => {
+  const dir = dirname(filePath);
+  await mkdir(dir, {recursive: true});  // fs.mkdir
+  await writeFile(filePath, content);     // fs.writeFile
+  // Both accomplish one app operation: "safely write file"
+};
+```
+
+**Contract Requirements:**
+
+Every contract needs a corresponding stub for type-safe testing:
+
+```typescript
+// contracts/http-response/http-response-contract.ts
+export const httpResponseContract = z.object({
+  body: z.unknown(),
+  statusCode: z.number().int().min(100).max(599).brand<'StatusCode'>(),  // Brand on primitive
+  headers: z.record(z.string()),
+});
+export type HttpResponse = z.infer<typeof httpResponseContract>;
+
+// contracts/http-response/http-response.stub.ts
+export const HttpResponseStub = (props: Partial<HttpResponse> = {}): HttpResponse => ({
+  body: {},
+  statusCode: httpResponseContract.shape.statusCode.parse(200),
+  headers: {},
+  ...props,
+});
+
+// contracts/file-path/file-path-contract.ts
+export const filePathContract = z.string().brand<'FilePath'>();  // Brand on primitive
+export type FilePath = z.infer<typeof filePathContract>;
+
+// contracts/file-path/file-path.stub.ts
+export const FilePathStub = (value: string): FilePath =>
+  filePathContract.parse(value);
+```
+
+**Incremental Contract Expansion:**
+
+Don't type everything upfront - type only what you use:
+
+```typescript
+// V1: Only need body and status
+export const httpResponseContract = z.object({
+  body: z.unknown(),
+  statusCode: z.number().int().brand<'StatusCode'>(),
+});
+
+// V2: Later, need headers too
+export const httpResponseContract = z.object({
+  body: z.unknown(),
+  statusCode: z.number().int().brand<'StatusCode'>(),
+  headers: z.record(z.string()),  // Added
+});
+
+// V3: Even later, need cookies
+export const httpResponseContract = z.object({
+  body: z.unknown(),
+  statusCode: z.number().int().brand<'StatusCode'>(),
+  headers: z.record(z.string()),
+  cookies: z.record(z.string().brand<'CookieValue'>()),  // Added with branded values
+});
+```
+
+**Complex Types (Functions, Classes):**
+
+When npm types include functions or complex class instances, use TypeScript types directly:
+
+```typescript
+// contracts/eslint-rule-module/eslint-rule-module-contract.ts
+export const eslintRuleMetaContract = z.object({
+  type: z.enum(['problem', 'suggestion', 'layout']),
+  messages: z.record(z.string().brand<'ErrorMessage'>()),  // Brand on string primitive
+  schema: z.array(z.unknown()),
+});
+export type EslintRuleMeta = z.infer<typeof eslintRuleMetaContract>;
+
+// TypeScript type for function parts (Zod can't validate functions)
+export type EslintRuleModule = {
+  meta: EslintRuleMeta;  // Data validated with Zod
+  create: (context: RuleContext) => RuleListener;  // TypeScript enforces signature
+};
+
+// Stub for tests
+export const EslintRuleModuleStub = (
+  props: Partial<EslintRuleModule> = {}
+): EslintRuleModule => ({
+  meta: {
+    type: 'problem',
+    messages: eslintRuleMetaContract.shape.messages.parse({
+      error: 'Default error'
+    }),
+    schema: [],
+  },
+  create: () => ({}),
+  ...props,
+});
+```
 
 **Examples:**
 
 ```typescript
-// Pattern 1: Return npm type (broker needs library features)
-// adapters/axios/axios-get-adapter.ts
-import axios, {type AxiosResponse} from 'axios';
-import type {Url} from '../../contracts/url/url-contract';
-
-export type {AxiosResponse};
-
-export const axiosGetAdapter = async ({url}: { url: Url }): Promise<AxiosResponse> => {
-    return await axios.get(url, {
-        headers: {'Authorization': `Bearer ${getToken()}`},
-        timeout: 10000
-    });
-};
-```
-
-```typescript
-// Pattern 2: Return contract (broker only needs data)
+// Pattern 1: Simple translation
 // adapters/fs/fs-read-file-adapter.ts
 import {readFile} from 'fs/promises';
 import {fileContentsContract} from '../../contracts/file-contents/file-contents-contract';
 import type {FilePath} from '../../contracts/file-path/file-path-contract';
 import type {FileContents} from '../../contracts/file-contents/file-contents-contract';
 
-export const fsReadFileAdapter = async ({filePath}: { filePath: FilePath }): Promise<FileContents> => {
-    try {
-        const content = await readFile(filePath, 'utf8');
-        return fileContentsContract.parse(content);
-    } catch (error) {
-        throw new Error(`Failed to read file at ${filePath}: ${error}`);
-    }
+export const fsReadFileAdapter = async ({
+  filePath
+}: {
+  filePath: FilePath;
+}): Promise<FileContents> => {
+  const buffer = await readFile(filePath);
+  return fileContentsContract.parse(buffer.toString('utf8'));
 };
+
+// Pattern 2: Complex translation
+// adapters/axios/axios-get-adapter.ts
+import axios from 'axios';
+import {httpResponseContract} from '../../contracts/http-response/http-response-contract';
+import type {Url} from '../../contracts/url/url-contract';
+import type {HttpResponse} from '../../contracts/http-response/http-response-contract';
+
+export const axiosGetAdapter = async ({
+  url
+}: {
+  url: Url;
+}): Promise<HttpResponse> => {
+  // axios.get returns AxiosResponse with its own types
+  const response = await axios.get(url, {
+    timeout: 10000,
+    headers: {'Authorization': `Bearer ${getToken()}`},
+  });
+
+  // Translate to our contract (only what we need)
+  return httpResponseContract.parse({
+    body: response.data,
+    statusCode: response.status,
+    headers: response.headers,
+  });
+};
+
+// Pattern 3: Composition of package functions
+// adapters/fs/fs-copy-file-adapter.ts
+import {readFile, writeFile, mkdir} from 'fs/promises';
+import {dirname} from 'path';
+import type {FilePath} from '../../contracts/file-path/file-path-contract';
+
+export const fsCopyFileAdapter = async ({
+  source,
+  destination
+}: {
+  source: FilePath;
+  destination: FilePath;
+}): Promise<void> => {
+  const content = await readFile(source);           // fs.readFile
+  const dir = dirname(destination);
+  await mkdir(dir, {recursive: true});            // fs.mkdir
+  await writeFile(destination, content);            // fs.writeFile
+  // Multiple fs functions, one app operation: "copy file safely"
+};
+```
+
+**Testing:**
+
+```typescript
+// adapters/fs/fs-read-file-adapter.test.ts
+import {fsReadFileAdapter} from './fs-read-file-adapter';
+import {FilePathStub} from '../../contracts/file-path/file-path.stub';
+import {FileContentsStub} from '../../contracts/file-contents/file-contents.stub';
+
+// Mock the actual fs module
+jest.mock('fs/promises');
+import {readFile} from 'fs/promises';
+const mockReadFile = jest.mocked(readFile);
+
+describe('fsReadFileAdapter', () => {
+  it('VALID: {filePath: "/config.json"} => returns file contents', async () => {
+    const filePath = FilePathStub('/config.json');
+    const expected = FileContentsStub('{"key": "value"}');
+
+    mockReadFile.mockResolvedValue(Buffer.from('{"key": "value"}'));
+
+    const result = await fsReadFileAdapter({filePath});
+
+    expect(result).toStrictEqual(expected);
+    expect(mockReadFile).toHaveBeenCalledWith(filePath);
+  });
+});
 ```
 
 ### middleware/ - Infrastructure Orchestration
@@ -880,8 +1029,6 @@ middleware/
 
 - **ONLY** for infrastructure concerns (telemetry, observability, monitoring)
 - **NOT** for business logic
-- **CAN** import adapters/ and middleware/
-- **CAN** be imported by adapters/ (when coupled)
 - **Pattern:** Combines 2+ infrastructure adapters
 
 **Example:**
@@ -934,7 +1081,6 @@ brokers/
 - **Max 2 levels:** brokers/[domain]/[action]/ (no deeper nesting)
     - ❌ `brokers/product/inventory/stock/check/`
     - ✅ `brokers/product/check-inventory-stock/`
-- **CAN** import brokers/, adapters/, contracts/, errors/
 - **Import patterns:**
     - Same domain: `../create/user-create-broker` (relative)
     - Cross-domain: `../../email/send/email-send-broker` (explicit)
@@ -1004,7 +1150,6 @@ bindings/
 - **Backend:** Not applicable
 - **Must** return `{data, loading, error}` pattern for async operations
 - **Must** wrap single broker calls only (no orchestration)
-- **CAN** import brokers/, state/, contracts/, errors/
 
 **Example:**
 
@@ -1063,7 +1208,6 @@ state/
 - **Pure storage:** In-memory only, no external API calls or database operations
 - **Configuration:** App-wide constants, feature flags, API base URLs live here
 - **Must** export as objects with methods/properties (not individual functions)
-- **CAN** import contracts/ and errors/ only
 
 **Example:**
 
@@ -1142,9 +1286,6 @@ responders/
 - **Queue processors:** Process queue jobs
 - **Scheduled tasks:** Execute on time conditions
 - **One export per file**
-- **With UI:** Import widgets/, brokers/, bindings/, state/, contracts/, transformers/, errors/
-- **Without UI:** Import brokers/, state/, contracts/, transformers/, errors/
-- **CAN ONLY** be imported by flows/
 - **If route points to it:** It's a responder, not a widget
 
 **Example:**
@@ -1209,12 +1350,10 @@ widgets/
 - **CAN** use brokers in event handlers
 - **CANNOT** use bindings in event handlers (React will error)
 - **CAN** use React useState for component-local UI state
-- **CAN** import bindings/, brokers/, state/, contracts/, transformers/, errors/
-- **CAN NOT** import adapters/, flows/, responders/
 
 **Example:**
 
-```typescript
+```tsx
 // widgets/user-card/user-card-widget.tsx
 import {useState} from 'react';
 import {useUserDataBinding} from '../../bindings/use-user-data/use-user-data-binding';
@@ -1237,28 +1376,16 @@ export const UserCardWidget = ({userId, onUpdate}: UserCardWidgetProps): JSX.Ele
         }
     };
 
-    if (loading) return <div>Loading
-...
-    </div>;
-    if (error) return <div>Error
-:
-    {
-        error.message
-    }
-    </div>;
-    if (!user) return <div>No
-    user
-    found < /div>;
+    if (loading) return <div>Loading</div>;
+    if (error) return <div>Error: { error.message }</div>;
+    if (!user) return <div>No user found </div>;
 
     return (
         <div>
-            <AvatarWidget userId = {userId}
-    />
-    < button
-    onClick = {handleUpdate} > Update < /button>
-        < /div>
-)
-    ;
+            <AvatarWidget userId = {userId} />
+            <button onClick = {handleUpdate} > Update < /button>
+        </div>
+    );
 };
 ```
 
@@ -1285,7 +1412,6 @@ startup/
 
 **Constraints:**
 
-- **CAN** import ALL folders (unique privilege for bootstrap)
 - **Must NOT** contain business logic (only wiring)
 - **Static constants:** Can live here (e.g., `const PORT = 3000`)
 - **Environment loading:** Happens here
@@ -1345,7 +1471,7 @@ The thin entry files just point to startup/ where the real initialization lives.
 
 **Example:**
 
-```typescript
+```tsx
 // ✅ CORRECT - Simple binding wrapping one broker
 // bindings/use-user-data/use-user-data-binding.ts
 export const useUserDataBinding = ({userId}) => {
@@ -1367,13 +1493,9 @@ export const useUserDataBinding = ({userId}) => {
 // widgets/user-card/user-card-widget.tsx
 export const UserCardWidget = ({userId}) => {
     const {data: user, loading, error} = useUserDataBinding({userId});
-    if (loading) return <div>Loading
-...
-    </div>;
-    if (error) return <div>Error < /div>;
-    return <div>{user?.name
-}
-    </div>;
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error</div>;
+    return <div>{user?.name}</div>;
 };
 
 // ❌ WRONG - Widget calling broker directly
@@ -1382,9 +1504,7 @@ export const UserCardWidget = ({userId}) => {
     useEffect(() => {
         userFetchBroker({userId}).then(setUser);  // Wrong layer!
     }, [userId]);
-    return <div>{user?.name
-}
-    </div>;
+    return <div>{user?.name}</div>;
 };
 
 // ❌ WRONG - Binding with multiple brokers (orchestration)
@@ -1430,17 +1550,9 @@ export const useUserDataBinding = ({
 // widgets/user-profile/user-profile-widget.tsx
 export const UserProfileWidget = ({userId}) => {
     const {data, loading, error} = useUserDataBinding({userId, includeCompany: true});
-    if (loading) return <div>Loading
-...
-    </div>;
-    if (error) return <div>Error < /div>;
-    return <div>{data.user.name}
-    works
-    at
-    {
-        data.company.name
-    }
-    </div>;
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error</div>;
+    return <div>{data.user.name} works at {data.company.name}</div>;
 };
 ```
 
@@ -1635,8 +1747,6 @@ export const UserSignupResponder = async ({req, res}: {
 ```
 
 ## File Discovery and Extension Rules
-
-**CRITICAL: Before creating any new file, you MUST explore first to prevent file proliferation.**
 
 ### Extension Over Creation
 
@@ -1852,18 +1962,3 @@ Before creating any file, ask:
 4. ✅ Is this truly a new domain/action, not a variant?
 
 **Only create new files after confirming all NO answers.**
-
-## Lint-Enforced Rules
-
-Some architectural rules are enforced by lint rather than documented here, as they require dynamic analysis:
-
-### Responder Multi-Broker Calls
-
-**Rule:** Responders calling multiple brokers will be caught and flagged by lint.
-
-- If responder needs data from multiple sources, lint will detect multiple broker calls
-- Lint will suggest creating an orchestration broker instead
-- This ensures responders remain thin and orchestration stays in brokers/
-
-**Why lint instead of docs:** Whether a responder "needs" multiple brokers depends on runtime business logic, not file
-structure. Lint can analyze actual calls dynamically.

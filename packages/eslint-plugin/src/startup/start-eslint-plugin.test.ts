@@ -82,6 +82,7 @@ describe('startEslintPlugin', () => {
         'enforce-object-destructuring-params',
         'enforce-test-colocation',
         'enforce-implementation-testing',
+        'forbid-non-exported-functions',
       ]);
     });
 

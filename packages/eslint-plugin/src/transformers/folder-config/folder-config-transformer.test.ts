@@ -39,6 +39,7 @@ describe('folderConfigTransformer', () => {
         'middleware/',
         'statics/',
         'contracts/',
+        'guards/',
       ]);
     });
 

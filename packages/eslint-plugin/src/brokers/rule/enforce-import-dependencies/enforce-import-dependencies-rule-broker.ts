@@ -85,14 +85,6 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
         return;
       }
 
-      // Check if this is a type-only import
-      const hasImportKind = (
-        nodeToCheck: unknown,
-      ): nodeToCheck is { importKind?: 'type' | 'value' } =>
-        typeof nodeToCheck === 'object' && nodeToCheck !== null && 'importKind' in nodeToCheck;
-
-      const isTypeOnlyImport = hasImportKind(node) && node.importKind === 'type';
-
       const isRelativeImport = importSource.startsWith('.');
 
       if (isRelativeImport) {
@@ -120,11 +112,6 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
         }
 
         const importedFolder = importedFolderType;
-
-        // Type-only imports from adapters are allowed anywhere
-        if (isTypeOnlyImport && importedFolder === 'adapters') {
-          return;
-        }
 
         // Check if importing from same category with unnecessary category name in path
         // E.g., brokers importing from ../../../brokers/ instead of ../../
