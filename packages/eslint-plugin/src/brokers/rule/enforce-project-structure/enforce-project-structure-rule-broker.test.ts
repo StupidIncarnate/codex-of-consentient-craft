@@ -594,7 +594,8 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
     // Adapters cannot re-export via variable assignment (must be arrow functions)
     {
       code: 'import plugin from "@typescript-eslint/eslint-plugin";\nexport const typescriptEslintEslintPluginAdapter = plugin;',
-      filename: '/project/src/adapters/typescript-eslint-eslint-plugin/typescript-eslint-eslint-plugin-adapter.ts',
+      filename:
+        '/project/src/adapters/typescript-eslint-eslint-plugin/typescript-eslint-eslint-plugin-adapter.ts',
       errors: [{ messageId: 'adapterMustBeArrowFunction' }],
     },
     // Adapters cannot use function declarations (must be arrow functions)
