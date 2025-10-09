@@ -172,6 +172,15 @@ Configure ward commands to work with your workspace:
 }
 ```
 
+## Truths about Claude in balance with this system
+
+These are observations of how Claude Code works and how the system balances out Claude's inherent "entrenched habits".
+
+### Files are small
+
+- Claude (Sonnet 4.5/Claude Code - v2) greps for partial content whenever it can
+- The system is structured to keep files small so that Claude doesn't grep for cut off content
+
 ## Contributing
 
 Found a bug or have a feature idea? Open an issue or PR!

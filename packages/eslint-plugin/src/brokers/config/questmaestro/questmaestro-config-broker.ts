@@ -70,7 +70,10 @@ export const questmaestroConfigBroker = ({
       '@questmaestro/enforce-test-colocation': 'error',
       '@questmaestro/explicit-return-types': 'error',
       '@questmaestro/forbid-non-exported-functions': 'error',
+      '@questmaestro/require-contract-validation': 'error',
       '@questmaestro/require-zod-on-primitives': 'error',
+      // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
+      '@typescript-eslint/no-require-imports': 'off',
     },
   };
 };

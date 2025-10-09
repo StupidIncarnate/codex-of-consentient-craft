@@ -7,6 +7,7 @@ import { enforceObjectDestructuringParamsRuleBroker } from '../brokers/rule/enfo
 import { enforceTestColocationRuleBroker } from '../brokers/rule/enforce-test-colocation/enforce-test-colocation-rule-broker';
 import { enforceImplementationTestingRuleBroker } from '../brokers/rule/enforce-implementation-testing/enforce-implementation-testing-rule-broker';
 import { forbidNonExportedFunctionsRuleBroker } from '../brokers/rule/forbid-non-exported-functions/forbid-non-exported-functions-rule-broker';
+import { requireContractValidationRuleBroker } from '../brokers/rule/require-contract-validation/require-contract-validation-rule-broker';
 import { questmaestroConfigBroker } from '../brokers/config/questmaestro/questmaestro-config-broker';
 import type { Rule } from '../adapters/eslint/eslint-rule-adapter';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
@@ -22,6 +23,7 @@ export const startEslintPlugin = (): {
     readonly 'enforce-test-colocation': Rule.RuleModule;
     readonly 'enforce-implementation-testing': Rule.RuleModule;
     readonly 'forbid-non-exported-functions': Rule.RuleModule;
+    readonly 'require-contract-validation': Rule.RuleModule;
   };
   readonly configs: {
     readonly questmaestro: EslintConfig;
@@ -38,6 +40,7 @@ export const startEslintPlugin = (): {
       'enforce-test-colocation': enforceTestColocationRuleBroker(),
       'enforce-implementation-testing': enforceImplementationTestingRuleBroker(),
       'forbid-non-exported-functions': forbidNonExportedFunctionsRuleBroker(),
+      'require-contract-validation': requireContractValidationRuleBroker(),
     },
     configs: {
       questmaestro: questmaestroConfigBroker(),

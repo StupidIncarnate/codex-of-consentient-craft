@@ -37,6 +37,7 @@
     "eslint-plugin-eslint-comments": "^3.2.0"
   },
   "dependencies": {
+    "@questmaestro/shared": "*",
     "debug": "^4.4.1",
     "zod": "^3.25.76"
   }

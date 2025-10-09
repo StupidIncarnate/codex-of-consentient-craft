@@ -1,0 +1,49 @@
+{
+  "name": "@questmaestro/shared",
+  "version": "0.1.0",
+  "description": "Shared contracts and utilities for Questmaestro packages",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./contracts": {
+      "import": "./dist/contracts.js",
+      "require": "./dist/contracts.js",
+      "types": "./dist/contracts.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint"
+  },
+  "keywords": [
+    "questmaestro",
+    "contracts",
+    "zod",
+    "validation",
+    "typescript"
+  ],
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@questmaestro/testing": "*",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.5.0",
+    "typescript": "^5.3.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

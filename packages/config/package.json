@@ -19,7 +19,9 @@
     "lint",
     "architecture"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "@questmaestro/shared": "*"
+  },
   "devDependencies": {
     "@questmaestro/testing": "*"
   },

@@ -9,5 +9,6 @@ export const hookConfigDefaultTransformer = (): PreEditLintConfig =>
       'eslint-comments/no-use',
       'jest/no-restricted-jest-methods',
       'jest/no-restricted-matchers',
+      '@questmaestro/require-contract-validation',
     ],
   });

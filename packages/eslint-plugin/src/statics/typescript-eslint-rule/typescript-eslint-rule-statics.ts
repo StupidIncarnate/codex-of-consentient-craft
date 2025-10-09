@@ -438,7 +438,7 @@ export const typescriptEslintRuleStatics = {
     // ✅ const x: string = getValue()
     // ❌ const x: string = getValue() as any
     // Disallow assigning a value with type any to variables and properties
-    // Disabled for testing to allow Jest patterns like expect.any()
+    // It must be typed as unknown so you can then pass through typeguards
     '@typescript-eslint/no-unsafe-assignment': 'error',
 
     // ✅ fn(value)

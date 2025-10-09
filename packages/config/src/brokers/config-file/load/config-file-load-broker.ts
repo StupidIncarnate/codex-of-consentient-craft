@@ -1,5 +1,4 @@
 import { fsReadFile } from '../../../adapters/fs/fs-read-file';
-import { nodeRequire } from '../../../adapters/node/node-require-single';
 import { nodeRequireClearCache } from '../../../adapters/node/node-require-clear-cache';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
@@ -13,7 +12,7 @@ const loadConfigModule = ({ configPath }: { configPath: string }): unknown => {
   nodeRequireClearCache({ modulePath: configPath });
 
   // Load the config file (assumes it's a .js module)
-  const configModule = nodeRequire({ modulePath: configPath });
+  const configModule: unknown = require(filePathContract.parse(configPath));
 
   if (
     configModule !== null &&
@@ -21,7 +20,7 @@ const loadConfigModule = ({ configPath }: { configPath: string }): unknown => {
     typeof configModule === 'object' &&
     'default' in configModule
   ) {
-    return (configModule as Record<string, unknown>).default;
+    return configModule.default;
   }
 
   return configModule;
