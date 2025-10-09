@@ -5,15 +5,12 @@ This directory contains the architectural design for distributing Quest Maestro 
 ## 📚 Start Here
 
 ### For Everyone
-
 - **[INDEX.md](INDEX.md)** - Complete navigation guide with all documents and reading paths
 
 ### For Executives
-
 - **[EXECUTIVE-SUMMARY.md](EXECUTIVE-SUMMARY.md)** - Business case, ROI, timeline (15 min read)
 
 ### For Implementers
-
 - **[QUICK-START.md](QUICK-START.md)** - Architecture overview and implementation guide (30 min read)
 
 ---
@@ -140,7 +137,6 @@ Planning and execution:
 ## Key Insights
 
 ### The Fundamental Problem
-
 **LLMs have attention decay over long documents.**
 
 Research shows information retrieval accuracy drops dramatically for content far from the query point in long
@@ -150,7 +146,6 @@ distant content has weak influence on generation, causing fallback to training p
 **Practical evidence:** Quest Maestro's 50-60% compliance with 1780-line docs confirms this real-world impact.
 
 ### The Solution Architecture
-
 - **Never load > 1200 lines** for a single task
 - **Repeat critical rules** at multiple distances (every 200-400 lines)
 - **Lead with anti-patterns** (high attention positions, first 100 lines)
@@ -159,7 +154,6 @@ distant content has weak influence on generation, causing fallback to training p
 - **Auto-sync docs from npm** (updates propagate automatically)
 
 ### Why This Works
-
 1. **Works WITH LLM architecture** - Designed for attention mechanisms
 2. **Treats documentation as code** - Versioned, distributed, dependency-managed
 3. **Self-correcting** - Lint feedback loop catches violations
@@ -171,16 +165,12 @@ distant content has weak influence on generation, causing fallback to training p
 ## Reading Paths
 
 ### Path 1: Executive Brief (45 min)
-
 → For decision makers and stakeholders
-
 1. [EXECUTIVE-SUMMARY.md](EXECUTIVE-SUMMARY.md) - Business case
 2. [QUICK-START.md](QUICK-START.md) - Technical overview
 
 ### Path 2: Technical Deep Dive (2 hours)
-
 → For architects and senior developers
-
 1. [01-attention-decay-problem.md](01-attention-decay-problem.md)
 2. [02-progressive-context-loading.md](02-progressive-context-loading.md)
 3. [03-anti-pattern-strategy.md](03-anti-pattern-strategy.md)
@@ -190,18 +180,14 @@ distant content has weak influence on generation, causing fallback to training p
 7. [16-lint-driven-learning.md](16-lint-driven-learning.md)
 
 ### Path 3: Implementation Guide (3 hours)
-
 → For developers building this system
-
 1. [QUICK-START.md](QUICK-START.md)
 2. Technical Deep Dive (above)
 3. [19-implementation-roadmap.md](19-implementation-roadmap.md)
 4. Advanced topics as needed
 
 ### Path 4: Quick Skim (20 min)
-
 → For general understanding
-
 1. [EXECUTIVE-SUMMARY.md](EXECUTIVE-SUMMARY.md)
 2. [INDEX.md](INDEX.md)
 
@@ -222,7 +208,6 @@ distant content has weak influence on generation, causing fallback to training p
 ## Implementation Summary
 
 ### Timeline
-
 - **Phase 1 (Weeks 1-2):** MVP - Extract docs, create init script
 - **Phase 2 (Weeks 3-6):** Integration - Testing + ESLint + Hooks packages
 - **Phase 3 (Weeks 7-10):** Beta testing - Real projects, feedback, iteration
@@ -231,14 +216,12 @@ distant content has weak influence on generation, causing fallback to training p
 **Total: 12 weeks to v1.0.0 with 1 developer**
 
 ### Investment
-
 - Development: ~$23k
 - Infrastructure: $150/year
 - Maintenance: ~$8k/year
 - **Total Year 1: ~$31k**
 
 ### ROI
-
 - Value per project: ~$24k/year (time savings)
 - Break-even: 2 consumer projects
 - **Year 1 ROI: 55%** (scales with adoption)
@@ -248,7 +231,6 @@ distant content has weak influence on generation, causing fallback to training p
 ## File Status
 
 ### ✅ Complete (12 documents)
-
 - INDEX.md, README.md, EXECUTIVE-SUMMARY.md, QUICK-START.md
 - 01-attention-decay-problem.md
 - 02-progressive-context-loading.md
@@ -260,7 +242,6 @@ distant content has weak influence on generation, causing fallback to training p
 - 19-implementation-roadmap.md
 
 ### 📝 Planned (11 documents)
-
 - 07-15: Advanced patterns (Root orchestrator, folder structure, etc.)
 - 17-18: Risk mitigation, success metrics
 
@@ -273,14 +254,12 @@ distant content has weak influence on generation, causing fallback to training p
 **Task**: "Create a user fetch broker"
 
 **Claude loads**:
-
 1. Root CLAUDE.md (300 lines) - Orchestrator
 2. core-rules.md (250 lines) - Universal rules
 3. brokers-guide.md (450 lines) - Broker-specific patterns
 4. **Total: 1000 lines** (manageable)
 
 **Not loaded** (available but not needed):
-
 - transformers-guide.md
 - frontend-guide.md
 - testing-standards.md
@@ -292,7 +271,6 @@ distant content has weak influence on generation, causing fallback to training p
 ## Quick Reference
 
 ### Core Principles
-
 1. **Attention decay is real** - Design for < 1200 lines per task
 2. **Rules need proximity** - < 50 lines from examples
 3. **Repetition fights decay** - Restate every 200-400 lines
@@ -301,7 +279,6 @@ distant content has weak influence on generation, causing fallback to training p
 6. **npm enables auto-sync** - Documentation as dependency
 
 ### Why It Works
-
 - **Attention-aware:** Designed for transformer architecture
 - **Self-updating:** npm + symlinks = automatic propagation
 - **Self-correcting:** Lint catches what LLM forgets

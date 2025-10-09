@@ -105,9 +105,7 @@ describe('questmaestro-config-contract', () => {
           schema: ['zod'],
         };
 
-        expect(config.schema).toStrictEqual([
-          'zod'
-        ]);
+        expect(config.schema).toStrictEqual(['zod']);
       });
     });
 

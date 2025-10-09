@@ -3,7 +3,6 @@
 ## The Problem
 
 Quest Maestro's 1780-line standards document causes LLM attention decay:
-
 - Rules 1000+ lines apart have weak activation
 - LLM forgets early rules when processing later sections
 - Falls back to training data patterns (the original problem!)
@@ -11,7 +10,6 @@ Quest Maestro's 1780-line standards document causes LLM attention decay:
 ## The Solution
 
 **Progressive context loading via npm packages:**
-
 1. Split docs into focused chunks (< 500 lines each)
 2. Distribute via `@questmaestro/*` packages
 3. Auto-sync with symlinks from `node_modules/`
@@ -74,28 +72,22 @@ CLAUDE.md              ← Generated
 ## Key Innovation: Rule Proximity
 
 **❌ Old way (attention decay):**
-
 ```
 Line 68:   Rule - branded types required
 Line 491:  Rule - contracts use .brand<>()
 Line 912:  Example broker code
 ```
-
 *844 lines between rule and application = forgetting*
 
 **✅ New way (rules adjacent):**
-
 ```markdown
 ## brokers-guide.md
 
 ### Checklist
-
 □ Branded types for ALL params
 
 ### Example
-
 ⚠️ Rules applied here:
-
 - Line 3: UserId is branded type
 
 ```typescript
@@ -113,13 +105,11 @@ export const userFetchBroker = ({ userId }: { userId: UserId }) => {
 ## 🚨 STOP: Training Data Will Make You Do This
 
 ### ❌ Trap 1: Multiple Exports Per File
-
 [What feels right + why it's wrong + correct pattern]
 
 ---
 
 ## NOW HERE'S THE CORRECT PATTERN
-
 [Rest of guide]
 ```
 
@@ -138,7 +128,6 @@ npm update @questmaestro/standards
 ## Essential Documents to Read
 
 ### Core Concepts (Start Here)
-
 1. **[The Attention Decay Problem](01-attention-decay-problem.md)** (15 min)
     - Understand why long docs fail with LLMs
     - How attention weights work
@@ -152,7 +141,6 @@ npm update @questmaestro/standards
     - Positioning anti-patterns for max effect
 
 ### Implementation (For Building This)
-
 4. **[Package Ecosystem Design](04-package-ecosystem.md)** (20 min)
     - Package structure and responsibilities
     - Version management strategy
@@ -174,7 +162,6 @@ npm update @questmaestro/standards
 ## Implementation Checklist
 
 ### Phase 1: MVP (Weeks 1-2)
-
 - [ ] Extract docs from monolithic file into chunks
 - [ ] Create `@questmaestro/standards` package structure
 - [ ] Implement init script with symlinks
@@ -183,21 +170,18 @@ npm update @questmaestro/standards
 - [ ] Publish beta version
 
 ### Phase 2: Integration (Weeks 3-6)
-
 - [ ] Add `@questmaestro/testing` package
 - [ ] Enhance ESLint with pedagogical errors
 - [ ] Create `@questmaestro/hooks` package
 - [ ] Test version alignment
 
 ### Phase 3: Beta Testing (Weeks 7-10)
-
 - [ ] Install in 2-3 internal projects
 - [ ] Gather feedback
 - [ ] Iterate on docs and tooling
 - [ ] Measure success metrics
 
 ### Phase 4: Public Release (Weeks 11-12)
-
 - [ ] Publish v1.0.0
 - [ ] Create documentation site
 - [ ] Announce publicly
@@ -215,43 +199,33 @@ npm update @questmaestro/standards
 ## Key Insights
 
 ### 1. Documentation is Code
-
 Treat it like a dependency:
-
 - Versioned (SemVer)
 - Distributed (npm)
 - Dependency-managed (package.json)
 - Auto-integrated (symlinks)
 
 ### 2. Attention Budget is Real
-
 LLMs have ~1000-line effective context for task execution:
-
 - Load only what's needed
 - Repeat critical rules every 200-400 lines
 - Position anti-patterns at high attention points
 
 ### 3. Lint is Working Memory
-
 ESLint catches what LLM forgets:
-
 - Specific errors > general rules
 - Pedagogical messages with doc links
 - Self-correcting feedback loop
 
 ### 4. Progressive > Comprehensive
-
 Start simple, add complexity:
-
 - Week 1-2: Structure only
 - Week 3-4: Type safety
 - Week 5-6: Architecture
 - Week 7+: Polish
 
 ### 5. Anti-Patterns First
-
 Lead with "don't do this":
-
 - Validates instincts ("this feels right because...")
 - Explicit contrast (wrong vs right side-by-side)
 - High attention position (first 100 lines)
@@ -298,13 +272,11 @@ A: 12 weeks with 1 developer for v1.0.0 (see roadmap).
 ## File Index
 
 **Core Concepts:**
-
 - [01-attention-decay-problem.md](01-attention-decay-problem.md) - Why long docs fail
 - [02-progressive-context-loading.md](02-progressive-context-loading.md) - Solution strategy
 - [03-anti-pattern-strategy.md](03-anti-pattern-strategy.md) - Fighting training data
 
 **Implementation:**
-
 - [04-package-ecosystem.md](04-package-ecosystem.md) - Package architecture
 - [05-documentation-distribution.md](05-documentation-distribution.md) - Symlink strategy
 - [06-init-script.md](06-init-script.md) - Post-install automation
