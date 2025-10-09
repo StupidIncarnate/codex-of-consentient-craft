@@ -1,5 +1,5 @@
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
-import { filePathContract } from '../../contracts/file-path/file-path-contract';
+import type { FilePath } from '@questmaestro/shared/contracts';
+import { filePathContract } from '@questmaestro/shared/contracts';
 import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
 
 export const testFilePathToImplementationPathTransformer = ({

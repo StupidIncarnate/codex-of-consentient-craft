@@ -290,7 +290,7 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
                   if (declarator.id?.type === 'Identifier' && declarator.id.name) {
                     // ADAPTER-SPECIFIC: Must be arrow function
                     if (firstFolder === 'adapters') {
-                      const init = (declarator as { init?: { type?: string } }).init;
+                      const { init } = declarator as { init?: { type?: string } };
                       const isArrowFunction = init?.type === 'ArrowFunctionExpression';
 
                       if (!isArrowFunction) {

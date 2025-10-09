@@ -1,6 +1,6 @@
 import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { filePathContract } from '@questmaestro/shared/contracts';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
 
 export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({

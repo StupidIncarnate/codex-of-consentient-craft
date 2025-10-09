@@ -126,9 +126,9 @@ describe('configResolveBroker', () => {
     });
 
     it('VALID: {filePath: "/deep/monorepo/workspace/packages/api/src/server.ts"} => finds multiple parent configs', async () => {
-      const filePath = FilePathStub(
-        '/deep/monorepo/workspace/packages/api/src/server.ts',
-      );
+      const filePath = FilePathStub({
+        value: '/deep/monorepo/workspace/packages/api/src/server.ts',
+      });
       const packageConfig: QuestmaestroConfig = {
         framework: 'express',
         schema: 'zod',
