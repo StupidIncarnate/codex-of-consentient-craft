@@ -2,7 +2,7 @@ import { configResolveBroker } from './config-resolve-broker';
 import { configFileFindBroker } from '../../config-file/find/config-file-find-broker';
 import { configFileLoadBroker } from '../../config-file/load/config-file-load-broker';
 import { mergeConfigsTransformer } from '../../../transformers/merge-configs/merge-configs-transformer';
-import { filePathContract } from '@questmaestro/shared/contracts';
+import { FilePathStub } from '@questmaestro/shared/contracts';
 import type { QuestmaestroConfig } from '../../../contracts/questmaestro-config/questmaestro-config-contract';
 
 // Mock dependencies
@@ -23,7 +23,7 @@ describe('configResolveBroker', () => {
 
   describe('single config resolution', () => {
     it('VALID: {filePath: "/project/src/file.ts"} => resolves single package config', async () => {
-      const filePath = filePathContract.parse('/project/src/file.ts');
+      const filePath = FilePathStub({ value: '/project/src/file.ts' });
       const packageConfig: QuestmaestroConfig = {
         framework: 'react',
         schema: 'zod',
@@ -34,7 +34,7 @@ describe('configResolveBroker', () => {
       };
 
       mockConfigFileFindBroker
-        .mockResolvedValueOnce(filePathContract.parse('/project/.questmaestro'))
+        .mockResolvedValueOnce(FilePathStub({ value: '/project/.questmaestro' }))
         .mockRejectedValueOnce(new Error('Config not found'));
       mockConfigFileLoadBroker.mockResolvedValueOnce(packageConfig);
       mockMergeConfigsTransformer.mockReturnValueOnce(mergedConfig);
@@ -54,7 +54,7 @@ describe('configResolveBroker', () => {
     });
 
     it('VALID: {filePath: "/monorepo/src/index.ts"} => resolves monorepo root config only', async () => {
-      const filePath = filePathContract.parse('/monorepo/src/index.ts');
+      const filePath = FilePathStub({ value: '/monorepo/src/index.ts' });
       const monorepoConfig: QuestmaestroConfig = {
         framework: 'monorepo',
         schema: 'zod',
@@ -65,7 +65,7 @@ describe('configResolveBroker', () => {
       };
 
       mockConfigFileFindBroker.mockResolvedValueOnce(
-        filePathContract.parse('/monorepo/.questmaestro'),
+        FilePathStub({ value: '/monorepo/.questmaestro' }),
       );
       mockConfigFileLoadBroker.mockResolvedValueOnce(monorepoConfig);
       mockMergeConfigsTransformer.mockReturnValueOnce(mergedConfig);
@@ -81,7 +81,7 @@ describe('configResolveBroker', () => {
 
   describe('monorepo config resolution', () => {
     it('VALID: {filePath: "/monorepo/packages/web/src/app.tsx"} => merges root and package configs', async () => {
-      const filePath = filePathContract.parse('/monorepo/packages/web/src/app.tsx');
+      const filePath = FilePathStub({ value: '/monorepo/packages/web/src/app.tsx' });
       const packageConfig: QuestmaestroConfig = {
         framework: 'react',
         routing: 'react-router-dom',
@@ -104,8 +104,8 @@ describe('configResolveBroker', () => {
       };
 
       mockConfigFileFindBroker
-        .mockResolvedValueOnce(filePathContract.parse('/monorepo/packages/web/.questmaestro'))
-        .mockResolvedValueOnce(filePathContract.parse('/monorepo/.questmaestro'));
+        .mockResolvedValueOnce(FilePathStub({ value: '/monorepo/packages/web/.questmaestro' }))
+        .mockResolvedValueOnce(FilePathStub({ value: '/monorepo/.questmaestro' }));
       mockConfigFileLoadBroker
         .mockResolvedValueOnce(packageConfig)
         .mockResolvedValueOnce(rootConfig);
@@ -126,7 +126,7 @@ describe('configResolveBroker', () => {
     });
 
     it('VALID: {filePath: "/deep/monorepo/workspace/packages/api/src/server.ts"} => finds multiple parent configs', async () => {
-      const filePath = filePathContract.parse(
+      const filePath = FilePathStub(
         '/deep/monorepo/workspace/packages/api/src/server.ts',
       );
       const packageConfig: QuestmaestroConfig = {
@@ -154,10 +154,10 @@ describe('configResolveBroker', () => {
 
       mockConfigFileFindBroker
         .mockResolvedValueOnce(
-          filePathContract.parse('/deep/monorepo/workspace/packages/api/.questmaestro'),
+          FilePathStub({ value: '/deep/monorepo/workspace/packages/api/.questmaestro' }),
         )
-        .mockResolvedValueOnce(filePathContract.parse('/deep/monorepo/workspace/.questmaestro'))
-        .mockResolvedValueOnce(filePathContract.parse('/deep/monorepo/.questmaestro'));
+        .mockResolvedValueOnce(FilePathStub({ value: '/deep/monorepo/workspace/.questmaestro' }))
+        .mockResolvedValueOnce(FilePathStub({ value: '/deep/monorepo/.questmaestro' }));
       mockConfigFileLoadBroker
         .mockResolvedValueOnce(packageConfig)
         .mockResolvedValueOnce(workspaceConfig)
@@ -175,7 +175,7 @@ describe('configResolveBroker', () => {
     });
 
     it('VALID: {filePath: "/monorepo/packages/shared/utils.ts"} => stops at monorepo root', async () => {
-      const filePath = filePathContract.parse('/monorepo/packages/shared/utils.ts');
+      const filePath = FilePathStub({ value: '/monorepo/packages/shared/utils.ts' });
       const packageConfig: QuestmaestroConfig = {
         framework: 'node-library',
         schema: 'zod',
@@ -190,8 +190,8 @@ describe('configResolveBroker', () => {
       };
 
       mockConfigFileFindBroker
-        .mockResolvedValueOnce(filePathContract.parse('/monorepo/packages/shared/.questmaestro'))
-        .mockResolvedValueOnce(filePathContract.parse('/monorepo/.questmaestro'));
+        .mockResolvedValueOnce(FilePathStub({ value: '/monorepo/packages/shared/.questmaestro' }))
+        .mockResolvedValueOnce(FilePathStub({ value: '/monorepo/.questmaestro' }));
       mockConfigFileLoadBroker
         .mockResolvedValueOnce(packageConfig)
         .mockResolvedValueOnce(rootConfig);
@@ -210,7 +210,7 @@ describe('configResolveBroker', () => {
 
   describe('edge cases', () => {
     it('EDGE: {filePath: "/project/deeply/nested/file.ts"} => handles same config found (no parent)', async () => {
-      const filePath = filePathContract.parse('/project/deeply/nested/file.ts');
+      const filePath = FilePathStub({ value: '/project/deeply/nested/file.ts' });
       const packageConfig: QuestmaestroConfig = {
         framework: 'vue',
         schema: 'zod',
@@ -222,8 +222,8 @@ describe('configResolveBroker', () => {
 
       // Same config path returned indicates no parent found
       mockConfigFileFindBroker
-        .mockResolvedValueOnce(filePathContract.parse('/project/.questmaestro'))
-        .mockResolvedValueOnce(filePathContract.parse('/project/.questmaestro'));
+        .mockResolvedValueOnce(FilePathStub({ value: '/project/.questmaestro' }))
+        .mockResolvedValueOnce(FilePathStub({ value: '/project/.questmaestro' }));
       mockConfigFileLoadBroker.mockResolvedValueOnce(packageConfig);
       mockMergeConfigsTransformer.mockReturnValueOnce(mergedConfig);
 
@@ -236,7 +236,7 @@ describe('configResolveBroker', () => {
     });
 
     it('EDGE: {filePath: "/isolated/project/src/file.ts"} => handles no parent configs found', async () => {
-      const filePath = filePathContract.parse('/isolated/project/src/file.ts');
+      const filePath = FilePathStub({ value: '/isolated/project/src/file.ts' });
       const packageConfig: QuestmaestroConfig = {
         framework: 'angular',
         schema: 'zod',
@@ -247,7 +247,7 @@ describe('configResolveBroker', () => {
       };
 
       mockConfigFileFindBroker
-        .mockResolvedValueOnce(filePathContract.parse('/isolated/project/.questmaestro'))
+        .mockResolvedValueOnce(FilePathStub({ value: '/isolated/project/.questmaestro' }))
         .mockRejectedValueOnce(new Error('Config not found'));
       mockConfigFileLoadBroker.mockResolvedValueOnce(packageConfig);
       mockMergeConfigsTransformer.mockReturnValueOnce(mergedConfig);
@@ -261,7 +261,7 @@ describe('configResolveBroker', () => {
     });
 
     it('EDGE: {filePath: "/project/src/file.ts"} => handles parent config load error', async () => {
-      const filePath = filePathContract.parse('/project/src/file.ts');
+      const filePath = FilePathStub({ value: '/project/src/file.ts' });
       const packageConfig: QuestmaestroConfig = {
         framework: 'svelte',
         schema: 'zod',
@@ -272,8 +272,8 @@ describe('configResolveBroker', () => {
       };
 
       mockConfigFileFindBroker
-        .mockResolvedValueOnce(filePathContract.parse('/project/.questmaestro'))
-        .mockResolvedValueOnce(filePathContract.parse('/root/.questmaestro'));
+        .mockResolvedValueOnce(FilePathStub({ value: '/project/.questmaestro' }))
+        .mockResolvedValueOnce(FilePathStub({ value: '/root/.questmaestro' }));
       mockConfigFileLoadBroker
         .mockResolvedValueOnce(packageConfig)
         .mockRejectedValueOnce(new Error('Failed to load config'));
@@ -288,7 +288,7 @@ describe('configResolveBroker', () => {
     });
 
     it('EDGE: {filePath: "/minimal/file.js"} => handles minimal path resolution', async () => {
-      const filePath = filePathContract.parse('/minimal/file.js');
+      const filePath = FilePathStub({ value: '/minimal/file.js' });
       const packageConfig: QuestmaestroConfig = {
         framework: 'cli',
         schema: 'zod',
@@ -299,7 +299,7 @@ describe('configResolveBroker', () => {
       };
 
       mockConfigFileFindBroker
-        .mockResolvedValueOnce(filePathContract.parse('/minimal/.questmaestro'))
+        .mockResolvedValueOnce(FilePathStub({ value: '/minimal/.questmaestro' }))
         .mockRejectedValueOnce(new Error('Config not found'));
       mockConfigFileLoadBroker.mockResolvedValueOnce(packageConfig);
       mockMergeConfigsTransformer.mockReturnValueOnce(mergedConfig);

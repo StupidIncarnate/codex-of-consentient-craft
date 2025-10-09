@@ -119,7 +119,7 @@ module.exports = [
       'jest/require-hook': 'off',
       'jest/require-top-level-describe': 'off',
       'jest/no-hooks': 'off',
-      '@questmaestro/ban-contract-in-tests': 'off'
+      '@questmaestro/ban-contract-in-tests': 'off',
     },
   },
   // {

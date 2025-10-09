@@ -2,7 +2,7 @@ import { configFileLoadBroker } from './config-file-load-broker';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
 import { fsReadFile } from '../../../adapters/fs/fs-read-file';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
-import { filePathContract } from '@questmaestro/shared/contracts';
+import { FilePathStub } from '@questmaestro/shared/contracts';
 
 // Mock adapters (the boundary)
 jest.mock('../../../adapters/fs/fs-read-file');
@@ -12,7 +12,7 @@ const mockFsReadFile = jest.mocked(fsReadFile);
 describe('configFileLoadBroker', () => {
   describe('successful config loading', () => {
     it('VALID: {configPath: "/project/.questmaestro"} => loads JSON config', async () => {
-      const configPath = filePathContract.parse('/project/.questmaestro');
+      const configPath = FilePathStub({ value: '/project/.questmaestro' });
       const mockConfig = {
         framework: 'react',
         schema: 'zod',
@@ -28,7 +28,7 @@ describe('configFileLoadBroker', () => {
     });
 
     it('VALID: {configPath: "/complex/.questmaestro"} => loads config with architecture overrides', async () => {
-      const configPath = filePathContract.parse('/complex/.questmaestro');
+      const configPath = FilePathStub({ value: '/complex/.questmaestro' });
       const mockConfig = {
         framework: 'react',
         routing: 'react-router-dom',
@@ -50,7 +50,7 @@ describe('configFileLoadBroker', () => {
 
   describe('config validation errors', () => {
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is null', async () => {
-      const configPath = filePathContract.parse('/project/.questmaestro');
+      const configPath = FilePathStub({ value: '/project/.questmaestro' });
 
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('null'));
 
@@ -58,7 +58,7 @@ describe('configFileLoadBroker', () => {
     });
 
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is string', async () => {
-      const configPath = filePathContract.parse('/project/.questmaestro');
+      const configPath = FilePathStub({ value: '/project/.questmaestro' });
 
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('"invalid"'));
 
@@ -66,7 +66,7 @@ describe('configFileLoadBroker', () => {
     });
 
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is number', async () => {
-      const configPath = filePathContract.parse('/project/.questmaestro');
+      const configPath = FilePathStub({ value: '/project/.questmaestro' });
 
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('123'));
 
@@ -74,7 +74,7 @@ describe('configFileLoadBroker', () => {
     });
 
     it('INVALID_FRAMEWORK: {configPath: "/project/.questmaestro"} => throws when framework is missing', async () => {
-      const configPath = filePathContract.parse('/project/.questmaestro');
+      const configPath = FilePathStub({ value: '/project/.questmaestro' });
       const mockConfig = {
         schema: 'zod',
       };
@@ -85,7 +85,7 @@ describe('configFileLoadBroker', () => {
     });
 
     it('INVALID_FRAMEWORK: {configPath: "/project/.questmaestro"} => throws when framework is null', async () => {
-      const configPath = filePathContract.parse('/project/.questmaestro');
+      const configPath = FilePathStub({ value: '/project/.questmaestro' });
       const mockConfig = {
         framework: null,
         schema: 'zod',
@@ -99,7 +99,7 @@ describe('configFileLoadBroker', () => {
 
   describe('file system errors', () => {
     it('ERROR: {configPath: "/nonexistent/.questmaestro"} => throws wrapped error when file read fails', async () => {
-      const configPath = filePathContract.parse('/nonexistent/.questmaestro');
+      const configPath = FilePathStub({ value: '/nonexistent/.questmaestro' });
       const fsError = new Error('ENOENT: no such file or directory');
 
       mockFsReadFile.mockRejectedValueOnce(fsError);
@@ -113,7 +113,7 @@ describe('configFileLoadBroker', () => {
     });
 
     it('ERROR: {configPath: "/corrupted/.questmaestro"} => throws wrapped error when JSON parse fails', async () => {
-      const configPath = filePathContract.parse('/corrupted/.questmaestro');
+      const configPath = FilePathStub({ value: '/corrupted/.questmaestro' });
 
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('{ invalid json }'));
 
@@ -121,7 +121,7 @@ describe('configFileLoadBroker', () => {
     });
 
     it('ERROR: {configPath: "/project/.questmaestro"} => wraps validation errors in InvalidConfigError', async () => {
-      const configPath = filePathContract.parse('/project/.questmaestro');
+      const configPath = FilePathStub({ value: '/project/.questmaestro' });
 
       mockFsReadFile.mockResolvedValueOnce(FileContentsStub('{}'));
 
@@ -131,7 +131,7 @@ describe('configFileLoadBroker', () => {
 
   describe('edge cases', () => {
     it('EDGE: {configPath: "/project/.questmaestro"} => strips unknown properties during validation', async () => {
-      const configPath = filePathContract.parse('/project/.questmaestro');
+      const configPath = FilePathStub({ value: '/project/.questmaestro' });
       const mockConfigWithExtra = {
         framework: 'react',
         schema: 'zod',
@@ -150,7 +150,7 @@ describe('configFileLoadBroker', () => {
     });
 
     it('EDGE: {configPath: "/project/.questmaestro"} => handles minimal valid config', async () => {
-      const configPath = filePathContract.parse('/project/.questmaestro');
+      const configPath = FilePathStub({ value: '/project/.questmaestro' });
       const mockConfig = {
         framework: 'node-library',
         schema: 'zod',
