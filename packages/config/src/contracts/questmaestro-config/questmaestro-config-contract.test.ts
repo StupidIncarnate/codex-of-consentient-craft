@@ -289,7 +289,7 @@ describe('questmaestro-config-contract', () => {
       it('VALID: library config without routing but with overrides => compiles successfully', () => {
         const config: QuestmaestroConfig = {
           framework: 'node-library',
-          schema: ['zod', 'typebox'],
+          schema: ['zod'],
           architecture: {
             overrides: {
               contracts: {
@@ -306,7 +306,7 @@ describe('questmaestro-config-contract', () => {
 
         expect(config.framework).toBe('node-library');
         expect(config.routing).toBeUndefined();
-        expect(config.schema).toStrictEqual(['zod', 'typebox']);
+        expect(config.schema).toStrictEqual(['zod']);
         expect(config.architecture?.overrides?.contracts?.add).toStrictEqual(['json-schema']);
         expect(config.architecture?.overrides?.transformers?.add).toStrictEqual([
           'lodash',
@@ -322,12 +322,12 @@ describe('questmaestro-config-contract', () => {
         const config: QuestmaestroConfig = {
           framework: 'angular',
           routing: '@angular/router',
-          schema: 'class-validator',
+          schema: 'zod',
         };
 
         expect(config.framework).toBe('angular');
         expect(config.routing).toBe('@angular/router');
-        expect(config.schema).toBe('class-validator');
+        expect(config.schema).toBe('zod');
       });
 
       it('VALID: Vue config => compiles successfully', () => {

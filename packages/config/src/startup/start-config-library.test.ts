@@ -63,7 +63,7 @@ describe('start-config-library', () => {
       const filePath = '/monorepo/packages/api/server.ts';
       const resolvedConfig: QuestmaestroConfig = {
         framework: 'express',
-        schema: 'joi',
+        schema: 'zod',
       };
       const allowedImports: AllowedExternalImports = {
         widgets: null,
@@ -361,7 +361,7 @@ describe('start-config-library', () => {
 
       expect(result).toStrictEqual(['zod']);
       expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(6);
+      expect(result).toHaveLength(1);
     });
   });
 

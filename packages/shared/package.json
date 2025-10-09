@@ -2,14 +2,7 @@
   "name": "@questmaestro/shared",
   "version": "0.1.0",
   "description": "Shared contracts and utilities for Questmaestro packages",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
     "./contracts": {
       "import": "./dist/contracts.js",
       "require": "./dist/contracts.js",

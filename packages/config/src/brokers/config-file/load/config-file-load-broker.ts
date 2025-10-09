@@ -1,44 +1,27 @@
 import { fsReadFile } from '../../../adapters/fs/fs-read-file';
-import { nodeRequireClearCache } from '../../../adapters/node/node-require-clear-cache';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import {
   questmaestroConfigContract,
   type QuestmaestroConfig,
 } from '../../../contracts/questmaestro-config/questmaestro-config-contract';
-
-const loadConfigModule = ({ configPath }: { configPath: string }): unknown => {
-  // Clear require cache to ensure fresh load
-  nodeRequireClearCache({ modulePath: configPath });
-
-  // Load the config file (assumes it's a .js module)
-  const configModule: unknown = require(filePathContract.parse(configPath));
-
-  if (
-    configModule !== null &&
-    configModule !== undefined &&
-    typeof configModule === 'object' &&
-    'default' in configModule
-  ) {
-    return configModule.default;
-  }
-
-  return configModule;
-};
+import type { FilePath } from '@questmaestro/shared/contracts';
 
 export const configFileLoadBroker = async ({
   configPath,
 }: {
-  configPath: string;
+  configPath: FilePath;
 }): Promise<QuestmaestroConfig> => {
   try {
-    // Read file to ensure it exists and is accessible
+    // Read the config file
     const filePath = filePathContract.parse(configPath);
-    await fsReadFile({ filePath });
+    const fileContents = await fsReadFile({ filePath });
 
-    // Load and parse the config
-    const config = loadConfigModule({ configPath });
-    return questmaestroConfigContract.parse(config);
+    // Parse JSON contents
+    const configData: unknown = JSON.parse(fileContents);
+
+    // Validate and return
+    return questmaestroConfigContract.parse(configData);
   } catch (error) {
     if (error instanceof InvalidConfigError) {
       throw error;

@@ -9,6 +9,7 @@ export type { RuleViolation } from './contracts/rule-violation/rule-violation-co
 
 // Export brokers for custom configurations
 export { banPrimitivesRuleBroker } from './brokers/rule/ban-primitives/ban-primitives-rule-broker';
+export { banContractInTestsRuleBroker } from './brokers/rule/ban-contract-in-tests/ban-contract-in-tests-rule-broker';
 export { requireZodOnPrimitivesRuleBroker } from './brokers/rule/require-zod-on-primitives/require-zod-on-primitives-rule-broker';
 export { explicitReturnTypesRuleBroker } from './brokers/rule/explicit-return-types/explicit-return-types-rule-broker';
 export { requireContractValidationRuleBroker } from './brokers/rule/require-contract-validation/require-contract-validation-rule-broker';

@@ -1,3 +1,6 @@
-import eslintPluginEslintComments from 'eslint-plugin-eslint-comments';
+import eslintPluginEslintComments, {
+  type EslintCommentsPlugin,
+} from 'eslint-plugin-eslint-comments';
 
-export const eslintPluginEslintCommentsAdapter = eslintPluginEslintComments;
+export const eslintPluginEslintCommentsAdapter: EslintCommentsPlugin =
+  eslintPluginEslintComments;

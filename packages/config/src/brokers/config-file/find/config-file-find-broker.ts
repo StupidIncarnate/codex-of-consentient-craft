@@ -2,10 +2,12 @@ import { access, constants } from 'fs/promises';
 import { pathDirname } from '../../../adapters/path/path-dirname';
 import { pathJoin } from '../../../adapters/path/path-join';
 import { ConfigNotFoundError } from '../../../errors/config-not-found/config-not-found-error';
+import type { FilePath } from '@questmaestro/shared/contracts';
+import { filePathContract } from '@questmaestro/shared/contracts';
 
 const CONFIG_FILENAME = '.questmaestro';
 
-const checkConfigExists = async ({ configPath }: { configPath: string }): Promise<boolean> => {
+const checkConfigExists = async ({ configPath }: { configPath: FilePath }): Promise<boolean> => {
   try {
     await access(configPath, constants.R_OK);
     return true;
@@ -18,10 +20,10 @@ const searchConfigRecursive = async ({
   currentPath,
   originalPath,
 }: {
-  currentPath: string;
-  originalPath: string;
-}): Promise<string> => {
-  const configPath = pathJoin({ paths: [currentPath, CONFIG_FILENAME] });
+  currentPath: FilePath;
+  originalPath: FilePath;
+}): Promise<FilePath> => {
+  const configPath = filePathContract.parse(pathJoin({ paths: [currentPath, CONFIG_FILENAME] }));
 
   const exists = await checkConfigExists({ configPath });
   if (exists) {
@@ -41,8 +43,8 @@ const searchConfigRecursive = async ({
 export const configFileFindBroker = async ({
   startPath,
 }: {
-  startPath: string;
-}): Promise<string> => {
+  startPath: FilePath;
+}): Promise<FilePath> => {
   const currentPath = pathDirname({ path: startPath });
   return searchConfigRecursive({ currentPath, originalPath: startPath });
 };

@@ -6,6 +6,7 @@ import { ALL_FRAMEWORKS } from '../contracts/framework/framework-contract';
 import { ALL_SCHEMA_LIBRARIES } from '../contracts/schema-library/schema-library-contract';
 import { isValidArchitectureFolder as checkValidArchitectureFolder } from '../contracts/folder-config/folder-config-contract';
 import { questmaestroConfigContract } from '../contracts/questmaestro-config/questmaestro-config-contract';
+import { filePathContract } from '@questmaestro/shared/contracts';
 import type { Framework } from '../contracts/framework/framework-contract';
 import type { SchemaLibrary } from '../contracts/schema-library/schema-library-contract';
 import type { QuestmaestroConfig } from '../contracts/questmaestro-config/questmaestro-config-contract';
@@ -23,7 +24,7 @@ export const resolveConfigForFile = async ({
 }: {
   filePath: string;
 }): Promise<AllowedExternalImports> => {
-  const config = await configResolveBroker({ filePath });
+  const config = await configResolveBroker({ filePath: filePathContract.parse(filePath) });
   return computeAllowedImportsTransformer({ config });
 };
 

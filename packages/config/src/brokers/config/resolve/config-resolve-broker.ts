@@ -2,6 +2,8 @@ import { configFileFindBroker } from '../../config-file/find/config-file-find-br
 import { configFileLoadBroker } from '../../config-file/load/config-file-load-broker';
 import { mergeConfigsTransformer } from '../../../transformers/merge-configs/merge-configs-transformer';
 import { pathDirname } from '../../../adapters/path/path-dirname';
+import { filePathContract } from '@questmaestro/shared/contracts';
+import type { FilePath } from '@questmaestro/shared/contracts';
 import type { QuestmaestroConfig } from '../../../contracts/questmaestro-config/questmaestro-config-contract';
 
 const findParentConfigs = async ({
@@ -9,8 +11,8 @@ const findParentConfigs = async ({
   originalConfigPath,
   configs,
 }: {
-  currentPath: string;
-  originalConfigPath: string;
+  currentPath: FilePath;
+  originalConfigPath: FilePath;
   configs: QuestmaestroConfig[];
 }): Promise<void> => {
   try {
@@ -21,7 +23,9 @@ const findParentConfigs = async ({
       return;
     }
 
-    const parentConfig = await configFileLoadBroker({ configPath: parentConfigPath });
+    const parentConfig = await configFileLoadBroker({
+      configPath: filePathContract.parse(parentConfigPath),
+    });
 
     // Add parent config to the front of the array (for proper merging order)
     configs.unshift(parentConfig);
@@ -42,13 +46,15 @@ const findParentConfigs = async ({
 export const configResolveBroker = async ({
   filePath,
 }: {
-  filePath: string;
+  filePath: FilePath;
 }): Promise<QuestmaestroConfig> => {
   const configs: QuestmaestroConfig[] = [];
 
   // Find the nearest .questmaestro file
   const configPath = await configFileFindBroker({ startPath: filePath });
-  const packageConfig = await configFileLoadBroker({ configPath });
+  const packageConfig = await configFileLoadBroker({
+    configPath,
+  });
   configs.push(packageConfig);
 
   // If this isn't a monorepo root, look for parent configs

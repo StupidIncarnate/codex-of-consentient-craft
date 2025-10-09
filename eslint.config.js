@@ -112,6 +112,13 @@ module.exports = [
       '@typescript-eslint/max-params': ['error', { max: 2 }],
     },
   },
+  // These are eslint tests so different structure
+  {
+    files: ['packages/eslint-plugin/src/brokers/rule/**'],
+    rules: {
+      'jest/require-hook': 'off'
+    }
+  }
   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {

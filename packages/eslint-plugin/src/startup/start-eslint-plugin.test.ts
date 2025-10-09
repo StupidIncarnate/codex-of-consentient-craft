@@ -75,6 +75,7 @@ describe('startEslintPlugin', () => {
 
       expect(Object.keys(plugin.rules)).toStrictEqual([
         'ban-primitives',
+        'ban-contract-in-tests',
         'require-zod-on-primitives',
         'explicit-return-types',
         'enforce-project-structure',
@@ -83,6 +84,7 @@ describe('startEslintPlugin', () => {
         'enforce-test-colocation',
         'enforce-implementation-testing',
         'forbid-non-exported-functions',
+        'require-contract-validation',
       ]);
     });
 

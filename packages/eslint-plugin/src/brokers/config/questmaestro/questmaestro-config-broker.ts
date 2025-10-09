@@ -62,6 +62,7 @@ export const questmaestroConfigBroker = ({
       // Questmaestro custom rules
       'eslint-comments/no-unlimited-disable': 'error',
       'eslint-comments/no-use': ['error', { allow: [] }],
+      '@questmaestro/ban-contract-in-tests': 'error',
       '@questmaestro/ban-primitives': 'error',
       '@questmaestro/enforce-implementation-testing': 'error',
       '@questmaestro/enforce-import-dependencies': 'error',

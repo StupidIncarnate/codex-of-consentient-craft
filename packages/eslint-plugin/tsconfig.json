@@ -4,7 +4,11 @@
     "outDir": "./dist",
     "declarationMap": true,
     "declaration": true,
-    "noEmit": false
+    "noEmit": false,
+    "typeRoots": [
+      "../../node_modules/@types",
+      "../../@types"
+    ]
   },
   "include": [
     "src/**/*",

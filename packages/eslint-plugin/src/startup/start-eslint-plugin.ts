@@ -1,4 +1,5 @@
 import { banPrimitivesRuleBroker } from '../brokers/rule/ban-primitives/ban-primitives-rule-broker';
+import { banContractInTestsRuleBroker } from '../brokers/rule/ban-contract-in-tests/ban-contract-in-tests-rule-broker';
 import { requireZodOnPrimitivesRuleBroker } from '../brokers/rule/require-zod-on-primitives/require-zod-on-primitives-rule-broker';
 import { explicitReturnTypesRuleBroker } from '../brokers/rule/explicit-return-types/explicit-return-types-rule-broker';
 import { enforceProjectStructureRuleBroker } from '../brokers/rule/enforce-project-structure/enforce-project-structure-rule-broker';
@@ -15,6 +16,7 @@ import type { EslintConfig } from '../contracts/eslint-config/eslint-config-cont
 export const startEslintPlugin = (): {
   readonly rules: {
     readonly 'ban-primitives': Rule.RuleModule;
+    readonly 'ban-contract-in-tests': Rule.RuleModule;
     readonly 'require-zod-on-primitives': Rule.RuleModule;
     readonly 'explicit-return-types': Rule.RuleModule;
     readonly 'enforce-project-structure': Rule.RuleModule;
@@ -32,6 +34,7 @@ export const startEslintPlugin = (): {
   ({
     rules: {
       'ban-primitives': banPrimitivesRuleBroker(),
+      'ban-contract-in-tests': banContractInTestsRuleBroker(),
       'require-zod-on-primitives': requireZodOnPrimitivesRuleBroker(),
       'explicit-return-types': explicitReturnTypesRuleBroker(),
       'enforce-project-structure': enforceProjectStructureRuleBroker(),

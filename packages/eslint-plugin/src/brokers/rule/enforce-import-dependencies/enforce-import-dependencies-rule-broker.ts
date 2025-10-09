@@ -62,6 +62,8 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
         'Cannot import non-entry file "{{importedFile}}" from {{folderType}}/. Only entry files matching pattern {{pattern}} can be imported across folders.',
       unnecessaryCategoryInPath:
         'Unnecessary category name in import path. When importing within {{folderType}}/, use "{{suggestedPath}}" instead of "{{importPath}}".',
+      forbiddenSharedRootImport:
+        'Cannot import from "@questmaestro/shared" directly. Use subpath imports like "@questmaestro/shared/contracts" instead.',
     },
     schema: [],
   },
@@ -82,6 +84,64 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
       const importSource = nodeWithSource.source?.value;
 
       if (typeof importSource !== 'string') {
+        return;
+      }
+
+      // Check for @questmaestro/shared imports - treat them like local folder imports
+      if (importSource.startsWith('@questmaestro/shared/')) {
+        // Extract the folder type from the subpath (e.g., "contracts" from "@questmaestro/shared/contracts")
+        const subpath = importSource.replace('@questmaestro/shared/', '');
+        const sharedFolderType = subpath.split('/')[0];
+
+        // If no folder type found, skip validation
+        if (!sharedFolderType) {
+          return;
+        }
+
+        // Exception: Test files can import .stub.ts files from @questmaestro/shared/contracts
+        const isTestFile = /\.(test|spec)\.tsx?$/u.test(context.filename);
+        const isStubFile = /\.stub(\.tsx?)?$/u.test(importSource);
+        const isFromContracts = sharedFolderType === 'contracts';
+
+        if (isTestFile && isStubFile && isFromContracts) {
+          // Allow test files to import stubs from @questmaestro/shared/contracts
+          return;
+        }
+
+        // Check if this folder type is in the allowed imports
+        const isAllowed = allowedImports.some((allowed: string) => {
+          if (allowed === '*') {
+            return true;
+          }
+
+          if (allowed === 'node_modules') {
+            return false;
+          }
+
+          const folderName = allowed.replace(/\/$/u, '');
+          return sharedFolderType === folderName;
+        });
+
+        if (!isAllowed) {
+          context.report({
+            node,
+            messageId: 'forbiddenImport',
+            data: {
+              folderType,
+              importedFolder: sharedFolderType,
+              allowed: allowedImports.join(', '),
+            },
+          });
+        }
+        return;
+      }
+
+      // Forbid importing from @questmaestro/shared root
+      if (importSource === '@questmaestro/shared') {
+        context.report({
+          node,
+          messageId: 'forbiddenSharedRootImport',
+        });
         return;
       }
 
@@ -174,6 +234,16 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
         });
 
         if (!isEntryFile) {
+          // Exception: Test files can import .stub.ts files from contracts folder
+          const isTestFile = /\.(test|spec)\.tsx?$/u.test(context.filename);
+          const isStubFile = /\.stub(\.tsx?)?$/u.test(importSource);
+          const isFromContracts = importedFolderType === 'contracts';
+
+          if (isTestFile && isStubFile && isFromContracts) {
+            // Allow test files to import stubs from contracts
+            return;
+          }
+
           const importedFolderConfig = folderConfigTransformer({
             folderType: importedFolderType,
           });

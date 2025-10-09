@@ -76,6 +76,52 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       filename: '/project/src/adapters/typescript-eslint/typescript-eslint-rule-adapter.ts',
     },
 
+    // @questmaestro/shared imports follow folder dependency rules
+    // Adapters can import from @questmaestro/shared/contracts
+    {
+      code: 'import { filePathContract } from "@questmaestro/shared/contracts";',
+      filename: '/project/src/adapters/path/path-adapter.ts',
+    },
+    // Brokers can import from @questmaestro/shared/contracts
+    {
+      code: 'import { filePathContract } from "@questmaestro/shared/contracts";',
+      filename: '/project/src/brokers/config/load/config-load-broker.ts',
+    },
+    // Guards can import from @questmaestro/shared/contracts
+    {
+      code: 'import { filePathContract } from "@questmaestro/shared/contracts";',
+      filename: '/project/src/guards/file/file-guard.ts',
+    },
+    // Contracts can import from @questmaestro/shared/contracts
+    {
+      code: 'import { filePathContract } from "@questmaestro/shared/contracts";',
+      filename: '/project/src/contracts/path/path-contract.ts',
+    },
+
+    // Test files can import .stub.ts files from contracts (local imports)
+    {
+      code: 'import { UserStub } from "../../../contracts/user/user.stub";',
+      filename: '/project/src/brokers/auth/login/auth-login-broker.test.ts',
+    },
+    {
+      code: 'import { FilePathStub } from "../../contracts/file-path/file-path.stub";',
+      filename: '/project/src/adapters/path/path-adapter.test.ts',
+    },
+    {
+      code: 'import { ConfigStub } from "../../contracts/config/config.stub";',
+      filename: '/project/src/guards/validation/validation-guard.spec.ts',
+    },
+
+    // Test files can import .stub.ts files from @questmaestro/shared/contracts
+    {
+      code: 'import { FilePathStub } from "@questmaestro/shared/contracts";',
+      filename: '/project/src/brokers/config/load/config-load-broker.test.ts',
+    },
+    {
+      code: 'import { AbsoluteFilePathStub } from "@questmaestro/shared/contracts";',
+      filename: '/project/src/adapters/path/path-dirname.test.ts',
+    },
+
     // Files in the same domain folder can import each other
     {
       code: 'import { fsExistsSyncAdapter } from "./fs-exists-sync-adapter";',
@@ -392,7 +438,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'contracts',
             importedFolder: 'brokers',
-            allowed: 'statics/, errors/, zod',
+            allowed: 'statics/, errors/, contracts/, zod',
           },
         },
       ],
@@ -408,7 +454,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'contracts',
             importedFolder: 'guards',
-            allowed: 'statics/, errors/, zod',
+            allowed: 'statics/, errors/, contracts/, zod',
           },
         },
       ],
@@ -935,6 +981,57 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
             folderType: 'flows',
             packageName: 'express',
           },
+        },
+      ],
+    },
+
+    // @questmaestro/shared imports must follow folder dependency rules
+    // Guards cannot import from @questmaestro/shared/brokers (if it existed)
+    {
+      code: 'import { configBroker } from "@questmaestro/shared/brokers";',
+      filename: '/project/src/guards/validation/validation-guard.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'guards',
+            importedFolder: 'brokers',
+            allowed: 'contracts/, statics/, errors/',
+          },
+        },
+      ],
+    },
+    // Statics cannot import from @questmaestro/shared/contracts
+    {
+      code: 'import { filePathContract } from "@questmaestro/shared/contracts";',
+      filename: '/project/src/statics/config/config-statics.ts',
+      errors: [
+        {
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'statics',
+            importedFolder: 'contracts',
+            allowed: '',
+          },
+        },
+      ],
+    },
+    // Cannot import from @questmaestro/shared root - must use subpaths
+    {
+      code: 'import { filePathContract } from "@questmaestro/shared";',
+      filename: '/project/src/adapters/path/path-adapter.ts',
+      errors: [
+        {
+          messageId: 'forbiddenSharedRootImport',
+        },
+      ],
+    },
+    {
+      code: 'import { filePathContract } from "@questmaestro/shared";',
+      filename: '/project/src/brokers/config/load/config-load-broker.ts',
+      errors: [
+        {
+          messageId: 'forbiddenSharedRootImport',
         },
       ],
     },

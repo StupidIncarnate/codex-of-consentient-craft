@@ -1,4 +1,5 @@
 import { dirname } from 'path';
+import { filePathContract } from '@questmaestro/shared/contracts';
 import { pathDirname } from './path-dirname';
 
 jest.mock('path', () => {
@@ -16,7 +17,7 @@ describe('pathDirname', () => {
 
   describe('successful operations', () => {
     it('VALID: {path: "/path/to/file.txt"} => returns "/path/to"', () => {
-      const path = '/path/to/file.txt';
+      const path = filePathContract.parse('/path/to/file.txt');
       const expectedResult = '/path/to';
 
       mockDirname.mockReturnValueOnce(expectedResult);
@@ -28,9 +29,9 @@ describe('pathDirname', () => {
       expect(mockDirname).toHaveBeenCalledWith(path);
     });
 
-    it('VALID: {path: "relative/file.js"} => returns "relative"', () => {
-      const path = 'relative/file.js';
-      const expectedResult = 'relative';
+    it('VALID: {path: "./relative/file.js"} => returns "./relative"', () => {
+      const path = filePathContract.parse('./relative/file.js');
+      const expectedResult = './relative';
 
       mockDirname.mockReturnValueOnce(expectedResult);
 
@@ -41,7 +42,7 @@ describe('pathDirname', () => {
     });
 
     it('VALID: {path: "/root/single/file"} => returns "/root/single"', () => {
-      const path = '/root/single/file';
+      const path = filePathContract.parse('/root/single/file');
       const expectedResult = '/root/single';
 
       mockDirname.mockReturnValueOnce(expectedResult);
@@ -55,7 +56,7 @@ describe('pathDirname', () => {
 
   describe('edge cases', () => {
     it('EDGE: {path: "/"} => returns "/"', () => {
-      const path = '/';
+      const path = filePathContract.parse('/');
       const expectedResult = '/';
 
       mockDirname.mockReturnValueOnce(expectedResult);
@@ -66,9 +67,9 @@ describe('pathDirname', () => {
       expect(mockDirname).toHaveBeenCalledWith(path);
     });
 
-    it('EDGE: {path: "file.txt"} => returns "."', () => {
-      const path = 'file.txt';
-      const expectedResult = '.';
+    it('EDGE: {path: "./file.txt"} => returns "./"', () => {
+      const path = filePathContract.parse('./file.txt');
+      const expectedResult = './';
 
       mockDirname.mockReturnValueOnce(expectedResult);
 
@@ -78,9 +79,9 @@ describe('pathDirname', () => {
       expect(mockDirname).toHaveBeenCalledWith(path);
     });
 
-    it('EDGE: {path: ""} => returns "."', () => {
-      const path = '';
-      const expectedResult = '.';
+    it('EDGE: {path: "./"} => returns "./"', () => {
+      const path = filePathContract.parse('./');
+      const expectedResult = './';
 
       mockDirname.mockReturnValueOnce(expectedResult);
 

@@ -17,7 +17,11 @@ When creating a new package in this monorepo, you MUST configure the following:
     "outDir": "./dist",
     "declarationMap": true,
     "declaration": true,
-    "noEmit": false
+    "noEmit": false,
+    "typeRoots": [
+      "../../node_modules/@types",
+      "../../@types"
+    ]
   },
   "include": [
     "src/**/*",
@@ -28,9 +32,10 @@ When creating a new package in this monorepo, you MUST configure the following:
 
 **Why:** This ensures:
 
-- Type definitions from root `@types/` folder are available
+- Type definitions from root `@types/` folder are available to the package
 - Consistent compiler settings across all packages
 - Proper module resolution for workspace dependencies
+- TypeScript can find custom type definitions in the root `@types/` directory
 
 ### 2. Package Dependencies
 
@@ -92,17 +97,56 @@ Standard scripts for consistency across packages:
 ## Type Definitions
 
 **Root `@types/` folder:** Type definitions for packages without `@types` npm packages should be placed in the root
-`@types/` directory, NOT in individual packages. This is inherited by all packages via the root tsconfig.
+`@types/` directory, NOT in individual packages. Packages access these types via the `typeRoots` configuration in their
+`tsconfig.json`.
 
-Example: `@types/eslint-plugin-eslint-comments.d.ts`
+Example: `@types/eslint-plugin-eslint-comments/index.d.ts`
+
+**IMPORTANT:** When creating type definitions:
+
+1. Place them in `@types/package-name/index.d.ts` at the monorepo root
+2. Export interfaces/types that need to be imported by using `export` keyword
+3. Each package's `tsconfig.json` must include `typeRoots` pointing to `../../@types`
+
+```typescript
+// Example: @types/eslint-plugin-eslint-comments/index.d.ts
+declare module 'eslint-plugin-eslint-comments' {
+    import type {Linter} from 'eslint';
+
+    export interface EslintCommentsPlugin {
+        rules: Record<string, unknown>;
+        configs?: Record<string, Linter.Config>;
+    }
+
+    const plugin: EslintCommentsPlugin;
+    export default plugin;
+}
+```
 
 ## Common Issues
 
+### TypeScript error: "has or is using name from external module but cannot be named"
+
+**Cause:** Package tsconfig.json is missing `typeRoots` configuration, or the type definition doesn't export the
+interface.
+
+**Fix:**
+
+1. Ensure package's `tsconfig.json` includes:
+   ```json
+   "typeRoots": ["../../node_modules/@types", "../../@types"]
+   ```
+2. Ensure the type definition exports the interface with `export` keyword
+3. Import the type as a named import in your code
+
 ### Lint fails with "Could not find a declaration file for module"
 
-**Cause:** Package tsconfig.json doesn't extend root tsconfig.
+**Cause:** Package tsconfig.json doesn't extend root tsconfig or is missing typeRoots.
 
-**Fix:** Ensure `"extends": "../../tsconfig.json"` is in your package's tsconfig.json.
+**Fix:**
+
+1. Ensure `"extends": "../../tsconfig.json"` is in your package's tsconfig.json
+2. Add `typeRoots` configuration pointing to `../../@types`
 
 ### Package can't import from @questmaestro/shared
 
