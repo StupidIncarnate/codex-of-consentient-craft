@@ -4,7 +4,25 @@ interface FunctionLike {
   params: {
     type: string;
   }[];
+  parent?: {
+    type: string;
+  };
 }
+
+const isCallbackFunction = ({ funcNode }: { funcNode: FunctionLike }): boolean => {
+  // Check if this function is passed as an argument to a method call
+  // e.g., .refine((x) => ...), .map((x) => ...), .filter((x) => ...)
+  if (!funcNode.parent) {
+    return false;
+  }
+
+  // If parent is a CallExpression, this function is being used as a callback
+  if (funcNode.parent.type === 'CallExpression') {
+    return true;
+  }
+
+  return false;
+};
 
 const checkParams = ({
   funcNode,
@@ -19,6 +37,11 @@ const checkParams = ({
 
   const [firstParam] = funcNode.params;
   if (!firstParam) {
+    return;
+  }
+
+  // Skip callback functions passed to library methods
+  if (isCallbackFunction({ funcNode })) {
     return;
   }
 

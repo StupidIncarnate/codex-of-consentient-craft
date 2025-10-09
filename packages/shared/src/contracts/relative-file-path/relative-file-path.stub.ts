@@ -1,4 +1,4 @@
 import { relativeFilePathContract, type RelativeFilePath } from './relative-file-path-contract';
 
-export const RelativeFilePathStub = (value: string): RelativeFilePath =>
+export const RelativeFilePathStub = ({ value }: { value: unknown }): RelativeFilePath =>
   relativeFilePathContract.parse(value);

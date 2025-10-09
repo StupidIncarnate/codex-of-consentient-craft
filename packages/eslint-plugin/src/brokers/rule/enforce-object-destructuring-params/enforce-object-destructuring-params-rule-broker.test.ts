@@ -38,6 +38,23 @@ ruleTester.run(
       'function outer({ data }: { data: string }) { function inner(x: number) { return x; } }',
       'const fn = ({ config }: { config: object }) => { return function(y: string) { return y; }; }',
       'const fn = ({ data }: { data: unknown }) => (x: number) => x',
+
+      // Zod refine callbacks - single param is expected by library
+      'z.string().refine((value) => value.length > 0)',
+      'z.string().refine((value) => value.startsWith("/"))',
+      'z.string().refine((path) => { return path.startsWith("/"); })',
+      'const schema = z.string().refine((x) => x.length > 0, { message: "Required" })',
+      'z.number().refine((n) => n > 0)',
+      'z.array(z.string()).refine((arr) => arr.length > 0)',
+
+      // Array method callbacks - single param is expected by library
+      '[1, 2, 3].map((n) => n * 2)',
+      '[1, 2, 3].filter((n) => n > 1)',
+      '[1, 2, 3].forEach((n) => console.log(n))',
+      '[1, 2, 3].find((n) => n === 2)',
+      '[1, 2, 3].some((n) => n > 2)',
+      '[1, 2, 3].every((n) => n > 0)',
+      'users.map((user) => user.name)',
     ],
     invalid: [
       // Single positional parameter

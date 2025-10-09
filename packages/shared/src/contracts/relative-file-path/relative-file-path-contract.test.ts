@@ -65,19 +65,19 @@ describe('relativeFilePathContract', () => {
     it('INVALID: {path: ""} => throws ZodError', () => {
       expect(() => {
         return relativeFilePathContract.parse('');
-      }).toThrow();
+      }).toThrow('String must contain at least 1 character');
     });
 
     it('INVALID: {path: 123} => throws ZodError', () => {
       expect(() => {
         return relativeFilePathContract.parse(123);
-      }).toThrow();
+      }).toThrow('Expected string');
     });
 
     it('INVALID: {path: null} => throws ZodError', () => {
       expect(() => {
         return relativeFilePathContract.parse(null);
-      }).toThrow();
+      }).toThrow('Expected string');
     });
   });
 });

@@ -65,19 +65,19 @@ describe('absoluteFilePathContract', () => {
     it('INVALID: {path: ""} => throws ZodError', () => {
       expect(() => {
         return absoluteFilePathContract.parse('');
-      }).toThrow();
+      }).toThrow('String must contain at least 1 character');
     });
 
     it('INVALID: {path: 123} => throws ZodError', () => {
       expect(() => {
         return absoluteFilePathContract.parse(123);
-      }).toThrow();
+      }).toThrow('Expected string');
     });
 
     it('INVALID: {path: null} => throws ZodError', () => {
       expect(() => {
         return absoluteFilePathContract.parse(null);
-      }).toThrow();
+      }).toThrow('Expected string');
     });
   });
 });

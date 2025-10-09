@@ -31,19 +31,19 @@ describe('filePathContract', () => {
     it('INVALID: {path: "lodash"} => throws validation error', () => {
       expect(() => {
         return filePathContract.parse('lodash');
-      }).toThrow();
+      }).toThrow('Path must be absolute');
     });
 
     it('INVALID: {path: "@react/core"} => throws validation error', () => {
       expect(() => {
         return filePathContract.parse('@react/core');
-      }).toThrow();
+      }).toThrow('Path must be absolute');
     });
 
     it('INVALID: {path: "relative/path.ts"} => throws validation error', () => {
       expect(() => {
         return filePathContract.parse('relative/path.ts');
-      }).toThrow();
+      }).toThrow('Path must be absolute');
     });
   });
 
@@ -51,25 +51,25 @@ describe('filePathContract', () => {
     it('INVALID: {path: ""} => throws ZodError', () => {
       expect(() => {
         return filePathContract.parse('');
-      }).toThrow();
+      }).toThrow('String must contain at least 1 character');
     });
 
     it('INVALID: {path: 123} => throws ZodError', () => {
       expect(() => {
         return filePathContract.parse(123);
-      }).toThrow();
+      }).toThrow('Expected string');
     });
 
     it('INVALID: {path: null} => throws ZodError', () => {
       expect(() => {
         return filePathContract.parse(null);
-      }).toThrow();
+      }).toThrow('Expected string');
     });
 
     it('INVALID: {path: undefined} => throws ZodError', () => {
       expect(() => {
         return filePathContract.parse(undefined);
-      }).toThrow();
+      }).toThrow('Required');
     });
   });
 });

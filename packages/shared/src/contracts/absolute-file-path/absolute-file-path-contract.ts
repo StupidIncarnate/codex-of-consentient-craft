@@ -10,7 +10,7 @@ export const absoluteFilePathContract = z
         return true;
       }
       // Windows absolute path (C:\, D:\, etc.)
-      if (/^[A-Za-z]:\\/.test(path)) {
+      if (/^[A-Za-z]:\\/u.test(path)) {
         return true;
       }
       return false;
