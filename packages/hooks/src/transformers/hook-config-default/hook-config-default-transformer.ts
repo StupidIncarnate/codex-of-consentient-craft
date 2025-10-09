@@ -10,6 +10,7 @@ export const hookConfigDefaultTransformer = (): PreEditLintConfig =>
       'jest/no-restricted-jest-methods',
       'jest/no-restricted-matchers',
       'jest/require-to-throw-message',
+      'jest/no-restricted-matchers',
       '@questmaestro/require-contract-validation',
     ],
   });

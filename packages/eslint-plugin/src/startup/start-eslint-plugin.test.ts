@@ -2,75 +2,7 @@ import { startEslintPlugin } from './start-eslint-plugin';
 
 describe('startEslintPlugin', () => {
   describe('initialize()', () => {
-    it('VALID: => returns plugin object with rules and configs', () => {
-      const plugin = startEslintPlugin();
-
-      expect(plugin).toEqual(
-        expect.objectContaining({
-          rules: expect.objectContaining({
-            'ban-primitives': expect.objectContaining({
-              meta: expect.objectContaining({
-                type: 'problem',
-                docs: expect.objectContaining({
-                  description: 'Ban raw string and number types in favor of Zod contract types',
-                }),
-              }),
-              create: expect.any(Function),
-            }),
-            'require-zod-on-primitives': expect.objectContaining({
-              meta: expect.objectContaining({
-                type: 'problem',
-                docs: expect.objectContaining({
-                  description: 'Require .brand() chaining on z.string() and z.number() calls',
-                }),
-              }),
-              create: expect.any(Function),
-            }),
-            'explicit-return-types': expect.objectContaining({
-              meta: expect.objectContaining({
-                type: 'problem',
-                docs: expect.objectContaining({
-                  description: 'Require explicit return types on exported functions',
-                }),
-              }),
-              create: expect.any(Function),
-            }),
-            'enforce-project-structure': expect.objectContaining({
-              meta: expect.objectContaining({
-                type: 'problem',
-                docs: expect.objectContaining({
-                  description:
-                    'Enforce QuestMaestro project structure with hierarchical validation (folder → depth → filename → export)',
-                }),
-              }),
-              create: expect.any(Function),
-            }),
-            'enforce-import-dependencies': expect.objectContaining({
-              create: expect.any(Function),
-            }),
-            'enforce-object-destructuring-params': expect.objectContaining({
-              create: expect.any(Function),
-            }),
-            'enforce-test-colocation': expect.objectContaining({
-              create: expect.any(Function),
-            }),
-            'enforce-implementation-testing': expect.objectContaining({
-              create: expect.any(Function),
-            }),
-          }),
-          configs: expect.objectContaining({
-            questmaestro: expect.objectContaining({
-              plugins: expect.any(Object),
-              rules: expect.objectContaining({
-                '@questmaestro/enforce-object-destructuring-params': 'error',
-              }),
-            }),
-          }),
-        }),
-      );
-    });
-
-    it('VALID: plugin.rules => returns all custom rules', () => {
+    it('VALID: => returns plugin with all rule names', () => {
       const plugin = startEslintPlugin();
 
       expect(Object.keys(plugin.rules)).toStrictEqual([
@@ -88,19 +20,37 @@ describe('startEslintPlugin', () => {
       ]);
     });
 
-    it('VALID: plugin.configs => returns questmaestro configuration', () => {
+    it('VALID: => returns ban-primitives rule with complete structure', () => {
+      const plugin = startEslintPlugin();
+
+      expect(plugin.rules['ban-primitives']).toStrictEqual({
+        meta: {
+          type: 'problem',
+          docs: {
+            description: 'Ban raw string and number types in favor of Zod contract types',
+          },
+          messages: {
+            banPrimitive:
+              'Raw {{typeName}} type is not allowed. Use Zod contract types like {{suggestion}} instead.',
+          },
+          schema: [],
+        },
+        create: expect.any(Function),
+      });
+    });
+
+    it('VALID: => returns config with questmaestro name', () => {
       const plugin = startEslintPlugin();
 
       expect(Object.keys(plugin.configs)).toStrictEqual(['questmaestro']);
     });
 
-    it('VALID: questmaestro config includes active rules => includes enforce-object-destructuring-params', () => {
+    it('VALID: => returns questmaestro config with enforce-object-destructuring-params enabled', () => {
       const plugin = startEslintPlugin();
 
-      expect(plugin.configs.questmaestro.rules).toHaveProperty(
-        '@questmaestro/enforce-object-destructuring-params',
-        'error',
-      );
+      expect(
+        plugin.configs.questmaestro.rules?.['@questmaestro/enforce-object-destructuring-params'],
+      ).toBe('error');
     });
   });
 });

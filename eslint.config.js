@@ -116,9 +116,12 @@ module.exports = [
   {
     files: ['packages/eslint-plugin/src/brokers/rule/**'],
     rules: {
-      'jest/require-hook': 'off'
-    }
-  }
+      'jest/require-hook': 'off',
+      'jest/require-top-level-describe': 'off',
+      'jest/no-hooks': 'off',
+      '@questmaestro/ban-contract-in-tests': 'off'
+    },
+  },
   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {

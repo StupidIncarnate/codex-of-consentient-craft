@@ -245,7 +245,12 @@ describe('folderConfigStatics', () => {
 
       // Verify allowedImports array is preserved
       expect(Array.isArray(contractsConfig.allowedImports)).toBe(true);
-      expect(contractsConfig.allowedImports).toStrictEqual(['statics/', 'errors/', 'contracts/', 'zod']);
+      expect(contractsConfig.allowedImports).toStrictEqual([
+        'statics/',
+        'errors/',
+        'contracts/',
+        'zod',
+      ]);
     });
   });
 });
