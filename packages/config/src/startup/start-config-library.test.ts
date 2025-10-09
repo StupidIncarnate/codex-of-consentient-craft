@@ -211,28 +211,14 @@ describe('start-config-library', () => {
         expect(result).toStrictEqual(config);
       });
 
-      it('VALID: {framework: "express", schema: ["zod", "joi"]} => validates multi-schema config', () => {
+      it('VALID: {framework: "express", schema: ["zod"]} => validates multi-schema config', () => {
         const config = {
           framework: 'express',
-          schema: ['zod', 'joi'],
+          schema: ['zod'],
           architecture: {
             overrides: {
               state: { add: ['redis'] },
             },
-          },
-        };
-
-        const result = validateConfig({ config });
-
-        expect(result).toStrictEqual(config);
-      });
-
-      it('VALID: {framework: "monorepo", schema: "yup"} => validates monorepo config', () => {
-        const config = {
-          framework: 'monorepo',
-          schema: 'yup',
-          architecture: {
-            allowedRootFiles: ['global.d.ts'],
           },
         };
 
@@ -373,7 +359,7 @@ describe('start-config-library', () => {
     it('VALID: {} => returns all valid schema library options', () => {
       const result = getAllSchemaLibraries();
 
-      expect(result).toStrictEqual(['zod', 'yup', 'joi', 'io-ts', 'typebox', 'class-validator']);
+      expect(result).toStrictEqual(['zod']);
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(6);
     });

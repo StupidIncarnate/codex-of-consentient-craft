@@ -27,10 +27,10 @@ describe('computeAllowedImportsTransformer', () => {
       });
     });
 
-    it('VALID: {framework: "express", schema: ["zod", "yup"]} => returns complete config with schema array unchanged', () => {
+    it('VALID: {framework: "express", schema: ["zod"]} => returns complete config with schema array unchanged', () => {
       const config: QuestmaestroConfig = {
         framework: 'express',
-        schema: ['zod', 'yup'],
+        schema: ['zod'],
       };
 
       const result = computeAllowedImportsTransformer({ config });
@@ -41,7 +41,7 @@ describe('computeAllowedImportsTransformer', () => {
         state: [],
         flows: ['express'],
         responders: [],
-        contracts: ['zod', 'yup'],
+        contracts: ['zod'],
         brokers: [],
         transformers: [],
         errors: [],

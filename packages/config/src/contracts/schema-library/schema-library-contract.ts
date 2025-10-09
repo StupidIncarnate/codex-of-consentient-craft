@@ -1,13 +1,6 @@
 import { isInReadonlyArray } from '../is-in-readonly-array/is-in-readonly-array';
 
-export const ALL_SCHEMA_LIBRARIES = [
-  'zod',
-  'yup',
-  'joi',
-  'io-ts',
-  'typebox',
-  'class-validator',
-] as const;
+export const ALL_SCHEMA_LIBRARIES = ['zod'] as const;
 
 export type SchemaLibrary = (typeof ALL_SCHEMA_LIBRARIES)[number];
 

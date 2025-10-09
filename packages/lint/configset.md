@@ -38,7 +38,7 @@ module.exports = {
     routing: "react-router-dom",  // Required for frontend/backend apps (not libraries)
     schema: "zod",                 // Primary validation library
     // Or use multiple validation libraries:
-    // schema: ["zod", "yup"],    // Both available in contracts/
+    // schema: ["zod"],    // Both available in contracts/
 
     // Optional: Override specific folders from the preset
     architecture: {
@@ -355,7 +355,7 @@ export type Framework =
     | "cli" | "ink-cli"                                           // CLI tools
     | "monorepo";                                                  // Monorepo root
 
-export type SchemaLibrary = "zod" | "yup" | "joi" | "io-ts" | "typebox" | "class-validator";
+export type SchemaLibrary = "zod";
 
 export type RoutingLibrary =
     | "react-router-dom" | "vue-router" | "@angular/router"  // Frontend routers
@@ -405,7 +405,7 @@ module.exports = {
 module.exports = {
     framework: "vue",
     routing: "vue-router",
-    schema: "yup",
+    schema: "zod",
 
     // Optional: Add state management
     architecture: {
@@ -419,7 +419,7 @@ module.exports = {
 module.exports = {
     framework: "react",
     routing: "react-router-dom",
-    schema: ["zod", "yup"],  // Both libraries available in contracts/
+    schema: ["zod"],  // Both libraries available in contracts/
     // Useful during migration from one to another
 };
 
@@ -433,7 +433,7 @@ module.exports = {
 // Example: Node.js Utility Library (.questmaestro)
 module.exports = {
     framework: "node-library",
-    schema: "joi"
+    schema: "zod"
     // No routing or UI packages needed
 };
 
@@ -601,7 +601,7 @@ module.exports = {
 ```javascript
 module.exports = {
     framework: "express",
-    schema: "joi",
+    schema: "zod",
 
     architecture: {
         // Add domain-specific prefixes

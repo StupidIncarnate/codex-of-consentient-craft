@@ -58,7 +58,7 @@ describe('mergeConfigsTransformer', () => {
 
       const packageConfig: QuestmaestroConfig = {
         framework: 'react',
-        schema: 'yup',
+        schema: 'zod',
         routing: 'react-router-dom',
       };
 
@@ -68,7 +68,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'react',
-        schema: 'yup',
+        schema: 'zod',
         routing: 'react-router-dom',
         architecture: {
           overrides: {
@@ -83,7 +83,7 @@ describe('mergeConfigsTransformer', () => {
     it('VALID: base + override config => package routing wins when present', () => {
       const baseConfig: QuestmaestroConfig = {
         framework: 'vue',
-        schema: 'joi',
+        schema: 'zod',
         routing: 'vue-router',
       };
 
@@ -113,7 +113,7 @@ describe('mergeConfigsTransformer', () => {
 
       const packageConfig: QuestmaestroConfig = {
         framework: 'react',
-        schema: 'yup',
+        schema: 'zod',
       };
 
       const result = mergeConfigsTransformer({
@@ -122,7 +122,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'react',
-        schema: 'yup',
+        schema: 'zod',
         routing: 'react-router-dom',
       });
     });
@@ -136,7 +136,7 @@ describe('mergeConfigsTransformer', () => {
 
       const packageConfig: QuestmaestroConfig = {
         framework: 'react',
-        schema: ['zod', 'yup'],
+        schema: ['zod'],
       };
 
       const result = mergeConfigsTransformer({
@@ -145,7 +145,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'react',
-        schema: ['zod', 'yup'],
+        schema: ['zod'],
         routing: 'react-router-dom',
       });
     });
@@ -345,9 +345,6 @@ describe('mergeConfigsTransformer', () => {
         framework: 'monorepo',
         schema: 'zod',
         architecture: {
-          overrides: {
-            contracts: { add: ['class-validator'] },
-          },
           allowedRootFiles: ['global.d.ts'],
           booleanFunctionPrefixes: ['is'],
         },
@@ -355,7 +352,7 @@ describe('mergeConfigsTransformer', () => {
 
       const workspaceConfig: QuestmaestroConfig = {
         framework: 'react',
-        schema: 'yup',
+        schema: 'zod',
         routing: 'react-router-dom',
         architecture: {
           overrides: {
@@ -368,7 +365,7 @@ describe('mergeConfigsTransformer', () => {
 
       const packageConfig: QuestmaestroConfig = {
         framework: 'react',
-        schema: 'joi',
+        schema: 'zod',
         architecture: {
           overrides: {
             state: { add: ['redux'] },
@@ -383,11 +380,10 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'react',
-        schema: 'joi',
+        schema: 'zod',
         routing: 'react-router-dom',
         architecture: {
           overrides: {
-            contracts: { add: ['class-validator'] },
             widgets: { add: ['react-bootstrap'] },
             state: { add: ['redux'] },
           },
@@ -411,7 +407,7 @@ describe('mergeConfigsTransformer', () => {
 
       const config2: QuestmaestroConfig = {
         framework: 'express',
-        schema: 'yup',
+        schema: 'zod',
         architecture: {
           overrides: {
             brokers: { add: ['mongoose'] },
@@ -422,7 +418,7 @@ describe('mergeConfigsTransformer', () => {
 
       const config3: QuestmaestroConfig = {
         framework: 'express',
-        schema: 'joi',
+        schema: 'zod',
         architecture: {
           overrides: {
             transformers: { add: ['lodash'] },
@@ -437,7 +433,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'express',
-        schema: 'joi',
+        schema: 'zod',
         architecture: {
           overrides: {
             adapters: { add: ['axios'] },
@@ -459,7 +455,7 @@ describe('mergeConfigsTransformer', () => {
 
       const config2: QuestmaestroConfig = {
         framework: 'react',
-        schema: ['yup', 'joi'],
+        schema: ['zod'],
       };
 
       const result = mergeConfigsTransformer({
@@ -468,28 +464,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'react',
-        schema: ['yup', 'joi'],
-      });
-    });
-
-    it('EDGE: configs with only framework defined => minimal merge', () => {
-      const config1: QuestmaestroConfig = {
-        framework: 'node-library',
-        schema: 'zod',
-      };
-
-      const config2: QuestmaestroConfig = {
-        framework: 'node-library',
-        schema: 'yup',
-      };
-
-      const result = mergeConfigsTransformer({
-        configs: [config1, config2],
-      });
-
-      expect(result).toStrictEqual({
-        framework: 'node-library',
-        schema: 'yup',
+        schema: ['zod'],
       });
     });
 
@@ -535,7 +510,7 @@ describe('mergeConfigsTransformer', () => {
 
       const packageConfig: QuestmaestroConfig = {
         framework: 'node-library',
-        schema: 'yup',
+        schema: 'zod',
       };
 
       const result = mergeConfigsTransformer({
@@ -544,7 +519,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'node-library',
-        schema: 'yup',
+        schema: 'zod',
       });
     });
   });

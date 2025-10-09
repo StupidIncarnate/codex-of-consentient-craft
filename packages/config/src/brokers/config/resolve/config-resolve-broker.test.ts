@@ -206,11 +206,11 @@ describe('configResolveBroker', () => {
       const filePath = '/project/deeply/nested/file.ts';
       const packageConfig: QuestmaestroConfig = {
         framework: 'vue',
-        schema: 'yup',
+        schema: 'zod',
       };
       const mergedConfig: QuestmaestroConfig = {
         framework: 'vue',
-        schema: 'yup',
+        schema: 'zod',
       };
 
       // Same config path returned indicates no parent found

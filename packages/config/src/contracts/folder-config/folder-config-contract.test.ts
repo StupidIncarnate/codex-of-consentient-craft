@@ -284,7 +284,7 @@ describe('folder-config-contract', () => {
           state: [],
           flows: ['express'],
           responders: [],
-          contracts: ['zod', 'yup'],
+          contracts: ['zod'],
           brokers: [],
           transformers: [],
           errors: [],
@@ -298,7 +298,7 @@ describe('folder-config-contract', () => {
         expect(backendImports.state).toStrictEqual([]);
         expect(backendImports.flows).toStrictEqual(['express']);
         expect(backendImports.responders).toStrictEqual([]);
-        expect(backendImports.contracts).toStrictEqual(['zod', 'yup']);
+        expect(backendImports.contracts).toStrictEqual(['zod']);
         expect(backendImports.brokers).toStrictEqual([]);
         expect(backendImports.transformers).toStrictEqual([]);
         expect(backendImports.errors).toStrictEqual([]);
@@ -314,7 +314,7 @@ describe('folder-config-contract', () => {
           state: [],
           flows: null,
           responders: null,
-          contracts: ['joi'],
+          contracts: ['zod'],
           brokers: [],
           transformers: [],
           errors: [],
@@ -328,7 +328,7 @@ describe('folder-config-contract', () => {
         expect(libraryImports.state).toStrictEqual([]);
         expect(libraryImports.flows).toBeNull();
         expect(libraryImports.responders).toBeNull();
-        expect(libraryImports.contracts).toStrictEqual(['joi']);
+        expect(libraryImports.contracts).toStrictEqual(['zod']);
         expect(libraryImports.brokers).toStrictEqual([]);
         expect(libraryImports.transformers).toStrictEqual([]);
         expect(libraryImports.errors).toStrictEqual([]);

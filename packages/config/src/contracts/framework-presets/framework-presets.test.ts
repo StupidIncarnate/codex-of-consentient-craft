@@ -637,7 +637,7 @@ describe('framework-presets', () => {
           state: [],
           flows: null,
           responders: null,
-          contracts: ['yup'],
+          contracts: ['zod'],
           brokers: [],
           transformers: [],
           errors: [],
@@ -651,7 +651,7 @@ describe('framework-presets', () => {
         expect(preset.state).toStrictEqual([]);
         expect(preset.flows).toBeNull();
         expect(preset.responders).toBeNull();
-        expect(preset.contracts).toStrictEqual(['yup']);
+        expect(preset.contracts).toStrictEqual(['zod']);
         expect(preset.brokers).toStrictEqual([]);
         expect(preset.transformers).toStrictEqual([]);
         expect(preset.errors).toStrictEqual([]);

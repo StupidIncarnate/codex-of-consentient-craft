@@ -80,7 +80,7 @@ control over external dependencies and makes the rules lintable via ESLint.
 
 1. **Pure computation functions** (lodash, ramda, date-fns)
 2. **Type definitions** (@types/*)
-3. **Validation schemas** (zod, yup, joi - for contracts/)
+3. **Validation schemas** (zod - for contracts/)
 4. **Framework core** (react, express - limited to specific folders)
 5. **Testing utilities** (jest, vitest, @testing-library/*)
 6. **Build/compile time only** (typescript, webpack)
@@ -101,8 +101,6 @@ control over external dependencies and makes the rules lintable via ESLint.
 {
   "zod": ["contracts/**/*.ts"],
   "@types/*": ["contracts/**/*.ts"],
-  "yup": ["contracts/**/*.ts"],
-  "joi": ["contracts/**/*.ts"],
   "lodash": "any",
   "date-fns": "any",
   "uuid": "any",
@@ -369,7 +367,7 @@ contracts/
 **Constraints:**
 
 - **CAN** export pure TypeScript types/interfaces (for external APIs, library types)
-- **CAN** export validation schemas (Zod, Yup, Joi, etc.) with inferred types
+- **CAN** export validation schemas (Zod) with inferred types
 - **CAN** export pure functions that return booleans (validation, type guards, checks)
 - **RULE:** If a pure function returns a boolean, it MUST be in contracts/ (not transformers/ or elsewhere)
 - **Must** have explicit return types on all exported functions (for linting)
@@ -419,7 +417,7 @@ calls, file system, etc., it's a broker, not a contract.
 Yes, parse functions (like `zod.parse()`) return non-boolean values, which technically breaks our "contracts are for
 booleans" rule. This is a deliberate exception because:
 
-1. **Zod/Yup/Joi schemas inherently combine validation + transformation** - Separating them is artificial
+1. **Zod schemas inherently combine validation + transformation** - Separating them is artificial
 2. **The transformation is inseparable from validation** - You can't validate without parsing
 3. **TypeScript type inference depends on this** - `z.infer<typeof contract>` needs the schema
 4. **Splitting would create worse problems:**

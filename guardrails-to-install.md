@@ -217,7 +217,7 @@ packages/config/
 │ │ ├── framework-presets.ts // All preset definitions (what packages each framework allows)
 │ │ └── framework-presets.test.ts // Tests for preset data structure
 │ ├── schema-library/ // Validation library types
-│ │ ├── schema-library-contract.ts // SchemaLibrary type (zod, yup, joi, etc.)
+│ │ ├── schema-library-contract.ts // SchemaLibrary type - zod
 │ │ └── schema-library-contract.test.ts // Tests for schema library validation
 │ ├── routing-library/ // Router library types
 │ │ ├── routing-library-contract.ts // RoutingLibrary type (react-router-dom, vue-router, etc.)

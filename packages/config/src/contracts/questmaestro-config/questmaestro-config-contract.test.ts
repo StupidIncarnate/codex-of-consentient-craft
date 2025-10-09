@@ -58,23 +58,23 @@ describe('questmaestro-config-contract', () => {
         const config: QuestmaestroConfig = {
           framework: 'express',
           routing: 'express',
-          schema: 'joi',
+          schema: 'zod',
         };
 
         expect(config.framework).toBe('express');
         expect(config.routing).toBe('express');
-        expect(config.schema).toBe('joi');
+        expect(config.schema).toBe('zod');
       });
 
       it('VALID: minimal library config without routing => compiles successfully', () => {
         const config: QuestmaestroConfig = {
           framework: 'node-library',
-          schema: 'yup',
+          schema: 'zod',
         };
 
         expect(config.framework).toBe('node-library');
         expect(config.routing).toBeUndefined();
-        expect(config.schema).toBe('yup');
+        expect(config.schema).toBe('zod');
       });
     });
 
@@ -92,26 +92,21 @@ describe('questmaestro-config-contract', () => {
       it('VALID: multiple schema libraries => compiles successfully', () => {
         const config: QuestmaestroConfig = {
           framework: 'nextjs',
-          schema: ['zod', 'yup', 'joi'],
+          schema: ['zod'],
         };
 
-        expect(config.schema).toStrictEqual(['zod', 'yup', 'joi']);
+        expect(config.schema).toStrictEqual(['zod']);
       });
 
       it('VALID: all supported schema libraries => compiles successfully', () => {
         const config: QuestmaestroConfig = {
           framework: 'vue',
           routing: 'vue-router',
-          schema: ['zod', 'yup', 'joi', 'io-ts', 'typebox', 'class-validator'],
+          schema: ['zod'],
         };
 
         expect(config.schema).toStrictEqual([
-          'zod',
-          'yup',
-          'joi',
-          'io-ts',
-          'typebox',
-          'class-validator',
+          'zod'
         ]);
       });
     });
@@ -164,7 +159,7 @@ describe('questmaestro-config-contract', () => {
         const config: QuestmaestroConfig = {
           framework: 'express',
           routing: 'express',
-          schema: 'joi',
+          schema: 'zod',
           architecture: {
             booleanFunctionPrefixes: ['is', 'has', 'check', 'validate'],
           },
@@ -210,7 +205,7 @@ describe('questmaestro-config-contract', () => {
         const config: QuestmaestroConfig = {
           framework: 'react',
           routing: 'react-router-dom',
-          schema: ['zod', 'yup'],
+          schema: ['zod'],
           architecture: {
             overrides: {
               widgets: {
@@ -233,7 +228,7 @@ describe('questmaestro-config-contract', () => {
 
         expect(config.framework).toBe('react');
         expect(config.routing).toBe('react-router-dom');
-        expect(config.schema).toStrictEqual(['zod', 'yup']);
+        expect(config.schema).toStrictEqual(['zod']);
         expect(config.architecture?.overrides?.widgets?.add).toStrictEqual([
           '@mui/material',
           'styled-components',
@@ -260,7 +255,7 @@ describe('questmaestro-config-contract', () => {
         const config: QuestmaestroConfig = {
           framework: 'fastify',
           routing: 'fastify',
-          schema: 'joi',
+          schema: 'zod',
           architecture: {
             overrides: {
               brokers: {
@@ -280,7 +275,7 @@ describe('questmaestro-config-contract', () => {
 
         expect(config.framework).toBe('fastify');
         expect(config.routing).toBe('fastify');
-        expect(config.schema).toBe('joi');
+        expect(config.schema).toBe('zod');
         expect(config.architecture?.overrides?.brokers?.add).toStrictEqual(['prisma', 'mongoose']);
         expect(config.architecture?.overrides?.adapters?.add).toStrictEqual(['redis', 'bullmq']);
         expect(config.architecture?.overrides?.middleware?.add).toStrictEqual(['helmet', 'cors']);
@@ -341,12 +336,12 @@ describe('questmaestro-config-contract', () => {
         const config: QuestmaestroConfig = {
           framework: 'vue',
           routing: 'vue-router',
-          schema: 'yup',
+          schema: 'zod',
         };
 
         expect(config.framework).toBe('vue');
         expect(config.routing).toBe('vue-router');
-        expect(config.schema).toBe('yup');
+        expect(config.schema).toBe('zod');
       });
 
       it('VALID: Svelte config => compiles successfully', () => {
@@ -363,12 +358,12 @@ describe('questmaestro-config-contract', () => {
       it('VALID: CLI config => compiles successfully', () => {
         const config: QuestmaestroConfig = {
           framework: 'cli',
-          schema: 'joi',
+          schema: 'zod',
         };
 
         expect(config.framework).toBe('cli');
         expect(config.routing).toBeUndefined();
-        expect(config.schema).toBe('joi');
+        expect(config.schema).toBe('zod');
       });
 
       it('VALID: Ink CLI config => compiles successfully', () => {

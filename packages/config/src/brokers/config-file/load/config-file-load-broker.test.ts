@@ -70,7 +70,7 @@ describe('configFileLoadBroker', () => {
       const mockConfig = {
         framework: 'react',
         routing: 'react-router-dom',
-        schema: ['zod', 'yup'],
+        schema: ['zod'],
         architecture: {
           overrides: {
             state: { add: ['zustand'] },

@@ -297,7 +297,7 @@ be enforced via ESLint (existing or custom rules) using AST/TypeScript type anal
   `allowedExternalImports.contracts` config
 - **Violation**: `export const UserSchema = z.object({})`
 - **Valid**: `export const userContract = z.object({})`
-- **Config-driven**: Checks if imported library is in `allowedExternalImports.contracts` (e.g., ["zod", "yup", "joi"])
+- **Config-driven**: Checks if imported library is in `allowedExternalImports.contracts` (e.g., ["zod"])
 
 **5. Export Naming - Stubs**
 
@@ -328,7 +328,7 @@ be enforced via ESLint (existing or custom rules) using AST/TypeScript type anal
 - **Violation**: `import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker'`
 - **Valid**: `import {ValidationError} from '../../errors/validation/validation-error'`,
   `import {userStatics} from '../../statics/user/user-statics'`
-- **Config-driven**: External packages from `allowedExternalImports.contracts` (e.g., ["zod", "yup", "joi"])
+- **Config-driven**: External packages from `allowedExternalImports.contracts` (e.g., ["zod"])
 
 ---
 
@@ -1118,7 +1118,7 @@ These rules apply across multiple folder types and enforce architectural pattern
     - `widgets/`: `["react", "react-dom"]` (UI framework)
     - `bindings/`: `["react", "react-dom"]` (hooks)
     - `flows/`: `["react-router-dom", "express"]` (routing)
-    - `contracts/`: `["zod", "yup", "joi"]` (validation)
+  - `contracts/`: `["zod"]` (validation)
     - Others: Not in config = no external imports allowed
 - **Note**: Type-only imports (`import type`) allowed anywhere
 

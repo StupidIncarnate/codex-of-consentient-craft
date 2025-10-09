@@ -48,7 +48,7 @@ safety.
 
 ## The Validation Contract
 
-Projects use validation libraries (Zod, Yup, io-ts) to define contracts. These contracts:
+Projects use validation library, Zod, to define contracts. These contracts:
 
 - Define the expected shape with TypeScript types
 - Validate data at runtime with `.parse()` or `.safeParse()`

@@ -104,7 +104,7 @@ describe('applyOverridesTransformer', () => {
 
       const config: QuestmaestroConfig = {
         framework: 'vue',
-        schema: 'yup',
+        schema: 'zod',
         architecture: {
           overrides: {},
         },
@@ -683,7 +683,6 @@ describe('applyOverridesTransformer', () => {
           overrides: {
             widgets: { add: ['styled-components'] },
             state: { add: ['redux'] },
-            contracts: { add: ['yup'] },
             brokers: { add: ['axios'] },
           },
         },
@@ -697,7 +696,7 @@ describe('applyOverridesTransformer', () => {
         state: ['react', 'react-dom', 'redux'],
         flows: [],
         responders: [],
-        contracts: ['zod', 'yup'],
+        contracts: ['zod'],
         brokers: ['axios'],
         transformers: [],
         errors: [],
@@ -733,7 +732,6 @@ describe('applyOverridesTransformer', () => {
             state: { add: ['zustand'] },
             flows: { add: ['@reach/router'] },
             responders: { add: ['express'] },
-            contracts: { add: ['yup'] },
             brokers: { add: ['mongoose'] },
             transformers: { add: ['lodash'] },
             errors: { add: ['boom'] },
@@ -752,7 +750,7 @@ describe('applyOverridesTransformer', () => {
         state: ['react', 'react-dom', 'zustand'],
         flows: ['react-router-dom', '@reach/router'],
         responders: ['express'],
-        contracts: ['zod', 'yup'],
+        contracts: ['zod'],
         brokers: ['mongoose'],
         transformers: ['lodash'],
         errors: ['boom'],
@@ -966,7 +964,6 @@ describe('applyOverridesTransformer', () => {
             flows: { add: ['express'] },
             responders: { add: ['fastify'] },
             state: { add: ['redis'] },
-            contracts: { add: ['yup'] },
           },
         },
       };
@@ -979,7 +976,7 @@ describe('applyOverridesTransformer', () => {
         state: ['redis'],
         flows: null,
         responders: null,
-        contracts: ['yup'],
+        contracts: [],
         brokers: [],
         transformers: [],
         errors: [],

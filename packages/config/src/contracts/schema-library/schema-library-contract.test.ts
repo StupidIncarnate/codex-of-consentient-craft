@@ -5,14 +5,7 @@ describe('schema-library-contract', () => {
   describe('ALL_SCHEMA_LIBRARIES', () => {
     describe('valid structure', () => {
       it('VALID: contains all expected schema libraries => returns complete array', () => {
-        expect(ALL_SCHEMA_LIBRARIES).toStrictEqual([
-          'zod',
-          'yup',
-          'joi',
-          'io-ts',
-          'typebox',
-          'class-validator',
-        ]);
+        expect(ALL_SCHEMA_LIBRARIES).toStrictEqual(['zod']);
       });
 
       it('VALID: is readonly array => returns readonly type', () => {
@@ -27,26 +20,6 @@ describe('schema-library-contract', () => {
     describe('valid inputs', () => {
       it('VALID: "zod" => returns true', () => {
         expect(isValidSchemaLibrary('zod')).toBe(true);
-      });
-
-      it('VALID: "yup" => returns true', () => {
-        expect(isValidSchemaLibrary('yup')).toBe(true);
-      });
-
-      it('VALID: "joi" => returns true', () => {
-        expect(isValidSchemaLibrary('joi')).toBe(true);
-      });
-
-      it('VALID: "io-ts" => returns true', () => {
-        expect(isValidSchemaLibrary('io-ts')).toBe(true);
-      });
-
-      it('VALID: "typebox" => returns true', () => {
-        expect(isValidSchemaLibrary('typebox')).toBe(true);
-      });
-
-      it('VALID: "class-validator" => returns true', () => {
-        expect(isValidSchemaLibrary('class-validator')).toBe(true);
       });
     });
 
@@ -144,23 +117,9 @@ describe('schema-library-contract', () => {
   describe('SchemaLibrary type', () => {
     describe('type compilation', () => {
       it('VALID: type accepts all valid schema libraries => compiles successfully', () => {
-        const validLibraries: SchemaLibrary[] = [
-          'zod',
-          'yup',
-          'joi',
-          'io-ts',
-          'typebox',
-          'class-validator',
-        ];
+        const validLibraries: SchemaLibrary[] = ['zod'];
 
-        expect(validLibraries).toStrictEqual([
-          'zod',
-          'yup',
-          'joi',
-          'io-ts',
-          'typebox',
-          'class-validator',
-        ]);
+        expect(validLibraries).toStrictEqual(['zod']);
       });
     });
   });
