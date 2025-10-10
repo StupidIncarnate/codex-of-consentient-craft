@@ -759,7 +759,9 @@ adapters/
 - **Every contract MUST have a stub** - For type-safe testing
 - **Contracts don't need to match npm types** - Adapter translates app contracts ↔ npm types
 - **Type only what you use** - Expand contracts incrementally as needed
-- **Can compose multiple package functions** - If they accomplish one app operation
+- **Can compose multiple package functions** - If they accomplish one app operation **from the same npm package only**
+- **CANNOT import other adapters** - Adapters only call functions from their associated npm package (folder name =
+  package name)
 - **Package name prefixes filename** - `axios-get-adapter.ts` not `http-get-adapter.ts`
 - **Brands on primitives** - Brand `string`/`number`, not objects
 - **Must** add project-specific configuration (timeout, auth, retry, logging)
