@@ -21,8 +21,9 @@ When LLMs write tests, they face several challenges:
 
 **Two proxy responsibilities:**
 
-1. **bootstrap()** - Setup dependencies with safe defaults so code doesn't crash
-2. **trigger methods** - Encapsulate interactions (clicking buttons, calling functions) without exposing internals
+1. **bootstrap()** - Setup dependencies with safe defaults so code doesn't crash (called once automatically, no args)
+2. **configure()** - Override defaults with test-specific data (called by tests when needed, takes config args)
+3. **trigger methods** - Encapsulate interactions (clicking buttons, calling functions) without exposing internals
 
 **Core Benefits:**
 
@@ -78,31 +79,20 @@ it('renders', () => {
 ```typescript
 // WidgetA.test.tsx - PROXY APPROACH
 import {WidgetA} from './widget-a';
-import {createWidgetBProxy} from './widget-b.proxy';
 
 // TRANSFORMER AUTO-INJECTED (developer doesn't write this):
 import {createWidgetAProxy} from './widget-a.proxy';
 
-beforeAll(() => {
-    createWidgetAProxy().bootstrap();  // ONE call - chains automatically!
-});
+const widgetAProxy = createWidgetAProxy();  // Create instance
+widgetAProxy.bootstrap();                   // Bootstrap it - chains automatically! NO ARGS!
 // END AUTO-INJECTION
 
 describe('WidgetA', () => {
-    it('handles button click from WidgetB', async () => {
-        const consoleSpy = jest.spyOn(console, 'log');
-
-        // Create proxy BEFORE render
-        const widgetBProxy = createWidgetBProxy();
-
+    it('renders', () => {
         // Just render - bootstrap already set defaults, won't crash
         render(<WidgetA / >);
 
-        // Trigger WidgetB's button via proxy (don't know its testId)
-        await widgetBProxy.triggerSubmit();
-
-        // Test WidgetA's responsibility: handling the event
-        expect(consoleSpy).toHaveBeenCalledWith('Submitted!');
+        expect(screen.getByText('Widget A')).toBeInTheDocument();
     });
 });
 ```
@@ -122,52 +112,91 @@ describe('WidgetA', () => {
 
 **bootstrap()** = "Setup my dependencies with safe defaults so I don't crash"
 
-- Only adapters use `jest.mock()`
-- Other proxies chain to their dependency proxies' bootstrap()
+- **NEVER takes arguments** - called once automatically by transformer
+- **NO jest.mock() in proxies** - Transformer injects it at test file top
+- All proxies chain to their dependency proxies' bootstrap()
 - Bootstrap is idempotent (calling multiple times is safe)
 - Bootstrap uses `mockImplementation` (fallback for all calls)
 
-### Adapter Bootstrap (Only Place jest.mock() Exists)
+**configure(config)** = "Override defaults with test-specific data"
+
+- **Takes configuration arguments** - called by tests when they need specific setup
+- Tests use configure() to override bootstrap's safe defaults
+- Configure can be called multiple times per test (idempotent)
+
+### Adapter Bootstrap (Transformer Detects jest.mocked())
+
+**Adapters are mocked by default** - They are I/O boundaries (HTTP, FS, DB, etc.)
 
 ```typescript
 // httpAdapter.proxy.ts
-let bootstrapped = false;
+import {httpAdapter} from './http-adapter';
+import type {Url} from '../../contracts/url/url-contract';
 
 export const createHttpAdapterProxy = () => {
+    // Transformer sees jest.mocked() and injects jest.mock() at test file top
+    const mock = jest.mocked(httpAdapter);
+
     return {
-        bootstrap: (config?: Record<string, unknown>) => {
-            if (!bootstrapped) {
-                bootstrapped = true;
+        bootstrap: () => {
+            // NO jest.mock() here - transformer already did it!
+            // Just setup mockImplementation (idempotent - safe to call multiple times)
+            mock.mockImplementation((url) => {
+                // Safe defaults that won't crash
+                if (url.includes('/api/items')) return Promise.resolve({items: []});
+                if (url.includes('/api/users')) return Promise.resolve({users: []});
+                return Promise.resolve({data: {}});  // Generic fallback
+            });
+        },
 
-                // ONLY adapters use jest.mock()
-                jest.mock('./http-adapter');
-                const mock = jest.mocked(httpAdapter);
+        configure: (config: Record<string, unknown>) => {
+            Object.entries(config).forEach(([url, data]) => {
+                mock.mockResolvedValueOnce(data);
+            });
+        },
 
-                // Set fallback for ALL calls
-                mock.mockImplementation((url) => {
-                    // Safe defaults that won't crash
-                    if (url.includes('/api/items')) return Promise.resolve({items: []});
-                    if (url.includes('/api/users')) return Promise.resolve({users: []});
-                    return Promise.resolve({data: {}});  // Generic fallback
-                });
-            }
-
-            // Apply config overrides (idempotent - can be called multiple times)
-            if (config) {
-                const mock = jest.mocked(httpAdapter);
-                Object.entries(config).forEach(([url, data]) => {
-                    mock.mockResolvedValueOnce(data);
-                });
-            }
+        returns: (url: Url, data: unknown): void => {
+            mock.mockResolvedValueOnce(data);
         }
     };
 };
 ```
 
-**Key insight:** Bootstrap can be called multiple times (idempotent). First call sets up mock, subsequent calls apply
-config overrides.
+**Special case - Real adapter (ESLint only):**
+
+```typescript
+// eslint-adapter.proxy.ts
+import {eslintAdapter} from './eslint-adapter';
+import type {SourceCode} from '../../contracts/source-code/source-code-contract';
+
+export const createEslintProxy = () => {
+    // NO jest.mocked() - transformer won't inject jest.mock()
+    // Uses REAL ESLint to validate selectors against real AST
+
+    return {
+        bootstrap: () => {
+            // Setup real ESLint in temp directory
+        },
+
+        lintCode: (code: SourceCode) => {
+            // Call REAL eslintAdapter (which uses real ESLint)
+            return eslintAdapter({code});
+        }
+    };
+};
+```
+
+**Key insights:**
+
+- `bootstrap()` takes NO args and is called once automatically
+- `configure(config)` takes args and is called by tests to override defaults
+- **NO jest.mock() in proxy** - transformer injects it when it sees `jest.mocked()`
+- **Presence of `jest.mocked()` is the signal** - tells transformer to inject jest.mock()
+- **No helper needed** - Direct pattern for all proxies
 
 ### Broker Bootstrap (Chains to Adapter)
+
+**Brokers are NEVER mocked** - They contain business logic that runs for real
 
 ```typescript
 // BrokerA.proxy.ts
@@ -175,23 +204,32 @@ export const createBrokerAProxy = () => {
     const httpProxy = createHttpAdapterProxy();
 
     return {
-        bootstrap: (config?: { items?: Item[] }) => {
-            // Broker knows the URL mapping
-            if (config?.items) {
-                httpProxy.bootstrap({
+        bootstrap: () => {
+            // Chain to adapter's bootstrap (no args)
+            httpProxy.bootstrap();
+        },
+
+        configure: (config: { items?: Item[] }) => {
+            // Broker knows the URL mapping - translate config to adapter's format
+            if (config.items) {
+                httpProxy.configure({
                     '/api/items': {items: config.items}
                 });
-            } else {
-                httpProxy.bootstrap();  // Use adapter's safe defaults
             }
         }
     };
 };
 ```
 
-**BrokerA doesn't use jest.mock()** - it just chains to httpProxy.bootstrap() and translates config.
+**Key insights:**
+
+- **NO jest.mocked() here** - Brokers are never mocked (Lint Rule 10 enforces this)
+- Broker code runs for REAL
+- Only the adapter it calls is mocked
 
 ### Widget Bootstrap (Chains to Broker)
+
+**Widgets are NEVER mocked** - They are React components that render for real
 
 ```typescript
 // WidgetB.proxy.ts
@@ -199,9 +237,14 @@ export const createWidgetBProxy = () => {
     const brokerAProxy = createBrokerAProxy();
 
     return {
-        bootstrap: (config?: { items?: Item[] }) => {
-            // Just pass config to broker
-            brokerAProxy.bootstrap(config);  // Broker knows what to do with it
+        bootstrap: () => {
+            // Chain to broker's bootstrap (no args)
+            brokerAProxy.bootstrap();
+        },
+
+        configure: (config: { items?: Item[] }) => {
+            // Pass config to broker's configure
+            brokerAProxy.configure(config);
         },
 
         triggerSubmit: async () => {
@@ -210,7 +253,7 @@ export const createWidgetBProxy = () => {
                 throw new Error(
                     'WidgetB submit button not visible.\n' +
                     'Button requires items from API.\n' +
-                    'Override in test: widgetBProxy.bootstrap({ items: [...] })'
+                    'Override in test: widgetBProxy.configure({ items: [...] })'
                 );
             }
             await userEvent.click(button);
@@ -219,9 +262,16 @@ export const createWidgetBProxy = () => {
 };
 ```
 
-**Bootstrap chain:** WidgetB → BrokerA → httpAdapter → `jest.mock()` + `mockImplementation`
+**Key insights:**
 
-**Config flows:** `{ items }` → `{ items }` → `{ '/api/items': { items } }` → mockResolvedValueOnce
+- **NO jest.mocked() here** - Widgets are never mocked (Lint Rule 10 enforces this)
+- Widget code runs for REAL (actual React rendering)
+- Only the adapters at the end of the chain are mocked
+
+**Bootstrap chain:** WidgetB → BrokerA → httpAdapter → `jest.mocked()` detected → `jest.mock()` injected +
+`mockImplementation` (NO ARGS)
+
+**Config flows via configure():** `{ items }` → `{ items }` → `{ '/api/items': { items } }` → mockResolvedValueOnce
 
 ### The Transformer Auto-Calls Bootstrap
 
@@ -236,7 +286,7 @@ describe('WidgetA', () => {
 });
 ```
 
-**Transformer injects ONE bootstrap call:**
+**Transformer creates instance and bootstraps at module level:**
 
 ```typescript
 // WidgetA.test.tsx (after transformation)
@@ -249,14 +299,18 @@ import {WidgetA} from './widget-a';
 // TRANSFORMER INJECTS:
 import {createWidgetAProxy} from './widget-a.proxy';
 
-beforeAll(() => {
-    createWidgetAProxy().bootstrap();  // That's it! Bootstrap chain handles the rest
-});
+const widgetAProxy = createWidgetAProxy();  // Create instance once
+widgetAProxy.bootstrap();                   // Bootstrap it - chain handles the rest
 
 // Now tests run with everything bootstrapped
 describe('WidgetA', () => {
     it('renders', () => {
         render(<WidgetA / >);  // Won't crash - HTTP returns safe defaults
+    });
+
+    it('with custom data', () => {
+        widgetAProxy.configure({items: [...]});  // Use same instance!
+        render(<WidgetA / >);
     });
 });
 ```
@@ -283,7 +337,142 @@ httpProxy.bootstrap()     // BrokerA imports httpAdapter
 
 **Developer never writes bootstrap calls** - transformer does it automatically.
 
-### Transformer Simplification: Why No Recursive Scanning?
+## How the Transformer Works
+
+### Phase 1: Injecting jest.mock() Calls
+
+**The transformer scans the dependency tree to find ALL adapters that need mocking:**
+
+```typescript
+function transformTestFile(testFilePath) {
+    // 1. Find the main file being tested
+    const mainFile = findMainImport(testFilePath);  // 'widget-a.ts'
+    const mainProxy = mainFile.replace('.ts', '.proxy.ts');
+
+    // 2. Recursively scan the ENTIRE dependency tree for adapter proxies
+    const adapterProxies = scanDependencyTree(mainProxy);
+
+    // 3. For each adapter proxy, check if it needs mocking
+    const mocksToInject = [];
+    for (const adapterProxyFile of adapterProxies) {
+        const needsMock = checkIfNeedsMock(adapterProxyFile);
+        const adapterPath = extractAdapterPath(adapterProxyFile);
+
+        if (needsMock) {
+            mocksToInject.push(adapterPath);
+        }
+    }
+
+    // 4. Inject ALL jest.mock() calls at the very top of the test file
+    mocksToInject.forEach(adapterPath => {
+        injectAtVeryTop(`jest.mock('${adapterPath}');`);
+    });
+
+    // 5. Inject instance creation and bootstrap at module level
+    const proxyName = `${mainFile}Proxy`;
+    injectAfterImports(`const ${proxyName} = create${capitalize(mainFile)}Proxy();`);
+    injectAfterImports(`${proxyName}.bootstrap();`);
+}
+
+function scanDependencyTree(proxyFile) {
+    const adapters = [];
+    const visited = new Set();
+
+    function visit(proxyPath) {
+        if (visited.has(proxyPath)) return;
+        visited.add(proxyPath);
+
+        // If this is an adapter proxy, add it
+        if (proxyPath.includes('-adapter.proxy')) {
+            adapters.push(proxyPath);
+            return; // Adapters are leaf nodes
+        }
+
+        // Otherwise, find child proxy imports and recurse
+        const childProxies = extractProxyImports(proxyPath);
+        childProxies.forEach(visit);
+    }
+
+    visit(proxyFile);
+    return adapters;
+}
+
+function checkIfNeedsMock(proxyFile) {
+    const content = fs.readFileSync(proxyFile, 'utf-8');
+
+    // Look for jest.mocked() usage - this is the signal!
+    return content.includes('jest.mocked(');
+}
+```
+
+**Example transformation:**
+
+```typescript
+// widget-a.test.ts (BEFORE transformation)
+import {WidgetA} from './widget-a';
+
+describe('WidgetA', () => {
+    it('renders', () => {
+        render(<WidgetA / >);
+    });
+});
+
+// widget-a.test.ts (AFTER transformation)
+// ← Transformer injected these at the very top (ALL mocks for entire dependency tree)
+jest.mock('../../../adapters/http/http-adapter');
+jest.mock('../../../adapters/fs/fs-adapter');
+
+import {WidgetA} from './widget-a';
+import {createWidgetAProxy} from './widget-a.proxy';
+
+const widgetAProxy = createWidgetAProxy();  // ← Transformer injected instance creation
+widgetAProxy.bootstrap();                   // ← Transformer injected bootstrap call
+
+describe('WidgetA', () => {
+    it('renders', () => {
+        render(<WidgetA / >);
+    });
+});
+```
+
+### Phase 2: Bootstrap Chain Execution
+
+**After all jest.mock() calls are in place, the bootstrap chain runs:**
+
+```
+Test file loads
+  ↓
+jest.mock() calls execute (hoisted by Jest to run FIRST)
+  ↓
+All imports execute with mocked modules
+  ↓
+Module-level code executes:
+  const widgetAProxy = createWidgetAProxy()
+  widgetAProxy.bootstrap()
+  ↓
+Bootstrap chain executes:
+  widgetAProxy.bootstrap()
+    → widgetBProxy.bootstrap()
+      → brokerAProxy.bootstrap()
+        → httpAdapterProxy.bootstrap()
+          → jest.mocked(httpAdapter).mockImplementation(...)
+```
+
+**Key insight:**
+
+- **Phase 1 (jest.mock)**: Happens at module top-level (before any code runs)
+- **Phase 2 (bootstrap)**: Happens at module level (sets up mockImplementation)
+
+### Why Two Phases?
+
+Jest's `jest.mock()` MUST be hoisted (run before imports). The transformer:
+
+1. Scans entire dependency tree to find all adapters needing mocks
+2. Injects ALL `jest.mock()` calls at test file top
+3. Injects instance creation and ONE `bootstrap()` call at module level
+4. Bootstrap chain configures the mocks (mockImplementation)
+
+### Transformer Simplification: Why No Recursive Scanning for Bootstrap?
 
 **Key insight:** Lint Rule 6 enforces that every proxy calls its child proxies' bootstraps. This means the transformer
 doesn't need to be smart!
@@ -346,10 +535,16 @@ export const createBrokerAProxy = () => {
 
 // httpAdapter.proxy.ts - Terminal node (adapter)
 export const createHttpAdapterProxy = () => {
+    // Transformer sees jest.mocked() and injects jest.mock() at test file top
+    const mock = jest.mocked(httpAdapter);
+
     return {
         bootstrap: () => {
-            jest.mock('./http-adapter');  // Only adapters use jest.mock()
-            // ... setup mockImplementation
+            // NO jest.mock() here - transformer already did it!
+            // Just setup mockImplementation
+            mock.mockImplementation((url) => {
+                return Promise.resolve({data: {}});
+            });
         }
     };
 };
@@ -358,16 +553,22 @@ export const createHttpAdapterProxy = () => {
 **The chain executes automatically:**
 
 ```
-Transformer injects:
-  createWidgetAProxy().bootstrap()
-    ↓ (manually calls - enforced by lint)
-  createWidgetBProxy().bootstrap()
-    ↓ (manually calls - enforced by lint)
-  createBrokerAProxy().bootstrap()
-    ↓ (manually calls - enforced by lint)
-  createHttpAdapterProxy().bootstrap()
-    ↓ (terminal - jest.mock())
-  jest.mock() + mockImplementation
+Phase 1 (BEFORE any code runs - jest.mock hoisting):
+  jest.mock('./http-adapter')  // Transformer injected at test file top
+  jest.mock('./fs-adapter')     // All mocks for entire dependency tree
+
+Phase 2 (Module-level - bootstrap chain):
+  Transformer injects:
+    const widgetAProxy = createWidgetAProxy()
+    widgetAProxy.bootstrap()
+      ↓ (chains to child - enforced by lint)
+    widgetBProxy.bootstrap()
+      ↓ (manually calls - enforced by lint)
+    createBrokerAProxy().bootstrap()
+      ↓ (manually calls - enforced by lint)
+    createHttpAdapterProxy().bootstrap()
+      ↓ (mocks already set up by Phase 1!)
+    jest.mocked(httpAdapter).mockImplementation(...)
 ```
 
 **Benefits of simplified transformer:**
@@ -379,23 +580,23 @@ Transformer injects:
 - ✅ **Fast** - No deep tree traversal, just string replacement
 - ✅ **Debuggable** - If bootstrap fails, error shows which proxy broke the chain
 
-### Overriding Bootstrap Defaults via Configuration
+### Overriding Bootstrap Defaults via Configure
 
-**Key principle:** Tests pass configuration to the proxy they're testing. Each proxy passes config down to its direct
-child only.
+**Key principle:** Tests call `configure()` on the proxy they're testing. Each proxy passes config down to its direct
+child only via configure().
 
 ```typescript
 // WidgetA.test.tsx
 import {WidgetA} from './widget-a';
 import {createWidgetAProxy} from './widget-a.proxy';
 
-// Transformer auto-bootstraps with NO config (safe defaults)
+// Transformer auto-calls bootstrap() with NO args (safe defaults setup once)
 
 describe('WidgetA', () => {
     it('shows items', () => {
-        // Pass config to WidgetA's proxy
+        // Create proxy and configure with test-specific data
         const widgetAProxy = createWidgetAProxy();
-        widgetAProxy.bootstrap({
+        widgetAProxy.configure({
             items: [{id: 1, name: 'Item 1'}]  // WidgetA doesn't know this becomes HTTP call!
         });
 
@@ -406,7 +607,7 @@ describe('WidgetA', () => {
 });
 ```
 
-**How config flows down:**
+**How config flows down via configure():**
 
 ```typescript
 // WidgetA.proxy.ts
@@ -414,9 +615,14 @@ export const createWidgetAProxy = () => {
     const widgetBProxy = createWidgetBProxy();
 
     return {
-        bootstrap: (config?: { items?: Item[] }) => {
-            // Pass config to direct child (WidgetB)
-            widgetBProxy.bootstrap(config);  // WidgetB decides what to do with it
+        bootstrap: () => {
+            // Chain bootstrap (no args)
+            widgetBProxy.bootstrap();
+        },
+
+        configure: (config: { items?: Item[] }) => {
+            // Pass config to direct child's configure (WidgetB)
+            widgetBProxy.configure(config);
         }
     };
 };
@@ -426,9 +632,14 @@ export const createWidgetBProxy = () => {
     const brokerAProxy = createBrokerAProxy();
 
     return {
-        bootstrap: (config?: { items?: Item[] }) => {
-            // Pass config to direct child (BrokerA)
-            brokerAProxy.bootstrap(config);  // BrokerA decides what to do with it
+        bootstrap: () => {
+            // Chain bootstrap (no args)
+            brokerAProxy.bootstrap();
+        },
+
+        configure: (config: { items?: Item[] }) => {
+            // Pass config to direct child's configure (BrokerA)
+            brokerAProxy.configure(config);
         }
     };
 };
@@ -438,14 +649,17 @@ export const createBrokerAProxy = () => {
     const httpProxy = createHttpAdapterProxy();
 
     return {
-        bootstrap: (config?: { items?: Item[] }) => {
-            // BrokerA knows it fetches from /api/items
-            if (config?.items) {
-                httpProxy.bootstrap({
+        bootstrap: () => {
+            // Chain bootstrap (no args)
+            httpProxy.bootstrap();
+        },
+
+        configure: (config: { items?: Item[] }) => {
+            // BrokerA knows it fetches from /api/items - translate config
+            if (config.items) {
+                httpProxy.configure({
                     '/api/items': {items: config.items}
                 });
-            } else {
-                httpProxy.bootstrap();  // Use defaults
             }
         }
     };
@@ -455,10 +669,10 @@ export const createBrokerAProxy = () => {
 **Key insight:**
 
 - WidgetA test knows: "I need items"
-- WidgetA proxy: passes config to WidgetB
-- WidgetB proxy: passes config to BrokerA
-- BrokerA proxy: translates `{ items }` → `{ '/api/items': { items } }` (knows the URL!)
-- httpAdapter proxy: sets up the mock
+- WidgetA proxy: passes config to WidgetB via configure()
+- WidgetB proxy: passes config to BrokerA via configure()
+- BrokerA proxy: translates `{ items }` → `{ '/api/items': { items } }` via configure() (knows the URL!)
+- httpAdapter proxy: sets up the mock via configure()
 
 **Each layer only knows about its direct child, never skips layers.**
 
@@ -512,8 +726,12 @@ export const createWidgetBProxy = () => {
     const brokerAProxy = createBrokerAProxy();  // Create at factory level
 
     return {
-        bootstrap: (config?: { items?: Item[] }) => {
-            brokerAProxy.bootstrap(config);  // Pass config down
+        bootstrap: () => {
+            brokerAProxy.bootstrap();
+        },
+
+        configure: (config: { items?: Item[] }) => {
+            brokerAProxy.configure(config);
         },
 
         triggerSubmit: async () => {
@@ -526,7 +744,7 @@ export const createWidgetBProxy = () => {
                     'WidgetB submit button not visible.\n\n' +
                     'Common causes:\n' +
                     '1. Button requires items from API\n' +
-                    '   → widgetBProxy.bootstrap({ items: [...] })\n\n' +
+                    '   → widgetBProxy.configure({ items: [...] })\n\n' +
                     '2. Button only shows in edit mode\n' +
                     '   → Ensure mode="edit" prop is passed to WidgetB\n' +
                     '   → Parent test must set up the correct mode'
@@ -543,7 +761,7 @@ export const createWidgetBProxy = () => {
             if (!item) {
                 throw new Error(
                     `Item ${itemId} not found in WidgetB.\n` +
-                    `Ensure widgetBProxy.bootstrap({ items: [{ id: ${itemId}, ... }] })`
+                    `Ensure widgetBProxy.configure({ items: [{ id: ${itemId}, ... }] })`
                 );
             }
 
@@ -586,7 +804,7 @@ triggerSubmit: async () => {
             '1. Parent test must set mode:\n' +
             '   → Depends on parent component\'s UI/props\n' +
             '2. Setup API data:\n' +
-            '   → widgetBProxy.bootstrap({ items: [...] })'
+            '   → widgetBProxy.configure({ items: [...] })'
         );
     }
 
@@ -600,9 +818,9 @@ triggerSubmit: async () => {
 it('handles submit in edit mode', async () => {
     const consoleSpy = jest.spyOn(console, 'log');
 
-    // Setup data via WidgetA's proxy (BEFORE render)
+    // Configure data via WidgetA's proxy (AFTER bootstrap, BEFORE render)
     const widgetAProxy = createWidgetAProxy();
-    widgetAProxy.bootstrap({items: [{id: 1}]});  // Flows down to HTTP layer
+    widgetAProxy.configure({items: [{id: 1}]});  // Flows down to HTTP layer
 
     // Create WidgetB proxy BEFORE render
     const widgetBProxy = createWidgetBProxy();
@@ -623,7 +841,7 @@ it('handles submit in edit mode', async () => {
 **Separation:**
 
 - Test controls WidgetA's state (via WidgetA's UI)
-- Test controls data (via widgetAProxy.bootstrap, flows down through layers)
+- Test controls data (via widgetAProxy.configure, flows down through layers)
 - Proxy encapsulates WidgetB's interaction (trigger doesn't know testId)
 
 ---
@@ -679,8 +897,12 @@ export const createWidgetBProxy = () => {
     const brokerAProxy = createBrokerAProxy();
 
     return {
-        bootstrap: (config?: { items?: Item[] }) => {
-            brokerAProxy.bootstrap(config);  // Pass config down
+        bootstrap: () => {
+            brokerAProxy.bootstrap();
+        },
+
+        configure: (config: { items?: Item[] }) => {
+            brokerAProxy.configure(config);
         },
 
         triggerSubmit: async () => {
@@ -707,21 +929,23 @@ export const createWidgetBProxy = () => {
 
 ```typescript
 export const createHttpAdapterProxy = () => {
-    return {
-        bootstrap: () => {
-            jest.mock('./http-adapter');
-            const mock = jest.mocked(httpAdapter);
-            mock.mockImplementation((url) => {
-                // Safe defaults
-                return Promise.resolve({data: {}});
-            });
-        },
+    return createAdapterProxy(httpAdapter, {useMock: true})((mockedAdapter) => {
+        // Transformer injects jest.mock() at test file top based on useMock: true
 
-        returns: (url, data) => {
-            const mock = jest.mocked(httpAdapter);
-            mock.mockResolvedValueOnce({data});
-        }
-    };
+        return {
+            bootstrap: () => {
+                // NO jest.mock() here - just setup mockImplementation
+                mockedAdapter.mockImplementation((url) => {
+                    // Safe defaults
+                    return Promise.resolve({data: {}});
+                });
+            },
+
+            returns: (url, data) => {
+                mockedAdapter.mockResolvedValueOnce({data});
+            }
+        };
+    });
 };
 ```
 
@@ -793,34 +1017,30 @@ export const WidgetA = () => {
 
 ```typescript
 // httpAdapter.proxy.ts
-let bootstrapped = false;
+import {httpAdapter} from './http-adapter';
+import type {Url} from '../../contracts/url/url-contract';
 
 export const createHttpAdapterProxy = () => {
+    // Transformer sees jest.mocked() and injects jest.mock() at test file top
+    const mock = jest.mocked(httpAdapter);
+
     return {
-        bootstrap: (config?: Record<string, unknown>) => {
-            if (!bootstrapped) {
-                bootstrapped = true;
-
-                jest.mock('./http-adapter');
-                const mock = jest.mocked(httpAdapter);
-
-                mock.mockImplementation((url) => {
-                    if (url === '/api/items') return Promise.resolve({items: []});
-                    return Promise.resolve({data: {}});
-                });
-            }
-
-            // Apply config overrides
-            if (config) {
-                const mock = jest.mocked(httpAdapter);
-                Object.entries(config).forEach(([url, data]) => {
-                    mock.mockResolvedValueOnce(data);
-                });
-            }
+        bootstrap: () => {
+            // NO jest.mock() here - transformer already did it!
+            // Just setup mockImplementation (idempotent - safe to call multiple times)
+            mock.mockImplementation((url) => {
+                if (url === '/api/items') return Promise.resolve({items: []});
+                return Promise.resolve({data: {}});
+            });
         },
 
-        returns: (url: string, data: unknown) => {
-            const mock = jest.mocked(httpAdapter);
+        configure: (config: Record<string, unknown>) => {
+            Object.entries(config).forEach(([url, data]) => {
+                mock.mockResolvedValueOnce(data);
+            });
+        },
+
+        returns: (url: Url, data: unknown) => {
             mock.mockResolvedValueOnce(data);
         }
     };
@@ -831,13 +1051,15 @@ export const createBrokerAProxy = () => {
     const httpProxy = createHttpAdapterProxy();
 
     return {
-        bootstrap: (config?: { items?: Item[] }) => {
-            if (config?.items) {
-                httpProxy.bootstrap({
+        bootstrap: () => {
+            httpProxy.bootstrap();
+        },
+
+        configure: (config: { items?: Item[] }) => {
+            if (config.items) {
+                httpProxy.configure({
                     '/api/items': {items: config.items}
                 });
-            } else {
-                httpProxy.bootstrap();
             }
         }
     };
@@ -848,8 +1070,12 @@ export const createWidgetBProxy = () => {
     const brokerAProxy = createBrokerAProxy();
 
     return {
-        bootstrap: (config?: { items?: Item[] }) => {
-            brokerAProxy.bootstrap(config);  // Pass config down
+        bootstrap: () => {
+            brokerAProxy.bootstrap();
+        },
+
+        configure: (config: { items?: Item[] }) => {
+            brokerAProxy.configure(config);
         },
 
         triggerSubmit: async () => {
@@ -860,7 +1086,7 @@ export const createWidgetBProxy = () => {
                     'WidgetB submit button not visible.\n\n' +
                     'Requirements:\n' +
                     '1. mode="edit" prop must be passed to WidgetB\n' +
-                    '2. Items loaded (widgetBProxy.bootstrap({ items: [...] }))'
+                    '2. Items loaded (widgetBProxy.configure({ items: [...] }))'
                 );
             }
 
@@ -874,8 +1100,12 @@ export const createWidgetAProxy = () => {
     const widgetBProxy = createWidgetBProxy();
 
     return {
-        bootstrap: (config?: { items?: Item[] }) => {
-            widgetBProxy.bootstrap(config);  // Pass config down
+        bootstrap: () => {
+            widgetBProxy.bootstrap();
+        },
+
+        configure: (config: { items?: Item[] }) => {
+            widgetBProxy.configure(config);
         }
     };
 };
@@ -890,10 +1120,8 @@ import {createWidgetAProxy} from './widget-a.proxy';
 import {createWidgetBProxy} from '../widget-b/widget-b.proxy';
 
 // TRANSFORMER AUTO-INJECTED:
-// import { createWidgetAProxy } from './widget-a.proxy';
-// beforeAll(() => {
-//   createWidgetAProxy().bootstrap();  // ONE call - chains to all dependencies
-// });
+// const widgetAProxy = createWidgetAProxy();  // Create instance
+// widgetAProxy.bootstrap();                   // Bootstrap - chains to all dependencies
 
 describe('WidgetA', () => {
     it('renders with default data', () => {
@@ -907,9 +1135,9 @@ describe('WidgetA', () => {
     it('handles submit in edit mode', async () => {
         const consoleSpy = jest.spyOn(console, 'log');
 
-        // Setup specific data via WidgetA's proxy (BEFORE render)
+        // Configure with specific data via WidgetA's proxy (AFTER bootstrap, BEFORE render)
         const widgetAProxy = createWidgetAProxy();
-        widgetAProxy.bootstrap({
+        widgetAProxy.configure({
             items: [{id: 1, name: 'Item 1'}]  // Flows down through layers
         });
 
@@ -994,12 +1222,13 @@ widgets/
 - Tests import both the implementation and its proxy from same folder
 - Proxies import their dependencies' proxies (for bootstrap chaining)
 
-### Key Insight: Universal Proxies with Two Responsibilities
+### Key Insight: Universal Proxies with Three Responsibilities
 
-**"Proxy"** = Test control layer with two responsibilities:
+**"Proxy"** = Test control layer with three responsibilities:
 
-1. **bootstrap()** - Setup dependencies with safe defaults
-2. **trigger methods** - Encapsulate interactions without exposing internals
+1. **bootstrap()** - Setup dependencies with safe defaults (called once automatically, NO ARGS)
+2. **configure()** - Override defaults with test-specific data (called by tests, TAKES ARGS)
+3. **trigger methods** - Encapsulate interactions without exposing internals
 
 **Every file gets a proxy:**
 
@@ -1030,10 +1259,10 @@ widgets/
 
 1. **Developer writes test file** importing only what they're testing
 2. **Transformer finds the file's proxy** (e.g., `widget-a.ts` → `widget-a.proxy.ts`)
-3. **Transformer injects ONE bootstrap call** in beforeAll
-4. **Bootstrap chains execute** from widgets → brokers → adapters → jest.mock()
+3. **Transformer injects instance creation and ONE bootstrap call (NO ARGS)** at module level
+4. **Bootstrap chains execute** from widgets → brokers → adapters → jest.mock() (NO ARGS)
 5. **Tests run** with everything already bootstrapped (won't crash)
-6. **Tests override specific data** via proxy methods when needed
+6. **Tests configure specific data** via `proxy.configure()` when needed
 7. **Tests trigger child interactions** via proxy trigger methods
 8. **Tests assert parent behavior** without knowing child internals
 
@@ -1045,22 +1274,22 @@ import {WidgetA} from './widget-a';
 import {createWidgetBProxy} from '../widget-b/widget-b.proxy';
 
 it('test', async () => {
-    // Create proxy BEFORE render
+    // Create proxy and configure if needed
     const widgetBProxy = createWidgetBProxy();
+    widgetBProxy.configure({items: [...]}); // Override defaults when needed
 
-    render(<WidgetA / >);  // Just works (bootstrap ran)
+    render(<WidgetA / >);  // Just works (bootstrap ran with safe defaults)
 
     await widgetBProxy.triggerSubmit();  // Don't know testId
 
     expect(result).toBe(expected);  // Test parent behavior
 });
 
-// What transformer adds (invisible - ONE line!):
+// What transformer adds (invisible - TWO lines!):
 import {createWidgetAProxy} from './widget-a.proxy';
 
-beforeAll(() => {
-    createWidgetAProxy().bootstrap();  // Chains automatically!
-});
+const widgetAProxy = createWidgetAProxy();  // Create instance
+widgetAProxy.bootstrap();                   // Chains automatically! NO ARGS!
 ```
 
 **Key Benefits:**
@@ -1102,129 +1331,101 @@ it('test', async () => {
 });
 ```
 
-### Solution: Proxy Does the Mocking
+### Solution: Transformer Handles jest.mock(), Proxy Uses jest.mocked()
 
-**Key insight:** The proxy factory itself can call `jest.mock()` when it's created for adapter proxies.
+**Key insight:** Transformer injects `jest.mock()` at test file top based on `useMock: true`. Proxies just use
+`jest.mocked()` assuming it's already set up.
 
 ```typescript
-// In the proxy factory
+// Proxy factory (NO jest.mock() call!)
 export const createFsReadFileProxy = () => {
-    // Proxy handles jest.mock() internally
-    jest.mock('./fs-read-file-adapter');
-    const mockAdapter = jest.mocked(fsReadFileAdapter);
+    return createAdapterProxy(fsReadFileAdapter, {useMock: true})((mockedAdapter) => {
+        // Transformer already called jest.mock() at test file top
+        // mockedAdapter is jest.Mocked<typeof fsReadFileAdapter>
 
-    return {
-        returns: (path, contents) => mockAdapter.mockResolvedValue(contents),
-        throws: (path, error) => mockAdapter.mockRejectedValue(error),
-        getCallCount: () => mockAdapter.mock.calls.length
-    };
+        return {
+            returns: (path, contents) => mockedAdapter.mockResolvedValue(contents),
+            throws: (path, error) => mockedAdapter.mockRejectedValue(error),
+            getCallCount: () => mockedAdapter.mock.calls.length
+        };
+    });
 };
+```
+
+**Transformer behavior:**
+
+```typescript
+// Test file (BEFORE transformation)
+import {fsReadFileAdapter} from './fs-read-file-adapter';
+import {createFsReadFileProxy} from './fs-read-file-adapter.proxy';
+
+// Test file (AFTER transformation)
+jest.mock('./fs-read-file-adapter');  // ← Transformer injected this!
+
+import {fsReadFileAdapter} from './fs-read-file-adapter';
+import {createFsReadFileProxy} from './fs-read-file-adapter.proxy';
 ```
 
 **This eliminates:**
 
 - `jest.mock()` in test files
+- `jest.mock()` in proxy files
 - `jest.mocked()` wrapper in test files
 - Understanding what to mock (adapter vs npm package)
 - Buffer handling, type assertions, mock setup
 - Knowing when to use `mockResolvedValue` vs `mockReturnValue` vs `mockImplementation`
 
-LLMs just call `createFsReadFileProxy()` and use the simple API.
+LLMs just call `createFsReadFileProxy()` and use the simple API. Transformer handles all jest.mock() injection.
 
-### System Proxy Factory (Per-Adapter Decision)
+### Proxy Pattern Consistency
 
-**Key Insight:** Each adapter decides whether to mock or use real implementation.
+**Key Insight:** All proxies use the same direct pattern. No helper needed.
 
-```typescript
-// packages/testing/src/create-adapter-proxy.ts
+**Important principles:**
 
-/**
- * REMOVED: Tests must use stubs directly, not contracts
- *
- * ALL values in tests must be created via stubs (branded types required):
- * ✅ const url = UrlStub('https://example.com');
- * ❌ const url = 'https://example.com';  // Raw string not allowed
- * ❌ const url = urlContract.parse('https://example.com');  // No contracts in tests
- *
- * Proxies accept branded types only (no raw values, no auto-stubbing):
- * ✅ httpProxy.returns(UrlStub('https://example.com'), data);
- * ❌ httpProxy.returns('https://example.com', data); // Type error - not branded
- *
- * Lint rules enforce:
- * - No contract imports in test files (only type imports and stubs)
- * - No type assertions (const x = {} as Type)
- * - Proxy files can only import types from contracts
- */
-
-/**
- * System-level adapter proxy factory
- * Each adapter decides: mock or real implementation
- */
-export const createAdapterProxy = <TNpmModule>(
-    npmModule: TNpmModule,
-    config: {
-        useMock: boolean;
-    }
-) => {
-    return <THelpers>(
-        createHelpers: (moduleOrMock: TNpmModule | jest.Mocked<TNpmModule>) => THelpers
-    ): THelpers => {
-        if (config.useMock) {
-            // Decision: Use jest mock
-            const mocked = jest.mocked(npmModule);
-            return createHelpers(mocked);
-        } else {
-            // Decision: Use real implementation
-            // Note: Helpers can still control environment (temp dirs, etc)
-            return createHelpers(npmModule);
-        }
-    };
-};
-```
-
-#### 3. Example Proxy Implementations
+- Tests must use stubs directly, not contracts
+- ALL values in tests must be created via stubs (branded types required)
+- Proxies accept branded types only (no raw values)
+- Lint rules enforce these patterns
 
 **Example 1: HTTP Adapter (Mocked)**
 
 ```typescript
-// adapters/axios/axios-get-adapter.proxy.ts
-import axios from 'axios';
-import {createAdapterProxy} from '@questmaestro/testing';
+// adapters/http/http-adapter.proxy.ts
+import {httpAdapter} from './http-adapter';
 import type {Url} from '../../contracts/url/url-contract';
 import type {HttpResponse} from '../../contracts/http-response/http-response-contract';
 
-export const createAxiosGetProxy = () => {
-    return createAdapterProxy(axios, {useMock: true})((axiosOrMock) => {
-        // ✅ useMock: true = axiosOrMock is jest.Mocked<typeof axios>
-        const mockAxios = axiosOrMock as jest.Mocked<typeof axios>;
+export const createHttpAdapterProxy = () => {
+    // Transformer sees jest.mocked() and injects jest.mock() at test file top
+    const mock = jest.mocked(httpAdapter);
 
-        return {
-            // Helpers accept branded types only (created via stubs in tests)
-            returns: (url: Url, data: unknown): void => {
-                mockAxios.get.mockResolvedValue({
-                    data,
-                    status: 200,
-                    headers: {},
-                    statusText: 'OK',
-                    config: {}
-                });
-            },
+    return {
+        // Helpers accept branded types only (created via stubs in tests)
+        returns: (url: Url, data: unknown): void => {
+            mock.mockResolvedValue({
+                data,
+                status: 200,
+                headers: {},
+                statusText: 'OK',
+                config: {}
+            });
+        },
 
-            throws: (url: Url, error: Error): void => {
-                mockAxios.get.mockRejectedValue(error);
-            },
+        throws: (url: Url, error: Error): void => {
+            mock.mockRejectedValue(error);
+        },
 
-            // Getter helpers - return data for assertions (NO expect() in proxy!)
-            getCallCount: (): number => {
-                return mockAxios.get.mock.calls.length;
-            },
+        // Getter helpers - return data for assertions (NO expect() in proxy!)
+        getCallCount: (): number => {
+            return mock.mock.calls.length;
+        },
 
-            getLastCallArgs: (): [Url, any] | undefined => {
-                const calls = mockAxios.get.mock.calls;
-                return calls[calls.length - 1] as [Url, any] | undefined;
-            }
-        };
-    });
+        getLastCallArgs: (): [Url, any] | undefined => {
+            const calls = mock.mock.calls;
+            return calls[calls.length - 1] as [Url, any] | undefined;
+        }
+    };
 };
 ```
 
@@ -1232,37 +1433,35 @@ export const createAxiosGetProxy = () => {
 
 ```typescript
 // adapters/fs/fs-read-file-adapter.proxy.ts
-import {createAdapterProxy} from '@questmaestro/testing';
 import {fsReadFileAdapter} from './fs-read-file-adapter';
 import type {FilePath} from '../../contracts/file-path/file-path-contract';
 import type {FileContents} from '../../contracts/file-contents/file-contents-contract';
 
 export const createFsReadFileProxy = () => {
-    // Proxy mocks the adapter internally
-    jest.mock('./fs-read-file-adapter');
-    const mockAdapter = jest.mocked(fsReadFileAdapter);
+    // Transformer sees jest.mocked() and injects jest.mock() at test file top
+    const mock = jest.mocked(fsReadFileAdapter);
 
     return {
         // Setup helpers - control what adapter returns
         returns(filePath: FilePath, contents: FileContents): void {
-            mockAdapter.mockResolvedValueOnce(contents);
+            mock.mockResolvedValueOnce(contents);
         },
 
         throws(filePath: FilePath, error: Error): void {
-            mockAdapter.mockRejectedValueOnce(error);
+            mock.mockRejectedValueOnce(error);
         },
 
         // Getter helpers - return data for assertions (NO expect() in proxy!)
         getCallCount(): number {
-            return mockAdapter.mock.calls.length;
+            return mock.mock.calls.length;
         },
 
         getCallArgs(index: number): { filePath: FilePath } | undefined {
-            return mockAdapter.mock.calls[index]?.[0];
+            return mock.mock.calls[index]?.[0];
         },
 
         wasCalledWith(filePath: FilePath): boolean {
-            return mockAdapter.mock.calls.some(
+            return mock.mock.calls.some(
                 call => call[0]?.filePath === filePath
             );
         }
@@ -1281,44 +1480,37 @@ export const createFsReadFileProxy = () => {
 - ✅ **Good**: `getCallCount()` - Returns number, test does `expect()`
 - **Why**: Avoids importing Jest's `expect()` in proxy - keeps proxies clean and flexible!
 
-**Example 3: ESLint Adapter (Real ESLint)**
+**Example 3: ESLint Adapter (Real ESLint - Not Mocked)**
 
 ```typescript
-// adapters/eslint/eslint-lint-adapter.proxy.ts
-import {ESLint} from 'eslint';
-import {createAdapterProxy} from '@questmaestro/testing';
+// adapters/eslint/eslint-adapter.proxy.ts
+import {eslintAdapter} from './eslint-adapter';
+import type {SourceCode} from '../../contracts/source-code/source-code-contract';
 import {writeFile, rm} from 'fs/promises';
 import {tmpdir} from 'os';
 import {join} from 'path';
 
-export const createEslintLintProxy = () => {
-    return createAdapterProxy(ESLint, {useMock: false})((ESLintClass) => {
-        // ✅ useMock: false = REAL ESLint (validates selectors against real AST!)
-        const testDir = join(tmpdir(), `eslint-test-${Date.now()}`);
+export const createEslintProxy = () => {
+    // NO jest.mocked() - transformer won't inject jest.mock()
+    // Uses REAL ESLint to validate selectors against real AST
+    const testDir = join(tmpdir(), `eslint-test-${Date.now()}`);
 
-        return {
-            testDir,
+    return {
+        testDir,
 
-            // Setup REAL ESLint instance
-            async createEslint(config: unknown): Promise<ESLint> {
-                return new ESLintClass({
-                    cwd: testDir,
-                    overrideConfig: config,
-                    useEslintrc: false
-                });
-            },
+        bootstrap: () => {
+            // Setup real ESLint environment (temp directory, config, etc)
+        },
 
-            // Lint REAL code
-            async lintCode(code: string): Promise<unknown> {
-                const eslint = await this.createEslint({/* config */});
-                return eslint.lintText(code);
-            },
+        // Lint REAL code using real adapter
+        async lintCode(code: SourceCode): Promise<unknown> {
+            return eslintAdapter({code, config: {/* ... */}});
+        },
 
-            async cleanup(): Promise<void> {
-                await rm(testDir, {recursive: true, force: true});
-            }
-        };
-    });
+        async cleanup(): Promise<void> {
+            await rm(testDir, {recursive: true, force: true});
+        }
+    };
 };
 ```
 
@@ -1421,724 +1613,7 @@ it('VALID: multiple file reads in one test', async () => {
 
 ## Pattern 2: Enforcement & Registry
 
-### ESLint Rules (8 Total)
-
-**Rule 1: Adapters Must Have Proxy and Test Files**
-
-```typescript
-// packages/eslint-plugin/src/rules/adapter-must-have-proxy.ts
-export const adapterMustHaveProxy = {
-    create(context) {
-        return {
-            Program(node) {
-                const filename = context.getFilename();
-                if (filename.endsWith('-adapter.ts')) {
-                    const proxyFile = filename.replace('-adapter.ts', '-adapter.proxy.ts');
-                    const testFile = filename.replace('-adapter.ts', '-adapter.test.ts');
-
-                    if (!fs.existsSync(proxyFile)) {
-                        context.report({node, message: `Missing ${proxyFile}`});
-                    }
-                    if (!fs.existsSync(testFile)) {
-                        context.report({node, message: `Missing ${testFile}`});
-                    }
-                }
-            }
-        };
-    }
-};
-```
-
-**Rule 2: Tests Must Use Stubs, Not Contracts**
-
-```typescript
-// packages/eslint-plugin/src/rules/test-no-contracts.ts
-export const testNoContracts = {
-    meta: {
-        messages: {
-            noContracts: 'Tests must use stubs, not contracts. Import from {{stubPath}} instead.'
-        }
-    },
-    create(context) {
-        return {
-            ImportDeclaration(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.test.ts') && !filename.endsWith('.test.tsx')) {
-                    return;
-                }
-
-                const importPath = node.source.value;
-                // Forbid: import { contract } from './thing-contract'
-                // Allow: import type { Type } from './thing-contract'
-                // Allow: import { Stub } from './thing.stub'
-
-                if (importPath.includes('-contract') && !node.importKind === 'type') {
-                    const stubPath = importPath.replace('-contract', '.stub');
-                    context.report({
-                        node,
-                        messageId: 'noContracts',
-                        data: {stubPath}
-                    });
-                }
-            }
-        };
-    }
-};
-```
-
-**Rule 3: No Type Assertions in Tests**
-
-```typescript
-// packages/eslint-plugin/src/rules/test-no-type-assertions.ts
-export const testNoTypeAssertions = {
-    meta: {
-        messages: {
-            noTypeAssertion: 'Use stubs to create typed values, not type assertions. Use {{stubName}} instead.'
-        }
-    },
-    create(context) {
-        return {
-            TSAsExpression(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.test.ts') && !filename.endsWith('.test.tsx')) {
-                    return;
-                }
-
-                // Forbid: const obj = { prop: value } as Type
-                // Allow: const fn = mockFn as jest.MockedFunction<...> (only for jest types)
-
-                const isJestType = node.typeAnnotation.typeName?.getText().includes('jest');
-                if (!isJestType) {
-                    context.report({
-                        node,
-                        messageId: 'noTypeAssertion',
-                        data: {
-                            stubName: `${node.typeAnnotation.typeName}Stub`
-                        }
-                    });
-                }
-            }
-        };
-    }
-};
-```
-
-**Rule 4: Proxy Files Must Only Import Types from Contracts**
-
-```typescript
-// packages/eslint-plugin/src/rules/proxy-no-contract-values.ts
-export const proxyNoContractValues = {
-    meta: {
-        messages: {
-            typeOnly: 'Proxy files must only import types from contracts, not the contract itself.'
-        }
-    },
-    create(context) {
-        return {
-            ImportDeclaration(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) {
-                    return;
-                }
-
-                const importPath = node.source.value;
-                // Forbid: import { contract } from './thing-contract'
-                // Allow: import type { Type } from './thing-contract'
-
-                if (importPath.includes('-contract') && node.importKind !== 'type') {
-                    context.report({
-                        node,
-                        messageId: 'typeOnly'
-                    });
-                }
-            }
-        };
-    }
-};
-```
-
-**Rule 5: Proxy Helpers Cannot Use "mock" in Names**
-
-```typescript
-// packages/eslint-plugin/src/rules/proxy-no-mock-in-names.ts
-export const proxyNoMockInNames = {
-    meta: {
-        messages: {
-            noMock: 'Proxy helper "{{name}}" uses forbidden word "mock". Use "returns", "throws", or describe the action instead. Proxies abstract implementation (real vs mock).'
-        }
-    },
-    create(context) {
-        return {
-            Property(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) {
-                    return;
-                }
-
-                // Check if this is a method/property in the proxy return object
-                if (node.key && node.key.type === 'Identifier') {
-                    const name = node.key.name;
-
-                    // Forbid: mockSuccess, mockError, mockAnything
-                    // Allow: returns, throws, expectCalled, setupFile
-                    if (name.toLowerCase().includes('mock')) {
-                        context.report({
-                            node,
-                            messageId: 'noMock',
-                            data: {name}
-                        });
-                    }
-                }
-            }
-        };
-    }
-};
-```
-
-**Why This Rule Matters:**
-
-The word "mock" reveals implementation details that proxies intentionally hide:
-
-```typescript
-// ❌ BAD - "mock" reveals we're using Jest mocks
-fsProxy.mockSuccess(filePath, contents);
-fsProxy.mockError(filePath, error);
-
-// ✅ GOOD - Describes action, not implementation
-fsProxy.returns(filePath, contents);  // "Adapter will return this"
-fsProxy.throws(filePath, error);      // "Adapter will throw this"
-```
-
-**Key insight:** Tomorrow the proxy might switch from mocks to real fs in temp dir. Test code shouldn't change. Helper
-names describe the adapter's behavior, not how we simulate it.
-
-**Rule 6: Proxies Must Call All Child Bootstraps**
-
-```typescript
-// packages/eslint-plugin/src/rules/proxy-must-call-child-bootstraps.ts
-export const proxyMustCallChildBootstraps = {
-    meta: {
-        messages: {
-            missingBootstrapCall: 'Proxy imports {{implementationName}} but does not call {{proxyName}}.bootstrap() in its bootstrap() method.',
-            missingProxyImport: 'Proxy imports {{implementationName}} but does not import its corresponding proxy {{proxyPath}}.'
-        }
-    },
-    create(context) {
-        return {
-            Program(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) {
-                    return;
-                }
-
-                const sourceCode = context.getSourceCode();
-                const implementationImports = [];
-                const proxyImports = [];
-                const bootstrapCalls = [];
-
-                // Collect all imports
-                node.body.forEach(statement => {
-                    if (statement.type === 'ImportDeclaration') {
-                        const importPath = statement.source.value;
-
-                        // Skip contract type imports
-                        if (importPath.includes('-contract') && statement.importKind === 'type') {
-                            return;
-                        }
-
-                        // Track implementation imports (adapters, brokers, widgets)
-                        if (importPath.match(/\/(adapter|broker|widget|responder)s?\//)) {
-                            if (!importPath.includes('.proxy')) {
-                                implementationImports.push({
-                                    path: importPath,
-                                    specifiers: statement.specifiers
-                                });
-                            } else {
-                                proxyImports.push({
-                                    path: importPath,
-                                    specifiers: statement.specifiers
-                                });
-                            }
-                        }
-                    }
-                });
-
-                // Find bootstrap() method and collect .bootstrap() calls within it
-                node.body.forEach(statement => {
-                    if (statement.type === 'ExportNamedDeclaration' &&
-                        statement.declaration?.type === 'VariableDeclaration') {
-
-                        statement.declaration.declarations.forEach(declarator => {
-                            if (declarator.init?.type === 'ArrowFunctionExpression' ||
-                                declarator.init?.type === 'FunctionExpression') {
-
-                                // Look for bootstrap method in returned object
-                                const returnStatement = declarator.init.body.properties?.find(
-                                    prop => prop.key?.name === 'bootstrap'
-                                );
-
-                                if (returnStatement) {
-                                    // Scan bootstrap method for .bootstrap() calls
-                                    const bootstrapBody = returnStatement.value.body;
-
-                                    // Find all CallExpressions that are *.bootstrap()
-                                    traverseNode(bootstrapBody, (node) => {
-                                        if (node.type === 'CallExpression' &&
-                                            node.callee.type === 'MemberExpression' &&
-                                            node.callee.property.name === 'bootstrap') {
-
-                                            const objectName = node.callee.object.name;
-                                            bootstrapCalls.push(objectName);
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                    }
-                });
-
-                // Verify each implementation import has corresponding proxy import + bootstrap call
-                implementationImports.forEach(({path: implPath, specifiers}) => {
-                    const implName = specifiers[0]?.local.name;
-
-                    // Derive expected proxy path and name
-                    const proxyPath = implPath.replace(/(\-adapter|\-broker|\-widget|\-responder)(\.ts)?$/, '$1.proxy');
-                    const expectedProxyName = `create${capitalize(implName)}Proxy`;
-
-                    // Check if proxy is imported
-                    const proxyImport = proxyImports.find(p => p.path === proxyPath);
-
-                    if (!proxyImport) {
-                        context.report({
-                            node: specifiers[0],
-                            messageId: 'missingProxyImport',
-                            data: {
-                                implementationName: implName,
-                                proxyPath
-                            }
-                        });
-                        return;
-                    }
-
-                    // Check if proxy's bootstrap is called
-                    const proxyVarName = proxyImport.specifiers.find(
-                        spec => spec.local.name.includes('Proxy')
-                    )?.local.name.replace(/^create|Proxy$/g, '').toLowerCase() + 'Proxy';
-
-                    if (!bootstrapCalls.includes(proxyVarName)) {
-                        context.report({
-                            node: proxyImport.specifiers[0],
-                            messageId: 'missingBootstrapCall',
-                            data: {
-                                implementationName: implName,
-                                proxyName: proxyVarName
-                            }
-                        });
-                    }
-                });
-            }
-        };
-    }
-};
-
-function traverseNode(node, callback) {
-    callback(node);
-    Object.keys(node).forEach(key => {
-        if (node[key] && typeof node[key] === 'object') {
-            if (Array.isArray(node[key])) {
-                node[key].forEach(child => traverseNode(child, callback));
-            } else {
-                traverseNode(node[key], callback);
-            }
-        }
-    });
-}
-
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-```
-
-**Why This Rule Matters:**
-
-This rule is CRITICAL for transformer simplification. By enforcing complete bootstrap chains at the proxy level, the
-transformer doesn't need to recursively scan imports - it only needs to inject ONE bootstrap call for the file being
-tested.
-
-The bootstrap chain MUST be complete. If WidgetB imports BrokerA, it must also import and call BrokerA's proxy's
-bootstrap():
-
-```typescript
-// ❌ BAD - Missing bootstrap call
-// WidgetB.proxy.ts
-import {brokerA} from '../../brokers/broker-a/broker-a';
-import {createBrokerAProxy} from '../../brokers/broker-a/broker-a.proxy';
-
-export const createWidgetBProxy = () => {
-    return {
-        bootstrap: () => {
-            // Missing: brokerAProxy.bootstrap()
-        }
-    };
-};
-
-// ✅ GOOD - Complete bootstrap chain
-// WidgetB.proxy.ts
-import {brokerA} from '../../brokers/broker-a/broker-a';
-import {createBrokerAProxy} from '../../brokers/broker-a/broker-a.proxy';
-
-export const createWidgetBProxy = () => {
-    const brokerAProxy = createBrokerAProxy();
-
-    return {
-        bootstrap: () => {
-            brokerAProxy.bootstrap();  // ✅ Chain complete
-        }
-    };
-};
-```
-
-**Key insight:** Every implementation dependency must have its proxy's bootstrap called. This ensures the transformer
-doesn't need to track transitive dependencies - the proxy chain handles it.
-
-**Rule 7: Proxy Cannot Bootstrap Dependencies Not Used by Implementation**
-
-```typescript
-// packages/eslint-plugin/src/rules/proxy-no-phantom-dependencies.ts
-export const proxyNoPhantomDependencies = {
-    meta: {
-        messages: {
-            phantomDependency: 'Proxy calls {{proxyName}}.bootstrap() but {{implementationFile}} does not import {{implementationName}}. Remove the phantom bootstrap call or add the import to the implementation.',
-            missingImplementationImport: 'Proxy imports {{implementationName}} but {{implementationFile}} does not. Proxies must only bootstrap dependencies that the implementation actually uses.'
-        }
-    },
-    create(context) {
-        return {
-            Program(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) {
-                    return;
-                }
-
-                // Find corresponding implementation file
-                const implementationFile = filename.replace('.proxy.ts', '.ts');
-                if (!fs.existsSync(implementationFile)) {
-                    return;  // No implementation file found
-                }
-
-                // Read implementation file and parse imports
-                const implementationSource = fs.readFileSync(implementationFile, 'utf-8');
-                const implementationImports = extractImports(implementationSource);
-
-                // Track what proxy imports and bootstraps
-                const proxyImports = [];
-                const bootstrapCalls = [];
-
-                // Collect proxy's implementation imports
-                node.body.forEach(statement => {
-                    if (statement.type === 'ImportDeclaration') {
-                        const importPath = statement.source.value;
-
-                        // Skip contract type imports
-                        if (importPath.includes('-contract') && statement.importKind === 'type') {
-                            return;
-                        }
-
-                        // Track implementation imports (adapters, brokers, widgets)
-                        if (importPath.match(/\/(adapter|broker|widget|responder)s?\//)) {
-                            if (!importPath.includes('.proxy')) {
-                                proxyImports.push({
-                                    path: importPath,
-                                    name: statement.specifiers[0]?.local.name,
-                                    node: statement
-                                });
-                            }
-                        }
-                    }
-                });
-
-                // Find bootstrap() method and collect .bootstrap() calls
-                node.body.forEach(statement => {
-                    if (statement.type === 'ExportNamedDeclaration' &&
-                        statement.declaration?.type === 'VariableDeclaration') {
-
-                        statement.declaration.declarations.forEach(declarator => {
-                            if (declarator.init?.type === 'ArrowFunctionExpression' ||
-                                declarator.init?.type === 'FunctionExpression') {
-
-                                // Look for bootstrap method in returned object
-                                const returnStatement = declarator.init.body.properties?.find(
-                                    prop => prop.key?.name === 'bootstrap'
-                                );
-
-                                if (returnStatement) {
-                                    // Scan bootstrap method for .bootstrap() calls
-                                    const bootstrapBody = returnStatement.value.body;
-
-                                    traverseNode(bootstrapBody, (node) => {
-                                        if (node.type === 'CallExpression' &&
-                                            node.callee.type === 'MemberExpression' &&
-                                            node.callee.property.name === 'bootstrap') {
-
-                                            const proxyVarName = node.callee.object.name;
-                                            bootstrapCalls.push({
-                                                proxyVarName,
-                                                node
-                                            });
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                    }
-                });
-
-                // Verify: For each implementation import in proxy, check if implementation file imports it
-                proxyImports.forEach(({path: proxyImportPath, name: proxyImportName, node: importNode}) => {
-                    // Derive what the implementation would import
-                    const expectedImplPath = proxyImportPath;
-
-                    // Check if implementation file imports this
-                    const implementationHasImport = implementationImports.some(
-                        implImport => implImport.path === expectedImplPath ||
-                            implImport.path.includes(proxyImportPath)
-                    );
-
-                    if (!implementationHasImport) {
-                        context.report({
-                            node: importNode,
-                            messageId: 'missingImplementationImport',
-                            data: {
-                                implementationName: proxyImportName,
-                                implementationFile: implementationFile.split('/').pop()
-                            }
-                        });
-                    }
-                });
-
-                // Verify: For each bootstrap call, ensure implementation uses that dependency
-                bootstrapCalls.forEach(({proxyVarName, node: callNode}) => {
-                    // Derive implementation name from proxy variable
-                    // e.g., brokerAProxy -> brokerA
-                    const implName = proxyVarName.replace(/Proxy$/, '');
-
-                    // Find the import for this proxy
-                    const proxyImport = proxyImports.find(imp =>
-                        imp.name.toLowerCase() === implName.toLowerCase()
-                    );
-
-                    if (!proxyImport) {
-                        return;  // No corresponding import found (will be caught by Rule 6)
-                    }
-
-                    // Check if implementation file imports this
-                    const implementationHasImport = implementationImports.some(
-                        implImport => implImport.name.toLowerCase() === implName.toLowerCase()
-                    );
-
-                    if (!implementationHasImport) {
-                        context.report({
-                            node: callNode,
-                            messageId: 'phantomDependency',
-                            data: {
-                                proxyName: proxyVarName,
-                                implementationName: implName,
-                                implementationFile: implementationFile.split('/').pop()
-                            }
-                        });
-                    }
-                });
-            }
-        };
-    }
-};
-
-function extractImports(source) {
-    const imports = [];
-    const importRegex = /import\s+(?:{[^}]+}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/g;
-    const namedImportRegex = /import\s+{([^}]+)}\s+from/;
-    const defaultImportRegex = /import\s+(\w+)\s+from/;
-
-    let match;
-    while ((match = importRegex.exec(source)) !== null) {
-        const importPath = match[1];
-        const fullMatch = match[0];
-
-        let importName = null;
-
-        // Extract named import
-        const namedMatch = namedImportRegex.exec(fullMatch);
-        if (namedMatch) {
-            importName = namedMatch[1].split(',')[0].trim();
-        }
-
-        // Extract default import
-        const defaultMatch = defaultImportRegex.exec(fullMatch);
-        if (defaultMatch) {
-            importName = defaultMatch[1];
-        }
-
-        imports.push({
-            path: importPath,
-            name: importName
-        });
-    }
-
-    return imports;
-}
-
-function traverseNode(node, callback) {
-    if (!node || typeof node !== 'object') return;
-
-    callback(node);
-    Object.keys(node).forEach(key => {
-        if (node[key] && typeof node[key] === 'object') {
-            if (Array.isArray(node[key])) {
-                node[key].forEach(child => traverseNode(child, callback));
-            } else {
-                traverseNode(node[key], callback);
-            }
-        }
-    });
-}
-```
-
-**Why This Rule Matters:**
-
-Proxies must mirror the implementation's actual dependencies. If the proxy bootstraps dependencies the implementation
-doesn't use, the bootstrap chain is incorrect.
-
-```typescript
-// widget-b.ts (implementation)
-import {useState} from 'react';
-import {brokerA} from '../../brokers/broker-a/broker-a';
-
-export const WidgetB = () => {
-    const data = useFetch(brokerA);
-    return <div>{data} < /div>;
-};
-
-// ❌ BAD - Proxy bootstraps phantom dependency
-// widget-b.proxy.ts
-import {createBrokerAProxy} from '../../brokers/broker-a/broker-a.proxy';
-import {createBrokerBProxy} from '../../brokers/broker-b/broker-b.proxy';  // ❌ WidgetB doesn't use BrokerB!
-
-export const createWidgetBProxy = () => {
-    const brokerAProxy = createBrokerAProxy();
-    const brokerBProxy = createBrokerBProxy();  // ❌ Phantom dependency
-
-    return {
-        bootstrap: () => {
-            brokerAProxy.bootstrap();
-            brokerBProxy.bootstrap();  // ❌ ERROR: widget-b.ts doesn't import brokerB
-        }
-    };
-};
-
-// ✅ GOOD - Proxy only bootstraps what implementation uses
-// widget-b.proxy.ts
-import {createBrokerAProxy} from '../../brokers/broker-a/broker-a.proxy';
-
-export const createWidgetBProxy = () => {
-    const brokerAProxy = createBrokerAProxy();
-
-    return {
-        bootstrap: () => {
-            brokerAProxy.bootstrap();  // ✅ widget-b.ts imports brokerA
-        }
-    };
-};
-```
-
-**Key insight:** This ensures the bootstrap chain perfectly mirrors the actual dependency graph. No phantom
-dependencies, no missing dependencies.
-
-**Rule 8: No jest.mock() on Adapters (Use Proxy Instead)**
-
-```typescript
-// packages/eslint-plugin/src/rules/test-no-adapter-mocking.ts
-export const testNoAdapterMocking = {
-    meta: {
-        messages: {
-            useProxy: 'Do not mock adapters with jest.mock(). Import and use the proxy instead: {{proxyImport}}'
-        }
-    },
-    create(context) {
-        return {
-            CallExpression(node) {
-                const filename = context.getFilename();
-
-                // Only check test files
-                if (!filename.endsWith('.test.ts') && !filename.endsWith('.test.tsx')) {
-                    return;
-                }
-
-                // Check if this is jest.mock() call
-                if (
-                    node.callee.type === 'MemberExpression' &&
-                    node.callee.object.name === 'jest' &&
-                    node.callee.property.name === 'mock'
-                ) {
-                    const mockPath = node.arguments[0]?.value;
-
-                    // Check if mocking an adapter
-                    if (mockPath && mockPath.includes('-adapter')) {
-                        // Only allow if this IS the adapter's own test file
-                        const adapterTestFile = mockPath.replace(/.*\/([^/]+)-adapter$/, '$1-adapter.test.ts');
-
-                        if (!filename.endsWith(adapterTestFile)) {
-                            const proxyImport = mockPath.replace('-adapter', '-adapter.proxy');
-                            context.report({
-                                node,
-                                messageId: 'useProxy',
-                                data: {
-                                    proxyImport: `import { create...Proxy } from '${proxyImport}'`
-                                }
-                            });
-                        }
-                    }
-                }
-            }
-        };
-    }
-};
-```
-
-**Why This Rule Matters:**
-
-Adapters should ONLY be mocked in their own test file. Everywhere else, use the proxy:
-
-```typescript
-// ❌ BAD - Manually mocking adapter in broker test
-// broker.test.ts
-jest.mock('../../adapters/fs/fs-read-file-adapter');
-const mockFsAdapter = jest.mocked(fsReadFileAdapter);
-mockFsAdapter.mockResolvedValue(FileContentsStub('data'));
-
-// ✅ GOOD - Use proxy in broker test
-// broker.test.ts
-import {createFsReadFileProxy} from '../../adapters/fs/fs-read-file-adapter.proxy';
-
-const fsProxy = createFsReadFileProxy();
-fsProxy.returns(FilePathStub('/path'), FileContentsStub('data'));
-```
-
-**Exceptions (allowed):**
-
-```typescript
-// ✅ ALLOWED - Adapter's own test file
-// fs-read-file-adapter.test.ts
-jest.mock('fs/promises');  // Mocking npm package, not adapter
-// Transformer auto-mocks the adapter for proxy usage
-```
-
-**Key insight:** Proxies provide:
-
-- Consistent API across all tests
-- Abstraction over mock vs real implementation
-- Automatic cleanup
-- Better error messages
-- LLM-friendly pattern
+SEE: [LINT-RULES.md](LINT-RULES.md)
 
 ### Auto-Generated Registry
 
@@ -2215,13 +1690,13 @@ fsProxy.returns(FilePathStub('/path'), FileContentsStub('data'));
 LLM must create **3 files**:
 
 1. `-adapter.ts` - Implementation
-2. `-adapter.proxy.ts` - Proxy with `createAdapterProxy(npmModule, { useMock: true/false })`
+2. `-adapter.proxy.ts` - Proxy using `jest.mocked()` (or not for real implementations)
 3. `-adapter.test.ts` - Tests using proxy
 
-**Decision: `useMock: true` or `false`?**
+**Decision: Mock or Real?**
 
-- **true**: HTTP, external APIs → Jest mocks (fast)
-- **false**: fs, ESLint, DB → Real in controlled env (validates real behavior)
+- **Mocked (default)**: HTTP, FS, DB, external APIs → Use `jest.mocked(adapter)` (transformer injects jest.mock())
+- **Real (special case)**: ESLint only → Don't use `jest.mocked()` (runs real implementation)
 
 ### Quick Reference
 
@@ -2231,24 +1706,32 @@ export const myAdapter = async ({input}: { input: Input }): Promise<Output> => {
     return npmPackage.method(input);
 };
 
-// 2. Proxy (per-adapter decision!)
+// 2. Proxy (mocked by default)
 // ✅ Only import types from contracts
 import type {Input} from '../../contracts/input/input-contract';
 
 export const createMyAdapterProxy = () => {
-    return createAdapterProxy(npmPackage, {useMock: true})((mock) => {
-        // Auto-cleanup if needed
-        afterAll(async () => {
-            await cleanup();
-        });
+    // Transformer sees jest.mocked() and injects jest.mock() at test file top
+    const mock = jest.mocked(myAdapter);
 
-        return {
-            // Helpers accept branded types only
-            returns: (input: Input): void => {
-                mock.method.mockResolvedValue(input);
-            }
-        };
+    // Auto-cleanup if needed
+    afterAll(async () => {
+        await cleanup();
     });
+
+    return {
+        bootstrap: () => {
+            // Setup mockImplementation with safe defaults
+            mock.mockImplementation((input) => {
+                return Promise.resolve(OutputStub('default'));
+            });
+        },
+
+        // Helpers accept branded types only
+        returns: (input: Input, output: Output): void => {
+            mock.mockResolvedValueOnce(output);
+        }
+    };
 };
 
 // 3. Test
@@ -2263,7 +1746,7 @@ describe('myAdapter', () => {
         const input = InputStub('value');      // Explicit stub usage
         const expected = OutputStub('result'); // Expected value via stub
 
-        proxy.returns(input);              // Pass branded type
+        proxy.returns(input, expected);    // Pass branded types
 
         const result = await myAdapter({input});
         expect(result).toStrictEqual(expected);
@@ -2276,26 +1759,32 @@ describe('myAdapter', () => {
 **✅ Solved:**
 
 1. **No Jest confusion** - LLMs use simple proxy API instead of fighting Jest internals
-2. **No manual `jest.mock()`** - Proxy handles mocking internally
-3. **No manual `jest.mocked()`** - Proxy handles it
-4. **No mode switching** - Per-adapter decision (useMock: true/false) internal to proxy
-5. **No manual cleanup** - Proxy registers afterAll() automatically
-6. **No raw values** - Lint enforces stubs only (type-safe branded values)
-7. **No type assertions** - Lint forbids `as Type` in tests
-8. **No contract imports** - Lint enforces type-only imports from contracts
-9. **No "mock" in names** - Lint forbids `mockSuccess()`, requires `returns()` (abstracts implementation)
-10. **No jest.mock() on adapters in tests** - Lint forbids mocking adapters, enforces proxy usage instead
-11. **No assertions in proxy** - Proxies return data (getters), tests do `expect()` - keeps proxies clean
-12. **One API everywhere** - Same proxy helpers whether testing adapter or code using adapter
+2. **No manual `jest.mock()` in tests** - Transformer handles it automatically
+3. **No manual `jest.mock()` in proxies** - Transformer detects `jest.mocked()` and injects at test file top
+4. **No helper needed** - Direct pattern for all proxies (adapters, brokers, widgets)
+5. **Clear signal** - Presence of `jest.mocked()` tells transformer to inject mocking
+6. **No manual cleanup** - Proxy registers afterAll() automatically
+7. **No raw values** - Lint enforces stubs only (type-safe branded values)
+8. **No type assertions** - Lint forbids `as Type` in tests
+9. **No contract imports** - Lint enforces type-only imports from contracts
+10. **No "mock" in names** - Lint forbids `mockSuccess()`, requires `returns()` (abstracts implementation)
+11. **No jest.mock() on adapters in tests** - Lint forbids mocking adapters, enforces proxy usage instead
+12. **No assertions in proxy** - Proxies return data (getters), tests do `expect()` - keeps proxies clean
+13. **Only adapters mocked** - Lint enforces: brokers/widgets/responders never use `jest.mocked()`
+14. **Consistent pattern** - All proxies return object with `bootstrap()` method
+15. **One API everywhere** - Same proxy helpers whether testing adapter or code using adapter
 
 **🎯 Key Wins:**
 
 - **LLM-friendly**: Clear 3-file pattern (adapter + proxy + test)
 - **Type-safe**: Branded types enforced via stubs + lint rules
 - **Resilient**: npm changes isolated to ONE test file per adapter
-- **Simple**: One decision per adapter (useMock: true/false), then forget
-- **Clean**: Zero Jest boilerplate in tests
+- **Simple**: Use `jest.mocked()` in adapter proxies (transformer handles the rest)
+- **Clear signal**: `jest.mocked()` presence tells transformer what to mock
+- **Clean**: Zero Jest boilerplate in tests or proxies
+- **Consistent**: Same direct pattern for all proxies (no helper needed)
 - **Abstraction**: Proxy helpers hide implementation (real vs mock)
 - **Zero setup**: Adapters work automatically, just use assertion helpers
 - **Separation of concerns**: Proxies return data, tests do assertions
-- **Enforced**: 8 lint rules ensure patterns are followed (no escape hatches!)
+- **Only boundaries mocked**: Adapters are mocked, business logic (brokers/widgets) runs real
+- **Enforced**: 12 lint rules ensure patterns are followed (no escape hatches!)

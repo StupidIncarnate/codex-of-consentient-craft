@@ -44,6 +44,10 @@ Exported jest config (or ones made in external repo needs a jest setup function 
 Claude does a lot of inline imports. Needs line/hook blocker
 config?: import('../types/config-type').PreEditLintConfig;
 
+## Some globals must be adapters
+
+Fetch too so that we can force a proxy on it
+
 ## coverage
 Dont let it run jest --coverage, because then it starts hallucination.
 
