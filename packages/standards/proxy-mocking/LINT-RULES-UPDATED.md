@@ -11,13 +11,6 @@
 - **`enforce-jest-mocked-usage`**: Must use `jest.mocked()` when using `jest.mock()` + `jest.spyOn()` only for globals
 - **`enforce-proxy-patterns`**: `jest.mock()` calls must be at module level (outside functions)
 
----
-
----
-
----
-
----
 
 ### Rule 20: Proxy Constructors Cannot Have Side Effects Beyond Mock Setup
 

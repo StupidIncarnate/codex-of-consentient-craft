@@ -78,6 +78,8 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
         'Proxies must not import from contract files ({{importPath}}). Import from stub files (.stub.ts) instead.',
       proxyHelperNoMockInName:
         'Proxy helper "{{name}}" uses forbidden word "{{forbiddenWord}}". Use "returns", "throws", or describe the action instead. Proxies abstract implementation details.',
+      proxyConstructorNoSideEffects:
+        'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead. Allowed: const childProxy = create...(), jest.mocked(...), jest.spyOn(...)',
     },
     schema: [],
   },
@@ -295,6 +297,9 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
             if (isAdapterProxy) {
               checkAdapterProxyMockSetup(init, context);
             }
+
+            // Check for side effects in constructor
+            checkProxyConstructorSideEffects(init, context);
           }
         }
       },
@@ -568,5 +573,101 @@ const checkAdapterProxyMockSetup = (
       node: functionNode,
       messageId: 'adapterProxyMustSetupMocks',
     });
+  }
+};
+
+const checkProxyConstructorSideEffects = (
+  functionNode: TSESTree.Node,
+  context: Rule.RuleContext,
+): void => {
+  const funcNode = functionNode as NodeWithBody;
+  const { body } = funcNode;
+
+  if (!body) return;
+
+  const bodyType = (body as { type: string }).type;
+
+  // Only check BlockStatement functions (not direct returns)
+  if (bodyType !== 'BlockStatement') return;
+
+  const blockNode = body as { body?: TSESTree.Node[] };
+  const statements = blockNode.body;
+
+  if (!statements) return;
+
+  // Find return statement position
+  let returnStatementIndex = -1;
+  for (let i = 0; i < statements.length; i++) {
+    const stmtType = (statements[i] as { type: string }).type;
+    if (stmtType === 'ReturnStatement') {
+      returnStatementIndex = i;
+      break;
+    }
+  }
+
+  if (returnStatementIndex === -1) return;
+
+  // Check statements before return for side effects
+  for (let i = 0; i < returnStatementIndex; i++) {
+    const statement = statements[i];
+    const stmtType = (statement as { type: string }).type;
+
+    // Check for ExpressionStatement containing side effects
+    if (stmtType === 'ExpressionStatement') {
+      const exprStmt = statement as { expression?: TSESTree.Node };
+      const { expression } = exprStmt;
+
+      if (expression) {
+        const exprType = (expression as { type: string }).type;
+
+        // Check for CallExpression
+        if (exprType === 'CallExpression') {
+          const callExpr = expression as NodeWithCallee;
+          const { callee } = callExpr;
+
+          if (callee) {
+            const calleeType = (callee as { type: string }).type;
+
+            // Check for MemberExpression (obj.method())
+            if (calleeType === 'MemberExpression') {
+              const memberExpr = callee as NodeWithObject & NodeWithProperty;
+              const object = memberExpr.object as NodeWithName | undefined;
+
+              // Check if it's calling a mock method (allowed)
+              const property = memberExpr.property as NodeWithName | undefined;
+              const propertyName = property?.name;
+              const mockMethods = [
+                'mockImplementation',
+                'mockResolvedValue',
+                'mockRejectedValue',
+                'mockReturnValue',
+                'mockReturnValueOnce',
+                'mockResolvedValueOnce',
+                'mockRejectedValueOnce',
+              ];
+              const isMockMethod = propertyName && mockMethods.includes(propertyName);
+
+              if (!isMockMethod) {
+                const objectName = object?.name ?? 'unknown';
+
+                // Check if this is an allowed operation (jest or child proxy)
+                const isJestOperation = objectName === 'jest';
+                const isChildProxyCreation = objectName.endsWith('Proxy');
+                const isAllowed = isJestOperation || isChildProxyCreation;
+
+                // Everything else is a side effect
+                if (!isAllowed) {
+                  context.report({
+                    node: statement as unknown as TSESTree.Node,
+                    messageId: 'proxyConstructorNoSideEffects',
+                    data: { type: `${objectName}.${propertyName ?? 'method'}()` },
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 };

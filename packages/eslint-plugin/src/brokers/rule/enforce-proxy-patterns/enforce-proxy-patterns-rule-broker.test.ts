@@ -246,6 +246,41 @@ ruleTester.run('enforce-proxy-patterns', enforceProxyPatternsRuleBroker(), {
       `,
       filename: '/project/src/brokers/user/user-broker.proxy.ts',
     },
+    // ✅ CORRECT - Child proxy creation and jest.mocked (no side effects)
+    {
+      code: `
+        import axios from 'axios';
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        jest.mock('axios');
+
+        export const userBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+          const mock = jest.mocked(axios);
+          mock.mockImplementation(async () => ({ data: {}, status: 200 }));
+
+          return {
+            setupUser: () => {
+              httpProxy.returns({ data: {} });
+            }
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+    },
+    // ✅ CORRECT - jest.spyOn for global functions (allowed)
+    {
+      code: `
+        export const userBrokerProxy = () => {
+          jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
+          jest.spyOn(crypto, 'randomUUID').mockReturnValue('uuid-123');
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+    },
   ],
   invalid: [
     // ❌ WRONG - Proxy returns void
@@ -780,6 +815,132 @@ ruleTester.run('enforce-proxy-patterns', enforceProxyPatternsRuleBroker(), {
         {
           messageId: 'proxyHelperNoMockInName',
           data: { name: 'dummyValue', forbiddenWord: 'dummy' },
+        },
+      ],
+    },
+    // ❌ WRONG - fs operations in constructor (side effects)
+    {
+      code: `
+        import fs from 'fs';
+        import { readFileSync } from 'fs';
+        jest.mock('fs');
+        export const fsAdapterProxy = () => {
+          const mock = jest.mocked(readFileSync);
+          mock.mockReturnValue(Buffer.from(''));
+          fs.mkdirSync('/tmp/test');
+          fs.writeFileSync('/tmp/test/file.txt', 'data');
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
+      errors: [
+        {
+          messageId: 'proxyConstructorNoSideEffects',
+          data: { type: 'fs.mkdirSync()' },
+        },
+        {
+          messageId: 'proxyConstructorNoSideEffects',
+          data: { type: 'fs.writeFileSync()' },
+        },
+      ],
+    },
+    // ❌ WRONG - console.log in constructor (side effect)
+    {
+      code: `
+        export const userBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+          console.log('Setting up proxy');
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'proxyConstructorNoSideEffects',
+          data: { type: 'console.log()' },
+        },
+      ],
+    },
+    // ❌ WRONG - database operations in constructor (side effects)
+    {
+      code: `
+        export const userBrokerProxy = () => {
+          db.query('CREATE TABLE users');
+          database.connect();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'proxyConstructorNoSideEffects',
+          data: { type: 'db.query()' },
+        },
+        {
+          messageId: 'proxyConstructorNoSideEffects',
+          data: { type: 'database.connect()' },
+        },
+      ],
+    },
+    // ❌ WRONG - Multiple side effects in constructor
+    {
+      code: `
+        import fs from 'fs';
+        import { readFile } from 'fs/promises';
+        jest.mock('fs/promises');
+        export const fsAdapterProxy = () => {
+          const mock = jest.mocked(readFile);
+          mock.mockResolvedValue(Buffer.from(''));
+          fs.mkdirSync('/tmp');
+          console.log('Created directory');
+          db.query('SELECT * FROM files');
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
+      errors: [
+        {
+          messageId: 'proxyConstructorNoSideEffects',
+          data: { type: 'fs.mkdirSync()' },
+        },
+        {
+          messageId: 'proxyConstructorNoSideEffects',
+          data: { type: 'console.log()' },
+        },
+        {
+          messageId: 'proxyConstructorNoSideEffects',
+          data: { type: 'db.query()' },
+        },
+      ],
+    },
+    // ❌ WRONG - process operations in constructor
+    {
+      code: `
+        export const envBrokerProxy = () => {
+          process.exit(1);
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/env/env-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'proxyConstructorNoSideEffects',
+          data: { type: 'process.exit()' },
         },
       ],
     },
