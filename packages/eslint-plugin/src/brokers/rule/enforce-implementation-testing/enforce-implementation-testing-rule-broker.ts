@@ -103,7 +103,8 @@ export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({
           // Check if an incorrectly named proxy file might exist
           // Extract base filename and folder type for validation
           const baseFileName = fileBaseName.replace(/\.tsx?$/u, '');
-          const folderTypePattern = /-(adapter|broker|transformer|guard|binding|middleware|state|responder|widget|statics)$/u;
+          const folderTypePattern =
+            /-(adapter|broker|transformer|guard|binding|middleware|state|responder|widget|statics)$/u;
           const folderTypeMatch = baseFileName.match(folderTypePattern);
 
           if (folderTypeMatch) {
@@ -118,7 +119,9 @@ export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({
             const invalidProxyFileName = `${firstPart}.proxy.${filename.endsWith('.tsx') ? 'tsx' : 'ts'}`;
             const invalidProxyFilePath = filename.replace(fileBaseName, invalidProxyFileName);
             const invalidProxyFilePathContract = filePathContract.parse(invalidProxyFilePath);
-            const hasInvalidProxyFile = fsExistsSyncAdapter({ filePath: invalidProxyFilePathContract });
+            const hasInvalidProxyFile = fsExistsSyncAdapter({
+              filePath: invalidProxyFilePathContract,
+            });
 
             if (hasInvalidProxyFile) {
               context.report({

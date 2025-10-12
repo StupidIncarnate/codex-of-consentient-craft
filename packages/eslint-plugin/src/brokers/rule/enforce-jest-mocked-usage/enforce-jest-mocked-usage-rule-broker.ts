@@ -51,6 +51,14 @@ const isProxyFile = ({ filename }: { filename: string }): boolean => {
   return filename.endsWith('.proxy.ts');
 };
 
+const isAdapterProxy = ({ filename }: { filename: string }): boolean => {
+  return filename.includes('-adapter.proxy.ts');
+};
+
+const isStateProxy = ({ filename }: { filename: string }): boolean => {
+  return filename.includes('-state.proxy.ts');
+};
+
 const isJestMockCall = (node: CallExpressionNode): boolean => {
   return (
     node.callee?.type === 'MemberExpression' &&
@@ -116,6 +124,8 @@ export const enforceJestMockedUsageRuleBroker = (): Rule.RuleModule => {
           'When using jest.mock(), access the mocked module with jest.mocked(). Use: const mock = jest.mocked({{moduleName}})',
         spyOnModuleImport:
           'jest.spyOn() should only be used for global objects (Date, crypto, console, Math). Use jest.mock() + jest.mocked() for module imports instead.',
+        nonAdapterNoJestMocked:
+          'Non-adapter proxies cannot use jest.mocked(). Only adapters (I/O boundaries) and state proxies (for external systems) should be mocked. Brokers, widgets, and responders must run real code.',
       },
       schema: [],
     },
@@ -208,6 +218,19 @@ export const enforceJestMockedUsageRuleBroker = (): Rule.RuleModule => {
           // Check if using jest.mocked()
           const callNode = declaratorNode.init as CallExpressionNode;
           if (isJestMockedCall(callNode)) {
+            // Check if this is a non-adapter/non-state proxy using jest.mocked()
+            // State proxies can use jest.mocked() for external systems (Redis, DB)
+            if (
+              !isAdapterProxy({ filename: context.filename }) &&
+              !isStateProxy({ filename: context.filename })
+            ) {
+              context.report({
+                node,
+                messageId: 'nonAdapterNoJestMocked',
+              });
+              return;
+            }
+
             // Extract the module name from jest.mocked(moduleName)
             if (callNode.arguments && callNode.arguments.length > 0) {
               interface ArgumentWithName {

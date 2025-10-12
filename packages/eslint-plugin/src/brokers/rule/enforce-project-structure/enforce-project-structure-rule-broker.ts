@@ -327,8 +327,8 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
                           init?.type === 'Identifier'
                             ? 're-exported variable'
                             : init?.type === 'FunctionExpression'
-                            ? 'function expression'
-                            : init?.type || 'non-function value';
+                              ? 'function expression'
+                              : init?.type || 'non-function value';
                         context.report({
                           node,
                           messageId: 'proxyMustBeArrowFunction',
