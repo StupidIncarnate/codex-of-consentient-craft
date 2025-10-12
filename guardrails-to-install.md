@@ -59,6 +59,29 @@ LLm likes to do this when file path searching. They need to use recursion instea
 
 LLM seems to just place arrays of string const everywhere. We need a standard and probably a lint rule. ex
 
+const KNOWN_NPM_PACKAGES = [
+'axios',
+'fs',
+'path',
+'crypto',
+'os',
+'child_process',
+'http',
+'https',
+'net',
+'stream',
+'util',
+'zlib',
+'redis',
+'ioredis',
+'pg',
+'mysql',
+'mongodb',
+'sqlite3',
+];
+
+in this case this cant every be stored. Other cases it has to be moved
+
 ## add a rule for @types at same level as src
 
 It can only store .d.ts files
