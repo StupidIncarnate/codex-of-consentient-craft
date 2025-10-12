@@ -1,164 +1,33 @@
 # ESLint Rules for Create-Per-Test Proxy Pattern
 
-## Summary: 16 Rules Total
-
-- **12 rules still valid** (unchanged from original)
-- **4 rules obsolete** (bootstrap-related, removed)
-- **4 new rules** (create-per-test pattern)
-
----
-
-## ✅ Still Valid Rules (12)
-
-### Rule 2: Tests Must Use Stubs, Not Contracts
-
-**Status:** ✅ VALID (unchanged)
-
-```typescript
-// packages/eslint-plugin/src/rules/test-no-contracts.ts
-export const testNoContracts = {
-    meta: {
-        messages: {
-            noContracts: 'Tests must use stubs, not contracts. Import from {{stubPath}} instead.'
-        }
-    },
-    create(context) {
-        return {
-            ImportDeclaration(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.test.ts') && !filename.endsWith('.test.tsx')) {
-                    return;
-                }
-
-                const importPath = node.source.value;
-                if (importPath.includes('-contract') && node.importKind !== 'type') {
-                    const stubPath = importPath.replace('-contract', '.stub');
-                    context.report({
-                        node,
-                        messageId: 'noContracts',
-                        data: {stubPath}
-                    });
-                }
-            }
-        };
-    }
-};
-```
-
----
-
-### Rule 3: No Type Assertions in Tests
-
-```typescript
-// packages/eslint-plugin/src/rules/test-no-type-assertions.ts
-export const testNoTypeAssertions = {
-    meta: {
-        messages: {
-            noTypeAssertion: 'Use stubs to create typed values, not type assertions. Use {{stubName}} instead.'
-        }
-    },
-    create(context) {
-        return {
-            TSAsExpression(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.test.ts') && !filename.endsWith('.test.tsx')) {
-                    return;
-                }
-
-                // Forbid: const obj = { prop: value } as Type
-                // Allow: const fn = mockFn as jest.MockedFunction<...> (only for jest types)
-
-                const isJestType = node.typeAnnotation.typeName?.getText().includes('jest');
-                if (!isJestType) {
-                    context.report({
-                        node,
-                        messageId: 'noTypeAssertion',
-                        data: {
-                            stubName: `${node.typeAnnotation.typeName}Stub`
-                        }
-                    });
-                }
-            }
-        };
-    }
-};
-```
-
----
-
 ### Rule 4: Proxy Files Must Only Import Types from Contracts
 
-```typescript
-// packages/eslint-plugin/src/rules/proxy-no-contract-values.ts
-export const proxyNoContractValues = {
-    meta: {
-        messages: {
-            typeOnly: 'Proxy files must only import types from contracts, not the contract itself.'
-        }
-    },
-    create(context) {
-        return {
-            ImportDeclaration(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) {
-                    return;
-                }
+**Rule:** `proxy-no-contract-values`
 
-                const importPath = node.source.value;
-                // Forbid: import { contract } from './thing-contract'
-                // Allow: import type { Type } from './thing-contract'
+**What it checks:**
 
-                if (importPath.includes('-contract') && node.importKind !== 'type') {
-                    context.report({
-                        node,
-                        messageId: 'typeOnly'
-                    });
-                }
-            }
-        };
-    }
-};
-```
+- Only applies to `.proxy.ts` files
+- Inspects all import statements that reference files containing `-contract` in the path
+- Verifies that imports from contract files use `import type` syntax
+
+**Violations:**
+
+- Using regular imports from contract files: `import { userContract } from './user-contract'`
+- Importing contract values (not types) from contract files
+
+**Valid patterns:**
+
+- `import type { User } from './user-contract'`
+- `import type { UserId } from '../user-id/user-id-contract'`
+
+**Message:** `'Proxy files must only import types from contracts, not the contract itself.'`
 
 ---
 
 ### Rule 5: Proxy Helpers Cannot Use "mock" in Names
 
-```typescript
-// packages/eslint-plugin/src/rules/proxy-no-mock-in-names.ts
-export const proxyNoMockInNames = {
-    meta: {
-        messages: {
-            noMock: 'Proxy helper "{{name}}" uses forbidden word "mock". Use "returns", "throws", or describe the action instead. Proxies abstract implementation (real vs mock).'
-        }
-    },
-    create(context) {
-        return {
-            Property(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) {
-                    return;
-                }
-
-                // Check if this is a method/property in the proxy return object
-                if (node.key && node.key.type === 'Identifier') {
-                    const name = node.key.name;
-
-                    // Forbid: mockSuccess, mockError, mockAnything
-                    // Allow: returns, throws, expectCalled, setupFile
-                    if (name.toLowerCase().includes('mock')) {
-                        context.report({
-                            node,
-                            messageId: 'noMock',
-                            data: {name}
-                        });
-                    }
-                }
-            }
-        };
-    }
-};
-```
+Proxy helper "{{name}}" uses forbidden word "mock". Use "returns", "throws", or describe the action instead. Proxies
+abstract implementation (real vs mock)
 
 **Why This Rule Matters:**
 
@@ -181,140 +50,39 @@ names describe the adapter's behavior, not how we simulate it.
 
 ### Rule 6: Proxies Must Create All Child Proxies Based on Implementation Imports
 
-**Status:** ⚠️ UPDATED (changed from bootstrap calls to proxy creation)
+**Rule:** `proxy-must-create-child-proxies`
 
-```typescript
-// packages/eslint-plugin/src/rules/proxy-must-create-child-proxies.ts
-export const proxyMustCreateChildProxies = {
-    meta: {
-        messages: {
-            missingProxyCreation: 'Proxy imports {{implementationName}} but does not create {{proxyName}} in constructor.',
-            missingProxyImport: 'Proxy imports {{implementationName}} but does not import its corresponding proxy {{proxyPath}}.'
-        }
-    },
-    create(context) {
-        return {
-            Program(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) {
-                    return;
-                }
+**What it checks:**
 
-                const sourceCode = context.getSourceCode();
-                const implementationImports = [];
-                const proxyImports = [];
-                const proxyCreations = [];
+- Only applies to `.proxy.ts` files
+- Analyzes implementation file imports to identify dependencies on adapters, brokers, widgets, responders, transformers,
+  guards, bindings, flows, and routes
+- Verifies that for each implementation dependency:
+    1. The corresponding proxy is imported (e.g., if implementation imports `brokerA`, proxy must import
+       `createBrokerAProxy`)
+    2. The proxy creation function is called in the constructor (before the return statement)
+- Skips contract type imports
 
-                // Collect all imports
-                node.body.forEach(statement => {
-                    if (statement.type === 'ImportDeclaration') {
-                        const importPath = statement.source.value;
+**Detection logic:**
 
-                        // Skip contract type imports
-                        if (importPath.includes('-contract') && statement.importKind === 'type') {
-                            return;
-                        }
+1. Scans imports in the proxy file and categorizes them as:
+    - Implementation imports (actual adapters, brokers, etc.)
+    - Proxy imports (ending in `.proxy`)
+    - Contract type imports (skipped)
+2. Finds the exported `create*Proxy` function
+3. Traverses the function body to find all `create*Proxy()` calls
+4. For each implementation import, derives the expected proxy import path and creation function name
+5. Reports violations if proxy import is missing or proxy creation call is missing
 
-                        // Track implementation imports (adapters, brokers, widgets, etc.)
-                        if (importPath.match(/\/(adapter|broker|widget|responder|transformer|guard|binding|flow|route)s?\//)) {
-                            if (!importPath.includes('.proxy')) {
-                                implementationImports.push({
-                                    path: importPath,
-                                    specifiers: statement.specifiers
-                                });
-                            } else {
-                                proxyImports.push({
-                                    path: importPath,
-                                    specifiers: statement.specifiers
-                                });
-                            }
-                        }
-                    }
-                });
+**Violations:**
 
-                // Find create*Proxy function and collect child proxy creations
-                node.body.forEach(statement => {
-                    if (statement.type === 'ExportNamedDeclaration' &&
-                        statement.declaration?.type === 'VariableDeclaration') {
+- Importing an implementation file without importing its corresponding proxy
+- Importing a proxy but not creating it in the constructor
 
-                        statement.declaration.declarations.forEach(declarator => {
-                            if (declarator.init?.type === 'ArrowFunctionExpression' ||
-                                declarator.init?.type === 'FunctionExpression') {
+**Messages:**
 
-                                // Scan function body for create*Proxy() calls
-                                const functionBody = declarator.init.body;
-
-                                traverseNode(functionBody, (node) => {
-                                    if (node.type === 'CallExpression' &&
-                                        node.callee.type === 'Identifier' &&
-                                        node.callee.name.startsWith('create') &&
-                                        node.callee.name.endsWith('Proxy')) {
-
-                                        proxyCreations.push(node.callee.name);
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-
-                // Verify each implementation import has corresponding proxy import + creation
-                implementationImports.forEach(({path: implPath, specifiers}) => {
-                    const implName = specifiers[0]?.local.name;
-
-                    // Derive expected proxy path and name
-                    const proxyPath = implPath.replace(/(\-adapter|\-broker|\-widget|\-responder|\-transformer|\-guard|\-binding|\-flow|\-route)(\.tsx?)?$/, '$1.proxy');
-                    const expectedProxyCreationName = `create${capitalize(implName)}Proxy`;
-
-                    // Check if proxy is imported
-                    const proxyImport = proxyImports.find(p => p.path === proxyPath);
-
-                    if (!proxyImport) {
-                        context.report({
-                            node: specifiers[0],
-                            messageId: 'missingProxyImport',
-                            data: {
-                                implementationName: implName,
-                                proxyPath
-                            }
-                        });
-                        return;
-                    }
-
-                    // Check if proxy is created (called in constructor)
-                    if (!proxyCreations.includes(expectedProxyCreationName)) {
-                        context.report({
-                            node: proxyImport.specifiers[0],
-                            messageId: 'missingProxyCreation',
-                            data: {
-                                implementationName: implName,
-                                proxyName: expectedProxyCreationName
-                            }
-                        });
-                    }
-                });
-            }
-        };
-    }
-};
-
-function traverseNode(node, callback) {
-    callback(node);
-    Object.keys(node).forEach(key => {
-        if (node[key] && typeof node[key] === 'object') {
-            if (Array.isArray(node[key])) {
-                node[key].forEach(child => traverseNode(child, callback));
-            } else {
-                traverseNode(node[key], callback);
-            }
-        }
-    });
-}
-
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-```
+- `'Proxy imports {{implementationName}} but does not create {{proxyName}} in constructor.'`
+- `'Proxy imports {{implementationName}} but does not import its corresponding proxy {{proxyPath}}.'`
 
 **Why This Rule Matters:**
 
@@ -371,198 +139,36 @@ export const createWidgetBProxy = () => {
 
 ### Rule 7: Proxy Cannot Create Child Proxies Not Used by Implementation
 
-**Status:** ⚠️ UPDATED (changed from bootstrap to proxy creation)
+**Rule:** `proxy-no-phantom-dependencies`
 
-```typescript
-// packages/eslint-plugin/src/rules/proxy-no-phantom-dependencies.ts
-export const proxyNoPhantomDependencies = {
-    meta: {
-        messages: {
-            phantomDependency: 'Proxy creates {{proxyName}} but {{implementationFile}} does not import {{implementationName}}. Remove the phantom proxy creation or add the import to the implementation.',
-            missingImplementationImport: 'Proxy imports {{implementationName}} but {{implementationFile}} does not. Proxies must only create proxies for dependencies that the implementation actually uses.'
-        }
-    },
-    create(context) {
-        return {
-            Program(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) {
-                    return;
-                }
+**What it checks:**
 
-                // Find corresponding implementation file
-                const implementationFile = filename.replace('.proxy.ts', '.ts');
-                if (!fs.existsSync(implementationFile)) {
-                    return;
-                }
+- Only applies to `.proxy.ts` files
+- Reads the corresponding implementation file (`.ts` without `.proxy`)
+- Compares dependencies:
+    1. What the proxy imports/creates
+    2. What the implementation actually uses
+- Ensures proxies only create child proxies for dependencies the implementation actually imports
 
-                // Read implementation file and parse imports
-                const implementationSource = fs.readFileSync(implementationFile, 'utf-8');
-                const implementationImports = extractImports(implementationSource);
+**Detection logic:**
 
-                // Track what proxy imports and creates
-                const proxyImports = [];
-                const proxyCreations = [];
+1. Locates the corresponding implementation file by removing `.proxy` from filename
+2. Parses implementation file imports using regex to extract all import statements
+3. Collects all implementation imports and proxy creations in the proxy file
+4. For each implementation import in the proxy: verifies implementation file also imports it
+5. For each proxy creation call: derives the implementation name and verifies it exists in implementation imports
 
-                // Collect proxy's implementation imports
-                node.body.forEach(statement => {
-                    if (statement.type === 'ImportDeclaration') {
-                        const importPath = statement.source.value;
+**Violations:**
 
-                        // Skip contract type imports
-                        if (importPath.includes('-contract') && statement.importKind === 'type') {
-                            return;
-                        }
+- Proxy imports an implementation file that the actual implementation doesn't use
+- Proxy creates a child proxy for a dependency the implementation doesn't import
 
-                        // Track implementation imports
-                        if (importPath.match(/\/(adapter|broker|widget|responder|transformer|guard|binding)s?\//)) {
-                            if (!importPath.includes('.proxy')) {
-                                proxyImports.push({
-                                    path: importPath,
-                                    name: statement.specifiers[0]?.local.name,
-                                    node: statement
-                                });
-                            }
-                        }
-                    }
-                });
+**Messages:**
 
-                // Find proxy factory function and collect create*Proxy() calls
-                node.body.forEach(statement => {
-                    if (statement.type === 'ExportNamedDeclaration' &&
-                        statement.declaration?.type === 'VariableDeclaration') {
-
-                        statement.declaration.declarations.forEach(declarator => {
-                            if (declarator.init?.type === 'ArrowFunctionExpression' ||
-                                declarator.init?.type === 'FunctionExpression') {
-
-                                const functionBody = declarator.init.body;
-
-                                traverseNode(functionBody, (node) => {
-                                    if (node.type === 'CallExpression' &&
-                                        node.callee.type === 'Identifier' &&
-                                        node.callee.name.startsWith('create') &&
-                                        node.callee.name.endsWith('Proxy')) {
-
-                                        const proxyCreationName = node.callee.name;
-                                        proxyCreations.push({
-                                            name: proxyCreationName,
-                                            node
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-
-                // Verify: For each implementation import in proxy, check if implementation file imports it
-                proxyImports.forEach(({path: proxyImportPath, name: proxyImportName, node: importNode}) => {
-                    const implementationHasImport = implementationImports.some(
-                        implImport => implImport.path === proxyImportPath ||
-                            implImport.path.includes(proxyImportPath)
-                    );
-
-                    if (!implementationHasImport) {
-                        context.report({
-                            node: importNode,
-                            messageId: 'missingImplementationImport',
-                            data: {
-                                implementationName: proxyImportName,
-                                implementationFile: implementationFile.split('/').pop()
-                            }
-                        });
-                    }
-                });
-
-                // Verify: For each proxy creation, ensure implementation uses that dependency
-                proxyCreations.forEach(({name: proxyCreationName, node: callNode}) => {
-                    // Derive implementation name from proxy creation call
-                    // e.g., createBrokerAProxy -> brokerA
-                    const implName = proxyCreationName
-                            .replace(/^create/, '')
-                            .replace(/Proxy$/, '')
-                            .charAt(0).toLowerCase() +
-                        proxyCreationName.replace(/^create/, '').replace(/Proxy$/, '').slice(1);
-
-                    // Find the import for this proxy
-                    const proxyImport = proxyImports.find(imp =>
-                        imp.name.toLowerCase() === implName.toLowerCase()
-                    );
-
-                    if (!proxyImport) {
-                        return;
-                    }
-
-                    // Check if implementation file imports this
-                    const implementationHasImport = implementationImports.some(
-                        implImport => implImport.name.toLowerCase() === implName.toLowerCase()
-                    );
-
-                    if (!implementationHasImport) {
-                        context.report({
-                            node: callNode,
-                            messageId: 'phantomDependency',
-                            data: {
-                                proxyName: proxyCreationName,
-                                implementationName: implName,
-                                implementationFile: implementationFile.split('/').pop()
-                            }
-                        });
-                    }
-                });
-            }
-        };
-    }
-};
-
-function extractImports(source) {
-    const imports = [];
-    const importRegex = /import\s+(?:{[^}]+}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/g;
-    const namedImportRegex = /import\s+{([^}]+)}\s+from/;
-    const defaultImportRegex = /import\s+(\w+)\s+from/;
-
-    let match;
-    while ((match = importRegex.exec(source)) !== null) {
-        const importPath = match[1];
-        const fullMatch = match[0];
-
-        let importName = null;
-
-        const namedMatch = namedImportRegex.exec(fullMatch);
-        if (namedMatch) {
-            importName = namedMatch[1].split(',')[0].trim();
-        }
-
-        const defaultMatch = defaultImportRegex.exec(fullMatch);
-        if (defaultMatch) {
-            importName = defaultMatch[1];
-        }
-
-        imports.push({
-            path: importPath,
-            name: importName
-        });
-    }
-
-    return imports;
-}
-
-function traverseNode(node, callback) {
-    if (!node || typeof node !== 'object') return;
-
-    callback(node);
-    Object.keys(node).forEach(key => {
-        if (node[key] && typeof node[key] === 'object') {
-            if (Array.isArray(node[key])) {
-                node[key].forEach(child => traverseNode(child, callback));
-            } else {
-                traverseNode(node[key], callback);
-            }
-        }
-    });
-}
-```
+-
+`'Proxy creates {{proxyName}} but {{implementationFile}} does not import {{implementationName}}. Remove the phantom proxy creation or add the import to the implementation.'`
+-
+`'Proxy imports {{implementationName}} but {{implementationFile}} does not. Proxies must only create proxies for dependencies that the implementation actually uses.'`
 
 **Why This Rule Matters:**
 
@@ -608,87 +214,39 @@ missing dependencies.
 
 ### Rule 8: No jest.mock() on Implementation Files (Use Proxy Instead)
 
-**Status:** ⚠️ UPDATED (expanded to all layers)
+**Rule:** `test-no-implementation-mocking`
 
-```typescript
-// packages/eslint-plugin/src/rules/test-no-implementation-mocking.ts
-export const testNoImplementationMocking = {
-    meta: {
-        messages: {
-            useProxy: 'Do not mock {{layerType}} with jest.mock(). Import and use the proxy instead: {{proxyImport}}',
-            useProxyForNpm: 'Do not mock npm packages directly. The adapter proxy handles this. Use: {{proxyImport}}'
-        }
-    },
-    create(context) {
-        return {
-            CallExpression(node) {
-                const filename = context.getFilename();
+**What it checks:**
 
-                // Only check test files
-                if (!filename.endsWith('.test.ts') && !filename.endsWith('.test.tsx')) {
-                    return;
-                }
+- Only applies to `.test.ts` and `.test.tsx` files
+- Detects all `jest.mock()` calls
+- Verifies that mocked paths don't reference implementation files (adapters, brokers, transformers, guards, bindings,
+  widgets, responders, flows, routes)
+- Verifies that npm packages aren't mocked directly (should use adapter proxies)
 
-                // Check if this is jest.mock() call
-                if (
-                    node.callee.type === 'MemberExpression' &&
-                    node.callee.object.name === 'jest' &&
-                    node.callee.property.name === 'mock'
-                ) {
-                    const mockPath = node.arguments[0]?.value;
-                    if (!mockPath) return;
+**Detection logic:**
 
-                    // Check for all implementation layer types
-                    const layerPatterns = [
-                        {pattern: /-adapter/, type: 'adapter', suffix: '-adapter'},
-                        {pattern: /-broker/, type: 'broker', suffix: '-broker'},
-                        {pattern: /-transformer/, type: 'transformer', suffix: '-transformer'},
-                        {pattern: /-guard/, type: 'guard', suffix: '-guard'},
-                        {pattern: /-binding/, type: 'binding', suffix: '-binding'},
-                        {pattern: /-widget/, type: 'widget', suffix: '-widget'},
-                        {pattern: /-responder/, type: 'responder', suffix: '-responder'},
-                        {pattern: /-flow/, type: 'flow', suffix: '-flow'},
-                        {pattern: /-routes/, type: 'routes', suffix: '-routes'}
-                    ];
+1. Identifies `jest.mock()` calls by checking for MemberExpression with `jest` object and `mock` property
+2. Extracts the mock path from first argument
+3. Checks if path contains any layer suffix (-adapter, -broker, etc.)
+4. Derives expected test filename from mock path
+5. **Exception:** Allows mocking if current file IS the implementation's own test file
+6. For npm packages (axios, fs, etc.), reports violation suggesting adapter proxy use
 
-                    for (const {pattern, type, suffix} of layerPatterns) {
-                        if (mockPath.includes(suffix)) {
-                            // Derive what the test file should be named
-                            const expectedTestFile = mockPath.replace(/.*\/([^/]+)$/, `$1.test.ts`);
+**Violations:**
 
-                            // Only allow if this IS the file's own test file
-                            if (!filename.endsWith(expectedTestFile)) {
-                                const proxyImport = mockPath.replace(suffix, `${suffix}.proxy`);
-                                context.report({
-                                    node,
-                                    messageId: 'useProxy',
-                                    data: {
-                                        layerType: type,
-                                        proxyImport: `import { create...Proxy } from '${proxyImport}'`
-                                    }
-                                });
-                            }
-                            return;
-                        }
-                    }
+- Using `jest.mock()` on implementation files (brokers, widgets, responders, etc.) from other test files
+- Using `jest.mock()` on npm packages directly instead of using adapter proxies
 
-                    // Check for npm package mocking (should use adapter proxy)
-                    const npmPackages = ['axios', 'fs', 'fs/promises', 'path', 'crypto'];
-                    if (npmPackages.some(pkg => mockPath === pkg || mockPath.startsWith(`${pkg}/`))) {
-                        context.report({
-                            node,
-                            messageId: 'useProxyForNpm',
-                            data: {
-                                proxyImport: `import { create...AdapterProxy } from './path-to-adapter.proxy'`
-                            }
-                        });
-                    }
-                }
-            }
-        };
-    }
-};
-```
+**Valid patterns:**
+
+- File can mock itself (e.g., `http-adapter.test.ts` can contain proxy that mocks axios)
+- Using `jest.spyOn()` for global objects (Date, crypto, console)
+
+**Messages:**
+
+- `'Do not mock {{layerType}} with jest.mock(). Import and use the proxy instead: {{proxyImport}}'`
+- `'Do not mock npm packages directly. The adapter proxy handles this. Use: {{proxyImport}}'`
 
 **Why This Rule Matters:**
 
@@ -757,98 +315,35 @@ it('test', () => {
 
 ### Rule 9: Proxy Must Return Object with Helper Methods
 
-**Status:** ⚠️ UPDATED (removed bootstrap requirement, enforces object return)
+**Rule:** `proxy-must-return-object`
 
-```typescript
-// packages/eslint-plugin/src/rules/proxy-must-return-object.ts
-export const proxyMustReturnObject = {
-    meta: {
-        messages: {
-            mustReturnObject: 'Proxy must return an object with helper methods (e.g., returns, throws, setupX, etc.).',
-            emptyObject: 'Proxy returns empty object. Add at least one helper method (e.g., returns, setupUser, etc.).'
-        }
-    },
-    create(context) {
-        return {
-            Program(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) {
-                    return;
-                }
+**What it checks:**
 
-                // Find the exported create*Proxy function
-                const exportedFunction = findExportedProxyFunction(node);
-                if (!exportedFunction) return;
+- Only applies to `.proxy.ts` files
+- Finds the exported `create*Proxy` function
+- Verifies the function returns an object literal
+- Ensures the returned object has at least one property/method
 
-                // Check if it returns an object
-                const returnStatement = findReturnStatement(exportedFunction);
-                if (!returnStatement) {
-                    context.report({
-                        node: exportedFunction,
-                        messageId: 'mustReturnObject'
-                    });
-                    return;
-                }
+**Detection logic:**
 
-                // Check if return value is an object literal
-                if (returnStatement.argument?.type !== 'ObjectExpression') {
-                    context.report({
-                        node: returnStatement,
-                        messageId: 'mustReturnObject'
-                    });
-                    return;
-                }
+1. Scans for exported named declaration with VariableDeclaration
+2. Finds declarator with name starting with `create` and ending with `Proxy`
+3. Analyzes the function's return:
+    - For arrow functions: checks if body is ObjectExpression (implicit return)
+    - For regular functions: finds explicit ReturnStatement in BlockStatement
+4. Verifies return value type is ObjectExpression
+5. Counts properties in the returned object
 
-                // Check if object has at least one method/property
-                const properties = returnStatement.argument.properties;
-                if (!properties || properties.length === 0) {
-                    context.report({
-                        node: returnStatement,
-                        messageId: 'emptyObject'
-                    });
-                }
-            }
-        };
-    }
-};
+**Violations:**
 
-function findExportedProxyFunction(node) {
-    for (const statement of node.body) {
-        if (statement.type === 'ExportNamedDeclaration' &&
-            statement.declaration?.type === 'VariableDeclaration') {
+- Proxy function doesn't return anything
+- Proxy function returns non-object (null, undefined, primitive, etc.)
+- Proxy function returns empty object with no methods/properties
 
-            for (const declarator of statement.declaration.declarations) {
-                if (declarator.id.name?.startsWith('create') &&
-                    declarator.id.name?.endsWith('Proxy')) {
-                    return declarator.init;
-                }
-            }
-        }
-    }
-    return null;
-}
+**Messages:**
 
-function findReturnStatement(functionNode) {
-    if (!functionNode) return null;
-
-    // For arrow functions with implicit return
-    if (functionNode.type === 'ArrowFunctionExpression' &&
-        functionNode.body?.type === 'ObjectExpression') {
-        return {argument: functionNode.body};
-    }
-
-    // For explicit return statements
-    if (functionNode.body?.type === 'BlockStatement') {
-        for (const statement of functionNode.body.body) {
-            if (statement.type === 'ReturnStatement') {
-                return statement;
-            }
-        }
-    }
-
-    return null;
-}
-```
+- `'Proxy must return an object with helper methods (e.g., returns, throws, setupX, etc.).'`
+- `'Proxy returns empty object. Add at least one helper method (e.g., returns, setupUser, etc.).'`
 
 **Why This Rule Matters:**
 
@@ -921,39 +416,32 @@ export const createHttpAdapterProxy = () => {
 
 ### Rule 10: Non-Adapter Proxies Cannot Use jest.mocked()
 
-```typescript
-// packages/eslint-plugin/src/rules/non-adapter-no-jest-mocked.ts
-export const nonAdapterNoJestMocked = {
-    meta: {
-        messages: {
-            noJestMocked: 'Non-adapter proxies cannot use jest.mocked(). Only adapters (I/O boundaries) should be mocked. Brokers, widgets, and responders must run real code.'
-        }
-    },
-    create(context) {
-        return {
-            CallExpression(node) {
-                const filename = context.getFilename();
+**Rule:** `non-adapter-no-jest-mocked`
 
-                // Only check .proxy.ts files that are NOT adapters
-                if (!filename.endsWith('.proxy.ts')) return;
-                if (filename.includes('-adapter.proxy.ts')) return;
+**What it checks:**
 
-                // Check if this is jest.mocked() call
-                if (
-                    node.callee.type === 'MemberExpression' &&
-                    node.callee.object.name === 'jest' &&
-                    node.callee.property.name === 'mocked'
-                ) {
-                    context.report({
-                        node,
-                        messageId: 'noJestMocked'
-                    });
-                }
-            }
-        };
-    }
-};
-```
+- Only applies to `.proxy.ts` files that are NOT adapter proxies
+- Detects any use of `jest.mocked()` in non-adapter proxies
+- Enforces that only adapter proxies (I/O boundaries) can mock dependencies
+
+**Detection logic:**
+
+1. Checks if filename ends with `.proxy.ts`
+2. Skips check if filename includes `-adapter.proxy.ts`
+3. For remaining proxy files, scans for CallExpression nodes
+4. Identifies `jest.mocked()` calls by checking:
+    - Callee is MemberExpression
+    - Object is `jest`
+    - Property is `mocked`
+
+**Violations:**
+
+- Any `jest.mocked()` call in broker, widget, responder, transformer, guard, binding, middleware, or state proxies
+
+**Messages:**
+
+-
+`'Non-adapter proxies cannot use jest.mocked(). Only adapters (I/O boundaries) should be mocked. Brokers, widgets, and responders must run real code.'`
 
 **Why This Rule Matters:**
 
@@ -984,99 +472,30 @@ export const createBrokerAProxy = () => {
 
 ### Rule 11: jest.mocked() Must Import What It Mocks
 
-**Status:** ⚠️ UPDATED (clarified that adapter proxies mock npm packages)
+**Rule:** `jest-mocked-must-import`
 
-```typescript
-// packages/eslint-plugin/src/rules/jest-mocked-must-import.ts
-export const jestMockedMustImport = {
-    meta: {
-        messages: {
-            missingImport: 'jest.mocked({{name}}) requires importing {{name}}. Add: import {{importStatement}}'
-        }
-    },
-    create(context) {
-        return {
-            Program(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) return;
+**What it checks:**
 
-                const sourceCode = context.getSourceCode();
-                const imports = extractImports(node);
-                const jestMockedCalls = findJestMockedCalls(node);
+- Only applies to `.proxy.ts` files
+- Finds all `jest.mocked()` calls
+- Verifies that the argument passed to `jest.mocked()` is imported at the top of the file
 
-                jestMockedCalls.forEach(call => {
-                    const argumentName = call.arguments[0]?.name;
-                    if (!argumentName) return;
+**Detection logic:**
 
-                    // Check if this name is imported
-                    const hasImport = imports.some(imp =>
-                        imp.specifiers.includes(argumentName)
-                    );
+1. Extracts all import statements and their specifiers
+2. Recursively traverses the AST to find `jest.mocked()` calls
+3. For each `jest.mocked()` call, extracts the argument name
+4. Checks if argument name exists in the list of imported specifiers
+5. Determines appropriate import syntax (default import for npm packages, named import otherwise)
 
-                    if (!hasImport) {
-                        // Determine import statement based on common npm packages
-                        const npmPackages = ['axios', 'fs', 'crypto', 'path'];
-                        const isNpmPackage = npmPackages.includes(argumentName);
+**Violations:**
 
-                        const importStatement = isNpmPackage
-                            ? `import ${argumentName} from '${argumentName}'`
-                            : `import { ${argumentName} } from './path-to-module'`;
+- Using `jest.mocked(packageName)` without importing `packageName`
+- Typos in the argument name that don't match any import
 
-                        context.report({
-                            node: call,
-                            messageId: 'missingImport',
-                            data: {
-                                name: argumentName,
-                                importStatement
-                            }
-                        });
-                    }
-                });
-            }
-        };
-    }
-};
+**Messages:**
 
-function extractImports(node) {
-    const imports = [];
-    node.body.forEach(statement => {
-        if (statement.type === 'ImportDeclaration') {
-            const specifiers = statement.specifiers.map(spec => spec.local.name);
-            imports.push({
-                path: statement.source.value,
-                specifiers
-            });
-        }
-    });
-    return imports;
-}
-
-function findJestMockedCalls(node) {
-    const calls = [];
-
-    function traverse(node) {
-        if (!node || typeof node !== 'object') return;
-
-        if (node.type === 'CallExpression' &&
-            node.callee?.type === 'MemberExpression' &&
-            node.callee.object?.name === 'jest' &&
-            node.callee.property?.name === 'mocked') {
-            calls.push(node);
-        }
-
-        Object.keys(node).forEach(key => {
-            if (Array.isArray(node[key])) {
-                node[key].forEach(child => traverse(child));
-            } else if (typeof node[key] === 'object') {
-                traverse(node[key]);
-            }
-        });
-    }
-
-    traverse(node);
-    return calls;
-}
-```
+- `'jest.mocked({{name}}) requires importing {{name}}. Add: import {{importStatement}}'`
 
 **Why This Rule Matters:**
 
@@ -1123,79 +542,35 @@ const mock = jest.mocked(axios);  // ✅ Matches import
 
 ### Rule 12: jest.mocked() Argument Must Be npm Package (Adapter Proxies Only)
 
-**Status:** ⚠️ UPDATED (changed from "must be adapter" to "must be npm package")
+**Rule:** `jest-mocked-npm-package-only`
 
-```typescript
-// packages/eslint-plugin/src/rules/jest-mocked-npm-package-only.ts
-export const jestMockedNpmPackageOnly = {
-    meta: {
-        messages: {
-            notNpmPackage: 'jest.mocked({{name}}) - In adapter proxies, only mock npm packages (axios, fs, etc.), not adapters or business logic.',
-            mockingAdapter: 'jest.mocked({{name}}) - Do not mock the adapter itself. Mock the npm package it uses instead (e.g., mock axios, not httpAdapter).'
-        }
-    },
-    create(context) {
-        return {
-            CallExpression(node) {
-                const filename = context.getFilename();
+**What it checks:**
 
-                // Only check adapter proxy files
-                if (!filename.endsWith('-adapter.proxy.ts')) return;
+- Only applies to `-adapter.proxy.ts` files
+- Verifies that `jest.mocked()` is only used to mock npm packages
+- Prevents mocking the adapter itself or business logic
 
-                // Check if this is jest.mocked() call
-                if (
-                    node.callee.type === 'MemberExpression' &&
-                    node.callee.object.name === 'jest' &&
-                    node.callee.property.name === 'mocked'
-                ) {
-                    const argumentName = node.arguments[0]?.name;
-                    if (!argumentName) return;
+**Detection logic:**
 
-                    // List of allowed npm packages
-                    const npmPackages = [
-                        'axios',
-                        'fs',
-                        'path',
-                        'crypto',
-                        'os',
-                        'child_process',
-                        'http',
-                        'https',
-                        'net',
-                        'stream',
-                        'util',
-                        'zlib'
-                    ];
+1. Checks if filename ends with `-adapter.proxy.ts`
+2. Finds all `jest.mocked()` CallExpression nodes
+3. Extracts the argument name from `jest.mocked(argumentName)`
+4. Checks if argument name ends with "Adapter" (attempting to mock the adapter itself)
+5. Validates argument against list of known npm packages (axios, fs, path, crypto, os, child_process, http, https, net,
+   stream, util, zlib)
 
-                    // Check if it ends with "Adapter" (trying to mock the adapter itself)
-                    if (argumentName.endsWith('Adapter')) {
-                        context.report({
-                            node,
-                            messageId: 'mockingAdapter',
-                            data: {name: argumentName}
-                        });
-                        return;
-                    }
+**Violations:**
 
-                    // Check if it's a known npm package
-                    const isNpmPackage = npmPackages.some(pkg =>
-                        argumentName === pkg ||
-                        argumentName.startsWith(pkg)
-                    );
+- Mocking the adapter itself: `jest.mocked(httpAdapter)`
+- Mocking business logic: `jest.mocked(userBroker)`
+- Mocking unknown/non-npm packages
 
-                    if (!isNpmPackage) {
-                        context.report({
-                            node,
-                            messageId: 'notNpmPackage',
-                            data: {name: argumentName}
-                        });
-                    }
-                }
-            }
-        };
-    }
-};
-```
+**Messages:**
+
+-
+`'jest.mocked({{name}}) - In adapter proxies, only mock npm packages (axios, fs, etc.), not adapters or business logic.'`
+-
+`'jest.mocked({{name}}) - Do not mock the adapter itself. Mock the npm package it uses instead (e.g., mock axios, not httpAdapter).'`
 
 **Why This Rule Matters:**
 
@@ -1263,156 +638,70 @@ export const createFsAdapterProxy = () => {
 
 ### Rule 13: No Mutable State Inside Proxy Factory
 
-```typescript
-// packages/eslint-plugin/src/rules/proxy-no-mutable-state.ts
-export const proxyNoMutableState = {
-    meta: {
-        messages: {
-            noMutableState: 'Proxy factory cannot contain mutable state (let/var). Use module-level state or jest.mocked() references instead.',
-            useModuleLevel: 'Move mutable state outside the factory function to module level.'
-        }
-    },
-    create(context) {
-        return {
-            ExportNamedDeclaration(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) return;
+**Rule:** `proxy-no-mutable-state`
 
-                // Check if this is a proxy factory export (create*Proxy)
-                if (node.declaration?.type === 'VariableDeclaration') {
-                    const declaration = node.declaration.declarations[0];
-                    if (!declaration.id.name.startsWith('create')) return;
-                    if (!declaration.id.name.endsWith('Proxy')) return;
+**What it checks:**
 
-                    // Check if factory body contains let/var declarations
-                    const factoryBody = declaration.init?.body || declaration.init?.expression;
+- Only applies to `.proxy.ts` files
+- Finds exported `create*Proxy` function declarations
+- Scans function body for `let` or `var` declarations
+- Allows `jest.mocked()` and child proxy creation, but forbids other mutable state
 
-                    traverseNode(factoryBody, (innerNode) => {
-                        if (innerNode.type === 'VariableDeclaration') {
-                            if (innerNode.kind === 'let' || innerNode.kind === 'var') {
-                                // Allow jest.mocked() and child proxy creation
-                                const init = innerNode.declarations[0]?.init;
-                                const isJestMocked =
-                                    init?.callee?.object?.name === 'jest' &&
-                                    init?.callee?.property?.name === 'mocked';
-                                const isChildProxy =
-                                    init?.callee?.name?.startsWith('create') &&
-                                    init?.callee?.name?.endsWith('Proxy');
+**Detection logic:**
 
-                                if (!isJestMocked && !isChildProxy) {
-                                    context.report({
-                                        node: innerNode,
-                                        messageId: 'noMutableState',
-                                        suggest: [{
-                                            messageId: 'useModuleLevel',
-                                            fix: (fixer) => {
-                                                // Suggest moving to module level
-                                                return null;
-                                            }
-                                        }]
-                                    });
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-        };
-    }
-};
+1. Identifies ExportNamedDeclaration with VariableDeclaration
+2. Checks if declarator name starts with `create` and ends with `Proxy`
+3. Recursively traverses the factory function body
+4. For each VariableDeclaration found:
+    - Checks if kind is `let` or `var`
+    - Examines the initializer to determine if it's allowed:
+        - **Allowed:** `jest.mocked(...)` calls
+        - **Allowed:** `create*Proxy()` calls (child proxies)
+        - **Forbidden:** All other mutable state
 
-function traverseNode(node, callback) {
-    if (!node || typeof node !== 'object') return;
-    callback(node);
-    Object.keys(node).forEach(key => {
-        if (node[key] && typeof node[key] === 'object') {
-            if (Array.isArray(node[key])) {
-                node[key].forEach(child => traverseNode(child, callback));
-            } else {
-                traverseNode(node[key], callback);
-            }
-        }
-    });
-}
-```
+**Violations:**
+
+- Using `let` or `var` for non-mock, non-proxy variables inside the proxy factory
+- Mutable state that should be at module level or in setup methods
+
+**Messages:**
+
+- `'Proxy factory cannot contain mutable state (let/var). Use module-level state or jest.mocked() references instead.'`
+- Suggestion: `'Move mutable state outside the factory function to module level.'`
 
 ---
 
-### Rule 15: Proxy Instances Must Be Exported Const at Module Level**
+### Rule 15: Proxy Instances Must Be Exported Const at Module Level
 
-```typescript
-// packages/eslint-plugin/src/rules/test-proxy-must-be-exported-const.ts
-export const testProxyMustBeExportedConst = {
-    meta: {
-        messages: {
-            mustBeExported: 'Proxy instance {{name}} must be exported with "export const" at module level (before describe blocks).',
-            mustBeConst: 'Proxy instance {{name}} must use "const", not "let" or "var".',
-            mustBeModuleLevel: 'Proxy instance {{name}} must be created at module level, not inside describe/it blocks.'
-        }
-    },
-    create(context) {
-        return {
-            VariableDeclaration(node) {
-                const filename = context.getFilename();
+**Rule:** `test-proxy-must-be-exported-const`
 
-                // Only check test files
-                if (!filename.endsWith('.test.ts') && !filename.endsWith('.test.tsx')) {
-                    return;
-                }
+**What it checks:**
 
-                // Check if this is a proxy creation (create*Proxy call)
-                node.declarations.forEach(declarator => {
-                    if (
-                        declarator.init?.type === 'CallExpression' &&
-                        declarator.init.callee.name?.startsWith('create') &&
-                        declarator.init.callee.name?.endsWith('Proxy')
-                    ) {
-                        const varName = declarator.id.name;
+- Only applies to `.test.ts` and `.test.tsx` files
+- Detects proxy creation calls (`create*Proxy()`)
+- Verifies proxies are declared with `const` (not `let` or `var`)
+- Ensures proxies are exported at module level
+- Prevents proxy creation inside describe/it blocks
 
-                        // Check if it's const
-                        if (node.kind !== 'const') {
-                            context.report({
-                                node,
-                                messageId: 'mustBeConst',
-                                data: {name: varName}
-                            });
-                        }
+**Detection logic:**
 
-                        // Check if it's exported
-                        const parent = node.parent;
-                        if (!parent || parent.type !== 'ExportNamedDeclaration') {
-                            context.report({
-                                node,
-                                messageId: 'mustBeExported',
-                                data: {name: varName}
-                            });
-                        }
+1. Scans VariableDeclaration nodes in test files
+2. Identifies declarations where init is a CallExpression with name starting with `create` and ending with `Proxy`
+3. Checks if declaration kind is `const`
+4. Checks if parent node is ExportNamedDeclaration
+5. Walks up ancestor tree to verify not inside `describe`, `it`, or `test` blocks
 
-                        // Check if it's at module level (not inside function/describe)
-                        let ancestor = node.parent;
-                        while (ancestor) {
-                            if (
-                                ancestor.type === 'CallExpression' &&
-                                (ancestor.callee.name === 'describe' ||
-                                    ancestor.callee.name === 'it' ||
-                                    ancestor.callee.name === 'test')
-                            ) {
-                                context.report({
-                                    node,
-                                    messageId: 'mustBeModuleLevel',
-                                    data: {name: varName}
-                                });
-                                break;
-                            }
-                            ancestor = ancestor.parent;
-                        }
-                    }
-                });
-            }
-        };
-    }
-};
-```
+**Violations:**
+
+- Proxy instance not exported: `const widgetProxy = createWidgetProxy()`
+- Using `let` or `var`: `export let widgetProxy = createWidgetProxy()`
+- Creating proxy inside describe/it block
+
+**Messages:**
+
+- `'Proxy instance {{name}} must be exported with "export const" at module level (before describe blocks).'`
+- `'Proxy instance {{name}} must use "const", not "let" or "var".'`
+- `'Proxy instance {{name}} must be created at module level, not inside describe/it blocks.'`
 
 **Why This Rule Matters:**
 
@@ -1450,57 +739,32 @@ describe('Widget', () => {
 
 ### Rule 17: Adapter Proxies Must Setup Mocks in Constructor
 
-**Status:** 🆕 NEW RULE
+**Rule:** `adapter-proxy-must-setup-in-constructor`
 
-```typescript
-// packages/eslint-plugin/src/rules/adapter-proxy-must-setup-in-constructor.ts
-export const adapterProxyMustSetupInConstructor = {
-    meta: {
-        messages: {
-            missingMockSetup: 'Adapter proxy must call mock.mockImplementation() in constructor (before return statement).',
-            noBootstrapMethod: 'Adapter proxy should not have a bootstrap() method. Setup mocks in constructor instead.'
-        }
-    },
-    create(context) {
-        return {
-            Program(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('-adapter.proxy.ts')) {
-                    return;
-                }
+**What it checks:**
 
-                // Find exported create*Proxy function
-                const proxyFunction = findExportedProxyFunction(node);
-                if (!proxyFunction) return;
+- Only applies to `-adapter.proxy.ts` files
+- Verifies that mocks are configured in the constructor (before return statement)
+- Ensures no `bootstrap()` method exists in the returned object
 
-                // Check for bootstrap method (should not exist)
-                const returnObject = findReturnObject(proxyFunction);
-                if (returnObject) {
-                    const hasBootstrap = returnObject.properties.some(
-                        prop => prop.key?.name === 'bootstrap'
-                    );
+**Detection logic:**
 
-                    if (hasBootstrap) {
-                        context.report({
-                            node: returnObject,
-                            messageId: 'noBootstrapMethod'
-                        });
-                    }
-                }
+1. Identifies the exported `create*Proxy` function
+2. Finds the return object and checks its properties for `bootstrap` method
+3. Scans statements before the return statement for mock setup calls (e.g., `mock.mockImplementation()`)
+4. Reports violations if:
+    - `bootstrap()` method exists in return object
+    - No mock setup found before return statement
 
-                // Check for mock setup before return
-                const hasMockSetup = checkForMockSetupBeforeReturn(proxyFunction);
-                if (!hasMockSetup) {
-                    context.report({
-                        node: proxyFunction,
-                        messageId: 'missingMockSetup'
-                    });
-                }
-            }
-        };
-    }
-};
-```
+**Violations:**
+
+- Having a `bootstrap()` method in the returned object
+- Not calling `mock.mockImplementation()` or similar setup in constructor
+
+**Messages:**
+
+- `'Adapter proxy must call mock.mockImplementation() in constructor (before return statement).'`
+- `'Adapter proxy should not have a bootstrap() method. Setup mocks in constructor instead.'`
 
 **Why This Rule Matters:**
 
@@ -1540,63 +804,31 @@ export const createHttpAdapterProxy = () => {
 
 ### Rule 18: Non-Adapter Proxies Must Create Child Proxies in Constructor
 
-**Status:** 🆕 NEW RULE
+**Rule:** `proxy-must-create-children-in-constructor`
 
-```typescript
-// packages/eslint-plugin/src/rules/proxy-must-create-children-in-constructor.ts
-export const proxyMustCreateChildrenInConstructor = {
-    meta: {
-        messages: {
-            childNotCreatedInConstructor: 'Child proxy {{proxyName}} must be created in constructor (before return statement), not inside methods.',
-            noBootstrapMethod: 'Proxy should not have a bootstrap() method. Create child proxies in constructor instead.'
-        }
-    },
-    create(context) {
-        return {
-            Program(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts') || filename.includes('-adapter.proxy.ts')) {
-                    return;
-                }
+**What it checks:**
 
-                const proxyFunction = findExportedProxyFunction(node);
-                if (!proxyFunction) return;
+- Applies to all `.proxy.ts` files EXCEPT `-adapter.proxy.ts` files
+- Ensures child proxies are created in constructor (before return statement)
+- Ensures no `bootstrap()` method exists
 
-                // Check for bootstrap method (should not exist)
-                const returnObject = findReturnObject(proxyFunction);
-                if (returnObject) {
-                    const hasBootstrap = returnObject.properties.some(
-                        prop => prop.key?.name === 'bootstrap'
-                    );
+**Detection logic:**
 
-                    if (hasBootstrap) {
-                        context.report({
-                            node: returnObject,
-                            messageId: 'noBootstrapMethod'
-                        });
-                    }
-                }
+1. Finds the exported `create*Proxy` function
+2. Checks returned object for `bootstrap` method property
+3. Finds all child proxy creation calls (`create*Proxy()`) in function body
+4. Locates the return statement
+5. Verifies each child proxy creation occurs before the return statement
 
-                // Check that child proxy creation happens before return
-                const childProxyCreations = findChildProxyCreations(proxyFunction);
-                const returnStatement = findReturnStatement(proxyFunction);
+**Violations:**
 
-                childProxyCreations.forEach(creation => {
-                    if (!isBeforeReturn(creation, returnStatement)) {
-                        context.report({
-                            node: creation,
-                            messageId: 'childNotCreatedInConstructor',
-                            data: {
-                                proxyName: creation.callee.name
-                            }
-                        });
-                    }
-                });
-            }
-        };
-    }
-};
-```
+- Having a `bootstrap()` method in the returned object
+- Creating child proxies inside methods (after return statement) instead of in constructor
+
+**Messages:**
+
+- `'Child proxy {{proxyName}} must be created in constructor (before return statement), not inside methods.'`
+- `'Proxy should not have a bootstrap() method. Create child proxies in constructor instead.'`
 
 **Why This Rule Matters:**
 
@@ -1628,83 +860,33 @@ export const createBrokerProxy = () => {
 
 ### Rule 19: Tests Must Create Proxy Inside Test (Not Module-Level)
 
-**Status:** 🆕 NEW RULE (replaces Rule 15)
+**Rule:** `test-proxy-must-be-per-test`
 
-```typescript
-// packages/eslint-plugin/src/rules/test-proxy-must-be-per-test.ts
-export const testProxyMustBePerTest = {
-    meta: {
-        messages: {
-            moduleLevelProxy: 'Proxy instance {{name}} must be created inside each test (it/test block), not at module level. Use: const {{name}} = create{{proxyName}}Proxy() inside the test.',
-            exportedProxy: 'Do not export proxy instances from test files. Create proxies fresh in each test instead.'
-        }
-    },
-    create(context) {
-        return {
-            VariableDeclaration(node) {
-                const filename = context.getFilename();
+**What it checks:**
 
-                // Only check test files
-                if (!filename.endsWith('.test.ts') && !filename.endsWith('.test.tsx')) {
-                    return;
-                }
+- Only applies to `.test.ts` and `.test.tsx` files
+- Detects proxy creation calls (`create*Proxy()`)
+- Ensures proxies are created inside `it` or `test` blocks, not at module level
+- Prevents exporting proxy instances from test files
 
-                // Check if this is a proxy creation (create*Proxy call)
-                node.declarations.forEach(declarator => {
-                    if (
-                        declarator.init?.type === 'CallExpression' &&
-                        declarator.init.callee.name?.startsWith('create') &&
-                        declarator.init.callee.name?.endsWith('Proxy')
-                    ) {
-                        const varName = declarator.id.name;
+**Detection logic:**
 
-                        // Check if it's at module level (not inside it/test)
-                        let ancestor = node.parent;
-                        let insideTestBlock = false;
+1. Scans VariableDeclaration nodes in test files
+2. Identifies declarations where init is CallExpression with name pattern `create*Proxy`
+3. Walks up ancestor tree to check if inside `it` or `test` block
+4. Reports violation if proxy created at module level (not inside test block)
+5. Reports violation if proxy is exported
 
-                        while (ancestor) {
-                            if (
-                                ancestor.type === 'CallExpression' &&
-                                (ancestor.callee.name === 'it' ||
-                                    ancestor.callee.name === 'test')
-                            ) {
-                                insideTestBlock = true;
-                                break;
-                            }
-                            ancestor = ancestor.parent;
-                        }
+**Violations:**
 
-                        if (!insideTestBlock) {
-                            const proxyName = declarator.init.callee.name
-                                .replace(/^create/, '')
-                                .replace(/Proxy$/, '');
+- Creating proxy at module level: `const brokerProxy = createUserProfileBrokerProxy()` (outside test blocks)
+- Exporting proxy instance: `export const brokerProxy = ...`
 
-                            context.report({
-                                node,
-                                messageId: 'moduleLevelProxy',
-                                data: {
-                                    name: varName,
-                                    proxyName: proxyName
-                                }
-                            });
-                        }
+**Messages:**
 
-                        // Check if it's exported
-                        const parent = node.parent;
-                        if (parent && parent.type === 'ExportNamedDeclaration') {
-                            context.report({
-                                node,
-                                messageId: 'exportedProxy',
-                                data: {name: varName}
-                            });
-                        }
-                    }
-                });
-            }
-        };
-    }
-};
-```
+-
+`'Proxy instance {{name}} must be created inside each test (it/test block), not at module level. Use: const {{name}} = create{{proxyName}}Proxy() inside the test.'`
+- `'Do not export proxy instances from test files. Create proxies fresh in each test instead.'`
 
 **Why This Rule Matters:**
 
@@ -1743,76 +925,44 @@ it('test 2', () => {
 
 ### Rule 20: Proxy Constructors Cannot Have Side Effects Beyond Mock Setup
 
-**Status:** 🆕 NEW RULE
+**Rule:** `proxy-constructor-no-side-effects`
 
-```typescript
-// packages/eslint-plugin/src/rules/proxy-constructor-no-side-effects.ts
-export const proxyConstructorNoSideEffects = {
-    meta: {
-        messages: {
-            noSideEffects: 'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead.',
-            allowedActions: 'Allowed: const childProxy = create...(), jest.mocked(...), jest.spyOn(...)'
-        }
-    },
-    create(context) {
-        return {
-            Program(node) {
-                const filename = context.getFilename();
-                if (!filename.endsWith('.proxy.ts')) {
-                    return;
-                }
+**What it checks:**
 
-                const proxyFunction = findExportedProxyFunction(node);
-                if (!proxyFunction) return;
+- Only applies to `.proxy.ts` files
+- Scans proxy constructor (statements before return) for side effects
+- Allows only: child proxy creation, mock setup, global function mocking
+- Forbids: file system operations, console logging, database calls, network requests
 
-                const functionBody = proxyFunction.body;
-                const returnStatement = findReturnStatement(proxyFunction);
+**Detection logic:**
 
-                // Check statements before return for disallowed side effects
-                traverseBeforeReturn(functionBody, returnStatement, (statement) => {
-                    // Allowed: const x = create...Proxy()
-                    // Allowed: const mock = jest.mocked(...)
-                    // Allowed: jest.spyOn(Date, 'now').mockReturnValue(...)
-                    // Forbidden: fs.writeFileSync(...), console.log(...), actual I/O
+1. Finds the exported `create*Proxy` function
+2. Identifies the function body and return statement
+3. Traverses statements before return statement
+4. For each ExpressionStatement:
+    - Checks if expression is a CallExpression
+    - If callee is MemberExpression, checks object name
+    - Reports violation if object is I/O-related (fs, console, db, prisma, database)
 
-                    if (statement.type === 'ExpressionStatement') {
-                        const expr = statement.expression;
+**Allowed in constructor:**
 
-                        // Check for I/O operations
-                        if (isIOOperation(expr)) {
-                            context.report({
-                                node: statement,
-                                messageId: 'noSideEffects',
-                                data: {
-                                    type: getOperationType(expr)
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-        };
-    }
-};
+- `const childProxy = create*Proxy()` - child proxy creation
+- `const mock = jest.mocked(package)` - mock creation
+- `jest.spyOn(Date, 'now').mockReturnValue(...)` - global mocking
 
-function isIOOperation(expr) {
-    // Detect: fs.writeFileSync, console.log, database calls, etc.
-    if (expr.type === 'CallExpression') {
-        const callee = expr.callee;
+**Forbidden in constructor:**
 
-        // Check for fs, console, db operations
-        if (callee.type === 'MemberExpression') {
-            const objectName = callee.object.name;
+- `fs.writeFileSync(...)` - file system operations
+- `console.log(...)` - console operations
+- `db.query(...)` - database operations
+- `prisma.user.create(...)` - ORM operations
+- Any actual I/O that has real side effects
 
-            if (['fs', 'console', 'db', 'prisma', 'database'].includes(objectName)) {
-                return true;
-            }
-        }
-    }
+**Messages:**
 
-    return false;
-}
-```
+-
+`'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead.'`
+- Info: `'Allowed: const childProxy = create...(), jest.mocked(...), jest.spyOn(...)'`
 
 **Why This Rule Matters:**
 
