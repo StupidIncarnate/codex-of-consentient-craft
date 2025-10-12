@@ -412,9 +412,11 @@ See `packages/eslint-plugin/src/statics/folder-config/folder-config-statics.ts` 
 statics/
   user/
     user-statics.ts
+    user-statics.proxy.ts    # Overrides for tests
     user-statics.test.ts
   eslint/
     eslint-statics.ts
+    eslint-statics.proxy.ts
     eslint-statics.test.ts
 ```
 
@@ -422,12 +424,15 @@ statics/
 
 - **Filename:** kebab-case ending with `-statics.ts` (e.g., `user-statics.ts`, `api-statics.ts`)
 - **Export:** camelCase ending with `Statics` (e.g., `userStatics`, `apiStatics`)
+- **Proxy:** kebab-case ending with `-statics.proxy.ts`, export `[name]StaticsProxy` (e.g., `userStaticsProxy`)
 
 **Constraints:**
 
 - **One export per file:** Single object with `Statics` suffix
 - **Root must contain only objects or arrays** (no primitives at root level - enforced by lint)
 - **Always use `as const`** for readonly enforcement
+- **No conditionals in statics** - Use proxy to override values for tests (dev/prod/test envs)
+- **Proxy required** - Every statics file needs a proxy for test value overrides
 
 **Example:**
 
@@ -472,6 +477,7 @@ contracts/
   user-id/
     user-id-contract.ts
     user-id-contract.test.ts
+    user-id.stub.ts
 ```
 
 **Naming Conventions:**
@@ -481,6 +487,7 @@ contracts/
     - Schemas: camelCase ending with `Contract` (e.g., `userContract`, `emailContract`)
   - Types: PascalCase (e.g., `User`, `EmailAddress`)
 - **Stubs:** kebab-case with `.stub.ts` extension (e.g., `user.stub.ts`)
+- **Proxies:** kebab-case with `.proxy.ts` extension (e.g., `user-contract.proxy.ts`)
 
 **Constraints:**
 
@@ -546,9 +553,11 @@ export const UserStub = (props: Partial<User> = {}): User => {
 guards/
   has-permission/
     has-permission-guard.ts
+    has-permission-guard.proxy.ts  # Test helper for data building
     has-permission-guard.test.ts
   is-valid-email/
     is-valid-email-guard.ts
+    is-valid-email-guard.proxy.ts
     is-valid-email-guard.test.ts
 ```
 
@@ -557,6 +566,7 @@ guards/
 - **Filename:** kebab-case ending with `-guard.ts` (e.g., `has-permission-guard.ts`, `is-admin-guard.ts`)
 - **Export:** camelCase ending with `Guard`, starting with `is/has/can/should/will/was` (e.g., `hasPermissionGuard`,
   `isValidEmailGuard`)
+- **Proxy:** kebab-case ending with `-guard.proxy.ts`, export `[name]GuardProxy` (e.g., `hasPermissionGuardProxy`)
 
 **Constraints:**
 
@@ -608,6 +618,7 @@ export const canEditPostGuard = ({user, post}: {
 transformers/
   format-date/
     format-date-transformer.ts
+    format-date-transformer.proxy.ts  # Test helper (usually minimal)
     format-date-transformer.test.ts
 ```
 
@@ -615,6 +626,8 @@ transformers/
 
 - **Filename:** kebab-case ending with `-transformer.ts` (e.g., `format-date-transformer.ts`)
 - **Export:** camelCase ending with `Transformer` (e.g., `formatDateTransformer`, `userToDtoTransformer`)
+- **Proxy:** kebab-case ending with `-transformer.proxy.ts`, export `[name]TransformerProxy` (e.g.,
+  `formatDateTransformerProxy`)
 
 **Constraints:**
 
@@ -680,13 +693,14 @@ export class ValidationError extends Error {
 flows/
   user/
     user-flow.ts
-    user-flow.test.ts
+    user-flow.integration.test.ts    # Integration test - wires routes to responders
 ```
 
 **Naming Conventions:**
 
 - **Filename:** kebab-case ending with `-flow.ts` or `-flow.tsx` (e.g., `user-flow.tsx`)
 - **Export:** PascalCase ending with `Flow` (e.g., `UserFlow`, `CheckoutFlow`)
+- **Tests:** kebab-case ending with `.integration.test.ts` (NOT `.test.ts` - these are integration tests)
 - **Pattern:** flows/[domain]/[domain]-flow.ts(x)
 
 **Constraints:**
@@ -734,13 +748,17 @@ export const UserFlow = router;
 adapters/
   axios/
     axios-get-adapter.ts
+    axios-get-adapter.proxy.ts       # Mocks axios npm package
     axios-get-adapter.test.ts
     axios-post-adapter.ts
+    axios-post-adapter.proxy.ts
     axios-post-adapter.test.ts
   fs/
     fs-read-file-adapter.ts
+    fs-read-file-adapter.proxy.ts    # Mocks fs/promises npm package
     fs-read-file-adapter.test.ts
-    fs-ensure-write-adapter.ts      # Composes mkdir + writeFile
+    fs-ensure-write-adapter.ts       # Composes mkdir + writeFile
+    fs-ensure-write-adapter.proxy.ts
     fs-ensure-write-adapter.test.ts
 ```
 
@@ -748,6 +766,7 @@ adapters/
 
 - **Filename:** kebab-case `[package-name]-[operation]-adapter.ts`
 - **Export:** camelCase ending with `Adapter` (e.g., `axiosGetAdapter`, `fsEnsureWriteAdapter`)
+- **Proxy:** kebab-case ending with `-adapter.proxy.ts`, export `[name]AdapterProxy` (e.g., `httpAdapterProxy`)
 - **Pattern:** adapters/[package-name]/[package-name]-[operation]-adapter.ts
 
 **Constraints:**
@@ -982,28 +1001,29 @@ export const fsCopyFileAdapter = async ({
 
 **Testing:**
 
+Adapter tests use adapter proxies to mock npm dependencies.
+See [Testing Standards - Proxy Architecture](testing-standards.md#proxy-architecture) for complete details.
+
 ```typescript
 // adapters/fs/fs-read-file-adapter.test.ts
 import {fsReadFileAdapter} from './fs-read-file-adapter';
+import {fsReadFileAdapterProxy} from './fs-read-file-adapter.proxy';
 import {FilePathStub} from '../../contracts/file-path/file-path.stub';
 import {FileContentsStub} from '../../contracts/file-contents/file-contents.stub';
 
-// Mock the actual fs module
-jest.mock('fs/promises');
-import {readFile} from 'fs/promises';
-const mockReadFile = jest.mocked(readFile);
-
 describe('fsReadFileAdapter', () => {
   it('VALID: {filePath: "/config.json"} => returns file contents', async () => {
-    const filePath = FilePathStub('/config.json');
+      // Create proxy (mocks fs/promises npm package)
+      const adapterProxy = fsReadFileAdapterProxy();
+
+      const filePath = FilePathStub('/config.json');
     const expected = FileContentsStub('{"key": "value"}');
 
-    mockReadFile.mockResolvedValue(Buffer.from('{"key": "value"}'));
+      adapterProxy.returns({filePath, contents: expected});
 
     const result = await fsReadFileAdapter({filePath});
 
     expect(result).toStrictEqual(expected);
-    expect(mockReadFile).toHaveBeenCalledWith(filePath);
   });
 });
 ```
@@ -1018,6 +1038,7 @@ describe('fsReadFileAdapter', () => {
 middleware/
   http-telemetry/
     http-telemetry-middleware.ts
+    http-telemetry-middleware.proxy.ts  # Delegates to adapter proxies
     http-telemetry-middleware.test.ts
 ```
 
@@ -1025,6 +1046,8 @@ middleware/
 
 - **Filename:** kebab-case ending with `-middleware.ts` (e.g., `http-telemetry-middleware.ts`)
 - **Export:** camelCase ending with `Middleware` (e.g., `httpTelemetryMiddleware`, `errorTrackingMiddleware`)
+- **Proxy:** kebab-case ending with `-middleware.proxy.ts`, export `[name]MiddlewareProxy` (e.g.,
+  `httpTelemetryMiddlewareProxy`)
 - **Pattern:** middleware/[name]/[name]-middleware.ts
 
 **Constraints:**
@@ -1060,10 +1083,12 @@ brokers/
   user/
     fetch/
       user-fetch-broker.ts
+      user-fetch-broker.proxy.ts       # Setup helper + global mocks
       user-fetch-broker.test.ts
   comment/
     create-process/
       comment-create-process-broker.ts
+      comment-create-process-broker.proxy.ts
       comment-create-process-broker.test.ts
 ```
 
@@ -1072,6 +1097,7 @@ brokers/
 - **Filename:** kebab-case `[domain]-[action]-broker.ts` (e.g., `user-fetch-broker.ts`, `email-send-broker.ts`)
 - **Export:** camelCase `[domain][Action]Broker` (e.g., `userFetchBroker`, `emailSendBroker`,
   `commentCreateProcessBroker`)
+- **Proxy:** kebab-case ending with `-broker.proxy.ts`, export `[name]BrokerProxy` (e.g., `userFetchBrokerProxy`)
 - **Pattern:** brokers/[domain]/[action]/[domain]-[action]-broker.ts
 
 **Constraints:**
@@ -1135,6 +1161,7 @@ export const commentCreateProcessBroker = async ({
 bindings/
   use-user-data/
     use-user-data-binding.ts
+    use-user-data-binding.proxy.ts  # Delegates to broker proxy
     use-user-data-binding.test.ts
 ```
 
@@ -1143,6 +1170,7 @@ bindings/
 - **Filename:** kebab-case starting with `use-` and ending with `-binding.ts` (e.g., `use-user-data-binding.ts`)
 - **Export:** camelCase starting with `use` and ending with `Binding` (e.g., `useUserDataBinding`,
   `useFileWatcherBinding`)
+- **Proxy:** kebab-case ending with `-binding.proxy.ts`, export `[name]BindingProxy` (e.g., `useUserDataBindingProxy`)
 - **Pattern:** bindings/use-[resource]/use-[resource]-binding.ts
 
 **Constraints:**
@@ -1191,9 +1219,15 @@ export const useUserDataBinding = ({userId}: { userId: UserId }): {
 state/
   user-cache/
     user-cache-state.ts
+    user-cache-state.proxy.ts    # Jest spies + cleanup
     user-cache-state.test.ts
+  redis-client/
+    redis-client-state.ts
+    redis-client-state.proxy.ts  # Mocks Redis → in-memory
+    redis-client-state.test.ts
   app-config/
     app-config-state.ts
+    app-config-state.proxy.ts    # Simple proxy for direct access
     app-config-state.test.ts
 ```
 
@@ -1201,15 +1235,18 @@ state/
 
 - **Filename:** kebab-case ending with `-state.ts` (e.g., `user-cache-state.ts`, `app-config-state.ts`)
 - **Export:** camelCase ending with `State` (e.g., `userCacheState`, `appConfigState`)
+- **Proxy:** kebab-case ending with `-state.proxy.ts`, export `[name]StateProxy` (e.g., `userCacheStateProxy`)
 - **Pattern:** state/[name]/[name]-state.ts
 
 **Constraints:**
 
 - **Frontend:** React contexts, Zustand/Redux stores
 - **Backend:** Caches, session stores, connection pools
-- **Pure storage:** In-memory only, no external API calls or database operations
+- **Pure storage:** In-memory only (Maps, Sets, objects) OR external systems (Redis, DB pools)
 - **Configuration:** App-wide constants, feature flags, API base URLs live here
 - **Must** export as objects with methods/properties (not individual functions)
+- **Proxy required for:** Stateful data that persists between tests or external systems (Redis, DB)
+- **Proxy optional for:** Simple configuration that rarely changes
 
 **Example:**
 
@@ -1225,36 +1262,23 @@ export const userCacheState = {
     },
     set: ({id, user}: { id: UserId; user: User }): void => {
         cache.set(id, user);
+    },
+    clear: (): void => {
+        cache.clear();
     }
 };
 
 // state/app-config/app-config-state.ts
 import {urlContract} from '../../contracts/url/url-contract';
-import {timeoutMsContract} from '../../contracts/timeout-ms/timeout-ms-contract';
 import type {Url} from '../../contracts/url/url-contract';
-import type {TimeoutMs} from '../../contracts/timeout-ms/timeout-ms-contract';
 
 export const appConfigState = {
-    apiUrl: urlContract.parse(process.env.API_URL || 'https://api.example.com'),
-    timeout: timeoutMsContract.parse(parseInt(process.env.TIMEOUT || '10000'))
-} satisfies { apiUrl: Url; timeout: TimeoutMs };
-
-// state/user-context/user-context-state.ts (React Context example)
-import {createContext, useContext} from 'react';
-import type {User} from '../../contracts/user/user-contract';
-
-const UserContext = createContext<User | null>(null);
-
-export const userContextState = {
-    context: UserContext,
-    Provider: UserContext.Provider,
-    useContext: (): User => {
-        const context = useContext(UserContext);
-        if (!context) throw new Error('UserContext not found');
-        return context;
-    }
-};
+    apiUrl: urlContract.parse(process.env.API_URL || 'https://api.example.com')
+} satisfies { apiUrl: Url };
 ```
+
+**Proxy Implementation:** See [Testing Standards - Proxy Architecture](testing-standards.md#proxy-architecture) for
+complete proxy patterns and examples.
 
 ### responders/ - Route Handlers
 
@@ -1267,10 +1291,12 @@ responders/
   user/
     get/
       user-get-responder.ts
+      user-get-responder.proxy.ts      # Delegates to broker proxy
       user-get-responder.test.ts
   email/
     process-queue/
       email-process-queue-responder.ts
+      email-process-queue-responder.proxy.ts
       email-process-queue-responder.test.ts
 ```
 
@@ -1279,6 +1305,7 @@ responders/
 - **Filename:** kebab-case `[domain]-[action]-responder.ts` (e.g., `user-get-responder.ts`,
   `email-process-queue-responder.ts`)
 - **Export:** PascalCase `[Domain][Action]Responder` (e.g., `UserGetResponder`, `EmailProcessQueueResponder`)
+- **Proxy:** kebab-case ending with `-responder.proxy.ts`, export `[name]ResponderProxy` (e.g., `userGetResponderProxy`)
 - **Pattern:** responders/[domain]/[action]/[domain]-[action]-responder.ts
 
 **Constraints:**
@@ -1333,14 +1360,17 @@ export const EmailProcessQueueResponder = async ({job}: {
 widgets/
   user-card/
     user-card-widget.tsx
+    user-card-widget.proxy.ts   # Setup + triggers + selectors
     user-card-widget.test.tsx
     avatar-widget.tsx
+    avatar-widget.proxy.ts
 ```
 
 **Naming Conventions:**
 
 - **Filename:** kebab-case ending with `-widget.tsx` (e.g., `user-card-widget.tsx`, `avatar-widget.tsx`)
 - **Export:** PascalCase ending with `Widget` (e.g., `UserCardWidget`, `AvatarWidget`)
+- **Proxy:** kebab-case ending with `-widget.proxy.ts`, export `[name]WidgetProxy` (e.g., `userCardWidgetProxy`)
 - **Pattern:** widgets/[name]/[name]-widget.tsx
 
 **Constraints:**
@@ -1400,16 +1430,22 @@ export const UserCardWidget = ({userId, onUpdate}: UserCardWidgetProps): JSX.Ele
 ```
 startup/
   start-app.tsx                     // Frontend app bootstrap
+  start-app.integration.test.tsx    // Integration test - wires up entire app
   start-server.ts                   // Backend server initialization
+  start-server.integration.test.ts  // Integration test - wires up entire server
   start-queue-worker.ts             // Queue processor bootstrap
+  start-queue-worker.integration.test.ts
   start-scheduler-service.ts        // Scheduled tasks bootstrap
+  start-scheduler-service.integration.test.ts
   start-cli.ts                      // CLI entry point
+  start-cli.integration.test.ts
 ```
 
 **Naming Conventions:**
 
 - **Filename:** kebab-case starting with `start-` (e.g., `start-server.ts`, `start-app.tsx`, `start-cli.ts`)
 - **Export:** PascalCase starting with `Start` (e.g., `StartServer`, `StartApp`, `StartCli`)
+- **Tests:** kebab-case ending with `.integration.test.ts` (NOT `.test.ts` - these are integration tests)
 - **Pattern:** startup/start-[name].ts
 
 **Constraints:**

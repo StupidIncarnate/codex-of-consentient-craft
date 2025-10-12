@@ -98,329 +98,6 @@ Widget renders
 
 ---
 
-## Issue: Knowledge Leak in Higher-Layer Tests
-
-### Problem Statement
-
-When testing higher layers (widgets, bindings), tests need to know implementation details of lower layers (transformers,
-guards) to set up test data correctly.
-
-### Example: Widget Test Must Know Transformer/Guard Logic
-
-**The Code:**
-
-```typescript
-// Broker logic
-const displayName = formatUserNameTransformer({
-    user,
-    includeTitle: user.isPremium  // ← Transformer depends on isPremium
-});
-
-const canEdit = hasEditPermissionGuard({
-    currentUser,
-    profileUserId: userId  // ← Guard checks if currentUser.id === userId OR currentUser.isAdmin
-});
-```
-
-**The Widget:**
-
-```typescript
-// Widget only cares about the results
-<h2>{data.user.displayName} < /h2>
-{
-    data.canEdit && <button>Edit < /button>}
-```
-
-**The Problem in Tests:**
-
-```typescript
-// Widget test must know transformer/guard implementation
-it('VALID: {own profile} => shows title and edit button', async () => {
-    const user = UserStub({
-        firstName: 'Jane',
-        isPremium: true,    // ← Must know: transformer uses isPremium for title
-        isAdmin: false      // ← Must know: guard checks isAdmin for edit permission
-    });
-
-    widgetProxy.setupOwnProfile({userId, user});
-
-    // Widget doesn't know WHY these work, but test author must know HOW to make them work
-    expect(screen.getByText(/^Dr\./)).toBeInTheDocument();  // Title shown because isPremium
-    expect(screen.getByTestId('EDIT_BUTTON')).toBeInTheDocument();  // Edit shown because own profile
-});
-```
-
-**The Knowledge Leak:**
-
-- Test author must know `isPremium` controls title display (transformer detail)
-- Test author must know `isAdmin` and matching `userId` control edit permission (guard detail)
-- Widget doesn't care about these - it just displays `data.user.displayName` and conditionally renders button based on
-  `data.canEdit`
-
-### Possible Solutions
-
-#### Option 1: Behavior-Driven Setup (Semantic Proxies)
-
-**Approach:** Hide implementation behind semantic proxy methods
-
-```typescript
-// Proxy
-setupProfileWithEditButton: ({userId, user}: { userId: UserId; user: User }) => {
-    // Proxy knows: "edit button" = own profile OR admin
-    const userWithEdit = {...user, id: userId};  // Make it their own profile
-    brokerProxy.setupOwnProfile({userId, user: userWithEdit});
-}
-
-setupProfileWithoutEditButton: ({userId, user, viewerId}: { ... }) => {
-    // Proxy knows: "no edit" = different user + not admin
-    const nonAdminUser = {...user, isAdmin: false};
-    const viewer = UserStub({id: viewerId, isAdmin: false});
-    brokerProxy.setupOtherProfile({userId, user: nonAdminUser, currentUserId: viewerId, currentUser: viewer});
-}
-
-setupProfileWithTitle: ({userId, user}: { userId: UserId; user: User }) => {
-    // Proxy knows: title requires isPremium
-    const premiumUser = {...user, isPremium: true};
-    brokerProxy.setupOwnProfile({userId, user: premiumUser});
-}
-
-// Test
-it('VALID: {profile with edit button} => shows edit button', async () => {
-    const user = UserStub({firstName: 'Jane'});
-
-    widgetProxy.setupProfileWithEditButton({userId, user});  // ← Semantic!
-
-    render(<UserProfileWidget userId = {userId}
-    currentUserId = {userId}
-    />);
-    expect(screen.getByTestId('EDIT_BUTTON')).toBeInTheDocument();
-});
-```
-
-**Pros:**
-
-- Tests describe WHAT they want, not HOW to achieve it
-- Implementation details hidden from test author
-- Clear test intent
-
-**Cons:**
-
-- Proxy methods proliferate for every combination
-- May not cover all edge cases
-- Proxy becomes a "test DSL" that mirrors implementation
-
-#### Option 2: Declarative Setup (Configuration-Based)
-
-**Approach:** Proxy translates test intentions into implementation requirements
-
-```typescript
-// Proxy
-setupProfile: ({userId, user, canEdit, showTitle}: {
-    userId: UserId;
-    user: User;
-    canEdit: boolean;
-    showTitle: boolean;
-}) => {
-    // Translate test config → implementation requirements
-    const configuredUser = {
-        ...user,
-        isPremium: showTitle,  // Proxy knows: isPremium controls title
-        id: canEdit ? userId : UserIdStub('different-user'),  // Proxy knows: matching id gives edit
-        isAdmin: false
-    };
-
-    if (canEdit && configuredUser.id === userId) {
-        brokerProxy.setupOwnProfile({userId, user: configuredUser});
-    } else {
-        const viewer = UserStub({id: UserIdStub('viewer'), isAdmin: false});
-        brokerProxy.setupOtherProfile({
-            userId,
-            user: configuredUser,
-            currentUserId: viewer.id,
-            currentUser: viewer
-        });
-    }
-}
-
-// Test
-it('VALID: {canEdit: true, showTitle: true} => shows title and edit button', async () => {
-    widgetProxy.setupProfile({
-        userId,
-        user: UserStub({firstName: 'Jane'}),
-        canEdit: true,      // ← What we want
-        showTitle: true     // ← What we want
-    });
-
-    render(<UserProfileWidget userId = {userId}
-    currentUserId = {userId}
-    />);
-    expect(screen.getByText(/^Dr\./)).toBeInTheDocument();
-    expect(screen.getByTestId('EDIT_BUTTON')).toBeInTheDocument();
-});
-```
-
-**Pros:**
-
-- Clear test intent
-- Single proxy method handles combinations
-- Test author thinks in terms of desired outcomes
-
-**Cons:**
-
-- Proxy becomes complex translation layer
-- May not match all real-world scenarios
-- Configuration options grow over time
-
-#### Option 3: Accept the Leak (Integration Testing)
-
-**Approach:** Acknowledge that higher-layer tests ARE integration tests and explicitly test the full chain
-
-```typescript
-// Test explicitly documents the integration being tested
-it('INTEGRATION: {isPremium: true, viewing own profile} => shows title and edit button', async () => {
-    const userId = UserIdStub('user-1');
-    const user = UserStub({
-        id: userId,
-        firstName: 'Jane',
-        lastName: 'Smith',
-        isPremium: true,    // ← Explicitly testing transformer integration
-        isAdmin: false      // ← Explicitly testing guard integration
-    });
-
-    widgetProxy.setupOwnProfile({userId, user});
-
-    render(<UserProfileWidget userId = {userId}
-    currentUserId = {userId}
-    />);
-
-    // Widget test verifies the FULL CHAIN works:
-    // Widget → Binding → Broker → Transformer (isPremium) → Guard (own profile)
-    expect(screen.getByText(/^Dr\. Jane Smith$/)).toBeInTheDocument();  // Title shown
-    expect(screen.getByTestId('EDIT_BUTTON')).toBeInTheDocument();  // Edit allowed
-});
-
-it('INTEGRATION: {isPremium: false, non-admin viewing other} => no title, no edit button', async () => {
-    const userId = UserIdStub('user-1');
-    const user = UserStub({
-        id: userId,
-        firstName: 'Jane',
-        lastName: 'Smith',
-        isPremium: false,   // ← No title
-        isAdmin: false
-    });
-
-    const viewerId = UserIdStub('viewer-1');
-    const viewer = UserStub({
-        id: viewerId,
-        isAdmin: false      // ← No edit permission
-    });
-
-    widgetProxy.setupOtherProfile({userId, user, currentUserId: viewerId, currentUser: viewer});
-
-    render(<UserProfileWidget userId = {userId}
-    currentUserId = {viewerId}
-    />);
-
-    expect(screen.getByText(/^Jane Smith$/)).toBeInTheDocument();  // No title
-    expect(screen.queryByTestId('EDIT_BUTTON')).not.toBeInTheDocument();  // No edit
-});
-```
-
-**Pros:**
-
-- Tests the real integration, catches contract mismatches
-- Clear that this is testing the full stack
-- No magic proxy methods to maintain
-
-**Cons:**
-
-- Brittle if transformer/guard logic changes
-- Test author must understand implementation
-- Knowledge leak is explicit but still present
-
-#### Option 4: Forbid Transformers/Guards in Brokers
-
-**Approach:** Architectural constraint - move transformation/guard logic elsewhere
-
-**Possible Rules:**
-
-1. **Brokers only orchestrate I/O** - no transformation or business logic
-2. **Transformers/Guards live in Responders or Widgets** - closer to where they're used
-3. **Contracts handle all transformation** - Zod `.transform()` instead of transformer functions
-
-**Example:**
-
-```typescript
-// Broker - just fetches, no transformation
-export const userProfileBroker = async ({userId, currentUserId}: { ... }) => {
-    const response = await httpAdapter({url: `.../${userId}`});
-    const user = userContract.parse(response.data);  // Just validation
-
-    const currentUserResponse = await httpAdapter({url: `.../${currentUserId}`});
-    const currentUser = userContract.parse(currentUserResponse.data);
-
-    return {user, currentUser};  // Return raw data
-};
-
-// Widget/Responder - handles transformation/guards
-export const UserProfileWidget = ({userId, currentUserId}: { ... }) => {
-    const {data, loading, error} = useUserProfileBinding({userId, currentUserId});
-
-    if (!data) return null;
-
-    // Transformation happens here
-    const displayName = formatUserNameTransformer({
-        user: data.user,
-        includeTitle: data.user.isPremium
-    });
-
-    // Guard happens here
-    const canEdit = hasEditPermissionGuard({
-        currentUser: data.currentUser,
-        profileUserId: userId
-    });
-
-    return (
-        <div>
-            <h2>{displayName} < /h2>
-    {
-        canEdit && <button>Edit < /button>}
-        < /div>
-    )
-        ;
-    }
-    ;
-```
-
-**Pros:**
-
-- No knowledge leak in tests - broker tests only need raw data
-- Widget tests control transformation/guard logic directly
-- Clear separation: brokers = I/O, widgets = presentation logic
-
-**Cons:**
-
-- Widgets become more complex
-- Transformation logic not reusable across layers
-- May violate "widgets are thin" principle
-
-### Status: UNRESOLVED
-
-**Decision needed:** Which approach aligns with project goals?
-
-- **Option 1/2**: Better test ergonomics, more proxy maintenance
-- **Option 3**: Embrace integration testing, accept knowledge leak
-- **Option 4**: Architectural constraint, may require rethinking layer responsibilities
-
-**Considerations:**
-
-1. How often does transformer/guard logic change?
-2. Is test brittleness worth integration coverage?
-3. Should proxies be "smart" or "dumb"?
-4. Where should business logic live?
-
----
-
 ## Insight: Why Guards Need Proxy Helper Functions
 
 ### The Pattern
@@ -679,7 +356,7 @@ providing semantic builders for test data that flows through the guard's logical
 
 ---
 
-## Pattern: Global Function Mocks in Proxy Bootstrap
+## Pattern: Global Function Mocks in Proxy Constructor
 
 ### The Problem
 
@@ -692,9 +369,10 @@ Some functions use global APIs that need to be deterministic in tests:
 
 **Where do these mocks belong in the proxy architecture?**
 
-### The Solution: Bootstrap Method
+### The Solution: Proxy Constructor
 
-Global function mocks go in the **proxy's `bootstrap()` method** for the lowest layer that uses them.
+Global function mocks are set up in the **proxy's constructor** when the proxy is created. This follows the
+create-per-test pattern where each test creates a fresh proxy.
 
 ### Example: Broker Uses Date.now()
 
@@ -718,30 +396,27 @@ export const userCreateBroker = async ({userData}: { userData: UserData }): Prom
 };
 ```
 
-**Proxy sets up global mocks in bootstrap:**
+**Proxy sets up global mocks in constructor:**
 
 ```typescript
 // brokers/user/create/user-create-broker.proxy.ts
 import {createHttpAdapterProxy} from '../../../adapters/http/http-adapter.proxy';
 
 export const createUserCreateBrokerProxy = () => {
+    // Create child proxy (sets up axios mock)
     const httpProxy = createHttpAdapterProxy();
 
+    // Mock global Date.now for predictable timestamps (runs when proxy is created)
+    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
+
+    // Mock global crypto.randomUUID for predictable IDs (runs when proxy is created)
+    jest.spyOn(crypto, 'randomUUID')
+        .mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+
+    // Note: @questmaestro/testing automatically resets all mocks globally
+    // No manual cleanup needed!
+
     return {
-        bootstrap: () => {
-            // Setup HTTP adapter bootstrap
-            httpProxy.bootstrap();
-
-            // Mock global Date.now for predictable timestamps
-            jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
-
-            // Mock global crypto.randomUUID for predictable IDs
-            jest.spyOn(crypto, 'randomUUID')
-                .mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-
-            // Note: @questmaestro/testing automatically resets all mocks globally
-            // No manual cleanup needed!
-        },
 
         // Semantic setup methods
         setupUserCreate: ({userData, timestamp, id}: {
@@ -774,21 +449,16 @@ export const createUserCreateBrokerProxy = () => {
 };
 ```
 
-**Test file calls bootstrap once:**
+**Test creates fresh proxy per test:**
 
 ```typescript
 // brokers/user/create/user-create-broker.test.ts
 import {userCreateBroker} from './user-create-broker';
 import {createUserCreateBrokerProxy} from './user-create-broker.proxy';
 
-const brokerProxy = createUserCreateBrokerProxy();
-
-beforeEach(() => {
-    brokerProxy.bootstrap();  // ← Sets up global mocks + HTTP adapter
-    // Note: @questmaestro/testing automatically resets mocks after each test
-});
-
 it('VALID: {userData} => creates user with mocked ID and timestamps', async () => {
+    // Create fresh proxy for this test (sets up global mocks + HTTP adapter)
+    const brokerProxy = createUserCreateBrokerProxy();
     const userData = UserDataStub({
         firstName: 'Jane',
         lastName: 'Smith'
@@ -812,10 +482,13 @@ it('VALID: {userData} => creates user with mocked ID and timestamps', async () =
 });
 
 it('VALID: {specific timestamp} => creates user with that timestamp', async () => {
+    // Create fresh proxy for this test
+    const brokerProxy = createUserCreateBrokerProxy();
+
     const userData = UserDataStub({firstName: 'Bob'});
     const customTimestamp = 1234567890000;
 
-    // Override the bootstrap default for this test
+    // Override the default for this test
     brokerProxy.setupUserCreate({
         userData,
         timestamp: customTimestamp  // ← Override Date.now() for this scenario
@@ -825,17 +498,20 @@ it('VALID: {specific timestamp} => creates user with that timestamp', async () =
 
     expect(result).toStrictEqual({
         ...userData,
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',  // Still uses bootstrap default
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',  // Still uses constructor default
         createdAt: customTimestamp,                   // Uses overridden timestamp
         updatedAt: customTimestamp
     });
 });
 
 it('VALID: {specific ID} => creates user with that ID', async () => {
+    // Create fresh proxy for this test
+    const brokerProxy = createUserCreateBrokerProxy();
+
     const userData = UserDataStub({firstName: 'Alice'});
     const customId = 'custom-uuid-12345';
 
-    // Override the bootstrap default for this test
+    // Override the default for this test
     brokerProxy.setupUserCreate({
         userData,
         id: customId  // ← Override crypto.randomUUID() for this scenario
@@ -846,11 +522,13 @@ it('VALID: {specific ID} => creates user with that ID', async () => {
     expect(result).toStrictEqual({
         ...userData,
         id: customId,           // Uses overridden ID
-        createdAt: 1609459200000,  // Still uses bootstrap default
+        createdAt: 1609459200000,  // Still uses constructor default
         updatedAt: 1609459200000
     });
 });
 ```
+
+// Note: @questmaestro/testing automatically clears all mocks after each test
 
 ### When to Use Global Mocks
 
@@ -873,17 +551,12 @@ it('VALID: {specific ID} => creates user with that ID', async () => {
 ```typescript
 // widgets/user-profile/user-profile-widget.proxy.ts
 export const createUserProfileWidgetProxy = () => {
+    // Create child proxy (which creates broker proxy, which sets up global mocks)
     const bindingProxy = createUseUserProfileBindingProxy();
 
+    // Global mocks are already set up by broker proxy constructor!
+
     return {
-        bootstrap: () => {
-            // Delegates to binding proxy, which delegates to broker proxy
-            // Broker proxy's bootstrap() sets up global mocks
-            bindingProxy.bootstrap();
-
-            // Global mocks are already set up by the time we get here!
-        },
-
         setupOwnProfile: ({userId, user}: { userId: UserId; user: User }) => {
             bindingProxy.setupOwnProfile({userId, user});
         }
@@ -891,14 +564,10 @@ export const createUserProfileWidgetProxy = () => {
 };
 
 // Widget test
-const widgetProxy = createUserProfileWidgetProxy();
-
-beforeEach(() => {
-    widgetProxy.bootstrap();  // ← Also sets up Date.now(), crypto.randomUUID() via delegation
-});
-
 it('VALID: {own profile} => displays user', async () => {
-    // Global mocks are active from bootstrap()
+    // Create fresh proxy for this test (sets up entire chain including global mocks)
+    const widgetProxy = createUserProfileWidgetProxy();
+
     widgetProxy.setupOwnProfile({userId, user});
 
     render(<UserProfileWidget userId = {userId}
@@ -908,43 +577,44 @@ it('VALID: {own profile} => displays user', async () => {
     // All layers share the same mocked Date.now() and crypto.randomUUID()
     expect(screen.getByText('Jane Smith')).toBeInTheDocument();
 });
+// Note: @questmaestro/testing automatically clears all mocks after each test
 ```
 
 ### The Pattern
 
 ```
-Test Lifecycle:
+Test Lifecycle with Create-Per-Test:
 ┌────────────────────────────────────────┐
-│ beforeEach(() => {                     │
-│   proxy.bootstrap()                    │
+│ it('test', () => {                     │
+│   const proxy = createProxy()          │
 │     ↓                                  │
-│   1. Mock global functions             │
+│   Proxy constructor runs:              │
+│   1. Create child proxies              │
+│   2. Mock global functions             │
 │      - Date.now()                      │
 │      - crypto.randomUUID()             │
-│   2. Setup adapter mocks               │
+│   3. Setup adapter mocks               │
 │      - jest.mock('axios')              │
-│   3. Delegate to child proxies         │
-│ })                                     │
 │                                        │
-│ it('test', () => {                     │
 │   proxy.setupScenario()                │
 │     ↓                                  │
 │   Use semantic helpers                 │
+│                                        │
+│   // Run test...                       │
 │ })                                     │
 │                                        │
-│ afterEach(() => {                      │
-│   proxy.cleanup?.()  // Optional       │
-│ })                                     │
+│ // @questmaestro/testing auto-cleans  │
 └────────────────────────────────────────┘
 ```
 
-### Why Bootstrap?
+### Why Constructor Setup?
 
-1. **Centralized**: All setup in one place
-2. **Automatic**: Higher layers inherit global mocks via delegation
+1. **Centralized**: All setup in proxy constructor
+2. **Automatic**: Higher layers inherit global mocks when creating child proxies
 3. **Deterministic**: Every test gets same predictable values
 4. **Auto-Cleanup**: `@questmaestro/testing` resets all mocks globally - no manual cleanup needed
 5. **Explicit**: Clear what globals are mocked
+6. **Simpler**: No beforeEach needed - just create proxy in test
 
 ### Critical: Don't Manually Construct Generated Values
 
@@ -1011,9 +681,9 @@ Test verifies generated values:
   expect(result.timestamp).toBe(1234567890)  // Function used mocked global
 ```
 
-### Alternative: Test File Direct Mocking
+### Alternative: Shared Proxy Instance
 
-For simple cases or globals used across ALL tests:
+For simple cases where you want to share global mock setup:
 
 ```typescript
 // ❌ Don't repeat in every test
@@ -1027,23 +697,25 @@ it('test 2', () => {
     // ...
 });
 
-// ✅ Put in beforeEach (simple projects)
-beforeEach(() => {
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
-    // @questmaestro/testing will reset this after each test
+// ✅ Create proxy once outside tests (simple cases only)
+const brokerProxy = createUserCreateBrokerProxy();  // Sets up Date.now() in constructor
+
+it('test 1', () => {
+    brokerProxy.setupUserCreate({userData});
+    // @questmaestro/testing will reset mocks after test
 });
 
-// ✅ Better: Put in proxy bootstrap (this architecture)
-beforeEach(() => {
-    brokerProxy.bootstrap();  // Sets up Date.now() once for all scenarios
-    // @questmaestro/testing will reset this after each test
+// ✅ Better: Create per test (recommended)
+it('test 1', () => {
+    const brokerProxy = createUserCreateBrokerProxy();  // Fresh setup
+    brokerProxy.setupUserCreate({userData});
 });
 ```
 
-**Prefer proxy bootstrap** when:
+**Prefer create-per-test** when:
 
 - Global mock is needed by the layer being tested
-- Multiple tests share the same global mock setup
+- You want perfect test isolation
 - You want semantic setup methods that assume global mocks are active
 
 **Remember:**
@@ -1051,20 +723,26 @@ beforeEach(() => {
 - `@questmaestro/testing` automatically resets/clears/restores all mocks globally
 - No manual cleanup needed
 - Test that functions USE the mocked globals, don't manually construct the values they generate
-- Bootstrap sets **default** mock values - setup methods can override them for specific scenarios
+- Constructor sets **default** mock values - setup methods can override them for specific scenarios
 
 ---
 
 ## Pattern: Overriding Global Mocks for Specific Scenarios
 
-### Bootstrap Sets Defaults
+### Constructor Sets Defaults
 
 ```typescript
-bootstrap: () => {
-    // Default values used by all tests unless overridden
+export const createUserCreateBrokerProxy = () => {
+    const httpProxy = createHttpAdapterProxy();
+
+    // Default values used by all tests unless overridden (runs when proxy is created)
     jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
     jest.spyOn(crypto, 'randomUUID').mockReturnValue('default-uuid');
-}
+
+    return {
+        // ... setup methods
+    };
+};
 ```
 
 ### Setup Methods Can Override
@@ -1092,26 +770,41 @@ setupUserCreate: ({userData, timestamp, id}: {
 
 ```typescript
 // Test 1: Use defaults
-brokerProxy.setupUserCreate({userData});
-// Result: id='default-uuid', createdAt=1609459200000
+it('test 1', () => {
+    const brokerProxy = createUserCreateBrokerProxy();
+    brokerProxy.setupUserCreate({userData});
+    // Result: id='default-uuid', createdAt=1609459200000
+});
 
 // Test 2: Override timestamp
-brokerProxy.setupUserCreate({userData, timestamp: 9999999999});
-// Result: id='default-uuid', createdAt=9999999999
+it('test 2', () => {
+    const brokerProxy = createUserCreateBrokerProxy();
+    brokerProxy.setupUserCreate({userData, timestamp: 9999999999});
+    // Result: id='default-uuid', createdAt=9999999999
+});
 
 // Test 3: Override ID
-brokerProxy.setupUserCreate({userData, id: 'custom-id'});
-// Result: id='custom-id', createdAt=1609459200000
+it('test 3', () => {
+    const brokerProxy = createUserCreateBrokerProxy();
+    brokerProxy.setupUserCreate({userData, id: 'custom-id'});
+    // Result: id='custom-id', createdAt=1609459200000
+});
 
 // Test 4: Override both
-brokerProxy.setupUserCreate({userData, timestamp: 8888888888, id: 'special-id'});
-// Result: id='special-id', createdAt=8888888888
+it('test 4', () => {
+    const brokerProxy = createUserCreateBrokerProxy();
+    brokerProxy.setupUserCreate({userData, timestamp: 8888888888, id: 'special-id'});
+    // Result: id='special-id', createdAt=8888888888
+});
 ```
 
 ### Individual Tests Can Also Override Directly
 
 ```typescript
 it('VALID: edge case with specific timestamp', async () => {
+    // Create proxy with defaults
+    const brokerProxy = createUserCreateBrokerProxy();
+
     const userData = UserDataStub({firstName: 'Jane'});
 
     // Setup with defaults
@@ -1128,10 +821,11 @@ it('VALID: edge case with specific timestamp', async () => {
 
 ### When to Use Each Approach
 
-**Bootstrap defaults:**
+**Constructor defaults:**
 
 - Common values used across most tests
 - Predictable baseline for all tests
+- Set when proxy is created
 
 **Setup method overrides:**
 
@@ -1150,13 +844,11 @@ it('VALID: edge case with specific timestamp', async () => {
 export const createUserCreateBrokerProxy = () => {
     const httpProxy = createHttpAdapterProxy();
 
-    return {
-        bootstrap: () => {
-            httpProxy.bootstrap();
-            jest.spyOn(Date, 'now').mockReturnValue(1609459200000); // 2021-01-01
-            jest.spyOn(crypto, 'randomUUID').mockReturnValue('default-uuid');
-        },
+    // Constructor sets defaults (runs when proxy is created)
+    jest.spyOn(Date, 'now').mockReturnValue(1609459200000); // 2021-01-01
+    jest.spyOn(crypto, 'randomUUID').mockReturnValue('default-uuid');
 
+    return {
         // Semantic helper: User from 2020
         setupUserFrom2020: ({userData}: { userData: UserData }) => {
             const timestamp2020 = 1577836800000; // 2020-01-01
@@ -1181,11 +873,12 @@ export const createUserCreateBrokerProxy = () => {
 
 // Test using semantic helpers
 it('VALID: {user from 2020} => has 2020 timestamp', async () => {
+    const brokerProxy = createUserCreateBrokerProxy();
     brokerProxy.setupUserFrom2020({userData});
     const result = await userCreateBroker({userData});
     expect(result.createdAt).toBe(1577836800000);
 });
 ```
 
-**Key principle:** Bootstrap provides sensible defaults, but the architecture allows overriding at any level for
+**Key principle:** Constructor provides sensible defaults, but the architecture allows overriding at any level for
 flexibility.
