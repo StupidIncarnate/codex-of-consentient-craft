@@ -252,11 +252,10 @@ describe("UserValidator", () => {
 
 ### Why This Structure
 
-- **describe(class)**: Groups all tests for an export
-- **describe(function)**: Isolates function behavior
-- **describe(code path)**: Groups related test scenarios (valid/invalid/edge cases)
+- **describe(class/function)**: Group tests for exports and isolate function behavior
+- **describe(code path)**: Group related scenarios (valid/invalid/edge cases)
 - **PREFIX**: Immediately shows test category
-- **{input} => outcome**: Pure data transformation visibility
+- **{input} => outcome**: Shows data transformation clearly
 
 ## Prefixes (Required)
 
@@ -365,28 +364,8 @@ integrity.
 mock setup.
 
 **Create-per-test pattern:** Each test creates a fresh proxy. The proxy constructor sets up all mocks automatically - no
-`beforeEach`, no `bootstrap()` method, no manual setup.
-
-**The pattern:**
-
-```typescript
-// ✅ CORRECT - Fresh proxy per test, constructor sets up mocks
-it('test', () => {
-    const proxy = createWidgetProxy();  // Mocks configured here
-    proxy.setupScenario({...});         // Semantic setup
-    // Test code...
-});
-// @questmaestro/testing auto-clears mocks after test
-
-// ❌ WRONG - Shared proxy + beforeEach
-const proxy = createWidgetProxy();
-beforeEach(() => proxy.bootstrap());  // DON'T DO THIS
-
-// ❌ WRONG - Direct mock manipulation
-it('test', () => {
-    jest.mocked(adapter).mockResolvedValue(...);  // DON'T DO THIS
-});
-```
+`beforeEach`, no `bootstrap()` method, no manual setup. See "Create-Per-Test Pattern" section below for detailed
+examples.
 
 ### What Gets Mocked vs What Runs Real
 
@@ -400,26 +379,59 @@ Widget Test:
 │           ├─ Transformer  (REAL)          │ ← Real pure function
 │           ├─ Guard        (REAL)          │ ← Real boolean check
 │           └─ httpAdapter  (REAL)          │ ← Real adapter code
-│               └─ axios    (MOCKED)        │ ← Mock npm dependency
+│               └─ axios    (MOCKED)        │ ← Mock npm dependency (I/O)
 └────────────────────────────────────────────┘
 
-Only 2 things mocked: npm dependencies + global functions
+Only 2 things mocked: I/O npm dependencies + global functions
+*Exception: DSL/query adapters (ESLint, SQL, GraphQL) run fully real to validate logic
 ```
 
 ### Proxy Types
 
-Proxies are test helpers that create and configure mocks. They provide semantic setup methods instead of exposing mock
-implementation details.
+Proxies create and configure mocks, providing semantic setup methods instead of exposing mock implementation details.
 
-#### Adapter Proxy (Mocks npm dependency)
+**Three core patterns:**
 
-**Purpose:** Mock the npm package, not the adapter. Adapter code runs real.
+1. **Adapter Proxy** - Mocks npm packages at I/O boundary
+2. **Broker Proxy** - Composes adapter proxies
+3. **Higher-layer Proxies** - Delegate to child proxies
+
+**Global mocks** - Any proxy can mock globals (Date, crypto, etc) if the code it tests uses them. See "Global Function
+Mocks" section.
+
+#### Quick Reference: What Needs Proxies?
+
+| Category      | Needs Proxy? | Purpose                                              |
+|---------------|--------------|------------------------------------------------------|
+| Contracts     | ❌ No         | Use stubs (`.stub.ts` files)                         |
+| Errors        | ❌ No         | Throw directly in tests                              |
+| Adapters      | ✅ Yes        | **Mock npm dependency** (axios, fs, etc.)            |
+| Brokers       | ✅ Yes        | Compose adapter proxies, provide semantic setup      |
+| Guards        | ✅ Yes        | Build test data for different guard paths            |
+| Transformers  | ✅ Yes        | Provide semantic data builders for test data         |
+| State         | ✅ Yes        | Spy on methods, clear state, mock external stores    |
+| Bindings      | ✅ Yes        | Delegate to broker proxies                           |
+| Middleware    | ✅ Yes        | Delegate to adapter proxies                          |
+| Responders    | ✅ Yes        | Delegate to broker proxies                           |
+| Widgets       | ✅ Yes        | Delegate to bindings + provide UI triggers/selectors |
+| Statics       | ✅ Yes        | Override immutable values for edge case testing      |
+| Flows/Startup | ❌ No         | Integration tests                                    |
+
+#### 1. Adapter Proxy (Foundation)
+
+**Purpose:** Mock npm packages at I/O boundaries. Adapter code runs real.
+
+**When to mock:** I/O adapters (axios, fs/promises, ioredis) - these translate between npm types and contracts.
+
+**When NOT to mock:** DSL/query adapters (ESLint, SQL, GraphQL) - these need real execution to validate your DSL/query
+logic. See "Unit Tests vs Integration Tests" section.
 
 ```typescript
 // adapters/http/http-adapter.proxy.ts
 import axios from 'axios';
 import type {Url} from '../../contracts/url/url-contract';
 import type {HttpResponse} from '../../contracts/http-response/http-response-contract';
+import {HttpStatusStub} from '../../contracts/http-status/http-status.stub';
 
 // ✅ Mock declared in proxy - automatically hoisted when proxy is imported
 jest.mock('axios');
@@ -431,7 +443,7 @@ export const httpAdapterProxy = () => {
     // ✅ Setup default mock behavior (runs fresh in each test when proxy is created)
     mock.mockImplementation(async () => ({
         data: {},
-        status: 200,
+        status: HttpStatusStub(200),
         statusText: 'OK'
     }));
 
@@ -447,170 +459,34 @@ export const httpAdapterProxy = () => {
 };
 ```
 
-#### Broker Proxy (Setup helper + global mocks)
+#### 2. Broker Proxy (Composition)
 
-**Purpose:** Provide semantic setup methods and mock global functions in constructor.
+**Purpose:** Compose adapter proxies. Mock globals if the broker uses them (see "Global Function Mocks" section).
 
 ```typescript
 // brokers/user/profile/user-profile-broker.proxy.ts
 import {httpAdapterProxy} from '../../../adapters/http/http-adapter.proxy';
 import type {UserId} from '../../../contracts/user-id/user-id-contract';
 import type {User} from '../../../contracts/user/user-contract';
+import {UrlStub} from '../../contracts/url/url.stub';
+import {HttpStatusStub} from '../../contracts/http-status/http-status.stub';
 
 export const userProfileBrokerProxy = () => {
-    // Create child proxy (which sets up axios mock)
-    const httpProxy = httpAdapterProxy();
-
-    // Mock global functions for predictable values (runs when proxy is created)
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-
-    // NO jest.mocked(broker) - broker runs real!
+    const httpProxy = httpAdapterProxy();  // Compose child proxy
 
     return {
-        // Semantic setup - encapsulates what "viewing own profile" means
         setupOwnProfile: ({userId, user}: { userId: UserId; user: User }): void => {
-            const userUrl = `https://api.example.com/users/${userId}`;
+            const userUrl = UrlStub(`https://api.example.com/users/${userId}`);
 
-            // Broker makes 2 HTTP calls (profile user + current user)
-            // When viewing own profile, both return same user
-            httpProxy.returns({url: userUrl, response: {data: user, status: 200}});
-            httpProxy.returns({url: userUrl, response: {data: user, status: 200}});
+            // Broker makes 2 HTTP calls - both return same user for own profile
+            httpProxy.returns({url: userUrl, response: {data: user, status: HttpStatusStub(200)}});
+            httpProxy.returns({url: userUrl, response: {data: user, status: HttpStatusStub(200)}});
         }
     };
 };
 ```
 
-#### Guard Proxy (Data builder)
-
-**Purpose:** Provide helpers to build test data that exercises each guard path. Guard runs real.
-
-```typescript
-// guards/has-edit-permission/has-edit-permission-guard.proxy.ts
-import type {User} from '../../contracts/user/user-contract';
-import type {UserId} from '../../contracts/user-id/user-id-contract';
-import {UserStub} from '../../contracts/user/user.stub';
-import {UserIdStub} from '../../contracts/user-id/user-id.stub';
-
-export const hasEditPermissionGuardProxy = () => {
-    // NO jest.mocked() - guard runs real!
-    // Proxy provides SEMANTIC HELPERS for setting up test data
-
-    return {
-        // Helper: Make user match profile user (permission granted)
-        setupForOwnProfileEdit: ({userId}: { userId: UserId }): User => {
-            return UserStub({id: userId, isAdmin: false});
-        },
-
-        // Helper: Make user an admin (permission granted)
-        setupForAdminEdit: (): User => {
-            return UserStub({isAdmin: true});
-        },
-
-        // Helper: Make user different and non-admin (permission denied)
-        setupForNoEdit: ({userId}: { userId: UserId }): User => {
-            const differentId = UserIdStub(`different-from-${userId}`);
-            return UserStub({id: differentId, isAdmin: false});
-        }
-    };
-};
-```
-
-#### State Proxy (Jest spies + cleanup)
-
-**Purpose:** Track state method calls and clear state between tests. Swap external systems (Redis, DB) with in-memory
-versions.
-
-```typescript
-// state/user-cache/user-cache-state.proxy.ts
-import type {User, UserId} from '../../contracts/user/user-contract';
-import {userCacheState} from './user-cache-state';
-
-export const userCacheStateProxy = () => {
-    // Spy on state methods so Jest tracks them
-    jest.spyOn(userCacheState, 'get');
-    jest.spyOn(userCacheState, 'set');
-    jest.spyOn(userCacheState, 'clear');
-
-    // Clear real state when proxy is created (per test)
-    userCacheState.clear();
-
-    return {
-        // Semantic setup
-        setupCachedUser: ({userId, user}: { userId: UserId; user: User }): void => {
-            userCacheState.set({id: userId, user});
-        },
-
-        // Verification helpers
-        getCachedUser: ({userId}: { userId: UserId }): User | undefined => {
-            return userCacheState.get({id: userId});
-        },
-
-        wasCached: ({userId}: { userId: UserId }): boolean => {
-            const getSpy = jest.mocked(userCacheState.get);
-            return getSpy.mock.calls.some(call => call[0].id === userId);
-        }
-    };
-};
-
-// For external systems, mock the npm package
-// state/redis-client/redis-client-state.proxy.ts
-import RedisMock from 'ioredis-mock';
-
-// Mock ioredis to use in-memory mock
-jest.mock('ioredis', () => require('ioredis-mock'));
-
-export const redisClientStateProxy = () => {
-    const mockRedis = new RedisMock();
-
-    jest.spyOn(redisClientState, 'get');
-    jest.spyOn(redisClientState, 'set');
-
-    // Clear all keys when proxy created
-    mockRedis.flushall();
-
-    return {
-        setupCachedValue: async ({key, value}: { key: string; value: string }): Promise<void> => {
-            await redisClientState.set({key, value});
-        },
-
-        getValue: async ({key}: { key: string }): Promise<string | null> => {
-            return await redisClientState.get({key});
-        }
-    };
-};
-```
-
-#### Binding Proxy (Delegates to broker)
-
-**Purpose:** Delegate to broker proxy for setup. Bindings run real (React hooks execute).
-
-```typescript
-// bindings/use-user-profile/use-user-profile-binding.proxy.ts
-import {userProfileBrokerProxy} from '../../brokers/user/profile/user-profile-broker.proxy';
-import type {UserId} from '../../contracts/user-id/user-id-contract';
-import type {User} from '../../contracts/user/user-contract';
-
-export const useUserProfileBindingProxy = () => {
-    // Create child proxy (which sets up entire chain)
-    const brokerProxy = userProfileBrokerProxy();
-
-    // NO jest.mocked(binding) - binding (React hook) runs real!
-
-    return {
-        // Delegate to broker proxy
-        setupOwnProfile: ({userId, user}: { userId: UserId; user: User }): void => {
-            brokerProxy.setupOwnProfile({userId, user});
-        },
-
-        setupUserFetch: ({userId, user}: { userId: UserId; user: User }): void => {
-            brokerProxy.setupUserFetch({userId, user});
-        }
-    };
-};
-```
-
-#### Widget Proxy (Setup helper + triggers)
+#### 3. Widget Proxy (Delegation + UI Helpers)
 
 **Purpose:** Delegate to child proxies for setup, provide widget-specific triggers and selectors.
 
@@ -649,199 +525,155 @@ export const userProfileWidgetProxy = () => {
 };
 ```
 
-#### Transformer Proxy (Optional - Usually not needed)
+#### Other Proxy Types (Brief Reference)
 
-**Purpose:** Transformers are pure functions. Proxy rarely needed, but can provide semantic data builders.
+**State Proxy** - Spy on state methods with `jest.spyOn()`, clear state in constructor. For external systems (Redis,
+DB), mock the npm package and swap with in-memory version.
 
-```typescript
-// transformers/user-to-dto/user-to-dto-transformer.proxy.ts
-import {UserStub} from '../../contracts/user/user.stub';
-import type {User} from '../../contracts/user/user-contract';
+**Guard Proxy** - Provide semantic data builders for different guard paths. Guard runs real, proxy just builds test
+data.
 
-export const userToDtoTransformerProxy = () => {
-    // NO jest.mocked() - transformer runs real!
-    // Proxy just provides semantic data builders
+**Binding/Middleware/Responder Proxies** - All follow delegation pattern: create child proxy (broker/adapter), delegate
+setup methods. Code runs real.
 
-    return {
-        // Helper: Create user with specific fields for DTO testing
-        setupUserWithAllFields: (): User => {
-            return UserStub({
-                id: 'user-1',
-                firstName: 'Jane',
-                lastName: 'Smith',
-                email: 'jane@example.com',
-                isAdmin: false,
-                isPremium: true
-            });
-        },
+**Transformer Proxy** - Provide semantic data builders for test data. Transformers run real, proxy builds input data.
 
-        setupUserWithMinimalFields: (): User => {
-            return UserStub({
-                id: 'user-1',
-                firstName: 'Jane',
-                lastName: 'Smith'
-            });
-        }
-    };
-};
-
-// Usually transformers don't need proxies - just test with stubs directly
-```
-
-#### Middleware Proxy (Delegates to adapters)
-
-**Purpose:** Middleware orchestrates infrastructure adapters. Proxy delegates to adapter proxies.
+**Statics Proxy** - Override immutable values for edge case testing. Use `Reflect.set()` to mutate readonly constants at
+runtime, or `jest.spyOn()` for getters.
 
 ```typescript
-// middleware/http-telemetry/http-telemetry-middleware.proxy.ts
-import {winstonLogAdapterProxy} from '../../adapters/winston/winston-log-adapter.proxy';
-import {prometheusCounterAdapterProxy} from '../../adapters/prometheus/prometheus-counter-adapter.proxy';
-
-export const httpTelemetryMiddlewareProxy = () => {
-    const logProxy = winstonLogAdapterProxy();
-    const metricsProxy = prometheusCounterAdapterProxy();
-
-    return {
-        setupHttpRequest: ({method, url, statusCode}: {
-            method: string;
-            url: string;
-            statusCode: number;
-        }): void => {
-            // Middleware will log and increment counter
-            logProxy.expectsLog({level: 'info', message: `${method} ${url} - ${statusCode}`});
-            metricsProxy.expectsIncrement({name: 'http_requests_total', labels: {method, status: String(statusCode)}});
-        }
-    };
-};
-```
-
-#### Responder Proxy (Delegates to brokers)
-
-**Purpose:** Responders handle requests. Proxy delegates to broker proxies.
-
-```typescript
-// responders/user/get/user-get-responder.proxy.ts
-import {userFetchBrokerProxy} from '../../../brokers/user/fetch/user-fetch-broker.proxy';
-import type {UserId} from '../../../contracts/user-id/user-id-contract';
-import type {User} from '../../../contracts/user/user-contract';
-
-export const userGetResponderProxy = () => {
-    const brokerProxy = userFetchBrokerProxy();
-
-    return {
-        setupUserGet: ({userId, user}: { userId: UserId; user: User }): void => {
-            brokerProxy.setupUserFetch({userId, user});
-        }
-    };
-};
-
-// Responder tests usually mock Express req/res
-// Test validates input parsing, broker call, response formatting
-```
-
-#### Statics Proxy (Override immutable values)
-
-**Purpose:** Override static values for tests. Prevents conditionals in statics files.
-
-```typescript
-// statics/user/user-statics.ts
-export const userStatics = {
-    roles: {
-        admin: 'admin',
-        user: 'user',
-        guest: 'guest'
-    },
-    limits: {
-        maxLoginAttempts: 5,
-        sessionTimeout: 3600
+// Use Reflect.set for direct properties
+export const userStaticsProxy = () => ({
+    setupUnlimitedAttempts: (): void => {
+        Reflect.set(userStatics.limits, 'maxLoginAttempts', Infinity);
     }
-} as const;
-
-// statics/user/user-statics.proxy.ts
-export const userStaticsProxy = () => {
-    // Store original values
-    const original = {
-        maxLoginAttempts: userStatics.limits.maxLoginAttempts,
-        sessionTimeout: userStatics.limits.sessionTimeout
-    };
-
-    return {
-        // Override for specific test scenarios
-        setupUnlimitedAttempts: (): void => {
-            // Use Reflect.set to mutate readonly const at runtime
-            Reflect.set(userStatics.limits, 'maxLoginAttempts', Infinity);
-        },
-
-        setupShortTimeout: (): void => {
-            Reflect.set(userStatics.limits, 'sessionTimeout', 60); // 1 minute for tests
-        },
-
-        // Restore originals (called by @questmaestro/testing cleanup)
-        restore: (): void => {
-            Reflect.set(userStatics.limits, 'maxLoginAttempts', original.maxLoginAttempts);
-            Reflect.set(userStatics.limits, 'sessionTimeout', original.sessionTimeout);
-        }
-    };
-};
-
-// Usage in test
-it('VALID: {unlimited attempts} => does not lock account', async () => {
-    const staticsProxy = userStaticsProxy();
-    staticsProxy.setupUnlimitedAttempts();
-
-    // Test code that uses userStatics.limits.maxLoginAttempts
-    // Sees Infinity instead of 5
 });
 
-// Alternative: Use jest.spyOn for readonly objects
-// statics/api/api-statics.proxy.ts
+// Use jest.spyOn for getters
 export const apiStaticsProxy = () => {
-    jest.spyOn(apiStatics, 'baseUrl', 'get').mockReturnValue('https://test.api.com');
-    jest.spyOn(apiStatics, 'timeout', 'get').mockReturnValue(1000);
-
-    return {
-        setupDevApi: (): void => {
-            jest.spyOn(apiStatics, 'baseUrl', 'get').mockReturnValue('http://localhost:3000');
-        }
-    };
+    jest.spyOn(apiStatics, 'timeout', 'get').mockReturnValue(0);
+    return {};
 };
 ```
 
-**Why statics need proxies:**
+#### Guard Proxies: Why Pure Functions Need Test Helpers
 
-- Allows test-specific value overrides for edge cases without modifying source
-- Lets you test behavior at different limits/thresholds
-- Keeps statics truly immutable in production code
+**The Problem:** Guards are pure boolean functions with multiple logical paths. When testing layers that use guards, you
+need data that triggers each path. Without helpers, test authors must understand guard implementation details.
 
-**Environment config is fine:**
+**Example Guard:**
+```typescript
+// guards/has-edit-permission/has-edit-permission-guard.ts
+export const hasEditPermissionGuard = ({currentUser, profileUserId}: {
+    currentUser: User;
+    profileUserId: UserId;
+}): boolean => {
+    if (currentUser.id === profileUserId) return true;  // Path 1: Own profile
+    if (currentUser.isAdmin) return true;               // Path 2: Admin
+    return false;                                       // Path 3: Deny
+};
+```
+
+**Without Guard Proxy:**
+```typescript
+// Widget test must know guard logic
+it('VALID: {admin, different user} => shows edit button', () => {
+    const user = UserStub({
+        id: UserIdStub('user-1'),
+        isAdmin: true  // ← Must know: isAdmin gives permission
+    });
+    // ...
+});
+```
+
+**With Guard Proxy:**
+```typescript
+// guards/has-edit-permission/has-edit-permission-guard.proxy.ts
+export const hasEditPermissionGuardProxy = () => {
+    // NO jest.mocked() - guard runs real!
+
+    return {
+        // Semantic helper for Path 1
+        setupForOwnProfileEdit: ({userId}: { userId: UserId }): User => {
+            return UserStub({id: userId, isAdmin: false});
+        },
+
+        // Semantic helper for Path 2
+        setupForAdminEdit: (): User => {
+            return UserStub({isAdmin: true});
+        },
+
+        // Semantic helper for Path 3
+        setupForNoEdit: ({userId}: { userId: UserId }): User => {
+            const differentId = UserIdStub(`different-from-${userId}`);
+            return UserStub({id: differentId, isAdmin: false});
+        }
+    };
+};
+
+// Higher-layer proxy uses guard helpers
+export const userProfileBrokerProxy = () => {
+    const httpProxy = httpAdapterProxy();
+    const guardProxy = hasEditPermissionGuardProxy();
+
+    return {
+        setupOwnProfileWithEdit: ({userId, user}) => {
+            const editableUser = guardProxy.setupForOwnProfileEdit({userId});
+            httpProxy.returns({
+                url: UrlStub(`/users/${userId}`),
+                response: {data: editableUser, status: HttpStatusStub(200)}
+            });
+        }
+    };
+};
+
+// Widget test is now semantic
+it('VALID: {admin viewing profile} => shows edit button', () => {
+    widgetProxy.setupAdminViewingProfile({userId, user, adminId});  // ← Semantic!
+    // ...
+});
+```
+
+**Key Benefits:**
+
+- **Semantic**: Tests describe WHAT scenario, not HOW to construct it
+- **Encapsulated**: Only guard proxy knows implementation details
+- **Reusable**: Guard proxy helpers used across all higher layers
+- **Guard runs real**: Helpers build data, guard executes normally
+
+### Global Function Mocks
+
+**ANY proxy can mock globals** - not just brokers. Mock in the proxy constructor when the code being tested uses
+non-deterministic functions.
+
+**Common globals to mock:** `Date.now()`, `crypto.randomUUID()`, `Math.random()`, `console.*`
 
 ```typescript
-// ✅ CORRECT - Environment-based config is normal
-export const apiStatics = {
-    baseUrl: process.env.API_BASE_URL || 'https://api.com',
-    timeout: parseInt(process.env.API_TIMEOUT || '5000', 10)
-} as const;
+// Example: Broker proxy mocking globals because broker uses them
+export const userCreateBrokerProxy = () => {
+    const httpProxy = httpAdapterProxy();
 
-// ✅ CORRECT - Use proxy to test edge cases beyond env config
-// apiStatics.proxy.ts
-export const apiStaticsProxy = () => {
+    // Mock in constructor (runs when proxy is created)
+    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
+    jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+
     return {
-        setupZeroTimeout: (): void => {
-            Reflect.set(apiStatics, 'timeout', 0); // Test timeout edge case
-        },
-        setupInfiniteTimeout: (): void => {
-            Reflect.set(apiStatics, 'timeout', Infinity); // Test no timeout
+        setupUserCreate: ({userData}): void => {
+            httpProxy.returns({url: UrlStub('/users'), response: {data: {success: true}, status: HttpStatusStub(201)}});
         }
     };
 };
 
-// Test uses proxy to override for specific scenario
-it('EDGE: {timeout: 0} => throws immediately', () => {
-    const proxy = apiStaticsProxy();
-    proxy.setupZeroTimeout();
-    // Test code that uses apiStatics.timeout sees 0
-});
+// Example: Adapter proxy mocking console because adapter logs
+export const emailAdapterProxy = () => {
+    jest.spyOn(console, 'log').mockImplementation();  // Silence logs in tests
+
+    return { /* semantic methods */ };
+};
 ```
+
+**Critical:** Don't manually construct values the function generates. Let the function generate them using mocked
+globals, then verify the result.
 
 ### Create-Per-Test Pattern
 
@@ -884,470 +716,112 @@ it('VALID: {own profile} => displays name and edit button', async () => {
 // @questmaestro/testing automatically clears all mocks after test
 ```
 
-### Global Function Mocks
+### Composing State + Adapter Proxies
 
-Mock global functions in proxy constructor for predictable values.
-
-**When to mock:**
-
-- `Date.now()`, `Date.UTC()`, `new Date()`
-- `crypto.randomUUID()`, `crypto.getRandomValues()`
-- `Math.random()`
-- `console.log()`, `console.error()`, `console.warn()`
-
-**Example:**
+When a broker uses state, create both proxies and delegate:
 
 ```typescript
-export const userCreateBrokerProxy = () => {
-    const httpProxy = httpAdapterProxy();
-
-    // Mock globals in constructor (runs when proxy is created)
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-
-    return {
-        setupUserCreate: ({userData, timestamp, id}: {
-            userData: UserData;
-            timestamp?: number;  // Optional override
-            id?: string;         // Optional override
-        }): void => {
-            // Override defaults for specific scenarios
-            if (timestamp !== undefined) {
-                jest.spyOn(Date, 'now').mockReturnValue(timestamp);
-            }
-            if (id !== undefined) {
-                jest.spyOn(crypto, 'randomUUID').mockReturnValue(id);
-            }
-
-            httpProxy.returns({url: '/users', response: {data: {success: true}, status: 201}});
-        }
-    };
-};
-
-// Test verifies function USED the mocked globals
-it('VALID: {userData} => creates user with mocked ID and timestamp', async () => {
-    const brokerProxy = userCreateBrokerProxy();
-    const userData = UserDataStub({firstName: 'Jane', lastName: 'Smith'});
-
-    brokerProxy.setupUserCreate({userData});
-
-    const result = await userCreateBroker({userData});
-
-    // Test that broker USED the mocked global functions
-    expect(result).toStrictEqual({
-        ...userData,
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',  // Generated by mocked crypto.randomUUID()
-        createdAt: 1609459200000,                     // Generated by mocked Date.now()
-        updatedAt: 1609459200000
-    });
-
-    expect(crypto.randomUUID).toHaveBeenCalledTimes(1);
-    expect(Date.now).toHaveBeenCalledTimes(2);
-});
-```
-
-**Critical:** Don't manually construct values the function generates. Let the function generate them using mocked
-globals, then verify they used the mocks.
-
-```typescript
-// ❌ WRONG - Manually setting values the function generates
-setupUserCreate: ({userData}) => {
-    httpProxy.returns({
-        response: {
-            data: {
-                ...userData,
-                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',  // ❌ Don't set this!
-                createdAt: 1609459200000                      // ❌ Don't set this!
-            }
-        }
-    });
-}
-
-// ✅ CORRECT - Let function generate values, verify they used mocked globals
-setupUserCreate: ({userData}): void => {
-    httpProxy.returns({
-        response: {
-            data: {success: true},  // ✅ Just mock server response
-            status: 201
-        }
-    });
-}
-
-const result = await userCreateBroker({userData});
-expect(result.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');  // ✅ Verifies broker used mocked crypto.randomUUID()
-```
-
-### State Integration with Broker Proxy
-
-When a broker uses state, the broker proxy creates and delegates to the state proxy:
-
-```typescript
-// brokers/user/fetch/user-fetch-broker.ts
-export const userFetchBroker = async ({userId}: { userId: UserId }): Promise<User> => {
-    // Check cache first
-    const cached = userCacheState.get({id: userId});
-    if (cached) return cached;
-
-    // Not in cache, fetch from API
-    const response = await httpAdapter({url: `/users/${userId}`});
-    const user = userContract.parse(response.data);
-
-    // Store in cache
-    userCacheState.set({id: userId, user});
-    return user;
-};
-
-// brokers/user/fetch/user-fetch-broker.proxy.ts
 export const userFetchBrokerProxy = () => {
     const httpProxy = httpAdapterProxy();
-    const cacheProxy = userCacheStateProxy(); // State proxy clears + spies
+    const cacheProxy = userCacheStateProxy(); // Clears state + sets up spies
 
     return {
-        // Cache hit scenario
-        setupCachedUser: ({userId, user}: { userId: UserId; user: User }): void => {
-            cacheProxy.setupCachedUser({userId, user}); // Delegate to state proxy
-            // No HTTP mock needed - broker won't call it
+        setupCachedUser: ({userId, user}): void => {
+            cacheProxy.setupCachedUser({userId, user}); // HTTP won't be called
         },
-
-        // Cache miss scenario
-        setupUserFetch: ({userId, user}: { userId: UserId; user: User }): void => {
-            // Cache already cleared by state proxy
-            httpProxy.returns({url: `/users/${userId}`, response: {data: user, status: 200}});
-        },
-
-        // Verification helpers
-        isCached: ({userId}: { userId: UserId }): boolean => {
-            return cacheProxy.getCachedUser({userId}) !== undefined;
-        },
-
-        getHttpCallCount: (): number => httpProxy.getCallCount()
-    };
-};
-
-// Test: Cache hit
-it('VALID: {userId in cache} => returns cached user without HTTP call', async () => {
-    const brokerProxy = userFetchBrokerProxy();
-    const userId = UserIdStub('user-1');
-    const user = UserStub({id: userId, name: 'Jane'});
-
-    brokerProxy.setupCachedUser({userId, user});
-
-    const result = await userFetchBroker({userId});
-
-    expect(result).toStrictEqual(user);
-    expect(brokerProxy.getHttpCallCount()).toBe(0); // No HTTP call
-    expect(brokerProxy.isCached({userId})).toBe(true);
-});
-
-// Test: Cache miss
-it('VALID: {userId not in cache} => fetches from API and caches', async () => {
-    const brokerProxy = userFetchBrokerProxy();
-    const userId = UserIdStub('user-1');
-    const user = UserStub({id: userId, name: 'Jane'});
-
-    brokerProxy.setupUserFetch({userId, user});
-
-    const result = await userFetchBroker({userId});
-
-    expect(result).toStrictEqual(user);
-    expect(brokerProxy.getHttpCallCount()).toBe(1); // HTTP was called
-    expect(brokerProxy.isCached({userId})).toBe(true); // Now cached
-});
-```
-
-### Key Principles
-
-1. **Only adapters mock npm dependencies** - Use `jest.mock()` + `jest.mocked()`
-2. **Global mocks in proxy constructor** - Set when proxy is created
-3. **State proxies use jest.spyOn()** - Track calls, clear state between tests
-4. **External state mocks npm package** - Swap Redis → RedisMock, pg → pg-mem
-5. **Setup flows UP** - widgetProxy → bindingProxy → brokerProxy → stateProxy + adapterProxy
-6. **Execution flows DOWN** - Widget → Binding → Broker → State (all REAL) + Adapter (all REAL except npm package)
-7. **Semantic methods** - `setupOwnProfile()` not `mockHttpCall()`
-8. **Create per test** - Fresh proxy in each test, mocks auto-reset via @questmaestro/testing
-9. **Don't construct generated values** - Let functions generate via mocked globals, verify they used them
-10. **Guards run real** - Guard proxies build test data, don't mock the guard
-11. **State runs real** - State proxies spy and clear, don't mock state methods
-12. **Everything runs real** - Only npm dependencies and globals are mocked
-
-## Mocking Pattern (Universal)
-
-### The One Pattern: `jest.mock()` + `jest.mocked()`
-
-**IMPORTANT: This pattern is used INSIDE PROXY FILES, not directly in tests.** Tests interact with proxies using
-semantic methods. Proxies encapsulate all mock setup.
-
-**Use this pattern in `.proxy.ts` files** for mocking adapters and npm packages:
-
-```typescript
-// adapters/fs/fs-read-file-adapter.proxy.ts
-import {readFile} from 'fs/promises';
-
-// Mock npm package (automatically hoisted)
-jest.mock('fs/promises');
-
-export const fsReadFileAdapterProxy = () => {
-    // Type-safe mock access
-    const mockReadFile = jest.mocked(readFile);
-
-    // Setup default behavior (runs when proxy created)
-    mockReadFile.mockImplementation(async () => Buffer.from(''));
-
-    return {
-        returns: ({filePath, contents}: { filePath: FilePath; contents: FileContents }): void => {
-            mockReadFile.mockResolvedValueOnce(Buffer.from(contents));
-        },
-
-        throws: ({filePath, error}: { filePath: FilePath; error: Error }): void => {
-            mockReadFile.mockRejectedValueOnce(error);
+        setupUserFetch: ({userId, user}): void => {
+            httpProxy.returns({url: UrlStub(`/users/${userId}`), response: {data: user, status: HttpStatusStub(200)}});
+            // Cache already cleared by state proxy constructor
         }
     };
 };
-
-// Test uses proxy, not direct mocks
-import {fsReadFileAdapter} from './fs-read-file-adapter';
-import {fsReadFileAdapterProxy} from './fs-read-file-adapter.proxy';
-
-it('VALID: reads file', async () => {
-    const adapterProxy = fsReadFileAdapterProxy();  // Proxy sets up mocks
-    const filePath = FilePathStub('/config.json');
-    const contents = FileContentsStub('data');
-
-    adapterProxy.returns({filePath, contents});  // Semantic setup
-
-    const result = await fsReadFileAdapter({filePath});
-
-    expect(result).toStrictEqual(contents);
-});
 ```
 
-### Why This Pattern Works
+## Mocking Mechanics
 
-**`jest.mock()` is hoisted** - even though it appears after imports, Jest automatically moves it to run FIRST:
+### jest.mock() + jest.mocked()
+
+**Used in proxy files, not tests.** `jest.mock()` is automatically hoisted to run before imports. `jest.mocked()`
+provides type-safe access.
 
 ```typescript
-// You write this:
-import {fsReadFile} from './adapter';
+import {readFile} from 'fs/promises';
+jest.mock('fs/promises');  // Hoisted automatically
 
-jest.mock('./adapter');
-
-// Jest executes as:
-jest.mock('./adapter');  // Runs FIRST
-import {fsReadFile} from './adapter';  // Gets mocked version
+export const fsReadFileAdapterProxy = () => {
+    const mockReadFile = jest.mocked(readFile);  // Type-safe
+    mockReadFile.mockImplementation(async () => Buffer.from(''));
+    return { /* semantic methods */ };
+};
 ```
 
-**`jest.mocked()` provides type safety** - no unsafe type assertions needed:
+### jest.spyOn() for Globals Only
+
+Use `jest.spyOn()` for global objects (crypto, Date, console), not module imports:
 
 ```typescript
-// ✅ CORRECT - Type-safe
-const mockFn = jest.mocked(myFunction);
-mockFn.mockReturnValue('value'); // TypeScript knows the return type
-
-// ❌ WRONG - Unsafe type assertion (causes ESLint errors)
-const mockFn = myFunction as jest.MockedFunction<typeof myFunction>;
-```
-
-### When to Use `jest.spyOn()` Instead
-
-**ONLY use `jest.spyOn()` for global objects** (crypto, Date, window, console) when in proxies:
-
-```typescript
-// ✅ CORRECT - spyOn for global objects
+// ✅ CORRECT - Global objects
 jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
-jest.spyOn(console, 'log').mockImplementation();
 
-// ❌ WRONG - Don't use spyOn for module imports
+// ❌ WRONG - Module imports (use jest.mock instead)
 import * as adapter from './adapter';
 
-jest.spyOn(adapter, 'fsReadFile'); // Doesn't work! Use jest.mock() instead
+jest.spyOn(adapter, 'fsReadFile'); // Doesn't work!
 ```
 
-**Why spyOn doesn't work for module imports:** When your code does `import { fsReadFileAdapter }`, it creates a direct
-binding
-to the real function, bypassing any spy on the namespace object.
+### Branded Types
 
-### Mocking with Branded Types
-
-When using Zod branded types, mocks must use the branded type:
+When mocking functions that return branded types, use the contract to create branded values:
 
 ```typescript
-// contracts/file-contents/file-contents-contract.ts
-export const fileContentsContract = z.string().brand<'FileContents'>();
-export type FileContents = z.infer<typeof fileContentsContract>;
+// ❌ WRONG
+mockFsReadFileAdapter.mockResolvedValue('plain string'); // Type error
 
-// adapter returns branded type
-export const fsReadFileAdapter = async ({filePath}: { filePath: FilePath }): Promise<FileContents> =>
-    fileContentsContract.parse(await readFile(filePath, 'utf8'));
+// ✅ CORRECT
+mockFsReadFileAdapter.mockResolvedValue(fileContentsContract.parse('content'));
 
-// test - must use branded type
-jest.mock('../../../adapters/fs/fs-read-file-adapter');
-const mockFsReadFileAdapter = jest.mocked(fsReadFileAdapter);
-
-it('VALID: reads file', async () => {
-    // ❌ WRONG - Type error: string is not FileContents
-    mockFsReadFileAdapter.mockResolvedValue('plain string');
-
-    // ✅ CORRECT - Use contract to create branded type
-    const contents = fileContentsContract.parse('mocked content');
-    mockFsReadFileAdapter.mockResolvedValue(contents);
-
-    // ✅ CORRECT - Or inline
-    mockFsReadFileAdapter.mockResolvedValue(fileContentsContract.parse('mocked content'));
-});
+// ✅ BETTER - Use stub
+mockFsReadFileAdapter.mockResolvedValue(FileContentsStub('content'));
 ```
-
-**Create test stubs for commonly mocked branded types:**
-
-Stubs are co-located with their contracts using the `.stub.ts` extension:
-
-```typescript
-// contracts/file-contents/file-contents.stub.ts
-import {fileContentsContract, type FileContents} from './file-contents-contract';
-
-export const FileContentsStub = (value: string): FileContents =>
-    fileContentsContract.parse(value);
-
-// contracts/file-path/file-path.stub.ts
-import {filePathContract, type FilePath} from './file-path-contract';
-
-export const FilePathStub = (value: string): FilePath =>
-    filePathContract.parse(value);
-
-// Usage in tests (from adapters/fs/fs-read-file-adapter.test.ts)
-import {FileContentsStub} from '../../contracts/file-contents/file-contents.stub';
-import {FilePathStub} from '../../contracts/file-path/file-path.stub';
-
-const filePath = FilePathStub('/config.json');
-const fileContents = FileContentsStub('mocked content');
-
-mockFsReadFileAdapter.mockResolvedValue(fileContents);
-expect(mockFsReadFileAdapter).toHaveBeenCalledWith({filePath});
-```
-
-### What to Mock (In Proxy Files)
-
-**IMPORTANT: This guidance applies to `.proxy.ts` files, not test files.** Tests use proxy semantic methods. Proxies
-handle all mock setup internally.
-
-**In proxy files, mock:**
-
-- **npm packages** - External libraries (axios, fs/promises, ioredis, etc.) - mocked in adapter proxies
-- **Global objects** - Non-deterministic functions (crypto, Date, console) - mocked in broker/binding proxies
-- **State systems** - External state (Redis, DB pools) - swap with in-memory versions in state proxies
-
-**Never mock in proxies:**
-
-- **Application code** - Adapters, brokers, transformers, guards all run REAL
-- **Contracts** - Pure Zod schemas (no side effects)
-- **Type imports** - `import type { ... }`
-
-**Why everything runs real:** The proxy architecture mocks ONLY at I/O boundaries (npm packages, globals). All
-application code runs real to ensure contract integrity across layers.
-
-```typescript
-// ✅ CORRECT - Adapter proxy mocks npm package
-// adapters/fs/fs-read-file-adapter.proxy.ts
-import {readFile} from 'fs/promises';
-
-jest.mock('fs/promises');  // Mock npm package
-
-export const fsReadFileAdapterProxy = () => {
-    const mockReadFile = jest.mocked(readFile);
-    mockReadFile.mockImplementation(async () => Buffer.from(''));
-
-    return {
-        returns: ({filePath, contents}: { filePath: FilePath; contents: FileContents }): void => {
-            mockReadFile.mockResolvedValueOnce(Buffer.from(contents));
-        }
-    };
-};
-
-// ✅ CORRECT - Broker proxy creates adapter proxy, mocks globals
-// brokers/config/load/config-load-broker.proxy.ts
-import {fsReadFileAdapterProxy} from '../../../adapters/fs/fs-read-file-adapter.proxy';
-
-export const configLoadBrokerProxy = () => {
-    const fsProxy = fsReadFileAdapterProxy();  // Adapter proxy sets up fs mock
-
-    // Mock globals for predictable values (constructor setup)
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
-
-    return {
-        setupConfigLoad: ({filePath, contents, config}: {
-            filePath: FilePath;
-            contents: FileContents;
-            config: Config;
-        }): void => {
-            fsProxy.returns({filePath, contents});
-            // configParseBroker runs REAL - no mock needed
-        }
-    };
-};
-
-// ✅ CORRECT - Test uses proxy
-it('VALID: loads config', async () => {
-    const brokerProxy = configLoadBrokerProxy();  // Sets up all mocks
-    const filePath = FilePathStub('/config.json');
-    const contents = FileContentsStub('{"key": "value"}');
-    const config = ConfigStub({key: 'value'});
-
-    brokerProxy.setupConfigLoad({filePath, contents, config});
-
-    const result = await configLoadBroker({filePath});
-
-    expect(result).toStrictEqual({
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',  // From mocked crypto
-        timestamp: 1609459200000,                    // From mocked Date
-        config,
-        synced: true
-    });
-});
-
-// ❌ WRONG - Don't mock application code in proxies
-jest.mock('../../../brokers/config/parse');  // NO! Broker runs real
-
-// ❌ WRONG - Don't mock directly in tests
-it('test', () => {
-    jest.mocked(fsReadFileAdapter).mockResolvedValue(...);  // NO! Use proxy
-});
-```
-
-**The Pattern:**
-
-- **Adapter proxies**: Mock npm packages (`jest.mock('axios')`)
-- **Broker proxies**: Create adapter proxies + mock globals
-- **Widget/Responder proxies**: Create broker proxies (inherit all mocks)
-- **Tests**: Create proxy, use semantic methods, test real code
 
 ## Common Anti-Patterns (Avoid These!)
 
-1. **Property Bleedthrough**: Using partial matchers that miss extra properties
-2. **Testing Implementation**: Spying on internal methods instead of outputs
-3. **Shared Test State**: Tests depending on each other
-4. **Existence-Only Checks**: Using toBeDefined() instead of actual values
-5. **Count-Only Checks**: Testing length without verifying content
-6. **Direct Mock Manipulation in Tests**: Using `jest.mocked()` directly in tests instead of proxy semantic methods
-7. **Mocking Application Code**: Using `jest.mock()` on adapters/brokers/transformers - only mock npm packages in
-   proxies
-8. **Unit Testing DSL Logic**: Mocking systems that interpret your DSL/query language (ESLint selectors, SQL queries,
-   GraphQL schemas)
-9. **Conditional Mocking**: Using if/else logic inside mock implementations
-10. **String IDs**: Using 'user-123' instead of proper UUIDs
-11. **Comment Organization**: Using comments instead of describe blocks for test structure
-12. **Manual Mock Cleanup**: Calling `mockReset()`, `mockClear()`, `clearAllMocks()` - @questmaestro/testing handles
-    this globally
-13. **Type Escape Hatches**: Using `any`, `as`, `@ts-ignore` in tests
-14. **Using `jest.spyOn()` for Module Imports**: Only use spyOn for global objects (crypto, Date, window)
-15. **Unsafe Type Assertions in Mocks**: Using `as jest.MockedFunction<typeof fn>` instead of `jest.mocked()`
-16. **Manual Mock Factories**: Using `jest.mock('module', () => ({ fn: jest.fn() }))` when auto-mocking works
-17. **Importing Before Mocking**: Worrying about import order (jest.mock is hoisted automatically)
-18. **Using Jest in Stubs**: Calling `jest.fn()` inside stub files - stubs accept mocks via props instead
-19. **Missing Contract Stubs**: Not creating stubs for contracts used in tests - every contract needs a `.stub.ts`
-20. **Mocking npm Types Directly**: Trying to mock library types instead of using contract stubs for translated types
-21. **Shared Proxy Instances**: Creating proxy once outside tests - always create fresh proxy per test
-22. **Bootstrap Pattern**: Using `proxy.bootstrap()` method - proxies use constructor setup now
+### Assertion Anti-Patterns
+
+- **Property Bleedthrough**: Using partial matchers (toMatchObject, toContain) that miss extra properties
+- **Existence-Only Checks**: Using toBeDefined() instead of testing actual values
+- **Count-Only Checks**: Testing array.length without verifying complete content
+
+### Mock/Proxy Anti-Patterns
+
+- **Direct Mock Manipulation**: Using `jest.mocked()` directly in tests instead of proxy semantic methods
+- **Mocking Application Code**: Using `jest.mock()` on application code - only mock npm packages in proxies
+- **Conditional Mocking**: Using if/else logic inside mock implementations
+- **Manual Mock Cleanup**: Calling `mockReset()`, `mockClear()`, `clearAllMocks()` - @questmaestro/testing handles this
+- **Using jest.spyOn() for Modules**: Only use spyOn for global objects (crypto, Date), not module imports
+- **Unsafe Type Assertions**: Using `as jest.MockedFunction<typeof fn>` instead of `jest.mocked()`
+- **Manual Mock Factories**: Using `jest.mock('module', () => ({...}))` when auto-mocking works
+- **Shared Proxy Instances**: Creating proxy once outside tests - always create fresh proxy per test
+- **Bootstrap Pattern**: Using `proxy.bootstrap()` method - proxies use constructor setup instead
+
+### Stub Anti-Patterns
+
+- **Using Jest in Stubs**: Calling `jest.fn()` inside stub files - stubs accept mocks via props
+- **Missing Contract Stubs**: Not creating `.stub.ts` files for contracts used in tests
+- **Mocking npm Types Directly**: Trying to mock library types instead of using contract stubs
+
+### Type Safety Anti-Patterns
+
+- **Type Escape Hatches**: Using `any`, `as`, `@ts-ignore` in tests
+
+### Test Organization Anti-Patterns
+
+- **Testing Implementation**: Spying on internal methods instead of testing outputs
+- **Shared Test State**: Tests depending on each other or shared setup
+- **Unit Testing DSL Logic**: Mocking systems that interpret DSL/queries (ESLint selectors, SQL, GraphQL)
+- **String IDs**: Using 'user-123' instead of proper UUIDs (use 'f47ac10b-58cc-4372-a567-0e02b2c3d479')
+- **Comment Organization**: Using comments instead of describe blocks for test structure
 
 ## Forbidden Jest Matchers
 
@@ -1461,13 +935,17 @@ describe("UserValidator", () => {
 - **Complex state**: Multi-step process to reach specific test state
 - **One stub function export** (primary)
 
-### Stub Factory Pattern (Type-Safe)
+### Stub Factory Pattern
 
-**Stubs are co-located with contracts using `.stub.ts` extension:**
+**Stubs are data factories that create valid instances of a type with sensible defaults. They are co-located with
+contracts using `.stub.ts` extension.**
+
+Stubs accept overrides via props. When tests need to verify function calls, they pass `jest.fn()` to the stub. **Stubs
+never use `jest.fn()` internally** - they accept mocks via props.
 
 ```typescript
 // contracts/user/user.stub.ts
-import type {User} from './user-contract'; // Co-located with contract
+import type {User} from './user-contract';
 
 export const UserStub = (props: Partial<User> = {}): User => ({
     id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', // Always use UUIDs
@@ -1476,24 +954,9 @@ export const UserStub = (props: Partial<User> = {}): User => ({
     ...props,
 });
 
-// ❌ WRONG - Never use any or type escapes
-const BadStub = (props: any = {}): any => ({ // NO!
-    ...props
-});
-```
-
-### Stub Pattern
-
-**Stubs are data factories that create valid instances of a type with sensible defaults.**
-
-Stubs provide default values and accept overrides via props. When tests need to verify function calls, they pass
-`jest.fn()` to the stub:
-
-```typescript
-// ✅ CORRECT - Stub provides defaults, accepts overrides
+// contracts/thing/thing.stub.ts - with function property
 export const ThingStub = (props: Partial<Thing> = {}): Thing => ({
-    someFunction: (): void => {
-    }, // Default no-op
+    someFunction: (): void => {}, // Default no-op
     ...props, // Test overrides here
 });
 
@@ -1506,9 +969,12 @@ it('VALID: calls function', () => {
 
     expect(mockFn).toHaveBeenCalledTimes(1);
 });
-```
 
-**Stubs never use `jest.fn()` internally** - they accept mocks via props.
+// ❌ WRONG - Never use any or type escapes
+const BadStub = (props: any = {}): any => ({ // NO!
+    ...props
+});
+```
 
 ### Contract Stubs
 
@@ -1664,40 +1130,23 @@ expect(element).toHaveTextContent(/^Exact Text$/);
 
 ### Node.js API Testing
 
-**Use responder proxies** that delegate to broker/adapter proxies for all mock setup:
+Use responder proxies that delegate to broker/adapter proxies:
 
 ```typescript
-// responders/user/create/user-create-responder.test.ts
-import {UserCreateResponder} from './user-create-responder';
-import {userCreateResponderProxy} from './user-create-responder.proxy';
-import {UserDataStub} from '../../../contracts/user-data/user-data.stub';
-import {UserStub} from '../../../contracts/user/user.stub';
-import {UserIdStub} from '../../../contracts/user-id/user-id.stub';
-
 describe("UserCreateResponder", () => {
     describe("POST /users", () => {
         it("VALID: {name: 'John', email: 'john@test.com'} => returns 201", async () => {
-            // Create proxy (sets up all mocks including globals)
             const responderProxy = userCreateResponderProxy();
-
-            const userId = UserIdStub('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-            const userData = UserDataStub({
-                name: 'John',
-                email: 'john@test.com'
-            });
             const user = UserStub({
-                id: userId,
+                id: UserIdStub('f47ac10b-58cc-4372-a567-0e02b2c3d479'),
                 name: 'John',
                 email: 'john@test.com',
                 createdAt: 1609459200000
             });
 
-            // Semantic setup - proxy handles all mock configuration
-            responderProxy.setupUserCreate({userData, user});
+            responderProxy.setupUserCreate({userData: {name: 'John', email: 'john@test.com'}, user});
 
-            const res = await request(app)
-                .post('/users')
-                .send({name: 'John', email: 'john@test.com'});
+            const res = await request(app).post('/users').send({name: 'John', email: 'john@test.com'});
 
             expect(res.status).toBe(201);
             expect(res.body).toStrictEqual({
@@ -1705,49 +1154,18 @@ describe("UserCreateResponder", () => {
                 name: 'John',
                 email: 'john@test.com',
                 createdAt: 1609459200000
-                // Must test ALL properties to prevent bleedthrough
             });
         });
 
         it("INVALID_EMAIL: {email: 'bad'} => returns 400", async () => {
-            // No proxy needed for validation-only test (no broker called)
-            const res = await request(app)
-                .post('/users')
-                .send({name: 'John', email: 'bad'});
+            const res = await request(app).post('/users').send({name: 'John', email: 'bad'});
 
             expect(res.status).toBe(400);
-            expect(res.body).toStrictEqual({
-                error: 'Invalid email',
-                code: 'INVALID_EMAIL'
-                // Test complete error object
-            });
+            expect(res.body).toStrictEqual({error: 'Invalid email', code: 'INVALID_EMAIL'});
         });
     });
 });
-
-// responders/user/create/user-create-responder.proxy.ts
-import {userCreateBrokerProxy} from '../../../brokers/user/create/user-create-broker.proxy';
-import type {UserData} from '../../../contracts/user-data/user-data-contract';
-import type {User} from '../../../contracts/user/user-contract';
-
-export const userCreateResponderProxy = () => {
-    // Delegates to broker proxy (which sets up adapter mocks + globals)
-    const brokerProxy = userCreateBrokerProxy();
-
-    return {
-        setupUserCreate: ({userData, user}: { userData: UserData; user: User }): void => {
-            brokerProxy.setupUserCreate({userData, user});
-        }
-    };
-};
 ```
-
-**Key principles:**
-
-- Tests use **proxy semantic methods**, not direct mock manipulation
-- Proxies encapsulate all mock setup (adapters, globals, state)
-- Each test creates a **fresh proxy** (constructor sets up mocks automatically)
-- @questmaestro/testing auto-clears mocks after each test
 
 ### CLI/NPX Library Testing
 ```typescript
