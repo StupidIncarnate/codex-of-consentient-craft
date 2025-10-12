@@ -11,6 +11,9 @@ After your determination, add the functionality and tests.
 Only ensure tests pass. Do not run lint, do not run typecheck and do not modify any files outside
 `packages/eslint-plugin/src/`.
 
+If the User Input mentions anything about create*Proxy, that has changed. Proxies are only *Proxy to match their
+filename.
+
 Do not look at anything in `packages/standards/proxy-mocking`
 
 ## User Input

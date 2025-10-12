@@ -15,40 +15,6 @@
 
 ---
 
-### Rule 13: No Mutable State Inside Proxy Factory
-
-**Rule:** `proxy-no-mutable-state`
-
-**What it checks:**
-
-- Only applies to `.proxy.ts` files
-- Finds exported `create*Proxy` function declarations
-- Scans function body for `let` or `var` declarations
-- Allows `jest.mocked()` and child proxy creation, but forbids other mutable state
-
-**Detection logic:**
-
-1. Identifies ExportNamedDeclaration with VariableDeclaration
-2. Checks if declarator name starts with `create` and ends with `Proxy`
-3. Recursively traverses the factory function body
-4. For each VariableDeclaration found:
-    - Checks if kind is `let` or `var`
-    - Examines the initializer to determine if it's allowed:
-        - **Allowed:** `jest.mocked(...)` calls
-        - **Allowed:** `create*Proxy()` calls (child proxies)
-        - **Forbidden:** All other mutable state
-
-**Violations:**
-
-- Using `let` or `var` for non-mock, non-proxy variables inside the proxy factory
-- Mutable state that should be at module level or in setup methods
-
-**Messages:**
-
-- `'Proxy factory cannot contain mutable state (let/var). Use module-level state or jest.mocked() references instead.'`
-- Suggestion: `'Move mutable state outside the factory function to module level.'`
-
----
 
 ### Rule 15: Proxy Instances Must Be Exported Const at Module Level
 
@@ -57,7 +23,7 @@
 **What it checks:**
 
 - Only applies to `.test.ts` and `.test.tsx` files
-- Detects proxy creation calls (`create*Proxy()`)
+- Detects proxy creation calls (`*Proxy()`)
 - Verifies proxies are declared with `const` (not `let` or `var`)
 - Ensures proxies are exported at module level
 - Prevents proxy creation inside describe/it blocks
@@ -65,15 +31,15 @@
 **Detection logic:**
 
 1. Scans VariableDeclaration nodes in test files
-2. Identifies declarations where init is a CallExpression with name starting with `create` and ending with `Proxy`
+2. Identifies declarations where init is a CallExpression with name ending with `Proxy`
 3. Checks if declaration kind is `const`
 4. Checks if parent node is ExportNamedDeclaration
 5. Walks up ancestor tree to verify not inside `describe`, `it`, or `test` blocks
 
 **Violations:**
 
-- Proxy instance not exported: `const widgetProxy = createWidgetProxy()`
-- Using `let` or `var`: `export let widgetProxy = createWidgetProxy()`
+- Proxy instance not exported: `const widgetProxy = widgetProxy()`
+- Using `let` or `var`: `export let widgetProxy = WidgetProxy()`
 - Creating proxy inside describe/it block
 
 **Messages:**
