@@ -16,18 +16,44 @@ beforeEach(() => {
     const existingTestFiles = [
       '/project/src/brokers/user/fetch/user-fetch-broker.test.ts',
       '/project/src/transformers/format-date/format-date-transformer.test.ts',
-      '/project/src/adapters/axios/axios-get.test.ts',
+      '/project/src/adapters/axios/axios-get-adapter.test.ts',
       '/project/src/guards/has-permission/has-permission-guard.test.ts',
       '/project/src/widgets/my-component/my-component-widget.test.tsx',
       '/project/src/contracts/user/user-contract.test.ts',
       '/project/src/contracts/order/order-contract.test.ts',
-      '/project/src/utils/helper/helper-utils.spec.ts',
-      '/project/src/services/auth/auth-service.spec.ts',
       '/project/src/brokers/payment/process/payment-process-broker.integration.test.ts',
       '/project/src/transformers/validate-schema/validate-schema-transformer.integration.spec.ts',
+      '/project/src/state/user-cache/user-cache-state.test.ts',
+      '/project/src/middleware/http-telemetry/http-telemetry-middleware.test.ts',
+      '/project/src/statics/user/user-statics.test.ts',
+      '/project/src/responders/user/get/user-get-responder.test.ts',
+      '/project/src/bindings/use-user-data/use-user-data-binding.test.ts',
+      '/project/src/errors/validation/validation-error.test.ts',
+      '/project/src/flows/user/user-flow.integration.test.tsx',
+      '/project/src/startup/start-server.integration.test.ts',
     ];
 
     if (existingTestFiles.includes(path)) {
+      return true;
+    }
+
+    // Proxy files that exist (for valid cases)
+    const existingProxyFiles = [
+      '/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts',
+      '/project/src/transformers/format-date/format-date-transformer.proxy.ts',
+      '/project/src/adapters/axios/axios-get-adapter.proxy.ts',
+      '/project/src/guards/has-permission/has-permission-guard.proxy.ts',
+      '/project/src/widgets/my-component/my-component-widget.proxy.tsx',
+      '/project/src/state/user-cache/user-cache-state.proxy.ts',
+      '/project/src/middleware/http-telemetry/http-telemetry-middleware.proxy.ts',
+      '/project/src/statics/user/user-statics.proxy.ts',
+      '/project/src/responders/user/get/user-get-responder.proxy.ts',
+      '/project/src/bindings/use-user-data/use-user-data-binding.proxy.ts',
+      '/project/src/brokers/payment/process/payment-process-broker.proxy.ts',
+      '/project/src/transformers/validate-schema/validate-schema-transformer.proxy.ts',
+    ];
+
+    if (existingProxyFiles.includes(path)) {
       return true;
     }
 
@@ -54,8 +80,8 @@ ruleTester.run('enforce-implementation-testing', enforceImplementationTestingRul
       filename: '/project/src/transformers/format-date/format-date-transformer.ts',
     },
     {
-      code: 'export const axiosGet = () => {};',
-      filename: '/project/src/adapters/axios/axios-get.ts',
+      code: 'export const axiosGetAdapter = () => {};',
+      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
     },
     {
       code: 'export const hasPermissionGuard = () => {};',
@@ -64,15 +90,6 @@ ruleTester.run('enforce-implementation-testing', enforceImplementationTestingRul
     {
       code: 'export const MyComponent = () => <div />;',
       filename: '/project/src/widgets/my-component/my-component-widget.tsx',
-    },
-    // Implementation files with spec files instead of test files
-    {
-      code: 'export const helperUtils = () => {};',
-      filename: '/project/src/utils/helper/helper-utils.ts',
-    },
-    {
-      code: 'export const authService = () => {};',
-      filename: '/project/src/services/auth/auth-service.ts',
     },
     // Implementation files with integration test files
     {
@@ -105,6 +122,27 @@ ruleTester.run('enforce-implementation-testing', enforceImplementationTestingRul
       code: 'export const config = {};',
       filename: '/project/config.ts',
     },
+    // Testable files with both test and proxy files
+    {
+      code: 'export const userCacheState = {};',
+      filename: '/project/src/state/user-cache/user-cache-state.ts',
+    },
+    {
+      code: 'export const httpTelemetryMiddleware = () => {};',
+      filename: '/project/src/middleware/http-telemetry/http-telemetry-middleware.ts',
+    },
+    {
+      code: 'export const userStatics = {};',
+      filename: '/project/src/statics/user/user-statics.ts',
+    },
+    {
+      code: 'export const UserGetResponder = () => {};',
+      filename: '/project/src/responders/user/get/user-get-responder.ts',
+    },
+    {
+      code: 'export const useUserDataBinding = () => {};',
+      filename: '/project/src/bindings/use-user-data/use-user-data-binding.ts',
+    },
     // Additional files with multiple dots that should be skipped
     {
       code: 'export const appConfigStatics = {};',
@@ -126,33 +164,46 @@ ruleTester.run('enforce-implementation-testing', enforceImplementationTestingRul
       code: 'export const userFixtureContract = {};',
       filename: '/project/src/contracts/user/user.stub.ts',
     },
+    // Files that do NOT need proxy files (per testing-standards.md:403-418)
+    {
+      code: 'export class ValidationError extends Error {}',
+      filename: '/project/src/errors/validation/validation-error.ts',
+    },
+    {
+      code: 'export const UserFlow = () => <Route />;',
+      filename: '/project/src/flows/user/user-flow.tsx',
+    },
+    {
+      code: 'export const StartServer = () => {};',
+      filename: '/project/src/startup/start-server.ts',
+    },
   ],
   invalid: [
-    // Implementation files without tests
+    // Implementation files without tests or proxy
     {
       code: 'export const orderFetchBroker = () => {};',
       filename: '/project/src/brokers/order/fetch/order-fetch-broker.ts',
-      errors: [{ messageId: 'missingTestFile' }],
+      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
     },
     {
       code: 'export const parseJsonTransformer = () => {};',
       filename: '/project/src/transformers/parse-json/parse-json-transformer.ts',
-      errors: [{ messageId: 'missingTestFile' }],
+      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
     },
     {
-      code: 'export const axiosPost = () => {};',
-      filename: '/project/src/adapters/axios/axios-post.ts',
-      errors: [{ messageId: 'missingTestFile' }],
+      code: 'export const axiosPostAdapter = () => {};',
+      filename: '/project/src/adapters/axios/axios-post-adapter.ts',
+      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
     },
     {
       code: 'export const isAdminGuard = () => {};',
       filename: '/project/src/guards/is-admin/is-admin-guard.ts',
-      errors: [{ messageId: 'missingTestFile' }],
+      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
     },
     {
       code: 'export const ButtonWidget = () => <button />;',
       filename: '/project/src/widgets/button/button-widget.tsx',
-      errors: [{ messageId: 'missingTestFile' }],
+      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
     },
     // Contract without test file
     {

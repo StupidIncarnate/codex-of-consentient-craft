@@ -8,11 +8,13 @@ export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({
     type: 'problem',
     docs: {
       description:
-        'Enforce implementation files have colocated test files, and contract files have both test and stub files',
+        'Enforce implementation files have colocated test and proxy files, and contract files have both test and stub files',
     },
     messages: {
       missingTestFile:
         'Implementation file must have a colocated test file. Create {{testFileName}} (or .integration.test.ts or .spec.ts variant) in the same directory.',
+      missingProxyFile:
+        'Testable file must have a colocated proxy file. Create {{proxyFileName}} in the same directory.',
       missingStubFile:
         'Contract file must have a colocated stub file. Create {{stubFileName}} in the same directory.',
       missingContractTestFile:
@@ -58,11 +60,10 @@ export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({
             testFileName: primaryTestFileName.split('/').pop() ?? primaryTestFileName,
           },
         });
-        return;
       }
 
-      // For contract files, also check for stub file
-      if (isContract) {
+      // For contract files, also check for stub file (only if test file exists)
+      if (isContract && hasTestFile) {
         const stubFileName = filename.replace(/-contract\.ts$/u, '.stub.ts');
         const stubFilePath = filePathContract.parse(stubFileName);
         const hasStubFile = fsExistsSyncAdapter({ filePath: stubFilePath });
@@ -73,6 +74,35 @@ export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({
             messageId: 'missingStubFile',
             data: {
               stubFileName: stubFileName.split('/').pop() ?? stubFileName,
+            },
+          });
+        }
+      }
+
+      // Check for proxy file on files that need proxies (per testing-standards.md:403-418)
+      // Files that do NOT need proxies: contracts (use stubs), errors (throw directly), flows/startup (integration tests)
+      const excludedFromProxyPatterns = [
+        /-contract\.ts$/u,
+        /\.stub\.ts$/u,
+        /-error\.ts$/u,
+        /-flow\.tsx?$/u,
+        /\/startup\//u,
+      ];
+
+      const needsProxyFile = !excludedFromProxyPatterns.some((pattern) => pattern.test(filename));
+
+      if (needsProxyFile) {
+        // Derive expected proxy file name
+        const proxyFileName = filename.replace(/\.tsx?$/u, '.proxy$&');
+        const proxyFilePath = filePathContract.parse(proxyFileName);
+        const hasProxyFile = fsExistsSyncAdapter({ filePath: proxyFilePath });
+
+        if (!hasProxyFile) {
+          context.report({
+            node,
+            messageId: 'missingProxyFile',
+            data: {
+              proxyFileName: proxyFileName.split('/').pop() ?? proxyFileName,
             },
           });
         }
