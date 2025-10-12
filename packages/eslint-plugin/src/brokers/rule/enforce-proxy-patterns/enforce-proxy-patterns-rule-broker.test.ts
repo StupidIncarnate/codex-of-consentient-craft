@@ -484,7 +484,10 @@ ruleTester.run('enforce-proxy-patterns', enforceProxyPatternsRuleBroker(), {
       `,
       filename: '/project/src/transformers/user/user-transformer.proxy.ts',
       errors: [
-        { messageId: 'proxyNotColocated', data: { expectedPath: '/project/src/transformers/user/user-transformer.ts' } },
+        {
+          messageId: 'proxyNotColocated',
+          data: { expectedPath: '/project/src/transformers/user/user-transformer.ts' },
+        },
         { messageId: 'jestMockedOnlyNpmPackages', data: { name: 'userTransformer' } },
       ],
     },
@@ -501,7 +504,10 @@ ruleTester.run('enforce-proxy-patterns', enforceProxyPatternsRuleBroker(), {
       `,
       filename: '/project/src/widgets/user/user-widget.proxy.ts',
       errors: [
-        { messageId: 'proxyNotColocated', data: { expectedPath: '/project/src/widgets/user/user-widget.ts' } },
+        {
+          messageId: 'proxyNotColocated',
+          data: { expectedPath: '/project/src/widgets/user/user-widget.ts' },
+        },
         { messageId: 'jestMockedOnlyNpmPackages', data: { name: 'UserWidget' } },
       ],
     },

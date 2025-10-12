@@ -747,19 +747,23 @@ export const UserFlow = router;
 ```
 adapters/
   axios/
-    axios-get-adapter.ts
-    axios-get-adapter.proxy.ts       # Mocks axios npm package
-    axios-get-adapter.test.ts
-    axios-post-adapter.ts
-    axios-post-adapter.proxy.ts
-    axios-post-adapter.test.ts
+    get/
+      axios-get-adapter.ts
+      axios-get-adapter.proxy.ts       # Mocks axios npm package
+      axios-get-adapter.test.ts
+    post/
+      axios-post-adapter.ts
+      axios-post-adapter.proxy.ts
+      axios-post-adapter.test.ts
   fs/
-    fs-read-file-adapter.ts
-    fs-read-file-adapter.proxy.ts    # Mocks fs/promises npm package
-    fs-read-file-adapter.test.ts
-    fs-ensure-write-adapter.ts       # Composes mkdir + writeFile
-    fs-ensure-write-adapter.proxy.ts
-    fs-ensure-write-adapter.test.ts
+    read-file/
+      fs-read-file-adapter.ts
+      fs-read-file-adapter.proxy.ts    # Mocks fs/promises npm package
+      fs-read-file-adapter.test.ts
+    ensure-write/
+      fs-ensure-write-adapter.ts       # Composes mkdir + writeFile
+      fs-ensure-write-adapter.proxy.ts
+      fs-ensure-write-adapter.test.ts
 ```
 
 **Naming Conventions:**
@@ -767,7 +771,7 @@ adapters/
 - **Filename:** kebab-case `[package-name]-[operation]-adapter.ts`
 - **Export:** camelCase ending with `Adapter` (e.g., `axiosGetAdapter`, `fsEnsureWriteAdapter`)
 - **Proxy:** kebab-case ending with `-adapter.proxy.ts`, export `[name]AdapterProxy` (e.g., `httpAdapterProxy`)
-- **Pattern:** adapters/[package-name]/[package-name]-[operation]-adapter.ts
+- **Pattern:** adapters/[package-name]/[operation]/[package-name]-[operation]-adapter.ts
 
 **Constraints:**
 
@@ -821,11 +825,11 @@ export const fsReadFileAdapter = async ({
 One adapter can use multiple functions from the same package:
 
 ```typescript
-// adapters/fs/fs-ensure-write-adapter.ts
+// adapters/fs/ensure-write/fs-ensure-write-adapter.ts
 import {mkdir, writeFile} from 'fs/promises';
 import {dirname} from 'path';
-import type {FilePath} from '../../contracts/file-path/file-path-contract';
-import type {FileContents} from '../../contracts/file-contents/file-contents-contract';
+import type {FilePath} from '../../../contracts/file-path/file-path-contract';
+import type {FileContents} from '../../../contracts/file-contents/file-contents-contract';
 
 export const fsEnsureWriteAdapter = async ({
   filePath,
@@ -937,11 +941,11 @@ export const EslintRuleModuleStub = (
 
 ```typescript
 // Pattern 1: Simple translation
-// adapters/fs/fs-read-file-adapter.ts
+// adapters/fs/read-file/fs-read-file-adapter.ts
 import {readFile} from 'fs/promises';
-import {fileContentsContract} from '../../contracts/file-contents/file-contents-contract';
-import type {FilePath} from '../../contracts/file-path/file-path-contract';
-import type {FileContents} from '../../contracts/file-contents/file-contents-contract';
+import {fileContentsContract} from '../../../contracts/file-contents/file-contents-contract';
+import type {FilePath} from '../../../contracts/file-path/file-path-contract';
+import type {FileContents} from '../../../contracts/file-contents/file-contents-contract';
 
 export const fsReadFileAdapter = async ({
   filePath
@@ -953,11 +957,11 @@ export const fsReadFileAdapter = async ({
 };
 
 // Pattern 2: Complex translation
-// adapters/axios/axios-get-adapter.ts
+// adapters/axios/get/axios-get-adapter.ts
 import axios from 'axios';
-import {httpResponseContract} from '../../contracts/http-response/http-response-contract';
-import type {Url} from '../../contracts/url/url-contract';
-import type {HttpResponse} from '../../contracts/http-response/http-response-contract';
+import {httpResponseContract} from '../../../contracts/http-response/http-response-contract';
+import type {Url} from '../../../contracts/url/url-contract';
+import type {HttpResponse} from '../../../contracts/http-response/http-response-contract';
 
 export const axiosGetAdapter = async ({
   url
@@ -979,10 +983,10 @@ export const axiosGetAdapter = async ({
 };
 
 // Pattern 3: Composition of package functions
-// adapters/fs/fs-copy-file-adapter.ts
+// adapters/fs/copy-file/fs-copy-file-adapter.ts
 import {readFile, writeFile, mkdir} from 'fs/promises';
 import {dirname} from 'path';
-import type {FilePath} from '../../contracts/file-path/file-path-contract';
+import type {FilePath} from '../../../contracts/file-path/file-path-contract';
 
 export const fsCopyFileAdapter = async ({
   source,
@@ -1005,11 +1009,11 @@ Adapter tests use adapter proxies to mock npm dependencies.
 See [Testing Standards - Proxy Architecture](testing-standards.md#proxy-architecture) for complete details.
 
 ```typescript
-// adapters/fs/fs-read-file-adapter.test.ts
+// adapters/fs/read-file/fs-read-file-adapter.test.ts
 import {fsReadFileAdapter} from './fs-read-file-adapter';
 import {fsReadFileAdapterProxy} from './fs-read-file-adapter.proxy';
-import {FilePathStub} from '../../contracts/file-path/file-path.stub';
-import {FileContentsStub} from '../../contracts/file-contents/file-contents.stub';
+import {FilePathStub} from '../../../contracts/file-path/file-path.stub';
+import {FileContentsStub} from '../../../contracts/file-contents/file-contents.stub';
 
 describe('fsReadFileAdapter', () => {
   it('VALID: {filePath: "/config.json"} => returns file contents', async () => {
