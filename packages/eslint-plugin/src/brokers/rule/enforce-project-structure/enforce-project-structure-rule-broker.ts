@@ -53,6 +53,8 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
         'Lvl4: Export name "{{exportName}}" does not match expected "{{expectedName}}" based on filename',
       adapterMustBeArrowFunction:
         'Lvl4: Adapters must export arrow functions (export const x = () => {}), not {{actualType}}',
+      proxyMustBeArrowFunction:
+        'Lvl4: Proxy must export arrow function (export const x = () => {}), not {{actualType}}',
     },
     schema: [],
   },
@@ -73,6 +75,9 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
     // Helper to check if string is kebab-case
     const isKebabCase = (str: string): boolean => /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u.test(str);
 
+    // Helper to check if file is a proxy file
+    const isProxyFile = (filePath: string): boolean => /\.proxy\.ts$/u.test(filePath);
+
     // Helper to extract folder path segments from filename
     const getFolderSegments = (filePath: string): string[] => {
       const afterSrc = filePath.split('/src/')[1];
@@ -85,19 +90,38 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
     const getFilenameBase = (filePath: string, suffix: string | readonly string[]): string => {
       const parts = filePath.split('/');
       const fullFilename = parts[parts.length - 1] ?? '';
-      const withoutExt = fullFilename.replace(/\.[^.]+$/u, ''); // Remove .ts/.tsx
 
-      // Remove suffix
+      // For suffixes that include the extension (like .proxy.ts), don't remove extension first
+      const suffixIncludesExtension = (s: string): boolean => /\.[^.]+$/u.test(s);
+
       if (Array.isArray(suffix)) {
         for (const s of suffix) {
-          if (withoutExt.endsWith(s)) {
-            return withoutExt.slice(0, -s.length);
+          if (suffixIncludesExtension(s)) {
+            if (fullFilename.endsWith(s)) {
+              return fullFilename.slice(0, -s.length);
+            }
+          } else {
+            const withoutExt = fullFilename.replace(/\.[^.]+$/u, '');
+            if (withoutExt.endsWith(s)) {
+              return withoutExt.slice(0, -s.length);
+            }
           }
         }
-      } else if (typeof suffix === 'string' && withoutExt.endsWith(suffix)) {
-        return withoutExt.slice(0, -suffix.length);
+      } else if (typeof suffix === 'string') {
+        if (suffixIncludesExtension(suffix)) {
+          if (fullFilename.endsWith(suffix)) {
+            return fullFilename.slice(0, -suffix.length);
+          }
+        } else {
+          const withoutExt = fullFilename.replace(/\.[^.]+$/u, '');
+          if (withoutExt.endsWith(suffix)) {
+            return withoutExt.slice(0, -suffix.length);
+          }
+        }
       }
-      return withoutExt;
+
+      // Fallback: just remove extension
+      return fullFilename.replace(/\.[^.]+$/u, '');
     };
 
     return {
@@ -166,7 +190,12 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
         }
 
         // LEVEL 3: Filename Suffix + Kebab-Case
-        const { fileSuffix, exportSuffix, exportCase } = folderConfig;
+        // Special handling for proxy files: use .proxy.ts suffix and Proxy export suffix
+        const isProxy = isProxyFile(filename);
+        const fileSuffix = isProxy ? '.proxy.ts' : folderConfig.fileSuffix;
+        const exportSuffix = isProxy ? 'Proxy' : folderConfig.exportSuffix;
+        // exportCase stays the same (camelCase or PascalCase from folder config)
+        const { exportCase } = folderConfig;
 
         // Skip assets/migrations entirely (they have empty exportSuffix AND empty exportCase)
         if (exportSuffix === '' && exportCase === '') {
@@ -288,11 +317,29 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
               if (declaration.type === 'VariableDeclaration' && declaration.declarations) {
                 for (const declarator of declaration.declarations) {
                   if (declarator.id?.type === 'Identifier' && declarator.id.name) {
+                    const { init } = declarator as { init?: { type?: string } };
+                    const isArrowFunction = init?.type === 'ArrowFunctionExpression';
+
+                    // PROXY-SPECIFIC: Must be arrow function (check this first, before adapter check)
+                    if (isProxyFile(filename)) {
+                      if (!isArrowFunction) {
+                        const actualType =
+                          init?.type === 'Identifier'
+                            ? 're-exported variable'
+                            : init?.type === 'FunctionExpression'
+                            ? 'function expression'
+                            : init?.type || 'non-function value';
+                        context.report({
+                          node,
+                          messageId: 'proxyMustBeArrowFunction',
+                          data: { actualType },
+                        });
+                        return; // STOP - proxies must be arrow functions
+                      }
+                    }
+
                     // ADAPTER-SPECIFIC: Must be arrow function
                     if (firstFolder === 'adapters') {
-                      const { init } = declarator as { init?: { type?: string } };
-                      const isArrowFunction = init?.type === 'ArrowFunctionExpression';
-
                       if (!isArrowFunction) {
                         const actualType =
                           init?.type === 'Identifier'
@@ -316,8 +363,18 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
                 }
               }
 
-              // FunctionDeclaration - forbidden in adapters
+              // FunctionDeclaration - forbidden in proxies and adapters
               if (declaration.type === 'FunctionDeclaration' && declaration.id?.name) {
+                // Check proxy first
+                if (isProxyFile(filename)) {
+                  context.report({
+                    node,
+                    messageId: 'proxyMustBeArrowFunction',
+                    data: { actualType: 'function declaration' },
+                  });
+                  return; // STOP - proxies must be arrow functions
+                }
+
                 if (firstFolder === 'adapters') {
                   context.report({
                     node,
@@ -334,8 +391,18 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
                 });
               }
 
-              // ClassDeclaration - forbidden in adapters
+              // ClassDeclaration - forbidden in proxies and adapters
               if (declaration.type === 'ClassDeclaration' && declaration.id?.name) {
+                // Check proxy first
+                if (isProxyFile(filename)) {
+                  context.report({
+                    node,
+                    messageId: 'proxyMustBeArrowFunction',
+                    data: { actualType: 'class' },
+                  });
+                  return; // STOP - proxies must be arrow functions
+                }
+
                 if (firstFolder === 'adapters') {
                   context.report({
                     node,
@@ -355,12 +422,13 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
           }
         }
 
-        // Calculate expected export name
+        // Calculate expected export name (using proxy-aware values)
+        // For startup files (exportSuffix === ''), use PascalCase as default
         const expectedExportName = expectedExportNameTransformer({
           filename,
           fileSuffix,
           exportSuffix,
-          exportCase: folderConfig.exportCase,
+          exportCase: exportCase === '' ? 'PascalCase' : exportCase,
         });
 
         // Check for exactly one value export (or zero for startup)
@@ -405,7 +473,7 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
         const hasSuffixError = exportSuffix !== '' && !exportName.endsWith(exportSuffix);
 
         const isCorrectCase =
-          folderConfig.exportCase === 'PascalCase'
+          exportCase === 'PascalCase'
             ? isPascalCaseGuard({ str: exportName })
             : isCamelCaseGuard({ str: exportName });
         const hasCaseError = !isCorrectCase;
@@ -429,7 +497,7 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
             node,
             messageId: 'invalidExportCase',
             data: {
-              expected: folderConfig.exportCase,
+              expected: exportCase,
               folderType: firstFolder,
             },
           });

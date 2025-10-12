@@ -168,6 +168,24 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
       code: 'export const UserStub = () => ({});',
       filename: '/project/src/contracts/user/user.stub.ts',
     },
+
+    // ========== PROXY FILES: Valid arrow function exports ==========
+    {
+      code: 'export const httpAdapterProxy = () => {};',
+      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+    },
+    {
+      code: 'export const userFetchBrokerProxy = () => {};',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts',
+    },
+    {
+      code: 'export const hasPermissionGuardProxy = () => {};',
+      filename: '/project/src/guards/has-permission/has-permission-guard.proxy.ts',
+    },
+    {
+      code: 'export const formatDateTransformerProxy = () => {};',
+      filename: '/project/src/transformers/format-date/format-date-transformer.proxy.ts',
+    },
   ],
 
   invalid: [
@@ -628,6 +646,44 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
     {
       code: 'export const StartServer = () => {};',
       filename: '/project/src/startup/start-app.ts',
+      errors: [{ messageId: 'filenameMismatch' }],
+    },
+
+    // ========== PROXY FILES: Export validation ==========
+    // Proxy with function declaration instead of arrow function
+    {
+      code: 'export function httpAdapterProxy() { return null; }',
+      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+      errors: [{ messageId: 'proxyMustBeArrowFunction' }],
+    },
+    // Proxy with class export
+    {
+      code: 'export class HttpAdapterProxy {}',
+      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+      errors: [{ messageId: 'proxyMustBeArrowFunction' }],
+    },
+    // Proxy with wrong export name (missing Proxy suffix)
+    {
+      code: 'export const httpAdapter = () => {};',
+      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+      errors: [{ messageId: 'invalidExportSuffix' }, { messageId: 'filenameMismatch' }],
+    },
+    // Broker proxy with function declaration
+    {
+      code: 'export function userFetchBrokerProxy() { return {}; }',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts',
+      errors: [{ messageId: 'proxyMustBeArrowFunction' }],
+    },
+    // Guard proxy with class
+    {
+      code: 'export class HasPermissionGuardProxy {}',
+      filename: '/project/src/guards/has-permission/has-permission-guard.proxy.ts',
+      errors: [{ messageId: 'proxyMustBeArrowFunction' }],
+    },
+    // Transformer proxy with incorrect name (doesn't match file)
+    {
+      code: 'export const wrongNameProxy = () => {};',
+      filename: '/project/src/transformers/format-date/format-date-transformer.proxy.ts',
       errors: [{ messageId: 'filenameMismatch' }],
     },
   ],

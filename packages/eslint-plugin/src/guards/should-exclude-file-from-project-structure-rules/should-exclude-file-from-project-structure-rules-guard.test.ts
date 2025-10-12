@@ -85,5 +85,29 @@ describe('shouldExcludeFileFromProjectStructureRulesGuard', () => {
         }),
       ).toBe(false);
     });
+
+    it('INCLUDE: {filename: "/project/src/adapters/http/http-adapter.proxy.ts"} => returns false', () => {
+      expect(
+        shouldExcludeFileFromProjectStructureRulesGuard({
+          filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+        }),
+      ).toBe(false);
+    });
+
+    it('INCLUDE: {filename: "/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts"} => returns false', () => {
+      expect(
+        shouldExcludeFileFromProjectStructureRulesGuard({
+          filename: '/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts',
+        }),
+      ).toBe(false);
+    });
+
+    it('INCLUDE: {filename: "/project/src/guards/has-permission/has-permission-guard.proxy.ts"} => returns false', () => {
+      expect(
+        shouldExcludeFileFromProjectStructureRulesGuard({
+          filename: '/project/src/guards/has-permission/has-permission-guard.proxy.ts',
+        }),
+      ).toBe(false);
+    });
   });
 });

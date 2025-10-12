@@ -2,6 +2,7 @@
  * Determines if a file should be excluded from project structure rule validation.
  * Excludes:
  * - Files with multiple dots (.test.ts, .stub.ts, .d.ts, etc.)
+ * - EXCEPT .proxy.ts files (these are validated)
  * - Files not in /src/ directory
  * - Files directly in /src/ (like index.ts, main.ts)
  *
@@ -12,11 +13,17 @@ export const shouldExcludeFileFromProjectStructureRulesGuard = ({
 }: {
   filename: string;
 }): boolean => {
-  // Exclude files with multiple dots (.test.ts, .stub.ts, .d.ts, etc.)
   const fileBaseName = filename.split('/').pop() ?? '';
-  const dotCount = (fileBaseName.match(/\./gu) ?? []).length;
-  if (dotCount > 1) {
-    return true;
+
+  // Allow .proxy.ts files through (they need validation)
+  if (fileBaseName.endsWith('.proxy.ts')) {
+    // Don't exclude - continue to other checks
+  } else {
+    // Exclude files with multiple dots (.test.ts, .stub.ts, .d.ts, etc.)
+    const dotCount = (fileBaseName.match(/\./gu) ?? []).length;
+    if (dotCount > 1) {
+      return true;
+    }
   }
 
   // Exclude files not in /src/

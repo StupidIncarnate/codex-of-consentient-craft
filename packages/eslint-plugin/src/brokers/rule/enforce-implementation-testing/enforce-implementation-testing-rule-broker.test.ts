@@ -17,6 +17,9 @@ beforeEach(() => {
       '/project/src/brokers/user/fetch/user-fetch-broker.test.ts',
       '/project/src/transformers/format-date/format-date-transformer.test.ts',
       '/project/src/adapters/axios/axios-get-adapter.test.ts',
+      '/project/src/adapters/http/http-adapter.test.ts', // For invalid proxy pattern test
+      '/project/src/brokers/order/create/order-create-broker.test.ts', // For invalid proxy pattern test
+      '/project/src/transformers/parse-json/parse-json-transformer.test.ts', // For invalid proxy pattern test
       '/project/src/guards/has-permission/has-permission-guard.test.ts',
       '/project/src/widgets/my-component/my-component-widget.test.tsx',
       '/project/src/contracts/user/user-contract.test.ts',
@@ -61,6 +64,17 @@ beforeEach(() => {
     const existingStubFiles = ['/project/src/contracts/user/user.stub.ts'];
 
     if (existingStubFiles.includes(path)) {
+      return true;
+    }
+
+    // Invalid proxy filename patterns (for testing validation)
+    const invalidProxyFiles = [
+      '/project/src/adapters/http/http.proxy.ts', // Missing -adapter
+      '/project/src/brokers/order/create/order.proxy.ts', // Missing -create-broker
+      '/project/src/transformers/parse-json/parse.proxy.ts', // Missing -json-transformer
+    ];
+
+    if (invalidProxyFiles.includes(path)) {
       return true;
     }
 
@@ -186,11 +200,6 @@ ruleTester.run('enforce-implementation-testing', enforceImplementationTestingRul
       errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
     },
     {
-      code: 'export const parseJsonTransformer = () => {};',
-      filename: '/project/src/transformers/parse-json/parse-json-transformer.ts',
-      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
-    },
-    {
       code: 'export const axiosPostAdapter = () => {};',
       filename: '/project/src/adapters/axios/axios-post-adapter.ts',
       errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
@@ -216,6 +225,24 @@ ruleTester.run('enforce-implementation-testing', enforceImplementationTestingRul
       code: 'export const orderContract = z.object({});',
       filename: '/project/src/contracts/order/order-contract.ts',
       errors: [{ messageId: 'missingStubFile' }],
+    },
+    // Proxy file exists but with incorrect naming pattern (missing -adapter)
+    {
+      code: 'export const httpAdapter = () => {};',
+      filename: '/project/src/adapters/http/http-adapter.ts',
+      errors: [{ messageId: 'invalidProxyFilename' }],
+    },
+    // Proxy file exists but with incorrect naming pattern (missing -create-broker)
+    {
+      code: 'export const orderCreateBroker = () => {};',
+      filename: '/project/src/brokers/order/create/order-create-broker.ts',
+      errors: [{ messageId: 'invalidProxyFilename' }],
+    },
+    // Proxy file exists but with incorrect naming pattern (missing -json-transformer)
+    {
+      code: 'export const parseJsonTransformer = () => {};',
+      filename: '/project/src/transformers/parse-json/parse-json-transformer.ts',
+      errors: [{ messageId: 'invalidProxyFilename' }],
     },
   ],
 });

@@ -19,6 +19,8 @@ export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({
         'Contract file must have a colocated stub file. Create {{stubFileName}} in the same directory.',
       missingContractTestFile:
         'Contract file must have a colocated test file. Create {{testFileName}} (or .integration.test.ts or .spec.ts variant) in the same directory.',
+      invalidProxyFilename:
+        'Proxy file must follow naming pattern [baseName]-[folderType].proxy.ts. Expected: {{expectedFileName}}, but found: {{actualFileName}}',
     },
     schema: [],
   },
@@ -98,6 +100,39 @@ export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({
         const hasProxyFile = fsExistsSyncAdapter({ filePath: proxyFilePath });
 
         if (!hasProxyFile) {
+          // Check if an incorrectly named proxy file might exist
+          // Extract base filename and folder type for validation
+          const baseFileName = fileBaseName.replace(/\.tsx?$/u, '');
+          const folderTypePattern = /-(adapter|broker|transformer|guard|binding|middleware|state|responder|widget|statics)$/u;
+          const folderTypeMatch = baseFileName.match(folderTypePattern);
+
+          if (folderTypeMatch) {
+            // Check for common invalid patterns
+            // Extract just the first part before any folder type pattern starts
+            // E.g., "http-adapter" → "http", "user-fetch-broker" → "user", "format-date-transformer" → "format"
+            // Match everything before the pattern that includes the folder type
+            // This handles cases like: user-fetch-broker → user, format-date-transformer → format
+            const firstPartMatch = baseFileName.match(/^([^-]+)/u);
+            const firstPart = firstPartMatch ? firstPartMatch[1] : baseFileName;
+
+            const invalidProxyFileName = `${firstPart}.proxy.${filename.endsWith('.tsx') ? 'tsx' : 'ts'}`;
+            const invalidProxyFilePath = filename.replace(fileBaseName, invalidProxyFileName);
+            const invalidProxyFilePathContract = filePathContract.parse(invalidProxyFilePath);
+            const hasInvalidProxyFile = fsExistsSyncAdapter({ filePath: invalidProxyFilePathContract });
+
+            if (hasInvalidProxyFile) {
+              context.report({
+                node,
+                messageId: 'invalidProxyFilename',
+                data: {
+                  expectedFileName: `${baseFileName}.proxy.${filename.endsWith('.tsx') ? 'tsx' : 'ts'}`,
+                  actualFileName: invalidProxyFileName,
+                },
+              });
+              return;
+            }
+          }
+
           context.report({
             node,
             messageId: 'missingProxyFile',
