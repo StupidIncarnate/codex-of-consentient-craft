@@ -6,7 +6,7 @@ import { enforceProjectStructureRuleBroker } from '../brokers/rule/enforce-proje
 import { enforceImportDependenciesRuleBroker } from '../brokers/rule/enforce-import-dependencies/enforce-import-dependencies-rule-broker';
 import { enforceObjectDestructuringParamsRuleBroker } from '../brokers/rule/enforce-object-destructuring-params/enforce-object-destructuring-params-rule-broker';
 import { enforceTestColocationRuleBroker } from '../brokers/rule/enforce-test-colocation/enforce-test-colocation-rule-broker';
-import { enforceImplementationTestingRuleBroker } from '../brokers/rule/enforce-implementation-testing/enforce-implementation-testing-rule-broker';
+import { enforceImplementationColocationRuleBroker } from '../brokers/rule/enforce-implementation-colocation/enforce-implementation-colocation-rule-broker';
 import { forbidNonExportedFunctionsRuleBroker } from '../brokers/rule/forbid-non-exported-functions/forbid-non-exported-functions-rule-broker';
 import { requireContractValidationRuleBroker } from '../brokers/rule/require-contract-validation/require-contract-validation-rule-broker';
 import { questmaestroConfigBroker } from '../brokers/config/questmaestro/questmaestro-config-broker';
@@ -23,7 +23,7 @@ export const startEslintPlugin = (): {
     readonly 'enforce-import-dependencies': Rule.RuleModule;
     readonly 'enforce-object-destructuring-params': Rule.RuleModule;
     readonly 'enforce-test-colocation': Rule.RuleModule;
-    readonly 'enforce-implementation-testing': Rule.RuleModule;
+    readonly 'enforce-implementation-colocation': Rule.RuleModule;
     readonly 'forbid-non-exported-functions': Rule.RuleModule;
     readonly 'require-contract-validation': Rule.RuleModule;
   };
@@ -41,7 +41,7 @@ export const startEslintPlugin = (): {
       'enforce-import-dependencies': enforceImportDependenciesRuleBroker(),
       'enforce-object-destructuring-params': enforceObjectDestructuringParamsRuleBroker(),
       'enforce-test-colocation': enforceTestColocationRuleBroker(),
-      'enforce-implementation-testing': enforceImplementationTestingRuleBroker(),
+      'enforce-implementation-colocation': enforceImplementationColocationRuleBroker(),
       'forbid-non-exported-functions': forbidNonExportedFunctionsRuleBroker(),
       'require-contract-validation': requireContractValidationRuleBroker(),
     },

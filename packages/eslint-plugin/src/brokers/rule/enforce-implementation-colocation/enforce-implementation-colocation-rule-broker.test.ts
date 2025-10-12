@@ -1,5 +1,5 @@
 import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
-import { enforceImplementationTestingRuleBroker } from './enforce-implementation-testing-rule-broker';
+import { enforceImplementationColocationRuleBroker } from './enforce-implementation-colocation-rule-broker';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
 
 jest.mock('../../../adapters/fs/fs-exists-sync-adapter');
@@ -82,7 +82,7 @@ beforeEach(() => {
   });
 });
 
-ruleTester.run('enforce-implementation-testing', enforceImplementationTestingRuleBroker(), {
+ruleTester.run('enforce-implementation-colocation', enforceImplementationColocationRuleBroker(), {
   valid: [
     // Implementation files with colocated tests
     {

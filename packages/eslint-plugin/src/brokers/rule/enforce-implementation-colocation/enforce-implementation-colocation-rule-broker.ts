@@ -3,7 +3,7 @@ import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter
 import { filePathContract } from '@questmaestro/shared/contracts';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
 
-export const enforceImplementationTestingRuleBroker = (): Rule.RuleModule => ({
+export const enforceImplementationColocationRuleBroker = (): Rule.RuleModule => ({
   meta: {
     type: 'problem',
     docs: {

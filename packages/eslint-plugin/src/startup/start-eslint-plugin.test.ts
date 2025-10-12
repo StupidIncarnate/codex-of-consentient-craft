@@ -14,7 +14,7 @@ describe('startEslintPlugin', () => {
         'enforce-import-dependencies',
         'enforce-object-destructuring-params',
         'enforce-test-colocation',
-        'enforce-implementation-testing',
+        'enforce-implementation-colocation',
         'forbid-non-exported-functions',
         'require-contract-validation',
       ]);

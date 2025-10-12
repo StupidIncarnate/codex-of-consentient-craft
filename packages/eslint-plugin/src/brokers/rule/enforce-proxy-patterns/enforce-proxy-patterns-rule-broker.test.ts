@@ -1,7 +1,29 @@
 import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
 import { enforceProxyPatternsRuleBroker } from './enforce-proxy-patterns-rule-broker';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
+
+jest.mock('../../../adapters/fs/fs-exists-sync-adapter');
+
+const mockFsExistsSync = jest.mocked(fsExistsSyncAdapter);
 
 const ruleTester = createEslintRuleTester();
+
+beforeEach(() => {
+  mockFsExistsSync.mockImplementation(({ filePath }) => {
+    const existingFiles = [
+      '/project/src/adapters/http/http-adapter.ts',
+      '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      '/project/src/state/cache/cache-state.ts',
+      '/project/src/adapters/fs/fs-adapter.ts',
+      '/project/src/brokers/user/user-broker.ts',
+      '/project/src/adapters/db/db-adapter.ts',
+      '/project/src/adapters/email/email-adapter.ts',
+      '/project/src/adapters/api/api-adapter.ts',
+      '/project/src/brokers/env/env-broker.ts',
+    ];
+    return existingFiles.includes(String(filePath));
+  });
+});
 
 ruleTester.run('enforce-proxy-patterns', enforceProxyPatternsRuleBroker(), {
   valid: [
@@ -461,7 +483,10 @@ ruleTester.run('enforce-proxy-patterns', enforceProxyPatternsRuleBroker(), {
         };
       `,
       filename: '/project/src/transformers/user/user-transformer.proxy.ts',
-      errors: [{ messageId: 'jestMockedOnlyNpmPackages', data: { name: 'userTransformer' } }],
+      errors: [
+        { messageId: 'proxyNotColocated', data: { expectedPath: '/project/src/transformers/user/user-transformer.ts' } },
+        { messageId: 'jestMockedOnlyNpmPackages', data: { name: 'userTransformer' } },
+      ],
     },
     // ❌ WRONG - jest.mocked() on implementation code (widget)
     {
@@ -475,7 +500,10 @@ ruleTester.run('enforce-proxy-patterns', enforceProxyPatternsRuleBroker(), {
         };
       `,
       filename: '/project/src/widgets/user/user-widget.proxy.ts',
-      errors: [{ messageId: 'jestMockedOnlyNpmPackages', data: { name: 'UserWidget' } }],
+      errors: [
+        { messageId: 'proxyNotColocated', data: { expectedPath: '/project/src/widgets/user/user-widget.ts' } },
+        { messageId: 'jestMockedOnlyNpmPackages', data: { name: 'UserWidget' } },
+      ],
     },
     // ❌ WRONG - Adapter proxy missing mock setup in constructor
     {
@@ -941,6 +969,51 @@ ruleTester.run('enforce-proxy-patterns', enforceProxyPatternsRuleBroker(), {
         {
           messageId: 'proxyConstructorNoSideEffects',
           data: { type: 'process.exit()' },
+        },
+      ],
+    },
+    // ❌ WRONG - Broker proxy without colocated implementation
+    {
+      code: `
+        export const orphanBrokerProxy = () => ({
+          setup: () => {}
+        });
+      `,
+      filename: '/project/src/brokers/orphan/orphan-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'proxyNotColocated',
+          data: { expectedPath: '/project/src/brokers/orphan/orphan-broker.ts' },
+        },
+      ],
+    },
+    // ❌ WRONG - State proxy in wrong directory
+    {
+      code: `
+        export const lostStateProxy = () => ({
+          setup: () => {}
+        });
+      `,
+      filename: '/project/src/state/lost/lost-state.proxy.ts',
+      errors: [
+        {
+          messageId: 'proxyNotColocated',
+          data: { expectedPath: '/project/src/state/lost/lost-state.ts' },
+        },
+      ],
+    },
+    // ❌ WRONG - Transformer proxy without implementation
+    {
+      code: `
+        export const missingTransformerProxy = () => ({
+          setup: () => {}
+        });
+      `,
+      filename: '/project/src/transformers/missing/missing-transformer.proxy.ts',
+      errors: [
+        {
+          messageId: 'proxyNotColocated',
+          data: { expectedPath: '/project/src/transformers/missing/missing-transformer.ts' },
         },
       ],
     },

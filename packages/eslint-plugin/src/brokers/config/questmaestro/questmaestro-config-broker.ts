@@ -64,7 +64,7 @@ export const questmaestroConfigBroker = ({
       'eslint-comments/no-use': ['error', { allow: [] }],
       '@questmaestro/ban-contract-in-tests': 'error',
       '@questmaestro/ban-primitives': 'error',
-      '@questmaestro/enforce-implementation-testing': 'error',
+      '@questmaestro/enforce-implementation-colocation': 'error',
       '@questmaestro/enforce-import-dependencies': 'error',
       '@questmaestro/enforce-object-destructuring-params': 'error',
       '@questmaestro/enforce-project-structure': 'error',

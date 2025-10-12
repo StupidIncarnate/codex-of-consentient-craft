@@ -1,5 +1,7 @@
 import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
 import type { TSESTree } from '@typescript-eslint/utils';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
+import { filePathContract } from '@questmaestro/shared/contracts';
 
 interface NodeWithBody {
   body?: TSESTree.Node | null;
@@ -80,6 +82,8 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
         'Proxy helper "{{name}}" uses forbidden word "{{forbiddenWord}}". Use "returns", "throws", or describe the action instead. Proxies abstract implementation details.',
       proxyConstructorNoSideEffects:
         'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead. Allowed: const childProxy = create...(), jest.mocked(...), jest.spyOn(...)',
+      proxyNotColocated:
+        'Proxy file must be colocated with its implementation file. Expected implementation file "{{expectedPath}}" not found in the same directory.',
     },
     schema: [],
   },
@@ -103,6 +107,29 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
     let foundReturnStatement = false;
 
     return {
+      // Check proxy file colocation at Program level
+      Program: (node): void => {
+        // Check that proxy file is colocated with implementation file
+        const proxyFilePath = filePathContract.parse(filename);
+
+        // Extract implementation file path by removing .proxy.ts and adding .ts
+        // Example: foo-adapter.proxy.ts -> foo-adapter.ts
+        const implementationPath = filePathContract.parse(
+          proxyFilePath.replace(/\.proxy\.ts$/, '.ts'),
+        );
+
+        // Check if implementation file exists
+        if (!fsExistsSyncAdapter({ filePath: implementationPath })) {
+          context.report({
+            node,
+            messageId: 'proxyNotColocated',
+            data: {
+              expectedPath: implementationPath,
+            },
+          });
+        }
+      },
+
       // Check for contract imports (must use .stub.ts, not -contract.ts)
       ImportDeclaration: (node): void => {
         const importNode = node as unknown as {
