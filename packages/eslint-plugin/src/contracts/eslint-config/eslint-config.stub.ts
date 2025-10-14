@@ -1,7 +1,8 @@
 import { eslintConfigContract } from './eslint-config-contract';
 import type { EslintConfig } from './eslint-config-contract';
+import type { StubArgument } from '@questmaestro/shared/@types';
 
-export const EslintConfigStub = (props: Partial<EslintConfig> = {}): EslintConfig =>
+export const EslintConfigStub = ({ ...props }: StubArgument<EslintConfig> = {}): EslintConfig =>
   eslintConfigContract.parse({
     plugins: {},
     rules: {},

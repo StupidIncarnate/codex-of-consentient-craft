@@ -1,11 +1,10 @@
 import { tsconfigOptionsContract } from './tsconfig-options-contract';
 import type { TsconfigOptions } from './tsconfig-options-contract';
+import type { StubArgument } from '@questmaestro/shared/@types';
 
 export const TsconfigOptionsStub = ({
-  props = {},
-}: {
-  props?: Partial<TsconfigOptions>;
-} = {}): TsconfigOptions =>
+  ...props
+}: StubArgument<TsconfigOptions> = {}): TsconfigOptions =>
   tsconfigOptionsContract.parse({
     target: 'ES2020',
     module: 'commonjs',

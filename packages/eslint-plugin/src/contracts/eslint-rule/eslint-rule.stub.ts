@@ -1,7 +1,8 @@
 import { eslintRuleContract } from './eslint-rule-contract';
 import type { EslintRule } from './eslint-rule-contract';
+import type { StubArgument } from '@questmaestro/shared/@types';
 
-export const EslintRuleStub = (props: Partial<EslintRule> = {}): EslintRule => {
+export const EslintRuleStub = ({ ...props }: StubArgument<EslintRule> = {}): EslintRule => {
   const baseRule = {
     meta: {
       type: 'problem' as const,

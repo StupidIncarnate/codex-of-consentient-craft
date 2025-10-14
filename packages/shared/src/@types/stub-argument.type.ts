@@ -28,6 +28,12 @@ export type StubArgument<T> = T extends string & { readonly __brand: unknown }
       ? boolean
       : T extends Array<infer U>
         ? Array<StubArgument<U>>
-        : T extends object
-          ? { [K in keyof T]?: StubArgument<T[K]> }
-          : T;
+        : // IMPORTANT: `any` is required here, not `unknown`
+          // Function parameters are contravariant in TypeScript
+          // `(...args: unknown[]) => unknown` would fail to match specific function signatures
+          // `(...args: any[]) => any` matches all possible function types
+          T extends (...args: any[]) => any
+          ? T // Preserve function types as-is
+          : T extends object
+            ? { [K in keyof T]?: StubArgument<T[K]> }
+            : T;

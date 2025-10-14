@@ -1,1 +1,1 @@
-export type { StubArgument } from './@types/stub-argument.type';
+export type { StubArgument } from './src/@types/stub-argument.type';

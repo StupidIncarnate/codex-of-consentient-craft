@@ -957,16 +957,26 @@ export const UserStub = ({...props}: StubArgument<User> = {}): User =>
     ...props,
     });
 
-// contracts/thing/thing.stub.ts - with function property
+// contracts/thing/thing.stub.ts - with mixed data and functions
 import {thingContract} from './thing-contract';
 import type {Thing} from './thing-contract';
 import type {StubArgument} from '@questmaestro/shared/@types';
 
-export const ThingStub = ({...props}: StubArgument<Thing> = {}): Thing =>
-    thingContract.parse({
-    someFunction: (): void => {}, // Default no-op
-    ...props, // Test overrides here
-    });
+export const ThingStub = ({...props}: StubArgument<Thing> = {}): Thing => {
+    // Separate function props from data props
+    const {someFunction, ...dataProps} = props;
+
+    // Return: validated data + functions (preserved references)
+    return {
+        // Data properties validated through contract
+        ...thingContract.parse({
+            name: 'default-thing',
+            ...dataProps,
+        }),
+        // Function properties preserved (not parsed to maintain references)
+        someFunction: someFunction ?? ((): void => {}), // Default no-op
+    };
+};
 
 // ✅ CORRECT - Test passes jest.fn() when needed
 it('VALID: calls function', () => {
@@ -1026,33 +1036,51 @@ export const FilePathStub = (
     {value}: { value: string } = {value: '/test/file.ts'}
 ): FilePath => filePathContract.parse(value);
 
-// Contract stub - complex type with functions (object)
-// contracts/eslint-rule-module/eslint-rule-module.stub.ts
+// Contract stub - complex type with mixed data and functions (object)
+// contracts/eslint-context/eslint-context.stub.ts
 import type {StubArgument} from '@questmaestro/shared/@types';
+import {z} from 'zod';
 
-export const EslintRuleModuleStub = (
-    {...props}: StubArgument<EslintRuleModule> = {}
-): EslintRuleModule => {
-    const base = {
-    meta: {
-        type: 'problem' as const,
-        messages: {error: 'Default error'},
-        schema: [],
-    },
-        create: () => ({}),
-    };
+// Contract defines only data properties (functions cause Zod type inference issues)
+export const eslintContextContract = z.object({
+    filename: z.string().brand<'Filename'>().optional(),
+});
 
+// TypeScript type adds function methods via intersection
+export type EslintContext = z.infer<typeof eslintContextContract> & {
+    report: (...args: unknown[]) => unknown;
+    getFilename?: () => string & z.BRAND<'Filename'>;
+    getScope?: () => unknown;
+    getSourceCode?: () => unknown;
+};
+
+const filenameContract = z.string().brand<'Filename'>();
+
+export const EslintContextStub = ({
+                                      ...props
+                                  }: StubArgument<EslintContext> = {}): EslintContext => {
+    // Separate function props from data props
+    const {report, getFilename, getScope, getSourceCode, ...dataProps} = props;
+
+    // Return: validated data + functions (preserved references)
     return {
-        ...base,
-        meta: eslintRuleMetaContract.parse(base.meta),
-    ...props,
+        // Data properties validated through contract
+        ...eslintContextContract.parse({
+            filename: filenameContract.parse('/test/file.ts'),
+            ...dataProps,
+        }),
+        // Function properties preserved (not parsed to maintain references)
+        report: report ?? ((..._args: unknown[]): unknown => true),
+        getFilename: getFilename ?? ((): string & z.BRAND<'Filename'> => filenameContract.parse('/test/file.ts')),
+        getScope: getScope ?? ((): unknown => ({})),
+        getSourceCode: getSourceCode ?? ((): unknown => ({})),
     };
 };
 ```
 
 **Stub Patterns (Enforced by `@questmaestro/enforce-stub-patterns` rule):**
 
-1. **Object Stubs** (complex types with multiple properties):
+1. **Object Stubs** (complex types with data properties only):
     - MUST use spread operator: `({ ...props }: StubArgument<Type> = {})`
     - MUST use `StubArgument<Type>` from `@questmaestro/shared/@types`
     - MUST return `contract.parse({ defaults, ...props })`
@@ -1061,9 +1089,18 @@ export const EslintRuleModuleStub = (
     - MUST use single `value` property: `({ value }: { value: string } = { value: 'default' })`
     - MUST return `contract.parse(value)`
 
-3. **All Stubs** (both patterns):
+3. **Mixed Data + Function Stubs** (types with both data properties and functions):
+    - Contract defines ONLY data properties (no `z.function()`)
+    - Type uses intersection: `z.infer<typeof contract> & { functions... }`
+    - Stub destructures function props from data props
+    - Data props validated through `contract.parse()`
+    - Function props preserved outside parse (maintains references for `jest.fn()`)
+    - See EslintContext example above for full pattern
+
+4. **All Stubs** (all patterns):
     - MUST use object destructuring parameters
-    - MUST return result of `contract.parse()`
+   - Data properties MUST be validated through `contract.parse()`
+   - Function properties MUST be preserved outside parse
     - MUST import colocated contract from same directory
 
 **Stub Type Strategy:**

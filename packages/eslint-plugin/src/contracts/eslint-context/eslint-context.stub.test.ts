@@ -6,6 +6,7 @@ describe('EslintContextStub', () => {
     const result = EslintContextStub();
 
     expect(result).toStrictEqual({
+      filename: '/test/file.ts',
       report: expect.any(Function),
       getFilename: expect.any(Function),
       getScope: expect.any(Function),
@@ -45,6 +46,7 @@ describe('EslintContextStub', () => {
     const result = EslintContextStub({ report: customReport });
 
     expect(result).toStrictEqual({
+      filename: '/test/file.ts',
       report: customReport,
       getFilename: expect.any(Function),
       getScope: expect.any(Function),
@@ -60,6 +62,7 @@ describe('EslintContextStub', () => {
     const result = EslintContextStub({ getFilename: customGetFilename });
 
     expect(result).toStrictEqual({
+      filename: '/test/file.ts',
       report: expect.any(Function),
       getFilename: customGetFilename,
       getScope: expect.any(Function),
@@ -74,6 +77,7 @@ describe('EslintContextStub', () => {
     const result = EslintContextStub({ getScope: customGetScope });
 
     expect(result).toStrictEqual({
+      filename: '/test/file.ts',
       report: expect.any(Function),
       getFilename: expect.any(Function),
       getScope: customGetScope,
@@ -88,6 +92,7 @@ describe('EslintContextStub', () => {
     const result = EslintContextStub({ getSourceCode: customGetSourceCode });
 
     expect(result).toStrictEqual({
+      filename: '/test/file.ts',
       report: expect.any(Function),
       getFilename: expect.any(Function),
       getScope: expect.any(Function),
@@ -109,6 +114,7 @@ describe('EslintContextStub', () => {
     });
 
     expect(result).toStrictEqual({
+      filename: '/test/file.ts',
       report: customReport,
       getFilename: customGetFilename,
       getScope: expect.any(Function),

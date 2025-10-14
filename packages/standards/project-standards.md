@@ -548,7 +548,7 @@ export const UserStub = ({...props}: StubArgument<User> = {}): User => {
 
 Stubs follow strict patterns enforced by `@questmaestro/enforce-stub-patterns` rule:
 
-1. **Object Stubs (complex types)**: Use spread operator with `StubArgument<Type>`
+1. **Object Stubs (complex types with data properties only)**: Use spread operator with `StubArgument<Type>`
    ```typescript
    import type {StubArgument} from '@questmaestro/shared/@types';
 
@@ -567,9 +567,49 @@ Stubs follow strict patterns enforced by `@questmaestro/enforce-stub-patterns` r
    ): FilePath => filePathContract.parse(value);
    ```
 
-3. **All stubs MUST**:
+3. **Mixed Data + Function Stubs (types with both data and functions)**:
+   ```typescript
+   import type {StubArgument} from '@questmaestro/shared/@types';
+   import {z} from 'zod';
+
+   // Contract defines ONLY data properties (no z.function())
+   export const eslintContextContract = z.object({
+       filename: z.string().brand<'Filename'>().optional(),
+   });
+
+   // Type adds functions via intersection
+   export type EslintContext = z.infer<typeof eslintContextContract> & {
+       report: (...args: unknown[]) => unknown;
+       getFilename?: () => string & z.BRAND<'Filename'>;
+   };
+
+   const filenameContract = z.string().brand<'Filename'>();
+
+   export const EslintContextStub = ({
+       ...props
+   }: StubArgument<EslintContext> = {}): EslintContext => {
+       // Separate function props from data props
+       const {report, getFilename, ...dataProps} = props;
+
+       // Return: validated data + functions (preserved references)
+       return {
+           // Data properties validated through contract
+           ...eslintContextContract.parse({
+               filename: filenameContract.parse('/test/file.ts'),
+               ...dataProps,
+           }),
+           // Function properties preserved (not parsed to maintain references)
+           report: report ?? ((..._args: unknown[]): unknown => true),
+           getFilename: getFilename ?? ((): string & z.BRAND<'Filename'> =>
+               filenameContract.parse('/test/file.ts')),
+       };
+   };
+   ```
+
+4. **All stubs MUST**:
     - Use object destructuring parameters
-    - Return `contract.parse()` to validate and brand output
+   - Data properties MUST be validated through `contract.parse()`
+   - Function properties MUST be preserved outside parse (maintains references for `jest.fn()`)
     - Import colocated contract from same directory
 
 ```
@@ -938,46 +978,69 @@ export const httpResponseContract = z.object({
 
 **Complex Types (Functions, Classes):**
 
-When npm types include functions or complex class instances, use TypeScript types directly:
+When types include functions alongside data properties, split the contract and type:
 
 ```typescript
-// contracts/eslint-rule-module/eslint-rule-module-contract.ts
-export const eslintRuleMetaContract = z.object({
-  type: z.enum(['problem', 'suggestion', 'layout']),
-  messages: z.record(z.string().brand<'ErrorMessage'>()),  // Brand on string primitive
-  schema: z.array(z.unknown()),
+// contracts/eslint-context/eslint-context-contract.ts
+import {z} from 'zod';
+
+// Contract defines ONLY data properties (no z.function())
+export const eslintContextContract = z.object({
+    filename: z.string().brand<'Filename'>().optional(),
 });
-export type EslintRuleMeta = z.infer<typeof eslintRuleMetaContract>;
 
-// TypeScript type for function parts (Zod can't validate functions)
-export type EslintRuleModule = {
-  meta: EslintRuleMeta;  // Data validated with Zod
-  create: (context: RuleContext) => RuleListener;  // TypeScript enforces signature
+// TypeScript type adds function methods via intersection
+export type EslintContext = z.infer<typeof eslintContextContract> & {
+    report: (...args: unknown[]) => unknown;
+    getFilename?: () => string & z.BRAND<'Filename'>;
+    getScope?: () => unknown;
+    getSourceCode?: () => unknown;
 };
+```
 
-// Stub for tests
+**Why split contract and type?**
+
+- Zod's `z.function()` breaks TypeScript type inference (functions infer as `{}`)
+- `StubArgument<T>` utility type now preserves function signatures
+- Contract validates data, TypeScript enforces function signatures
+
+**Stub for tests:**
+
+```typescript
+// contracts/eslint-context/eslint-context.stub.ts
 import type {StubArgument} from '@questmaestro/shared/@types';
 
-export const EslintRuleModuleStub = (
-    {...props}: StubArgument<EslintRuleModule> = {}
-): EslintRuleModule => {
-    const base = {
-        meta: {
-            type: 'problem' as const,
-            messages: {error: 'Default error'},
-            schema: [],
-        },
-        create: () => ({}),
-    };
+const filenameContract = z.string().brand<'Filename'>();
 
-    // For types with functions, validate only the data parts with contract
+export const EslintContextStub = ({
+                                      ...props
+                                  }: StubArgument<EslintContext> = {}): EslintContext => {
+    // Separate function props from data props
+    const {report, getFilename, getScope, getSourceCode, ...dataProps} = props;
+
+    // Return: validated data + functions (preserved references)
     return {
-        ...base,
-        meta: eslintRuleMetaContract.parse(base.meta),
-        ...props,
+        // Data properties validated through contract
+        ...eslintContextContract.parse({
+            filename: filenameContract.parse('/test/file.ts'),
+            ...dataProps,
+        }),
+        // Function properties preserved (not parsed to maintain references)
+        report: report ?? ((..._args: unknown[]): unknown => true),
+        getFilename: getFilename ?? ((): string & z.BRAND<'Filename'> =>
+            filenameContract.parse('/test/file.ts')),
+        getScope: getScope ?? ((): unknown => ({})),
+        getSourceCode: getSourceCode ?? ((): unknown => ({})),
     };
 };
 ```
+
+**Key Points:**
+
+- Contract validates data only
+- Type intersection adds functions
+- Stub separates functions from data
+- Functions preserved outside `contract.parse()` to maintain references for `jest.fn()`
 
 **Examples:**
 
