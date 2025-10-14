@@ -40,8 +40,8 @@ describe('EslintContextStub', () => {
   });
 
   it('VALID: {report: customFn} => returns context with custom report function', () => {
-    const customReport = (): string => {
-      return 'custom';
+    const customReport = (): boolean => {
+      return true;
     };
     const result = EslintContextStub({ report: customReport });
 
@@ -71,8 +71,8 @@ describe('EslintContextStub', () => {
   });
 
   it('VALID: {getScope: customFn} => returns context with custom getScope function', () => {
-    const customGetScope = (): string => {
-      return 'custom-scope';
+    const customGetScope = (): unknown => {
+      return { type: 'custom-scope' };
     };
     const result = EslintContextStub({ getScope: customGetScope });
 
@@ -86,8 +86,8 @@ describe('EslintContextStub', () => {
   });
 
   it('VALID: {getSourceCode: customFn} => returns context with custom getSourceCode function', () => {
-    const customGetSourceCode = (): string => {
-      return 'custom-source';
+    const customGetSourceCode = (): unknown => {
+      return { text: 'custom-source' };
     };
     const result = EslintContextStub({ getSourceCode: customGetSourceCode });
 

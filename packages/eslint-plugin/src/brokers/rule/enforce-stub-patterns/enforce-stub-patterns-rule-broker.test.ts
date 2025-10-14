@@ -71,6 +71,28 @@ export const EmptyStub = (): Empty => emptyContract.parse({});
       filename: '/test/empty.stub.ts',
     },
 
+    // Stub with nested arrow functions for default function values - nested functions should not be checked
+    {
+      code: `
+import type { StubArgument } from '@questmaestro/shared/@types';
+import { z } from 'zod';
+import { eslintContextContract } from './eslint-context-contract';
+const filenameContract = z.string().brand<'Filename'>();
+export const EslintContextStub = ({ ...props }: StubArgument<EslintContext> = {}): EslintContext => {
+  const { report, getFilename, ...dataProps } = props;
+  return {
+    ...eslintContextContract.parse({
+      filename: filenameContract.parse('/test/file.ts'),
+      ...dataProps,
+    }),
+    report: report ?? ((..._args: unknown[]): unknown => true),
+    getFilename: getFilename ?? ((): string & z.BRAND<'Filename'> => filenameContract.parse('/test/file.ts')),
+  };
+};
+      `,
+      filename: '/test/eslint-context.stub.ts',
+    },
+
     // Non-stub file - rule should not apply
     {
       code: 'export const regularFunction = ({ props }: { props: SomeType }) => props',

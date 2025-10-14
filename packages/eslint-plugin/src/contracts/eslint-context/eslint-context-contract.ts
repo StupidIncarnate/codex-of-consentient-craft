@@ -10,7 +10,7 @@ export const eslintContextContract = z.object({
 // TypeScript type: data from contract + function methods via intersection
 export type EslintContext = z.infer<typeof eslintContextContract> & {
   report: (...args: unknown[]) => unknown;
-  getFilename?: () => string & z.BRAND<'Filename'>;
+  getFilename?: () => z.BRAND<'Filename'>;
   getScope?: () => unknown;
   getSourceCode?: () => unknown;
   sourceCode?: {

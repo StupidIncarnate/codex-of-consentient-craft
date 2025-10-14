@@ -12,7 +12,7 @@ export const EslintContextStub = ({
   const { report, getFilename, getScope, getSourceCode, sourceCode, ...dataProps } = props;
 
   // Return: validated data + functions (preserved references)
-  const result: EslintContext = {
+  return {
     // Data properties validated through contract
     ...eslintContextContract.parse({
       filename: filenameContract.parse('/test/file.ts'),
@@ -24,12 +24,13 @@ export const EslintContextStub = ({
       getFilename ?? ((): string & z.BRAND<'Filename'> => filenameContract.parse('/test/file.ts')),
     getScope: getScope ?? ((): unknown => ({})),
     getSourceCode: getSourceCode ?? ((): unknown => ({})),
+    // Only include sourceCode if explicitly provided, reconstructing to ensure type correctness
+    ...(sourceCode
+      ? {
+          sourceCode: {
+            getAncestors: sourceCode.getAncestors ?? ((_node: unknown): unknown[] => []),
+          },
+        }
+      : {}),
   };
-
-  // Only add sourceCode if provided (it's optional)
-  if (sourceCode && 'getAncestors' in sourceCode && typeof sourceCode.getAncestors === 'function') {
-    result.sourceCode = sourceCode as { getAncestors: (node: unknown) => unknown[] };
-  }
-
-  return result;
 };

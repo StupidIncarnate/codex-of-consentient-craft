@@ -42,6 +42,43 @@ const isStubFile = ({ context }: { context: Rule.RuleContext }): boolean => {
   return filename.endsWith('.stub.ts');
 };
 
+interface NodeWithParent {
+  parent?: {
+    type: string;
+    parent?: {
+      type: string;
+      parent?: {
+        type: string;
+      };
+    };
+  };
+}
+
+const isExportedFunction = ({ node }: { node: unknown }): boolean => {
+  const nodeWithParent = node as NodeWithParent;
+
+  // Check if this arrow function is directly exported
+  // Pattern: export const StubName = (...) => {...}
+  // AST: ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression
+
+  const parent = nodeWithParent.parent;
+  if (!parent || parent.type !== 'VariableDeclarator') {
+    return false;
+  }
+
+  const grandparent = parent.parent;
+  if (!grandparent || grandparent.type !== 'VariableDeclaration') {
+    return false;
+  }
+
+  const greatGrandparent = grandparent.parent;
+  if (!greatGrandparent || greatGrandparent.type !== 'ExportNamedDeclaration') {
+    return false;
+  }
+
+  return true;
+};
+
 const isSingleValueProperty = ({ funcNode }: { funcNode: FunctionLike }): boolean => {
   if (funcNode.params.length === 0) {
     return false;
@@ -138,6 +175,59 @@ const usesStubArgumentType = ({ funcNode }: { funcNode: FunctionLike }): boolean
   return typeName.name === 'StubArgument';
 };
 
+const isContractParseCall = ({ node }: { node: unknown }): boolean => {
+  const callNode = node as {
+    type: string;
+    callee?: {
+      type: string;
+      object?: { type: string; name?: string };
+      property?: { type: string; name?: string };
+    };
+  };
+
+  if (callNode.type !== 'CallExpression' || !callNode.callee) {
+    return false;
+  }
+
+  const { callee } = callNode;
+  if (callee.type !== 'MemberExpression') {
+    return false;
+  }
+
+  const { object, property } = callee;
+  return Boolean(
+    object &&
+      object.type === 'Identifier' &&
+      object.name &&
+      object.name.endsWith('Contract') &&
+      property &&
+      property.type === 'Identifier' &&
+      property.name === 'parse',
+  );
+};
+
+const objectHasContractParseSpread = ({ node }: { node: unknown }): boolean => {
+  const objNode = node as {
+    type: string;
+    properties?: {
+      type: string;
+      argument?: unknown;
+    }[];
+  };
+
+  if (objNode.type !== 'ObjectExpression' || !objNode.properties) {
+    return false;
+  }
+
+  // Check if any property is a SpreadElement with contract.parse()
+  return objNode.properties.some((prop) => {
+    if (prop.type === 'SpreadElement' && prop.argument) {
+      return isContractParseCall({ node: prop.argument });
+    }
+    return false;
+  });
+};
+
 const usesContractParse = ({ funcNode }: { funcNode: FunctionLike }): boolean => {
   const { body } = funcNode;
   if (!body) {
@@ -146,28 +236,12 @@ const usesContractParse = ({ funcNode }: { funcNode: FunctionLike }): boolean =>
 
   // Handle arrow function with expression body: () => contract.parse({})
   if (body.type === 'CallExpression') {
-    const { callee } = body;
-    if (!callee) {
-      return false;
-    }
+    return isContractParseCall({ node: body });
+  }
 
-    // Check if it's a MemberExpression like `contract.parse`
-    if (callee.type === 'MemberExpression') {
-      const { object } = callee;
-      const { property } = callee;
-
-      if (
-        object &&
-        object.type === 'Identifier' &&
-        object.name &&
-        object.name.endsWith('Contract') &&
-        property &&
-        property.type === 'Identifier' &&
-        property.name === 'parse'
-      ) {
-        return true;
-      }
-    }
+  // Handle arrow function with expression body: () => ({ ...contract.parse({}) })
+  if (body.type === 'ObjectExpression') {
+    return objectHasContractParseSpread({ node: body });
   }
 
   // Handle arrow function or regular function with block body: () => { return contract.parse({}) }
@@ -176,34 +250,18 @@ const usesContractParse = ({ funcNode }: { funcNode: FunctionLike }): boolean =>
     const hasContractParse = body.body.some((statement: unknown) => {
       const stmt = statement as {
         type: string;
-        argument?: {
-          type: string;
-          callee?: {
-            type: string;
-            object?: { type: string; name?: string };
-            property?: { type: string; name?: string };
-          };
-        };
+        argument?: unknown;
       };
 
       if (stmt.type === 'ReturnStatement' && stmt.argument) {
         const arg = stmt.argument;
-        if (arg.type === 'CallExpression' && arg.callee) {
-          const { callee } = arg;
-          if (callee.type === 'MemberExpression') {
-            const { object } = callee;
-            const { property } = callee;
-
-            return (
-              object &&
-              object.type === 'Identifier' &&
-              object.name &&
-              object.name.endsWith('Contract') &&
-              property &&
-              property.type === 'Identifier' &&
-              property.name === 'parse'
-            );
-          }
+        // Direct call: return contract.parse({})
+        if (isContractParseCall({ node: arg })) {
+          return true;
+        }
+        // Spread in object: return { ...contract.parse({}), other: 'props' }
+        if (objectHasContractParseSpread({ node: arg })) {
+          return true;
         }
       }
       return false;
@@ -238,6 +296,11 @@ export const enforceStubPatternsRuleBroker = (): Rule.RuleModule => ({
 
     return {
       ArrowFunctionExpression: (node): void => {
+        // Only check root exported stub functions, not nested arrow functions
+        if (!isExportedFunction({ node })) {
+          return;
+        }
+
         const funcNode = node as FunctionLike;
 
         if (funcNode.params.length === 0) {

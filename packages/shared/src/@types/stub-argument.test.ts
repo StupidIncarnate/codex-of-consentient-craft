@@ -11,11 +11,17 @@ describe('StubArgument', () => {
       getValue: () => string;
     };
 
-    const TestStub = ({ ...props }: StubArgument<TestType> = {}): TestType => ({
-      ...testContract.parse({ name: 'default', ...props }),
-      onUpdate: props.onUpdate ?? ((_value: string): void => {}),
-      getValue: props.getValue ?? ((): string => 'default'),
-    });
+    const TestStub = ({ ...props }: StubArgument<TestType> = {}): TestType => {
+      return {
+        ...testContract.parse({ name: 'default', ...props }),
+        onUpdate: props.onUpdate ?? ((_value: string): void => {}),
+        getValue:
+          props.getValue ??
+          ((): string => {
+            return 'default';
+          }),
+      };
+    };
 
     it('VALID: {} => returns stub with default functions', () => {
       const result = TestStub();
@@ -48,7 +54,9 @@ describe('StubArgument', () => {
     });
 
     it('VALID: {name: raw string, getValue: fn} => unwraps branded type and preserves function', () => {
-      const customFn = (): string => 'custom';
+      const customFn = (): string => {
+        return 'custom';
+      };
       const result = TestStub({ name: 'test-name', getValue: customFn });
 
       expect(result.name).toBe('test-name');
@@ -61,8 +69,11 @@ describe('StubArgument', () => {
     const userIdContract = z.string().uuid().brand<'UserId'>();
     type UserId = z.infer<typeof userIdContract>;
 
-    const UserIdStub = ({ value }: { value: string } = { value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }): UserId =>
-      userIdContract.parse(value);
+    const UserIdStub = (
+      { value }: { value: string } = { value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
+    ): UserId => {
+      return userIdContract.parse(value);
+    };
 
     it('VALID: {value: raw string} => accepts raw string and returns branded type', () => {
       const result = UserIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
@@ -91,8 +102,16 @@ describe('StubArgument', () => {
           filename: filenameContract.parse('/test/file.ts'),
           ...dataProps,
         }),
-        report: report ?? ((..._args: unknown[]): unknown => true),
-        getFilename: getFilename ?? ((): string & z.BRAND<'Filename'> => filenameContract.parse('/test/file.ts')),
+        report:
+          report ??
+          ((..._args: unknown[]): unknown => {
+            return true;
+          }),
+        getFilename:
+          getFilename ??
+          ((): string & z.BRAND<'Filename'> => {
+            return filenameContract.parse('/test/file.ts');
+          }),
       };
     };
 
@@ -118,7 +137,9 @@ describe('StubArgument', () => {
     });
 
     it('VALID: {filename: raw string, getFilename: fn} => accepts raw string for branded field and custom function', () => {
-      const customGetFilename = (): string & z.BRAND<'Filename'> => filenameContract.parse('/custom/path.ts');
+      const customGetFilename = (): string & z.BRAND<'Filename'> => {
+        return filenameContract.parse('/custom/path.ts');
+      };
       const result = ContextStub({
         filename: '/override/file.ts',
         getFilename: customGetFilename,
