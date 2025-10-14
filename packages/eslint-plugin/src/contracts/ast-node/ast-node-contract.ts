@@ -2,7 +2,12 @@ import { z } from 'zod';
 
 export const astNodeContract = z.object({
   type: z.string().min(1).brand<'AstNodeType'>(),
-  range: z.tuple([z.number(), z.number()]).optional(),
+  range: z
+    .tuple([
+      z.number().int().min(0).brand<'SourcePosition'>(),
+      z.number().int().min(0).brand<'SourcePosition'>(),
+    ])
+    .optional(),
   loc: z
     .object({
       start: z.object({

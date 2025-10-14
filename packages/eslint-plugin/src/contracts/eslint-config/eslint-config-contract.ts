@@ -14,8 +14,8 @@ export const eslintConfigContract = z.object({
       globals: z.record(z.boolean()).optional(),
     })
     .optional(),
-  files: z.array(z.string()).optional(),
-  ignores: z.array(z.string()).optional(),
+  files: z.array(z.string().min(1).brand<'FilePattern'>()).optional(),
+  ignores: z.array(z.string().min(1).brand<'FilePattern'>()).optional(),
 });
 
 export type EslintConfig = z.infer<typeof eslintConfigContract>;

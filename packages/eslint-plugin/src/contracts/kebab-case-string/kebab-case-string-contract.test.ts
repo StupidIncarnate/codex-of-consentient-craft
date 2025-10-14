@@ -1,69 +1,73 @@
-import { kebabCaseStringContract } from './kebab-case-string-contract';
+import { KebabCaseStringStub } from './kebab-case-string.stub';
 
-describe('kebabCaseStringContract', () => {
+describe('KebabCaseStringStub', () => {
   describe('valid kebab-case strings', () => {
-    it('VALID: "kebab-case" => parses successfully', () => {
-      expect(kebabCaseStringContract.parse('kebab-case')).toBe('kebab-case');
+    it('VALID: {value: "kebab-case"} => returns branded KebabCaseString', () => {
+      expect(KebabCaseStringStub({ value: 'kebab-case' })).toBe('kebab-case');
     });
 
-    it('VALID: "user-fetch-broker" => parses successfully', () => {
-      expect(kebabCaseStringContract.parse('user-fetch-broker')).toBe('user-fetch-broker');
+    it('VALID: {value: "user-fetch-broker"} => returns branded KebabCaseString', () => {
+      expect(KebabCaseStringStub({ value: 'user-fetch-broker' })).toBe('user-fetch-broker');
     });
 
-    it('VALID: "a" => parses successfully', () => {
-      expect(kebabCaseStringContract.parse('a')).toBe('a');
+    it('VALID: {value: "a"} => returns branded KebabCaseString', () => {
+      expect(KebabCaseStringStub({ value: 'a' })).toBe('a');
     });
 
-    it('VALID: "test123" => parses successfully', () => {
-      expect(kebabCaseStringContract.parse('test123')).toBe('test123');
+    it('VALID: {value: "test123"} => returns branded KebabCaseString', () => {
+      expect(KebabCaseStringStub({ value: 'test123' })).toBe('test123');
     });
 
-    it('VALID: "test-123-abc" => parses successfully', () => {
-      expect(kebabCaseStringContract.parse('test-123-abc')).toBe('test-123-abc');
+    it('VALID: {value: "test-123-abc"} => returns branded KebabCaseString', () => {
+      expect(KebabCaseStringStub({ value: 'test-123-abc' })).toBe('test-123-abc');
+    });
+
+    it('VALID: {} => returns default kebab-case string', () => {
+      expect(KebabCaseStringStub()).toBe('test-string');
     });
   });
 
   describe('invalid strings', () => {
-    it('INVALID_FORMAT: "CamelCase" => throws error', () => {
+    it('INVALID_FORMAT: {value: "CamelCase"} => throws ZodError', () => {
       expect(() => {
-        return kebabCaseStringContract.parse('CamelCase');
-      }).toThrow();
+        KebabCaseStringStub({ value: 'CamelCase' });
+      }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: "snake_case" => throws error', () => {
+    it('INVALID_FORMAT: {value: "snake_case"} => throws ZodError', () => {
       expect(() => {
-        return kebabCaseStringContract.parse('snake_case');
-      }).toThrow();
+        KebabCaseStringStub({ value: 'snake_case' });
+      }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: "UPPERCASE" => throws error', () => {
+    it('INVALID_FORMAT: {value: "UPPERCASE"} => throws ZodError', () => {
       expect(() => {
-        return kebabCaseStringContract.parse('UPPERCASE');
-      }).toThrow();
+        KebabCaseStringStub({ value: 'UPPERCASE' });
+      }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: "has spaces" => throws error', () => {
+    it('INVALID_FORMAT: {value: "has spaces"} => throws ZodError', () => {
       expect(() => {
-        return kebabCaseStringContract.parse('has spaces');
-      }).toThrow();
+        KebabCaseStringStub({ value: 'has spaces' });
+      }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: "-starts-with-hyphen" => throws error', () => {
+    it('INVALID_FORMAT: {value: "-starts-with-hyphen"} => throws ZodError', () => {
       expect(() => {
-        return kebabCaseStringContract.parse('-starts-with-hyphen');
-      }).toThrow();
+        KebabCaseStringStub({ value: '-starts-with-hyphen' });
+      }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: "ends-with-hyphen-" => throws error', () => {
+    it('INVALID_FORMAT: {value: "ends-with-hyphen-"} => throws ZodError', () => {
       expect(() => {
-        return kebabCaseStringContract.parse('ends-with-hyphen-');
-      }).toThrow();
+        KebabCaseStringStub({ value: 'ends-with-hyphen-' });
+      }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: "multiple--hyphens" => throws error', () => {
+    it('INVALID_FORMAT: {value: "multiple--hyphens"} => throws ZodError', () => {
       expect(() => {
-        return kebabCaseStringContract.parse('multiple--hyphens');
-      }).toThrow();
+        KebabCaseStringStub({ value: 'multiple--hyphens' });
+      }).toThrow('Must be kebab-case');
     });
   });
 });

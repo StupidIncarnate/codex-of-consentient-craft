@@ -301,17 +301,23 @@ it("VALID: {id: '123', name?: 'John'} => updates name only")
 **Property bleedthrough** = When unwanted properties slip through your tests undetected.
 
 ```typescript
-// ✅ CORRECT - Tests complete object, catches ALL properties
+// ✅ CORRECT - Single assertion tests complete object, catches ALL properties
 expect(result).toStrictEqual({
     id: '123',
     name: 'John'
     // If result has extra properties, test FAILS (good!)
 });
 
-// ❌ WRONG - Testing individual properties = dangerous
+// ❌ WRONG - Multiple assertions on individual properties = dangerous
 expect(result.id).toBe('123');
 expect(result.name).toBe('John');
 // If result = {id: '123', name: 'John', password: 'leaked!'}, test PASSES (bad!)
+
+// ❌ WRONG - Multiple toStrictEqual calls on different properties
+expect(result.files).toStrictEqual(['*.ts', '*.tsx']);
+expect(result.ignores).toStrictEqual(['dist/', 'build/']);
+// Missing other properties - could have leaked data!
+// Should be: expect(result).toStrictEqual({ files: [...], ignores: [...], ...allProperties })
 
 // ❌ WRONG - Partial matching allows bleedthrough
 expect(result).toMatchObject({id: '123'});

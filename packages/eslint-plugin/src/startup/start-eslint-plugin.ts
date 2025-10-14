@@ -18,6 +18,7 @@ import { forbidNonExportedFunctionsRuleBroker } from '../brokers/rule/forbid-non
 import { jestMockedMustImportRuleBroker } from '../brokers/rule/jest-mocked-must-import/jest-mocked-must-import-rule-broker';
 import { noMutableStateInProxyFactoryRuleBroker } from '../brokers/rule/no-mutable-state-in-proxy-factory/no-mutable-state-in-proxy-factory-rule-broker';
 import { requireContractValidationRuleBroker } from '../brokers/rule/require-contract-validation/require-contract-validation-rule-broker';
+import { noMultiplePropertyAssertionsRuleBroker } from '../brokers/rule/no-multiple-property-assertions/no-multiple-property-assertions-rule-broker';
 import { questmaestroConfigBroker } from '../brokers/config/questmaestro/questmaestro-config-broker';
 import type { Rule } from '../adapters/eslint/eslint-rule-adapter';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
@@ -44,6 +45,7 @@ export const startEslintPlugin = (): {
     readonly 'jest-mocked-must-import': Rule.RuleModule;
     readonly 'no-mutable-state-in-proxy-factory': Rule.RuleModule;
     readonly 'require-contract-validation': Rule.RuleModule;
+    readonly 'no-multiple-property-assertions': Rule.RuleModule;
   };
   readonly configs: {
     readonly questmaestro: EslintConfig;
@@ -71,6 +73,7 @@ export const startEslintPlugin = (): {
       'jest-mocked-must-import': jestMockedMustImportRuleBroker(),
       'no-mutable-state-in-proxy-factory': noMutableStateInProxyFactoryRuleBroker(),
       'require-contract-validation': requireContractValidationRuleBroker(),
+      'no-multiple-property-assertions': noMultiplePropertyAssertionsRuleBroker(),
     },
     configs: {
       questmaestro: questmaestroConfigBroker(),

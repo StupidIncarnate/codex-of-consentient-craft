@@ -6,9 +6,18 @@ const allAllowedImports = Object.values(folderConfigStatics)
   .flatMap((config) => config.allowedImports)
   .filter((value, index, self) => self.indexOf(value) === index);
 
-// Create enum from actual values in config
-const allowedImportValues = allAllowedImports as [string, ...string[]];
+// Ensure array is non-empty and build tuple for z.enum()
+if (allAllowedImports.length === 0) {
+  throw new Error('folderConfigStatics must have at least one allowedImport value');
+}
 
-export const allowedImportContract = z.enum(allowedImportValues).brand<'AllowedImport'>();
+// Create enum from actual values
+const [first, ...rest] = allAllowedImports;
+
+if (!first) {
+  throw new Error('Failed to extract first allowedImport value');
+}
+
+export const allowedImportContract = z.enum([first, ...rest]).brand<'AllowedImport'>();
 
 export type AllowedImport = z.infer<typeof allowedImportContract>;

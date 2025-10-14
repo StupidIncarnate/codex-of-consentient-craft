@@ -1,92 +1,99 @@
-import { eslintConfigContract } from './eslint-config-contract';
+import { EslintConfigStub } from './eslint-config.stub';
 
-describe('eslintConfigContract', () => {
-  describe('parse()', () => {
-    it('VALID: {} => returns EslintConfig', () => {
-      const validConfig = {};
+describe('EslintConfigStub', () => {
+  it('VALID: {} => returns default EslintConfig', () => {
+    const result = EslintConfigStub();
 
-      const result = eslintConfigContract.parse(validConfig);
+    expect(result).toStrictEqual({
+      plugins: {},
+      rules: {},
+      files: ['**/*.ts'],
+      ignores: ['node_modules'],
+      languageOptions: {
+        globals: {},
+        parser: undefined,
+        parserOptions: {},
+      },
+    });
+  });
 
-      expect(result).toStrictEqual({});
+  it('VALID: {plugins: {test: {}}, rules: {"test-rule": "error"}} => returns custom EslintConfig', () => {
+    const result = EslintConfigStub({
+      plugins: {
+        test: {},
+      },
+      rules: {
+        'test-rule': 'error',
+      },
     });
 
-    it('VALID: {plugins: {test: {}}, rules: {"test-rule": "error"}} => returns EslintConfig', () => {
-      const validConfig = {
-        plugins: {
-          test: {},
-        },
+    expect(result).toStrictEqual({
+      plugins: { test: {} },
+      rules: { 'test-rule': 'error' },
+      files: ['**/*.ts'],
+      ignores: ['node_modules'],
+      languageOptions: {
+        globals: {},
+        parser: undefined,
+        parserOptions: {},
+      },
+    });
+  });
+
+  it('VALID: {rules: {"rule": ["error", {option: true}]}} => returns config with array rule', () => {
+    const result = EslintConfigStub({
+      rules: {
+        'test-rule': ['error', { option: true }],
+      },
+    });
+
+    expect(result).toStrictEqual({
+      plugins: {},
+      rules: { 'test-rule': ['error', { option: true }] },
+      files: ['**/*.ts'],
+      ignores: ['node_modules'],
+      languageOptions: {
+        globals: {},
+        parser: undefined,
+        parserOptions: {},
+      },
+    });
+  });
+
+  it('VALID: {files: ["*.ts"], ignores: ["dist/"]} => returns config with custom patterns', () => {
+    const result = EslintConfigStub({
+      files: ['*.ts', '*.tsx'],
+      ignores: ['dist/', 'build/'],
+    });
+
+    expect(result).toStrictEqual({
+      plugins: {},
+      rules: {},
+      files: ['*.ts', '*.tsx'],
+      ignores: ['dist/', 'build/'],
+      languageOptions: {
+        globals: {},
+        parser: undefined,
+        parserOptions: {},
+      },
+    });
+  });
+
+  it('INVALID_RULE: {rules: {"test": "invalid"}} => throws ZodError', () => {
+    expect(() => {
+      EslintConfigStub({
         rules: {
-          'test-rule': 'error' as const,
+          test: 'invalid' as never,
         },
-      };
+      });
+    }).toThrow('Invalid input');
+  });
 
-      const result = eslintConfigContract.parse(validConfig);
-
-      expect(result).toStrictEqual(validConfig);
-    });
-
-    it('VALID: {rules: {"rule": ["error", {option: true}]}} => returns EslintConfig', () => {
-      const validConfig = {
-        rules: {
-          'test-rule': ['error' as const, { option: true }],
-        },
-      };
-
-      const result = eslintConfigContract.parse(validConfig);
-
-      expect(result).toStrictEqual(validConfig);
-    });
-
-    it('VALID: {languageOptions: {parser: {}, parserOptions: {ecmaVersion: 2020}}} => returns EslintConfig', () => {
-      const validConfig = {
-        languageOptions: {
-          parser: {},
-          parserOptions: {
-            ecmaVersion: 2020,
-          },
-          globals: {
-            window: true,
-            document: false,
-          },
-        },
-      };
-
-      const result = eslintConfigContract.parse(validConfig);
-
-      expect(result).toStrictEqual(validConfig);
-    });
-
-    it('VALID: {files: ["*.ts"], ignores: ["dist/"]} => returns EslintConfig', () => {
-      const validConfig = {
-        files: ['*.ts', '*.tsx'],
-        ignores: ['dist/', 'node_modules/'],
-      };
-
-      const result = eslintConfigContract.parse(validConfig);
-
-      expect(result).toStrictEqual(validConfig);
-    });
-
-    it('INVALID_RULE: {rules: {"test": "invalid"}} => throws ZodError', () => {
-      const invalidConfig = {
-        rules: {
-          test: 'invalid',
-        },
-      };
-
-      expect(() => {
-        return eslintConfigContract.parse(invalidConfig);
-      }).toThrow();
-    });
-
-    it('INVALID_FILES: {files: [123]} => throws ZodError', () => {
-      const invalidConfig = {
-        files: [123],
-      };
-
-      expect(() => {
-        return eslintConfigContract.parse(invalidConfig);
-      }).toThrow();
-    });
+  it('INVALID_FILES: {files: [""]} => throws ZodError for empty string', () => {
+    expect(() => {
+      EslintConfigStub({
+        files: [''],
+      });
+    }).toThrow('String must contain at least 1 character(s)');
   });
 });

@@ -70,6 +70,7 @@ export const questmaestroConfigBroker = ({
     '@questmaestro/forbid-non-exported-functions': 'error',
     '@questmaestro/jest-mocked-must-import': 'error',
     '@questmaestro/no-mutable-state-in-proxy-factory': 'error',
+    '@questmaestro/no-multiple-property-assertions': 'error',
     '@questmaestro/require-contract-validation': 'error',
     '@questmaestro/require-zod-on-primitives': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
