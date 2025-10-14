@@ -4,6 +4,21 @@ This a plugin lib that gets published as an npm package that other projects can 
 constrain LLM coding and make sure it outputs good code. The configurations in here are also used in this repo to
 utilize the same advantages.
 
+## Adding New Rules
+
+When creating a new ESLint rule, you MUST update these files:
+
+1. **Create rule broker**: `src/brokers/rule/{rule-name}/{rule-name}-rule-broker.ts`
+2. **Create rule tests**: `src/brokers/rule/{rule-name}/{rule-name}-rule-broker.test.ts`
+3. **Register rule**: `src/startup/start-eslint-plugin.ts`
+    - Import the rule broker
+    - Add to the `rules` type definition
+    - Add to the `rules` object
+4. **Add to config**: `src/brokers/config/questmaestro/questmaestro-config-broker.ts`
+    - Add to `questmaestroCustomRules` object with `'error'` level
+
+Missing any of these steps will result in the rule not being available or enforced.
+
 ## Testing
 
 - **Rule brokers** (`src/brokers/rule/**`) - Tested with ESLint's RuleTester integration tests, not traditional Jest

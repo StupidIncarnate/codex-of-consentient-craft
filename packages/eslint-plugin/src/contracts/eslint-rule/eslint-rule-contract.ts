@@ -5,12 +5,12 @@ export const eslintRuleContract = z.object({
     type: z.enum(['problem', 'suggestion', 'layout']),
     docs: z.object({
       description: z.string().min(1).brand<'RuleDescription'>(),
-      category: z.string().optional(),
+      category: z.string().brand<'RuleCategory'>().optional(),
       recommended: z.boolean().optional(),
     }),
     fixable: z.enum(['code', 'whitespace']).optional(),
     schema: z.array(z.unknown()).optional(),
-    messages: z.record(z.string()).optional(),
+    messages: z.record(z.string().brand<'RuleMessage'>()).optional(),
   }),
   create: z.function(),
 });

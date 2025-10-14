@@ -55,6 +55,12 @@ ruleTester.run(
       '[1, 2, 3].some((n) => n > 2)',
       '[1, 2, 3].every((n) => n > 0)',
       'users.map((user) => user.name)',
+
+      // Object destructuring with default empty object
+      'export const FolderTypeStub = ({ value = "contracts" } = {}) => value',
+      'const fn = ({ x = 5 } = {}) => x',
+      'const process = ({ data = "default" } = {}) => data',
+      'export const stub = ({ id = "123" } = {}) => id',
     ],
     invalid: [
       // Single positional parameter

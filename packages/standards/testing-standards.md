@@ -945,20 +945,28 @@ never use `jest.fn()` internally** - they accept mocks via props.
 
 ```typescript
 // contracts/user/user.stub.ts
+import {userContract} from './user-contract';
 import type {User} from './user-contract';
+import type {StubArgument} from '@questmaestro/shared/@types';
 
-export const UserStub = (props: Partial<User> = {}): User => ({
+export const UserStub = ({...props}: StubArgument<User> = {}): User =>
+    userContract.parse({
     id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', // Always use UUIDs
     name: 'John Doe',
     email: 'john@example.com',
     ...props,
-});
+    });
 
 // contracts/thing/thing.stub.ts - with function property
-export const ThingStub = (props: Partial<Thing> = {}): Thing => ({
+import {thingContract} from './thing-contract';
+import type {Thing} from './thing-contract';
+import type {StubArgument} from '@questmaestro/shared/@types';
+
+export const ThingStub = ({...props}: StubArgument<Thing> = {}): Thing =>
+    thingContract.parse({
     someFunction: (): void => {}, // Default no-op
     ...props, // Test overrides here
-});
+    });
 
 // ✅ CORRECT - Test passes jest.fn() when needed
 it('VALID: calls function', () => {
@@ -974,6 +982,12 @@ it('VALID: calls function', () => {
 const BadStub = (props: any = {}): any => ({ // NO!
     ...props
 });
+
+// ❌ WRONG - Not using StubArgument or contract.parse()
+const BadStub2 = ({...props}: Partial<User> = {}): User => ({
+    id: '123',
+    ...props,
+});
 ```
 
 ### Contract Stubs
@@ -983,39 +997,74 @@ const BadStub = (props: any = {}): any => ({ // NO!
 With the adapter pivot, adapters translate npm types → contract types. Tests use contract stubs, not npm types:
 
 ```typescript
-// Contract stub - project-defined type
+// Contract stub - project-defined type (object)
 // contracts/user/user.stub.ts
-export const UserStub = (props: Partial<User> = {}): User => ({
+import type {StubArgument} from '@questmaestro/shared/@types';
+
+export const UserStub = ({...props}: StubArgument<User> = {}): User =>
+    userContract.parse({
     id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     name: 'John Doe',
     ...props,
-});
+    });
 
-// Contract stub - translated from npm package
+// Contract stub - translated from npm package (object)
 // contracts/http-response/http-response.stub.ts
-export const HttpResponseStub = (props: Partial<HttpResponse> = {}): HttpResponse => ({
+import type {StubArgument} from '@questmaestro/shared/@types';
+
+export const HttpResponseStub = ({...props}: StubArgument<HttpResponse> = {}): HttpResponse =>
+    httpResponseContract.parse({
     body: {},
-    statusCode: httpResponseContract.shape.statusCode.parse(200),
+        statusCode: 200,
     headers: {},
     ...props,
-});
+    });
 
-// Contract stub - complex type with functions
+// Contract stub - branded primitive (single value)
+// contracts/file-path/file-path.stub.ts
+export const FilePathStub = (
+    {value}: { value: string } = {value: '/test/file.ts'}
+): FilePath => filePathContract.parse(value);
+
+// Contract stub - complex type with functions (object)
 // contracts/eslint-rule-module/eslint-rule-module.stub.ts
+import type {StubArgument} from '@questmaestro/shared/@types';
+
 export const EslintRuleModuleStub = (
-    props: Partial<EslintRuleModule> = {}
-): EslintRuleModule => ({
+    {...props}: StubArgument<EslintRuleModule> = {}
+): EslintRuleModule => {
+    const base = {
     meta: {
-        type: 'problem',
-        messages: eslintRuleMetaContract.shape.messages.parse({
-            error: 'Default error'
-        }),
+        type: 'problem' as const,
+        messages: {error: 'Default error'},
         schema: [],
     },
-    create: () => ({}),  // Default no-op function
+        create: () => ({}),
+    };
+
+    return {
+        ...base,
+        meta: eslintRuleMetaContract.parse(base.meta),
     ...props,
-});
+    };
+};
 ```
+
+**Stub Patterns (Enforced by `@questmaestro/enforce-stub-patterns` rule):**
+
+1. **Object Stubs** (complex types with multiple properties):
+    - MUST use spread operator: `({ ...props }: StubArgument<Type> = {})`
+    - MUST use `StubArgument<Type>` from `@questmaestro/shared/@types`
+    - MUST return `contract.parse({ defaults, ...props })`
+
+2. **Branded String Stubs** (single primitive value):
+    - MUST use single `value` property: `({ value }: { value: string } = { value: 'default' })`
+    - MUST return `contract.parse(value)`
+
+3. **All Stubs** (both patterns):
+    - MUST use object destructuring parameters
+    - MUST return result of `contract.parse()`
+    - MUST import colocated contract from same directory
 
 **Stub Type Strategy:**
 
@@ -1043,6 +1092,29 @@ it("VALID: {} => sends welcome email", () => {
     expect(sendWelcomeEmail(user)).toStrictEqual(/* ... */);
 })
 ```
+
+### Extracting Properties from Stubs
+
+When you need specific properties from a stub (e.g., branded values), ALWAYS use destructuring:
+
+```typescript
+// ✅ CORRECT - Use destructuring to extract properties
+const { message } = RuleViolationStub({ message: 'Test error' });
+const { messageId } = RuleViolationStub({ messageId: 'testError' });
+
+// ✅ CORRECT - Extract multiple properties from single stub
+const { message, messageId } = RuleViolationStub({
+  message: 'Test error',
+  messageId: 'testError',
+});
+
+// ❌ WRONG - Property access without destructuring (triggers @typescript-eslint/prefer-destructuring)
+const message = RuleViolationStub({ message: 'Test error' }).message;
+const messageId = RuleViolationStub({ messageId: 'testError' }).messageId;
+```
+
+**Why:** ESLint's `@typescript-eslint/prefer-destructuring` rule enforces destructuring for better readability and
+consistency.
 
 ## Parameterized Tests
 

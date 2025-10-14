@@ -17,7 +17,7 @@ export const questmaestroConfigBroker = ({
   forTesting = false,
 }: {
   forTesting?: boolean;
-} = {}): EslintConfig => {
+} = {}): { typescript: EslintConfig; test: EslintConfig; fileOverrides: EslintConfig[] } => {
   // Build base configs
   const eslintConfig: EslintConfig = {
     plugins: {},
@@ -27,7 +27,7 @@ export const questmaestroConfigBroker = ({
     },
   };
 
-  const typescriptConfig: EslintConfig = {
+  const baseTypescriptConfig: EslintConfig = {
     plugins: { '@typescript-eslint': typescriptEslintEslintPlugin },
     rules: {
       ...(typescriptEslintRuleStatics.rules as unknown as DeepWritable<
@@ -45,10 +45,49 @@ export const questmaestroConfigBroker = ({
   // Merge eslint and typescript with conflict resolution
   const mergedConfig = eslintConflictResolverTransformer({
     reference: eslintConfig,
-    overrides: [typescriptConfig],
+    overrides: [baseTypescriptConfig],
   });
 
-  return {
+  // Questmaestro custom rules - shared by both typescript and test configs
+  const questmaestroCustomRules = {
+    'eslint-comments/no-unlimited-disable': 'error',
+    'eslint-comments/no-use': ['error', { allow: [] }],
+    '@questmaestro/ban-contract-in-tests': 'error',
+    '@questmaestro/ban-jest-mock-in-tests': 'error',
+    '@questmaestro/ban-primitives': 'error',
+    '@questmaestro/enforce-implementation-colocation': 'error',
+    '@questmaestro/enforce-import-dependencies': 'error',
+    '@questmaestro/enforce-jest-mocked-usage': 'error',
+    '@questmaestro/enforce-object-destructuring-params': 'error',
+    '@questmaestro/enforce-stub-patterns': 'error',
+    '@questmaestro/enforce-project-structure': 'error',
+    '@questmaestro/enforce-proxy-child-creation': 'error',
+    '@questmaestro/enforce-proxy-patterns': 'error',
+    '@questmaestro/enforce-test-colocation': 'error',
+    '@questmaestro/enforce-test-creation-of-proxy': 'error',
+    '@questmaestro/enforce-test-proxy-imports': 'error',
+    '@questmaestro/explicit-return-types': 'error',
+    '@questmaestro/forbid-non-exported-functions': 'error',
+    '@questmaestro/jest-mocked-must-import': 'error',
+    '@questmaestro/no-mutable-state-in-proxy-factory': 'error',
+    '@questmaestro/require-contract-validation': 'error',
+    '@questmaestro/require-zod-on-primitives': 'error',
+    // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
+    '@typescript-eslint/no-require-imports': 'off',
+  } as const;
+
+  const typescriptConfig: EslintConfig = {
+    plugins: {
+      ...mergedConfig.plugins,
+      'eslint-comments': eslintPluginEslintCommentsAdapter as unknown,
+    },
+    rules: {
+      ...mergedConfig.rules,
+      ...(questmaestroCustomRules as unknown as DeepWritable<typeof questmaestroCustomRules>),
+    },
+  };
+
+  const testConfig: EslintConfig = {
     plugins: {
       ...mergedConfig.plugins,
       'eslint-comments': eslintPluginEslintCommentsAdapter as unknown,
@@ -59,22 +98,23 @@ export const questmaestroConfigBroker = ({
       ...(forTesting
         ? (jestRuleStatics.rules as unknown as DeepWritable<typeof jestRuleStatics.rules>)
         : {}),
-      // Questmaestro custom rules
-      'eslint-comments/no-unlimited-disable': 'error',
-      'eslint-comments/no-use': ['error', { allow: [] }],
-      '@questmaestro/ban-contract-in-tests': 'error',
-      '@questmaestro/ban-primitives': 'error',
-      '@questmaestro/enforce-implementation-colocation': 'error',
-      '@questmaestro/enforce-import-dependencies': 'error',
-      '@questmaestro/enforce-object-destructuring-params': 'error',
-      '@questmaestro/enforce-project-structure': 'error',
-      '@questmaestro/enforce-test-colocation': 'error',
-      '@questmaestro/explicit-return-types': 'error',
-      '@questmaestro/forbid-non-exported-functions': 'error',
-      '@questmaestro/require-contract-validation': 'error',
-      '@questmaestro/require-zod-on-primitives': 'error',
-      // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
-      '@typescript-eslint/no-require-imports': 'off',
+      ...(questmaestroCustomRules as unknown as DeepWritable<typeof questmaestroCustomRules>),
     },
+  };
+
+  // Stub files need to use primitives and magic numbers for type conversion
+  const stubOverride: EslintConfig = {
+    files: ['**/*.stub.ts', '**/*.stub.tsx'],
+    rules: {
+      '@typescript-eslint/no-magic-numbers': 'off',
+      // // So that we can spread props as a whole object
+      // '@questmaestro/enforce-object-destructuring-params': 'off',
+    },
+  };
+
+  return {
+    typescript: typescriptConfig,
+    test: testConfig,
+    fileOverrides: [stubOverride],
   };
 };

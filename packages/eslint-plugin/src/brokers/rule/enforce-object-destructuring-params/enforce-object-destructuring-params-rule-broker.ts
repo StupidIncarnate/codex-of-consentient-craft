@@ -3,6 +3,9 @@ import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
 interface FunctionLike {
   params: {
     type: string;
+    left?: {
+      type: string;
+    };
   }[];
   parent?: {
     type: string;
@@ -45,8 +48,15 @@ const checkParams = ({
     return;
   }
 
-  // Check type directly
-  if (firstParam.type !== 'ObjectPattern') {
+  // Check if parameter uses object destructuring
+  // Handle two cases:
+  // 1. Direct ObjectPattern: ({ x }: { x: Type })
+  // 2. AssignmentPattern with ObjectPattern left: ({ x = 5 } = {})
+  const isObjectDestructuring =
+    firstParam.type === 'ObjectPattern' ||
+    (firstParam.type === 'AssignmentPattern' && firstParam.left?.type === 'ObjectPattern');
+
+  if (!isObjectDestructuring) {
     context.report({
       node: firstParam,
       messageId: 'useObjectDestructuring',

@@ -214,6 +214,10 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       code: 'import type { ZodError } from "zod";',
       filename: '/project/src/contracts/validation/validation-contract.ts',
     },
+    {
+      code: 'import type { StubArgument } from "@questmaestro/shared/@types";',
+      filename: '/project/src/contracts/user/user.stub.ts',
+    },
 
     // Startup can import anything (*)
     {
@@ -438,7 +442,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'contracts',
             importedFolder: 'brokers',
-            allowed: 'statics/, errors/, contracts/, zod',
+            allowed: 'statics/, errors/, contracts/, zod, @questmaestro/shared/@types',
           },
         },
       ],
@@ -454,7 +458,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'contracts',
             importedFolder: 'guards',
-            allowed: 'statics/, errors/, contracts/, zod',
+            allowed: 'statics/, errors/, contracts/, zod, @questmaestro/shared/@types',
           },
         },
       ],

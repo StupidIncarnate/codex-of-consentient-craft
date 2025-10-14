@@ -532,8 +532,9 @@ export type User = z.infer<typeof userContract>;
 // contracts/user/user.stub.ts
 import {userContract} from './user-contract';
 import type {User} from './user-contract';
+import type {StubArgument} from '@questmaestro/shared/@types';
 
-export const UserStub = (props: Partial<User> = {}): User => {
+export const UserStub = ({...props}: StubArgument<User> = {}): User => {
   return userContract.parse({
     id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     email: 'john@example.com',
@@ -541,6 +542,36 @@ export const UserStub = (props: Partial<User> = {}): User => {
     ...props,
   });
 };
+```
+
+**Stub Patterns:**
+
+Stubs follow strict patterns enforced by `@questmaestro/enforce-stub-patterns` rule:
+
+1. **Object Stubs (complex types)**: Use spread operator with `StubArgument<Type>`
+   ```typescript
+   import type {StubArgument} from '@questmaestro/shared/@types';
+
+   export const UserStub = ({ ...props }: StubArgument<User> = {}): User =>
+     userContract.parse({
+       id: '123',
+       name: 'John',
+       ...props,
+     });
+   ```
+
+2. **Branded String Stubs (primitives)**: Use single `value` property
+   ```typescript
+   export const FilePathStub = (
+     { value }: { value: string } = { value: '/test/file.ts' }
+   ): FilePath => filePathContract.parse(value);
+   ```
+
+3. **All stubs MUST**:
+    - Use object destructuring parameters
+    - Return `contract.parse()` to validate and brand output
+    - Import colocated contract from same directory
+
 ```
 
 ### guards/ - Type Guards and Boolean Checks
@@ -859,19 +890,22 @@ export const httpResponseContract = z.object({
 export type HttpResponse = z.infer<typeof httpResponseContract>;
 
 // contracts/http-response/http-response.stub.ts
-export const HttpResponseStub = (props: Partial<HttpResponse> = {}): HttpResponse => ({
-  body: {},
-  statusCode: httpResponseContract.shape.statusCode.parse(200),
-  headers: {},
-  ...props,
-});
+import type {StubArgument} from '@questmaestro/shared/@types';
+
+export const HttpResponseStub = ({...props}: StubArgument<HttpResponse> = {}): HttpResponse =>
+    httpResponseContract.parse({
+        body: {},
+        statusCode: 200,
+        headers: {},
+        ...props,
+    });
 
 // contracts/file-path/file-path-contract.ts
 export const filePathContract = z.string().brand<'FilePath'>();  // Brand on primitive
 export type FilePath = z.infer<typeof filePathContract>;
 
 // contracts/file-path/file-path.stub.ts
-export const FilePathStub = (value: string): FilePath =>
+export const FilePathStub = ({value}: { value: string } = {value: '/test/file.ts'}): FilePath =>
   filePathContract.parse(value);
 ```
 
@@ -922,19 +956,27 @@ export type EslintRuleModule = {
 };
 
 // Stub for tests
+import type {StubArgument} from '@questmaestro/shared/@types';
+
 export const EslintRuleModuleStub = (
-  props: Partial<EslintRuleModule> = {}
-): EslintRuleModule => ({
-  meta: {
-    type: 'problem',
-    messages: eslintRuleMetaContract.shape.messages.parse({
-      error: 'Default error'
-    }),
-    schema: [],
-  },
-  create: () => ({}),
-  ...props,
-});
+    {...props}: StubArgument<EslintRuleModule> = {}
+): EslintRuleModule => {
+    const base = {
+        meta: {
+            type: 'problem' as const,
+            messages: {error: 'Default error'},
+            schema: [],
+        },
+        create: () => ({}),
+    };
+
+    // For types with functions, validate only the data parts with contract
+    return {
+        ...base,
+        meta: eslintRuleMetaContract.parse(base.meta),
+        ...props,
+    };
+};
 ```
 
 **Examples:**

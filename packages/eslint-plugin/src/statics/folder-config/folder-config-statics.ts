@@ -13,7 +13,7 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'contracts/[domain]/[domain]-contract.ts',
-    allowedImports: ['statics/', 'errors/', 'contracts/', 'zod'],
+    allowedImports: ['statics/', 'errors/', 'contracts/', 'zod', '@questmaestro/shared/@types'],
   },
   guards: {
     fileSuffix: '-guard.ts',

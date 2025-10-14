@@ -12,6 +12,24 @@ ruleTester.run('ban-primitives', banPrimitivesRuleBroker(), {
     'const count: PositiveNumber = 42 as PositiveNumber;',
     'type User = { tags: Tag[]; scores: Score[]; }',
     'const foo = (tags: Tag[]): Score[] => []',
+
+    // Stub files are allowed to use primitives
+    {
+      code: 'export const UserIdStub = ({ value }: { value: string } = { value: "123" }): UserId => value as UserId;',
+      filename: 'user-id.stub.ts',
+    },
+    {
+      code: 'export const FilePathStub = ({ value }: { value: string }): FilePath => value as FilePath;',
+      filename: 'contracts/file-path/file-path.stub.ts',
+    },
+    {
+      code: 'export const CountStub = ({ value }: { value: number } = { value: 0 }): Count => value as Count;',
+      filename: 'src/contracts/count/count.stub.ts',
+    },
+    {
+      code: 'export const stub = (props: { id: string; count: number }): Thing => props;',
+      filename: 'thing.stub.ts',
+    },
   ],
   invalid: [
     {

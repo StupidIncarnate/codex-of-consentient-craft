@@ -12,9 +12,9 @@ const {
   questmaestroConfigBroker,
 } = require('./packages/eslint-plugin/src/brokers/config/questmaestro/questmaestro-config-broker.ts');
 
-// Get the questmaestro configs
-const questmaestroConfig = questmaestroConfigBroker();
-const questmaestroTestConfig = questmaestroConfigBroker({ forTesting: true });
+// Get the questmaestro configs (returns object with typescript, test, fileOverrides)
+const questmaestroConfigs = questmaestroConfigBroker();
+const questmaestroTestConfigs = questmaestroConfigBroker({ forTesting: true });
 
 module.exports = [
   // Global ignores
@@ -56,13 +56,13 @@ module.exports = [
       },
     },
     plugins: {
-      ...questmaestroConfig.plugins,
+      ...questmaestroConfigs.typescript.plugins,
       prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
       '@questmaestro': questmaestroPlugin,
     },
     rules: {
-      ...questmaestroConfig.rules,
+      ...questmaestroConfigs.typescript.rules,
       ...prettierConfig.rules,
       'prettier/prettier': 'error',
       'arrow-body-style': ['error', 'as-needed'],
@@ -71,6 +71,8 @@ module.exports = [
       // 'eslint-comments/no-use': ['error', { allow: [] }],
     },
   },
+  // File-specific overrides (from questmaestro config)
+  ...questmaestroConfigs.fileOverrides,
   // Test files can be more relaxed
   {
     files: ['**/*.test.ts', '**/tests/**/*.ts'],
@@ -86,13 +88,13 @@ module.exports = [
       },
     },
     plugins: {
-      ...questmaestroTestConfig.plugins,
+      ...questmaestroTestConfigs.test.plugins,
       prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
       jest: jestPlugin,
     },
     rules: {
-      ...questmaestroTestConfig.rules,
+      ...questmaestroTestConfigs.test.rules,
       ...jestPlugin.configs.recommended.rules,
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/unbound-method': 'off',
@@ -105,6 +107,8 @@ module.exports = [
       'jest/unbound-method': 'off',
     },
   },
+  // Test file-specific overrides (from questmaestro test config)
+  ...questmaestroTestConfigs.fileOverrides,
   // Promise constructor unavoidably requires 2 parameters (resolve, reject)
   {
     files: ['**/adapters/**/*-promise.ts'],

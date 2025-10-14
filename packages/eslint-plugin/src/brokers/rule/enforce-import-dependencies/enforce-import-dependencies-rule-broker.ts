@@ -98,6 +98,11 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
           return;
         }
 
+        // Exception: @questmaestro/shared/@types imports are allowed for all folders (type definitions)
+        if (sharedFolderType === '@types') {
+          return;
+        }
+
         // Exception: Test files can import .stub.ts files from @questmaestro/shared/contracts
         const isTestFile = /\.(test|spec)\.tsx?$/u.test(context.filename);
         const isStubFile = /\.stub(\.tsx?)?$/u.test(importSource);

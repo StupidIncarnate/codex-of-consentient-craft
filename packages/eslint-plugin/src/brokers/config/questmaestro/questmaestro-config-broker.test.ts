@@ -1,36 +1,74 @@
 import { questmaestroConfigBroker } from './questmaestro-config-broker';
 
 describe('questmaestroConfigBroker', () => {
-  describe('create()', () => {
-    it('VALID: => returns QuestMaestro ESLint config with plugins and rules', () => {
-      const config = questmaestroConfigBroker();
+  describe('return value structure', () => {
+    it('VALID: {} => returns object with typescript, test, and fileOverrides configs', () => {
+      const result = questmaestroConfigBroker();
 
-      expect(config).toHaveProperty('plugins');
-      expect(config).toHaveProperty('rules');
-      expect(config.plugins).toHaveProperty('eslint-comments');
+      expect(result.typescript).toBeDefined();
+      expect(result.test).toBeDefined();
+      expect(result.fileOverrides).toBeDefined();
+      expect(Array.isArray(result.fileOverrides)).toBe(true);
     });
 
-    it('VALID: config includes currently enabled QuestMaestro rules', () => {
-      const config = questmaestroConfigBroker();
+    it('VALID: {} => typescript config contains main rules', () => {
+      const { typescript } = questmaestroConfigBroker();
 
-      expect(config.rules).toHaveProperty(
-        '@questmaestro/enforce-object-destructuring-params',
-        'error',
-      );
+      expect(typescript).toBeDefined();
+      expect(typescript.rules).toBeDefined();
+      expect(typescript.rules?.['@questmaestro/ban-primitives']).toBe('error');
+      expect(typescript.rules?.['@questmaestro/enforce-object-destructuring-params']).toBe('error');
     });
 
-    it('VALID: config includes TypeScript rules => returns config with TypeScript rules enabled', () => {
-      const config = questmaestroConfigBroker();
+    it('VALID: {} => fileOverrides includes stub file config', () => {
+      const { fileOverrides } = questmaestroConfigBroker();
+      const stubConfig = fileOverrides.find((config) => {
+        return config.files?.includes('**/*.stub.ts');
+      });
 
-      expect(config.rules).toHaveProperty('@typescript-eslint/no-explicit-any', 'error');
-      expect(config.rules).toHaveProperty('@typescript-eslint/explicit-function-return-type');
+      expect(stubConfig).toBeDefined();
+      expect(stubConfig?.files).toStrictEqual(['**/*.stub.ts', '**/*.stub.tsx']);
+      expect(stubConfig?.rules?.['@typescript-eslint/no-magic-numbers']).toBe('off');
     });
 
-    it('VALID: config includes eslint-comments rules', () => {
-      const config = questmaestroConfigBroker();
+    it('VALID: {} => typescript config includes TypeScript rules', () => {
+      const { typescript } = questmaestroConfigBroker();
 
-      expect(config.rules).toHaveProperty('eslint-comments/no-unlimited-disable', 'error');
-      expect(config.rules).toHaveProperty('eslint-comments/no-use');
+      expect(typescript).toBeDefined();
+      expect(typescript.rules?.['@typescript-eslint/no-explicit-any']).toBe('error');
+      expect(typescript.rules?.['@typescript-eslint/explicit-function-return-type']).toBeDefined();
+    });
+
+    it('VALID: {} => typescript config includes eslint-comments rules', () => {
+      const { typescript } = questmaestroConfigBroker();
+
+      expect(typescript).toBeDefined();
+      expect(typescript.rules?.['eslint-comments/no-unlimited-disable']).toBe('error');
+      expect(typescript.rules?.['eslint-comments/no-use']).toBeDefined();
+    });
+  });
+
+  describe('forTesting parameter', () => {
+    it('VALID: {forTesting: true} => test config has jest plugin', () => {
+      const { test } = questmaestroConfigBroker({ forTesting: true });
+
+      expect(test).toBeDefined();
+      expect(test.plugins).toBeDefined();
+      expect(test.plugins?.jest).toBeDefined();
+    });
+
+    it('VALID: {forTesting: true} => test config disables magic numbers', () => {
+      const { test } = questmaestroConfigBroker({ forTesting: true });
+
+      expect(test).toBeDefined();
+      expect(test.rules?.['@typescript-eslint/no-magic-numbers']).toBe('off');
+    });
+
+    it('VALID: {forTesting: false} => typescript config keeps magic numbers enabled', () => {
+      const { typescript } = questmaestroConfigBroker({ forTesting: false });
+
+      expect(typescript).toBeDefined();
+      expect(typescript.rules?.['@typescript-eslint/no-magic-numbers']).not.toBe('off');
     });
   });
 });

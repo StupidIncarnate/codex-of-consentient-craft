@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const tsconfigOptionsContract = z.object({
   target: z.string().brand<'TsTarget'>().optional(),
   module: z.string().brand<'TsModule'>().optional(),
-  lib: z.array(z.string()).optional(),
+  lib: z.array(z.string().brand<'TsLibEntry'>()).optional(),
   strict: z.boolean().optional(),
   noEmit: z.boolean().optional(),
   esModuleInterop: z.boolean().optional(),
