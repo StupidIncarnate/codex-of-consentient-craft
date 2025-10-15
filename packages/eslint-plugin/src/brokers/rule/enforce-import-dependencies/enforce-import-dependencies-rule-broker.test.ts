@@ -25,7 +25,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       filename: '/project/src/brokers/auth/login/auth-login-broker.ts',
     },
     {
-      code: 'import { httpAdapter } from "../../../adapters/http/http-adapter";',
+      code: 'import { httpGetAdapter } from "../../../adapters/http/get/http-get-adapter";',
       filename: '/project/src/brokers/api/fetch/api-fetch-broker.ts',
     },
     {
@@ -158,13 +158,13 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       code: 'import { authVerifyBroker } from "../../auth/verify/auth-verify-broker";',
       filename: '/project/src/brokers/payment/process/payment-process-broker.ts',
     },
-    // Brokers (depth 2) importing from depth-1 adapters - requires 3 levels up
+    // Brokers (depth 2) importing from depth-2 adapters - requires 4 levels up
     {
-      code: 'import { postgresQueryAdapter } from "../../../adapters/postgres-query/postgres-query-adapter";',
+      code: 'import { postgresQueryAdapter } from "../../../../adapters/postgres/query/postgres-query-adapter";',
       filename: '/project/src/brokers/database/query/database-query-broker.ts',
     },
     {
-      code: 'import { redisSetAdapter } from "../../../adapters/redis-set/redis-set-adapter";',
+      code: 'import { redisSetAdapter } from "../../../../adapters/redis/set/redis-set-adapter";',
       filename: '/project/src/brokers/cache/set/cache-set-broker.ts',
     },
     // Brokers (depth 2) importing from depth-1 contracts - requires 3 levels up
@@ -341,9 +341,9 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       filename: '/project/src/state/store/store-state.ts',
     },
 
-    // Middleware (depth 1) can import from adapters, middleware, statics
+    // Middleware (depth 1) can import from adapters (depth 2), middleware, statics
     {
-      code: 'import { winstonLogAdapter } from "../../adapters/winston-log/winston-log-adapter";',
+      code: 'import { winstonLogAdapter } from "../../../adapters/winston/log/winston-log-adapter";',
       filename: '/project/src/middleware/http-telemetry/http-telemetry-middleware.ts',
     },
     {
@@ -378,7 +378,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
         '/project/src/brokers/rule/enforce-proxy-child-creation/enforce-proxy-child-creation-rule-broker.proxy.ts',
     },
     {
-      code: 'import { httpAdapterProxy } from "../../../adapters/http/http-adapter.proxy";',
+      code: 'import { httpGetAdapterProxy } from "../../../../adapters/http/get/http-get-adapter.proxy";',
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts',
     },
     {

@@ -91,19 +91,19 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
       filename: '/project/src/middleware/auth/auth-middleware.ts',
     },
 
-    // Adapters (depth 1, camelCase + Adapter, ONE function export only)
+    // Adapters (depth 2, camelCase + Adapter, ONE function export only)
     {
       code: 'export const axiosGetAdapter = () => {};',
-      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
     },
     {
       code: 'export const fsReadFileAdapter = () => {};',
-      filename: '/project/src/adapters/fs/fs-read-file-adapter.ts',
+      filename: '/project/src/adapters/fs/read-file/fs-read-file-adapter.ts',
     },
     // Adapters can compose multiple package functions for one operation
     {
       code: 'export const fsEnsureWriteAdapter = async () => {};',
-      filename: '/project/src/adapters/fs/fs-ensure-write-adapter.ts',
+      filename: '/project/src/adapters/fs/ensure-write/fs-ensure-write-adapter.ts',
     },
 
     // Startup (depth 0, PascalCase, 0 or 1 exports allowed)
@@ -172,7 +172,7 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
     // ========== PROXY FILES: Valid arrow function exports ==========
     {
       code: 'export const httpAdapterProxy = () => {};',
-      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+      filename: '/project/src/adapters/http/get/http-adapter.proxy.ts',
     },
     {
       code: 'export const userFetchBrokerProxy = () => {};',
@@ -463,7 +463,7 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
     // Multiple Level 3 errors (both suffix AND kebab-case wrong)
     {
       code: 'export const RuleTester = () => {};',
-      filename: '/project/src/adapters/eslint/eslintRuleTester.ts',
+      filename: '/project/src/adapters/eslint/rule-tester/eslintRuleTester.ts',
       errors: [{ messageId: 'invalidFileSuffix' }, { messageId: 'invalidFilenameCase' }],
     },
     {
@@ -549,83 +549,89 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
     },
 
     // ========== ADAPTERS: Export validation ==========
+    // Adapters need depth 2, not 1
+    {
+      code: 'export const axiosGetAdapter = () => {};',
+      filename: '/project/src/adapters/axios-get-adapter.ts',
+      errors: [{ messageId: 'invalidFolderDepth' }],
+    },
     // Type re-export without -adapter.ts suffix (file suffix required for ALL adapters)
     {
       code: 'export type { Rule } from "eslint";',
-      filename: '/project/src/adapters/eslint/eslint-rule.ts',
+      filename: '/project/src/adapters/eslint/rule/eslint-rule.ts',
       errors: [{ messageId: 'invalidFileSuffix' }],
     },
     // Missing Adapter suffix (also missing -adapter.ts file suffix)
     {
       code: 'export const axiosGet = () => {};',
-      filename: '/project/src/adapters/axios/axios-get.ts',
+      filename: '/project/src/adapters/axios/get/axios-get.ts',
       errors: [{ messageId: 'invalidFileSuffix' }],
     },
     // Wrong case (should be camelCase) - also missing file suffix
     {
       code: 'export const AxiosGetAdapter = () => {};',
-      filename: '/project/src/adapters/axios/axios-get.ts',
+      filename: '/project/src/adapters/axios/get/axios-get.ts',
       errors: [{ messageId: 'invalidFileSuffix' }],
     },
     // Wrong name - also missing file suffix
     {
       code: 'export const fetchDataAdapter = () => {};',
-      filename: '/project/src/adapters/axios/axios-get.ts',
+      filename: '/project/src/adapters/axios/get/axios-get.ts',
       errors: [{ messageId: 'invalidFileSuffix' }],
     },
     // With correct file suffix, missing export Adapter suffix
     {
       code: 'export const axiosGet = () => {};',
-      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
       errors: [{ messageId: 'invalidExportSuffix' }, { messageId: 'filenameMismatch' }],
     },
     // With correct file suffix, wrong export case
     {
       code: 'export const AxiosGetAdapter = () => {};',
-      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
       errors: [{ messageId: 'invalidExportCase' }, { messageId: 'filenameMismatch' }],
     },
     // With correct file suffix, wrong export name
     {
       code: 'export const fetchDataAdapter = () => {};',
-      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
       errors: [{ messageId: 'filenameMismatch' }],
     },
     // Adapters cannot have type-only re-exports (new pivot: must export functions returning contracts)
     {
       code: 'export type { Rule } from "eslint";',
-      filename: '/project/src/adapters/eslint/eslint-rule-adapter.ts',
+      filename: '/project/src/adapters/eslint/rule/eslint-rule-adapter.ts',
       errors: [{ messageId: 'missingExpectedExport' }],
     },
     // Adapters cannot have class re-exports (must be functions returning contracts)
     {
       code: 'export { RuleTester as eslintRuleTesterAdapter } from "eslint";',
-      filename: '/project/src/adapters/eslint/eslint-rule-tester-adapter.ts',
+      filename: '/project/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts',
       errors: [{ messageId: 'noReExport' }],
     },
     // Adapters cannot have value re-exports (must be local function definitions)
     {
       code: 'import { get } from "axios";\nexport { get as axiosGetAdapter };',
-      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
       errors: [{ messageId: 'noReExport' }],
     },
     // Adapters cannot re-export via variable assignment (must be arrow functions)
     {
       code: 'import plugin from "@typescript-eslint/eslint-plugin";\nexport const typescriptEslintEslintPluginAdapter = plugin;',
       filename:
-        '/project/src/adapters/typescript-eslint-eslint-plugin/typescript-eslint-eslint-plugin-adapter.ts',
+        '/project/src/adapters/typescript-eslint-eslint-plugin/adapter/typescript-eslint-eslint-plugin-adapter.ts',
       errors: [{ messageId: 'adapterMustBeArrowFunction' }],
     },
     // Adapters cannot use function declarations (must be arrow functions)
     {
       code: 'export function axiosGetAdapter() { return null; }',
-      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
       errors: [{ messageId: 'adapterMustBeArrowFunction' }],
     },
     // Adapters cannot export classes (must be arrow functions)
     {
       code: 'export class AxiosGetAdapter {}',
-      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
       errors: [{ messageId: 'adapterMustBeArrowFunction' }],
     },
 
@@ -653,19 +659,19 @@ ruleTester.run('enforce-project-structure', enforceProjectStructureRuleBroker(),
     // Proxy with function declaration instead of arrow function
     {
       code: 'export function httpAdapterProxy() { return null; }',
-      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+      filename: '/project/src/adapters/http/get/http-adapter.proxy.ts',
       errors: [{ messageId: 'proxyMustBeArrowFunction' }],
     },
     // Proxy with class export
     {
       code: 'export class HttpAdapterProxy {}',
-      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+      filename: '/project/src/adapters/http/get/http-adapter.proxy.ts',
       errors: [{ messageId: 'proxyMustBeArrowFunction' }],
     },
     // Proxy with wrong export name (missing Proxy suffix)
     {
       code: 'export const httpAdapter = () => {};',
-      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+      filename: '/project/src/adapters/http/get/http-adapter.proxy.ts',
       errors: [{ messageId: 'invalidExportSuffix' }, { messageId: 'filenameMismatch' }],
     },
     // Broker proxy with function declaration
