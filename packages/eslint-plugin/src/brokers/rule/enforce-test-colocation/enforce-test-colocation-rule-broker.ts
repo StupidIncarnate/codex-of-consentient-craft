@@ -1,5 +1,5 @@
 import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@questmaestro/shared/contracts';
 import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';

@@ -20,7 +20,7 @@ describe('folderConfigStatics', () => {
         exportCase: 'camelCase',
         folderDepth: 1,
         folderPattern: 'contracts/[domain]/[domain]-contract.ts',
-        allowedImports: ['statics/', 'errors/', 'contracts/', 'zod'],
+        allowedImports: ['statics/', 'errors/', 'contracts/', 'zod', '@questmaestro/shared/@types'],
       });
     });
 
@@ -73,8 +73,8 @@ describe('folderConfigStatics', () => {
         fileSuffix: '-adapter.ts',
         exportSuffix: 'Adapter',
         exportCase: 'camelCase',
-        folderDepth: 1,
-        folderPattern: 'adapters/[package]/[package]-[operation]-adapter.ts',
+        folderDepth: 2,
+        folderPattern: 'adapters/[package]/[operation]/[package]-[operation]-adapter.ts',
         allowedImports: ['node_modules', 'middleware/', 'statics/', 'contracts/', 'guards/'],
       });
     });
@@ -250,6 +250,7 @@ describe('folderConfigStatics', () => {
         'errors/',
         'contracts/',
         'zod',
+        '@questmaestro/shared/@types',
       ]);
     });
   });

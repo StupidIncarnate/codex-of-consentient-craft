@@ -14,7 +14,7 @@ describe('isEntryFileGuard', () => {
 
     it('VALID: axios-get-adapter.ts is entry file for adapters/', () => {
       const result = isEntryFileGuard({
-        filePath: '/project/src/adapters/axios-get/axios-get-adapter.ts',
+        filePath: '/project/src/adapters/axios/get/axios-get-adapter.ts',
         folderType: folderTypeContract.parse('adapters'),
       });
 

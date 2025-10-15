@@ -15,6 +15,13 @@ module.exports = {
           esModuleInterop: true,
           skipLibCheck: true,
         },
+        astTransformers: {
+          before: [
+            {
+              path: require.resolve('./packages/testing/dist/jest-proxy-mock-transformer.js'),
+            },
+          ],
+        },
       },
     ],
   },

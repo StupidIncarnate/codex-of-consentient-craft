@@ -1,6 +1,6 @@
 import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
 import type { TSESTree } from '@typescript-eslint/utils';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@questmaestro/shared/contracts';
 
 interface NodeWithBody {

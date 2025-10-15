@@ -69,6 +69,11 @@ export const enforceImportDependenciesRuleBroker = (): Rule.RuleModule => ({
   },
   create: (context: Rule.RuleContext) => ({
     ImportDeclaration: (node): void => {
+      // Skip validation for .proxy.ts files - they have their own proxy rules
+      if (context.filename.endsWith('.proxy.ts')) {
+        return;
+      }
+
       const folderType = folderTypeTransformer({ filename: context.filename });
 
       if (folderType === null) {

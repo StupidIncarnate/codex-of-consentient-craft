@@ -76,7 +76,7 @@ export const enforceProjectStructureRuleBroker = (): Rule.RuleModule => ({
     const isKebabCase = (str: string): boolean => /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u.test(str);
 
     // Helper to check if file is a proxy file
-    const isProxyFile = (filePath: string): boolean => /\.proxy\.ts$/u.test(filePath);
+    const isProxyFile = (filePath: string): boolean => filePath.endsWith('.proxy.ts');
 
     // Helper to extract folder path segments from filename
     const getFolderSegments = (filePath: string): string[] => {

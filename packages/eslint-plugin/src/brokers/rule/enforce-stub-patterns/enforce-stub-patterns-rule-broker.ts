@@ -61,7 +61,7 @@ const isExportedFunction = ({ node }: { node: unknown }): boolean => {
   // Pattern: export const StubName = (...) => {...}
   // AST: ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression
 
-  const parent = nodeWithParent.parent;
+  const { parent } = nodeWithParent;
   if (!parent || parent.type !== 'VariableDeclarator') {
     return false;
   }

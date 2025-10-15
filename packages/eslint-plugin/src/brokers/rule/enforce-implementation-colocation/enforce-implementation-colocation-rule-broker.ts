@@ -1,5 +1,5 @@
 import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@questmaestro/shared/contracts';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
 
@@ -105,7 +105,7 @@ export const enforceImplementationColocationRuleBroker = (): Rule.RuleModule => 
           const baseFileName = fileBaseName.replace(/\.tsx?$/u, '');
           const folderTypePattern =
             /-(adapter|broker|transformer|guard|binding|middleware|state|responder|widget|statics)$/u;
-          const folderTypeMatch = baseFileName.match(folderTypePattern);
+          const folderTypeMatch = folderTypePattern.exec(baseFileName);
 
           if (folderTypeMatch) {
             // Check for common invalid patterns
@@ -113,7 +113,7 @@ export const enforceImplementationColocationRuleBroker = (): Rule.RuleModule => 
             // E.g., "http-adapter" → "http", "user-fetch-broker" → "user", "format-date-transformer" → "format"
             // Match everything before the pattern that includes the folder type
             // This handles cases like: user-fetch-broker → user, format-date-transformer → format
-            const firstPartMatch = baseFileName.match(/^([^-]+)/u);
+            const firstPartMatch = /^([^-]+)/u.exec(baseFileName);
             const firstPart = firstPartMatch ? firstPartMatch[1] : baseFileName;
 
             const invalidProxyFileName = `${firstPart}.proxy.${filename.endsWith('.tsx') ? 'tsx' : 'ts'}`;

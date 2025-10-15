@@ -1,7 +1,6 @@
 import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
 import type { TSESTree } from '@typescript-eslint/utils';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/fs-read-file-sync/fs-read-file-sync-adapter';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
+import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter';
 
 interface NodeWithSource {
   source?: {
@@ -65,21 +64,15 @@ export const enforceProxyChildCreationRuleBroker = (): Rule.RuleModule => ({
     // Derive implementation file path
     const implementationPath = filename.replace('.proxy.ts', '.ts');
 
-    // Check if implementation file exists
-    if (!fsExistsSyncAdapter({ filePath: implementationPath as never })) {
-      // No implementation file, skip validation
-      return {};
-    }
-
-    // Read implementation file
+    // Read implementation file (checks existence and reads in one operation)
     let implementationContent: string;
     try {
-      implementationContent = fsReadFileSyncAdapter({
-        filePath: implementationPath,
+      implementationContent = fsEnsureReadFileSyncAdapter({
+        filePath: implementationPath as never,
         encoding: 'utf-8',
       });
     } catch {
-      // Cannot read file, skip validation
+      // Implementation file doesn't exist or cannot be read, skip validation
       return {};
     }
 

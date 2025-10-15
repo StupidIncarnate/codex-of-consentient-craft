@@ -1,68 +1,54 @@
 import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
 import { enforceProxyChildCreationRuleBroker } from './enforce-proxy-child-creation-rule-broker';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/fs-read-file-sync/fs-read-file-sync-adapter';
-
-jest.mock('../../../adapters/fs/fs-exists-sync-adapter');
-jest.mock('../../../adapters/fs/fs-read-file-sync/fs-read-file-sync-adapter');
-
-const mockFsExistsSync = jest.mocked(fsExistsSyncAdapter);
-const mockFsReadFileSync = jest.mocked(fsReadFileSyncAdapter);
+import { enforceProxyChildCreationRuleBrokerProxy } from './enforce-proxy-child-creation-rule-broker.proxy';
+import { fileContentsContract } from '@questmaestro/shared/contracts';
+import type { FileContents, FilePath } from '@questmaestro/shared/contracts';
 
 const ruleTester = createEslintRuleTester();
 
 beforeEach(() => {
-  mockFsExistsSync.mockReset();
-  mockFsReadFileSync.mockReset();
+  const brokerProxy = enforceProxyChildCreationRuleBrokerProxy();
 
   // Set up file system mocks based on filename
-  mockFsExistsSync.mockImplementation(({ filePath }: { filePath: string }) => {
-    const path = String(filePath);
+  brokerProxy.setupFileSystem({
+    getContents: (filePath: FilePath): FileContents | null => {
+      // No implementation file for foo.proxy.ts - return null
+      if (filePath.includes('foo.proxy.ts')) {
+        return null;
+      }
 
-    // No implementation file for foo.proxy.ts
-    if (path.includes('foo.proxy.ts')) {
-      return false;
-    }
-
-    // All other .ts files exist
-    return path.endsWith('.ts');
-  });
-
-  mockFsReadFileSync.mockImplementation(({ filePath }: { filePath: string; encoding?: string }) => {
-    const path = String(filePath);
-
-    // All broker files that import httpAdapter only
-    if (
-      path.includes('brokers/user/user-broker.ts') ||
-      path.includes('brokers/user/no-creation-broker.ts') ||
-      path.includes('brokers/user/after-return-broker.ts') ||
-      path.includes('brokers/user/phantom-proxy-broker.ts')
-    ) {
-      return `
+      // All broker files that import httpAdapter only
+      if (
+        filePath.includes('brokers/user/user-broker.ts') ||
+        filePath.includes('brokers/user/no-creation-broker.ts') ||
+        filePath.includes('brokers/user/after-return-broker.ts') ||
+        filePath.includes('brokers/user/phantom-proxy-broker.ts')
+      ) {
+        return fileContentsContract.parse(`
         import { httpAdapter } from '../../adapters/http/http-adapter';
 
         export const userBroker = () => {
           return httpAdapter.get();
         };
-      `;
-    }
+      `);
+      }
 
-    // Empty broker with no imports
-    if (path.includes('brokers/empty/empty-broker.ts')) {
-      return `
+      // Empty broker with no imports
+      if (filePath.includes('brokers/empty/empty-broker.ts')) {
+        return fileContentsContract.parse(`
         export const emptyBroker = () => {
           return { data: 'test' };
         };
-      `;
-    }
+      `);
+      }
 
-    // user-broker.ts with multiple adapters
-    if (
-      path.includes('brokers/user-multi/user-broker.ts') ||
-      path.includes('brokers/user-multi/missing-db-broker.ts') ||
-      path.includes('brokers/user-multi/no-proxies-broker.ts')
-    ) {
-      return `
+      // user-broker.ts with multiple adapters
+      if (
+        filePath.includes('brokers/user-multi/user-broker.ts') ||
+        filePath.includes('brokers/user-multi/missing-db-broker.ts') ||
+        filePath.includes('brokers/user-multi/no-proxies-broker.ts')
+      ) {
+        return fileContentsContract.parse(`
         import { httpAdapter } from '../../adapters/http/http-adapter';
         import { dbAdapter } from '../../adapters/db/db-adapter';
 
@@ -71,42 +57,43 @@ beforeEach(() => {
           const db = dbAdapter.query();
           return { http, db };
         };
-      `;
-    }
+      `);
+      }
 
-    // user-transformer.ts - no dependencies
-    if (path.includes('transformers/user/user-transformer.ts')) {
-      return `
+      // user-transformer.ts - no dependencies
+      if (filePath.includes('transformers/user/user-transformer.ts')) {
+        return fileContentsContract.parse(`
         export const userTransformer = (data: unknown) => {
           return { name: 'John' };
         };
-      `;
-    }
+      `);
+      }
 
-    // user-guard.ts - only contracts
-    if (path.includes('guards/user/user-guard.ts')) {
-      return `
+      // user-guard.ts - only contracts
+      if (filePath.includes('guards/user/user-guard.ts')) {
+        return fileContentsContract.parse(`
         import type { User } from '../../contracts/user/user-contract';
 
         export const userGuard = (user: User): boolean => {
           return user.isActive;
         };
-      `;
-    }
+      `);
+      }
 
-    // http-adapter.ts - only npm packages
-    if (path.includes('adapters/http/http-adapter.ts')) {
-      return `
+      // http-adapter.ts - only npm packages
+      if (filePath.includes('adapters/http/http-adapter.ts')) {
+        return fileContentsContract.parse(`
         import axios from 'axios';
 
         export const httpAdapter = {
           get: async () => axios.get('/api')
         };
-      `;
-    }
+      `);
+      }
 
-    // Default empty implementation
-    return `export const placeholder = () => {};`;
+      // Default empty implementation
+      return fileContentsContract.parse(`export const placeholder = () => {};`);
+    },
   });
 });
 

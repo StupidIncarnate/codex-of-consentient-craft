@@ -370,6 +370,21 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
       code: 'import { something } from "../../../node_modules/package";',
       filename: '/project/scripts/build.ts',
     },
+
+    // Proxy files are exempt from import restrictions (have their own proxy rules)
+    {
+      code: 'import { fsEnsureReadFileSyncAdapterProxy } from "../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter.proxy";',
+      filename:
+        '/project/src/brokers/rule/enforce-proxy-child-creation/enforce-proxy-child-creation-rule-broker.proxy.ts',
+    },
+    {
+      code: 'import { httpAdapterProxy } from "../../../adapters/http/http-adapter.proxy";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts',
+    },
+    {
+      code: 'import { anyImportAtAll } from "../../../../anywhere/not-allowed-normally";',
+      filename: '/project/src/guards/test/test-guard.proxy.ts',
+    },
   ],
   invalid: [
     // Guards cannot import from brokers

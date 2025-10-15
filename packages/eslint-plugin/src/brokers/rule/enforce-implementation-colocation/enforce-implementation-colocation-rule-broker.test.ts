@@ -1,15 +1,14 @@
 import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
 import { enforceImplementationColocationRuleBroker } from './enforce-implementation-colocation-rule-broker';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
+import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 
-jest.mock('../../../adapters/fs/fs-exists-sync-adapter');
-
-const mockFsExistsSync = jest.mocked(fsExistsSyncAdapter);
 const ruleTester = createEslintRuleTester();
 
 // Mock setup: return true only for specific existing files
 beforeEach(() => {
-  mockFsExistsSync.mockImplementation(({ filePath }) => {
+  const adapterProxy = fsExistsSyncAdapterProxy();
+
+  adapterProxy.setupFileSystem((filePath) => {
     const path = String(filePath);
 
     // Test files that exist (for valid cases)

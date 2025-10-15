@@ -30,7 +30,7 @@ export const banJestMockInTestsRuleBroker = (): Rule.RuleModule => ({
       }
 
       const nodeWithCallee = node as unknown as NodeWithCallee;
-      const callee = nodeWithCallee.callee;
+      const { callee } = nodeWithCallee;
 
       const isJestCall =
         callee?.type === 'MemberExpression' &&

@@ -1,15 +1,13 @@
 import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
 import { enforceProxyPatternsRuleBroker } from './enforce-proxy-patterns-rule-broker';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/fs-exists-sync-adapter';
-
-jest.mock('../../../adapters/fs/fs-exists-sync-adapter');
-
-const mockFsExistsSync = jest.mocked(fsExistsSyncAdapter);
+import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 
 const ruleTester = createEslintRuleTester();
 
 beforeEach(() => {
-  mockFsExistsSync.mockImplementation(({ filePath }) => {
+  const adapterProxy = fsExistsSyncAdapterProxy();
+
+  adapterProxy.setupFileSystem((filePath) => {
     const existingFiles = [
       '/project/src/adapters/http/http-adapter.ts',
       '/project/src/brokers/user/fetch/user-fetch-broker.ts',

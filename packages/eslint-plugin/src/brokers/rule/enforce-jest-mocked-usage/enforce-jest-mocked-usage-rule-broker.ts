@@ -47,47 +47,34 @@ interface ImportDeclarationNode {
 // List of global objects that are allowed with jest.spyOn
 const ALLOWED_SPY_ON_GLOBALS = ['Date', 'crypto', 'console', 'Math', 'process'];
 
-const isProxyFile = ({ filename }: { filename: string }): boolean => {
-  return filename.endsWith('.proxy.ts');
-};
+const isProxyFile = ({ filename }: { filename: string }): boolean => filename.endsWith('.proxy.ts');
 
-const isAdapterProxy = ({ filename }: { filename: string }): boolean => {
-  return filename.includes('-adapter.proxy.ts');
-};
+const isAdapterProxy = ({ filename }: { filename: string }): boolean =>
+  filename.includes('-adapter.proxy.ts');
 
-const isStateProxy = ({ filename }: { filename: string }): boolean => {
-  return filename.includes('-state.proxy.ts');
-};
+const isStateProxy = ({ filename }: { filename: string }): boolean =>
+  filename.includes('-state.proxy.ts');
 
-const isJestMockCall = (node: CallExpressionNode): boolean => {
-  return (
-    node.callee?.type === 'MemberExpression' &&
-    node.callee.object?.type === 'Identifier' &&
-    node.callee.object.name === 'jest' &&
-    node.callee.property?.type === 'Identifier' &&
-    node.callee.property.name === 'mock'
-  );
-};
+const isJestMockCall = (node: CallExpressionNode): boolean =>
+  node.callee?.type === 'MemberExpression' &&
+  node.callee.object?.type === 'Identifier' &&
+  node.callee.object.name === 'jest' &&
+  node.callee.property?.type === 'Identifier' &&
+  node.callee.property.name === 'mock';
 
-const isJestMockedCall = (node: CallExpressionNode): boolean => {
-  return (
-    node.callee?.type === 'MemberExpression' &&
-    node.callee.object?.type === 'Identifier' &&
-    node.callee.object.name === 'jest' &&
-    node.callee.property?.type === 'Identifier' &&
-    node.callee.property.name === 'mocked'
-  );
-};
+const isJestMockedCall = (node: CallExpressionNode): boolean =>
+  node.callee?.type === 'MemberExpression' &&
+  node.callee.object?.type === 'Identifier' &&
+  node.callee.object.name === 'jest' &&
+  node.callee.property?.type === 'Identifier' &&
+  node.callee.property.name === 'mocked';
 
-const isJestSpyOnCall = (node: CallExpressionNode): boolean => {
-  return (
-    node.callee?.type === 'MemberExpression' &&
-    node.callee.object?.type === 'Identifier' &&
-    node.callee.object.name === 'jest' &&
-    node.callee.property?.type === 'Identifier' &&
-    node.callee.property.name === 'spyOn'
-  );
-};
+const isJestSpyOnCall = (node: CallExpressionNode): boolean =>
+  node.callee?.type === 'MemberExpression' &&
+  node.callee.object?.type === 'Identifier' &&
+  node.callee.object.name === 'jest' &&
+  node.callee.property?.type === 'Identifier' &&
+  node.callee.property.name === 'spyOn';
 
 const getSpyOnTarget = (node: CallExpressionNode): string | null => {
   if (!node.arguments || node.arguments.length === 0) {
@@ -216,7 +203,7 @@ export const enforceJestMockedUsageRuleBroker = (): Rule.RuleModule => {
           const initNode = declaratorNode.init as unknown as InitNode;
 
           // Check if using jest.mocked()
-          const callNode = declaratorNode.init as CallExpressionNode;
+          const callNode = declaratorNode.init;
           if (isJestMockedCall(callNode)) {
             // Check if this is a non-adapter/non-state proxy using jest.mocked()
             // State proxies can use jest.mocked() for external systems (Redis, DB)

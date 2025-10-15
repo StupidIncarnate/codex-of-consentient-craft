@@ -124,6 +124,7 @@ module.exports = [
       'jest/require-top-level-describe': 'off',
       'jest/no-hooks': 'off',
       '@questmaestro/ban-contract-in-tests': 'off',
+      '@questmaestro/enforce-test-creation-of-proxy': 'off'
     },
   },
   // {
