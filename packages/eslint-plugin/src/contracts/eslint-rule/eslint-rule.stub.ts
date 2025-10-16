@@ -3,24 +3,27 @@ import type { EslintRule } from './eslint-rule-contract';
 import type { StubArgument } from '@questmaestro/shared/@types';
 
 export const EslintRuleStub = ({ ...props }: StubArgument<EslintRule> = {}): EslintRule => {
-  const baseRule = {
-    meta: {
-      type: 'problem' as const,
-      docs: {
-        description:
-          eslintRuleContract.shape.meta.shape.docs.shape.description.parse('Test rule description'),
-        category: eslintRuleContract.shape.meta.shape.docs.shape.category.parse('Possible Errors'),
-        recommended: false,
-      },
-      fixable: undefined,
-      schema: [],
-      messages: {},
-    },
-    create: () => ({}),
-  };
+  // Separate function props from data props
+  const { create, ...dataProps } = props;
 
-  return eslintRuleContract.parse({
-    ...baseRule,
-    ...props,
-  });
+  // Return: validated data + functions (preserved references)
+  return {
+    // Data properties validated through contract
+    ...eslintRuleContract.parse({
+      meta: {
+        type: 'problem',
+        docs: {
+          description: 'Test rule description',
+          category: 'Possible Errors',
+          recommended: false,
+        },
+        fixable: undefined,
+        schema: [],
+        messages: {},
+      },
+      ...dataProps,
+    }),
+    // Function properties preserved (not parsed to maintain references)
+    create: create ?? ((): Record<string, (node: unknown) => void> => ({})),
+  };
 };

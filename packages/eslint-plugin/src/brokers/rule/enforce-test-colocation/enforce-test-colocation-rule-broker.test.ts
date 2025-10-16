@@ -1,8 +1,8 @@
 import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
-import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
+import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { enforceTestColocationRuleBroker } from './enforce-test-colocation-rule-broker';
 
-const ruleTester = createEslintRuleTester();
+const ruleTester = eslintRuleTesterAdapter();
 
 beforeEach(() => {
   const adapterProxy = fsExistsSyncAdapterProxy();

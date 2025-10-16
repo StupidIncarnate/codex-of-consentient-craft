@@ -1,10 +1,10 @@
-import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
+import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { enforceProxyChildCreationRuleBroker } from './enforce-proxy-child-creation-rule-broker';
 import { enforceProxyChildCreationRuleBrokerProxy } from './enforce-proxy-child-creation-rule-broker.proxy';
 import { fileContentsContract } from '@questmaestro/shared/contracts';
 import type { FileContents, FilePath } from '@questmaestro/shared/contracts';
 
-const ruleTester = createEslintRuleTester();
+const ruleTester = eslintRuleTesterAdapter();
 
 beforeEach(() => {
   const brokerProxy = enforceProxyChildCreationRuleBrokerProxy();
@@ -76,6 +76,24 @@ beforeEach(() => {
 
         export const userGuard = (user: User): boolean => {
           return user.isActive;
+        };
+      `);
+      }
+
+      // eslint-rule-tester-adapter.ts - has example code in comments
+      if (filePath.includes('adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts')) {
+        return fileContentsContract.parse(`
+        /**
+         * @example
+         * \`\`\`typescript
+         * import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+         * import { myRuleBroker } from './my-rule-broker';
+         *
+         * const ruleTester = eslintRuleTesterAdapter();
+         * \`\`\`
+         */
+        export const eslintRuleTesterAdapter = (): RuleTester => {
+          return new RuleTester();
         };
       `);
       }
@@ -184,6 +202,24 @@ ruleTester.run('enforce-proxy-child-creation', enforceProxyChildCreationRuleBrok
         };
       `,
       filename: '/project/src/test/foo.proxy.ts',
+    },
+    // ✅ CORRECT - Implementation has example imports in comments (should be ignored)
+    {
+      code: `
+        import type { RuleTester } from 'eslint';
+        import { eslintRuleTesterAdapter } from './eslint-rule-tester-adapter';
+
+        export const eslintRuleTesterAdapterProxy = (): {
+          returnsRuleTester: () => RuleTester;
+        } => {
+          const ruleTester = eslintRuleTesterAdapter();
+
+          return {
+            returnsRuleTester: (): RuleTester => ruleTester,
+          };
+        };
+      `,
+      filename: '/project/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.proxy.ts',
     },
     // Skip non-proxy files
     {

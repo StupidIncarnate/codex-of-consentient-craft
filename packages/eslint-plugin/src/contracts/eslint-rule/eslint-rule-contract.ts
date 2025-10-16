@@ -1,8 +1,14 @@
 import { z } from 'zod';
 
+/**
+ * ESLint Rule contract - translates eslint package Rule types to branded Zod schemas.
+ * Contract defines ONLY data properties (no z.function()).
+ * Type intersection adds function properties.
+ */
+
 export const eslintRuleContract = z.object({
   meta: z.object({
-    type: z.enum(['problem', 'suggestion', 'layout']),
+    type: z.enum(['problem', 'suggestion', 'layout']).brand<'EslintRuleType'>(),
     docs: z.object({
       description: z.string().min(1).brand<'RuleDescription'>(),
       category: z.string().brand<'RuleCategory'>().optional(),
@@ -10,9 +16,13 @@ export const eslintRuleContract = z.object({
     }),
     fixable: z.enum(['code', 'whitespace']).optional(),
     schema: z.array(z.unknown()).optional(),
-    messages: z.record(z.string().brand<'RuleMessage'>()).optional(),
+    messages: z
+      .record(z.string().brand<'MessageId'>(), z.string().brand<'RuleMessage'>())
+      .optional(),
   }),
-  create: z.function(),
 });
 
-export type EslintRule = z.infer<typeof eslintRuleContract>;
+// Type intersection adds function properties
+export type EslintRule = z.infer<typeof eslintRuleContract> & {
+  create: (context: unknown) => Record<string & z.BRAND<'EslintSelector'>, (node: unknown) => void>;
+};

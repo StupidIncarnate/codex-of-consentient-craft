@@ -1,7 +1,7 @@
-import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
+import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { enforceJestMockedUsageRuleBroker } from './enforce-jest-mocked-usage-rule-broker';
 
-const ruleTester = createEslintRuleTester();
+const ruleTester = eslintRuleTesterAdapter();
 
 ruleTester.run('enforce-jest-mocked-usage', enforceJestMockedUsageRuleBroker(), {
   valid: [

@@ -2,9 +2,9 @@ import { RuleTester } from 'eslint';
 import type { Linter } from 'eslint';
 
 /**
- * Creates a configured RuleTester for TypeScript ESLint rule integration tests.
+ * Adapter for ESLint RuleTester - configures TypeScript parser for rule integration tests.
  *
- * This harness:
+ * This adapter:
  * - Configures @typescript-eslint/parser for TypeScript support
  * - Marks tests as RuleTester tests for @questmaestro/testing assertion checks
  *
@@ -12,10 +12,10 @@ import type { Linter } from 'eslint';
  *
  * @example
  * ```typescript
- * import { createEslintRuleTester } from '../../../test/helpers/eslint-rule-tester';
+ * import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
  * import { myRuleBroker } from './my-rule-broker';
  *
- * const ruleTester = createEslintRuleTester();
+ * const ruleTester = eslintRuleTesterAdapter();
  *
  * ruleTester.run('my-rule', myRuleBroker(), {
  *   valid: ['const foo = (): string => "bar"'],
@@ -30,7 +30,7 @@ interface GlobalWithRuleTester {
   RuleTester?: typeof RuleTester;
 }
 
-export const createEslintRuleTester = (): RuleTester => {
+export const eslintRuleTesterAdapter = (): RuleTester => {
   // Mark as RuleTester test for @questmaestro/testing assertion check
   // RuleTester.run() creates its own assertions internally
   const globalWithRuleTester = globalThis as GlobalWithRuleTester & typeof globalThis;

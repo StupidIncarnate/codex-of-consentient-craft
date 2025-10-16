@@ -239,12 +239,15 @@ export const enforceProxyChildCreationRuleBroker = (): Rule.RuleModule => ({
 const parseImplementationImports = (content: string): Map<string, string> => {
   const imports = new Map<string, string>();
 
+  // Strip comments before parsing to avoid false positives from example code
+  const contentWithoutComments = stripComments(content);
+
   // Simple regex to match import statements
   // Matches: import { name } from 'path' or import name from 'path'
   const importRegex = /import\s+(?:type\s+)?(?:\{([^}]+)\}|(\w+))\s+from\s+['"]([^'"]+)['"]/g;
 
   let match;
-  while ((match = importRegex.exec(content)) !== null) {
+  while ((match = importRegex.exec(contentWithoutComments)) !== null) {
     const namedImports = match[1];
     const defaultImport = match[2];
     const importPath = match[3];
@@ -288,6 +291,17 @@ const parseImplementationImports = (content: string): Map<string, string> => {
   }
 
   return imports;
+};
+
+// Strip single-line and multi-line comments from content
+const stripComments = (content: string): string => {
+  // Remove multi-line comments (/* ... */)
+  let result = content.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  // Remove single-line comments (// ...)
+  result = result.replace(/\/\/.*$/gm, '');
+
+  return result;
 };
 
 // Derive proxy function name from implementation name

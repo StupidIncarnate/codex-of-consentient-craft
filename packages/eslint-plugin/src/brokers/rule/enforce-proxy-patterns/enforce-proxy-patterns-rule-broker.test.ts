@@ -1,8 +1,8 @@
-import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
+import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { enforceProxyPatternsRuleBroker } from './enforce-proxy-patterns-rule-broker';
 import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 
-const ruleTester = createEslintRuleTester();
+const ruleTester = eslintRuleTesterAdapter();
 
 beforeEach(() => {
   const adapterProxy = fsExistsSyncAdapterProxy();
@@ -301,6 +301,35 @@ ruleTester.run('enforce-proxy-patterns', enforceProxyPatternsRuleBroker(), {
       `,
       filename: '/project/src/brokers/user/user-broker.proxy.ts',
     },
+    // ✅ CORRECT - Adapter proxy without any jest mocking (no mockImplementation required)
+    {
+      code: `
+        export const httpAdapterProxy = () => {
+          return {
+            returns: ({ url, response }) => {}
+          };
+        };
+      `,
+      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+    },
+    // ✅ CORRECT - Adapter proxy with jest.spyOn and mockImplementation
+    {
+      code: `
+        import fs from 'fs';
+
+        export const fsAdapterProxy = () => {
+          const mock = jest.spyOn(fs, 'readFileSync');
+          mock.mockReturnValue(Buffer.from(''));
+
+          return {
+            returns: ({ path, contents }) => {
+              mock.mockReturnValueOnce(contents);
+            }
+          };
+        };
+      `,
+      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
+    },
   ],
   invalid: [
     // ❌ WRONG - Proxy returns void
@@ -543,6 +572,24 @@ ruleTester.run('enforce-proxy-patterns', enforceProxyPatternsRuleBroker(), {
             },
             returns: ({ path, contents }) => {
               mock.mockResolvedValueOnce(contents);
+            }
+          };
+        };
+      `,
+      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
+      errors: [{ messageId: 'adapterProxyMustSetupMocks' }],
+    },
+    // ❌ WRONG - Adapter proxy with jest.spyOn but no mockImplementation
+    {
+      code: `
+        import fs from 'fs';
+
+        export const fsAdapterProxy = () => {
+          const mock = jest.spyOn(fs, 'readFileSync');
+
+          return {
+            returns: ({ path, contents }) => {
+              mock.mockReturnValueOnce(contents);
             }
           };
         };

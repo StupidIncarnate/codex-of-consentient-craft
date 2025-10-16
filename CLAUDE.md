@@ -33,6 +33,13 @@ automatically.
 run `npm run build --workspace=@questmaestro/shared` before other packages can use the updated contracts. The compiled
 dist/ folder is what gets imported by dependent packages.
 
+**ESLint Rules**: All `@questmaestro/*` ESLint rules are located in `packages/eslint-plugin/src/brokers/rule/`. Each
+rule has:
+
+- Rule implementation: `{rule-name}/{rule-name}-rule-broker.ts`
+- Rule tests: `{rule-name}/{rule-name}-rule-broker.test.ts`
+- Rule registration: `packages/eslint-plugin/src/startup/start-eslint-plugin.ts`
+
 ### Common Commands
 - **Run tests**: `npm test`
 - **Run specific test file**: `npm test -- path/to/file.test.ts`

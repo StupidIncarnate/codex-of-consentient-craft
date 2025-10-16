@@ -5,10 +5,10 @@
 ## Structure
 
 ```typescript
-import {createEslintRuleTester} from '../../../../test/helpers/eslint-rule-tester';
+import {eslintRuleTesterAdapter} from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import {myRuleBroker} from './my-rule-broker';
 
-const ruleTester = createEslintRuleTester();
+const ruleTester = eslintRuleTesterAdapter();
 
 ruleTester.run('rule-name', myRuleBroker(), {
     valid: [

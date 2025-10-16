@@ -545,14 +545,15 @@ const checkAdapterProxyMockSetup = (
 
   if (returnStatementIndex === -1) return;
 
-  // Check statements before return for mock setup calls
+  // Check statements before return for jest mocking calls and mock setup calls
+  let hasJestMocking = false;
   let hasMockSetup = false;
 
   for (let i = 0; i < returnStatementIndex; i++) {
     const statement = statements[i];
     const stmtType = (statement as { type: string }).type;
 
-    // Check for ExpressionStatement containing mock setup
+    // Check for ExpressionStatement or VariableDeclaration
     if (stmtType === 'ExpressionStatement') {
       const exprStmt = statement as { expression?: TSESTree.Node };
       const { expression } = exprStmt;
@@ -560,7 +561,7 @@ const checkAdapterProxyMockSetup = (
       if (expression) {
         const exprType = (expression as { type: string }).type;
 
-        // Check for CallExpression (mock.mockImplementation(), mock.mockResolvedValue(), etc.)
+        // Check for CallExpression
         if (exprType === 'CallExpression') {
           const callExpr = expression as NodeWithCallee;
           const { callee } = callExpr;
@@ -568,10 +569,16 @@ const checkAdapterProxyMockSetup = (
           if (callee) {
             const calleeType = (callee as { type: string }).type;
 
-            // Check for MemberExpression (mock.mockImplementation)
+            // Check for MemberExpression (jest.spyOn, mock.mockImplementation)
             if (calleeType === 'MemberExpression') {
               const memberExpr = callee as NodeWithObject & NodeWithProperty;
+              const object = memberExpr.object as NodeWithName | undefined;
               const property = memberExpr.property as NodeWithName | undefined;
+
+              // Check if calling jest.spyOn
+              if (object?.name === 'jest' && property?.name === 'spyOn') {
+                hasJestMocking = true;
+              }
 
               // Check if calling mockImplementation, mockResolvedValue, mockRejectedValue, mockReturnValue
               const mockMethods = [
@@ -585,7 +592,46 @@ const checkAdapterProxyMockSetup = (
 
               if (property?.name && mockMethods.includes(property.name)) {
                 hasMockSetup = true;
-                break;
+              }
+            }
+          }
+        }
+      }
+    } else if (stmtType === 'VariableDeclaration') {
+      // Check for jest.mocked() or jest.spyOn() in variable declarations
+      const varDecl = statement as NodeWithDeclarations;
+      const { declarations } = varDecl;
+
+      if (declarations) {
+        for (const declaration of declarations) {
+          const declType = (declaration as { type: string }).type;
+          if (declType === 'VariableDeclarator') {
+            const declarator = declaration as NodeWithInit;
+            const { init } = declarator;
+
+            if (init) {
+              const initType = (init as { type: string }).type;
+
+              // Check for CallExpression (jest.mocked(), jest.spyOn())
+              if (initType === 'CallExpression') {
+                const callExpr = init as NodeWithCallee;
+                const { callee } = callExpr;
+
+                if (callee) {
+                  const calleeType = (callee as { type: string }).type;
+
+                  // Check for MemberExpression (jest.mocked, jest.spyOn)
+                  if (calleeType === 'MemberExpression') {
+                    const memberExpr = callee as NodeWithObject & NodeWithProperty;
+                    const object = memberExpr.object as NodeWithName | undefined;
+                    const property = memberExpr.property as NodeWithName | undefined;
+
+                    // Check if calling jest.mocked or jest.spyOn
+                    if (object?.name === 'jest' && (property?.name === 'mocked' || property?.name === 'spyOn')) {
+                      hasJestMocking = true;
+                    }
+                  }
+                }
               }
             }
           }
@@ -594,8 +640,8 @@ const checkAdapterProxyMockSetup = (
     }
   }
 
-  // Report if no mock setup found before return
-  if (!hasMockSetup) {
+  // Only report if jest mocking is used but no mock setup found
+  if (hasJestMocking && !hasMockSetup) {
     context.report({
       node: functionNode,
       messageId: 'adapterProxyMustSetupMocks',

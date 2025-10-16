@@ -1,7 +1,7 @@
-import { createEslintRuleTester } from '../../../../test/helpers/eslint-rule-tester';
+import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { enforceTestCreationOfProxyRuleBroker } from './enforce-test-creation-of-proxy-rule-broker';
 
-const ruleTester = createEslintRuleTester();
+const ruleTester = eslintRuleTesterAdapter();
 
 ruleTester.run('enforce-test-creation-of-proxy', enforceTestCreationOfProxyRuleBroker(), {
   valid: [
