@@ -1,38 +1,42 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
-import type { TSESTree } from '@typescript-eslint/utils';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
 interface NodeWithDeclarations {
-  declarations?: TSESTree.Node[];
+  declarations?: Tsestree[];
 }
 
 interface NodeWithKind {
   kind?: 'const' | 'let' | 'var';
 }
 
-export const noMutableStateInProxyFactoryRuleBroker = (): Rule.RuleModule => ({
-  meta: {
-    type: 'problem',
-    docs: {
-      description: 'Forbid mutable state (let/var) anywhere in proxy files',
+export const noMutableStateInProxyFactoryRuleBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Forbid mutable state (let/var) anywhere in proxy files',
+      },
+      messages: {
+        noMutableState:
+          'Proxy files cannot contain mutable state (let/var). Use const for all variables.',
+      },
+      schema: [],
     },
-    messages: {
-      noMutableState:
-        'Proxy files cannot contain mutable state (let/var). Use const for all variables.',
-    },
-    schema: [],
-    hasSuggestions: true,
-  },
-  create: (context: Rule.RuleContext) => {
-    const { filename } = context;
+  }),
+  create: (context: unknown) => {
+    const ctx = context as EslintContext;
+    const { filename } = ctx;
 
     // Only check .proxy.ts files
-    if (!filename.endsWith('.proxy.ts')) {
+    if (!filename?.endsWith('.proxy.ts')) {
       return {};
     }
 
     return {
       // Check for let/var declarations anywhere in the file
-      VariableDeclaration: (node): void => {
+      VariableDeclaration: (node: Tsestree): void => {
         const varDecl = node as unknown as NodeWithDeclarations & NodeWithKind;
         const { kind, declarations } = varDecl;
 
@@ -43,15 +47,9 @@ export const noMutableStateInProxyFactoryRuleBroker = (): Rule.RuleModule => ({
 
         // Report ALL let/var declarations - no exceptions
         for (const declaration of declarations) {
-          context.report({
+          ctx.report({
             node: declaration,
             messageId: 'noMutableState',
-            suggest: [
-              {
-                desc: 'Change to const declaration.',
-                fix: (): null => null, // No auto-fix, manual refactor needed
-              },
-            ],
           });
         }
       },

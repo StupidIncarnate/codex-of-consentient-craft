@@ -1,21 +1,26 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
-import type { TSESTree } from '../../../adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isStubFileGuard } from '../../../guards/is-stub-file/is-stub-file-guard';
 
-export const banPrimitivesRuleBroker = (): Rule.RuleModule => ({
-  meta: {
-    type: 'problem',
-    docs: {
-      description: 'Ban raw string and number types in favor of Zod contract types',
+export const banPrimitivesRuleBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Ban raw string and number types in favor of Zod contract types',
+      },
+      messages: {
+        banPrimitive:
+          'Raw {{typeName}} type is not allowed. Use Zod contract types like {{suggestion}} instead.',
+      },
+      schema: [],
     },
-    messages: {
-      banPrimitive:
-        'Raw {{typeName}} type is not allowed. Use Zod contract types like {{suggestion}} instead.',
-    },
-    schema: [],
-  },
-  create: (context: Rule.RuleContext) => {
-    const filename = context.getFilename();
+  }),
+  create: (context: unknown) => {
+    const ctx = context as EslintContext;
+    const filename = String(ctx.getFilename?.() ?? '');
 
     // Skip stub files - they need to use primitives for type conversion
     if (isStubFileGuard({ filename })) {
@@ -23,8 +28,8 @@ export const banPrimitivesRuleBroker = (): Rule.RuleModule => ({
     }
 
     return {
-      TSStringKeyword: (node: TSESTree.Node): void => {
-        context.report({
+      TSStringKeyword: (node: Tsestree): void => {
+        ctx.report({
           node,
           messageId: 'banPrimitive',
           data: {
@@ -33,8 +38,8 @@ export const banPrimitivesRuleBroker = (): Rule.RuleModule => ({
           },
         });
       },
-      TSNumberKeyword: (node: TSESTree.Node): void => {
-        context.report({
+      TSNumberKeyword: (node: Tsestree): void => {
+        ctx.report({
           node,
           messageId: 'banPrimitive',
           data: {

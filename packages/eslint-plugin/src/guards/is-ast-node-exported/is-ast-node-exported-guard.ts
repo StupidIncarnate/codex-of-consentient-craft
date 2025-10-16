@@ -1,6 +1,6 @@
-import type { TSESTree } from '../../adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree';
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
-export const isAstNodeExportedGuard = ({ node }: { node: TSESTree.Node }): boolean => {
+export const isAstNodeExportedGuard = ({ node }: { node: Tsestree }): boolean => {
   let current = node.parent;
   while (current) {
     const nodeType = current.type as string;

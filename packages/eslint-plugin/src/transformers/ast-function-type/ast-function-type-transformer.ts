@@ -1,4 +1,4 @@
-import type { TSESTree } from '../../adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree';
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
 interface VariableDeclaratorNode {
   type: string;
@@ -15,7 +15,7 @@ interface VariableDeclaratorNode {
 export const astFunctionTypeTransformer = ({
   node,
 }: {
-  node: TSESTree.Node;
+  node: Tsestree;
 }): 'guard' | 'transformer' | 'unknown' => {
   // Check if parent is VariableDeclarator to get return type annotation
   const parent = node.parent as VariableDeclaratorNode | undefined;

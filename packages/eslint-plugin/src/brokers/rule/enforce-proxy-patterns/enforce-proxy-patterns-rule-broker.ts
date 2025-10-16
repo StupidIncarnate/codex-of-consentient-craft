@@ -1,18 +1,20 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
-import type { TSESTree } from '@typescript-eslint/utils';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@questmaestro/shared/contracts';
 
 interface NodeWithBody {
-  body?: TSESTree.Node | null;
+  body?: Tsestree | null;
 }
 
 interface NodeWithDeclarations {
-  declarations?: TSESTree.Node[];
+  declarations?: Tsestree[];
 }
 
 interface NodeWithId {
-  id?: TSESTree.Node | null;
+  id?: Tsestree | null;
 }
 
 interface NodeWithName {
@@ -20,95 +22,98 @@ interface NodeWithName {
 }
 
 interface NodeWithInit {
-  init?: TSESTree.Node | null;
+  init?: Tsestree | null;
 }
 
 interface NodeWithCallee {
-  callee?: TSESTree.Node;
+  callee?: Tsestree;
 }
 
 interface NodeWithObject {
-  object?: TSESTree.Node;
+  object?: Tsestree;
 }
 
 interface NodeWithProperty {
-  property?: TSESTree.Node;
+  property?: Tsestree;
 }
 
 interface NodeWithArguments {
-  arguments?: TSESTree.Node[];
+  arguments?: Tsestree[];
 }
 
 interface NodeWithReturnType {
-  returnType?: TSESTree.TSTypeAnnotation | null;
+  returnType?: Tsestree | null;
 }
 
 interface NodeWithTypeAnnotation {
-  typeAnnotation?: TSESTree.TypeNode | null;
+  typeAnnotation?: Tsestree | null;
 }
 
 interface NodeWithProperties {
-  properties?: TSESTree.Node[];
+  properties?: Tsestree[];
 }
 
 interface NodeWithKey {
-  key?: TSESTree.Node;
+  key?: Tsestree;
 }
 
-export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
-  meta: {
-    type: 'problem',
-    docs: {
-      description: 'Enforce proxy file internal patterns for .proxy.ts files',
+export const enforceProxyPatternsRuleBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Enforce proxy file internal patterns for .proxy.ts files',
+      },
+      messages: {
+        proxyMustReturnObject:
+          'Proxy function must return an object, not void, primitive, or array. Expected: export const fooProxy = () => ({ method: () => {} })',
+        proxyNoBootstrapMethod:
+          'Proxy returned object must NOT have a "bootstrap" property/method. Use constructor setup instead.',
+        jestMockMustBeModuleLevel:
+          'jest.mock() calls must be at module level (outside functions). Move jest.mock() call to top of file.',
+        jestMockedOnlyNpmPackages:
+          'jest.mocked({{name}}) - Only mock npm packages (axios, fs, etc), not implementation code. Implementation code ending with -adapter, -broker, -transformer, etc. should never be mocked.',
+        adapterProxyMustSetupMocks:
+          'Adapter proxy must call mock.mockImplementation() or mock.mockResolvedValue() in constructor (before return statement). This sets up default mock behavior when proxy is created.',
+        childProxyMustBeInConstructor:
+          'Child proxy {{proxyName}} must be created in constructor (before return statement), not inside returned methods. Create it before the return statement.',
+        childProxyMustBeInsideFunction:
+          'Child proxy {{proxyName}} must be created inside the proxy function, not at module level. Move it inside the create*Proxy function body.',
+        proxyNoContractImports:
+          'Proxies must not import from contract files ({{importPath}}). Import from stub files (.stub.ts) instead.',
+        proxyHelperNoMockInName:
+          'Proxy helper "{{name}}" uses forbidden word "{{forbiddenWord}}". Use "returns", "throws", or describe the action instead. Proxies abstract implementation details.',
+        proxyConstructorNoSideEffects:
+          'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead. Allowed: const childProxy = create...(), jest.mocked(...), jest.spyOn(...)',
+        proxyNotColocated:
+          'Proxy file must be colocated with its implementation file. Expected implementation file "{{expectedPath}}" not found in the same directory.',
+      },
+      schema: [],
     },
-    messages: {
-      proxyMustReturnObject:
-        'Proxy function must return an object, not void, primitive, or array. Expected: export const fooProxy = () => ({ method: () => {} })',
-      proxyNoBootstrapMethod:
-        'Proxy returned object must NOT have a "bootstrap" property/method. Use constructor setup instead.',
-      jestMockMustBeModuleLevel:
-        'jest.mock() calls must be at module level (outside functions). Move jest.mock() call to top of file.',
-      jestMockedOnlyNpmPackages:
-        'jest.mocked({{name}}) - Only mock npm packages (axios, fs, etc), not implementation code. Implementation code ending with -adapter, -broker, -transformer, etc. should never be mocked.',
-      adapterProxyMustSetupMocks:
-        'Adapter proxy must call mock.mockImplementation() or mock.mockResolvedValue() in constructor (before return statement). This sets up default mock behavior when proxy is created.',
-      childProxyMustBeInConstructor:
-        'Child proxy {{proxyName}} must be created in constructor (before return statement), not inside returned methods. Create it before the return statement.',
-      childProxyMustBeInsideFunction:
-        'Child proxy {{proxyName}} must be created inside the proxy function, not at module level. Move it inside the create*Proxy function body.',
-      proxyNoContractImports:
-        'Proxies must not import from contract files ({{importPath}}). Import from stub files (.stub.ts) instead.',
-      proxyHelperNoMockInName:
-        'Proxy helper "{{name}}" uses forbidden word "{{forbiddenWord}}". Use "returns", "throws", or describe the action instead. Proxies abstract implementation details.',
-      proxyConstructorNoSideEffects:
-        'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead. Allowed: const childProxy = create...(), jest.mocked(...), jest.spyOn(...)',
-      proxyNotColocated:
-        'Proxy file must be colocated with its implementation file. Expected implementation file "{{expectedPath}}" not found in the same directory.',
-    },
-    schema: [],
-  },
-  create: (context: Rule.RuleContext) => {
-    const { filename } = context;
+  }),
+  create: (context: unknown) => {
+    const ctx = context as EslintContext;
+    const { filename } = ctx;
 
     // Only check .proxy.ts files
-    if (!filename.endsWith('.proxy.ts')) {
+    if (!filename || !filename.endsWith('.proxy.ts')) {
       return {};
     }
 
     // Track child proxy creations for validation
     const childProxyCreations: {
-      node: TSESTree.Node;
+      node: Tsestree;
       name: string;
       isInsideProxyFunction: boolean;
       isBeforeReturn: boolean;
     }[] = [];
 
-    let currentProxyFunction: TSESTree.Node | null = null;
+    let currentProxyFunction: Tsestree | null = null;
     let foundReturnStatement = false;
 
     return {
       // Check proxy file colocation at Program level
-      Program: (node): void => {
+      Program: (node: Tsestree): void => {
         // Check that proxy file is colocated with implementation file
         const proxyFilePath = filePathContract.parse(filename);
 
@@ -120,7 +125,7 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
 
         // Check if implementation file exists
         if (!fsExistsSyncAdapter({ filePath: implementationPath })) {
-          context.report({
+          ctx.report({
             node,
             messageId: 'proxyNotColocated',
             data: {
@@ -131,7 +136,7 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Check for contract imports (must use .stub.ts, not -contract.ts)
-      ImportDeclaration: (node): void => {
+      ImportDeclaration: (node: Tsestree): void => {
         const importNode = node as unknown as {
           source?: { value?: unknown };
           importKind?: string;
@@ -154,7 +159,7 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
             return;
           }
 
-          context.report({
+          ctx.report({
             node,
             messageId: 'proxyNoContractImports',
             data: { importPath },
@@ -163,7 +168,7 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Check for jest.mock() calls inside functions, jest.mocked() arguments, and child proxy creation
-      CallExpression: (node): void => {
+      CallExpression: (node: Tsestree): void => {
         // Use structural interfaces to avoid type assertion issues
         const nodeObj = node as unknown as NodeWithCallee & NodeWithArguments;
         const { callee } = nodeObj;
@@ -180,7 +185,7 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
             const isBeforeReturn = isInsideProxyFunction && !foundReturnStatement;
 
             childProxyCreations.push({
-              node: node as unknown as TSESTree.Node,
+              node: node as unknown as Tsestree,
               name: calleeName,
               isInsideProxyFunction,
               isBeforeReturn,
@@ -198,7 +203,7 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
           // Check jest.mock() - must be at module level
           if (object?.name === 'jest' && property?.name === 'mock') {
             // Check if we're inside a function
-            const ancestors = context.sourceCode.getAncestors(node);
+            const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
             const isInsideFunction = ancestors.some((ancestor) => {
               const ancestorType = (ancestor as { type: string }).type;
               return (
@@ -209,7 +214,7 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
             });
 
             if (isInsideFunction) {
-              context.report({
+              ctx.report({
                 node,
                 messageId: 'jestMockMustBeModuleLevel',
               });
@@ -244,7 +249,7 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
                 );
 
                 if (isImplementationCode) {
-                  context.report({
+                  ctx.report({
                     node,
                     messageId: 'jestMockedOnlyNpmPackages',
                     data: { name: argName },
@@ -258,13 +263,13 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
 
       // Track when we enter a proxy function
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression':
-        (node): void => {
+        (node: Tsestree): void => {
           // Check if this is a proxy function
-          const ancestors = context.sourceCode.getAncestors(node);
+          const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
           for (const ancestor of ancestors) {
             const ancestorType = (ancestor as { type: string }).type;
             if (ancestorType === 'VariableDeclarator') {
-              const declarator = ancestor as unknown as NodeWithId;
+              const declarator = ancestor as NodeWithId;
               const id = declarator.id as NodeWithName | undefined;
               if (id?.name?.endsWith('Proxy')) {
                 currentProxyFunction = node;
@@ -290,8 +295,8 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Find the exported proxy function
-      ExportNamedDeclaration: (node): void => {
-        const exportNode = node as unknown as { declaration?: TSESTree.Node | null };
+      ExportNamedDeclaration: (node: Tsestree): void => {
+        const exportNode = node as unknown as { declaration?: Tsestree | null };
         const { declaration } = exportNode;
 
         if (!declaration) return;
@@ -317,16 +322,16 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
           // Check the function's return type and body
           const initType = (init as { type: string }).type;
           if (initType === 'ArrowFunctionExpression' || initType === 'FunctionExpression') {
-            checkProxyFunctionReturn(init, context);
+            checkProxyFunctionReturn(init, ctx);
 
             // For adapter proxies, check that mock setup happens in constructor
-            const isAdapterProxy = filename.includes('-adapter.proxy.ts');
+            const isAdapterProxy = filename?.includes('-adapter.proxy.ts') ?? false;
             if (isAdapterProxy) {
-              checkAdapterProxyMockSetup(init, context);
+              checkAdapterProxyMockSetup(init, ctx);
             }
 
             // Check for side effects in constructor
-            checkProxyConstructorSideEffects(init, context);
+            checkProxyConstructorSideEffects(init, ctx);
           }
         }
       },
@@ -336,14 +341,14 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
         for (const creation of childProxyCreations) {
           if (!creation.isInsideProxyFunction) {
             // Child proxy created at module level
-            context.report({
+            ctx.report({
               node: creation.node,
               messageId: 'childProxyMustBeInsideFunction',
               data: { proxyName: creation.name },
             });
           } else if (!creation.isBeforeReturn) {
             // Child proxy created after return (inside methods)
-            context.report({
+            ctx.report({
               node: creation.node,
               messageId: 'childProxyMustBeInConstructor',
               data: { proxyName: creation.name },
@@ -355,7 +360,7 @@ export const enforceProxyPatternsRuleBroker = (): Rule.RuleModule => ({
   },
 });
 
-const checkProxyFunctionReturn = (functionNode: TSESTree.Node, context: Rule.RuleContext): void => {
+const checkProxyFunctionReturn = (functionNode: Tsestree, context: EslintContext): void => {
   const funcNode = functionNode as NodeWithBody & NodeWithReturnType;
   const { body } = funcNode;
 
@@ -391,7 +396,7 @@ const checkProxyFunctionReturn = (functionNode: TSESTree.Node, context: Rule.Rul
 
   if (bodyType === 'BlockStatement') {
     // Block statement has statements in its body array
-    const blockNode = body as { body?: TSESTree.Node[] };
+    const blockNode = body as { body?: Tsestree[] };
     const statements = blockNode.body;
 
     if (statements) {
@@ -434,14 +439,14 @@ const checkProxyFunctionReturn = (functionNode: TSESTree.Node, context: Rule.Rul
 };
 
 const checkReturnStatement = (
-  statement: TSESTree.Node,
-  context: Rule.RuleContext,
-  functionNode: TSESTree.Node,
+  statement: Tsestree,
+  context: EslintContext,
+  functionNode: Tsestree,
 ): void => {
   const stmtType = (statement as { type: string }).type;
 
   if (stmtType === 'ReturnStatement') {
-    const returnStmt = statement as { argument?: TSESTree.Node | null };
+    const returnStmt = statement as { argument?: Tsestree | null };
     const { argument } = returnStmt;
 
     if (!argument) {
@@ -476,7 +481,7 @@ const checkReturnStatement = (
   }
 };
 
-const checkObjectExpression = (objectNode: TSESTree.Node, context: Rule.RuleContext): void => {
+const checkObjectExpression = (objectNode: Tsestree, context: EslintContext): void => {
   const objNode = objectNode as NodeWithProperties;
   const { properties } = objNode;
 
@@ -514,10 +519,7 @@ const checkObjectExpression = (objectNode: TSESTree.Node, context: Rule.RuleCont
   }
 };
 
-const checkAdapterProxyMockSetup = (
-  functionNode: TSESTree.Node,
-  context: Rule.RuleContext,
-): void => {
+const checkAdapterProxyMockSetup = (functionNode: Tsestree, context: EslintContext): void => {
   const funcNode = functionNode as NodeWithBody;
   const { body } = funcNode;
 
@@ -528,7 +530,7 @@ const checkAdapterProxyMockSetup = (
   // Only check BlockStatement functions (not direct returns)
   if (bodyType !== 'BlockStatement') return;
 
-  const blockNode = body as { body?: TSESTree.Node[] };
+  const blockNode = body as { body?: Tsestree[] };
   const statements = blockNode.body;
 
   if (!statements) return;
@@ -555,7 +557,7 @@ const checkAdapterProxyMockSetup = (
 
     // Check for ExpressionStatement or VariableDeclaration
     if (stmtType === 'ExpressionStatement') {
-      const exprStmt = statement as { expression?: TSESTree.Node };
+      const exprStmt = statement as { expression?: Tsestree };
       const { expression } = exprStmt;
 
       if (expression) {
@@ -627,7 +629,10 @@ const checkAdapterProxyMockSetup = (
                     const property = memberExpr.property as NodeWithName | undefined;
 
                     // Check if calling jest.mocked or jest.spyOn
-                    if (object?.name === 'jest' && (property?.name === 'mocked' || property?.name === 'spyOn')) {
+                    if (
+                      object?.name === 'jest' &&
+                      (property?.name === 'mocked' || property?.name === 'spyOn')
+                    ) {
                       hasJestMocking = true;
                     }
                   }
@@ -650,8 +655,8 @@ const checkAdapterProxyMockSetup = (
 };
 
 const checkProxyConstructorSideEffects = (
-  functionNode: TSESTree.Node,
-  context: Rule.RuleContext,
+  functionNode: Tsestree,
+  context: EslintContext,
 ): void => {
   const funcNode = functionNode as NodeWithBody;
   const { body } = funcNode;
@@ -663,7 +668,7 @@ const checkProxyConstructorSideEffects = (
   // Only check BlockStatement functions (not direct returns)
   if (bodyType !== 'BlockStatement') return;
 
-  const blockNode = body as { body?: TSESTree.Node[] };
+  const blockNode = body as { body?: Tsestree[] };
   const statements = blockNode.body;
 
   if (!statements) return;
@@ -687,7 +692,7 @@ const checkProxyConstructorSideEffects = (
 
     // Check for ExpressionStatement containing side effects
     if (stmtType === 'ExpressionStatement') {
-      const exprStmt = statement as { expression?: TSESTree.Node };
+      const exprStmt = statement as { expression?: Tsestree };
       const { expression } = exprStmt;
 
       if (expression) {
@@ -731,7 +736,7 @@ const checkProxyConstructorSideEffects = (
                 // Everything else is a side effect
                 if (!isAllowed) {
                   context.report({
-                    node: statement as unknown as TSESTree.Node,
+                    node: statement as unknown as Tsestree,
                     messageId: 'proxyConstructorNoSideEffects',
                     data: { type: `${objectName}.${propertyName ?? 'method'}()` },
                   });

@@ -1,28 +1,33 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
-import type { TSESTree } from '../../../adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { isAstNodeInsideFunctionGuard } from '../../../guards/is-ast-node-inside-function/is-ast-node-inside-function-guard';
 import { isAstNodeExportedGuard } from '../../../guards/is-ast-node-exported/is-ast-node-exported-guard';
 import { astFunctionTypeTransformer } from '../../../transformers/ast-function-type/ast-function-type-transformer';
 import { functionViolationSuggestionTransformer } from '../../../transformers/function-violation-suggestion/function-violation-suggestion-transformer';
 
-export const forbidNonExportedFunctionsRuleBroker = (): Rule.RuleModule => ({
-  meta: {
-    type: 'problem',
-    docs: {
-      description:
-        'Forbid non-exported functions and nested functions to prevent hidden helper functions',
+export const forbidNonExportedFunctionsRuleBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description:
+          'Forbid non-exported functions and nested functions to prevent hidden helper functions',
+      },
+      messages: {
+        nonExportedFunction:
+          'Non-exported functions are forbidden. All functions must be the primary export of their file. {{suggestion}}',
+        nestedFunction:
+          'Nested functions are forbidden. Functions cannot be declared inside other functions. {{suggestion}}',
+      },
+      schema: [],
     },
-    messages: {
-      nonExportedFunction:
-        'Non-exported functions are forbidden. All functions must be the primary export of their file. {{suggestion}}',
-      nestedFunction:
-        'Nested functions are forbidden. Functions cannot be declared inside other functions. {{suggestion}}',
-    },
-    schema: [],
-  },
-  create: (context: Rule.RuleContext) => {
-    const { filename } = context;
+  }),
+  create: (context: unknown) => {
+    const ctx = context as EslintContext;
+    const filename = ctx.filename ?? '';
 
     // Exclude test/stub files
     if (shouldExcludeFileFromProjectStructureRulesGuard({ filename })) {
@@ -31,14 +36,13 @@ export const forbidNonExportedFunctionsRuleBroker = (): Rule.RuleModule => ({
 
     return {
       // Catch non-exported arrow functions: const foo = () => {}
-      'VariableDeclarator > ArrowFunctionExpression': (node): void => {
-        const astNode = node as unknown as TSESTree.Node;
+      'VariableDeclarator > ArrowFunctionExpression': (node: Tsestree): void => {
 
         // Check if it's inside a function (nested)
-        if (isAstNodeInsideFunctionGuard({ node: astNode })) {
-          const functionType = astFunctionTypeTransformer({ node: astNode });
+        if (isAstNodeInsideFunctionGuard({ node: node })) {
+          const functionType = astFunctionTypeTransformer({ node: node });
           const suggestion = functionViolationSuggestionTransformer({ functionType });
-          context.report({
+          ctx.report({
             node,
             messageId: 'nestedFunction',
             data: { suggestion },
@@ -47,10 +51,10 @@ export const forbidNonExportedFunctionsRuleBroker = (): Rule.RuleModule => ({
         }
 
         // Check if it's exported at module level
-        if (!isAstNodeExportedGuard({ node: astNode })) {
-          const functionType = astFunctionTypeTransformer({ node: astNode });
+        if (!isAstNodeExportedGuard({ node: node })) {
+          const functionType = astFunctionTypeTransformer({ node: node });
           const suggestion = functionViolationSuggestionTransformer({ functionType });
-          context.report({
+          ctx.report({
             node,
             messageId: 'nonExportedFunction',
             data: { suggestion },
@@ -59,12 +63,11 @@ export const forbidNonExportedFunctionsRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Catch non-exported function declarations: function foo() {}
-      FunctionDeclaration: (node): void => {
-        const astNode = node as unknown as TSESTree.Node;
+      FunctionDeclaration: (node: Tsestree): void => {
 
         // Check if it's inside a function (nested)
-        if (isAstNodeInsideFunctionGuard({ node: astNode })) {
-          context.report({
+        if (isAstNodeInsideFunctionGuard({ node: node })) {
+          ctx.report({
             node,
             messageId: 'nestedFunction',
             data: {
@@ -75,8 +78,8 @@ export const forbidNonExportedFunctionsRuleBroker = (): Rule.RuleModule => ({
         }
 
         // Check if it's exported at module level
-        if (!isAstNodeExportedGuard({ node: astNode })) {
-          context.report({
+        if (!isAstNodeExportedGuard({ node: node })) {
+          ctx.report({
             node,
             messageId: 'nonExportedFunction',
             data: {
@@ -87,11 +90,10 @@ export const forbidNonExportedFunctionsRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Catch nested function expressions: const foo = function() {}
-      FunctionExpression: (node): void => {
-        const astNode = node as unknown as TSESTree.Node;
+      FunctionExpression: (node: Tsestree): void => {
 
-        if (isAstNodeInsideFunctionGuard({ node: astNode })) {
-          context.report({
+        if (isAstNodeInsideFunctionGuard({ node: node })) {
+          ctx.report({
             node,
             messageId: 'nestedFunction',
             data: {

@@ -1,4 +1,7 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
 interface CallExpressionNode {
   type: string;
@@ -79,37 +82,40 @@ const getMockedArgumentName = (node: CallExpressionNode): string | null => {
   return null;
 };
 
-export const jestMockedMustImportRuleBroker = (): Rule.RuleModule => {
+export const jestMockedMustImportRuleBroker = (): EslintRule => {
   const importedNames = new Map<string, string>(); // local name -> source
 
   return {
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Enforce that jest.mocked() arguments are imported at the top of the file',
+    ...eslintRuleContract.parse({
+      meta: {
+        type: 'problem',
+        docs: {
+          description: 'Enforce that jest.mocked() arguments are imported at the top of the file',
+        },
+        messages: {
+          mockedNotImported:
+            'jest.mocked({{name}}) requires importing {{name}}. Add: import {{importStatement}}',
+          mockingAdapter:
+            'jest.mocked({{name}}) - Do not mock the adapter itself. Mock the npm package it uses instead (e.g., mock axios, not httpAdapter).',
+          notNpmPackage:
+            'jest.mocked({{name}}) - In adapter proxies, only mock npm packages (axios, fs, etc.), not adapters or business logic.',
+        },
+        schema: [],
       },
-      messages: {
-        mockedNotImported:
-          'jest.mocked({{name}}) requires importing {{name}}. Add: import {{importStatement}}',
-        mockingAdapter:
-          'jest.mocked({{name}}) - Do not mock the adapter itself. Mock the npm package it uses instead (e.g., mock axios, not httpAdapter).',
-        notNpmPackage:
-          'jest.mocked({{name}}) - In adapter proxies, only mock npm packages (axios, fs, etc.), not adapters or business logic.',
-      },
-      schema: [],
-    },
-    create: (context: Rule.RuleContext) => {
+    }),
+    create: (context: unknown) => {
+      const ctx = context as EslintContext;
       // Reset state for each file
       importedNames.clear();
 
       // Only check proxy files
-      if (!isProxyFile({ filename: context.filename })) {
+      if (!isProxyFile({ filename: ctx.filename ?? '' })) {
         return {};
       }
 
       return {
         // Track all imports
-        ImportDeclaration: (node): void => {
+        ImportDeclaration: (node: Tsestree): void => {
           const importNode = node as unknown as ImportDeclarationNode;
           const source = importNode.source?.value;
 
@@ -134,7 +140,7 @@ export const jestMockedMustImportRuleBroker = (): Rule.RuleModule => {
         },
 
         // Check jest.mocked() calls
-        CallExpression: (node): void => {
+        CallExpression: (node: Tsestree): void => {
           const callNode = node as unknown as CallExpressionNode;
 
           if (!isJestMockedCall(callNode)) {
@@ -151,7 +157,7 @@ export const jestMockedMustImportRuleBroker = (): Rule.RuleModule => {
             // Determine import statement suggestion
             const importStatement = `${argumentName} from '${argumentName}'`;
 
-            context.report({
+            ctx.report({
               node,
               messageId: 'mockedNotImported',
               data: {
@@ -163,10 +169,10 @@ export const jestMockedMustImportRuleBroker = (): Rule.RuleModule => {
           }
 
           // Additional validation for adapter proxies
-          if (isAdapterProxy({ filename: context.filename })) {
+          if (isAdapterProxy({ filename: ctx.filename ?? '' })) {
             // Check if trying to mock the adapter itself
             if (argumentName.endsWith('Adapter')) {
-              context.report({
+              ctx.report({
                 node,
                 messageId: 'mockingAdapter',
                 data: {
@@ -179,7 +185,7 @@ export const jestMockedMustImportRuleBroker = (): Rule.RuleModule => {
             // Check if mocking an npm package
             const importSource = importedNames.get(argumentName);
             if (importSource && !isNpmPackage({ importSource })) {
-              context.report({
+              ctx.report({
                 node,
                 messageId: 'notNpmPackage',
                 data: {

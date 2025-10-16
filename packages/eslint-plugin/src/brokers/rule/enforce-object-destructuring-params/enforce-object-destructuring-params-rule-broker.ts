@@ -1,4 +1,7 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
 interface FunctionLike {
   params: {
@@ -32,7 +35,7 @@ const checkParams = ({
   context,
 }: {
   funcNode: FunctionLike;
-  context: Rule.RuleContext;
+  context: EslintContext;
 }): void => {
   if (funcNode.params.length === 0 || funcNode.params.length > 1) {
     return; // No params is fine, max-params rule will catch multiple params
@@ -64,47 +67,50 @@ const checkParams = ({
   }
 };
 
-export const enforceObjectDestructuringParamsRuleBroker = (): Rule.RuleModule => ({
-  meta: {
-    type: 'problem',
-    docs: {
-      description: 'Enforce object destructuring for function parameters',
+export const enforceObjectDestructuringParamsRuleBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Enforce object destructuring for function parameters',
+      },
+      messages: {
+        useObjectDestructuring:
+          'Function parameters must use object destructuring pattern: ({ param }: { param: Type })',
+      },
+      schema: [],
     },
-    messages: {
-      useObjectDestructuring:
-        'Function parameters must use object destructuring pattern: ({ param }: { param: Type })',
-    },
-    schema: [],
-  },
-  create: (context: Rule.RuleContext) => {
+  }),
+  create: (context: unknown) => {
+    const ctx = context as EslintContext;
     let functionDepth = 0;
 
     return {
-      ArrowFunctionExpression: (node): void => {
+      ArrowFunctionExpression: (node: Tsestree): void => {
         functionDepth++;
         if (functionDepth === 1) {
-          const arrowNode = node as FunctionLike;
-          checkParams({ funcNode: arrowNode, context });
+          const arrowNode = node as unknown as FunctionLike;
+          checkParams({ funcNode: arrowNode, context: ctx });
         }
       },
       'ArrowFunctionExpression:exit': (): void => {
         functionDepth--;
       },
-      FunctionDeclaration: (node): void => {
+      FunctionDeclaration: (node: Tsestree): void => {
         functionDepth++;
         if (functionDepth === 1) {
-          const funcNode = node as FunctionLike;
-          checkParams({ funcNode, context });
+          const funcNode = node as unknown as FunctionLike;
+          checkParams({ funcNode, context: ctx });
         }
       },
       'FunctionDeclaration:exit': (): void => {
         functionDepth--;
       },
-      FunctionExpression: (node): void => {
+      FunctionExpression: (node: Tsestree): void => {
         functionDepth++;
         if (functionDepth === 1) {
-          const funcNode = node as FunctionLike;
-          checkParams({ funcNode, context });
+          const funcNode = node as unknown as FunctionLike;
+          checkParams({ funcNode, context: ctx });
         }
       },
       'FunctionExpression:exit': (): void => {

@@ -1,5 +1,7 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
-import type { TSESTree } from '@typescript-eslint/utils';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter';
 
 interface NodeWithSource {
@@ -9,7 +11,7 @@ interface NodeWithSource {
 }
 
 interface NodeWithSpecifiers {
-  specifiers?: TSESTree.Node[];
+  specifiers?: Tsestree[];
 }
 
 interface NodeWithImported {
@@ -25,7 +27,7 @@ interface NodeWithLocal {
 }
 
 interface NodeWithCallee {
-  callee?: TSESTree.Node;
+  callee?: Tsestree;
 }
 
 interface NodeWithName {
@@ -33,31 +35,34 @@ interface NodeWithName {
 }
 
 interface NodeWithId {
-  id?: TSESTree.Node | null;
+  id?: Tsestree | null;
 }
 
-export const enforceProxyChildCreationRuleBroker = (): Rule.RuleModule => ({
-  meta: {
-    type: 'problem',
-    docs: {
-      description:
-        'Enforce that proxies create all child proxies based on implementation file imports',
+export const enforceProxyChildCreationRuleBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description:
+          'Enforce that proxies create all child proxies based on implementation file imports',
+      },
+      messages: {
+        missingProxyImport:
+          'Proxy imports {{implementationName}} but does not import its corresponding proxy from {{proxyPath}}.',
+        missingProxyCreation:
+          'Proxy imports {{implementationName}} but does not create {{proxyName}} in constructor.',
+        phantomProxyCreation:
+          'Proxy creates {{proxyName}} but {{implementationFile}} does not import {{implementationName}}. Remove the phantom proxy creation or add the import to the implementation.',
+      },
+      schema: [],
     },
-    messages: {
-      missingProxyImport:
-        'Proxy imports {{implementationName}} but does not import its corresponding proxy from {{proxyPath}}.',
-      missingProxyCreation:
-        'Proxy imports {{implementationName}} but does not create {{proxyName}} in constructor.',
-      phantomProxyCreation:
-        'Proxy creates {{proxyName}} but {{implementationFile}} does not import {{implementationName}}. Remove the phantom proxy creation or add the import to the implementation.',
-    },
-    schema: [],
-  },
-  create: (context: Rule.RuleContext) => {
-    const { filename } = context;
+  }),
+  create: (context: unknown) => {
+    const ctx = context as EslintContext;
+    const { filename } = ctx;
 
     // Only check .proxy.ts files
-    if (!filename.endsWith('.proxy.ts')) {
+    if (!filename || !filename.endsWith('.proxy.ts')) {
       return {};
     }
 
@@ -87,7 +92,7 @@ export const enforceProxyChildCreationRuleBroker = (): Rule.RuleModule => ({
 
     return {
       // Track proxy file imports
-      ImportDeclaration: (node): void => {
+      ImportDeclaration: (node: Tsestree): void => {
         const importNode = node as unknown as NodeWithSource & NodeWithSpecifiers;
         const { source } = importNode;
         if (!source || typeof source.value !== 'string') return;
@@ -116,7 +121,7 @@ export const enforceProxyChildCreationRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Track proxy creation calls
-      CallExpression: (node): void => {
+      CallExpression: (node: Tsestree): void => {
         if (!insideProxyFunction) return;
         if (foundReturnStatement) return;
 
@@ -135,12 +140,12 @@ export const enforceProxyChildCreationRuleBroker = (): Rule.RuleModule => ({
 
       // Track when we enter the proxy function
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression':
-        (node): void => {
-          const ancestors = context.sourceCode.getAncestors(node);
+        (node: Tsestree): void => {
+          const ancestors = ctx.sourceCode?.getAncestors(node) || [];
           for (const ancestor of ancestors) {
             const ancestorType = (ancestor as { type: string }).type;
             if (ancestorType === 'VariableDeclarator') {
-              const declarator = ancestor as unknown as NodeWithId;
+              const declarator = ancestor as NodeWithId;
               const id = declarator.id as NodeWithName | undefined;
               if (id?.name?.endsWith('Proxy')) {
                 insideProxyFunction = true;
@@ -166,7 +171,7 @@ export const enforceProxyChildCreationRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Validate at the end
-      'Program:exit': (node): void => {
+      'Program:exit': (node: Tsestree): void => {
         // Check 1: For each implementation import, verify proxy has corresponding import and creation
         for (const [importedName, importPath] of implementationImports) {
           // Derive expected proxy name and path
@@ -179,7 +184,7 @@ export const enforceProxyChildCreationRuleBroker = (): Rule.RuleModule => ({
           );
 
           if (!hasProxyImport) {
-            context.report({
+            ctx.report({
               node,
               messageId: 'missingProxyImport',
               data: {
@@ -194,7 +199,7 @@ export const enforceProxyChildCreationRuleBroker = (): Rule.RuleModule => ({
           const hasProxyCreation = proxyCreationCalls.has(expectedProxyName);
 
           if (!hasProxyCreation) {
-            context.report({
+            ctx.report({
               node,
               messageId: 'missingProxyCreation',
               data: {
@@ -217,9 +222,9 @@ export const enforceProxyChildCreationRuleBroker = (): Rule.RuleModule => ({
           if (!hasImplementationImport) {
             // Get implementation filename for error message
             const implementationFile =
-              filename.split('/').pop()?.replace('.proxy.ts', '.ts') || 'implementation';
+              filename?.split('/').pop()?.replace('.proxy.ts', '.ts') || 'implementation';
 
-            context.report({
+            ctx.report({
               node,
               messageId: 'phantomProxyCreation',
               data: {

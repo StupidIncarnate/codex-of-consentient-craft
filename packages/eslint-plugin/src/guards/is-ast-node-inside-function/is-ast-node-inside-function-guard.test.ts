@@ -1,72 +1,72 @@
 import { isAstNodeInsideFunctionGuard } from './is-ast-node-inside-function-guard';
-import type { TSESTree } from '../../adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree';
+import { TsestreeStub } from '../../contracts/tsestree/tsestree.stub';
 
 describe('isAstNodeInsideFunctionGuard', () => {
   it('VALID: {node with ArrowFunctionExpression parent} => returns true', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'Identifier',
-      parent: {
+      parent: TsestreeStub({
         type: 'ArrowFunctionExpression',
-      },
-    } as TSESTree.Node;
+      }),
+    });
 
     expect(isAstNodeInsideFunctionGuard({ node })).toBe(true);
   });
 
   it('VALID: {node with FunctionExpression parent} => returns true', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'Identifier',
-      parent: {
+      parent: TsestreeStub({
         type: 'FunctionExpression',
-      },
-    } as TSESTree.Node;
+      }),
+    });
 
     expect(isAstNodeInsideFunctionGuard({ node })).toBe(true);
   });
 
   it('VALID: {node with FunctionDeclaration parent} => returns true', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'Identifier',
-      parent: {
+      parent: TsestreeStub({
         type: 'FunctionDeclaration',
-      },
-    } as TSESTree.Node;
+      }),
+    });
 
     expect(isAstNodeInsideFunctionGuard({ node })).toBe(true);
   });
 
   it('VALID: {node with nested function ancestor} => returns true', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'Identifier',
-      parent: {
+      parent: TsestreeStub({
         type: 'VariableDeclarator',
-        parent: {
+        parent: TsestreeStub({
           type: 'VariableDeclaration',
-          parent: {
+          parent: TsestreeStub({
             type: 'ArrowFunctionExpression',
-          },
-        },
-      },
-    } as TSESTree.Node;
+          }),
+        }),
+      }),
+    });
 
     expect(isAstNodeInsideFunctionGuard({ node })).toBe(true);
   });
 
   it('VALID: {node with non-function parents} => returns false', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'Identifier',
-      parent: {
+      parent: TsestreeStub({
         type: 'Program',
-      },
-    } as TSESTree.Node;
+      }),
+    });
 
     expect(isAstNodeInsideFunctionGuard({ node })).toBe(false);
   });
 
   it('EMPTY: {node without parent} => returns false', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'Identifier',
-    } as TSESTree.Node;
+    });
 
     expect(isAstNodeInsideFunctionGuard({ node })).toBe(false);
   });

@@ -20,7 +20,6 @@ import { noMutableStateInProxyFactoryRuleBroker } from '../brokers/rule/no-mutab
 import { requireContractValidationRuleBroker } from '../brokers/rule/require-contract-validation/require-contract-validation-rule-broker';
 import { noMultiplePropertyAssertionsRuleBroker } from '../brokers/rule/no-multiple-property-assertions/no-multiple-property-assertions-rule-broker';
 import { questmaestroConfigBroker } from '../brokers/config/questmaestro/questmaestro-config-broker';
-import type { Rule } from '../adapters/eslint/eslint-rule-adapter';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
 
 export const startEslintPlugin = (): {

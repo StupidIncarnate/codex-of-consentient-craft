@@ -1,13 +1,15 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
-import type { TSESTree } from '@typescript-eslint/utils';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 
 interface NodeWithDeclarations {
-  declarations?: TSESTree.Node[];
+  declarations?: Tsestree[];
 }
 
 interface NodeWithId {
-  id?: TSESTree.Node | null;
+  id?: Tsestree | null;
 }
 
 interface NodeWithName {
@@ -15,34 +17,37 @@ interface NodeWithName {
 }
 
 interface NodeWithInit {
-  init?: TSESTree.Node | null;
+  init?: Tsestree | null;
 }
 
 interface NodeWithCallee {
-  callee?: TSESTree.Node;
+  callee?: Tsestree;
 }
 
 interface ExportDeclarationNode {
-  declaration?: TSESTree.Node | null;
+  declaration?: Tsestree | null;
 }
 
-export const enforceTestCreationOfProxyRuleBroker = (): Rule.RuleModule => ({
-  meta: {
-    type: 'problem',
-    docs: {
-      description:
-        'Ensure proxies are created inside each test (it/test block), not at module level in test files',
+export const enforceTestCreationOfProxyRuleBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description:
+          'Ensure proxies are created inside each test (it/test block), not at module level in test files',
+      },
+      messages: {
+        proxyMustBeInTest:
+          'Proxy instance {{name}} must be created inside each test (it/test block), not at module level. Use: const {{name}} = {{proxyFunction}}() inside the test.',
+        noExportProxy:
+          'Do not export proxy instances from test files. Create proxies fresh in each test instead.',
+      },
+      schema: [],
     },
-    messages: {
-      proxyMustBeInTest:
-        'Proxy instance {{name}} must be created inside each test (it/test block), not at module level. Use: const {{name}} = {{proxyFunction}}() inside the test.',
-      noExportProxy:
-        'Do not export proxy instances from test files. Create proxies fresh in each test instead.',
-    },
-    schema: [],
-  },
-  create: (context: Rule.RuleContext) => {
-    const { filename } = context;
+  }),
+  create: (context: unknown) => {
+    const ctx = context as EslintContext;
+    const filename = ctx.filename ? String(ctx.filename) : '';
 
     // Only check test files
     if (!isTestFileGuard({ filename })) {
@@ -53,11 +58,11 @@ export const enforceTestCreationOfProxyRuleBroker = (): Rule.RuleModule => ({
     let testBlockDepth = 0;
 
     // Track exported proxy declarations to avoid duplicate errors
-    const exportedProxyDeclarations = new Set<TSESTree.Node>();
+    const exportedProxyDeclarations = new Set<Tsestree>();
 
     return {
       // Track when we enter a test block (it/test calls)
-      CallExpression: (node): void => {
+      CallExpression: (node: Tsestree): void => {
         const callNode = node as unknown as NodeWithCallee;
         const { callee } = callNode;
 
@@ -73,7 +78,7 @@ export const enforceTestCreationOfProxyRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Track when we exit a test block
-      'CallExpression:exit': (node): void => {
+      'CallExpression:exit': (node: Tsestree): void => {
         const callNode = node as unknown as NodeWithCallee;
         const { callee } = callNode;
 
@@ -89,7 +94,7 @@ export const enforceTestCreationOfProxyRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Check variable declarations for proxy creation
-      VariableDeclaration: (node): void => {
+      VariableDeclaration: (node: Tsestree): void => {
         const varDecl = node as unknown as NodeWithDeclarations;
         const { declarations } = varDecl;
 
@@ -119,7 +124,7 @@ export const enforceTestCreationOfProxyRuleBroker = (): Rule.RuleModule => ({
                   if (testBlockDepth === 0) {
                     const variableName =
                       id && 'name' in id ? ((id as NodeWithName).name ?? 'proxy') : 'proxy';
-                    context.report({
+                    ctx.report({
                       node: declaration,
                       messageId: 'proxyMustBeInTest',
                       data: {
@@ -136,7 +141,7 @@ export const enforceTestCreationOfProxyRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Check for exported proxy instances
-      ExportNamedDeclaration: (node): void => {
+      ExportNamedDeclaration: (node: Tsestree): void => {
         const exportNode = node as unknown as ExportDeclarationNode;
         const { declaration } = exportNode;
 
@@ -172,7 +177,7 @@ export const enforceTestCreationOfProxyRuleBroker = (): Rule.RuleModule => ({
                   exportedProxyDeclarations.add(declarator);
 
                   // Found exported proxy instance
-                  context.report({
+                  ctx.report({
                     node: declarator,
                     messageId: 'noExportProxy',
                   });

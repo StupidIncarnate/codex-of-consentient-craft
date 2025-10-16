@@ -1,4 +1,7 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 
 interface MemberExpression {
@@ -65,21 +68,24 @@ const getRootObjectName = (expr: MemberExpression): string | null => {
   return null;
 };
 
-export const noMultiplePropertyAssertionsRuleBroker = (): Rule.RuleModule => ({
-  meta: {
-    type: 'problem',
-    docs: {
-      description:
-        'Disallow multiple toStrictEqual assertions on properties of the same root object. Use a single assertion on the complete object to prevent property bleedthrough.',
+export const noMultiplePropertyAssertionsRuleBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description:
+          'Disallow multiple toStrictEqual assertions on properties of the same root object. Use a single assertion on the complete object to prevent property bleedthrough.',
+      },
+      messages: {
+        multiplePropertyAssertions:
+          'Use single toStrictEqual on complete object instead of testing individual properties. Testing {{count}} properties of "{{rootObject}}" separately allows property bleedthrough - combine into: expect({{rootObject}}).toStrictEqual({...})',
+      },
+      schema: [],
     },
-    messages: {
-      multiplePropertyAssertions:
-        'Use single toStrictEqual on complete object instead of testing individual properties. Testing {{count}} properties of "{{rootObject}}" separately allows property bleedthrough - combine into: expect({{rootObject}}).toStrictEqual({...})',
-    },
-    schema: [],
-  },
-  create: (context: Rule.RuleContext) => {
-    const isTestFile = isTestFileGuard({ filename: context.filename });
+  }),
+  create: (context: unknown) => {
+    const ctx = context as EslintContext;
+    const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
 
     if (!isTestFile) {
       return {};
@@ -91,7 +97,7 @@ export const noMultiplePropertyAssertionsRuleBroker = (): Rule.RuleModule => ({
 
     return {
       // Track when we enter an it() or test() block
-      'CallExpression[callee.name=/^(it|test)$/]': (node): void => {
+      'CallExpression[callee.name=/^(it|test)$/]': (node: Tsestree): void => {
         currentItBlock = node;
         assertionsByItBlock.set(currentItBlock, []);
       },
@@ -124,8 +130,8 @@ export const noMultiplePropertyAssertionsRuleBroker = (): Rule.RuleModule => ({
           if (nodes.length >= 2) {
             // Report on all assertions for this root object
             for (const node of nodes) {
-              context.report({
-                node: node as Rule.Node,
+              ctx.report({
+                node: node as Tsestree,
                 messageId: 'multiplePropertyAssertions',
                 data: {
                   rootObject,
@@ -140,7 +146,7 @@ export const noMultiplePropertyAssertionsRuleBroker = (): Rule.RuleModule => ({
       },
 
       // Detect expect(obj.property).toStrictEqual() pattern
-      CallExpression: (node): void => {
+      CallExpression: (node: Tsestree): void => {
         if (currentItBlock === null) {
           return;
         }

@@ -1,4 +1,7 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
 interface ObjectPatternParam {
   type: string;
@@ -37,8 +40,8 @@ interface FunctionLike {
   };
 }
 
-const isStubFile = ({ context }: { context: Rule.RuleContext }): boolean => {
-  const filename = context.getFilename();
+const isStubFile = ({ context }: { context: EslintContext }): boolean => {
+  const filename = String(context.getFilename?.() || '');
   return filename.endsWith('.stub.ts');
 };
 
@@ -273,35 +276,38 @@ const usesContractParse = ({ funcNode }: { funcNode: FunctionLike }): boolean =>
   return false;
 };
 
-export const enforceStubPatternsRuleBroker = (): Rule.RuleModule => ({
-  meta: {
-    type: 'problem',
-    docs: {
-      description: 'Enforce stub function patterns: spread operator and StubArgument type',
+export const enforceStubPatternsRuleBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Enforce stub function patterns: spread operator and StubArgument type',
+      },
+      messages: {
+        useSpreadOperator:
+          'Stub functions must use spread operator in parameters: ({ ...props }: StubArgument<Type> = {})',
+        useStubArgumentType:
+          'Stub functions must use StubArgument<Type> from @questmaestro/shared/@types',
+        useContractParse:
+          'Stub functions must return contract.parse() to validate and brand the output',
+      },
+      schema: [],
     },
-    messages: {
-      useSpreadOperator:
-        'Stub functions must use spread operator in parameters: ({ ...props }: StubArgument<Type> = {})',
-      useStubArgumentType:
-        'Stub functions must use StubArgument<Type> from @questmaestro/shared/@types',
-      useContractParse:
-        'Stub functions must return contract.parse() to validate and brand the output',
-    },
-    schema: [],
-  },
-  create: (context: Rule.RuleContext) => {
-    if (!isStubFile({ context })) {
+  }),
+  create: (context: unknown) => {
+    const ctx = context as EslintContext;
+    if (!isStubFile({ context: ctx })) {
       return {};
     }
 
     return {
-      ArrowFunctionExpression: (node): void => {
+      ArrowFunctionExpression: (node: Tsestree): void => {
         // Only check root exported stub functions, not nested arrow functions
         if (!isExportedFunction({ node })) {
           return;
         }
 
-        const funcNode = node as FunctionLike;
+        const funcNode = node as unknown as FunctionLike;
 
         if (funcNode.params.length === 0) {
           return;
@@ -316,7 +322,7 @@ export const enforceStubPatternsRuleBroker = (): Rule.RuleModule => ({
         if (isSingleValue) {
           // Still check contract.parse() for single value stubs
           if (!hasContractParse) {
-            context.report({
+            ctx.report({
               node,
               messageId: 'useContractParse',
             });
@@ -328,7 +334,7 @@ export const enforceStubPatternsRuleBroker = (): Rule.RuleModule => ({
         if (!hasSpread) {
           const [firstParam] = funcNode.params;
           if (firstParam) {
-            context.report({
+            ctx.report({
               node: firstParam,
               messageId: 'useSpreadOperator',
             });
@@ -340,7 +346,7 @@ export const enforceStubPatternsRuleBroker = (): Rule.RuleModule => ({
         if (!hasStubArgument) {
           const [firstParam] = funcNode.params;
           if (firstParam) {
-            context.report({
+            ctx.report({
               node: firstParam,
               messageId: 'useStubArgumentType',
             });
@@ -349,7 +355,7 @@ export const enforceStubPatternsRuleBroker = (): Rule.RuleModule => ({
 
         // Check if contract.parse() is used
         if (!hasContractParse) {
-          context.report({
+          ctx.report({
             node,
             messageId: 'useContractParse',
           });

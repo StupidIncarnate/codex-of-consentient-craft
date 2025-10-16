@@ -1,4 +1,7 @@
-import type { Rule } from '../../../adapters/eslint/eslint-rule-adapter';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
 interface CallExpressionNode {
   type: string;
@@ -94,42 +97,45 @@ const getSpyOnTarget = (node: CallExpressionNode): string | null => {
   return null;
 };
 
-export const enforceJestMockedUsageRuleBroker = (): Rule.RuleModule => {
+export const enforceJestMockedUsageRuleBroker = (): EslintRule => {
   // Track jest.mock() calls and imported module names
   const jestMockedModules = new Set<string>();
   const importedModuleNames = new Map<string, string>(); // source -> local name
   const variablesWithJestMocked = new Set<string>();
 
   return {
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Enforce proper Jest mocking patterns in proxy files',
+    ...eslintRuleContract.parse({
+      meta: {
+        type: 'problem',
+        docs: {
+          description: 'Enforce proper Jest mocking patterns in proxy files',
+        },
+        messages: {
+          useJestMocked:
+            'When using jest.mock(), access the mocked module with jest.mocked(). Use: const mock = jest.mocked({{moduleName}})',
+          spyOnModuleImport:
+            'jest.spyOn() should only be used for global objects (Date, crypto, console, Math). Use jest.mock() + jest.mocked() for module imports instead.',
+          nonAdapterNoJestMocked:
+            'Non-adapter proxies cannot use jest.mocked(). Only adapters (I/O boundaries) and state proxies (for external systems) should be mocked. Brokers, widgets, and responders must run real code.',
+        },
+        schema: [],
       },
-      messages: {
-        useJestMocked:
-          'When using jest.mock(), access the mocked module with jest.mocked(). Use: const mock = jest.mocked({{moduleName}})',
-        spyOnModuleImport:
-          'jest.spyOn() should only be used for global objects (Date, crypto, console, Math). Use jest.mock() + jest.mocked() for module imports instead.',
-        nonAdapterNoJestMocked:
-          'Non-adapter proxies cannot use jest.mocked(). Only adapters (I/O boundaries) and state proxies (for external systems) should be mocked. Brokers, widgets, and responders must run real code.',
-      },
-      schema: [],
-    },
-    create: (context: Rule.RuleContext) => {
+    }),
+    create: (context: unknown) => {
+      const ctx = context as EslintContext;
       // Reset state for each file
       jestMockedModules.clear();
       importedModuleNames.clear();
       variablesWithJestMocked.clear();
 
       // Only check proxy files
-      if (!isProxyFile({ filename: context.filename })) {
+      if (!isProxyFile({ filename: ctx.filename ?? '' })) {
         return {};
       }
 
       return {
         // Track imports to know which names are module imports
-        ImportDeclaration: (node): void => {
+        ImportDeclaration: (node: Tsestree): void => {
           const importNode = node as unknown as ImportDeclarationNode;
           const source = importNode.source?.value;
 
@@ -151,7 +157,7 @@ export const enforceJestMockedUsageRuleBroker = (): Rule.RuleModule => {
         },
 
         // Track jest.mock() calls
-        CallExpression: (node): void => {
+        CallExpression: (node: Tsestree): void => {
           const callNode = node as unknown as CallExpressionNode;
 
           // Track jest.mock() calls
@@ -174,7 +180,7 @@ export const enforceJestMockedUsageRuleBroker = (): Rule.RuleModule => {
             if (target && !ALLOWED_SPY_ON_GLOBALS.includes(target)) {
               // Check if this is an imported module
               if (importedModuleNames.has(target)) {
-                context.report({
+                ctx.report({
                   node,
                   messageId: 'spyOnModuleImport',
                 });
@@ -184,7 +190,7 @@ export const enforceJestMockedUsageRuleBroker = (): Rule.RuleModule => {
         },
 
         // Track variables that use jest.mocked() and check for direct assignments
-        VariableDeclarator: (node): void => {
+        VariableDeclarator: (node: Tsestree): void => {
           const declaratorNode = node as unknown as VariableDeclarator;
 
           if (!declaratorNode.init || !declaratorNode.id) {
@@ -208,10 +214,10 @@ export const enforceJestMockedUsageRuleBroker = (): Rule.RuleModule => {
             // Check if this is a non-adapter/non-state proxy using jest.mocked()
             // State proxies can use jest.mocked() for external systems (Redis, DB)
             if (
-              !isAdapterProxy({ filename: context.filename }) &&
-              !isStateProxy({ filename: context.filename })
+              !isAdapterProxy({ filename: ctx.filename ?? '' }) &&
+              !isStateProxy({ filename: ctx.filename ?? '' })
             ) {
-              context.report({
+              ctx.report({
                 node,
                 messageId: 'nonAdapterNoJestMocked',
               });
@@ -249,7 +255,7 @@ export const enforceJestMockedUsageRuleBroker = (): Rule.RuleModule => {
             const source = importedModuleNames.get(importedName);
             // Check if this module was mocked with jest.mock()
             if (source && jestMockedModules.has(source)) {
-              context.report({
+              ctx.report({
                 node,
                 messageId: 'useJestMocked',
                 data: {

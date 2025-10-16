@@ -1,5 +1,5 @@
 import { isAstNodeExportedGuard } from './is-ast-node-exported-guard';
-import type { TSESTree } from '../../adapters/typescript-eslint-utils/typescript-eslint-utils-tsestree';
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
 describe('isAstNodeExportedGuard', () => {
   it('VALID: {node with ExportNamedDeclaration parent} => returns true', () => {
@@ -11,7 +11,7 @@ describe('isAstNodeExportedGuard', () => {
           type: 'ExportNamedDeclaration',
         },
       },
-    } as TSESTree.Node;
+    } as Tsestree;
 
     expect(isAstNodeExportedGuard({ node })).toBe(true);
   });
@@ -22,7 +22,7 @@ describe('isAstNodeExportedGuard', () => {
       parent: {
         type: 'ExportDefaultDeclaration',
       },
-    } as TSESTree.Node;
+    } as Tsestree;
 
     expect(isAstNodeExportedGuard({ node })).toBe(true);
   });
@@ -42,7 +42,7 @@ describe('isAstNodeExportedGuard', () => {
           },
         },
       },
-    } as TSESTree.Node;
+    } as Tsestree;
 
     expect(isAstNodeExportedGuard({ node })).toBe(true);
   });
@@ -56,7 +56,7 @@ describe('isAstNodeExportedGuard', () => {
           type: 'Program',
         },
       },
-    } as TSESTree.Node;
+    } as Tsestree;
 
     expect(isAstNodeExportedGuard({ node })).toBe(false);
   });
@@ -64,7 +64,7 @@ describe('isAstNodeExportedGuard', () => {
   it('EMPTY: {node without parent} => returns false', () => {
     const node = {
       type: 'Identifier',
-    } as TSESTree.Node;
+    } as Tsestree;
 
     expect(isAstNodeExportedGuard({ node })).toBe(false);
   });
