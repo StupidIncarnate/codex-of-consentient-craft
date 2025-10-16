@@ -1,5 +1,8 @@
 import { RuleTester } from 'eslint';
-import type { Linter } from 'eslint';
+import type { Linter, Rule } from 'eslint';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import { eslintRuleNameContract } from '../../../contracts/eslint-rule-name/eslint-rule-name-contract';
+import type { EslintRuleName } from '../../../contracts/eslint-rule-name/eslint-rule-name-contract';
 
 /**
  * Adapter for ESLint RuleTester - configures TypeScript parser for rule integration tests.
@@ -7,8 +10,10 @@ import type { Linter } from 'eslint';
  * This adapter:
  * - Configures @typescript-eslint/parser for TypeScript support
  * - Marks tests as RuleTester tests for @questmaestro/testing assertion checks
+ * - Translates EslintRule contract types to ESLint Rule.RuleModule types
+ * - Accepts either plain string or branded EslintRuleName for rule name
  *
- * @returns Configured RuleTester instance ready for use
+ * @returns Configured RuleTester instance with run method that accepts EslintRule
  *
  * @example
  * ```typescript
@@ -30,7 +35,11 @@ interface GlobalWithRuleTester {
   RuleTester?: typeof RuleTester;
 }
 
-export const eslintRuleTesterAdapter = (): RuleTester => {
+interface RuleTesterWithContractSupport {
+  run: (name: string | EslintRuleName, rule: EslintRule, tests: unknown) => void;
+}
+
+export const eslintRuleTesterAdapter = (): RuleTesterWithContractSupport => {
   // Mark as RuleTester test for @questmaestro/testing assertion check
   // RuleTester.run() creates its own assertions internally
   const globalWithRuleTester = globalThis as GlobalWithRuleTester & typeof globalThis;
@@ -38,7 +47,7 @@ export const eslintRuleTesterAdapter = (): RuleTester => {
 
   const tsParser = require('@typescript-eslint/parser') as Linter.Parser;
 
-  return new RuleTester({
+  const ruleTester = new RuleTester({
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -50,4 +59,18 @@ export const eslintRuleTesterAdapter = (): RuleTester => {
       },
     },
   });
+
+  return {
+    run: (name: string | EslintRuleName, rule: EslintRule, tests: unknown): void => {
+      // Parse string to branded type, or pass through if already branded
+      const ruleName = eslintRuleNameContract.parse(name);
+
+      // Cast contract types to ESLint types - adapter translates at I/O boundary
+      ruleTester.run(
+        String(ruleName),
+        rule as unknown as Rule.RuleModule,
+        tests as Parameters<typeof ruleTester.run>[2],
+      );
+    },
+  };
 };
