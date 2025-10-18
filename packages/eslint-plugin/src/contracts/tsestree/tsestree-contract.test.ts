@@ -23,7 +23,7 @@ describe('TsestreeStub', () => {
       parent,
     });
 
-    expect(result.parent).toBe(parent);
+    expect(result.parent).toStrictEqual(parent);
     expect(result.parent?.type).toBe('Program');
   });
 

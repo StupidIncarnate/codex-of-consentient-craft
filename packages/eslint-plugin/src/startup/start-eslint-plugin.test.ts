@@ -49,7 +49,9 @@ describe('startEslintPlugin', () => {
       const plugin = startEslintPlugin();
 
       expect(
-        plugin.configs.questmaestro.rules?.['@questmaestro/enforce-object-destructuring-params'],
+        plugin.configs.questmaestro.typescript.rules?.[
+          '@questmaestro/enforce-object-destructuring-params'
+        ],
       ).toBe('error');
     });
   });

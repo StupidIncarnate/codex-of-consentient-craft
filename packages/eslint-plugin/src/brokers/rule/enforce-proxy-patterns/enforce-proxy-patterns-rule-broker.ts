@@ -654,10 +654,7 @@ const checkAdapterProxyMockSetup = (functionNode: Tsestree, context: EslintConte
   }
 };
 
-const checkProxyConstructorSideEffects = (
-  functionNode: Tsestree,
-  context: EslintContext,
-): void => {
+const checkProxyConstructorSideEffects = (functionNode: Tsestree, context: EslintContext): void => {
   const funcNode = functionNode as NodeWithBody;
   const { body } = funcNode;
 

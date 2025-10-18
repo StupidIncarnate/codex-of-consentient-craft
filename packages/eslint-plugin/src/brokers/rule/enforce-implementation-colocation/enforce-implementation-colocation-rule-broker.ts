@@ -100,6 +100,8 @@ export const enforceImplementationColocationRuleBroker = (): EslintRule => ({
           /\.stub\.ts$/u,
           /-error\.ts$/u,
           /-flow\.tsx?$/u,
+          /-transformer\.ts?$/u,
+          /-guard\.ts?$/u,
           /\/startup\//u,
         ];
 

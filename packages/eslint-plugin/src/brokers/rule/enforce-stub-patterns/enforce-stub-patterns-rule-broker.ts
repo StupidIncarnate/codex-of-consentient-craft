@@ -249,13 +249,17 @@ const usesContractParse = ({ funcNode }: { funcNode: FunctionLike }): boolean =>
 
   // Handle arrow function or regular function with block body: () => { return contract.parse({}) }
   if (body.type === 'BlockStatement' && body.body) {
-    // Check if any statement is a return statement with contract.parse
+    // Check if contract.parse() is called anywhere in the function
     const hasContractParse = body.body.some((statement: unknown) => {
       const stmt = statement as {
         type: string;
         argument?: unknown;
+        declarations?: {
+          init?: unknown;
+        }[];
       };
 
+      // Check return statements
       if (stmt.type === 'ReturnStatement' && stmt.argument) {
         const arg = stmt.argument;
         // Direct call: return contract.parse({})
@@ -267,6 +271,17 @@ const usesContractParse = ({ funcNode }: { funcNode: FunctionLike }): boolean =>
           return true;
         }
       }
+
+      // Check variable declarations: const validated = contract.parse({})
+      if (stmt.type === 'VariableDeclaration' && stmt.declarations) {
+        return stmt.declarations.some((decl) => {
+          if (decl.init) {
+            return isContractParseCall({ node: decl.init });
+          }
+          return false;
+        });
+      }
+
       return false;
     });
 

@@ -2,9 +2,9 @@ import type { EslintConfig } from '../../../contracts/eslint-config/eslint-confi
 import { eslintRuleStatics } from '../../../statics/eslint-rule/eslint-rule-statics';
 import { typescriptEslintRuleStatics } from '../../../statics/typescript-eslint-rule/typescript-eslint-rule-statics';
 import { jestRuleStatics } from '../../../statics/jest-rule/jest-rule-statics';
-import { typescriptEslintEslintPlugin } from '../../../adapters/typescript-eslint-eslint-plugin/typescript-eslint-eslint-plugin-adapter';
-import { eslintPluginJestAdapter } from '../../../adapters/eslint-plugin-jest/eslint-plugin-jest-adapter';
-import { eslintPluginEslintCommentsAdapter } from '../../../adapters/eslint-plugin-eslint-comments/eslint-plugin-eslint-comments-adapter';
+import { typescriptEslintEslintPluginLoadAdapter } from '../../../adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter';
+import { eslintPluginJestLoadAdapter } from '../../../adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter';
+import { eslintPluginEslintCommentsLoadAdapter } from '../../../adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter';
 import { eslintConflictResolverTransformer } from '../../../transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer';
 
 type DeepWritable<T> = T extends readonly (infer U)[]
@@ -28,7 +28,7 @@ export const questmaestroConfigBroker = ({
   };
 
   const baseTypescriptConfig: EslintConfig = {
-    plugins: { '@typescript-eslint': typescriptEslintEslintPlugin },
+    plugins: { '@typescript-eslint': typescriptEslintEslintPluginLoadAdapter() },
     rules: {
       ...(typescriptEslintRuleStatics.rules as unknown as DeepWritable<
         typeof typescriptEslintRuleStatics.rules
@@ -59,18 +59,18 @@ export const questmaestroConfigBroker = ({
     '@questmaestro/enforce-import-dependencies': 'error',
     '@questmaestro/enforce-jest-mocked-usage': 'error',
     '@questmaestro/enforce-object-destructuring-params': 'error',
-    '@questmaestro/enforce-stub-patterns': 'error',
     '@questmaestro/enforce-project-structure': 'error',
     '@questmaestro/enforce-proxy-child-creation': 'error',
     '@questmaestro/enforce-proxy-patterns': 'error',
+    '@questmaestro/enforce-stub-patterns': 'error',
     '@questmaestro/enforce-test-colocation': 'error',
     '@questmaestro/enforce-test-creation-of-proxy': 'error',
     '@questmaestro/enforce-test-proxy-imports': 'error',
     '@questmaestro/explicit-return-types': 'error',
     '@questmaestro/forbid-non-exported-functions': 'error',
     '@questmaestro/jest-mocked-must-import': 'error',
-    '@questmaestro/no-mutable-state-in-proxy-factory': 'error',
     '@questmaestro/no-multiple-property-assertions': 'error',
+    '@questmaestro/no-mutable-state-in-proxy-factory': 'error',
     '@questmaestro/require-contract-validation': 'error',
     '@questmaestro/require-zod-on-primitives': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
@@ -80,7 +80,7 @@ export const questmaestroConfigBroker = ({
   const typescriptConfig: EslintConfig = {
     plugins: {
       ...mergedConfig.plugins,
-      'eslint-comments': eslintPluginEslintCommentsAdapter as unknown,
+      'eslint-comments': eslintPluginEslintCommentsLoadAdapter() as unknown,
     },
     rules: {
       ...mergedConfig.rules,
@@ -91,8 +91,8 @@ export const questmaestroConfigBroker = ({
   const testConfig: EslintConfig = {
     plugins: {
       ...mergedConfig.plugins,
-      'eslint-comments': eslintPluginEslintCommentsAdapter as unknown,
-      ...(forTesting ? { jest: eslintPluginJestAdapter } : {}),
+      'eslint-comments': eslintPluginEslintCommentsLoadAdapter() as unknown,
+      ...(forTesting ? { jest: eslintPluginJestLoadAdapter() } : {}),
     },
     rules: {
       ...mergedConfig.rules,

@@ -21,33 +21,38 @@ import { requireContractValidationRuleBroker } from '../brokers/rule/require-con
 import { noMultiplePropertyAssertionsRuleBroker } from '../brokers/rule/no-multiple-property-assertions/no-multiple-property-assertions-rule-broker';
 import { questmaestroConfigBroker } from '../brokers/config/questmaestro/questmaestro-config-broker';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
+import type { EslintRule } from '../contracts/eslint-rule/eslint-rule-contract';
 
 export const startEslintPlugin = (): {
   readonly rules: {
-    readonly 'ban-primitives': Rule.RuleModule;
-    readonly 'ban-contract-in-tests': Rule.RuleModule;
-    readonly 'ban-jest-mock-in-tests': Rule.RuleModule;
-    readonly 'require-zod-on-primitives': Rule.RuleModule;
-    readonly 'explicit-return-types': Rule.RuleModule;
-    readonly 'enforce-project-structure': Rule.RuleModule;
-    readonly 'enforce-import-dependencies': Rule.RuleModule;
-    readonly 'enforce-jest-mocked-usage': Rule.RuleModule;
-    readonly 'enforce-object-destructuring-params': Rule.RuleModule;
-    readonly 'enforce-stub-patterns': Rule.RuleModule;
-    readonly 'enforce-proxy-child-creation': Rule.RuleModule;
-    readonly 'enforce-proxy-patterns': Rule.RuleModule;
-    readonly 'enforce-test-colocation': Rule.RuleModule;
-    readonly 'enforce-test-creation-of-proxy': Rule.RuleModule;
-    readonly 'enforce-test-proxy-imports': Rule.RuleModule;
-    readonly 'enforce-implementation-colocation': Rule.RuleModule;
-    readonly 'forbid-non-exported-functions': Rule.RuleModule;
-    readonly 'jest-mocked-must-import': Rule.RuleModule;
-    readonly 'no-mutable-state-in-proxy-factory': Rule.RuleModule;
-    readonly 'require-contract-validation': Rule.RuleModule;
-    readonly 'no-multiple-property-assertions': Rule.RuleModule;
+    readonly 'ban-primitives': EslintRule;
+    readonly 'ban-contract-in-tests': EslintRule;
+    readonly 'ban-jest-mock-in-tests': EslintRule;
+    readonly 'require-zod-on-primitives': EslintRule;
+    readonly 'explicit-return-types': EslintRule;
+    readonly 'enforce-project-structure': EslintRule;
+    readonly 'enforce-import-dependencies': EslintRule;
+    readonly 'enforce-jest-mocked-usage': EslintRule;
+    readonly 'enforce-object-destructuring-params': EslintRule;
+    readonly 'enforce-stub-patterns': EslintRule;
+    readonly 'enforce-proxy-child-creation': EslintRule;
+    readonly 'enforce-proxy-patterns': EslintRule;
+    readonly 'enforce-test-colocation': EslintRule;
+    readonly 'enforce-test-creation-of-proxy': EslintRule;
+    readonly 'enforce-test-proxy-imports': EslintRule;
+    readonly 'enforce-implementation-colocation': EslintRule;
+    readonly 'forbid-non-exported-functions': EslintRule;
+    readonly 'jest-mocked-must-import': EslintRule;
+    readonly 'no-mutable-state-in-proxy-factory': EslintRule;
+    readonly 'require-contract-validation': EslintRule;
+    readonly 'no-multiple-property-assertions': EslintRule;
   };
   readonly configs: {
-    readonly questmaestro: EslintConfig;
+    readonly questmaestro: {
+      readonly typescript: EslintConfig;
+      readonly test: EslintConfig;
+      readonly fileOverrides: readonly EslintConfig[];
+    };
   };
 } =>
   ({

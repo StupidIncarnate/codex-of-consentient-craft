@@ -37,10 +37,9 @@ export const forbidNonExportedFunctionsRuleBroker = (): EslintRule => ({
     return {
       // Catch non-exported arrow functions: const foo = () => {}
       'VariableDeclarator > ArrowFunctionExpression': (node: Tsestree): void => {
-
         // Check if it's inside a function (nested)
-        if (isAstNodeInsideFunctionGuard({ node: node })) {
-          const functionType = astFunctionTypeTransformer({ node: node });
+        if (isAstNodeInsideFunctionGuard({ node })) {
+          const functionType = astFunctionTypeTransformer({ node });
           const suggestion = functionViolationSuggestionTransformer({ functionType });
           ctx.report({
             node,
@@ -51,8 +50,8 @@ export const forbidNonExportedFunctionsRuleBroker = (): EslintRule => ({
         }
 
         // Check if it's exported at module level
-        if (!isAstNodeExportedGuard({ node: node })) {
-          const functionType = astFunctionTypeTransformer({ node: node });
+        if (!isAstNodeExportedGuard({ node })) {
+          const functionType = astFunctionTypeTransformer({ node });
           const suggestion = functionViolationSuggestionTransformer({ functionType });
           ctx.report({
             node,
@@ -64,9 +63,8 @@ export const forbidNonExportedFunctionsRuleBroker = (): EslintRule => ({
 
       // Catch non-exported function declarations: function foo() {}
       FunctionDeclaration: (node: Tsestree): void => {
-
         // Check if it's inside a function (nested)
-        if (isAstNodeInsideFunctionGuard({ node: node })) {
+        if (isAstNodeInsideFunctionGuard({ node })) {
           ctx.report({
             node,
             messageId: 'nestedFunction',
@@ -78,7 +76,7 @@ export const forbidNonExportedFunctionsRuleBroker = (): EslintRule => ({
         }
 
         // Check if it's exported at module level
-        if (!isAstNodeExportedGuard({ node: node })) {
+        if (!isAstNodeExportedGuard({ node })) {
           ctx.report({
             node,
             messageId: 'nonExportedFunction',
@@ -91,8 +89,7 @@ export const forbidNonExportedFunctionsRuleBroker = (): EslintRule => ({
 
       // Catch nested function expressions: const foo = function() {}
       FunctionExpression: (node: Tsestree): void => {
-
-        if (isAstNodeInsideFunctionGuard({ node: node })) {
+        if (isAstNodeInsideFunctionGuard({ node })) {
           ctx.report({
             node,
             messageId: 'nestedFunction',

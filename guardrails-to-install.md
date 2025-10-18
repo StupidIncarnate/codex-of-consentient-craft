@@ -34,6 +34,10 @@ Console.logs need to be tailored and forbidden in most places.
 
 This needs to be setup in globals and a lint rule/prehook forbidding it
 
+## make sure to implement STUB-STATICS-REDEFINED
+
+that gives more assurance to static array of enum usages and consolidates them
+
 ## forbid
 jest.clearAllMocks(); - Tell claude its handled in jest.config
 

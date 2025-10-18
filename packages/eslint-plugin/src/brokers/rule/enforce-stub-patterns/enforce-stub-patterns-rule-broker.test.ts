@@ -93,6 +93,32 @@ export const EslintContextStub = ({ ...props }: StubArgument<EslintContext> = {}
       filename: '/test/eslint-context.stub.ts',
     },
 
+    // Stub with contract.parse() assigned to variable, then spread in conditional returns
+    {
+      code: `
+import type { StubArgument } from '@questmaestro/shared/@types';
+import { tsestreeContract } from './tsestree-contract';
+export const TsestreeStub = ({ ...props }: StubArgument<Tsestree> = {}): Tsestree => {
+  const { parent, ...dataProps } = props;
+  const validated = tsestreeContract.parse({
+    type: 'Identifier',
+    ...dataProps,
+  });
+  if (parent !== undefined) {
+    return {
+      ...validated,
+      parent: parent,
+    };
+  }
+  return {
+    ...validated,
+    parent: null,
+  };
+};
+      `,
+      filename: '/test/tsestree.stub.ts',
+    },
+
     // Non-stub file - rule should not apply
     {
       code: 'export const regularFunction = ({ props }: { props: SomeType }) => props',

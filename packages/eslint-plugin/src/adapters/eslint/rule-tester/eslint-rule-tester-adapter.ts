@@ -45,6 +45,7 @@ export const eslintRuleTesterAdapter = (): RuleTesterWithContractSupport => {
   const globalWithRuleTester = globalThis as GlobalWithRuleTester & typeof globalThis;
   globalWithRuleTester.RuleTester = RuleTester;
 
+  // This is required cause of some weird circular dependency issues
   const tsParser = require('@typescript-eslint/parser') as Linter.Parser;
 
   const ruleTester = new RuleTester({

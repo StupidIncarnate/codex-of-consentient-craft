@@ -407,21 +407,21 @@ Mocks" section.
 
 #### Quick Reference: What Needs Proxies?
 
-| Category      | Needs Proxy? | Purpose                                              |
-|---------------|--------------|------------------------------------------------------|
-| Contracts     | ❌ No         | Use stubs (`.stub.ts` files)                         |
-| Errors        | ❌ No         | Throw directly in tests                              |
-| Adapters      | ✅ Yes        | **Mock npm dependency** (axios, fs, etc.)            |
-| Brokers       | ✅ Yes        | Compose adapter proxies, provide semantic setup      |
-| Guards        | ✅ Yes        | Build test data for different guard paths            |
-| Transformers  | ✅ Yes        | Provide semantic data builders for test data         |
-| State         | ✅ Yes        | Spy on methods, clear state, mock external stores    |
-| Bindings      | ✅ Yes        | Delegate to broker proxies                           |
-| Middleware    | ✅ Yes        | Delegate to adapter proxies                          |
-| Responders    | ✅ Yes        | Delegate to broker proxies                           |
-| Widgets       | ✅ Yes        | Delegate to bindings + provide UI triggers/selectors |
-| Statics       | ✅ Yes        | Override immutable values for edge case testing      |
-| Flows/Startup | ❌ No         | Integration tests                                    |
+| Category      | Needs Proxy? | Purpose                                                                                         |
+|---------------|--------------|-------------------------------------------------------------------------------------------------|
+| Contracts     | ❌ No         | Use stubs (`.stub.ts` files)                                                                    |
+| Errors        | ❌ No         | Throw directly in tests                                                                         |
+| Adapters      | ✅ Sometimes  | **Mock npm dependency** (axios, fs, etc.). Empty proxy if no mocking needed (simple re-exports) |
+| Brokers       | ✅ Sometimes  | Compose adapter proxies, provide semantic setup. Empty proxy if no dependencies mocked          |
+| Guards        | ❌ No         | Pure boolean functions - run real, no mocking needed                                            |
+| Transformers  | ❌ No         | Pure data transformation - run real, no mocking needed                                          |
+| Statics       | ❌ No         | Immutable values - test with actual values                                                      |
+| State         | ✅ Yes        | Spy on methods, clear state, mock external stores                                               |
+| Bindings      | ✅ Yes        | Delegate to broker proxies                                                                      |
+| Middleware    | ✅ Yes        | Delegate to adapter proxies                                                                     |
+| Responders    | ✅ Yes        | Delegate to broker proxies                                                                      |
+| Widgets       | ✅ Yes        | Delegate to bindings + provide UI triggers/selectors                                            |
+| Flows/Startup | ❌ No         | Integration tests                                                                               |
 
 #### 1. Adapter Proxy (Foundation)
 
@@ -464,6 +464,20 @@ export const httpAdapterProxy = () => {
     };
 };
 ```
+
+**Empty Proxy Pattern:**
+
+When an adapter is a simple re-export with no mocking needed (e.g., DSL/query adapters that run real):
+
+```typescript
+// adapters/eslint-plugin/load/eslint-plugin-load-adapter.proxy.ts
+// Proxy for simple re-export adapter - no mocking needed for DSL validation
+
+export const eslintPluginLoadAdapterProxy = (): Record<PropertyKey, never> => ({});
+```
+
+**Use `Record<PropertyKey, never>` for empty object return types** - this ensures no properties can be added while
+accepting all valid key types (string | number | symbol).
 
 #### 2. Broker Proxy (Composition)
 
