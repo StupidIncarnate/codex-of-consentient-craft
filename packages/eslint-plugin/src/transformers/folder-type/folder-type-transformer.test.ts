@@ -1,4 +1,3 @@
-import type { FolderType } from '../../contracts/folder-type/folder-type-contract';
 import { folderTypeTransformer } from './folder-type-transformer';
 
 describe('folderTypeTransformer', () => {
@@ -226,7 +225,7 @@ describe('folderTypeTransformer', () => {
 
   describe('type safety', () => {
     it('VALID: returns FolderType branded type for valid folder', () => {
-      const result: FolderType | null = folderTypeTransformer({
+      const result = folderTypeTransformer({
         filename: '/project/src/brokers/user.ts',
       });
 
@@ -234,7 +233,7 @@ describe('folderTypeTransformer', () => {
     });
 
     it('VALID: returns null type for invalid folder', () => {
-      const result: FolderType | null = folderTypeTransformer({
+      const result = folderTypeTransformer({
         filename: '/project/other/file.ts',
       });
 

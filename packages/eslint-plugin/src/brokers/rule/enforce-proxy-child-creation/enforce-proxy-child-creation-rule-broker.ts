@@ -271,6 +271,11 @@ const parseImplementationImports = (content: string): Map<string, string> => {
       continue;
     }
 
+    // Skip statics imports (they don't need proxies)
+    if (importPath.endsWith('-statics')) {
+      continue;
+    }
+
     // Skip multi-dot files except .proxy (like .test.ts, .stub.ts already filtered above)
     const pathParts = importPath.split('/').pop() || '';
     const dotCount = (pathParts.match(/\./g) || []).length;

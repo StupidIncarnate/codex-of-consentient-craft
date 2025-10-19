@@ -1,12 +1,9 @@
 import { z } from 'zod';
+import { eslintRulesContract } from '../eslint-rules/eslint-rules-contract';
 
 export const eslintConfigContract = z.object({
   plugins: z.record(z.unknown()).optional(),
-  rules: z
-    .record(
-      z.union([z.literal('off'), z.literal('warn'), z.literal('error'), z.array(z.unknown())]),
-    )
-    .optional(),
+  rules: eslintRulesContract.optional(),
   languageOptions: z
     .object({
       parser: z.unknown().optional(),

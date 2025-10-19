@@ -19,7 +19,6 @@ export { tsconfigBroker } from './brokers/config/tsconfig/tsconfig-broker';
 // Export transformers for advanced usage
 export { mergeConfigsTransformer } from './transformers/merge-configs/merge-configs-transformer';
 export { astToViolationTransformer } from './transformers/ast-to-violation/ast-to-violation-transformer';
-export { ruleToConfigTransformer } from './transformers/rule-to-config/rule-to-config-transformer';
 
 import { startEslintPlugin } from './startup/start-eslint-plugin';
 

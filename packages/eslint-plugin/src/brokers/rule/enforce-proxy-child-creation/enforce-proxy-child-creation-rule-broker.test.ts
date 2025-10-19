@@ -109,6 +109,21 @@ beforeEach(() => {
       `);
       }
 
+      // test-file-path-variants-transformer.ts - imports statics
+      if (
+        filePath.includes(
+          'transformers/test-file-path-variants/test-file-path-variants-transformer.ts',
+        )
+      ) {
+        return fileContentsContract.parse(`
+        import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
+
+        export const testFilePathVariantsTransformer = ({ sourceFilePath }) => {
+          return testFilePatternStatics.suffixes.map((suffix) => \`\${sourceFilePath}\${suffix}\`);
+        };
+      `);
+      }
+
       // Default empty implementation
       return fileContentsContract.parse(`export const placeholder = () => {};`);
     },
@@ -220,6 +235,18 @@ ruleTester.run('enforce-proxy-child-creation', enforceProxyChildCreationRuleBrok
         };
       `,
       filename: '/project/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.proxy.ts',
+    },
+    // ✅ CORRECT - Implementation only imports statics (no proxies needed)
+    {
+      code: `
+        /**
+         * Proxy for test-file-path-variants transformer.
+         * Empty proxy - transformers are pure functions, no mocking needed.
+         */
+        export const testFilePathVariantsTransformerProxy = (): Record<PropertyKey, never> => ({});
+      `,
+      filename:
+        '/project/src/transformers/test-file-path-variants/test-file-path-variants-transformer.proxy.ts',
     },
     // Skip non-proxy files
     {
