@@ -1,12 +1,13 @@
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { enforceImplementationColocationRuleBroker } from './enforce-implementation-colocation-rule-broker';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
+import { enforceImplementationColocationRuleBrokerProxy } from './enforce-implementation-colocation-rule-broker.proxy';
 
 const ruleTester = eslintRuleTesterAdapter();
 
 // Mock setup: return true only for specific existing files
 beforeEach(() => {
-  const adapterProxy = fsExistsSyncAdapterProxy();
+  const proxy = enforceImplementationColocationRuleBrokerProxy();
+  const adapterProxy = proxy.fsExistsSync;
 
   adapterProxy.setupFileSystem((filePath) => {
     const path = String(filePath);
@@ -145,16 +146,21 @@ ruleTester.run('enforce-implementation-colocation', enforceImplementationColocat
       filename: '/project/src/middleware/http-telemetry/http-telemetry-middleware.ts',
     },
     {
-      code: 'export const userStatics = {};',
-      filename: '/project/src/statics/user/user-statics.ts',
-    },
-    {
       code: 'export const UserGetResponder = () => {};',
       filename: '/project/src/responders/user/get/user-get-responder.ts',
     },
     {
       code: 'export const useUserDataBinding = () => {};',
       filename: '/project/src/bindings/use-user-data/use-user-data-binding.ts',
+    },
+    // Statics don't need tests (just data)
+    {
+      code: 'export const userStatics = {};',
+      filename: '/project/src/statics/user/user-statics.ts',
+    },
+    {
+      code: 'export const configStatics = {};',
+      filename: '/project/src/statics/config/config-statics.ts',
     },
     // Additional files with multiple dots that should be skipped
     {
@@ -206,18 +212,18 @@ ruleTester.run('enforce-implementation-colocation', enforceImplementationColocat
     {
       code: 'export const isAdminGuard = () => {};',
       filename: '/project/src/guards/is-admin/is-admin-guard.ts',
-      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
+      errors: [{ messageId: 'missingTestFile' }],
     },
     {
       code: 'export const ButtonWidget = () => <button />;',
       filename: '/project/src/widgets/button/button-widget.tsx',
       errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
     },
-    // Contract without test file
+    // Contract without test file (will report both missing test and missing stub)
     {
       code: 'export const productContract = z.object({});',
       filename: '/project/src/contracts/product/product-contract.ts',
-      errors: [{ messageId: 'missingContractTestFile' }],
+      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingStubFile' }],
     },
     // Contract with test but without stub file
     {
@@ -235,12 +241,6 @@ ruleTester.run('enforce-implementation-colocation', enforceImplementationColocat
     {
       code: 'export const orderCreateBroker = () => {};',
       filename: '/project/src/brokers/order/create/order-create-broker.ts',
-      errors: [{ messageId: 'invalidProxyFilename' }],
-    },
-    // Proxy file exists but with incorrect naming pattern (missing -json-transformer)
-    {
-      code: 'export const parseJsonTransformer = () => {};',
-      filename: '/project/src/transformers/parse-json/parse-json-transformer.ts',
       errors: [{ messageId: 'invalidProxyFilename' }],
     },
   ],

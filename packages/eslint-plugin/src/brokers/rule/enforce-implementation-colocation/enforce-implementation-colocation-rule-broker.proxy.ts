@@ -1,14 +1,15 @@
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
+import { testFilePathVariantsTransformerProxy } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer.proxy';
 
 /**
  * Proxy for enforce-implementation-colocation rule broker.
- * Provides mock setup for testing the rule.
+ * Delegates to fsExistsSyncAdapter proxy for file system mocking.
+ * Transformer proxy is empty - transformers are pure functions.
  */
 export const enforceImplementationColocationRuleBrokerProxy = (): {
-  createContext: () => EslintContext;
+  fsExistsSync: ReturnType<typeof fsExistsSyncAdapterProxy>;
+  testFilePathVariants: ReturnType<typeof testFilePathVariantsTransformerProxy>;
 } => ({
-  createContext: (): EslintContext => ({
-    filename: undefined,
-    report: jest.fn(),
-  }),
+  fsExistsSync: fsExistsSyncAdapterProxy(),
+  testFilePathVariants: testFilePathVariantsTransformerProxy(),
 });

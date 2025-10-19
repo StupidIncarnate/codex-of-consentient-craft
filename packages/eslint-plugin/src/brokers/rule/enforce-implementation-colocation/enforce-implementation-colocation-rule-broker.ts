@@ -21,8 +21,6 @@ export const enforceImplementationColocationRuleBroker = (): EslintRule => ({
           'Testable file must have a colocated proxy file. Create {{proxyFileName}} in the same directory.',
         missingStubFile:
           'Contract file must have a colocated stub file. Create {{stubFileName}} in the same directory.',
-        missingContractTestFile:
-          'Contract file must have a colocated test file. Create {{testFileName}} (or .integration.test.ts or .spec.ts variant) in the same directory.',
         invalidProxyFilename:
           'Proxy file must follow naming pattern [baseName]-[folderType].proxy.ts. Expected: {{expectedFileName}}, but found: {{actualFileName}}',
       },
@@ -55,6 +53,9 @@ export const enforceImplementationColocationRuleBroker = (): EslintRule => ({
         // Determine if this is a contract file
         const isContract = filename.includes('/contracts/') && filename.endsWith('-contract.ts');
 
+        // Determine if this is a statics file (doesn't need tests - just data)
+        const isStatics = filename.includes('/statics/') && filename.endsWith('-statics.ts');
+
         // Get all possible test file paths for this source file
         const testFilePaths = testFilePathVariantsTransformer({ sourceFilePath: filename });
 
@@ -64,20 +65,20 @@ export const enforceImplementationColocationRuleBroker = (): EslintRule => ({
           return fsExistsSyncAdapter({ filePath: parsedPath });
         });
 
-        if (!hasTestFile) {
-          const messageId = isContract ? 'missingContractTestFile' : 'missingTestFile';
+        // Check for test file (skip statics)
+        if (!isStatics && !hasTestFile) {
           const primaryTestFileName = testFilePaths[0] ?? filename;
           ctx.report({
             node,
-            messageId,
+            messageId: 'missingTestFile',
             data: {
               testFileName: primaryTestFileName.split('/').pop() ?? primaryTestFileName,
             },
           });
         }
 
-        // For contract files, also check for stub file (only if test file exists)
-        if (isContract && hasTestFile) {
+        // For contract files, also check for stub file
+        if (isContract) {
           const stubFileName = filename.replace(/-contract\.ts$/u, '.stub.ts');
           const stubFilePath = filePathContract.parse(stubFileName);
           const hasStubFile = fsExistsSyncAdapter({ filePath: stubFilePath });
