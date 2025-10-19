@@ -130,9 +130,9 @@ module.exports = [
   {
     files: ['packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts'],
     rules: {
-      '@questmaestro/require-contract-validation': 'off'
-    }
-  }
+      '@questmaestro/require-contract-validation': 'off',
+    },
+  },
   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {

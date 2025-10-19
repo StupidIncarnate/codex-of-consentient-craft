@@ -7,15 +7,33 @@ import { z } from 'zod';
  */
 
 // Base contract with type only
-export const baseContract = z.object({
+const baseContract = z.object({
   type: z.string().min(1).brand<'AstNodeType'>(),
 });
 
 // Recursive base defines full object with REQUIRED parent using z.lazy()
-const recursiveBase: z.ZodTypeAny = z.object({
+// Output type (after parsing)
+interface RecursiveNodeOutput {
+  type: z.BRAND<'AstNodeType'>;
+  parent?: RecursiveNodeOutput | null | undefined;
+}
+
+// Input type (before parsing)
+// Brand type alias to satisfy ban-primitives lint rule
+type AstNodeTypeBrand = z.BRAND<'AstNodeType'>;
+
+interface RecursiveNodeInput {
+  type: AstNodeTypeBrand;
+  parent?: RecursiveNodeInput | null | undefined;
+}
+
+const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput> = z.object({
   type: z.string().min(1).brand<'AstNodeType'>(),
-  parent: z.lazy((): z.ZodTypeAny => recursiveBase).nullable(),
-});
+  parent: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+}) as unknown as z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput>;
 
 // Root level contract - parent is OPTIONAL
 export const tsestreeContract = baseContract.extend({
