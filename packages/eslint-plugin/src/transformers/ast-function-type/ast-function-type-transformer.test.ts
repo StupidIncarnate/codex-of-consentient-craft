@@ -3,18 +3,20 @@ import { TsestreeStub } from '../../contracts/tsestree/tsestree.stub';
 
 describe('astFunctionTypeTransformer', () => {
   it('VALID: {node with TSBooleanKeyword return type} => returns guard', () => {
+    const typeAnnotationNode = TsestreeStub({
+      type: 'TSBooleanKeyword',
+    });
+    const returnTypeNode = TsestreeStub({
+      type: 'TSTypeAnnotation',
+      typeAnnotation: typeAnnotationNode,
+    });
+    const initNode = TsestreeStub({
+      type: 'ArrowFunctionExpression',
+      returnType: returnTypeNode,
+    });
     const parent = TsestreeStub({
       type: 'VariableDeclarator',
-    });
-    Object.assign(parent, {
-      init: {
-        type: 'ArrowFunctionExpression',
-        returnType: {
-          typeAnnotation: {
-            type: 'TSBooleanKeyword',
-          },
-        },
-      },
+      init: initNode,
     });
     const node = TsestreeStub({ parent });
 
@@ -22,18 +24,20 @@ describe('astFunctionTypeTransformer', () => {
   });
 
   it('VALID: {node with non-boolean return type} => returns transformer', () => {
+    const typeAnnotationNode = TsestreeStub({
+      type: 'TSStringKeyword',
+    });
+    const returnTypeNode = TsestreeStub({
+      type: 'TSTypeAnnotation',
+      typeAnnotation: typeAnnotationNode,
+    });
+    const initNode = TsestreeStub({
+      type: 'ArrowFunctionExpression',
+      returnType: returnTypeNode,
+    });
     const parent = TsestreeStub({
       type: 'VariableDeclarator',
-    });
-    Object.assign(parent, {
-      init: {
-        type: 'ArrowFunctionExpression',
-        returnType: {
-          typeAnnotation: {
-            type: 'TSStringKeyword',
-          },
-        },
-      },
+      init: initNode,
     });
     const node = TsestreeStub({ parent });
 
@@ -41,13 +45,12 @@ describe('astFunctionTypeTransformer', () => {
   });
 
   it('VALID: {node without return type} => returns unknown', () => {
+    const initNode = TsestreeStub({
+      type: 'ArrowFunctionExpression',
+    });
     const parent = TsestreeStub({
       type: 'VariableDeclarator',
-    });
-    Object.assign(parent, {
-      init: {
-        type: 'ArrowFunctionExpression',
-      },
+      init: initNode,
     });
     const node = TsestreeStub({ parent });
 
@@ -55,13 +58,12 @@ describe('astFunctionTypeTransformer', () => {
   });
 
   it('VALID: {node with non-ArrowFunctionExpression init} => returns unknown', () => {
+    const initNode = TsestreeStub({
+      type: 'FunctionExpression',
+    });
     const parent = TsestreeStub({
       type: 'VariableDeclarator',
-    });
-    Object.assign(parent, {
-      init: {
-        type: 'FunctionExpression',
-      },
+      init: initNode,
     });
     const node = TsestreeStub({ parent });
 

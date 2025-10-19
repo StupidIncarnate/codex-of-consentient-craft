@@ -23,17 +23,35 @@ const nodeTypeValues = Object.values(tsestreeNodeTypeStatics.nodeTypes) as [
 interface RecursiveNodeOutput {
   type: TsestreeNodeTypeValue;
   parent?: RecursiveNodeOutput | null | undefined;
+  init?: RecursiveNodeOutput | null | undefined;
+  returnType?: RecursiveNodeOutput | null | undefined;
+  typeAnnotation?: RecursiveNodeOutput | null | undefined;
 }
 
 // Input type (before parsing)
 interface RecursiveNodeInput {
   type: TsestreeNodeTypeValue;
   parent?: RecursiveNodeInput | null | undefined;
+  init?: RecursiveNodeInput | null | undefined;
+  returnType?: RecursiveNodeInput | null | undefined;
+  typeAnnotation?: RecursiveNodeInput | null | undefined;
 }
 
 const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput> = z.object({
   type: z.enum(nodeTypeValues),
   parent: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  init: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  returnType: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  typeAnnotation: z
     .lazy(() => recursiveBase)
     .nullable()
     .optional(),
@@ -43,6 +61,9 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
 export const tsestreeContract = z.object({
   type: z.enum(nodeTypeValues),
   parent: recursiveBase.nullable().optional(),
+  init: recursiveBase.nullable().optional(),
+  returnType: recursiveBase.nullable().optional(),
+  typeAnnotation: recursiveBase.nullable().optional(),
 });
 
 export type Tsestree = z.infer<typeof tsestreeContract>;
