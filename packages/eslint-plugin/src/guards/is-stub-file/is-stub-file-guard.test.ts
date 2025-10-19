@@ -44,4 +44,14 @@ describe('isStubFileGuard', () => {
       expect(isStubFileGuard({ filename: '' })).toBe(false);
     });
   });
+
+  describe('optional parameters', () => {
+    it('EMPTY: {filename: undefined} => returns false', () => {
+      expect(isStubFileGuard({ filename: undefined })).toBe(false);
+    });
+
+    it('EMPTY: {} => returns false', () => {
+      expect(isStubFileGuard({})).toBe(false);
+    });
+  });
 });

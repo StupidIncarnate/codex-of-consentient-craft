@@ -1,2 +1,7 @@
-export const isStubFileGuard = ({ filename }: { filename: string }): boolean =>
-  filename.endsWith('.stub.ts') || filename.endsWith('.stub.tsx');
+export const isStubFileGuard = ({ filename }: { filename?: string | undefined }): boolean => {
+  if (filename === undefined) {
+    return false;
+  }
+
+  return filename.endsWith('.stub.ts') || filename.endsWith('.stub.tsx');
+};

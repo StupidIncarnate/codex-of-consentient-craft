@@ -54,11 +54,13 @@ export const questmaestroConfigBroker = ({
     'eslint-comments/no-use': ['error', { allow: [] }],
     '@questmaestro/ban-contract-in-tests': 'error',
     '@questmaestro/ban-jest-mock-in-tests': 'error',
-    '@questmaestro/ban-primitives': 'error',
+    // Need to rethink this. Possibly just error on return type of string
+    // '@questmaestro/ban-primitives': 'error',
     '@questmaestro/enforce-implementation-colocation': 'error',
     '@questmaestro/enforce-import-dependencies': 'error',
     '@questmaestro/enforce-jest-mocked-usage': 'error',
     '@questmaestro/enforce-object-destructuring-params': 'error',
+    '@questmaestro/enforce-optional-guard-params': 'error',
     '@questmaestro/enforce-project-structure': 'error',
     '@questmaestro/enforce-proxy-child-creation': 'error',
     '@questmaestro/enforce-proxy-patterns': 'error',
@@ -75,6 +77,27 @@ export const questmaestroConfigBroker = ({
     '@questmaestro/require-zod-on-primitives': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
+    /**
+     * This rule is problematic with checking key of object
+     * None of these narrows the key, so super annoying
+     *
+     * export const folderConfigTransformer = ({
+     *   folderType,
+     * }: {
+     *   folderType: string;
+     * }): FolderConfig | undefined => {
+     *   if (!Object.hasOwn(folderConfigStatics, folderType)) {
+     *     return undefined;
+     *   }
+     *
+     *   if (!Object.keys(folderConfigStatics).includes(folderType)) {
+     *     return undefined;
+     *   }
+     *
+     *   return folderConfigStatics[folderType];
+     * };
+     */
+    '@typescript-eslint/no-unsafe-return': 'off',
   } as const;
 
   const typescriptConfig: EslintConfig = {
@@ -100,6 +123,12 @@ export const questmaestroConfigBroker = ({
         ? (jestRuleStatics.rules as unknown as DeepWritable<typeof jestRuleStatics.rules>)
         : {}),
       ...(questmaestroCustomRules as unknown as DeepWritable<typeof questmaestroCustomRules>),
+      // Tests have to do a bunch of sad path edge cases so these aren't helpful
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-type-assertion': 'off',
     },
   };
 

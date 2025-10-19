@@ -11,8 +11,12 @@
 export const shouldExcludeFileFromProjectStructureRulesGuard = ({
   filename,
 }: {
-  filename: string;
+  filename?: string | undefined;
 }): boolean => {
+  if (filename === undefined) {
+    return true;
+  }
+
   const fileBaseName = filename.split('/').pop() ?? '';
 
   // Allow .proxy.ts files through (they need validation)

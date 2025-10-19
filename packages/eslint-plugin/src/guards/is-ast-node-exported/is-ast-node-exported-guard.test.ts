@@ -1,71 +1,76 @@
+import { TsestreeStub } from '../../contracts/tsestree/tsestree.stub';
 import { isAstNodeExportedGuard } from './is-ast-node-exported-guard';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
 describe('isAstNodeExportedGuard', () => {
   it('VALID: {node with ExportNamedDeclaration parent} => returns true', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'VariableDeclarator',
-      parent: {
+      parent: TsestreeStub({
         type: 'VariableDeclaration',
-        parent: {
+        parent: TsestreeStub({
           type: 'ExportNamedDeclaration',
-        },
-      },
-    } as Tsestree;
+        }),
+      }),
+    });
 
     expect(isAstNodeExportedGuard({ node })).toBe(true);
   });
 
   it('VALID: {node with ExportDefaultDeclaration parent} => returns true', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'FunctionDeclaration',
-      parent: {
+      parent: TsestreeStub({
         type: 'ExportDefaultDeclaration',
-      },
-    } as Tsestree;
+      }),
+    });
 
     expect(isAstNodeExportedGuard({ node })).toBe(true);
   });
 
   it('VALID: {node with export ancestor} => returns true', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'Identifier',
-      parent: {
+      parent: TsestreeStub({
         type: 'VariableDeclarator',
-        parent: {
+        parent: TsestreeStub({
           type: 'VariableDeclaration',
-          parent: {
+          parent: TsestreeStub({
             type: 'ExportNamedDeclaration',
-            parent: {
+            parent: TsestreeStub({
               type: 'Program',
-            },
-          },
-        },
-      },
-    } as Tsestree;
+            }),
+          }),
+        }),
+      }),
+    });
 
     expect(isAstNodeExportedGuard({ node })).toBe(true);
   });
 
   it('VALID: {node with non-export parents} => returns false', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'VariableDeclarator',
-      parent: {
+      parent: TsestreeStub({
         type: 'VariableDeclaration',
-        parent: {
+        parent: TsestreeStub({
           type: 'Program',
-        },
-      },
-    } as Tsestree;
+        }),
+      }),
+    });
 
     expect(isAstNodeExportedGuard({ node })).toBe(false);
   });
 
   it('EMPTY: {node without parent} => returns false', () => {
-    const node = {
+    const node = TsestreeStub({
       type: 'Identifier',
-    } as Tsestree;
+      parent: null,
+    });
 
     expect(isAstNodeExportedGuard({ node })).toBe(false);
+  });
+
+  it('EMPTY: {node: undefined} => returns false', () => {
+    expect(isAstNodeExportedGuard({ node: undefined })).toBe(false);
   });
 });

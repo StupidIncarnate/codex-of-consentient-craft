@@ -32,4 +32,12 @@ describe('isCamelCaseGuard', () => {
   it('EMPTY: {str: ""} => returns false', () => {
     expect(isCamelCaseGuard({ str: '' })).toBe(false);
   });
+
+  it('EMPTY: {str: undefined} => returns false', () => {
+    expect(isCamelCaseGuard({ str: undefined })).toBe(false);
+  });
+
+  it('EMPTY: {} => returns false', () => {
+    expect(isCamelCaseGuard({})).toBe(false);
+  });
 });

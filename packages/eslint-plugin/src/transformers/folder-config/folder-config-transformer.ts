@@ -1,4 +1,5 @@
-import type { FolderType } from '../../contracts/folder-type/folder-type-contract';
+import { isKeyOfGuard } from '@questmaestro/shared/guards';
+
 import { folderConfigStatics } from '../../statics/folder-config/folder-config-statics';
 
 type FolderConfig = (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
@@ -6,8 +7,11 @@ type FolderConfig = (typeof folderConfigStatics)[keyof typeof folderConfigStatic
 export const folderConfigTransformer = ({
   folderType,
 }: {
-  folderType: FolderType;
-}): FolderConfig => {
-  const key = folderType as string as keyof typeof folderConfigStatics;
-  return folderConfigStatics[key];
+  folderType: string;
+}): FolderConfig | undefined => {
+  if (!isKeyOfGuard(folderType, folderConfigStatics)) {
+    return undefined;
+  }
+
+  return folderConfigStatics[folderType];
 };

@@ -21,7 +21,7 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'guards/[domain]/[domain]-guard.ts',
-    allowedImports: ['contracts/', 'statics/', 'errors/'],
+    allowedImports: ['contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
   },
   transformers: {
     fileSuffix: '-transformer.ts',
@@ -29,7 +29,7 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'transformers/[domain]/[domain]-transformer.ts',
-    allowedImports: ['contracts/', 'statics/', 'errors/'],
+    allowedImports: ['contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
   },
   errors: {
     fileSuffix: '-error.ts',

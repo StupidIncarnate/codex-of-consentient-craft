@@ -95,5 +95,38 @@ describe('isSameDomainFolderGuard', () => {
 
       expect(result).toBe(false);
     });
+
+    it('EMPTY: {currentFilePath: undefined} => returns false', () => {
+      const result = isSameDomainFolderGuard({
+        currentFilePath: undefined,
+        importPath: './user-contract',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('EMPTY: {importPath: undefined} => returns false', () => {
+      const result = isSameDomainFolderGuard({
+        currentFilePath: '/project/src/guards/user/user-guard.ts',
+        importPath: undefined,
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('EMPTY: {currentFilePath: undefined, importPath: undefined} => returns false', () => {
+      const result = isSameDomainFolderGuard({
+        currentFilePath: undefined,
+        importPath: undefined,
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('EMPTY: {} => returns false', () => {
+      const result = isSameDomainFolderGuard({});
+
+      expect(result).toBe(false);
+    });
   });
 });

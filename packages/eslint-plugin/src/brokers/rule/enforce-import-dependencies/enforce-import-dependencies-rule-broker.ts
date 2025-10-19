@@ -47,7 +47,7 @@ const getAllowedImportsForFolder = ({
   folderType: FolderType;
 }): readonly AllowedImport[] => {
   const config = folderConfigTransformer({ folderType });
-  return config.allowedImports as readonly AllowedImport[];
+  return config?.allowedImports as readonly AllowedImport[];
 };
 
 export const enforceImportDependenciesRuleBroker = (): EslintRule => ({

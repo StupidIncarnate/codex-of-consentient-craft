@@ -1,4 +1,3 @@
-import type { FolderType } from '../../contracts/folder-type/folder-type-contract';
 import { folderConfigTransformer } from '../../transformers/folder-config/folder-config-transformer';
 import { hasValidFileSuffixGuard } from '../has-valid-file-suffix/has-valid-file-suffix-guard';
 
@@ -20,9 +19,14 @@ export const isEntryFileGuard = ({
   filePath,
   folderType,
 }: {
-  filePath: string;
-  folderType: FolderType;
+  filePath?: string | undefined;
+  folderType?: string | undefined;
 }): boolean => {
+  // Early returns for undefined/invalid inputs
+  if (filePath === undefined || folderType === undefined || folderType === '') {
+    return false;
+  }
+
   const basename = filePath.split('/').pop() ?? '';
 
   // Multi-dot files are never entry files (e.g., .stub.ts, .mock.ts, .test.ts)
@@ -41,7 +45,7 @@ export const isEntryFileGuard = ({
   // Check if filename matches the expected suffix pattern
   const hasSuffix = hasValidFileSuffixGuard({
     filename: basename,
-    fileSuffix: config.fileSuffix,
+    fileSuffix: config?.fileSuffix,
   });
 
   if (!hasSuffix) {
@@ -54,16 +58,19 @@ export const isEntryFileGuard = ({
     return false;
   }
 
-  const suffixPattern = Array.isArray(config.fileSuffix) ? config.fileSuffix[0] : config.fileSuffix;
+  if (config === undefined) {
+    return false;
+  }
+
+  const suffixPattern: string = Array.isArray(config.fileSuffix)
+    ? String(config.fileSuffix[0])
+    : String(config.fileSuffix);
 
   // Extract domain folders from file path based on folderDepth
-  // Expected patterns:
-  // - Depth 1: .../[category]/[domain]/[domain]-[suffix].ts
-  // - Depth 2: .../[category]/[domain]/[action]/[domain]-[action]-[suffix].ts
   const pathParts = filePath.split('/');
 
   // Find the category folder (contracts, brokers, etc.) in the path
-  const categoryIndex = pathParts.findIndex((part: string) => part === folderType);
+  const categoryIndex = pathParts.findIndex((part) => part === folderType);
 
   if (categoryIndex === -1) {
     return false;
@@ -71,23 +78,27 @@ export const isEntryFileGuard = ({
 
   // Extract domain folder(s) based on depth
   const domainFolders: string[] = [];
-  for (let i = 1; i <= config.folderDepth; i++) {
-    const folderIndex = categoryIndex + i;
+  const maxDepth = config.folderDepth;
+  let depthIndex = 1;
+
+  while (depthIndex <= maxDepth) {
+    const folderIndex = categoryIndex + depthIndex;
     if (folderIndex >= pathParts.length - 1) {
-      // Not enough path segments
       return false;
     }
-    domainFolders.push(pathParts[folderIndex] ?? '');
+    const folder = pathParts[folderIndex];
+    if (folder !== undefined) {
+      domainFolders.push(folder);
+    }
+    depthIndex += 1;
   }
 
   // Build expected filename prefix from domain folders
-  // E.g., ["user"] → "user"
-  // E.g., ["user", "fetch"] → "user-fetch"
   const expectedPrefix = domainFolders.join('-');
 
   // Extract actual prefix from filename by removing suffix
   const nameWithoutExt = basename.replace(/\.(ts|tsx)$/u, '');
-  const suffixToRemove = (suffixPattern ?? '').replace(/\.(ts|tsx)$/u, '');
+  const suffixToRemove = suffixPattern.replace(/\.(ts|tsx)$/u, '');
   const actualPrefix = nameWithoutExt.replace(new RegExp(`${suffixToRemove}$`, 'u'), '');
 
   // Validate: actual prefix must match expected prefix

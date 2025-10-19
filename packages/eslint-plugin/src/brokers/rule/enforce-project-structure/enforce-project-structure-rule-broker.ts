@@ -1,17 +1,16 @@
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { forbiddenFolderNameContract } from '../../../contracts/forbidden-folder-name/forbidden-folder-name-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasValidFileSuffixGuard } from '../../../guards/has-valid-file-suffix/has-valid-file-suffix-guard';
 import { isCamelCaseGuard } from '../../../guards/is-camel-case/is-camel-case-guard';
 import { isPascalCaseGuard } from '../../../guards/is-pascal-case/is-pascal-case-guard';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+import { forbiddenFolderStatics } from '../../../statics/forbidden-folder/forbidden-folder-statics';
 import { expectedExportNameTransformer } from '../../../transformers/expected-export-name/expected-export-name-transformer';
-import {
-  forbiddenFolders,
-  forbiddenFolderSuggestionTransformer,
-} from '../../../transformers/forbidden-folder-suggestion/forbidden-folder-suggestion-transformer';
+import { forbiddenFolderSuggestionTransformer } from '../../../transformers/forbidden-folder-suggestion/forbidden-folder-suggestion-transformer';
 import { pathDepthTransformer } from '../../../transformers/path-depth/path-depth-transformer';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
 import { toKebabCaseTransformer } from '../../../transformers/to-kebab-case/to-kebab-case-transformer';
@@ -136,9 +135,9 @@ export const enforceProjectStructureRuleBroker = (): EslintRule => {
       return {
         Program: (node: Tsestree): void => {
           // LEVEL 1: Folder Location (HIGHEST)
-          if (forbiddenFolders.includes(firstFolder)) {
+          if (forbiddenFolderStatics.folders.includes(firstFolder)) {
             const suggestion = forbiddenFolderSuggestionTransformer({
-              forbiddenFolder: firstFolder,
+              forbiddenFolder: forbiddenFolderNameContract.parse(firstFolder),
             });
             ctx.report({
               node,

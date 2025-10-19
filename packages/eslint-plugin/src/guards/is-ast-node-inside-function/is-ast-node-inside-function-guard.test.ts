@@ -70,4 +70,8 @@ describe('isAstNodeInsideFunctionGuard', () => {
 
     expect(isAstNodeInsideFunctionGuard({ node })).toBe(false);
   });
+
+  it('EMPTY: {node: undefined} => returns false', () => {
+    expect(isAstNodeInsideFunctionGuard({ node: undefined })).toBe(false);
+  });
 });

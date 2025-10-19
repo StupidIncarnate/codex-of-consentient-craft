@@ -110,4 +110,14 @@ describe('shouldExcludeFileFromProjectStructureRulesGuard', () => {
       ).toBe(false);
     });
   });
+
+  describe('optional parameters', () => {
+    it('EMPTY: {filename: undefined} => returns true', () => {
+      expect(shouldExcludeFileFromProjectStructureRulesGuard({ filename: undefined })).toBe(true);
+    });
+
+    it('EMPTY: {} => returns true', () => {
+      expect(shouldExcludeFileFromProjectStructureRulesGuard({})).toBe(true);
+    });
+  });
 });

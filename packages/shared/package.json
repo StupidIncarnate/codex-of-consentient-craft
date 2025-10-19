@@ -7,6 +7,11 @@
       "import": "./dist/contracts.js",
       "require": "./dist/contracts.js",
       "types": "./dist/contracts.d.ts"
+    },
+    "./guards": {
+      "import": "./dist/guards.js",
+      "require": "./dist/guards.js",
+      "types": "./dist/guards.d.ts"
     }
   },
   "files": [

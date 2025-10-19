@@ -1,36 +1,16 @@
-const forbiddenFolderMappings = {
-  utils: 'adapters or transformers',
-  lib: 'adapters',
-  helpers: 'guards or transformers',
-  common: 'distribute by function',
-  shared: 'distribute by function',
-  core: 'brokers',
-  services: 'brokers',
-  repositories: 'brokers',
-  models: 'contracts',
-  types: 'contracts',
-  interfaces: 'contracts',
-  validators: 'contracts',
-  constants: 'statics',
-  config: 'statics',
-  enums: 'statics',
-  formatters: 'transformers',
-  mappers: 'transformers',
-  converters: 'transformers',
-};
+import { isKeyOfGuard } from '@questmaestro/shared/guards';
 
-export const forbiddenFolders = Object.keys(forbiddenFolderMappings);
+import type { FolderSuggestion } from '../../contracts/folder-suggestion/folder-suggestion-contract';
+import { folderSuggestionContract } from '../../contracts/folder-suggestion/folder-suggestion-contract';
+import { forbiddenFolderStatics } from '../../statics/forbidden-folder/forbidden-folder-statics';
 
 export const forbiddenFolderSuggestionTransformer = ({
   forbiddenFolder,
 }: {
   forbiddenFolder: string;
-}): string => {
-  const isValidKey = (key: string): key is keyof typeof forbiddenFolderMappings =>
-    key in forbiddenFolderMappings;
-
-  if (isValidKey(forbiddenFolder)) {
-    return forbiddenFolderMappings[forbiddenFolder];
+}): FolderSuggestion => {
+  if (isKeyOfGuard(forbiddenFolder, forbiddenFolderStatics.mappings)) {
+    return folderSuggestionContract.parse(forbiddenFolderStatics.mappings[forbiddenFolder]);
   }
-  return 'contracts';
+  return folderSuggestionContract.parse('contracts');
 };

@@ -32,4 +32,12 @@ describe('isPascalCaseGuard', () => {
   it('EMPTY: {str: ""} => returns false', () => {
     expect(isPascalCaseGuard({ str: '' })).toBe(false);
   });
+
+  it('EMPTY: {str: undefined} => returns false', () => {
+    expect(isPascalCaseGuard({ str: undefined })).toBe(false);
+  });
+
+  it('EMPTY: {} => returns false', () => {
+    expect(isPascalCaseGuard({})).toBe(false);
+  });
 });

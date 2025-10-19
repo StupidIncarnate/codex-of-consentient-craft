@@ -7,6 +7,7 @@ import { enforceProjectStructureRuleBroker } from '../brokers/rule/enforce-proje
 import { enforceImportDependenciesRuleBroker } from '../brokers/rule/enforce-import-dependencies/enforce-import-dependencies-rule-broker';
 import { enforceJestMockedUsageRuleBroker } from '../brokers/rule/enforce-jest-mocked-usage/enforce-jest-mocked-usage-rule-broker';
 import { enforceObjectDestructuringParamsRuleBroker } from '../brokers/rule/enforce-object-destructuring-params/enforce-object-destructuring-params-rule-broker';
+import { enforceOptionalGuardParamsRuleBroker } from '../brokers/rule/enforce-optional-guard-params/enforce-optional-guard-params-rule-broker';
 import { enforceStubPatternsRuleBroker } from '../brokers/rule/enforce-stub-patterns/enforce-stub-patterns-rule-broker';
 import { enforceProxyChildCreationRuleBroker } from '../brokers/rule/enforce-proxy-child-creation/enforce-proxy-child-creation-rule-broker';
 import { enforceProxyPatternsRuleBroker } from '../brokers/rule/enforce-proxy-patterns/enforce-proxy-patterns-rule-broker';
@@ -34,6 +35,7 @@ export const startEslintPlugin = (): {
     readonly 'enforce-import-dependencies': EslintRule;
     readonly 'enforce-jest-mocked-usage': EslintRule;
     readonly 'enforce-object-destructuring-params': EslintRule;
+    readonly 'enforce-optional-guard-params': EslintRule;
     readonly 'enforce-stub-patterns': EslintRule;
     readonly 'enforce-proxy-child-creation': EslintRule;
     readonly 'enforce-proxy-patterns': EslintRule;
@@ -66,6 +68,7 @@ export const startEslintPlugin = (): {
       'enforce-import-dependencies': enforceImportDependenciesRuleBroker(),
       'enforce-jest-mocked-usage': enforceJestMockedUsageRuleBroker(),
       'enforce-object-destructuring-params': enforceObjectDestructuringParamsRuleBroker(),
+      'enforce-optional-guard-params': enforceOptionalGuardParamsRuleBroker(),
       'enforce-stub-patterns': enforceStubPatternsRuleBroker(),
       'enforce-proxy-child-creation': enforceProxyChildCreationRuleBroker(),
       'enforce-proxy-patterns': enforceProxyPatternsRuleBroker(),

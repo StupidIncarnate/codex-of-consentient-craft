@@ -86,5 +86,32 @@ describe('hasValidFileSuffixGuard', () => {
         }),
       ).toBe(true);
     });
+
+    it('EMPTY: {filename: undefined, fileSuffix: "-broker.ts"} => returns false', () => {
+      expect(
+        hasValidFileSuffixGuard({
+          filename: undefined,
+          fileSuffix: '-broker.ts',
+        }),
+      ).toBe(false);
+    });
+
+    it('EMPTY: {filename: "user-broker.ts", fileSuffix: undefined} => returns false', () => {
+      expect(
+        hasValidFileSuffixGuard({
+          filename: 'user-broker.ts',
+          fileSuffix: undefined,
+        }),
+      ).toBe(false);
+    });
+
+    it('EMPTY: {filename: undefined, fileSuffix: undefined} => returns false', () => {
+      expect(
+        hasValidFileSuffixGuard({
+          filename: undefined,
+          fileSuffix: undefined,
+        }),
+      ).toBe(false);
+    });
   });
 });

@@ -1,37 +1,45 @@
-import { TsestreeStub } from './tsestree.stub';
+import { TsestreeStub, TsestreeNodeType } from './tsestree.stub';
 
 describe('TsestreeStub', () => {
   it('VALID: {} => returns default Tsestree', () => {
     const result = TsestreeStub();
 
-    expect(result.type).toBe('Identifier');
+    expect(result.type).toBe(TsestreeNodeType.Identifier);
     expect(result.parent).toBeNull();
   });
 
-  it('VALID: {type: "CallExpression"} => returns Tsestree with custom type', () => {
+  it('VALID: {type: TsestreeNodeType.CallExpression} => returns Tsestree with custom type', () => {
     const result = TsestreeStub({
-      type: 'CallExpression',
+      type: TsestreeNodeType.CallExpression,
     });
 
-    expect(result.type).toBe('CallExpression');
+    expect(result.type).toBe(TsestreeNodeType.CallExpression);
   });
 
   it('VALID: {parent: node} => returns Tsestree with parent', () => {
-    const parent = TsestreeStub({ type: 'Program' });
+    const parent = TsestreeStub({ type: TsestreeNodeType.Program });
     const result = TsestreeStub({
-      type: 'Identifier',
+      type: TsestreeNodeType.Identifier,
       parent,
     });
 
     expect(result.parent).toStrictEqual(parent);
-    expect(result.parent?.type).toBe('Program');
+    expect(result.parent?.type).toBe(TsestreeNodeType.Program);
   });
 
-  it('INVALID_TYPE: {type: ""} => throws ZodError', () => {
+  it('INVALID_TYPE: {type: ""} => throws ZodError for invalid enum value', () => {
     expect(() => {
       TsestreeStub({
-        type: '',
+        type: '' as unknown as typeof TsestreeNodeType.Identifier,
       });
-    }).toThrow('String must contain at least 1 character(s)');
+    }).toThrow(/Invalid enum value/u);
+  });
+
+  it('INVALID_TYPE: {type: "InvalidNodeType"} => throws ZodError for invalid enum value', () => {
+    expect(() => {
+      TsestreeStub({
+        type: 'InvalidNodeType' as unknown as typeof TsestreeNodeType.Identifier,
+      });
+    }).toThrow(/Invalid enum value/u);
   });
 });
