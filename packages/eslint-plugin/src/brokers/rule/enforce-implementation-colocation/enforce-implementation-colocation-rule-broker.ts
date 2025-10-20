@@ -5,6 +5,8 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@questmaestro/shared/contracts';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
+import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
 
 export const enforceImplementationColocationRuleBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -94,20 +96,20 @@ export const enforceImplementationColocationRuleBroker = (): EslintRule => ({
           }
         }
 
-        // Check for proxy file on files that need proxies (per testing-standards.md:403-418)
-        // Files that do NOT need proxies: contracts (use stubs), errors (throw directly), flows/startup (integration tests)
-        const excludedFromProxyPatterns = [
-          /-contract\.ts$/u,
-          /\.stub\.ts$/u,
-          /-error\.ts$/u,
-          /-flow\.tsx?$/u,
-          /-transformer\.ts?$/u,
-          /-guard\.ts?$/u,
-          /-statics\.ts?$/u,
-          /\/startup\//u,
-        ];
+        // Check for proxy file based on folder config (per testing-standards.md:403-418)
+        // Determine folder type from filename
+        const folderType = projectFolderTypeFromFilePathTransformer({ filename });
 
-        const needsProxyFile = !excludedFromProxyPatterns.some((pattern) => pattern.test(filename));
+        // Get folder config to check if this type requires a proxy
+        const folderConfig =
+          folderType === null
+            ? undefined
+            : (Reflect.get(folderConfigStatics, folderType) as
+                | { requireProxy?: boolean }
+                | undefined);
+
+        // Default to not requiring proxy if config doesn't exist or doesn't specify
+        const needsProxyFile = folderConfig?.requireProxy === true;
 
         if (needsProxyFile) {
           // Derive expected proxy file name

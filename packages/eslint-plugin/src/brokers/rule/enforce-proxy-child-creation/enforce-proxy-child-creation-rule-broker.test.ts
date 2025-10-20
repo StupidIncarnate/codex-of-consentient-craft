@@ -80,6 +80,50 @@ beforeEach(() => {
       `);
       }
 
+      // Broker that imports transformer (requireProxy: false)
+      if (filePath.includes('brokers/user-with-transformer/user-broker.ts')) {
+        return fileContentsContract.parse(`
+        import { formatDateTransformer } from '../../transformers/format-date/format-date-transformer';
+
+        export const userBroker = () => {
+          return { data: 'test' };
+        };
+      `);
+      }
+
+      // Broker that imports guard (requireProxy: false)
+      if (filePath.includes('brokers/user-with-guard/user-broker.ts')) {
+        return fileContentsContract.parse(`
+        import { hasPermissionGuard } from '../../guards/has-permission/has-permission-guard';
+
+        export const userBroker = () => {
+          return { data: 'test' };
+        };
+      `);
+      }
+
+      // Broker that imports statics (requireProxy: false)
+      if (filePath.includes('brokers/user-with-statics/user-broker.ts')) {
+        return fileContentsContract.parse(`
+        import { userStatics } from '../../statics/user/user-statics';
+
+        export const userBroker = () => {
+          return { data: 'test' };
+        };
+      `);
+      }
+
+      // Broker that imports error (requireProxy: false)
+      if (filePath.includes('brokers/user-with-error/user-broker.ts')) {
+        return fileContentsContract.parse(`
+        import { ValidationError } from '../../errors/validation/validation-error';
+
+        export const userBroker = () => {
+          return { data: 'test' };
+        };
+      `);
+      }
+
       // eslint-rule-tester-adapter.ts - has example code in comments
       if (filePath.includes('adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts')) {
         return fileContentsContract.parse(`
@@ -256,6 +300,58 @@ ruleTester.run('enforce-proxy-child-creation', enforceProxyChildCreationRuleBrok
         };
       `,
       filename: '/project/src/brokers/user/user-broker.ts',
+    },
+    // ✅ CORRECT - Broker proxy importing transformer (transformers don't need proxies per folderConfigStatics)
+    {
+      code: `
+        import { formatDateTransformer } from '../../transformers/format-date/format-date-transformer';
+
+        export const userBrokerProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user-with-transformer/user-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Broker proxy importing guard (guards don't need proxies per folderConfigStatics)
+    {
+      code: `
+        import { hasPermissionGuard } from '../../guards/has-permission/has-permission-guard';
+
+        export const userBrokerProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user-with-guard/user-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Broker proxy importing statics (statics don't need proxies)
+    {
+      code: `
+        import { userStatics } from '../../statics/user/user-statics';
+
+        export const userBrokerProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user-with-statics/user-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Broker proxy importing error (errors don't need proxies per folderConfigStatics)
+    {
+      code: `
+        import { ValidationError } from '../../errors/validation/validation-error';
+
+        export const userBrokerProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user-with-error/user-broker.proxy.ts',
     },
   ],
   invalid: [

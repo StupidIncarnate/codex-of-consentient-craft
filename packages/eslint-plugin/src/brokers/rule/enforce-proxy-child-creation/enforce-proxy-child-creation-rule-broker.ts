@@ -3,6 +3,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter';
+import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 
 export const enforceProxyChildCreationRuleBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -248,7 +249,20 @@ const parseImplementationImports = (content: string): Map<string, string> => {
       continue;
     }
 
-    // Everything else is an architectural component that needs a proxy
+    // Check if this import's folder type requires a proxy based on folderConfigStatics
+    const folderTypeFromPath = extractFolderTypeFromImportPath(importPath);
+    const folderConfig = folderTypeFromPath
+      ? (Reflect.get(folderConfigStatics, folderTypeFromPath) as
+          | { requireProxy?: boolean }
+          | undefined)
+      : undefined;
+
+    // Skip if folder type doesn't require proxies
+    if (folderConfig?.requireProxy !== true) {
+      continue;
+    }
+
+    // This is an architectural component that needs a proxy
     // Extract imported names
     if (namedImports) {
       const names = namedImports
@@ -293,4 +307,25 @@ const deriveProxyPath = (implementationPath: string): string => {
 
   // Otherwise append .proxy
   return `${implementationPath}.proxy`;
+};
+
+// Extract folder type from import path
+// e.g., '../../adapters/http/http-adapter' -> 'adapters'
+// e.g., '../../../brokers/user/fetch/user-fetch-broker' -> 'brokers'
+const extractFolderTypeFromImportPath = (importPath: string): string | null => {
+  // Split path by / and find the last occurrence of a known folder type
+  const parts = importPath.split('/');
+
+  // Known folder types from folderConfigStatics
+  const folderTypes = Object.keys(folderConfigStatics);
+
+  // Search backwards through path parts to find a folder type
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const part = parts[i];
+    if (part && folderTypes.includes(part)) {
+      return part;
+    }
+  }
+
+  return null;
 };

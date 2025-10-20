@@ -267,7 +267,10 @@ export const tsestreeContract = z.object({
   // Function properties (ArrowFunctionExpression, FunctionDeclaration, FunctionExpression)
   params: z.array(recursiveBase).optional(),
   // body can be a single node (arrow function expression) or array (BlockStatement)
-  body: z.union([recursiveBase, z.array(recursiveBase)]).nullable().optional(),
+  body: z
+    .union([recursiveBase, z.array(recursiveBase)])
+    .nullable()
+    .optional(),
   // AssignmentPattern properties
   left: recursiveBase.nullable().optional(),
   // ObjectPattern/ObjectExpression properties

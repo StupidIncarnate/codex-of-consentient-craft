@@ -23,7 +23,11 @@ describe('questmaestroConfigBroker', () => {
     it('VALID: {} => fileOverrides includes stub file config', () => {
       const { fileOverrides } = questmaestroConfigBroker();
       const stubConfig = fileOverrides.find((config) => {
-        return config.files?.some((file) => file === '**/*.stub.ts');
+        return Boolean(
+          config.files?.some((file) => {
+            return file === '**/*.stub.ts';
+          }),
+        );
       });
 
       expect(stubConfig).toBeDefined();

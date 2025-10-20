@@ -7,6 +7,7 @@ export const folderConfigStatics = {
     folderPattern: 'statics/[domain]/[domain]-statics.ts',
     allowedImports: [],
     disallowAdhocTypes: true,
+    requireProxy: false,
   },
   contracts: {
     fileSuffix: ['-contract.ts', '.stub.ts'],
@@ -16,6 +17,7 @@ export const folderConfigStatics = {
     folderPattern: 'contracts/[domain]/[domain]-contract.ts',
     allowedImports: ['statics/', 'errors/', 'contracts/', 'zod', '@questmaestro/shared/@types'],
     disallowAdhocTypes: false,
+    requireProxy: false,
   },
   guards: {
     fileSuffix: '-guard.ts',
@@ -25,6 +27,7 @@ export const folderConfigStatics = {
     folderPattern: 'guards/[domain]/[domain]-guard.ts',
     allowedImports: ['contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
     disallowAdhocTypes: true,
+    requireProxy: false,
   },
   transformers: {
     fileSuffix: '-transformer.ts',
@@ -34,6 +37,7 @@ export const folderConfigStatics = {
     folderPattern: 'transformers/[domain]/[domain]-transformer.ts',
     allowedImports: ['contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
     disallowAdhocTypes: true,
+    requireProxy: false,
   },
   errors: {
     fileSuffix: '-error.ts',
@@ -43,6 +47,7 @@ export const folderConfigStatics = {
     folderPattern: 'errors/[domain]/[domain]-error.ts',
     allowedImports: [],
     disallowAdhocTypes: true,
+    requireProxy: false,
   },
   flows: {
     fileSuffix: ['-flow.ts', '-flow.tsx'],
@@ -52,6 +57,7 @@ export const folderConfigStatics = {
     folderPattern: 'flows/[domain]/[domain]-flow.tsx',
     allowedImports: ['responders/'],
     disallowAdhocTypes: true,
+    requireProxy: false,
   },
   adapters: {
     fileSuffix: '-adapter.ts',
@@ -61,6 +67,7 @@ export const folderConfigStatics = {
     folderPattern: 'adapters/[package]/[operation]/[package]-[operation]-adapter.ts',
     allowedImports: ['node_modules', 'middleware/', 'statics/', 'contracts/', 'guards/'],
     disallowAdhocTypes: false,
+    requireProxy: true,
   },
   middleware: {
     fileSuffix: '-middleware.ts',
@@ -70,6 +77,7 @@ export const folderConfigStatics = {
     folderPattern: 'middleware/[name]/[name]-middleware.ts',
     allowedImports: ['adapters/', 'middleware/', 'statics/'],
     disallowAdhocTypes: true,
+    requireProxy: true,
   },
   brokers: {
     fileSuffix: '-broker.ts',
@@ -87,6 +95,7 @@ export const folderConfigStatics = {
       'transformers/',
     ],
     disallowAdhocTypes: true,
+    requireProxy: true,
   },
   bindings: {
     fileSuffix: '-binding.ts',
@@ -104,6 +113,7 @@ export const folderConfigStatics = {
       'transformers/',
     ],
     disallowAdhocTypes: true,
+    requireProxy: true,
   },
   state: {
     fileSuffix: '-state.ts',
@@ -113,6 +123,7 @@ export const folderConfigStatics = {
     folderPattern: 'state/[name]/[name]-state.ts',
     allowedImports: ['contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
     disallowAdhocTypes: true,
+    requireProxy: true,
   },
   responders: {
     fileSuffix: '-responder.ts',
@@ -132,6 +143,7 @@ export const folderConfigStatics = {
       'errors/',
     ],
     disallowAdhocTypes: true,
+    requireProxy: true,
   },
   widgets: {
     fileSuffix: ['-widget.tsx', '-widget.ts'],
@@ -150,6 +162,7 @@ export const folderConfigStatics = {
       'errors/',
     ],
     disallowAdhocTypes: false,
+    requireProxy: true,
   },
   startup: {
     fileSuffix: '.ts',
@@ -159,6 +172,7 @@ export const folderConfigStatics = {
     folderPattern: 'startup/start-[name].ts',
     allowedImports: ['*'],
     disallowAdhocTypes: true,
+    requireProxy: false,
   },
   assets: {
     fileSuffix: '',
@@ -168,6 +182,7 @@ export const folderConfigStatics = {
     folderPattern: 'assets/[type]/[filename]',
     allowedImports: [],
     disallowAdhocTypes: true,
+    requireProxy: false,
   },
   migrations: {
     fileSuffix: '',
@@ -177,5 +192,6 @@ export const folderConfigStatics = {
     folderPattern: 'migrations/[version]/[number]-[name].sql',
     allowedImports: [],
     disallowAdhocTypes: true,
+    requireProxy: false,
   },
 } as const;
