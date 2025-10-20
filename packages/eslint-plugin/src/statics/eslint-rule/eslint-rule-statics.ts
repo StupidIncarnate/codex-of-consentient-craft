@@ -156,7 +156,9 @@ export const eslintRuleStatics = {
     // ✅ if (a) { if (b) { } }
     // ❌ if (a) { if (b) { if (c) { if (d) { } } } }
     // Enforces maximum depth that blocks can be nested
-    'max-depth': ['error', { max: 4 }],
+    // Rethinking this
+    'max-depth': 'off',
+    // 'max-depth': ['error', { max: 4 }],
 
     // ✅ function small() { return x }
     // ❌ function huge() { /* 100 lines */ }

@@ -1,8 +1,11 @@
 import { questmaestroConfigBroker } from './questmaestro-config-broker';
+import { questmaestroConfigBrokerProxy } from './questmaestro-config-broker.proxy';
 
 describe('questmaestroConfigBroker', () => {
   describe('return value structure', () => {
     it('VALID: {} => returns object with typescript, test, and fileOverrides configs', () => {
+      questmaestroConfigBrokerProxy();
+
       const result = questmaestroConfigBroker();
 
       expect(result.typescript).toBeDefined();
@@ -12,6 +15,8 @@ describe('questmaestroConfigBroker', () => {
     });
 
     it('VALID: {} => typescript config contains main rules', () => {
+      questmaestroConfigBrokerProxy();
+
       const { typescript } = questmaestroConfigBroker();
 
       expect(typescript).toBeDefined();
@@ -21,6 +26,8 @@ describe('questmaestroConfigBroker', () => {
     });
 
     it('VALID: {} => fileOverrides includes stub file config', () => {
+      questmaestroConfigBrokerProxy();
+
       const { fileOverrides } = questmaestroConfigBroker();
       const stubConfig = fileOverrides.find((config) => {
         return Boolean(
@@ -36,6 +43,8 @@ describe('questmaestroConfigBroker', () => {
     });
 
     it('VALID: {} => typescript config includes TypeScript rules', () => {
+      questmaestroConfigBrokerProxy();
+
       const { typescript } = questmaestroConfigBroker();
 
       expect(typescript).toBeDefined();
@@ -44,6 +53,8 @@ describe('questmaestroConfigBroker', () => {
     });
 
     it('VALID: {} => typescript config includes eslint-comments rules', () => {
+      questmaestroConfigBrokerProxy();
+
       const { typescript } = questmaestroConfigBroker();
 
       expect(typescript).toBeDefined();
@@ -54,6 +65,8 @@ describe('questmaestroConfigBroker', () => {
 
   describe('forTesting parameter', () => {
     it('VALID: {forTesting: true} => test config has jest plugin', () => {
+      questmaestroConfigBrokerProxy();
+
       const { test } = questmaestroConfigBroker({ forTesting: true });
 
       expect(test).toBeDefined();
@@ -62,6 +75,8 @@ describe('questmaestroConfigBroker', () => {
     });
 
     it('VALID: {forTesting: true} => test config disables magic numbers', () => {
+      questmaestroConfigBrokerProxy();
+
       const { test } = questmaestroConfigBroker({ forTesting: true });
 
       expect(test).toBeDefined();
@@ -69,6 +84,8 @@ describe('questmaestroConfigBroker', () => {
     });
 
     it('VALID: {forTesting: false} => typescript config keeps magic numbers enabled', () => {
+      questmaestroConfigBrokerProxy();
+
       const { typescript } = questmaestroConfigBroker({ forTesting: false });
 
       expect(typescript).toBeDefined();
