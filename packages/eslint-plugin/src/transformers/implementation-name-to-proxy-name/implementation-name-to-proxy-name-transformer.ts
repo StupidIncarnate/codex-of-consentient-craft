@@ -6,6 +6,4 @@ export const implementationNameToProxyNameTransformer = ({
   implementationName,
 }: {
   implementationName: string;
-}): string => {
-  return `${implementationName}Proxy`;
-};
+}): string => `${implementationName}Proxy`;

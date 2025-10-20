@@ -2,7 +2,11 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 import { isAstContractParseCallGuard } from '../is-ast-contract-parse-call/is-ast-contract-parse-call-guard';
 import { isAstObjectContractParseSpreadGuard } from '../is-ast-object-contract-parse-spread/is-ast-object-contract-parse-spread-guard';
 
-export const isAstFunctionUsesContractParseGuard = ({ funcNode }: { funcNode?: Tsestree }): boolean => {
+export const isAstFunctionUsesContractParseGuard = ({
+  funcNode,
+}: {
+  funcNode?: Tsestree;
+}): boolean => {
   if (funcNode === undefined) {
     return false;
   }

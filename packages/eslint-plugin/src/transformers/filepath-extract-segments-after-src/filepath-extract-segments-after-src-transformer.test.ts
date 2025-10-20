@@ -30,9 +30,9 @@ describe('filepathExtractSegmentsAfterSrcTransformer', () => {
   });
 
   it('EDGE: {filePath: "/src/file.ts"} => returns []', () => {
-    expect(
-      filepathExtractSegmentsAfterSrcTransformer({ filePath: '/src/file.ts' }),
-    ).toStrictEqual([]);
+    expect(filepathExtractSegmentsAfterSrcTransformer({ filePath: '/src/file.ts' })).toStrictEqual(
+      [],
+    );
   });
 
   it('EDGE: {filePath: "/path/without/source/folder/file.ts"} => returns []', () => {

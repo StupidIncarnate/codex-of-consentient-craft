@@ -1,8 +1,4 @@
-export const isNpmPackageImportGuard = ({
-  importSource,
-}: {
-  importSource?: string;
-}): boolean => {
+export const isNpmPackageImportGuard = ({ importSource }: { importSource?: string }): boolean => {
   if (importSource === undefined || importSource === '') {
     return false;
   }

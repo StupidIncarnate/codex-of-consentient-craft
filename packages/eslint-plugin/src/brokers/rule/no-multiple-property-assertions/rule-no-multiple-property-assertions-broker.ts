@@ -118,9 +118,7 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
         // Check if expect() argument is a member expression (obj.property)
         const expectArg = expectCall.arguments?.[0];
         const isMemberExpression =
-          expectArg !== null &&
-          expectArg !== undefined &&
-          expectArg.type === 'MemberExpression';
+          expectArg !== null && expectArg !== undefined && expectArg.type === 'MemberExpression';
 
         if (!isMemberExpression) {
           return;

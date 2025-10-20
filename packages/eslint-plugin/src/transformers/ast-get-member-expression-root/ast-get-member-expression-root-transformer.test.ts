@@ -156,6 +156,5 @@ describe('astGetMemberExpressionRootTransformer', () => {
 
       expect(result).toBeNull();
     });
-
   });
 });

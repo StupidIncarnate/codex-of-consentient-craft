@@ -155,7 +155,10 @@ export const checkObjectExpression = (objectNode: Tsestree, context: EslintConte
   }
 };
 
-export const checkAdapterProxyMockSetup = (functionNode: Tsestree, context: EslintContext): void => {
+export const checkAdapterProxyMockSetup = (
+  functionNode: Tsestree,
+  context: EslintContext,
+): void => {
   const { body } = functionNode;
 
   if (!body) return;
@@ -272,7 +275,10 @@ export const checkAdapterProxyMockSetup = (functionNode: Tsestree, context: Esli
   }
 };
 
-export const checkProxyConstructorSideEffects = (functionNode: Tsestree, context: EslintContext): void => {
+export const checkProxyConstructorSideEffects = (
+  functionNode: Tsestree,
+  context: EslintContext,
+): void => {
   const { body } = functionNode;
 
   if (!body) return;
