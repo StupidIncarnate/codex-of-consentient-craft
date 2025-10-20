@@ -2,6 +2,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 export const ruleNoMutableStateInProxyFactoryBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -22,7 +23,7 @@ export const ruleNoMutableStateInProxyFactoryBroker = (): EslintRule => ({
     const filename = ctx.filename ?? '';
 
     // Only check .proxy.ts files
-    if (!filename.endsWith('.proxy.ts')) {
+    if (!hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
       return {};
     }
 

@@ -12,6 +12,7 @@ import { isSameDomainFolderGuard } from '../../../guards/is-same-domain-folder/i
 import { fileBasenameTransformer } from '../../../transformers/file-basename/file-basename-transformer';
 import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
 import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 /**
  * Resolves a relative import path to an absolute path.
@@ -77,7 +78,12 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
     return {
       ImportDeclaration: (node: Tsestree): void => {
         // Skip validation for .proxy.ts files - they have their own proxy rules
-        if (ctx.filename?.endsWith('.proxy.ts')) {
+        if (
+          hasFileSuffixGuard({
+            ...(ctx.filename ? { filename: String(ctx.filename) } : {}),
+            suffix: 'proxy',
+          })
+        ) {
           return;
         }
 

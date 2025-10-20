@@ -3,6 +3,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import { forbiddenFolderNameContract } from '../../../contracts/forbidden-folder-name/forbidden-folder-name-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isCamelCaseGuard } from '../../../guards/is-camel-case/is-camel-case-guard';
 import { isKebabCaseGuard } from '../../../guards/is-kebab-case/is-kebab-case-guard';
 import { isPascalCaseGuard } from '../../../guards/is-pascal-case/is-pascal-case-guard';
@@ -81,7 +82,8 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
       }
 
       // Helper to check if file is a proxy file
-      const isProxyFile = (filePath: string): boolean => filePath.endsWith('.proxy.ts');
+      const isProxyFile = (filePath: string): boolean =>
+        hasFileSuffixGuard({ filename: filePath, suffix: 'proxy' });
 
       // Helper to extract folder path segments from filename
       const getFolderSegments = (filePath: string): string[] => {

@@ -4,6 +4,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@questmaestro/shared/contracts';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -44,7 +45,9 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
     const { filename } = ctx;
 
     // Only check .proxy.ts files
-    if (!filename || !filename.endsWith('.proxy.ts')) {
+    if (
+      !hasFileSuffixGuard({ ...(filename ? { filename: String(filename) } : {}), suffix: 'proxy' })
+    ) {
       return {};
     }
 
@@ -136,8 +139,8 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
 
         // Check if this is jest.mock() or jest.mocked()
         if (callee.type === 'MemberExpression') {
-          const object = callee.object;
-          const property = callee.property;
+          const { object } = callee;
+          const { property } = callee;
 
           // Check jest.mock() - must be at module level
           if (object?.name === 'jest' && property?.name === 'mock') {
@@ -208,7 +211,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
           for (const ancestor of ancestors) {
             const ancestorNode = ancestor as Tsestree;
             if (ancestorNode.type === 'VariableDeclarator') {
-              const id = ancestorNode.id;
+              const { id } = ancestorNode;
               if (id?.name?.endsWith('Proxy')) {
                 currentProxyFunction = node;
                 foundReturnStatement = false;
@@ -258,7 +261,13 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
             checkProxyFunctionReturn(init, ctx);
 
             // For adapter proxies, check that mock setup happens in constructor
-            const isAdapterProxy = filename?.includes('-adapter.proxy.ts') ?? false;
+            const isAdapterProxy =
+              (filename?.includes('/adapters/') &&
+                hasFileSuffixGuard({
+                  ...(filename ? { filename: String(filename) } : {}),
+                  suffix: 'proxy',
+                })) ??
+              false;
             if (isAdapterProxy) {
               checkAdapterProxyMockSetup(init, ctx);
             }
@@ -415,7 +424,7 @@ const checkObjectExpression = (objectNode: Tsestree, context: EslintContext): vo
   // Check for bootstrap property and mock in helper names
   for (const property of properties) {
     if (property.type === 'Property' || property.type === 'MethodDefinition') {
-      const key = property.key;
+      const { key } = property;
       const keyName = key?.name;
 
       if (keyName === 'bootstrap') {
@@ -488,8 +497,8 @@ const checkAdapterProxyMockSetup = (functionNode: Tsestree, context: EslintConte
           if (callee) {
             // Check for MemberExpression (jest.spyOn, mock.mockImplementation)
             if (callee.type === 'MemberExpression') {
-              const object = callee.object;
-              const property = callee.property;
+              const { object } = callee;
+              const { property } = callee;
 
               // Check if calling jest.spyOn
               if (object?.name === 'jest' && property?.name === 'spyOn') {
@@ -530,8 +539,8 @@ const checkAdapterProxyMockSetup = (functionNode: Tsestree, context: EslintConte
                 if (callee) {
                   // Check for MemberExpression (jest.mocked, jest.spyOn)
                   if (callee.type === 'MemberExpression') {
-                    const object = callee.object;
-                    const property = callee.property;
+                    const { object } = callee;
+                    const { property } = callee;
 
                     // Check if calling jest.mocked or jest.spyOn
                     if (
@@ -602,10 +611,10 @@ const checkProxyConstructorSideEffects = (functionNode: Tsestree, context: Eslin
           if (callee) {
             // Check for MemberExpression (obj.method())
             if (callee.type === 'MemberExpression') {
-              const object = callee.object;
+              const { object } = callee;
 
               // Check if it's calling a mock method (allowed)
-              const property = callee.property;
+              const { property } = callee;
               const propertyName = property?.name;
               const mockMethods = [
                 'mockImplementation',

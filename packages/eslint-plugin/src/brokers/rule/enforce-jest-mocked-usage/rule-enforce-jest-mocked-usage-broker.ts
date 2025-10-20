@@ -3,17 +3,10 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 // List of global objects that are allowed with jest.spyOn
 const ALLOWED_SPY_ON_GLOBALS = ['Date', 'crypto', 'console', 'Math', 'process'];
-
-const isProxyFile = ({ filename }: { filename: string }): boolean => filename.endsWith('.proxy.ts');
-
-const isAdapterProxy = ({ filename }: { filename: string }): boolean =>
-  filename.includes('-adapter.proxy.ts');
-
-const isStateProxy = ({ filename }: { filename: string }): boolean =>
-  filename.includes('-state.proxy.ts');
 
 const getSpyOnTarget = ({ node }: { node: Tsestree }): string | null => {
   if (!node.arguments || node.arguments.length === 0) {
@@ -60,7 +53,7 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
       variablesWithJestMocked.clear();
 
       // Only check proxy files
-      if (!isProxyFile({ filename: ctx.filename ?? '' })) {
+      if (!hasFileSuffixGuard({ filename: ctx.filename ?? '', suffix: 'proxy' })) {
         return {};
       }
 
@@ -123,10 +116,12 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
           if (isAstMethodCallGuard({ node: node.init, object: 'jest', method: 'mocked' })) {
             // Check if this is a non-adapter/non-state proxy using jest.mocked()
             // State proxies can use jest.mocked() for external systems (Redis, DB)
-            if (
-              !isAdapterProxy({ filename: ctx.filename ?? '' }) &&
-              !isStateProxy({ filename: ctx.filename ?? '' })
-            ) {
+            const filename = ctx.filename ?? '';
+            const isAdapter =
+              filename.includes('/adapters/') && hasFileSuffixGuard({ filename, suffix: 'proxy' });
+            const isState =
+              filename.includes('/state/') && hasFileSuffixGuard({ filename, suffix: 'proxy' });
+            if (!isAdapter && !isState) {
               ctx.report({
                 node,
                 messageId: 'nonAdapterNoJestMocked',

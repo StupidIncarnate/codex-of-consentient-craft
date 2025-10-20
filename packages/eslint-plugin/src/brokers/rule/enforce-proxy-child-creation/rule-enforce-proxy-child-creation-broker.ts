@@ -4,6 +4,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -29,12 +30,14 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     const { filename } = ctx;
 
     // Only check .proxy.ts files
-    if (!filename || !filename.endsWith('.proxy.ts')) {
+    if (
+      !hasFileSuffixGuard({ ...(filename ? { filename: String(filename) } : {}), suffix: 'proxy' })
+    ) {
       return {};
     }
 
     // Derive implementation file path
-    const implementationPath = filename.replace('.proxy.ts', '.ts');
+    const implementationPath = filename ? filename.replace('.proxy.ts', '.ts') : '';
 
     // Read implementation file (checks existence and reads in one operation)
     let implementationContent: string;

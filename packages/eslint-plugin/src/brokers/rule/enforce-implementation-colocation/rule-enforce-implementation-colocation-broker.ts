@@ -4,6 +4,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@questmaestro/shared/contracts';
+import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
@@ -53,10 +54,18 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
         }
 
         // Determine if this is a contract file
-        const isContract = filename.includes('/contracts/') && filename.endsWith('-contract.ts');
+        const isContract = isFileInFolderTypeGuard({
+          filename,
+          folderType: 'contracts',
+          suffix: 'contract',
+        });
 
         // Determine if this is a statics file (doesn't need tests - just data)
-        const isStatics = filename.includes('/statics/') && filename.endsWith('-statics.ts');
+        const isStatics = isFileInFolderTypeGuard({
+          filename,
+          folderType: 'statics',
+          suffix: 'statics',
+        });
 
         // Get all possible test file paths for this source file
         const testFilePaths = testFilePathVariantsTransformer({ sourceFilePath: filename });

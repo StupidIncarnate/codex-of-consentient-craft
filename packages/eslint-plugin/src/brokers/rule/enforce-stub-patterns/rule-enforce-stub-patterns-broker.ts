@@ -2,11 +2,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-
-const isStubFile = ({ context }: { context: EslintContext }): boolean => {
-  const filename = String(context.getFilename?.() || '');
-  return filename.endsWith('.stub.ts');
-};
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 const isExportedFunction = ({ node }: { node: Tsestree }): boolean => {
   // Check if this arrow function is directly exported
@@ -242,7 +238,8 @@ export const ruleEnforceStubPatternsBroker = (): EslintRule => ({
   }),
   create: (context: unknown) => {
     const ctx = context as EslintContext;
-    if (!isStubFile({ context: ctx })) {
+    const filename = String(ctx.getFilename?.() ?? '');
+    if (!hasFileSuffixGuard({ filename, suffix: 'stub' })) {
       return {};
     }
 

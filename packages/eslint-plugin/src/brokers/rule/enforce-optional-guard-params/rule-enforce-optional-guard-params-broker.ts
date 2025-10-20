@@ -2,6 +2,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 
 export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -23,9 +24,11 @@ export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
 
     // Only check files in guards/ folder ending with -guard.ts
     if (
-      typeof filename !== 'string' ||
-      !filename.includes('/guards/') ||
-      !filename.endsWith('-guard.ts')
+      !isFileInFolderTypeGuard({
+        filename: String(filename),
+        folderType: 'guards',
+        suffix: 'guard',
+      })
     ) {
       return {};
     }
@@ -42,7 +45,7 @@ export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
       }
 
       // Get type annotation - check ObjectPattern first
-      let annotation: Tsestree | null | undefined = undefined;
+      let annotation: Tsestree | null | undefined;
 
       if (firstParam.type === 'ObjectPattern') {
         annotation = firstParam.typeAnnotation;
@@ -53,15 +56,11 @@ export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
         annotation = firstParam.left.typeAnnotation;
       }
 
-      if (
-        !annotation ||
-        !annotation.typeAnnotation ||
-        annotation.typeAnnotation.type !== 'TSTypeLiteral'
-      ) {
+      if (!annotation?.typeAnnotation || annotation.typeAnnotation.type !== 'TSTypeLiteral') {
         return;
       }
 
-      const members = annotation.typeAnnotation.members;
+      const { members } = annotation.typeAnnotation;
       if (!members) {
         return;
       }

@@ -2,11 +2,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-
-const isProxyFile = ({ filename }: { filename: string }): boolean => filename.endsWith('.proxy.ts');
-
-const isAdapterProxy = ({ filename }: { filename: string }): boolean =>
-  filename.includes('-adapter.proxy.ts');
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 const isJestMockedCall = (node: Tsestree): boolean =>
   node.callee?.type === 'MemberExpression' &&
@@ -70,7 +66,7 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
       importedNames.clear();
 
       // Only check proxy files
-      if (!isProxyFile({ filename: ctx.filename ?? '' })) {
+      if (!hasFileSuffixGuard({ filename: ctx.filename ?? '', suffix: 'proxy' })) {
         return {};
       }
 
@@ -127,7 +123,11 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
           }
 
           // Additional validation for adapter proxies
-          if (isAdapterProxy({ filename: ctx.filename ?? '' })) {
+          const filename = ctx.filename ?? '';
+          if (
+            filename.includes('/adapters/') &&
+            hasFileSuffixGuard({ filename, suffix: 'proxy' })
+          ) {
             // Check if trying to mock the adapter itself
             if (argumentName.endsWith('Adapter')) {
               ctx.report({

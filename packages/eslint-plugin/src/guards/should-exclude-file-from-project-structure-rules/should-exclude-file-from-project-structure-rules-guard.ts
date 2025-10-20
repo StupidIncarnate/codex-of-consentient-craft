@@ -1,3 +1,5 @@
+import { hasFileSuffixGuard } from '../has-file-suffix/has-file-suffix-guard';
+
 /**
  * Determines if a file should be excluded from project structure rule validation.
  * Excludes:
@@ -20,7 +22,7 @@ export const shouldExcludeFileFromProjectStructureRulesGuard = ({
   const fileBaseName = filename.split('/').pop() ?? '';
 
   // Allow .proxy.ts files through (they need validation)
-  if (fileBaseName.endsWith('.proxy.ts')) {
+  if (hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
     // Don't exclude - continue to other checks
   } else {
     // Exclude files with multiple dots (.test.ts, .stub.ts, .d.ts, etc.)
