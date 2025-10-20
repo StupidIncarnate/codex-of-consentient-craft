@@ -2,25 +2,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-
-const hasBrandInChain = (node: Tsestree): boolean => {
-  let current = node.parent;
-
-  while (current) {
-    if (
-      'property' in current &&
-      typeof current.property === 'object' &&
-      current.property !== null &&
-      'name' in current.property &&
-      current.property.name === 'brand'
-    ) {
-      return true;
-    }
-    current = current.parent;
-  }
-
-  return false;
-};
+import { isAstBrandInChainGuard } from '../../../guards/is-ast-brand-in-chain/is-ast-brand-in-chain-guard';
 
 export const ruleRequireZodOnPrimitivesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -44,7 +26,7 @@ export const ruleRequireZodOnPrimitivesBroker = (): EslintRule => ({
       'CallExpression[callee.object.name="z"][callee.property.name="string"]': (
         node: Tsestree,
       ): void => {
-        if (!hasBrandInChain(node)) {
+        if (!isAstBrandInChainGuard({ node })) {
           ctx.report({
             node,
             messageId: 'requireBrandString',
@@ -54,7 +36,7 @@ export const ruleRequireZodOnPrimitivesBroker = (): EslintRule => ({
       'CallExpression[callee.object.name="z"][callee.property.name="number"]': (
         node: Tsestree,
       ): void => {
-        if (!hasBrandInChain(node)) {
+        if (!isAstBrandInChainGuard({ node })) {
           ctx.report({
             node,
             messageId: 'requireBrandNumber',

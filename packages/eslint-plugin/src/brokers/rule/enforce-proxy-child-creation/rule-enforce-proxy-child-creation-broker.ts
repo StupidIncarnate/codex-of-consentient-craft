@@ -3,9 +3,9 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter';
-import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
+import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -53,7 +53,9 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     }
 
     // Parse implementation imports
-    const implementationImports = parseImplementationImports(implementationContent);
+    const implementationImports = parseImplementationImportsTransformer({
+      content: implementationContent,
+    });
 
     // Track proxy imports and creation calls
     const proxyImports = new Map<string, string>(); // proxyName -> importPath
@@ -202,92 +204,3 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     };
   },
 });
-
-// Parse implementation file to extract architectural component imports
-const parseImplementationImports = (content: string): Map<string, string> => {
-  const imports = new Map<string, string>();
-
-  // Strip comments before parsing to avoid false positives from example code
-  // Remove multi-line comments (/* ... */)
-  let contentWithoutComments = content.replace(/\/\*[\s\S]*?\*\//g, '');
-  // Remove single-line comments (// ...)
-  contentWithoutComments = contentWithoutComments.replace(/\/\/.*$/gm, '');
-
-  // Simple regex to match import statements
-  // Matches: import { name } from 'path' or import name from 'path'
-  const importRegex = /import\s+(?:type\s+)?(?:\{([^}]+)\}|(\w+))\s+from\s+['"]([^'"]+)['"]/g;
-
-  let match;
-  while ((match = importRegex.exec(contentWithoutComments)) !== null) {
-    const namedImports = match[1];
-    const defaultImport = match[2];
-    const importPath = match[3];
-
-    if (!importPath) {
-      continue;
-    }
-
-    // Skip npm packages (relative imports start with . or ..)
-    if (!importPath.startsWith('.')) {
-      continue;
-    }
-
-    // Skip contract imports (they're just types)
-    if (importPath.endsWith('-contract') || importPath.endsWith('.stub')) {
-      continue;
-    }
-
-    // Skip statics imports (they don't need proxies)
-    if (importPath.endsWith('-statics')) {
-      continue;
-    }
-
-    // Skip multi-dot files except .proxy (like .test.ts, .stub.ts already filtered above)
-    const filename = importPath.split('/').pop() || '';
-    const dotCount = (filename.match(/\./g) || []).length;
-    if (dotCount > 0 && !importPath.endsWith('.proxy')) {
-      continue;
-    }
-
-    // Check if this import's folder type requires a proxy based on folderConfigStatics
-    // Extract folder type from import path by searching backwards through path parts
-    const pathParts = importPath.split('/');
-    const folderTypes = Object.keys(folderConfigStatics);
-    let folderTypeFromPath: string | null = null;
-    for (let i = pathParts.length - 1; i >= 0; i--) {
-      const part = pathParts[i];
-      if (part && folderTypes.includes(part)) {
-        folderTypeFromPath = part;
-        break;
-      }
-    }
-    const folderConfig = folderTypeFromPath
-      ? (Reflect.get(folderConfigStatics, folderTypeFromPath) as
-          | { requireProxy?: boolean }
-          | undefined)
-      : undefined;
-
-    // Skip if folder type doesn't require proxies
-    if (folderConfig?.requireProxy !== true) {
-      continue;
-    }
-
-    // This is an architectural component that needs a proxy
-    // Extract imported names
-    if (namedImports) {
-      const names = namedImports
-        .split(',')
-        .map((n) => n.trim().split(/\s+as\s+/)[0])
-        .filter((n): n is string => Boolean(n));
-      for (const name of names) {
-        imports.set(name, importPath);
-      }
-    }
-
-    if (defaultImport) {
-      imports.set(defaultImport, importPath);
-    }
-  }
-
-  return imports;
-};

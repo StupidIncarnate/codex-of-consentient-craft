@@ -8,38 +8,11 @@ import {
 } from '../../../contracts/allowed-import/allowed-import-contract';
 import { isEntryFileGuard } from '../../../guards/is-entry-file/is-entry-file-guard';
 import { isSameDomainFolderGuard } from '../../../guards/is-same-domain-folder/is-same-domain-folder-guard';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { fileBasenameTransformer } from '../../../transformers/file-basename/file-basename-transformer';
 import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
 import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
-import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
-
-/**
- * Resolves a relative import path to an absolute path.
- * Used to determine the actual folder type of cross-folder imports.
- */
-const resolveImportPath = ({
-  currentFilePath,
-  importPath,
-}: {
-  currentFilePath: string;
-  importPath: string;
-}): string => {
-  const currentDir = currentFilePath.substring(0, currentFilePath.lastIndexOf('/'));
-  const parts = currentDir.split('/').filter((p) => p !== '');
-
-  // Remove any extension from importPath and split by '/'
-  const relParts = importPath.replace(/\.(ts|tsx|js|jsx)$/u, '').split('/');
-
-  for (const part of relParts) {
-    if (part === '..') {
-      parts.pop();
-    } else if (part !== '.' && part !== '') {
-      parts.push(part);
-    }
-  }
-
-  return `/${parts.join('/')}.ts`;
-};
+import { filepathResolveRelativeImportTransformer } from '../../../transformers/filepath-resolve-relative-import/filepath-resolve-relative-import-transformer';
 
 export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -170,7 +143,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
           }
 
           // For cross-folder imports, determine the imported folder type by resolving the path
-          const resolvedImportPath = resolveImportPath({
+          const resolvedImportPath = filepathResolveRelativeImportTransformer({
             currentFilePath: ctx.filename ?? '',
             importPath: importSource,
           });

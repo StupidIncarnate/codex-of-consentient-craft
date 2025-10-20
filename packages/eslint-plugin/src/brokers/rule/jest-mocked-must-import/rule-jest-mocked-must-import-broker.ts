@@ -4,35 +4,9 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
+import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
-
-const isNpmPackage = ({ importSource }: { importSource: string }): boolean => {
-  // Relative/absolute paths are not npm packages
-  if (importSource.startsWith('.') || importSource.startsWith('/')) {
-    return false;
-  }
-
-  // @questmaestro workspace packages are not npm packages for mocking purposes
-  if (importSource.startsWith('@questmaestro')) {
-    return false;
-  }
-
-  // Everything else is an npm package (including node:, scoped packages, etc.)
-  return true;
-};
-
-const getMockedArgumentName = (node: Tsestree): string | null => {
-  if (!node.arguments || node.arguments.length === 0) {
-    return null;
-  }
-
-  const firstArg = node.arguments[0];
-  if (firstArg && firstArg.type === 'Identifier' && firstArg.name) {
-    return firstArg.name;
-  }
-
-  return null;
-};
+import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
 
 export const ruleJestMockedMustImportBroker = (): EslintRule => {
   const importedNames = new Map<string, string>(); // local name -> source
@@ -80,7 +54,7 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
             return;
           }
 
-          const argumentName = getMockedArgumentName(node);
+          const argumentName = astGetCallFirstArgumentNameTransformer({ node });
           if (!argumentName) {
             return;
           }
@@ -121,7 +95,7 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
 
             // Check if mocking an npm package
             const importSource = importedNames.get(argumentName);
-            if (importSource && !isNpmPackage({ importSource })) {
+            if (importSource && !isNpmPackageGuard({ importSource })) {
               ctx.report({
                 node,
                 messageId: 'notNpmPackage',

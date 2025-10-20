@@ -3,37 +3,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
-
-const isMemberExpression = (node: Tsestree | null | undefined): node is Tsestree =>
-  node !== null && node !== undefined && node.type === 'MemberExpression';
-
-/**
- * Extracts the root object name from a member expression chain.
- * Examples:
- * - result.files => 'result'
- * - result.user.name => 'result'
- * - obj?.prop => 'obj'
- */
-const getRootObjectName = (expr: Tsestree): string | null => {
-  let current: Tsestree | null | undefined = expr;
-
-  // Traverse up the member expression chain
-  while (current !== null && current !== undefined && current.type === 'MemberExpression') {
-    current = current.object;
-  }
-
-  // At the root, should be an Identifier
-  if (
-    current !== null &&
-    current !== undefined &&
-    current.type === 'Identifier' &&
-    typeof current.name === 'string'
-  ) {
-    return current.name;
-  }
-
-  return null;
-};
+import { astGetMemberExpressionRootTransformer } from '../../../transformers/ast-get-member-expression-root/ast-get-member-expression-root-transformer';
 
 export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -147,12 +117,17 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
 
         // Check if expect() argument is a member expression (obj.property)
         const expectArg = expectCall.arguments?.[0];
-        if (!isMemberExpression(expectArg)) {
+        const isMemberExpression =
+          expectArg !== null &&
+          expectArg !== undefined &&
+          expectArg.type === 'MemberExpression';
+
+        if (!isMemberExpression) {
           return;
         }
 
         // Extract root object name
-        const rootObject = getRootObjectName(expectArg);
+        const rootObject = astGetMemberExpressionRootTransformer({ expr: expectArg });
         if (rootObject === null) {
           return;
         }

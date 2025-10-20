@@ -5,22 +5,10 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
+import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
 
 // List of global objects that are allowed with jest.spyOn
 const ALLOWED_SPY_ON_GLOBALS = ['Date', 'crypto', 'console', 'Math', 'process'];
-
-const getSpyOnTarget = ({ node }: { node: Tsestree }): string | null => {
-  if (!node.arguments || node.arguments.length === 0) {
-    return null;
-  }
-
-  const [firstArg] = node.arguments;
-  if (firstArg && firstArg.type === 'Identifier' && firstArg.name) {
-    return firstArg.name;
-  }
-
-  return null;
-};
 
 export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
   // Track jest.mock() calls and imported module names
@@ -81,7 +69,7 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
 
           // Check jest.spyOn() usage
           if (isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })) {
-            const target = getSpyOnTarget({ node });
+            const target = astGetCallFirstArgumentNameTransformer({ node });
             if (target && !ALLOWED_SPY_ON_GLOBALS.includes(target)) {
               // Check if this is an imported module
               if (importedModuleNames.has(target)) {

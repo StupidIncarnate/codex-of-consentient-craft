@@ -249,7 +249,8 @@ export const eslintRuleStatics = {
     // ✅ for (let i = 0; i < 10; i++) { if (condition) break }
     // ❌ for (let i = 0; i < 10; i++) { if (condition) continue }
     // Disallows continue statements
-    'no-continue': 'error',
+    // LLM fucking loves this stupid thing. It's not worth fighting it right now
+    'no-continue': 'off',
 
     // ✅ if ((x = y) !== null)
     // ❌ if (x = y)

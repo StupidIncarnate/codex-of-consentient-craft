@@ -33,62 +33,160 @@ export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
       return {};
     }
 
-    const handler = (node: Tsestree): void => {
-      const { params } = node;
-      if (!params || params.length === 0) {
-        return;
-      }
+    return {
+      ArrowFunctionExpression: (node: Tsestree): void => {
+        const { params } = node;
+        if (!params || params.length === 0) {
+          return;
+        }
 
-      const firstParam = params[0];
-      if (!firstParam) {
-        return;
-      }
+        const firstParam = params[0];
+        if (!firstParam) {
+          return;
+        }
 
-      // Get type annotation - check ObjectPattern first
-      let annotation: Tsestree | null | undefined;
+        // Get type annotation - check ObjectPattern first
+        let annotation: Tsestree | null | undefined;
 
-      if (firstParam.type === 'ObjectPattern') {
-        annotation = firstParam.typeAnnotation;
-      } else if (
-        firstParam.type === 'AssignmentPattern' &&
-        firstParam.left?.type === 'ObjectPattern'
-      ) {
-        annotation = firstParam.left.typeAnnotation;
-      }
+        if (firstParam.type === 'ObjectPattern') {
+          annotation = firstParam.typeAnnotation;
+        } else if (
+          firstParam.type === 'AssignmentPattern' &&
+          firstParam.left?.type === 'ObjectPattern'
+        ) {
+          annotation = firstParam.left.typeAnnotation;
+        }
 
-      if (!annotation?.typeAnnotation || annotation.typeAnnotation.type !== 'TSTypeLiteral') {
-        return;
-      }
+        if (!annotation?.typeAnnotation || annotation.typeAnnotation.type !== 'TSTypeLiteral') {
+          return;
+        }
 
-      const { members } = annotation.typeAnnotation;
-      if (!members) {
-        return;
-      }
+        const { members } = annotation.typeAnnotation;
+        if (!members) {
+          return;
+        }
 
-      // Check each property in the type annotation
-      for (const member of members) {
-        if (member.type === 'TSPropertySignature') {
-          const propertyKey = member.key;
-          const propertyName = propertyKey?.name ?? '';
-          const isOptional = member.optional === true;
+        // Check each property in the type annotation
+        for (const member of members) {
+          if (member.type === 'TSPropertySignature') {
+            const propertyKey = member.key;
+            const propertyName = propertyKey?.name ?? '';
+            const isOptional = member.optional === true;
 
-          if (!isOptional && propertyName.length > 0) {
-            ctx.report({
-              node: member,
-              messageId: 'guardParamMustBeOptional',
-              data: {
-                propertyName,
-              },
-            });
+            if (!isOptional && propertyName.length > 0) {
+              ctx.report({
+                node: member,
+                messageId: 'guardParamMustBeOptional',
+                data: {
+                  propertyName,
+                },
+              });
+            }
           }
         }
-      }
-    };
+      },
+      FunctionDeclaration: (node: Tsestree): void => {
+        const { params } = node;
+        if (!params || params.length === 0) {
+          return;
+        }
 
-    return {
-      ArrowFunctionExpression: handler,
-      FunctionDeclaration: handler,
-      FunctionExpression: handler,
+        const firstParam = params[0];
+        if (!firstParam) {
+          return;
+        }
+
+        // Get type annotation - check ObjectPattern first
+        let annotation: Tsestree | null | undefined;
+
+        if (firstParam.type === 'ObjectPattern') {
+          annotation = firstParam.typeAnnotation;
+        } else if (
+          firstParam.type === 'AssignmentPattern' &&
+          firstParam.left?.type === 'ObjectPattern'
+        ) {
+          annotation = firstParam.left.typeAnnotation;
+        }
+
+        if (!annotation?.typeAnnotation || annotation.typeAnnotation.type !== 'TSTypeLiteral') {
+          return;
+        }
+
+        const { members } = annotation.typeAnnotation;
+        if (!members) {
+          return;
+        }
+
+        // Check each property in the type annotation
+        for (const member of members) {
+          if (member.type === 'TSPropertySignature') {
+            const propertyKey = member.key;
+            const propertyName = propertyKey?.name ?? '';
+            const isOptional = member.optional === true;
+
+            if (!isOptional && propertyName.length > 0) {
+              ctx.report({
+                node: member,
+                messageId: 'guardParamMustBeOptional',
+                data: {
+                  propertyName,
+                },
+              });
+            }
+          }
+        }
+      },
+      FunctionExpression: (node: Tsestree): void => {
+        const { params } = node;
+        if (!params || params.length === 0) {
+          return;
+        }
+
+        const firstParam = params[0];
+        if (!firstParam) {
+          return;
+        }
+
+        // Get type annotation - check ObjectPattern first
+        let annotation: Tsestree | null | undefined;
+
+        if (firstParam.type === 'ObjectPattern') {
+          annotation = firstParam.typeAnnotation;
+        } else if (
+          firstParam.type === 'AssignmentPattern' &&
+          firstParam.left?.type === 'ObjectPattern'
+        ) {
+          annotation = firstParam.left.typeAnnotation;
+        }
+
+        if (!annotation?.typeAnnotation || annotation.typeAnnotation.type !== 'TSTypeLiteral') {
+          return;
+        }
+
+        const { members } = annotation.typeAnnotation;
+        if (!members) {
+          return;
+        }
+
+        // Check each property in the type annotation
+        for (const member of members) {
+          if (member.type === 'TSPropertySignature') {
+            const propertyKey = member.key;
+            const propertyName = propertyKey?.name ?? '';
+            const isOptional = member.optional === true;
+
+            if (!isOptional && propertyName.length > 0) {
+              ctx.report({
+                node: member,
+                messageId: 'guardParamMustBeOptional',
+                data: {
+                  propertyName,
+                },
+              });
+            }
+          }
+        }
+      },
     };
   },
 });

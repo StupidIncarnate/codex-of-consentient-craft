@@ -11,6 +11,8 @@ import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import { forbiddenFolderStatics } from '../../../statics/forbidden-folder/forbidden-folder-statics';
 import { expectedExportNameTransformer } from '../../../transformers/expected-export-name/expected-export-name-transformer';
+import { filepathExtractSegmentsAfterSrcTransformer } from '../../../transformers/filepath-extract-segments-after-src/filepath-extract-segments-after-src-transformer';
+import { filepathBasenameWithoutSuffixTransformer } from '../../../transformers/filepath-basename-without-suffix/filepath-basename-without-suffix-transformer';
 import { forbiddenFolderSuggestionTransformer } from '../../../transformers/forbidden-folder-suggestion/forbidden-folder-suggestion-transformer';
 import { pathDepthTransformer } from '../../../transformers/path-depth/path-depth-transformer';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
@@ -81,52 +83,6 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
         return {};
       }
 
-      // Helper to extract folder path segments from filename
-      const getFolderSegments = (filePath: string): string[] => {
-        const afterSrc = filePath.split('/src/')[1];
-        if (!afterSrc) return [];
-        const parts = afterSrc.split('/');
-        return parts.slice(0, -1); // Remove filename, keep folders
-      };
-
-      // Helper to extract filename without extension and suffix
-      const getFilenameBase = (filePath: string, suffix: string | readonly string[]): string => {
-        const parts = filePath.split('/');
-        const fullFilename = parts[parts.length - 1] ?? '';
-
-        // For suffixes that include the extension (like .proxy.ts), don't remove extension first
-        const suffixIncludesExtension = (s: string): boolean => /\.[^.]+$/u.test(s);
-
-        if (Array.isArray(suffix)) {
-          for (const s of suffix) {
-            if (suffixIncludesExtension(s)) {
-              if (fullFilename.endsWith(s)) {
-                return fullFilename.slice(0, -s.length);
-              }
-            } else {
-              const withoutExt = fullFilename.replace(/\.[^.]+$/u, '');
-              if (withoutExt.endsWith(s)) {
-                return withoutExt.slice(0, -s.length);
-              }
-            }
-          }
-        } else if (typeof suffix === 'string') {
-          if (suffixIncludesExtension(suffix)) {
-            if (fullFilename.endsWith(suffix)) {
-              return fullFilename.slice(0, -suffix.length);
-            }
-          } else {
-            const withoutExt = fullFilename.replace(/\.[^.]+$/u, '');
-            if (withoutExt.endsWith(suffix)) {
-              return withoutExt.slice(0, -suffix.length);
-            }
-          }
-        }
-
-        // Fallback: just remove extension
-        return fullFilename.replace(/\.[^.]+$/u, '');
-      };
-
       return {
         Program: (node: Tsestree): void => {
           // LEVEL 1: Folder Location (HIGHEST)
@@ -177,7 +133,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           }
 
           // Validate all folder names are kebab-case (except migrations/assets which have empty exportSuffix)
-          const folderSegments = getFolderSegments(filename);
+          const folderSegments = filepathExtractSegmentsAfterSrcTransformer({ filePath: filename });
           const nonKebabFolder = folderSegments.find(
             (segment) => !isKebabCaseGuard({ str: segment }),
           );
@@ -212,7 +168,10 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           // Collect all Level 3 violations (don't return early - report all)
           const suffixes = Array.isArray(fileSuffix) ? fileSuffix : [fileSuffix];
           const hasInvalidSuffix = !suffixes.some((suffix: string) => filename.endsWith(suffix));
-          const filenameBase = getFilenameBase(filename, fileSuffix);
+          const filenameBase = filepathBasenameWithoutSuffixTransformer({
+            filePath: filename,
+            suffix: fileSuffix,
+          });
           const hasInvalidCase = !isKebabCaseGuard({ str: filenameBase });
 
           // For folders with depth > 0, validate filename prefix matches domain folders
@@ -221,7 +180,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           let actualFilenamePrefix = '';
 
           if (expectedDepth > 0) {
-            const folderSegments = getFolderSegments(filename);
+            const folderSegments = filepathExtractSegmentsAfterSrcTransformer({
+              filePath: filename,
+            });
             // Extract domain folders (skip the category folder)
             const domainFolders = folderSegments.slice(1, 1 + expectedDepth);
             expectedFilenamePrefix = domainFolders.join('-');

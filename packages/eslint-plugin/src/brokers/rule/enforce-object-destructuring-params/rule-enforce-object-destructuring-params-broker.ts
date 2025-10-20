@@ -3,45 +3,6 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
-const checkParams = ({
-  funcNode,
-  context,
-}: {
-  funcNode: Tsestree;
-  context: EslintContext;
-}): void => {
-  if (!funcNode.params || funcNode.params.length === 0 || funcNode.params.length > 1) {
-    return; // No params is fine, max-params rule will catch multiple params
-  }
-
-  const [firstParam] = funcNode.params;
-  if (!firstParam) {
-    return;
-  }
-
-  // Skip callback functions passed to library methods
-  // Check if this function is passed as an argument to a method call
-  // e.g., .refine((x) => ...), .map((x) => ...), .filter((x) => ...)
-  if (funcNode.parent?.type === 'CallExpression') {
-    return;
-  }
-
-  // Check if parameter uses object destructuring
-  // Handle two cases:
-  // 1. Direct ObjectPattern: ({ x }: { x: Type })
-  // 2. AssignmentPattern with ObjectPattern left: ({ x = 5 } = {})
-  const isObjectDestructuring =
-    firstParam.type === 'ObjectPattern' ||
-    (firstParam.type === 'AssignmentPattern' && firstParam.left?.type === 'ObjectPattern');
-
-  if (!isObjectDestructuring) {
-    context.report({
-      node: firstParam,
-      messageId: 'useObjectDestructuring',
-    });
-  }
-};
-
 export const ruleEnforceObjectDestructuringParamsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {
@@ -64,7 +25,33 @@ export const ruleEnforceObjectDestructuringParamsBroker = (): EslintRule => ({
       ArrowFunctionExpression: (node: Tsestree): void => {
         functionDepth++;
         if (functionDepth === 1) {
-          checkParams({ funcNode: node, context: ctx });
+          // No params is fine, max-params rule will catch multiple params
+          if (!node.params || node.params.length === 0 || node.params.length > 1) {
+            return;
+          }
+
+          const [firstParam] = node.params;
+          if (!firstParam) {
+            return;
+          }
+
+          // Skip callback functions passed to library methods
+          // e.g., .refine((x) => ...), .map((x) => ...), .filter((x) => ...)
+          if (node.parent?.type === 'CallExpression') {
+            return;
+          }
+
+          // Check if parameter uses object destructuring
+          const isObjectDestructuring =
+            firstParam.type === 'ObjectPattern' ||
+            (firstParam.type === 'AssignmentPattern' && firstParam.left?.type === 'ObjectPattern');
+
+          if (!isObjectDestructuring) {
+            ctx.report({
+              node: firstParam,
+              messageId: 'useObjectDestructuring',
+            });
+          }
         }
       },
       'ArrowFunctionExpression:exit': (): void => {
@@ -73,7 +60,32 @@ export const ruleEnforceObjectDestructuringParamsBroker = (): EslintRule => ({
       FunctionDeclaration: (node: Tsestree): void => {
         functionDepth++;
         if (functionDepth === 1) {
-          checkParams({ funcNode: node, context: ctx });
+          // No params is fine, max-params rule will catch multiple params
+          if (!node.params || node.params.length === 0 || node.params.length > 1) {
+            return;
+          }
+
+          const [firstParam] = node.params;
+          if (!firstParam) {
+            return;
+          }
+
+          // Skip callback functions passed to library methods
+          if (node.parent?.type === 'CallExpression') {
+            return;
+          }
+
+          // Check if parameter uses object destructuring
+          const isObjectDestructuring =
+            firstParam.type === 'ObjectPattern' ||
+            (firstParam.type === 'AssignmentPattern' && firstParam.left?.type === 'ObjectPattern');
+
+          if (!isObjectDestructuring) {
+            ctx.report({
+              node: firstParam,
+              messageId: 'useObjectDestructuring',
+            });
+          }
         }
       },
       'FunctionDeclaration:exit': (): void => {
@@ -82,7 +94,32 @@ export const ruleEnforceObjectDestructuringParamsBroker = (): EslintRule => ({
       FunctionExpression: (node: Tsestree): void => {
         functionDepth++;
         if (functionDepth === 1) {
-          checkParams({ funcNode: node, context: ctx });
+          // No params is fine, max-params rule will catch multiple params
+          if (!node.params || node.params.length === 0 || node.params.length > 1) {
+            return;
+          }
+
+          const [firstParam] = node.params;
+          if (!firstParam) {
+            return;
+          }
+
+          // Skip callback functions passed to library methods
+          if (node.parent?.type === 'CallExpression') {
+            return;
+          }
+
+          // Check if parameter uses object destructuring
+          const isObjectDestructuring =
+            firstParam.type === 'ObjectPattern' ||
+            (firstParam.type === 'AssignmentPattern' && firstParam.left?.type === 'ObjectPattern');
+
+          if (!isObjectDestructuring) {
+            ctx.report({
+              node: firstParam,
+              messageId: 'useObjectDestructuring',
+            });
+          }
         }
       },
       'FunctionExpression:exit': (): void => {
