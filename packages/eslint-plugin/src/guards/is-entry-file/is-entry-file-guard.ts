@@ -1,5 +1,4 @@
 import { folderConfigTransformer } from '../../transformers/folder-config/folder-config-transformer';
-import { hasValidFileSuffixGuard } from '../has-valid-file-suffix/has-valid-file-suffix-guard';
 
 /**
  * Determines if a file path represents an "entry file" that can be imported across domain folders.
@@ -43,10 +42,11 @@ export const isEntryFileGuard = ({
   }
 
   // Check if filename matches the expected suffix pattern
-  const hasSuffix = hasValidFileSuffixGuard({
-    filename: basename,
-    fileSuffix: config?.fileSuffix,
-  });
+  if (!config?.fileSuffix) {
+    return false;
+  }
+  const suffixes = Array.isArray(config.fileSuffix) ? config.fileSuffix : [config.fileSuffix];
+  const hasSuffix = suffixes.some((suffix: string) => basename.endsWith(suffix));
 
   if (!hasSuffix) {
     return false;

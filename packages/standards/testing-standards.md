@@ -29,6 +29,17 @@ mockFsReadFile.mockResolvedValue('content'); // string is not FileContents
 mockFsReadFile.mockResolvedValue('content' as FileContents);
 ```
 
+**`exactOptionalPropertyTypes` requirement:** Project uses `exactOptionalPropertyTypes: true`. When testing optional
+parameters, omit the property instead of passing `undefined`:
+
+```typescript
+// ✅ CORRECT - Omit optional parameter
+expect(myGuard({value: 'test'})).toBe(false);
+
+// ❌ WRONG - Explicit undefined fails with exactOptionalPropertyTypes
+expect(myGuard({value: 'test', optional: undefined})).toBe(false);
+```
+
 ### DAMP > DRY
 
 Tests should be **Descriptive And Meaningful**, not DRY. Each test must be readable standalone without looking at
@@ -585,14 +596,18 @@ need data that triggers each path. Without helpers, test authors must understand
 ```typescript
 // guards/has-edit-permission/has-edit-permission-guard.ts
 export const hasEditPermissionGuard = ({currentUser, profileUserId}: {
-    currentUser: User;
-    profileUserId: UserId;
+    currentUser?: User;
+    profileUserId?: UserId;
 }): boolean => {
-    if (currentUser.id === profileUserId) return true;  // Path 1: Own profile
-    if (currentUser.isAdmin) return true;               // Path 2: Admin
-    return false;                                       // Path 3: Deny
+    if (!currentUser || !profileUserId) return false;  // Path 0: Missing params
+    if (currentUser.id === profileUserId) return true; // Path 1: Own profile
+    if (currentUser.isAdmin) return true;              // Path 2: Admin
+    return false;                                      // Path 3: Deny
 };
 ```
+
+**Note:** All guard parameters must be optional (enforced by `@questmaestro/enforce-optional-guard-params` rule). Guards
+validate parameters exist before using them.
 
 **Without Guard Proxy:**
 ```typescript

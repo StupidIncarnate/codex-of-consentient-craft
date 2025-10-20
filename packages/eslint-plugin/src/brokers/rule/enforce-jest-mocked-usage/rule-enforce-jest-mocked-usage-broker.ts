@@ -2,6 +2,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
 
 // List of global objects that are allowed with jest.spyOn
 const ALLOWED_SPY_ON_GLOBALS = ['Date', 'crypto', 'console', 'Math', 'process'];
@@ -14,33 +15,12 @@ const isAdapterProxy = ({ filename }: { filename: string }): boolean =>
 const isStateProxy = ({ filename }: { filename: string }): boolean =>
   filename.includes('-state.proxy.ts');
 
-const isJestMockCall = ({ node }: { node: Tsestree }): boolean =>
-  node.callee?.type === 'MemberExpression' &&
-  node.callee.object?.type === 'Identifier' &&
-  node.callee.object.name === 'jest' &&
-  node.callee.property?.type === 'Identifier' &&
-  node.callee.property.name === 'mock';
-
-const isJestMockedCall = ({ node }: { node: Tsestree }): boolean =>
-  node.callee?.type === 'MemberExpression' &&
-  node.callee.object?.type === 'Identifier' &&
-  node.callee.object.name === 'jest' &&
-  node.callee.property?.type === 'Identifier' &&
-  node.callee.property.name === 'mocked';
-
-const isJestSpyOnCall = ({ node }: { node: Tsestree }): boolean =>
-  node.callee?.type === 'MemberExpression' &&
-  node.callee.object?.type === 'Identifier' &&
-  node.callee.object.name === 'jest' &&
-  node.callee.property?.type === 'Identifier' &&
-  node.callee.property.name === 'spyOn';
-
 const getSpyOnTarget = ({ node }: { node: Tsestree }): string | null => {
   if (!node.arguments || node.arguments.length === 0) {
     return null;
   }
 
-  const firstArg = node.arguments[0];
+  const [firstArg] = node.arguments;
   if (firstArg && firstArg.type === 'Identifier' && firstArg.name) {
     return firstArg.name;
   }
@@ -109,9 +89,9 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
         // Track jest.mock() calls
         CallExpression: (node: Tsestree): void => {
           // Track jest.mock() calls
-          if (isJestMockCall({ node })) {
+          if (isAstMethodCallGuard({ node, object: 'jest', method: 'mock' })) {
             if (node.arguments && node.arguments.length > 0) {
-              const firstArg = node.arguments[0];
+              const [firstArg] = node.arguments;
               if (firstArg && firstArg.type === 'Literal' && typeof firstArg.value === 'string') {
                 jestMockedModules.add(firstArg.value);
               }
@@ -119,7 +99,7 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
           }
 
           // Check jest.spyOn() usage
-          if (isJestSpyOnCall({ node })) {
+          if (isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })) {
             const target = getSpyOnTarget({ node });
             if (target && !ALLOWED_SPY_ON_GLOBALS.includes(target)) {
               // Check if this is an imported module
@@ -140,7 +120,7 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
           }
 
           // Check if using jest.mocked()
-          if (isJestMockedCall({ node: node.init })) {
+          if (isAstMethodCallGuard({ node: node.init, object: 'jest', method: 'mocked' })) {
             // Check if this is a non-adapter/non-state proxy using jest.mocked()
             // State proxies can use jest.mocked() for external systems (Redis, DB)
             if (
@@ -156,7 +136,7 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
 
             // Extract the module name from jest.mocked(moduleName)
             if (node.init.arguments && node.init.arguments.length > 0) {
-              const arg = node.init.arguments[0];
+              const [arg] = node.init.arguments;
               if (arg && arg.type === 'Identifier' && arg.name) {
                 variablesWithJestMocked.add(arg.name);
               }

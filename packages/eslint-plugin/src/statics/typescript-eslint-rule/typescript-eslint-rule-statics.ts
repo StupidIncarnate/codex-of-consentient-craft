@@ -679,7 +679,8 @@ export const typescriptEslintRuleStatics = {
     // ✅ if (Boolean(value)) {}
     // ❌ if (value) {}
     // Disallow certain types in boolean expressions
-    '@typescript-eslint/strict-boolean-expressions': 'error',
+    // LLM seems to be trained on traditional if(!something) which is usually fine. We'll see though....
+    '@typescript-eslint/strict-boolean-expressions': 'off',
 
     // ✅ switch (value) { case A: case B: default: }
     // ❌ switch (value) { case A: }

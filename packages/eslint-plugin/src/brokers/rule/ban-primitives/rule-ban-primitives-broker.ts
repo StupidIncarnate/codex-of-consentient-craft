@@ -2,7 +2,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { isStubFileGuard } from '../../../guards/is-stub-file/is-stub-file-guard';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 export const ruleBanPrimitivesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -20,10 +20,10 @@ export const ruleBanPrimitivesBroker = (): EslintRule => ({
   }),
   create: (context: unknown) => {
     const ctx = context as EslintContext;
-    const filename = String(ctx.getFilename?.() ?? '');
+    const filename = ctx.getFilename?.() ?? '';
 
     // Skip stub files - they need to use primitives for type conversion
-    if (isStubFileGuard({ filename })) {
+    if (hasFileSuffixGuard({ filename: String(filename), suffix: 'stub' })) {
       return {};
     }
 

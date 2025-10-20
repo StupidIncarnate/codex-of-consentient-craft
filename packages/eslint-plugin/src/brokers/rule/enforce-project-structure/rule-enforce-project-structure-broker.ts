@@ -3,8 +3,8 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import { forbiddenFolderNameContract } from '../../../contracts/forbidden-folder-name/forbidden-folder-name-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { hasValidFileSuffixGuard } from '../../../guards/has-valid-file-suffix/has-valid-file-suffix-guard';
 import { isCamelCaseGuard } from '../../../guards/is-camel-case/is-camel-case-guard';
+import { isKebabCaseGuard } from '../../../guards/is-kebab-case/is-kebab-case-guard';
 import { isPascalCaseGuard } from '../../../guards/is-pascal-case/is-pascal-case-guard';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
@@ -79,9 +79,6 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
       if (!firstFolder) {
         return {};
       }
-
-      // Helper to check if string is kebab-case
-      const isKebabCase = (str: string): boolean => /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u.test(str);
 
       // Helper to check if file is a proxy file
       const isProxyFile = (filePath: string): boolean => filePath.endsWith('.proxy.ts');
@@ -183,15 +180,19 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
           // Validate all folder names are kebab-case (except migrations/assets which have empty exportSuffix)
           const folderSegments = getFolderSegments(filename);
-          const nonKebabFolder = folderSegments.find((segment) => !isKebabCase(segment));
+          const nonKebabFolder = folderSegments.find(
+            (segment) => !isKebabCaseGuard({ str: segment }),
+          );
           if (nonKebabFolder) {
             const expected = toKebabCaseTransformer({ str: nonKebabFolder });
+            const ext = filename.endsWith('.tsx') ? 'tsx' : 'ts';
             ctx.report({
               node,
               messageId: 'invalidFilenameCase',
               data: {
                 actual: nonKebabFolder,
                 expected,
+                ext,
               },
             });
             return; // STOP - folder structure must be correct before checking files
@@ -211,9 +212,10 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           }
 
           // Collect all Level 3 violations (don't return early - report all)
-          const hasInvalidSuffix = !hasValidFileSuffixGuard({ filename, fileSuffix });
+          const suffixes = Array.isArray(fileSuffix) ? fileSuffix : [fileSuffix];
+          const hasInvalidSuffix = !suffixes.some((suffix: string) => filename.endsWith(suffix));
           const filenameBase = getFilenameBase(filename, fileSuffix);
-          const hasInvalidCase = !isKebabCase(filenameBase);
+          const hasInvalidCase = !isKebabCaseGuard({ str: filenameBase });
 
           // For folders with depth > 0, validate filename prefix matches domain folders
           let hasInvalidDomainMatch = false;
@@ -231,9 +233,14 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
             // We need to remove "-broker" to get "user-fetch" for comparison
             if (isProxy) {
               const baseSuffix = folderConfig.fileSuffix;
-              const baseSuffixStr = Array.isArray(baseSuffix) ? String(baseSuffix[0]) : String(baseSuffix);
+              const baseSuffixStr = Array.isArray(baseSuffix)
+                ? String(baseSuffix[0])
+                : String(baseSuffix);
               const baseSuffixToRemove = baseSuffixStr.replace(/\.(ts|tsx)$/u, '');
-              actualFilenamePrefix = filenameBase.replace(new RegExp(`${baseSuffixToRemove}$`, 'u'), '');
+              actualFilenamePrefix = filenameBase.replace(
+                new RegExp(`${baseSuffixToRemove}$`, 'u'),
+                '',
+              );
             } else {
               actualFilenamePrefix = filenameBase;
             }
@@ -262,7 +269,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           if (hasInvalidCase) {
             const expected = toKebabCaseTransformer({ str: filenameBase });
             const ext = filename.endsWith('.tsx') ? 'tsx' : 'ts';
-            const suffixStr = Array.isArray(fileSuffix) ? String(fileSuffix[0]) : String(fileSuffix);
+            const suffixStr = Array.isArray(fileSuffix)
+              ? String(fileSuffix[0])
+              : String(fileSuffix);
             const actualFullFilename = filenameBase + suffixStr.replace(/\.(ts|tsx)$/u, '');
             const expectedFullFilename = expected + suffixStr.replace(/\.(ts|tsx)$/u, '');
 
@@ -278,8 +287,11 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           } else if (hasInvalidDomainMatch) {
             // Only check domain match if kebab-case is valid
             // Show full expected filename with suffix for clarity
-            const suffixStr = Array.isArray(fileSuffix) ? String(fileSuffix[0]) : String(fileSuffix);
-            const expectedFullFilename = expectedFilenamePrefix + suffixStr.replace(/\.(ts|tsx)$/u, '');
+            const suffixStr = Array.isArray(fileSuffix)
+              ? String(fileSuffix[0])
+              : String(fileSuffix);
+            const expectedFullFilename =
+              expectedFilenamePrefix + suffixStr.replace(/\.(ts|tsx)$/u, '');
             const actualFullFilename = filenameBase + suffixStr.replace(/\.(ts|tsx)$/u, '');
             const ext = filename.endsWith('.tsx') ? 'tsx' : 'ts';
 

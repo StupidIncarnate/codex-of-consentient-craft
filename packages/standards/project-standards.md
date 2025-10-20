@@ -644,6 +644,8 @@ guards/
 - **MUST be pure functions** (no external calls, no side effects)
 - **MUST return boolean**
 - **MUST have explicit return types**
+- **MUST use optional parameters** (enforced by `@questmaestro/enforce-optional-guard-params` rule)
+- **MUST validate parameters exist** before using them
 
 **Example:**
 
@@ -653,9 +655,12 @@ import type {User} from '../../contracts/user/user-contract';
 import type {Permission} from '../../contracts/permission/permission-contract';
 
 export const hasPermissionGuard = ({user, permission}: {
-  user: User;
-  permission: Permission;
+  user?: User;
+  permission?: Permission;
 }): boolean => {
+  if (!user || !permission) {
+    return false;
+  }
   return user.permissions.includes(permission);
 };
 
@@ -663,7 +668,10 @@ export const hasPermissionGuard = ({user, permission}: {
 import type {User} from '../../contracts/user/user-contract';
 import {userStatics} from '../../statics/user/user-statics';
 
-export const isAdminGuard = ({user}: { user: User }): boolean => {
+export const isAdminGuard = ({user}: { user?: User }): boolean => {
+  if (!user) {
+    return false;
+  }
   return user.role === userStatics.roles.ADMIN;
 };
 
@@ -672,9 +680,12 @@ import type {User} from '../../contracts/user/user-contract';
 import type {Post} from '../../contracts/post/post-contract';
 
 export const canEditPostGuard = ({user, post}: {
-  user: User;
-  post: Post;
+  user?: User;
+  post?: Post;
 }): boolean => {
+  if (!user || !post) {
+    return false;
+  }
   return user.id === post.authorId || user.role === 'admin';
 };
 ```

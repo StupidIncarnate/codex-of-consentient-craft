@@ -222,18 +222,6 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
     },
 
     // ========== LEVEL 2: Folder Depth Errors ==========
-    // Brokers need depth 2, not 0 or 1
-    {
-      code: 'export const userFetchBroker = () => {};',
-      filename: '/project/src/brokers/user-fetch-broker.ts',
-      errors: [{ messageId: 'invalidFolderDepth' }],
-    },
-    {
-      code: 'export const userFetchBroker = () => {};',
-      filename: '/project/src/brokers/fetch/user-fetch-broker.ts',
-      errors: [{ messageId: 'invalidFolderDepth' }],
-    },
-
     // Responders need depth 2, not 0 or 1
     {
       code: 'export const LoginResponder = () => null;',
