@@ -4,7 +4,7 @@
 
 ### Existing Custom Rules (Active)
 
-From `packages/eslint-plugin/src/brokers/config/questmaestro/questmaestro-config-broker.ts`:
+From `packages/eslint-plugin/src/brokers/config/questmaestro/config-questmaestro-broker.ts`:
 
 1. ✅ `@questmaestro/explicit-return-types` - **ACTIVE**
 2. ✅ `@questmaestro/enforce-folder-structure` - **ACTIVE**

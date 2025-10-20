@@ -9,12 +9,12 @@ const eslintCommentsPlugin = require('eslint-plugin-eslint-comments');
 // Import our own questmaestro plugin and config directly from TypeScript source
 const questmaestroPlugin = require('./packages/eslint-plugin/src/index.ts').default;
 const {
-  questmaestroConfigBroker,
-} = require('./packages/eslint-plugin/src/brokers/config/questmaestro/questmaestro-config-broker.ts');
+  configQuestmaestroBroker,
+} = require('./packages/eslint-plugin/src/brokers/config/questmaestro/config-questmaestro-broker.ts');
 
 // Get the questmaestro configs (returns object with typescript, test, fileOverrides)
-const questmaestroConfigs = questmaestroConfigBroker();
-const questmaestroTestConfigs = questmaestroConfigBroker({ forTesting: true });
+const questmaestroConfigs = configQuestmaestroBroker();
+const questmaestroTestConfigs = configQuestmaestroBroker({ forTesting: true });
 
 module.exports = [
   // Global ignores

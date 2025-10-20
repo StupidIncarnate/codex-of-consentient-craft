@@ -241,14 +241,14 @@ Folder "utils/" is forbidden. Use "adapters or transformers/" instead according 
 
 ```typescript
 import {
-    banPrimitivesRuleBroker,
-    questmaestroConfigBroker
+    ruleBanPrimitivesBroker,
+    configQuestmaestroBroker
 } from '@questmaestro/eslint-plugin';
 
 // Use individual rule brokers for custom configurations
 const customConfig = {
     rules: {
-        'custom/ban-primitives': banPrimitivesRuleBroker()
+        'custom/ban-primitives': ruleBanPrimitivesBroker()
     }
 };
 ```

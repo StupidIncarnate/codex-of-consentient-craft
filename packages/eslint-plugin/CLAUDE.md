@@ -15,7 +15,7 @@ When creating a new ESLint rule, you MUST update these files:
     - Add to the `rules` type definition
     - Add to the `rules` object
    - Fix test
-4. **Add to config**: `src/brokers/config/questmaestro/questmaestro-config-broker.ts`
+4. **Add to config**: `src/brokers/config/questmaestro/config-questmaestro-broker.ts`
     - Add to `questmaestroCustomRules` object with `'error'` level
 
 Missing any of these steps will result in the rule not being available or enforced. Make sure you run tests for each
@@ -24,7 +24,7 @@ file you modified above and correct any issues.
 ## Testing
 
 - **Rule brokers** (`src/brokers/rule/**`) - Tested with ESLint's RuleTester integration tests, not traditional Jest
-  unit tests. Tests are co-located (e.g., `explicit-return-types-rule-broker.test.ts`).
+  unit tests. Tests are co-located (e.g., `rule-explicit-return-types-broker.test.ts`).
 - `test/helpers/eslintRuleTester.ts` - Creates configured RuleTester with TypeScript parser for rule integration
   tests. Uses `require('@typescript-eslint/parser')` at runtime due to module resolution constraints - top-level import
   fails with `moduleResolution: "node"`.

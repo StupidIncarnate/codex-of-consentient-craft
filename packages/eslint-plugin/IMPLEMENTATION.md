@@ -27,20 +27,20 @@ packages/eslint-plugin/
 │   ├── brokers/
 │   │   ├── rule/
 │   │   │   ├── ban-primitives/
-│   │   │   │   └── ban-primitives-rule-broker.ts    // Creates ESLint rule that bans raw string/number types
+│   │   │   │   └── rule-ban-primitives-broker.ts    // Creates ESLint rule that bans raw string/number types
 │   │   │   ├── require-zod-on-primitives/
-│   │   │   │   └── require-zod-on-primitives-rule-broker.ts // Creates ESLint rule requiring .brand() on z.string()/z.number()
+│   │   │   │   └── rule-require-zod-on-primitives-broker.ts // Creates ESLint rule requiring .brand() on z.string()/z.number()
 │   │   │   ├── enforce-folder-structure/
 │   │   │   │   └── enforce-folder-structure-rule-broker.ts  // Creates ESLint rule validating project folder structure
 │   │   │   └── explicit-return-types/
-│   │   │       └── explicit-return-types-rule-broker.ts     // Creates ESLint rule requiring explicit return types on exports
+│   │   │       └── rule-explicit-return-types-broker.ts     // Creates ESLint rule requiring explicit return types on exports
 │   │   └── config/
 │   │       ├── recommended/
 │   │       │   └── recommended-config-broker.ts     // Creates recommended ESLint flat config with subset of rules
 │   │       ├── strict/
 │   │       │   └── strict-config-broker.ts          // Creates strict ESLint flat config with all rules enabled
 │   │       └── tsconfig/
-│   │           └── tsconfig-broker.ts               // Creates base TSConfig with strict compiler options
+│   │           └── config-tsconfig-broker.ts               // Creates base TSConfig with strict compiler options
 │   ├── transformers/
 │   │   ├── merge-configs/
 │   │   │   └── merge-configs-transformer.ts         // Merges multiple ESLint flat configs into one
@@ -214,7 +214,7 @@ export default [
 ### Test Structure
 
 ```
-src/brokers/rule/ban-primitives/ban-primitives-rule-broker.test.ts
+src/brokers/rule/ban-primitives/rule-ban-primitives-broker.test.ts
 src/brokers/config/recommended/recommended-config-broker.test.ts
 src/transformers/merge-configs/merge-configs-transformer.test.ts
 ```

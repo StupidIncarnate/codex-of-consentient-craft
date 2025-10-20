@@ -1,27 +1,27 @@
-import { banAdhocTypesRuleBroker } from '../brokers/rule/ban-adhoc-types/ban-adhoc-types-rule-broker';
-import { banPrimitivesRuleBroker } from '../brokers/rule/ban-primitives/ban-primitives-rule-broker';
-import { banContractInTestsRuleBroker } from '../brokers/rule/ban-contract-in-tests/ban-contract-in-tests-rule-broker';
-import { banJestMockInTestsRuleBroker } from '../brokers/rule/ban-jest-mock-in-tests/ban-jest-mock-in-tests-rule-broker';
-import { requireZodOnPrimitivesRuleBroker } from '../brokers/rule/require-zod-on-primitives/require-zod-on-primitives-rule-broker';
-import { explicitReturnTypesRuleBroker } from '../brokers/rule/explicit-return-types/explicit-return-types-rule-broker';
-import { enforceProjectStructureRuleBroker } from '../brokers/rule/enforce-project-structure/enforce-project-structure-rule-broker';
-import { enforceImportDependenciesRuleBroker } from '../brokers/rule/enforce-import-dependencies/enforce-import-dependencies-rule-broker';
-import { enforceJestMockedUsageRuleBroker } from '../brokers/rule/enforce-jest-mocked-usage/enforce-jest-mocked-usage-rule-broker';
-import { enforceObjectDestructuringParamsRuleBroker } from '../brokers/rule/enforce-object-destructuring-params/enforce-object-destructuring-params-rule-broker';
-import { enforceOptionalGuardParamsRuleBroker } from '../brokers/rule/enforce-optional-guard-params/enforce-optional-guard-params-rule-broker';
-import { enforceStubPatternsRuleBroker } from '../brokers/rule/enforce-stub-patterns/enforce-stub-patterns-rule-broker';
-import { enforceProxyChildCreationRuleBroker } from '../brokers/rule/enforce-proxy-child-creation/enforce-proxy-child-creation-rule-broker';
-import { enforceProxyPatternsRuleBroker } from '../brokers/rule/enforce-proxy-patterns/enforce-proxy-patterns-rule-broker';
-import { enforceTestColocationRuleBroker } from '../brokers/rule/enforce-test-colocation/enforce-test-colocation-rule-broker';
-import { enforceTestCreationOfProxyRuleBroker } from '../brokers/rule/enforce-test-creation-of-proxy/enforce-test-creation-of-proxy-rule-broker';
-import { enforceTestProxyImportsRuleBroker } from '../brokers/rule/enforce-test-proxy-imports/enforce-test-proxy-imports-rule-broker';
-import { enforceImplementationColocationRuleBroker } from '../brokers/rule/enforce-implementation-colocation/enforce-implementation-colocation-rule-broker';
-import { forbidNonExportedFunctionsRuleBroker } from '../brokers/rule/forbid-non-exported-functions/forbid-non-exported-functions-rule-broker';
-import { jestMockedMustImportRuleBroker } from '../brokers/rule/jest-mocked-must-import/jest-mocked-must-import-rule-broker';
-import { noMutableStateInProxyFactoryRuleBroker } from '../brokers/rule/no-mutable-state-in-proxy-factory/no-mutable-state-in-proxy-factory-rule-broker';
-import { requireContractValidationRuleBroker } from '../brokers/rule/require-contract-validation/require-contract-validation-rule-broker';
-import { noMultiplePropertyAssertionsRuleBroker } from '../brokers/rule/no-multiple-property-assertions/no-multiple-property-assertions-rule-broker';
-import { questmaestroConfigBroker } from '../brokers/config/questmaestro/questmaestro-config-broker';
+import { ruleBanAdhocTypesBroker } from '../brokers/rule/ban-adhoc-types/rule-ban-adhoc-types-broker';
+import { ruleBanPrimitivesBroker } from '../brokers/rule/ban-primitives/rule-ban-primitives-broker';
+import { ruleBanContractInTestsBroker } from '../brokers/rule/ban-contract-in-tests/rule-ban-contract-in-tests-broker';
+import { ruleBanJestMockInTestsBroker } from '../brokers/rule/ban-jest-mock-in-tests/rule-ban-jest-mock-in-tests-broker';
+import { ruleRequireZodOnPrimitivesBroker } from '../brokers/rule/require-zod-on-primitives/rule-require-zod-on-primitives-broker';
+import { ruleExplicitReturnTypesBroker } from '../brokers/rule/explicit-return-types/rule-explicit-return-types-broker';
+import { ruleEnforceProjectStructureBroker } from '../brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker';
+import { ruleEnforceImportDependenciesBroker } from '../brokers/rule/enforce-import-dependencies/rule-enforce-import-dependencies-broker';
+import { ruleEnforceJestMockedUsageBroker } from '../brokers/rule/enforce-jest-mocked-usage/rule-enforce-jest-mocked-usage-broker';
+import { ruleEnforceObjectDestructuringParamsBroker } from '../brokers/rule/enforce-object-destructuring-params/rule-enforce-object-destructuring-params-broker';
+import { ruleEnforceOptionalGuardParamsBroker } from '../brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker';
+import { ruleEnforceStubPatternsBroker } from '../brokers/rule/enforce-stub-patterns/rule-enforce-stub-patterns-broker';
+import { ruleEnforceProxyChildCreationBroker } from '../brokers/rule/enforce-proxy-child-creation/rule-enforce-proxy-child-creation-broker';
+import { ruleEnforceProxyPatternsBroker } from '../brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker';
+import { ruleEnforceTestColocationBroker } from '../brokers/rule/enforce-test-colocation/rule-enforce-test-colocation-broker';
+import { ruleEnforceTestCreationOfProxyBroker } from '../brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker';
+import { ruleEnforceTestProxyImportsBroker } from '../brokers/rule/enforce-test-proxy-imports/rule-enforce-test-proxy-imports-broker';
+import { ruleEnforceImplementationColocationBroker } from '../brokers/rule/enforce-implementation-colocation/rule-enforce-implementation-colocation-broker';
+import { ruleForbidNonExportedFunctionsBroker } from '../brokers/rule/forbid-non-exported-functions/rule-forbid-non-exported-functions-broker';
+import { ruleJestMockedMustImportBroker } from '../brokers/rule/jest-mocked-must-import/rule-jest-mocked-must-import-broker';
+import { ruleNoMutableStateInProxyFactoryBroker } from '../brokers/rule/no-mutable-state-in-proxy-factory/rule-no-mutable-state-in-proxy-factory-broker';
+import { ruleRequireContractValidationBroker } from '../brokers/rule/require-contract-validation/rule-require-contract-validation-broker';
+import { ruleNoMultiplePropertyAssertionsBroker } from '../brokers/rule/no-multiple-property-assertions/rule-no-multiple-property-assertions-broker';
+import { configQuestmaestroBroker } from '../brokers/config/questmaestro/config-questmaestro-broker';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
 import type { EslintRule } from '../contracts/eslint-rule/eslint-rule-contract';
 
@@ -61,31 +61,31 @@ export const startEslintPlugin = (): {
 } =>
   ({
     rules: {
-      'ban-adhoc-types': banAdhocTypesRuleBroker(),
-      'ban-primitives': banPrimitivesRuleBroker(),
-      'ban-contract-in-tests': banContractInTestsRuleBroker(),
-      'ban-jest-mock-in-tests': banJestMockInTestsRuleBroker(),
-      'require-zod-on-primitives': requireZodOnPrimitivesRuleBroker(),
-      'explicit-return-types': explicitReturnTypesRuleBroker(),
-      'enforce-project-structure': enforceProjectStructureRuleBroker(),
-      'enforce-import-dependencies': enforceImportDependenciesRuleBroker(),
-      'enforce-jest-mocked-usage': enforceJestMockedUsageRuleBroker(),
-      'enforce-object-destructuring-params': enforceObjectDestructuringParamsRuleBroker(),
-      'enforce-optional-guard-params': enforceOptionalGuardParamsRuleBroker(),
-      'enforce-stub-patterns': enforceStubPatternsRuleBroker(),
-      'enforce-proxy-child-creation': enforceProxyChildCreationRuleBroker(),
-      'enforce-proxy-patterns': enforceProxyPatternsRuleBroker(),
-      'enforce-test-colocation': enforceTestColocationRuleBroker(),
-      'enforce-test-creation-of-proxy': enforceTestCreationOfProxyRuleBroker(),
-      'enforce-test-proxy-imports': enforceTestProxyImportsRuleBroker(),
-      'enforce-implementation-colocation': enforceImplementationColocationRuleBroker(),
-      'forbid-non-exported-functions': forbidNonExportedFunctionsRuleBroker(),
-      'jest-mocked-must-import': jestMockedMustImportRuleBroker(),
-      'no-mutable-state-in-proxy-factory': noMutableStateInProxyFactoryRuleBroker(),
-      'require-contract-validation': requireContractValidationRuleBroker(),
-      'no-multiple-property-assertions': noMultiplePropertyAssertionsRuleBroker(),
+      'ban-adhoc-types': ruleBanAdhocTypesBroker(),
+      'ban-primitives': ruleBanPrimitivesBroker(),
+      'ban-contract-in-tests': ruleBanContractInTestsBroker(),
+      'ban-jest-mock-in-tests': ruleBanJestMockInTestsBroker(),
+      'require-zod-on-primitives': ruleRequireZodOnPrimitivesBroker(),
+      'explicit-return-types': ruleExplicitReturnTypesBroker(),
+      'enforce-project-structure': ruleEnforceProjectStructureBroker(),
+      'enforce-import-dependencies': ruleEnforceImportDependenciesBroker(),
+      'enforce-jest-mocked-usage': ruleEnforceJestMockedUsageBroker(),
+      'enforce-object-destructuring-params': ruleEnforceObjectDestructuringParamsBroker(),
+      'enforce-optional-guard-params': ruleEnforceOptionalGuardParamsBroker(),
+      'enforce-stub-patterns': ruleEnforceStubPatternsBroker(),
+      'enforce-proxy-child-creation': ruleEnforceProxyChildCreationBroker(),
+      'enforce-proxy-patterns': ruleEnforceProxyPatternsBroker(),
+      'enforce-test-colocation': ruleEnforceTestColocationBroker(),
+      'enforce-test-creation-of-proxy': ruleEnforceTestCreationOfProxyBroker(),
+      'enforce-test-proxy-imports': ruleEnforceTestProxyImportsBroker(),
+      'enforce-implementation-colocation': ruleEnforceImplementationColocationBroker(),
+      'forbid-non-exported-functions': ruleForbidNonExportedFunctionsBroker(),
+      'jest-mocked-must-import': ruleJestMockedMustImportBroker(),
+      'no-mutable-state-in-proxy-factory': ruleNoMutableStateInProxyFactoryBroker(),
+      'require-contract-validation': ruleRequireContractValidationBroker(),
+      'no-multiple-property-assertions': ruleNoMultiplePropertyAssertionsBroker(),
     },
     configs: {
-      questmaestro: questmaestroConfigBroker(),
+      questmaestro: configQuestmaestroBroker(),
     },
   }) as const;
