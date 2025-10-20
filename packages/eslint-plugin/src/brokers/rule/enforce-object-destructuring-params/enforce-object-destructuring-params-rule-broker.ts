@@ -3,19 +3,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
-interface FunctionLike {
-  params: {
-    type: string;
-    left?: {
-      type: string;
-    };
-  }[];
-  parent?: {
-    type: string;
-  };
-}
-
-const isCallbackFunction = ({ funcNode }: { funcNode: FunctionLike }): boolean => {
+const isCallbackFunction = ({ funcNode }: { funcNode: Tsestree }): boolean => {
   // Check if this function is passed as an argument to a method call
   // e.g., .refine((x) => ...), .map((x) => ...), .filter((x) => ...)
   if (!funcNode.parent) {
@@ -34,10 +22,10 @@ const checkParams = ({
   funcNode,
   context,
 }: {
-  funcNode: FunctionLike;
+  funcNode: Tsestree;
   context: EslintContext;
 }): void => {
-  if (funcNode.params.length === 0 || funcNode.params.length > 1) {
+  if (!funcNode.params || funcNode.params.length === 0 || funcNode.params.length > 1) {
     return; // No params is fine, max-params rule will catch multiple params
   }
 
@@ -89,8 +77,7 @@ export const enforceObjectDestructuringParamsRuleBroker = (): EslintRule => ({
       ArrowFunctionExpression: (node: Tsestree): void => {
         functionDepth++;
         if (functionDepth === 1) {
-          const arrowNode = node as unknown as FunctionLike;
-          checkParams({ funcNode: arrowNode, context: ctx });
+          checkParams({ funcNode: node, context: ctx });
         }
       },
       'ArrowFunctionExpression:exit': (): void => {
@@ -99,8 +86,7 @@ export const enforceObjectDestructuringParamsRuleBroker = (): EslintRule => ({
       FunctionDeclaration: (node: Tsestree): void => {
         functionDepth++;
         if (functionDepth === 1) {
-          const funcNode = node as unknown as FunctionLike;
-          checkParams({ funcNode, context: ctx });
+          checkParams({ funcNode: node, context: ctx });
         }
       },
       'FunctionDeclaration:exit': (): void => {
@@ -109,8 +95,7 @@ export const enforceObjectDestructuringParamsRuleBroker = (): EslintRule => ({
       FunctionExpression: (node: Tsestree): void => {
         functionDepth++;
         if (functionDepth === 1) {
-          const funcNode = node as unknown as FunctionLike;
-          checkParams({ funcNode, context: ctx });
+          checkParams({ funcNode: node, context: ctx });
         }
       },
       'FunctionExpression:exit': (): void => {

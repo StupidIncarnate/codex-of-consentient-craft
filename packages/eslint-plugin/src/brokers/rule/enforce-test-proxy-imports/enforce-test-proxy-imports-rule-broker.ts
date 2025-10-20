@@ -6,10 +6,6 @@ import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard
 import { testFilePathToColocatedProxyPathTransformer } from '../../../transformers/test-file-path-to-colocated-proxy-path/test-file-path-to-colocated-proxy-path-transformer';
 import { filePathContract } from '@questmaestro/shared/contracts';
 
-interface NodeWithSource {
-  source?: { value?: unknown };
-}
-
 export const enforceTestProxyImportsRuleBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {
@@ -51,8 +47,7 @@ export const enforceTestProxyImportsRuleBroker = (): EslintRule => ({
 
     return {
       ImportDeclaration: (node: Tsestree): void => {
-        const nodeWithSource = node as unknown as NodeWithSource;
-        const importSource = nodeWithSource.source?.value;
+        const importSource = node.source?.value;
 
         if (typeof importSource !== 'string') {
           return;

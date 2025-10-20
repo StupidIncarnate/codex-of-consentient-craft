@@ -397,23 +397,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'guards',
             importedFolder: 'brokers',
-            allowed: 'contracts/, statics/, errors/',
-          },
-        },
-      ],
-    },
-
-    // Guards cannot import from transformers
-    {
-      code: 'import { userTransformer } from "../../transformers/user/user-transformer";',
-      filename: '/project/src/guards/user/user-guard.ts',
-      errors: [
-        {
-          messageId: 'forbiddenImport',
-          data: {
-            folderType: 'guards',
-            importedFolder: 'transformers',
-            allowed: 'contracts/, statics/, errors/',
+            allowed: 'contracts/, statics/, errors/, guards/, transformers/',
           },
         },
       ],
@@ -517,7 +501,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'transformers',
             importedFolder: 'brokers',
-            allowed: 'contracts/, statics/, errors/',
+            allowed: 'contracts/, statics/, errors/, guards/, transformers/',
           },
         },
       ],
@@ -1015,7 +999,7 @@ ruleTester.run('enforce-import-dependencies', enforceImportDependenciesRuleBroke
           data: {
             folderType: 'guards',
             importedFolder: 'brokers',
-            allowed: 'contracts/, statics/, errors/',
+            allowed: 'contracts/, statics/, errors/, guards/, transformers/',
           },
         },
       ],

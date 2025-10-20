@@ -4,40 +4,6 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter';
 
-interface NodeWithSource {
-  source?: {
-    value?: unknown;
-  };
-}
-
-interface NodeWithSpecifiers {
-  specifiers?: Tsestree[];
-}
-
-interface NodeWithImported {
-  imported?: {
-    name?: string;
-  };
-}
-
-interface NodeWithLocal {
-  local?: {
-    name?: string;
-  };
-}
-
-interface NodeWithCallee {
-  callee?: Tsestree;
-}
-
-interface NodeWithName {
-  name?: string;
-}
-
-interface NodeWithId {
-  id?: Tsestree | null;
-}
-
 export const enforceProxyChildCreationRuleBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {
@@ -93,8 +59,7 @@ export const enforceProxyChildCreationRuleBroker = (): EslintRule => ({
     return {
       // Track proxy file imports
       ImportDeclaration: (node: Tsestree): void => {
-        const importNode = node as unknown as NodeWithSource & NodeWithSpecifiers;
-        const { source } = importNode;
+        const { source, specifiers } = node;
         if (!source || typeof source.value !== 'string') return;
 
         const importPath = source.value;
@@ -105,14 +70,11 @@ export const enforceProxyChildCreationRuleBroker = (): EslintRule => ({
         }
 
         // Extract imported names
-        const { specifiers } = importNode;
         if (!specifiers) return;
 
         for (const specifier of specifiers) {
-          const specType = (specifier as { type: string }).type;
-          if (specType === 'ImportSpecifier') {
-            const importSpec = specifier as unknown as NodeWithImported & NodeWithLocal;
-            const importedName = importSpec.imported?.name || importSpec.local?.name;
+          if (specifier.type === 'ImportSpecifier') {
+            const importedName = specifier.imported?.name || specifier.local?.name;
             if (importedName) {
               proxyImports.set(importedName, importPath);
             }
@@ -125,14 +87,12 @@ export const enforceProxyChildCreationRuleBroker = (): EslintRule => ({
         if (!insideProxyFunction) return;
         if (foundReturnStatement) return;
 
-        const callNode = node as unknown as NodeWithCallee;
-        const { callee } = callNode;
+        const { callee } = node;
         if (!callee) return;
 
-        const calleeType = (callee as { type: string }).type;
-        if (calleeType === 'Identifier') {
-          const calleeName = (callee as NodeWithName).name;
-          if (calleeName?.endsWith('Proxy')) {
+        if (callee.type === 'Identifier') {
+          const calleeName = callee.name;
+          if (calleeName !== undefined && calleeName.endsWith('Proxy')) {
             proxyCreationCalls.add(calleeName);
           }
         }
@@ -141,13 +101,18 @@ export const enforceProxyChildCreationRuleBroker = (): EslintRule => ({
       // Track when we enter the proxy function
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression':
         (node: Tsestree): void => {
-          const ancestors = ctx.sourceCode?.getAncestors(node) || [];
+          const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
           for (const ancestor of ancestors) {
-            const ancestorType = (ancestor as { type: string }).type;
-            if (ancestorType === 'VariableDeclarator') {
-              const declarator = ancestor as NodeWithId;
-              const id = declarator.id as NodeWithName | undefined;
-              if (id?.name?.endsWith('Proxy')) {
+            // Type guard: check if ancestor is a Tsestree node with VariableDeclarator type
+            if (
+              typeof ancestor === 'object' &&
+              ancestor !== null &&
+              'type' in ancestor &&
+              'id' in ancestor &&
+              ancestor.type === 'VariableDeclarator'
+            ) {
+              const ancestorId = Reflect.get(ancestor, 'id') as Tsestree | null | undefined;
+              if (ancestorId?.name !== undefined && ancestorId.name.endsWith('Proxy')) {
                 insideProxyFunction = true;
                 foundReturnStatement = false;
                 break;

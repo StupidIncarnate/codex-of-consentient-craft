@@ -6,6 +6,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'statics/[domain]/[domain]-statics.ts',
     allowedImports: [],
+    disallowAdhocTypes: true,
   },
   contracts: {
     fileSuffix: ['-contract.ts', '.stub.ts'],
@@ -14,6 +15,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'contracts/[domain]/[domain]-contract.ts',
     allowedImports: ['statics/', 'errors/', 'contracts/', 'zod', '@questmaestro/shared/@types'],
+    disallowAdhocTypes: false,
   },
   guards: {
     fileSuffix: '-guard.ts',
@@ -22,6 +24,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'guards/[domain]/[domain]-guard.ts',
     allowedImports: ['contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
+    disallowAdhocTypes: true,
   },
   transformers: {
     fileSuffix: '-transformer.ts',
@@ -30,6 +33,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'transformers/[domain]/[domain]-transformer.ts',
     allowedImports: ['contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
+    disallowAdhocTypes: true,
   },
   errors: {
     fileSuffix: '-error.ts',
@@ -38,6 +42,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'errors/[domain]/[domain]-error.ts',
     allowedImports: [],
+    disallowAdhocTypes: true,
   },
   flows: {
     fileSuffix: ['-flow.ts', '-flow.tsx'],
@@ -46,6 +51,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'flows/[domain]/[domain]-flow.tsx',
     allowedImports: ['responders/'],
+    disallowAdhocTypes: true,
   },
   adapters: {
     fileSuffix: '-adapter.ts',
@@ -54,6 +60,7 @@ export const folderConfigStatics = {
     folderDepth: 2,
     folderPattern: 'adapters/[package]/[operation]/[package]-[operation]-adapter.ts',
     allowedImports: ['node_modules', 'middleware/', 'statics/', 'contracts/', 'guards/'],
+    disallowAdhocTypes: false,
   },
   middleware: {
     fileSuffix: '-middleware.ts',
@@ -62,6 +69,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'middleware/[name]/[name]-middleware.ts',
     allowedImports: ['adapters/', 'middleware/', 'statics/'],
+    disallowAdhocTypes: true,
   },
   brokers: {
     fileSuffix: '-broker.ts',
@@ -78,6 +86,7 @@ export const folderConfigStatics = {
       'guards/',
       'transformers/',
     ],
+    disallowAdhocTypes: true,
   },
   bindings: {
     fileSuffix: '-binding.ts',
@@ -94,6 +103,7 @@ export const folderConfigStatics = {
       'guards/',
       'transformers/',
     ],
+    disallowAdhocTypes: true,
   },
   state: {
     fileSuffix: '-state.ts',
@@ -102,6 +112,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'state/[name]/[name]-state.ts',
     allowedImports: ['contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
+    disallowAdhocTypes: true,
   },
   responders: {
     fileSuffix: '-responder.ts',
@@ -120,6 +131,7 @@ export const folderConfigStatics = {
       'statics/',
       'errors/',
     ],
+    disallowAdhocTypes: true,
   },
   widgets: {
     fileSuffix: ['-widget.tsx', '-widget.ts'],
@@ -137,6 +149,7 @@ export const folderConfigStatics = {
       'statics/',
       'errors/',
     ],
+    disallowAdhocTypes: false,
   },
   startup: {
     fileSuffix: '.ts',
@@ -145,6 +158,7 @@ export const folderConfigStatics = {
     folderDepth: 0,
     folderPattern: 'startup/start-[name].ts',
     allowedImports: ['*'],
+    disallowAdhocTypes: true,
   },
   assets: {
     fileSuffix: '',
@@ -153,6 +167,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'assets/[type]/[filename]',
     allowedImports: [],
+    disallowAdhocTypes: true,
   },
   migrations: {
     fileSuffix: '',
@@ -161,5 +176,6 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'migrations/[version]/[number]-[name].sql',
     allowedImports: [],
+    disallowAdhocTypes: true,
   },
 } as const;

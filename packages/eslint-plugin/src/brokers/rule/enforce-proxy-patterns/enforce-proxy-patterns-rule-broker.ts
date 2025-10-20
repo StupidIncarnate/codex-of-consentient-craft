@@ -5,58 +5,6 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@questmaestro/shared/contracts';
 
-interface NodeWithBody {
-  body?: Tsestree | null;
-}
-
-interface NodeWithDeclarations {
-  declarations?: Tsestree[];
-}
-
-interface NodeWithId {
-  id?: Tsestree | null;
-}
-
-interface NodeWithName {
-  name?: string;
-}
-
-interface NodeWithInit {
-  init?: Tsestree | null;
-}
-
-interface NodeWithCallee {
-  callee?: Tsestree;
-}
-
-interface NodeWithObject {
-  object?: Tsestree;
-}
-
-interface NodeWithProperty {
-  property?: Tsestree;
-}
-
-interface NodeWithArguments {
-  arguments?: Tsestree[];
-}
-
-interface NodeWithReturnType {
-  returnType?: Tsestree | null;
-}
-
-interface NodeWithTypeAnnotation {
-  typeAnnotation?: Tsestree | null;
-}
-
-interface NodeWithProperties {
-  properties?: Tsestree[];
-}
-
-interface NodeWithKey {
-  key?: Tsestree;
-}
-
 export const enforceProxyPatternsRuleBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {
@@ -137,17 +85,13 @@ export const enforceProxyPatternsRuleBroker = (): EslintRule => ({
 
       // Check for contract imports (must use .stub.ts, not -contract.ts)
       ImportDeclaration: (node: Tsestree): void => {
-        const importNode = node as unknown as {
-          source?: { value?: unknown };
-          importKind?: string;
-        };
-        const { source } = importNode;
+        const { source, importKind } = node;
         if (!source || typeof source.value !== 'string') return;
 
         const importPath = source.value;
 
         // Allow type-only imports (import type { ... })
-        if (importNode.importKind === 'type') {
+        if (importKind === 'type') {
           return;
         }
 
@@ -169,23 +113,20 @@ export const enforceProxyPatternsRuleBroker = (): EslintRule => ({
 
       // Check for jest.mock() calls inside functions, jest.mocked() arguments, and child proxy creation
       CallExpression: (node: Tsestree): void => {
-        // Use structural interfaces to avoid type assertion issues
-        const nodeObj = node as unknown as NodeWithCallee & NodeWithArguments;
-        const { callee } = nodeObj;
+        const { callee } = node;
 
         if (!callee) return;
 
         // Check for child proxy creation (*Proxy() calls)
-        const calleeType = (callee as { type: string }).type;
-        if (calleeType === 'Identifier') {
-          const calleeName = (callee as NodeWithName).name;
+        if (callee.type === 'Identifier') {
+          const calleeName = callee.name;
           if (calleeName?.endsWith('Proxy')) {
             // Found a child proxy creation
             const isInsideProxyFunction = currentProxyFunction !== null;
             const isBeforeReturn = isInsideProxyFunction && !foundReturnStatement;
 
             childProxyCreations.push({
-              node: node as unknown as Tsestree,
+              node,
               name: calleeName,
               isInsideProxyFunction,
               isBeforeReturn,
@@ -194,22 +135,20 @@ export const enforceProxyPatternsRuleBroker = (): EslintRule => ({
         }
 
         // Check if this is jest.mock() or jest.mocked()
-        const isMemberExpression = callee && typeof callee === 'object' && 'object' in callee;
-        if (isMemberExpression) {
-          const memberCallee = callee as NodeWithObject & NodeWithProperty;
-          const object = memberCallee.object as NodeWithName | undefined;
-          const property = memberCallee.property as NodeWithName | undefined;
+        if (callee.type === 'MemberExpression') {
+          const object = callee.object;
+          const property = callee.property;
 
           // Check jest.mock() - must be at module level
           if (object?.name === 'jest' && property?.name === 'mock') {
             // Check if we're inside a function
             const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
             const isInsideFunction = ancestors.some((ancestor) => {
-              const ancestorType = (ancestor as { type: string }).type;
+              const ancestorNode = ancestor as Tsestree;
               return (
-                ancestorType === 'FunctionDeclaration' ||
-                ancestorType === 'FunctionExpression' ||
-                ancestorType === 'ArrowFunctionExpression'
+                ancestorNode.type === 'FunctionDeclaration' ||
+                ancestorNode.type === 'FunctionExpression' ||
+                ancestorNode.type === 'ArrowFunctionExpression'
               );
             });
 
@@ -223,9 +162,9 @@ export const enforceProxyPatternsRuleBroker = (): EslintRule => ({
 
           // Check jest.mocked() - argument must be npm package, not implementation code
           if (object?.name === 'jest' && property?.name === 'mocked') {
-            const args = nodeObj.arguments;
+            const args = node.arguments;
             if (args && args.length > 0) {
-              const firstArg = args[0] as NodeWithName | undefined;
+              const firstArg = args[0];
               if (firstArg?.name) {
                 const argName = firstArg.name;
 
@@ -267,10 +206,9 @@ export const enforceProxyPatternsRuleBroker = (): EslintRule => ({
           // Check if this is a proxy function
           const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
           for (const ancestor of ancestors) {
-            const ancestorType = (ancestor as { type: string }).type;
-            if (ancestorType === 'VariableDeclarator') {
-              const declarator = ancestor as NodeWithId;
-              const id = declarator.id as NodeWithName | undefined;
+            const ancestorNode = ancestor as Tsestree;
+            if (ancestorNode.type === 'VariableDeclarator') {
+              const id = ancestorNode.id;
               if (id?.name?.endsWith('Proxy')) {
                 currentProxyFunction = node;
                 foundReturnStatement = false;
@@ -296,22 +234,18 @@ export const enforceProxyPatternsRuleBroker = (): EslintRule => ({
 
       // Find the exported proxy function
       ExportNamedDeclaration: (node: Tsestree): void => {
-        const exportNode = node as unknown as { declaration?: Tsestree | null };
-        const { declaration } = exportNode;
+        const { declaration } = node;
 
         if (!declaration) return;
 
-        const declarationType = (declaration as { type: string }).type;
-
         // We need VariableDeclaration (export const foo = ...)
-        if (declarationType !== 'VariableDeclaration') return;
+        if (declaration.type !== 'VariableDeclaration') return;
 
-        const varDecl = declaration as NodeWithDeclarations;
-        const { declarations } = varDecl;
+        const { declarations } = declaration;
         if (!declarations || declarations.length === 0) return;
 
-        const firstDeclaration = declarations[0] as unknown as NodeWithId & NodeWithInit;
-        const id = firstDeclaration?.id as NodeWithName | undefined;
+        const firstDeclaration = declarations[0];
+        const id = firstDeclaration?.id;
         const init = firstDeclaration?.init;
 
         if (!id || !init) return;
@@ -320,8 +254,7 @@ export const enforceProxyPatternsRuleBroker = (): EslintRule => ({
         const { name } = id;
         if (name?.endsWith('Proxy')) {
           // Check the function's return type and body
-          const initType = (init as { type: string }).type;
-          if (initType === 'ArrowFunctionExpression' || initType === 'FunctionExpression') {
+          if (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') {
             checkProxyFunctionReturn(init, ctx);
 
             // For adapter proxies, check that mock setup happens in constructor
@@ -361,17 +294,15 @@ export const enforceProxyPatternsRuleBroker = (): EslintRule => ({
 });
 
 const checkProxyFunctionReturn = (functionNode: Tsestree, context: EslintContext): void => {
-  const funcNode = functionNode as NodeWithBody & NodeWithReturnType;
-  const { body } = funcNode;
+  const { body, returnType } = functionNode;
 
   if (!body) return;
 
   // Check explicit return type annotation if present
-  const { returnType } = funcNode;
   if (returnType) {
-    const { typeAnnotation } = returnType as NodeWithTypeAnnotation;
+    const { typeAnnotation } = returnType;
     if (typeAnnotation) {
-      const typeAnnotationType = (typeAnnotation as { type: string }).type;
+      const typeAnnotationType = typeAnnotation.type;
 
       // Check if return type is void, primitive, or array
       if (
@@ -391,20 +322,20 @@ const checkProxyFunctionReturn = (functionNode: Tsestree, context: EslintContext
     }
   }
 
-  // Check function body
-  const bodyType = (body as { type: string }).type;
+  // Check function body - handle union type (body can be single node or array)
+  if (Array.isArray(body)) {
+    // Body is an array (shouldn't happen for function bodies, but handle it)
+    return;
+  }
 
-  if (bodyType === 'BlockStatement') {
+  if (body.type === 'BlockStatement') {
     // Block statement has statements in its body array
-    const blockNode = body as { body?: Tsestree[] };
-    const statements = blockNode.body;
-
-    if (statements) {
+    if (body.body && Array.isArray(body.body)) {
+      const statements = body.body;
       let hasReturnStatement = false;
 
       for (const statement of statements) {
-        const stmtType = (statement as { type: string }).type;
-        if (stmtType === 'ReturnStatement') {
+        if (statement.type === 'ReturnStatement') {
           hasReturnStatement = true;
           checkReturnStatement(statement, context, functionNode);
         }
@@ -418,17 +349,17 @@ const checkProxyFunctionReturn = (functionNode: Tsestree, context: EslintContext
         });
       }
     }
-  } else if (bodyType === 'ObjectExpression') {
+  } else if (body.type === 'ObjectExpression') {
     // Arrow function with direct object return: () => ({ ... })
     checkObjectExpression(body, context);
   } else {
     // Direct return of primitives or arrays: () => 'string', () => 42, () => []
     // Check if it's returning non-object
     if (
-      bodyType === 'Literal' ||
-      bodyType === 'TemplateLiteral' ||
-      bodyType === 'ArrayExpression' ||
-      bodyType === 'Identifier'
+      body.type === 'Literal' ||
+      body.type === 'TemplateLiteral' ||
+      body.type === 'ArrayExpression' ||
+      body.type === 'Identifier'
     ) {
       context.report({
         node: functionNode,
@@ -443,11 +374,8 @@ const checkReturnStatement = (
   context: EslintContext,
   functionNode: Tsestree,
 ): void => {
-  const stmtType = (statement as { type: string }).type;
-
-  if (stmtType === 'ReturnStatement') {
-    const returnStmt = statement as { argument?: Tsestree | null };
-    const { argument } = returnStmt;
+  if (statement.type === 'ReturnStatement') {
+    const { argument } = statement;
 
     if (!argument) {
       // Return with no value (void)
@@ -458,14 +386,12 @@ const checkReturnStatement = (
       return;
     }
 
-    const argType = (argument as { type: string }).type;
-
     // Check if returning primitive or array
     if (
-      argType === 'Literal' ||
-      argType === 'TemplateLiteral' ||
-      argType === 'ArrayExpression' ||
-      argType === 'Identifier' // Could be returning a primitive variable
+      argument.type === 'Literal' ||
+      argument.type === 'TemplateLiteral' ||
+      argument.type === 'ArrayExpression' ||
+      argument.type === 'Identifier' // Could be returning a primitive variable
     ) {
       context.report({
         node: functionNode,
@@ -475,24 +401,21 @@ const checkReturnStatement = (
     }
 
     // Check if returning object
-    if (argType === 'ObjectExpression') {
+    if (argument.type === 'ObjectExpression') {
       checkObjectExpression(argument, context);
     }
   }
 };
 
 const checkObjectExpression = (objectNode: Tsestree, context: EslintContext): void => {
-  const objNode = objectNode as NodeWithProperties;
-  const { properties } = objNode;
+  const { properties } = objectNode;
 
   if (!properties) return;
 
   // Check for bootstrap property and mock in helper names
   for (const property of properties) {
-    const propType = (property as { type: string }).type;
-
-    if (propType === 'Property' || propType === 'MethodDefinition') {
-      const key = (property as NodeWithKey).key as NodeWithName | undefined;
+    if (property.type === 'Property' || property.type === 'MethodDefinition') {
+      const key = property.key;
       const keyName = key?.name;
 
       if (keyName === 'bootstrap') {
@@ -520,26 +443,24 @@ const checkObjectExpression = (objectNode: Tsestree, context: EslintContext): vo
 };
 
 const checkAdapterProxyMockSetup = (functionNode: Tsestree, context: EslintContext): void => {
-  const funcNode = functionNode as NodeWithBody;
-  const { body } = funcNode;
+  const { body } = functionNode;
 
   if (!body) return;
 
-  const bodyType = (body as { type: string }).type;
+  // Handle union type - body can be single node or array
+  if (Array.isArray(body)) return;
 
   // Only check BlockStatement functions (not direct returns)
-  if (bodyType !== 'BlockStatement') return;
+  if (body.type !== 'BlockStatement') return;
 
-  const blockNode = body as { body?: Tsestree[] };
-  const statements = blockNode.body;
-
-  if (!statements) return;
+  if (!body.body || !Array.isArray(body.body)) return;
+  const statements = body.body;
 
   // Find return statement position
   let returnStatementIndex = -1;
   for (let i = 0; i < statements.length; i++) {
-    const stmtType = (statements[i] as { type: string }).type;
-    if (stmtType === 'ReturnStatement') {
+    const stmt = statements[i];
+    if (stmt && stmt.type === 'ReturnStatement') {
       returnStatementIndex = i;
       break;
     }
@@ -553,29 +474,22 @@ const checkAdapterProxyMockSetup = (functionNode: Tsestree, context: EslintConte
 
   for (let i = 0; i < returnStatementIndex; i++) {
     const statement = statements[i];
-    const stmtType = (statement as { type: string }).type;
+    if (!statement) continue;
 
     // Check for ExpressionStatement or VariableDeclaration
-    if (stmtType === 'ExpressionStatement') {
-      const exprStmt = statement as { expression?: Tsestree };
-      const { expression } = exprStmt;
+    if (statement.type === 'ExpressionStatement') {
+      const { expression } = statement;
 
       if (expression) {
-        const exprType = (expression as { type: string }).type;
-
         // Check for CallExpression
-        if (exprType === 'CallExpression') {
-          const callExpr = expression as NodeWithCallee;
-          const { callee } = callExpr;
+        if (expression.type === 'CallExpression') {
+          const { callee } = expression;
 
           if (callee) {
-            const calleeType = (callee as { type: string }).type;
-
             // Check for MemberExpression (jest.spyOn, mock.mockImplementation)
-            if (calleeType === 'MemberExpression') {
-              const memberExpr = callee as NodeWithObject & NodeWithProperty;
-              const object = memberExpr.object as NodeWithName | undefined;
-              const property = memberExpr.property as NodeWithName | undefined;
+            if (callee.type === 'MemberExpression') {
+              const object = callee.object;
+              const property = callee.property;
 
               // Check if calling jest.spyOn
               if (object?.name === 'jest' && property?.name === 'spyOn') {
@@ -599,34 +513,25 @@ const checkAdapterProxyMockSetup = (functionNode: Tsestree, context: EslintConte
           }
         }
       }
-    } else if (stmtType === 'VariableDeclaration') {
+    } else if (statement.type === 'VariableDeclaration') {
       // Check for jest.mocked() or jest.spyOn() in variable declarations
-      const varDecl = statement as NodeWithDeclarations;
-      const { declarations } = varDecl;
+      const { declarations } = statement;
 
       if (declarations) {
         for (const declaration of declarations) {
-          const declType = (declaration as { type: string }).type;
-          if (declType === 'VariableDeclarator') {
-            const declarator = declaration as NodeWithInit;
-            const { init } = declarator;
+          if (declaration.type === 'VariableDeclarator') {
+            const { init } = declaration;
 
             if (init) {
-              const initType = (init as { type: string }).type;
-
               // Check for CallExpression (jest.mocked(), jest.spyOn())
-              if (initType === 'CallExpression') {
-                const callExpr = init as NodeWithCallee;
-                const { callee } = callExpr;
+              if (init.type === 'CallExpression') {
+                const { callee } = init;
 
                 if (callee) {
-                  const calleeType = (callee as { type: string }).type;
-
                   // Check for MemberExpression (jest.mocked, jest.spyOn)
-                  if (calleeType === 'MemberExpression') {
-                    const memberExpr = callee as NodeWithObject & NodeWithProperty;
-                    const object = memberExpr.object as NodeWithName | undefined;
-                    const property = memberExpr.property as NodeWithName | undefined;
+                  if (callee.type === 'MemberExpression') {
+                    const object = callee.object;
+                    const property = callee.property;
 
                     // Check if calling jest.mocked or jest.spyOn
                     if (
@@ -655,26 +560,24 @@ const checkAdapterProxyMockSetup = (functionNode: Tsestree, context: EslintConte
 };
 
 const checkProxyConstructorSideEffects = (functionNode: Tsestree, context: EslintContext): void => {
-  const funcNode = functionNode as NodeWithBody;
-  const { body } = funcNode;
+  const { body } = functionNode;
 
   if (!body) return;
 
-  const bodyType = (body as { type: string }).type;
+  // Handle union type - body can be single node or array
+  if (Array.isArray(body)) return;
 
   // Only check BlockStatement functions (not direct returns)
-  if (bodyType !== 'BlockStatement') return;
+  if (body.type !== 'BlockStatement') return;
 
-  const blockNode = body as { body?: Tsestree[] };
-  const statements = blockNode.body;
-
-  if (!statements) return;
+  if (!body.body || !Array.isArray(body.body)) return;
+  const statements = body.body;
 
   // Find return statement position
   let returnStatementIndex = -1;
   for (let i = 0; i < statements.length; i++) {
-    const stmtType = (statements[i] as { type: string }).type;
-    if (stmtType === 'ReturnStatement') {
+    const stmt = statements[i];
+    if (stmt && stmt.type === 'ReturnStatement') {
       returnStatementIndex = i;
       break;
     }
@@ -685,31 +588,24 @@ const checkProxyConstructorSideEffects = (functionNode: Tsestree, context: Eslin
   // Check statements before return for side effects
   for (let i = 0; i < returnStatementIndex; i++) {
     const statement = statements[i];
-    const stmtType = (statement as { type: string }).type;
+    if (!statement) continue;
 
     // Check for ExpressionStatement containing side effects
-    if (stmtType === 'ExpressionStatement') {
-      const exprStmt = statement as { expression?: Tsestree };
-      const { expression } = exprStmt;
+    if (statement.type === 'ExpressionStatement') {
+      const { expression } = statement;
 
       if (expression) {
-        const exprType = (expression as { type: string }).type;
-
         // Check for CallExpression
-        if (exprType === 'CallExpression') {
-          const callExpr = expression as NodeWithCallee;
-          const { callee } = callExpr;
+        if (expression.type === 'CallExpression') {
+          const { callee } = expression;
 
           if (callee) {
-            const calleeType = (callee as { type: string }).type;
-
             // Check for MemberExpression (obj.method())
-            if (calleeType === 'MemberExpression') {
-              const memberExpr = callee as NodeWithObject & NodeWithProperty;
-              const object = memberExpr.object as NodeWithName | undefined;
+            if (callee.type === 'MemberExpression') {
+              const object = callee.object;
 
               // Check if it's calling a mock method (allowed)
-              const property = memberExpr.property as NodeWithName | undefined;
+              const property = callee.property;
               const propertyName = property?.name;
               const mockMethods = [
                 'mockImplementation',
@@ -733,7 +629,7 @@ const checkProxyConstructorSideEffects = (functionNode: Tsestree, context: Eslin
                 // Everything else is a side effect
                 if (!isAllowed) {
                   context.report({
-                    node: statement as unknown as Tsestree,
+                    node: statement,
                     messageId: 'proxyConstructorNoSideEffects',
                     data: { type: `${objectName}.${propertyName ?? 'method'}()` },
                   });

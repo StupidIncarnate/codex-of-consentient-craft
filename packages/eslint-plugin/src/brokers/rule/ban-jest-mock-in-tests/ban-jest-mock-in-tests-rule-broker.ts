@@ -28,16 +28,7 @@ export const banJestMockInTestsRuleBroker = (): EslintRule => ({
         const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
 
         // Check if this is a jest function call
-        interface NodeWithCallee {
-          callee?: {
-            type?: string;
-            object?: { name?: string };
-            property?: { name?: string };
-          };
-        }
-
-        const nodeWithCallee = node as unknown as NodeWithCallee;
-        const { callee } = nodeWithCallee;
+        const { callee } = node;
 
         const isJestCall =
           callee?.type === 'MemberExpression' &&

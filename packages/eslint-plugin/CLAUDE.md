@@ -14,10 +14,12 @@ When creating a new ESLint rule, you MUST update these files:
     - Import the rule broker
     - Add to the `rules` type definition
     - Add to the `rules` object
+   - Fix test
 4. **Add to config**: `src/brokers/config/questmaestro/questmaestro-config-broker.ts`
     - Add to `questmaestroCustomRules` object with `'error'` level
 
-Missing any of these steps will result in the rule not being available or enforced.
+Missing any of these steps will result in the rule not being available or enforced. Make sure you run tests for each
+file you modified above and correct any issues.
 
 ## Testing
 

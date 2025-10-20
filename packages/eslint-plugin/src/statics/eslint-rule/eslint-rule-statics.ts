@@ -512,7 +512,8 @@ export const eslintRuleStatics = {
     // ✅ let result; if (condition) { result = a } else { result = b }
     // ❌ const result = condition ? (a ? b : c) : d
     // Disallows nested ternary expressions
-    'no-nested-ternary': 'error',
+    // LLMs are pretty good with doing this
+    'no-nested-ternary': 'off',
 
     // ✅ const obj = new MyClass()
     // ❌ MyClass()

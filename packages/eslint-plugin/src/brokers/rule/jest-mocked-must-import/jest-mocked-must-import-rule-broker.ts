@@ -3,46 +3,12 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
-interface CallExpressionNode {
-  type: string;
-  callee?: {
-    type: string;
-    object?: {
-      type: string;
-      name?: string;
-    };
-    property?: {
-      type: string;
-      name?: string;
-    };
-  };
-  arguments?: unknown[];
-}
-
-interface ImportSpecifier {
-  type: string;
-  imported?: {
-    name?: string;
-  };
-  local?: {
-    name?: string;
-  };
-}
-
-interface ImportDeclarationNode {
-  type: string;
-  specifiers?: ImportSpecifier[];
-  source?: {
-    value?: string;
-  };
-}
-
 const isProxyFile = ({ filename }: { filename: string }): boolean => filename.endsWith('.proxy.ts');
 
 const isAdapterProxy = ({ filename }: { filename: string }): boolean =>
   filename.includes('-adapter.proxy.ts');
 
-const isJestMockedCall = (node: CallExpressionNode): boolean =>
+const isJestMockedCall = (node: Tsestree): boolean =>
   node.callee?.type === 'MemberExpression' &&
   node.callee.object?.type === 'Identifier' &&
   node.callee.object.name === 'jest' &&
@@ -64,18 +30,13 @@ const isNpmPackage = ({ importSource }: { importSource: string }): boolean => {
   return true;
 };
 
-const getMockedArgumentName = (node: CallExpressionNode): string | null => {
+const getMockedArgumentName = (node: Tsestree): string | null => {
   if (!node.arguments || node.arguments.length === 0) {
     return null;
   }
 
-  interface ArgumentWithName {
-    type: string;
-    name?: string;
-  }
-
-  const firstArg = node.arguments[0] as ArgumentWithName;
-  if (firstArg.type === 'Identifier' && firstArg.name) {
+  const firstArg = node.arguments[0];
+  if (firstArg && firstArg.type === 'Identifier' && firstArg.name) {
     return firstArg.name;
   }
 
@@ -116,15 +77,14 @@ export const jestMockedMustImportRuleBroker = (): EslintRule => {
       return {
         // Track all imports
         ImportDeclaration: (node: Tsestree): void => {
-          const importNode = node as unknown as ImportDeclarationNode;
-          const source = importNode.source?.value;
+          const source = node.source?.value;
 
           if (typeof source !== 'string') {
             return;
           }
 
           // Track all imported names
-          const specifiers = importNode.specifiers ?? [];
+          const specifiers = node.specifiers ?? [];
           for (const spec of specifiers) {
             if (spec.type === 'ImportSpecifier' && spec.local?.name) {
               // Named import: import { foo } from 'bar'
@@ -141,13 +101,11 @@ export const jestMockedMustImportRuleBroker = (): EslintRule => {
 
         // Check jest.mocked() calls
         CallExpression: (node: Tsestree): void => {
-          const callNode = node as unknown as CallExpressionNode;
-
-          if (!isJestMockedCall(callNode)) {
+          if (!isJestMockedCall(node)) {
             return;
           }
 
-          const argumentName = getMockedArgumentName(callNode);
+          const argumentName = getMockedArgumentName(node);
           if (!argumentName) {
             return;
           }

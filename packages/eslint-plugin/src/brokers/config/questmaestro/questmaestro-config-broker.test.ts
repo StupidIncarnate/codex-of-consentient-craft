@@ -16,14 +16,14 @@ describe('questmaestroConfigBroker', () => {
 
       expect(typescript).toBeDefined();
       expect(typescript.rules).toBeDefined();
-      expect(typescript.rules?.['@questmaestro/ban-primitives']).toBe('error');
+      expect(typescript.rules?.['@questmaestro/ban-contract-in-tests']).toBe('error');
       expect(typescript.rules?.['@questmaestro/enforce-object-destructuring-params']).toBe('error');
     });
 
     it('VALID: {} => fileOverrides includes stub file config', () => {
       const { fileOverrides } = questmaestroConfigBroker();
       const stubConfig = fileOverrides.find((config) => {
-        return config.files?.includes('**/*.stub.ts');
+        return config.files?.some((file) => file === '**/*.stub.ts');
       });
 
       expect(stubConfig).toBeDefined();

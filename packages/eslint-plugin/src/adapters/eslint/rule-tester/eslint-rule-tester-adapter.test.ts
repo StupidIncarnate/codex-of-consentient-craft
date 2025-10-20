@@ -9,7 +9,9 @@ describe('eslintRuleTesterAdapter', () => {
   it('VALID: {} => returns RuleTester instance', () => {
     const result = eslintRuleTesterAdapter();
 
-    expect(result).toBeInstanceOf(RuleTester);
+    expect(result).toStrictEqual({
+      run: expect.any(Function),
+    });
   });
 
   it('VALID: {} => sets global RuleTester for test detection', () => {

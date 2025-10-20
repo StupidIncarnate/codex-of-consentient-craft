@@ -33,11 +33,7 @@ export const banContractInTestsRuleBroker = (): EslintRule => ({
         }
 
         // Extract import source
-        interface NodeWithSource extends Tsestree {
-          source?: { value?: unknown };
-        }
-        const nodeWithSource = node as NodeWithSource;
-        const importSource = nodeWithSource.source?.value;
+        const importSource = node.source?.value;
 
         if (typeof importSource !== 'string') {
           return;
@@ -47,23 +43,11 @@ export const banContractInTestsRuleBroker = (): EslintRule => ({
         // Allow stub imports (files ending with "Stub"), block contract imports
         if (importSource.startsWith('@questmaestro/shared/contracts')) {
           // Check if this is importing a stub by looking at the import specifiers
-          interface ImportSpecifier {
-            imported?: {
-              name?: string;
-            };
-          }
-
-          interface NodeWithSpecifiers {
-            specifiers?: unknown[];
-          }
-
-          const nodeWithSpecifiers = node as unknown as NodeWithSpecifiers;
-          const specifiers = nodeWithSpecifiers.specifiers ?? [];
+          const specifiers = node.specifiers ?? [];
 
           // Check if all imports are stubs (end with "Stub")
           const allImportsAreStubs = specifiers.every((spec) => {
-            const importSpec = spec as ImportSpecifier;
-            const importedName = importSpec.imported?.name ?? '';
+            const importedName = spec.imported?.name ?? '';
             return importedName.endsWith('Stub');
           });
 

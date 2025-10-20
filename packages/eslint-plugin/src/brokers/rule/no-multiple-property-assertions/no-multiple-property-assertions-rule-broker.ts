@@ -4,39 +4,8 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 
-interface MemberExpression {
-  type: 'MemberExpression';
-  object: {
-    type?: string;
-    name?: string;
-    object?: unknown;
-  };
-  property: {
-    name?: string;
-  };
-}
-
-interface CallExpression {
-  callee?: {
-    type?: string;
-    name?: string;
-    object?: {
-      type?: string;
-      name?: string;
-    };
-    property?: {
-      name?: string;
-    };
-  };
-  arguments?: {
-    type?: string;
-    object?: unknown;
-    property?: unknown;
-  }[];
-}
-
-const isMemberExpression = (node: unknown): node is MemberExpression =>
-  typeof node === 'object' && node !== null && 'type' in node && node.type === 'MemberExpression';
+const isMemberExpression = (node: Tsestree | null | undefined): node is Tsestree =>
+  node !== null && node !== undefined && node.type === 'MemberExpression';
 
 /**
  * Extracts the root object name from a member expression chain.
@@ -45,21 +14,19 @@ const isMemberExpression = (node: unknown): node is MemberExpression =>
  * - result.user.name => 'result'
  * - obj?.prop => 'obj'
  */
-const getRootObjectName = (expr: MemberExpression): string | null => {
-  let current: MemberExpression | { type?: string; name?: string } = expr;
+const getRootObjectName = (expr: Tsestree): string | null => {
+  let current: Tsestree | null | undefined = expr;
 
   // Traverse up the member expression chain
-  while (isMemberExpression(current)) {
+  while (current !== null && current !== undefined && current.type === 'MemberExpression') {
     current = current.object;
   }
 
   // At the root, should be an Identifier
   if (
-    typeof current === 'object' &&
     current !== null &&
-    'type' in current &&
+    current !== undefined &&
     current.type === 'Identifier' &&
-    'name' in current &&
     typeof current.name === 'string'
   ) {
     return current.name;
@@ -151,40 +118,35 @@ export const noMultiplePropertyAssertionsRuleBroker = (): EslintRule => ({
           return;
         }
 
-        const callNode = node as unknown as CallExpression;
-
         // Check if this is .toStrictEqual() call
         const isToStrictEqual =
-          callNode.callee?.type === 'MemberExpression' &&
-          callNode.callee.property?.name === 'toStrictEqual';
+          node.callee?.type === 'MemberExpression' &&
+          node.callee.property?.name === 'toStrictEqual';
 
         if (!isToStrictEqual) {
           return;
         }
 
         // Check if the object is expect() call
-        const expectCall = callNode.callee?.object;
+        const expectCall = node.callee?.object;
         if (
-          typeof expectCall !== 'object' ||
           expectCall === null ||
-          !('type' in expectCall) ||
+          expectCall === undefined ||
           expectCall.type !== 'CallExpression'
         ) {
           return;
         }
 
-        const expectCallNode = expectCall as CallExpression;
-
         // Verify it's expect() function
         const isExpectCall =
-          expectCallNode.callee?.type === 'Identifier' && expectCallNode.callee.name === 'expect';
+          expectCall.callee?.type === 'Identifier' && expectCall.callee.name === 'expect';
 
         if (!isExpectCall) {
           return;
         }
 
         // Check if expect() argument is a member expression (obj.property)
-        const expectArg = expectCallNode.arguments?.[0];
+        const expectArg = expectCall.arguments?.[0];
         if (!isMemberExpression(expectArg)) {
           return;
         }

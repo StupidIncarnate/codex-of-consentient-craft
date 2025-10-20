@@ -135,7 +135,7 @@ export const enforceProjectStructureRuleBroker = (): EslintRule => {
       return {
         Program: (node: Tsestree): void => {
           // LEVEL 1: Folder Location (HIGHEST)
-          if (forbiddenFolderStatics.folders.includes(firstFolder)) {
+          if (firstFolder in forbiddenFolderStatics.mappings) {
             const suggestion = forbiddenFolderSuggestionTransformer({
               forbiddenFolder: forbiddenFolderNameContract.parse(firstFolder),
             });
@@ -250,29 +250,14 @@ export const enforceProjectStructureRuleBroker = (): EslintRule => {
 
           // LEVEL 4: Export Validation (Structure is valid, now check exports)
 
-          interface ExportInfo {
-            type: string;
-            name?: string;
-            isTypeOnly: boolean;
+          const exports: { type: string; name?: string; isTypeOnly: boolean }[] = [];
+          const { body } = node;
+
+          if (!body || !Array.isArray(body)) {
+            return;
           }
 
-          const programNode = node as unknown as {
-            body: {
-              type: string;
-              exportKind?: 'type' | 'value';
-              declaration?: {
-                type?: string;
-                id?: { name?: string };
-                declarations?: { id?: { type?: string; name?: string } }[];
-              };
-              specifiers?: unknown[];
-              source?: { value?: string };
-            }[];
-          };
-
-          const exports: ExportInfo[] = [];
-
-          for (const statement of programNode.body) {
+          for (const statement of body) {
             // Check for default exports
             if (statement.type === 'ExportDefaultDeclaration') {
               ctx.report({
@@ -294,14 +279,7 @@ export const enforceProjectStructureRuleBroker = (): EslintRule => {
             // Collect named value exports and check for forbidden re-exports
             if (statement.type === 'ExportNamedDeclaration') {
               const isTypeOnly = statement.exportKind === 'type';
-              const { declaration, source } = statement as {
-                declaration?: {
-                  type?: string;
-                  id?: { name?: string };
-                  declarations?: { id?: { type?: string; name?: string } }[];
-                };
-                source?: unknown;
-              };
+              const { declaration, source } = statement;
 
               // Check for value re-exports - forbidden
               // Pattern 1: export { X } from 'pkg' (has source, value export)
@@ -325,7 +303,7 @@ export const enforceProjectStructureRuleBroker = (): EslintRule => {
                 if (declaration.type === 'VariableDeclaration' && declaration.declarations) {
                   for (const declarator of declaration.declarations) {
                     if (declarator.id?.type === 'Identifier' && declarator.id.name) {
-                      const { init } = declarator as { init?: { type?: string } };
+                      const { init } = declarator;
                       const isArrowFunction = init?.type === 'ArrowFunctionExpression';
 
                       // PROXY-SPECIFIC: Must be arrow function (check this first, before adapter check)
@@ -473,7 +451,7 @@ export const enforceProjectStructureRuleBroker = (): EslintRule => {
           }
 
           // Exactly one value export - validate ALL properties and report ALL violations
-          const singleExport = valueExports[0];
+          const [singleExport] = valueExports;
           if (!singleExport) return; // Should never happen due to length check above
           const exportName = singleExport.name ?? '';
 

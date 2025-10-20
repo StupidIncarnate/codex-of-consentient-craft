@@ -1,4 +1,7 @@
-import type { EslintConfig } from '../../../contracts/eslint-config/eslint-config-contract';
+import {
+  eslintConfigContract,
+  type EslintConfig,
+} from '../../../contracts/eslint-config/eslint-config-contract';
 import { eslintRuleStatics } from '../../../statics/eslint-rule/eslint-rule-statics';
 import { typescriptEslintRuleStatics } from '../../../statics/typescript-eslint-rule/typescript-eslint-rule-statics';
 import { jestRuleStatics } from '../../../statics/jest-rule/jest-rule-statics';
@@ -52,6 +55,7 @@ export const questmaestroConfigBroker = ({
   const questmaestroCustomRules = {
     'eslint-comments/no-unlimited-disable': 'error',
     'eslint-comments/no-use': ['error', { allow: [] }],
+    '@questmaestro/ban-adhoc-types': 'error',
     '@questmaestro/ban-contract-in-tests': 'error',
     '@questmaestro/ban-jest-mock-in-tests': 'error',
     // Need to rethink this. Possibly just error on return type of string
@@ -133,14 +137,14 @@ export const questmaestroConfigBroker = ({
   };
 
   // Stub files need to use primitives and magic numbers for type conversion
-  const stubOverride: EslintConfig = {
+  const stubOverride: EslintConfig = eslintConfigContract.parse({
     files: ['**/*.stub.ts', '**/*.stub.tsx'],
     rules: {
       '@typescript-eslint/no-magic-numbers': 'off',
       // // So that we can spread props as a whole object
       // '@questmaestro/enforce-object-destructuring-params': 'off',
     },
-  };
+  });
 
   return {
     typescript: typescriptConfig,

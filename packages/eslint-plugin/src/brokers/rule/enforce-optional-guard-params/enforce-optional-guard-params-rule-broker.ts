@@ -3,36 +3,6 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
-interface TypeElement {
-  type: string;
-  optional?: boolean;
-  key?: {
-    type: string;
-    name?: string;
-  };
-}
-
-interface TypeAnnotationNode {
-  type: string;
-  typeAnnotation?: {
-    type: string;
-    members?: TypeElement[];
-  };
-}
-
-interface ParamNode {
-  type: string;
-  left?: {
-    type: string;
-    typeAnnotation?: TypeAnnotationNode;
-  };
-  typeAnnotation?: TypeAnnotationNode;
-}
-
-interface FunctionNode {
-  params: ParamNode[];
-}
-
 export const enforceOptionalGuardParamsRuleBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {
@@ -61,19 +31,18 @@ export const enforceOptionalGuardParamsRuleBroker = (): EslintRule => ({
     }
 
     const handler = (node: Tsestree): void => {
-      const funcNode = node as unknown as FunctionNode;
-
-      if (funcNode.params.length === 0) {
+      const { params } = node;
+      if (!params || params.length === 0) {
         return;
       }
 
-      const [firstParam] = funcNode.params;
+      const firstParam = params[0];
       if (!firstParam) {
         return;
       }
 
       // Get type annotation - check ObjectPattern first
-      let annotation: TypeAnnotationNode | undefined;
+      let annotation: Tsestree | null | undefined = undefined;
 
       if (firstParam.type === 'ObjectPattern') {
         annotation = firstParam.typeAnnotation;
@@ -84,16 +53,24 @@ export const enforceOptionalGuardParamsRuleBroker = (): EslintRule => ({
         annotation = firstParam.left.typeAnnotation;
       }
 
-      if (!annotation?.typeAnnotation || annotation.typeAnnotation.type !== 'TSTypeLiteral') {
+      if (
+        !annotation ||
+        !annotation.typeAnnotation ||
+        annotation.typeAnnotation.type !== 'TSTypeLiteral'
+      ) {
         return;
       }
 
-      const members = annotation.typeAnnotation.members ?? [];
+      const members = annotation.typeAnnotation.members;
+      if (!members) {
+        return;
+      }
 
       // Check each property in the type annotation
       for (const member of members) {
         if (member.type === 'TSPropertySignature') {
-          const propertyName = member.key?.name ?? '';
+          const propertyKey = member.key;
+          const propertyName = propertyKey?.name ?? '';
           const isOptional = member.optional === true;
 
           if (!isOptional && propertyName.length > 0) {

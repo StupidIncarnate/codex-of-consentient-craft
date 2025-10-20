@@ -3,68 +3,17 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
-interface ObjectPatternParam {
-  type: string;
-  properties?: {
-    type: string;
-  }[];
-  left?: ObjectPatternParam;
-  typeAnnotation?: {
-    typeAnnotation?: {
-      type: string;
-      typeName?: {
-        type: string;
-        name?: string;
-      };
-    };
-  };
-}
-
-interface FunctionLike {
-  params: ObjectPatternParam[];
-  body?: {
-    type: string;
-    body?: unknown[];
-    callee?: {
-      type: string;
-      object?: {
-        type: string;
-        name?: string;
-      };
-      property?: {
-        type: string;
-        name?: string;
-      };
-    };
-    argument?: unknown;
-  };
-}
-
 const isStubFile = ({ context }: { context: EslintContext }): boolean => {
   const filename = String(context.getFilename?.() || '');
   return filename.endsWith('.stub.ts');
 };
 
-interface NodeWithParent {
-  parent?: {
-    type: string;
-    parent?: {
-      type: string;
-      parent?: {
-        type: string;
-      };
-    };
-  };
-}
-
-const isExportedFunction = ({ node }: { node: unknown }): boolean => {
-  const nodeWithParent = node as NodeWithParent;
-
+const isExportedFunction = ({ node }: { node: Tsestree }): boolean => {
   // Check if this arrow function is directly exported
   // Pattern: export const StubName = (...) => {...}
   // AST: ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression
 
-  const { parent } = nodeWithParent;
+  const { parent } = node;
   if (!parent || parent.type !== 'VariableDeclarator') {
     return false;
   }
@@ -82,8 +31,8 @@ const isExportedFunction = ({ node }: { node: unknown }): boolean => {
   return true;
 };
 
-const isSingleValueProperty = ({ funcNode }: { funcNode: FunctionLike }): boolean => {
-  if (funcNode.params.length === 0) {
+const isSingleValueProperty = ({ funcNode }: { funcNode: Tsestree }): boolean => {
+  if (!funcNode.params || funcNode.params.length === 0) {
     return false;
   }
 
@@ -109,14 +58,17 @@ const isSingleValueProperty = ({ funcNode }: { funcNode: FunctionLike }): boolea
     return false;
   }
 
-  const prop = properties[0] as { type: string; key?: { type: string; name?: string } };
+  const prop = properties[0];
+  if (!prop) {
+    return false;
+  }
 
   // Check if it's a single property named 'value'
   return prop.type === 'Property' && prop.key?.type === 'Identifier' && prop.key?.name === 'value';
 };
 
-const hasSpreadOperator = ({ funcNode }: { funcNode: FunctionLike }): boolean => {
-  if (funcNode.params.length === 0) {
+const hasSpreadOperator = ({ funcNode }: { funcNode: Tsestree }): boolean => {
+  if (!funcNode.params || funcNode.params.length === 0) {
     return false;
   }
 
@@ -146,8 +98,8 @@ const hasSpreadOperator = ({ funcNode }: { funcNode: FunctionLike }): boolean =>
   return properties.length === 1 && properties[0]?.type === 'RestElement';
 };
 
-const usesStubArgumentType = ({ funcNode }: { funcNode: FunctionLike }): boolean => {
-  if (funcNode.params.length === 0) {
+const usesStubArgumentType = ({ funcNode }: { funcNode: Tsestree }): boolean => {
+  if (!funcNode.params || funcNode.params.length === 0) {
     return false;
   }
 
@@ -178,21 +130,12 @@ const usesStubArgumentType = ({ funcNode }: { funcNode: FunctionLike }): boolean
   return typeName.name === 'StubArgument';
 };
 
-const isContractParseCall = ({ node }: { node: unknown }): boolean => {
-  const callNode = node as {
-    type: string;
-    callee?: {
-      type: string;
-      object?: { type: string; name?: string };
-      property?: { type: string; name?: string };
-    };
-  };
-
-  if (callNode.type !== 'CallExpression' || !callNode.callee) {
+const isContractParseCall = ({ node }: { node: Tsestree }): boolean => {
+  if (node.type !== 'CallExpression' || !node.callee) {
     return false;
   }
 
-  const { callee } = callNode;
+  const { callee } = node;
   if (callee.type !== 'MemberExpression') {
     return false;
   }
@@ -209,21 +152,13 @@ const isContractParseCall = ({ node }: { node: unknown }): boolean => {
   );
 };
 
-const objectHasContractParseSpread = ({ node }: { node: unknown }): boolean => {
-  const objNode = node as {
-    type: string;
-    properties?: {
-      type: string;
-      argument?: unknown;
-    }[];
-  };
-
-  if (objNode.type !== 'ObjectExpression' || !objNode.properties) {
+const objectHasContractParseSpread = ({ node }: { node: Tsestree }): boolean => {
+  if (node.type !== 'ObjectExpression' || !node.properties) {
     return false;
   }
 
   // Check if any property is a SpreadElement with contract.parse()
-  return objNode.properties.some((prop) => {
+  return node.properties.some((prop) => {
     if (prop.type === 'SpreadElement' && prop.argument) {
       return isContractParseCall({ node: prop.argument });
     }
@@ -231,10 +166,15 @@ const objectHasContractParseSpread = ({ node }: { node: unknown }): boolean => {
   });
 };
 
-const usesContractParse = ({ funcNode }: { funcNode: FunctionLike }): boolean => {
+const usesContractParse = ({ funcNode }: { funcNode: Tsestree }): boolean => {
   const { body } = funcNode;
   if (!body) {
     return false;
+  }
+
+  // body can be an array (BlockStatement.body) or a single node (arrow function expression)
+  if (Array.isArray(body)) {
+    return false; // This shouldn't happen at this level
   }
 
   // Handle arrow function with expression body: () => contract.parse({})
@@ -248,33 +188,24 @@ const usesContractParse = ({ funcNode }: { funcNode: FunctionLike }): boolean =>
   }
 
   // Handle arrow function or regular function with block body: () => { return contract.parse({}) }
-  if (body.type === 'BlockStatement' && body.body) {
+  if (body.type === 'BlockStatement' && body.body && Array.isArray(body.body)) {
     // Check if contract.parse() is called anywhere in the function
-    const hasContractParse = body.body.some((statement: unknown) => {
-      const stmt = statement as {
-        type: string;
-        argument?: unknown;
-        declarations?: {
-          init?: unknown;
-        }[];
-      };
-
+    const hasContractParse = body.body.some((statement) => {
       // Check return statements
-      if (stmt.type === 'ReturnStatement' && stmt.argument) {
-        const arg = stmt.argument;
+      if (statement.type === 'ReturnStatement' && statement.argument) {
         // Direct call: return contract.parse({})
-        if (isContractParseCall({ node: arg })) {
+        if (isContractParseCall({ node: statement.argument })) {
           return true;
         }
         // Spread in object: return { ...contract.parse({}), other: 'props' }
-        if (objectHasContractParseSpread({ node: arg })) {
+        if (objectHasContractParseSpread({ node: statement.argument })) {
           return true;
         }
       }
 
       // Check variable declarations: const validated = contract.parse({})
-      if (stmt.type === 'VariableDeclaration' && stmt.declarations) {
-        return stmt.declarations.some((decl) => {
+      if (statement.type === 'VariableDeclaration' && statement.declarations) {
+        return statement.declarations.some((decl) => {
           if (decl.init) {
             return isContractParseCall({ node: decl.init });
           }
@@ -322,16 +253,14 @@ export const enforceStubPatternsRuleBroker = (): EslintRule => ({
           return;
         }
 
-        const funcNode = node as unknown as FunctionLike;
-
-        if (funcNode.params.length === 0) {
+        if (!node.params || node.params.length === 0) {
           return;
         }
 
-        const hasSpread = hasSpreadOperator({ funcNode });
-        const isSingleValue = isSingleValueProperty({ funcNode });
-        const hasStubArgument = usesStubArgumentType({ funcNode });
-        const hasContractParse = usesContractParse({ funcNode });
+        const hasSpread = hasSpreadOperator({ funcNode: node });
+        const isSingleValue = isSingleValueProperty({ funcNode: node });
+        const hasStubArgument = usesStubArgumentType({ funcNode: node });
+        const hasContractParse = usesContractParse({ funcNode: node });
 
         // Exception: Allow ({ value }: { value: string }) for branded string stubs
         if (isSingleValue) {
@@ -347,7 +276,7 @@ export const enforceStubPatternsRuleBroker = (): EslintRule => ({
 
         // Check if function has spread operator in parameters
         if (!hasSpread) {
-          const [firstParam] = funcNode.params;
+          const [firstParam] = node.params;
           if (firstParam) {
             ctx.report({
               node: firstParam,
@@ -359,7 +288,7 @@ export const enforceStubPatternsRuleBroker = (): EslintRule => ({
 
         // If spread operator is present, check for StubArgument type
         if (!hasStubArgument) {
-          const [firstParam] = funcNode.params;
+          const [firstParam] = node.params;
           if (firstParam) {
             ctx.report({
               node: firstParam,

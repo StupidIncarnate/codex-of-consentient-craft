@@ -89,11 +89,7 @@ export const enforceImportDependenciesRuleBroker = (): EslintRule => ({
 
         const allowedImports = getAllowedImportsForFolder({ folderType });
 
-        interface NodeWithSource {
-          source?: { value?: unknown };
-        }
-        const nodeWithSource = node as unknown as NodeWithSource;
-        const importSource = nodeWithSource.source?.value;
+        const importSource = node.source?.value;
 
         if (typeof importSource !== 'string') {
           return;
@@ -264,6 +260,10 @@ export const enforceImportDependenciesRuleBroker = (): EslintRule => ({
             const importedFolderConfig = folderConfigTransformer({
               folderType: importedFolderType,
             });
+
+            if (!importedFolderConfig) {
+              return;
+            }
 
             // Filter out multi-dot patterns (.stub.ts, .mock.ts, .test.ts) from display
             // These can't be imported cross-folder even though they're in fileSuffix

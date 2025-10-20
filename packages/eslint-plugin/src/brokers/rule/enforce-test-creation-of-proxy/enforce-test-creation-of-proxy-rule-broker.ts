@@ -4,30 +4,6 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 
-interface NodeWithDeclarations {
-  declarations?: Tsestree[];
-}
-
-interface NodeWithId {
-  id?: Tsestree | null;
-}
-
-interface NodeWithName {
-  name?: string;
-}
-
-interface NodeWithInit {
-  init?: Tsestree | null;
-}
-
-interface NodeWithCallee {
-  callee?: Tsestree;
-}
-
-interface ExportDeclarationNode {
-  declaration?: Tsestree | null;
-}
-
 export const enforceTestCreationOfProxyRuleBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {
@@ -63,15 +39,13 @@ export const enforceTestCreationOfProxyRuleBroker = (): EslintRule => ({
     return {
       // Track when we enter a test block (it/test calls)
       CallExpression: (node: Tsestree): void => {
-        const callNode = node as unknown as NodeWithCallee;
-        const { callee } = callNode;
+        const { callee } = node;
 
         if (!callee) return;
 
-        const calleeType = (callee as { type: string }).type;
-        if (calleeType === 'Identifier') {
-          const calleeName = (callee as NodeWithName).name;
-          if (calleeName === 'it' || calleeName === 'test') {
+        if (callee.type === 'Identifier') {
+          const { name } = callee;
+          if (name === 'it' || name === 'test') {
             testBlockDepth++;
           }
         }
@@ -79,15 +53,13 @@ export const enforceTestCreationOfProxyRuleBroker = (): EslintRule => ({
 
       // Track when we exit a test block
       'CallExpression:exit': (node: Tsestree): void => {
-        const callNode = node as unknown as NodeWithCallee;
-        const { callee } = callNode;
+        const { callee } = node;
 
         if (!callee) return;
 
-        const calleeType = (callee as { type: string }).type;
-        if (calleeType === 'Identifier') {
-          const calleeName = (callee as NodeWithName).name;
-          if (calleeName === 'it' || calleeName === 'test') {
+        if (callee.type === 'Identifier') {
+          const { name } = callee;
+          if (name === 'it' || name === 'test') {
             testBlockDepth--;
           }
         }
@@ -95,8 +67,7 @@ export const enforceTestCreationOfProxyRuleBroker = (): EslintRule => ({
 
       // Check variable declarations for proxy creation
       VariableDeclaration: (node: Tsestree): void => {
-        const varDecl = node as unknown as NodeWithDeclarations;
-        const { declarations } = varDecl;
+        const { declarations } = node;
 
         if (!declarations || declarations.length === 0) return;
 
@@ -104,35 +75,28 @@ export const enforceTestCreationOfProxyRuleBroker = (): EslintRule => ({
           // Skip if this declaration is already tracked as exported (avoid duplicate errors)
           if (exportedProxyDeclarations.has(declaration)) continue;
 
-          const declarator = declaration as unknown as NodeWithId & NodeWithInit;
-          const { id, init } = declarator;
+          const { id, init } = declaration;
 
           if (!init) continue;
 
           // Check if init is a proxy creation call (ends with Proxy())
-          const initType = (init as { type: string }).type;
-          if (initType === 'CallExpression') {
-            const callExpr = init as unknown as NodeWithCallee;
-            const { callee } = callExpr;
+          if (init.type === 'CallExpression') {
+            const { callee } = init;
 
-            if (callee) {
-              const calleeType = (callee as { type: string }).type;
-              if (calleeType === 'Identifier') {
-                const calleeName = (callee as NodeWithName).name;
-                if (calleeName?.endsWith('Proxy')) {
-                  // Found proxy creation - check if inside test block
-                  if (testBlockDepth === 0) {
-                    const variableName =
-                      id && 'name' in id ? ((id as NodeWithName).name ?? 'proxy') : 'proxy';
-                    ctx.report({
-                      node: declaration,
-                      messageId: 'proxyMustBeInTest',
-                      data: {
-                        name: variableName,
-                        proxyFunction: calleeName,
-                      },
-                    });
-                  }
+            if (callee && callee.type === 'Identifier') {
+              const { name } = callee;
+              if (name?.endsWith('Proxy')) {
+                // Found proxy creation - check if inside test block
+                if (testBlockDepth === 0) {
+                  const variableName = id?.name ?? 'proxy';
+                  ctx.report({
+                    node: declaration,
+                    messageId: 'proxyMustBeInTest',
+                    data: {
+                      name: variableName,
+                      proxyFunction: name,
+                    },
+                  });
                 }
               }
             }
@@ -142,46 +106,36 @@ export const enforceTestCreationOfProxyRuleBroker = (): EslintRule => ({
 
       // Check for exported proxy instances
       ExportNamedDeclaration: (node: Tsestree): void => {
-        const exportNode = node as unknown as ExportDeclarationNode;
-        const { declaration } = exportNode;
+        const { declaration } = node;
 
         if (!declaration) return;
 
-        const declarationType = (declaration as { type: string }).type;
+        if (declaration.type !== 'VariableDeclaration') return;
 
-        if (declarationType !== 'VariableDeclaration') return;
-
-        const varDecl = declaration as NodeWithDeclarations;
-        const { declarations } = varDecl;
+        const { declarations } = declaration;
 
         if (!declarations || declarations.length === 0) return;
 
         for (const declarator of declarations) {
-          const declaratorNode = declarator as unknown as NodeWithInit;
-          const { init } = declaratorNode;
+          const { init } = declarator;
 
           if (!init) continue;
 
           // Check if init is a proxy creation call
-          const initType = (init as { type: string }).type;
-          if (initType === 'CallExpression') {
-            const callExpr = init as unknown as NodeWithCallee;
-            const { callee } = callExpr;
+          if (init.type === 'CallExpression') {
+            const { callee } = init;
 
-            if (callee) {
-              const calleeType = (callee as { type: string }).type;
-              if (calleeType === 'Identifier') {
-                const calleeName = (callee as NodeWithName).name;
-                if (calleeName?.endsWith('Proxy')) {
-                  // Track this declaration as exported to avoid duplicate errors
-                  exportedProxyDeclarations.add(declarator);
+            if (callee && callee.type === 'Identifier') {
+              const { name } = callee;
+              if (name?.endsWith('Proxy')) {
+                // Track this declaration as exported to avoid duplicate errors
+                exportedProxyDeclarations.add(declarator);
 
-                  // Found exported proxy instance
-                  ctx.report({
-                    node: declarator,
-                    messageId: 'noExportProxy',
-                  });
-                }
+                // Found exported proxy instance
+                ctx.report({
+                  node: declarator,
+                  messageId: 'noExportProxy',
+                });
               }
             }
           }

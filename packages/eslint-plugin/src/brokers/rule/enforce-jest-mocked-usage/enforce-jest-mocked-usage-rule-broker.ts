@@ -3,50 +3,6 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
-interface CallExpressionNode {
-  type: string;
-  callee?: {
-    type: string;
-    object?: {
-      type: string;
-      name?: string;
-    };
-    property?: {
-      type: string;
-      name?: string;
-    };
-    name?: string;
-  };
-  arguments?: unknown[];
-}
-
-interface VariableDeclarator {
-  type: string;
-  id?: {
-    type: string;
-    name?: string;
-  };
-  init?: CallExpressionNode;
-}
-
-interface ImportSpecifier {
-  type: string;
-  imported?: {
-    name?: string;
-  };
-  local?: {
-    name?: string;
-  };
-}
-
-interface ImportDeclarationNode {
-  type: string;
-  specifiers?: ImportSpecifier[];
-  source?: {
-    value?: string;
-  };
-}
-
 // List of global objects that are allowed with jest.spyOn
 const ALLOWED_SPY_ON_GLOBALS = ['Date', 'crypto', 'console', 'Math', 'process'];
 
@@ -58,39 +14,34 @@ const isAdapterProxy = ({ filename }: { filename: string }): boolean =>
 const isStateProxy = ({ filename }: { filename: string }): boolean =>
   filename.includes('-state.proxy.ts');
 
-const isJestMockCall = (node: CallExpressionNode): boolean =>
+const isJestMockCall = ({ node }: { node: Tsestree }): boolean =>
   node.callee?.type === 'MemberExpression' &&
   node.callee.object?.type === 'Identifier' &&
   node.callee.object.name === 'jest' &&
   node.callee.property?.type === 'Identifier' &&
   node.callee.property.name === 'mock';
 
-const isJestMockedCall = (node: CallExpressionNode): boolean =>
+const isJestMockedCall = ({ node }: { node: Tsestree }): boolean =>
   node.callee?.type === 'MemberExpression' &&
   node.callee.object?.type === 'Identifier' &&
   node.callee.object.name === 'jest' &&
   node.callee.property?.type === 'Identifier' &&
   node.callee.property.name === 'mocked';
 
-const isJestSpyOnCall = (node: CallExpressionNode): boolean =>
+const isJestSpyOnCall = ({ node }: { node: Tsestree }): boolean =>
   node.callee?.type === 'MemberExpression' &&
   node.callee.object?.type === 'Identifier' &&
   node.callee.object.name === 'jest' &&
   node.callee.property?.type === 'Identifier' &&
   node.callee.property.name === 'spyOn';
 
-const getSpyOnTarget = (node: CallExpressionNode): string | null => {
+const getSpyOnTarget = ({ node }: { node: Tsestree }): string | null => {
   if (!node.arguments || node.arguments.length === 0) {
     return null;
   }
 
-  interface ArgumentWithName {
-    type: string;
-    name?: string;
-  }
-
-  const firstArg = node.arguments[0] as ArgumentWithName;
-  if (firstArg.type === 'Identifier' && firstArg.name) {
+  const firstArg = node.arguments[0];
+  if (firstArg && firstArg.type === 'Identifier' && firstArg.name) {
     return firstArg.name;
   }
 
@@ -136,15 +87,14 @@ export const enforceJestMockedUsageRuleBroker = (): EslintRule => {
       return {
         // Track imports to know which names are module imports
         ImportDeclaration: (node: Tsestree): void => {
-          const importNode = node as unknown as ImportDeclarationNode;
-          const source = importNode.source?.value;
+          const source = node.source?.value;
 
           if (typeof source !== 'string') {
             return;
           }
 
           // Track all imported names from this module
-          const specifiers = importNode.specifiers ?? [];
+          const specifiers = node.specifiers ?? [];
           for (const spec of specifiers) {
             if (spec.type === 'ImportSpecifier' && spec.local?.name) {
               importedModuleNames.set(spec.local.name, source);
@@ -158,25 +108,19 @@ export const enforceJestMockedUsageRuleBroker = (): EslintRule => {
 
         // Track jest.mock() calls
         CallExpression: (node: Tsestree): void => {
-          const callNode = node as unknown as CallExpressionNode;
-
           // Track jest.mock() calls
-          if (isJestMockCall(callNode)) {
-            if (callNode.arguments && callNode.arguments.length > 0) {
-              interface StringLiteral {
-                type: string;
-                value?: string;
-              }
-              const firstArg = callNode.arguments[0] as StringLiteral;
-              if (firstArg.type === 'Literal' && typeof firstArg.value === 'string') {
+          if (isJestMockCall({ node })) {
+            if (node.arguments && node.arguments.length > 0) {
+              const firstArg = node.arguments[0];
+              if (firstArg && firstArg.type === 'Literal' && typeof firstArg.value === 'string') {
                 jestMockedModules.add(firstArg.value);
               }
             }
           }
 
           // Check jest.spyOn() usage
-          if (isJestSpyOnCall(callNode)) {
-            const target = getSpyOnTarget(callNode);
+          if (isJestSpyOnCall({ node })) {
+            const target = getSpyOnTarget({ node });
             if (target && !ALLOWED_SPY_ON_GLOBALS.includes(target)) {
               // Check if this is an imported module
               if (importedModuleNames.has(target)) {
@@ -191,26 +135,12 @@ export const enforceJestMockedUsageRuleBroker = (): EslintRule => {
 
         // Track variables that use jest.mocked() and check for direct assignments
         VariableDeclarator: (node: Tsestree): void => {
-          const declaratorNode = node as unknown as VariableDeclarator;
-
-          if (!declaratorNode.init || !declaratorNode.id) {
+          if (!node.init || !node.id) {
             return;
           }
 
-          interface InitNode {
-            type: string;
-            name?: string;
-            expression?: {
-              type: string;
-              name?: string;
-            };
-          }
-
-          const initNode = declaratorNode.init as unknown as InitNode;
-
           // Check if using jest.mocked()
-          const callNode = declaratorNode.init;
-          if (isJestMockedCall(callNode)) {
+          if (isJestMockedCall({ node: node.init })) {
             // Check if this is a non-adapter/non-state proxy using jest.mocked()
             // State proxies can use jest.mocked() for external systems (Redis, DB)
             if (
@@ -225,13 +155,9 @@ export const enforceJestMockedUsageRuleBroker = (): EslintRule => {
             }
 
             // Extract the module name from jest.mocked(moduleName)
-            if (callNode.arguments && callNode.arguments.length > 0) {
-              interface ArgumentWithName {
-                type: string;
-                name?: string;
-              }
-              const arg = callNode.arguments[0] as ArgumentWithName;
-              if (arg.type === 'Identifier' && arg.name) {
+            if (node.init.arguments && node.init.arguments.length > 0) {
+              const arg = node.init.arguments[0];
+              if (arg && arg.type === 'Identifier' && arg.name) {
                 variablesWithJestMocked.add(arg.name);
               }
             }
@@ -242,12 +168,12 @@ export const enforceJestMockedUsageRuleBroker = (): EslintRule => {
           // This includes both plain identifiers and TSAsExpressions
           let importedName: string | null = null;
 
-          if (initNode.type === 'Identifier' && initNode.name) {
-            importedName = initNode.name;
-          } else if (initNode.type === 'TSAsExpression' && initNode.expression) {
+          if (node.init.type === 'Identifier' && node.init.name) {
+            importedName = node.init.name;
+          } else if (node.init.type === 'TSAsExpression' && node.init.expression) {
             // Handle: const mock = axios as jest.MockedFunction<typeof axios>
-            if (initNode.expression.type === 'Identifier' && initNode.expression.name) {
-              importedName = initNode.expression.name;
+            if (node.init.expression.type === 'Identifier' && node.init.expression.name) {
+              importedName = node.init.expression.name;
             }
           }
 

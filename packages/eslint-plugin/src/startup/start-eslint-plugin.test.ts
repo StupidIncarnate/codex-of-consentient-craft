@@ -6,17 +6,29 @@ describe('startEslintPlugin', () => {
       const plugin = startEslintPlugin();
 
       expect(Object.keys(plugin.rules)).toStrictEqual([
+        'ban-adhoc-types',
         'ban-primitives',
         'ban-contract-in-tests',
+        'ban-jest-mock-in-tests',
         'require-zod-on-primitives',
         'explicit-return-types',
         'enforce-project-structure',
         'enforce-import-dependencies',
+        'enforce-jest-mocked-usage',
         'enforce-object-destructuring-params',
+        'enforce-optional-guard-params',
+        'enforce-stub-patterns',
+        'enforce-proxy-child-creation',
+        'enforce-proxy-patterns',
         'enforce-test-colocation',
+        'enforce-test-creation-of-proxy',
+        'enforce-test-proxy-imports',
         'enforce-implementation-colocation',
         'forbid-non-exported-functions',
+        'jest-mocked-must-import',
+        'no-mutable-state-in-proxy-factory',
         'require-contract-validation',
+        'no-multiple-property-assertions',
       ]);
     });
 
