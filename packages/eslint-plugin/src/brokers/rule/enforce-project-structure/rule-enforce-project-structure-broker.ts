@@ -81,10 +81,6 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
         return {};
       }
 
-      // Helper to check if file is a proxy file
-      const isProxyFile = (filePath: string): boolean =>
-        hasFileSuffixGuard({ filename: filePath, suffix: 'proxy' });
-
       // Helper to extract folder path segments from filename
       const getFolderSegments = (filePath: string): string[] => {
         const afterSrc = filePath.split('/src/')[1];
@@ -202,7 +198,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
           // LEVEL 3: Filename Suffix + Kebab-Case + Domain Match
           // Special handling for proxy files: use .proxy.ts suffix and Proxy export suffix
-          const isProxy = isProxyFile(filename);
+          const isProxy = hasFileSuffixGuard({ filename, suffix: 'proxy' });
           const fileSuffix = isProxy ? '.proxy.ts' : folderConfig.fileSuffix;
           const exportSuffix = isProxy ? 'Proxy' : folderConfig.exportSuffix;
           // exportCase stays the same (camelCase or PascalCase from folder config)
@@ -372,7 +368,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
                       const isArrowFunction = init?.type === 'ArrowFunctionExpression';
 
                       // PROXY-SPECIFIC: Must be arrow function (check this first, before adapter check)
-                      if (isProxyFile(filename)) {
+                      if (hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
                         if (!isArrowFunction) {
                           const actualType =
                             init?.type === 'Identifier'
@@ -417,7 +413,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
                 // FunctionDeclaration - forbidden in proxies and adapters
                 if (declaration.type === 'FunctionDeclaration' && declaration.id?.name) {
                   // Check proxy first
-                  if (isProxyFile(filename)) {
+                  if (hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
                     ctx.report({
                       node,
                       messageId: 'proxyMustBeArrowFunction',
@@ -445,7 +441,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
                 // ClassDeclaration - forbidden in proxies and adapters
                 if (declaration.type === 'ClassDeclaration' && declaration.id?.name) {
                   // Check proxy first
-                  if (isProxyFile(filename)) {
+                  if (hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
                     ctx.report({
                       node,
                       messageId: 'proxyMustBeArrowFunction',

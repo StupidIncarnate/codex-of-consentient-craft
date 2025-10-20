@@ -3,21 +3,6 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
-const isCallbackFunction = ({ funcNode }: { funcNode: Tsestree }): boolean => {
-  // Check if this function is passed as an argument to a method call
-  // e.g., .refine((x) => ...), .map((x) => ...), .filter((x) => ...)
-  if (!funcNode.parent) {
-    return false;
-  }
-
-  // If parent is a CallExpression, this function is being used as a callback
-  if (funcNode.parent.type === 'CallExpression') {
-    return true;
-  }
-
-  return false;
-};
-
 const checkParams = ({
   funcNode,
   context,
@@ -35,7 +20,9 @@ const checkParams = ({
   }
 
   // Skip callback functions passed to library methods
-  if (isCallbackFunction({ funcNode })) {
+  // Check if this function is passed as an argument to a method call
+  // e.g., .refine((x) => ...), .map((x) => ...), .filter((x) => ...)
+  if (funcNode.parent?.type === 'CallExpression') {
     return;
   }
 

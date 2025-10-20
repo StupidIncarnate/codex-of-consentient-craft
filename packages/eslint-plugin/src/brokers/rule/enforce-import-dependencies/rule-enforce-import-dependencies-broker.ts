@@ -6,7 +6,6 @@ import {
   allowedImportContract,
   type AllowedImport,
 } from '../../../contracts/allowed-import/allowed-import-contract';
-import type { FolderType } from '../../../contracts/folder-type/folder-type-contract';
 import { isEntryFileGuard } from '../../../guards/is-entry-file/is-entry-file-guard';
 import { isSameDomainFolderGuard } from '../../../guards/is-same-domain-folder/is-same-domain-folder-guard';
 import { fileBasenameTransformer } from '../../../transformers/file-basename/file-basename-transformer';
@@ -40,15 +39,6 @@ const resolveImportPath = ({
   }
 
   return `/${parts.join('/')}.ts`;
-};
-
-const getAllowedImportsForFolder = ({
-  folderType,
-}: {
-  folderType: FolderType;
-}): readonly AllowedImport[] => {
-  const config = folderConfigTransformer({ folderType });
-  return config?.allowedImports as readonly AllowedImport[];
 };
 
 export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
@@ -93,7 +83,8 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
           return;
         }
 
-        const allowedImports = getAllowedImportsForFolder({ folderType });
+        const allowedImports = (folderConfigTransformer({ folderType })?.allowedImports ??
+          []) as readonly AllowedImport[];
 
         const importSource = node.source?.value;
 

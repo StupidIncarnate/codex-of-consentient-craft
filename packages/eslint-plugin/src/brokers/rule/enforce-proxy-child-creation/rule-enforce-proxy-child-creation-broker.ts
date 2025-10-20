@@ -136,8 +136,10 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
         // Check 1: For each implementation import, verify proxy has corresponding import and creation
         for (const [importedName, importPath] of implementationImports) {
           // Derive expected proxy name and path
-          const expectedProxyName = deriveProxyName(importedName);
-          const expectedProxyPath = deriveProxyPath(importPath);
+          const expectedProxyName = `${importedName}Proxy`;
+          const expectedProxyPath = importPath.endsWith('.ts')
+            ? importPath.replace('.ts', '.proxy')
+            : `${importPath}.proxy`;
 
           // Check if proxy imports the corresponding proxy
           const hasProxyImport = Array.from(proxyImports.keys()).some(
@@ -206,7 +208,10 @@ const parseImplementationImports = (content: string): Map<string, string> => {
   const imports = new Map<string, string>();
 
   // Strip comments before parsing to avoid false positives from example code
-  const contentWithoutComments = stripComments(content);
+  // Remove multi-line comments (/* ... */)
+  let contentWithoutComments = content.replace(/\/\*[\s\S]*?\*\//g, '');
+  // Remove single-line comments (// ...)
+  contentWithoutComments = contentWithoutComments.replace(/\/\/.*$/gm, '');
 
   // Simple regex to match import statements
   // Matches: import { name } from 'path' or import name from 'path'
@@ -238,14 +243,24 @@ const parseImplementationImports = (content: string): Map<string, string> => {
     }
 
     // Skip multi-dot files except .proxy (like .test.ts, .stub.ts already filtered above)
-    const pathParts = importPath.split('/').pop() || '';
-    const dotCount = (pathParts.match(/\./g) || []).length;
+    const filename = importPath.split('/').pop() || '';
+    const dotCount = (filename.match(/\./g) || []).length;
     if (dotCount > 0 && !importPath.endsWith('.proxy')) {
       continue;
     }
 
     // Check if this import's folder type requires a proxy based on folderConfigStatics
-    const folderTypeFromPath = extractFolderTypeFromImportPath(importPath);
+    // Extract folder type from import path by searching backwards through path parts
+    const pathParts = importPath.split('/');
+    const folderTypes = Object.keys(folderConfigStatics);
+    let folderTypeFromPath: string | null = null;
+    for (let i = pathParts.length - 1; i >= 0; i--) {
+      const part = pathParts[i];
+      if (part && folderTypes.includes(part)) {
+        folderTypeFromPath = part;
+        break;
+      }
+    }
     const folderConfig = folderTypeFromPath
       ? (Reflect.get(folderConfigStatics, folderTypeFromPath) as
           | { requireProxy?: boolean }
@@ -275,52 +290,4 @@ const parseImplementationImports = (content: string): Map<string, string> => {
   }
 
   return imports;
-};
-
-// Strip single-line and multi-line comments from content
-const stripComments = (content: string): string => {
-  // Remove multi-line comments (/* ... */)
-  let result = content.replace(/\/\*[\s\S]*?\*\//g, '');
-
-  // Remove single-line comments (// ...)
-  result = result.replace(/\/\/.*$/gm, '');
-
-  return result;
-};
-
-// Derive proxy function name from implementation name
-// e.g., httpAdapter -> httpAdapterProxy
-const deriveProxyName = (implementationName: string): string => `${implementationName}Proxy`;
-
-// Derive proxy import path from implementation path
-// e.g., ../../adapters/http/http-adapter -> ../../adapters/http/http-adapter.proxy
-const deriveProxyPath = (implementationPath: string): string => {
-  // If path already has extension, replace it
-  if (implementationPath.endsWith('.ts')) {
-    return implementationPath.replace('.ts', '.proxy');
-  }
-
-  // Otherwise append .proxy
-  return `${implementationPath}.proxy`;
-};
-
-// Extract folder type from import path
-// e.g., '../../adapters/http/http-adapter' -> 'adapters'
-// e.g., '../../../brokers/user/fetch/user-fetch-broker' -> 'brokers'
-const extractFolderTypeFromImportPath = (importPath: string): string | null => {
-  // Split path by / and find the last occurrence of a known folder type
-  const parts = importPath.split('/');
-
-  // Known folder types from folderConfigStatics
-  const folderTypes = Object.keys(folderConfigStatics);
-
-  // Search backwards through path parts to find a folder type
-  for (let i = parts.length - 1; i >= 0; i--) {
-    const part = parts[i];
-    if (part && folderTypes.includes(part)) {
-      return part;
-    }
-  }
-
-  return null;
 };

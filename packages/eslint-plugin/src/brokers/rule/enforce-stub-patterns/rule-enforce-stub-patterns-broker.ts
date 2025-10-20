@@ -3,29 +3,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
-
-const isExportedFunction = ({ node }: { node: Tsestree }): boolean => {
-  // Check if this arrow function is directly exported
-  // Pattern: export const StubName = (...) => {...}
-  // AST: ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression
-
-  const { parent } = node;
-  if (!parent || parent.type !== 'VariableDeclarator') {
-    return false;
-  }
-
-  const grandparent = parent.parent;
-  if (!grandparent || grandparent.type !== 'VariableDeclaration') {
-    return false;
-  }
-
-  const greatGrandparent = grandparent.parent;
-  if (!greatGrandparent || greatGrandparent.type !== 'ExportNamedDeclaration') {
-    return false;
-  }
-
-  return true;
-};
+import { isAstNodeExportedGuard } from '../../../guards/is-ast-node-exported/is-ast-node-exported-guard';
 
 const isSingleValueProperty = ({ funcNode }: { funcNode: Tsestree }): boolean => {
   if (!funcNode.params || funcNode.params.length === 0) {
@@ -246,8 +224,26 @@ export const ruleEnforceStubPatternsBroker = (): EslintRule => ({
     return {
       ArrowFunctionExpression: (node: Tsestree): void => {
         // Only check root exported stub functions, not nested arrow functions
-        if (!isExportedFunction({ node })) {
+        if (!isAstNodeExportedGuard({ node })) {
           return;
+        }
+
+        // Skip nested arrow functions (arrow functions inside other functions)
+        // Check if any parent is a function-like node before reaching the export
+        let { parent } = node;
+        while (parent !== undefined && parent !== null) {
+          const { type } = parent;
+          if (type === 'ExportNamedDeclaration' || type === 'ExportDefaultDeclaration') {
+            break; // Reached export, this is a top-level export
+          }
+          if (
+            type === 'ArrowFunctionExpression' ||
+            type === 'FunctionExpression' ||
+            type === 'FunctionDeclaration'
+          ) {
+            return; // This is a nested function, skip it
+          }
+          parent = parent.parent;
         }
 
         if (!node.params || node.params.length === 0) {
