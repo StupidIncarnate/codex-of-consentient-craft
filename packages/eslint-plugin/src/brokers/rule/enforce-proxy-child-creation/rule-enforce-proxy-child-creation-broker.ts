@@ -5,6 +5,7 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -63,26 +64,17 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     return {
       // Track proxy file imports
       ImportDeclaration: (node: Tsestree): void => {
-        const { source, specifiers } = node;
-        if (!source || typeof source.value !== 'string') return;
-
-        const importPath = source.value;
+        const source = node.source?.value;
+        if (typeof source !== 'string') return;
 
         // Only track .proxy imports
-        if (!importPath.endsWith('.proxy')) {
+        if (!source.endsWith('.proxy')) {
           return;
         }
 
-        // Extract imported names
-        if (!specifiers) return;
-
-        for (const specifier of specifiers) {
-          if (specifier.type === 'ImportSpecifier') {
-            const importedName = specifier.imported?.name || specifier.local?.name;
-            if (importedName) {
-              proxyImports.set(importedName, importPath);
-            }
-          }
+        const imports = astGetImportsTransformer({ node });
+        for (const [name, importPath] of imports) {
+          proxyImports.set(name, importPath);
         }
       },
 

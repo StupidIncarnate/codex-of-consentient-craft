@@ -3,13 +3,8 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
-
-const isJestMockedCall = (node: Tsestree): boolean =>
-  node.callee?.type === 'MemberExpression' &&
-  node.callee.object?.type === 'Identifier' &&
-  node.callee.object.name === 'jest' &&
-  node.callee.property?.type === 'Identifier' &&
-  node.callee.property.name === 'mocked';
+import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
+import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 
 const isNpmPackage = ({ importSource }: { importSource: string }): boolean => {
   // Relative/absolute paths are not npm packages
@@ -73,31 +68,15 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
       return {
         // Track all imports
         ImportDeclaration: (node: Tsestree): void => {
-          const source = node.source?.value;
-
-          if (typeof source !== 'string') {
-            return;
-          }
-
-          // Track all imported names
-          const specifiers = node.specifiers ?? [];
-          for (const spec of specifiers) {
-            if (spec.type === 'ImportSpecifier' && spec.local?.name) {
-              // Named import: import { foo } from 'bar'
-              importedNames.set(spec.local.name, source);
-            } else if (spec.type === 'ImportDefaultSpecifier' && spec.local?.name) {
-              // Default import: import foo from 'bar'
-              importedNames.set(spec.local.name, source);
-            } else if (spec.type === 'ImportNamespaceSpecifier' && spec.local?.name) {
-              // Namespace import: import * as foo from 'bar'
-              importedNames.set(spec.local.name, source);
-            }
+          const imports = astGetImportsTransformer({ node });
+          for (const [name, source] of imports) {
+            importedNames.set(name, source);
           }
         },
 
         // Check jest.mocked() calls
         CallExpression: (node: Tsestree): void => {
-          if (!isJestMockedCall(node)) {
+          if (!isAstMethodCallGuard({ node, object: 'jest', method: 'mocked' })) {
             return;
           }
 

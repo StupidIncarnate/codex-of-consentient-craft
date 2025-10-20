@@ -5,7 +5,7 @@ const ruleTester = eslintRuleTesterAdapter();
 
 ruleTester.run('enforce-test-proxy-imports', ruleEnforceTestProxyImportsBroker(), {
   valid: [
-    // Colocated proxy import (correct)
+    // Colocated proxy import without extension
     {
       code: `
         import { userBrokerProxy } from './user-broker.proxy';
@@ -100,6 +100,33 @@ ruleTester.run('enforce-test-proxy-imports', ruleEnforceTestProxyImportsBroker()
       filename: '/project/src/utils/test-helpers.ts',
     },
 
+    // Non-proxy imports should be ignored (no .proxy in path)
+    {
+      code: `
+        import { User } from './user-contract';
+        import { userStatics } from './user-statics';
+        import { isAdminGuard } from '../../guards/is-admin/is-admin-guard';
+
+        it('should work', () => {
+          expect(true).toBe(true);
+        });
+      `,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+    },
+
+    // Scoped package imports should be ignored
+    {
+      code: `
+        import { expect } from '@jest/globals';
+        import { render } from '@testing-library/react';
+
+        it('should work', () => {
+          expect(true).toBe(true);
+        });
+      `,
+      filename: '/project/src/widgets/user-card/user-card-widget.test.tsx',
+    },
+
     // Proxy files can import other proxies
     {
       code: `
@@ -114,7 +141,7 @@ ruleTester.run('enforce-test-proxy-imports', ruleEnforceTestProxyImportsBroker()
     },
   ],
   invalid: [
-    // Importing non-colocated proxy
+    // Importing non-colocated proxy (without extension - should be detected)
     {
       code: `
         import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
@@ -129,6 +156,27 @@ ruleTester.run('enforce-test-proxy-imports', ruleEnforceTestProxyImportsBroker()
           messageId: 'nonColocatedProxyImport',
           data: {
             importPath: '../../adapters/http/http-adapter.proxy',
+            colocatedProxyPath: './user-broker.proxy',
+          },
+        },
+      ],
+    },
+
+    // Importing proxy ending with .proxy (no file extension)
+    {
+      code: `
+        import { apiProxy } from '../api/api-broker.proxy';
+
+        it('should work', () => {
+          const proxy = apiProxy();
+        });
+      `,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [
+        {
+          messageId: 'nonColocatedProxyImport',
+          data: {
+            importPath: '../api/api-broker.proxy',
             colocatedProxyPath: './user-broker.proxy',
           },
         },

@@ -5,6 +5,7 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { testFilePathToColocatedProxyPathTransformer } from '../../../transformers/test-file-path-to-colocated-proxy-path/test-file-path-to-colocated-proxy-path-transformer';
 import { filePathContract } from '@questmaestro/shared/contracts';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -35,7 +36,7 @@ export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
     }
 
     // Check if this is an integration test
-    const isIntegrationTest = filename.includes('.integration.test.');
+    const isIntegrationTest = hasFileSuffixGuard({ filename, suffix: 'integration.test' });
 
     // Derive the expected colocated proxy path
     // e.g., /src/brokers/user/user-broker.test.ts → ./user-broker.proxy
@@ -53,11 +54,11 @@ export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
           return;
         }
 
-        // Check if this is a proxy import (ends with .proxy or .proxy.ts/.proxy.tsx)
+        // Check if import is a proxy file (with or without .ts/.tsx extension)
         const isProxyImport =
+          hasFileSuffixGuard({ filename: importSource, suffix: 'proxy' }) ||
           importSource.endsWith('.proxy') ||
-          importSource.endsWith('.proxy.ts') ||
-          importSource.endsWith('.proxy.tsx');
+          importSource.includes('.proxy/');
 
         if (!isProxyImport) {
           return;

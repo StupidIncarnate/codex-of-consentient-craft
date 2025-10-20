@@ -4,6 +4,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 
 // List of global objects that are allowed with jest.spyOn
 const ALLOWED_SPY_ON_GLOBALS = ['Date', 'crypto', 'console', 'Math', 'process'];
@@ -60,22 +61,9 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
       return {
         // Track imports to know which names are module imports
         ImportDeclaration: (node: Tsestree): void => {
-          const source = node.source?.value;
-
-          if (typeof source !== 'string') {
-            return;
-          }
-
-          // Track all imported names from this module
-          const specifiers = node.specifiers ?? [];
-          for (const spec of specifiers) {
-            if (spec.type === 'ImportSpecifier' && spec.local?.name) {
-              importedModuleNames.set(spec.local.name, source);
-            } else if (spec.type === 'ImportDefaultSpecifier' && spec.local?.name) {
-              importedModuleNames.set(spec.local.name, source);
-            } else if (spec.type === 'ImportNamespaceSpecifier' && spec.local?.name) {
-              importedModuleNames.set(spec.local.name, source);
-            }
+          const imports = astGetImportsTransformer({ node });
+          for (const [name, source] of imports) {
+            importedModuleNames.set(name, source);
           }
         },
 
