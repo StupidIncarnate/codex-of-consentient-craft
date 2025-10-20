@@ -1,4 +1,5 @@
 import { eslintRuleTesterAdapter } from './eslint-rule-tester-adapter';
+import { eslintRuleTesterAdapterProxy } from './eslint-rule-tester-adapter.proxy';
 import { RuleTester } from 'eslint';
 
 interface GlobalWithRuleTester {
@@ -7,6 +8,8 @@ interface GlobalWithRuleTester {
 
 describe('eslintRuleTesterAdapter', () => {
   it('VALID: {} => returns RuleTester instance', () => {
+    eslintRuleTesterAdapterProxy();
+
     const result = eslintRuleTesterAdapter();
 
     expect(result).toStrictEqual({
@@ -15,6 +18,8 @@ describe('eslintRuleTesterAdapter', () => {
   });
 
   it('VALID: {} => sets global RuleTester for test detection', () => {
+    eslintRuleTesterAdapterProxy();
+
     eslintRuleTesterAdapter();
 
     const globalWithRuleTester = globalThis as GlobalWithRuleTester;
