@@ -1,9 +1,9 @@
-import { startEslintPlugin } from './start-eslint-plugin';
+import { StartEslintPlugin } from './start-eslint-plugin';
 
-describe('startEslintPlugin', () => {
+describe('StartEslintPlugin', () => {
   describe('initialize()', () => {
     it('VALID: => returns plugin with all rule names', () => {
-      const plugin = startEslintPlugin();
+      const plugin = StartEslintPlugin();
 
       expect(Object.keys(plugin.rules)).toStrictEqual([
         'ban-adhoc-types',
@@ -33,7 +33,7 @@ describe('startEslintPlugin', () => {
     });
 
     it('VALID: => returns ban-primitives rule with complete structure', () => {
-      const plugin = startEslintPlugin();
+      const plugin = StartEslintPlugin();
 
       expect(plugin.rules['ban-primitives']).toStrictEqual({
         meta: {
@@ -52,13 +52,13 @@ describe('startEslintPlugin', () => {
     });
 
     it('VALID: => returns config with questmaestro name', () => {
-      const plugin = startEslintPlugin();
+      const plugin = StartEslintPlugin();
 
       expect(Object.keys(plugin.configs)).toStrictEqual(['questmaestro']);
     });
 
     it('VALID: => returns questmaestro config with enforce-object-destructuring-params enabled', () => {
-      const plugin = startEslintPlugin();
+      const plugin = StartEslintPlugin();
 
       expect(
         plugin.configs.questmaestro.typescript.rules?.[

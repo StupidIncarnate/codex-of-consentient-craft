@@ -74,8 +74,12 @@ describe('isNpmPackageGuard', () => {
   });
 
   describe('edge cases', () => {
-    it('EDGE: {importSource: ""} => returns true', () => {
-      expect(isNpmPackageGuard({ importSource: '' })).toBe(true);
+    it('EDGE: {importSource: ""} => returns false', () => {
+      expect(isNpmPackageGuard({ importSource: '' })).toBe(false);
+    });
+
+    it('EDGE: {importSource: undefined} => returns false', () => {
+      expect(isNpmPackageGuard({})).toBe(false);
     });
   });
 });
