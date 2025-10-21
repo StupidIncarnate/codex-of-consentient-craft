@@ -31,7 +31,7 @@ export const isAstParamSingleValuePropertyGuard = ({
     return false;
   }
 
-  const prop = properties[0];
+  const [prop] = properties;
   if (!prop) {
     return false;
   }

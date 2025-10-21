@@ -15,7 +15,7 @@ export const isAstFunctionParamsDestructuredGuard = ({
   // 2. AssignmentPattern with ObjectPattern left: ({ x = 5 } = {})
   return funcNode.params.every(
     (param) =>
-      param?.type === 'ObjectPattern' ||
-      (param?.type === 'AssignmentPattern' && param.left?.type === 'ObjectPattern'),
+      param.type === 'ObjectPattern' ||
+      (param.type === 'AssignmentPattern' && param.left?.type === 'ObjectPattern'),
   );
 };

@@ -41,20 +41,25 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     const implementationPath = filename ? filename.replace('.proxy.ts', '.ts') : '';
 
     // Read implementation file (checks existence and reads in one operation)
-    let implementationContent: string;
-    try {
-      implementationContent = fsEnsureReadFileSyncAdapter({
-        filePath: implementationPath as never,
-        encoding: 'utf-8',
-      });
-    } catch {
+    const implementationFileResult = ((): string | null => {
+      try {
+        return fsEnsureReadFileSyncAdapter({
+          filePath: implementationPath as never,
+          encoding: 'utf-8',
+        });
+      } catch {
+        return null;
+      }
+    })();
+
+    if (implementationFileResult === null) {
       // Implementation file doesn't exist or cannot be read, skip validation
       return {};
     }
 
     // Parse implementation imports
     const implementationImports = parseImplementationImportsTransformer({
-      content: implementationContent,
+      content: implementationFileResult,
     });
 
     // Track proxy imports and creation calls
@@ -90,7 +95,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
 
         if (callee.type === 'Identifier') {
           const calleeName = callee.name;
-          if (calleeName !== undefined && calleeName.endsWith('Proxy')) {
+          if (calleeName?.endsWith('Proxy')) {
             proxyCreationCalls.add(calleeName);
           }
         }
@@ -110,7 +115,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
               ancestor.type === 'VariableDeclarator'
             ) {
               const ancestorId = Reflect.get(ancestor, 'id') as Tsestree | null | undefined;
-              if (ancestorId?.name !== undefined && ancestorId.name.endsWith('Proxy')) {
+              if (ancestorId?.name?.endsWith('Proxy')) {
                 insideProxyFunction = true;
                 foundReturnStatement = false;
                 break;
@@ -179,7 +184,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
         for (const proxyName of proxyCreationCalls) {
           // Derive implementation name from proxy name
           // e.g., httpAdapterProxy -> httpAdapter
-          const implementationName = proxyName.replace(/Proxy$/, '');
+          const implementationName = proxyName.replace(/Proxy$/u, '');
 
           // Check if implementation imports this dependency
           const hasImplementationImport = implementationImports.has(implementationName);
@@ -187,7 +192,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
           if (!hasImplementationImport) {
             // Get implementation filename for error message
             const implementationFile =
-              filename?.split('/').pop()?.replace('.proxy.ts', '.ts') || 'implementation';
+              filename?.split('/').pop()?.replace('.proxy.ts', '.ts') ?? 'implementation';
 
             ctx.report({
               node,

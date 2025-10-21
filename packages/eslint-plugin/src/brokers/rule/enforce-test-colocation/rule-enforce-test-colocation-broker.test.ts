@@ -1,11 +1,11 @@
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { ruleEnforceTestColocationBroker } from './rule-enforce-test-colocation-broker';
+import { ruleEnforceTestColocationBrokerProxy } from './rule-enforce-test-colocation-broker.proxy';
 
 const ruleTester = eslintRuleTesterAdapter();
 
 beforeEach(() => {
-  const adapterProxy = fsExistsSyncAdapterProxy();
+  const { fsExistsSync: adapterProxy } = ruleEnforceTestColocationBrokerProxy();
 
   adapterProxy.setupFileSystem((filePath) => {
     const path = String(filePath);

@@ -168,7 +168,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
 
             ctx.report({
               node,
-              messageId: folderConfig?.allowsLayerFiles
+              messageId: folderConfig.allowsLayerFiles
                 ? 'missingProxyFileWithLayer'
                 : 'missingProxyFile',
               data: {

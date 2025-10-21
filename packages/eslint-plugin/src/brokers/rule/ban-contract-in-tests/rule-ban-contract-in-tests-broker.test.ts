@@ -70,6 +70,21 @@ ruleTester.run('ban-contract-in-tests', ruleBanContractInTestsBroker(), {
       code: 'import { userContract } from "../../contracts/user/user-contract";',
       filename: '/project/test/e2e/user-flow.e2e.ts',
     },
+
+    // Imports from folders containing "contract" in the name are allowed (not contract files)
+    {
+      code: 'import { isAstContractParseCallGuard } from "../../guards/is-ast-contract-parse-call/is-ast-contract-parse-call-guard";',
+      filename: '/project/src/brokers/validate/validate-broker.test.ts',
+    },
+    {
+      code: 'import { TsestreeStub } from "../../contracts/tsestree/tsestree.stub";',
+      filename:
+        '/project/src/guards/is-ast-contract-parse-call/is-ast-contract-parse-call-guard.test.ts',
+    },
+    {
+      code: 'import { parseContractTransformer } from "../../transformers/parse-contract/parse-contract-transformer";',
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+    },
   ],
   invalid: [
     // Type-only imports are NOT allowed - use stubs for types

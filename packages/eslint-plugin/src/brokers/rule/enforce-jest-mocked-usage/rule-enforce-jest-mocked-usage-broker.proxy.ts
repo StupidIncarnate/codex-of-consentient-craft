@@ -1,21 +1,17 @@
-import {
-  eslintContextContract,
-  type EslintContext,
-} from '../../../contracts/eslint-context/eslint-context-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 
-export const ruleEnforceJestMockedUsageBrokerProxy = () => ({
+export const ruleEnforceJestMockedUsageBrokerProxy = (): {
+  createContext: ({ filename }: { filename: string }) => EslintContext;
+} => ({
   createContext: ({ filename }: { filename: string }): EslintContext => {
     const reportedMessages: unknown[] = [];
 
-    const contextData = eslintContextContract.parse({
+    return EslintContextStub({
       filename,
-    });
-
-    return {
-      ...contextData,
       report: (...args: unknown[]): void => {
         reportedMessages.push(args);
       },
-    };
+    });
   },
 });

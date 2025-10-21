@@ -11,7 +11,7 @@ export const isAstParamStubArgumentTypeGuard = ({ funcNode }: { funcNode?: Tsest
   }
 
   // Get the type annotation - could be on AssignmentPattern or ObjectPattern
-  const typeAnnotation = firstParam.typeAnnotation || firstParam.left?.typeAnnotation;
+  const typeAnnotation = firstParam.typeAnnotation ?? firstParam.left?.typeAnnotation;
 
   if (!typeAnnotation?.typeAnnotation) {
     return false;

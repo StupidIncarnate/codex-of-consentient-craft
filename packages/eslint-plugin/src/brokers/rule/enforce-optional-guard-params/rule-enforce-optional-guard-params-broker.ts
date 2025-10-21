@@ -20,12 +20,12 @@ export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
   }),
   create: (context: unknown) => {
     const ctx = context as EslintContext;
-    const filename = ctx.getFilename?.() ?? '';
+    const filename = String(ctx.getFilename?.() ?? '');
 
     // Only check files in guards/ folder ending with -guard.ts
     if (
       !isFileInFolderTypeGuard({
-        filename: String(filename),
+        filename,
         folderType: 'guards',
         suffix: 'guard',
       })
@@ -40,13 +40,13 @@ export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
           return;
         }
 
-        const firstParam = params[0];
+        const [firstParam] = params;
         if (!firstParam) {
           return;
         }
 
         // Get type annotation - check ObjectPattern first
-        let annotation: Tsestree | null | undefined;
+        let annotation: Tsestree | null | undefined = null;
 
         if (firstParam.type === 'ObjectPattern') {
           annotation = firstParam.typeAnnotation;
@@ -91,13 +91,13 @@ export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
           return;
         }
 
-        const firstParam = params[0];
+        const [firstParam] = params;
         if (!firstParam) {
           return;
         }
 
         // Get type annotation - check ObjectPattern first
-        let annotation: Tsestree | null | undefined;
+        let annotation: Tsestree | null | undefined = null;
 
         if (firstParam.type === 'ObjectPattern') {
           annotation = firstParam.typeAnnotation;
@@ -142,13 +142,13 @@ export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
           return;
         }
 
-        const firstParam = params[0];
+        const [firstParam] = params;
         if (!firstParam) {
           return;
         }
 
         // Get type annotation - check ObjectPattern first
-        let annotation: Tsestree | null | undefined;
+        let annotation: Tsestree | null | undefined = null;
 
         if (firstParam.type === 'ObjectPattern') {
           annotation = firstParam.typeAnnotation;

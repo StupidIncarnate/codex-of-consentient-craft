@@ -200,19 +200,19 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           // Skip domain matching for layer files (they have their own naming pattern)
           let hasInvalidDomainMatch = false;
           let expectedFilenamePrefix = '';
-          let actualFilenamePrefix = '';
 
           if (expectedDepth > 0 && !isLayerFile) {
-            const folderSegments = filepathExtractSegmentsAfterSrcTransformer({
+            const domainFolderSegments = filepathExtractSegmentsAfterSrcTransformer({
               filePath: filename,
             });
             // Extract domain folders (skip the category folder)
-            const domainFolders = folderSegments.slice(1, 1 + expectedDepth);
+            const domainFolders = domainFolderSegments.slice(1, 1 + expectedDepth);
             expectedFilenamePrefix = domainFolders.join('-');
 
             // For proxy files, need to also remove the base file suffix before comparing
             // Example: user-fetch-broker.proxy.ts -> filenameBase is "user-fetch-broker"
             // We need to remove "-broker" to get "user-fetch" for comparison
+            let actualFilenamePrefix = filenameBase;
             if (isProxy) {
               const baseSuffix = folderConfig.fileSuffix;
               const baseSuffixStr = Array.isArray(baseSuffix)
@@ -223,8 +223,6 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
                 new RegExp(`${baseSuffixToRemove}$`, 'u'),
                 '',
               );
-            } else {
-              actualFilenamePrefix = filenameBase;
             }
 
             if (actualFilenamePrefix !== expectedFilenamePrefix) {
@@ -365,7 +363,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
                               ? 're-exported variable'
                               : init?.type === 'FunctionExpression'
                                 ? 'function expression'
-                                : init?.type || 'non-function value';
+                                : (init?.type ?? 'non-function value');
                           ctx.report({
                             node,
                             messageId: 'proxyMustBeArrowFunction',
@@ -381,7 +379,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
                           const actualType =
                             init?.type === 'Identifier'
                               ? 're-exported variable'
-                              : init?.type || 'non-function value';
+                              : (init?.type ?? 'non-function value');
                           ctx.report({
                             node,
                             messageId: 'adapterMustBeArrowFunction',

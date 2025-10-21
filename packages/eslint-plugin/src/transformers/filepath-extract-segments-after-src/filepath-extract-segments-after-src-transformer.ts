@@ -7,7 +7,7 @@ export const filepathExtractSegmentsAfterSrcTransformer = ({
 }: {
   filePath: string;
 }): string[] => {
-  const afterSrc = filePath.split('/src/')[1];
+  const [, afterSrc] = filePath.split('/src/');
   if (!afterSrc) return [];
   const parts = afterSrc.split('/');
   return parts.slice(0, -1); // Remove filename, keep folders

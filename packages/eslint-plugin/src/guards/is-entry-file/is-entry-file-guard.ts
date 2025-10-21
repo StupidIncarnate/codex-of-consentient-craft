@@ -58,10 +58,6 @@ export const isEntryFileGuard = ({
     return false;
   }
 
-  if (config === undefined) {
-    return false;
-  }
-
   const suffixPattern: string = Array.isArray(config.fileSuffix)
     ? String(config.fileSuffix[0])
     : String(config.fileSuffix);

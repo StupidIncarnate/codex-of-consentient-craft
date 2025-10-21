@@ -55,16 +55,17 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
         const byRootObject = new Map<string, unknown[]>();
         for (const { rootObject, node } of assertions) {
           const existing = byRootObject.get(rootObject);
-          if (existing !== undefined) {
-            existing.push(node);
-          } else {
+          if (existing === undefined) {
             byRootObject.set(rootObject, [node]);
+          } else {
+            existing.push(node);
           }
         }
 
         // Report violations where same root object has 2+ assertions
+        const minAssertionsForViolation = 2;
         for (const [rootObject, nodes] of byRootObject.entries()) {
-          if (nodes.length >= 2) {
+          if (nodes.length >= minAssertionsForViolation) {
             // Report on all assertions for this root object
             for (const node of nodes) {
               ctx.report({

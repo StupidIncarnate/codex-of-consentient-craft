@@ -25,7 +25,7 @@ import { configQuestmaestroBroker } from '../brokers/config/questmaestro/config-
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
 import type { EslintRule } from '../contracts/eslint-rule/eslint-rule-contract';
 
-export const startEslintPlugin = (): {
+export const StartEslintPlugin = (): {
   readonly rules: {
     readonly 'ban-adhoc-types': EslintRule;
     readonly 'ban-primitives': EslintRule;

@@ -15,23 +15,24 @@ export const filepathBasenameWithoutSuffixTransformer = ({
   const fullFilename = parts[parts.length - 1] ?? '';
 
   // For suffixes that include the extension (like .proxy.ts), don't remove extension first
-  const suffixIncludesExtension = (s: string): boolean => /\.[^.]+$/u.test(s);
+  const suffixIncludesExtension = /\.[^.]+$/u;
 
   if (Array.isArray(suffix)) {
     for (const s of suffix) {
-      if (suffixIncludesExtension(s)) {
-        if (fullFilename.endsWith(s)) {
-          return fullFilename.slice(0, -s.length);
+      const sStr = String(s);
+      if (suffixIncludesExtension.test(sStr)) {
+        if (fullFilename.endsWith(sStr)) {
+          return fullFilename.slice(0, -sStr.length);
         }
       } else {
         const withoutExt = fullFilename.replace(/\.[^.]+$/u, '');
-        if (withoutExt.endsWith(s)) {
-          return withoutExt.slice(0, -s.length);
+        if (withoutExt.endsWith(sStr)) {
+          return withoutExt.slice(0, -sStr.length);
         }
       }
     }
   } else if (typeof suffix === 'string') {
-    if (suffixIncludesExtension(suffix)) {
+    if (suffixIncludesExtension.test(suffix)) {
       if (fullFilename.endsWith(suffix)) {
         return fullFilename.slice(0, -suffix.length);
       }

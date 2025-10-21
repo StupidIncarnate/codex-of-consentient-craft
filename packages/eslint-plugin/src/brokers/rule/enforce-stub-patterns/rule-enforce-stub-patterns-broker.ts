@@ -56,7 +56,7 @@ export const ruleEnforceStubPatternsBroker = (): EslintRule => ({
           ) {
             return; // This is a nested function, skip it
           }
-          parent = parent.parent;
+          ({ parent } = parent);
         }
 
         if (!node.params || node.params.length === 0) {

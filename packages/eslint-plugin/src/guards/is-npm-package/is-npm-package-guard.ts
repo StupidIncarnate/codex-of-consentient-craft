@@ -3,7 +3,12 @@
  * Returns false for relative paths, absolute paths, and @questmaestro workspace packages.
  * Returns true for node: built-ins, scoped packages, and other npm packages.
  */
-export const isNpmPackageGuard = ({ importSource }: { importSource: string }): boolean => {
+export const isNpmPackageGuard = ({ importSource }: { importSource?: string }): boolean => {
+  // Handle undefined/empty
+  if (!importSource) {
+    return false;
+  }
+
   // Relative/absolute paths are not npm packages
   if (importSource.startsWith('.') || importSource.startsWith('/')) {
     return false;

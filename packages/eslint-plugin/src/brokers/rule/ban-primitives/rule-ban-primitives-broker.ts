@@ -20,10 +20,10 @@ export const ruleBanPrimitivesBroker = (): EslintRule => ({
   }),
   create: (context: unknown) => {
     const ctx = context as EslintContext;
-    const filename = ctx.getFilename?.() ?? '';
+    const filename = String(ctx.getFilename?.() ?? '');
 
     // Skip stub files - they need to use primitives for type conversion
-    if (hasFileSuffixGuard({ filename: String(filename), suffix: 'stub' })) {
+    if (hasFileSuffixGuard({ filename, suffix: 'stub' })) {
       return {};
     }
 

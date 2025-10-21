@@ -69,7 +69,12 @@ export const ruleBanContractInTestsBroker = (): EslintRule => ({
         }
 
         // Check if importing a -contract file (relative imports)
-        const isContractImport = importSource.includes('-contract');
+        // Only match if the filename itself ends with -contract, not just the path containing it
+        // Extract just the filename from the import path
+        const importPathParts = importSource.split('/');
+        const importFilename = importPathParts[importPathParts.length - 1] ?? '';
+        const isContractImport =
+          importFilename.endsWith('-contract.ts') || importFilename.endsWith('-contract');
 
         if (!isContractImport) {
           return;

@@ -1,4 +1,4 @@
-export { startEslintPlugin } from './startup/start-eslint-plugin';
+export { StartEslintPlugin } from './startup/start-eslint-plugin';
 
 // Export contracts for advanced usage
 export type { EslintRule } from './contracts/eslint-rule/eslint-rule-contract';
@@ -20,8 +20,8 @@ export { configTsconfigBroker } from './brokers/config/tsconfig/config-tsconfig-
 export { mergeConfigsTransformer } from './transformers/merge-configs/merge-configs-transformer';
 export { astToViolationTransformer } from './transformers/ast-to-violation/ast-to-violation-transformer';
 
-import { startEslintPlugin } from './startup/start-eslint-plugin';
+import { StartEslintPlugin } from './startup/start-eslint-plugin';
 
 // Default export for standard ESLint plugin usage
-const plugin = startEslintPlugin();
+const plugin = StartEslintPlugin();
 export default plugin;

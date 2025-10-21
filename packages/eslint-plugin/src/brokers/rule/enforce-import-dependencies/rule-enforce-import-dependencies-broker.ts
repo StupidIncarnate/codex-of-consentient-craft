@@ -69,7 +69,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
         if (importSource.startsWith('@questmaestro/shared/')) {
           // Extract the folder type from the subpath (e.g., "contracts" from "@questmaestro/shared/contracts")
           const subpath = importSource.replace('@questmaestro/shared/', '');
-          const sharedFolderType = subpath.split('/')[0];
+          const [sharedFolderType] = subpath.split('/');
 
           // If no folder type found, skip validation
           if (!sharedFolderType) {
