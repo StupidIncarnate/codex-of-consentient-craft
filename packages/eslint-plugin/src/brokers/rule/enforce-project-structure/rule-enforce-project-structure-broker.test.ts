@@ -186,6 +186,46 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
       code: 'export const formatDateTransformerProxy = () => {};',
       filename: '/project/src/transformers/format-date/format-date-transformer.proxy.ts',
     },
+
+    // ========== LAYER FILES: Valid in allowed folder types ==========
+    // Brokers allow layer files
+    {
+      code: 'export const validateFolderDepthLayerBroker = () => {};',
+      filename:
+        '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.ts',
+    },
+    {
+      code: 'export const checkExportStructureLayerBroker = () => {};',
+      filename: '/project/src/brokers/user/fetch/check-export-structure-layer-broker.ts',
+    },
+    // Widgets allow layer files
+    {
+      code: 'export const AvatarLayerWidget = () => <div />;',
+      filename: '/project/src/widgets/user-card/avatar-layer-widget.tsx',
+    },
+    {
+      code: 'export const HeaderLayerWidget = () => <div />;',
+      filename: '/project/src/widgets/page-layout/header-layer-widget.tsx',
+    },
+    // Responders allow layer files
+    {
+      code: 'export const ValidateRequestLayerResponder = () => {};',
+      filename: '/project/src/responders/user/create/validate-request-layer-responder.ts',
+    },
+    {
+      code: 'export const ProcessPaymentLayerResponder = () => {};',
+      filename: '/project/src/responders/checkout/process/process-payment-layer-responder.ts',
+    },
+    // Layer files with proxy suffix
+    {
+      code: 'export const validateFolderDepthLayerBrokerProxy = () => {};',
+      filename:
+        '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.proxy.ts',
+    },
+    {
+      code: 'export const AvatarLayerWidgetProxy = () => {};',
+      filename: '/project/src/widgets/user-card/avatar-layer-widget.proxy.ts',
+    },
   ],
 
   invalid: [
@@ -273,7 +313,7 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
     {
       code: 'export const userFetchBroker = () => {};',
       filename: '/project/src/brokers/user/fetch/user-fetch.ts',
-      errors: [{ messageId: 'invalidFileSuffix' }],
+      errors: [{ messageId: 'invalidFileSuffixWithLayer' }],
     },
     {
       code: 'export const userContract = z.object({});',
@@ -298,7 +338,7 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
     {
       code: 'export const ButtonWidget = () => <div />;',
       filename: '/project/src/widgets/button/button.tsx',
-      errors: [{ messageId: 'invalidFileSuffix' }],
+      errors: [{ messageId: 'invalidFileSuffixWithLayer' }],
     },
     {
       code: 'export const UserFlow = () => <div />;',
@@ -430,7 +470,7 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
       code: 'export const userFetch = () => {};',
       filename: '/project/src/brokers/user/fetch/user-fetch.ts',
       errors: [
-        { messageId: 'invalidFileSuffix' },
+        { messageId: 'invalidFileSuffixWithLayer' },
         // Should NOT report export errors even though export is also wrong
       ],
     },
@@ -440,12 +480,12 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
     {
       code: 'export const userFetchBroker = () => {};',
       filename: '/project/src/brokers/user/fetch/UserFetch-broker.ts',
-      errors: [{ messageId: 'invalidFilenameCase' }],
+      errors: [{ messageId: 'invalidFilenameCaseWithLayer' }],
     },
     {
       code: 'export const userFetchBroker = () => {};',
       filename: '/project/src/brokers/user/fetch/user_fetch-broker.ts',
-      errors: [{ messageId: 'invalidFilenameCase' }],
+      errors: [{ messageId: 'invalidFilenameCaseWithLayer' }],
     },
 
     // Multiple Level 3 errors (both suffix AND kebab-case wrong)
@@ -457,7 +497,10 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
     {
       code: 'export const UserBroker = () => {};',
       filename: '/project/src/brokers/user/fetch/UserFetch.ts',
-      errors: [{ messageId: 'invalidFileSuffix' }, { messageId: 'invalidFilenameCase' }],
+      errors: [
+        { messageId: 'invalidFileSuffixWithLayer' },
+        { messageId: 'invalidFilenameCaseWithLayer' },
+      ],
     },
 
     // ========== LEVEL 4: Export validation errors ==========
@@ -679,6 +722,56 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
       code: 'export const wrongNameProxy = () => {};',
       filename: '/project/src/transformers/format-date/format-date-transformer.proxy.ts',
       errors: [{ messageId: 'filenameMismatch' }],
+    },
+
+    // ========== LAYER FILES: Invalid in folders that don't allow them ==========
+    // Guards don't allow layer files
+    {
+      code: 'export const validateEmailLayerGuard = () => true;',
+      filename: '/project/src/guards/validate-email/validate-email-layer-guard.ts',
+      errors: [{ messageId: 'layerFilesNotAllowed' }],
+    },
+    // Transformers don't allow layer files
+    {
+      code: 'export const formatDateLayerTransformer = () => {};',
+      filename: '/project/src/transformers/format-date/format-date-layer-transformer.ts',
+      errors: [{ messageId: 'layerFilesNotAllowed' }],
+    },
+    // Adapters don't allow layer files
+    {
+      code: 'export const httpGetLayerAdapter = () => {};',
+      filename: '/project/src/adapters/http/get/http-get-layer-adapter.ts',
+      errors: [{ messageId: 'layerFilesNotAllowed' }],
+    },
+    // Contracts don't allow layer files
+    {
+      code: 'export const userLayerContract = z.object({});',
+      filename: '/project/src/contracts/user/user-layer-contract.ts',
+      errors: [{ messageId: 'layerFilesNotAllowed' }],
+    },
+    // Statics don't allow layer files
+    {
+      code: 'export const configLayerStatics = {};',
+      filename: '/project/src/statics/config/config-layer-statics.ts',
+      errors: [{ messageId: 'layerFilesNotAllowed' }],
+    },
+    // State don't allow layer files
+    {
+      code: 'export const userCacheLayerState = {};',
+      filename: '/project/src/state/user-cache/user-cache-layer-state.ts',
+      errors: [{ messageId: 'layerFilesNotAllowed' }],
+    },
+    // Bindings don't allow layer files
+    {
+      code: 'export const userStateLayerBinding = () => {};',
+      filename: '/project/src/bindings/user-state/user-state-layer-binding.ts',
+      errors: [{ messageId: 'layerFilesNotAllowed' }],
+    },
+    // Middleware don't allow layer files
+    {
+      code: 'export const authLayerMiddleware = () => {};',
+      filename: '/project/src/middleware/auth/auth-layer-middleware.ts',
+      errors: [{ messageId: 'layerFilesNotAllowed' }],
     },
   ],
 });

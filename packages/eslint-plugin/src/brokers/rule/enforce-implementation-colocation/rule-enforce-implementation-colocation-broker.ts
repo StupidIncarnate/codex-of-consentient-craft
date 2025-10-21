@@ -20,8 +20,12 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
       messages: {
         missingTestFile:
           'Implementation file must have a colocated test file. Create {{testFileName}} (or .integration.test.ts or .spec.ts variant) in the same directory.',
+        missingTestFileWithLayer:
+          'Implementation file must have a colocated test file. Create {{testFileName}} (or .integration.test.ts or .spec.ts variant) in the same directory. Layer files (helpers decomposing complex parents) also need test files.',
         missingProxyFile:
           'Testable file must have a colocated proxy file. Create {{proxyFileName}} in the same directory.',
+        missingProxyFileWithLayer:
+          'Testable file must have a colocated proxy file. Create {{proxyFileName}} in the same directory. Layer files (helpers for complex parents) need their own proxy files if they have dependencies to mock.',
         missingStubFile:
           'Contract file must have a colocated stub file. Create {{stubFileName}} in the same directory.',
         invalidProxyFilename:
@@ -53,6 +57,12 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           return;
         }
 
+        // Get folder type and config
+        const folderType = projectFolderTypeFromFilePathTransformer({ filename });
+        const folderConfig = folderType
+          ? folderConfigStatics[folderType as keyof typeof folderConfigStatics]
+          : undefined;
+
         // Determine if this is a contract file
         const isContract = isFileInFolderTypeGuard({
           filename,
@@ -81,7 +91,9 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           const primaryTestFileName = testFilePaths[0] ?? filename;
           ctx.report({
             node,
-            messageId: 'missingTestFile',
+            messageId: folderConfig?.allowsLayerFiles
+              ? 'missingTestFileWithLayer'
+              : 'missingTestFile',
             data: {
               testFileName: primaryTestFileName.split('/').pop() ?? primaryTestFileName,
             },
@@ -106,16 +118,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
         }
 
         // Check for proxy file based on folder config (per testing-standards.md:403-418)
-        // Determine folder type from filename
-        const folderType = projectFolderTypeFromFilePathTransformer({ filename });
-
-        // Get folder config to check if this type requires a proxy
-        const folderConfig =
-          folderType === null
-            ? undefined
-            : (Reflect.get(folderConfigStatics, folderType) as
-                | { requireProxy?: boolean }
-                | undefined);
+        // Note: folderType and folderConfig already declared above
 
         // Default to not requiring proxy if config doesn't exist or doesn't specify
         const needsProxyFile = folderConfig?.requireProxy === true;
@@ -165,7 +168,9 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
 
             ctx.report({
               node,
-              messageId: 'missingProxyFile',
+              messageId: folderConfig?.allowsLayerFiles
+                ? 'missingProxyFileWithLayer'
+                : 'missingProxyFile',
               data: {
                 proxyFileName: proxyFileName.split('/').pop() ?? proxyFileName,
               },

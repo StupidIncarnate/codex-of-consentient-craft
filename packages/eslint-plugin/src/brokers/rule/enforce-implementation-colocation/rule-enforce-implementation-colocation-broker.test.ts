@@ -34,6 +34,10 @@ beforeEach(() => {
       '/project/src/errors/validation/validation-error.test.ts',
       '/project/src/flows/user/user-flow.integration.test.tsx',
       '/project/src/startup/start-server.integration.test.ts',
+      // Layer files
+      '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.test.ts',
+      '/project/src/widgets/user-card/avatar-layer-widget.test.tsx',
+      '/project/src/responders/user/create/validate-request-layer-responder.test.ts',
     ];
 
     if (existingTestFiles.includes(path)) {
@@ -54,6 +58,10 @@ beforeEach(() => {
       '/project/src/bindings/use-user-data/use-user-data-binding.proxy.ts',
       '/project/src/brokers/payment/process/payment-process-broker.proxy.ts',
       '/project/src/transformers/validate-schema/validate-schema-transformer.proxy.ts',
+      // Layer file proxies
+      '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.proxy.ts',
+      '/project/src/widgets/user-card/avatar-layer-widget.proxy.tsx',
+      '/project/src/responders/user/create/validate-request-layer-responder.proxy.ts',
     ];
 
     if (existingProxyFiles.includes(path)) {
@@ -196,13 +204,31 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const StartServer = () => {};',
       filename: '/project/src/startup/start-server.ts',
     },
+
+    // Layer files with colocated tests and proxies
+    {
+      code: 'export const validateFolderDepthLayerBroker = () => {};',
+      filename:
+        '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.ts',
+    },
+    {
+      code: 'export const AvatarLayerWidget = () => <div />;',
+      filename: '/project/src/widgets/user-card/avatar-layer-widget.tsx',
+    },
+    {
+      code: 'export const ValidateRequestLayerResponder = () => {};',
+      filename: '/project/src/responders/user/create/validate-request-layer-responder.ts',
+    },
   ],
   invalid: [
     // Implementation files without tests or proxy
     {
       code: 'export const orderFetchBroker = () => {};',
       filename: '/project/src/brokers/order/fetch/order-fetch-broker.ts',
-      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
+      errors: [
+        { messageId: 'missingTestFileWithLayer' },
+        { messageId: 'missingProxyFileWithLayer' },
+      ],
     },
     {
       code: 'export const axiosPostAdapter = () => {};',
@@ -217,7 +243,10 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
     {
       code: 'export const ButtonWidget = () => <button />;',
       filename: '/project/src/widgets/button/button-widget.tsx',
-      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
+      errors: [
+        { messageId: 'missingTestFileWithLayer' },
+        { messageId: 'missingProxyFileWithLayer' },
+      ],
     },
     // Contract without test file (will report both missing test and missing stub)
     {
@@ -242,6 +271,33 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const orderCreateBroker = () => {};',
       filename: '/project/src/brokers/order/create/order-create-broker.ts',
       errors: [{ messageId: 'invalidProxyFilename' }],
+    },
+
+    // Layer files without colocated proxy and test files (should fail)
+    {
+      code: 'export const checkAdapterMockSetupLayerBroker = () => {};',
+      filename:
+        '/project/src/brokers/rule/enforce-proxy-patterns/check-adapter-mock-setup-layer-broker.ts',
+      errors: [
+        { messageId: 'missingTestFileWithLayer' },
+        { messageId: 'missingProxyFileWithLayer' },
+      ],
+    },
+    {
+      code: 'export const UserInfoLayerWidget = () => <div />;',
+      filename: '/project/src/widgets/profile/user-info-layer-widget.tsx',
+      errors: [
+        { messageId: 'missingTestFileWithLayer' },
+        { messageId: 'missingProxyFileWithLayer' },
+      ],
+    },
+    {
+      code: 'export const ProcessPaymentLayerResponder = () => {};',
+      filename: '/project/src/responders/checkout/process/process-payment-layer-responder.ts',
+      errors: [
+        { messageId: 'missingTestFileWithLayer' },
+        { messageId: 'missingProxyFileWithLayer' },
+      ],
     },
   ],
 });

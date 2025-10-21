@@ -1,13 +1,13 @@
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { ruleEnforceProxyPatternsBroker } from './rule-enforce-proxy-patterns-broker';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
+import { ruleEnforceProxyPatternsBrokerProxy } from './rule-enforce-proxy-patterns-broker.proxy';
 
 const ruleTester = eslintRuleTesterAdapter();
 
 beforeEach(() => {
-  const adapterProxy = fsExistsSyncAdapterProxy();
+  const brokerProxy = ruleEnforceProxyPatternsBrokerProxy();
 
-  adapterProxy.setupFileSystem((filePath) => {
+  brokerProxy.setupFileSystem((filePath) => {
     const existingFiles = [
       '/project/src/adapters/http/http-adapter.ts',
       '/project/src/brokers/user/fetch/user-fetch-broker.ts',

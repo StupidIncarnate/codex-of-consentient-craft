@@ -119,6 +119,7 @@ module.exports = [
   // These are eslint tests so different structure
   {
     files: ['packages/eslint-plugin/src/brokers/rule/**'],
+    ignores: ['**/*-layer-*.test.ts'], // Layer brokers are real brokers that need proxies
     rules: {
       'jest/require-hook': 'off',
       'jest/require-top-level-describe': 'off',

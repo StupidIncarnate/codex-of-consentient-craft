@@ -571,7 +571,8 @@ export const eslintRuleStatics = {
     // ✅ i += 1
     // ❌ i++
     // Disallows the unary operators ++ and --
-    'no-plusplus': 'error',
+    // Another ingrain trained syntax in LLM
+    'no-plusplus': 'off',
 
     // ✅ const hasOwn = Object.prototype.hasOwnProperty
     // ❌ const proto = obj.__proto__

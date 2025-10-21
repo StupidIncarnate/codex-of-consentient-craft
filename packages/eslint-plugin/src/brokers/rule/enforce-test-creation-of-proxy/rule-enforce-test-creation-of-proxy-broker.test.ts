@@ -147,6 +147,28 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       `,
       filename: '/project/src/brokers/config/tsconfig/config-tsconfig-broker.test.ts',
     },
+
+    // Layer broker with proxy created inside test
+    {
+      code: `
+        it('should validate mocks', () => {
+          const proxy = validateAdapterMockSetupLayerBrokerProxy();
+          validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+        });
+      `,
+      filename: '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
+    },
+
+    // Layer broker with proxy called without assignment
+    {
+      code: `
+        it('should validate mocks', () => {
+          validateAdapterMockSetupLayerBrokerProxy();
+          validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+        });
+      `,
+      filename: '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
+    },
   ],
   invalid: [
     // Module-level proxy creation in test file
@@ -396,6 +418,65 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
         {
           messageId: 'proxyNotCreated',
           data: { implementationName: 'userBroker', proxyName: 'userBrokerProxy' },
+        },
+      ],
+    },
+
+    // Test calls layer broker without creating proxy first
+    {
+      code: `
+        it('test', () => {
+          validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+        });
+      `,
+      filename: '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
+      errors: [
+        {
+          messageId: 'proxyNotCreated',
+          data: { implementationName: 'validateAdapterMockSetupLayerBroker', proxyName: 'validateAdapterMockSetupLayerBrokerProxy' },
+        },
+      ],
+    },
+
+    // Test calls layer broker multiple times without proxy
+    {
+      code: `
+        it('test 1', () => {
+          validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+        });
+
+        it('test 2', () => {
+          validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+        });
+      `,
+      filename: '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
+      errors: [
+        {
+          messageId: 'proxyNotCreated',
+          data: { implementationName: 'validateAdapterMockSetupLayerBroker', proxyName: 'validateAdapterMockSetupLayerBrokerProxy' },
+        },
+        {
+          messageId: 'proxyNotCreated',
+          data: { implementationName: 'validateAdapterMockSetupLayerBroker', proxyName: 'validateAdapterMockSetupLayerBrokerProxy' },
+        },
+      ],
+    },
+
+    // Test with describe block calling layer broker without proxy
+    {
+      code: `
+        describe('validateAdapterMockSetupLayerBroker', () => {
+          it('should validate mocks', () => {
+            validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+            expect(mockContext.report).toHaveBeenCalled();
+          });
+        });
+      `,
+      filename: '/project/src/brokers/validate-adapter-mock-setup-layer-broker.test.ts',
+      errors: [
+        {
+          messageId: 'proxyNotCreated',
+          data: { implementationName: 'validateAdapterMockSetupLayerBroker', proxyName: 'validateAdapterMockSetupLayerBrokerProxy' },
         },
       ],
     },

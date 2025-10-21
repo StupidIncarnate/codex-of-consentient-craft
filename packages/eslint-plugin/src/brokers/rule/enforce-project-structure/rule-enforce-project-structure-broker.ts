@@ -40,8 +40,12 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
         // Level 3: Filename errors
         invalidFileSuffix: 'Lvl3: File must end with "{{expected}}" for {{folderType}}/ folder',
+        invalidFileSuffixWithLayer:
+          'Lvl3: File must end with "{{expected}}" for {{folderType}}/ folder. If this is a helper decomposing a complex parent, use layer pattern: {descriptive-name}-layer-{suffix}.ts (e.g., validate-folder-depth-layer-broker.ts)',
         invalidFilenameCase:
           'Lvl3: Found {{actual}}.{{ext}}. Filename should be {{expected}}.{{ext}}',
+        invalidFilenameCaseWithLayer:
+          'Lvl3: Found {{actual}}.{{ext}}. Filename should be {{expected}}.{{ext}}. If this is a helper decomposing a complex parent (not a standalone operation), use the layer pattern: {descriptive-name}-layer-{suffix}.{{ext}} (e.g., validate-folder-depth-layer-broker.ts)',
 
         // Level 4: Export errors
         noDefaultExport: 'Lvl4: Default exports are forbidden. Use named exports only.',
@@ -61,6 +65,10 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           'Lvl4: Adapters must export arrow functions (export const x = () => {}), not {{actualType}}',
         proxyMustBeArrowFunction:
           'Lvl4: Proxy must export arrow function (export const x = () => {}), not {{actualType}}',
+
+        // Layer file errors
+        layerFilesNotAllowed:
+          'Layer files (-layer-) are not allowed in {{folderType}}/. Only allowed in: brokers/, widgets/, responders/',
       },
       schema: [],
     },
@@ -113,9 +121,23 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
             return; // STOP - can't validate deeper if folder is unknown
           }
 
+          // Check layer file pattern
+          const isLayerFile = filename.includes('-layer-');
+          const folderConfig = folderConfigStatics[firstFolder as keyof typeof folderConfigStatics];
+
+          if (isLayerFile && !folderConfig.allowsLayerFiles) {
+            ctx.report({
+              node,
+              messageId: 'layerFilesNotAllowed',
+              data: {
+                folderType: firstFolder,
+              },
+            });
+            return; // STOP - layer files not allowed in this folder
+          }
+
           // LEVEL 2: Folder Depth + Kebab-Case
           const actualDepth = pathDepthTransformer({ filePath: filename });
-          const folderConfig = folderConfigStatics[firstFolder as keyof typeof folderConfigStatics];
           const expectedDepth = folderConfig.folderDepth;
 
           if (actualDepth !== expectedDepth) {
@@ -175,11 +197,12 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           const hasInvalidCase = !isKebabCaseGuard({ str: filenameBase });
 
           // For folders with depth > 0, validate filename prefix matches domain folders
+          // Skip domain matching for layer files (they have their own naming pattern)
           let hasInvalidDomainMatch = false;
           let expectedFilenamePrefix = '';
           let actualFilenamePrefix = '';
 
-          if (expectedDepth > 0) {
+          if (expectedDepth > 0 && !isLayerFile) {
             const folderSegments = filepathExtractSegmentsAfterSrcTransformer({
               filePath: filename,
             });
@@ -217,7 +240,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
             ctx.report({
               node,
-              messageId: 'invalidFileSuffix',
+              messageId: folderConfig.allowsLayerFiles
+                ? 'invalidFileSuffixWithLayer'
+                : 'invalidFileSuffix',
               data: {
                 expected: expectedSuffix,
                 folderType: firstFolder,
@@ -236,7 +261,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
             ctx.report({
               node,
-              messageId: 'invalidFilenameCase',
+              messageId: folderConfig.allowsLayerFiles
+                ? 'invalidFilenameCaseWithLayer'
+                : 'invalidFilenameCase',
               data: {
                 actual: actualFullFilename,
                 expected: expectedFullFilename,
@@ -256,7 +283,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
             ctx.report({
               node,
-              messageId: 'invalidFilenameCase',
+              messageId: folderConfig.allowsLayerFiles
+                ? 'invalidFilenameCaseWithLayer'
+                : 'invalidFilenameCase',
               data: {
                 actual: actualFullFilename,
                 expected: expectedFullFilename,

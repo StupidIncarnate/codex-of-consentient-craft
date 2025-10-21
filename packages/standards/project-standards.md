@@ -302,6 +302,302 @@ while (true) {
 }
 ```
 
+## Layer Files - Decomposing Complex Components
+
+### Purpose
+
+When a parent file grows complex (>300 lines, >3 distinct responsibilities), **layer files** allow decomposition into
+focused, testable units while maintaining the parent's domain context.
+
+### The Pattern
+
+**Naming:** `{descriptive-name}-layer-{folder-suffix}.{ext}`
+
+**Structure:**
+
+```
+parent-domain/
+  parent-name-broker.ts              # Parent - orchestrates layers
+  parent-name-broker.proxy.ts
+  parent-name-broker.test.ts
+
+  validate-step-one-layer-broker.ts  # Layer - focused responsibility
+  validate-step-one-layer-broker.proxy.ts  # Has own proxy if needed
+  validate-step-one-layer-broker.test.ts
+
+  validate-step-two-layer-broker.ts  # Layer - different responsibility
+  validate-step-two-layer-broker.proxy.ts
+  validate-step-two-layer-broker.test.ts
+```
+
+### Key Characteristics
+
+**Layer files ARE:**
+
+- ✅ Co-located with parent (same directory)
+- ✅ Full entities (own `.proxy.ts` and `.test.ts` if complex)
+- ✅ Independently testable with their own test suite
+- ✅ Scoped to parent's domain (not reusable across codebase)
+- ✅ Named with `-layer-` infix before folder suffix
+
+**Layer files are NOT:**
+
+- ❌ Utilities (those go in `transformers/` or `guards/`)
+- ❌ Reusable across parents (those get their own folder)
+- ❌ Separate domains (those are sibling folders)
+- ❌ In subfolders (must be flat with parent)
+
+### Allowed Folder Types
+
+Only these folder types allow layer files (controlled by `allowsLayerFiles` in folder config):
+
+- **brokers/** - Complex business logic can have validation layers
+- **widgets/** - Complex UI can have sub-component layers
+- **responders/** - Complex request handling can have processing layers
+
+**Not allowed in:** statics, contracts, guards, transformers, errors, flows, adapters, middleware, bindings, state,
+startup, assets, migrations (these should stay focused and simple)
+
+### When to Create Layer Files
+
+**✅ Create layer file when:**
+
+1. Parent exceeds 300 lines
+2. Layer calls different dependencies than parent (needs own proxy)
+3. Layer has distinct validation/rendering/processing responsibility
+4. Layer needs >10 test cases to cover its logic
+5. Parent would have >3 conceptual sections without decomposition
+
+**❌ Don't create layer file when:**
+
+1. Logic is reusable across multiple parents → extract to `guards/` or `transformers/`
+2. Logic is <50 lines → keep inline in parent
+3. Logic is pure and doesn't need mocking → might be a pure function in `guards/` or `transformers/`
+4. Folder type doesn't allow layers (see `allowsLayerFiles` in folder config)
+
+### Examples by Folder Type
+
+#### Broker Layers
+
+```typescript
+// brokers/rule/enforce-project-structure/
+//   rule-enforce-project-structure-broker.ts (528 lines - too complex!)
+
+// Decompose into layers:
+brokers / rule / enforce - project - structure /
+rule - enforce - project - structure - broker.ts
+#
+Parent - orchestrates
+validation
+rule - enforce - project - structure - broker.proxy.ts
+rule - enforce - project - structure - broker.test.ts
+
+validate - folder - location - layer - broker.ts
+#
+Layer - Level
+1
+validation
+validate - folder - location - layer - broker.proxy.ts
+validate - folder - location - layer - broker.test.ts
+
+validate - folder - depth - layer - broker.ts
+#
+Layer - Level
+2
+validation
+validate - folder - depth - layer - broker.proxy.ts
+validate - folder - depth - layer - broker.test.ts
+
+validate - filename - pattern - layer - broker.ts
+#
+Layer - Level
+3
+validation
+validate - filename - pattern - layer - broker.proxy.ts
+validate - filename - pattern - layer - broker.test.ts
+
+validate -
+export
+-structure - layer - broker.ts
+#
+Layer - Level
+4
+validation
+validate -
+export
+-structure - layer - broker.proxy.ts
+validate -
+export
+-structure - layer - broker.test.ts
+```
+
+**Parent orchestrates:**
+
+```typescript
+// rule-enforce-project-structure-broker.ts
+import {validateFolderLocationLayerBroker} from './validate-folder-location-layer-broker';
+import {validateFolderDepthLayerBroker} from './validate-folder-depth-layer-broker';
+import {validateFilenamePatternLayerBroker} from './validate-filename-pattern-layer-broker';
+import {validateExportStructureLayerBroker} from './validate-export-structure-layer-broker';
+
+export const ruleEnforceProjectStructureBroker = (): EslintRule => ({
+    create: (context: unknown) => {
+        const ctx = context as EslintContext;
+
+        return {
+            Program: (node: Tsestree): void => {
+                // Level 1: Folder location
+                if (!validateFolderLocationLayerBroker({node, context: ctx})) {
+                    return; // Stop early if folder is wrong
+                }
+
+                // Level 2: Folder depth
+                if (!validateFolderDepthLayerBroker({node, context: ctx})) {
+                    return; // Stop early if depth is wrong
+                }
+
+                // Level 3: Filename pattern
+                if (!validateFilenamePatternLayerBroker({node, context: ctx})) {
+                    return; // Stop early if filename is wrong
+                }
+
+                // Level 4: Export structure
+                validateExportStructureLayerBroker({node, context: ctx});
+            }
+        };
+    }
+});
+```
+
+#### Widget Layers
+
+```typescript
+// widgets/user-card/user-card-widget.tsx (Parent)
+import {AvatarLayerWidget} from './avatar-layer-widget';
+import {UserMetaLayerWidget} from './user-meta-layer-widget';
+
+export const UserCardWidget = ({userId}: UserCardWidgetProps) => {
+    const {data: user} = useUserDataBinding({userId});  // Parent's binding
+
+    return (
+        <div>
+            <AvatarLayerWidget userId = {userId}
+    />  {/ * Layer - different
+    binding * /}
+    < h1 > {user.name} < /h1>
+    < UserMetaLayerWidget
+    userId = {userId}
+    />  {/ * Layer - different
+    binding * /}
+    < /div>
+)
+    ;
+};
+
+// avatar-layer-widget.tsx (Layer - calls different broker)
+export const AvatarLayerWidget = ({userId}: AvatarLayerWidgetProps) => {
+    const {data: avatar} = useAvatarDataBinding({userId});  // Different binding!
+
+    return <img src = {avatar.url}
+    alt = {avatar.alt}
+    />;
+};
+
+// avatar-layer-widget.proxy.ts (Layer has own proxy for different dependency)
+export const avatarLayerWidgetProxy = () => {
+    const avatarBindingProxy = useAvatarDataBindingProxy();  // Different dependency
+
+    return {
+        setupAvatar: ({userId, avatar}) => {
+            avatarBindingProxy.setupAvatar({userId, avatar});
+        }
+    };
+};
+```
+
+**Why this is a layer:**
+
+- Calls different broker (`useAvatarDataBinding` vs parent's `useUserDataBinding`)
+- Needs own proxy to set up avatar mocking
+- Has focused rendering responsibility (avatar only)
+- Co-located with parent widget (same directory)
+
+#### Responder Layers
+
+```typescript
+// responders/user/create/user-create-responder.ts (Parent)
+import {validateRequestLayerResponder} from './validate-request-layer-responder';
+import {processUserCreationLayerResponder} from './process-user-creation-layer-responder';
+
+export const UserCreateResponder = async ({req, res}: ResponderParams) => {
+    // Layer 1: Validate request
+    const userData = validateRequestLayerResponder({req, res});
+    if (!userData) return; // Layer sent error response
+
+    // Layer 2: Process creation
+    const user = await processUserCreationLayerResponder({userData, res});
+
+    res.status(201).json(user);
+};
+```
+
+### Testing Layer Files
+
+**Each layer has its own test file** following standard proxy pattern:
+
+```typescript
+// validate-folder-depth-layer-broker.test.ts
+import {ruleTester} from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import {validateFolderDepthLayerBroker} from './validate-folder-depth-layer-broker';
+
+ruleTester.run('validate-folder-depth-layer', validateFolderDepthLayerBroker(), {
+    valid: [
+        {code: '...', filename: 'src/brokers/user/fetch/user-fetch-broker.ts'},
+    ],
+    invalid: [
+        {
+            code: '...',
+            filename: 'src/brokers/user-fetch-broker.ts',
+            errors: [{messageId: 'invalidFolderDepth'}]
+        }
+    ]
+});
+```
+
+**If layer needs proxy (has dependencies to mock):**
+
+```typescript
+// avatar-layer-widget.test.tsx
+import {render, screen} from '@testing-library/react';
+import {AvatarLayerWidget} from './avatar-layer-widget';
+import {avatarLayerWidgetProxy} from './avatar-layer-widget.proxy';
+import {UserIdStub} from '../../contracts/user-id/user-id.stub';
+import {AvatarStub} from '../../contracts/avatar/avatar.stub';
+
+it('VALID: {avatar url} => renders avatar image', async () => {
+    const proxy = avatarLayerWidgetProxy();
+    const userId = UserIdStub('user-1');
+    const avatar = AvatarStub({url: 'https://example.com/avatar.jpg'});
+
+    proxy.setupAvatar({userId, avatar});
+
+    render(<AvatarLayerWidget userId = {userId}
+    />);
+
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'https://example.com/avatar.jpg');
+});
+```
+
+### Lint Enforcement
+
+Layer files are validated by:
+
+- `@questmaestro/enforce-project-structure` - validates folder allows layers
+- `@questmaestro/enforce-implementation-colocation` - validates layer has parent in same directory
+- File suffix rules - validates `-layer-` appears before folder suffix
+
+See `packages/eslint-plugin/src/statics/folder-config/folder-config-statics.ts` for `allowsLayerFiles` configuration.
+
 ## Critical Context: Why This Structure Exists
 
 LLMs instinctively "squirrel away" code based on semantic linking from training data. This creates organizational chaos,

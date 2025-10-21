@@ -104,3 +104,73 @@ const suffix: string = Array.isArray(fileSuffix)
 ESLint's `NodeListener` uses its own node type system that has slight differences from `@typescript-eslint/utils`'s
 TSESTree types, even though they represent the same AST nodes at runtime. By using structural typing and minimal
 interfaces, we stay compatible with both type systems without unsafe assertions.
+
+## File Type Detection in Rules
+
+When implementing rules that need to check file types, folder types, or file patterns, use the existing guards in
+`src/guards/`:
+
+### `isFileInFolderTypeGuard`
+
+**Location:** `src/guards/is-file-in-folder-type/is-file-in-folder-type-guard.ts`
+
+**Purpose:** Check if a file is in a specific folder type with the expected suffix.
+
+**Pattern:**
+
+```typescript
+import {isFileInFolderTypeGuard} from '../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
+
+// Check if file is a broker
+if (isFileInFolderTypeGuard({filename, folderType: 'brokers', suffix: 'broker'})) {
+    // File is in brokers/ folder and ends with -broker.ts or -broker.tsx
+}
+
+// Check if file is a widget
+if (isFileInFolderTypeGuard({filename, folderType: 'widgets', suffix: 'widget'})) {
+    // File is in widgets/ folder and ends with -widget.ts or -widget.tsx
+}
+
+// Check if file is a contract
+if (isFileInFolderTypeGuard({filename, folderType: 'contracts', suffix: 'contract'})) {
+    // File is in contracts/ folder and ends with -contract.ts
+}
+```
+
+**Features:**
+
+- Automatically adds dash prefix to suffix (`suffix: 'broker'` checks for `-broker`)
+- Checks both `.ts` and `.tsx` extensions
+- Validates file is in the correct folder type (`/{folderType}/` in path)
+- Returns `false` if any parameter is missing
+
+### Layer File Detection
+
+**Pattern for layer files** (files with `-layer-` infix):
+
+```typescript
+// Check if filename contains -layer- before the suffix
+const isLayerFile = filename.includes('-layer-');
+
+// Validate layer file is in allowed folder type
+const folderType = projectFolderTypeFromFilePathTransformer({filename});
+const folderConfig = folderConfigStatics[folderType];
+
+if (isLayerFile && !folderConfig?.allowsLayerFiles) {
+    // Report error: layer files not allowed in this folder type
+}
+
+// Layer file naming: {descriptive-name}-layer-{folder-suffix}.ts
+// Examples:
+//   validate-folder-depth-layer-broker.ts
+//   avatar-layer-widget.tsx
+//   validate-request-layer-responder.ts
+```
+
+**Layer files are allowed in:**
+
+- `brokers/` - Complex business logic decomposition
+- `widgets/` - Complex UI sub-components
+- `responders/` - Complex request handling layers
+
+See `src/statics/folder-config/folder-config-statics.ts` for `allowsLayerFiles` configuration per folder type.

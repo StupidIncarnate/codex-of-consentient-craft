@@ -8,7 +8,11 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
  * // z.string().email().brand<'EmailAddress'>() - returns true
  * // z.string().email() - returns false
  */
-export const isAstBrandInChainGuard = ({ node }: { node: Tsestree }): boolean => {
+export const isAstBrandInChainGuard = ({ node }: { node?: Tsestree }): boolean => {
+  if (!node) {
+    return false;
+  }
+
   let current = node.parent;
 
   while (current) {

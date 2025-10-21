@@ -5,362 +5,9 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@questmaestro/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
-
-export const checkProxyFunctionReturn = (functionNode: Tsestree, context: EslintContext): void => {
-  const { body, returnType } = functionNode;
-
-  if (!body) return;
-
-  // Check explicit return type annotation if present
-  if (returnType) {
-    const { typeAnnotation } = returnType;
-    if (typeAnnotation) {
-      const typeAnnotationType = typeAnnotation.type;
-
-      // Check if return type is void, primitive, or array
-      if (
-        typeAnnotationType === 'TSVoidKeyword' ||
-        typeAnnotationType === 'TSStringKeyword' ||
-        typeAnnotationType === 'TSNumberKeyword' ||
-        typeAnnotationType === 'TSBooleanKeyword' ||
-        typeAnnotationType === 'TSArrayType' ||
-        typeAnnotationType === 'TSTupleType'
-      ) {
-        context.report({
-          node: functionNode,
-          messageId: 'proxyMustReturnObject',
-        });
-        return;
-      }
-    }
-  }
-
-  // Check function body - handle union type (body can be single node or array)
-  if (Array.isArray(body)) {
-    // Body is an array (shouldn't happen for function bodies, but handle it)
-    return;
-  }
-
-  if (body.type === 'BlockStatement') {
-    // Block statement has statements in its body array
-    if (body.body && Array.isArray(body.body)) {
-      const statements = body.body;
-      let hasReturnStatement = false;
-
-      for (const statement of statements) {
-        if (statement.type === 'ReturnStatement') {
-          hasReturnStatement = true;
-          checkReturnStatement(statement, context, functionNode);
-        }
-      }
-
-      // If no return statement found in block, it's an implicit void return
-      if (!hasReturnStatement) {
-        context.report({
-          node: functionNode,
-          messageId: 'proxyMustReturnObject',
-        });
-      }
-    }
-  } else if (body.type === 'ObjectExpression') {
-    // Arrow function with direct object return: () => ({ ... })
-    checkObjectExpression(body, context);
-  } else {
-    // Direct return of primitives or arrays: () => 'string', () => 42, () => []
-    // Check if it's returning non-object
-    if (
-      body.type === 'Literal' ||
-      body.type === 'TemplateLiteral' ||
-      body.type === 'ArrayExpression' ||
-      body.type === 'Identifier'
-    ) {
-      context.report({
-        node: functionNode,
-        messageId: 'proxyMustReturnObject',
-      });
-    }
-  }
-};
-
-export const checkReturnStatement = (
-  statement: Tsestree,
-  context: EslintContext,
-  functionNode: Tsestree,
-): void => {
-  if (statement.type === 'ReturnStatement') {
-    const { argument } = statement;
-
-    if (!argument) {
-      // Return with no value (void)
-      context.report({
-        node: functionNode,
-        messageId: 'proxyMustReturnObject',
-      });
-      return;
-    }
-
-    // Check if returning primitive or array
-    if (
-      argument.type === 'Literal' ||
-      argument.type === 'TemplateLiteral' ||
-      argument.type === 'ArrayExpression' ||
-      argument.type === 'Identifier' // Could be returning a primitive variable
-    ) {
-      context.report({
-        node: functionNode,
-        messageId: 'proxyMustReturnObject',
-      });
-      return;
-    }
-
-    // Check if returning object
-    if (argument.type === 'ObjectExpression') {
-      checkObjectExpression(argument, context);
-    }
-  }
-};
-
-export const checkObjectExpression = (objectNode: Tsestree, context: EslintContext): void => {
-  const { properties } = objectNode;
-
-  if (!properties) return;
-
-  // Check for bootstrap property and mock in helper names
-  for (const property of properties) {
-    if (property.type === 'Property' || property.type === 'MethodDefinition') {
-      const { key } = property;
-      const keyName = key?.name;
-
-      if (keyName === 'bootstrap') {
-        context.report({
-          node: property,
-          messageId: 'proxyNoBootstrapMethod',
-        });
-      }
-
-      // Check if helper name contains forbidden implementation-revealing words
-      if (keyName) {
-        const forbiddenWords = ['mock', 'stub', 'fake', 'spy', 'jest', 'dummy'];
-        const foundWord = forbiddenWords.find((word) => new RegExp(word, 'i').test(keyName));
-
-        if (foundWord) {
-          context.report({
-            node: property,
-            messageId: 'proxyHelperNoMockInName',
-            data: { name: keyName, forbiddenWord: foundWord },
-          });
-        }
-      }
-    }
-  }
-};
-
-export const checkAdapterProxyMockSetup = (
-  functionNode: Tsestree,
-  context: EslintContext,
-): void => {
-  const { body } = functionNode;
-
-  if (!body) return;
-
-  // Handle union type - body can be single node or array
-  if (Array.isArray(body)) return;
-
-  // Only check BlockStatement functions (not direct returns)
-  if (body.type !== 'BlockStatement') return;
-
-  if (!body.body || !Array.isArray(body.body)) return;
-  const statements = body.body;
-
-  // Find return statement position
-  let returnStatementIndex = -1;
-  for (let i = 0; i < statements.length; i++) {
-    const stmt = statements[i];
-    if (stmt && stmt.type === 'ReturnStatement') {
-      returnStatementIndex = i;
-      break;
-    }
-  }
-
-  if (returnStatementIndex === -1) return;
-
-  // Check statements before return for jest mocking calls and mock setup calls
-  let hasJestMocking = false;
-  let hasMockSetup = false;
-
-  for (let i = 0; i < returnStatementIndex; i++) {
-    const statement = statements[i];
-    if (!statement) continue;
-
-    // Check for ExpressionStatement or VariableDeclaration
-    if (statement.type === 'ExpressionStatement') {
-      const { expression } = statement;
-
-      if (expression) {
-        // Check for CallExpression
-        if (expression.type === 'CallExpression') {
-          const { callee } = expression;
-
-          if (callee) {
-            // Check for MemberExpression (jest.spyOn, mock.mockImplementation)
-            if (callee.type === 'MemberExpression') {
-              const { object } = callee;
-              const { property } = callee;
-
-              // Check if calling jest.spyOn
-              if (object?.name === 'jest' && property?.name === 'spyOn') {
-                hasJestMocking = true;
-              }
-
-              // Check if calling mockImplementation, mockResolvedValue, mockRejectedValue, mockReturnValue
-              const mockMethods = [
-                'mockImplementation',
-                'mockResolvedValue',
-                'mockRejectedValue',
-                'mockReturnValue',
-                'mockReturnValueOnce',
-                'mockResolvedValueOnce',
-              ];
-
-              if (property?.name && mockMethods.includes(property.name)) {
-                hasMockSetup = true;
-              }
-            }
-          }
-        }
-      }
-    } else if (statement.type === 'VariableDeclaration') {
-      // Check for jest.mocked() or jest.spyOn() in variable declarations
-      const { declarations } = statement;
-
-      if (declarations) {
-        for (const declaration of declarations) {
-          if (declaration.type === 'VariableDeclarator') {
-            const { init } = declaration;
-
-            if (init) {
-              // Check for CallExpression (jest.mocked(), jest.spyOn())
-              if (init.type === 'CallExpression') {
-                const { callee } = init;
-
-                if (callee) {
-                  // Check for MemberExpression (jest.mocked, jest.spyOn)
-                  if (callee.type === 'MemberExpression') {
-                    const { object } = callee;
-                    const { property } = callee;
-
-                    // Check if calling jest.mocked or jest.spyOn
-                    if (
-                      object?.name === 'jest' &&
-                      (property?.name === 'mocked' || property?.name === 'spyOn')
-                    ) {
-                      hasJestMocking = true;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Only report if jest mocking is used but no mock setup found
-  if (hasJestMocking && !hasMockSetup) {
-    context.report({
-      node: functionNode,
-      messageId: 'adapterProxyMustSetupMocks',
-    });
-  }
-};
-
-export const checkProxyConstructorSideEffects = (
-  functionNode: Tsestree,
-  context: EslintContext,
-): void => {
-  const { body } = functionNode;
-
-  if (!body) return;
-
-  // Handle union type - body can be single node or array
-  if (Array.isArray(body)) return;
-
-  // Only check BlockStatement functions (not direct returns)
-  if (body.type !== 'BlockStatement') return;
-
-  if (!body.body || !Array.isArray(body.body)) return;
-  const statements = body.body;
-
-  // Find return statement position
-  let returnStatementIndex = -1;
-  for (let i = 0; i < statements.length; i++) {
-    const stmt = statements[i];
-    if (stmt && stmt.type === 'ReturnStatement') {
-      returnStatementIndex = i;
-      break;
-    }
-  }
-
-  if (returnStatementIndex === -1) return;
-
-  // Check statements before return for side effects
-  for (let i = 0; i < returnStatementIndex; i++) {
-    const statement = statements[i];
-    if (!statement) continue;
-
-    // Check for ExpressionStatement containing side effects
-    if (statement.type === 'ExpressionStatement') {
-      const { expression } = statement;
-
-      if (expression) {
-        // Check for CallExpression
-        if (expression.type === 'CallExpression') {
-          const { callee } = expression;
-
-          if (callee) {
-            // Check for MemberExpression (obj.method())
-            if (callee.type === 'MemberExpression') {
-              const { object } = callee;
-
-              // Check if it's calling a mock method (allowed)
-              const { property } = callee;
-              const propertyName = property?.name;
-              const mockMethods = [
-                'mockImplementation',
-                'mockResolvedValue',
-                'mockRejectedValue',
-                'mockReturnValue',
-                'mockReturnValueOnce',
-                'mockResolvedValueOnce',
-                'mockRejectedValueOnce',
-              ];
-              const isMockMethod = propertyName && mockMethods.includes(propertyName);
-
-              if (!isMockMethod) {
-                const objectName = object?.name ?? 'unknown';
-
-                // Check if this is an allowed operation (jest or child proxy)
-                const isJestOperation = objectName === 'jest';
-                const isChildProxyCreation = objectName.endsWith('Proxy');
-                const isAllowed = isJestOperation || isChildProxyCreation;
-
-                // Everything else is a side effect
-                if (!isAllowed) {
-                  context.report({
-                    node: statement,
-                    messageId: 'proxyConstructorNoSideEffects',
-                    data: { type: `${objectName}.${propertyName ?? 'method'}()` },
-                  });
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-};
+import { validateProxyFunctionReturnLayerBroker } from './validate-proxy-function-return-layer-broker';
+import { validateAdapterMockSetupLayerBroker } from './validate-adapter-mock-setup-layer-broker';
+import { validateProxyConstructorSideEffectsLayerBroker } from './validate-proxy-constructor-side-effects-layer-broker';
 
 export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -427,7 +74,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
         // Extract implementation file path by removing .proxy.ts and adding .ts
         // Example: foo-adapter.proxy.ts -> foo-adapter.ts
         const implementationPath = filePathContract.parse(
-          proxyFilePath.replace(/\.proxy\.ts$/, '.ts'),
+          proxyFilePath.replace(/\.proxy\.ts$/u, '.ts'),
         );
 
         // Check if implementation file exists
@@ -523,7 +170,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
           if (object?.name === 'jest' && property?.name === 'mocked') {
             const args = node.arguments;
             if (args && args.length > 0) {
-              const firstArg = args[0];
+              const [firstArg] = args;
               if (firstArg?.name) {
                 const argName = firstArg.name;
 
@@ -603,7 +250,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
         const { declarations } = declaration;
         if (!declarations || declarations.length === 0) return;
 
-        const firstDeclaration = declarations[0];
+        const [firstDeclaration] = declarations;
         const id = firstDeclaration?.id;
         const init = firstDeclaration?.init;
 
@@ -614,7 +261,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
         if (name?.endsWith('Proxy')) {
           // Check the function's return type and body
           if (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') {
-            checkProxyFunctionReturn(init, ctx);
+            validateProxyFunctionReturnLayerBroker(init, ctx);
 
             // For adapter proxies, check that mock setup happens in constructor
             const isAdapterProxy =
@@ -625,11 +272,11 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
                 })) ??
               false;
             if (isAdapterProxy) {
-              checkAdapterProxyMockSetup(init, ctx);
+              validateAdapterMockSetupLayerBroker(init, ctx);
             }
 
             // Check for side effects in constructor
-            checkProxyConstructorSideEffects(init, ctx);
+            validateProxyConstructorSideEffectsLayerBroker(init, ctx);
           }
         }
       },
