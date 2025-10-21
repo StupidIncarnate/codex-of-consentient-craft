@@ -14,7 +14,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         body: undefined,
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -30,7 +30,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         body: [] as unknown as typeof functionNode.body,
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -49,7 +49,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -68,7 +68,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -88,7 +88,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         },
       } as unknown as ReturnType<typeof TsestreeStub>;
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -115,7 +115,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -181,7 +181,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -245,7 +245,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -304,7 +304,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -368,7 +368,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -432,7 +432,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -496,7 +496,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -545,7 +545,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -596,7 +596,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -639,7 +639,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -688,7 +688,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -721,7 +721,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         },
       } as unknown as ReturnType<typeof TsestreeStub>;
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -750,7 +750,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -779,7 +779,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
         }),
       });
 
-      validateAdapterMockSetupLayerBroker(functionNode, mockContext);
+      validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });

@@ -2,11 +2,15 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { validateObjectExpressionLayerBroker } from './validate-object-expression-layer-broker';
 
-export const validateReturnStatementLayerBroker = (
-  statement: Tsestree,
-  context: EslintContext,
-  functionNode: Tsestree,
-): void => {
+export const validateReturnStatementLayerBroker = ({
+  statement,
+  context,
+  functionNode,
+}: {
+  statement: Tsestree;
+  context: EslintContext;
+  functionNode: Tsestree;
+}): void => {
   if (statement.type === 'ReturnStatement') {
     const { argument } = statement;
 
@@ -35,7 +39,7 @@ export const validateReturnStatementLayerBroker = (
 
     // Check if returning object
     if (argument.type === 'ObjectExpression') {
-      validateObjectExpressionLayerBroker(argument, context);
+      validateObjectExpressionLayerBroker({ objectNode: argument, context });
     }
   }
 };

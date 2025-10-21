@@ -1,10 +1,13 @@
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
-export const validateObjectExpressionLayerBroker = (
-  objectNode: Tsestree,
-  context: EslintContext,
-): void => {
+export const validateObjectExpressionLayerBroker = ({
+  objectNode,
+  context,
+}: {
+  objectNode: Tsestree;
+  context: EslintContext;
+}): void => {
   const { properties } = objectNode;
 
   if (!properties) return;

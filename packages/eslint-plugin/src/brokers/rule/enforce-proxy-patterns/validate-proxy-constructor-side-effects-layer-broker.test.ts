@@ -14,7 +14,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         body: undefined,
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -30,7 +30,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         body: [] as unknown as typeof functionNode.body,
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -49,7 +49,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -68,7 +68,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -87,7 +87,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         },
       } as unknown as ReturnType<typeof TsestreeStub>;
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -114,7 +114,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -158,7 +158,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -200,7 +200,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -242,7 +242,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -288,7 +288,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -337,7 +337,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -386,7 +386,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -418,7 +418,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         },
       } as unknown as ReturnType<typeof TsestreeStub>;
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -447,7 +447,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -479,7 +479,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         }),
       });
 
-      validateProxyConstructorSideEffectsLayerBroker(functionNode, mockContext);
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });

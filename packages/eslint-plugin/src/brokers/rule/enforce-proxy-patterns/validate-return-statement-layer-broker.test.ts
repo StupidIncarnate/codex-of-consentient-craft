@@ -16,7 +16,11 @@ describe('validateReturnStatementLayerBroker', () => {
         type: TsestreeNodeType.ExpressionStatement,
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -38,7 +42,11 @@ describe('validateReturnStatementLayerBroker', () => {
         }),
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -57,7 +65,11 @@ describe('validateReturnStatementLayerBroker', () => {
         }),
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -76,7 +88,11 @@ describe('validateReturnStatementLayerBroker', () => {
         }),
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -95,7 +111,11 @@ describe('validateReturnStatementLayerBroker', () => {
         argument: undefined,
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -116,7 +136,11 @@ describe('validateReturnStatementLayerBroker', () => {
         argument: null,
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -142,7 +166,11 @@ describe('validateReturnStatementLayerBroker', () => {
         }),
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -166,7 +194,11 @@ describe('validateReturnStatementLayerBroker', () => {
         }),
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -190,7 +222,11 @@ describe('validateReturnStatementLayerBroker', () => {
         }),
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -215,7 +251,11 @@ describe('validateReturnStatementLayerBroker', () => {
         }),
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -240,7 +280,11 @@ describe('validateReturnStatementLayerBroker', () => {
         }),
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -266,7 +310,11 @@ describe('validateReturnStatementLayerBroker', () => {
         }),
       });
 
-      validateReturnStatementLayerBroker(statement, mockContext, mockFunctionNode);
+      validateReturnStatementLayerBroker({
+        statement,
+        context: mockContext,
+        functionNode: mockFunctionNode,
+      });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({

@@ -39,15 +39,18 @@ ruleTester.run(
       'const fn = ({ config }: { config: object }) => { return function(y: string) { return y; }; }',
       'const fn = ({ data }: { data: unknown }) => (x: number) => x',
 
-      // Zod refine callbacks - single param is expected by library
+      // Non-exported functions are not checked
+      'const fn = (user: string) => {}',
+      'const fn = (id: number) => {}',
+      'function transform(value: number): number { return value * 2; }',
+
+      // Callback functions passed to library methods are not checked
       'z.string().refine((value) => value.length > 0)',
       'z.string().refine((value) => value.startsWith("/"))',
       'z.string().refine((path) => { return path.startsWith("/"); })',
       'const schema = z.string().refine((x) => x.length > 0, { message: "Required" })',
       'z.number().refine((n) => n > 0)',
       'z.array(z.string()).refine((arr) => arr.length > 0)',
-
-      // Array method callbacks - single param is expected by library
       '[1, 2, 3].map((n) => n * 2)',
       '[1, 2, 3].filter((n) => n > 1)',
       '[1, 2, 3].forEach((n) => console.log(n))',
@@ -63,19 +66,9 @@ ruleTester.run(
       'export const stub = ({ id = "123" } = {}) => id',
     ],
     invalid: [
-      // Single positional parameter
+      // Exported arrow function with positional param
       {
-        code: 'const fn = (user: string) => {}',
-        errors: [{ messageId: 'useObjectDestructuring' }],
-      },
-      {
-        code: 'const fn = (id: number) => {}',
-        errors: [{ messageId: 'useObjectDestructuring' }],
-      },
-
-      // Arrow function with positional param
-      {
-        code: 'const process = (data: unknown) => data',
+        code: 'export const process = (data: unknown) => data',
         errors: [{ messageId: 'useObjectDestructuring' }],
       },
       {
@@ -83,32 +76,32 @@ ruleTester.run(
         errors: [{ messageId: 'useObjectDestructuring' }],
       },
 
-      // Function declaration with positional param
-      {
-        code: 'function transform(value: number): number { return value * 2; }',
-        errors: [{ messageId: 'useObjectDestructuring' }],
-      },
+      // Exported function declaration with positional param
       {
         code: 'export function handler(event: Event): void {}',
         errors: [{ messageId: 'useObjectDestructuring' }],
       },
 
-      // Function expression with positional param
+      // Exported array destructuring (not object destructuring)
       {
-        code: 'const obj = { method(user: string) {} }',
+        code: 'export const fn = ([a, b]: [string, number]) => {}',
         errors: [{ messageId: 'useObjectDestructuring' }],
       },
 
-      // Array destructuring (not object destructuring)
+      // Exported identifier without destructuring
       {
-        code: 'const fn = ([a, b]: [string, number]) => {}',
+        code: 'export const fn = (param: { user: string; id: number }) => {}',
         errors: [{ messageId: 'useObjectDestructuring' }],
       },
 
-      // Identifier without destructuring
+      // Exported multiple parameters - each must use object destructuring
       {
-        code: 'const fn = (param: { user: string; id: number }) => {}',
-        errors: [{ messageId: 'useObjectDestructuring' }],
+        code: 'export const fn = (a: string, b: number) => {}',
+        errors: [{ messageId: 'useObjectDestructuring' }, { messageId: 'useObjectDestructuring' }],
+      },
+      {
+        code: 'export const validateAdapterMockSetupLayerBroker = (functionNode: Tsestree, context: EslintContext): void => {}',
+        errors: [{ messageId: 'useObjectDestructuring' }, { messageId: 'useObjectDestructuring' }],
       },
     ],
   },

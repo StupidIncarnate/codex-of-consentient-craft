@@ -14,7 +14,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         body: undefined,
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -39,7 +39,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -66,7 +66,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -93,7 +93,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -128,7 +128,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -144,7 +144,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         body: [] as unknown as typeof functionNode.body,
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -171,7 +171,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -196,7 +196,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -217,7 +217,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -236,7 +236,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -255,7 +255,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -275,7 +275,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -295,7 +295,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -316,7 +316,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -338,7 +338,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -354,7 +354,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
         }),
       });
 
-      validateProxyFunctionReturnLayerBroker(functionNode, mockContext);
+      validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });

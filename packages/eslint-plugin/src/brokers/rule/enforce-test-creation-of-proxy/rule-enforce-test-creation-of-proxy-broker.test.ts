@@ -156,7 +156,8 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
           validateAdapterMockSetupLayerBroker(functionNode, mockContext);
         });
       `,
-      filename: '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
+      filename:
+        '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
     },
 
     // Layer broker with proxy called without assignment
@@ -167,7 +168,8 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
           validateAdapterMockSetupLayerBroker(functionNode, mockContext);
         });
       `,
-      filename: '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
+      filename:
+        '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
     },
   ],
   invalid: [
@@ -429,11 +431,15 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
           validateAdapterMockSetupLayerBroker(functionNode, mockContext);
         });
       `,
-      filename: '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
+      filename:
+        '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
       errors: [
         {
           messageId: 'proxyNotCreated',
-          data: { implementationName: 'validateAdapterMockSetupLayerBroker', proxyName: 'validateAdapterMockSetupLayerBrokerProxy' },
+          data: {
+            implementationName: 'validateAdapterMockSetupLayerBroker',
+            proxyName: 'validateAdapterMockSetupLayerBrokerProxy',
+          },
         },
       ],
     },
@@ -449,15 +455,22 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
           validateAdapterMockSetupLayerBroker(functionNode, mockContext);
         });
       `,
-      filename: '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
+      filename:
+        '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
       errors: [
         {
           messageId: 'proxyNotCreated',
-          data: { implementationName: 'validateAdapterMockSetupLayerBroker', proxyName: 'validateAdapterMockSetupLayerBrokerProxy' },
+          data: {
+            implementationName: 'validateAdapterMockSetupLayerBroker',
+            proxyName: 'validateAdapterMockSetupLayerBrokerProxy',
+          },
         },
         {
           messageId: 'proxyNotCreated',
-          data: { implementationName: 'validateAdapterMockSetupLayerBroker', proxyName: 'validateAdapterMockSetupLayerBrokerProxy' },
+          data: {
+            implementationName: 'validateAdapterMockSetupLayerBroker',
+            proxyName: 'validateAdapterMockSetupLayerBrokerProxy',
+          },
         },
       ],
     },
@@ -476,7 +489,10 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       errors: [
         {
           messageId: 'proxyNotCreated',
-          data: { implementationName: 'validateAdapterMockSetupLayerBroker', proxyName: 'validateAdapterMockSetupLayerBrokerProxy' },
+          data: {
+            implementationName: 'validateAdapterMockSetupLayerBroker',
+            proxyName: 'validateAdapterMockSetupLayerBrokerProxy',
+          },
         },
       ],
     },

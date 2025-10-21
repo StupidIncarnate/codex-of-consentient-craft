@@ -261,7 +261,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
         if (name?.endsWith('Proxy')) {
           // Check the function's return type and body
           if (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') {
-            validateProxyFunctionReturnLayerBroker(init, ctx);
+            validateProxyFunctionReturnLayerBroker({ functionNode: init, context: ctx });
 
             // For adapter proxies, check that mock setup happens in constructor
             const isAdapterProxy =
@@ -272,11 +272,11 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
                 })) ??
               false;
             if (isAdapterProxy) {
-              validateAdapterMockSetupLayerBroker(init, ctx);
+              validateAdapterMockSetupLayerBroker({ functionNode: init, context: ctx });
             }
 
             // Check for side effects in constructor
-            validateProxyConstructorSideEffectsLayerBroker(init, ctx);
+            validateProxyConstructorSideEffectsLayerBroker({ functionNode: init, context: ctx });
           }
         }
       },

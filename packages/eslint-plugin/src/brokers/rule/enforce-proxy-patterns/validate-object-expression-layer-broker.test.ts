@@ -14,7 +14,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: undefined,
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -28,7 +28,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -52,7 +52,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         ],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -74,7 +74,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         ],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -96,7 +96,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         ],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -120,7 +120,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [property],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -146,7 +146,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [property],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -174,7 +174,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [property],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -201,7 +201,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [property],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -228,7 +228,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [property],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -255,7 +255,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [property],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -282,7 +282,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [property],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -309,7 +309,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [property],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -336,7 +336,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [property],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
@@ -361,7 +361,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         ],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -382,7 +382,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         ],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -404,7 +404,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         ],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).not.toHaveBeenCalled();
     });
@@ -436,7 +436,7 @@ describe('validateObjectExpressionLayerBroker', () => {
         properties: [property1, property2],
       });
 
-      validateObjectExpressionLayerBroker(objectNode, mockContext);
+      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
       expect(mockReport).toHaveBeenCalledTimes(2);
       expect(mockReport).toHaveBeenNthCalledWith(1, {

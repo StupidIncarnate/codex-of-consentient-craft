@@ -1,10 +1,13 @@
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
-export const validateAdapterMockSetupLayerBroker = (
-  functionNode: Tsestree,
-  context: EslintContext,
-): void => {
+export const validateAdapterMockSetupLayerBroker = ({
+  functionNode,
+  context,
+}: {
+  functionNode: Tsestree;
+  context: EslintContext;
+}): void => {
   const { body } = functionNode;
 
   if (!body) return;

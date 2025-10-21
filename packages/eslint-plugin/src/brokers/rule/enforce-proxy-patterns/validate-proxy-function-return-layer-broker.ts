@@ -3,10 +3,13 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { validateReturnStatementLayerBroker } from './validate-return-statement-layer-broker';
 import { validateObjectExpressionLayerBroker } from './validate-object-expression-layer-broker';
 
-export const validateProxyFunctionReturnLayerBroker = (
-  functionNode: Tsestree,
-  context: EslintContext,
-): void => {
+export const validateProxyFunctionReturnLayerBroker = ({
+  functionNode,
+  context,
+}: {
+  functionNode: Tsestree;
+  context: EslintContext;
+}): void => {
   const { body, returnType } = functionNode;
 
   if (!body) return;
@@ -50,7 +53,7 @@ export const validateProxyFunctionReturnLayerBroker = (
       for (const statement of statements) {
         if (statement.type === 'ReturnStatement') {
           hasReturnStatement = true;
-          validateReturnStatementLayerBroker(statement, context, functionNode);
+          validateReturnStatementLayerBroker({ statement, context, functionNode });
         }
       }
 
@@ -64,7 +67,7 @@ export const validateProxyFunctionReturnLayerBroker = (
     }
   } else if (body.type === 'ObjectExpression') {
     // Arrow function with direct object return: () => ({ ... })
-    validateObjectExpressionLayerBroker(body, context);
+    validateObjectExpressionLayerBroker({ objectNode: body, context });
   } else if (
     // Direct return of primitives or arrays: () => 'string', () => 42, () => []
     // Check if it's returning non-object
