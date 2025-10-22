@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { tsestreeNodeTypeStatics } from '../../statics/tsestree-node-type/tsestree-node-type-statics';
+import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
 
 // Extract literal type union from statics
 type TsestreeNodeTypeValue =
@@ -18,9 +19,6 @@ const nodeTypeValues = Object.values(tsestreeNodeTypeStatics.nodeTypes) as [
  * Type property constrained to TsestreeNodeType enum values.
  */
 
-// Branded primitive types for AST node properties
-type NodeName = string & z.BRAND<'NodeName'>;
-
 // Recursive base defines full object with REQUIRED parent using z.lazy()
 // Output type (after parsing)
 interface RecursiveNodeOutput {
@@ -36,7 +34,7 @@ interface RecursiveNodeOutput {
   object?: RecursiveNodeOutput | null | undefined;
   property?: RecursiveNodeOutput | null | undefined;
   // Identifier properties
-  name?: NodeName | undefined;
+  name?: Identifier | undefined;
   // VariableDeclarator properties
   id?: RecursiveNodeOutput | null | undefined;
   // ImportDeclaration properties
@@ -166,7 +164,7 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .nullable()
     .optional(),
   // Identifier properties
-  name: z.string().brand<'NodeName'>().optional(),
+  name: identifierContract.optional(),
   // VariableDeclarator properties
   id: z
     .lazy(() => recursiveBase)
@@ -254,7 +252,7 @@ export const tsestreeContract = z.object({
   object: recursiveBase.nullable().optional(),
   property: recursiveBase.nullable().optional(),
   // Identifier properties
-  name: z.string().brand<'NodeName'>().optional(),
+  name: identifierContract.optional(),
   // VariableDeclarator properties
   id: recursiveBase.nullable().optional(),
   // ImportDeclaration properties

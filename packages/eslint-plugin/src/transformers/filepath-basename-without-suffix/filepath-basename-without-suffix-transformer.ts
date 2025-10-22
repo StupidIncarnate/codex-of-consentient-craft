@@ -1,5 +1,3 @@
-import type { FilePath } from '@questmaestro/shared/contracts';
-
 /**
  * Extracts filename without extension and suffix.
  * Handles suffixes with extensions (like .proxy.ts) vs without extensions (like -broker).
@@ -10,7 +8,7 @@ export const filepathBasenameWithoutSuffixTransformer = ({
   filePath,
   suffix,
 }: {
-  filePath: FilePath;
+  filePath: string;
   suffix: string | readonly string[];
 }): string => {
   const parts = filePath.split('/');

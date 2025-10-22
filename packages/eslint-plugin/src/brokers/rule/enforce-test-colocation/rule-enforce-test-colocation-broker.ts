@@ -24,8 +24,8 @@ export const ruleEnforceTestColocationBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     return {
       Program: (node: Tsestree): void => {
         const { filename } = ctx;

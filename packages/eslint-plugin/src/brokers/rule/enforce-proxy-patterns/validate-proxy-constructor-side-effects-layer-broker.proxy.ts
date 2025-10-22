@@ -1,4 +1,4 @@
-export const validateProxyConstructorSideEffectsLayerBrokerProxy = (): Record<string, never> =>
+export const validateProxyConstructorSideEffectsLayerBrokerProxy = (): Record<PropertyKey, never> =>
   // This is a pure layer function with no external dependencies
   // It only validates AST nodes, so no mocking needed
   ({});

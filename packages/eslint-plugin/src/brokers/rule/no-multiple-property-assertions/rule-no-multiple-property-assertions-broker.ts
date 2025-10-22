@@ -20,8 +20,8 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
 
     if (!isTestFile) {

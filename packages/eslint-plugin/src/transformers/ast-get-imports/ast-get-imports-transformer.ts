@@ -1,4 +1,5 @@
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
 
 /**
  * Extracts imported names and their sources from an ImportDeclaration AST node.
@@ -10,8 +11,12 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
  * // import foo from 'bar' => Map { 'foo' => 'bar' }
  * // import * as foo from 'bar' => Map { 'foo' => 'bar' }
  */
-export const astGetImportsTransformer = ({ node }: { node?: Tsestree }): Map<string, string> => {
-  const imports = new Map<string, string>();
+export const astGetImportsTransformer = ({
+  node,
+}: {
+  node?: Tsestree;
+}): Map<Identifier, ModulePath> => {
+  const imports = new Map<Identifier, ModulePath>();
 
   if (!node || node.type !== 'ImportDeclaration') {
     return imports;
@@ -23,18 +28,20 @@ export const astGetImportsTransformer = ({ node }: { node?: Tsestree }): Map<str
     return imports;
   }
 
+  const modulePath = source as ModulePath;
+
   // Track all imported names
   const specifiers = node.specifiers ?? [];
   for (const spec of specifiers) {
     if (spec.type === 'ImportSpecifier' && spec.local?.name) {
       // Named import: import { foo } from 'bar'
-      imports.set(spec.local.name, source);
+      imports.set(spec.local.name, modulePath);
     } else if (spec.type === 'ImportDefaultSpecifier' && spec.local?.name) {
       // Default import: import foo from 'bar'
-      imports.set(spec.local.name, source);
+      imports.set(spec.local.name, modulePath);
     } else if (spec.type === 'ImportNamespaceSpecifier' && spec.local?.name) {
       // Namespace import: import * as foo from 'bar'
-      imports.set(spec.local.name, source);
+      imports.set(spec.local.name, modulePath);
     }
   }
 

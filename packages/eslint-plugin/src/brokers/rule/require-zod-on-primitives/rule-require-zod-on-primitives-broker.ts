@@ -20,8 +20,8 @@ export const ruleRequireZodOnPrimitivesBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     return {
       'CallExpression[callee.object.name="z"][callee.property.name="string"]': (
         node: Tsestree,

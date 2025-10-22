@@ -18,8 +18,8 @@ export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     const filename = String(ctx.getFilename?.() ?? '');
 
     // Only check files in guards/ folder ending with -guard.ts

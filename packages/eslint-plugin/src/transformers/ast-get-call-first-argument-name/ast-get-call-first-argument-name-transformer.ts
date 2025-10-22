@@ -1,4 +1,5 @@
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import type { Identifier } from '@questmaestro/shared/contracts';
 
 /**
  * Extracts the name of the first argument from a CallExpression if it's an Identifier.
@@ -14,7 +15,7 @@ export const astGetCallFirstArgumentNameTransformer = ({
   node,
 }: {
   node?: Tsestree;
-}): string | null => {
+}): Identifier | null => {
   if (!node?.arguments || node.arguments.length === 0) {
     return null;
   }

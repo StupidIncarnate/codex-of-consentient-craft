@@ -6,15 +6,17 @@ import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
+import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
+import { modulePathContract } from '@questmaestro/shared/contracts';
 
 // List of global objects that are allowed with jest.spyOn
 const ALLOWED_SPY_ON_GLOBALS = ['Date', 'crypto', 'console', 'Math', 'process'];
 
 export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
   // Track jest.mock() calls and imported module names
-  const jestMockedModules = new Set<string>();
-  const importedModuleNames = new Map<string, string>(); // source -> local name
-  const variablesWithJestMocked = new Set<string>();
+  const jestMockedModules = new Set<ModulePath>();
+  const importedModuleNames = new Map<Identifier, ModulePath>(); // local name -> module source
+  const variablesWithJestMocked = new Set<Identifier>();
 
   return {
     ...eslintRuleContract.parse({
@@ -34,8 +36,8 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
         schema: [],
       },
     }),
-    create: (context: unknown) => {
-      const ctx = context as EslintContext;
+    create: (context: EslintContext) => {
+      const ctx = context;
       // Reset state for each file
       jestMockedModules.clear();
       importedModuleNames.clear();
@@ -62,7 +64,10 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
             if (node.arguments && node.arguments.length > 0) {
               const [firstArg] = node.arguments;
               if (firstArg && firstArg.type === 'Literal' && typeof firstArg.value === 'string') {
-                jestMockedModules.add(firstArg.value);
+                const parseResult = modulePathContract.safeParse(firstArg.value);
+                if (parseResult.success) {
+                  jestMockedModules.add(parseResult.data);
+                }
               }
             }
           }
@@ -117,7 +122,7 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
 
           // Check if assigning directly to an imported module (without jest.mocked)
           // This includes both plain identifiers and TSAsExpressions
-          let importedName: string | null = null;
+          let importedName: Identifier | null = null;
 
           if (node.init.type === 'Identifier' && node.init.name) {
             importedName = node.init.name;

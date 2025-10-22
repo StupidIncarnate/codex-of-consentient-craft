@@ -17,9 +17,35 @@ When creating a new ESLint rule, you MUST update these files:
    - Fix test
 4. **Add to config**: `src/brokers/config/questmaestro/config-questmaestro-broker.ts`
     - Add to `questmaestroCustomRules` object with `'error'` level
+5. **Categorize for hook enforcement**:
+   `src/statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics.ts`
+    - Add rule with `'pre-edit'` timing (if rule only checks AST/syntax, no file system operations)
+    - Add rule with `'post-edit'` timing (if rule uses `fsExistsSyncAdapter`, `fsReadFileSyncAdapter`, or other fs
+      operations)
+    - **CRITICAL**: Integration tests in `tests/e2e/questmaestro-rule-enforce-on.integration.test.ts` will FAIL if you
+      skip this step
 
 Missing any of these steps will result in the rule not being available or enforced. Make sure you run tests for each
 file you modified above and correct any issues.
+
+### Pre-Edit vs Post-Edit Rules
+
+**Pre-edit rules** run before files are written to disk (enforced by Claude Code hooks):
+
+- Only analyze AST/syntax
+- Check import statements, function signatures, type annotations
+- No file system access required
+- Examples: `ban-primitives`, `explicit-return-types`, `forbid-non-exported-functions`
+
+**Post-edit rules** run after files are written to disk (normal ESLint):
+
+- Check file existence, colocation patterns
+- Use `fsExistsSyncAdapter()` or other file system operations
+- Require files to exist on disk for validation
+- Examples: `enforce-proxy-patterns`, `enforce-test-colocation`, `enforce-implementation-colocation`
+
+The integration test suite validates your categorization by scanning rule implementation files for file system
+operations.
 
 ## Testing
 

@@ -4,6 +4,8 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+import type { Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract } from '@questmaestro/shared/contracts';
 
 export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -24,8 +26,8 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     const filename = ctx.filename ? String(ctx.filename) : '';
 
     // Only check test files
@@ -40,7 +42,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
     const exportedProxyDeclarations = new Set<Tsestree>();
 
     // Track proxies created in current test block (reset for each test)
-    const proxiesCreatedInCurrentTest = new Set<string>();
+    const proxiesCreatedInCurrentTest = new Set<Identifier>();
 
     // Track if we've seen any proxy creation in current test
     let hasCreatedProxyInTest = false;
@@ -148,7 +150,8 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
                   } else {
                     // Inside test block - mark that we've created a proxy
                     hasCreatedProxyInTest = true;
-                    const variableName = id?.name ?? name ?? 'proxy';
+                    const variableNameRaw = id?.name ?? name ?? 'proxy';
+                    const variableName = identifierContract.parse(variableNameRaw);
                     proxiesCreatedInCurrentTest.add(variableName);
                   }
                 }

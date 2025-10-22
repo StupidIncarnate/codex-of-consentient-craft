@@ -22,8 +22,8 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     return {
       // Handle require() calls
       'CallExpression[callee.name="require"]': (node: Tsestree): void => {

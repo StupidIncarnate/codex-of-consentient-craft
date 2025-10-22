@@ -247,7 +247,7 @@ throw new Error('Config load failed');  // What path? What error?
   statements
 - **Use Reflect.deleteProperty()** - Never use `delete obj[key]` with computed keys (lint error)
 - **Use Reflect.get()** - For accessing properties on objects when TypeScript narrows to `object` type (avoids unsafe
-  type assertions from `object` to `Record<string, unknown>`)
+  type assertions from `object` to `Record<PropertyKey, unknown>`)
 
 ```typescript
 // ✅ CORRECT - O(n) using Map for lookups
@@ -269,13 +269,13 @@ delete require.cache[resolvedPath];  // Lint error
 export const hasStringProperty = (params: {
   obj: unknown;
   property: string;
-}): params is { obj: Record<string, string>; property: string } => {
+}): params is { obj: Record<PropertyKey, string>; property: string } => {
   const { obj, property } = params;
   if (typeof obj !== 'object' || obj === null) {
     return false;
   }
   // After narrowing, obj is type `object` (broad: arrays, functions, classes, plain objects)
-  // Reflect.get() safely accesses properties without asserting to Record<string, unknown>
+    // Reflect.get() safely accesses properties without asserting to Record<PropertyKey, unknown>
   return property in obj && typeof Reflect.get(obj, property) === 'string';
 };
 

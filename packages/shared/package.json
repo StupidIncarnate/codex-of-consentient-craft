@@ -22,7 +22,8 @@
     "build": "tsc",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint"
+    "lint": "eslint",
+    "ward": "bash -c 'FILES=$(fd --glob \"$1\" src); FILE_PATTERN=$(echo \"$FILES\" | tr \" \" \"|\" | sed \"s/|$//\"); echo \"=== LINT: $1 ===\"  && (npx eslint $FILES --fix 2>&1 | grep -A 999999 -E \"$FILE_PATTERN\" || echo \"No lint issues\"); echo \"\" && echo \"=== TYPECHECK: $1 ===\" && npx tsc --noEmit 2>&1 | grep -E \"$FILE_PATTERN\" || echo \"No type errors\"' --"
   },
   "keywords": [
     "questmaestro",

@@ -26,8 +26,8 @@ export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     const filename = ctx.filename ?? '';
 
     // Only check test files

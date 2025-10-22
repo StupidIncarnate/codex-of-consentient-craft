@@ -3,6 +3,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import { forbiddenFolderNameContract } from '../../../contracts/forbidden-folder-name/forbidden-folder-name-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { Identifier } from '@questmaestro/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isCamelCaseGuard } from '../../../guards/is-camel-case/is-camel-case-guard';
 import { isKebabCaseGuard } from '../../../guards/is-kebab-case/is-kebab-case-guard';
@@ -232,7 +233,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
           // Report all Level 3 violations
           if (hasInvalidSuffix) {
-            const expectedSuffix: string = Array.isArray(fileSuffix)
+            const expectedSuffix = Array.isArray(fileSuffix)
               ? fileSuffix.join(' or ')
               : String(fileSuffix);
 
@@ -299,7 +300,11 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
           // LEVEL 4: Export Validation (Structure is valid, now check exports)
 
-          const exports: { type: string; name?: string; isTypeOnly: boolean }[] = [];
+          const exports: {
+            type: Tsestree['type'];
+            name?: Identifier;
+            isTypeOnly: boolean;
+          }[] = [];
           const { body } = node;
 
           if (!body || !Array.isArray(body)) {

@@ -13,3 +13,11 @@ export * from './src/contracts/relative-file-path/relative-file-path.stub';
 // File Contents Contracts
 export * from './src/contracts/file-contents/file-contents-contract';
 export * from './src/contracts/file-contents/file-contents.stub';
+
+// Identifier Contracts
+export * from './src/contracts/identifier/identifier-contract';
+export * from './src/contracts/identifier/identifier.stub';
+
+// Module Path Contracts
+export * from './src/contracts/module-path/module-path-contract';
+export * from './src/contracts/module-path/module-path.stub';

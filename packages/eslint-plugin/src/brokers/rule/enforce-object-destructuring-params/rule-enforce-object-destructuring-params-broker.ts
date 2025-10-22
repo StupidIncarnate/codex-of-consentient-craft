@@ -18,8 +18,8 @@ export const ruleEnforceObjectDestructuringParamsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
 
     return {
       // Only check exported arrow functions: export const fn = () => {}

@@ -6,6 +6,8 @@ import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-fi
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
+import type { FileContents, Identifier, ModulePath } from '@questmaestro/shared/contracts';
+import { identifierContract } from '@questmaestro/shared/contracts';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -26,8 +28,8 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     const { filename } = ctx;
 
     // Only check .proxy.ts files
@@ -41,7 +43,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     const implementationPath = filename ? filename.replace('.proxy.ts', '.ts') : '';
 
     // Read implementation file (checks existence and reads in one operation)
-    const implementationFileResult = ((): string | null => {
+    const implementationFileResult = ((): FileContents | null => {
       try {
         return fsEnsureReadFileSyncAdapter({
           filePath: implementationPath as never,
@@ -63,8 +65,8 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     });
 
     // Track proxy imports and creation calls
-    const proxyImports = new Map<string, string>(); // proxyName -> importPath
-    const proxyCreationCalls = new Set<string>(); // proxyName
+    const proxyImports = new Map<Identifier, ModulePath>(); // proxyName -> importPath
+    const proxyCreationCalls = new Set<Identifier>(); // proxyName
     let insideProxyFunction = false;
     let foundReturnStatement = false;
 
@@ -143,7 +145,8 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
         // Check 1: For each implementation import, verify proxy has corresponding import and creation
         for (const [importedName, importPath] of implementationImports) {
           // Derive expected proxy name and path
-          const expectedProxyName = `${importedName}Proxy`;
+          const expectedProxyNameString = `${importedName}Proxy`;
+          const expectedProxyName = identifierContract.parse(expectedProxyNameString);
           const expectedProxyPath = importPath.endsWith('.ts')
             ? importPath.replace('.ts', '.proxy')
             : `${importPath}.proxy`;
