@@ -7,10 +7,13 @@ export const eslintContextContract = z.object({
   filename: z.string().brand<'Filename'>().optional(),
 });
 
+// Extract the branded Filename type from contract
+type Filename = NonNullable<z.infer<typeof eslintContextContract>['filename']>;
+
 // TypeScript type: data from contract + function methods via intersection
 export type EslintContext = z.infer<typeof eslintContextContract> & {
   report: (...args: unknown[]) => unknown;
-  getFilename?: () => z.BRAND<'Filename'>;
+  getFilename?: () => Filename;
   getScope?: () => unknown;
   getSourceCode?: () => unknown;
   sourceCode?: {

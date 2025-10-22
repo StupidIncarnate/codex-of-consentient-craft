@@ -25,8 +25,8 @@ export const ruleForbidNonExportedFunctionsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     const filename = ctx.filename ?? '';
 
     // Exclude test/stub files

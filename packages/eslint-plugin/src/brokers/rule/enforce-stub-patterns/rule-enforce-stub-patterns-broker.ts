@@ -27,8 +27,8 @@ export const ruleEnforceStubPatternsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     const filename = String(ctx.getFilename?.() ?? '');
     if (!hasFileSuffixGuard({ filename, suffix: 'stub' })) {
       return {};

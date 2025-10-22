@@ -3,7 +3,10 @@ import { ruleBanPrimitivesBroker } from './rule-ban-primitives-broker';
 
 const ruleTester = eslintRuleTesterAdapter();
 
-ruleTester.run('ban-primitives', ruleBanPrimitivesBroker(), {
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DEFAULT CONFIG: Both inputs and returns require branded types
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ruleTester.run('ban-primitives (default: strict)', ruleBanPrimitivesBroker(), {
   valid: [
     'const foo: UserId = "123"',
     'const bar: EmailAddress = "test@example.com"',
@@ -67,6 +70,151 @@ ruleTester.run('ban-primitives', ruleBanPrimitivesBroker(), {
         { messageId: 'banPrimitive' },
         { messageId: 'banPrimitive' },
       ],
+    },
+    {
+      code: 'const transformer = ({ input }: { input: string }): string => input;',
+      errors: [{ messageId: 'banPrimitive' }, { messageId: 'banPrimitive' }],
+    },
+  ],
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONFIG: allowPrimitiveInputs = true (RECOMMENDED FOR INTERNAL CODE)
+// Allow raw string/number inputs, require branded returns
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ruleTester.run('ban-primitives (allowPrimitiveInputs: true)', ruleBanPrimitivesBroker(), {
+  valid: [
+    // ✅ VALID: Primitives in parameters are allowed
+    {
+      code: 'export const transformer = ({ input }: { input: string }): BrandedString => input as BrandedString;',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+    },
+    {
+      code: 'export const guard = ({ str }: { str: string }): boolean => str.length > 0;',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+    },
+    {
+      code: 'function calculate(amount: number): Currency { return amount as Currency; }',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+    },
+    {
+      code: 'const fn = (a: string, b: number): Result => ({ a, b } as Result);',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+    },
+    // ✅ VALID: Branded return types
+    {
+      code: 'const fn = (input: string): FileName => input as FileName;',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+    },
+  ],
+  invalid: [
+    // ❌ INVALID: Raw string return type
+    {
+      code: 'export const transformer = ({ input }: { input: UserId }): string => input;',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    // ❌ INVALID: Raw number return type
+    {
+      code: 'function calculate(amount: Currency): number { return 42; }',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    // ❌ INVALID: Arrow function with raw return
+    {
+      code: 'const fn = (a: BrandedString, b: BrandedNumber): string => a;',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    // ❌ INVALID: Variable declarations still need brands
+    {
+      code: 'const userId: string = "123";',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    // ❌ INVALID: Object properties in type definitions still need brands
+    {
+      code: 'type User = { id: string; };',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: false }],
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+  ],
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONFIG: allowPrimitiveReturns = true (NOT RECOMMENDED)
+// Require branded inputs, allow raw returns
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ruleTester.run('ban-primitives (allowPrimitiveReturns: true)', ruleBanPrimitivesBroker(), {
+  valid: [
+    // ✅ VALID: Primitives in return types allowed
+    {
+      code: 'export const transformer = ({ input }: { input: BrandedString }): string => input;',
+      options: [{ allowPrimitiveInputs: false, allowPrimitiveReturns: true }],
+    },
+    {
+      code: 'function calculate(amount: Currency): number { return 42; }',
+      options: [{ allowPrimitiveInputs: false, allowPrimitiveReturns: true }],
+    },
+    {
+      code: 'const fn = (a: UserId): string => a;',
+      options: [{ allowPrimitiveInputs: false, allowPrimitiveReturns: true }],
+    },
+  ],
+  invalid: [
+    // ❌ INVALID: Raw string input parameter
+    {
+      code: 'export const transformer = ({ input }: { input: string }): BrandedString => input as BrandedString;',
+      options: [{ allowPrimitiveInputs: false, allowPrimitiveReturns: true }],
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    // ❌ INVALID: Raw number input parameter
+    {
+      code: 'function calculate(amount: number): Currency { return amount as Currency; }',
+      options: [{ allowPrimitiveInputs: false, allowPrimitiveReturns: true }],
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    // ❌ INVALID: Variable declarations still need brands
+    {
+      code: 'const userId: string = "123";',
+      options: [{ allowPrimitiveInputs: false, allowPrimitiveReturns: true }],
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    // ❌ INVALID: Object properties still need brands
+    {
+      code: 'type User = { id: string; };',
+      options: [{ allowPrimitiveInputs: false, allowPrimitiveReturns: true }],
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+  ],
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONFIG: Both true (allows primitives in params AND returns - NOT RECOMMENDED)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ruleTester.run('ban-primitives (both options true)', ruleBanPrimitivesBroker(), {
+  valid: [
+    {
+      code: 'function calc(a: number, b: number): number { return a + b; }',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: true }],
+    },
+    {
+      code: 'const fn = (x: string): string => x;',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: true }],
+    },
+  ],
+  invalid: [
+    // Still errors on variable declarations
+    {
+      code: 'const userId: string = "123";',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: true }],
+      errors: [{ messageId: 'banPrimitive' }],
+    },
+    // Still errors on object properties in type definitions
+    {
+      code: 'type User = { id: string; };',
+      options: [{ allowPrimitiveInputs: true, allowPrimitiveReturns: true }],
+      errors: [{ messageId: 'banPrimitive' }],
     },
   ],
 });

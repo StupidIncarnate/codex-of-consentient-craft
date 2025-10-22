@@ -4,5 +4,5 @@ module.exports = {
   ...baseConfig,
   displayName: '@questmaestro/eslint-plugin',
   rootDir: __dirname,
-  testMatch: ['<rootDir>/src/**/*.test.ts'],
+  testMatch: ['<rootDir>/src/**/*.test.ts', '<rootDir>/tests/**/*.test.ts'],
 };

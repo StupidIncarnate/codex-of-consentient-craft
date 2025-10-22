@@ -1,0 +1,39 @@
+export const questmaestroRuleEnforceOnStatics = {
+  // Third-party rules - pre-edit (AST only)
+  'require-unicode-regexp': 'pre-edit',
+  '@typescript-eslint/no-explicit-any': 'pre-edit',
+  '@typescript-eslint/ban-ts-comment': 'pre-edit',
+  'eslint-comments/no-use': 'pre-edit',
+  'eslint-comments/no-unlimited-disable': 'pre-edit',
+  'jest/no-restricted-jest-methods': 'pre-edit',
+  'jest/no-restricted-matchers': 'pre-edit',
+  'jest/no-conditional-in-test': 'pre-edit',
+  'jest/require-to-throw-message': 'pre-edit',
+
+  // @questmaestro - PRE-EDIT (19 rules)
+  '@questmaestro/ban-adhoc-types': 'pre-edit',
+  '@questmaestro/ban-contract-in-tests': 'pre-edit',
+  '@questmaestro/ban-jest-mock-in-tests': 'pre-edit',
+  '@questmaestro/ban-primitives': 'pre-edit',
+  '@questmaestro/require-zod-on-primitives': 'pre-edit',
+  '@questmaestro/require-contract-validation': 'pre-edit',
+  '@questmaestro/enforce-object-destructuring-params': 'pre-edit',
+  '@questmaestro/enforce-optional-guard-params': 'pre-edit',
+  '@questmaestro/explicit-return-types': 'pre-edit',
+  '@questmaestro/enforce-stub-patterns': 'pre-edit',
+  '@questmaestro/enforce-project-structure': 'pre-edit',
+  '@questmaestro/enforce-import-dependencies': 'pre-edit',
+  '@questmaestro/forbid-non-exported-functions': 'pre-edit',
+  '@questmaestro/enforce-test-creation-of-proxy': 'pre-edit',
+  '@questmaestro/enforce-test-proxy-imports': 'pre-edit',
+  '@questmaestro/enforce-jest-mocked-usage': 'pre-edit',
+  '@questmaestro/jest-mocked-must-import': 'pre-edit',
+  '@questmaestro/no-multiple-property-assertions': 'pre-edit',
+  '@questmaestro/no-mutable-state-in-proxy-factory': 'pre-edit',
+
+  // @questmaestro - POST-EDIT (4 rules)
+  '@questmaestro/enforce-proxy-patterns': 'post-edit',
+  '@questmaestro/enforce-proxy-child-creation': 'post-edit',
+  '@questmaestro/enforce-implementation-colocation': 'post-edit',
+  '@questmaestro/enforce-test-colocation': 'post-edit',
+} as const;

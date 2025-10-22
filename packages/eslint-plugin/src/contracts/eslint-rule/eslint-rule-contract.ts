@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { EslintContext } from '../eslint-context/eslint-context-contract';
 
 /**
  * ESLint Rule contract - translates eslint package Rule types to branded Zod schemas.
@@ -24,5 +25,7 @@ export const eslintRuleContract = z.object({
 
 // Type intersection adds function properties
 export type EslintRule = z.infer<typeof eslintRuleContract> & {
-  create: (context: unknown) => Record<string & z.BRAND<'EslintSelector'>, (node: unknown) => void>;
+  create: (
+    context: EslintContext,
+  ) => Record<string & z.BRAND<'EslintSelector'>, (node: unknown) => void>;
 };

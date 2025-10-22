@@ -76,8 +76,8 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
   return {
     ...parsedMeta,
-    create: (context: unknown) => {
-      const ctx = context as EslintContext;
+    create: (context: EslintContext) => {
+      const ctx = context;
       const filename = String(ctx.filename ?? '');
 
       // PRE-VALIDATION: Exclude files from structure validation

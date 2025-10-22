@@ -14,6 +14,7 @@ export { ruleRequireZodOnPrimitivesBroker } from './brokers/rule/require-zod-on-
 export { ruleExplicitReturnTypesBroker } from './brokers/rule/explicit-return-types/rule-explicit-return-types-broker';
 export { ruleRequireContractValidationBroker } from './brokers/rule/require-contract-validation/rule-require-contract-validation-broker';
 export { configQuestmaestroBroker } from './brokers/config/questmaestro/config-questmaestro-broker';
+export { questmaestroRuleEnforceOnStatics } from './statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics';
 export { configTsconfigBroker } from './brokers/config/tsconfig/config-tsconfig-broker';
 
 // Export transformers for advanced usage

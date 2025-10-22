@@ -3,7 +3,7 @@ import { configQuestmaestroBrokerProxy } from './config-questmaestro-broker.prox
 
 describe('configQuestmaestroBroker', () => {
   describe('return value structure', () => {
-    it('VALID: {} => returns object with typescript, test, and fileOverrides configs', () => {
+    it('VALID: {} => returns object with typescript, test, fileOverrides, and ruleEnforceOn configs', () => {
       configQuestmaestroBrokerProxy();
 
       const result = configQuestmaestroBroker();
@@ -12,6 +12,7 @@ describe('configQuestmaestroBroker', () => {
       expect(result.test).toBeDefined();
       expect(result.fileOverrides).toBeDefined();
       expect(Array.isArray(result.fileOverrides)).toBe(true);
+      expect(result.ruleEnforceOn).toBeDefined();
     });
 
     it('VALID: {} => typescript config contains main rules', () => {
@@ -60,6 +61,28 @@ describe('configQuestmaestroBroker', () => {
       expect(typescript).toBeDefined();
       expect(typescript.rules?.['eslint-comments/no-unlimited-disable']).toBe('error');
       expect(typescript.rules?.['eslint-comments/no-use']).toBeDefined();
+    });
+
+    it('VALID: {} => ruleEnforceOn contains pre-edit rules', () => {
+      configQuestmaestroBrokerProxy();
+
+      const { ruleEnforceOn } = configQuestmaestroBroker();
+
+      expect(ruleEnforceOn['@questmaestro/ban-primitives']).toBe('pre-edit');
+      expect(ruleEnforceOn['@questmaestro/enforce-object-destructuring-params']).toBe('pre-edit');
+      expect(ruleEnforceOn['@typescript-eslint/no-explicit-any']).toBe('pre-edit');
+      expect(ruleEnforceOn['eslint-comments/no-use']).toBe('pre-edit');
+    });
+
+    it('VALID: {} => ruleEnforceOn contains post-edit rules', () => {
+      configQuestmaestroBrokerProxy();
+
+      const { ruleEnforceOn } = configQuestmaestroBroker();
+
+      expect(ruleEnforceOn['@questmaestro/require-contract-validation']).toBe('post-edit');
+      expect(ruleEnforceOn['@questmaestro/enforce-proxy-patterns']).toBe('post-edit');
+      expect(ruleEnforceOn['@questmaestro/enforce-implementation-colocation']).toBe('post-edit');
+      expect(ruleEnforceOn['@questmaestro/enforce-test-colocation']).toBe('post-edit');
     });
   });
 

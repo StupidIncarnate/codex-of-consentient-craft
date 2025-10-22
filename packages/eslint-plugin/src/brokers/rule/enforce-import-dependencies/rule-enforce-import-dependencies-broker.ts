@@ -2,10 +2,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import {
-  allowedImportContract,
-  type AllowedImport,
-} from '../../../contracts/allowed-import/allowed-import-contract';
+import { allowedImportContract } from '../../../contracts/allowed-import/allowed-import-contract';
 import { isEntryFileGuard } from '../../../guards/is-entry-file/is-entry-file-guard';
 import { isSameDomainFolderGuard } from '../../../guards/is-same-domain-folder/is-same-domain-folder-guard';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
@@ -36,8 +33,8 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     return {
       ImportDeclaration: (node: Tsestree): void => {
         // Skip validation for .proxy.ts files - they have their own proxy rules
@@ -56,8 +53,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
           return;
         }
 
-        const allowedImports = (folderConfigTransformer({ folderType })?.allowedImports ??
-          []) as readonly AllowedImport[];
+        const allowedImports = folderConfigTransformer({ folderType })?.allowedImports ?? [];
 
         const importSource = node.source?.value;
 

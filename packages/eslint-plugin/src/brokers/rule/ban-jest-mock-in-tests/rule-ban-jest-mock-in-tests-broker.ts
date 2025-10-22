@@ -21,8 +21,8 @@ export const ruleBanJestMockInTestsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     return {
       CallExpression: (node: Tsestree): void => {
         const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });

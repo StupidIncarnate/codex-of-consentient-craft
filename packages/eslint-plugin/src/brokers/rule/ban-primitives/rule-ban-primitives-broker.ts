@@ -3,6 +3,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { checkPrimitiveViolationLayerBroker } from './check-primitive-violation-layer-broker';
 
 export const ruleBanPrimitivesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -15,37 +16,59 @@ export const ruleBanPrimitivesBroker = (): EslintRule => ({
         banPrimitive:
           'Raw {{typeName}} type is not allowed. Use Zod contract types like {{suggestion}} instead.',
       },
-      schema: [],
+      schema: [
+        {
+          type: 'object',
+          properties: {
+            allowPrimitiveInputs: {
+              type: 'boolean',
+              description: 'Allow raw primitives in function parameters',
+            },
+            allowPrimitiveReturns: {
+              type: 'boolean',
+              description: 'Allow raw primitives in function return types',
+            },
+          },
+          additionalProperties: false,
+        },
+      ],
     },
   }),
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = String(ctx.getFilename?.() ?? '');
+    const ctx = context as EslintContext & {
+      options?: { allowPrimitiveInputs?: boolean; allowPrimitiveReturns?: boolean }[];
+    };
+    const filename = ctx.getFilename?.() ?? undefined;
+
+    // Get rule options (default both to false)
+    const options = ctx.options?.[0] ?? {};
+    const allowPrimitiveInputs = options.allowPrimitiveInputs ?? false;
+    const allowPrimitiveReturns = options.allowPrimitiveReturns ?? false;
 
     // Skip stub files - they need to use primitives for type conversion
-    if (hasFileSuffixGuard({ filename, suffix: 'stub' })) {
+    if (filename && hasFileSuffixGuard({ filename, suffix: 'stub' })) {
       return {};
     }
 
     return {
       TSStringKeyword: (node: Tsestree): void => {
-        ctx.report({
+        checkPrimitiveViolationLayerBroker({
           node,
-          messageId: 'banPrimitive',
-          data: {
-            typeName: 'string',
-            suggestion: 'EmailAddress, UserName, FilePath, etc.',
-          },
+          typeName: 'string',
+          suggestion: 'EmailAddress, UserName, FilePath, etc.',
+          allowPrimitiveInputs,
+          allowPrimitiveReturns,
+          ctx,
         });
       },
       TSNumberKeyword: (node: Tsestree): void => {
-        ctx.report({
+        checkPrimitiveViolationLayerBroker({
           node,
-          messageId: 'banPrimitive',
-          data: {
-            typeName: 'number',
-            suggestion: 'Currency, PositiveNumber, Age, etc.',
-          },
+          typeName: 'number',
+          suggestion: 'Currency, PositiveNumber, Age, etc.',
+          allowPrimitiveInputs,
+          allowPrimitiveReturns,
+          ctx,
         });
       },
     };

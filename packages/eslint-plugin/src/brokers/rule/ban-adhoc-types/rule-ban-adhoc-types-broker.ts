@@ -22,8 +22,8 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     const filename = String(ctx.filename ?? '');
 
     // Get folder type to check config

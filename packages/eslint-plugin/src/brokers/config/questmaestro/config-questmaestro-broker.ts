@@ -5,6 +5,7 @@ import {
 import { eslintRuleStatics } from '../../../statics/eslint-rule/eslint-rule-statics';
 import { typescriptEslintRuleStatics } from '../../../statics/typescript-eslint-rule/typescript-eslint-rule-statics';
 import { jestRuleStatics } from '../../../statics/jest-rule/jest-rule-statics';
+import { questmaestroRuleEnforceOnStatics } from '../../../statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics';
 import { typescriptEslintEslintPluginLoadAdapter } from '../../../adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter';
 import { eslintPluginJestLoadAdapter } from '../../../adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter';
 import { eslintPluginEslintCommentsLoadAdapter } from '../../../adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter';
@@ -20,7 +21,12 @@ export const configQuestmaestroBroker = ({
   forTesting = false,
 }: {
   forTesting?: boolean;
-} = {}): { typescript: EslintConfig; test: EslintConfig; fileOverrides: EslintConfig[] } => {
+} = {}): {
+  typescript: EslintConfig;
+  test: EslintConfig;
+  fileOverrides: EslintConfig[];
+  ruleEnforceOn: typeof questmaestroRuleEnforceOnStatics;
+} => {
   // Build base configs
   const eslintConfig: EslintConfig = {
     plugins: {},
@@ -58,8 +64,13 @@ export const configQuestmaestroBroker = ({
     '@questmaestro/ban-adhoc-types': 'error',
     '@questmaestro/ban-contract-in-tests': 'error',
     '@questmaestro/ban-jest-mock-in-tests': 'error',
-    // Need to rethink this. Possibly just error on return type of string
-    // '@questmaestro/ban-primitives': 'error',
+    '@questmaestro/ban-primitives': [
+      'error',
+      {
+        allowPrimitiveInputs: true,
+        allowPrimitiveReturns: false,
+      },
+    ],
     '@questmaestro/enforce-implementation-colocation': 'error',
     '@questmaestro/enforce-import-dependencies': 'error',
     '@questmaestro/enforce-jest-mocked-usage': 'error',
@@ -104,7 +115,7 @@ export const configQuestmaestroBroker = ({
     '@typescript-eslint/no-unsafe-return': 'off',
   } as const;
 
-  const typescriptConfig: EslintConfig = {
+  const typescriptConfig: EslintConfig = eslintConfigContract.parse({
     plugins: {
       ...mergedConfig.plugins,
       'eslint-comments': eslintPluginEslintCommentsLoadAdapter() as unknown,
@@ -113,9 +124,9 @@ export const configQuestmaestroBroker = ({
       ...mergedConfig.rules,
       ...(questmaestroCustomRules as unknown as DeepWritable<typeof questmaestroCustomRules>),
     },
-  };
+  });
 
-  const testConfig: EslintConfig = {
+  const testConfig: EslintConfig = eslintConfigContract.parse({
     plugins: {
       ...mergedConfig.plugins,
       'eslint-comments': eslintPluginEslintCommentsLoadAdapter() as unknown,
@@ -134,7 +145,7 @@ export const configQuestmaestroBroker = ({
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-type-assertion': 'off',
     },
-  };
+  });
 
   // Stub files need to use primitives and magic numbers for type conversion
   const stubOverride: EslintConfig = eslintConfigContract.parse({
@@ -150,5 +161,6 @@ export const configQuestmaestroBroker = ({
     typescript: typescriptConfig,
     test: testConfig,
     fileOverrides: [stubOverride],
+    ruleEnforceOn: questmaestroRuleEnforceOnStatics,
   };
 };
