@@ -4,6 +4,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { astGetMemberExpressionRootTransformer } from '../../../transformers/ast-get-member-expression-root/ast-get-member-expression-root-transformer';
+import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
 
 export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -29,7 +30,7 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
     }
 
     // Track assertions by it() block - map from it() node to array of [rootObject, node]
-    const assertionsByItBlock = new Map<unknown, { rootObject: string; node: unknown }[]>();
+    const assertionsByItBlock = new Map<unknown, { rootObject: Identifier; node: unknown }[]>();
     let currentItBlock: unknown = null;
 
     return {
@@ -52,7 +53,7 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
         }
 
         // Group assertions by root object
-        const byRootObject = new Map<string, unknown[]>();
+        const byRootObject = new Map<Identifier, unknown[]>();
         for (const { rootObject, node } of assertions) {
           const existing = byRootObject.get(rootObject);
           if (existing === undefined) {
@@ -134,7 +135,7 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
         // Track this assertion
         const assertions = assertionsByItBlock.get(currentItBlock);
         if (assertions !== undefined) {
-          assertions.push({ rootObject, node });
+          assertions.push({ rootObject: identifierContract.parse(rootObject), node });
         }
       },
     };

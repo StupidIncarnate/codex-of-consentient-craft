@@ -37,5 +37,5 @@ export const isAstParamSingleValuePropertyGuard = ({
   }
 
   // Check if it's a single property named 'value'
-  return prop.type === 'Property' && prop.key?.type === 'Identifier' && prop.key?.name === 'value';
+  return prop.type === 'Property' && prop.key?.type === 'Identifier' && prop.key.name === 'value';
 };

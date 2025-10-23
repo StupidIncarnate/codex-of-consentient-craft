@@ -1,3 +1,5 @@
+import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+
 /**
  * Extracts filename without extension and suffix.
  * Handles suffixes with extensions (like .proxy.ts) vs without extensions (like -broker).
@@ -10,7 +12,7 @@ export const filepathBasenameWithoutSuffixTransformer = ({
 }: {
   filePath: string;
   suffix: string | readonly string[];
-}): string => {
+}): Identifier => {
   const parts = filePath.split('/');
   const fullFilename = parts[parts.length - 1] ?? '';
 
@@ -22,28 +24,28 @@ export const filepathBasenameWithoutSuffixTransformer = ({
       const sStr = String(s);
       if (suffixIncludesExtension.test(sStr)) {
         if (fullFilename.endsWith(sStr)) {
-          return fullFilename.slice(0, -sStr.length);
+          return identifierContract.parse(fullFilename.slice(0, -sStr.length));
         }
       } else {
         const withoutExt = fullFilename.replace(/\.[^.]+$/u, '');
         if (withoutExt.endsWith(sStr)) {
-          return withoutExt.slice(0, -sStr.length);
+          return identifierContract.parse(withoutExt.slice(0, -sStr.length));
         }
       }
     }
   } else if (typeof suffix === 'string') {
     if (suffixIncludesExtension.test(suffix)) {
       if (fullFilename.endsWith(suffix)) {
-        return fullFilename.slice(0, -suffix.length);
+        return identifierContract.parse(fullFilename.slice(0, -suffix.length));
       }
     } else {
       const withoutExt = fullFilename.replace(/\.[^.]+$/u, '');
       if (withoutExt.endsWith(suffix)) {
-        return withoutExt.slice(0, -suffix.length);
+        return identifierContract.parse(withoutExt.slice(0, -suffix.length));
       }
     }
   }
 
   // Fallback: just remove extension
-  return fullFilename.replace(/\.[^.]+$/u, '');
+  return identifierContract.parse(fullFilename.replace(/\.[^.]+$/u, ''));
 };

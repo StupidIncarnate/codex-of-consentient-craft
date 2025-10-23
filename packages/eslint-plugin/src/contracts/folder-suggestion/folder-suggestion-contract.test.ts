@@ -39,7 +39,7 @@ describe('FolderSuggestionStub', () => {
 
   it('INVALID: {value: number} => throws ZodError with "Expected string"', () => {
     expect(() => {
-      return FolderSuggestionStub({ value: 123 as unknown as string });
+      return FolderSuggestionStub({ value: 123 as never });
     }).toThrow(/Expected string/u);
   });
 });

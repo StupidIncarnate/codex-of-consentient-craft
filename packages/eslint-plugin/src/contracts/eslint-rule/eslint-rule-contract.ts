@@ -27,5 +27,5 @@ export const eslintRuleContract = z.object({
 export type EslintRule = z.infer<typeof eslintRuleContract> & {
   create: (
     context: EslintContext,
-  ) => Record<string & z.BRAND<'EslintSelector'>, (node: unknown) => void>;
+  ) => Record<PropertyKey & z.BRAND<'EslintSelector'>, (node: unknown) => void>;
 };

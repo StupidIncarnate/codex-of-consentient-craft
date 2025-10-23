@@ -1,4 +1,5 @@
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
 
 /**
  * Extracts the root object name from a member expression chain.
@@ -15,7 +16,7 @@ export const astGetMemberExpressionRootTransformer = ({
   expr,
 }: {
   expr?: Tsestree;
-}): string | null => {
+}): Identifier | null => {
   let current: Tsestree | null | undefined = expr;
 
   // Traverse up the member expression chain
@@ -30,7 +31,7 @@ export const astGetMemberExpressionRootTransformer = ({
     current.type === 'Identifier' &&
     typeof current.name === 'string'
   ) {
-    return current.name;
+    return identifierContract.parse(current.name);
   }
 
   return null;

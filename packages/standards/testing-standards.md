@@ -29,6 +29,24 @@ mockFsReadFile.mockResolvedValue('content'); // string is not FileContents
 mockFsReadFile.mockResolvedValue('content' as FileContents);
 ```
 
+**Exception for testing invalid inputs:** When testing validation failures with intentionally wrong types, use
+`as never`:
+
+```typescript
+// ✅ CORRECT - Testing that number fails string validation
+it('INVALID: {value: number} => throws ZodError', () => {
+  expect(() => {
+    return MyStub({ value: 123 as never });
+  }).toThrow(/Expected string/u);
+});
+
+// ❌ WRONG - Raw string type violates ban-primitives
+MyStub({ value: 123 as string })
+
+// ❌ WRONG - Overly complex
+MyStub({ value: 123 } as Parameters<typeof MyStub>[0])
+```
+
 **`exactOptionalPropertyTypes` requirement:** Project uses `exactOptionalPropertyTypes: true`. When testing optional
 parameters, omit the property instead of passing `undefined`:
 

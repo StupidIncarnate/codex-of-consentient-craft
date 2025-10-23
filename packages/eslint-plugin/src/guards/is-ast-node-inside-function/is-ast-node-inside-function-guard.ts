@@ -10,11 +10,10 @@ export const isAstNodeInsideFunctionGuard = ({
   }
   let current = node.parent;
   while (current !== undefined && current !== null) {
-    const nodeType = current.type as string;
     if (
-      nodeType === 'ArrowFunctionExpression' ||
-      nodeType === 'FunctionExpression' ||
-      nodeType === 'FunctionDeclaration'
+      current.type === 'ArrowFunctionExpression' ||
+      current.type === 'FunctionExpression' ||
+      current.type === 'FunctionDeclaration'
     ) {
       return true;
     }
