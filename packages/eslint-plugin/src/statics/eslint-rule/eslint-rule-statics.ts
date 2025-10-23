@@ -716,7 +716,18 @@ export const eslintRuleStatics = {
     // ✅ const value = 1
     // ❌ const _value = 1
     // Disallows dangling underscores in identifiers
-    'no-underscore-dangle': 'error',
+    /**
+     * This conflicts with the following scenario in contracts where we're trying to define
+     * as type of a function type.
+     * const reportDescriptorDataContract = z.object({
+     *   node: z.custom<AstNode>().optional(),
+     *   messageId: z.custom<Identifier>().optional(),
+     *   message: z.string().brand<'ErrorMessage'>().optional(),
+     *   data: z.record(z.custom<Identifier>(), z.unknown()).optional(),
+     * });
+     * export type EslintReportDescriptor = z.infer<typeof reportDescriptorDataContract>;
+     */
+    'no-underscore-dangle': 'off',
 
     // ✅ const x = 1\n;[1, 2, 3].forEach(console.log)
     // ❌ const x = 1\n[1, 2, 3].forEach(console.log)

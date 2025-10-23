@@ -111,7 +111,6 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
             // Type guard: check if ancestor is a Tsestree node with VariableDeclarator type
             if (
               typeof ancestor === 'object' &&
-              ancestor !== null &&
               'type' in ancestor &&
               'id' in ancestor &&
               ancestor.type === 'VariableDeclarator'

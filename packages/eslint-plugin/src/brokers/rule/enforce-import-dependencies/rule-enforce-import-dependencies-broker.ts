@@ -2,7 +2,6 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { allowedImportContract } from '../../../contracts/allowed-import/allowed-import-contract';
 import { isEntryFileGuard } from '../../../guards/is-entry-file/is-entry-file-guard';
 import { isSameDomainFolderGuard } from '../../../guards/is-same-domain-folder/is-same-domain-folder-guard';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
@@ -258,9 +257,10 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
           }
         } else {
           // Check if external imports are allowed
+          // Note: Check raw string literals against the array (which has specific literal types from statics)
           const canImportExternal =
-            allowedImports.includes(allowedImportContract.parse('node_modules')) ||
-            allowedImports.includes(allowedImportContract.parse('*'));
+            (allowedImports as readonly unknown[]).includes('node_modules') ||
+            (allowedImports as readonly unknown[]).includes('*');
 
           // Check if this specific package is explicitly allowed
           const isSpecificPackageAllowed = allowedImports.some((allowed: string) => {

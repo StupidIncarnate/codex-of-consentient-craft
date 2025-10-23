@@ -3,7 +3,8 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
-import { filePathContract } from '@questmaestro/shared/contracts';
+import { filePathContract, identifierContract } from '@questmaestro/shared/contracts';
+import type { Identifier } from '@questmaestro/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { validateProxyFunctionReturnLayerBroker } from './validate-proxy-function-return-layer-broker';
 import { validateAdapterMockSetupLayerBroker } from './validate-adapter-mock-setup-layer-broker';
@@ -57,7 +58,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
     // Track child proxy creations for validation
     const childProxyCreations: {
       node: Tsestree;
-      name: string;
+      name: Identifier;
       isInsideProxyFunction: boolean;
       isBeforeReturn: boolean;
     }[] = [];
@@ -133,7 +134,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
 
             childProxyCreations.push({
               node,
-              name: calleeName,
+              name: identifierContract.parse(calleeName),
               isInsideProxyFunction,
               isBeforeReturn,
             });
@@ -150,7 +151,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
             // Check if we're inside a function
             const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
             const isInsideFunction = ancestors.some((ancestor) => {
-              const ancestorNode = ancestor as Tsestree;
+              const ancestorNode = ancestor;
               return (
                 ancestorNode.type === 'FunctionDeclaration' ||
                 ancestorNode.type === 'FunctionExpression' ||
@@ -212,9 +213,8 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
           // Check if this is a proxy function
           const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
           for (const ancestor of ancestors) {
-            const ancestorNode = ancestor as Tsestree;
-            if (ancestorNode.type === 'VariableDeclarator') {
-              const { id } = ancestorNode;
+            if (ancestor.type === 'VariableDeclarator') {
+              const { id } = ancestor;
               if (id?.name?.endsWith('Proxy')) {
                 currentProxyFunction = node;
                 foundReturnStatement = false;

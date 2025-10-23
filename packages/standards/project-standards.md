@@ -140,6 +140,17 @@ export const apiResponseContract = z.object({
 });
 export type ApiResponse = z.infer<typeof apiResponseContract>;
 
+// Function Arguments vs Return Types
+// ban-primitives rule: Inputs allow primitives, returns require branded types
+export type SomeService = {
+    // ✅ CORRECT - Input args can use raw primitives (inline object types)
+    doSomething: (params: { name: string; count: number }) => Result;
+
+    // ✅ CORRECT - Return types must use branded types/contracts
+    getUser: () => User;
+    getConfig: () => { apiKey: ApiKey; timeout: Milliseconds };
+};
+
 export const processItem = ({item}: { item: User }): ProcessedUser => {
     return processedUserContract.parse({...item, processed: true});
 };

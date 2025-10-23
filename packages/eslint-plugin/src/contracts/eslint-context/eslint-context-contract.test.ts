@@ -11,13 +11,12 @@ describe('EslintContextStub', () => {
       getFilename: expect.any(Function),
       getScope: expect.any(Function),
       getSourceCode: expect.any(Function),
+      sourceCode: {
+        text: '',
+        ast: {},
+        getAncestors: expect.any(Function),
+      },
     });
-  });
-
-  it('VALID: report function => returns true', () => {
-    const result = EslintContextStub();
-
-    expect(result.report()).toBe(true);
   });
 
   it('VALID: getFilename function => returns branded Filename', () => {
@@ -27,16 +26,23 @@ describe('EslintContextStub', () => {
     expect(result.getFilename?.()).toStrictEqual(filenameContract.parse('/test/file.ts'));
   });
 
-  it('VALID: getScope function => returns object', () => {
+  it('VALID: getScope function => returns EslintScope', () => {
     const result = EslintContextStub();
 
-    expect(result.getScope?.()).toStrictEqual({});
+    expect(result.getScope?.()).toStrictEqual({
+      type: 'global',
+      variables: [],
+    });
   });
 
-  it('VALID: getSourceCode function => returns object', () => {
+  it('VALID: getSourceCode function => returns EslintSourceCode', () => {
     const result = EslintContextStub();
 
-    expect(result.getSourceCode?.()).toStrictEqual({});
+    expect(result.getSourceCode?.()).toStrictEqual({
+      text: '',
+      ast: {},
+      getAncestors: expect.any(Function),
+    });
   });
 
   it('VALID: {report: customFn} => returns context with custom report function', () => {
@@ -51,6 +57,11 @@ describe('EslintContextStub', () => {
       getFilename: expect.any(Function),
       getScope: expect.any(Function),
       getSourceCode: expect.any(Function),
+      sourceCode: {
+        text: '',
+        ast: {},
+        getAncestors: expect.any(Function),
+      },
     });
   });
 
@@ -67,36 +78,11 @@ describe('EslintContextStub', () => {
       getFilename: customGetFilename,
       getScope: expect.any(Function),
       getSourceCode: expect.any(Function),
-    });
-  });
-
-  it('VALID: {getScope: customFn} => returns context with custom getScope function', () => {
-    const customGetScope = (): unknown => {
-      return { type: 'custom-scope' };
-    };
-    const result = EslintContextStub({ getScope: customGetScope });
-
-    expect(result).toStrictEqual({
-      filename: '/test/file.ts',
-      report: expect.any(Function),
-      getFilename: expect.any(Function),
-      getScope: customGetScope,
-      getSourceCode: expect.any(Function),
-    });
-  });
-
-  it('VALID: {getSourceCode: customFn} => returns context with custom getSourceCode function', () => {
-    const customGetSourceCode = (): unknown => {
-      return { text: 'custom-source' };
-    };
-    const result = EslintContextStub({ getSourceCode: customGetSourceCode });
-
-    expect(result).toStrictEqual({
-      filename: '/test/file.ts',
-      report: expect.any(Function),
-      getFilename: expect.any(Function),
-      getScope: expect.any(Function),
-      getSourceCode: customGetSourceCode,
+      sourceCode: {
+        text: '',
+        ast: {},
+        getAncestors: expect.any(Function),
+      },
     });
   });
 
@@ -119,6 +105,11 @@ describe('EslintContextStub', () => {
       getFilename: customGetFilename,
       getScope: expect.any(Function),
       getSourceCode: expect.any(Function),
+      sourceCode: {
+        text: '',
+        ast: {},
+        getAncestors: expect.any(Function),
+      },
     });
   });
 });

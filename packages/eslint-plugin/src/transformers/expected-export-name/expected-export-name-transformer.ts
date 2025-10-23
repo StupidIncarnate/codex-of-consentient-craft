@@ -1,6 +1,7 @@
 import { fileBasenameTransformer } from '../file-basename/file-basename-transformer';
 import { kebabToCamelCaseTransformer } from '../kebab-to-camel-case/kebab-to-camel-case-transformer';
 import { kebabToPascalCaseTransformer } from '../kebab-to-pascal-case/kebab-to-pascal-case-transformer';
+import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
 
 /**
  * Gets the expected export name based on filename and folder config.
@@ -16,12 +17,13 @@ export const expectedExportNameTransformer = ({
   fileSuffix: string | readonly string[];
   exportSuffix: string;
   exportCase: 'camelCase' | 'PascalCase';
-}): string => {
+}): Identifier => {
   const basename = fileBasenameTransformer({ filename });
 
   // Remove the file suffix to get the base name
+  // Convert basename to plain string for string manipulation
   const suffixes = Array.isArray(fileSuffix) ? fileSuffix : [fileSuffix];
-  let baseName = basename;
+  let baseName = String(basename);
 
   for (const suffix of suffixes) {
     const suffixStr = String(suffix);
@@ -39,5 +41,5 @@ export const expectedExportNameTransformer = ({
       ? kebabToPascalCaseTransformer({ str: baseName })
       : kebabToCamelCaseTransformer({ str: baseName });
 
-  return convertedName + exportSuffix;
+  return identifierContract.parse(convertedName + exportSuffix);
 };
