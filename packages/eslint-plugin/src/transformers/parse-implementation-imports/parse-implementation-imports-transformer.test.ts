@@ -1,3 +1,4 @@
+import { IdentifierStub, ModulePathStub } from '@questmaestro/shared/contracts';
 import { parseImplementationImportsTransformer } from './parse-implementation-imports-transformer';
 
 describe('parseImplementationImportsTransformer', () => {
@@ -10,8 +11,12 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(2);
-    expect(result.get('httpAdapter')).toBe('../../adapters/http/http-adapter');
-    expect(result.get('dbAdapter')).toBe('../../adapters/db/db-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'dbAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/db/db-adapter' }),
+    );
   });
 
   it('should parse default imports from architectural components', () => {
@@ -22,7 +27,9 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpAdapter')).toBe('../../adapters/http/http-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
   });
 
   it('should skip npm package imports', () => {
@@ -34,7 +41,9 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpAdapter')).toBe('../../adapters/http/http-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
   });
 
   it('should skip contract imports', () => {
@@ -46,7 +55,9 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpAdapter')).toBe('../../adapters/http/http-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
   });
 
   it('should skip statics imports', () => {
@@ -58,7 +69,9 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpAdapter')).toBe('../../adapters/http/http-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
   });
 
   it('should skip stub imports', () => {
@@ -70,7 +83,9 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpAdapter')).toBe('../../adapters/http/http-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
   });
 
   it('should skip multi-dot files except .proxy', () => {
@@ -82,7 +97,9 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpAdapter')).toBe('../../adapters/http/http-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
   });
 
   it('should include .proxy imports', () => {
@@ -93,7 +110,9 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpAdapterProxy')).toBe('../../adapters/http/http-adapter.proxy');
+    expect(result.get(IdentifierStub({ value: 'httpAdapterProxy' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter.proxy' }),
+    );
   });
 
   it('should skip imports from folders that do not require proxies', () => {
@@ -105,7 +124,9 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpAdapter')).toBe('../../adapters/http/http-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
   });
 
   it('should strip comments before parsing', () => {
@@ -118,7 +139,9 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpAdapter')).toBe('../../adapters/http/http-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
   });
 
   it('should handle multiple imports on same line', () => {
@@ -129,8 +152,12 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(2);
-    expect(result.get('httpAdapter')).toBe('../../adapters/data/data-adapter');
-    expect(result.get('dbAdapter')).toBe('../../adapters/data/data-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/data/data-adapter' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'dbAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/data/data-adapter' }),
+    );
   });
 
   it('should handle imports with "as" aliases', () => {
@@ -141,7 +168,9 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpAdapter')).toBe('../../adapters/http/http-adapter');
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
   });
 
   it('should return empty map when no valid imports', () => {

@@ -21,3 +21,7 @@ export * from './src/contracts/identifier/identifier.stub';
 // Module Path Contracts
 export * from './src/contracts/module-path/module-path-contract';
 export * from './src/contracts/module-path/module-path.stub';
+
+// Error Message Contracts
+export * from './src/contracts/error-message/error-message-contract';
+export * from './src/contracts/error-message/error-message.stub';

@@ -1,4 +1,7 @@
-export const folderNameTransformer = ({ filePath }: { filePath: string }): string | null => {
+import type { Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract } from '@questmaestro/shared/contracts';
+
+export const folderNameTransformer = ({ filePath }: { filePath: string }): Identifier | null => {
   const parts = filePath.split('/');
 
   const MINIMUM_PARTS_FOR_FOLDER = 2;
@@ -18,5 +21,5 @@ export const folderNameTransformer = ({ filePath }: { filePath: string }): strin
     return null;
   }
 
-  return folderName;
+  return identifierContract.parse(folderName);
 };

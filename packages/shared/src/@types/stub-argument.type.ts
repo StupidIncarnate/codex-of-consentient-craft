@@ -26,8 +26,8 @@ export type StubArgument<T> = T extends string & { readonly __brand: unknown }
     ? number
     : T extends boolean & { readonly __brand: unknown }
       ? boolean
-      : T extends Array<infer U>
-        ? Array<StubArgument<U>>
+      : T extends (infer U)[]
+        ? StubArgument<U>[]
         : // IMPORTANT: `any` is required here, not `unknown`
           // Function parameters are contravariant in TypeScript
           // `(...args: unknown[]) => unknown` would fail to match specific function signatures

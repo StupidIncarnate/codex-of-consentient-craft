@@ -1,11 +1,13 @@
+import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
+import { identifierContract, modulePathContract } from '@questmaestro/shared/contracts';
 import { folderConfigStatics } from '../../statics/folder-config/folder-config-statics';
 
 export const parseImplementationImportsTransformer = ({
   content,
 }: {
   content: string;
-}): Map<string, string> => {
-  const imports = new Map<string, string>();
+}): Map<Identifier, ModulePath> => {
+  const imports = new Map<Identifier, ModulePath>();
 
   // Strip comments before parsing to avoid false positives from example code
   // Remove multi-line comments (/* ... */)
@@ -36,7 +38,7 @@ export const parseImplementationImportsTransformer = ({
               // Extract folder type from import path by searching backwards through path parts
               const pathParts = importPath.split('/');
               const folderTypes = Object.keys(folderConfigStatics);
-              let folderTypeFromPath: string | null = null;
+              let folderTypeFromPath = null;
               for (let i = pathParts.length - 1; i >= 0; i -= 1) {
                 const part = pathParts[i];
                 if (part !== undefined && folderTypes.includes(part)) {
@@ -62,14 +64,20 @@ export const parseImplementationImportsTransformer = ({
                       const [trimmed] = n.trim().split(/\s+as\s+/u);
                       return trimmed;
                     })
-                    .filter((n): n is string => Boolean(n));
+                    .filter((n): n is Exclude<typeof n, undefined> => Boolean(n));
                   for (const name of names) {
-                    imports.set(name, importPath);
+                    imports.set(
+                      identifierContract.parse(name),
+                      modulePathContract.parse(importPath),
+                    );
                   }
                 }
 
                 if (defaultImport !== undefined) {
-                  imports.set(defaultImport, importPath);
+                  imports.set(
+                    identifierContract.parse(defaultImport),
+                    modulePathContract.parse(importPath),
+                  );
                 }
               }
             }

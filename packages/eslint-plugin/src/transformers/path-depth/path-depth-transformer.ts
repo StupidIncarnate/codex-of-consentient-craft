@@ -1,10 +1,13 @@
-export const pathDepthTransformer = ({ filePath }: { filePath: string }): number => {
+import type { DepthCount } from '../../contracts/depth-count/depth-count-contract';
+import { depthCountContract } from '../../contracts/depth-count/depth-count-contract';
+
+export const pathDepthTransformer = ({ filePath }: { filePath: string }): DepthCount => {
   // Match pattern: src/[folder-type]/... (with optional leading slash or path prefix)
   const srcMatch = /(?:^|\/)src\/([^/]+)\/(.*)$/u.exec(filePath);
 
   // If no match (file not in src/[folder-type]/ structure), depth is 0
   if (!srcMatch) {
-    return 0;
+    return depthCountContract.parse(0);
   }
 
   const [, , pathAfterFolderType] = srcMatch;
@@ -15,7 +18,7 @@ export const pathDepthTransformer = ({ filePath }: { filePath: string }): number
     pathAfterFolderType === '' ||
     !pathAfterFolderType.includes('/')
   ) {
-    return 0;
+    return depthCountContract.parse(0);
   }
 
   // Count the number of slashes before the filename
@@ -24,5 +27,5 @@ export const pathDepthTransformer = ({ filePath }: { filePath: string }): number
   const parts = pathAfterFolderType.split('/');
 
   // Depth is number of directories (total parts - 1 for the filename)
-  return parts.length - 1;
+  return depthCountContract.parse(parts.length - 1);
 };

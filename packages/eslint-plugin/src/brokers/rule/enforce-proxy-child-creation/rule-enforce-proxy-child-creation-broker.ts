@@ -186,7 +186,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
         for (const proxyName of proxyCreationCalls) {
           // Derive implementation name from proxy name
           // e.g., httpAdapterProxy -> httpAdapter
-          const implementationName = proxyName.replace(/Proxy$/u, '');
+          const implementationName = identifierContract.parse(proxyName.replace(/Proxy$/u, ''));
 
           // Check if implementation imports this dependency
           const hasImplementationImport = implementationImports.has(implementationName);

@@ -22,7 +22,7 @@ When creating a new ESLint rule, you MUST update these files:
     - Add rule with `'pre-edit'` timing (if rule only checks AST/syntax, no file system operations)
     - Add rule with `'post-edit'` timing (if rule uses `fsExistsSyncAdapter`, `fsReadFileSyncAdapter`, or other fs
       operations)
-    - **CRITICAL**: Integration tests in `tests/e2e/questmaestro-rule-enforce-on.integration.test.ts` will FAIL if you
+   - **CRITICAL**: Integration tests in `tests/e2e/questmaestro-rule-enforce-on.e2e.test.ts` will FAIL if you
       skip this step
 
 Missing any of these steps will result in the rule not being available or enforced. Make sure you run tests for each

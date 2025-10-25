@@ -89,7 +89,7 @@ interface RecursiveNodeInput {
   object?: RecursiveNodeInput | null | undefined;
   property?: RecursiveNodeInput | null | undefined;
   // Identifier properties
-  name?: string | undefined;
+  name?: Identifier | undefined;
   // VariableDeclarator properties
   id?: RecursiveNodeInput | null | undefined;
   // ImportDeclaration properties

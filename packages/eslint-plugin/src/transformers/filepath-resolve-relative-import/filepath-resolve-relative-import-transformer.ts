@@ -1,3 +1,6 @@
+import type { FilePath } from '@questmaestro/shared/contracts';
+import { filePathContract } from '@questmaestro/shared/contracts';
+
 /**
  * Resolves a relative import path to an absolute path.
  * Used to determine the actual folder type of cross-folder imports.
@@ -13,7 +16,7 @@ export const filepathResolveRelativeImportTransformer = ({
 }: {
   currentFilePath: string;
   importPath: string;
-}): string => {
+}): FilePath => {
   const currentDir = currentFilePath.substring(0, currentFilePath.lastIndexOf('/'));
   const parts = currentDir.split('/').filter((p) => p !== '');
 
@@ -28,5 +31,5 @@ export const filepathResolveRelativeImportTransformer = ({
     }
   }
 
-  return `/${parts.join('/')}.ts`;
+  return filePathContract.parse(`/${parts.join('/')}.ts`);
 };

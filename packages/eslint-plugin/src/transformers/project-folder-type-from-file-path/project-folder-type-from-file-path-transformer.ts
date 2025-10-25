@@ -1,3 +1,6 @@
+import type { Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract } from '@questmaestro/shared/contracts';
+
 /**
  * Extracts the project folder type (brokers, contracts, guards, etc.) from a file path.
  * Example: '/project/src/brokers/user/fetch.ts' -> 'brokers'
@@ -9,7 +12,7 @@ export const projectFolderTypeFromFilePathTransformer = ({
   filename,
 }: {
   filename: string;
-}): string | null => {
+}): Identifier | null => {
   const [, pathAfterSrc] = filename.split('/src/');
 
   if (pathAfterSrc === undefined || pathAfterSrc === '' || !pathAfterSrc.includes('/')) {
@@ -22,5 +25,5 @@ export const projectFolderTypeFromFilePathTransformer = ({
     return null;
   }
 
-  return firstFolder;
+  return identifierContract.parse(firstFolder);
 };

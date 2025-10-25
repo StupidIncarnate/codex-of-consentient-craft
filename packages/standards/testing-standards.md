@@ -14,13 +14,13 @@ Tests MUST use proper TypeScript types. **Never use `any`, `as`, or `@ts-ignore`
 or types, not the test.
 
 **Exception for mocks:** Use `jest.mocked()` instead of type assertions. When mocking functions that return branded
-types (Zod `.brand<'Type'>()`), use the contract to create the branded value:
+types (Zod `.brand<'Type'>()`), use the stub to create the branded value:
 
 ```typescript
-// ✅ CORRECT - Mock with branded type
-import {fileContentsContract} from './contracts/file-contents-contract';
+// ✅ CORRECT - Mock with branded type using stub
+import {FileContentsStub} from './contracts/file-contents/file-contents.stub';
 
-mockFsReadFile.mockResolvedValue(fileContentsContract.parse('content'));
+mockFsReadFile.mockResolvedValue(FileContentsStub({value: 'content'}));
 
 // ❌ WRONG - Type error
 mockFsReadFile.mockResolvedValue('content'); // string is not FileContents
@@ -825,17 +825,14 @@ jest.spyOn(adapter, 'fsReadFile'); // Doesn't work!
 
 ### Branded Types
 
-When mocking functions that return branded types, use the contract to create branded values:
+When mocking functions that return branded types, use stubs to create branded values:
 
 ```typescript
-// ❌ WRONG
+// ❌ WRONG - Raw string
 mockFsReadFileAdapter.mockResolvedValue('plain string'); // Type error
 
-// ✅ CORRECT
-mockFsReadFileAdapter.mockResolvedValue(fileContentsContract.parse('content'));
-
-// ✅ BETTER - Use stub
-mockFsReadFileAdapter.mockResolvedValue(FileContentsStub('content'));
+// ✅ CORRECT - Use stub
+mockFsReadFileAdapter.mockResolvedValue(FileContentsStub({value: 'content'}));
 ```
 
 ## Common Anti-Patterns (Avoid These!)
@@ -1251,6 +1248,51 @@ tests/
 - **Proxy files** (`.proxy.ts`) are co-located with the code they test
 - **Test files** (`.test.ts`) are co-located with implementation files
 - **NO separate** `tests/stubs/` or `tests/proxies/` directories
+
+## Contract Testing
+
+**CRITICAL:** Contract tests MUST import and use stubs, NOT the contract directly.
+
+```typescript
+// ✅ CORRECT - Contract test uses stub
+// contracts/error-message/error-message-contract.test.ts
+import { ErrorMessageStub } from './error-message.stub';
+
+describe('errorMessageContract', () => {
+  it('VALID: {value: "An error occurred"} => parses successfully', () => {
+    const result = ErrorMessageStub({ value: 'An error occurred' });
+
+    expect(result).toBe('An error occurred');
+  });
+
+  it('VALID: {value: ""} => parses successfully', () => {
+    const result = ErrorMessageStub({ value: '' });
+
+    expect(result).toBe('');
+  });
+});
+
+// ❌ WRONG - Never import contract directly in tests
+import { errorMessageContract } from './error-message-contract';
+
+it('VALID: {value: "test"} => parses successfully', () => {
+  const result = errorMessageContract.parse('test'); // FORBIDDEN!
+});
+```
+
+**Why stubs in contract tests:**
+
+- Enforces consistent test data creation patterns across all test types
+- Validates that stubs correctly use contracts (integration point)
+- Prevents importing contracts in test files (enforced by `@questmaestro/ban-contract-in-tests` rule)
+- Tests both the contract validation AND the stub factory in one test
+
+**Contract test structure:**
+
+- Test valid inputs with various edge cases (empty, long, special characters, unicode)
+- Use stub with different `value` or property overrides
+- Assert stub returns expected branded type
+- Do NOT test invalid inputs (stubs only create valid instances)
 
 ## Framework-Specific Patterns
 

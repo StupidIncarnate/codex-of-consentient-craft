@@ -58,7 +58,7 @@ export const isEntryFileGuard = ({
     return false;
   }
 
-  const suffixPattern: string = Array.isArray(config.fileSuffix)
+  const suffixPattern = Array.isArray(config.fileSuffix)
     ? String(config.fileSuffix[0])
     : String(config.fileSuffix);
 
@@ -73,7 +73,7 @@ export const isEntryFileGuard = ({
   }
 
   // Extract domain folder(s) based on depth
-  const domainFolders: string[] = [];
+  const domainFolders = [];
   const maxDepth = config.folderDepth;
   let depthIndex = 1;
 
