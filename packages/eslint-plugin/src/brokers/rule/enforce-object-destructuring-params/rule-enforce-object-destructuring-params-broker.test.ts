@@ -64,6 +64,23 @@ ruleTester.run(
       'const fn = ({ x = 5 } = {}) => x',
       'const process = ({ data = "default" } = {}) => data',
       'export const stub = ({ id = "123" } = {}) => id',
+
+      // Code examples in comments should not trigger
+      '// Example: export const bad = (data: unknown) => data',
+      '/* export function process(input: string): string { return input; } */',
+      `
+        // This is wrong - don't do this:
+        // export const fn = (user: string, id: number) => {}
+        export const fn = ({ user, id }: { user: string; id: number }) => {}
+      `,
+      `
+        /*
+         * Bad example:
+         * export const process = (data: unknown) => data
+         * export function handler(event: Event): void {}
+         */
+        export const process = ({ data }: { data: unknown }) => data
+      `,
     ],
     invalid: [
       // Exported arrow function with positional param

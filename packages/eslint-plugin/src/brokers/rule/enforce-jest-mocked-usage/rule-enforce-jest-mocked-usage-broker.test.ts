@@ -291,6 +291,41 @@ ruleTester.run('enforce-jest-mocked-usage', ruleEnforceJestMockedUsageBroker(), 
       `,
       filename: '/project/src/transformers/user-to-dto/user-to-dto-transformer.proxy.ts',
     },
+
+    // Code examples in comments should not trigger
+    {
+      code: '// Example: const mock = axios as jest.Mocked<typeof axios>',
+      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+    },
+    {
+      code: '/* const mockFn = readFile as jest.MockedFunction<typeof readFile> */',
+      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
+    },
+    {
+      code: `
+        // This is wrong - don't do this:
+        // const mockAxios = axios as jest.Mocked<typeof axios>
+        jest.mock('axios');
+        const mockAxios = jest.mocked(axios);
+      `,
+      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+    },
+    {
+      code: `
+        /*
+         * Bad examples:
+         * const mock = fs as jest.Mocked<typeof fs>
+         * const mockFn = readFile as jest.MockedFunction<typeof readFile>
+         */
+        import { readFile } from 'fs/promises';
+        jest.mock('fs/promises');
+        export const fsAdapterProxy = () => {
+          const mockReadFile = jest.mocked(readFile);
+          return {};
+        };
+      `,
+      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
+    },
   ],
 
   invalid: [

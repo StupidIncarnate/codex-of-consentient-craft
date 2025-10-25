@@ -48,6 +48,35 @@ ruleTester.run('forbid-non-exported-functions', ruleForbidNonExportedFunctionsBr
       code: 'const helper = () => "test"',
       filename: '/project/src/index.ts',
     },
+
+    // Code examples in comments should not trigger
+    {
+      code: '// Example: const helper = () => "test"',
+      filename: '/project/src/transformers/my-transformer/my-transformer-transformer.ts',
+    },
+    {
+      code: '/* function internalFn() { return "test"; } */',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+    {
+      code: `
+        // This is wrong - don't do this:
+        // const isValid = (): boolean => true
+        export const isValidGuard = ({ value }: { value?: unknown }): boolean => !!value;
+      `,
+      filename: '/project/src/guards/is-valid/is-valid-guard.ts',
+    },
+    {
+      code: `
+        /*
+         * Bad example:
+         * const helper = () => "test"
+         * function process(data: unknown) { return data; }
+         */
+        export const myBroker = () => {};
+      `,
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
   ],
 
   invalid: [

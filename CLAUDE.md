@@ -1,5 +1,8 @@
 # Project Guidelines
 
+**Critical:** DO NOT run anything in /tmp if you're trying to test eslint effects. That folder is outside the repo and
+thus won't trigger eslint at all.
+
 ## Optimization Tools
 1. Pattern Search:
    - rg -n "pattern" --glob '!node_modules/*' instead of multiple Grep calls

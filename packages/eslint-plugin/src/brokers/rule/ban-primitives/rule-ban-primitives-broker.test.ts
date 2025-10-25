@@ -16,6 +16,22 @@ ruleTester.run('ban-primitives (default: strict)', ruleBanPrimitivesBroker(), {
     'type User = { tags: Tag[]; scores: Score[]; }',
     'const foo = (tags: Tag[]): Score[] => []',
 
+    // Code examples in comments should not trigger
+    '// Example: const name: string = "John"',
+    '/* Bad example: function foo(id: number): string {} */',
+    `
+      // This is wrong - don't do this:
+      // const count: number = 42
+      const count: PositiveNumber = 42 as PositiveNumber;
+    `,
+    `
+      /*
+       * Wrong example:
+       * type User = { id: string; age: number; }
+       */
+      type User = { id: UserId; age: Age; }
+    `,
+
     // Stub files are allowed to use primitives
     {
       code: 'export const UserIdStub = ({ value }: { value: string } = { value: "123" }): UserId => value as UserId;',

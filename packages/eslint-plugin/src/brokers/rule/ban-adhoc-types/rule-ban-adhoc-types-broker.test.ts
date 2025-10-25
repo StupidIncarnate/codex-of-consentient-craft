@@ -204,6 +204,35 @@ ruleTester.run('ban-adhoc-types', ruleBanAdhocTypesBroker(), {
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
     },
 
+    // Code examples in comments should not trigger
+    {
+      code: '// Example: interface BadInterface { prop: string }',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+    {
+      code: '/* const node = value as { type: string; name: string } */',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+    {
+      code: `
+        // This is wrong - don't do this:
+        // interface NodeWithCallee { callee?: { type?: string }; }
+        export const userFetchBroker = () => {};
+      `,
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+    {
+      code: `
+        /*
+         * Bad example:
+         * interface Config { timeout: number; }
+         * const x = data as { id: string; name: string };
+         */
+        export const myBroker = () => {};
+      `,
+      filename: '/project/src/brokers/config/load/config-load-broker.ts',
+    },
+
     // Files outside src/ folder are not checked
     {
       code: `

@@ -19,6 +19,21 @@ ruleTester.run('explicit-return-types', ruleExplicitReturnTypesBroker(), {
     'export const higherOrder = (): (() => void) => () => {}',
     'export class ValidationError extends Error { constructor(message: string) { super(message); } }',
     'class InternalClass { method() { return "ok"; } }',
+    // Code examples in comments should not trigger
+    '// Example: export const foo = () => "bar"',
+    '/* export const badExample = () => 123 */',
+    `
+      // This is a comment showing bad code:
+      // export const foo = () => "bar"
+      export const good = (): string => "bar"
+    `,
+    `
+      /*
+       * Example of wrong code:
+       * export const foo = () => "bar"
+       */
+      export const good = (): string => "bar"
+    `,
   ],
   invalid: [
     {

@@ -52,11 +52,6 @@ config?: import('../types/config-type').PreEditLintConfig;
 
 Fetch too so that we can force a proxy on it
 
-## lint rules
-
-make sure lint rules dont match false positives if code examples are in comments. need to make a reusable helper for
-that
-
 ## coverage
 Dont let it run jest --coverage, because then it starts hallucination.
 

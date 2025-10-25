@@ -66,6 +66,35 @@ ruleTester.run('ban-jest-mock-in-tests', ruleBanJestMockInTestsBroker(), {
       code: "jest.spyOn(console, 'log');",
       filename: '/project/src/utils/logger.ts',
     },
+
+    // Code examples in comments should not trigger
+    {
+      code: "// Example: jest.mock('axios');",
+      filename: '/project/src/adapters/http/http-adapter.test.ts',
+    },
+    {
+      code: "/* jest.spyOn(userBroker, 'fetch'); */",
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+    },
+    {
+      code: `
+        // This is wrong - don't do this:
+        // jest.mock('../user-broker');
+        const proxy = userBrokerProxy();
+      `,
+      filename: '/project/src/brokers/user/create/user-create-broker.test.ts',
+    },
+    {
+      code: `
+        /*
+         * Bad example:
+         * jest.mock('fs/promises');
+         * jest.spyOn(myModule, 'myFunction');
+         */
+        const proxy = fsAdapterProxy();
+      `,
+      filename: '/project/src/adapters/fs/fs-adapter.test.ts',
+    },
   ],
   invalid: [
     // jest.mock() - npm packages

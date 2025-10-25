@@ -85,6 +85,35 @@ ruleTester.run('ban-contract-in-tests', ruleBanContractInTestsBroker(), {
       code: 'import { parseContractTransformer } from "../../transformers/parse-contract/parse-contract-transformer";',
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
+
+    // Code examples in comments should not trigger
+    {
+      code: '// Example: import { userContract } from "../../contracts/user/user-contract";',
+      filename: '/project/src/adapters/api/api-adapter.test.ts',
+    },
+    {
+      code: '/* import { emailContract } from "../contracts/email/email-contract"; */',
+      filename: '/project/src/brokers/user/create/user-create-broker.test.ts',
+    },
+    {
+      code: `
+        // This is wrong - don't do this:
+        // import { configContract } from "../../contracts/config/config-contract";
+        import { ConfigStub } from "../../contracts/config/config.stub";
+      `,
+      filename: '/project/src/transformers/config/parse/config-parse-transformer.test.ts',
+    },
+    {
+      code: `
+        /*
+         * Bad example:
+         * import type { User } from "../../contracts/user/user-contract";
+         * import { userContract } from "../../contracts/user/user-contract";
+         */
+        import { UserStub } from "../../contracts/user/user.stub";
+      `,
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.test.ts',
+    },
   ],
   invalid: [
     // Type-only imports are NOT allowed - use stubs for types
