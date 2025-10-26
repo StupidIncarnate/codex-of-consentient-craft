@@ -1,5 +1,6 @@
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
 export const validateAdapterMockSetupLayerBroker = ({
   functionNode,
@@ -62,16 +63,11 @@ export const validateAdapterMockSetupLayerBroker = ({
               }
 
               // Check if calling mockImplementation, mockResolvedValue, mockRejectedValue, mockReturnValue
-              const mockMethods = [
-                'mockImplementation',
-                'mockResolvedValue',
-                'mockRejectedValue',
-                'mockReturnValue',
-                'mockReturnValueOnce',
-                'mockResolvedValueOnce',
-              ];
+              const isMockMethod =
+                property?.name &&
+                jestMockingStatics.mockMethods.some((method) => method === property.name);
 
-              if (property?.name && mockMethods.includes(property.name)) {
+              if (isMockMethod) {
                 hasMockSetup = true;
               }
             }

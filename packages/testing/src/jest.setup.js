@@ -1,5 +1,27 @@
 // Global Jest setup for consistent test environment
 
+// Detect .todo and .skip usage and fail immediately
+const originalDescribe = global.describe;
+const originalIt = global.it;
+const originalTest = global.test;
+
+const forbiddenMethodChecker = (testMethod, methodName) => {
+  return new Proxy(testMethod, {
+    get(target, property) {
+      if (property === 'todo' || property === 'skip') {
+        throw new Error(
+          `${methodName}.${property}() is forbidden. All tests must be complete and runnable. Remove .${property} and implement the test.`,
+        );
+      }
+      return target[property];
+    },
+  });
+};
+
+global.describe = forbiddenMethodChecker(originalDescribe, 'describe');
+global.it = forbiddenMethodChecker(originalIt, 'it');
+global.test = forbiddenMethodChecker(originalTest, 'test');
+
 beforeEach(() => {
   // Reset all mocks before each test
   jest.clearAllMocks();

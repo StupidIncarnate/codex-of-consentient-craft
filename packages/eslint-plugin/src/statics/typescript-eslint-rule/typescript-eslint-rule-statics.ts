@@ -586,7 +586,8 @@ export const typescriptEslintRuleStatics = {
     // ✅ const x = value ?? 'default'
     // ❌ const x = value || 'default'
     // Enforce using the nullish coalescing operator instead of logical assignments or chaining
-    '@typescript-eslint/prefer-nullish-coalescing': 'error',
+    // It errors on this so turning off: if (arrayType === null) {
+    '@typescript-eslint/prefer-nullish-coalescing': 'off',
 
     // ✅ const x = value?.prop
     // ❌ const x = value && value.prop

@@ -1,5 +1,6 @@
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { proxyPatternsStatics } from '../../../statics/proxy-patterns/proxy-patterns-statics';
 
 export const validateObjectExpressionLayerBroker = ({
   objectNode,
@@ -27,8 +28,9 @@ export const validateObjectExpressionLayerBroker = ({
 
       // Check if helper name contains forbidden implementation-revealing words
       if (keyName) {
-        const forbiddenWords = ['mock', 'stub', 'fake', 'spy', 'jest', 'dummy'];
-        const foundWord = forbiddenWords.find((word) => new RegExp(word, 'iu').test(keyName));
+        const foundWord = proxyPatternsStatics.forbiddenWords.find((word) =>
+          new RegExp(word, 'iu').test(keyName),
+        );
 
         if (foundWord) {
           context.report({

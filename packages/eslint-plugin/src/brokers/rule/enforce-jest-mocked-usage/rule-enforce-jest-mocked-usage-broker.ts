@@ -8,9 +8,7 @@ import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/
 import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
 import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
 import { modulePathContract } from '@questmaestro/shared/contracts';
-
-// List of global objects that are allowed with jest.spyOn
-const ALLOWED_SPY_ON_GLOBALS = ['Date', 'crypto', 'console', 'Math', 'process'];
+import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
 export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
   // Track jest.mock() calls and imported module names
@@ -75,7 +73,10 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
           // Check jest.spyOn() usage
           if (isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })) {
             const target = astGetCallFirstArgumentNameTransformer({ node });
-            if (target && !ALLOWED_SPY_ON_GLOBALS.includes(target)) {
+            const isAllowedGlobal = jestMockingStatics.allowedSpyOnGlobals.some(
+              (global) => global === target,
+            );
+            if (target && !isAllowedGlobal) {
               // Check if this is an imported module
               if (importedModuleNames.has(target)) {
                 ctx.report({

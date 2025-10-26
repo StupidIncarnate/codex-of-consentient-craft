@@ -7,6 +7,7 @@ import { ruleExplicitReturnTypesBroker } from '../brokers/rule/explicit-return-t
 import { ruleEnforceProjectStructureBroker } from '../brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker';
 import { ruleEnforceImportDependenciesBroker } from '../brokers/rule/enforce-import-dependencies/rule-enforce-import-dependencies-broker';
 import { ruleEnforceJestMockedUsageBroker } from '../brokers/rule/enforce-jest-mocked-usage/rule-enforce-jest-mocked-usage-broker';
+import { ruleEnforceMagicArraysBroker } from '../brokers/rule/enforce-magic-arrays/rule-enforce-magic-arrays-broker';
 import { ruleEnforceObjectDestructuringParamsBroker } from '../brokers/rule/enforce-object-destructuring-params/rule-enforce-object-destructuring-params-broker';
 import { ruleEnforceOptionalGuardParamsBroker } from '../brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker';
 import { ruleEnforceStubPatternsBroker } from '../brokers/rule/enforce-stub-patterns/rule-enforce-stub-patterns-broker';
@@ -23,6 +24,7 @@ import { ruleJestMockedMustImportBroker } from '../brokers/rule/jest-mocked-must
 import { ruleNoMutableStateInProxyFactoryBroker } from '../brokers/rule/no-mutable-state-in-proxy-factory/rule-no-mutable-state-in-proxy-factory-broker';
 import { ruleRequireContractValidationBroker } from '../brokers/rule/require-contract-validation/rule-require-contract-validation-broker';
 import { ruleNoMultiplePropertyAssertionsBroker } from '../brokers/rule/no-multiple-property-assertions/rule-no-multiple-property-assertions-broker';
+import { ruleForbidTodoSkipBroker } from '../brokers/rule/forbid-todo-skip/rule-forbid-todo-skip-broker';
 import { configQuestmaestroBroker } from '../brokers/config/questmaestro/config-questmaestro-broker';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
 import type { EslintRule } from '../contracts/eslint-rule/eslint-rule-contract';
@@ -38,6 +40,7 @@ export const StartEslintPlugin = (): {
     readonly 'enforce-project-structure': EslintRule;
     readonly 'enforce-import-dependencies': EslintRule;
     readonly 'enforce-jest-mocked-usage': EslintRule;
+    readonly 'enforce-magic-arrays': EslintRule;
     readonly 'enforce-object-destructuring-params': EslintRule;
     readonly 'enforce-optional-guard-params': EslintRule;
     readonly 'enforce-stub-patterns': EslintRule;
@@ -54,6 +57,7 @@ export const StartEslintPlugin = (): {
     readonly 'no-mutable-state-in-proxy-factory': EslintRule;
     readonly 'require-contract-validation': EslintRule;
     readonly 'no-multiple-property-assertions': EslintRule;
+    readonly 'forbid-todo-skip': EslintRule;
   };
   readonly configs: {
     readonly questmaestro: {
@@ -74,6 +78,7 @@ export const StartEslintPlugin = (): {
       'enforce-project-structure': ruleEnforceProjectStructureBroker(),
       'enforce-import-dependencies': ruleEnforceImportDependenciesBroker(),
       'enforce-jest-mocked-usage': ruleEnforceJestMockedUsageBroker(),
+      'enforce-magic-arrays': ruleEnforceMagicArraysBroker(),
       'enforce-object-destructuring-params': ruleEnforceObjectDestructuringParamsBroker(),
       'enforce-optional-guard-params': ruleEnforceOptionalGuardParamsBroker(),
       'enforce-stub-patterns': ruleEnforceStubPatternsBroker(),
@@ -90,6 +95,7 @@ export const StartEslintPlugin = (): {
       'no-mutable-state-in-proxy-factory': ruleNoMutableStateInProxyFactoryBroker(),
       'require-contract-validation': ruleRequireContractValidationBroker(),
       'no-multiple-property-assertions': ruleNoMultiplePropertyAssertionsBroker(),
+      'forbid-todo-skip': ruleForbidTodoSkipBroker(),
     },
     configs: {
       questmaestro: configQuestmaestroBroker(),

@@ -1,5 +1,6 @@
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
 export const validateProxyConstructorSideEffectsLayerBroker = ({
   functionNode,
@@ -55,16 +56,9 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
               // Check if it's calling a mock method (allowed)
               const { property } = callee;
               const propertyName = property?.name;
-              const mockMethods = [
-                'mockImplementation',
-                'mockResolvedValue',
-                'mockRejectedValue',
-                'mockReturnValue',
-                'mockReturnValueOnce',
-                'mockResolvedValueOnce',
-                'mockRejectedValueOnce',
-              ];
-              const isMockMethod = propertyName && mockMethods.includes(propertyName);
+              const isMockMethod =
+                propertyName &&
+                jestMockingStatics.mockMethods.some((method) => method === propertyName);
 
               if (!isMockMethod) {
                 const objectName = object?.name ?? 'unknown';

@@ -15,6 +15,7 @@ describe('StartEslintPlugin', () => {
         'enforce-project-structure',
         'enforce-import-dependencies',
         'enforce-jest-mocked-usage',
+        'enforce-magic-arrays',
         'enforce-object-destructuring-params',
         'enforce-optional-guard-params',
         'enforce-stub-patterns',
@@ -31,6 +32,7 @@ describe('StartEslintPlugin', () => {
         'no-mutable-state-in-proxy-factory',
         'require-contract-validation',
         'no-multiple-property-assertions',
+        'forbid-todo-skip',
       ]);
     });
 

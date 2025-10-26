@@ -232,10 +232,10 @@ describe('questmaestroRuleEnforceOnStatics integration', () => {
       expect(totalCount).toBe(Number(preEditCount) + Number(postEditCount));
     });
 
-    it('VALID: pre-edit count => 29 rules (9 third-party + 20 @questmaestro)', () => {
+    it('VALID: pre-edit count => 31 rules (9 third-party + 22 @questmaestro)', () => {
       const preEditCount = getPreEditRuleCount();
 
-      expect(preEditCount).toBe(29);
+      expect(preEditCount).toBe(31);
     });
   });
 

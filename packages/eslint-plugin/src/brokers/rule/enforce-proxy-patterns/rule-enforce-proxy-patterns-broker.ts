@@ -9,6 +9,7 @@ import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suf
 import { validateProxyFunctionReturnLayerBroker } from './validate-proxy-function-return-layer-broker';
 import { validateAdapterMockSetupLayerBroker } from './validate-adapter-mock-setup-layer-broker';
 import { validateProxyConstructorSideEffectsLayerBroker } from './validate-proxy-constructor-side-effects-layer-broker';
+import { proxyPatternsStatics } from '../../../statics/proxy-patterns/proxy-patterns-statics';
 
 export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -175,23 +176,9 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
               if (firstArg?.name) {
                 const argName = firstArg.name;
 
-                // List of implementation code suffixes
-                const implementationSuffixes = [
-                  'Adapter',
-                  'Broker',
-                  'Transformer',
-                  'Guard',
-                  'Binding',
-                  'Widget',
-                  'Responder',
-                  'Middleware',
-                  'State',
-                  'Flow',
-                ];
-
                 // Check if argument name ends with any implementation suffix
-                const isImplementationCode = implementationSuffixes.some((suffix) =>
-                  argName.endsWith(suffix),
+                const isImplementationCode = proxyPatternsStatics.implementationSuffixes.some(
+                  (suffix) => argName.endsWith(suffix),
                 );
 
                 if (isImplementationCode) {

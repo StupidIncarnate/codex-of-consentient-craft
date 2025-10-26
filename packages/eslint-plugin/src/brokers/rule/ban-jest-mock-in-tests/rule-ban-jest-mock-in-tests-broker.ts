@@ -3,6 +3,8 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { jestTestingStatics } from '../../../statics/jest-testing/jest-testing-statics';
+import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
 export const ruleBanJestMockInTestsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -42,14 +44,11 @@ export const ruleBanJestMockInTestsBroker = (): EslintRule => ({
         const functionName = callee.property?.name ?? 'unknown';
 
         // Mock cleanup functions are NEVER allowed anywhere (test files, proxy files, regular files)
-        const cleanupFunctions = [
-          'clearAllMocks',
-          'resetAllMocks',
-          'restoreAllMocks',
-          'resetModuleRegistry',
-        ];
+        const isCleanupFunction = jestTestingStatics.cleanupFunctions.some(
+          (fn) => fn === functionName,
+        );
 
-        if (cleanupFunctions.includes(functionName)) {
+        if (isCleanupFunction) {
           ctx.report({
             node,
             messageId: 'noCleanupFunctions',
@@ -66,30 +65,11 @@ export const ruleBanJestMockInTestsBroker = (): EslintRule => ({
         }
 
         // Ban all Jest mocking and module system manipulation functions in test files
-        const bannedFunctions = [
-          // Module mocking
-          'mock',
-          'unmock',
-          'deepUnmock',
-          'dontMock',
-          'doMock',
-          'setMock',
-          'createMockFromModule',
-          // Spying
-          'spyOn',
-          // Mock utilities
-          'mocked',
-          // Module system
-          'requireActual',
-          'requireMock',
-          'resetModules',
-          'isolateModules',
-          'isolateModulesAsync',
-          // Property mocking
-          'replaceProperty',
-        ];
+        const isBannedFunction = jestMockingStatics.bannedFunctions.some(
+          (fn) => fn === functionName,
+        );
 
-        if (!bannedFunctions.includes(functionName)) {
+        if (!isBannedFunction) {
           return;
         }
 
