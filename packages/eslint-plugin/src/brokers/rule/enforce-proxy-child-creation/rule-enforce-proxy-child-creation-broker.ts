@@ -8,6 +8,7 @@ import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
 import type { FileContents, Identifier, ModulePath } from '@questmaestro/shared/contracts';
 import { identifierContract } from '@questmaestro/shared/contracts';
+import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -186,7 +187,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
         for (const proxyName of proxyCreationCalls) {
           // Derive implementation name from proxy name
           // e.g., httpAdapterProxy -> httpAdapter
-          const implementationName = identifierContract.parse(proxyName.replace(/Proxy$/u, ''));
+          const implementationName = proxyNameToImplementationNameTransformer({ proxyName });
 
           // Check if implementation imports this dependency
           const hasImplementationImport = implementationImports.has(implementationName);

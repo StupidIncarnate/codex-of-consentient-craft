@@ -8,6 +8,12 @@ import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
+import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
+import { removeFileExtensionTransformer } from '../../../transformers/remove-file-extension/remove-file-extension-transformer';
+import { hasFolderTypeSuffixGuard } from '../../../guards/has-folder-type-suffix/has-folder-type-suffix-guard';
+import { extractFirstSegmentTransformer } from '../../../transformers/extract-first-segment/extract-first-segment-transformer';
+import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
+import { getFileExtensionTransformer } from '../../../transformers/get-file-extension/get-file-extension-transformer';
 
 export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -47,7 +53,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
 
         // Skip files with multiple dots (e.g., .test.ts, .stub.ts, .d.ts, etc.)
         const fileBaseName = filename.split('/').pop() ?? '';
-        const dotCount = (fileBaseName.match(/\./gu) ?? []).length;
+        const dotCount = dotCountTransformer({ str: fileBaseName });
         if (dotCount > 1) {
           return;
         }
@@ -102,7 +108,16 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
 
         // For contract files, also check for stub file
         if (isContract) {
-          const stubFileName = filename.replace(/-contract\.ts$/u, '.stub.ts');
+          const filenameParts = filename.split('/');
+          const contractFileName = filenameParts.pop() ?? '';
+          const directory = filenameParts.join('/');
+          // contractPathToStubPathTransformer converts: user-contract.ts -> user.stub
+          // We need to add .ts extension back
+          const stubBaseNameWithoutExtension = contractPathToStubPathTransformer({
+            contractPath: contractFileName,
+          });
+          const stubBaseName = `${stubBaseNameWithoutExtension}.ts`;
+          const stubFileName = directory ? `${directory}/${stubBaseName}` : stubBaseName;
           const stubFilePath = filePathContract.parse(stubFileName);
           const hasStubFile = fsExistsSyncAdapter({ filePath: stubFilePath });
 
@@ -111,7 +126,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
               node,
               messageId: 'missingStubFile',
               data: {
-                stubFileName: stubFileName.split('/').pop() ?? stubFileName,
+                stubFileName: stubBaseName,
               },
             });
           }
@@ -125,17 +140,21 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
 
         if (needsProxyFile) {
           // Derive expected proxy file name
-          const proxyFileName = filename.replace(/\.tsx?$/u, '.proxy$&');
+          const extension = getFileExtensionTransformer({ filename });
+          const withoutExtension = removeFileExtensionTransformer({ filename: fileBaseName });
+          const proxyBaseName = `${withoutExtension}.proxy${extension}`;
+          const filenameParts = filename.split('/');
+          filenameParts.pop();
+          const directory = filenameParts.join('/');
+          const proxyFileName = directory ? `${directory}/${proxyBaseName}` : proxyBaseName;
           const proxyFilePath = filePathContract.parse(proxyFileName);
           const hasProxyFile = fsExistsSyncAdapter({ filePath: proxyFilePath });
 
           if (!hasProxyFile) {
             // Check if an incorrectly named proxy file might exist
             // Extract base filename and folder type for validation
-            const baseFileName = fileBaseName.replace(/\.tsx?$/u, '');
-            const folderTypePattern =
-              /-(adapter|broker|transformer|guard|binding|middleware|state|responder|widget|statics)$/u;
-            const folderTypeMatch = folderTypePattern.exec(baseFileName);
+            const baseFileName = removeFileExtensionTransformer({ filename: fileBaseName });
+            const folderTypeMatch = hasFolderTypeSuffixGuard({ name: baseFileName });
 
             if (folderTypeMatch) {
               // Check for common invalid patterns
@@ -143,10 +162,10 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
               // E.g., "http-adapter" → "http", "user-fetch-broker" → "user", "format-date-transformer" → "format"
               // Match everything before the pattern that includes the folder type
               // This handles cases like: user-fetch-broker → user, format-date-transformer → format
-              const firstPartMatch = /^([^-]+)/u.exec(baseFileName);
-              const firstPart = firstPartMatch ? firstPartMatch[1] : baseFileName;
+              const firstPart = extractFirstSegmentTransformer({ str: baseFileName });
 
-              const invalidProxyFileName = `${firstPart}.proxy.${filename.endsWith('.tsx') ? 'tsx' : 'ts'}`;
+              const ext = getFileExtensionTransformer({ filename, includesDot: false });
+              const invalidProxyFileName = `${firstPart}.proxy.${ext}`;
               const invalidProxyFilePath = filename.replace(fileBaseName, invalidProxyFileName);
               const invalidProxyFilePathContract = filePathContract.parse(invalidProxyFilePath);
               const hasInvalidProxyFile = fsExistsSyncAdapter({
@@ -158,7 +177,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
                   node,
                   messageId: 'invalidProxyFilename',
                   data: {
-                    expectedFileName: `${baseFileName}.proxy.${filename.endsWith('.tsx') ? 'tsx' : 'ts'}`,
+                    expectedFileName: `${baseFileName}.proxy.${ext}`,
                     actualFileName: invalidProxyFileName,
                   },
                 });

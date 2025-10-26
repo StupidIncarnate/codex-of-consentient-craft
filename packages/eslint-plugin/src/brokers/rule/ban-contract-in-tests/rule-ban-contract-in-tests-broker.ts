@@ -3,6 +3,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
 
 export const ruleBanContractInTestsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -81,7 +82,7 @@ export const ruleBanContractInTestsBroker = (): EslintRule => ({
         }
 
         // Generate suggested stub path
-        const stubPath = importSource.replace(/-contract(\.ts)?$/u, '.stub');
+        const stubPath = contractPathToStubPathTransformer({ contractPath: importSource });
 
         ctx.report({
           node,

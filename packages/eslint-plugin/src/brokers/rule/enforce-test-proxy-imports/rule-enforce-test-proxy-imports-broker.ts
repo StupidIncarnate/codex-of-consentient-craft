@@ -6,6 +6,8 @@ import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard
 import { testFilePathToColocatedProxyPathTransformer } from '../../../transformers/test-file-path-to-colocated-proxy-path/test-file-path-to-colocated-proxy-path-transformer';
 import { filePathContract } from '@questmaestro/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
+import { normalizeImportPathTransformer } from '../../../transformers/normalize-import-path/normalize-import-path-transformer';
 
 export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -55,12 +57,7 @@ export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
         }
 
         // Check if import is a proxy file (with or without .ts/.tsx extension)
-        const isProxyImport =
-          hasFileSuffixGuard({ filename: importSource, suffix: 'proxy' }) ||
-          importSource.endsWith('.proxy') ||
-          importSource.includes('.proxy/');
-
-        if (!isProxyImport) {
+        if (!isProxyImportGuard({ importSource })) {
           return;
         }
 
@@ -79,16 +76,11 @@ export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
         // Increment proxy import count
         proxyImportCount += 1;
 
-        // Normalize import path for comparison (remove .ts/.tsx extensions)
-        const normalizedImport = importSource
-          .replace(/\.proxy\.(ts|tsx)$/u, '.proxy')
-          .replace(/\.ts$/u, '')
-          .replace(/\.tsx$/u, '');
-
-        const normalizedExpected = expectedColocatedProxy
-          .replace(/\.proxy\.(ts|tsx)$/u, '.proxy')
-          .replace(/\.ts$/u, '')
-          .replace(/\.tsx$/u, '');
+        // Normalize import paths for comparison (remove .ts/.tsx extensions)
+        const normalizedImport = normalizeImportPathTransformer({ importPath: importSource });
+        const normalizedExpected = normalizeImportPathTransformer({
+          importPath: expectedColocatedProxy,
+        });
 
         // Check if this is the colocated proxy
         if (normalizedImport !== normalizedExpected) {

@@ -5,10 +5,13 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isEntryFileGuard } from '../../../guards/is-entry-file/is-entry-file-guard';
 import { isSameDomainFolderGuard } from '../../../guards/is-same-domain-folder/is-same-domain-folder-guard';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { isStubFileGuard } from '../../../guards/is-stub-file/is-stub-file-guard';
 import { fileBasenameTransformer } from '../../../transformers/file-basename/file-basename-transformer';
 import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
 import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
 import { filepathResolveRelativeImportTransformer } from '../../../transformers/filepath-resolve-relative-import/filepath-resolve-relative-import-transformer';
+import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 
 export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -77,9 +80,9 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
           }
 
           // Exception: Test files and stub files can import .stub.ts files from @questmaestro/shared/contracts
-          const isTestFile = /\.(test|spec)\.tsx?$/u.test(ctx.filename ?? '');
-          const isCurrentFileStub = /\.stub(\.tsx?)?$/u.test(ctx.filename ?? '');
-          const isImportedFileStub = /\.stub(\.tsx?)?$/u.test(importSource);
+          const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
+          const isCurrentFileStub = isStubFileGuard({ filename: ctx.filename ?? '' });
+          const isImportedFileStub = isStubFileGuard({ filename: importSource });
           const isFromContracts = sharedFolderType === 'contracts';
 
           if ((isTestFile || isCurrentFileStub) && isImportedFileStub && isFromContracts) {
@@ -97,7 +100,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
               return false;
             }
 
-            const folderName = allowed.replace(/\/$/u, '');
+            const folderName = allowed.endsWith('/') ? allowed.slice(0, -1) : allowed;
             return sharedFolderType === folderName;
           });
 
@@ -189,7 +192,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
               return false;
             }
 
-            const folderName = allowed.replace(/\/$/u, '');
+            const folderName = allowed.endsWith('/') ? allowed.slice(0, -1) : allowed;
             return importedFolder === folderName;
           });
 
@@ -214,9 +217,9 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
 
           if (!isEntryFile) {
             // Exception: Test files and stub files can import .stub.ts files from contracts folder
-            const isTestFile = /\.(test|spec)\.tsx?$/u.test(ctx.filename ?? '');
-            const isCurrentFileStub = /\.stub(\.tsx?)?$/u.test(ctx.filename ?? '');
-            const isImportedFileStub = /\.stub(\.tsx?)?$/u.test(importSource);
+            const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
+            const isCurrentFileStub = isStubFileGuard({ filename: ctx.filename ?? '' });
+            const isImportedFileStub = isStubFileGuard({ filename: importSource });
             const isFromContracts = importedFolderType === 'contracts';
 
             if ((isTestFile || isCurrentFileStub) && isImportedFileStub && isFromContracts) {
@@ -239,7 +242,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
               : [importedFolderConfig.fileSuffix];
 
             const importableSuffixes = suffixes.filter((suffix: string) => {
-              const dotCount = (suffix.match(/\./gu) ?? []).length;
+              const dotCount = dotCountTransformer({ str: suffix });
               return dotCount <= 1;
             });
 

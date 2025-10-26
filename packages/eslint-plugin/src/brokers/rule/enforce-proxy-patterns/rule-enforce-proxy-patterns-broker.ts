@@ -10,6 +10,7 @@ import { validateProxyFunctionReturnLayerBroker } from './validate-proxy-functio
 import { validateAdapterMockSetupLayerBroker } from './validate-adapter-mock-setup-layer-broker';
 import { validateProxyConstructorSideEffectsLayerBroker } from './validate-proxy-constructor-side-effects-layer-broker';
 import { proxyPatternsStatics } from '../../../statics/proxy-patterns/proxy-patterns-statics';
+import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
 
 export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -76,7 +77,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
         // Extract implementation file path by removing .proxy.ts and adding .ts
         // Example: foo-adapter.proxy.ts -> foo-adapter.ts
         const implementationPath = filePathContract.parse(
-          proxyFilePath.replace(/\.proxy\.ts$/u, '.ts'),
+          proxyPathToImplementationPathTransformer({ proxyPath: proxyFilePath }),
         );
 
         // Check if implementation file exists

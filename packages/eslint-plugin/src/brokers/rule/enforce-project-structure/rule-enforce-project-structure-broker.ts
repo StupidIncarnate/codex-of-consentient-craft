@@ -18,6 +18,8 @@ import { forbiddenFolderSuggestionTransformer } from '../../../transformers/forb
 import { pathDepthTransformer } from '../../../transformers/path-depth/path-depth-transformer';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
 import { toKebabCaseTransformer } from '../../../transformers/to-kebab-case/to-kebab-case-transformer';
+import { removeFileExtensionTransformer } from '../../../transformers/remove-file-extension/remove-file-extension-transformer';
+import { getFileExtensionTransformer } from '../../../transformers/get-file-extension/get-file-extension-transformer';
 
 const allowedFolders = Object.keys(folderConfigStatics);
 
@@ -162,7 +164,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           );
           if (nonKebabFolder) {
             const expected = toKebabCaseTransformer({ str: nonKebabFolder });
-            const ext = filename.endsWith('.tsx') ? 'tsx' : 'ts';
+            const ext = getFileExtensionTransformer({ filename, includesDot: false });
             ctx.report({
               node,
               messageId: 'invalidFilenameCase',
@@ -219,7 +221,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
               const baseSuffixStr = Array.isArray(baseSuffix)
                 ? String(baseSuffix[0])
                 : String(baseSuffix);
-              const baseSuffixToRemove = baseSuffixStr.replace(/\.(ts|tsx)$/u, '');
+              const baseSuffixToRemove = removeFileExtensionTransformer({
+                filename: baseSuffixStr,
+              });
               actualFilenamePrefix = identifierContract.parse(
                 filenameBase.replace(new RegExp(`${baseSuffixToRemove}$`, 'u'), ''),
               );
@@ -250,12 +254,13 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
           if (hasInvalidCase) {
             const expected = toKebabCaseTransformer({ str: filenameBase });
-            const ext = filename.endsWith('.tsx') ? 'tsx' : 'ts';
+            const ext = getFileExtensionTransformer({ filename, includesDot: false });
             const suffixStr = Array.isArray(fileSuffix)
               ? String(fileSuffix[0])
               : String(fileSuffix);
-            const actualFullFilename = filenameBase + suffixStr.replace(/\.(ts|tsx)$/u, '');
-            const expectedFullFilename = expected + suffixStr.replace(/\.(ts|tsx)$/u, '');
+            const suffixWithoutExtension = removeFileExtensionTransformer({ filename: suffixStr });
+            const actualFullFilename = filenameBase + suffixWithoutExtension;
+            const expectedFullFilename = expected + suffixWithoutExtension;
 
             ctx.report({
               node,
@@ -274,10 +279,10 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
             const suffixStr = Array.isArray(fileSuffix)
               ? String(fileSuffix[0])
               : String(fileSuffix);
-            const expectedFullFilename =
-              expectedFilenamePrefix + suffixStr.replace(/\.(ts|tsx)$/u, '');
-            const actualFullFilename = filenameBase + suffixStr.replace(/\.(ts|tsx)$/u, '');
-            const ext = filename.endsWith('.tsx') ? 'tsx' : 'ts';
+            const suffixWithoutExtension = removeFileExtensionTransformer({ filename: suffixStr });
+            const expectedFullFilename = expectedFilenamePrefix + suffixWithoutExtension;
+            const actualFullFilename = filenameBase + suffixWithoutExtension;
+            const ext = getFileExtensionTransformer({ filename, includesDot: false });
 
             ctx.report({
               node,

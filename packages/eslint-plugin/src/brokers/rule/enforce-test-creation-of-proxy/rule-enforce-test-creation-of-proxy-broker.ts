@@ -6,6 +6,7 @@ import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import type { Identifier } from '@questmaestro/shared/contracts';
 import { identifierContract } from '@questmaestro/shared/contracts';
+import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
 
 export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -52,7 +53,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
     const folderTypesRequiringProxies = Object.entries(folderConfigStatics)
       .filter(([, config]) => config.requireProxy)
       .map(([folderType]) => {
-        const singular = folderType.replace(/s$/u, '');
+        const singular = singularizeFolderTypeTransformer({ folderType });
         return singular.charAt(0).toUpperCase() + singular.slice(1);
       });
 
