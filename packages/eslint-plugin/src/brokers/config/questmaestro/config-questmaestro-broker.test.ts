@@ -79,8 +79,8 @@ describe('configQuestmaestroBroker', () => {
 
       const { ruleEnforceOn } = configQuestmaestroBroker();
 
-      expect(ruleEnforceOn['@questmaestro/require-contract-validation']).toBe('post-edit');
       expect(ruleEnforceOn['@questmaestro/enforce-proxy-patterns']).toBe('post-edit');
+      expect(ruleEnforceOn['@questmaestro/enforce-proxy-child-creation']).toBe('post-edit');
       expect(ruleEnforceOn['@questmaestro/enforce-implementation-colocation']).toBe('post-edit');
       expect(ruleEnforceOn['@questmaestro/enforce-test-colocation']).toBe('post-edit');
     });

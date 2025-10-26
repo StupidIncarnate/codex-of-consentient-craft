@@ -73,6 +73,8 @@ interface RecursiveNodeOutput {
   declaration?: RecursiveNodeOutput | null | undefined;
   // ImportDeclaration additional properties
   importKind?: 'type' | 'value' | undefined;
+  // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
+  elementType?: RecursiveNodeOutput | null | undefined;
 }
 
 // Input type (before parsing)
@@ -128,6 +130,8 @@ interface RecursiveNodeInput {
   declaration?: RecursiveNodeInput | null | undefined;
   // ImportDeclaration additional properties
   importKind?: 'type' | 'value' | undefined;
+  // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
+  elementType?: RecursiveNodeInput | null | undefined;
 }
 
 const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput> = z.object({
@@ -236,6 +240,11 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .optional(),
   // ImportDeclaration additional properties
   importKind: z.enum(['type', 'value']).optional(),
+  // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
+  elementType: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
 }) as unknown as z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput>;
 
 // Root level contract - parent is OPTIONAL
@@ -294,6 +303,8 @@ export const tsestreeContract = z.object({
   declaration: recursiveBase.nullable().optional(),
   // ImportDeclaration additional properties
   importKind: z.enum(['type', 'value']).optional(),
+  // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
+  elementType: recursiveBase.nullable().optional(),
 });
 
 export type Tsestree = z.infer<typeof tsestreeContract>;

@@ -18,6 +18,7 @@ describe('StartEslintPlugin', () => {
         'enforce-object-destructuring-params',
         'enforce-optional-guard-params',
         'enforce-stub-patterns',
+        'enforce-stub-usage',
         'enforce-proxy-child-creation',
         'enforce-proxy-patterns',
         'enforce-test-colocation',
@@ -45,7 +46,22 @@ describe('StartEslintPlugin', () => {
             banPrimitive:
               'Raw {{typeName}} type is not allowed. Use Zod contract types like {{suggestion}} instead.',
           },
-          schema: [],
+          schema: [
+            {
+              type: 'object',
+              properties: {
+                allowPrimitiveInputs: {
+                  type: 'boolean',
+                  description: 'Allow raw primitives in function parameters',
+                },
+                allowPrimitiveReturns: {
+                  type: 'boolean',
+                  description: 'Allow raw primitives in function return types',
+                },
+              },
+              additionalProperties: false,
+            },
+          ],
         },
         create: expect.any(Function),
       });

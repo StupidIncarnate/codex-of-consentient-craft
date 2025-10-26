@@ -137,18 +137,6 @@ const programNode = node as unknown as {
 }
 ```
 
-## Need enforce stub usage
-
-Seeing this in tests which shouldn't be allowed. Should be a stub
-
-```typescript
-it('EDGE: {body: []} => does not report', () => {
-    const functionNode: Tsestree = {
-        type: 'ArrowFunctionExpression',
-        body: [],
-    };
-```
-
 ## transformers need another layer.
 
 LLM was making a is-structure-valid transformer and other generic ones, so we need a domain/subject nesting like brokers

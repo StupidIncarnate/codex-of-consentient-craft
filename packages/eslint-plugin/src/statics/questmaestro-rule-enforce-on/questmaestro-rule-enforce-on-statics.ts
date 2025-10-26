@@ -10,7 +10,7 @@ export const questmaestroRuleEnforceOnStatics = {
   'jest/no-conditional-in-test': 'pre-edit',
   'jest/require-to-throw-message': 'pre-edit',
 
-  // @questmaestro - PRE-EDIT (19 rules)
+  // @questmaestro - PRE-EDIT (20 rules)
   '@questmaestro/ban-adhoc-types': 'pre-edit',
   '@questmaestro/ban-contract-in-tests': 'pre-edit',
   '@questmaestro/ban-jest-mock-in-tests': 'pre-edit',
@@ -21,6 +21,7 @@ export const questmaestroRuleEnforceOnStatics = {
   '@questmaestro/enforce-optional-guard-params': 'pre-edit',
   '@questmaestro/explicit-return-types': 'pre-edit',
   '@questmaestro/enforce-stub-patterns': 'pre-edit',
+  '@questmaestro/enforce-stub-usage': 'pre-edit',
   '@questmaestro/enforce-project-structure': 'pre-edit',
   '@questmaestro/enforce-import-dependencies': 'pre-edit',
   '@questmaestro/forbid-non-exported-functions': 'pre-edit',

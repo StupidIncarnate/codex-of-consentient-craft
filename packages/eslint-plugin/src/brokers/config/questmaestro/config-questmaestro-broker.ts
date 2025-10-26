@@ -80,6 +80,7 @@ export const configQuestmaestroBroker = ({
     '@questmaestro/enforce-proxy-child-creation': 'error',
     '@questmaestro/enforce-proxy-patterns': 'error',
     '@questmaestro/enforce-stub-patterns': 'error',
+    '@questmaestro/enforce-stub-usage': 'error',
     '@questmaestro/enforce-test-colocation': 'error',
     '@questmaestro/enforce-test-creation-of-proxy': 'error',
     '@questmaestro/enforce-test-proxy-imports': 'error',

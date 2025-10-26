@@ -10,6 +10,7 @@ import { ruleEnforceJestMockedUsageBroker } from '../brokers/rule/enforce-jest-m
 import { ruleEnforceObjectDestructuringParamsBroker } from '../brokers/rule/enforce-object-destructuring-params/rule-enforce-object-destructuring-params-broker';
 import { ruleEnforceOptionalGuardParamsBroker } from '../brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker';
 import { ruleEnforceStubPatternsBroker } from '../brokers/rule/enforce-stub-patterns/rule-enforce-stub-patterns-broker';
+import { ruleEnforceStubUsageBroker } from '../brokers/rule/enforce-stub-usage/rule-enforce-stub-usage-broker';
 import { ruleEnforceProxyChildCreationBroker } from '../brokers/rule/enforce-proxy-child-creation/rule-enforce-proxy-child-creation-broker';
 import { ruleEnforceProxyPatternsBroker } from '../brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker';
 import { ruleEnforceTestColocationBroker } from '../brokers/rule/enforce-test-colocation/rule-enforce-test-colocation-broker';
@@ -39,6 +40,7 @@ export const StartEslintPlugin = (): {
     readonly 'enforce-object-destructuring-params': EslintRule;
     readonly 'enforce-optional-guard-params': EslintRule;
     readonly 'enforce-stub-patterns': EslintRule;
+    readonly 'enforce-stub-usage': EslintRule;
     readonly 'enforce-proxy-child-creation': EslintRule;
     readonly 'enforce-proxy-patterns': EslintRule;
     readonly 'enforce-test-colocation': EslintRule;
@@ -73,6 +75,7 @@ export const StartEslintPlugin = (): {
       'enforce-object-destructuring-params': ruleEnforceObjectDestructuringParamsBroker(),
       'enforce-optional-guard-params': ruleEnforceOptionalGuardParamsBroker(),
       'enforce-stub-patterns': ruleEnforceStubPatternsBroker(),
+      'enforce-stub-usage': ruleEnforceStubUsageBroker(),
       'enforce-proxy-child-creation': ruleEnforceProxyChildCreationBroker(),
       'enforce-proxy-patterns': ruleEnforceProxyPatternsBroker(),
       'enforce-test-colocation': ruleEnforceTestColocationBroker(),
