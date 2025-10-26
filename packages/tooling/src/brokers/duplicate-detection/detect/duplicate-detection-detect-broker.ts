@@ -9,6 +9,8 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { typescriptParseAdapter } from '../../../adapters/typescript/parse/typescript-parse-adapter';
 import { duplicateLiteralReportContract } from '../../../contracts/duplicate-literal-report/duplicate-literal-report-contract';
 import { literalTypeContract } from '../../../contracts/literal-type/literal-type-contract';
+import { duplicateDetectionStatics } from '../../../statics/duplicate-detection/duplicate-detection-statics';
+import { isRegexLiteralGuard } from '../../../guards/is-regex-literal/is-regex-literal-guard';
 
 export const duplicateDetectionDetectBroker = async ({
   pattern,
@@ -21,8 +23,8 @@ export const duplicateDetectionDetectBroker = async ({
   threshold?: OccurrenceThreshold;
   minLength?: number;
 }): Promise<readonly DuplicateLiteralReport[]> => {
-  const actualThreshold = threshold ?? 3;
-  const actualMinLength = minLength ?? 3;
+  const actualThreshold = threshold ?? duplicateDetectionStatics.defaults.threshold;
+  const actualMinLength = minLength ?? duplicateDetectionStatics.defaults.minLength;
 
   // Find all TypeScript files
   const filePaths = await globFindAdapter(cwd ? { pattern, cwd } : { pattern });
@@ -30,16 +32,21 @@ export const duplicateDetectionDetectBroker = async ({
   // Aggregate literals across all files
   const globalLiteralsMap = new Map<LiteralValue, LiteralOccurrence[]>();
 
-  // Process each file
-  for (const filePath of filePaths) {
-    const sourceCode = await fsReadFileAdapter({ filePath });
-    const fileLiterals = typescriptParseAdapter({
-      sourceCode,
-      filePath,
-      minLength: actualMinLength,
-    });
+  // Process all files in parallel
+  const fileResults = await Promise.all(
+    filePaths.map(async (filePath) => {
+      const sourceCode = await fsReadFileAdapter({ filePath });
+      const fileLiterals = typescriptParseAdapter({
+        sourceCode,
+        filePath,
+        minLength: actualMinLength,
+      });
+      return fileLiterals;
+    }),
+  );
 
-    // Merge file literals into global map
+  // Merge all file literals into global map
+  for (const fileLiterals of fileResults) {
     for (const [literalValue, occurrences] of fileLiterals) {
       const existing = globalLiteralsMap.get(literalValue);
       if (existing) {
@@ -55,10 +62,8 @@ export const duplicateDetectionDetectBroker = async ({
 
   for (const [literalValue, occurrences] of globalLiteralsMap) {
     if (occurrences.length >= actualThreshold) {
-      // Determine type based on content (simple heuristic)
-      const isRegex =
-        literalValue.startsWith('/') &&
-        (literalValue.endsWith('/') || /\/[gimsuvy]*$/u.exec(literalValue));
+      // Determine type based on content
+      const isRegex = isRegexLiteralGuard({ value: literalValue });
       const type = literalTypeContract.parse(isRegex ? 'regex' : 'string');
 
       duplicates.push(

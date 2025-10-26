@@ -153,6 +153,12 @@ export const configQuestmaestroBroker = ({
   });
 
   // Stub files need to use primitives and magic numbers for type conversion
+  const proxyOverrides: EslintConfig = eslintConfigContract.parse({
+    files: ['**/*.proxy.ts', '**/*.proxy.tsx'],
+    rules: {},
+  });
+
+  // Stub files need to use primitives and magic numbers for type conversion
   const stubOverride: EslintConfig = eslintConfigContract.parse({
     files: ['**/*.stub.ts', '**/*.stub.tsx'],
     rules: {
@@ -174,7 +180,7 @@ export const configQuestmaestroBroker = ({
   return {
     typescript: typescriptConfig,
     test: testConfig,
-    fileOverrides: [stubOverride, e2eOverrides],
+    fileOverrides: [proxyOverrides, stubOverride, e2eOverrides],
     ruleEnforceOn: questmaestroRuleEnforceOnStatics,
   };
 };

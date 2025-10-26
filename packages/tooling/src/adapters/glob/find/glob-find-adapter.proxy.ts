@@ -6,10 +6,11 @@ jest.mock('glob');
 
 export const globFindAdapterProxy = (): {
   returns: (params: { pattern: GlobPattern; filePaths: readonly AbsoluteFilePath[] }) => void;
+  throws: (params: { pattern: GlobPattern; error: Error }) => void;
 } => {
   const mock = jest.mocked(glob);
 
-  mock.mockImplementation(async () => []);
+  mock.mockImplementation(async () => Promise.resolve([]));
 
   return {
     returns: ({
@@ -19,6 +20,10 @@ export const globFindAdapterProxy = (): {
       filePaths: readonly AbsoluteFilePath[];
     }): void => {
       mock.mockResolvedValueOnce([...filePaths]);
+    },
+
+    throws: ({ error }: { pattern: GlobPattern; error: Error }): void => {
+      mock.mockRejectedValueOnce(error);
     },
   };
 };

@@ -2,9 +2,13 @@ import { duplicateDetectionDetectBroker } from '../brokers/duplicate-detection/d
 import { globPatternContract } from '../contracts/glob-pattern/glob-pattern-contract';
 import { absoluteFilePathContract } from '../contracts/absolute-file-path/absolute-file-path-contract';
 import { occurrenceThresholdContract } from '../contracts/occurrence-threshold/occurrence-threshold-contract';
+import { duplicateDetectionStatics } from '../statics/duplicate-detection/duplicate-detection-statics';
+
+const COMMAND_LINE_ARG_START_INDEX = 2;
+const DECIMAL_BASE = 10;
 
 export const StartPrimitiveDuplicateDetection = async (): Promise<void> => {
-  const args = process.argv.slice(2);
+  const args = process.argv.slice(COMMAND_LINE_ARG_START_INDEX);
 
   // Parse command line arguments
   const patternArg = args.find((arg) => arg.startsWith('--pattern='));
@@ -19,18 +23,28 @@ export const StartPrimitiveDuplicateDetection = async (): Promise<void> => {
     : absoluteFilePathContract.parse(process.cwd());
 
   const threshold = occurrenceThresholdContract.parse(
-    thresholdArg ? parseInt(thresholdArg.split('=')[1] ?? '3', 10) : 3,
+    thresholdArg
+      ? parseInt(
+          thresholdArg.split('=')[1] ?? String(duplicateDetectionStatics.defaults.threshold),
+          DECIMAL_BASE,
+        )
+      : duplicateDetectionStatics.defaults.threshold,
   );
 
-  const minLength = minLengthArg ? parseInt(minLengthArg.split('=')[1] ?? '3', 10) : 3;
+  const minLength = minLengthArg
+    ? parseInt(
+        minLengthArg.split('=')[1] ?? String(duplicateDetectionStatics.defaults.minLength),
+        DECIMAL_BASE,
+      )
+    : duplicateDetectionStatics.defaults.minLength;
 
   // Run detection
-  console.log(`Scanning for duplicate primitives...`);
-  console.log(`  Pattern: ${pattern}`);
-  console.log(`  Directory: ${cwd}`);
-  console.log(`  Threshold: ${threshold}+ occurrences`);
-  console.log(`  Min length: ${minLength} characters`);
-  console.log();
+  process.stdout.write(`Scanning for duplicate primitives...\n`);
+  process.stdout.write(`  Pattern: ${pattern}\n`);
+  process.stdout.write(`  Directory: ${cwd}\n`);
+  process.stdout.write(`  Threshold: ${threshold}+ occurrences\n`);
+  process.stdout.write(`  Min length: ${minLength} characters\n`);
+  process.stdout.write(`\n`);
 
   const duplicates = await duplicateDetectionDetectBroker({
     pattern,
@@ -40,25 +54,25 @@ export const StartPrimitiveDuplicateDetection = async (): Promise<void> => {
   });
 
   if (duplicates.length === 0) {
-    console.log('✅ No duplicate primitives found!');
+    process.stdout.write('✅ No duplicate primitives found!\n');
     return;
   }
 
-  console.log(`Found ${duplicates.length} duplicate primitive(s):\n`);
+  process.stdout.write(`Found ${duplicates.length} duplicate primitive(s):\n\n`);
 
   for (const duplicate of duplicates) {
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    console.log(`${duplicate.type.toUpperCase()}: "${duplicate.value}"`);
-    console.log(`Occurrences: ${duplicate.count}`);
-    console.log();
+    process.stdout.write(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+    process.stdout.write(`${duplicate.type.toUpperCase()}: "${duplicate.value}"\n`);
+    process.stdout.write(`Occurrences: ${duplicate.count}\n`);
+    process.stdout.write(`\n`);
 
     for (const occurrence of duplicate.occurrences) {
-      console.log(`  ${occurrence.filePath}:${occurrence.line}:${occurrence.column}`);
+      process.stdout.write(`  ${occurrence.filePath}:${occurrence.line}:${occurrence.column}\n`);
     }
 
-    console.log();
+    process.stdout.write(`\n`);
   }
 
-  console.log(`\nSuggestion: Extract these literals to statics files:`);
-  console.log(`  packages/*/src/statics/[domain]/[domain]-statics.ts`);
+  process.stdout.write(`\nSuggestion: Extract these literals to statics files:\n`);
+  process.stdout.write(`  packages/*/src/statics/[domain]/[domain]-statics.ts\n`);
 };

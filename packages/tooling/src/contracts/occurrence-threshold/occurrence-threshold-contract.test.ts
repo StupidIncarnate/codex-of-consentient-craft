@@ -18,4 +18,16 @@ describe('occurrenceThresholdContract', () => {
 
     expect(result).toBe(10);
   });
+
+  it('VALID: {value: 1000000} => parses successfully', () => {
+    const result = OccurrenceThresholdStub({ value: 1000000 });
+
+    expect(result).toBe(1000000);
+  });
+
+  it('VALID: {value: MAX_SAFE_INTEGER} => parses successfully', () => {
+    const result = OccurrenceThresholdStub({ value: Number.MAX_SAFE_INTEGER });
+
+    expect(result).toBe(Number.MAX_SAFE_INTEGER);
+  });
 });

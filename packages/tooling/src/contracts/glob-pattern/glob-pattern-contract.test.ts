@@ -18,4 +18,52 @@ describe('globPatternContract', () => {
 
     expect(result).toBe('*.js');
   });
+
+  it('VALID: {value: ""} => parses successfully', () => {
+    const result = GlobPatternStub({ value: '' });
+
+    expect(result).toBe('');
+  });
+
+  it('VALID: {value: "*"} => parses successfully', () => {
+    const result = GlobPatternStub({ value: '*' });
+
+    expect(result).toBe('*');
+  });
+
+  it('VALID: {value: "?"} => parses successfully', () => {
+    const result = GlobPatternStub({ value: '?' });
+
+    expect(result).toBe('?');
+  });
+
+  it('VALID: {value: "**/*"} => parses successfully', () => {
+    const result = GlobPatternStub({ value: '**/*' });
+
+    expect(result).toBe('**/*');
+  });
+
+  it('VALID: {value: "*.{ts,tsx,js,jsx}"} => parses successfully', () => {
+    const result = GlobPatternStub({ value: '*.{ts,tsx,js,jsx}' });
+
+    expect(result).toBe('*.{ts,tsx,js,jsx}');
+  });
+
+  it('VALID: {value: "!node_modules/**"} => parses successfully', () => {
+    const result = GlobPatternStub({ value: '!node_modules/**' });
+
+    expect(result).toBe('!node_modules/**');
+  });
+
+  it('VALID: {value: "[abc]*.ts"} => parses successfully', () => {
+    const result = GlobPatternStub({ value: '[abc]*.ts' });
+
+    expect(result).toBe('[abc]*.ts');
+  });
+
+  it('VALID: {value: "path with spaces/**/*.ts"} => parses successfully', () => {
+    const result = GlobPatternStub({ value: 'path with spaces/**/*.ts' });
+
+    expect(result).toBe('path with spaces/**/*.ts');
+  });
 });

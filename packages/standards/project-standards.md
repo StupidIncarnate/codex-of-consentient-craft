@@ -313,6 +313,23 @@ while (true) {
 }
 ```
 
+**CLI Output:**
+
+- **Use process.stdout/stderr** - Never use `console.log()` or `console.error()` in CLI implementations
+- **Standard output:** `process.stdout.write()` for normal output
+- **Error output:** `process.stderr.write()` for errors
+- **Include newlines:** Append `\n` explicitly to output strings
+
+```typescript
+// ✅ CORRECT - CLI output using process streams
+process.stdout.write(`Processing ${count} files...\n`);
+process.stderr.write(`Error: ${errorMessage}\n`);
+
+// ❌ WRONG - console methods trigger lint errors
+console.log(`Processing ${count} files...`);
+console.error(`Error: ${errorMessage}`);
+```
+
 ## Layer Files - Decomposing Complex Components
 
 ### Purpose

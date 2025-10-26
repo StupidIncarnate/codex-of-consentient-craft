@@ -10,7 +10,7 @@ export const fsReadFileAdapterProxy = (): {
 } => {
   const mock = jest.mocked(readFile);
 
-  mock.mockImplementation(async () => '');
+  mock.mockImplementation(async () => Promise.resolve(''));
 
   return {
     returns: ({ sourceCode }: { filePath: AbsoluteFilePath; sourceCode: SourceCode }): void => {
