@@ -40,7 +40,9 @@ describe('astToViolationTransformer', () => {
       message: 'Invalid function',
       messageId: 'invalidFunction',
     });
-    const data = { functionName: 'testFunc', issue: 'no params' };
+    const data = Object.create(null) as Record<PropertyKey, unknown>;
+    data.functionName = 'testFunc';
+    data.issue = 'no params';
 
     const result = astToViolationTransformer({ node, message, messageId, data });
 
@@ -63,7 +65,9 @@ describe('astToViolationTransformer', () => {
       parent: undefined,
     });
     const { message } = RuleViolationStub({ message: 'Variable issue' });
-    const data = { varName: 'x', type: 'let' };
+    const data = Object.create(null) as Record<PropertyKey, unknown>;
+    data.varName = 'x';
+    data.type = 'let';
 
     const result = astToViolationTransformer({ node, message, data });
 

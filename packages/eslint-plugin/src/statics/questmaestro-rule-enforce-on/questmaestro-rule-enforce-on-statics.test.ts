@@ -31,7 +31,7 @@ describe('questmaestroRuleEnforceOnStatics', () => {
   it('VALID: {} => contains all 33 rules (29 pre-edit + 4 post-edit)', () => {
     const ruleCount = Object.keys(questmaestroRuleEnforceOnStatics).length;
 
-    expect(ruleCount).toBe(33);
+    expect(ruleCount).toBe(34);
   });
 
   it('VALID: {} => pre-edit rules count is 29', () => {
@@ -39,7 +39,7 @@ describe('questmaestroRuleEnforceOnStatics', () => {
       return timing === 'pre-edit';
     });
 
-    expect(preEditRules).toHaveLength(29);
+    expect(preEditRules).toHaveLength(30);
   });
 
   it('VALID: {} => post-edit rules count is 4', () => {

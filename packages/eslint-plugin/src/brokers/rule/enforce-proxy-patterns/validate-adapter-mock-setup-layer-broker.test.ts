@@ -77,16 +77,16 @@ describe('validateAdapterMockSetupLayerBroker', () => {
       validateAdapterMockSetupLayerBrokerProxy();
       const mockReport = jest.fn();
       const mockContext = EslintContextStub({ report: mockReport });
-      // Create invalid data without going through stub validation
-      const functionNode = {
+      const functionNode = TsestreeStub({
         type: TsestreeNodeType.ArrowFunctionExpression,
-        parent: null,
-        body: {
+        body: TsestreeStub({
           type: TsestreeNodeType.BlockStatement,
-          parent: null,
-          body: 'not-an-array',
-        },
-      } as unknown as ReturnType<typeof TsestreeStub>;
+          body: [],
+        }),
+      });
+      // Inject invalid data after all stubs created to test edge case
+      const bodyRef = functionNode.body as never as Record<PropertyKey, never>;
+      bodyRef.body = 'not-an-array' as never;
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
@@ -699,27 +699,23 @@ describe('validateAdapterMockSetupLayerBroker', () => {
       validateAdapterMockSetupLayerBrokerProxy();
       const mockReport = jest.fn();
       const mockContext = EslintContextStub({ report: mockReport });
-      // Create invalid data with null statement without going through stub validation
-      const functionNode = {
+      const returnStatement = TsestreeStub({
+        type: TsestreeNodeType.ReturnStatement,
+        argument: TsestreeStub({
+          type: TsestreeNodeType.ObjectExpression,
+          properties: [],
+        }),
+      });
+      const functionNode = TsestreeStub({
         type: TsestreeNodeType.ArrowFunctionExpression,
-        parent: null,
-        body: {
+        body: TsestreeStub({
           type: TsestreeNodeType.BlockStatement,
-          parent: null,
-          body: [
-            null,
-            {
-              type: TsestreeNodeType.ReturnStatement,
-              parent: null,
-              argument: {
-                type: TsestreeNodeType.ObjectExpression,
-                parent: null,
-                properties: [],
-              },
-            },
-          ],
-        },
-      } as unknown as ReturnType<typeof TsestreeStub>;
+          body: [],
+        }),
+      });
+      // Inject invalid data after all stubs created to test edge case
+      const bodyRef = functionNode.body as never as Record<PropertyKey, never>;
+      bodyRef.body = [null, returnStatement] as never;
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 

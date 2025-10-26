@@ -18,6 +18,7 @@ import { ruleEnforceTestCreationOfProxyBroker } from '../brokers/rule/enforce-te
 import { ruleEnforceTestProxyImportsBroker } from '../brokers/rule/enforce-test-proxy-imports/rule-enforce-test-proxy-imports-broker';
 import { ruleEnforceImplementationColocationBroker } from '../brokers/rule/enforce-implementation-colocation/rule-enforce-implementation-colocation-broker';
 import { ruleForbidNonExportedFunctionsBroker } from '../brokers/rule/forbid-non-exported-functions/rule-forbid-non-exported-functions-broker';
+import { ruleForbidTypeReexportBroker } from '../brokers/rule/forbid-type-reexport/rule-forbid-type-reexport-broker';
 import { ruleJestMockedMustImportBroker } from '../brokers/rule/jest-mocked-must-import/rule-jest-mocked-must-import-broker';
 import { ruleNoMutableStateInProxyFactoryBroker } from '../brokers/rule/no-mutable-state-in-proxy-factory/rule-no-mutable-state-in-proxy-factory-broker';
 import { ruleRequireContractValidationBroker } from '../brokers/rule/require-contract-validation/rule-require-contract-validation-broker';
@@ -48,6 +49,7 @@ export const StartEslintPlugin = (): {
     readonly 'enforce-test-proxy-imports': EslintRule;
     readonly 'enforce-implementation-colocation': EslintRule;
     readonly 'forbid-non-exported-functions': EslintRule;
+    readonly 'forbid-type-reexport': EslintRule;
     readonly 'jest-mocked-must-import': EslintRule;
     readonly 'no-mutable-state-in-proxy-factory': EslintRule;
     readonly 'require-contract-validation': EslintRule;
@@ -83,6 +85,7 @@ export const StartEslintPlugin = (): {
       'enforce-test-proxy-imports': ruleEnforceTestProxyImportsBroker(),
       'enforce-implementation-colocation': ruleEnforceImplementationColocationBroker(),
       'forbid-non-exported-functions': ruleForbidNonExportedFunctionsBroker(),
+      'forbid-type-reexport': ruleForbidTypeReexportBroker(),
       'jest-mocked-must-import': ruleJestMockedMustImportBroker(),
       'no-mutable-state-in-proxy-factory': ruleNoMutableStateInProxyFactoryBroker(),
       'require-contract-validation': ruleRequireContractValidationBroker(),

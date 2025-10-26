@@ -37,12 +37,13 @@ interface RecursiveNodeOutput {
   name?: Identifier | undefined;
   // VariableDeclarator properties
   id?: RecursiveNodeOutput | null | undefined;
-  // ImportDeclaration properties
+  // ImportDeclaration/ExportDeclaration properties
   specifiers?: RecursiveNodeOutput[] | undefined;
   source?: RecursiveNodeOutput | null | undefined;
-  // ImportSpecifier properties
+  // ImportSpecifier/ExportSpecifier properties
   imported?: RecursiveNodeOutput | null | undefined;
   local?: RecursiveNodeOutput | null | undefined;
+  exported?: RecursiveNodeOutput | null | undefined;
   // Literal properties
   value?: unknown;
   // TSAsExpression properties
@@ -75,6 +76,8 @@ interface RecursiveNodeOutput {
   importKind?: 'type' | 'value' | undefined;
   // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
   elementType?: RecursiveNodeOutput | null | undefined;
+  // ArrayExpression properties
+  elements?: (RecursiveNodeOutput | null)[] | undefined;
 }
 
 // Input type (before parsing)
@@ -94,12 +97,13 @@ interface RecursiveNodeInput {
   name?: Identifier | undefined;
   // VariableDeclarator properties
   id?: RecursiveNodeInput | null | undefined;
-  // ImportDeclaration properties
+  // ImportDeclaration/ExportDeclaration properties
   specifiers?: RecursiveNodeInput[] | undefined;
   source?: RecursiveNodeInput | null | undefined;
-  // ImportSpecifier properties
+  // ImportSpecifier/ExportSpecifier properties
   imported?: RecursiveNodeInput | null | undefined;
   local?: RecursiveNodeInput | null | undefined;
+  exported?: RecursiveNodeInput | null | undefined;
   // Literal properties
   value?: unknown;
   // TSAsExpression properties
@@ -132,6 +136,8 @@ interface RecursiveNodeInput {
   importKind?: 'type' | 'value' | undefined;
   // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
   elementType?: RecursiveNodeInput | null | undefined;
+  // ArrayExpression properties
+  elements?: (RecursiveNodeInput | null)[] | undefined;
 }
 
 const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput> = z.object({
@@ -174,18 +180,22 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .lazy(() => recursiveBase)
     .nullable()
     .optional(),
-  // ImportDeclaration properties
+  // ImportDeclaration/ExportDeclaration properties
   specifiers: z.array(z.lazy(() => recursiveBase)).optional(),
   source: z
     .lazy(() => recursiveBase)
     .nullable()
     .optional(),
-  // ImportSpecifier properties
+  // ImportSpecifier/ExportSpecifier properties
   imported: z
     .lazy(() => recursiveBase)
     .nullable()
     .optional(),
   local: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  exported: z
     .lazy(() => recursiveBase)
     .nullable()
     .optional(),
@@ -245,6 +255,8 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .lazy(() => recursiveBase)
     .nullable()
     .optional(),
+  // ArrayExpression properties
+  elements: z.array(z.lazy(() => recursiveBase).nullable()).optional(),
 }) as unknown as z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput>;
 
 // Root level contract - parent is OPTIONAL
@@ -305,6 +317,8 @@ export const tsestreeContract = z.object({
   importKind: z.enum(['type', 'value']).optional(),
   // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
   elementType: recursiveBase.nullable().optional(),
+  // ArrayExpression properties
+  elements: z.array(recursiveBase.nullable()).optional(),
 });
 
 export type Tsestree = z.infer<typeof tsestreeContract>;

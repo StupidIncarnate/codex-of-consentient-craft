@@ -29,15 +29,19 @@ describe('fileBasenameTransformer', () => {
     expect(fileBasenameTransformer({ filename: 'file.ts' })).toBe('file');
   });
 
-  it('EDGE: {filename: "/path/to/.ts"} => returns ""', () => {
-    expect(fileBasenameTransformer({ filename: '/path/to/.ts' })).toBe('');
-  });
-
   it('EDGE: {filename: "no-extension"} => returns "no-extension"', () => {
     expect(fileBasenameTransformer({ filename: 'no-extension' })).toBe('no-extension');
   });
 
-  it('EMPTY: {filename: ""} => returns ""', () => {
-    expect(fileBasenameTransformer({ filename: '' })).toBe('');
+  it('ERROR: {filename: "/path/to/.ts"} => throws ZodError (empty basename)', () => {
+    expect(() => {
+      return fileBasenameTransformer({ filename: '/path/to/.ts' });
+    }).toThrow('Filename cannot be empty');
+  });
+
+  it('ERROR: {filename: ""} => throws ZodError (empty filename)', () => {
+    expect(() => {
+      return fileBasenameTransformer({ filename: '' });
+    }).toThrow('Filename cannot be empty');
   });
 });

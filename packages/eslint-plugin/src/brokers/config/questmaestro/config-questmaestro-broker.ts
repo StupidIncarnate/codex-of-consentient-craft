@@ -86,6 +86,7 @@ export const configQuestmaestroBroker = ({
     '@questmaestro/enforce-test-proxy-imports': 'error',
     '@questmaestro/explicit-return-types': 'error',
     '@questmaestro/forbid-non-exported-functions': 'error',
+    '@questmaestro/forbid-type-reexport': 'error',
     '@questmaestro/jest-mocked-must-import': 'error',
     '@questmaestro/no-multiple-property-assertions': 'error',
     '@questmaestro/no-mutable-state-in-proxy-factory': 'error',

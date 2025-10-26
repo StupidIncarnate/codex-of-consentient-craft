@@ -26,6 +26,7 @@ describe('StartEslintPlugin', () => {
         'enforce-test-proxy-imports',
         'enforce-implementation-colocation',
         'forbid-non-exported-functions',
+        'forbid-type-reexport',
         'jest-mocked-must-import',
         'no-mutable-state-in-proxy-factory',
         'require-contract-validation',

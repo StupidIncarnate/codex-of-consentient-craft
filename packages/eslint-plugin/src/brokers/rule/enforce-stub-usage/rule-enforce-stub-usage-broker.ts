@@ -11,11 +11,11 @@ export const ruleEnforceStubUsageBroker = (): EslintRule => ({
       type: 'problem',
       docs: {
         description:
-          'Enforce using stub functions instead of inline typed object literals in test files',
+          'Enforce using stub functions instead of inline object/array literals in test files',
       },
       messages: {
         useStubInsteadOfTypedLiteral:
-          'Use stub function instead of inline typed object literal. Create or use existing stub for type "{{typeName}}".',
+          'Use stub function instead of inline object/array literal. Create or use existing stub for type "{{typeName}}".',
       },
       schema: [],
     },
@@ -33,33 +33,42 @@ export const ruleEnforceStubUsageBroker = (): EslintRule => ({
       VariableDeclarator: (node: Tsestree): void => {
         const { id, init } = node;
 
-        // Check if variable has a type annotation
-        if (!id || !id.typeAnnotation) {
-          return;
+        // Unwrap TSAsExpression recursively (e.g., {} as unknown as Type)
+        let actualInit = init;
+        while (actualInit?.type === 'TSAsExpression') {
+          actualInit = actualInit.expression;
         }
 
-        // Check if init is an object expression or array expression
-        const isObjectLiteral = init?.type === 'ObjectExpression';
-        const isArrayLiteral = init?.type === 'ArrayExpression';
+        const isObjectLiteral = actualInit?.type === 'ObjectExpression';
+        const isArrayLiteral = actualInit?.type === 'ArrayExpression';
 
         if (!isObjectLiteral && !isArrayLiteral) {
           return;
         }
 
-        // Extract type name from type annotation
-        const typeName = typeNameFromAnnotationTransformer({
-          typeAnnotation: id.typeAnnotation,
-        });
+        // For arrays: only flag if they contain object literals
+        if (isArrayLiteral && actualInit) {
+          const hasObjectLiterals = actualInit.elements?.some(
+            (element) => element?.type === 'ObjectExpression',
+          );
 
-        if (!typeName) {
-          return;
+          if (!hasObjectLiterals) {
+            return; // Array doesn't contain object literals, allow it
+          }
         }
+
+        // Extract type name from type annotation if available
+        const annotation = id?.typeAnnotation;
+        const typeName = annotation
+          ? typeNameFromAnnotationTransformer({ typeAnnotation: annotation })
+          : null;
+        const finalTypeName = typeName ?? (isArrayLiteral ? 'Array' : 'Object');
 
         // Report violation
         ctx.report({
-          node: init ?? node,
+          node: actualInit ?? node,
           messageId: 'useStubInsteadOfTypedLiteral',
-          data: { typeName: String(typeName) },
+          data: { typeName: String(finalTypeName) },
         });
       },
     };
