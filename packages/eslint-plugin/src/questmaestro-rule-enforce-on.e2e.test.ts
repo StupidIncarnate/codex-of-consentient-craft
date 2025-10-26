@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { questmaestroRuleEnforceOnStatics } from '../../src/statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics';
-import { configQuestmaestroBroker } from '../../src/brokers/config/questmaestro/config-questmaestro-broker';
+import { questmaestroRuleEnforceOnStatics } from './statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics';
+import { configQuestmaestroBroker } from './brokers/config/questmaestro/config-questmaestro-broker';
 
 interface Violation {
   ruleName: unknown;
@@ -232,10 +232,10 @@ describe('questmaestroRuleEnforceOnStatics integration', () => {
       expect(totalCount).toBe(Number(preEditCount) + Number(postEditCount));
     });
 
-    it('VALID: pre-edit count => 31 rules (9 third-party + 22 @questmaestro)', () => {
+    it('VALID: pre-edit count => 33 rules (9 third-party + 24 @questmaestro)', () => {
       const preEditCount = getPreEditRuleCount();
 
-      expect(preEditCount).toBe(31);
+      expect(preEditCount).toBe(34);
     });
   });
 

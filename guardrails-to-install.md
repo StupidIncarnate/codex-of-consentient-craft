@@ -6,6 +6,27 @@ Keeping track of what project guardrails are in place to force claude to do thin
 
 that gives more assurance to static array of enum usages and consolidates them
 
+## Tweak to assertion quality
+
+8 expect(result).toHaveLength(1);
+29 - expect(result[0]).toStrictEqual({
+30 - value: 'error',
+31 - type: 'string',
+32 - count: 3,
+33 - occurrences: [
+34 - { filePath: '/file1.ts', line: 1, column: 10 },
+35 - { filePath: '/file1.ts', line: 1, column: 28 },
+36 - { filePath: '/file2.ts', line: 1, column: 10 },
+37 -        ],
+38 - });
+29 + expect(result[0]?.value).toBe('error');
+30 + expect(result[0]?.type).toBe('string');
+31 + expect(result[0]?.count).toBe(3);
+32 + expect(result[0]?.occurrences).toHaveLength(3);
+33 });
+34
+
+If a test has multiple expects where its doing props of the same parent, that needs to be a toStrictEquals
 
 ## inline imports
 

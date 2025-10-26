@@ -1,0 +1,65 @@
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
+import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
+import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+
+// Get allowed folders from config
+const allowedFolders = Object.entries(folderConfigStatics)
+  .filter(([_, config]) => config.allowRegex)
+  .map(([folderType]) => folderType)
+  .join(', ');
+
+export const ruleEnforceRegexUsageBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Enforce regex usage is only allowed in folders with allowRegex: true',
+      },
+      messages: {
+        forbiddenRegex:
+          'Regex literals are not allowed in {{folderType}}/ folder. Only allowed in: {{allowedFolders}}. Make sure you explore what exists in case a more generic version exists.',
+      },
+      schema: [],
+    },
+  }),
+  create: (context: EslintContext) => {
+    const ctx = context;
+
+    return {
+      Literal: (node: Tsestree): void => {
+        // Check if this is a regex literal by checking if value is a RegExp
+        if (!(node.value instanceof RegExp)) {
+          return;
+        }
+
+        // Get the folder type from the current file
+        const folderType = folderTypeTransformer({ filename: ctx.filename ?? '' });
+
+        if (folderType === null) {
+          return;
+        }
+
+        // Get folder config
+        const folderConfig = folderConfigTransformer({ folderType }) as
+          | { allowRegex?: boolean }
+          | undefined;
+
+        // If config doesn't exist or allowRegex is false, report error
+        if (!folderConfig || folderConfig.allowRegex !== true) {
+          ctx.report({
+            node,
+            messageId: 'forbiddenRegex',
+            data: {
+              folderType,
+              allowedFolders,
+            },
+          });
+        }
+      },
+    };
+  },
+});

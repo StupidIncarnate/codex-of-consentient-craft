@@ -4,6 +4,11 @@ This a plugin lib that gets published as an npm package that other projects can 
 constrain LLM coding and make sure it outputs good code. The configurations in here are also used in this repo to
 utilize the same advantages.
 
+## CRITICAL
+
+- **DO NOT CHANGE rootDir in tsConfig:** It WILL break the hook.
+- **DO NOT TEST IN /tmp:** Eslint cannot lint against stuff in that folder.
+
 ## Adding New Rules
 
 When creating a new ESLint rule, you MUST update these files:

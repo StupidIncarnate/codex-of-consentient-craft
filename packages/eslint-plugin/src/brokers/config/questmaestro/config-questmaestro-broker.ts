@@ -80,6 +80,7 @@ export const configQuestmaestroBroker = ({
     '@questmaestro/enforce-project-structure': 'error',
     '@questmaestro/enforce-proxy-child-creation': 'error',
     '@questmaestro/enforce-proxy-patterns': 'error',
+    '@questmaestro/enforce-regex-usage': 'error',
     '@questmaestro/enforce-stub-patterns': 'error',
     '@questmaestro/enforce-stub-usage': 'error',
     '@questmaestro/enforce-test-colocation': 'error',
@@ -161,10 +162,19 @@ export const configQuestmaestroBroker = ({
     },
   });
 
+  const e2eOverrides: EslintConfig = eslintConfigContract.parse({
+    files: ['**/*.e2e.test.ts', '**/*.e2e.test.tsx'],
+    rules: {
+      '@questmaestro/enforce-test-creation-of-proxy': 'off',
+      '@questmaestro/enforce-test-colocation': 'off',
+      '@questmaestro/require-contract-validation': 'off',
+    },
+  });
+
   return {
     typescript: typescriptConfig,
     test: testConfig,
-    fileOverrides: [stubOverride],
+    fileOverrides: [stubOverride, e2eOverrides],
     ruleEnforceOn: questmaestroRuleEnforceOnStatics,
   };
 };

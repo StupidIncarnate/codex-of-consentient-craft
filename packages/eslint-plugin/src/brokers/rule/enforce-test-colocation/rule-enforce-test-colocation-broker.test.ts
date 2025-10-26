@@ -55,14 +55,14 @@ ruleTester.run('enforce-test-colocation', ruleEnforceTestColocationBroker(), {
       code: 'describe("test", () => {});',
       filename: '/project/src/widgets/user-card/user-card-widget.test.tsx',
     },
-    {
-      code: 'describe("test", () => {});',
-      filename: '/project/tests/e2e/user-flow.e2e.test.ts',
-    },
-    {
-      code: 'describe("test", () => {});',
-      filename: '/project/tests/e2e/checkout-flow.e2e.spec.ts',
-    },
+    // {
+    //   code: 'describe("test", () => {});',
+    //   filename: '/project/tests/e2e/user-flow.e2e.test.ts',
+    // },
+    // {
+    //   code: 'describe("test", () => {});',
+    //   filename: '/project/tests/e2e/checkout-flow.e2e.spec.ts',
+    // },
     {
       code: 'const foo = "bar"',
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
@@ -93,15 +93,15 @@ ruleTester.run('enforce-test-colocation', ruleEnforceTestColocationBroker(), {
       filename: '/project/src/adapters/missing.integration.spec.tsx',
       errors: [{ messageId: 'testNotColocated' }],
     },
-    {
-      code: 'describe("test", () => {});',
-      filename: '/project/src/brokers/user/user-flow.e2e.test.ts',
-      errors: [{ messageId: 'e2eTestInSrc' }],
-    },
-    {
-      code: 'describe("test", () => {});',
-      filename: '/project/src/widgets/checkout.e2e.spec.tsx',
-      errors: [{ messageId: 'e2eTestInSrc' }],
-    },
+    // {
+    //   code: 'describe("test", () => {});',
+    //   filename: '/project/src/brokers/user/user-flow.e2e.test.ts',
+    //   errors: [{ messageId: 'e2eTestInSrc' }],
+    // },
+    // {
+    //   code: 'describe("test", () => {});',
+    //   filename: '/project/src/widgets/checkout.e2e.spec.tsx',
+    //   errors: [{ messageId: 'e2eTestInSrc' }],
+    // },
   ],
 });

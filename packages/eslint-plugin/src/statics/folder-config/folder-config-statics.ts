@@ -9,6 +9,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,
+    allowRegex: false,
   },
   contracts: {
     fileSuffix: ['-contract.ts', '.stub.ts'],
@@ -20,6 +21,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: false,
     requireProxy: false,
     allowsLayerFiles: false,
+    allowRegex: true,
   },
   guards: {
     fileSuffix: '-guard.ts',
@@ -31,6 +33,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,
+    allowRegex: true,
   },
   transformers: {
     fileSuffix: '-transformer.ts',
@@ -42,6 +45,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,
+    allowRegex: true,
   },
   errors: {
     fileSuffix: '-error.ts',
@@ -53,6 +57,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,
+    allowRegex: false,
   },
   flows: {
     fileSuffix: ['-flow.ts', '-flow.tsx'],
@@ -64,6 +69,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,
+    allowRegex: false,
   },
   adapters: {
     fileSuffix: '-adapter.ts',
@@ -75,6 +81,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: false,
     requireProxy: true,
     allowsLayerFiles: false,
+    allowRegex: false,
   },
   middleware: {
     fileSuffix: '-middleware.ts',
@@ -86,6 +93,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: true,
     allowsLayerFiles: false,
+    allowRegex: false,
   },
   brokers: {
     fileSuffix: '-broker.ts',
@@ -105,6 +113,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: true,
     allowsLayerFiles: true,
+    allowRegex: false,
   },
   bindings: {
     fileSuffix: '-binding.ts',
@@ -124,6 +133,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: true,
     allowsLayerFiles: false,
+    allowRegex: false,
   },
   state: {
     fileSuffix: '-state.ts',
@@ -135,6 +145,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: true,
     allowsLayerFiles: false,
+    allowRegex: false,
   },
   responders: {
     fileSuffix: '-responder.ts',
@@ -156,6 +167,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: true,
     allowsLayerFiles: true,
+    allowRegex: false,
   },
   widgets: {
     fileSuffix: ['-widget.tsx', '-widget.ts'],
@@ -176,6 +188,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: false,
     requireProxy: true,
     allowsLayerFiles: true,
+    allowRegex: false,
   },
   startup: {
     fileSuffix: '.ts',
@@ -187,6 +200,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,
+    allowRegex: false,
   },
   assets: {
     fileSuffix: '',
@@ -198,6 +212,7 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,
+    allowRegex: false,
   },
   migrations: {
     fileSuffix: '',
@@ -209,5 +224,6 @@ export const folderConfigStatics = {
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,
+    allowRegex: false,
   },
 } as const;

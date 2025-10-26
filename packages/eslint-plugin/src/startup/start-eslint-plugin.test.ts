@@ -33,6 +33,7 @@ describe('StartEslintPlugin', () => {
         'require-contract-validation',
         'no-multiple-property-assertions',
         'forbid-todo-skip',
+        'enforce-regex-usage',
       ]);
     });
 

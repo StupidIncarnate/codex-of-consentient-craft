@@ -76,13 +76,14 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
             return;
           }
 
-          // Exception: Test files can import .stub.ts files from @questmaestro/shared/contracts
+          // Exception: Test files and stub files can import .stub.ts files from @questmaestro/shared/contracts
           const isTestFile = /\.(test|spec)\.tsx?$/u.test(ctx.filename ?? '');
-          const isStubFile = /\.stub(\.tsx?)?$/u.test(importSource);
+          const isCurrentFileStub = /\.stub(\.tsx?)?$/u.test(ctx.filename ?? '');
+          const isImportedFileStub = /\.stub(\.tsx?)?$/u.test(importSource);
           const isFromContracts = sharedFolderType === 'contracts';
 
-          if (isTestFile && isStubFile && isFromContracts) {
-            // Allow test files to import stubs from @questmaestro/shared/contracts
+          if ((isTestFile || isCurrentFileStub) && isImportedFileStub && isFromContracts) {
+            // Allow test files and stub files to import stubs from @questmaestro/shared/contracts
             return;
           }
 
@@ -212,13 +213,14 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
           });
 
           if (!isEntryFile) {
-            // Exception: Test files can import .stub.ts files from contracts folder
+            // Exception: Test files and stub files can import .stub.ts files from contracts folder
             const isTestFile = /\.(test|spec)\.tsx?$/u.test(ctx.filename ?? '');
-            const isStubFile = /\.stub(\.tsx?)?$/u.test(importSource);
+            const isCurrentFileStub = /\.stub(\.tsx?)?$/u.test(ctx.filename ?? '');
+            const isImportedFileStub = /\.stub(\.tsx?)?$/u.test(importSource);
             const isFromContracts = importedFolderType === 'contracts';
 
-            if (isTestFile && isStubFile && isFromContracts) {
-              // Allow test files to import stubs from contracts
+            if ((isTestFile || isCurrentFileStub) && isImportedFileStub && isFromContracts) {
+              // Allow test files and stub files to import stubs from contracts
               return;
             }
 

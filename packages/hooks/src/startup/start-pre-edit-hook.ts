@@ -35,10 +35,23 @@ if (require.main === module) {
         process.exit(0);
       } catch (parseError) {
         const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
-        process.stderr.write(`Hook parsing error: ${errorMessage}\n`);
+        const stack = parseError instanceof Error ? parseError.stack : '';
+        process.stderr.write(`Hook error: ${errorMessage}\n`);
+        if (stack) {
+          process.stderr.write(`${stack}\n`);
+        }
         process.exit(ERROR_CODE_INVALID_INPUT);
       }
     };
-    runAsync().catch(() => undefined);
+    runAsync().catch((unexpectedError: unknown) => {
+      const errorMessage =
+        unexpectedError instanceof Error ? unexpectedError.message : String(unexpectedError);
+      const stack = unexpectedError instanceof Error ? unexpectedError.stack : '';
+      process.stderr.write(`Unexpected hook error: ${errorMessage}\n`);
+      if (stack) {
+        process.stderr.write(`${stack}\n`);
+      }
+      process.exit(ERROR_CODE_INVALID_INPUT);
+    });
   });
 }

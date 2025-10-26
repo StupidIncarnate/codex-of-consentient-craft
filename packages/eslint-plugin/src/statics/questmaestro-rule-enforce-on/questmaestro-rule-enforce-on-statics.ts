@@ -1,8 +1,10 @@
 export const questmaestroRuleEnforceOnStatics = {
   // Third-party rules - pre-edit (AST only)
+
   'require-unicode-regexp': 'pre-edit',
   '@typescript-eslint/no-explicit-any': 'pre-edit',
   '@typescript-eslint/ban-ts-comment': 'pre-edit',
+  '@typescript-eslint/no-magic-numbers': 'pre-edit',
   'eslint-comments/no-use': 'pre-edit',
   'eslint-comments/no-unlimited-disable': 'pre-edit',
   'jest/no-restricted-jest-methods': 'pre-edit',
@@ -10,7 +12,7 @@ export const questmaestroRuleEnforceOnStatics = {
   'jest/no-conditional-in-test': 'pre-edit',
   'jest/require-to-throw-message': 'pre-edit',
 
-  // @questmaestro - PRE-EDIT (23 rules)
+  // @questmaestro - PRE-EDIT (24 rules)
   '@questmaestro/ban-adhoc-types': 'pre-edit',
   '@questmaestro/ban-contract-in-tests': 'pre-edit',
   '@questmaestro/ban-jest-mock-in-tests': 'pre-edit',
@@ -24,6 +26,7 @@ export const questmaestroRuleEnforceOnStatics = {
   '@questmaestro/enforce-stub-usage': 'pre-edit',
   '@questmaestro/enforce-project-structure': 'pre-edit',
   '@questmaestro/enforce-import-dependencies': 'pre-edit',
+  '@questmaestro/enforce-regex-usage': 'pre-edit',
   '@questmaestro/forbid-non-exported-functions': 'pre-edit',
   '@questmaestro/forbid-todo-skip': 'pre-edit',
   '@questmaestro/forbid-type-reexport': 'pre-edit',

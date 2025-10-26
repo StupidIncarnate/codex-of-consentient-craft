@@ -122,6 +122,16 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/adapters/path/path-dirname.test.ts',
     },
 
+    // Stub files can import other stubs from @questmaestro/shared/contracts
+    {
+      code: 'import { FilePathStub } from "@questmaestro/shared/contracts";',
+      filename: '/project/src/contracts/user/user.stub.ts',
+    },
+    {
+      code: 'import { AbsoluteFilePathStub } from "@questmaestro/shared/contracts";',
+      filename: '/project/src/contracts/config/config.stub.ts',
+    },
+
     // Files in the same domain folder can import each other
     {
       code: 'import { fsExistsSyncAdapter } from "./fs-exists-sync-adapter";',
@@ -134,6 +144,12 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
     {
       code: 'import { helperFunction } from "./helper";',
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+
+    // Stub files can import other stubs from different contract folders
+    {
+      code: 'import { UserIdStub } from "../user-id/user-id.stub";',
+      filename: '/project/src/contracts/user/user.stub.ts',
     },
 
     // Brokers (depth 2) can import from other broker actions (same domain, different action)

@@ -28,18 +28,18 @@ describe('questmaestroRuleEnforceOnStatics', () => {
     );
   });
 
-  it('VALID: {} => contains all 36 rules (32 pre-edit + 4 post-edit)', () => {
+  it('VALID: {} => contains all 38 rules (33 pre-edit + 4 post-edit)', () => {
     const ruleCount = Object.keys(questmaestroRuleEnforceOnStatics).length;
 
-    expect(ruleCount).toBe(36);
+    expect(ruleCount).toBe(38);
   });
 
-  it('VALID: {} => pre-edit rules count is 32', () => {
+  it('VALID: {} => pre-edit rules count is 33', () => {
     const preEditRules = Object.values(questmaestroRuleEnforceOnStatics).filter((timing) => {
       return timing === 'pre-edit';
     });
 
-    expect(preEditRules).toHaveLength(32);
+    expect(preEditRules).toHaveLength(34);
   });
 
   it('VALID: {} => post-edit rules count is 4', () => {
