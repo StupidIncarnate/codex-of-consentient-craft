@@ -69,4 +69,82 @@ describe('discoverResultContract', () => {
       count: 2,
     });
   });
+
+  it('VALID: {results: [{name, path, type, usage}], count: 1} => parses successfully with usage field', () => {
+    const result = DiscoverResultStub({
+      results: [
+        {
+          name: 'testBroker',
+          path: '/test/path',
+          type: 'broker',
+          usage: 'const result = await testBroker();',
+        },
+      ],
+      count: 1,
+    });
+
+    expect(result).toStrictEqual({
+      results: [
+        {
+          name: 'testBroker',
+          path: '/test/path',
+          type: 'broker',
+          usage: 'const result = await testBroker();',
+        },
+      ],
+      count: 1,
+    });
+  });
+
+  it('VALID: {results: [{name, path, type, related: []}], count: 1} => parses successfully with empty related array', () => {
+    const result = DiscoverResultStub({
+      results: [
+        {
+          name: 'testBroker',
+          path: '/test/path',
+          type: 'broker',
+          related: [],
+        },
+      ],
+      count: 1,
+    });
+
+    expect(result).toStrictEqual({
+      results: [
+        {
+          name: 'testBroker',
+          path: '/test/path',
+          type: 'broker',
+          related: [],
+        },
+      ],
+      count: 1,
+    });
+  });
+
+  it('VALID: {results: [{name, path, type, related: [...]}], count: 1} => parses successfully with multiple related files', () => {
+    const result = DiscoverResultStub({
+      results: [
+        {
+          name: 'testBroker',
+          path: '/test/path',
+          type: 'broker',
+          related: ['broker1', 'broker2', 'broker3'],
+        },
+      ],
+      count: 1,
+    });
+
+    expect(result).toStrictEqual({
+      results: [
+        {
+          name: 'testBroker',
+          path: '/test/path',
+          type: 'broker',
+          related: ['broker1', 'broker2', 'broker3'],
+        },
+      ],
+      count: 1,
+    });
+  });
 });

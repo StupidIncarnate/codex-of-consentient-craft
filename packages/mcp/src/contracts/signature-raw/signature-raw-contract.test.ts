@@ -68,4 +68,10 @@ describe('signatureRawContract', () => {
 
     expect(result).toBe('(callback: (error: Error | null, data?: string) => void): void');
   });
+
+  it('VALID: {value: ""} => parses successfully', () => {
+    const result = SignatureRawStub({ value: '' });
+
+    expect(result).toBe('');
+  });
 });

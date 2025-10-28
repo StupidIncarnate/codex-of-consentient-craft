@@ -56,4 +56,60 @@ describe('discoverResultItemContract', () => {
       type: 'guard',
     });
   });
+
+  it('VALID: {name: "broker", path: "/path", type: "broker", usage: "example code"} => parses successfully with usage only', () => {
+    const result = DiscoverResultItemStub({
+      name: 'broker',
+      path: '/path',
+      type: 'broker',
+      usage: 'const result = await broker();',
+    });
+
+    expect(result).toStrictEqual({
+      name: 'broker',
+      path: '/path',
+      type: 'broker',
+      purpose: 'Fetches user data from the API by user ID',
+      usage: 'const result = await broker();',
+      related: ['userCreateBroker', 'userUpdateBroker'],
+    });
+  });
+
+  it('VALID: {name: "broker", path: "/path", type: "broker", related: []} => parses successfully with empty related array', () => {
+    const result = DiscoverResultItemStub({
+      name: 'broker',
+      path: '/path',
+      type: 'broker',
+      related: [],
+    });
+
+    expect(result).toStrictEqual({
+      name: 'broker',
+      path: '/path',
+      type: 'broker',
+      purpose: 'Fetches user data from the API by user ID',
+      usage:
+        "const user = await userFetchBroker({ userId: UserIdStub('f47ac10b-58cc-4372-a567-0e02b2c3d479') });",
+      related: [],
+    });
+  });
+
+  it('VALID: {name: "broker", path: "/path", type: "broker", related: [...]} => parses successfully with multiple related files', () => {
+    const result = DiscoverResultItemStub({
+      name: 'broker',
+      path: '/path',
+      type: 'broker',
+      related: ['file1', 'file2', 'file3'],
+    });
+
+    expect(result).toStrictEqual({
+      name: 'broker',
+      path: '/path',
+      type: 'broker',
+      purpose: 'Fetches user data from the API by user ID',
+      usage:
+        "const user = await userFetchBroker({ userId: UserIdStub('f47ac10b-58cc-4372-a567-0e02b2c3d479') });",
+      related: ['file1', 'file2', 'file3'],
+    });
+  });
 });

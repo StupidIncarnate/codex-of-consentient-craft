@@ -5,6 +5,8 @@ import { typeNameContract } from '../../contracts/type-name/type-name-contract';
 import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
 import type { FunctionSignature } from '../../contracts/file-metadata/file-metadata-contract';
 import type { TypeName } from '../../contracts/type-name/type-name-contract';
+import type { FunctionName } from '../../contracts/function-name/function-name-contract';
+import { kebabToCamelTransformer } from '../kebab-to-camel/kebab-to-camel-transformer';
 
 /**
  * PURPOSE: Extracts TypeScript function signature from export statement
@@ -22,7 +24,7 @@ export const signatureExtractorTransformer = ({
   functionName,
 }: {
   fileContents: FileContents;
-  functionName?: string;
+  functionName?: FunctionName;
 }): FunctionSignature | null => {
   // Match export const functionName = ({ params }: { types }): ReturnType =>
   const signaturePattern =
@@ -37,9 +39,12 @@ export const signatureExtractorTransformer = ({
   const typesStr = match[3] ?? '';
   const returnTypeStr = match[4]?.trim() ?? '';
 
-  // If functionName provided, verify it matches
-  if (functionName && extractedName !== functionName) {
-    return null;
+  // If functionName provided, verify it matches (convert kebab-case to camelCase for comparison)
+  if (functionName) {
+    const camelCaseName = kebabToCamelTransformer({ kebabCase: functionName });
+    if (extractedName !== String(camelCaseName)) {
+      return null;
+    }
   }
 
   // Parse parameter types

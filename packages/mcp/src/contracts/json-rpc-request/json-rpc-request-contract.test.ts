@@ -40,4 +40,24 @@ describe('jsonRpcRequestContract', () => {
       params: { name: 'discover', arguments: { type: 'files' } },
     });
   });
+
+  it('VALID: {id: 0, method: ""} => parses successfully', () => {
+    const result = JsonRpcRequestStub({ id: 0, method: '' });
+
+    expect(result).toStrictEqual({
+      jsonrpc: '2.0',
+      id: 0,
+      method: '',
+    });
+  });
+
+  it('VALID: {id: "", method: "test"} => parses successfully', () => {
+    const result = JsonRpcRequestStub({ id: '', method: 'test' });
+
+    expect(result).toStrictEqual({
+      jsonrpc: '2.0',
+      id: '',
+      method: 'test',
+    });
+  });
 });

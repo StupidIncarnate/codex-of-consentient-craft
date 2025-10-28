@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await mcpDiscoverBroker({ input: DiscoverInputStub({ type: 'files', fileType: FileTypeStub({ value: 'broker' }) }) });
- * // Returns { results: FileMetadata[], count: ResultCount } for files
+ * // Returns { results: DiscoverResultItem[], count: ResultCount } for files
  * // Returns { results: StandardsSection[], count: ResultCount } for standards
  *
  * RELATED: file-scanner-broker, standards-parser-broker
@@ -11,7 +11,7 @@
 
 import { discoverInputContract } from '../../../contracts/discover-input/discover-input-contract';
 import type { DiscoverInput } from '../../../contracts/discover-input/discover-input-contract';
-import type { FileMetadata } from '../../../contracts/file-metadata/file-metadata-contract';
+import type { DiscoverResultItem } from '../../../contracts/discover-result-item/discover-result-item-contract';
 import { resultCountContract } from '../../../contracts/result-count/result-count-contract';
 import type { ResultCount } from '../../../contracts/result-count/result-count-contract';
 import type { StandardsSection } from '../../../contracts/standards-section/standards-section-contract';
@@ -23,7 +23,7 @@ export const mcpDiscoverBroker = async ({
 }: {
   input: DiscoverInput;
 }): Promise<{
-  results: FileMetadata[] | StandardsSection[];
+  results: DiscoverResultItem[] | StandardsSection[];
   count: ResultCount;
 }> => {
   // Validate input
@@ -31,15 +31,25 @@ export const mcpDiscoverBroker = async ({
 
   // Route based on type
   if (validated.type === 'files') {
-    const results = await fileScannerBroker({
+    const fileResults = await fileScannerBroker({
       ...(validated.path && { path: validated.path }),
       ...(validated.fileType && { fileType: validated.fileType }),
       ...(validated.search && { search: validated.search }),
       ...(validated.name && { name: validated.name }),
     });
 
+    // Map FileMetadata to DiscoverResultItem format (fileType -> type)
+    const results = fileResults.map((file) => ({
+      name: file.name,
+      path: file.path,
+      type: file.fileType,
+      purpose: file.purpose,
+      usage: file.usage,
+      related: file.related,
+    }));
+
     return {
-      results: [...results],
+      results,
       count: resultCountContract.parse(results.length),
     };
   }

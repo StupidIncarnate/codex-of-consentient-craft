@@ -18,4 +18,10 @@ describe('toolNameContract', () => {
 
     expect(result).toBe('analyze-code');
   });
+
+  it('VALID: {value: ""} => parses successfully', () => {
+    const result = ToolNameStub({ value: '' });
+
+    expect(result).toBe('');
+  });
 });

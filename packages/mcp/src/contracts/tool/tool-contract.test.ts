@@ -42,4 +42,46 @@ describe('toolContract', () => {
       inputSchema: null,
     });
   });
+
+  it('VALID: {name: "", description: "test", inputSchema: "string"} => parses successfully', () => {
+    const result = ToolStub({
+      name: '',
+      description: 'test',
+      inputSchema: 'string',
+    });
+
+    expect(result).toStrictEqual({
+      name: '',
+      description: 'test',
+      inputSchema: 'string',
+    });
+  });
+
+  it('VALID: {name: "test", description: "desc", inputSchema: 42} => parses successfully', () => {
+    const result = ToolStub({
+      name: 'test',
+      description: 'desc',
+      inputSchema: 42,
+    });
+
+    expect(result).toStrictEqual({
+      name: 'test',
+      description: 'desc',
+      inputSchema: 42,
+    });
+  });
+
+  it('VALID: {name: "test", description: "desc", inputSchema: ["array"]} => parses successfully', () => {
+    const result = ToolStub({
+      name: 'test',
+      description: 'desc',
+      inputSchema: ['array'],
+    });
+
+    expect(result).toStrictEqual({
+      name: 'test',
+      description: 'desc',
+      inputSchema: ['array'],
+    });
+  });
 });

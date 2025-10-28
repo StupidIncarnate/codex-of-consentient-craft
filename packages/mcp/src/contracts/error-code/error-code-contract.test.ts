@@ -18,4 +18,10 @@ describe('errorCodeContract', () => {
 
     expect(result).toBe(0);
   });
+
+  it('VALID: {value: 1} => parses successfully', () => {
+    const result = ErrorCodeStub({ value: 1 });
+
+    expect(result).toBe(1);
+  });
 });

@@ -18,4 +18,10 @@ describe('rpcMethodContract', () => {
 
     expect(result).toBe('tools/call');
   });
+
+  it('VALID: {value: ""} => parses successfully', () => {
+    const result = RpcMethodStub({ value: '' });
+
+    expect(result).toBe('');
+  });
 });
