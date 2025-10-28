@@ -24,7 +24,6 @@ describe('mcpDiscoverBroker', () => {
       });
       const result = await mcpDiscoverBroker({ input });
 
-      // Since broker implementations return empty arrays for now
       expect(result).toStrictEqual({
         results: [],
         count: 0,
@@ -44,7 +43,64 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files' });
       const result = await mcpDiscoverBroker({ input });
 
-      // Since broker implementations return empty arrays for now
+      expect(result).toStrictEqual({
+        results: [],
+        count: 0,
+      });
+    });
+
+    it('VALID: {type: "files", path: "/test"} => returns files from path and count', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const filepath = FilePathStub({ value: '/test/guard.ts' });
+      const path = FilePathStub({ value: '/test' });
+      const contents = FileContentsStub({
+        value: '/** PURPOSE: test guard */\nexport const test = () => {};',
+      });
+      const pattern = GlobPatternStub({ value: '/test/**/*.ts' });
+
+      brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
+
+      const input = DiscoverInputStub({ type: 'files', path });
+      const result = await mcpDiscoverBroker({ input });
+
+      expect(result).toStrictEqual({
+        results: [],
+        count: 0,
+      });
+    });
+
+    it('VALID: {type: "files", search: "test"} => returns matching files and count', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const filepath = FilePathStub({ value: '/test/guard.ts' });
+      const contents = FileContentsStub({
+        value: '/** PURPOSE: test guard */\nexport const test = () => {};',
+      });
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
+
+      brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
+
+      const input = DiscoverInputStub({ type: 'files', search: 'test' });
+      const result = await mcpDiscoverBroker({ input });
+
+      expect(result).toStrictEqual({
+        results: [],
+        count: 0,
+      });
+    });
+
+    it('VALID: {type: "files", name: "guard"} => returns specific file and count', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const filepath = FilePathStub({ value: '/test/guard.ts' });
+      const contents = FileContentsStub({
+        value: '/** PURPOSE: test guard */\nexport const test = () => {};',
+      });
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
+
+      brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
+
+      const input = DiscoverInputStub({ type: 'files', name: 'guard' });
+      const result = await mcpDiscoverBroker({ input });
+
       expect(result).toStrictEqual({
         results: [],
         count: 0,
@@ -53,10 +109,10 @@ describe('mcpDiscoverBroker', () => {
   });
 
   describe('type: standards', () => {
-    it('VALID: {type: "standards", section: "testing/assertions"} => returns standards sections and count', async () => {
+    it('VALID: {type: "standards", section: "testing-standards/assertions"} => returns standards sections and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({
-        value: '/test/packages/standards/testing-standards.md',
+        value: 'packages/standards/testing-standards.md',
       });
       const contents = FileContentsStub({
         value: `## Assertions
@@ -76,15 +132,14 @@ Other content.`,
       });
       const result = await mcpDiscoverBroker({ input });
 
-      // Broker now returns actual parsed sections
-      expect(result.count).toBeGreaterThanOrEqual(0);
-      expect(Array.isArray(result.results)).toBe(true);
+      expect(result.count).toBe(1);
+      expect(result.results).toHaveLength(1);
     });
 
     it('VALID: {type: "standards"} => returns all sections and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({
-        value: '/test/packages/standards/project-standards.md',
+        value: 'packages/standards/project-standards.md',
       });
       const contents = FileContentsStub({
         value: `## Section 1
@@ -105,9 +160,8 @@ Content 3.`,
       const input = DiscoverInputStub({ type: 'standards' });
       const result = await mcpDiscoverBroker({ input });
 
-      // Broker now returns actual parsed sections
-      expect(result.count).toBeGreaterThanOrEqual(0);
-      expect(Array.isArray(result.results)).toBe(true);
+      expect(result.count).toBe(3);
+      expect(result.results).toHaveLength(3);
     });
   });
 });

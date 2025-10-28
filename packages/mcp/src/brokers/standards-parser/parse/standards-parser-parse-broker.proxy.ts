@@ -12,6 +12,11 @@ export const standardsParserParseBrokerProxy = (): {
     filepath: FilePath;
     contents: FileContents;
   }) => void;
+  setupMarkdownFiles: ({
+    files,
+  }: {
+    files: readonly { filepath: FilePath; contents: FileContents }[];
+  }) => void;
 } => {
   const globProxy = globFindAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
@@ -29,6 +34,19 @@ export const standardsParserParseBrokerProxy = (): {
         files: [filepath],
       });
       readFileProxy.returns({ filepath, contents });
+    },
+    setupMarkdownFiles: ({
+      files,
+    }: {
+      files: readonly { filepath: FilePath; contents: FileContents }[];
+    }): void => {
+      globProxy.returns({
+        pattern: GlobPatternStub({ value: 'packages/standards/**/*.md' }),
+        files: files.map((f) => f.filepath),
+      });
+      for (const file of files) {
+        readFileProxy.returns({ filepath: file.filepath, contents: file.contents });
+      }
     },
   };
 };

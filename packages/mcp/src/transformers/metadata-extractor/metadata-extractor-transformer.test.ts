@@ -48,6 +48,65 @@ export const userFetchBroker = () => {};`,
     });
   });
 
+  it('VALID: {file with multiple optional fields} => extracts all optional metadata', () => {
+    const fileContents = FileContentsStub({
+      value: `/**
+ * PURPOSE: Test transformer
+ *
+ * USAGE:
+ * test()
+ *
+ * WHEN-TO-USE: When testing
+ * WHEN-NOT-TO-USE: In production
+ * RETURNS: Test result
+ *
+ * RELATED: otherTest
+ */`,
+    });
+
+    const result = metadataExtractorTransformer({ fileContents });
+
+    expect(result?.metadata).toStrictEqual({
+      whentouse: 'When testing',
+      whennottouse: 'In production',
+      returns: 'Test result',
+    });
+  });
+
+  it('VALID: {file with empty RELATED field} => filters out empty items', () => {
+    const fileContents = FileContentsStub({
+      value: `/**
+ * PURPOSE: Standalone utility
+ *
+ * USAGE:
+ * standalone()
+ *
+ * RELATED: none
+ */`,
+    });
+
+    const result = metadataExtractorTransformer({ fileContents });
+
+    expect(result?.related).toStrictEqual(['none']);
+  });
+
+  it('VALID: {file with single item in RELATED} => returns array with one item', () => {
+    const fileContents = FileContentsStub({
+      value: `/**
+ * PURPOSE: Test
+ *
+ * USAGE:
+ * test()
+ *
+ * RELATED: singleRelated
+ */`,
+    });
+
+    const result = metadataExtractorTransformer({ fileContents });
+
+    expect(result?.related).toStrictEqual(['singleRelated']);
+  });
+
   it('EMPTY: {file without metadata comment} => returns null', () => {
     const fileContents = FileContentsStub({
       value: 'export const somethingWithoutMetadata = () => {};',
