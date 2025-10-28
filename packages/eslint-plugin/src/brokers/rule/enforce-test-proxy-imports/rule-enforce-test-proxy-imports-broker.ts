@@ -62,7 +62,34 @@ export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
         }
 
         // Integration tests cannot import any proxy files
+        // EXCEPTION: Startup integration tests CAN import their colocated proxy
         if (isIntegrationTest) {
+          const isStartupFolder = filename.includes('/startup/');
+
+          // Startup integration tests can import their colocated proxy file
+          if (isStartupFolder) {
+            // Check if it's the colocated proxy (same as unit tests)
+            const normalizedImport = normalizeImportPathTransformer({ importPath: importSource });
+            const normalizedExpected = normalizeImportPathTransformer({
+              importPath: expectedColocatedProxy,
+            });
+
+            // If it's not the colocated proxy, report error
+            if (normalizedImport !== normalizedExpected) {
+              ctx.report({
+                node,
+                messageId: 'nonColocatedProxyImport',
+                data: {
+                  importPath: importSource,
+                  colocatedProxyPath: expectedColocatedProxy,
+                },
+              });
+            }
+            // If it is colocated, allow it
+            return;
+          }
+
+          // All other integration tests cannot import proxies
           ctx.report({
             node,
             messageId: 'integrationTestNoProxy',

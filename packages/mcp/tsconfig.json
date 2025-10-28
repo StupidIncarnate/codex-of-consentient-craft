@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declarationMap": true,
+    "declaration": true,
+    "noEmit": false,
+    "typeRoots": [
+      "../../node_modules/@types",
+      "../../@types",
+      "./@types"
+    ]
+  },
+  "include": [
+    "src/**/*",
+    "*.ts",
+    "@types/**/*"
+  ]
+}

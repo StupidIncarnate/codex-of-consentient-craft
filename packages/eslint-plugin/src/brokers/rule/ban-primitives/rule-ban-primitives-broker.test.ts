@@ -49,6 +49,20 @@ ruleTester.run('ban-primitives (default: strict)', ruleBanPrimitivesBroker(), {
       code: 'export const stub = (props: { id: string; count: number }): Thing => props;',
       filename: 'thing.stub.ts',
     },
+
+    // .d.ts files (TypeScript declaration files) are allowed to use primitives
+    {
+      code: 'export interface Plugin { name: string; version: number; }',
+      filename: 'plugin.d.ts',
+    },
+    {
+      code: 'declare module "some-module" { export function foo(arg: string): number; }',
+      filename: '@types/some-module/index.d.ts',
+    },
+    {
+      code: 'export type Config = { url: string; port: number; timeout: number; }',
+      filename: 'src/@types/config.d.ts',
+    },
   ],
   invalid: [
     {

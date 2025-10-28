@@ -177,10 +177,17 @@ export const configQuestmaestroBroker = ({
     },
   });
 
+  const startupTestOverrides: EslintConfig = eslintConfigContract.parse({
+    files: ['**/startup/*.e2e.test.ts', '**/startup/*.integration.test.ts'],
+    rules: {
+      'jest/no-hooks': 'off',
+    },
+  });
+
   return {
     typescript: typescriptConfig,
     test: testConfig,
-    fileOverrides: [proxyOverrides, stubOverride, e2eOverrides],
+    fileOverrides: [proxyOverrides, stubOverride, e2eOverrides, startupTestOverrides],
     ruleEnforceOn: questmaestroRuleEnforceOnStatics,
   };
 };

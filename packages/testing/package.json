@@ -1,0 +1,20 @@
+{
+  "name": "@questmaestro/testing",
+  "version": "0.1.0",
+  "description": "Testing utilities and helpers for QuestMaestro projects",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.11.0",
+    "jest": "^29.7.0",
+    "typescript": "^5.3.3"
+  }
+}

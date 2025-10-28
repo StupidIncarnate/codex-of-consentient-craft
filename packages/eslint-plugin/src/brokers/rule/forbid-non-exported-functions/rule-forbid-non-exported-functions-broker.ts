@@ -7,6 +7,7 @@ import { isAstNodeInsideFunctionGuard } from '../../../guards/is-ast-node-inside
 import { isAstNodeExportedGuard } from '../../../guards/is-ast-node-exported/is-ast-node-exported-guard';
 import { astFunctionTypeTransformer } from '../../../transformers/ast-function-type/ast-function-type-transformer';
 import { functionViolationSuggestionTransformer } from '../../../transformers/function-violation-suggestion/function-violation-suggestion-transformer';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 export const ruleForbidNonExportedFunctionsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -31,6 +32,11 @@ export const ruleForbidNonExportedFunctionsBroker = (): EslintRule => ({
 
     // Exclude test/stub files
     if (shouldExcludeFileFromProjectStructureRulesGuard({ filename })) {
+      return {};
+    }
+
+    // Exclude proxy files - they need nested functions for create-per-test pattern
+    if (hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
       return {};
     }
 

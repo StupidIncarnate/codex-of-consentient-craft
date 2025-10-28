@@ -76,7 +76,9 @@ export const violationMessageFormatFullTransformer = ({
   }
 
   lines.push('');
-  lines.push('These rules help maintain code quality and safety. Please fix the violations.');
+  lines.push(
+    'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+  );
 
   return lines.join('\n');
 };

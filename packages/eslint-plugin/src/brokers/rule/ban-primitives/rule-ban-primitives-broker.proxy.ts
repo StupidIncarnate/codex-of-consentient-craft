@@ -1,4 +1,5 @@
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { checkPrimitiveViolationLayerBrokerProxy } from './check-primitive-violation-layer-broker.proxy';
 
 /**
  * Proxy for ban-primitives rule broker.
@@ -6,9 +7,13 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
  */
 export const ruleBanPrimitivesBrokerProxy = (): {
   createContext: () => EslintContext;
-} => ({
-  createContext: (): EslintContext => ({
-    filename: undefined,
-    report: jest.fn(),
-  }),
-});
+} => {
+  checkPrimitiveViolationLayerBrokerProxy();
+
+  return {
+    createContext: (): EslintContext => ({
+      filename: undefined,
+      report: jest.fn(),
+    }),
+  };
+};

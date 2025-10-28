@@ -4,8 +4,10 @@ import { folderConfigStatics } from '../../statics/folder-config/folder-config-s
 
 export const parseImplementationImportsTransformer = ({
   content,
+  implementationFilePath,
 }: {
   content: string;
+  implementationFilePath?: string;
 }): Map<Identifier, ModulePath> => {
   const imports = new Map<Identifier, ModulePath>();
 
@@ -35,10 +37,12 @@ export const parseImplementationImportsTransformer = ({
             const dotCount = (filename.match(/\./gu) ?? []).length;
             if (dotCount === 0 || importPath.endsWith('.proxy')) {
               // Check if this import's folder type requires a proxy based on folderConfigStatics
-              // Extract folder type from import path by searching backwards through path parts
+              // Extract folder type from import path
+              let folderTypeFromPath = null;
               const pathParts = importPath.split('/');
               const folderTypes = Object.keys(folderConfigStatics);
-              let folderTypeFromPath = null;
+
+              // First, try to find folder type in the relative path itself
               for (let i = pathParts.length - 1; i >= 0; i -= 1) {
                 const part = pathParts[i];
                 if (part !== undefined && folderTypes.includes(part)) {
@@ -46,6 +50,31 @@ export const parseImplementationImportsTransformer = ({
                   break;
                 }
               }
+
+              // If not found and we have the implementation file path, resolve to absolute and check
+              if (folderTypeFromPath === null && implementationFilePath !== undefined) {
+                // Get directory of implementation file
+                const implementationDir = implementationFilePath.split('/').slice(0, -1).join('/');
+                // Resolve relative import to absolute path
+                const absoluteParts = [...implementationDir.split('/'), ...importPath.split('/')];
+                const resolved = [];
+                for (const part of absoluteParts) {
+                  if (part === '..') {
+                    resolved.pop();
+                  } else if (part !== '.' && part !== '') {
+                    resolved.push(part);
+                  }
+                }
+                // Check absolute path for folder type
+                for (let i = resolved.length - 1; i >= 0; i -= 1) {
+                  const part = resolved[i];
+                  if (part !== undefined && folderTypes.includes(part)) {
+                    folderTypeFromPath = part;
+                    break;
+                  }
+                }
+              }
+
               const folderConfig =
                 folderTypeFromPath === null
                   ? undefined

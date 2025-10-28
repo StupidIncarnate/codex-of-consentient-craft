@@ -52,6 +52,24 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
       code: 'const pattern = /[a-z]+/;',
       filename: '/project/scripts/build.ts',
     },
+
+    // Test files can use regex regardless of folder type
+    {
+      code: 'const pattern = /test-pattern/;',
+      filename: '/project/src/brokers/user/validate/user-validate-broker.test.ts',
+    },
+    {
+      code: 'expect(result).toMatch(/^[a-z]+$/);',
+      filename: '/project/src/adapters/http/get/http-get-adapter.test.ts',
+    },
+    {
+      code: 'const mockValue = "test".match(/[a-z]/g);',
+      filename: '/project/src/widgets/user-form/user-form-widget.test.tsx',
+    },
+    {
+      code: 'it("should match pattern", () => { expect(/\\d+/.test("123")).toBe(true); });',
+      filename: '/project/src/responders/user/create/user-create-responder.test.ts',
+    },
   ],
   invalid: [
     // Brokers cannot use regex

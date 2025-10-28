@@ -53,6 +53,31 @@ ruleTester.run('enforce-test-proxy-imports', ruleEnforceTestProxyImportsBroker()
       filename: '/project/src/brokers/user/user-broker.integration.test.ts',
     },
 
+    // Startup integration tests CAN import their colocated proxy file
+    {
+      code: `
+        import { startMcpServerProxy } from './start-mcp-server.proxy';
+
+        it('VALID: Server starts and responds', async () => {
+          const proxy = startMcpServerProxy();
+          const client = await proxy.createClient();
+        });
+      `,
+      filename: '/project/src/startup/start-mcp-server.integration.test.ts',
+    },
+
+    // Startup integration tests can import proxy with extension
+    {
+      code: `
+        import { startAppProxy } from './start-app.proxy.ts';
+
+        it('VALID: App initializes', async () => {
+          const proxy = startAppProxy();
+        });
+      `,
+      filename: '/project/src/startup/start-app.integration.test.ts',
+    },
+
     // TSX test file with colocated proxy
     {
       code: `

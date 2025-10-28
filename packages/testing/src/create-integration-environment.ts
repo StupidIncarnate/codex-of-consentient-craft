@@ -3,6 +3,19 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import * as crypto from 'crypto';
 
+/**
+ * Integration test environment utilities
+ *
+ * Creates temporary test projects in /tmp for integration testing.
+ * Test environments are automatically cleaned up after each test via jest.setup.js.
+ *
+ * IMPORTANT: Files in /tmp are outside the TypeScript project, so:
+ * - ✅ Works great for: CLI tools, file operations, command execution
+ * - ✅ Works for: ESLint RuleTester (uses synthetic code, not real files)
+ * - ❌ Won't work for: Running ESLint with type-aware rules on test files
+ *   (type-aware rules need files in tsconfig.json include paths)
+ */
+
 // Import { jest } from '@jest/globals'; // Not needed in this version
 
 interface ExecResult {
@@ -60,28 +73,96 @@ export interface TestProject {
   cleanup: () => void;
 }
 
-export function createTestProject(baseName: string): TestProject {
+// Global tracking of created test environments for automatic cleanup
+const createdEnvironments: TestProject[] = [];
+
+export function getCreatedEnvironments(): readonly TestProject[] {
+  return createdEnvironments;
+}
+
+export function cleanupAllEnvironments(): void {
+  for (const env of createdEnvironments) {
+    env.cleanup();
+  }
+  createdEnvironments.length = 0;
+}
+
+export function createIntegrationEnvironment(
+  baseName: string,
+  options?: {
+    createPackageJson?: boolean;
+    setupEslint?: boolean; // Copy tsconfig/eslint from project for type-aware linting
+  },
+): TestProject {
   const testId = crypto.randomBytes(4).toString('hex');
   const projectName = `${baseName}-${testId}`;
-  const projectPath = path.resolve(process.cwd(), 'tests', 'tmp', projectName);
+  // Use /tmp to keep test artifacts out of the repo
+  // Most integration tests don't need ESLint to run on test files
+  const baseDir = '/tmp';
+  const projectPath = path.join(baseDir, projectName);
 
   // Create project directory
   if (!fs.existsSync(projectPath)) {
     fs.mkdirSync(projectPath, { recursive: true });
   }
 
-  // Create basic package.json
-  const packageJson: PackageJson = {
-    name: projectName,
-    version: '1.0.0',
-    scripts: {
-      test: 'echo "test placeholder"',
-      lint: 'echo "lint placeholder"',
-      typecheck: 'echo "typecheck placeholder"',
-    },
-  };
+  // Create basic package.json (optional)
+  if (options?.createPackageJson !== false) {
+    const packageJson: PackageJson = {
+      name: projectName,
+      version: '1.0.0',
+      scripts: {
+        test: 'echo "test placeholder"',
+        lint: 'echo "lint placeholder"',
+        typecheck: 'echo "typecheck placeholder"',
+      },
+    };
 
-  fs.writeFileSync(path.join(projectPath, 'package.json'), JSON.stringify(packageJson, null, 2));
+    fs.writeFileSync(path.join(projectPath, 'package.json'), JSON.stringify(packageJson, null, 2));
+  }
+
+  // Setup ESLint support (optional) - creates tsconfig and eslint config
+  // This allows ESLint with type-aware rules to work on files in /tmp
+  if (options?.setupEslint === true) {
+    // Create a minimal tsconfig.json that includes all files in this test env
+    const tsconfig = {
+      compilerOptions: {
+        target: 'ES2020',
+        module: 'commonjs',
+        lib: ['ES2020'],
+        strict: true,
+        esModuleInterop: true,
+        skipLibCheck: true,
+        forceConsistentCasingInFileNames: true,
+        resolveJsonModule: true,
+        moduleResolution: 'node',
+      },
+      include: ['**/*.ts', '**/*.tsx'],
+      exclude: ['node_modules'],
+    };
+    fs.writeFileSync(path.join(projectPath, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
+
+    // Always create a minimal eslint config that uses the local tsconfig
+    // This allows type-aware ESLint rules to work on files in /tmp
+    const minimalEslintConfig = `
+// Auto-generated eslint config for integration test environment
+const tsParser = require('@typescript-eslint/parser');
+
+module.exports = [
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
+      },
+    },
+  },
+];
+`;
+    fs.writeFileSync(path.join(projectPath, 'eslint.config.js'), minimalEslintConfig);
+  }
 
   const testProject: TestProject = {
     projectPath,
@@ -210,6 +291,9 @@ export function createTestProject(baseName: string): TestProject {
       }
     },
   };
+
+  // Track for automatic cleanup
+  createdEnvironments.push(testProject);
 
   return testProject;
 }

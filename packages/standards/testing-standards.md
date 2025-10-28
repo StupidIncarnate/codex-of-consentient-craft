@@ -13,6 +13,31 @@ Minimize tokens while maintaining clarity for LLMs and humans scanning test suit
 Tests MUST use proper TypeScript types. **Never use `any`, `as`, or `@ts-ignore`** - if types don't match, fix the code
 or types, not the test.
 
+**CRITICAL: Test files AND proxy files CANNOT import types from contracts.** Use `ReturnType<typeof StubName>` to get
+types:
+
+```typescript
+// ❌ WRONG - Importing type from contract
+import type {ExecError} from '../contracts/exec-error/exec-error-contract';
+import type {JsonRpcResponse} from '../contracts/json-rpc-response/json-rpc-response-contract';
+
+// ✅ CORRECT - Get type from stub
+import {ExecErrorStub} from '../contracts/exec-error/exec-error.stub';
+import {JsonRpcResponseStub} from '../contracts/json-rpc-response/json-rpc-response.stub';
+
+type ExecError = ReturnType<typeof ExecErrorStub>;
+type JsonRpcResponse = ReturnType<typeof JsonRpcResponseStub>;
+
+// ✅ CORRECT - Use inline without type alias when needed once
+it('VALID: {error} => handles exec error', () => {
+    const error: ReturnType<typeof ExecErrorStub> = ExecErrorStub({status: 1});
+    expect(handleError(error)).toBe('Command failed with status 1');
+});
+```
+
+**Why:** Stubs are the single source of truth for test data. Tests and proxies should never directly reference
+contracts.
+
 **Exception for mocks:** Use `jest.mocked()` instead of type assertions. When mocking functions that return branded
 types (Zod `.brand<'Type'>()`), use the stub to create the branded value:
 
@@ -75,6 +100,139 @@ it("VALID: {price: 100} => calls _calculateTax()")
 ### Test Isolation
 
 Each test MUST be independent. No shared state, no order dependencies.
+
+### NO Jest Hooks
+
+**CRITICAL:** `beforeEach`, `afterEach`, `beforeAll`, `afterAll` are forbidden. All setup and teardown must be inline in
+each test.
+
+```typescript
+// ❌ WRONG - Hooks forbidden
+describe('MyFeature', () => {
+    beforeEach(() => {
+        fs.mkdirSync(tempDir, {recursive: true});
+    });
+
+    afterEach(() => {
+        fs.rmSync(tempDir, {recursive: true});
+    });
+
+    it('test case', () => {
+        // test logic
+    });
+});
+
+// ✅ CORRECT - Inline setup/teardown
+describe('MyFeature', () => {
+    it('VALID: test case => expected result', () => {
+        fs.mkdirSync(tempDir, {recursive: true});
+
+        // test logic
+
+        fs.rmSync(tempDir, {recursive: true, force: true});
+
+        expect(result).toBe(expected);
+    });
+});
+```
+
+**Why:** Hooks create implicit dependencies and make tests harder to read in isolation. Each test should be completely
+self-contained.
+
+### NO Conditionals in Tests
+
+```typescript
+// ❌ WRONG - Conditional logic
+afterEach(() => {
+    if (fs.existsSync(tempRoot)) {
+        fs.rmSync(tempRoot, {recursive: true, force: true});
+    }
+});
+
+// ❌ WRONG - Conditional assertions
+it('test case', () => {
+    const result = doSomething();
+    if (result.hasError) {
+        expect(result.error).toBe('Expected error');
+    } else {
+        expect(result.value).toBe('Expected value');
+    }
+});
+
+// ✅ CORRECT - Unconditional cleanup with force flag
+it('VALID: test case => expected result', () => {
+    // ... test logic ...
+    fs.rmSync(tempRoot, {recursive: true, force: true});
+    expect(result).toBe(expected);
+});
+
+// ✅ CORRECT - Separate tests for different paths
+it('VALID: {input: error state} => returns error', () => {
+    const result = doSomething({hasError: true});
+    expect(result).toStrictEqual({error: 'Expected error'});
+});
+
+it('VALID: {input: success state} => returns value', () => {
+    const result = doSomething({hasError: false});
+    expect(result).toStrictEqual({value: 'Expected value'});
+});
+```
+
+**Why:** Conditionals in tests hide what's being tested and create multiple execution paths in a single test.
+
+### ALL Types Must Be Branded
+
+**Even test helper functions require branded types.** Raw primitives (`string`, `number`, etc.) are forbidden
+everywhere.
+
+```typescript
+// ❌ WRONG - Raw types in test helpers
+const createUser = ({name}: { name: string }): string => {
+    const id = uuid();
+    saveUser({id, name});
+    return id;
+};
+
+// ✅ CORRECT - Branded types from contracts
+import {UserNameStub} from '../contracts/user-name/user-name.stub';
+import {UserIdStub} from '../contracts/user-id/user-id.stub';
+
+type UserName = ReturnType<typeof UserNameStub>;
+type UserId = ReturnType<typeof UserIdStub>;
+
+const createUser = ({name}: { name: UserName }): UserId => {
+    const id = UserIdStub({value: uuid()});
+    saveUser({id, name});
+    return id;
+};
+```
+
+**Why:** Type safety applies to ALL code. Test helpers are production code that happens to live in test files.
+
+### NO Magic Numbers - Use Statics
+
+```typescript
+// ❌ WRONG - Magic number
+export const exitCodeContract = z.number().int().min(0).max(255).brand<'ExitCode'>();
+
+// ✅ CORRECT - Extract to statics
+// statics/exit-code/exit-code-statics.ts
+export const exitCodeStatics = {
+    limits: {
+        max: 255,
+    },
+} as const;
+
+// contracts/exit-code/exit-code-contract.ts
+import {exitCodeStatics} from '../../statics/exit-code/exit-code-statics';
+
+export const exitCodeContract = z
+    .number()
+    .int()
+    .min(0)
+    .max(exitCodeStatics.limits.max)
+    .brand<'ExitCode'>();
+```
 
 ### Unit Tests vs Integration Tests
 
@@ -356,6 +514,85 @@ expect(result).toContain('John');
 
 **Rule: ALWAYS test the complete object/array structure. Never test parts.**
 
+### Don't Be Afraid of the Full Object
+
+**Common LLM mistake:** Using weak assertions like `.toContain()`, `.includes()`, or `typeof` checks instead of
+asserting the full expected structure with `toStrictEqual`.
+
+**The problem:** These partial checks make tests pass even when the actual value is wrong.
+
+```typescript
+// ❌ WRONG - Weak string checks that miss bugs
+const config = readFile('eslint.config.js');
+expect(config.includes('@typescript-eslint/parser')).toStrictEqual(true);
+expect(config.includes('tsconfig.json')).toStrictEqual(true);
+expect(config.includes('tsconfigRootDir')).toStrictEqual(true);
+// Passes if file has ANYTHING containing these strings!
+// Could have wrong structure, extra code, or syntax errors
+
+// ✅ CORRECT - Assert the FULL expected string
+const config = readFile('eslint.config.js');
+const expectedConfig = `
+// Auto-generated eslint config for integration test environment
+const tsParser = require('@typescript-eslint/parser');
+
+module.exports = [
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
+      },
+    },
+  },
+];
+`;
+expect(config).toStrictEqual(expectedConfig);
+
+// ❌ WRONG - Checking typeof instead of actual structure
+const tsconfig = JSON.parse(readFile('tsconfig.json'));
+expect(typeof tsconfig.compilerOptions).toStrictEqual('object');
+expect(tsconfig.include).toStrictEqual(['**/*.ts', '**/*.tsx']);
+// First assertion passes for ANY object! Could be completely wrong.
+
+// ✅ CORRECT - Assert the FULL expected object
+const tsconfig = JSON.parse(readFile('tsconfig.json'));
+expect(tsconfig).toStrictEqual({
+    compilerOptions: {
+        target: 'ES2020',
+        module: 'commonjs',
+        lib: ['ES2020'],
+        strict: true,
+        esModuleInterop: true,
+        skipLibCheck: true,
+        forceConsistentCasingInFileNames: true,
+        resolveJsonModule: true,
+        moduleResolution: 'node',
+    },
+    include: ['**/*.ts', '**/*.tsx'],
+    exclude: ['node_modules'],
+});
+
+// ❌ WRONG - Using .toContain() on strings
+expect(output).toContain('Error');
+expect(output).toContain('failed');
+// Passes if output is "Some other Error message with failed in it"!
+
+// ✅ CORRECT - Assert exact error message
+expect(output).toStrictEqual('Error: Authentication failed');
+```
+
+**Why weak assertions are dangerous:**
+
+- `.toContain()` passes if string/array is a **superset** - hides extra/wrong content
+- `.includes()` with `toStrictEqual(true)` is just `.toContain()` in disguise
+- `typeof x === 'object'` passes for **any object**, even completely wrong ones
+- Partial checks miss when structure changes unexpectedly
+
+**Rule: If you know the exact expected value, assert it completely. Don't phone it in with weak checks.**
+
 ### Test Values, Not Existence
 ```typescript
 // ✅ CORRECT
@@ -438,7 +675,7 @@ Mocks" section.
 
 | Category      | Needs Proxy? | Purpose                                                                                         |
 |---------------|--------------|-------------------------------------------------------------------------------------------------|
-| Contracts     | ❌ No         | Use stubs (`.stub.ts` files)                                                                    |
+| Contracts     | ❌ No         | Use stubs (`.stub.ts` files) - includes service objects with methods                            |
 | Errors        | ❌ No         | Throw directly in tests                                                                         |
 | Adapters      | ✅ Sometimes  | **Mock npm dependency** (axios, fs, etc.). Empty proxy if no mocking needed (simple re-exports) |
 | Brokers       | ✅ Sometimes  | Compose adapter proxies, provide semantic setup. Empty proxy if no dependencies mocked          |
@@ -450,7 +687,7 @@ Mocks" section.
 | Middleware    | ✅ Yes        | Delegate to adapter proxies                                                                     |
 | Responders    | ✅ Yes        | Delegate to broker proxies                                                                      |
 | Widgets       | ✅ Yes        | Delegate to bindings + provide UI triggers/selectors                                            |
-| Flows/Startup | ❌ No         | Integration tests                                                                               |
+| Flows/Startup | ✅ Sometimes  | Integration tests with `.integration.proxy.ts` for complex setup (spawning processes, clients)  |
 
 #### 1. Adapter Proxy (Foundation)
 
@@ -769,6 +1006,55 @@ it('VALID: {own profile} => displays name and edit button', async () => {
 // @questmaestro/testing automatically clears all mocks after test
 ```
 
+### Child Proxy Creation: Assignment vs Direct Call
+
+**When to assign child proxy to variable:**
+
+- You need to call methods on the child proxy (delegation pattern)
+- The child proxy provides setup methods used in the parent's return object
+
+**When to just call without assignment:**
+
+- Empty proxies that return `{}` (pure functions with no dependencies)
+- Child proxy is only needed to satisfy `enforce-proxy-child-creation` rule
+- You never interact with the child proxy's methods
+
+```typescript
+// ✅ CORRECT - Assign when you use the child proxy
+export const userProfileBrokerProxy = () => {
+    const httpProxy = httpAdapterProxy();  // Used below
+    const cacheProxy = userCacheStateProxy();  // Used below
+
+    return {
+        setupUserFetch: ({userId, user}) => {
+            httpProxy.returns({url: UrlStub(`/users/${userId}`), response: {data: user}});
+            cacheProxy.setupCachedUser({userId, user});
+        }
+    };
+};
+
+// ✅ CORRECT - Just call when child is empty/unused
+export const validateProxyFunctionReturnLayerBrokerProxy = (): Record<PropertyKey, never> => {
+    // These child proxies return {} and have no methods we use
+    validateReturnStatementLayerBrokerProxy();
+    validateObjectExpressionLayerBrokerProxy();
+
+    return {};
+};
+
+// ❌ WRONG - Assigning but never using
+export const myProxy = () => {
+    const childProxy = emptyChildProxy();  // Lint error: unused variable
+    return {};
+};
+```
+
+**Why this matters:**
+
+- `enforce-proxy-child-creation` rule requires child proxies are created to maintain test architecture
+- Empty proxies (returning `{}`) exist purely for structural compliance when implementation has no dependencies
+- Unused variable assignments trigger `@typescript-eslint/no-unused-vars` lint errors
+
 ### Composing State + Adapter Proxies
 
 When a broker uses state, create both proxies and delegate:
@@ -1038,6 +1324,25 @@ it('VALID: calls function', () => {
     expect(mockFn).toHaveBeenCalledTimes(1);
 });
 
+// contracts/async-service/async-service.stub.ts - async functions
+import type {StubArgument} from '@questmaestro/shared/@types';
+
+export const AsyncServiceStub = ({...props}: StubArgument<AsyncService> = {}): AsyncService => {
+    const {sendRequest, close, ...dataProps} = props;
+
+    return {
+        ...asyncServiceContract.parse({
+            id: 'service-123',
+            ...dataProps,
+        }),
+        // Async functions must use await to satisfy @typescript-eslint/require-await
+        sendRequest:
+            sendRequest ??
+            (async (_request: Request) => await Promise.resolve(ResponseStub())),
+        close: close ?? (async () => await Promise.resolve()),
+    };
+};
+
 // ❌ WRONG - Never use any or type escapes
 const BadStub = (props: any = {}): any => ({ // NO!
     ...props
@@ -1104,6 +1409,19 @@ export type EslintContext = z.infer<typeof eslintContextContract> & {
     getSourceCode?: () => unknown;
 };
 
+// Service objects with methods also use this pattern
+// contracts/mcp-server-client/mcp-server-client-contract.ts
+import {ChildProcess} from 'child_process';
+
+export const mcpServerClientContract = z.object({
+    process: z.instanceof(ChildProcess),  // Data property
+});
+
+export type McpServerClient = z.infer<typeof mcpServerClientContract> & {
+    sendRequest: (request: JsonRpcRequest) => Promise<JsonRpcResponse>;  // Methods
+    close: () => Promise<void>;
+};
+
 const filenameContract = z.string().brand<'Filename'>();
 
 export const EslintContextStub = ({
@@ -1134,6 +1452,7 @@ export const EslintContextStub = ({
     - MUST use spread operator: `({ ...props }: StubArgument<Type> = {})`
     - MUST use `StubArgument<Type>` from `@questmaestro/shared/@types`
     - MUST return `contract.parse({ defaults, ...props })`
+   - **Optional fields:** Only provide defaults for required fields, let optional fields be omitted
 
 2. **Branded String Stubs** (single primitive value):
     - MUST use single `value` property: `({ value }: { value: string } = { value: 'default' })`
@@ -1152,6 +1471,28 @@ export const EslintContextStub = ({
    - Data properties MUST be validated through `contract.parse()`
    - Function properties MUST be preserved outside parse
     - MUST import colocated contract from same directory
+
+**Stub defaults for optional fields:**
+
+```typescript
+// ✅ CORRECT - No default for optional fields
+export const JsonRpcResponseStub = ({...props} = {}): JsonRpcResponse =>
+    jsonRpcResponseContract.parse({
+        jsonrpc: '2.0',
+        id: 1,
+        // result and error are optional - omit defaults
+        ...props,
+    });
+
+// ❌ WRONG - Default for optional field interferes with error responses
+export const BadStub = ({...props} = {}): JsonRpcResponse =>
+    jsonRpcResponseContract.parse({
+        jsonrpc: '2.0',
+        id: 1,
+        result: {},  // BAD! Prevents error-only responses from working
+        ...props,
+    });
+```
 
 **Stub Type Strategy:**
 
@@ -1247,7 +1588,139 @@ tests/
 - **Stub files** (`.stub.ts`) are co-located with contracts
 - **Proxy files** (`.proxy.ts`) are co-located with the code they test
 - **Test files** (`.test.ts`) are co-located with implementation files
+- **Integration test files** (`.integration.test.ts`) are co-located with startup files
 - **NO separate** `tests/stubs/` or `tests/proxies/` directories
+
+## Integration Testing
+
+Integration tests are **ONLY for startup files**. They validate that startup files correctly wire up the entire
+application. They use `.integration.test.ts` extension and are co-located with startup files.
+
+**All other code** (brokers, flows, guards, transformers, widgets, etc.) uses **unit tests** (`.test.ts`) with colocated
+proxies.
+
+**File Location:**
+
+```typescript
+// ✅ CORRECT - Co-located with startup file
+src /
+startup /
+start - my - app.ts
+start - my - app.integration.test.ts   // <-- Co-located
+start - my - app.proxy.ts              // <-- Proxy (if needed for complex setup)
+
+// ❌ WRONG - Separate test directory
+test /
+start - my - app.integration.test.ts  // <-- Don't do this
+```
+
+**All core testing principles apply:** No hooks, no conditionals, branded types everywhere, types from stubs.
+
+### Integration Test Proxies (Startup Only)
+
+**IMPORTANT:** Only **startup integration tests** can use proxies. Integration tests are ONLY for startup files - all
+other code uses unit tests with proxies.
+
+**When complex setup is needed** (spawning processes, creating clients, managing async resources), startup integration
+tests can use a colocated proxy:
+
+```typescript
+// startup/start-mcp-server.proxy.ts
+import {JsonRpcResponseStub} from '../contracts/json-rpc-response/json-rpc-response.stub';
+import {McpServerClientStub} from '../contracts/mcp-server-client/mcp-server-client.stub';
+
+type McpServerClient = ReturnType<typeof McpServerClientStub>;
+type JsonRpcResponse = ReturnType<typeof JsonRpcResponseStub>;
+
+// Startup folder uses PascalCase for exports
+export const StartMcpServerProxy = (): {
+    createClient: () => Promise<McpServerClient>;
+} => {
+    const createClient = async (): Promise<McpServerClient> => {
+        // Complex setup: spawn process, setup listeners, etc.
+        const serverProcess = spawn('npx', ['tsx', serverEntryPoint], {...});
+
+        // Return contract-compliant object with methods
+        return {
+            process: serverProcess,
+            sendRequest: async (request) => { /* ... */
+            },
+            close: async () => { /* ... */
+            },
+        };
+    };
+
+    return {createClient};
+};
+```
+
+**Key principles:**
+
+- Extract types via `ReturnType<typeof Stub>` - never import from contracts
+- Service objects with methods (clients, connections) ARE contracts
+- Use statics for magic numbers (timeouts, delays)
+- Avoid mutable state (`let`) - use const objects with mutable properties: `const state = { value: '' }`
+- **Proxies CAN have nested functions** - the create-per-test pattern requires returning objects with helper methods
+
+### Complete Integration Test Example
+
+```typescript
+import * as fs from 'fs';
+import * as path from 'path';
+import {execSync} from 'child_process';
+import {ExecErrorStub} from '../contracts/exec-error/exec-error.stub';
+import {CommandResultStub} from '../contracts/command-result/command-result.stub';
+import {ExitCodeStub} from '../contracts/exit-code/exit-code.stub';
+import {TestProjectNameStub} from '../contracts/test-project-name/test-project-name.stub';
+
+type ExecError = ReturnType<typeof ExecErrorStub>;
+type TestProjectName = ReturnType<typeof TestProjectNameStub>;
+
+const tempRoot = path.join(process.cwd(), '.test-tmp', 'my-app-tests');
+const startupPath = path.join(process.cwd(), 'src', 'startup', 'start-my-app.ts');
+
+const createProject = ({name}: { name: TestProjectName }): string => {
+    const dir = path.join(tempRoot, name);
+    fs.mkdirSync(dir, {recursive: true});
+    return dir;
+};
+
+const runStartup = ({args}: { args: readonly string[] }) => {
+    const command = `npx tsx ${startupPath} ${args.join(' ')}`;
+
+    try {
+        const stdout = execSync(command, {encoding: 'utf8'});
+        return CommandResultStub({
+            exitCode: ExitCodeStub({value: 0}),
+            stdout: ProcessOutputStub({value: stdout}),
+        });
+    } catch (error) {
+        const execError = error as ExecError;
+        return CommandResultStub({
+            exitCode: ExitCodeStub({value: execError.status ?? 1}),
+            stdout: ProcessOutputStub({value: execError.stdout?.toString() ?? ''}),
+        });
+    }
+};
+
+describe('StartMyApp', () => {
+    describe('with valid config', () => {
+        it('VALID: {args: ["--config", "test.json"]} => returns exit code 0', () => {
+            fs.mkdirSync(tempRoot, {recursive: true});
+
+            const projectDir = createProject({name: TestProjectNameStub({value: 'valid-config'})});
+            fs.writeFileSync(path.join(projectDir, 'test.json'), '{}');
+
+            const result = runStartup({args: [`--config`, `${projectDir}/test.json`]});
+
+            fs.rmSync(tempRoot, {recursive: true, force: true});
+
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toMatch(/App started successfully/u);
+        });
+    });
+});
+```
 
 ## Contract Testing
 

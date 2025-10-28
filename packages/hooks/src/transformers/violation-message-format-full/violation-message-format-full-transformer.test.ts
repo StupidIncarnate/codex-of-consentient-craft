@@ -52,7 +52,7 @@ describe('violationMessageFormatFullTransformer()', () => {
       });
 
       expect(result).toBe(
-        '🛑 New code quality violations detected:\n\nThese rules help maintain code quality and safety. Please fix the violations.',
+        '🛑 New code quality violations detected:\n\nThese rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
       );
     });
   });

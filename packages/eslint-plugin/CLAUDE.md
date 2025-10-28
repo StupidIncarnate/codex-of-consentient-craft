@@ -7,7 +7,9 @@ utilize the same advantages.
 ## CRITICAL
 
 - **DO NOT CHANGE rootDir in tsConfig:** It WILL break the hook.
-- **DO NOT TEST IN /tmp:** Eslint cannot lint against stuff in that folder.
+- **ESLint and /tmp:** Type-aware ESLint rules (using `project: './tsconfig.json'`) cannot lint files in `/tmp` because
+  they're outside the TypeScript project. However, **RuleTester tests work fine anywhere** (they use synthetic code
+  strings, not real files). For integration tests that run actual ESLint on real files, keep them in the repo.
 
 ## Adding New Rules
 

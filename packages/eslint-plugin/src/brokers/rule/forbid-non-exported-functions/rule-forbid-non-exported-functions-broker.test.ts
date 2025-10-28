@@ -37,6 +37,43 @@ ruleTester.run('forbid-non-exported-functions', ruleForbidNonExportedFunctionsBr
       filename: '/project/src/contracts/user/user.stub.ts',
     },
 
+    // Proxy files CAN have nested functions (create-per-test pattern)
+    {
+      code: `
+        export const userBrokerProxy = () => {
+          const setupUser = ({ user }: { user: User }): void => {
+            // Setup logic
+          };
+          return { setupUser };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+    },
+    {
+      code: `
+        export const startMcpServerProxy = (): { createClient: () => Promise<Client> } => {
+          const createClient = async (): Promise<Client> => {
+            // Complex async setup
+            return { close: async () => {} };
+          };
+          return { createClient };
+        };
+      `,
+      filename: '/project/src/startup/start-mcp-server.proxy.ts',
+    },
+    {
+      code: `
+        export const widgetProxy = () => {
+          const triggerClick = async (): Promise<void> => {
+            // Widget interaction
+          };
+          const isLoading = (): boolean => false;
+          return { triggerClick, isLoading };
+        };
+      `,
+      filename: '/project/src/widgets/user-card/user-card-widget.proxy.ts',
+    },
+
     // Files outside /src/ are excluded
     {
       code: 'const helper = () => "test"',

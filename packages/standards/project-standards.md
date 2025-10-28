@@ -1099,14 +1099,16 @@ export class ValidationError extends Error {
 flows/
   user/
     user-flow.ts
-    user-flow.integration.test.ts    # Integration test - wires routes to responders
+    user-flow.test.ts       # Unit test with proxy
+    user-flow.proxy.ts      # Proxy for mocking dependencies
 ```
 
 **Naming Conventions:**
 
 - **Filename:** kebab-case ending with `-flow.ts` or `-flow.tsx` (e.g., `user-flow.tsx`)
 - **Export:** PascalCase ending with `Flow` (e.g., `UserFlow`, `CheckoutFlow`)
-- **Tests:** kebab-case ending with `.integration.test.ts` (NOT `.test.ts` - these are integration tests)
+- **Tests:** kebab-case ending with `.test.ts` - unit tests with proxy
+- **Proxy:** kebab-case ending with `-flow.proxy.ts`, export `[Name]FlowProxy` (e.g., `UserFlowProxy`)
 - **Pattern:** flows/[domain]/[domain]-flow.ts(x)
 
 **Constraints:**
@@ -1877,6 +1879,7 @@ startup/
   start-app.integration.test.tsx    // Integration test - wires up entire app
   start-server.ts                   // Backend server initialization
   start-server.integration.test.ts  // Integration test - wires up entire server
+  start-server.proxy.ts             // Proxy if complex setup needed (spawning processes, etc.)
   start-queue-worker.ts             // Queue processor bootstrap
   start-queue-worker.integration.test.ts
   start-scheduler-service.ts        // Scheduled tasks bootstrap
@@ -1890,6 +1893,8 @@ startup/
 - **Filename:** kebab-case starting with `start-` (e.g., `start-server.ts`, `start-app.tsx`, `start-cli.ts`)
 - **Export:** PascalCase starting with `Start` (e.g., `StartServer`, `StartApp`, `StartCli`)
 - **Tests:** kebab-case ending with `.integration.test.ts` (NOT `.test.ts` - these are integration tests)
+- **Proxies:** kebab-case ending with `.proxy.ts` (e.g., `start-server.proxy.ts`, export `StartServerProxy` in
+  PascalCase)
 - **Pattern:** startup/start-[name].ts
 
 **Constraints:**
@@ -1898,6 +1903,9 @@ startup/
 - **Static constants:** Can live here (e.g., `const PORT = 3000`)
 - **Environment loading:** Happens here
 - **Queue/Scheduled registration:** Register responders here
+- **Integration tests:** Only startup files have `.integration.test.ts` files. These CAN use colocated `.proxy.ts` files
+  for complex setup (spawning processes, managing async clients). All other code uses unit tests (`.test.ts`) with
+  proxies.
 - **Note:** Entry files (index.tsx, index.js) just import from startup/
 
 **Example:**

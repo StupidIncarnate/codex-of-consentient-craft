@@ -30,6 +30,15 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // Clean up all integration test environments
+  try {
+    // Load from dist folder (jest.setup.js is in src, compiled files in dist)
+    const { cleanupAllEnvironments } = require('../dist/create-integration-environment.js');
+    cleanupAllEnvironments();
+  } catch (error) {
+    // Module might not be built yet, skip cleanup functionality
+  }
+
   // Restore real timers after each test
   jest.useRealTimers();
 

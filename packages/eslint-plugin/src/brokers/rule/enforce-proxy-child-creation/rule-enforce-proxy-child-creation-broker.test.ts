@@ -124,6 +124,23 @@ beforeEach(() => {
       `);
       }
 
+      // Broker that imports another broker (requireProxy: true) - same folder type
+      if (
+        filePath.includes(
+          'brokers/user-orchestration/orchestrate/user-orchestration-orchestrate-broker.ts',
+        )
+      ) {
+        return fileContentsContract.parse(`
+        import { userFetchBroker } from '../../user/fetch/user-fetch-broker';
+        import { emailSendBroker } from '../../email/send/email-send-broker';
+
+        export const userOrchestrationOrchestrateBroker = () => {
+          const user = userFetchBroker();
+          emailSendBroker({ to: user.email });
+        };
+      `);
+      }
+
       // eslint-rule-tester-adapter.ts - has example code in comments
       if (filePath.includes('adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts')) {
         return fileContentsContract.parse(`
@@ -352,6 +369,24 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         };
       `,
       filename: '/project/src/brokers/user-with-error/user-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Broker proxy importing other broker proxies (brokers have requireProxy: true)
+    {
+      code: `
+        import { userFetchBrokerProxy } from '../../user/fetch/user-fetch-broker.proxy';
+        import { emailSendBrokerProxy } from '../../email/send/email-send-broker.proxy';
+
+        export const userOrchestrationOrchestrateBrokerProxy = () => {
+          const userFetchProxy = userFetchBrokerProxy();
+          const emailSendProxy = emailSendBrokerProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename:
+        '/project/src/brokers/user-orchestration/orchestrate/user-orchestration-orchestrate-broker.proxy.ts',
     },
   ],
   invalid: [

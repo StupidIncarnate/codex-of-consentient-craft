@@ -1,0 +1,26 @@
+{
+  "name": "@questmaestro/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for discovering utilities, brokers, and standards across the codebase",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@questmaestro/shared": "*",
+    "typescript": "^5.0.0",
+    "glob": "^10.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0",
+    "tsx": "^4.0.0"
+  }
+}

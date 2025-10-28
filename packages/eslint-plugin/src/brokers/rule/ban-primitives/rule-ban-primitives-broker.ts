@@ -50,6 +50,11 @@ export const ruleBanPrimitivesBroker = (): EslintRule => ({
       return {};
     }
 
+    // Skip .d.ts declaration files - they define external types and need primitives
+    if (filename && filename.endsWith('.d.ts')) {
+      return {};
+    }
+
     return {
       TSStringKeyword: (node: Tsestree): void => {
         checkPrimitiveViolationLayerBroker({

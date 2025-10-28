@@ -5,6 +5,7 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
 import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 
 // Get allowed folders from config
 const allowedFolders = Object.entries(folderConfigStatics)
@@ -36,8 +37,15 @@ export const ruleEnforceRegexUsageBroker = (): EslintRule => ({
           return;
         }
 
+        const filename = ctx.filename ?? '';
+
+        // Allow regex in test files
+        if (isTestFileGuard({ filename })) {
+          return;
+        }
+
         // Get the folder type from the current file
-        const folderType = folderTypeTransformer({ filename: ctx.filename ?? '' });
+        const folderType = folderTypeTransformer({ filename });
 
         if (folderType === null) {
           return;

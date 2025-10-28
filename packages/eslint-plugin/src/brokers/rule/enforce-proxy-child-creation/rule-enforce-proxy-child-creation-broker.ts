@@ -63,6 +63,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     // Parse implementation imports
     const implementationImports = parseImplementationImportsTransformer({
       content: implementationFileResult,
+      implementationFilePath: implementationPath,
     });
 
     // Track proxy imports and creation calls
