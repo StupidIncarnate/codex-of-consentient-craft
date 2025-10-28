@@ -71,6 +71,7 @@ export const configQuestmaestroBroker = ({
         allowPrimitiveReturns: false,
       },
     ],
+    '@questmaestro/enforce-file-metadata': 'error',
     '@questmaestro/enforce-implementation-colocation': 'error',
     '@questmaestro/enforce-import-dependencies': 'error',
     '@questmaestro/enforce-jest-mocked-usage': 'error',

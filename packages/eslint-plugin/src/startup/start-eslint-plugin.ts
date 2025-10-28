@@ -26,6 +26,7 @@ import { ruleRequireContractValidationBroker } from '../brokers/rule/require-con
 import { ruleNoMultiplePropertyAssertionsBroker } from '../brokers/rule/no-multiple-property-assertions/rule-no-multiple-property-assertions-broker';
 import { ruleForbidTodoSkipBroker } from '../brokers/rule/forbid-todo-skip/rule-forbid-todo-skip-broker';
 import { ruleEnforceRegexUsageBroker } from '../brokers/rule/enforce-regex-usage/rule-enforce-regex-usage-broker';
+import { ruleEnforceFileMetadataBroker } from '../brokers/rule/enforce-file-metadata/rule-enforce-file-metadata-broker';
 import { configQuestmaestroBroker } from '../brokers/config/questmaestro/config-questmaestro-broker';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
 import type { EslintRule } from '../contracts/eslint-rule/eslint-rule-contract';
@@ -60,6 +61,7 @@ export const StartEslintPlugin = (): {
     readonly 'no-multiple-property-assertions': EslintRule;
     readonly 'forbid-todo-skip': EslintRule;
     readonly 'enforce-regex-usage': EslintRule;
+    readonly 'enforce-file-metadata': EslintRule;
   };
   readonly configs: {
     readonly questmaestro: {
@@ -99,6 +101,7 @@ export const StartEslintPlugin = (): {
       'no-multiple-property-assertions': ruleNoMultiplePropertyAssertionsBroker(),
       'forbid-todo-skip': ruleForbidTodoSkipBroker(),
       'enforce-regex-usage': ruleEnforceRegexUsageBroker(),
+      'enforce-file-metadata': ruleEnforceFileMetadataBroker(),
     },
     configs: {
       questmaestro: configQuestmaestroBroker(),

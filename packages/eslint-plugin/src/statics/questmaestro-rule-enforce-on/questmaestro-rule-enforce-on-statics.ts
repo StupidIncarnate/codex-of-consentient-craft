@@ -12,11 +12,12 @@ export const questmaestroRuleEnforceOnStatics = {
   'jest/no-conditional-in-test': 'pre-edit',
   'jest/require-to-throw-message': 'pre-edit',
 
-  // @questmaestro - PRE-EDIT (24 rules)
+  // @questmaestro - PRE-EDIT (25 rules)
   '@questmaestro/ban-adhoc-types': 'pre-edit',
   '@questmaestro/ban-contract-in-tests': 'pre-edit',
   '@questmaestro/ban-jest-mock-in-tests': 'pre-edit',
   '@questmaestro/ban-primitives': 'pre-edit',
+  '@questmaestro/enforce-file-metadata': 'pre-edit',
   '@questmaestro/require-zod-on-primitives': 'pre-edit',
   '@questmaestro/require-contract-validation': 'pre-edit',
   '@questmaestro/enforce-object-destructuring-params': 'pre-edit',

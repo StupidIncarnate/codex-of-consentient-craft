@@ -27,6 +27,17 @@ const _scopeDataContract = z.object({
 export type EslintScope = z.infer<typeof _scopeDataContract>;
 
 /**
+ * ESLint Comment - returned by getAllComments()
+ * Replicates Comment interface from @types/eslint
+ */
+export type EslintComment = {
+  type?: unknown;
+  value?: unknown;
+  range?: unknown;
+  loc?: unknown;
+};
+
+/**
  * ESLint SourceCode - returned by ctx.getSourceCode() and available as ctx.sourceCode
  * Replicates SourceCode class from @types/eslint
  * Function methods added via intersection
@@ -37,6 +48,7 @@ const _sourceCodeDataContract = z.object({
 });
 export type EslintSourceCode = z.infer<typeof _sourceCodeDataContract> & {
   getAncestors: (node: Tsestree) => Tsestree[];
+  getAllComments: () => EslintComment[];
 };
 
 /**

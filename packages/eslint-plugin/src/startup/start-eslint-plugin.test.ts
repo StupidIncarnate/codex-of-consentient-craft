@@ -34,6 +34,7 @@ describe('StartEslintPlugin', () => {
         'no-multiple-property-assertions',
         'forbid-todo-skip',
         'enforce-regex-usage',
+        'enforce-file-metadata',
       ]);
     });
 

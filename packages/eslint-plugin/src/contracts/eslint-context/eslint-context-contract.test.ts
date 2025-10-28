@@ -15,6 +15,7 @@ describe('EslintContextStub', () => {
         text: '',
         ast: {},
         getAncestors: expect.any(Function),
+        getAllComments: expect.any(Function),
       },
     });
   });
@@ -42,6 +43,7 @@ describe('EslintContextStub', () => {
       text: '',
       ast: {},
       getAncestors: expect.any(Function),
+      getAllComments: expect.any(Function),
     });
   });
 
@@ -61,6 +63,7 @@ describe('EslintContextStub', () => {
         text: '',
         ast: {},
         getAncestors: expect.any(Function),
+        getAllComments: expect.any(Function),
       },
     });
   });
@@ -82,6 +85,7 @@ describe('EslintContextStub', () => {
         text: '',
         ast: {},
         getAncestors: expect.any(Function),
+        getAllComments: expect.any(Function),
       },
     });
   });
@@ -109,6 +113,7 @@ describe('EslintContextStub', () => {
         text: '',
         ast: {},
         getAncestors: expect.any(Function),
+        getAllComments: expect.any(Function),
       },
     });
   });
