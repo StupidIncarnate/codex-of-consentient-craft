@@ -25,3 +25,7 @@ export * from './src/contracts/module-path/module-path.stub';
 // Error Message Contracts
 export * from './src/contracts/error-message/error-message-contract';
 export * from './src/contracts/error-message/error-message.stub';
+
+// Extracted Metadata Contracts
+export * from './src/contracts/extracted-metadata/extracted-metadata-contract';
+export * from './src/contracts/extracted-metadata/extracted-metadata.stub';

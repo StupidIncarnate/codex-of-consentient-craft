@@ -116,4 +116,363 @@ export const userFetchBroker = () => {};`,
 
     expect(result).toBeNull();
   });
+
+  describe('spacing variations', () => {
+    it('VALID: {no blank lines between sections} => extracts metadata', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Validates permission
+ * USAGE: hasPermissionGuard({ user })
+ * RELATED: none
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result).toStrictEqual({
+        purpose: 'Validates permission',
+        usage: 'hasPermissionGuard({ user })',
+        related: ['none'],
+        metadata: {},
+      });
+    });
+
+    it('VALID: {extra blank lines between sections} => extracts metadata', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Test purpose
+ *
+ *
+ * USAGE:
+ * test()
+ *
+ *
+ * RELATED: other
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test purpose',
+        usage: 'test()',
+        related: ['other'],
+        metadata: {},
+      });
+    });
+
+    it('VALID: {mixed spacing with tabs} => extracts metadata', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ *	PURPOSE: With tabs
+ * USAGE:
+ *	test()
+ * RELATED: other
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result).toStrictEqual({
+        purpose: 'With tabs',
+        usage: 'test()',
+        related: ['other'],
+        metadata: {},
+      });
+    });
+  });
+
+  describe('multi-line values', () => {
+    it('VALID: {multi-line USAGE block} => extracts complete usage', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Complex operation
+ * USAGE:
+ * const result = await complexBroker({
+ *   param1: value1,
+ *   param2: value2
+ * });
+ * // Returns: ComplexResult
+ * RELATED: simpleBroker
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result?.usage).toBe(
+        `const result = await complexBroker({\nparam1: value1,\nparam2: value2\n});\n// Returns: ComplexResult`,
+      );
+    });
+
+    it('VALID: {single-line USAGE on same line as header} => extracts usage', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Simple check
+ * USAGE: isValid({ value })
+ * RELATED: other
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result?.usage).toBe('isValid({ value })');
+    });
+
+    it('VALID: {USAGE with code examples and comments} => preserves formatting', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Data transformer
+ * USAGE:
+ * // Transform user data
+ * const dto = transform({ user });
+ *
+ * // With options
+ * const dto = transform({ user, options: { includeEmail: true } });
+ * RELATED: validator
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result?.usage).toBe(
+        `// Transform user data\nconst dto = transform({ user });\n// With options\nconst dto = transform({ user, options: { includeEmail: true } });`,
+      );
+    });
+  });
+
+  describe('RELATED field variations', () => {
+    it('VALID: {RELATED with multiple items and spaces} => parses all items', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Test
+ * USAGE: test()
+ * RELATED: first,  second , third
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result?.related).toStrictEqual(['first', 'second', 'third']);
+    });
+
+    it('VALID: {RELATED with trailing comma} => filters empty items', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Test
+ * USAGE: test()
+ * RELATED: first, second,
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result?.related).toStrictEqual(['first', 'second']);
+    });
+  });
+
+  describe('PURPOSE field variations', () => {
+    it('VALID: {PURPOSE with punctuation} => preserves exact text', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Validates user's permission to edit, update, or delete resources
+ * USAGE: check()
+ * RELATED: other
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result?.purpose).toBe("Validates user's permission to edit, update, or delete resources");
+    });
+
+    it('VALID: {PURPOSE with special characters} => preserves characters', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Formats date/time using ISO-8601 format (YYYY-MM-DD)
+ * USAGE: format()
+ * RELATED: parser
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result?.purpose).toBe('Formats date/time using ISO-8601 format (YYYY-MM-DD)');
+    });
+  });
+
+  describe('edge cases', () => {
+    it('EMPTY: {missing PURPOSE} => returns null', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * USAGE: test()
+ * RELATED: other
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result).toBeNull();
+    });
+
+    it('EMPTY: {missing USAGE} => returns null', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Test
+ * RELATED: other
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result).toBeNull();
+    });
+
+    it('VALID: {missing RELATED} => returns metadata with empty related array', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Test
+ * USAGE: test()
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test',
+        usage: 'test()',
+        related: [],
+        metadata: {},
+      });
+    });
+
+    it('VALID: {metadata comment not at start of file} => extracts metadata', () => {
+      const fileContents = FileContentsStub({
+        value: `import { something } from 'somewhere';
+
+/**
+ * PURPOSE: Test function
+ * USAGE: test()
+ * RELATED: other
+ */
+export const test = () => {};`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result?.purpose).toBe('Test function');
+    });
+  });
+
+  describe('field ordering', () => {
+    it('VALID: {fields in different order - RELATED before USAGE} => extracts metadata', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Test with different order
+ * RELATED: other
+ * USAGE: test()
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test with different order',
+        usage: 'test()',
+        related: ['other'],
+        metadata: {},
+      });
+    });
+
+    it('VALID: {USAGE before PURPOSE} => extracts metadata', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * USAGE: test()
+ * PURPOSE: Test with different order
+ * RELATED: other
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test with different order',
+        usage: 'test()',
+        related: ['other'],
+        metadata: {},
+      });
+    });
+  });
+
+  describe('optional fields placement', () => {
+    it('VALID: {optional field between USAGE and RELATED} => excludes optional field from USAGE', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Test with optional between
+ * USAGE: test()
+ * RETURNS: Test result
+ * RELATED: other
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test with optional between',
+        usage: 'test()',
+        related: ['other'],
+        metadata: {
+          returns: 'Test result',
+        },
+      });
+    });
+
+    it('VALID: {multiple optional fields between required fields} => extracts all correctly', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Test function
+ * WHEN-TO-USE: For testing
+ * USAGE: test()
+ * WHEN-NOT-TO-USE: In production
+ * RETURNS: Test result
+ * RELATED: other
+ * CONTRACTS: Input: string, Output: boolean
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test function',
+        usage: 'test()',
+        related: ['other'],
+        metadata: {
+          whentouse: 'For testing',
+          whennottouse: 'In production',
+          returns: 'Test result',
+          contracts: 'Input: string, Output: boolean',
+        },
+      });
+    });
+
+    it('VALID: {optional field with multi-line USAGE} => preserves USAGE formatting', () => {
+      const fileContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Complex operation
+ * USAGE:
+ * const result = await operation({
+ *   param: value
+ * });
+ * RETURNS: Promise<Result>
+ * RELATED: helper
+ */`,
+      });
+
+      const result = metadataExtractorTransformer({ fileContents });
+
+      expect(result?.usage).toBe('const result = await operation({\nparam: value\n});');
+      expect(result?.metadata).toStrictEqual({
+        returns: 'Promise<Result>',
+      });
+    });
+  });
 });

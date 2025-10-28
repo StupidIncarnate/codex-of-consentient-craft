@@ -12,6 +12,11 @@
       "import": "./dist/guards.js",
       "require": "./dist/guards.js",
       "types": "./dist/guards.d.ts"
+    },
+    "./transformers": {
+      "import": "./dist/transformers.js",
+      "require": "./dist/transformers.js",
+      "types": "./dist/transformers.d.ts"
     }
   },
   "files": [

@@ -150,4 +150,149 @@ describe('extractFileMetadataTransformer', () => {
       });
     });
   });
+
+  describe('spacing variations', () => {
+    it('VALID: {no blank lines between sections} => extracts metadata', () => {
+      const commentText = `/**
+ * PURPOSE: Validates permission
+ * USAGE: hasPermissionGuard({ user })
+ * RELATED: none
+ */`;
+
+      const result = extractFileMetadataTransformer({ commentText });
+
+      expect(result).toStrictEqual({
+        purpose: 'Validates permission',
+        usage: 'hasPermissionGuard({ user })',
+        related: 'none',
+      });
+    });
+
+    it('VALID: {extra blank lines between sections} => extracts metadata', () => {
+      const commentText = `/**
+ * PURPOSE: Test purpose
+ *
+ *
+ * USAGE:
+ * test()
+ *
+ *
+ * RELATED: other
+ */`;
+
+      const result = extractFileMetadataTransformer({ commentText });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test purpose',
+        usage: 'test()',
+        related: 'other',
+      });
+    });
+  });
+
+  describe('field ordering', () => {
+    it('VALID: {RELATED before USAGE} => extracts metadata correctly', () => {
+      const commentText = `/**
+ * PURPOSE: Test with different order
+ * RELATED: other
+ * USAGE: test()
+ */`;
+
+      const result = extractFileMetadataTransformer({ commentText });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test with different order',
+        usage: 'test()',
+        related: 'other',
+      });
+    });
+
+    it('VALID: {USAGE before PURPOSE} => extracts metadata correctly', () => {
+      const commentText = `/**
+ * USAGE: test()
+ * PURPOSE: Test with different order
+ * RELATED: other
+ */`;
+
+      const result = extractFileMetadataTransformer({ commentText });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test with different order',
+        usage: 'test()',
+        related: 'other',
+      });
+    });
+
+    it('VALID: {all fields in reverse order} => extracts metadata correctly', () => {
+      const commentText = `/**
+ * RELATED: other
+ * USAGE: test()
+ * PURPOSE: Test with reverse order
+ */`;
+
+      const result = extractFileMetadataTransformer({ commentText });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test with reverse order',
+        usage: 'test()',
+        related: 'other',
+      });
+    });
+  });
+
+  describe('optional fields between required fields', () => {
+    it('VALID: {optional field between USAGE and RELATED} => USAGE stops at optional field', () => {
+      const commentText = `/**
+ * PURPOSE: Test with optional between
+ * USAGE: test()
+ * RETURNS: Test result
+ * RELATED: other
+ */`;
+
+      const result = extractFileMetadataTransformer({ commentText });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test with optional between',
+        usage: 'test()',
+        related: 'other',
+      });
+    });
+
+    it('VALID: {multiple optional fields scattered} => all extracted correctly', () => {
+      const commentText = `/**
+ * PURPOSE: Test function
+ * WHEN-TO-USE: For testing
+ * USAGE: test()
+ * WHEN-NOT-TO-USE: In production
+ * RETURNS: Test result
+ * RELATED: other
+ * CONTRACTS: Input: string, Output: boolean
+ */`;
+
+      const result = extractFileMetadataTransformer({ commentText });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test function',
+        usage: 'test()',
+        related: 'other',
+      });
+    });
+
+    it('VALID: {optional field before PURPOSE} => PURPOSE extracted correctly', () => {
+      const commentText = `/**
+ * WHEN-TO-USE: For testing
+ * PURPOSE: Test function
+ * USAGE: test()
+ * RELATED: other
+ */`;
+
+      const result = extractFileMetadataTransformer({ commentText });
+
+      expect(result).toStrictEqual({
+        purpose: 'Test function',
+        usage: 'test()',
+        related: 'other',
+      });
+    });
+  });
 });
