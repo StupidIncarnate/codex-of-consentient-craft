@@ -9,6 +9,7 @@
 
 import { discoverInputContract } from '../../../contracts/discover-input/discover-input-contract';
 import type { DiscoverInput } from '../../../contracts/discover-input/discover-input-contract';
+import { discoverResultItemContract } from '../../../contracts/discover-result-item/discover-result-item-contract';
 import type { DiscoverResultItem } from '../../../contracts/discover-result-item/discover-result-item-contract';
 import { resultCountContract } from '../../../contracts/result-count/result-count-contract';
 import type { ResultCount } from '../../../contracts/result-count/result-count-contract';
@@ -36,14 +37,17 @@ export const mcpDiscoverBroker = async ({
       ...(validated.name && { name: validated.name }),
     });
 
-    // Map FileMetadata to DiscoverResultItem format (fileType -> type)
-    const results = fileResults.map((file) => ({
-      name: file.name,
-      path: file.path,
-      type: file.fileType,
-      purpose: file.purpose,
-      usage: file.usage,
-    }));
+    // Map FileMetadata to DiscoverResultItem format (fileType -> type, signature.raw -> signature)
+    const results = fileResults.map((file) =>
+      discoverResultItemContract.parse({
+        name: file.name,
+        path: file.path,
+        type: file.fileType,
+        purpose: file.purpose,
+        usage: file.usage,
+        signature: file.signature.raw,
+      }),
+    );
 
     return {
       results,

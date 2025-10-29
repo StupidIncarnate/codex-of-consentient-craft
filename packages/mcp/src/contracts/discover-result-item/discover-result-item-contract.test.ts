@@ -15,6 +15,7 @@ describe('discoverResultItemContract', () => {
       purpose: 'Fetches user data from the API by user ID',
       usage:
         "const user = await userFetchBroker({ userId: UserIdStub('f47ac10b-58cc-4372-a567-0e02b2c3d479') });",
+      signature: '({ userId }: { userId: UserId }): Promise<User>',
     });
   });
 
@@ -33,6 +34,7 @@ describe('discoverResultItemContract', () => {
       purpose: 'Displays user info',
       usage:
         "const user = await userFetchBroker({ userId: UserIdStub('f47ac10b-58cc-4372-a567-0e02b2c3d479') });",
+      signature: '({ userId }: { userId: UserId }): Promise<User>',
     });
   });
 
@@ -40,6 +42,7 @@ describe('discoverResultItemContract', () => {
     const {
       purpose: _purpose,
       usage: _usage,
+      signature: _signature,
       ...itemWithoutOptionals
     } = DiscoverResultItemStub({
       name: 'guard',
@@ -68,6 +71,7 @@ describe('discoverResultItemContract', () => {
       type: 'broker',
       purpose: 'Fetches user data from the API by user ID',
       usage: 'const result = await broker();',
+      signature: '({ userId }: { userId: UserId }): Promise<User>',
     });
   });
 });

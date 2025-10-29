@@ -4,17 +4,22 @@
 thus won't trigger eslint at all.
 
 ## Optimization Tools
-1. Pattern Search:
-   - rg -n "pattern" --glob '!node_modules/*' instead of multiple Grep calls
-2. File Finding:
-   - fd filename or fd .ext directory instead of Glob tool
-3. File Preview:
+
+**MCP Discovery (Preferred)**: Use `mcp__questmaestro__discover` for file discovery with metadata:
+
+- `discover({ type: "files", path: "packages/eslint-plugin/src/guards" })` - Get all guards with PURPOSE, USAGE,
+  signatures
+- `discover({ type: "files", fileType: "broker", search: "user" })` - Find brokers matching search term
+- Much more token-efficient than file exploration or multiple Grep/Read calls
+- Returns: name, path, type, purpose, usage, function signature
+
+**Command-line Tools** (use sparingly):
+
+1. File Preview:
    - bat -n filepath for syntax-highlighted preview with line numbers
-4. Bulk Refactoring:
+2. Bulk Refactoring:
    - rg -l "pattern" | xargs sed -i 's/old/new/g' for mass replacements
-5. Project Structure:
-   - tree -L 2 directories for quick overview
-6. JSON Inspection:
+3. JSON Inspection:
    - jq '.key' file.json for quick JSON parsing
 
 ## Standards Documents
