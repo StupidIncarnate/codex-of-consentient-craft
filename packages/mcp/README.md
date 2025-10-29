@@ -42,8 +42,6 @@ Every file must have structured metadata in comments:
  * USAGE:
  * [Code example showing how to use it]
  * // [Comment explaining what it returns]
- *
- * RELATED: [comma-separated list of related files]
  */
 export const functionName = () => {
     };
@@ -53,10 +51,6 @@ export const functionName = () => {
 
 - `WHEN-TO-USE:` - Guidance on when to use this utility
 - `WHEN-NOT-TO-USE:` - Anti-guidance (when NOT to use it)
-- `RETURNS:` - Description of return value/format
-- `PROPS:` - For widgets (component props)
-- `BINDINGS:` - For widgets (what hooks they use)
-- `CONTRACTS:` - For adapters (input/output types)
 
 ### Response Format
 
@@ -116,7 +110,7 @@ export const functionName = () => {
 
 **Transformers:**
 
-- `metadata-extractor-transformer.ts` - Extracts PURPOSE/USAGE/RELATED from comments
+- `metadata-extractor-transformer.ts` - Extracts PURPOSE/USAGE from comments
 - `signature-extractor-transformer.ts` - Extracts TypeScript function signatures
 - `file-type-detector-transformer.ts` - Detects file type from path/naming
 

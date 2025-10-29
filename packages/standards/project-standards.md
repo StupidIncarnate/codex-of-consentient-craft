@@ -26,7 +26,7 @@
 - **Pass complete objects** to preserve type relationships
 - When you need just an ID, extract it with `Type['id']` notation
 
-```typescript
+```tsx
 // ✅ CORRECT - Object destructuring with Zod contract types
 const updateUser = ({user, companyId}: { user: User; companyId: CompanyId }): Promise<User> => {
 }
@@ -79,7 +79,7 @@ const processOrder = ({userName, userEmail, companyId}: {
     - Use `as` only when you have information compiler lacks (JSON.parse, external data)
     - Never use `as` to bypass type errors - fix the type instead
 
-```typescript
+```tsx
 // ✅ CORRECT - satisfies validates without widening type
 const config = {
     apiUrl: 'http://localhost',
@@ -196,7 +196,7 @@ const isEven = ({n}: { n: PositiveNumber }) => {
 - **Use recursion for indeterminate loops** - Never use `while (true)` or loops with unchanging conditions
 - **Recursion with early returns** for tree traversal, file system walking, config resolution
 
-```typescript
+```tsx
 // ✅ CORRECT - Parallel when independent with explicit types
 const [user, config, permissions] = await Promise.all([
     fetchUser({id: userId}),     // userId is UserId branded type
@@ -220,7 +220,7 @@ const company = await fetchCompany({companyId: user.companyId});  // companyId i
 - **Never silently swallow errors** - Always log, throw, or handle appropriately
 - **Provide context** in error messages with relevant data
 
-```typescript
+```tsx
 // ✅ CORRECT - Error with context using path contracts and explicit return type
 export const loadConfig = async ({path}: { path: AbsoluteFilePath }): Promise<Config> => {
     try {
@@ -260,7 +260,7 @@ throw new Error('Config load failed');  // What path? What error?
 - **Use Reflect.get()** - For accessing properties on objects when TypeScript narrows to `object` type (avoids unsafe
   type assertions from `object` to `Record<PropertyKey, unknown>`)
 
-```typescript
+```tsx
 // ✅ CORRECT - O(n) using Map for lookups
 const userMap = new Map(users.map(user => [user.id, user]));
 const targetUser = userMap.get(targetId);
@@ -320,7 +320,7 @@ while (true) {
 - **Error output:** `process.stderr.write()` for errors
 - **Include newlines:** Append `\n` explicitly to output strings
 
-```typescript
+```tsx
 // ✅ CORRECT - CLI output using process streams
 process.stdout.write(`Processing ${count} files...\n`);
 process.stderr.write(`Error: ${errorMessage}\n`);
@@ -407,7 +407,7 @@ startup, assets, migrations (these should stay focused and simple)
 
 #### Broker Layers
 
-```typescript
+```tsx
 // brokers/rule/enforce-project-structure/
 //   rule-enforce-project-structure-broker.ts (528 lines - too complex!)
 
@@ -461,7 +461,7 @@ export
 
 **Parent orchestrates:**
 
-```typescript
+```tsx
 // rule-enforce-project-structure-broker.ts
 import {validateFolderLocationLayerBroker} from './validate-folder-location-layer-broker';
 import {validateFolderDepthLayerBroker} from './validate-folder-depth-layer-broker';
@@ -499,7 +499,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => ({
 
 #### Widget Layers
 
-```typescript
+```tsx
 // widgets/user-card/user-card-widget.tsx (Parent)
 import {AvatarLayerWidget} from './avatar-layer-widget';
 import {UserMetaLayerWidget} from './user-meta-layer-widget';
@@ -552,7 +552,7 @@ export const avatarLayerWidgetProxy = () => {
 
 #### Responder Layers
 
-```typescript
+```tsx
 // responders/user/create/user-create-responder.ts (Parent)
 import {validateRequestLayerResponder} from './validate-request-layer-responder';
 import {processUserCreationLayerResponder} from './process-user-creation-layer-responder';
@@ -573,7 +573,7 @@ export const UserCreateResponder = async ({req, res}: ResponderParams) => {
 
 **Each layer has its own test file** following standard proxy pattern:
 
-```typescript
+```tsx
 // validate-folder-depth-layer-broker.test.ts
 import {ruleTester} from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import {validateFolderDepthLayerBroker} from './validate-folder-depth-layer-broker';
@@ -594,7 +594,7 @@ ruleTester.run('validate-folder-depth-layer', validateFolderDepthLayerBroker(), 
 
 **If layer needs proxy (has dependencies to mock):**
 
-```typescript
+```tsx
 // avatar-layer-widget.test.tsx
 import {render, screen} from '@testing-library/react';
 import {AvatarLayerWidget} from './avatar-layer-widget';
@@ -760,7 +760,7 @@ statics/
 
 **Example:**
 
-```typescript
+```tsx
 // statics/user/user-statics.ts
 export const userStatics = {
   roles: {
@@ -823,7 +823,7 @@ contracts/
 
 **Example:**
 
-```typescript
+```tsx
 // contracts/user-id/user-id-contract.ts
 import {z} from 'zod';
 
@@ -873,7 +873,7 @@ export const UserStub = ({...props}: StubArgument<User> = {}): User => {
 Stubs follow strict patterns enforced by `@questmaestro/enforce-stub-patterns` rule:
 
 1. **Object Stubs (complex types with data properties only)**: Use spread operator with `StubArgument<Type>`
-   ```typescript
+   ```tsx
    import type {StubArgument} from '@questmaestro/shared/@types';
 
    export const UserStub = ({ ...props }: StubArgument<User> = {}): User =>
@@ -885,14 +885,14 @@ Stubs follow strict patterns enforced by `@questmaestro/enforce-stub-patterns` r
    ```
 
 2. **Branded String Stubs (primitives)**: Use single `value` property
-   ```typescript
+   ```tsx
    export const FilePathStub = (
      { value }: { value: string } = { value: '/test/file.ts' }
    ): FilePath => filePathContract.parse(value);
    ```
 
 3. **Mixed Data + Function Stubs (types with both data and functions)**:
-   ```typescript
+   ```tsx
    import type {StubArgument} from '@questmaestro/shared/@types';
    import {z} from 'zod';
 
@@ -973,7 +973,7 @@ guards/
 
 **Example:**
 
-```typescript
+```tsx
 // guards/has-permission/has-permission-guard.ts
 import type {User} from '../../contracts/user/user-contract';
 import type {Permission} from '../../contracts/permission/permission-contract';
@@ -1043,7 +1043,7 @@ transformers/
 
 **Example:**
 
-```typescript
+```tsx
 // transformers/format-date/format-date-transformer.ts
 import {dateStringContract} from '../../contracts/date-string/date-string-contract';
 import type {DateString} from '../../contracts/date-string/date-string-contract';
@@ -1078,7 +1078,7 @@ errors/
 
 **Example:**
 
-```typescript
+```tsx
 // errors/validation/validation-error.ts
 export class ValidationError extends Error {
     public constructor({message, field}: { message: string; field?: string }) {
@@ -1200,7 +1200,7 @@ adapters/
 
 **Translation Pattern:**
 
-```typescript
+```tsx
 // App uses our contracts
 FilePath → Adapter
 translates → string(
@@ -1232,7 +1232,7 @@ export const fsReadFileAdapter = async ({
 
 One adapter can use multiple functions from the same package:
 
-```typescript
+```tsx
 // adapters/fs/ensure-write/fs-ensure-write-adapter.ts
 import {mkdir, writeFile} from 'fs/promises';
 import {dirname} from 'path';
@@ -1257,7 +1257,7 @@ export const fsEnsureWriteAdapter = async ({
 
 Every contract needs a corresponding stub for type-safe testing:
 
-```typescript
+```tsx
 // contracts/http-response/http-response-contract.ts
 export const httpResponseContract = z.object({
   body: z.unknown(),
@@ -1290,7 +1290,7 @@ export const FilePathStub = ({value}: { value: string } = {value: '/test/file.ts
 
 Don't type everything upfront - type only what you use:
 
-```typescript
+```tsx
 // V1: Only need body and status
 export const httpResponseContract = z.object({
   body: z.unknown(),
@@ -1317,7 +1317,7 @@ export const httpResponseContract = z.object({
 
 When types include functions alongside data properties, split the contract and type:
 
-```typescript
+```tsx
 // contracts/eslint-context/eslint-context-contract.ts
 import {z} from 'zod';
 
@@ -1343,7 +1343,7 @@ export type EslintContext = z.infer<typeof eslintContextContract> & {
 
 **Stub for tests:**
 
-```typescript
+```tsx
 // contracts/eslint-context/eslint-context.stub.ts
 import type {StubArgument} from '@questmaestro/shared/@types';
 
@@ -1381,7 +1381,7 @@ export const EslintContextStub = ({
 
 **Examples:**
 
-```typescript
+```tsx
 // Pattern 1: Simple translation
 // adapters/fs/read-file/fs-read-file-adapter.ts
 import {readFile} from 'fs/promises';
@@ -1450,7 +1450,7 @@ export const fsCopyFileAdapter = async ({
 Adapter tests use adapter proxies to mock npm dependencies.
 See [Testing Standards - Proxy Architecture](testing-standards.md#proxy-architecture) for complete details.
 
-```typescript
+```tsx
 // adapters/fs/read-file/fs-read-file-adapter.test.ts
 import {fsReadFileAdapter} from './fs-read-file-adapter';
 import {fsReadFileAdapterProxy} from './fs-read-file-adapter.proxy';
@@ -1504,7 +1504,7 @@ middleware/
 
 **Example:**
 
-```typescript
+```tsx
 // middleware/http-telemetry/http-telemetry-middleware.ts
 import {winstonLogAdapter} from '../../adapters/winston/winston-log-adapter';
 import {prometheusIncrementCounterAdapter} from '../../adapters/prometheus/prometheus-increment-counter-adapter';
@@ -1561,7 +1561,7 @@ brokers/
 
 **Example:**
 
-```typescript
+```tsx
 // brokers/user/fetch/user-fetch-broker.ts (Atomic)
 import {axiosGetAdapter} from '../../../adapters/axios/axios-get-adapter';
 import type {UserId, User} from '../../../contracts/user/user-contract';
@@ -1629,7 +1629,7 @@ bindings/
 
 **Example:**
 
-```typescript
+```tsx
 // bindings/use-user-data/use-user-data-binding.ts
 import {useState, useEffect} from 'react';
 import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker';
@@ -1696,7 +1696,7 @@ state/
 
 **Example:**
 
-```typescript
+```tsx
 // state/user-cache/user-cache-state.ts
 import type {User, UserId} from '../../contracts/user/user-contract';
 
@@ -1765,7 +1765,7 @@ responders/
 
 **Example:**
 
-```typescript
+```tsx
 // responders/user/get/user-get-responder.ts
 import {userFetchBroker} from '../../../brokers/user/fetch/user-fetch-broker';
 import {userToDtoTransformer} from '../../../transformers/user-to-dto/user-to-dto-transformer';
@@ -1910,7 +1910,7 @@ startup/
 
 **Example:**
 
-```typescript
+```tsx
 // startup/start-server.ts
 import express from 'express';
 import {userFlow} from '../flows/user/user-flow';
@@ -2052,7 +2052,7 @@ export const UserProfileWidget = ({userId}) => {
 
 **Rule:** Orchestration brokers handle transaction boundaries, not atomic brokers.
 
-```typescript
+```tsx
 // ✅ CORRECT - Orchestration broker with transaction
 // brokers/user/create-with-team/user-create-with-team-broker.ts
 export const userCreateWithTeamBroker = async ({userData, teamData}) => {
@@ -2076,7 +2076,7 @@ export const userCreateBroker = async ({userData}) => {
 
 **Rule:** Responders never return raw broker data - always transform through transformers/ or return specific fields.
 
-```typescript
+```tsx
 // ✅ CORRECT - Responder uses transformer
 // responders/user/get/user-get-responder.ts
 import {userFetchBroker} from '../../../brokers/user/fetch/user-fetch-broker';
@@ -2117,7 +2117,7 @@ Functions that receive data from external sources MUST accept `unknown` and vali
 
 **Pattern:**
 
-```typescript
+```tsx
 // Backend boundary
 export const BoundaryResponder = async ({
   req,
@@ -2161,7 +2161,7 @@ export const HookResponder = async ({
 **See [Boundary Validation Enforcement](../../lint/boundary-validation.md) for complete validation patterns and lint
 rules.**
 
-```typescript
+```tsx
 // ✅ CORRECT - Responder with validation using contracts
 export const UserCreateResponder = async ({req, res}: {
     req: Request;
@@ -2258,7 +2258,7 @@ rg "export const use.*Binding" src/bindings/
 
 **Bindings (extend with options):**
 
-```typescript
+```tsx
 // ✅ CORRECT - Extend existing binding with options
 // bindings/use-user-data/use-user-data-binding.ts
 export const useUserDataBinding = ({
@@ -2295,7 +2295,7 @@ export const useUserDataBinding = ({
 
 **Brokers (create orchestration brokers for complex operations):**
 
-```typescript
+```tsx
 // ✅ CORRECT - Extend through orchestration broker
 // brokers/user/fetch-with-company/user-fetch-with-company-broker.ts
 export const userFetchWithCompanyBroker = async ({userId}: { userId: string }) => {
@@ -2310,7 +2310,7 @@ export const userFetchWithCompanyBroker = async ({userId}: { userId: string }) =
 
 **Transformers (create variants, never use options):**
 
-```typescript
+```tsx
 // ✅ CORRECT - Each output shape is a separate transformer with contracts
 // transformers/user-to-dto/user-to-dto-transformer.ts
 export const userToDtoTransformer = ({user}: { user: User }): UserDto => {
@@ -2360,7 +2360,7 @@ fields (security risk).
 
 **Widgets (extend with props, not new files):**
 
-```typescript
+```tsx
 // ✅ CORRECT - Extend existing widget with props
 // widgets/user-card/user-card-widget.tsx
 export type UserCardWidgetProps = {
@@ -2401,7 +2401,7 @@ export const UserCardWidget = ({userId, showCompany, showRoles}: UserCardWidgetP
 
 **Examples of extending vs creating:**
 
-```typescript
+```tsx
 // ✅ EXTEND - Filtering is an option, not new action
 export const userListBroker = async ({
                                          companyId,
