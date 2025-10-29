@@ -6,13 +6,10 @@ import { z } from 'zod';
  * USAGE:
  * import type { ExtractedMetadata } from '@questmaestro/shared';
  * const metadata: ExtractedMetadata = { purpose: '...', usage: '...', ... };
- *
- * RELATED: metadata-extractor-transformer
  */
 export const extractedMetadataContract = z.object({
   purpose: z.string().brand<'Purpose'>(),
   usage: z.string().brand<'UsageExample'>(),
-  related: z.array(z.string().brand<'RelatedFile'>()),
   metadata: z.record(z.string().brand<'MetadataKey'>(), z.unknown()),
 });
 

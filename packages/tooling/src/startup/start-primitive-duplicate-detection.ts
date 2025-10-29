@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { duplicateDetectionDetectBroker } from '../brokers/duplicate-detection/detect/duplicate-detection-detect-broker';
 import { globPatternContract } from '../contracts/glob-pattern/glob-pattern-contract';
 import { absoluteFilePathContract } from '../contracts/absolute-file-path/absolute-file-path-contract';
@@ -76,3 +78,12 @@ export const StartPrimitiveDuplicateDetection = async (): Promise<void> => {
   process.stdout.write(`\nSuggestion: Extract these literals to statics files:\n`);
   process.stdout.write(`  packages/*/src/statics/[domain]/[domain]-statics.ts\n`);
 };
+
+// Execute when run directly as a script or via bin
+if (require.main === module) {
+  StartPrimitiveDuplicateDetection().catch((error: unknown) => {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`Error: ${errorMessage}\n`);
+    process.exit(1);
+  });
+}

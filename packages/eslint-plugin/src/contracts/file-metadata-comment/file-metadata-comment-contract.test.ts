@@ -14,17 +14,15 @@ describe('fileMetadataCommentContract', () => {
       });
     });
 
-    it('VALID: {purpose, usage, related} => parses successfully with optional field', () => {
+    it('VALID: {purpose, usage} => parses successfully with optional field', () => {
       const result = FileMetadataCommentStub({
         purpose: 'Test purpose',
         usage: 'code example',
-        related: 'other-function, another-guard',
       });
 
       expect(result).toStrictEqual({
         purpose: 'Test purpose',
         usage: 'code example',
-        related: 'other-function, another-guard',
       });
     });
 

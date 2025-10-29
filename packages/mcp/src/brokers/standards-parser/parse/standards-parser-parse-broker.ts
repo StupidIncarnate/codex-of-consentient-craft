@@ -5,8 +5,6 @@
  * const sections = await standardsParserParseBroker({ section: 'testing-standards/proxy-architecture' });
  * // Returns sections filtered by section parameter, or all sections if no filter
  *
- * RELATED: glob-find-adapter, fs-read-file-adapter, discover-broker
- *
  * METADATA: Reads from packages/standards/**\/*.md, splits by ## headers, builds section paths
  */
 

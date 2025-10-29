@@ -4,8 +4,6 @@
  * USAGE:
  * await StartMcpServer();
  * // Starts MCP server listening on stdio, registers discover tool
- *
- * RELATED: mcp-discover-broker
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server';

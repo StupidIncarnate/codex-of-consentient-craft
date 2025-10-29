@@ -4,10 +4,6 @@
  * USAGE:
  * const proxy = kebabToCamelTransformerProxy();
  * // Transformer is pure function, no setup needed
- *
- * RELATED: kebab-to-camel-transformer
  */
 
-export const kebabToCamelTransformerProxy = (): object => {
-  return {};
-};
+export const kebabToCamelTransformerProxy = (): object => ({});

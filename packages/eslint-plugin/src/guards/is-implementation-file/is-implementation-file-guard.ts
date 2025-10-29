@@ -5,8 +5,6 @@
  * isImplementationFileGuard({ filename: 'src/brokers/user/user-broker.ts' }) // true
  * isImplementationFileGuard({ filename: 'src/brokers/user/user-broker.test.ts' }) // false (multi-dot)
  * isImplementationFileGuard({ filename: 'src/brokers/user/user-broker.proxy.ts' }) // false (multi-dot)
- *
- * RELATED: is-test-file-guard, has-file-suffix-guard
  */
 export const isImplementationFileGuard = ({ filename }: { filename?: string }): boolean => {
   if (!filename) {

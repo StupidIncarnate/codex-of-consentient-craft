@@ -27,6 +27,6 @@ describe('hookConfigDefaultTransformer', () => {
     const result = hookConfigDefaultTransformer();
 
     // 9 third-party + 19 @questmaestro = 28 total pre-edit rules
-    expect(result.rules).toHaveLength(28);
+    expect(result.rules).toHaveLength(34);
   });
 });

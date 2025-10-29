@@ -10,8 +10,6 @@ import { functionNameContract } from '../../contracts/function-name/function-nam
  *   filepath: FilePathStub({ value: '/path/to/user-fetch-broker.ts' })
  * });
  * // Returns: FunctionName('user-fetch-broker')
- *
- * RELATED: fileTypeDetectorTransformer
  */
 export const functionNameExtractorTransformer = ({
   filepath,

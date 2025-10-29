@@ -5,8 +5,6 @@
  * const contents = await fsReadFileAdapter({ filepath: FilePathStub({ value: '/path/to/file.ts' }) });
  * // Returns: FileContents('export const foo = ...')
  *
- * RELATED: glob-find-adapter, file-scanner-broker
- *
  * CONTRACTS: Input: FilePath (branded string)
  * CONTRACTS: Output: FileContents (branded string)
  */

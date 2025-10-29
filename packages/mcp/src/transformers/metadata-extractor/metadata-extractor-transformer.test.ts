@@ -2,7 +2,7 @@ import { metadataExtractorTransformer } from './metadata-extractor-transformer';
 import { FileContentsStub } from '../../contracts/file-contents/file-contents.stub';
 
 describe('metadataExtractorTransformer', () => {
-  it('VALID: {file with PURPOSE, USAGE, RELATED} => extracts metadata', () => {
+  it('VALID: {file with PURPOSE, USAGE} => extracts metadata', () => {
     const fileContents = FileContentsStub({
       value: `/**
  * PURPOSE: Fetches user data from the API by user ID
@@ -10,8 +10,6 @@ describe('metadataExtractorTransformer', () => {
  * USAGE:
  * const user = await userFetchBroker({ userId: UserIdStub('123') });
  * // Returns: User object
- *
- * RELATED: userCreateBroker, userUpdateBroker
  */
 export const userFetchBroker = () => {};`,
     });
@@ -22,7 +20,6 @@ export const userFetchBroker = () => {};`,
       purpose: 'Fetches user data from the API by user ID',
       usage:
         "const user = await userFetchBroker({ userId: UserIdStub('123') });\n// Returns: User object",
-      related: ['userCreateBroker', 'userUpdateBroker'],
       metadata: {},
     });
   });
@@ -36,8 +33,6 @@ export const userFetchBroker = () => {};`,
  * if (isTestFileGuard({ filename })) { }
  *
  * WHEN-TO-USE: Need to identify test files by naming convention
- *
- * RELATED: hasFileSuffixGuard
  */`,
     });
 
@@ -59,8 +54,6 @@ export const userFetchBroker = () => {};`,
  * WHEN-TO-USE: When testing
  * WHEN-NOT-TO-USE: In production
  * RETURNS: Test result
- *
- * RELATED: otherTest
  */`,
     });
 
@@ -71,40 +64,6 @@ export const userFetchBroker = () => {};`,
       whennottouse: 'In production',
       returns: 'Test result',
     });
-  });
-
-  it('VALID: {file with empty RELATED field} => filters out empty items', () => {
-    const fileContents = FileContentsStub({
-      value: `/**
- * PURPOSE: Standalone utility
- *
- * USAGE:
- * standalone()
- *
- * RELATED: none
- */`,
-    });
-
-    const result = metadataExtractorTransformer({ fileContents });
-
-    expect(result?.related).toStrictEqual(['none']);
-  });
-
-  it('VALID: {file with single item in RELATED} => returns array with one item', () => {
-    const fileContents = FileContentsStub({
-      value: `/**
- * PURPOSE: Test
- *
- * USAGE:
- * test()
- *
- * RELATED: singleRelated
- */`,
-    });
-
-    const result = metadataExtractorTransformer({ fileContents });
-
-    expect(result?.related).toStrictEqual(['singleRelated']);
   });
 
   it('EMPTY: {file without metadata comment} => returns null', () => {
@@ -123,7 +82,6 @@ export const userFetchBroker = () => {};`,
         value: `/**
  * PURPOSE: Validates permission
  * USAGE: hasPermissionGuard({ user })
- * RELATED: none
  */`,
       });
 
@@ -132,7 +90,6 @@ export const userFetchBroker = () => {};`,
       expect(result).toStrictEqual({
         purpose: 'Validates permission',
         usage: 'hasPermissionGuard({ user })',
-        related: ['none'],
         metadata: {},
       });
     });
@@ -146,8 +103,6 @@ export const userFetchBroker = () => {};`,
  * USAGE:
  * test()
  *
- *
- * RELATED: other
  */`,
       });
 
@@ -156,7 +111,6 @@ export const userFetchBroker = () => {};`,
       expect(result).toStrictEqual({
         purpose: 'Test purpose',
         usage: 'test()',
-        related: ['other'],
         metadata: {},
       });
     });
@@ -167,7 +121,6 @@ export const userFetchBroker = () => {};`,
  *	PURPOSE: With tabs
  * USAGE:
  *	test()
- * RELATED: other
  */`,
       });
 
@@ -176,7 +129,6 @@ export const userFetchBroker = () => {};`,
       expect(result).toStrictEqual({
         purpose: 'With tabs',
         usage: 'test()',
-        related: ['other'],
         metadata: {},
       });
     });
@@ -193,7 +145,6 @@ export const userFetchBroker = () => {};`,
  *   param2: value2
  * });
  * // Returns: ComplexResult
- * RELATED: simpleBroker
  */`,
       });
 
@@ -209,7 +160,6 @@ export const userFetchBroker = () => {};`,
         value: `/**
  * PURPOSE: Simple check
  * USAGE: isValid({ value })
- * RELATED: other
  */`,
       });
 
@@ -228,7 +178,6 @@ export const userFetchBroker = () => {};`,
  *
  * // With options
  * const dto = transform({ user, options: { includeEmail: true } });
- * RELATED: validator
  */`,
       });
 
@@ -240,49 +189,20 @@ export const userFetchBroker = () => {};`,
     });
   });
 
-  describe('RELATED field variations', () => {
-    it('VALID: {RELATED with multiple items and spaces} => parses all items', () => {
-      const fileContents = FileContentsStub({
-        value: `/**
- * PURPOSE: Test
- * USAGE: test()
- * RELATED: first,  second , third
- */`,
-      });
-
-      const result = metadataExtractorTransformer({ fileContents });
-
-      expect(result?.related).toStrictEqual(['first', 'second', 'third']);
-    });
-
-    it('VALID: {RELATED with trailing comma} => filters empty items', () => {
-      const fileContents = FileContentsStub({
-        value: `/**
- * PURPOSE: Test
- * USAGE: test()
- * RELATED: first, second,
- */`,
-      });
-
-      const result = metadataExtractorTransformer({ fileContents });
-
-      expect(result?.related).toStrictEqual(['first', 'second']);
-    });
-  });
-
   describe('PURPOSE field variations', () => {
     it('VALID: {PURPOSE with punctuation} => preserves exact text', () => {
       const fileContents = FileContentsStub({
         value: `/**
  * PURPOSE: Validates user's permission to edit, update, or delete resources
  * USAGE: check()
- * RELATED: other
  */`,
       });
 
       const result = metadataExtractorTransformer({ fileContents });
 
-      expect(result?.purpose).toBe("Validates user's permission to edit, update, or delete resources");
+      expect(result?.purpose).toBe(
+        "Validates user's permission to edit, update, or delete resources",
+      );
     });
 
     it('VALID: {PURPOSE with special characters} => preserves characters', () => {
@@ -290,7 +210,6 @@ export const userFetchBroker = () => {};`,
         value: `/**
  * PURPOSE: Formats date/time using ISO-8601 format (YYYY-MM-DD)
  * USAGE: format()
- * RELATED: parser
  */`,
       });
 
@@ -305,7 +224,6 @@ export const userFetchBroker = () => {};`,
       const fileContents = FileContentsStub({
         value: `/**
  * USAGE: test()
- * RELATED: other
  */`,
       });
 
@@ -318,31 +236,12 @@ export const userFetchBroker = () => {};`,
       const fileContents = FileContentsStub({
         value: `/**
  * PURPOSE: Test
- * RELATED: other
  */`,
       });
 
       const result = metadataExtractorTransformer({ fileContents });
 
       expect(result).toBeNull();
-    });
-
-    it('VALID: {missing RELATED} => returns metadata with empty related array', () => {
-      const fileContents = FileContentsStub({
-        value: `/**
- * PURPOSE: Test
- * USAGE: test()
- */`,
-      });
-
-      const result = metadataExtractorTransformer({ fileContents });
-
-      expect(result).toStrictEqual({
-        purpose: 'Test',
-        usage: 'test()',
-        related: [],
-        metadata: {},
-      });
     });
 
     it('VALID: {metadata comment not at start of file} => extracts metadata', () => {
@@ -352,7 +251,6 @@ export const userFetchBroker = () => {};`,
 /**
  * PURPOSE: Test function
  * USAGE: test()
- * RELATED: other
  */
 export const test = () => {};`,
       });
@@ -364,31 +262,12 @@ export const test = () => {};`,
   });
 
   describe('field ordering', () => {
-    it('VALID: {fields in different order - RELATED before USAGE} => extracts metadata', () => {
-      const fileContents = FileContentsStub({
-        value: `/**
- * PURPOSE: Test with different order
- * RELATED: other
- * USAGE: test()
- */`,
-      });
-
-      const result = metadataExtractorTransformer({ fileContents });
-
-      expect(result).toStrictEqual({
-        purpose: 'Test with different order',
-        usage: 'test()',
-        related: ['other'],
-        metadata: {},
-      });
-    });
 
     it('VALID: {USAGE before PURPOSE} => extracts metadata', () => {
       const fileContents = FileContentsStub({
         value: `/**
  * USAGE: test()
  * PURPOSE: Test with different order
- * RELATED: other
  */`,
       });
 
@@ -397,20 +276,18 @@ export const test = () => {};`,
       expect(result).toStrictEqual({
         purpose: 'Test with different order',
         usage: 'test()',
-        related: ['other'],
         metadata: {},
       });
     });
   });
 
   describe('optional fields placement', () => {
-    it('VALID: {optional field between USAGE and RELATED} => excludes optional field from USAGE', () => {
+    it('VALID: {optional field between USAGE} => excludes optional field from USAGE', () => {
       const fileContents = FileContentsStub({
         value: `/**
  * PURPOSE: Test with optional between
  * USAGE: test()
  * RETURNS: Test result
- * RELATED: other
  */`,
       });
 
@@ -419,7 +296,6 @@ export const test = () => {};`,
       expect(result).toStrictEqual({
         purpose: 'Test with optional between',
         usage: 'test()',
-        related: ['other'],
         metadata: {
           returns: 'Test result',
         },
@@ -434,7 +310,6 @@ export const test = () => {};`,
  * USAGE: test()
  * WHEN-NOT-TO-USE: In production
  * RETURNS: Test result
- * RELATED: other
  * CONTRACTS: Input: string, Output: boolean
  */`,
       });
@@ -444,7 +319,6 @@ export const test = () => {};`,
       expect(result).toStrictEqual({
         purpose: 'Test function',
         usage: 'test()',
-        related: ['other'],
         metadata: {
           whentouse: 'For testing',
           whennottouse: 'In production',
@@ -463,7 +337,6 @@ export const test = () => {};`,
  *   param: value
  * });
  * RETURNS: Promise<Result>
- * RELATED: helper
  */`,
       });
 

@@ -8,7 +8,6 @@ export const ExtractedMetadataStub = ({
   extractedMetadataContract.parse({
     purpose: 'Test purpose',
     usage: 'const result = testFunction();',
-    related: ['relatedFunction'],
     metadata: {},
     ...props,
   });

@@ -33,15 +33,6 @@ describe('hasMetadataCommentGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID: {fileContents: missing RELATED} => returns false', () => {
-      const guardProxy = hasMetadataCommentGuardProxy();
-      const fileContents = guardProxy.setupMissingRelated();
-
-      const result = hasMetadataCommentGuard({ fileContents });
-
-      expect(result).toBe(false);
-    });
-
     it('INVALID: {fileContents: empty string} => returns false', () => {
       const fileContents = FileContentsStub({ value: '' });
 

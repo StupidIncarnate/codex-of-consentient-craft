@@ -7,8 +7,6 @@
  *   cwd: AbsolutePathStub({ value: '/path/to/project' })
  * });
  * // Returns array of FilePath branded strings
- *
- * RELATED: fs-read-file-adapter
  */
 
 import { glob } from 'glob';

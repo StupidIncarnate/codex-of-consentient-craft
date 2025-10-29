@@ -11,8 +11,6 @@ import { filePathContract } from '../../../contracts/file-path/file-path-contrac
  *   pattern: GlobPatternStub({ value: 'star-star-slash-star.ts' })
  * });
  * // Returns: [FilePath('/path/to/file.ts'), ...]
- *
- * RELATED: fsReadFileAdapter
  */
 export const globFindAdapter = async ({
   pattern,

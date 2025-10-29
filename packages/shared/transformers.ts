@@ -3,8 +3,6 @@
  *
  * USAGE:
  * import { metadataExtractorTransformer } from '@questmaestro/shared/transformers';
- *
- * RELATED: contracts, guards
  */
 
 // Subpath export entry for @questmaestro/shared/transformers

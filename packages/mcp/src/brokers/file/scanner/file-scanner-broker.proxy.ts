@@ -5,8 +5,6 @@
  * const brokerProxy = fileScannerBrokerProxy();
  * brokerProxy.setupFileWithMetadata({ filepath, contents, metadata });
  * // Sets up glob and read-file adapters to return test data
- *
- * RELATED: file-scanner-broker
  */
 
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';

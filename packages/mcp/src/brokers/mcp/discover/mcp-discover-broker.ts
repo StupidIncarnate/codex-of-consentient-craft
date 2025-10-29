@@ -5,8 +5,6 @@
  * const result = await mcpDiscoverBroker({ input: DiscoverInputStub({ type: 'files', fileType: FileTypeStub({ value: 'broker' }) }) });
  * // Returns { results: DiscoverResultItem[], count: ResultCount } for files
  * // Returns { results: StandardsSection[], count: ResultCount } for standards
- *
- * RELATED: file-scanner-broker, standards-parser-broker
  */
 
 import { discoverInputContract } from '../../../contracts/discover-input/discover-input-contract';
@@ -45,7 +43,6 @@ export const mcpDiscoverBroker = async ({
       type: file.fileType,
       purpose: file.purpose,
       usage: file.usage,
-      related: file.related,
     }));
 
     return {

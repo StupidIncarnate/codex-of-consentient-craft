@@ -13,7 +13,6 @@ describe('fileMetadataContract', () => {
         returnType: 'void',
       },
       usage: 'testBroker();',
-      related: [],
     });
 
     expect(result).toStrictEqual({
@@ -27,7 +26,6 @@ describe('fileMetadataContract', () => {
         returnType: 'void',
       },
       usage: 'testBroker();',
-      related: [],
     });
   });
 
@@ -48,7 +46,6 @@ describe('fileMetadataContract', () => {
         returnType: 'Promise<User>',
       },
       usage: 'await userFetchBroker({userId});',
-      related: ['userUpdateBroker', 'userDeleteBroker'],
     });
 
     expect(result).toStrictEqual({
@@ -67,7 +64,6 @@ describe('fileMetadataContract', () => {
         returnType: 'Promise<User>',
       },
       usage: 'await userFetchBroker({userId});',
-      related: ['userUpdateBroker', 'userDeleteBroker'],
     });
   });
 
@@ -92,7 +88,6 @@ describe('fileMetadataContract', () => {
         returnType: 'Promise<User[]>',
       },
       usage: 'await userSearchBroker({query, limit: 10});',
-      related: [],
     });
 
     expect(result).toStrictEqual({
@@ -115,7 +110,6 @@ describe('fileMetadataContract', () => {
         returnType: 'Promise<User[]>',
       },
       usage: 'await userSearchBroker({query, limit: 10});',
-      related: [],
     });
   });
 
@@ -139,7 +133,6 @@ describe('fileMetadataContract', () => {
         returnType: 'Config',
       },
       usage: 'configBroker({options: {debug: "true"}});',
-      related: [],
     });
 
     expect(result).toStrictEqual({
@@ -161,7 +154,6 @@ describe('fileMetadataContract', () => {
         returnType: 'Config',
       },
       usage: 'configBroker({options: {debug: "true"}});',
-      related: [],
     });
   });
 
@@ -177,7 +169,6 @@ describe('fileMetadataContract', () => {
         returnType: 'boolean',
       },
       usage: 'if (simpleGuard()) { ... }',
-      related: [],
     });
 
     expect(result).toStrictEqual({
@@ -191,7 +182,6 @@ describe('fileMetadataContract', () => {
         returnType: 'boolean',
       },
       usage: 'if (simpleGuard()) { ... }',
-      related: [],
     });
   });
 
@@ -207,7 +197,6 @@ describe('fileMetadataContract', () => {
         returnType: 'void',
       },
       usage: 'complexBroker();',
-      related: [],
       metadata: {
         whenToUse: 'Use when you need X',
         whenNotToUse: 'Do not use when Y',
@@ -225,7 +214,6 @@ describe('fileMetadataContract', () => {
         returnType: 'void',
       },
       usage: 'complexBroker();',
-      related: [],
       metadata: {
         whenToUse: 'Use when you need X',
         whenNotToUse: 'Do not use when Y',

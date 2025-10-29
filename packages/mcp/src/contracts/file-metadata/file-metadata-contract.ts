@@ -18,7 +18,6 @@ export const fileMetadataContract = z.object({
   purpose: z.string().brand<'Purpose'>(),
   signature: functionSignatureContract,
   usage: z.string().brand<'UsageExample'>(),
-  related: z.array(z.string().brand<'RelatedFile'>()),
   metadata: z.record(z.string().brand<'MetadataValue'>()).optional(),
 });
 

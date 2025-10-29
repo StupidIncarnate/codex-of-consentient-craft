@@ -15,7 +15,7 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
       },
       messages: {
         missingMetadata:
-          'Implementation file must have a metadata comment with PURPOSE and USAGE fields. Example:\n\n/**\n * PURPOSE: [One-line description]\n *\n * USAGE:\n * [Code example]\n * // [Comment explaining return]\n *\n * RELATED: [comma-separated list] (optional)\n */',
+          'Implementation file must have a metadata comment with PURPOSE and USAGE fields. Example:\n\n/**\n * PURPOSE: [One-line description]\n *\n * USAGE:\n * [Code example]\n * // [Comment explaining return]\n *\n */',
       },
       schema: [],
     },

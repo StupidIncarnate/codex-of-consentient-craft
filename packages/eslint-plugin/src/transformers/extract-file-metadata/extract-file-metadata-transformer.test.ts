@@ -20,14 +20,12 @@ describe('extractFileMetadataTransformer', () => {
       });
     });
 
-    it('VALID: {commentText with PURPOSE, USAGE, and RELATED} => returns metadata with related field', () => {
+    it('VALID: {commentText with PURPOSE, USAGE} => returns metadata with related field', () => {
       const commentText = `/**
  * PURPOSE: Transforms user data to DTO format
  *
  * USAGE:
  * const dto = userToDtoTransformer({ user });
- *
- * RELATED: user-contract, user-dto-contract
  */`;
 
       const result = extractFileMetadataTransformer({ commentText });
@@ -35,7 +33,6 @@ describe('extractFileMetadataTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Transforms user data to DTO format',
         usage: 'const dto = userToDtoTransformer({ user });',
-        related: 'user-contract, user-dto-contract',
       });
     });
 
@@ -49,8 +46,6 @@ describe('extractFileMetadataTransformer', () => {
  *   console.log(user.name);
  * }
  * // Returns User object or throws error
- *
- * RELATED: http-adapter, user-contract
  */`;
 
       const result = extractFileMetadataTransformer({ commentText });
@@ -58,7 +53,6 @@ describe('extractFileMetadataTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Fetches user data from API',
         usage: `const user = await userFetchBroker({ userId });\nif (user) {\nconsole.log(user.name);\n}\n// Returns User object or throws error`,
-        related: 'http-adapter, user-contract',
       });
     });
 
@@ -96,8 +90,6 @@ describe('extractFileMetadataTransformer', () => {
     it('INVALID: {commentText missing USAGE} => returns null', () => {
       const commentText = `/**
  * PURPOSE: Does something
- *
- * RELATED: other-function
  */`;
 
       const result = extractFileMetadataTransformer({ commentText });
@@ -156,7 +148,6 @@ describe('extractFileMetadataTransformer', () => {
       const commentText = `/**
  * PURPOSE: Validates permission
  * USAGE: hasPermissionGuard({ user })
- * RELATED: none
  */`;
 
       const result = extractFileMetadataTransformer({ commentText });
@@ -164,7 +155,6 @@ describe('extractFileMetadataTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Validates permission',
         usage: 'hasPermissionGuard({ user })',
-        related: 'none',
       });
     });
 
@@ -176,8 +166,6 @@ describe('extractFileMetadataTransformer', () => {
  * USAGE:
  * test()
  *
- *
- * RELATED: other
  */`;
 
       const result = extractFileMetadataTransformer({ commentText });
@@ -185,33 +173,16 @@ describe('extractFileMetadataTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test purpose',
         usage: 'test()',
-        related: 'other',
       });
     });
   });
 
   describe('field ordering', () => {
-    it('VALID: {RELATED before USAGE} => extracts metadata correctly', () => {
-      const commentText = `/**
- * PURPOSE: Test with different order
- * RELATED: other
- * USAGE: test()
- */`;
-
-      const result = extractFileMetadataTransformer({ commentText });
-
-      expect(result).toStrictEqual({
-        purpose: 'Test with different order',
-        usage: 'test()',
-        related: 'other',
-      });
-    });
 
     it('VALID: {USAGE before PURPOSE} => extracts metadata correctly', () => {
       const commentText = `/**
  * USAGE: test()
  * PURPOSE: Test with different order
- * RELATED: other
  */`;
 
       const result = extractFileMetadataTransformer({ commentText });
@@ -219,13 +190,11 @@ describe('extractFileMetadataTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test with different order',
         usage: 'test()',
-        related: 'other',
       });
     });
 
     it('VALID: {all fields in reverse order} => extracts metadata correctly', () => {
       const commentText = `/**
- * RELATED: other
  * USAGE: test()
  * PURPOSE: Test with reverse order
  */`;
@@ -235,18 +204,16 @@ describe('extractFileMetadataTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test with reverse order',
         usage: 'test()',
-        related: 'other',
       });
     });
   });
 
   describe('optional fields between required fields', () => {
-    it('VALID: {optional field between USAGE and RELATED} => USAGE stops at optional field', () => {
+    it('VALID: {optional field between USAGE} => USAGE stops at optional field', () => {
       const commentText = `/**
  * PURPOSE: Test with optional between
  * USAGE: test()
  * RETURNS: Test result
- * RELATED: other
  */`;
 
       const result = extractFileMetadataTransformer({ commentText });
@@ -254,7 +221,6 @@ describe('extractFileMetadataTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test with optional between',
         usage: 'test()',
-        related: 'other',
       });
     });
 
@@ -265,7 +231,6 @@ describe('extractFileMetadataTransformer', () => {
  * USAGE: test()
  * WHEN-NOT-TO-USE: In production
  * RETURNS: Test result
- * RELATED: other
  * CONTRACTS: Input: string, Output: boolean
  */`;
 
@@ -274,7 +239,6 @@ describe('extractFileMetadataTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test function',
         usage: 'test()',
-        related: 'other',
       });
     });
 
@@ -283,7 +247,6 @@ describe('extractFileMetadataTransformer', () => {
  * WHEN-TO-USE: For testing
  * PURPOSE: Test function
  * USAGE: test()
- * RELATED: other
  */`;
 
       const result = extractFileMetadataTransformer({ commentText });
@@ -291,7 +254,6 @@ describe('extractFileMetadataTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test function',
         usage: 'test()',
-        related: 'other',
       });
     });
   });

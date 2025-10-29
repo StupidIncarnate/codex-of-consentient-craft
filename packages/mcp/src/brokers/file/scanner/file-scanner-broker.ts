@@ -1,11 +1,9 @@
 /**
- * PURPOSE: Scan directory tree for files and extract their metadata (PURPOSE, USAGE, RELATED, signatures)
+ * PURPOSE: Scan directory tree for files and extract their metadata (PURPOSE, USAGE, signatures)
  *
  * USAGE:
  * const results = await fileScannerBroker({ path: FilePathStub({ value: 'src/guards' }), fileType: FileTypeStub({ value: 'guard' }) });
  * // Returns array of FileMetadata with extracted metadata and signatures
- *
- * RELATED: metadata-extractor-transformer, signature-extractor-transformer, file-type-detector-transformer
  */
 
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
@@ -81,7 +79,6 @@ export const fileScannerBroker = async ({
       purpose: metadata.purpose,
       signature,
       usage: metadata.usage,
-      related: metadata.related,
       metadata: metadata.metadata,
     });
   });

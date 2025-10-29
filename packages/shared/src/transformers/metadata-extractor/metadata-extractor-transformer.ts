@@ -6,11 +6,9 @@ import type { ExtractedMetadata } from '../../contracts/extracted-metadata/extra
  *
  * USAGE:
  * const metadata = metadataExtractorTransformer({
- *   commentText: '/** \n * PURPOSE: Test\n * USAGE: test()\n * RELATED: other\n *\/'
+ *   commentText: '/** \n * PURPOSE: Test\n * USAGE: test()\n * *\/'
  * });
- * // Returns: { purpose: 'Test', usage: 'test()', related: ['other'], metadata: {} }
- *
- * RELATED: extracted-metadata-contract
+ * // Returns: { purpose: 'Test', usage: 'test()', metadata: {} }
  */
 export const metadataExtractorTransformer = ({
   commentText,
@@ -36,7 +34,7 @@ export const metadataExtractorTransformer = ({
   // Extract USAGE (multi-line, stops at next field header or end of comment)
   // Match from "USAGE:" to the next field header (any known field) or end of comment block
   const usageMatch =
-    /USAGE:\s*([\s\S]*?)(?:\s*\*\s*(?:RELATED|PURPOSE|WHEN-TO-USE|WHEN-NOT-TO-USE|RETURNS|PROPS|CONTRACTS|BINDINGS):|\s*\*\/)/u.exec(
+    /USAGE:\s*([\s\S]*?)(?:\s*\*\s*(?:PURPOSE|WHEN-TO-USE|WHEN-NOT-TO-USE|RETURNS|PROPS|CONTRACTS|BINDINGS):|\s*\*\/)/u.exec(
       normalizedComment,
     );
   if (!usageMatch?.[1]) {
@@ -58,18 +56,6 @@ export const metadataExtractorTransformer = ({
     return null;
   }
 
-  // Extract RELATED (single line, optional, order-independent)
-  const relatedMatch = /RELATED:\s*([^\n*]+?)(?:\s*\*?\s*\n|\s*\*\/|$)/u.exec(normalizedComment);
-  const relatedLine = relatedMatch?.[1]?.trim();
-
-  // Parse related files (comma-separated)
-  const related = relatedLine
-    ? relatedLine
-        .split(',')
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0)
-    : [];
-
   // Extract optional metadata fields
   const metadataObj: Record<PropertyKey, unknown> = {};
   const optionalFieldsPattern =
@@ -87,7 +73,6 @@ export const metadataExtractorTransformer = ({
   return extractedMetadataContract.parse({
     purpose,
     usage,
-    related,
     metadata: metadataObj,
   });
 };

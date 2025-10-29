@@ -24,8 +24,6 @@ export const hasAdminGuard = ({ user }) => {
  *
  * USAGE:
  * const dto = userToDtoTransformer({ user });
- *
- * RELATED: user-contract, user-dto-contract
  */
 export const userToDtoTransformer = ({ user }) => {
   return { id: user.id, name: user.name };
@@ -42,8 +40,6 @@ export const userToDtoTransformer = ({ user }) => {
  *   console.log(user.name);
  * }
  * // Returns User object or throws error
- *
- * RELATED: http-adapter, user-contract
  */
 export const userFetchBroker = async ({ userId }) => {
   return await fetch(\`/api/users/\${userId}\`);

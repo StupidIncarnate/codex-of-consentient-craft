@@ -3,8 +3,6 @@
  *
  * USAGE:
  * const headerInfo = HeaderInfoStub({ lineIndex: LineIndexStub({ value: 10 }), headerText: HeaderTextStub({ value: '## Section Title' }) });
- *
- * RELATED: line-index-contract, header-text-contract
  */
 
 import { z } from 'zod';

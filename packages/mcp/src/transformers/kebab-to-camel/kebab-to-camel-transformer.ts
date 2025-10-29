@@ -9,8 +9,6 @@ import { functionNameContract } from '../../contracts/function-name/function-nam
  *   kebabCase: FunctionNameStub({ value: 'has-permission-guard' })
  * });
  * // Returns: FunctionName('hasPermissionGuard')
- *
- * RELATED: function-name-extractor-transformer
  */
 export const kebabToCamelTransformer = ({
   kebabCase,

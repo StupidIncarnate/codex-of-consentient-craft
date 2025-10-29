@@ -96,14 +96,13 @@ describe('discoverResultContract', () => {
     });
   });
 
-  it('VALID: {results: [{name, path, type, related: []}], count: 1} => parses successfully with empty related array', () => {
+  it('VALID: {results: [{name, path, type}], count: 1} => parses successfully', () => {
     const result = DiscoverResultStub({
       results: [
         {
           name: 'testBroker',
           path: '/test/path',
           type: 'broker',
-          related: [],
         },
       ],
       count: 1,
@@ -115,21 +114,19 @@ describe('discoverResultContract', () => {
           name: 'testBroker',
           path: '/test/path',
           type: 'broker',
-          related: [],
         },
       ],
       count: 1,
     });
   });
 
-  it('VALID: {results: [{name, path, type, related: [...]}], count: 1} => parses successfully with multiple related files', () => {
+  it('VALID: {results: [{name, path, type, r}], count: 1} => parses successfully', () => {
     const result = DiscoverResultStub({
       results: [
         {
           name: 'testBroker',
           path: '/test/path',
           type: 'broker',
-          related: ['broker1', 'broker2', 'broker3'],
         },
       ],
       count: 1,
@@ -141,7 +138,6 @@ describe('discoverResultContract', () => {
           name: 'testBroker',
           path: '/test/path',
           type: 'broker',
-          related: ['broker1', 'broker2', 'broker3'],
         },
       ],
       count: 1,

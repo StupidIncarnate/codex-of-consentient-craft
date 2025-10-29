@@ -16,8 +16,6 @@ import { kebabToCamelTransformer } from '../kebab-to-camel/kebab-to-camel-transf
  *   fileContents: FileContentsStub({ value: 'export const foo = ({ x }: { x: number }): string => {}' })
  * });
  * // Returns: { raw: '...', parameters: [...], returnType: 'string' }
- *
- * RELATED: metadataExtractorTransformer, fileTypeDetectorTransformer
  */
 export const signatureExtractorTransformer = ({
   fileContents,

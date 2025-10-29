@@ -5,8 +5,6 @@
  * const guardProxy = hasMetadataCommentGuardProxy();
  * const validContents = guardProxy.setupValidMetadata();
  * // Returns FileContents with all required metadata sections
- *
- * RELATED: has-metadata-comment-guard
  */
 
 import { FileContentsStub } from '../../contracts/file-contents/file-contents.stub';
@@ -16,7 +14,6 @@ export const hasMetadataCommentGuardProxy = (): {
   setupValidMetadata: () => FileContents;
   setupMissingPurpose: () => FileContents;
   setupMissingUsage: () => FileContents;
-  setupMissingRelated: () => FileContents;
 } =>
   // Guard runs real, proxy just builds test data
 
@@ -28,8 +25,6 @@ export const hasMetadataCommentGuardProxy = (): {
  *
  * USAGE:
  * testFunction();
- *
- * RELATED: other-function
  */
 export const testFunction = () => {};
 `,
@@ -40,8 +35,6 @@ export const testFunction = () => {};
         value: `/**
  * USAGE:
  * testFunction();
- *
- * RELATED: other-function
  */
 export const testFunction = () => {};
 `,
@@ -51,20 +44,6 @@ export const testFunction = () => {};
       FileContentsStub({
         value: `/**
  * PURPOSE: Test function
- *
- * RELATED: other-function
- */
-export const testFunction = () => {};
-`,
-      }),
-
-    setupMissingRelated: (): FileContents =>
-      FileContentsStub({
-        value: `/**
- * PURPOSE: Test function
- *
- * USAGE:
- * testFunction();
  */
 export const testFunction = () => {};
 `,

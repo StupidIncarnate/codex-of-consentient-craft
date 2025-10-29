@@ -19,8 +19,6 @@ describe('fileScannerBroker', () => {
  * if (hasPermissionGuard({ user, resource })) {
  *   // User can edit
  * }
- *
- * RELATED: isAdminGuard, canEditPostGuard
  */
 export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?: Resource }): boolean => {
   return user?.permissions.includes(resource?.requiredPermission);
@@ -48,8 +46,6 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
  * if (hasPermissionGuard({ user, resource })) {
  *   // User can edit
  * }
- *
- * RELATED: isAdminGuard
  */
 export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?: Resource }): boolean => {
   return user?.permissions.includes(resource?.requiredPermission);
@@ -66,7 +62,7 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
   });
 
   describe('without metadata', () => {
-    it('EMPTY: files without PURPOSE/USAGE/RELATED => returns empty array', async () => {
+    it('EMPTY: files without PURPOSE/USAGE => returns empty array', async () => {
       const proxy = fileScannerBrokerProxy();
       const filepath = FilePathStub({ value: '/project/src/guards/plain-guard.ts' });
       const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
@@ -91,7 +87,6 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
         value: `/**
  * PURPOSE: Validates something
  * USAGE: example
- * RELATED: none
  */
 const privateFunction = () => true;`,
       });
@@ -114,7 +109,6 @@ const privateFunction = () => true;`,
         value: `/**
  * PURPOSE: Validates permission
  * USAGE: hasPermissionGuard({ user })
- * RELATED: none
  */
 export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
       });
@@ -138,7 +132,6 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
         value: `/**
  * PURPOSE: Validates permission
  * USAGE: hasPermissionGuard({ user })
- * RELATED: none
  */
 export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
       });
@@ -162,7 +155,6 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
         value: `/**
  * PURPOSE: Validates that user has permission to edit resource
  * USAGE: hasPermissionGuard({ user })
- * RELATED: none
  */
 export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
       });
@@ -183,7 +175,6 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
         value: `/**
  * PURPOSE: Validates that user has permission to edit resource
  * USAGE: hasPermissionGuard({ user })
- * RELATED: none
  */
 export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
       });
@@ -204,7 +195,6 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
         value: `/**
  * PURPOSE: Validates permission
  * USAGE: hasPermissionGuard({ user })
- * RELATED: none
  */
 export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
       });

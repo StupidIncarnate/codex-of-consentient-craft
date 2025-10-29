@@ -5,8 +5,6 @@
  * const brokerProxy = mcpDiscoverBrokerProxy();
  * brokerProxy.setupFileDiscovery({ metadata: [FileMetadataStub(...)] });
  * // Sets up file scanner broker to return metadata
- *
- * RELATED: mcp-discover-broker, file-scanner-broker, standards-parser-broker
  */
 
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';

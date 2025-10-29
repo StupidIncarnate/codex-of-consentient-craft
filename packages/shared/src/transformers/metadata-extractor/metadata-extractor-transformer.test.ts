@@ -17,19 +17,16 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Checks if user has admin permissions',
         usage: `const isAdmin = hasAdminGuard({ user });\n// Returns true if user is admin`,
-        related: [],
         metadata: {},
       });
     });
 
-    it('VALID: {commentText with PURPOSE, USAGE, and RELATED} => returns metadata with related field', () => {
+    it('VALID: {commentText with PURPOSE, USAGE} => returns metadata', () => {
       const commentText = `/**
  * PURPOSE: Transforms user data to DTO format
  *
  * USAGE:
  * const dto = userToDtoTransformer({ user });
- *
- * RELATED: user-contract, user-dto-contract
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -37,7 +34,6 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Transforms user data to DTO format',
         usage: 'const dto = userToDtoTransformer({ user });',
-        related: ['user-contract', 'user-dto-contract'],
         metadata: {},
       });
     });
@@ -52,8 +48,6 @@ describe('metadataExtractorTransformer', () => {
  *   console.log(user.name);
  * }
  * // Returns User object or throws error
- *
- * RELATED: http-adapter, user-contract
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -61,7 +55,6 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Fetches user data from API',
         usage: `const user = await userFetchBroker({ userId });\nif (user) {\nconsole.log(user.name);\n}\n// Returns User object or throws error`,
-        related: ['http-adapter', 'user-contract'],
         metadata: {},
       });
     });
@@ -75,7 +68,6 @@ describe('metadataExtractorTransformer', () => {
  *
  * WHEN-TO-USE: Use for input validation
  * RETURNS: Boolean indicating validity
- * RELATED: string-guard
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -83,7 +75,6 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Validates email format',
         usage: 'const isValid = emailGuard({ email: "test@example.com" });',
-        related: ['string-guard'],
         metadata: {
           whentouse: 'Use for input validation',
           returns: 'Boolean indicating validity',
@@ -97,7 +88,6 @@ describe('metadataExtractorTransformer', () => {
       const commentText = `/**
  * PURPOSE: Validates permission
  * USAGE: hasPermissionGuard({ user })
- * RELATED: none
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -105,7 +95,6 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Validates permission',
         usage: 'hasPermissionGuard({ user })',
-        related: ['none'],
         metadata: {},
       });
     });
@@ -118,8 +107,6 @@ describe('metadataExtractorTransformer', () => {
  * USAGE:
  * test()
  *
- *
- * RELATED: other
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -127,7 +114,6 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test purpose',
         usage: 'test()',
-        related: ['other'],
         metadata: {},
       });
     });
@@ -137,7 +123,6 @@ describe('metadataExtractorTransformer', () => {
  *	PURPOSE: With tabs
  * USAGE:
  *	test()
- * RELATED: other
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -145,35 +130,16 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'With tabs',
         usage: 'test()',
-        related: ['other'],
         metadata: {},
       });
     });
   });
 
   describe('field ordering', () => {
-    it('VALID: {RELATED before USAGE} => extracts metadata correctly', () => {
-      const commentText = `/**
- * PURPOSE: Test with different order
- * RELATED: other
- * USAGE: test()
- */`;
-
-      const result = metadataExtractorTransformer({ commentText });
-
-      expect(result).toStrictEqual({
-        purpose: 'Test with different order',
-        usage: 'test()',
-        related: ['other'],
-        metadata: {},
-      });
-    });
-
     it('VALID: {USAGE before PURPOSE} => extracts metadata correctly', () => {
       const commentText = `/**
  * USAGE: test()
  * PURPOSE: Test with different order
- * RELATED: other
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -181,14 +147,12 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test with different order',
         usage: 'test()',
-        related: ['other'],
         metadata: {},
       });
     });
 
     it('VALID: {all fields in reverse order} => extracts metadata correctly', () => {
       const commentText = `/**
- * RELATED: other
  * USAGE: test()
  * PURPOSE: Test with reverse order
  */`;
@@ -198,19 +162,17 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test with reverse order',
         usage: 'test()',
-        related: ['other'],
         metadata: {},
       });
     });
   });
 
   describe('optional fields placement', () => {
-    it('VALID: {optional field between USAGE and RELATED} => USAGE stops at optional field', () => {
+    it('VALID: {optional field between USAGE} => USAGE stops at optional field', () => {
       const commentText = `/**
  * PURPOSE: Test with optional between
  * USAGE: test()
  * RETURNS: Test result
- * RELATED: other
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -218,7 +180,6 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test with optional between',
         usage: 'test()',
-        related: ['other'],
         metadata: {
           returns: 'Test result',
         },
@@ -232,7 +193,6 @@ describe('metadataExtractorTransformer', () => {
  * USAGE: test()
  * WHEN-NOT-TO-USE: In production
  * RETURNS: Test result
- * RELATED: other
  * CONTRACTS: Input: string, Output: boolean
  */`;
 
@@ -241,7 +201,6 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test function',
         usage: 'test()',
-        related: ['other'],
         metadata: {
           whentouse: 'For testing',
           whennottouse: 'In production',
@@ -256,7 +215,6 @@ describe('metadataExtractorTransformer', () => {
  * WHEN-TO-USE: For testing
  * PURPOSE: Test function
  * USAGE: test()
- * RELATED: other
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -264,7 +222,6 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Test function',
         usage: 'test()',
-        related: ['other'],
         metadata: {
           whentouse: 'For testing',
         },
@@ -272,48 +229,10 @@ describe('metadataExtractorTransformer', () => {
     });
   });
 
-  describe('RELATED field variations', () => {
-    it('VALID: {RELATED with multiple items and spaces} => parses all items', () => {
-      const commentText = `/**
- * PURPOSE: Test
- * USAGE: test()
- * RELATED: first,  second , third
- */`;
-
-      const result = metadataExtractorTransformer({ commentText });
-
-      expect(result?.related).toStrictEqual(['first', 'second', 'third']);
-    });
-
-    it('VALID: {RELATED with trailing comma} => filters empty items', () => {
-      const commentText = `/**
- * PURPOSE: Test
- * USAGE: test()
- * RELATED: first, second,
- */`;
-
-      const result = metadataExtractorTransformer({ commentText });
-
-      expect(result?.related).toStrictEqual(['first', 'second']);
-    });
-
-    it('VALID: {no RELATED field} => returns empty array', () => {
-      const commentText = `/**
- * PURPOSE: Test
- * USAGE: test()
- */`;
-
-      const result = metadataExtractorTransformer({ commentText });
-
-      expect(result?.related).toStrictEqual([]);
-    });
-  });
-
   describe('invalid metadata comments', () => {
     it('EMPTY: {missing PURPOSE} => returns null', () => {
       const commentText = `/**
  * USAGE: test()
- * RELATED: other
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -324,7 +243,6 @@ describe('metadataExtractorTransformer', () => {
     it('EMPTY: {missing USAGE} => returns null', () => {
       const commentText = `/**
  * PURPOSE: Test
- * RELATED: other
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -336,7 +254,6 @@ describe('metadataExtractorTransformer', () => {
       const commentText = `/**
  * PURPOSE:
  * USAGE: test()
- * RELATED: other
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -348,7 +265,6 @@ describe('metadataExtractorTransformer', () => {
       const commentText = `/**
  * PURPOSE: Test
  * USAGE:
- * RELATED: other
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -372,7 +288,6 @@ describe('metadataExtractorTransformer', () => {
       const commentText = `/**
  * PURPOSE: Validates user's permission to edit, update, or delete resources
  * USAGE: check()
- * RELATED: other
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -386,7 +301,6 @@ describe('metadataExtractorTransformer', () => {
       const commentText = `/**
  * PURPOSE: Formats date/time using ISO-8601 format (YYYY-MM-DD)
  * USAGE: format()
- * RELATED: parser
  */`;
 
       const result = metadataExtractorTransformer({ commentText });
@@ -408,7 +322,6 @@ describe('metadataExtractorTransformer', () => {
       expect(result).toStrictEqual({
         purpose: 'Validates input',
         usage: 'validate({ input });',
-        related: [],
         metadata: {},
       });
     });

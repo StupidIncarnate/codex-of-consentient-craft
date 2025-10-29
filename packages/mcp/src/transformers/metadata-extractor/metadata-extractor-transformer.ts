@@ -9,15 +9,12 @@ import type { FileContents } from '../../contracts/file-contents/file-contents-c
  * const metadata = metadataExtractorTransformer({
  *   fileContents: FileContentsStub({ value: '/** PURPOSE: Test\n...' })
  * });
- * // Returns: { purpose: 'Test', usage: '...', related: [...], metadata: {...} }
- *
- * RELATED: @questmaestro/shared/transformers, signatureExtractorTransformer, fileTypeDetectorTransformer
+ * // Returns: { purpose: 'Test', usage: '...', metadata: {...} }
  */
 export const metadataExtractorTransformer = ({
   fileContents,
 }: {
   fileContents: FileContents;
-}): ExtractedMetadata | null => {
+}): ExtractedMetadata | null =>
   // Delegate to shared implementation
-  return sharedMetadataExtractor({ commentText: String(fileContents) });
-};
+  sharedMetadataExtractor({ commentText: String(fileContents) });
