@@ -9,6 +9,15 @@ import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/
 import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
 import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
 
+/**
+ * PURPOSE: Creates ESLint rule that enforces jest.mocked() arguments are imported at the top of proxy files
+ *
+ * USAGE:
+ * const rule = ruleJestMockedMustImportBroker();
+ * // Returns EslintRule that validates jest.mocked() calls use imported npm packages, not adapters
+ *
+ * WHEN-TO-USE: When registering ESLint rules to enforce proper mocking patterns in proxy files
+ */
 export const ruleJestMockedMustImportBroker = (): EslintRule => {
   const importedNames = new Map<Identifier, ModulePath>(); // local name -> source
 

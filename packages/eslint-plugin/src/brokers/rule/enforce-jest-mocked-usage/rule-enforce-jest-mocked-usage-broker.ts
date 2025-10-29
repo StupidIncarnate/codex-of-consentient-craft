@@ -10,6 +10,13 @@ import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
 import { modulePathContract } from '@questmaestro/shared/contracts';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
+/**
+ * PURPOSE: Enforces proper Jest mocking patterns in proxy files using jest.mocked() for mocked modules
+ *
+ * USAGE:
+ * const rule = ruleEnforceJestMockedUsageBroker();
+ * // Returns ESLint rule that requires jest.mocked() for modules with jest.mock(), prevents jest.spyOn() on imports
+ */
 export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
   // Track jest.mock() calls and imported module names
   const jestMockedModules = new Set<ModulePath>();

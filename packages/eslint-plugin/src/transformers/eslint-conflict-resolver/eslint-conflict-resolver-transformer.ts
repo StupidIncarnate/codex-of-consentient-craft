@@ -1,6 +1,18 @@
 import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
 import { eslintRulesDisableConflictsTransformer } from '../eslint-rules-disable-conflicts/eslint-rules-disable-conflicts-transformer';
 
+/**
+ * PURPOSE: Merges ESLint configurations while resolving rule conflicts between base and plugin rules
+ *
+ * USAGE:
+ * const merged = eslintConflictResolverTransformer({
+ *   reference: baseConfig,
+ *   overrides: [typescriptConfig, jestConfig]
+ * });
+ * // Returns merged config with conflicting base rules disabled
+ *
+ * WHEN-TO-USE: When combining multiple ESLint configs with overlapping rule names
+ */
 export const eslintConflictResolverTransformer = ({
   reference,
   overrides,

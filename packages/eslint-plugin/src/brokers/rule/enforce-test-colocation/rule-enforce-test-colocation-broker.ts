@@ -7,6 +7,15 @@ import { filePathContract } from '@questmaestro/shared/contracts';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { testFilePathToImplementationPathTransformer } from '../../../transformers/test-file-path-to-implementation-path/test-file-path-to-implementation-path-transformer';
 
+/**
+ * PURPOSE: Creates ESLint rule that enforces test files are co-located with their implementation files in the same directory
+ *
+ * USAGE:
+ * const rule = ruleEnforceTestColocationBroker();
+ * // Returns EslintRule that validates test files have matching implementation files in same directory
+ *
+ * WHEN-TO-USE: When registering ESLint rules to ensure test files follow co-location pattern
+ */
 export const ruleEnforceTestColocationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

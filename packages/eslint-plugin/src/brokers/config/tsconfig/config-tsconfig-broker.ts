@@ -3,6 +3,13 @@ import {
   tsconfigOptionsContract,
 } from '../../../contracts/tsconfig-options/tsconfig-options-contract';
 
+/**
+ * PURPOSE: Returns strict TypeScript compiler configuration options for Questmaestro projects
+ *
+ * USAGE:
+ * const tsconfig = configTsconfigBroker();
+ * // Returns validated TsconfigOptions with strict type checking enabled
+ */
 export const configTsconfigBroker = (): TsconfigOptions =>
   tsconfigOptionsContract.parse({
     target: 'ES2020',

@@ -1,33 +1,13 @@
+/**
+ * PURPOSE: Extracts the type name from a TypeScript type annotation AST node
+ *
+ * USAGE:
+ * const typeName = typeNameFromAnnotationTransformer({ typeAnnotation: node.typeAnnotation });
+ * // Returns 'User' for const user: User = { id: '1' }
+ */
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
 
-/**
- * Extract the type name from a TypeScript type annotation AST node
- *
- * Purpose:
- * When ESLint parses TypeScript code, type annotations become complex AST structures.
- * This transformer walks those AST nodes to extract the actual type name as a string.
- *
- * Example:
- * ```typescript
- * const user: User = { id: '1' };
- * //          ^^^^
- * //          This becomes a TSTypeAnnotation node containing a TSTypeReference node
- * //          This function extracts "User" from that structure
- * ```
- *
- * Supported Type Syntaxes:
- * - TSTypeReference: `const a: User = {}` → returns "User"
- * - TSArrayType: `const b: User[] = []` → returns "User" (element type)
- * - Generic types: `const c: Array<User> = []` → returns "Array"
- * - Wrapped annotations: Automatically unwraps TSTypeAnnotation wrappers
- *
- * Returns:
- * - Identifier (branded Zod string) containing the type name
- * - null if no type name can be extracted (primitives, unknown node types, etc.)
- *
- * Used by: @questmaestro/enforce-stub-usage rule to detect typed object/array literals
- */
 export const typeNameFromAnnotationTransformer = ({
   typeAnnotation,
 }: {

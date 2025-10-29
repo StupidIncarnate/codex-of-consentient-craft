@@ -15,6 +15,13 @@ import { extractFirstSegmentTransformer } from '../../../transformers/extract-fi
 import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
 import { getFileExtensionTransformer } from '../../../transformers/get-file-extension/get-file-extension-transformer';
 
+/**
+ * PURPOSE: Enforces that implementation files have colocated test and proxy files, and contract files have stub files
+ *
+ * USAGE:
+ * const rule = ruleEnforceImplementationColocationBroker();
+ * // Returns ESLint rule that requires foo-broker.ts to have foo-broker.test.ts and foo-broker.proxy.ts in same directory
+ */
 export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

@@ -5,6 +5,15 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { jestTestingStatics } from '../../../statics/jest-testing/jest-testing-statics';
 
+/**
+ * PURPOSE: Creates ESLint rule that forbids .todo and .skip on all Jest test methods to ensure all tests are complete and runnable
+ *
+ * USAGE:
+ * const rule = ruleForbidTodoSkipBroker();
+ * // Returns EslintRule that reports errors on test.todo(), it.skip(), describe.skip() etc.
+ *
+ * WHEN-TO-USE: When registering ESLint rules to prevent incomplete or disabled tests in test files
+ */
 export const ruleForbidTodoSkipBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

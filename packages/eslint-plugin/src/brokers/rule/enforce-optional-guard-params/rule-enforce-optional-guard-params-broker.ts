@@ -4,6 +4,13 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 
+/**
+ * PURPOSE: Enforces that all parameters in guard functions are optional to allow flexible guard usage
+ *
+ * USAGE:
+ * const rule = ruleEnforceOptionalGuardParamsBroker();
+ * // Returns ESLint rule that requires `({ param?: Type })` in guard files instead of `({ param: Type })`
+ */
 export const ruleEnforceOptionalGuardParamsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

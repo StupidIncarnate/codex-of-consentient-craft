@@ -1,19 +1,12 @@
+/**
+ * PURPOSE: Determines if a file path represents an entry file that can be imported across domain folders, validating naming convention matches folder structure based on folderDepth.
+ *
+ * USAGE:
+ * isEntryFileGuard({ filePath: 'src/brokers/user/fetch/user-fetch-broker.ts', folderType: 'brokers' })
+ * // Returns true if file follows naming convention and matches folder structure (e.g., depth 2 requires domain-action-suffix pattern)
+ */
 import { folderConfigTransformer } from '../../transformers/folder-config/folder-config-transformer';
 
-/**
- * Determines if a file path represents an "entry file" that can be imported across domain folders.
- *
- * IMPORTANT: Requires the full file path to validate correctly. Without the full path,
- * we cannot determine if the file matches its domain/action folders.
- *
- * Entry files follow the naming convention based on folderDepth:
- * - Depth 0 (startup): Any .ts file
- * - Depth 1 (contracts, adapters, etc.): [name]-[suffix].ts (e.g., user-contract.ts)
- * - Depth 2 (brokers, responders): [domain]-[action]-[suffix].ts (e.g., user-fetch-broker.ts)
- *   AND must be in the matching folder structure (src/brokers/user/fetch/)
- *
- * Multi-dot files (.stub.ts, .mock.ts, .test.ts) are never entry files.
- */
 export const isEntryFileGuard = ({
   filePath,
   folderType,

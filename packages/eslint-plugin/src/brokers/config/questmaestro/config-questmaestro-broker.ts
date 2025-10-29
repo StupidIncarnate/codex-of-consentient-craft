@@ -17,6 +17,17 @@ type DeepWritable<T> = T extends readonly (infer U)[]
     ? { -readonly [K in keyof T]: DeepWritable<T[K]> }
     : T;
 
+/**
+ * PURPOSE: Generates ESLint configuration objects for Questmaestro projects with TypeScript and custom rules
+ *
+ * USAGE:
+ * const { typescript, test, fileOverrides, ruleEnforceOn } = configQuestmaestroBroker();
+ * // Returns ESLint configs for TypeScript files, test files, and file-specific overrides
+ *
+ * // For test environments (relaxes some strict rules):
+ * const configs = configQuestmaestroBroker({ forTesting: true });
+ * // Returns configs with relaxed rules like max-depth, no-magic-numbers for test code
+ */
 export const configQuestmaestroBroker = ({
   forTesting = false,
 }: {

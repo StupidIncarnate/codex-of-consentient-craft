@@ -1,6 +1,13 @@
 import { z } from 'zod';
 import { eslintRulesContract } from '../eslint-rules/eslint-rules-contract';
 
+/**
+ * PURPOSE: Validates ESLint flat config object structure with plugins, rules, and language options
+ *
+ * USAGE:
+ * const config = eslintConfigContract.parse({ plugins: {...}, rules: {...}, files: ['**\/*.ts'] });
+ * // Returns validated EslintConfig object
+ */
 export const eslintConfigContract = z.object({
   plugins: z.record(z.unknown()).optional(),
   rules: eslintRulesContract.optional(),

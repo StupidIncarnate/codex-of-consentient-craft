@@ -1,16 +1,13 @@
+/**
+ * PURPOSE: Extracts imported names and their sources from an ImportDeclaration AST node
+ *
+ * USAGE:
+ * const imports = astGetImportsTransformer({ node: importDeclarationNode });
+ * // Returns Map { 'foo' => 'bar' } for import { foo } from 'bar'
+ */
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
 
-/**
- * Extracts imported names and their sources from an ImportDeclaration AST node.
- * Handles named imports, default imports, and namespace imports.
- *
- * @returns Map of local name -> import source
- * @example
- * // import { foo } from 'bar' => Map { 'foo' => 'bar' }
- * // import foo from 'bar' => Map { 'foo' => 'bar' }
- * // import * as foo from 'bar' => Map { 'foo' => 'bar' }
- */
 export const astGetImportsTransformer = ({
   node,
 }: {

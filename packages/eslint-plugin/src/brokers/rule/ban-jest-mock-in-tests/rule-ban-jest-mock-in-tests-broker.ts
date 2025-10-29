@@ -6,6 +6,13 @@ import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard
 import { jestTestingStatics } from '../../../statics/jest-testing/jest-testing-statics';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
+/**
+ * PURPOSE: Bans Jest mocking and module system manipulation in test files to enforce using proxy files instead
+ *
+ * USAGE:
+ * const rule = ruleBanJestMockInTestsBroker();
+ * // Returns ESLint rule that prevents jest.mock(), jest.clearAllMocks(), etc. in test files
+ */
 export const ruleBanJestMockInTestsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

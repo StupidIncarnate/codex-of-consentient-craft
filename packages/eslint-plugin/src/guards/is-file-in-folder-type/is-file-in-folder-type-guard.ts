@@ -1,11 +1,9 @@
 /**
- * Checks if a file is in a specific folder type with the expected suffix.
- * Automatically adds dash prefix and checks both .ts and .tsx extensions.
+ * PURPOSE: Checks if a file is in a specific folder type with the expected suffix, automatically adding dash prefix and checking both .ts and .tsx extensions.
  *
- * @example
- * isFileInFolderTypeGuard({ filename: 'src/contracts/user/user-contract.ts', folderType: 'contracts', suffix: 'contract' }) // true
- * isFileInFolderTypeGuard({ filename: 'src/statics/user/user-statics.ts', folderType: 'statics', suffix: 'statics' }) // true
- * isFileInFolderTypeGuard({ filename: 'src/guards/is-admin/is-admin-guard.ts', folderType: 'guards', suffix: 'guard' }) // true
+ * USAGE:
+ * isFileInFolderTypeGuard({ filename: 'src/contracts/user/user-contract.ts', folderType: 'contracts', suffix: 'contract' })
+ * // Returns true
  */
 export const isFileInFolderTypeGuard = ({
   filename,

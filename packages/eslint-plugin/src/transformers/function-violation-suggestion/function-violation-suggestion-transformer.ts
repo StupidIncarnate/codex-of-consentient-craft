@@ -1,6 +1,16 @@
 import type { ErrorMessage } from '@questmaestro/shared/contracts';
 import { errorMessageContract } from '@questmaestro/shared/contracts';
 
+/**
+ * PURPOSE: Generates helpful error messages for non-exported function violations with domain-specific guidance
+ *
+ * USAGE:
+ * const message = functionViolationSuggestionTransformer({ functionType: 'guard' });
+ * // Returns: "This appears to be a boolean check. Extract it to a new file in guards/ folder..."
+ *
+ * const transformerMessage = functionViolationSuggestionTransformer({ functionType: 'transformer' });
+ * // Returns: "This appears to be a data transformation. Extract it to a new file in transformers/ folder..."
+ */
 export const functionViolationSuggestionTransformer = ({
   functionType,
 }: {

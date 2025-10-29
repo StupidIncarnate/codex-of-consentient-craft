@@ -1,11 +1,9 @@
 /**
- * Checks if a filename ends with a specific suffix pattern.
- * Automatically adds dots and checks both .ts and .tsx extensions.
+ * PURPOSE: Checks if a filename ends with a specific suffix pattern, automatically adding dots and checking both .ts and .tsx extensions.
  *
- * @example
- * hasFileSuffixGuard({ filename: 'foo.proxy.ts', suffix: 'proxy' }) // true
- * hasFileSuffixGuard({ filename: 'foo.stub.tsx', suffix: 'stub' }) // true
- * hasFileSuffixGuard({ filename: 'foo.integration.test.ts', suffix: 'integration.test' }) // true
+ * USAGE:
+ * hasFileSuffixGuard({ filename: 'foo.proxy.ts', suffix: 'proxy' })
+ * // Returns true
  */
 export const hasFileSuffixGuard = ({
   filename,

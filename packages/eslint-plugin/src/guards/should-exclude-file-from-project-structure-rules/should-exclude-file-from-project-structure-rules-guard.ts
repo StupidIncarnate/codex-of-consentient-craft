@@ -1,14 +1,18 @@
 import { hasFileSuffixGuard } from '../has-file-suffix/has-file-suffix-guard';
 
 /**
- * Determines if a file should be excluded from project structure rule validation.
- * Excludes:
- * - Files with multiple dots (.test.ts, .stub.ts, .d.ts, etc.)
- * - EXCEPT .proxy.ts files (these are validated)
- * - Files not in /src/ directory
- * - Files directly in /src/ (like index.ts, main.ts)
+ * PURPOSE: Determines if a file should be excluded from project structure rule validation
  *
- * Use case: Early filtering for all project structure ESLint rules
+ * USAGE:
+ * if (shouldExcludeFileFromProjectStructureRulesGuard({ filename: 'user.test.ts' })) {
+ *   // Returns true - skip validation for test files
+ * }
+ * if (shouldExcludeFileFromProjectStructureRulesGuard({ filename: '/src/brokers/user-broker.ts' })) {
+ *   // Returns false - validate this file
+ * }
+ *
+ * WHEN-TO-USE: Early filtering before applying project structure rules
+ * WHEN-NOT-TO-USE: Files with multiple dots (.test.ts, .stub.ts) are excluded EXCEPT .proxy.ts files
  */
 export const shouldExcludeFileFromProjectStructureRulesGuard = ({
   filename,

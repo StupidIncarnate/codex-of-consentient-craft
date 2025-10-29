@@ -1,3 +1,13 @@
+/**
+ * PURPOSE: Provides comprehensive ESLint rule configuration with detailed documentation
+ *
+ * USAGE:
+ * import { eslintRuleStatics } from './statics/eslint-rule/eslint-rule-statics';
+ * const eslintConfig = { rules: eslintRuleStatics.rules };
+ * // Returns complete ESLint rule configuration object
+ *
+ * WHEN-TO-USE: When building ESLint configuration that needs standard JavaScript/TypeScript rules
+ */
 export const eslintRuleStatics = {
   rules: {
     // ✅ { get foo() {}, set foo(val) {} }

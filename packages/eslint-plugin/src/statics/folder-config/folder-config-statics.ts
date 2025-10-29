@@ -1,3 +1,13 @@
+/**
+ * PURPOSE: Defines project structure rules and constraints for each folder type
+ *
+ * USAGE:
+ * import { folderConfigStatics } from './statics/folder-config/folder-config-statics';
+ * const brokerConfig = folderConfigStatics.brokers;
+ * // Returns { fileSuffix: '-broker.ts', exportSuffix: 'Broker', folderDepth: 2, ... }
+ *
+ * WHEN-TO-USE: When validating file structure or determining expected file naming patterns
+ */
 export const folderConfigStatics = {
   statics: {
     fileSuffix: '-statics.ts',

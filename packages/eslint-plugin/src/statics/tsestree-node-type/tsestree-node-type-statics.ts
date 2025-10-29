@@ -1,6 +1,13 @@
 /**
- * TSESTree node types - mirrors @typescript-eslint/types AST_NODE_TYPES
- * Defined as statics to avoid external package imports in application code
+ * PURPOSE: Provides TypeScript ESTree AST node type constants without external dependencies
+ *
+ * USAGE:
+ * import { tsestreeNodeTypeStatics } from './statics/tsestree-node-type/tsestree-node-type-statics';
+ * if (node.type === tsestreeNodeTypeStatics.nodeTypes.ArrowFunctionExpression) {
+ *   // Handle arrow function
+ * }
+ *
+ * WHEN-TO-USE: When checking AST node types in ESLint rules
  */
 export const tsestreeNodeTypeStatics = {
   nodeTypes: {

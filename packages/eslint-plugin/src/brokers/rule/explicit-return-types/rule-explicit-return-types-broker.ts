@@ -3,6 +3,15 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
+/**
+ * PURPOSE: Creates ESLint rule that requires explicit return type annotations on all exported functions
+ *
+ * USAGE:
+ * const rule = ruleExplicitReturnTypesBroker();
+ * // Returns EslintRule that reports errors when exported functions lack return type annotations
+ *
+ * WHEN-TO-USE: When registering ESLint rules to enforce type safety and API clarity
+ */
 export const ruleExplicitReturnTypesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

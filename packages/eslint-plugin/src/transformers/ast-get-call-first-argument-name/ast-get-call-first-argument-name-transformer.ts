@@ -1,16 +1,13 @@
+/**
+ * PURPOSE: Extracts the name of the first argument from a CallExpression if it's an Identifier
+ *
+ * USAGE:
+ * const name = astGetCallFirstArgumentNameTransformer({ node: callExpressionNode });
+ * // Returns 'Date' for jest.spyOn(Date, 'now'), 'axios' for jest.spyOn(axios, 'get'), or null if not an Identifier
+ */
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 import type { Identifier } from '@questmaestro/shared/contracts';
 
-/**
- * Extracts the name of the first argument from a CallExpression if it's an Identifier.
- * Useful for getting the target of function calls like jest.spyOn(target, 'method').
- *
- * @returns The name of the first argument, or null if not found or not an Identifier
- * @example
- * // jest.spyOn(Date, 'now') => 'Date'
- * // jest.spyOn(axios, 'get') => 'axios'
- * // jest.spyOn('literal', 'method') => null
- */
 export const astGetCallFirstArgumentNameTransformer = ({
   node,
 }: {

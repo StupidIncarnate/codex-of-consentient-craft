@@ -1,7 +1,9 @@
 /**
- * Checks if an import source is an npm package.
- * Returns false for relative paths, absolute paths, and @questmaestro workspace packages.
- * Returns true for node: built-ins, scoped packages, and other npm packages.
+ * PURPOSE: Checks if an import source is an npm package, returning false for relative paths, absolute paths, and @questmaestro workspace packages.
+ *
+ * USAGE:
+ * isNpmPackageGuard({ importSource: 'eslint' })
+ * // Returns true for npm packages (including node: built-ins and scoped packages), false for relative/absolute paths and @questmaestro packages
  */
 export const isNpmPackageGuard = ({ importSource }: { importSource?: string }): boolean => {
   // Handle undefined/empty

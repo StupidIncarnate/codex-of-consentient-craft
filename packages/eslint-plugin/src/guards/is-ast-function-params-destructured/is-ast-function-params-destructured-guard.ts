@@ -1,5 +1,15 @@
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
+/**
+ * PURPOSE: Checks if all function parameters use object destructuring pattern
+ *
+ * USAGE:
+ * const funcNode = // AST node for: ({ name, age }: User) => void
+ * if (isAstFunctionParamsDestructuredGuard({ funcNode })) {
+ *   // All parameters use destructuring
+ * }
+ * // Returns true if all params are ObjectPattern or AssignmentPattern with ObjectPattern
+ */
 export const isAstFunctionParamsDestructuredGuard = ({
   funcNode,
 }: {

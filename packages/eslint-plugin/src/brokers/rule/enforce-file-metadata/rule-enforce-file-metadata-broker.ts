@@ -5,6 +5,13 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isImplementationFileGuard } from '../../../guards/is-implementation-file/is-implementation-file-guard';
 import { extractFileMetadataTransformer } from '../../../transformers/extract-file-metadata/extract-file-metadata-transformer';
 
+/**
+ * PURPOSE: Enforces that implementation files have metadata comments with PURPOSE and USAGE fields
+ *
+ * USAGE:
+ * const rule = ruleEnforceFileMetadataBroker();
+ * // Returns ESLint rule that requires implementation files to have PURPOSE: ... USAGE: ...
+ **/
 export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {
@@ -33,7 +40,7 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
       // Check comments once at Program level
       Program: (node: Tsestree): void => {
         // Get all comments in the file
-        const allComments = ctx.sourceCode?.getAllComments?.() ?? [];
+        const allComments = ctx.sourceCode?.getAllComments() ?? [];
 
         // Check if any comment has valid metadata
         const hasValidMetadata = allComments.some((comment) => {

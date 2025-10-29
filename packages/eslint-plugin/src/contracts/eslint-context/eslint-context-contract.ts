@@ -8,6 +8,12 @@ import type { Tsestree } from '../tsestree/tsestree-contract';
  *
  * Contract defines ONLY data properties (functions cause Zod type inference issues).
  * Function methods are added via intersection in the EslintContext type below.
+ *
+ * PURPOSE: Validates ESLint rule context data properties (filename, etc.)
+ *
+ * USAGE:
+ * const contextData = eslintContextContract.parse({ filename: '/path/to/file.ts' });
+ * // Returns validated context data; use EslintContext type for full context with methods
  */
 export const eslintContextContract = z.object({
   filename: z.string().brand<'Filename'>().optional(),
@@ -30,12 +36,12 @@ export type EslintScope = z.infer<typeof _scopeDataContract>;
  * ESLint Comment - returned by getAllComments()
  * Replicates Comment interface from @types/eslint
  */
-export type EslintComment = {
+export interface EslintComment {
   type?: unknown;
   value?: unknown;
   range?: unknown;
   loc?: unknown;
-};
+}
 
 /**
  * ESLint SourceCode - returned by ctx.getSourceCode() and available as ctx.sourceCode

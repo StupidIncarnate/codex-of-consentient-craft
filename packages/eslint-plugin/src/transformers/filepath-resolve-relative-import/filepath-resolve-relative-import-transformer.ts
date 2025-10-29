@@ -1,15 +1,16 @@
+/**
+ * PURPOSE: Resolves a relative import path to an absolute path
+ *
+ * USAGE:
+ * const resolved = filepathResolveRelativeImportTransformer({
+ *   currentFilePath: '/src/brokers/rule/foo.ts',
+ *   importPath: '../../../contracts/user'
+ * });
+ * // Returns '/src/contracts/user.ts' as the resolved absolute path
+ */
 import type { FilePath } from '@questmaestro/shared/contracts';
 import { filePathContract } from '@questmaestro/shared/contracts';
 
-/**
- * Resolves a relative import path to an absolute path.
- * Used to determine the actual folder type of cross-folder imports.
- *
- * @example
- * // From: /src/brokers/rule/foo.ts
- * // Import: '../../../contracts/user'
- * // Returns: /src/contracts/user.ts
- */
 export const filepathResolveRelativeImportTransformer = ({
   currentFilePath,
   importPath,

@@ -4,8 +4,18 @@ import { kebabToPascalCaseTransformer } from '../kebab-to-pascal-case/kebab-to-p
 import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
 
 /**
- * Gets the expected export name based on filename and folder config.
- * Example: 'user-fetch-broker.ts' with broker config -> 'userFetchBroker'
+ * PURPOSE: Calculates the expected export name based on filename and folder configuration
+ *
+ * USAGE:
+ * const name = expectedExportNameTransformer({
+ *   filename: 'user-fetch-broker.ts',
+ *   fileSuffix: '-broker.ts',
+ *   exportSuffix: 'Broker',
+ *   exportCase: 'camelCase'
+ * });
+ * // Returns 'userFetchBroker'
+ *
+ * WHEN-TO-USE: When validating export names match expected patterns from folder config
  */
 export const expectedExportNameTransformer = ({
   filename,

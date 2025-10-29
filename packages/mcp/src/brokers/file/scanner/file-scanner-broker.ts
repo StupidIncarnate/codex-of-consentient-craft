@@ -92,13 +92,16 @@ export const fileScannerBroker = async ({
   }
 
   // 5. Filter by search if provided
-  if (search) {
-    const lowerSearch = search.toLowerCase();
-    return results.filter(
-      (r) =>
-        r.purpose.toLowerCase().includes(lowerSearch) || r.name.toLowerCase().includes(lowerSearch),
-    );
-  }
+  const finalResults = search
+    ? results.filter((r) => {
+        const lowerSearch = search.toLowerCase();
+        return (
+          r.purpose.toLowerCase().includes(lowerSearch) ||
+          r.name.toLowerCase().includes(lowerSearch)
+        );
+      })
+    : results;
 
-  return results;
+  // 6. Sort alphabetically by name for consistent output
+  return finalResults.sort((a, b) => a.name.localeCompare(b.name));
 };

@@ -1,6 +1,16 @@
 import type { Identifier } from '@questmaestro/shared/contracts';
 import { identifierContract } from '@questmaestro/shared/contracts';
 
+/**
+ * PURPOSE: Extracts the immediate parent folder name from a file path
+ *
+ * USAGE:
+ * const folderName = folderNameTransformer({ filePath: 'src/brokers/user/user-broker.ts' });
+ * // Returns: 'user'
+ *
+ * const noFolder = folderNameTransformer({ filePath: 'file.ts' });
+ * // Returns: null
+ */
 export const folderNameTransformer = ({ filePath }: { filePath: string }): Identifier | null => {
   const parts = filePath.split('/');
 

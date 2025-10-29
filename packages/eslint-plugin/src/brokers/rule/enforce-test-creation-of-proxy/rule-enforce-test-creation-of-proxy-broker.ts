@@ -8,6 +8,15 @@ import type { Identifier } from '@questmaestro/shared/contracts';
 import { identifierContract } from '@questmaestro/shared/contracts';
 import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
 
+/**
+ * PURPOSE: Creates ESLint rule that ensures proxies are created inside each test block, not at module level or in hooks
+ *
+ * USAGE:
+ * const rule = ruleEnforceTestCreationOfProxyBroker();
+ * // Returns EslintRule that validates proxy instances are created fresh in each it/test block
+ *
+ * WHEN-TO-USE: When registering ESLint rules to enforce test isolation by preventing shared proxy instances
+ */
 export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

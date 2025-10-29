@@ -3,6 +3,13 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { validateReturnStatementLayerBroker } from './validate-return-statement-layer-broker';
 import { validateObjectExpressionLayerBroker } from './validate-object-expression-layer-broker';
 
+/**
+ * PURPOSE: Layer helper that validates proxy functions return objects rather than primitives, void, or arrays
+ *
+ * USAGE:
+ * validateProxyFunctionReturnLayerBroker({ functionNode, context });
+ * // Reports error if proxy function returns void, string, number, boolean, or array instead of object
+ */
 export const validateProxyFunctionReturnLayerBroker = ({
   functionNode,
   context,

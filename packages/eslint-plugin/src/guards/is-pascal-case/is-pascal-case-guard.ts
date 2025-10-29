@@ -1,5 +1,11 @@
 /**
- * Checks if a string is in PascalCase format.
+ * PURPOSE: Checks if a string follows PascalCase naming convention
+ *
+ * USAGE:
+ * if (isPascalCaseGuard({ str: 'MyClassName' })) {
+ *   // String is in PascalCase
+ * }
+ * // Returns true for strings starting with uppercase letter followed by alphanumerics
  */
 export const isPascalCaseGuard = ({ str }: { str?: string | undefined }): boolean => {
   if (str === undefined) {

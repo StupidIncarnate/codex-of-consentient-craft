@@ -2,6 +2,20 @@ import type { FilePath } from '@questmaestro/shared/contracts';
 import { filePathContract } from '@questmaestro/shared/contracts';
 import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
 
+/**
+ * PURPOSE: Converts a test file path to its corresponding implementation file path by removing test suffixes
+ *
+ * USAGE:
+ * const implPath = testFilePathToImplementationPathTransformer({
+ *   testFilePath: '/src/brokers/user/user-broker.test.ts'
+ * });
+ * // Returns: '/src/brokers/user/user-broker.ts'
+ *
+ * const integrationImpl = testFilePathToImplementationPathTransformer({
+ *   testFilePath: '/src/adapters/http/http-adapter.integration.test.ts'
+ * });
+ * // Returns: '/src/adapters/http/http-adapter.ts'
+ */
 export const testFilePathToImplementationPathTransformer = ({
   testFilePath,
 }: {

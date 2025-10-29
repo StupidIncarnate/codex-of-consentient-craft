@@ -1,3 +1,13 @@
+/**
+ * PURPOSE: Provides Jest-specific ESLint rule configuration for test files
+ *
+ * USAGE:
+ * import { jestRuleStatics } from './statics/jest-rule/jest-rule-statics';
+ * const jestConfig = { rules: jestRuleStatics.rules };
+ * // Returns complete Jest ESLint rule configuration object
+ *
+ * WHEN-TO-USE: When building ESLint configuration for test files with Jest-specific rules
+ */
 export const jestRuleStatics = {
   rules: {
     // Enforce consistent test or it keyword

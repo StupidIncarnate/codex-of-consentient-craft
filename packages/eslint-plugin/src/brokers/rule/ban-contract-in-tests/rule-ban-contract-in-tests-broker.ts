@@ -5,6 +5,13 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
 
+/**
+ * PURPOSE: Prevents test files from importing contracts directly and enforces using stub variants instead
+ *
+ * USAGE:
+ * const rule = ruleBanContractInTestsBroker();
+ * // Returns ESLint rule that requires test files to import .stub files instead of -contract files
+ */
 export const ruleBanContractInTestsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

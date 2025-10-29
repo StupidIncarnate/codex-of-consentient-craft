@@ -1,8 +1,19 @@
 import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
 
 /**
- * Extracts folder segments from a file path after '/src/', excluding the filename.
- * Example: '/path/src/brokers/rule/foo.ts' -> ['brokers', 'rule']
+ * PURPOSE: Extracts folder path segments after '/src/' directory
+ *
+ * USAGE:
+ * const segments = filepathExtractSegmentsAfterSrcTransformer({
+ *   filePath: '/path/src/brokers/rule/foo.ts'
+ * });
+ * // Returns ['brokers', 'rule']
+ * const segments2 = filepathExtractSegmentsAfterSrcTransformer({
+ *   filePath: '/project/src/widgets/user-widget.tsx'
+ * });
+ * // Returns ['widgets']
+ *
+ * WHEN-TO-USE: When validating folder depth or structure after src directory
  */
 export const filepathExtractSegmentsAfterSrcTransformer = ({
   filePath,

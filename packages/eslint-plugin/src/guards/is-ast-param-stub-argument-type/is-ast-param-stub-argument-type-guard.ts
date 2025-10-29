@@ -1,5 +1,15 @@
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
+/**
+ * PURPOSE: Checks if function's first parameter has StubArgument type annotation
+ *
+ * USAGE:
+ * const funcNode = // AST node for: ({ name }: StubArgument<User>) => User
+ * if (isAstParamStubArgumentTypeGuard({ funcNode })) {
+ *   // Function's first parameter is typed as StubArgument
+ * }
+ * // Returns true if first param's type annotation is TSTypeReference to 'StubArgument'
+ */
 export const isAstParamStubArgumentTypeGuard = ({ funcNode }: { funcNode?: Tsestree }): boolean => {
   if (!funcNode?.params || funcNode.params.length === 0) {
     return false;

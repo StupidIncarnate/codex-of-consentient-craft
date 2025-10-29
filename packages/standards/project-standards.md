@@ -19,6 +19,58 @@
 - Supporting types and interfaces directly related to that functionality may be co-exported
 - No additional functions, classes, or unrelated exports allowed
 
+**File Metadata Documentation:**
+
+Every implementation file must have structured metadata comments at the very top (before imports):
+
+- **Required format:**
+  ```typescript
+  /**
+   * PURPOSE: [One-line description of what the file does]
+   *
+   * USAGE:
+   * [Code example showing how to use it]
+   * // [Comment explaining what it returns]
+   */
+  ```
+- **Required for:** All implementation files (`-adapter.ts`, `-broker.ts`, `-guard.ts`, `-transformer.ts`,
+  `-contract.ts`, `-statics.ts`, etc.)
+- **Not required for:** Test files (`.test.ts`), proxy files (`.proxy.ts`), stub files (`.stub.ts`)
+- **Position:** Must be at the very top of the file, before any imports
+- **Enforcement:** Validated by `@questmaestro/enforce-file-metadata` ESLint rule
+
+**Optional fields:**
+
+- `WHEN-TO-USE:` - Guidance on when to use this utility
+- `WHEN-NOT-TO-USE:` - Anti-guidance (when NOT to use it)
+
+**Example:**
+
+```typescript
+/**
+ * PURPOSE: Validates if a user has permission to perform an action
+ *
+ * USAGE:
+ * hasPermissionGuard({user, permission: 'admin:delete'});
+ * // Returns true if user has permission, false otherwise
+ *
+ * WHEN-TO-USE: Before executing privileged operations
+ * WHEN-NOT-TO-USE: For public endpoints that don't require authorization
+ */
+import type {User} from '../../contracts/user/user-contract';
+import type {Permission} from '../../contracts/permission/permission-contract';
+
+export const hasPermissionGuard = ({user, permission}: {
+    user?: User;
+    permission?: Permission;
+}): boolean => {
+    if (!user || !permission) {
+        return false;
+    }
+    return user.permissions.includes(permission);
+};
+```
+
 **Function Parameters:**
 
 - **All app code functions must use object destructuring with inline types**
@@ -719,11 +771,6 @@ See `packages/eslint-plugin/src/statics/folder-config/folder-config-statics.ts` 
 - `guards/auth/auth-guard.ts` → `../../contracts/user/user-contract` ✅ (entry file)
 - `guards/auth/auth-guard.ts` → `../../contracts/user/helper` ❌ (not entry file)
 
-**Multi-dot files cannot be imported cross-folder:**
-
-- `.stub.ts`, `.mock.ts`, `.test.ts` files are same-folder only
-- Test files can import stubs/mocks from same folder only
-
 ## Folder Definitions, Constraints, and Examples
 
 ### statics/ - Immutable Values
@@ -761,6 +808,13 @@ statics/
 **Example:**
 
 ```tsx
+/**
+ * PURPOSE: Defines immutable configuration values for user management
+ *
+ * USAGE:
+ * userStatics.roles.admin;
+ * // Returns 'admin' role constant
+ */
 // statics/user/user-statics.ts
 export const userStatics = {
   roles: {
@@ -774,6 +828,13 @@ export const userStatics = {
   }
 } as const;
 
+/**
+ * PURPOSE: Defines immutable ESLint rule configuration values
+ *
+ * USAGE:
+ * eslintStatics.rules.maxDepth;
+ * // Returns 4 (maximum nesting depth)
+ */
 // statics/eslint/eslint-statics.ts
 export const eslintStatics = {
   rules: {
@@ -824,6 +885,13 @@ contracts/
 **Example:**
 
 ```tsx
+/**
+ * PURPOSE: Validates and brands user ID strings as UserId type
+ *
+ * USAGE:
+ * userIdContract.parse('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+ * // Returns branded UserId type
+ */
 // contracts/user-id/user-id-contract.ts
 import {z} from 'zod';
 
@@ -974,6 +1042,13 @@ guards/
 **Example:**
 
 ```tsx
+/**
+ * PURPOSE: Validates if a user has a specific permission
+ *
+ * USAGE:
+ * hasPermissionGuard({user, permission: 'admin:delete'});
+ * // Returns true if user has the permission, false otherwise
+ */
 // guards/has-permission/has-permission-guard.ts
 import type {User} from '../../contracts/user/user-contract';
 import type {Permission} from '../../contracts/permission/permission-contract';
@@ -1044,6 +1119,13 @@ transformers/
 **Example:**
 
 ```tsx
+/**
+ * PURPOSE: Transforms a Date object into a formatted date string (YYYY-MM-DD)
+ *
+ * USAGE:
+ * formatDateTransformer({date: new Date('2024-01-15')});
+ * // Returns '2024-01-15' as branded DateString
+ */
 // transformers/format-date/format-date-transformer.ts
 import {dateStringContract} from '../../contracts/date-string/date-string-contract';
 import type {DateString} from '../../contracts/date-string/date-string-contract';
@@ -1382,6 +1464,13 @@ export const EslintContextStub = ({
 **Examples:**
 
 ```tsx
+/**
+ * PURPOSE: Reads file contents from filesystem and validates as FileContents contract
+ *
+ * USAGE:
+ * await fsReadFileAdapter({filePath: '/config.json'});
+ * // Returns validated FileContents
+ */
 // Pattern 1: Simple translation
 // adapters/fs/read-file/fs-read-file-adapter.ts
 import {readFile} from 'fs/promises';
@@ -1505,6 +1594,13 @@ middleware/
 **Example:**
 
 ```tsx
+/**
+ * PURPOSE: Combines logging and metrics collection for HTTP requests
+ *
+ * USAGE:
+ * await httpTelemetryMiddleware({method: 'GET', url: '/api/users', statusCode: 200, duration: 45});
+ * // Logs request and increments Prometheus counter
+ */
 // middleware/http-telemetry/http-telemetry-middleware.ts
 import {winstonLogAdapter} from '../../adapters/winston/winston-log-adapter';
 import {prometheusIncrementCounterAdapter} from '../../adapters/prometheus/prometheus-increment-counter-adapter';
@@ -1562,6 +1658,13 @@ brokers/
 **Example:**
 
 ```tsx
+/**
+ * PURPOSE: Fetches a user by ID from the API
+ *
+ * USAGE:
+ * await userFetchBroker({userId: 'f47ac10b-...'});
+ * // Returns validated User object
+ */
 // brokers/user/fetch/user-fetch-broker.ts (Atomic)
 import {axiosGetAdapter} from '../../../adapters/axios/axios-get-adapter';
 import type {UserId, User} from '../../../contracts/user/user-contract';
@@ -1630,6 +1733,13 @@ bindings/
 **Example:**
 
 ```tsx
+/**
+ * PURPOSE: React hook that fetches and manages user data with loading/error states
+ *
+ * USAGE:
+ * const {data, loading, error} = useUserDataBinding({userId});
+ * // Returns {data: User | null, loading: boolean, error: Error | null}
+ */
 // bindings/use-user-data/use-user-data-binding.ts
 import {useState, useEffect} from 'react';
 import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker';
@@ -1697,6 +1807,14 @@ state/
 **Example:**
 
 ```tsx
+/**
+ * PURPOSE: In-memory cache for storing and retrieving user objects by ID
+ *
+ * USAGE:
+ * userCacheState.set({id: userId, user});
+ * userCacheState.get({id: userId});
+ * // Returns User object from cache or undefined
+ */
 // state/user-cache/user-cache-state.ts
 import type {User, UserId} from '../../contracts/user/user-contract';
 

@@ -1,8 +1,12 @@
 /**
- * Determines if an import is from the same domain folder as the current file.
- * Example: /project/src/adapters/fs/test.ts importing from "./adapter" -> true (same fs/ folder)
- * Example: /project/src/adapters/fs/test.ts importing from "../axios/adapter" -> false (different folder)
- * Example: /project/src/contracts/user/user-contract.ts importing from "../../guards/user/user-guard" -> false
+ * PURPOSE: Determines if an import is from the same domain folder as the current file
+ *
+ * USAGE:
+ * const isSame = isSameDomainFolderGuard({
+ *   currentFilePath: '/project/src/adapters/fs/test.ts',
+ *   importPath: './adapter'
+ * });
+ * // Returns true (same fs/ folder) or false (different folder)
  */
 export const isSameDomainFolderGuard = ({
   currentFilePath,

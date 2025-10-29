@@ -1,5 +1,15 @@
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
+/**
+ * PURPOSE: Checks if an AST node is nested inside a function in its parent chain
+ *
+ * USAGE:
+ * const varNode = // AST node for variable inside: const outer = () => { const inner = 5; }
+ * if (isAstNodeInsideFunctionGuard({ node: varNode })) {
+ *   // Node is inside a function (arrow, expression, or declaration)
+ * }
+ * // Returns true if any parent is a function type
+ */
 export const isAstNodeInsideFunctionGuard = ({
   node,
 }: {

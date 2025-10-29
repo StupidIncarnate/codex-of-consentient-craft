@@ -13,6 +13,13 @@ const allowedFolders = Object.entries(folderConfigStatics)
   .map(([folderType]) => folderType)
   .join(', ');
 
+/**
+ * PURPOSE: Restricts regex usage to specific folders where regex is explicitly allowed
+ *
+ * USAGE:
+ * const rule = ruleEnforceRegexUsageBroker();
+ * // Returns ESLint rule that allows regex only in folders with allowRegex: true (guards, transformers, etc.)
+ */
 export const ruleEnforceRegexUsageBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

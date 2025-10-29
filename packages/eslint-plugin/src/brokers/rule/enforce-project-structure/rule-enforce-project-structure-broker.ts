@@ -23,6 +23,13 @@ import { getFileExtensionTransformer } from '../../../transformers/get-file-exte
 
 const allowedFolders = Object.keys(folderConfigStatics);
 
+/**
+ * PURPOSE: Enforces QuestMaestro project structure with hierarchical validation of folders, depth, filenames, and exports
+ *
+ * USAGE:
+ * const rule = ruleEnforceProjectStructureBroker();
+ * // Returns ESLint rule that validates folder location, depth, kebab-case filenames, and export naming conventions
+ */
 export const ruleEnforceProjectStructureBroker = (): EslintRule => {
   const parsedMeta = eslintRuleContract.parse({
     meta: {

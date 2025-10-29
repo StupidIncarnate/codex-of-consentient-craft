@@ -17,6 +17,11 @@
       "import": "./dist/transformers.js",
       "require": "./dist/transformers.js",
       "types": "./dist/transformers.d.ts"
+    },
+    "./@types": {
+      "import": "./dist/@types.js",
+      "require": "./dist/@types.js",
+      "types": "./dist/@types.d.ts"
     }
   },
   "files": [

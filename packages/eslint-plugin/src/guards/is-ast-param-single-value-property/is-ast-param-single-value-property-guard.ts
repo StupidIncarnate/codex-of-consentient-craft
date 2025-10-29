@@ -1,5 +1,15 @@
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
+/**
+ * PURPOSE: Checks if function's first parameter is single property destructuring named 'value'
+ *
+ * USAGE:
+ * const funcNode = // AST node for: ({ value }: { value: string }) => void
+ * if (isAstParamSingleValuePropertyGuard({ funcNode })) {
+ *   // Function has single parameter property named 'value'
+ * }
+ * // Returns true if first param is ObjectPattern with single 'value' property
+ */
 export const isAstParamSingleValuePropertyGuard = ({
   funcNode,
 }: {

@@ -1,3 +1,14 @@
+/**
+ * PURPOSE: Maps ESLint rules to their enforcement timing (pre-edit vs post-edit)
+ *
+ * USAGE:
+ * import { questmaestroRuleEnforceOnStatics } from './statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics';
+ * const timing = questmaestroRuleEnforceOnStatics['@questmaestro/ban-primitives'];
+ * // Returns 'pre-edit'
+ *
+ * WHEN-TO-USE: When determining if a rule should run before or after file write in Claude Code hooks
+ * WHEN-NOT-TO-USE: Pre-edit rules must not use file system operations (fsExistsSyncAdapter, etc)
+ */
 export const questmaestroRuleEnforceOnStatics = {
   // Third-party rules - pre-edit (AST only)
 

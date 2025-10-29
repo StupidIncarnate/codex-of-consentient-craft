@@ -4,6 +4,15 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isAstBrandInChainGuard } from '../../../guards/is-ast-brand-in-chain/is-ast-brand-in-chain-guard';
 
+/**
+ * PURPOSE: Creates ESLint rule that requires .brand() chaining on z.string() and z.number() calls
+ *
+ * USAGE:
+ * const rule = ruleRequireZodOnPrimitivesBroker();
+ * // Returns EslintRule that enforces branded types: z.string().brand<'Type'>() instead of z.string()
+ *
+ * WHEN-TO-USE: When registering ESLint rules to enforce type branding for primitive Zod schemas
+ */
 export const ruleRequireZodOnPrimitivesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

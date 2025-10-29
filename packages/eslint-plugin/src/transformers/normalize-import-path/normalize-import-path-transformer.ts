@@ -1,6 +1,16 @@
 import { modulePathContract } from '@questmaestro/shared/contracts';
 import type { ModulePath } from '@questmaestro/shared/contracts';
 
+/**
+ * PURPOSE: Removes file extensions from import paths to normalize them for comparison
+ *
+ * USAGE:
+ * const normalized = normalizeImportPathTransformer({ importPath: './user-broker.proxy.ts' });
+ * // Returns: './user-broker'
+ *
+ * const alsoNormalized = normalizeImportPathTransformer({ importPath: './user-widget.tsx' });
+ * // Returns: './user-widget'
+ */
 export const normalizeImportPathTransformer = ({
   importPath,
 }: {

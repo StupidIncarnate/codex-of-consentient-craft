@@ -1,5 +1,15 @@
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
+/**
+ * PURPOSE: Checks if function's first parameter uses spread/rest operator in destructuring
+ *
+ * USAGE:
+ * const funcNode = // AST node for: ({ ...props }: Props) => void
+ * if (isAstParamSpreadOperatorGuard({ funcNode })) {
+ *   // Function uses spread/rest operator in first parameter
+ * }
+ * // Returns true if first param is ObjectPattern with single RestElement property
+ */
 export const isAstParamSpreadOperatorGuard = ({ funcNode }: { funcNode?: Tsestree }): boolean => {
   if (!funcNode?.params || funcNode.params.length === 0) {
     return false;

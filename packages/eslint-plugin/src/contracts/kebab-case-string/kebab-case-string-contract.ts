@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+/**
+ * PURPOSE: Validates strings are in kebab-case format (lowercase with hyphens)
+ *
+ * USAGE:
+ * const kebabStr = kebabCaseStringContract.parse('user-profile-broker');
+ * // Returns branded KebabCaseString; throws on 'UserProfile' or 'user_profile'
+ */
 export const kebabCaseStringContract = z
   .string()
   .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u, 'Must be kebab-case')

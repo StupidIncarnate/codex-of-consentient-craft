@@ -9,6 +9,16 @@ import { astFunctionTypeTransformer } from '../../../transformers/ast-function-t
 import { functionViolationSuggestionTransformer } from '../../../transformers/function-violation-suggestion/function-violation-suggestion-transformer';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
+/**
+ * PURPOSE: Creates ESLint rule that forbids non-exported functions and nested functions to prevent hidden helper functions
+ *
+ * USAGE:
+ * const rule = ruleForbidNonExportedFunctionsBroker();
+ * // Returns EslintRule that enforces all functions must be the primary export of their file
+ *
+ * WHEN-TO-USE: When registering ESLint rules to enforce architectural pattern where each function gets its own file
+ * WHEN-NOT-TO-USE: Does not apply to test, stub, or proxy files which are automatically excluded
+ */
 export const ruleForbidNonExportedFunctionsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

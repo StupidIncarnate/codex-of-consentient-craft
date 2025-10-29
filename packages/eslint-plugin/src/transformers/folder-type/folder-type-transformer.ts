@@ -1,6 +1,16 @@
 import type { FolderType } from '../../contracts/folder-type/folder-type-contract';
 import { folderTypeContract } from '../../contracts/folder-type/folder-type-contract';
 
+/**
+ * PURPOSE: Extracts the folder type (brokers, contracts, guards, etc.) from a file path that follows the src/[folder-type]/ structure
+ *
+ * USAGE:
+ * const folderType = folderTypeTransformer({ filename: '/project/src/brokers/user/user-broker.ts' });
+ * // Returns: 'brokers'
+ *
+ * const noType = folderTypeTransformer({ filename: '/project/lib/file.ts' });
+ * // Returns: null
+ */
 export const folderTypeTransformer = ({ filename }: { filename: string }): FolderType | null => {
   const normalizedPath = filename.replace(/\\/gu, '/');
   const srcPattern = /(?:^|\/)src\//u;

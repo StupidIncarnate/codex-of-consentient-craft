@@ -1,5 +1,18 @@
 import type { EslintRules } from '../../contracts/eslint-rules/eslint-rules-contract';
 
+/**
+ * PURPOSE: Disables base ESLint rules that conflict with plugin-specific rules
+ *
+ * USAGE:
+ * const merged = {};
+ * eslintRulesDisableConflictsTransformer({
+ *   mergedRules: merged,
+ *   overrideRules: { '@typescript-eslint/no-unused-vars': 'error' }
+ * });
+ * // Sets merged['no-unused-vars'] = 'off'
+ *
+ * WHEN-TO-USE: When TypeScript ESLint or other plugins override base ESLint rules
+ */
 export const eslintRulesDisableConflictsTransformer = ({
   mergedRules,
   overrideRules,

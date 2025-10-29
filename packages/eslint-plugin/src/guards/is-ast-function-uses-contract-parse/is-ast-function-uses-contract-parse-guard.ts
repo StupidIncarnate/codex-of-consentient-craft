@@ -2,6 +2,16 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 import { isAstContractParseCallGuard } from '../is-ast-contract-parse-call/is-ast-contract-parse-call-guard';
 import { isAstObjectContractParseSpreadGuard } from '../is-ast-object-contract-parse-spread/is-ast-object-contract-parse-spread-guard';
 
+/**
+ * PURPOSE: Checks if a function body contains contract.parse() calls
+ *
+ * USAGE:
+ * const funcNode = // AST node for: () => userContract.parse({ name: 'John' })
+ * if (isAstFunctionUsesContractParseGuard({ funcNode })) {
+ *   // Function uses contract.parse() in return or variable declaration
+ * }
+ * // Returns true if function body contains direct or spread contract.parse() calls
+ */
 export const isAstFunctionUsesContractParseGuard = ({
   funcNode,
 }: {

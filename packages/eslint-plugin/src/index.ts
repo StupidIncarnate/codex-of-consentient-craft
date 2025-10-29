@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Main entry point for the @questmaestro/eslint-plugin package exporting rules, configs, and contracts
+ *
+ * USAGE:
+ * import plugin from '@questmaestro/eslint-plugin';
+ * // Returns ESLint plugin with all rules and configurations
+ */
 export { StartEslintPlugin } from './startup/start-eslint-plugin';
 
 // Export contracts for advanced usage

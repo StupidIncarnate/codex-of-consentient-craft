@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+/**
+ * PURPOSE: Defines the schema for ESLint rule violations with validation and type-safety
+ *
+ * USAGE:
+ * const violation: RuleViolation = {
+ *   node: astNode,
+ *   message: 'Expected return type annotation' as RuleViolation['message'],
+ *   messageId: 'missingReturnType' as RuleViolation['messageId'],
+ *   data: { functionName: 'foo' }
+ * };
+ * // Returns a validated RuleViolation object that can be reported to ESLint
+ */
 export const ruleViolationContract = z.object({
   node: z.unknown(),
   message: z.string().min(1).brand<'ViolationMessage'>(),

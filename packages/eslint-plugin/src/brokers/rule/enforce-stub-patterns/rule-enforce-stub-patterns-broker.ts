@@ -9,6 +9,15 @@ import { isAstParamSpreadOperatorGuard } from '../../../guards/is-ast-param-spre
 import { isAstParamStubArgumentTypeGuard } from '../../../guards/is-ast-param-stub-argument-type/is-ast-param-stub-argument-type-guard';
 import { isAstFunctionUsesContractParseGuard } from '../../../guards/is-ast-function-uses-contract-parse/is-ast-function-uses-contract-parse-guard';
 
+/**
+ * PURPOSE: Creates ESLint rule that enforces stub function patterns (spread operator, StubArgument type, and contract.parse())
+ *
+ * USAGE:
+ * const rule = ruleEnforceStubPatternsBroker();
+ * // Returns EslintRule object that validates stub files use proper patterns
+ *
+ * WHEN-TO-USE: When registering ESLint rules in the plugin startup to enforce stub function coding standards
+ */
 export const ruleEnforceStubPatternsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

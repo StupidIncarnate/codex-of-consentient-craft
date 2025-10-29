@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+/**
+ * PURPOSE: Defines the schema for TypeScript compiler options with validation and type-safety
+ *
+ * USAGE:
+ * const options = tsconfigOptionsContract.parse({
+ *   target: 'ES2020',
+ *   module: 'commonjs',
+ *   strict: true,
+ *   noEmit: false
+ * });
+ * // Returns validated TsconfigOptions with branded types for string fields
+ */
 export const tsconfigOptionsContract = z.object({
   target: z.string().brand<'TsTarget'>().optional(),
   module: z.string().brand<'TsModule'>().optional(),

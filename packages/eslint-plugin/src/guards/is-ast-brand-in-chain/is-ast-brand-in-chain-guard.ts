@@ -1,13 +1,12 @@
+/**
+ * PURPOSE: Checks if a node has .brand() chained somewhere in its parent chain, used for validating Zod schemas have branded types.
+ *
+ * USAGE:
+ * isAstBrandInChainGuard({ node: astNode })
+ * // Returns true for z.string().email().brand<'EmailAddress'>(), false for z.string().email()
+ */
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
-/**
- * Checks if a node has .brand() chained somewhere in its parent chain.
- * Used for validating Zod schemas have branded types.
- *
- * @example
- * // z.string().email().brand<'EmailAddress'>() - returns true
- * // z.string().email() - returns false
- */
 export const isAstBrandInChainGuard = ({ node }: { node?: Tsestree }): boolean => {
   if (!node) {
     return false;

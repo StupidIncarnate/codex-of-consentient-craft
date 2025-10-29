@@ -1,5 +1,15 @@
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
+/**
+ * PURPOSE: Checks if an AST node is a contract.parse() call expression
+ *
+ * USAGE:
+ * const callNode = // AST node for: userContract.parse({ name: 'John' })
+ * if (isAstContractParseCallGuard({ node: callNode })) {
+ *   // Node is a valid contract.parse() call
+ * }
+ * // Returns true if node is CallExpression with pattern: {identifier}Contract.parse()
+ */
 export const isAstContractParseCallGuard = ({ node }: { node?: Tsestree }): boolean => {
   if (node === undefined || node.type !== 'CallExpression' || !node.callee) {
     return false;

@@ -1,6 +1,20 @@
 import type { FilePath } from '@questmaestro/shared/contracts';
 import { filePathContract } from '@questmaestro/shared/contracts';
 
+/**
+ * PURPOSE: Converts a test file path to the expected colocated proxy import path
+ *
+ * USAGE:
+ * const proxyPath = testFilePathToColocatedProxyPathTransformer({
+ *   testFilePath: '/src/brokers/user/user-broker.test.ts'
+ * });
+ * // Returns: './user-broker.proxy'
+ *
+ * const integrationProxy = testFilePathToColocatedProxyPathTransformer({
+ *   testFilePath: '/src/adapters/http/http-adapter.integration.test.ts'
+ * });
+ * // Returns: './http-adapter.proxy'
+ */
 export const testFilePathToColocatedProxyPathTransformer = ({
   testFilePath,
 }: {

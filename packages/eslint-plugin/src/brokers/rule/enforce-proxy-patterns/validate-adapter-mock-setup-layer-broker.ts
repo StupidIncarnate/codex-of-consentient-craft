@@ -2,6 +2,13 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
+/**
+ * PURPOSE: Layer helper that validates adapter proxies setup mock implementations in constructor
+ *
+ * USAGE:
+ * validateAdapterMockSetupLayerBroker({ functionNode, context });
+ * // Reports error if adapter proxy uses jest.mocked() but doesn't call mockImplementation/mockResolvedValue before return
+ */
 export const validateAdapterMockSetupLayerBroker = ({
   functionNode,
   context,

@@ -1,10 +1,21 @@
 import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
 
 /**
- * Extracts filename without extension and suffix.
- * Handles suffixes with extensions (like .proxy.ts) vs without extensions (like -broker).
- * When given an array of suffixes, tries longest suffix first.
- * Example: '/path/to/user-fetch-broker.ts' with suffix '-broker.ts' -> 'user-fetch'
+ * PURPOSE: Extracts filename without extension and type suffix
+ *
+ * USAGE:
+ * const base = filepathBasenameWithoutSuffixTransformer({
+ *   filePath: '/path/to/user-fetch-broker.ts',
+ *   suffix: '-broker.ts'
+ * });
+ * // Returns 'user-fetch'
+ * const base2 = filepathBasenameWithoutSuffixTransformer({
+ *   filePath: 'file.proxy.ts',
+ *   suffix: '.proxy.ts'
+ * });
+ * // Returns 'file'
+ *
+ * WHEN-TO-USE: When extracting base names for folder structure validation
  */
 export const filepathBasenameWithoutSuffixTransformer = ({
   filePath,

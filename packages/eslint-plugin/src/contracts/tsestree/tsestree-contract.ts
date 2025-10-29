@@ -13,6 +13,16 @@ const nodeTypeValues = Object.values(tsestreeNodeTypeStatics.nodeTypes) as [
 ];
 
 /**
+ * PURPOSE: Validates TypeScript ESTree AST nodes with recursive parent references
+ *
+ * USAGE:
+ * const node = tsestreeContract.parse({
+ *   type: 'Identifier',
+ *   name: 'myVariable' as Identifier,
+ *   parent: { type: 'VariableDeclarator', ... }
+ * });
+ * // Returns a validated Tsestree AST node with type-safe recursive structure
+ *
  * TSESTree contract - translates @typescript-eslint/utils types to Zod schemas.
  * Contract defines ONLY data properties (no functions).
  * Uses z.lazy() for recursive parent reference.

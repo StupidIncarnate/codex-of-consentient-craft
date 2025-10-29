@@ -1,5 +1,15 @@
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
+/**
+ * PURPOSE: Checks if an AST node matches a specific method call pattern (object.method())
+ *
+ * USAGE:
+ * const callNode = // AST node for: jest.mock('./module')
+ * if (isAstMethodCallGuard({ node: callNode, object: 'jest', method: 'mock' })) {
+ *   // Node is a jest.mock() call
+ * }
+ * // Returns true if node is CallExpression matching object.method() pattern
+ */
 export const isAstMethodCallGuard = ({
   node,
   object,

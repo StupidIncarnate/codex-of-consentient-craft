@@ -1,13 +1,13 @@
+/**
+ * PURPOSE: Extracts the project folder type (brokers, contracts, guards, etc.) from a file path
+ *
+ * USAGE:
+ * const folderType = projectFolderTypeFromFilePathTransformer({ filename: '/project/src/brokers/user/fetch.ts' });
+ * // Returns 'brokers'
+ */
 import type { Identifier } from '@questmaestro/shared/contracts';
 import { identifierContract } from '@questmaestro/shared/contracts';
 
-/**
- * Extracts the project folder type (brokers, contracts, guards, etc.) from a file path.
- * Example: '/project/src/brokers/user/fetch.ts' -> 'brokers'
- * Returns null if file is not in /src/ or has no subfolders.
- *
- * Use case: Determining which folder-specific rules to apply (broker rules, contract rules, etc.)
- */
 export const projectFolderTypeFromFilePathTransformer = ({
   filename,
 }: {

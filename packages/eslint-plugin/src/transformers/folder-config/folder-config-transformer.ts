@@ -4,6 +4,16 @@ import { folderConfigStatics } from '../../statics/folder-config/folder-config-s
 
 type FolderConfig = (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
 
+/**
+ * PURPOSE: Retrieves the configuration object for a specific folder type (brokers, contracts, guards, etc.)
+ *
+ * USAGE:
+ * const config = folderConfigTransformer({ folderType: 'brokers' });
+ * // Returns: { fileSuffix: 'broker', requireProxy: true, allowedImports: [...] }
+ *
+ * const unknownConfig = folderConfigTransformer({ folderType: 'unknown' });
+ * // Returns: undefined
+ */
 export const folderConfigTransformer = ({
   folderType,
 }: {

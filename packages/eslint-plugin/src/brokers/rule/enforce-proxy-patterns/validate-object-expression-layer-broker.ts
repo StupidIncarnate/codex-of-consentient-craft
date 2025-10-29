@@ -2,6 +2,13 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { proxyPatternsStatics } from '../../../statics/proxy-patterns/proxy-patterns-statics';
 
+/**
+ * PURPOSE: Layer helper that validates object expressions in proxy returns for forbidden properties and naming
+ *
+ * USAGE:
+ * validateObjectExpressionLayerBroker({ objectNode, context });
+ * // Reports error if object has 'bootstrap' property or helper names contain 'mock', 'spy', etc.
+ */
 export const validateObjectExpressionLayerBroker = ({
   objectNode,
   context,

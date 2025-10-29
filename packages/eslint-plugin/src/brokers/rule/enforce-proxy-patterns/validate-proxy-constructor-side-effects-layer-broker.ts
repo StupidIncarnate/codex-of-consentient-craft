@@ -2,6 +2,13 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
+/**
+ * PURPOSE: Layer helper that validates proxy constructors only create child proxies and setup mocks without side effects
+ *
+ * USAGE:
+ * validateProxyConstructorSideEffectsLayerBroker({ functionNode, context });
+ * // Reports error if proxy constructor has side effects like API calls, database operations, etc. before return
+ */
 export const validateProxyConstructorSideEffectsLayerBroker = ({
   functionNode,
   context,

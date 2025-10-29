@@ -1,36 +1,19 @@
+/**
+ * PURPOSE: Adapter for ESLint RuleTester - configures TypeScript parser for rule integration tests and translates contract types to ESLint types.
+ *
+ * USAGE:
+ * const ruleTester = eslintRuleTesterAdapter();
+ * ruleTester.run('my-rule', myRuleBroker(), {
+ *   valid: ['const foo = (): string => "bar"'],
+ *   invalid: [{ code: 'const foo = () => "bar"', errors: [{ messageId: 'missingReturnType' }] }],
+ * });
+ * // Returns configured RuleTester instance with run method that accepts EslintRule
+ */
 import { RuleTester } from 'eslint';
 import type { Linter, Rule } from 'eslint';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { eslintRuleNameContract } from '../../../contracts/eslint-rule-name/eslint-rule-name-contract';
 import type { EslintRuleName } from '../../../contracts/eslint-rule-name/eslint-rule-name-contract';
-
-/**
- * Adapter for ESLint RuleTester - configures TypeScript parser for rule integration tests.
- *
- * This adapter:
- * - Configures @typescript-eslint/parser for TypeScript support
- * - Marks tests as RuleTester tests for @questmaestro/testing assertion checks
- * - Translates EslintRule contract types to ESLint Rule.RuleModule types
- * - Accepts either plain string or branded EslintRuleName for rule name
- *
- * @returns Configured RuleTester instance with run method that accepts EslintRule
- *
- * @example
- * ```typescript
- * import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
- * import { myRuleBroker } from './my-rule-broker';
- *
- * const ruleTester = eslintRuleTesterAdapter();
- *
- * ruleTester.run('my-rule', myRuleBroker(), {
- *   valid: ['const foo = (): string => "bar"'],
- *   invalid: [{
- *     code: 'const foo = () => "bar"',
- *     errors: [{ messageId: 'missingReturnType' }],
- *   }],
- * });
- * ```
- */
 interface GlobalWithRuleTester {
   RuleTester?: typeof RuleTester;
 }

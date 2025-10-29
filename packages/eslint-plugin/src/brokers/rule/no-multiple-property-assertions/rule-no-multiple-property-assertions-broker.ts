@@ -6,6 +6,15 @@ import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard
 import { astGetMemberExpressionRootTransformer } from '../../../transformers/ast-get-member-expression-root/ast-get-member-expression-root-transformer';
 import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
 
+/**
+ * PURPOSE: Creates ESLint rule that disallows multiple toStrictEqual assertions on properties of the same root object
+ *
+ * USAGE:
+ * const rule = ruleNoMultiplePropertyAssertionsBroker();
+ * // Returns EslintRule that detects when 2+ properties of same object are tested separately in a test block
+ *
+ * WHEN-TO-USE: When registering ESLint rules to prevent property bleedthrough by enforcing complete object assertions
+ */
 export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

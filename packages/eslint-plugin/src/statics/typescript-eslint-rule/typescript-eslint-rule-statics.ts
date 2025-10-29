@@ -1,3 +1,13 @@
+/**
+ * PURPOSE: Provides TypeScript-specific ESLint rule configuration with detailed documentation
+ *
+ * USAGE:
+ * import { typescriptEslintRuleStatics } from './statics/typescript-eslint-rule/typescript-eslint-rule-statics';
+ * const tsConfig = { rules: typescriptEslintRuleStatics.rules };
+ * // Returns complete TypeScript ESLint rule configuration object
+ *
+ * WHEN-TO-USE: When building ESLint configuration that needs TypeScript-specific rules
+ */
 export const typescriptEslintRuleStatics = {
   rules: {
     // ✅ function foo(); function foo(x: string): void; function foo(x?: string) {}

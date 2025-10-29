@@ -4,6 +4,13 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { validateFunctionParamsUseObjectDestructuringTransformer } from '../../../transformers/validate-function-params-use-object-destructuring/validate-function-params-use-object-destructuring-transformer';
 
+/**
+ * PURPOSE: Enforces that exported function parameters use object destructuring pattern
+ *
+ * USAGE:
+ * const rule = ruleEnforceObjectDestructuringParamsBroker();
+ * // Returns ESLint rule that requires `({ param }: { param: Type })` instead of `(param: Type)`
+ */
 export const ruleEnforceObjectDestructuringParamsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

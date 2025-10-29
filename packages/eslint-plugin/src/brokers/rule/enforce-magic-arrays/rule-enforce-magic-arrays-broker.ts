@@ -5,6 +5,13 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 
+/**
+ * PURPOSE: Forbids inline string/number array const declarations and requires using statics files instead
+ *
+ * USAGE:
+ * const rule = ruleEnforceMagicArraysBroker();
+ * // Returns ESLint rule that prevents `const x = ['a', 'b']` and requires moving arrays to statics files
+ */
 export const ruleEnforceMagicArraysBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

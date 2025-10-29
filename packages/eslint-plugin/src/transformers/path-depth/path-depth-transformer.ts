@@ -1,6 +1,16 @@
 import type { DepthCount } from '../../contracts/depth-count/depth-count-contract';
 import { depthCountContract } from '../../contracts/depth-count/depth-count-contract';
 
+/**
+ * PURPOSE: Calculates the directory nesting depth within a src/[folder-type]/ structure
+ *
+ * USAGE:
+ * const depth = pathDepthTransformer({ filePath: '/project/src/brokers/user/fetch/user-fetch-broker.ts' });
+ * // Returns: 2 (two directories deep: user/fetch/)
+ *
+ * const flatDepth = pathDepthTransformer({ filePath: '/project/src/contracts/user-contract.ts' });
+ * // Returns: 0 (file directly in folder type)
+ */
 export const pathDepthTransformer = ({ filePath }: { filePath: string }): DepthCount => {
   // Match pattern: src/[folder-type]/... (with optional leading slash or path prefix)
   const srcMatch = /(?:^|\/)src\/([^/]+)\/(.*)$/u.exec(filePath);
