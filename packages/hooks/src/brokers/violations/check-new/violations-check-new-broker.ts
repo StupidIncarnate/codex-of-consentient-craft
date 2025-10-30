@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Orchestrates violation detection workflow for tool input operations
+ *
+ * USAGE:
+ * const comparison = await violationsCheckNewBroker({ toolInput: editInput, cwd: '/project' });
+ * // Returns ViolationComparison indicating if new violations were introduced
+ */
 import { toolInputGetContentChangesBroker } from '../../tool-input/get-content-changes/tool-input-get-content-changes-broker';
 import { hookConfigLoadBroker } from '../../hook-config/load/hook-config-load-broker';
 import { eslintLoadConfigBroker } from '../../eslint/load-config/eslint-load-config-broker';

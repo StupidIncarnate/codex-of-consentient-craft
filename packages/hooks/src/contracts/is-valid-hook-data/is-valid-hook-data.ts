@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Type guard validating HookData with required string properties
+ *
+ * USAGE:
+ * if (isValidHookData({ data })) { console.log(data.hook_event_name); }
+ * // Returns true if data has hook_event_name, session_id, transcript_path, cwd as strings
+ */
 import type { HookData } from '../hook-data/hook-data-contract';
 import { hasStringProperty } from '../has-string-property/has-string-property';
 

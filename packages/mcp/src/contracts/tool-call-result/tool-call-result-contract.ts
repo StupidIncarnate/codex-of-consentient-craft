@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Defines the schema for MCP tool call results with content array
+ *
+ * USAGE:
+ * const result: ToolCallResult = toolCallResultContract.parse({ content: [{ type: 'text', text: 'Result...' }] });
+ * // Returns validated tool call result with array of content items
+ */
 import { z } from 'zod';
 
 const toolCallContentContract = z.object({

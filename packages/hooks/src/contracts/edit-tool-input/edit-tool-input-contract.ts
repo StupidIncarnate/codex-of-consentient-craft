@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for validating Edit tool input structure
+ *
+ * USAGE:
+ * const editInput = editToolInputContract.parse(input);
+ * // Returns validated EditToolInput with file_path, old_string, new_string, optional replace_all
+ */
 import { z } from 'zod';
 
 export const editToolInputContract = z.object({

@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Analyzes lint results to identify newly introduced violations
+ *
+ * USAGE:
+ * const comparison = violationsAnalyzeBroker({ oldResults, newResults, config, hookData });
+ * // Returns ViolationComparison with hasNewViolations flag and formatted message
+ */
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import type { ViolationComparison } from '../../../contracts/violation-comparison/violation-comparison-contract';
 import type { PreEditLintConfig } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';

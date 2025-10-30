@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Handles pre-edit hook events by checking for new ESLint violations
+ *
+ * USAGE:
+ * const result = await HookPreEditResponder({ input: hookData });
+ * // Returns { shouldBlock: boolean, message?: string } indicating whether to block the edit
+ */
 import { violationsCheckNewBroker } from '../../../brokers/violations/check-new/violations-check-new-broker';
 import { preToolUseHookDataContract } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
 import type { HookData } from '../../../contracts/hook-data/hook-data-contract';

@@ -1,4 +1,11 @@
 /**
+ * PURPOSE: Type guard checking if object has a specific property with string value
+ *
+ * USAGE:
+ * if (hasStringProperty({ obj: data, property: 'name' })) { const name = data.name; }
+ * // Returns true if obj has the property as a string
+ */
+/**
  * Type predicate that checks if an object has a specific property with a string value.
  *
  * @param params - The parameters object

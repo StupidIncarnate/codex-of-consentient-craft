@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Defines the input schema for the MCP discover tool that searches files and standards
+ *
+ * USAGE:
+ * const input: DiscoverInput = discoverInputContract.parse({ type: 'files', fileType: 'broker' });
+ * // Returns validated DiscoverInput with type 'files' or 'standards' and optional filters
+ */
 import { z } from 'zod';
 
 export const discoverInputContract = z.object({

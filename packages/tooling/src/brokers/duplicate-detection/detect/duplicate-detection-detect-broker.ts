@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Detects duplicate string and regex literals across multiple TypeScript files.
+ *
+ * USAGE:
+ * const reports = await duplicateDetectionDetectBroker({ pattern: '**/*.ts', cwd: '/path', threshold: 3, minLength: 3 });
+ * // Returns: readonly DuplicateLiteralReport[] (array of duplicate literal reports sorted by occurrence count)
+ */
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { DuplicateLiteralReport } from '../../../contracts/duplicate-literal-report/duplicate-literal-report-contract';

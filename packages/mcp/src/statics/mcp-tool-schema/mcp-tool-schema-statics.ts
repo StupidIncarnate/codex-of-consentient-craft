@@ -1,4 +1,10 @@
 /**
+ * PURPOSE: Defines JSON Schema definitions for MCP tools derived from contracts
+ *
+ * USAGE:
+ * const schema = mcpToolSchemaStatics.discover;
+ * // Returns MCP tool schema with name, description, and JSON Schema inputSchema
+ *
  * MCP tool schema definitions derived from contracts
  *
  * These schemas mirror the structure of discoverInputContract but in JSON Schema format

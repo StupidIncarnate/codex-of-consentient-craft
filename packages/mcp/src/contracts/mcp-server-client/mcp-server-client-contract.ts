@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Defines the schema for MCP server client with process and RPC communication methods
+ *
+ * USAGE:
+ * const client: McpServerClient = { process, sendRequest: async (req) => {...}, close: async () => {...} };
+ * // Returns a client object with process, sendRequest, and close methods
+ */
 import { z } from 'zod';
 import type { JsonRpcRequest } from '../json-rpc-request/json-rpc-request-contract';
 import type { JsonRpcResponse } from '../json-rpc-response/json-rpc-response-contract';

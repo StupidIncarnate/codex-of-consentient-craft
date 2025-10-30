@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Groups lint violations by rule ID with counts and details
+ *
+ * USAGE:
+ * const counts = violationsCountByRuleTransformer({ results });
+ * // Returns array of ViolationCount grouped by ruleId with error details
+ */
 import type { LintResult } from '../../contracts/lint-result/lint-result-contract';
 import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
 import type { ViolationDetail } from '../../contracts/violation-detail/violation-detail-contract';

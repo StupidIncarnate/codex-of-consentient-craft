@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Runs ESLint on content with targeted rules and handles TypeScript config errors
+ *
+ * USAGE:
+ * const results = await eslintLintRunTargetedBroker({ content: code, filePath: 'file.ts', config: linterConfig, cwd: '/path' });
+ * // Returns array of LintResult with violations found
+ */
 import { eslintEslint } from '../../../adapters/eslint/eslint-eslint';
 import { pathResolve } from '../../../adapters/path/path-resolve';
 import type { Linter } from '../../../adapters/eslint/eslint-linter';

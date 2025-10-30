@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Identifies newly introduced violations by comparing old and new counts
+ *
+ * USAGE:
+ * const newViolations = violationsFindNewTransformer({ oldViolations, newViolations });
+ * // Returns array of ViolationCount with only newly introduced violations
+ */
 import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
 import { violationCountContract } from '../../contracts/violation-count/violation-count-contract';
 

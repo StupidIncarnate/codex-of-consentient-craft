@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema defining base fields shared by all hook data types
+ *
+ * USAGE:
+ * const baseData = baseHookDataContract.parse(data);
+ * // Returns validated BaseHookData with session_id, transcript_path, cwd, hook_event_name
+ */
 import { z } from 'zod';
 
 export const baseHookDataContract = z.object({

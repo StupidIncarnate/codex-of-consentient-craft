@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Adapter for ESLint's calculateConfigForFile with type-safe handling
+ *
+ * USAGE:
+ * const config = await eslintCalculateConfigForFile({ eslint, filePath: '/path/to/file.ts' });
+ * // Returns Linter.Config object for the specified file
+ */
 import type { ESLint, Linter } from 'eslint';
 
 /**

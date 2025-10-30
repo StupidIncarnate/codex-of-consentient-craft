@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for Write tool input structure
+ *
+ * USAGE:
+ * const writeInput = writeToolInputContract.parse(input);
+ * // Returns validated WriteToolInput with file_path and content
+ */
 import { z } from 'zod';
 
 export const writeToolInputContract = z.object({

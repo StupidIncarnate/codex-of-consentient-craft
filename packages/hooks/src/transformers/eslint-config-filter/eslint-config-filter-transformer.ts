@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Filters ESLint config to only include rules specified in hook config
+ *
+ * USAGE:
+ * const filtered = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
+ * // Returns Linter.Config with only allowed rules enabled
+ */
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import type { Linter } from 'eslint';
 import { ruleNamesExtractTransformer } from '../rule-names-extract/rule-names-extract-transformer';

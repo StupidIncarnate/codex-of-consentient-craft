@@ -1,4 +1,11 @@
 /**
+ * PURPOSE: Provides instructional messages explaining why violations should be fixed
+ *
+ * USAGE:
+ * const message = violationRuleMessageDefaultTransformer({ ruleId: '@typescript-eslint/no-explicit-any' });
+ * // Returns instructional message for fixing the violation
+ */
+/**
  * Provides a default instructional message for a lint rule violation.
  *
  * Maps common rule IDs to detailed messages that explain why the rule exists

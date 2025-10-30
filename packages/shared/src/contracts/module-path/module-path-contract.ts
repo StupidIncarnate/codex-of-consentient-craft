@@ -1,3 +1,11 @@
+/**
+ * PURPOSE: Zod schema for validating module paths used in import/require statements
+ *
+ * USAGE:
+ * const modulePath = modulePathContract.parse('@questmaestro/shared');
+ * // Returns branded ModulePath type for npm packages, relative paths, or absolute paths
+ */
+
 import { z } from 'zod';
 
 /**

@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Converts ESLint result to internal LintResult format with validation
+ *
+ * USAGE:
+ * const lintResult = eslintResultToLintResultTransformer({ eslintResult });
+ * // Returns validated LintResult with simplified structure
+ */
 import type { ESLint } from '../../adapters/eslint/eslint-eslint';
 import type { LintResult } from '../../contracts/lint-result/lint-result-contract';
 import { lintMessageContract } from '../../contracts/lint-message/lint-message-contract';

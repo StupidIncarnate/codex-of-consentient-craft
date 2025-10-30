@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for tool response with passthrough for additional fields
+ *
+ * USAGE:
+ * const response = toolResponseContract.parse(responseData);
+ * // Returns validated ToolResponse with optional filePath and success, allows extra fields
+ */
 import { z } from 'zod';
 
 export const toolResponseContract = z

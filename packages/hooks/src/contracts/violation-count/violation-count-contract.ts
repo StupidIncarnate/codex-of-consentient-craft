@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for violation count by rule with details
+ *
+ * USAGE:
+ * const violationCount = violationCountContract.parse(countData);
+ * // Returns validated ViolationCount with ruleId, count, and details array
+ */
 import { z } from 'zod';
 import { violationDetailContract } from '../violation-detail/violation-detail-contract';
 

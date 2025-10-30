@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Handles session start hook events by loading standards for new sessions
+ *
+ * USAGE:
+ * const result = await HookSessionStartResponder({ input: sessionStartData });
+ * // Returns { shouldOutput: boolean, content?: string } with standards to inject
+ */
 import { debugDebug } from '../../../adapters/debug/debug-debug';
 import { isNewSession } from '../../../contracts/is-new-session/is-new-session';
 import { standardsLoadFilesBroker } from '../../../brokers/standards/load-files/standards-load-files-broker';

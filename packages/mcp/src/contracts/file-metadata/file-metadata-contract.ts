@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Defines the complete schema for file metadata including signature and documentation
+ *
+ * USAGE:
+ * const metadata: FileMetadata = fileMetadataContract.parse({ name: 'myBroker', path: '/path/to/file', fileType: 'broker', purpose: '...', signature: {...} });
+ * // Returns validated file metadata with name, path, type, optional purpose, signature, and usage
+ */
 import { z } from 'zod';
 
 const signatureParameterContract = z.object({

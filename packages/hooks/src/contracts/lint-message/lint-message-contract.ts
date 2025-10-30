@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for individual lint message with location and severity
+ *
+ * USAGE:
+ * const message = lintMessageContract.parse(msgData);
+ * // Returns validated LintMessage with line, column, message, severity (1=warn, 2=error), optional ruleId
+ */
 import { z } from 'zod';
 
 const LINT_SEVERITY_MIN = 1;

@@ -1,3 +1,11 @@
+/**
+ * PURPOSE: Zod schema for validating relative file paths that start with ./ or ../
+ *
+ * USAGE:
+ * const path = relativeFilePathContract.parse('./src/utils.ts');
+ * // Returns branded RelativeFilePath type that starts with ./ or ../
+ */
+
 import { z } from 'zod';
 
 export const relativeFilePathContract = z

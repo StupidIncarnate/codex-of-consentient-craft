@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Loads ESLint configuration for a file with caching to improve performance
+ *
+ * USAGE:
+ * const config = await eslintLoadConfigBroker({ cwd: '/project/path', filePath: 'src/file.ts' });
+ * // Returns Linter.Config for the specified file path
+ */
 import { eslintEslint } from '../../../adapters/eslint/eslint-eslint';
 import type { Linter } from '../../../adapters/eslint/eslint-linter';
 import { eslintCalculateConfigForFile } from '../../../adapters/eslint/eslint-calculate-config-for-file';

@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Parses TypeScript source code to extract string and regex literals with their locations.
+ *
+ * USAGE:
+ * const literals = typescriptParseAdapter({ sourceCode, filePath: '/path/to/file.ts', minLength: 3 });
+ * // Returns: ReadonlyMap<LiteralValue, readonly LiteralOccurrence[]> (map of literal values to their occurrences)
+ */
 import * as ts from 'typescript';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';

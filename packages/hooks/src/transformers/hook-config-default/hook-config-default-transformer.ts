@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Generates default hook configuration from questmaestro eslint plugin rules
+ *
+ * USAGE:
+ * const defaultConfig = hookConfigDefaultTransformer();
+ * // Returns PreEditLintConfig with all pre-edit rules from eslint-plugin
+ */
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { preEditLintConfigContract } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { configQuestmaestroBroker } from '@questmaestro/eslint-plugin';

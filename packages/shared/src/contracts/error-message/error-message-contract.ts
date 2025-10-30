@@ -1,3 +1,11 @@
+/**
+ * PURPOSE: Zod schema for validating error and validation message strings
+ *
+ * USAGE:
+ * const message = errorMessageContract.parse('File not found');
+ * // Returns branded ErrorMessage type for error messages and user-facing text
+ */
+
 import { z } from 'zod';
 
 /**

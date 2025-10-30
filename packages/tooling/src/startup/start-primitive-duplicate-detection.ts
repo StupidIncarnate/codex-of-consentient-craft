@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 
+/**
+ * PURPOSE: CLI entry point that scans TypeScript files for duplicate string and regex literals.
+ *
+ * USAGE:
+ * await StartPrimitiveDuplicateDetection();
+ * // Or with CLI args: node script.js --pattern="**/*.ts" --threshold=3 --min-length=3
+ * // Returns: void (outputs duplicate literal report to stdout)
+ */
 import { duplicateDetectionDetectBroker } from '../brokers/duplicate-detection/detect/duplicate-detection-detect-broker';
 import { globPatternContract } from '../contracts/glob-pattern/glob-pattern-contract';
 import { absoluteFilePathContract } from '../contracts/absolute-file-path/absolute-file-path-contract';

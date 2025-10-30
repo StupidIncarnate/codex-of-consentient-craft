@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Loads questmaestro standards markdown files from node_modules
+ *
+ * USAGE:
+ * const standards = await standardsLoadFilesBroker({ cwd: '/project/path' });
+ * // Returns concatenated string of coding and testing standards
+ */
 import { fsReadFile } from '../../../adapters/fs/fs-read-file';
 import { pathResolve } from '../../../adapters/path/path-resolve';
 import { fsExistsSync } from '../../../adapters/fs/fs-exists-sync';

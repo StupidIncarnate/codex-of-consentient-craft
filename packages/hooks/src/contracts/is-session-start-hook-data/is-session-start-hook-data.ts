@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Type guard validating SessionStartHookData with hook_event_name check
+ *
+ * USAGE:
+ * if (isSessionStartHookData({ data })) { console.log(data.session_id); }
+ * // Returns true if data is valid SessionStartHookData with hook_event_name === 'SessionStart'
+ */
 import type { SessionStartHookData } from '../session-start-hook-data/session-start-hook-data';
 
 /**

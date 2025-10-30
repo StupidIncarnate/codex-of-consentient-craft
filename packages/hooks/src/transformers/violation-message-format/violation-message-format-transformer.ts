@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Formats basic violation message without custom display names
+ *
+ * USAGE:
+ * const message = violationMessageFormatTransformer({ violations });
+ * // Returns multi-line formatted string with generic violation info
+ */
 import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
 
 export const violationMessageFormatTransformer = ({

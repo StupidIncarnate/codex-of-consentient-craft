@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for individual violation detail with location
+ *
+ * USAGE:
+ * const detail = violationDetailContract.parse(detailData);
+ * // Returns validated ViolationDetail with ruleId, line, column, message
+ */
 import { z } from 'zod';
 
 export const violationDetailContract = z.object({

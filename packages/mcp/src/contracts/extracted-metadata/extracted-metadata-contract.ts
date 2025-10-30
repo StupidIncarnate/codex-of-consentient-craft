@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Defines the schema for metadata extracted from file documentation comments
+ *
+ * USAGE:
+ * const metadata: ExtractedMetadata = extractedMetadataContract.parse({ purpose: '...', usage: '...', metadata: {} });
+ * // Returns validated file metadata with purpose, usage examples, and additional key-value pairs
+ */
 import { z } from 'zod';
 
 export const extractedMetadataContract = z.object({

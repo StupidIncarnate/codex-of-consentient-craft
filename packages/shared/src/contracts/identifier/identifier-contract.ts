@@ -1,3 +1,11 @@
+/**
+ * PURPOSE: Zod schema for validating JavaScript/TypeScript identifiers
+ *
+ * USAGE:
+ * const name = identifierContract.parse('myFunction');
+ * // Returns branded Identifier type for variable names, function names, etc.
+ */
+
 import { z } from 'zod';
 
 /**

@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Defines the output schema for MCP discover tool results with file metadata
+ *
+ * USAGE:
+ * const result: DiscoverResult = discoverResultContract.parse({ results: [...], count: 5 });
+ * // Returns validated array of discovered files with metadata and total count
+ */
 import { z } from 'zod';
 
 const discoverResultItemContract = z.object({

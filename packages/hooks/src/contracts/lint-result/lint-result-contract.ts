@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for lint results containing file path and messages
+ *
+ * USAGE:
+ * const result = lintResultContract.parse(resultData);
+ * // Returns validated LintResult with filePath, messages array, errorCount, warningCount
+ */
 import { z } from 'zod';
 import { lintMessageContract } from '../lint-message/lint-message-contract';
 

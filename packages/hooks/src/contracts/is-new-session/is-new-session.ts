@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Determines if a session is new based on transcript file size
+ *
+ * USAGE:
+ * const isNew = await isNewSession({ transcriptPath: '/path/to/transcript.txt' });
+ * // Returns true if file doesn't exist or is smaller than 1KB
+ */
 import { fsStat } from '../../adapters/fs/fs-stat';
 import { fsExistsSync } from '../../adapters/fs/fs-exists-sync';
 import { filePathContract } from '../file-path/file-path-contract';

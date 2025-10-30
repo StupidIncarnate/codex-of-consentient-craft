@@ -1,3 +1,11 @@
+/**
+ * PURPOSE: Zod schema for validating absolute file paths on Unix/Linux and Windows systems
+ *
+ * USAGE:
+ * const filePath = absoluteFilePathContract.parse('/home/user/file.ts');
+ * // Returns branded AbsoluteFilePath type that starts with / or C:\ on Windows
+ */
+
 import { z } from 'zod';
 
 export const absoluteFilePathContract = z

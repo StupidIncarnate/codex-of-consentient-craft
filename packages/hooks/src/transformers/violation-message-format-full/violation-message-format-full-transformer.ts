@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Formats complete violation message with display names, counts, and locations
+ *
+ * USAGE:
+ * const message = violationMessageFormatFullTransformer({ violations, config, hookData });
+ * // Returns multi-line formatted string with violation details and guidance
+ */
 import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { ruleDisplayConfigExtractTransformer } from '../rule-display-config-extract/rule-display-config-extract-transformer';

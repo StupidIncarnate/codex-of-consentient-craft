@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Extracts display name and message from config for a specific rule
+ *
+ * USAGE:
+ * const display = ruleDisplayConfigExtractTransformer({ config, ruleId: 'no-console' });
+ * // Returns { displayName?: string, message?: string | function } for the rule
+ */
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 
 export const ruleDisplayConfigExtractTransformer = ({

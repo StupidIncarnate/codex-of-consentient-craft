@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for UserPromptSubmit hook event data
+ *
+ * USAGE:
+ * const hookData = userPromptSubmitHookDataContract.parse(data);
+ * // Returns validated UserPromptSubmitHookData with user_prompt
+ */
 import { z } from 'zod';
 
 export const userPromptSubmitHookDataContract = z.object({

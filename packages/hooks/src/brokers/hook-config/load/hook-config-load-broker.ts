@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Loads questmaestro hooks configuration from .questmaestro-hooks.config files
+ *
+ * USAGE:
+ * const config = hookConfigLoadBroker({ cwd: '/project/path' });
+ * // Returns PreEditLintConfig from config file or defaults
+ */
 import { pathResolve } from '../../../adapters/path/path-resolve';
 import { fsExistsSync } from '../../../adapters/fs/fs-exists-sync';
 import type { PreEditLintConfig } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';

@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Computes full file content after applying Write, Edit, or MultiEdit operations
+ *
+ * USAGE:
+ * const newContent = await toolInputGetFullContentBroker({ toolInput: editToolInput });
+ * // Returns full file content string after applying edits, or null if not applicable
+ */
 import { fsReadFile } from '../../../adapters/fs/fs-read-file';
 import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
 import { regexEscapeTransformer } from '../../../transformers/regex-escape/regex-escape-transformer';

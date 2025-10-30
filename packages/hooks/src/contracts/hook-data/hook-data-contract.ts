@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod union schema for all hook data types
+ *
+ * USAGE:
+ * const hookData = hookDataContract.parse(data);
+ * // Returns validated HookData (pre-tool, post-tool, user-prompt, or base)
+ */
 import { z } from 'zod';
 import { preToolUseHookDataContract } from '../pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
 import { postToolUseHookDataContract } from '../post-tool-use-hook-data/post-tool-use-hook-data-contract';

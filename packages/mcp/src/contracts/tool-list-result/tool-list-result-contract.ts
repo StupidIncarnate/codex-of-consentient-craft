@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Defines the schema for MCP tools/list response containing available tools
+ *
+ * USAGE:
+ * const result: ToolListResult = toolListResultContract.parse({ tools: [{ name: 'discover', description: '...', inputSchema: {...} }] });
+ * // Returns validated array of available MCP tools
+ */
 import { z } from 'zod';
 
 const toolContract = z.object({

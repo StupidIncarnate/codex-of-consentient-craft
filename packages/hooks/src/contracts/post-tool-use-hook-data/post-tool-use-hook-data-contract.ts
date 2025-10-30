@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for PostToolUse hook event data
+ *
+ * USAGE:
+ * const hookData = postToolUseHookDataContract.parse(data);
+ * // Returns validated PostToolUseHookData with tool_name, tool_input, optional tool_response
+ */
 import { z } from 'zod';
 import { toolInputContract } from '../tool-input/tool-input-contract';
 import { toolResponseContract } from '../tool-response/tool-response-contract';

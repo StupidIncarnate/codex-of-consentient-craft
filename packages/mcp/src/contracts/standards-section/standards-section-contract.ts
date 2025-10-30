@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Defines the schema for a standards document section with path and markdown content
+ *
+ * USAGE:
+ * const section: StandardsSection = standardsSectionContract.parse({ section: 'Testing', content: '## Testing...', path: '/path/to/standards.md' });
+ * // Returns validated standards section with section path, markdown content, and file path
+ */
 import { z } from 'zod';
 
 export const standardsSectionContract = z.object({

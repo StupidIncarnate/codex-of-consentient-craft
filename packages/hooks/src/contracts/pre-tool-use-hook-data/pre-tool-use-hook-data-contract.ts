@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for PreToolUse hook event data
+ *
+ * USAGE:
+ * const hookData = preToolUseHookDataContract.parse(data);
+ * // Returns validated PreToolUseHookData with tool_name and tool_input
+ */
 import { z } from 'zod';
 import { toolInputContract } from '../tool-input/tool-input-contract';
 

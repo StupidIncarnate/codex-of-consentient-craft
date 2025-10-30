@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Defines an error structure for command execution failures with exit status and output buffers.
+ *
+ * USAGE:
+ * const error = execErrorContract.parse({ status: 1, stdout: buffer, stderr: buffer, message: 'Failed', name: 'ExecError' });
+ * // Returns: ExecError (Error object with status, stdout, stderr properties)
+ */
 import { z } from 'zod';
 import { exitCodeContract } from '../exit-code/exit-code-contract';
 

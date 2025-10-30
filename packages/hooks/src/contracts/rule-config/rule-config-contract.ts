@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Zod schema for rule configuration with custom display name and message
+ *
+ * USAGE:
+ * const ruleConfig = ruleConfigContract.parse({ rule: 'no-console', displayName: 'No Console' });
+ * // Returns validated RuleConfig with rule, optional displayName, optional message
+ */
 import { z } from 'zod';
 
 export const ruleConfigContract = z.object({

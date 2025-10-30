@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Extracts content changes (old vs new) from Write, Edit, or MultiEdit tool inputs
+ *
+ * USAGE:
+ * const changes = await toolInputGetContentChangesBroker({ toolInput: writeToolInput });
+ * // Returns array of ContentChange with oldContent and newContent
+ */
 import { fsReadFile } from '../../../adapters/fs/fs-read-file';
 import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
 import { toolInputGetFullContentBroker } from '../get-full-content/tool-input-get-full-content-broker';
