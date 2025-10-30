@@ -12,6 +12,7 @@ import { metadataExtractorTransformer } from '../../../transformers/metadata-ext
 import { signatureExtractorTransformer } from '../../../transformers/signature-extractor/signature-extractor-transformer';
 import { fileTypeDetectorTransformer } from '../../../transformers/file-type-detector/file-type-detector-transformer';
 import { functionNameExtractorTransformer } from '../../../transformers/function-name-extractor/function-name-extractor-transformer';
+import { hasExportedFunctionGuard } from '../../../guards/has-exported-function/has-exported-function-guard';
 import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
@@ -51,23 +52,23 @@ export const fileScannerBroker = async ({
     // Read file
     const contents = await fsReadFileAdapter({ filepath });
 
-    // Extract metadata
-    const metadata = metadataExtractorTransformer({ fileContents: contents });
-    if (!metadata) {
-      return null; // Skip files without metadata
+    // Check if file has any exported function
+    const hasExport = hasExportedFunctionGuard({ fileContents: contents });
+    if (!hasExport) {
+      return null; // Skip files without exported functions
     }
 
     // Extract function name
     const functionName = functionNameExtractorTransformer({ filepath });
 
-    // Extract signature
+    // Extract signature (optional - may not match pattern)
     const signature = signatureExtractorTransformer({
       fileContents: contents,
       functionName,
     });
-    if (!signature) {
-      return null; // Skip files without function exports
-    }
+
+    // Extract metadata (optional)
+    const metadata = metadataExtractorTransformer({ fileContents: contents });
 
     // Detect file type
     const detectedFileType = fileTypeDetectorTransformer({ filepath });
@@ -76,10 +77,10 @@ export const fileScannerBroker = async ({
       name: functionName,
       path: filepath,
       fileType: detectedFileType,
-      purpose: metadata.purpose,
-      signature,
-      usage: metadata.usage,
-      metadata: metadata.metadata,
+      purpose: metadata?.purpose,
+      signature: signature ?? undefined,
+      usage: metadata?.usage,
+      metadata: metadata?.metadata,
     });
   });
 
@@ -96,7 +97,7 @@ export const fileScannerBroker = async ({
     ? results.filter((r) => {
         const lowerSearch = search.toLowerCase();
         return (
-          r.purpose.toLowerCase().includes(lowerSearch) ||
+          (r.purpose && r.purpose.toLowerCase().includes(lowerSearch)) ||
           r.name.toLowerCase().includes(lowerSearch)
         );
       })

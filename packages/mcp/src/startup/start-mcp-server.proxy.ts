@@ -23,9 +23,10 @@ export const StartMcpServerProxy = (): {
     });
 
     const pendingResponses = new Map<RpcId, (response: JsonRpcResponse) => void>();
+    const pendingTimeouts = new Map<RpcId, NodeJS.Timeout>();
     const bufferState = { value: '' };
 
-    serverProcess.stdout.on('data', (chunk: Buffer) => {
+    const dataHandler = (chunk: Buffer): void => {
       bufferState.value += chunk.toString();
 
       const lines = bufferState.value.split('\n');
@@ -40,6 +41,13 @@ export const StartMcpServerProxy = (): {
           const response = JsonRpcResponseStub(JSON.parse(line) as never);
           const resolver = pendingResponses.get(response.id);
           if (resolver) {
+            // Clear the timeout for this request
+            const timeoutId = pendingTimeouts.get(response.id);
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+              pendingTimeouts.delete(response.id);
+            }
+
             resolver(response);
             pendingResponses.delete(response.id);
           }
@@ -47,7 +55,9 @@ export const StartMcpServerProxy = (): {
           // Ignore parse errors
         }
       }
-    });
+    };
+
+    serverProcess.stdout.on('data', dataHandler);
 
     await new Promise((resolve) => {
       setTimeout(resolve, mcpServerStatics.timeouts.startupMs);
@@ -62,18 +72,40 @@ export const StartMcpServerProxy = (): {
           const requestJson = `${JSON.stringify(request)}\n`;
           serverProcess.stdin.write(requestJson);
 
-          setTimeout(() => {
+          const timeoutId = setTimeout(() => {
             if (pendingResponses.has(request.id)) {
               pendingResponses.delete(request.id);
+              pendingTimeouts.delete(request.id);
               reject(new Error(`Request ${request.id} timed out`));
             }
           }, mcpServerStatics.timeouts.requestMs);
+
+          pendingTimeouts.set(request.id, timeoutId);
         }),
       close: async (): Promise<void> =>
         new Promise((resolve) => {
-          serverProcess.on('close', () => {
+          // Clear all pending timeouts
+          for (const timeoutId of pendingTimeouts.values()) {
+            clearTimeout(timeoutId);
+          }
+          pendingTimeouts.clear();
+
+          // Clear pending responses
+          pendingResponses.clear();
+
+          // Set up close handler
+          serverProcess.once('close', () => {
+            // Clean up remaining listeners after close
+            serverProcess.stdout.removeAllListeners();
+            serverProcess.stderr.removeAllListeners();
+            serverProcess.stdin.removeAllListeners();
             resolve();
           });
+
+          // Remove data handler to stop processing
+          serverProcess.stdout.off('data', dataHandler);
+
+          // Kill the process
           serverProcess.kill();
         }),
     };

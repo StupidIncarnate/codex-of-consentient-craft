@@ -11,7 +11,33 @@ thus won't trigger eslint at all.
   signatures
 - `discover({ type: "files", fileType: "broker", search: "user" })` - Find brokers matching search term
 - Much more token-efficient than file exploration or multiple Grep/Read calls
-- Returns: name, path, type, purpose, usage, function signature
+- Returns rich structured data: name, path, type, purpose (optional), usage (optional), function signature (optional)
+
+**Example Response:**
+
+```json
+{
+  "results": [
+    {
+      "name": "apply-overrides-transformer",
+      "path": "/path/to/apply-overrides-transformer.ts",
+      "type": "transformer",
+      "signature": "export const applyOverridesTransformer = ({\n  preset,\n  config,\n}: {\n  preset: FrameworkPreset;\n  config: QuestmaestroConfig;\n}): FrameworkPreset =>"
+    },
+    {
+      "name": "has-permission-guard",
+      "path": "/path/to/has-permission-guard.ts",
+      "type": "guard",
+      "purpose": "Validates that user has permission to edit resource",
+      "usage": "if (hasPermissionGuard({ user, resource })) { /* ... */ }",
+      "signature": "export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?: Resource }): boolean =>"
+    }
+  ],
+  "count": 2
+}
+```
+
+**Note:** Files without PURPOSE/USAGE metadata are still returned as long as they have an exported function!
 
 **Command-line Tools** (use sparingly):
 

@@ -62,19 +62,22 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
   });
 
   describe('without metadata', () => {
-    it('EMPTY: files without PURPOSE/USAGE => returns empty array', async () => {
+    it('VALID: files without PURPOSE/USAGE but with exported function => returns file with undefined metadata', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/plain-guard.ts' });
+      const filepath = FilePathStub({ value: '/project/src/transformers/plain-transformer.ts' });
       const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
       const contents = FileContentsStub({
-        value: `export const plainGuard = () => true;`,
+        value: `export const plainTransformer = () => true;`,
       });
 
       proxy.setupFileWithMetadata({ filepath, contents, pattern });
 
       const results = await fileScannerBroker({});
 
-      expect(results).toStrictEqual([]);
+      expect(results).toHaveLength(1);
+      expect(results[0]?.name).toBe('plain-transformer');
+      expect(results[0]?.purpose).toBeUndefined();
+      expect(results[0]?.usage).toBeUndefined();
     });
   });
 
@@ -204,6 +207,23 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
       const results = await fileScannerBroker({ search: 'nonexistent' });
 
       expect(results).toStrictEqual([]);
+    });
+
+    it('VALID: {search: "plain"} => finds files without metadata by name', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const filepath = FilePathStub({ value: '/project/src/transformers/plain-transformer.ts' });
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const contents = FileContentsStub({
+        value: `export const plainTransformer = () => true;`,
+      });
+
+      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+
+      const results = await fileScannerBroker({ search: 'plain' });
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.name).toBe('plain-transformer');
+      expect(results[0]?.purpose).toBeUndefined();
     });
   });
 });

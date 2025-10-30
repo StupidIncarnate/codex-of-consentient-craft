@@ -44,8 +44,17 @@ describe('mcpDiscoverBroker', () => {
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
-        results: [],
-        count: 0,
+        results: [
+          {
+            name: 'guard',
+            path: '/test/guard.ts',
+            type: 'unknown',
+            purpose: undefined,
+            signature: undefined,
+            usage: undefined,
+          },
+        ],
+        count: 1,
       });
     });
 
@@ -64,8 +73,17 @@ describe('mcpDiscoverBroker', () => {
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
-        results: [],
-        count: 0,
+        results: [
+          {
+            name: 'guard',
+            path: '/test/guard.ts',
+            type: 'unknown',
+            purpose: undefined,
+            signature: undefined,
+            usage: undefined,
+          },
+        ],
+        count: 1,
       });
     });
 
@@ -102,8 +120,17 @@ describe('mcpDiscoverBroker', () => {
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
-        results: [],
-        count: 0,
+        results: [
+          {
+            name: 'guard',
+            path: '/test/guard.ts',
+            type: 'unknown',
+            purpose: undefined,
+            signature: undefined,
+            usage: undefined,
+          },
+        ],
+        count: 1,
       });
     });
   });

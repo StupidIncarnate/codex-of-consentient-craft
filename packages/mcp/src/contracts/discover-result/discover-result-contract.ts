@@ -6,6 +6,7 @@ const discoverResultItemContract = z.object({
   type: z.string().brand<'FileType'>(),
   purpose: z.string().brand<'Purpose'>().optional(),
   usage: z.string().brand<'UsageExample'>().optional(),
+  signature: z.string().brand<'FunctionSignature'>().optional(),
 });
 
 export const discoverResultContract = z.object({
