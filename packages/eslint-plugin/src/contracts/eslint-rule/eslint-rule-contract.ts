@@ -1,6 +1,3 @@
-import { z } from 'zod';
-import type { EslintContext } from '../eslint-context/eslint-context-contract';
-
 /**
  * ESLint Rule contract - translates eslint package Rule types to branded Zod schemas.
  * Contract defines ONLY data properties (no z.function()).
@@ -12,6 +9,8 @@ import type { EslintContext } from '../eslint-context/eslint-context-contract';
  * const ruleMeta = eslintRuleContract.parse({ meta: { type: 'problem', docs: {...}, messages: {...} } });
  * // Returns validated rule metadata; use EslintRule type for complete rule with create() function
  */
+import { z } from 'zod';
+import type { EslintContext } from '../eslint-context/eslint-context-contract';
 
 export const eslintRuleContract = z.object({
   meta: z.object({

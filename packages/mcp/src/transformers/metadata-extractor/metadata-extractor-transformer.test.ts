@@ -262,7 +262,6 @@ export const test = () => {};`,
   });
 
   describe('field ordering', () => {
-
     it('VALID: {USAGE before PURPOSE} => extracts metadata', () => {
       const fileContents = FileContentsStub({
         value: `/**

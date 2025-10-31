@@ -37,3 +37,11 @@ export * from './src/contracts/error-message/error-message.stub';
 // Extracted Metadata Contracts
 export * from './src/contracts/extracted-metadata/extracted-metadata-contract';
 export * from './src/contracts/extracted-metadata/extracted-metadata.stub';
+
+// Folder Type Contracts
+export * from './src/contracts/folder-type/folder-type-contract';
+export * from './src/contracts/folder-type/folder-type.stub';
+
+// Folder Config Contracts
+export * from './src/contracts/folder-config/folder-config-contract';
+export * from './src/contracts/folder-config/folder-config.stub';

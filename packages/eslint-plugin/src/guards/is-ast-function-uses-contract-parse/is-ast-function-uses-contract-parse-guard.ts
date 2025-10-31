@@ -1,7 +1,3 @@
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-import { isAstContractParseCallGuard } from '../is-ast-contract-parse-call/is-ast-contract-parse-call-guard';
-import { isAstObjectContractParseSpreadGuard } from '../is-ast-object-contract-parse-spread/is-ast-object-contract-parse-spread-guard';
-
 /**
  * PURPOSE: Checks if a function body contains contract.parse() calls
  *
@@ -12,6 +8,10 @@ import { isAstObjectContractParseSpreadGuard } from '../is-ast-object-contract-p
  * }
  * // Returns true if function body contains direct or spread contract.parse() calls
  */
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { isAstContractParseCallGuard } from '../is-ast-contract-parse-call/is-ast-contract-parse-call-guard';
+import { isAstObjectContractParseSpreadGuard } from '../is-ast-object-contract-parse-spread/is-ast-object-contract-parse-spread-guard';
+
 export const isAstFunctionUsesContractParseGuard = ({
   funcNode,
 }: {

@@ -1,3 +1,12 @@
+/**
+ * PURPOSE: Extracts TypeScript function signature from export statement
+ *
+ * USAGE:
+ * const signature = signatureExtractorTransformer({
+ *   fileContents: FileContentsStub({ value: 'export const foo = ({ x }: { x: number }): string => {}' })
+ * });
+ * // Returns: { raw: '...', parameters: [...], returnType: 'string' }
+ */
 import { signatureRawContract } from '../../contracts/signature-raw/signature-raw-contract';
 import { parameterNameContract } from '../../contracts/parameter-name/parameter-name-contract';
 import { returnTypeContract } from '../../contracts/return-type/return-type-contract';
@@ -8,15 +17,6 @@ import type { TypeName } from '../../contracts/type-name/type-name-contract';
 import type { FunctionName } from '../../contracts/function-name/function-name-contract';
 import { kebabToCamelTransformer } from '../kebab-to-camel/kebab-to-camel-transformer';
 
-/**
- * PURPOSE: Extracts TypeScript function signature from export statement
- *
- * USAGE:
- * const signature = signatureExtractorTransformer({
- *   fileContents: FileContentsStub({ value: 'export const foo = ({ x }: { x: number }): string => {}' })
- * });
- * // Returns: { raw: '...', parameters: [...], returnType: 'string' }
- */
 export const signatureExtractorTransformer = ({
   fileContents,
   functionName,

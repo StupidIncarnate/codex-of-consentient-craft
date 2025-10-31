@@ -1,10 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
-import { jestTestingStatics } from '../../../statics/jest-testing/jest-testing-statics';
-
 /**
  * PURPOSE: Creates ESLint rule that forbids .todo and .skip on all Jest test methods to ensure all tests are complete and runnable
  *
@@ -14,6 +7,13 @@ import { jestTestingStatics } from '../../../statics/jest-testing/jest-testing-s
  *
  * WHEN-TO-USE: When registering ESLint rules to prevent incomplete or disabled tests in test files
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { jestTestingStatics } from '../../../statics/jest-testing/jest-testing-statics';
+
 export const ruleForbidTodoSkipBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

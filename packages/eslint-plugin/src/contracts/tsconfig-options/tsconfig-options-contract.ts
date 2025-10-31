@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 /**
  * PURPOSE: Defines the schema for TypeScript compiler options with validation and type-safety
  *
@@ -12,6 +10,8 @@ import { z } from 'zod';
  * });
  * // Returns validated TsconfigOptions with branded types for string fields
  */
+import { z } from 'zod';
+
 export const tsconfigOptionsContract = z.object({
   target: z.string().brand<'TsTarget'>().optional(),
   module: z.string().brand<'TsModule'>().optional(),

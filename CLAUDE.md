@@ -48,12 +48,6 @@ thus won't trigger eslint at all.
 3. JSON Inspection:
    - jq '.key' file.json for quick JSON parsing
 
-## Standards Documents
-
-- [Project Standards](packages/standards/project-standards.md) - Universal project structure, naming conventions, and
-  architectural patterns
-- [Testing Standards](packages/standards/testing-standards.md) - Testing format for LLMs and human scanning
-
 ## Project Overview
 
 **Tech Stack**: TypeScript, Node.js, Jest
@@ -63,9 +57,26 @@ thus won't trigger eslint at all.
 package. No need to manually add `jest.clearAllMocks()` in individual test files - test isolation is enforced
 automatically.
 
-**Shared Package**: `@questmaestro/shared` contains shared contracts and utilities. After modifying contracts, you MUST
-run `npm run build --workspace=@questmaestro/shared` before other packages can use the updated contracts. The compiled
-dist/ folder is what gets imported by dependent packages.
+**Shared Package**: `@questmaestro/shared` contains contracts, guards, transformers, and statics that are used by *
+*multiple packages**.
+
+**When to place code in `@questmaestro/shared`:**
+
+- Configuration/statics needed by 2+ packages (e.g., `folderConfigStatics` used by eslint-plugin and mcp)
+- Contracts used across package boundaries
+- Guards and transformers with cross-package dependencies
+
+**Important:** After modifying `@questmaestro/shared`, you MUST run `npm run build --workspace=@questmaestro/shared`
+before other packages can use the updated code. The compiled dist/ folder is what gets imported by dependent packages.
+
+**Usage Pattern:**
+
+```typescript
+// Import from subpath exports
+import {folderConfigStatics} from '@questmaestro/shared/statics';
+import {isKeyOfGuard} from '@questmaestro/shared/guards';
+import {someContract} from '@questmaestro/shared/contracts';
+```
 
 **ESLint Rules**: All `@questmaestro/*` ESLint rules are located in `packages/eslint-plugin/src/brokers/rule/`. Each
 rule has:

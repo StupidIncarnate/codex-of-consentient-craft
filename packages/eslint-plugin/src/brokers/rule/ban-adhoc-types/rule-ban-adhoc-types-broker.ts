@@ -1,10 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
-import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
-
 /**
  * PURPOSE: Bans ad-hoc interface definitions and inline type assertions to enforce using shared contracts
  *
@@ -12,6 +5,13 @@ import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/
  * const rule = ruleBanAdhocTypesBroker();
  * // Returns ESLint rule that prevents `interface Foo {}` and `as { foo: string }` in implementation files
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { folderConfigStatics } from '@questmaestro/shared/statics';
+import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
+
 export const ruleBanAdhocTypesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

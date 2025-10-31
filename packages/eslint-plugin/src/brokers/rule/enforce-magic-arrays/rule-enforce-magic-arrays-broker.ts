@@ -1,10 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
-import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
-
 /**
  * PURPOSE: Forbids inline string/number array const declarations and requires using statics files instead
  *
@@ -12,6 +5,13 @@ import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/
  * const rule = ruleEnforceMagicArraysBroker();
  * // Returns ESLint rule that prevents `const x = ['a', 'b']` and requires moving arrays to statics files
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
+
 export const ruleEnforceMagicArraysBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

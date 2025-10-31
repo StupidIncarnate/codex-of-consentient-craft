@@ -1,6 +1,3 @@
-import type { FilePath } from '@questmaestro/shared/contracts';
-import { filePathContract } from '@questmaestro/shared/contracts';
-
 /**
  * PURPOSE: Converts a test file path to the expected colocated proxy import path
  *
@@ -15,6 +12,9 @@ import { filePathContract } from '@questmaestro/shared/contracts';
  * });
  * // Returns: './http-adapter.proxy'
  */
+import type { FilePath } from '@questmaestro/shared/contracts';
+import { filePathContract } from '@questmaestro/shared/contracts';
+
 export const testFilePathToColocatedProxyPathTransformer = ({
   testFilePath,
 }: {

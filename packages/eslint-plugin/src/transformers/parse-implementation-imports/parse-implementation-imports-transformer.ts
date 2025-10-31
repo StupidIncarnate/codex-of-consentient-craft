@@ -1,7 +1,3 @@
-import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
-import { identifierContract, modulePathContract } from '@questmaestro/shared/contracts';
-import { folderConfigStatics } from '../../statics/folder-config/folder-config-statics';
-
 /**
  * PURPOSE: Parses file content to extract relative imports that require proxy patterns (from folders like brokers/, adapters/, etc.)
  *
@@ -13,6 +9,10 @@ import { folderConfigStatics } from '../../statics/folder-config/folder-config-s
  * // Returns: Map { 'userBroker' => '../user/user-broker' }
  * // Note: Excludes contracts, statics, and other non-proxy imports
  */
+import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
+import { identifierContract, modulePathContract } from '@questmaestro/shared/contracts';
+import { folderConfigStatics } from '@questmaestro/shared/statics';
+
 export const parseImplementationImportsTransformer = ({
   content,
   implementationFilePath,

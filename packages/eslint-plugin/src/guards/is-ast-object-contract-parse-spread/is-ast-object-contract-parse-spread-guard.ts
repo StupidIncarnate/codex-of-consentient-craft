@@ -1,6 +1,3 @@
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-import { isAstContractParseCallGuard } from '../is-ast-contract-parse-call/is-ast-contract-parse-call-guard';
-
 /**
  * PURPOSE: Checks if an object expression contains spread of contract.parse() call
  *
@@ -11,6 +8,9 @@ import { isAstContractParseCallGuard } from '../is-ast-contract-parse-call/is-as
  * }
  * // Returns true if any property is SpreadElement with contract.parse() argument
  */
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { isAstContractParseCallGuard } from '../is-ast-contract-parse-call/is-ast-contract-parse-call-guard';
+
 export const isAstObjectContractParseSpreadGuard = ({ node }: { node?: Tsestree }): boolean => {
   if (node === undefined || node.type !== 'ObjectExpression' || !node.properties) {
     return false;

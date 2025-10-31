@@ -1,5 +1,3 @@
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-
 /**
  * PURPOSE: Checks if function's first parameter has StubArgument type annotation
  *
@@ -10,6 +8,8 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
  * }
  * // Returns true if first param's type annotation is TSTypeReference to 'StubArgument'
  */
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+
 export const isAstParamStubArgumentTypeGuard = ({ funcNode }: { funcNode?: Tsestree }): boolean => {
   if (!funcNode?.params || funcNode.params.length === 0) {
     return false;

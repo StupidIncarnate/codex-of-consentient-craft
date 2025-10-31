@@ -1,10 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
-import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
-
 /**
  * PURPOSE: Prevents test files from importing contracts directly and enforces using stub variants instead
  *
@@ -12,6 +5,13 @@ import { contractPathToStubPathTransformer } from '../../../transformers/contrac
  * const rule = ruleBanContractInTestsBroker();
  * // Returns ESLint rule that requires test files to import .stub files instead of -contract files
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
+
 export const ruleBanContractInTestsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

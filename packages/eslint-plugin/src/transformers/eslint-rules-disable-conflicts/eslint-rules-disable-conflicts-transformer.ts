@@ -1,5 +1,3 @@
-import type { EslintRules } from '../../contracts/eslint-rules/eslint-rules-contract';
-
 /**
  * PURPOSE: Disables base ESLint rules that conflict with plugin-specific rules
  *
@@ -13,6 +11,8 @@ import type { EslintRules } from '../../contracts/eslint-rules/eslint-rules-cont
  *
  * WHEN-TO-USE: When TypeScript ESLint or other plugins override base ESLint rules
  */
+import type { EslintRules } from '../../contracts/eslint-rules/eslint-rules-contract';
+
 export const eslintRulesDisableConflictsTransformer = ({
   mergedRules,
   overrideRules,

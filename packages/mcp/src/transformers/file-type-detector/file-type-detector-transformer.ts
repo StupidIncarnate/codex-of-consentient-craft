@@ -1,7 +1,3 @@
-import { fileTypeContract } from '../../contracts/file-type/file-type-contract';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
-import type { FileType } from '../../contracts/file-type/file-type-contract';
-
 /**
  * PURPOSE: Detects file type from filepath by extracting folder after src/ or using file suffix
  *
@@ -14,6 +10,10 @@ import type { FileType } from '../../contracts/file-type/file-type-contract';
  * WHEN-TO-USE: Need to categorize files by their location or naming pattern
  * WHEN-NOT-TO-USE: When file type is already known or provided explicitly
  */
+import { fileTypeContract } from '../../contracts/file-type/file-type-contract';
+import type { FilePath } from '../../contracts/file-path/file-path-contract';
+import type { FileType } from '../../contracts/file-type/file-type-contract';
+
 export const fileTypeDetectorTransformer = ({ filepath }: { filepath: FilePath }): FileType => {
   const pathParts = filepath.split('/');
 

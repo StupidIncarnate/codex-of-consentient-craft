@@ -2360,14 +2360,16 @@ export const UserSignupResponder = async ({req, res}: {
 
 **Rule:** If a domain file exists, extend it with options - never create variant files.
 
-```bash
-# 1. Search for existing domain files
-rg -l "userFetchBroker" src/brokers/
-rg -l "useUserDataBinding" src/bindings/
+**Search for existing domain files using MCP discovery:**
 
-# 2. Search for similar patterns
-rg "export const.*Broker" src/brokers/user/
-rg "export const use.*Binding" src/bindings/
+```typescript
+// 1. Search for specific domain files
+mcp__questmaestro__discover({type: "files", fileType: "broker", search: "user"})
+mcp__questmaestro__discover({type: "files", fileType: "binding", search: "user-data"})
+
+// 2. Get all files in a folder
+mcp__questmaestro__discover({type: "files", path: "packages/eslint-plugin/src/brokers"})
+mcp__questmaestro__discover({type: "files", path: "packages/eslint-plugin/src/bindings"})
 ```
 
 **If domain exists → MUST extend existing files, not create new ones**
@@ -2560,13 +2562,3 @@ export const userFetchBroker = async ({
 // ❌ DON'T CREATE - user-fetch-by-email-broker.ts (this is a lookup variant!)
 ```
 
-### Discovery Checklist
-
-Before creating any file, ask:
-
-1. ✅ Does a file for this domain already exist in this folder?
-2. ✅ Can I add an option/parameter to the existing file?
-3. ✅ Can I create an orchestration broker and extend the binding?
-4. ✅ Is this truly a new domain/action, not a variant?
-
-**Only create new files after confirming all NO answers.**

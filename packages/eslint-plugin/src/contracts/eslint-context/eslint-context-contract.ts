@@ -1,7 +1,3 @@
-import { z } from 'zod';
-import type { Identifier } from '@questmaestro/shared/contracts';
-import type { Tsestree } from '../tsestree/tsestree-contract';
-
 /**
  * ESLint Rule Context contract
  * Replicates Rule.RuleContext from @types/eslint
@@ -15,6 +11,10 @@ import type { Tsestree } from '../tsestree/tsestree-contract';
  * const contextData = eslintContextContract.parse({ filename: '/path/to/file.ts' });
  * // Returns validated context data; use EslintContext type for full context with methods
  */
+import { z } from 'zod';
+import type { Identifier } from '@questmaestro/shared/contracts';
+import type { Tsestree } from '../tsestree/tsestree-contract';
+
 export const eslintContextContract = z.object({
   filename: z.string().brand<'Filename'>().optional(),
 });
@@ -44,6 +44,21 @@ export interface EslintComment {
 }
 
 /**
+ * ESLint Rule Fixer - provides methods to apply fixes
+ * Replicates RuleFixer interface from @types/eslint
+ */
+export interface EslintRuleFixer {
+  insertTextAfter: (node: unknown, text: unknown) => unknown;
+  insertTextBefore: (node: unknown, text: unknown) => unknown;
+  insertTextAfterRange: (range: unknown, text: unknown) => unknown;
+  insertTextBeforeRange: (range: unknown, text: unknown) => unknown;
+  remove: (node: unknown) => unknown;
+  removeRange: (range: unknown) => unknown;
+  replaceText: (node: unknown, text: unknown) => unknown;
+  replaceTextRange: (range: unknown, text: unknown) => unknown;
+}
+
+/**
  * ESLint SourceCode - returned by ctx.getSourceCode() and available as ctx.sourceCode
  * Replicates SourceCode class from @types/eslint
  * Function methods added via intersection
@@ -55,6 +70,7 @@ const _sourceCodeDataContract = z.object({
 export type EslintSourceCode = z.infer<typeof _sourceCodeDataContract> & {
   getAncestors: (node: Tsestree) => Tsestree[];
   getAllComments: () => EslintComment[];
+  getText: (node?: Tsestree | EslintComment) => unknown;
 };
 
 /**
@@ -66,9 +82,10 @@ export type EslintSourceCode = z.infer<typeof _sourceCodeDataContract> & {
 export type EslintContext = z.infer<typeof eslintContextContract> & {
   report: (descriptor: {
     node?: Tsestree;
-    messageId?: string;
-    message?: string;
-    data?: Record<string, unknown>;
+    messageId?: unknown;
+    message?: unknown;
+    data?: Record<PropertyKey, unknown>;
+    fix?: (fixer: EslintRuleFixer) => unknown;
   }) => void;
 
   getFilename?: () => Filename;

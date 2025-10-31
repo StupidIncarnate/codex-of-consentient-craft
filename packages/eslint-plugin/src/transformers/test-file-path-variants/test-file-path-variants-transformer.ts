@@ -1,7 +1,3 @@
-import type { FilePath } from '@questmaestro/shared/contracts';
-import { filePathContract } from '@questmaestro/shared/contracts';
-import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
-
 /**
  * PURPOSE: Generates all possible test file path variants for a given source file
  *
@@ -16,6 +12,10 @@ import { testFilePatternStatics } from '../../statics/test-file-pattern/test-fil
  * //   '/src/brokers/user/user-broker.e2e.test.ts'
  * // ]
  */
+import type { FilePath } from '@questmaestro/shared/contracts';
+import { filePathContract } from '@questmaestro/shared/contracts';
+import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
+
 export const testFilePathVariantsTransformer = ({
   sourceFilePath,
 }: {

@@ -1,6 +1,3 @@
-import type { FunctionName } from '../../contracts/function-name/function-name-contract';
-import { functionNameContract } from '../../contracts/function-name/function-name-contract';
-
 /**
  * PURPOSE: Converts kebab-case string to camelCase
  *
@@ -10,6 +7,9 @@ import { functionNameContract } from '../../contracts/function-name/function-nam
  * });
  * // Returns: FunctionName('hasPermissionGuard')
  */
+import type { FunctionName } from '../../contracts/function-name/function-name-contract';
+import { functionNameContract } from '../../contracts/function-name/function-name-contract';
+
 export const kebabToCamelTransformer = ({
   kebabCase,
 }: {

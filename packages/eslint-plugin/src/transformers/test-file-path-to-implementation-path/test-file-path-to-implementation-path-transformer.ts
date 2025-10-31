@@ -1,7 +1,3 @@
-import type { FilePath } from '@questmaestro/shared/contracts';
-import { filePathContract } from '@questmaestro/shared/contracts';
-import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
-
 /**
  * PURPOSE: Converts a test file path to its corresponding implementation file path by removing test suffixes
  *
@@ -16,6 +12,10 @@ import { testFilePatternStatics } from '../../statics/test-file-pattern/test-fil
  * });
  * // Returns: '/src/adapters/http/http-adapter.ts'
  */
+import type { FilePath } from '@questmaestro/shared/contracts';
+import { filePathContract } from '@questmaestro/shared/contracts';
+import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
+
 export const testFilePathToImplementationPathTransformer = ({
   testFilePath,
 }: {

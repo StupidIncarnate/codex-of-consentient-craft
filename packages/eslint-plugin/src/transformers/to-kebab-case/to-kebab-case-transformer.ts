@@ -1,6 +1,3 @@
-import { kebabCaseStringContract } from '../../contracts/kebab-case-string/kebab-case-string-contract';
-import type { KebabCaseString } from '../../contracts/kebab-case-string/kebab-case-string-contract';
-
 /**
  * PURPOSE: Converts any case format (camelCase, PascalCase, snake_case) to kebab-case
  *
@@ -14,6 +11,9 @@ import type { KebabCaseString } from '../../contracts/kebab-case-string/kebab-ca
  * const fromSnake = toKebabCaseTransformer({ str: 'user_fetch_broker' });
  * // Returns: 'user-fetch-broker'
  */
+import { kebabCaseStringContract } from '../../contracts/kebab-case-string/kebab-case-string-contract';
+import type { KebabCaseString } from '../../contracts/kebab-case-string/kebab-case-string-contract';
+
 export const toKebabCaseTransformer = ({ str }: { str: string }): KebabCaseString => {
   // Convert camelCase, PascalCase, snake_case, or any mixed case to kebab-case
   const kebabCase = str

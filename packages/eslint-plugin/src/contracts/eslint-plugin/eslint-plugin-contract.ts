@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 /**
  * ESLint Plugin contract - translates eslint plugin package types to branded Zod schemas.
  * Contract defines ONLY data properties (no z.function()).
@@ -10,6 +8,7 @@ import { z } from 'zod';
  * const plugin = eslintPluginContract.parse({ rules: {...}, configs: {...} });
  * // Returns validated EslintPlugin object
  */
+import { z } from 'zod';
 
 export const eslintPluginContract = z.object({
   rules: z.record(z.unknown()).optional(),

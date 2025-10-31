@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { folderConfigStatics } from '../../statics/folder-config/folder-config-statics';
+import { folderConfigStatics } from '@questmaestro/shared/statics';
 
 const allFolderTypes = Object.keys(folderConfigStatics);
 

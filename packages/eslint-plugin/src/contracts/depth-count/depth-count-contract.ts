@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 /**
  * Represents a folder depth count (non-negative integer)
  * Used for tracking directory nesting levels in file paths
@@ -10,6 +8,8 @@ import { z } from 'zod';
  * const depth = depthCountContract.parse(3);
  * // Returns branded DepthCount; throws on negative numbers or non-integers
  */
+import { z } from 'zod';
+
 export const depthCountContract = z.number().int().nonnegative().brand<'DepthCount'>();
 
 export type DepthCount = z.infer<typeof depthCountContract>;

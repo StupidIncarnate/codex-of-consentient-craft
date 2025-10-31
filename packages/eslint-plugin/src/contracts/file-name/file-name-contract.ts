@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 /**
  * PURPOSE: Validates filename strings ensuring they don't contain path separators
  *
@@ -7,6 +5,8 @@ import { z } from 'zod';
  * const filename = fileNameContract.parse('my-file.ts');
  * // Returns branded FileName; throws on '/path/file.ts' or empty string
  */
+import { z } from 'zod';
+
 export const fileNameContract = z
   .string()
   .min(1, 'Filename cannot be empty')

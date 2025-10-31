@@ -1,10 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
-import { checkPrimitiveViolationLayerBroker } from './check-primitive-violation-layer-broker';
-
 /**
  * PURPOSE: Bans raw string and number types in favor of Zod contract types for type safety
  *
@@ -12,6 +5,13 @@ import { checkPrimitiveViolationLayerBroker } from './check-primitive-violation-
  * const rule = ruleBanPrimitivesBroker();
  * // Returns ESLint rule that prevents `string` and `number` types, requiring branded types like EmailAddress, FilePath
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { checkPrimitiveViolationLayerBroker } from './check-primitive-violation-layer-broker';
+
 export const ruleBanPrimitivesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

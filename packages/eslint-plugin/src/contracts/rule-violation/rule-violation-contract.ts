@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 /**
  * PURPOSE: Defines the schema for ESLint rule violations with validation and type-safety
  *
@@ -12,6 +10,8 @@ import { z } from 'zod';
  * };
  * // Returns a validated RuleViolation object that can be reported to ESLint
  */
+import { z } from 'zod';
+
 export const ruleViolationContract = z.object({
   node: z.unknown(),
   message: z.string().min(1).brand<'ViolationMessage'>(),

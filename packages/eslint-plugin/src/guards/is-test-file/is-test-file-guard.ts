@@ -1,5 +1,3 @@
-import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
-
 /**
  * PURPOSE: Determines if a file is a test file based on common test file patterns
  *
@@ -13,6 +11,8 @@ import { testFilePatternStatics } from '../../statics/test-file-pattern/test-fil
  *
  * WHEN-TO-USE: Use to filter test files from linting rules or to apply test-specific logic
  */
+import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
+
 export const isTestFileGuard = ({ filename }: { filename?: string | undefined }): boolean => {
   if (filename === undefined) {
     return false;

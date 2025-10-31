@@ -1,6 +1,3 @@
-import { z } from 'zod';
-import { folderConfigStatics } from '../../statics/folder-config/folder-config-statics';
-
 /**
  * PURPOSE: Validates allowed import patterns dynamically extracted from folder configuration statics
  *
@@ -8,6 +5,8 @@ import { folderConfigStatics } from '../../statics/folder-config/folder-config-s
  * const importType = allowedImportContract.parse('npm-package');
  * // Returns branded AllowedImport type (e.g., 'npm-package', 'relative', 'contract-only')
  */
+import { z } from 'zod';
+import { folderConfigStatics } from '@questmaestro/shared/statics';
 
 // Extract all unique allowed import values from the config
 const allAllowedImports = Object.values(folderConfigStatics)

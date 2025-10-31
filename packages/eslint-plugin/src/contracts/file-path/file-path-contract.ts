@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 /**
  * PURPOSE: Validates and brands file path strings (relative, absolute, or module paths)
  *
@@ -7,6 +5,8 @@ import { z } from 'zod';
  * const path = filePathContract.parse('./src/file.ts');
  * // Returns branded FilePath string
  */
+import { z } from 'zod';
+
 export const filePathContract = z.string().brand<'FilePath'>();
 
 export type FilePath = z.infer<typeof filePathContract>;

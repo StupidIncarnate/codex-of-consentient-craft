@@ -1,6 +1,3 @@
-import type { Identifier } from '@questmaestro/shared/contracts';
-import { identifierContract } from '@questmaestro/shared/contracts';
-
 /**
  * PURPOSE: Extracts the immediate parent folder name from a file path
  *
@@ -11,6 +8,9 @@ import { identifierContract } from '@questmaestro/shared/contracts';
  * const noFolder = folderNameTransformer({ filePath: 'file.ts' });
  * // Returns: null
  */
+import type { Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract } from '@questmaestro/shared/contracts';
+
 export const folderNameTransformer = ({ filePath }: { filePath: string }): Identifier | null => {
   const parts = filePath.split('/');
 

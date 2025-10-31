@@ -1,6 +1,3 @@
-import { identifierContract } from '@questmaestro/shared/contracts';
-import type { Identifier } from '@questmaestro/shared/contracts';
-
 /**
  * PURPOSE: Converts a proxy variable name to its implementation name by removing 'Proxy' suffix
  *
@@ -11,6 +8,9 @@ import type { Identifier } from '@questmaestro/shared/contracts';
  * const anotherName = proxyNameToImplementationNameTransformer({ proxyName: 'httpAdapterProxy' });
  * // Returns: 'httpAdapter'
  */
+import { identifierContract } from '@questmaestro/shared/contracts';
+import type { Identifier } from '@questmaestro/shared/contracts';
+
 export const proxyNameToImplementationNameTransformer = ({
   proxyName,
 }: {

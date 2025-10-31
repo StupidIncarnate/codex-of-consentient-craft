@@ -117,5 +117,213 @@ export const emptyFields = () => {};`,
       filename: 'src/brokers/empty/empty-broker.ts',
       errors: [{ messageId: 'missingMetadata' }],
     },
+    {
+      code: `import { User } from './user';
+
+/**
+ * PURPOSE: Checks if user has admin permissions
+ *
+ * USAGE:
+ * const isAdmin = hasAdminGuard({ user });
+ * // Returns true if user is admin
+ */
+export const hasAdminGuard = ({ user }) => {
+  return user.role === 'admin';
+};`,
+      output: `/**
+ * PURPOSE: Checks if user has admin permissions
+ *
+ * USAGE:
+ * const isAdmin = hasAdminGuard({ user });
+ * // Returns true if user is admin
+ */
+import { User } from './user';
+
+export const hasAdminGuard = ({ user }) => {
+  return user.role === 'admin';
+};`,
+      filename: 'src/guards/has-admin/has-admin-guard.ts',
+      errors: [{ messageId: 'metadataNotAtTop' }],
+    },
+    {
+      code: `// Some other comment
+import { fetch } from 'http';
+
+/**
+ * PURPOSE: Fetches user data from API
+ *
+ * USAGE:
+ * const user = await userFetchBroker({ userId });
+ * // Returns User object or throws error
+ */
+export const userFetchBroker = async ({ userId }) => {
+  return await fetch(\`/api/users/\${userId}\`);
+};`,
+      output: `/**
+ * PURPOSE: Fetches user data from API
+ *
+ * USAGE:
+ * const user = await userFetchBroker({ userId });
+ * // Returns User object or throws error
+ */
+// Some other comment
+import { fetch } from 'http';
+
+export const userFetchBroker = async ({ userId }) => {
+  return await fetch(\`/api/users/\${userId}\`);
+};`,
+      filename: 'src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [{ messageId: 'metadataNotAtTop' }],
+    },
+    {
+      code: `import type { User } from './user-contract';
+import { z } from 'zod';
+
+/**
+ * PURPOSE: Transforms user data to DTO format
+ *
+ * USAGE:
+ * const dto = userToDtoTransformer({ user });
+ */
+export const userToDtoTransformer = ({ user }) => {
+  return { id: user.id, name: user.name };
+};`,
+      output: `/**
+ * PURPOSE: Transforms user data to DTO format
+ *
+ * USAGE:
+ * const dto = userToDtoTransformer({ user });
+ */
+import type { User } from './user-contract';
+import { z } from 'zod';
+
+export const userToDtoTransformer = ({ user }) => {
+  return { id: user.id, name: user.name };
+};`,
+      filename: 'src/transformers/user-to-dto/user-to-dto-transformer.ts',
+      errors: [{ messageId: 'metadataNotAtTop' }],
+    },
+    {
+      code: `// Copyright header
+// Some rights reserved
+
+/**
+ * PURPOSE: Validates email format
+ *
+ * USAGE:
+ * const isValid = emailValidator({ email });
+ * // Returns true if email is valid
+ */
+export const emailValidator = ({ email }) => {
+  return email.includes('@');
+};`,
+      output: `/**
+ * PURPOSE: Validates email format
+ *
+ * USAGE:
+ * const isValid = emailValidator({ email });
+ * // Returns true if email is valid
+ */
+// Copyright header
+// Some rights reserved
+
+export const emailValidator = ({ email }) => {
+  return email.includes('@');
+};`,
+      filename: 'src/guards/email-validator/email-validator-guard.ts',
+      errors: [{ messageId: 'metadataNotAtTop' }],
+    },
+    {
+      code: `
+/**
+ * PURPOSE: Calculates total price
+ *
+ * USAGE:
+ * const total = calculateTotal({ items });
+ * // Returns sum of all item prices
+ */
+export const calculateTotal = ({ items }) => {
+  return items.reduce((sum, item) => sum + item.price, 0);
+};`,
+      output: `/**
+ * PURPOSE: Calculates total price
+ *
+ * USAGE:
+ * const total = calculateTotal({ items });
+ * // Returns sum of all item prices
+ */
+
+export const calculateTotal = ({ items }) => {
+  return items.reduce((sum, item) => sum + item.price, 0);
+};`,
+      filename: 'src/transformers/calculate-total/calculate-total-transformer.ts',
+      errors: [{ messageId: 'metadataNotAtTop' }],
+    },
+    {
+      code: `import { z } from 'zod';
+import type { Config } from './config-contract';
+
+// Helper function
+const helper = () => {};
+
+/**
+ * PURPOSE: Loads configuration from file
+ *
+ * USAGE:
+ * const config = await loadConfig({ path });
+ * // Returns parsed configuration object
+ */
+export const loadConfig = async ({ path }) => {
+  return {};
+};`,
+      output: `/**
+ * PURPOSE: Loads configuration from file
+ *
+ * USAGE:
+ * const config = await loadConfig({ path });
+ * // Returns parsed configuration object
+ */
+import { z } from 'zod';
+import type { Config } from './config-contract';
+
+// Helper function
+const helper = () => {};
+
+export const loadConfig = async ({ path }) => {
+  return {};
+};`,
+      filename: 'src/brokers/config/load/config-load-broker.ts',
+      errors: [{ messageId: 'metadataNotAtTop' }],
+    },
+    {
+      code: `/* Block comment before imports */
+import { readFile } from 'fs/promises';
+
+/**
+ * PURPOSE: Reads file contents
+ *
+ * USAGE:
+ * const content = await fileReader({ path });
+ * // Returns file contents as string
+ */
+export const fileReader = async ({ path }) => {
+  return await readFile(path, 'utf-8');
+};`,
+      output: `/**
+ * PURPOSE: Reads file contents
+ *
+ * USAGE:
+ * const content = await fileReader({ path });
+ * // Returns file contents as string
+ */
+/* Block comment before imports */
+import { readFile } from 'fs/promises';
+
+export const fileReader = async ({ path }) => {
+  return await readFile(path, 'utf-8');
+};`,
+      filename: 'src/adapters/file-reader/file-reader-adapter.ts',
+      errors: [{ messageId: 'metadataNotAtTop' }],
+    },
   ],
 });

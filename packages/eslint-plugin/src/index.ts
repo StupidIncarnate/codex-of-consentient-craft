@@ -22,6 +22,7 @@ export { ruleExplicitReturnTypesBroker } from './brokers/rule/explicit-return-ty
 export { ruleRequireContractValidationBroker } from './brokers/rule/require-contract-validation/rule-require-contract-validation-broker';
 export { configQuestmaestroBroker } from './brokers/config/questmaestro/config-questmaestro-broker';
 export { questmaestroRuleEnforceOnStatics } from './statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics';
+export { folderConfigStatics } from '@questmaestro/shared/statics';
 export { configTsconfigBroker } from './brokers/config/tsconfig/config-tsconfig-broker';
 
 // Export transformers for advanced usage

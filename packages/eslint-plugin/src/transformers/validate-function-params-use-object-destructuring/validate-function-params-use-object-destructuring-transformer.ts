@@ -1,6 +1,3 @@
-import type { EslintContext } from '../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-
 /**
  * PURPOSE: Validates that all function parameters use object destructuring pattern and reports ESLint errors if not
  *
@@ -13,6 +10,9 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
  *
  * WHEN-TO-USE: Within ESLint rule implementations to enforce object destructuring for function parameters
  */
+import type { EslintContext } from '../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+
 export const validateFunctionParamsUseObjectDestructuringTransformer = ({
   node,
   context,

@@ -1,6 +1,3 @@
-import type { ErrorMessage } from '@questmaestro/shared/contracts';
-import { errorMessageContract } from '@questmaestro/shared/contracts';
-
 /**
  * PURPOSE: Generates helpful error messages for non-exported function violations with domain-specific guidance
  *
@@ -11,6 +8,9 @@ import { errorMessageContract } from '@questmaestro/shared/contracts';
  * const transformerMessage = functionViolationSuggestionTransformer({ functionType: 'transformer' });
  * // Returns: "This appears to be a data transformation. Extract it to a new file in transformers/ folder..."
  */
+import type { ErrorMessage } from '@questmaestro/shared/contracts';
+import { errorMessageContract } from '@questmaestro/shared/contracts';
+
 export const functionViolationSuggestionTransformer = ({
   functionType,
 }: {

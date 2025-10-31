@@ -1,9 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
-
 /**
  * PURPOSE: Creates ESLint rule that forbids mutable state (let/var) anywhere in proxy files
  *
@@ -13,6 +7,12 @@ import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suf
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce immutability in proxy factory patterns
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+
 export const ruleNoMutableStateInProxyFactoryBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

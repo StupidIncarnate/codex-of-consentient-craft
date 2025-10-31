@@ -1,6 +1,3 @@
-import type { FilePath } from '@questmaestro/shared/contracts';
-import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
-
 /**
  * PURPOSE: Checks if a file path represents an end-to-end test file
  *
@@ -10,6 +7,9 @@ import { testFilePatternStatics } from '../../statics/test-file-pattern/test-fil
  * }
  * // Returns true if path contains any e2e test file suffix from test file pattern statics
  */
+import type { FilePath } from '@questmaestro/shared/contracts';
+import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
+
 export const isE2eTestFileGuard = ({ filePath }: { filePath?: FilePath | undefined }): boolean => {
   if (filePath === undefined) {
     return false;

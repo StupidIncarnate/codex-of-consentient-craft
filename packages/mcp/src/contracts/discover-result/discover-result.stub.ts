@@ -2,7 +2,9 @@ import { discoverResultContract } from './discover-result-contract';
 import type { DiscoverResult } from './discover-result-contract';
 import type { StubArgument } from '@questmaestro/shared/@types';
 
-export const DiscoverResultStub = ({ ...props }: StubArgument<DiscoverResult> = {}): DiscoverResult =>
+export const DiscoverResultStub = ({
+  ...props
+}: StubArgument<DiscoverResult> = {}): DiscoverResult =>
   discoverResultContract.parse({
     results: [
       {

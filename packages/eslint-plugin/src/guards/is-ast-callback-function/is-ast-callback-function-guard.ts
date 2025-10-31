@@ -1,5 +1,3 @@
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-
 /**
  * PURPOSE: Checks if an AST function node is used as a callback (parent is CallExpression)
  *
@@ -10,5 +8,7 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
  * }
  * // Returns true if function's parent is a CallExpression
  */
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+
 export const isAstCallbackFunctionGuard = ({ funcNode }: { funcNode?: Tsestree }): boolean =>
   funcNode?.parent?.type === 'CallExpression';

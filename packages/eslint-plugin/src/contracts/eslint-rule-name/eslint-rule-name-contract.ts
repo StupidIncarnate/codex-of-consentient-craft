@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 /**
  * ESLint rule name contract - branded string for ESLint rule names.
  *
@@ -9,6 +7,8 @@ import { z } from 'zod';
  * const ruleName = eslintRuleNameContract.parse('no-console');
  * // Returns branded EslintRuleName; throws on empty string
  */
+import { z } from 'zod';
+
 export const eslintRuleNameContract = z.string().min(1).brand<'EslintRuleName'>();
 
 export type EslintRuleName = z.infer<typeof eslintRuleNameContract>;

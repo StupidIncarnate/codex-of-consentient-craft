@@ -1,5 +1,3 @@
-import { folderConfigStatics } from '../../statics/folder-config/folder-config-statics';
-
 /**
  * PURPOSE: Checks if a name ends with a folder type suffix pattern from folder config
  *
@@ -9,6 +7,8 @@ import { folderConfigStatics } from '../../statics/folder-config/folder-config-s
  * }
  * // Returns true if name matches any configured folder type suffix
  */
+import { folderConfigStatics } from '@questmaestro/shared/statics';
+
 export const hasFolderTypeSuffixGuard = ({ name }: { name?: string }): boolean => {
   if (!name) {
     return false;

@@ -1,5 +1,3 @@
-import { hasFileSuffixGuard } from '../has-file-suffix/has-file-suffix-guard';
-
 /**
  * PURPOSE: Determines if a file should be excluded from project structure rule validation
  *
@@ -14,6 +12,8 @@ import { hasFileSuffixGuard } from '../has-file-suffix/has-file-suffix-guard';
  * WHEN-TO-USE: Early filtering before applying project structure rules
  * WHEN-NOT-TO-USE: Files with multiple dots (.test.ts, .stub.ts) are excluded EXCEPT .proxy.ts files
  */
+import { hasFileSuffixGuard } from '../has-file-suffix/has-file-suffix-guard';
+
 export const shouldExcludeFileFromProjectStructureRulesGuard = ({
   filename,
 }: {

@@ -1,9 +1,3 @@
-import { isKeyOfGuard } from '@questmaestro/shared/guards';
-
-import type { FolderSuggestion } from '../../contracts/folder-suggestion/folder-suggestion-contract';
-import { folderSuggestionContract } from '../../contracts/folder-suggestion/folder-suggestion-contract';
-import { forbiddenFolderStatics } from '../../statics/forbidden-folder/forbidden-folder-statics';
-
 /**
  * PURPOSE: Suggests the correct folder type to use when a forbidden folder name is detected
  *
@@ -14,6 +8,12 @@ import { forbiddenFolderStatics } from '../../statics/forbidden-folder/forbidden
  * const defaultSuggestion = forbiddenFolderSuggestionTransformer({ forbiddenFolder: 'unknown' });
  * // Returns: 'contracts' (default fallback)
  */
+import { isKeyOfGuard } from '@questmaestro/shared/guards';
+
+import type { FolderSuggestion } from '../../contracts/folder-suggestion/folder-suggestion-contract';
+import { folderSuggestionContract } from '../../contracts/folder-suggestion/folder-suggestion-contract';
+import { forbiddenFolderStatics } from '../../statics/forbidden-folder/forbidden-folder-statics';
+
 export const forbiddenFolderSuggestionTransformer = ({
   forbiddenFolder,
 }: {

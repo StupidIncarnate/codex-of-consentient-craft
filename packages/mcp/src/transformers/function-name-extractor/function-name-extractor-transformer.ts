@@ -1,7 +1,3 @@
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
-import type { FunctionName } from '../../contracts/function-name/function-name-contract';
-import { functionNameContract } from '../../contracts/function-name/function-name-contract';
-
 /**
  * PURPOSE: Extracts function name from filepath by removing extension
  *
@@ -11,6 +7,10 @@ import { functionNameContract } from '../../contracts/function-name/function-nam
  * });
  * // Returns: FunctionName('user-fetch-broker')
  */
+import type { FilePath } from '../../contracts/file-path/file-path-contract';
+import type { FunctionName } from '../../contracts/function-name/function-name-contract';
+import { functionNameContract } from '../../contracts/function-name/function-name-contract';
+
 export const functionNameExtractorTransformer = ({
   filepath,
 }: {

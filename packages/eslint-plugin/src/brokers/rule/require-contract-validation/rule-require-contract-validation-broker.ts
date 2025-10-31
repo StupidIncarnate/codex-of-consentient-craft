@@ -1,9 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { filePathContract } from '@questmaestro/shared/contracts';
-
 /**
  * PURPOSE: Creates ESLint rule that requires contract.parse() validation for require() and import() calls with dynamic paths
  *
@@ -14,6 +8,12 @@ import { filePathContract } from '@questmaestro/shared/contracts';
  * WHEN-TO-USE: When registering ESLint rules to ensure dynamic module paths are validated
  * WHEN-NOT-TO-USE: String literals with valid file paths (./, ../, /) are automatically allowed
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { filePathContract } from '@questmaestro/shared/contracts';
+
 export const ruleRequireContractValidationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

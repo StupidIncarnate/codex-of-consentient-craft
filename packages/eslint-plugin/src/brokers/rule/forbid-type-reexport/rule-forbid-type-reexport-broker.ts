@@ -1,8 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-
 /**
  * PURPOSE: Creates ESLint rule that forbids re-exporting types that were imported (except in index.ts files)
  *
@@ -13,6 +8,11 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
  * WHEN-TO-USE: When registering ESLint rules to enforce importing types directly from their source
  * WHEN-NOT-TO-USE: Automatically allows type re-exports in index.ts files for barrel exports
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+
 export const ruleForbidTypeReexportBroker = (): EslintRule => {
   const importedTypes = new Set<PropertyKey>();
 

@@ -1,6 +1,3 @@
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-
 /**
  * PURPOSE: Layer helper that checks if a primitive type usage violates the ban-primitives rule based on context
  *
@@ -15,6 +12,9 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
  * });
  * // Reports error if primitive is used in a forbidden context (e.g., return type when allowPrimitiveReturns is false)
  */
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+
 export const checkPrimitiveViolationLayerBroker = ({
   node,
   typeName,

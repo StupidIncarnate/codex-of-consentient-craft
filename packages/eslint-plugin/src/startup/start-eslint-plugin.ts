@@ -1,3 +1,14 @@
+/**
+ * PURPOSE: Creates and initializes the ESLint plugin with all custom rules and configurations
+ *
+ * USAGE:
+ * import { StartEslintPlugin } from '@questmaestro/eslint-plugin';
+ * const plugin = StartEslintPlugin();
+ * // Use plugin.rules in ESLint config
+ * // Use plugin.configs.questmaestro for pre-configured rulesets
+ *
+ * WHEN-TO-USE: When setting up ESLint to use Questmaestro custom rules
+ */
 import { ruleBanAdhocTypesBroker } from '../brokers/rule/ban-adhoc-types/rule-ban-adhoc-types-broker';
 import { ruleBanPrimitivesBroker } from '../brokers/rule/ban-primitives/rule-ban-primitives-broker';
 import { ruleBanContractInTestsBroker } from '../brokers/rule/ban-contract-in-tests/rule-ban-contract-in-tests-broker';
@@ -31,17 +42,6 @@ import { configQuestmaestroBroker } from '../brokers/config/questmaestro/config-
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
 import type { EslintRule } from '../contracts/eslint-rule/eslint-rule-contract';
 
-/**
- * PURPOSE: Creates and initializes the ESLint plugin with all custom rules and configurations
- *
- * USAGE:
- * import { StartEslintPlugin } from '@questmaestro/eslint-plugin';
- * const plugin = StartEslintPlugin();
- * // Use plugin.rules in ESLint config
- * // Use plugin.configs.questmaestro for pre-configured rulesets
- *
- * WHEN-TO-USE: When setting up ESLint to use Questmaestro custom rules
- */
 export const StartEslintPlugin = (): {
   readonly rules: {
     readonly 'ban-adhoc-types': EslintRule;

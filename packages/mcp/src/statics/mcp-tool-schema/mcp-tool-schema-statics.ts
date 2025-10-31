@@ -47,4 +47,52 @@ export const mcpToolSchemaStatics = {
       required: ['type'],
     },
   },
+  'get-architecture': {
+    name: 'get-architecture',
+    description: 'Returns complete architecture overview',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+  },
+  'get-folder-detail': {
+    name: 'get-folder-detail',
+    description: 'Returns detailed information about a specific folder type',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        folderType: {
+          type: 'string',
+          enum: [
+            'statics',
+            'contracts',
+            'guards',
+            'transformers',
+            'errors',
+            'flows',
+            'adapters',
+            'middleware',
+            'brokers',
+            'bindings',
+            'state',
+            'responders',
+            'widgets',
+            'startup',
+          ],
+          description: 'Type of folder to get details for',
+        },
+      },
+      required: ['folderType'],
+    },
+  },
+  'get-syntax-rules': {
+    name: 'get-syntax-rules',
+    description: 'Returns universal syntax rules',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+  },
 } as const;

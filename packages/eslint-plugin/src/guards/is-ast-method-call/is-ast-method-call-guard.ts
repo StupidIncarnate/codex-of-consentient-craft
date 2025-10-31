@@ -1,5 +1,3 @@
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-
 /**
  * PURPOSE: Checks if an AST node matches a specific method call pattern (object.method())
  *
@@ -10,6 +8,8 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
  * }
  * // Returns true if node is CallExpression matching object.method() pattern
  */
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+
 export const isAstMethodCallGuard = ({
   node,
   object,

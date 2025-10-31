@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Enforces QuestMaestro project structure with hierarchical validation of folders, depth, filenames, and exports
+ *
+ * USAGE:
+ * const rule = ruleEnforceProjectStructureBroker();
+ * // Returns ESLint rule that validates folder location, depth, kebab-case filenames, and export naming conventions
+ */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
@@ -9,7 +16,7 @@ import { isCamelCaseGuard } from '../../../guards/is-camel-case/is-camel-case-gu
 import { isKebabCaseGuard } from '../../../guards/is-kebab-case/is-kebab-case-guard';
 import { isPascalCaseGuard } from '../../../guards/is-pascal-case/is-pascal-case-guard';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
-import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+import { folderConfigStatics } from '@questmaestro/shared/statics';
 import { forbiddenFolderStatics } from '../../../statics/forbidden-folder/forbidden-folder-statics';
 import { expectedExportNameTransformer } from '../../../transformers/expected-export-name/expected-export-name-transformer';
 import { filepathExtractSegmentsAfterSrcTransformer } from '../../../transformers/filepath-extract-segments-after-src/filepath-extract-segments-after-src-transformer';
@@ -23,13 +30,6 @@ import { getFileExtensionTransformer } from '../../../transformers/get-file-exte
 
 const allowedFolders = Object.keys(folderConfigStatics);
 
-/**
- * PURPOSE: Enforces QuestMaestro project structure with hierarchical validation of folders, depth, filenames, and exports
- *
- * USAGE:
- * const rule = ruleEnforceProjectStructureBroker();
- * // Returns ESLint rule that validates folder location, depth, kebab-case filenames, and export naming conventions
- */
 export const ruleEnforceProjectStructureBroker = (): EslintRule => {
   const parsedMeta = eslintRuleContract.parse({
     meta: {

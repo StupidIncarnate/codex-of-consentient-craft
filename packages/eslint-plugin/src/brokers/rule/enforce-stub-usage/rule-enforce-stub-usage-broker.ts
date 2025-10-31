@@ -1,10 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
-import { typeNameFromAnnotationTransformer } from '../../../transformers/type-name-from-annotation/type-name-from-annotation-transformer';
-
 /**
  * PURPOSE: Creates ESLint rule that enforces using stub functions instead of inline object/array literals in test files
  *
@@ -14,6 +7,13 @@ import { typeNameFromAnnotationTransformer } from '../../../transformers/type-na
  *
  * WHEN-TO-USE: When registering ESLint rules to ensure test files use reusable stub functions for consistency
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { typeNameFromAnnotationTransformer } from '../../../transformers/type-name-from-annotation/type-name-from-annotation-transformer';
+
 export const ruleEnforceStubUsageBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

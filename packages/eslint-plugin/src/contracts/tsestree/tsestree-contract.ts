@@ -1,17 +1,3 @@
-import { z } from 'zod';
-import { tsestreeNodeTypeStatics } from '../../statics/tsestree-node-type/tsestree-node-type-statics';
-import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
-
-// Extract literal type union from statics
-type TsestreeNodeTypeValue =
-  (typeof tsestreeNodeTypeStatics.nodeTypes)[keyof typeof tsestreeNodeTypeStatics.nodeTypes];
-
-// Create tuple of literal values for z.enum (preserves literal types)
-const nodeTypeValues = Object.values(tsestreeNodeTypeStatics.nodeTypes) as [
-  TsestreeNodeTypeValue,
-  ...TsestreeNodeTypeValue[],
-];
-
 /**
  * PURPOSE: Validates TypeScript ESTree AST nodes with recursive parent references
  *
@@ -28,6 +14,19 @@ const nodeTypeValues = Object.values(tsestreeNodeTypeStatics.nodeTypes) as [
  * Uses z.lazy() for recursive parent reference.
  * Type property constrained to TsestreeNodeType enum values.
  */
+import { z } from 'zod';
+import { tsestreeNodeTypeStatics } from '../../statics/tsestree-node-type/tsestree-node-type-statics';
+import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+
+// Extract literal type union from statics
+type TsestreeNodeTypeValue =
+  (typeof tsestreeNodeTypeStatics.nodeTypes)[keyof typeof tsestreeNodeTypeStatics.nodeTypes];
+
+// Create tuple of literal values for z.enum (preserves literal types)
+const nodeTypeValues = Object.values(tsestreeNodeTypeStatics.nodeTypes) as [
+  TsestreeNodeTypeValue,
+  ...TsestreeNodeTypeValue[],
+];
 
 // Recursive base defines full object with REQUIRED parent using z.lazy()
 // Output type (after parsing)

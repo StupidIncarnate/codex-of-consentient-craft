@@ -1,3 +1,12 @@
+/**
+ * PURPOSE: Creates ESLint rule that ensures test files only import their colocated proxy file, not other proxies
+ *
+ * USAGE:
+ * const rule = ruleEnforceTestProxyImportsBroker();
+ * // Returns EslintRule that validates test files import only their matching proxy (e.g., user-broker.test.ts imports ./user-broker.proxy)
+ *
+ * WHEN-TO-USE: When registering ESLint rules to enforce test-proxy coupling and prevent cross-test dependencies
+ */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
@@ -9,15 +18,6 @@ import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suf
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
 import { normalizeImportPathTransformer } from '../../../transformers/normalize-import-path/normalize-import-path-transformer';
 
-/**
- * PURPOSE: Creates ESLint rule that ensures test files only import their colocated proxy file, not other proxies
- *
- * USAGE:
- * const rule = ruleEnforceTestProxyImportsBroker();
- * // Returns EslintRule that validates test files import only their matching proxy (e.g., user-broker.test.ts imports ./user-broker.proxy)
- *
- * WHEN-TO-USE: When registering ESLint rules to enforce test-proxy coupling and prevent cross-test dependencies
- */
 export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

@@ -1,6 +1,3 @@
-import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
-import { eslintRulesDisableConflictsTransformer } from '../eslint-rules-disable-conflicts/eslint-rules-disable-conflicts-transformer';
-
 /**
  * PURPOSE: Merges ESLint configurations while resolving rule conflicts between base and plugin rules
  *
@@ -13,6 +10,9 @@ import { eslintRulesDisableConflictsTransformer } from '../eslint-rules-disable-
  *
  * WHEN-TO-USE: When combining multiple ESLint configs with overlapping rule names
  */
+import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
+import { eslintRulesDisableConflictsTransformer } from '../eslint-rules-disable-conflicts/eslint-rules-disable-conflicts-transformer';
+
 export const eslintConflictResolverTransformer = ({
   reference,
   overrides,

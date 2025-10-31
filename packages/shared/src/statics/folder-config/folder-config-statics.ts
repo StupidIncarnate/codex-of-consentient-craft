@@ -20,6 +20,11 @@ export const folderConfigStatics = {
     requireProxy: false,
     allowsLayerFiles: false,
     allowRegex: false,
+    meta: {
+      purpose:
+        'Immutable configuration values and constants. Single source of truth for magic numbers, limits, and unchanging data.',
+      whenToUse: 'Need immutable config or constants',
+    },
   },
   contracts: {
     fileSuffix: ['-contract.ts', '.stub.ts'],
@@ -32,6 +37,11 @@ export const folderConfigStatics = {
     requireProxy: false,
     allowsLayerFiles: false,
     allowRegex: true,
+    meta: {
+      purpose:
+        'Type definitions and validation schemas using Zod. All data structures must be defined here with branded types.',
+      whenToUse: 'Define data structure with validation',
+    },
   },
   guards: {
     fileSuffix: '-guard.ts',
@@ -44,6 +54,11 @@ export const folderConfigStatics = {
     requireProxy: false,
     allowsLayerFiles: false,
     allowRegex: true,
+    meta: {
+      purpose:
+        'Pure boolean functions that validate conditions. Return true/false, no side effects.',
+      whenToUse: 'Boolean check or type guard',
+    },
   },
   transformers: {
     fileSuffix: '-transformer.ts',
@@ -56,6 +71,11 @@ export const folderConfigStatics = {
     requireProxy: false,
     allowsLayerFiles: false,
     allowRegex: true,
+    meta: {
+      purpose:
+        'Pure data transformation functions. Map input types to output types without side effects.',
+      whenToUse: 'Transform data shape A to B',
+    },
   },
   errors: {
     fileSuffix: '-error.ts',
@@ -68,6 +88,10 @@ export const folderConfigStatics = {
     requireProxy: false,
     allowsLayerFiles: false,
     allowRegex: false,
+    meta: {
+      purpose: 'Custom error classes extending Error. Domain-specific error types.',
+      whenToUse: 'Custom error with context',
+    },
   },
   flows: {
     fileSuffix: ['-flow.ts', '-flow.tsx'],
@@ -80,6 +104,11 @@ export const folderConfigStatics = {
     requireProxy: false,
     allowsLayerFiles: false,
     allowRegex: false,
+    meta: {
+      purpose:
+        'Top-level orchestration components (React) that wire up responders. Entry points for major application flows.',
+      whenToUse: 'Define routes or entry points',
+    },
   },
   adapters: {
     fileSuffix: '-adapter.ts',
@@ -92,6 +121,11 @@ export const folderConfigStatics = {
     requireProxy: true,
     allowsLayerFiles: false,
     allowRegex: false,
+    meta: {
+      purpose:
+        'I/O boundary layer translating between external systems and internal contracts. Wrap npm packages, APIs, databases.',
+      whenToUse: 'Wrap npm package',
+    },
   },
   middleware: {
     fileSuffix: '-middleware.ts',
@@ -104,6 +138,11 @@ export const folderConfigStatics = {
     requireProxy: true,
     allowsLayerFiles: false,
     allowRegex: false,
+    meta: {
+      purpose:
+        'Request/response transformation layer. Authentication, logging, validation pipelines.',
+      whenToUse: 'Combine adapters for infrastructure',
+    },
   },
   brokers: {
     fileSuffix: '-broker.ts',
@@ -124,6 +163,11 @@ export const folderConfigStatics = {
     requireProxy: true,
     allowsLayerFiles: true,
     allowRegex: false,
+    meta: {
+      purpose:
+        'Business logic orchestration. Compose adapters, guards, transformers to implement domain operations.',
+      whenToUse: 'Business logic operations',
+    },
   },
   bindings: {
     fileSuffix: '-binding.ts',
@@ -144,6 +188,10 @@ export const folderConfigStatics = {
     requireProxy: true,
     allowsLayerFiles: false,
     allowRegex: false,
+    meta: {
+      purpose: 'React hooks that connect widgets to business logic. Bridge between UI and brokers.',
+      whenToUse: 'React hook or reactive binding',
+    },
   },
   state: {
     fileSuffix: '-state.ts',
@@ -156,6 +204,10 @@ export const folderConfigStatics = {
     requireProxy: true,
     allowsLayerFiles: false,
     allowRegex: false,
+    meta: {
+      purpose: 'Shared state management. In-memory caches, stores, and state containers.',
+      whenToUse: 'In-memory storage',
+    },
   },
   responders: {
     fileSuffix: '-responder.ts',
@@ -178,6 +230,11 @@ export const folderConfigStatics = {
     requireProxy: true,
     allowsLayerFiles: true,
     allowRegex: false,
+    meta: {
+      purpose:
+        'Request handlers that orchestrate brokers and bindings. Process incoming requests and return responses.',
+      whenToUse: 'Handle HTTP/API requests',
+    },
   },
   widgets: {
     fileSuffix: ['-widget.tsx', '-widget.ts'],
@@ -199,6 +256,10 @@ export const folderConfigStatics = {
     requireProxy: true,
     allowsLayerFiles: true,
     allowRegex: false,
+    meta: {
+      purpose: 'React UI components. Visual representation and user interaction.',
+      whenToUse: 'UI component or React widget',
+    },
   },
   startup: {
     fileSuffix: '.ts',
@@ -211,6 +272,11 @@ export const folderConfigStatics = {
     requireProxy: false,
     allowsLayerFiles: false,
     allowRegex: false,
+    meta: {
+      purpose:
+        'Application initialization and configuration. Entry points, server startup, CLI commands.',
+      whenToUse: 'App initialization',
+    },
   },
   assets: {
     fileSuffix: '',
@@ -223,6 +289,10 @@ export const folderConfigStatics = {
     requireProxy: false,
     allowsLayerFiles: false,
     allowRegex: false,
+    meta: {
+      purpose: 'Static files like images, fonts, and other non-code resources.',
+      whenToUse: 'Static files (images, fonts)',
+    },
   },
   migrations: {
     fileSuffix: '',
@@ -235,5 +305,9 @@ export const folderConfigStatics = {
     requireProxy: false,
     allowsLayerFiles: false,
     allowRegex: false,
+    meta: {
+      purpose: 'Database schema changes and data migrations. Versioned SQL scripts.',
+      whenToUse: 'Database or schema upgrades',
+    },
   },
 } as const;

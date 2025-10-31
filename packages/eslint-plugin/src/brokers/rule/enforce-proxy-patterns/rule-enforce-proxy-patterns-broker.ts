@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Enforces internal patterns for .proxy.ts files including colocation, return types, mocking, and constructor setup
+ *
+ * USAGE:
+ * const rule = ruleEnforceProxyPatternsBroker();
+ * // Returns ESLint rule that validates proxy files return objects, use jest.mocked(), setup mocks in constructor, etc.
+ */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
@@ -12,13 +19,6 @@ import { validateProxyConstructorSideEffectsLayerBroker } from './validate-proxy
 import { proxyPatternsStatics } from '../../../statics/proxy-patterns/proxy-patterns-statics';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
 
-/**
- * PURPOSE: Enforces internal patterns for .proxy.ts files including colocation, return types, mocking, and constructor setup
- *
- * USAGE:
- * const rule = ruleEnforceProxyPatternsBroker();
- * // Returns ESLint rule that validates proxy files return objects, use jest.mocked(), setup mocks in constructor, etc.
- */
 export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

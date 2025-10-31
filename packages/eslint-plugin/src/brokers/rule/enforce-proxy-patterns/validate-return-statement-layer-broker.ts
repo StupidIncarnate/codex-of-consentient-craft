@@ -1,7 +1,3 @@
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { validateObjectExpressionLayerBroker } from './validate-object-expression-layer-broker';
-
 /**
  * PURPOSE: Layer helper that validates return statements in proxy functions return valid objects
  *
@@ -9,6 +5,10 @@ import { validateObjectExpressionLayerBroker } from './validate-object-expressio
  * validateReturnStatementLayerBroker({ statement, context, functionNode });
  * // Reports error if return statement returns void, primitive, or array instead of object
  */
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { validateObjectExpressionLayerBroker } from './validate-object-expression-layer-broker';
+
 export const validateReturnStatementLayerBroker = ({
   statement,
   context,

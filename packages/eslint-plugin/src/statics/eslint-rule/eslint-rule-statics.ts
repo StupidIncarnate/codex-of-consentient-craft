@@ -23,7 +23,9 @@ export const eslintRuleStatics = {
     // ✅ x => ({ foo: x })
     // ❌ x => { return { foo: x } }
     // Enforces concise arrow function bodies when possible
-    'arrow-body-style': ['error', 'always'],
+    // 'arrow-body-style': ['error', 'always'],
+    // This is stylistic more than anything.
+    'arrow-body-style': 'off',
 
     // ✅ for (let i = 0; i < 10; i++) { const x = i }
     // ❌ for (var i = 0; i < 10; i++) { } console.log(i)

@@ -38,4 +38,61 @@ describe('mcpToolSchemaStatics', () => {
       },
     });
   });
+
+  it('VALID: get-architecture schema structure', () => {
+    expect(mcpToolSchemaStatics['get-architecture']).toStrictEqual({
+      name: 'get-architecture',
+      description: 'Returns complete architecture overview',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    });
+  });
+
+  it('VALID: get-folder-detail schema structure', () => {
+    expect(mcpToolSchemaStatics['get-folder-detail']).toStrictEqual({
+      name: 'get-folder-detail',
+      description: 'Returns detailed information about a specific folder type',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          folderType: {
+            type: 'string',
+            enum: [
+              'statics',
+              'contracts',
+              'guards',
+              'transformers',
+              'errors',
+              'flows',
+              'adapters',
+              'middleware',
+              'brokers',
+              'bindings',
+              'state',
+              'responders',
+              'widgets',
+              'startup',
+            ],
+            description: 'Type of folder to get details for',
+          },
+        },
+        required: ['folderType'],
+      },
+    });
+  });
+
+  it('VALID: get-syntax-rules schema structure', () => {
+    expect(mcpToolSchemaStatics['get-syntax-rules']).toStrictEqual({
+      name: 'get-syntax-rules',
+      description: 'Returns universal syntax rules',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    });
+  });
 });

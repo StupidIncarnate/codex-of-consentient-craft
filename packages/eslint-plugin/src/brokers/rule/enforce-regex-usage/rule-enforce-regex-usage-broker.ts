@@ -1,10 +1,17 @@
+/**
+ * PURPOSE: Restricts regex usage to specific folders where regex is explicitly allowed
+ *
+ * USAGE:
+ * const rule = ruleEnforceRegexUsageBroker();
+ * // Returns ESLint rule that allows regex only in folders with allowRegex: true (guards, transformers, etc.)
+ */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
 import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
-import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+import { folderConfigStatics } from '@questmaestro/shared/statics';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 
 // Get allowed folders from config
@@ -13,13 +20,6 @@ const allowedFolders = Object.entries(folderConfigStatics)
   .map(([folderType]) => folderType)
   .join(', ');
 
-/**
- * PURPOSE: Restricts regex usage to specific folders where regex is explicitly allowed
- *
- * USAGE:
- * const rule = ruleEnforceRegexUsageBroker();
- * // Returns ESLint rule that allows regex only in folders with allowRegex: true (guards, transformers, etc.)
- */
 export const ruleEnforceRegexUsageBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

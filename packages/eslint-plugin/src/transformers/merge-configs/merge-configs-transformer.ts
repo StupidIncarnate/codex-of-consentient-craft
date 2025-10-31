@@ -1,5 +1,3 @@
-import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
-
 /**
  * PURPOSE: Combines multiple ESLint configuration objects into a single merged configuration
  *
@@ -9,6 +7,8 @@ import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-c
  * });
  * // Returns: Single config with all plugins, rules, languageOptions, files, and ignores merged
  */
+import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
+
 export const mergeConfigsTransformer = ({ configs }: { configs: EslintConfig[] }): EslintConfig => {
   const merged: EslintConfig = {
     plugins: {},

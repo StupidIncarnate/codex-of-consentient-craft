@@ -1,6 +1,3 @@
-import { identifierContract } from '@questmaestro/shared/contracts';
-import type { Identifier } from '@questmaestro/shared/contracts';
-
 /**
  * PURPOSE: Converts a plural folder type name to singular by removing trailing 's'
  *
@@ -11,6 +8,9 @@ import type { Identifier } from '@questmaestro/shared/contracts';
  * const adapter = singularizeFolderTypeTransformer({ folderType: 'adapters' });
  * // Returns: 'adapter'
  */
+import { identifierContract } from '@questmaestro/shared/contracts';
+import type { Identifier } from '@questmaestro/shared/contracts';
+
 export const singularizeFolderTypeTransformer = ({
   folderType,
 }: {

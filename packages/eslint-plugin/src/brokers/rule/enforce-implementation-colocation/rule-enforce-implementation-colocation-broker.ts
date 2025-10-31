@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Enforces that implementation files have colocated test and proxy files, and contract files have stub files
+ *
+ * USAGE:
+ * const rule = ruleEnforceImplementationColocationBroker();
+ * // Returns ESLint rule that requires foo-broker.ts to have foo-broker.test.ts and foo-broker.proxy.ts in same directory
+ */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
@@ -6,7 +13,7 @@ import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-
 import { filePathContract } from '@questmaestro/shared/contracts';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
-import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+import { folderConfigStatics } from '@questmaestro/shared/statics';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 import { removeFileExtensionTransformer } from '../../../transformers/remove-file-extension/remove-file-extension-transformer';
@@ -15,13 +22,6 @@ import { extractFirstSegmentTransformer } from '../../../transformers/extract-fi
 import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
 import { getFileExtensionTransformer } from '../../../transformers/get-file-extension/get-file-extension-transformer';
 
-/**
- * PURPOSE: Enforces that implementation files have colocated test and proxy files, and contract files have stub files
- *
- * USAGE:
- * const rule = ruleEnforceImplementationColocationBroker();
- * // Returns ESLint rule that requires foo-broker.ts to have foo-broker.test.ts and foo-broker.proxy.ts in same directory
- */
 export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

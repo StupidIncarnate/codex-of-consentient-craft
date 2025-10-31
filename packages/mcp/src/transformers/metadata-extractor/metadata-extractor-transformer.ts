@@ -1,7 +1,3 @@
-import { metadataExtractorTransformer as sharedMetadataExtractor } from '@questmaestro/shared/transformers';
-import type { ExtractedMetadata } from '@questmaestro/shared/contracts';
-import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
-
 /**
  * PURPOSE: Extracts structured metadata from comment blocks in source files (wrapper for shared implementation)
  *
@@ -11,6 +7,10 @@ import type { FileContents } from '../../contracts/file-contents/file-contents-c
  * });
  * // Returns: { purpose: 'Test', usage: '...', metadata: {...} }
  */
+import { metadataExtractorTransformer as sharedMetadataExtractor } from '@questmaestro/shared/transformers';
+import type { ExtractedMetadata } from '@questmaestro/shared/contracts';
+import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
+
 export const metadataExtractorTransformer = ({
   fileContents,
 }: {

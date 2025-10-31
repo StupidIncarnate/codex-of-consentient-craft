@@ -1,6 +1,3 @@
-import { modulePathContract } from '@questmaestro/shared/contracts';
-import type { ModulePath } from '@questmaestro/shared/contracts';
-
 /**
  * PURPOSE: Converts a contract file path to its corresponding stub file path
  *
@@ -12,6 +9,9 @@ import type { ModulePath } from '@questmaestro/shared/contracts';
  *
  * WHEN-TO-USE: When suggesting stub imports instead of contract imports in test files
  */
+import { modulePathContract } from '@questmaestro/shared/contracts';
+import type { ModulePath } from '@questmaestro/shared/contracts';
+
 export const contractPathToStubPathTransformer = ({
   contractPath,
 }: {

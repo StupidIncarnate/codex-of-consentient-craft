@@ -1,5 +1,3 @@
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-
 /**
  * PURPOSE: Checks if an AST node has an export declaration in its parent chain
  *
@@ -10,6 +8,8 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
  * }
  * // Returns true if any parent is an export declaration
  */
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+
 export const isAstNodeExportedGuard = ({ node }: { node?: Tsestree | undefined }): boolean => {
   if (node === undefined) {
     return false;

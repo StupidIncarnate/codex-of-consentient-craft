@@ -22,6 +22,11 @@
       "import": "./dist/@types.js",
       "require": "./dist/@types.js",
       "types": "./dist/@types.d.ts"
+    },
+    "./statics": {
+      "import": "./dist/statics.js",
+      "require": "./dist/statics.js",
+      "types": "./dist/statics.d.ts"
     }
   },
   "files": [

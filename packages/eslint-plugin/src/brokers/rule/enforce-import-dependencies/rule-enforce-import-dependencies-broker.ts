@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Enforces folder-level import restrictions based on architectural boundaries
+ *
+ * USAGE:
+ * const rule = ruleEnforceImportDependenciesBroker();
+ * // Returns ESLint rule that prevents brokers from importing from responders, enforces entry files, etc.
+ */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
@@ -13,13 +20,6 @@ import { folderTypeTransformer } from '../../../transformers/folder-type/folder-
 import { filepathResolveRelativeImportTransformer } from '../../../transformers/filepath-resolve-relative-import/filepath-resolve-relative-import-transformer';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 
-/**
- * PURPOSE: Enforces folder-level import restrictions based on architectural boundaries
- *
- * USAGE:
- * const rule = ruleEnforceImportDependenciesBroker();
- * // Returns ESLint rule that prevents brokers from importing from responders, enforces entry files, etc.
- */
 export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

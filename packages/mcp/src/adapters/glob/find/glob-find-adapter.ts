@@ -1,8 +1,3 @@
-import { glob } from 'glob';
-import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-
 /**
  * PURPOSE: Find files matching glob patterns using the glob npm package
  *
@@ -12,6 +7,11 @@ import { filePathContract } from '../../../contracts/file-path/file-path-contrac
  * });
  * // Returns: [FilePath('/path/to/file.ts'), ...]
  */
+import { glob } from 'glob';
+import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
+import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+
 export const globFindAdapter = async ({
   pattern,
   cwd,

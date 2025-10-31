@@ -1,12 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
-import { filePathContract } from '@questmaestro/shared/contracts';
-import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
-import { testFilePathToImplementationPathTransformer } from '../../../transformers/test-file-path-to-implementation-path/test-file-path-to-implementation-path-transformer';
-
 /**
  * PURPOSE: Creates ESLint rule that enforces test files are co-located with their implementation files in the same directory
  *
@@ -16,6 +7,15 @@ import { testFilePathToImplementationPathTransformer } from '../../../transforme
  *
  * WHEN-TO-USE: When registering ESLint rules to ensure test files follow co-location pattern
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { filePathContract } from '@questmaestro/shared/contracts';
+import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { testFilePathToImplementationPathTransformer } from '../../../transformers/test-file-path-to-implementation-path/test-file-path-to-implementation-path-transformer';
+
 export const ruleEnforceTestColocationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

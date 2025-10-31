@@ -1,6 +1,3 @@
-import { identifierContract } from '@questmaestro/shared/contracts';
-import type { Identifier } from '@questmaestro/shared/contracts';
-
 /**
  * PURPOSE: Determines the TypeScript file extension (.ts or .tsx) from a filename
  *
@@ -11,6 +8,9 @@ import type { Identifier } from '@questmaestro/shared/contracts';
  * const extWithoutDot = getFileExtensionTransformer({ filename: 'user-broker.ts', includesDot: false });
  * // Returns: 'ts'
  */
+import { identifierContract } from '@questmaestro/shared/contracts';
+import type { Identifier } from '@questmaestro/shared/contracts';
+
 export const getFileExtensionTransformer = ({
   filename,
   includesDot = true,

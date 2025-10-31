@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 /**
  * PURPOSE: Validates basic AST node structure with type, source location, and parent reference
  *
@@ -7,6 +5,8 @@ import { z } from 'zod';
  * const node = astNodeContract.parse({ type: 'Identifier', range: [0, 10], loc: {...}, parent: null });
  * // Returns validated AstNode with branded properties
  */
+import { z } from 'zod';
+
 export const astNodeContract = z.object({
   type: z.string().min(1).brand<'AstNodeType'>(),
   range: z

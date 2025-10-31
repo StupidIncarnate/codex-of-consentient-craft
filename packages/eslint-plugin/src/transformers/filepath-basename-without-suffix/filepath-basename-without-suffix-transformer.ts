@@ -1,5 +1,3 @@
-import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
-
 /**
  * PURPOSE: Extracts filename without extension and type suffix
  *
@@ -17,6 +15,8 @@ import { identifierContract, type Identifier } from '@questmaestro/shared/contra
  *
  * WHEN-TO-USE: When extracting base names for folder structure validation
  */
+import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+
 export const filepathBasenameWithoutSuffixTransformer = ({
   filePath,
   suffix,

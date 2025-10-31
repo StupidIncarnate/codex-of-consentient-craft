@@ -1,7 +1,3 @@
-import { metadataExtractorTransformer } from '@questmaestro/shared/transformers';
-import { fileMetadataCommentContract } from '../../contracts/file-metadata-comment/file-metadata-comment-contract';
-import type { FileMetadataComment } from '../../contracts/file-metadata-comment/file-metadata-comment-contract';
-
 /**
  * PURPOSE: Extracts PURPOSE, USAGE, and optional fields from comment text (wrapper for shared implementation)
  *
@@ -9,6 +5,10 @@ import type { FileMetadataComment } from '../../contracts/file-metadata-comment/
  * const metadata = extractFileMetadataTransformer({ commentText: '/** \n * PURPOSE: Does something\n * USAGE: example()\n *\/' });
  * // Returns { purpose: 'Does something', usage: 'example()' }
  */
+import { metadataExtractorTransformer } from '@questmaestro/shared/transformers';
+import { fileMetadataCommentContract } from '../../contracts/file-metadata-comment/file-metadata-comment-contract';
+import type { FileMetadataComment } from '../../contracts/file-metadata-comment/file-metadata-comment-contract';
+
 export const extractFileMetadataTransformer = ({
   commentText,
 }: {

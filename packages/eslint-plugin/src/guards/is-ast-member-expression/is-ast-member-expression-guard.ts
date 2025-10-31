@@ -1,5 +1,3 @@
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-
 /**
  * PURPOSE: Checks if an AST node is a member expression (object.property access)
  *
@@ -10,6 +8,8 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
  * }
  * // Returns true if node type is 'MemberExpression'
  */
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+
 export const isAstMemberExpressionGuard = ({
   node,
 }: {

@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Enforces that proxies create all child proxies based on implementation file imports
+ *
+ * USAGE:
+ * const rule = ruleEnforceProxyChildCreationBroker();
+ * // Returns ESLint rule that ensures proxy creates child proxy for each dependency imported by implementation
+ */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
@@ -10,13 +17,6 @@ import type { FileContents, Identifier, ModulePath } from '@questmaestro/shared/
 import { identifierContract } from '@questmaestro/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 
-/**
- * PURPOSE: Enforces that proxies create all child proxies based on implementation file imports
- *
- * USAGE:
- * const rule = ruleEnforceProxyChildCreationBroker();
- * // Returns ESLint rule that ensures proxy creates child proxy for each dependency imported by implementation
- */
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

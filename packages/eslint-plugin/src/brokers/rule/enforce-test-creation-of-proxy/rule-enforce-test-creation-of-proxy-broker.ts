@@ -1,13 +1,3 @@
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
-import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
-import type { Identifier } from '@questmaestro/shared/contracts';
-import { identifierContract } from '@questmaestro/shared/contracts';
-import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
-
 /**
  * PURPOSE: Creates ESLint rule that ensures proxies are created inside each test block, not at module level or in hooks
  *
@@ -17,6 +7,16 @@ import { singularizeFolderTypeTransformer } from '../../../transformers/singular
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce test isolation by preventing shared proxy instances
  */
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { folderConfigStatics } from '@questmaestro/shared/statics';
+import type { Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract } from '@questmaestro/shared/contracts';
+import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
+
 export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {

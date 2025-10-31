@@ -39,6 +39,19 @@ Your confidence should match your actual knowledge and observations:
 
 Err toward lower confidence rather than higher.
 
+## BEFORE MAKING CODE CHANGES
+
+Analyze the file against the request and determine what you need via discovery or re-reading standards. If it's issues
+with a test file, read the implementation for context. If it's issues with implementation, read the test file for
+context. Don't make any changes until you understand root cause.
+
+Any new file you make has aux files that go with it per standards.
+
+When you make changes in code, make sure to run lint against changed files for any errors to correct, then tests for any
+failure test cases to fix, then lint one more time for any errors to correct.
+
+All changes must adhere to standards.
+
 ## PROCESS THE FOLLOWING USER REQUEST
 
 Read:

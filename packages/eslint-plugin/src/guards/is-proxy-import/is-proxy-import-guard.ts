@@ -1,5 +1,3 @@
-import { hasFileSuffixGuard } from '../has-file-suffix/has-file-suffix-guard';
-
 /**
  * PURPOSE: Checks if an import source points to a proxy file
  *
@@ -9,6 +7,8 @@ import { hasFileSuffixGuard } from '../has-file-suffix/has-file-suffix-guard';
  * }
  * // Returns true if import ends with .proxy, .proxy.ts, .proxy.tsx or contains .proxy/
  */
+import { hasFileSuffixGuard } from '../has-file-suffix/has-file-suffix-guard';
+
 export const isProxyImportGuard = ({ importSource }: { importSource?: string }): boolean => {
   if (!importSource) {
     return false;

@@ -1,9 +1,3 @@
-import { isKeyOfGuard } from '@questmaestro/shared/guards';
-
-import { folderConfigStatics } from '../../statics/folder-config/folder-config-statics';
-
-type FolderConfig = (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
-
 /**
  * PURPOSE: Retrieves the configuration object for a specific folder type (brokers, contracts, guards, etc.)
  *
@@ -14,6 +8,12 @@ type FolderConfig = (typeof folderConfigStatics)[keyof typeof folderConfigStatic
  * const unknownConfig = folderConfigTransformer({ folderType: 'unknown' });
  * // Returns: undefined
  */
+import { isKeyOfGuard } from '@questmaestro/shared/guards';
+
+import { folderConfigStatics } from '@questmaestro/shared/statics';
+
+type FolderConfig = (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
+
 export const folderConfigTransformer = ({
   folderType,
 }: {

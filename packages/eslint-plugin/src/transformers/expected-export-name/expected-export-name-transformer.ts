@@ -1,8 +1,3 @@
-import { fileBasenameTransformer } from '../file-basename/file-basename-transformer';
-import { kebabToCamelCaseTransformer } from '../kebab-to-camel-case/kebab-to-camel-case-transformer';
-import { kebabToPascalCaseTransformer } from '../kebab-to-pascal-case/kebab-to-pascal-case-transformer';
-import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
-
 /**
  * PURPOSE: Calculates the expected export name based on filename and folder configuration
  *
@@ -17,6 +12,11 @@ import { identifierContract, type Identifier } from '@questmaestro/shared/contra
  *
  * WHEN-TO-USE: When validating export names match expected patterns from folder config
  */
+import { fileBasenameTransformer } from '../file-basename/file-basename-transformer';
+import { kebabToCamelCaseTransformer } from '../kebab-to-camel-case/kebab-to-camel-case-transformer';
+import { kebabToPascalCaseTransformer } from '../kebab-to-pascal-case/kebab-to-pascal-case-transformer';
+import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+
 export const expectedExportNameTransformer = ({
   filename,
   fileSuffix,

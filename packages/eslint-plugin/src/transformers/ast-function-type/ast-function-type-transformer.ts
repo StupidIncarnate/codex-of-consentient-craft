@@ -1,5 +1,3 @@
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-
 /**
  * PURPOSE: Determines if an arrow function is a guard or transformer based on its return type
  *
@@ -11,6 +9,8 @@ import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
  *
  * WHEN-TO-USE: When validating function naming conventions based on their return types
  */
+import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+
 export const astFunctionTypeTransformer = ({
   node,
 }: {
