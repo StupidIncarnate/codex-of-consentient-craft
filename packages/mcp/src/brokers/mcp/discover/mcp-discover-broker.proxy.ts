@@ -19,6 +19,10 @@ export const mcpDiscoverBrokerProxy = (): {
     contents: FileContents;
     pattern: GlobPattern;
   }) => void;
+  setupMultipleFileDiscovery: (params: {
+    files: readonly { filepath: FilePath; contents: FileContents }[];
+    pattern: GlobPattern;
+  }) => void;
   setupStandardsDiscovery: (params: { filepath: FilePath; contents: FileContents }) => void;
 } => {
   const fileScannerProxy = fileScannerBrokerProxy();
@@ -35,6 +39,16 @@ export const mcpDiscoverBrokerProxy = (): {
       pattern: GlobPattern;
     }): void => {
       fileScannerProxy.setupFileWithMetadata({ filepath, contents, pattern });
+    },
+
+    setupMultipleFileDiscovery: ({
+      files,
+      pattern,
+    }: {
+      files: readonly { filepath: FilePath; contents: FileContents }[];
+      pattern: GlobPattern;
+    }): void => {
+      fileScannerProxy.setupMultipleFiles({ files, pattern });
     },
 
     setupStandardsDiscovery: ({

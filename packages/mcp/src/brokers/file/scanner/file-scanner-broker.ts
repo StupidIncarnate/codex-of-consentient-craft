@@ -12,7 +12,11 @@ import { metadataExtractorTransformer } from '../../../transformers/metadata-ext
 import { signatureExtractorTransformer } from '../../../transformers/signature-extractor/signature-extractor-transformer';
 import { fileTypeDetectorTransformer } from '../../../transformers/file-type-detector/file-type-detector-transformer';
 import { functionNameExtractorTransformer } from '../../../transformers/function-name-extractor/function-name-extractor-transformer';
+import { fileBasePathTransformer } from '../../../transformers/file-base-path/file-base-path-transformer';
+import { pathToRelativeTransformer } from '../../../transformers/path-to-relative/path-to-relative-transformer';
+import { pathToBasenameTransformer } from '../../../transformers/path-to-basename/path-to-basename-transformer';
 import { hasExportedFunctionGuard } from '../../../guards/has-exported-function/has-exported-function-guard';
+import { isMultiDotFileGuard } from '../../../guards/is-multi-dot-file/is-multi-dot-file-guard';
 import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
@@ -52,10 +56,15 @@ export const fileScannerBroker = async ({
     // Read file
     const contents = await fsReadFileAdapter({ filepath });
 
-    // Check if file has any exported function
-    const hasExport = hasExportedFunctionGuard({ fileContents: contents });
-    if (!hasExport) {
-      return null; // Skip files without exported functions
+    // Check if this is a multi-dot file (.test.ts, .proxy.ts, etc.)
+    const isMultiDot = isMultiDotFileGuard({ filepath });
+
+    // For implementation files (non-multi-dot), require exported function
+    if (!isMultiDot) {
+      const hasExport = hasExportedFunctionGuard({ fileContents: contents });
+      if (!hasExport) {
+        return null; // Skip implementation files without exported functions
+      }
     }
 
     // Extract function name
@@ -81,18 +90,53 @@ export const fileScannerBroker = async ({
       signature: signature ?? undefined,
       usage: metadata?.usage,
       metadata: metadata?.metadata,
+      relatedFiles: [],
     });
   });
 
   const allResults = await Promise.all(metadataPromises);
-  const results = allResults.filter((r): r is FileMetadata => r !== null);
+  const filesWithMetadata = allResults.filter((r): r is FileMetadata => r !== null);
 
-  // 4. Filter by name if provided
+  // 4. Separate implementation files from multi-dot files (.test.ts, .proxy.ts, etc.)
+  const implementationFiles = filesWithMetadata.filter(
+    (file) => !isMultiDotFileGuard({ filepath: file.path }),
+  );
+  const multiDotFiles = filesWithMetadata.filter((file) =>
+    isMultiDotFileGuard({ filepath: file.path }),
+  );
+
+  // 5. Build a map of base paths to multi-dot files for quick lookup
+  const multiDotFilesByBase = new Map<FileMetadata['path'], FileMetadata['path'][]>();
+  for (const file of multiDotFiles) {
+    const basePath = fileBasePathTransformer({ filepath: file.path });
+    const existing = multiDotFilesByBase.get(basePath) ?? [];
+    multiDotFilesByBase.set(basePath, [...existing, file.path]);
+  }
+
+  // 6. Add related files to implementation files and make paths relative
+  const results = implementationFiles.map((file) => {
+    const basePath = fileBasePathTransformer({ filepath: file.path });
+    const related = multiDotFilesByBase.get(basePath) ?? [];
+
+    // Convert paths: main path to relative, related files to basename only
+    const relativePath = pathToRelativeTransformer({ filepath: file.path });
+    const relatedFilenames = related
+      .map((relatedPath) => pathToBasenameTransformer({ filepath: relatedPath }))
+      .sort(); // Sort alphabetically for consistent output
+
+    return fileMetadataContract.parse({
+      ...file,
+      path: relativePath,
+      relatedFiles: relatedFilenames,
+    });
+  });
+
+  // 7. Filter by name if provided
   if (name) {
     return results.filter((r) => r.name === name);
   }
 
-  // 5. Filter by search if provided
+  // 8. Filter by search if provided
   const finalResults = search
     ? results.filter((r) => {
         const lowerSearch = search.toLowerCase();
@@ -103,6 +147,6 @@ export const fileScannerBroker = async ({
       })
     : results;
 
-  // 6. Sort alphabetically by name for consistent output
+  // 9. Sort alphabetically by name for consistent output
   return finalResults.sort((a, b) => a.name.localeCompare(b.name));
 };

@@ -19,6 +19,10 @@ export const fileScannerBrokerProxy = (): {
     contents: FileContents;
     pattern: GlobPattern;
   }) => void;
+  setupMultipleFiles: (params: {
+    files: readonly { filepath: FilePath; contents: FileContents }[];
+    pattern: GlobPattern;
+  }) => void;
 } => {
   const globProxy = globFindAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
@@ -35,6 +39,20 @@ export const fileScannerBrokerProxy = (): {
     }): void => {
       globProxy.returns({ pattern, files: [filepath] });
       readFileProxy.returns({ filepath, contents });
+    },
+    setupMultipleFiles: ({
+      files,
+      pattern,
+    }: {
+      files: readonly { filepath: FilePath; contents: FileContents }[];
+      pattern: GlobPattern;
+    }): void => {
+      // Set up glob to return all file paths at once
+      globProxy.returns({ pattern, files: files.map((f) => f.filepath) });
+      // Set up readFile for each file
+      for (const { filepath, contents } of files) {
+        readFileProxy.returns({ filepath, contents });
+      }
     },
   };
 };

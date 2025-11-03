@@ -26,6 +26,7 @@ describe('fileMetadataContract', () => {
         returnType: 'void',
       },
       usage: 'testBroker();',
+      relatedFiles: [],
     });
   });
 
@@ -64,6 +65,7 @@ describe('fileMetadataContract', () => {
         returnType: 'Promise<User>',
       },
       usage: 'await userFetchBroker({userId});',
+      relatedFiles: [],
     });
   });
 
@@ -110,6 +112,7 @@ describe('fileMetadataContract', () => {
         returnType: 'Promise<User[]>',
       },
       usage: 'await userSearchBroker({query, limit: 10});',
+      relatedFiles: [],
     });
   });
 
@@ -154,6 +157,7 @@ describe('fileMetadataContract', () => {
         returnType: 'Config',
       },
       usage: 'configBroker({options: {debug: "true"}});',
+      relatedFiles: [],
     });
   });
 
@@ -182,6 +186,7 @@ describe('fileMetadataContract', () => {
         returnType: 'boolean',
       },
       usage: 'if (simpleGuard()) { ... }',
+      relatedFiles: [],
     });
   });
 
@@ -218,6 +223,7 @@ describe('fileMetadataContract', () => {
         whenToUse: 'Use when you need X',
         whenNotToUse: 'Do not use when Y',
       },
+      relatedFiles: [],
     });
   });
 });

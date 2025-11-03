@@ -26,6 +26,7 @@ export const fileMetadataContract = z.object({
   signature: functionSignatureContract.optional(),
   usage: z.string().brand<'UsageExample'>().optional(),
   metadata: z.record(z.string().brand<'MetadataValue'>()).optional(),
+  relatedFiles: z.array(z.string().brand<'AbsoluteFilePath'>()),
 });
 
 export type FileMetadata = z.infer<typeof fileMetadataContract>;

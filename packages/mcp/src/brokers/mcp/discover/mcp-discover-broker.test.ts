@@ -10,7 +10,7 @@ describe('mcpDiscoverBroker', () => {
   describe('type: files', () => {
     it('VALID: {type: "files", fileType: "broker"} => returns file metadata and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
-      const filepath = FilePathStub({ value: '/test/broker.ts' });
+      const filepath = FilePathStub({ value: `${process.cwd()}/test/broker.ts` });
       const contents = FileContentsStub({
         value: '/** PURPOSE: test broker */\nexport const test = () => {};',
       });
@@ -32,7 +32,7 @@ describe('mcpDiscoverBroker', () => {
 
     it('VALID: {type: "files"} => returns all files and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
-      const filepath = FilePathStub({ value: '/test/guard.ts' });
+      const filepath = FilePathStub({ value: `${process.cwd()}/test/guard.ts` });
       const contents = FileContentsStub({
         value: '/** PURPOSE: test guard */\nexport const test = () => {};',
       });
@@ -47,11 +47,12 @@ describe('mcpDiscoverBroker', () => {
         results: [
           {
             name: 'guard',
-            path: '/test/guard.ts',
+            path: 'test/guard.ts',
             type: 'unknown',
             purpose: undefined,
             signature: undefined,
             usage: undefined,
+            relatedFiles: [],
           },
         ],
         count: 1,
@@ -60,12 +61,12 @@ describe('mcpDiscoverBroker', () => {
 
     it('VALID: {type: "files", path: "/test"} => returns files from path and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
-      const filepath = FilePathStub({ value: '/test/guard.ts' });
-      const path = FilePathStub({ value: '/test' });
+      const filepath = FilePathStub({ value: `${process.cwd()}/test/guard.ts` });
+      const path = FilePathStub({ value: `${process.cwd()}/test` });
       const contents = FileContentsStub({
         value: '/** PURPOSE: test guard */\nexport const test = () => {};',
       });
-      const pattern = GlobPatternStub({ value: '/test/**/*.ts' });
+      const pattern = GlobPatternStub({ value: `${process.cwd()}/test/**/*.ts` });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -76,11 +77,12 @@ describe('mcpDiscoverBroker', () => {
         results: [
           {
             name: 'guard',
-            path: '/test/guard.ts',
+            path: 'test/guard.ts',
             type: 'unknown',
             purpose: undefined,
             signature: undefined,
             usage: undefined,
+            relatedFiles: [],
           },
         ],
         count: 1,
@@ -89,7 +91,7 @@ describe('mcpDiscoverBroker', () => {
 
     it('VALID: {type: "files", search: "test"} => returns matching files and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
-      const filepath = FilePathStub({ value: '/test/guard.ts' });
+      const filepath = FilePathStub({ value: `${process.cwd()}/test/guard.ts` });
       const contents = FileContentsStub({
         value: '/** PURPOSE: test guard */\nexport const test = () => {};',
       });
@@ -108,7 +110,7 @@ describe('mcpDiscoverBroker', () => {
 
     it('VALID: {type: "files", name: "guard"} => returns specific file and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
-      const filepath = FilePathStub({ value: '/test/guard.ts' });
+      const filepath = FilePathStub({ value: `${process.cwd()}/test/guard.ts` });
       const contents = FileContentsStub({
         value: '/** PURPOSE: test guard */\nexport const test = () => {};',
       });
@@ -123,11 +125,95 @@ describe('mcpDiscoverBroker', () => {
         results: [
           {
             name: 'guard',
-            path: '/test/guard.ts',
+            path: 'test/guard.ts',
             type: 'unknown',
             purpose: undefined,
             signature: undefined,
             usage: undefined,
+            relatedFiles: [],
+          },
+        ],
+        count: 1,
+      });
+    });
+
+    it('VALID: excludes multi-dot files (.test.ts, .proxy.ts) from results but includes them as relatedFiles', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+
+      // Set up implementation file + related multi-dot files
+      const implPath = FilePathStub({ value: `${process.cwd()}/test/user-fetch-broker.ts` });
+      const testPath = FilePathStub({ value: `${process.cwd()}/test/user-fetch-broker.test.ts` });
+      const proxyPath = FilePathStub({ value: `${process.cwd()}/test/user-fetch-broker.proxy.ts` });
+
+      const implContents = FileContentsStub({
+        value:
+          '/**\n * PURPOSE: Fetches user data\n *\n * USAGE:\n * example\n */\nexport const userFetchBroker = () => {};',
+      });
+      const testContents = FileContentsStub({
+        value:
+          '/**\n * PURPOSE: Test user fetch broker\n */\nexport const testUserFetchBroker = () => describe("userFetchBroker", () => {});',
+      });
+      const proxyContents = FileContentsStub({
+        value:
+          '/**\n * PURPOSE: Proxy for user fetch broker\n */\nexport const userFetchBrokerProxy = () => {};',
+      });
+
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
+
+      // Setup all three files together so glob returns them all at once
+      brokerProxy.setupMultipleFileDiscovery({
+        files: [
+          { filepath: implPath, contents: implContents },
+          { filepath: testPath, contents: testContents },
+          { filepath: proxyPath, contents: proxyContents },
+        ],
+        pattern,
+      });
+
+      const input = DiscoverInputStub({ type: 'files' });
+      const result = await mcpDiscoverBroker({ input });
+
+      // Should only return the implementation file, not .test.ts or .proxy.ts
+      expect(result).toStrictEqual({
+        results: [
+          {
+            name: 'user-fetch-broker',
+            path: 'test/user-fetch-broker.ts',
+            type: 'broker',
+            purpose: 'Fetches user data',
+            signature: undefined,
+            usage: 'example',
+            relatedFiles: ['user-fetch-broker.proxy.ts', 'user-fetch-broker.test.ts'],
+          },
+        ],
+        count: 1,
+      });
+    });
+
+    it('VALID: implementation file without related files has empty relatedFiles array', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const filepath = FilePathStub({ value: `${process.cwd()}/test/standalone-guard.ts` });
+      const contents = FileContentsStub({
+        value:
+          '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const test = () => {};',
+      });
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
+
+      brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
+
+      const input = DiscoverInputStub({ type: 'files' });
+      const result = await mcpDiscoverBroker({ input });
+
+      expect(result).toStrictEqual({
+        results: [
+          {
+            name: 'standalone-guard',
+            path: 'test/standalone-guard.ts',
+            type: 'guard',
+            purpose: 'standalone guard',
+            signature: undefined,
+            usage: 'example',
+            relatedFiles: [],
           },
         ],
         count: 1,

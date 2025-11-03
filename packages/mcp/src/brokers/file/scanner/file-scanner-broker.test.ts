@@ -226,4 +226,284 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
       expect(results[0]?.purpose).toBeUndefined();
     });
   });
+
+  describe('relatedFiles', () => {
+    it('VALID: implementation file with test and proxy => includes both in relatedFiles', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+
+      const implPath = FilePathStub({
+        value: '/project/src/brokers/user-broker.ts',
+      });
+      const testPath = FilePathStub({
+        value: '/project/src/brokers/user-broker.test.ts',
+      });
+      const proxyPath = FilePathStub({
+        value: '/project/src/brokers/user-broker.proxy.ts',
+      });
+
+      const implContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Manages user operations
+ * USAGE: userBroker({ userId })
+ */
+export const userBroker = ({ userId }: { userId: string }): boolean => true;`,
+      });
+
+      const testContents = FileContentsStub({
+        value: `export const userBrokerTest = () => { it('works', () => {}); };`,
+      });
+
+      const proxyContents = FileContentsStub({
+        value: `export const userBrokerProxy = () => ({ mock: jest.fn() });`,
+      });
+
+      proxy.setupMultipleFiles({
+        pattern,
+        files: [
+          { filepath: implPath, contents: implContents },
+          { filepath: testPath, contents: testContents },
+          { filepath: proxyPath, contents: proxyContents },
+        ],
+      });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.name).toBe('user-broker');
+      expect(results[0]?.relatedFiles).toStrictEqual([
+        'user-broker.proxy.ts',
+        'user-broker.test.ts',
+      ]);
+    });
+
+    it('VALID: implementation file with only test => includes test in relatedFiles', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+
+      const implPath = FilePathStub({
+        value: '/project/src/guards/has-permission-guard.ts',
+      });
+      const testPath = FilePathStub({
+        value: '/project/src/guards/has-permission-guard.test.ts',
+      });
+
+      const implContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Checks permissions
+ * USAGE: hasPermissionGuard({ user })
+ */
+export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
+      });
+
+      const testContents = FileContentsStub({
+        value: `export const hasPermissionGuardTest = () => { it('works', () => {}); };`,
+      });
+
+      proxy.setupMultipleFiles({
+        pattern,
+        files: [
+          { filepath: implPath, contents: implContents },
+          { filepath: testPath, contents: testContents },
+        ],
+      });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.name).toBe('has-permission-guard');
+      expect(results[0]?.relatedFiles).toStrictEqual(['has-permission-guard.test.ts']);
+    });
+
+    it('VALID: implementation file with no related files => relatedFiles is empty', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+
+      const implPath = FilePathStub({
+        value: '/project/src/guards/orphan-guard.ts',
+      });
+
+      const implContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Orphaned guard
+ * USAGE: orphanGuard()
+ */
+export const orphanGuard = (): boolean => true;`,
+      });
+
+      proxy.setupMultipleFiles({
+        pattern,
+        files: [{ filepath: implPath, contents: implContents }],
+      });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.name).toBe('orphan-guard');
+      expect(results[0]?.relatedFiles).toStrictEqual([]);
+    });
+
+    it('VALID: relatedFiles are sorted alphabetically', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+
+      const implPath = FilePathStub({
+        value: '/project/src/brokers/user-broker.ts',
+      });
+      const testPath = FilePathStub({
+        value: '/project/src/brokers/user-broker.test.ts',
+      });
+      const proxyPath = FilePathStub({
+        value: '/project/src/brokers/user-broker.proxy.ts',
+      });
+      const stubPath = FilePathStub({
+        value: '/project/src/brokers/user-broker.stub.ts',
+      });
+
+      const implContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: User broker
+ * USAGE: userBroker()
+ */
+export const userBroker = (): boolean => true;`,
+      });
+
+      const relatedContents = FileContentsStub({
+        value: `export const placeholder = () => true;`,
+      });
+
+      proxy.setupMultipleFiles({
+        pattern,
+        files: [
+          { filepath: implPath, contents: implContents },
+          { filepath: testPath, contents: relatedContents },
+          { filepath: proxyPath, contents: relatedContents },
+          { filepath: stubPath, contents: relatedContents },
+        ],
+      });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.relatedFiles).toStrictEqual([
+        'user-broker.proxy.ts',
+        'user-broker.stub.ts',
+        'user-broker.test.ts',
+      ]);
+    });
+
+    it('VALID: test file without exported function => included in relatedFiles', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+
+      const implPath = FilePathStub({
+        value: '/project/src/brokers/rule/my-rule-broker.ts',
+      });
+      const testPath = FilePathStub({
+        value: '/project/src/brokers/rule/my-rule-broker.test.ts',
+      });
+
+      const implContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Custom ESLint rule
+ * USAGE: myRuleBroker()
+ */
+export const myRuleBroker = (): RuleModule => ({ create: () => ({}) });`,
+      });
+
+      const testContents = FileContentsStub({
+        value: `import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { myRuleBroker } from './my-rule-broker';
+
+const ruleTester = eslintRuleTesterAdapter();
+
+ruleTester.run('my-rule', myRuleBroker(), {
+  valid: [],
+  invalid: [],
+});`,
+      });
+
+      proxy.setupMultipleFiles({
+        pattern,
+        files: [
+          { filepath: implPath, contents: implContents },
+          { filepath: testPath, contents: testContents },
+        ],
+      });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.name).toBe('my-rule-broker');
+      expect(results[0]?.relatedFiles).toStrictEqual(['my-rule-broker.test.ts']);
+    });
+
+    it('VALID: proxy file without exported function => included in relatedFiles', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+
+      const implPath = FilePathStub({
+        value: '/project/src/adapters/http/http-adapter.ts',
+      });
+      const proxyPath = FilePathStub({
+        value: '/project/src/adapters/http/http-adapter.proxy.ts',
+      });
+
+      const implContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: HTTP adapter
+ * USAGE: httpAdapter({ url })
+ */
+export const httpAdapter = async ({ url }: { url: string }): Promise<Response> => fetch(url);`,
+      });
+
+      const proxyContents = FileContentsStub({
+        value: `import axios from 'axios';
+jest.mock('axios');
+
+const mockAxios = jest.mocked(axios);
+mockAxios.mockResolvedValue({ data: {} });`,
+      });
+
+      proxy.setupMultipleFiles({
+        pattern,
+        files: [
+          { filepath: implPath, contents: implContents },
+          { filepath: proxyPath, contents: proxyContents },
+        ],
+      });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.name).toBe('http-adapter');
+      expect(results[0]?.relatedFiles).toStrictEqual(['http-adapter.proxy.ts']);
+    });
+
+    it('VALID: implementation file without exported function => not returned in results', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+
+      const implPath = FilePathStub({
+        value: '/project/src/utils/helper.ts',
+      });
+
+      const implContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Helper utilities
+ * USAGE: Not applicable
+ */
+const privateHelper = (): boolean => true;`,
+      });
+
+      proxy.setupMultipleFiles({
+        pattern,
+        files: [{ filepath: implPath, contents: implContents }],
+      });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toStrictEqual([]);
+    });
+  });
 });

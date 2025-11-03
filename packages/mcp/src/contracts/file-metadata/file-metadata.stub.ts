@@ -20,5 +20,6 @@ export const FileMetadataStub = ({ ...props }: StubArgument<FileMetadata> = {}):
     },
     usage:
       "const user = await userFetchBroker({ userId: UserIdStub('f47ac10b-58cc-4372-a567-0e02b2c3d479') });",
+    relatedFiles: [],
     ...props,
   });

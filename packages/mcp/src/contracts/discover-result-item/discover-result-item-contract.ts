@@ -15,6 +15,7 @@ export const discoverResultItemContract = z.object({
   purpose: z.string().brand<'Purpose'>().optional(),
   usage: z.string().brand<'UsageExample'>().optional(),
   signature: z.string().brand<'FunctionSignature'>().optional(),
+  relatedFiles: z.array(z.string().brand<'AbsoluteFilePath'>()),
 });
 
 export type DiscoverResultItem = z.infer<typeof discoverResultItemContract>;

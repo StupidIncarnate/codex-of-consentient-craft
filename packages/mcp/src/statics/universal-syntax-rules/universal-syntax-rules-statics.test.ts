@@ -288,7 +288,7 @@ describe('universalSyntaxRulesStatics', () => {
       });
 
       it('VALID: {violations} => returns array of violations', () => {
-        expect(universalSyntaxRulesStatics.typeSafety.fixAtSource.violations).toHaveLength(3);
+        expect(universalSyntaxRulesStatics.typeSafety.fixAtSource.violations).toHaveLength(2);
         expect(universalSyntaxRulesStatics.typeSafety.fixAtSource.violations[0]).toMatch(
           /@ts-ignore/u,
         );

@@ -46,6 +46,7 @@ export const mcpDiscoverBroker = async ({
         purpose: file.purpose,
         usage: file.usage,
         signature: file.signature?.raw,
+        relatedFiles: file.relatedFiles,
       }),
     );
 

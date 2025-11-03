@@ -24,53 +24,80 @@ export const signatureExtractorTransformer = ({
   fileContents: FileContents;
   functionName?: FunctionName;
 }): FunctionSignature | null => {
-  // Match export const functionName = ({ params }: { types }): ReturnType =>
-  const signaturePattern =
+  // Try pattern 1: export const functionName = ({ params }: { types }): ReturnType =>
+  const signaturePatternWithParams =
     /export\s+const\s+(\w+)\s*=\s*(?:async\s*)?\(\s*\{([^}]*)\}\s*:\s*\{([^}]*)\}\s*\)\s*:\s*([^=]+?)(?:\s*=>)/u;
-  const match = signaturePattern.exec(fileContents);
+  const matchWithParams = signaturePatternWithParams.exec(fileContents);
 
-  if (!match) {
-    return null;
-  }
+  if (matchWithParams) {
+    const extractedName = matchWithParams[1] ?? '';
+    const typesStr = matchWithParams[3] ?? '';
+    const returnTypeStr = matchWithParams[4]?.trim() ?? '';
 
-  const extractedName = match[1] ?? '';
-  const typesStr = match[3] ?? '';
-  const returnTypeStr = match[4]?.trim() ?? '';
-
-  // If functionName provided, verify it matches (convert kebab-case to camelCase for comparison)
-  if (functionName) {
-    const camelCaseName = kebabToCamelTransformer({ kebabCase: functionName });
-    if (extractedName !== String(camelCaseName)) {
-      return null;
+    // If functionName provided, verify it matches (convert kebab-case to camelCase for comparison)
+    if (functionName) {
+      const camelCaseName = kebabToCamelTransformer({ kebabCase: functionName });
+      if (extractedName !== String(camelCaseName)) {
+        return null;
+      }
     }
-  }
 
-  // Parse parameter types
-  const typeEntries = typesStr
-    .split(';')
-    .map((t) => t.trim())
-    .filter(Boolean);
+    // Parse parameter types
+    const typeEntries = typesStr
+      .split(';')
+      .map((t) => t.trim())
+      .filter(Boolean);
 
-  const paramTypesObj: Record<TypeName, TypeName> = {} as Record<TypeName, TypeName>;
-  for (const entry of typeEntries) {
-    const [name, type] = entry.split(':').map((s) => s.trim());
-    if (name && type) {
-      paramTypesObj[typeNameContract.parse(name)] = typeNameContract.parse(type);
+    const paramTypesObj: Record<TypeName, TypeName> = {} as Record<TypeName, TypeName>;
+    for (const entry of typeEntries) {
+      const [name, type] = entry.split(':').map((s) => s.trim());
+      if (name && type) {
+        paramTypesObj[typeNameContract.parse(name)] = typeNameContract.parse(type);
+      }
     }
+
+    const raw = signatureRawContract.parse(matchWithParams[0]);
+    const parameterName = parameterNameContract.parse('destructured object');
+    const returnType = returnTypeContract.parse(returnTypeStr);
+
+    return {
+      raw,
+      parameters: [
+        {
+          name: parameterName,
+          type: paramTypesObj,
+        },
+      ],
+      returnType,
+    };
   }
 
-  const raw = signatureRawContract.parse(match[0]);
-  const parameterName = parameterNameContract.parse('destructured object');
-  const returnType = returnTypeContract.parse(returnTypeStr);
+  // Try pattern 2: export const functionName = (): ReturnType =>
+  const signaturePatternNoParams =
+    /export\s+const\s+(\w+)\s*=\s*(?:async\s*)?\(\s*\)\s*:\s*([^=]+?)(?:\s*=>)/u;
+  const matchNoParams = signaturePatternNoParams.exec(fileContents);
 
-  return {
-    raw,
-    parameters: [
-      {
-        name: parameterName,
-        type: paramTypesObj,
-      },
-    ],
-    returnType,
-  };
+  if (matchNoParams) {
+    const extractedName = matchNoParams[1] ?? '';
+    const returnTypeStr = matchNoParams[2]?.trim() ?? '';
+
+    // If functionName provided, verify it matches (convert kebab-case to camelCase for comparison)
+    if (functionName) {
+      const camelCaseName = kebabToCamelTransformer({ kebabCase: functionName });
+      if (extractedName !== String(camelCaseName)) {
+        return null;
+      }
+    }
+
+    const raw = signatureRawContract.parse(matchNoParams[0]);
+    const returnType = returnTypeContract.parse(returnTypeStr);
+
+    return {
+      raw,
+      parameters: [],
+      returnType,
+    };
+  }
+
+  return null;
 };
