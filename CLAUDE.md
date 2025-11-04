@@ -353,23 +353,23 @@ test
 // Step 1: Understand - need a guard for user authentication
 
 // Step 2: Get architecture roadmap FIRST
-mcp__questmaestro__get - architecture()
+mcp__questmaestro__get-architecture()
 // Returns: guards are pure boolean functions, decision tree shows guards/ is correct location
 // Understand import rules and folder structure
 
 // Step 3: Get complete guard patterns WITH EXAMPLES
-mcp__questmaestro__get - folder - detail({folderType: "guards"})
+mcp__questmaestro__get-folder-detail({ folderType: "guards" })
 // Returns: purpose, naming (-guard.ts suffix), imports, constraints, code examples
 // Includes testing guidance: guards are pure - no proxy needed
 
 // Step 4: Browse existing guards (avoid duplication)
-mcp__questmaestro__discover({type: "files", path: "packages/eslint-plugin/src/guards"})
+mcp__questmaestro__discover({ type: "files", path: "packages/eslint-plugin/src/guards" })
 // Returns tree: "is-authenticated-guard (guard) - Checks user authentication..."
-mcp__questmaestro__discover({type: "files", name: "is-authenticated-guard"})
+mcp__questmaestro__discover({ type: "files", name: "is-authenticated-guard" })
 // If found similar match → Get details to see if you can reuse it
 
 // Step 5: Get universal syntax rules (final refresh before writing)
-mcp__questmaestro__get - syntax - rules()
+mcp__questmaestro__get-syntax-rules()
 // Returns: export const arrow functions, object destructuring, branded types, WITH examples
 
 // Step 6: Write ALL required files directly from MCP examples (no Read needed!)
@@ -379,9 +379,7 @@ Write("packages/eslint-plugin/src/guards/is-authenticated/is-authenticated-guard
 // Follow testing patterns from get-folder-detail (no proxy for pure functions)
 
 // Step 7: Run tests to verify
-npm
-test--
-packages / eslint - plugin / src / guards / is - authenticated / is - authenticated - guard.test.ts
+npm test -- packages/eslint-plugin/src/guards/is-authenticated/is-authenticated-guard.test.ts
 ```
 
 ## Optimization Tools
