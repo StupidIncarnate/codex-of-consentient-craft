@@ -2,8 +2,14 @@ import { folderDependencyTreeTransformer } from './folder-dependency-tree-transf
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { FolderConfigStub } from '@questmaestro/shared/contracts';
 
-const FolderConfigsStub = (configs: Record<string, ReturnType<typeof FolderConfigStub>>) => {
-  return configs;
+const FolderConfigsStub = (
+  configs: Record<PropertyKey, ReturnType<typeof FolderConfigStub>>,
+): Parameters<typeof folderDependencyTreeTransformer>[0]['folderConfigs'] => {
+  // Cast is safe: test stubs have compatible structure with folderConfigStatics values
+  // The branded types from FolderConfigStub match the literal types from folderConfigStatics at runtime
+  return configs as unknown as Parameters<
+    typeof folderDependencyTreeTransformer
+  >[0]['folderConfigs'];
 };
 
 const buildMatrixStub = ({

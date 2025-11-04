@@ -55,5 +55,12 @@ export const folderConstraintsTransformer = ({
     constraints.push(complexityConstraints);
   }
 
+  if (folderType === 'transformers' || folderType === 'guards') {
+    const objectArgConstraints = contentTextContract.parse(
+      '\n**OBJECT ARGUMENTS:**\n- Simple inputs: use primitives directly (string, number)\n- Complex static objects: use `Record<string, (typeof staticObject)[keyof typeof staticObject]>`\n- Example: `folderConfigs: Record<string, (typeof folderConfigStatics)[keyof typeof folderConfigStatics]>`\n- This avoids type duplication while enabling safe indexed access',
+    );
+    constraints.push(objectArgConstraints);
+  }
+
   return contentTextContract.parse(constraints.join('\n'));
 };

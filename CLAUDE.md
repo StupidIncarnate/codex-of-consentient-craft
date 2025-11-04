@@ -9,19 +9,16 @@ When starting ANY task in this codebase, follow this systematic workflow to mini
 efficiency:
 
 ### 1. **Understand the Request**
-
 - Identify what needs to be built, fixed, or explored
 - Extract key requirements and constraints from user request
 
 ### 2. **Get Repository Orientation** (`get-architecture`)
-
 - **Tool**: `mcp__questmaestro__get-architecture`
 - **When**: First time in repo, or when unfamiliar with architecture
 - **Returns**: Folder types, import hierarchy, decision tree, critical rules (~1K tokens)
 - **Purpose**: Understand where code should go and architectural constraints
 
 ### 3. **Discover Existing Code** (`discover` with `type: "files"`)
-
 - **Tool**: `mcp__questmaestro__discover({ type: "files", ... })`
 - **When**: Need to find existing utilities, avoid reinventing the wheel
 - **Two-Step Discovery Pattern**:
@@ -37,21 +34,18 @@ efficiency:
 - **Purpose**: Browse what exists → Get details on promising matches → Decide to reuse or create new
 
 ### 4. **Get Folder-Specific Rules** (`get-folder-detail`)
-
 - **Tool**: `mcp__questmaestro__get-folder-detail({ folderType: "guards" })`
 - **When**: About to create/modify files in a specific folder type
 - **Returns**: Purpose, naming conventions, import rules, constraints (~500-1K tokens)
 - **Purpose**: Understand all rules for the specific layer you're working in
 
 ### 5. **Get Universal Syntax Rules** (`get-syntax-rules`)
-
 - **Tool**: `mcp__questmaestro__get-syntax-rules`
 - **When**: Writing new code or unsure about syntax conventions
 - **Returns**: All universal rules (file naming, exports, types, etc.) (~5K tokens)
 - **Purpose**: Ensure code passes ESLint and follows conventions
 
 ### 6. **Execute the Task**
-
 - Use TodoWrite to track implementation steps
 - Write code following MCP-provided patterns and rules
 - Run tests and verify
@@ -62,20 +56,17 @@ efficiency:
 ## Critical: MCP Tools Provide Complete Guidance
 
 **NEVER Read files to discover patterns** - the 4 MCP tools provide everything:
-
 - `get-architecture` → Full folder type descriptions with examples
 - `get-folder-detail` → Complete patterns, constraints, and code examples for each folder
 - `get-syntax-rules` → Universal syntax with examples and violations
 - `discover({ type: "files" })` → Find what exists, browse/get details (for reuse detection)
 
 **Only use Read when:**
-
 - You need to modify an existing file (bug fix, refactor)
 - You need to understand a specific file's current implementation before editing
 - You're analyzing code for a specific purpose (NOT for discovering patterns)
 
 **MCP-First Discovery Pattern:**
-
 ```typescript
 // 1. Get orientation - WHERE does code go?
 get - architecture() // Returns decision tree, folder purposes
@@ -126,14 +117,12 @@ path / to / file.test.ts
 ```
 
 **Parameter Format Reference:**
-
 - `path`: Filesystem path → `"packages/eslint-plugin/src/guards"`
 - `fileType`: Suffix without dash → `"broker"`, `"guard"`, `"transformer"`
 - `name`: Exact kebab-case name from browse results → `"has-file-suffix-guard"` (copy from tree list)
 - `search`: Keywords in purpose/name → `"user authentication"`, `"error handling"`
 
 **Two-Step Discovery Example:**
-
 ```typescript
 // Step 1: Browse guards
 discover({type: "files", path: "packages/eslint-plugin/src/guards"})
@@ -342,7 +331,6 @@ test
 ## Critical Best Practices
 
 **❌ Don't:**
-
 - Read files to discover patterns (MCP tools provide all examples)
 - Search the codebase for "similar implementations" to copy patterns
 - Look at other test files to understand testing patterns
@@ -350,7 +338,6 @@ test
 - Use Read for anything except files you're directly modifying
 
 **✅ Do:**
-
 - Get ALL patterns from 4 MCP tools: get-architecture → get-folder-detail → get-syntax-rules → discover
 - Trust the 4 MCP tools provide complete guidance with examples
 - Only Read files when you need to modify/analyze them specifically
@@ -402,14 +389,12 @@ packages / eslint - plugin / src / guards / is - authenticated / is - authentica
 **MCP Discovery (Preferred)**: Use `mcp__questmaestro__discover` for two-step file discovery:
 
 **1. Browse Mode** (path/fileType/search queries):
-
 - `discover({ type: "files", path: "packages/eslint-plugin/src/guards" })` - Browse all guards
 - `discover({ type: "files", fileType: "broker", search: "user" })` - Find brokers matching keyword
 - Returns tree-formatted string (very token-efficient)
 - Shows: name + type + purpose only
 
 **Example Browse Response:**
-
 ```
 guards/
   has-permission-guard (guard) - Validates that user has permission to edit resource
@@ -417,7 +402,6 @@ guards/
 ```
 
 **2. Details Mode** (name query):
-
 - `discover({ type: "files", name: "has-permission-guard" })` - Get full metadata for specific file
 - Returns complete information: signature, usage, purpose, related files
 

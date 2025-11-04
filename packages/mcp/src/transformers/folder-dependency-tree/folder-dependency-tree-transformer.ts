@@ -10,8 +10,9 @@
  * WHEN-TO-USE: When visualizing folder import dependencies in different formats
  */
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { FolderConfig, FolderType } from '@questmaestro/shared/contracts';
+import type { FolderType } from '@questmaestro/shared/contracts';
 import { folderTypeContract } from '@questmaestro/shared/contracts';
+import type { folderConfigStatics } from '@questmaestro/shared/statics';
 import type {
   FolderDependencyTree,
   ImportPath,
@@ -21,7 +22,7 @@ import type { ContentText } from '../../contracts/content-text/content-text-cont
 export const folderDependencyTreeTransformer = ({
   folderConfigs,
 }: {
-  folderConfigs: Record<string, FolderConfig>;
+  folderConfigs: Record<string, (typeof folderConfigStatics)[keyof typeof folderConfigStatics]>;
 }): FolderDependencyTree => {
   // Build hierarchy
   const hierarchyLines: ContentText[] = [];
