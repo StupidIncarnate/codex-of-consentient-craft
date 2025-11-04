@@ -161,6 +161,8 @@ export const configQuestmaestroBroker = ({
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-type-assertion': 'off',
+      // It doesnt matter if this happens in tests
+      '@typescript-eslint/no-base-to-string': 'off',
     },
   });
 

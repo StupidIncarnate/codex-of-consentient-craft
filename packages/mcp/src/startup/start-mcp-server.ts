@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Initialize MCP server and register the discover tool for code/standards discovery
+ * PURPOSE: Initialize MCP server and register tools for architecture discovery and file finding
  *
  * USAGE:
  * await StartMcpServer();
- * // Starts MCP server listening on stdio, registers discover tool
+ * // Starts MCP server listening on stdio, registers discover, get-architecture, get-folder-detail, get-syntax-rules tools
  */
 
 import type { FolderType } from '@questmaestro/eslint-plugin/dist/contracts/folder-type/folder-type-contract';

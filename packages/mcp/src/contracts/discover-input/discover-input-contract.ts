@@ -1,17 +1,14 @@
 /**
- * PURPOSE: Defines the input schema for the MCP discover tool that searches files and standards
+ * PURPOSE: Defines the input schema for the MCP discover tool that searches files in the codebase
  *
  * USAGE:
  * const input: DiscoverInput = discoverInputContract.parse({ type: 'files', fileType: 'broker' });
- * // Returns validated DiscoverInput with type 'files' or 'standards' and optional filters
+ * // Returns validated DiscoverInput with optional filters (path, fileType, search, name)
  */
 import { z } from 'zod';
 
 export const discoverInputContract = z.object({
-  type: z.enum(['standards', 'files']),
-  // For type: "standards"
-  section: z.string().brand<'StandardsSection'>().optional(),
-  // For type: "files"
+  type: z.literal('files'),
   path: z.string().brand<'FilePath'>().optional(),
   fileType: z.string().brand<'FileType'>().optional(),
   search: z.string().brand<'SearchQuery'>().optional(),

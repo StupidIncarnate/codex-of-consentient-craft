@@ -1,34 +1,55 @@
 # @questmaestro/mcp
 
-MCP (Model Context Protocol) server for discovering utilities, brokers, standards, and all code files across the
-Questmaestro codebase.
+MCP (Model Context Protocol) server for discovering utilities, brokers, and all code files across the Questmaestro
+codebase, plus architecture orientation tools.
 
 ## Purpose
 
-Solves the problem of LLMs reinventing the wheel by providing a discovery tool that:
+Solves the problem of LLMs reinventing the wheel and lacking architectural context by providing:
 
-- Shows what utilities exist (guards, transformers, brokers, widgets, etc.)
-- Provides usage examples extracted from comments
-- Helps LLMs make informed decisions about which utility to use
-- Segments standards documents into callable sections
+- **File Discovery** - Shows what utilities exist (guards, transformers, brokers, widgets, etc.) with usage examples
+- **Architecture Orientation** - Complete project structure, folder types, and import hierarchy
+- **Folder-Specific Rules** - Detailed constraints and patterns for each folder type
+- **Universal Syntax Rules** - All coding conventions with examples
+- Helps LLMs make informed decisions about which utility to use and where code belongs
 
 ## Architecture
 
-### Single MCP Endpoint: `discover`
+### MCP Endpoints (4 Tools)
+
+#### 1. `discover` - File Discovery
 
 ```typescript
 discover({
-    type: "files" | "standards",
-
-    // For type: "files"
+    type: "files",       // Required (only value)
     path? : string,       // "packages/eslint-plugin/src/guards"
     fileType? : string,   // "broker" | "widget" | "guard" | ...
     search? : string,     // "user authentication"
     name? : string,       // "userFetchBroker"
-
-    // For type: "standards"
-    section? : string,    // "testing/proxy-architecture"
 })
+```
+
+#### 2. `get-architecture` - Architecture Overview
+
+```typescript
+get - architecture()
+// Returns: Folder types, import hierarchy, decision tree, critical rules
+```
+
+#### 3. `get-folder-detail` - Folder-Specific Rules
+
+```typescript
+get - folder - detail({
+    folderType: "guards" | "brokers" | "adapters" | ... // 14 types
+})
+// Returns: Purpose, naming, imports, constraints, code examples
+```
+
+#### 4. `get-syntax-rules` - Universal Syntax Rules
+
+```typescript
+get - syntax - rules()
+// Returns: All coding conventions with examples and violations
 ```
 
 ### Comment Metadata Format
@@ -100,9 +121,8 @@ export const functionName = () => {
 
 **Contracts:**
 
-- `discover-input-contract.ts` - Input validation for discover tool
+- `discover-input-contract.ts` - Input validation for discover tool (files only)
 - `file-metadata-contract.ts` - File metadata structure
-- `standards-section-contract.ts` - Standards document sections
 - `extracted-metadata-contract.ts` - Parsed comment metadata
 - `file-contents-contract.ts` - File contents (branded string)
 - `file-path-contract.ts` - File paths (branded string)
@@ -118,51 +138,30 @@ export const functionName = () => {
 
 - `folder-type-statics.ts` - List of valid folder types
 
-### 🚧 TODO
+**Brokers:**
+
+- `file-scanner-broker.ts` - Scans directories for files with metadata
+- `mcp-discover-broker.ts` - Main orchestration for file discovery
+- `architecture-overview-broker.ts` - Generates architecture orientation docs
+- `architecture-folder-detail-broker.ts` - Generates folder-specific rule docs
+- `architecture-syntax-rules-broker.ts` - Generates universal syntax rules docs
+
+**Adapters:**
+
+- `fs-glob-adapter.ts` - Find files matching glob patterns
+- `fs-read-file-adapter.ts` - Read file contents
 
 **Guards:**
 
 - `has-metadata-comment-guard.ts` - Validates metadata exists in file
-
-**Adapters:**
-
-- `fs-glob-adapter.ts` - Find files matching glob patterns (uses `glob` npm package)
-- `fs-read-file-adapter.ts` - Read file contents (uses `fs/promises`)
-
-**Brokers:**
-
-- `file-scanner-broker.ts` - Scans directories for files with metadata
-    - Uses fs-glob-adapter to find .ts/.tsx files
-    - Uses fs-read-file-adapter to read contents
-    - Uses metadata-extractor-transformer to parse comments
-    - Uses signature-extractor-transformer to get function signatures
-    - Uses file-type-detector-transformer to determine file type
-    - Returns array of FileMetadata
-
-- `standards-parser-broker.ts` - Parses markdown files into sections
-    - Reads `packages/standards/*.md` files
-    - Splits by headers (##, ###)
-    - Creates addressable sections like "testing/proxy-architecture"
-
-- `discover-broker.ts` - Main orchestration
-    - Routes to file-scanner-broker or standards-parser-broker based on type
-    - Formats response for MCP protocol
+- `has-exported-function-guard.ts` - Checks for exported function
+- `is-multi-dot-file-guard.ts` - Checks for multi-dot files (.test.ts, etc.)
 
 **MCP Server:**
 
 - `start-mcp-server.ts` - MCP server initialization
-    - Registers `discover` tool
-    - Connects to discover-broker
+    - Registers 4 tools: discover, get-architecture, get-folder-detail, get-syntax-rules
     - Handles MCP protocol communication
-
-**Testing:**
-
-- Integration test: Scan actual repo files and verify metadata extraction works
-
-**Documentation:**
-
-- Example metadata comments for all existing utilities
-- ESLint rule to enforce metadata comment structure (separate task)
 
 ## Development
 
@@ -185,7 +184,28 @@ npm run dev
 
 ## Usage Examples
 
-### Discover brokers for user operations
+### 1. Get Architecture Overview
+
+```typescript
+get - architecture()
+// Returns: folder types, decision tree, import hierarchy
+```
+
+### 2. Get Folder-Specific Rules
+
+```typescript
+get - folder - detail({folderType: "guards"})
+// Returns: purpose, naming conventions, import rules, constraints, code examples
+```
+
+### 3. Get Universal Syntax Rules
+
+```typescript
+get - syntax - rules()
+// Returns: all coding conventions with examples
+```
+
+### 4. Discover Brokers for User Operations
 
 ```typescript
 discover({
@@ -195,25 +215,16 @@ discover({
 })
 ```
 
-### Find a specific guard
+### 5. Find a Specific Guard
 
 ```typescript
 discover({
     type: "files",
-    name: "isTestFileGuard"
+    name: "is-test-file"  // kebab-case, no suffix
 })
 ```
 
-### Get standards section
-
-```typescript
-discover({
-    type: "standards",
-    section: "testing/proxy-architecture"
-})
-```
-
-### Browse all guards
+### 6. Browse All Guards
 
 ```typescript
 discover({
@@ -223,13 +234,20 @@ discover({
 })
 ```
 
-## Next Steps
+## Integration with Claude Code
 
-1. **Complete remaining components** (adapters, brokers, MCP server)
-2. **Add metadata comments to existing files** - Start with guards/transformers in eslint-plugin
-3. **Create ESLint rule** to enforce metadata comment structure
-4. **Wire up MCP server** in Claude Code settings
-5. **Update CLAUDE.md** to document the discover tool
+The MCP server is configured in Claude Code settings and provides all 4 tools automatically.
+
+**Recommended Workflow:**
+
+1. `get-architecture` → Understand where code goes
+2. `get-folder-detail` → Get folder-specific rules with examples
+3. `get-syntax-rules` → Get universal syntax conventions
+4. `discover({ type: "files" })` → Find existing code to reuse
+5. Write code following MCP-provided patterns (no need to read examples!)
+
+**Key Philosophy:** MCP tools provide COMPLETE guidance with examples. Never read files just to discover patterns - only
+read files you're directly modifying.
 
 ## Related Packages
 

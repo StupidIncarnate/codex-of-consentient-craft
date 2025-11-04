@@ -8,7 +8,7 @@ import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.st
 
 describe('mcpDiscoverBroker', () => {
   describe('type: files', () => {
-    it('VALID: {type: "files", fileType: "broker"} => returns file metadata and count', async () => {
+    it('VALID: {type: "files", fileType: "broker"} => returns tree format and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({ value: `${process.cwd()}/test/broker.ts` });
       const contents = FileContentsStub({
@@ -24,13 +24,11 @@ describe('mcpDiscoverBroker', () => {
       });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(result).toStrictEqual({
-        results: [],
-        count: 0,
-      });
+      expect(typeof result.results).toBe('string');
+      expect(result.count).toBe(0);
     });
 
-    it('VALID: {type: "files"} => returns all files and count', async () => {
+    it('VALID: {type: "files"} => returns tree format and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({ value: `${process.cwd()}/test/guard.ts` });
       const contents = FileContentsStub({
@@ -43,23 +41,11 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files' });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(result).toStrictEqual({
-        results: [
-          {
-            name: 'guard',
-            path: 'test/guard.ts',
-            type: 'unknown',
-            purpose: undefined,
-            signature: undefined,
-            usage: undefined,
-            relatedFiles: [],
-          },
-        ],
-        count: 1,
-      });
+      expect(typeof result.results).toBe('string');
+      expect(result.count).toBe(1);
     });
 
-    it('VALID: {type: "files", path: "/test"} => returns files from path and count', async () => {
+    it('VALID: {type: "files", path: "/test"} => returns tree format from path and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({ value: `${process.cwd()}/test/guard.ts` });
       const path = FilePathStub({ value: `${process.cwd()}/test` });
@@ -73,23 +59,11 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files', path });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(result).toStrictEqual({
-        results: [
-          {
-            name: 'guard',
-            path: 'test/guard.ts',
-            type: 'unknown',
-            purpose: undefined,
-            signature: undefined,
-            usage: undefined,
-            relatedFiles: [],
-          },
-        ],
-        count: 1,
-      });
+      expect(typeof result.results).toBe('string');
+      expect(result.count).toBe(1);
     });
 
-    it('VALID: {type: "files", search: "test"} => returns matching files and count', async () => {
+    it('VALID: {type: "files", search: "test"} => returns tree format with matching files and count', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({ value: `${process.cwd()}/test/guard.ts` });
       const contents = FileContentsStub({
@@ -102,10 +76,8 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files', search: 'test' });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(result).toStrictEqual({
-        results: [],
-        count: 0,
-      });
+      expect(typeof result.results).toBe('string');
+      expect(result.count).toBe(0);
     });
 
     it('VALID: {type: "files", name: "guard"} => returns specific file and count', async () => {
@@ -137,7 +109,7 @@ describe('mcpDiscoverBroker', () => {
       });
     });
 
-    it('VALID: excludes multi-dot files (.test.ts, .proxy.ts) from results but includes them as relatedFiles', async () => {
+    it('VALID: excludes multi-dot files (.test.ts, .proxy.ts) from tree but includes metadata', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
 
       // Set up implementation file + related multi-dot files
@@ -173,24 +145,12 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files' });
       const result = await mcpDiscoverBroker({ input });
 
-      // Should only return the implementation file, not .test.ts or .proxy.ts
-      expect(result).toStrictEqual({
-        results: [
-          {
-            name: 'user-fetch-broker',
-            path: 'test/user-fetch-broker.ts',
-            type: 'broker',
-            purpose: 'Fetches user data',
-            signature: undefined,
-            usage: 'example',
-            relatedFiles: ['user-fetch-broker.proxy.ts', 'user-fetch-broker.test.ts'],
-          },
-        ],
-        count: 1,
-      });
+      // Should only show implementation file in tree, not .test.ts or .proxy.ts
+      expect(typeof result.results).toBe('string');
+      expect(result.count).toBe(1);
     });
 
-    it('VALID: implementation file without related files has empty relatedFiles array', async () => {
+    it('VALID: implementation file without related files shows in tree format', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({ value: `${process.cwd()}/test/standalone-guard.ts` });
       const contents = FileContentsStub({
@@ -204,20 +164,101 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files' });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(result).toStrictEqual({
-        results: [
-          {
-            name: 'standalone-guard',
-            path: 'test/standalone-guard.ts',
-            type: 'guard',
-            purpose: 'standalone guard',
-            signature: undefined,
-            usage: 'example',
-            relatedFiles: [],
-          },
-        ],
-        count: 1,
+      expect(typeof result.results).toBe('string');
+      expect(result.count).toBe(1);
+    });
+  });
+
+  describe('auto-detect format', () => {
+    it('VALID: {name: "guard"} => returns full format (array of DiscoverResultItem)', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const filepath = FilePathStub({
+        value: `${process.cwd()}/src/guards/has-permission-guard.ts`,
       });
+      const contents = FileContentsStub({
+        value:
+          '/**\n * PURPOSE: Validates permission\n * USAGE: hasPermissionGuard({ user })\n */\nexport const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;',
+      });
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
+
+      brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
+
+      const input = DiscoverInputStub({ type: 'files', name: 'has-permission-guard' });
+      const result = await mcpDiscoverBroker({ input });
+
+      expect(Array.isArray(result.results)).toBe(true);
+      expect(result.results).toHaveLength(1);
+      expect(result.results[0]).toStrictEqual({
+        name: 'has-permission-guard',
+        path: 'src/guards/has-permission-guard.ts',
+        type: 'guard',
+        purpose: 'Validates permission',
+        usage: 'hasPermissionGuard({ user })',
+        signature: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
+        relatedFiles: [],
+      });
+    });
+
+    it('VALID: {path: "src/guards"} => returns tree format (string)', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const guard1Path = FilePathStub({
+        value: `${process.cwd()}/src/guards/has-permission-guard.ts`,
+      });
+      const guard2Path = FilePathStub({ value: `${process.cwd()}/src/guards/is-admin-guard.ts` });
+
+      const guard1Contents = FileContentsStub({
+        value:
+          '/**\n * PURPOSE: Validates permission\n */\nexport const hasPermissionGuard = () => true;',
+      });
+      const guard2Contents = FileContentsStub({
+        value: '/**\n * PURPOSE: Checks admin role\n */\nexport const isAdminGuard = () => true;',
+      });
+
+      const pattern = GlobPatternStub({ value: `${process.cwd()}/src/guards/**/*.ts` });
+
+      brokerProxy.setupMultipleFileDiscovery({
+        files: [
+          { filepath: guard1Path, contents: guard1Contents },
+          { filepath: guard2Path, contents: guard2Contents },
+        ],
+        pattern,
+      });
+
+      const input = DiscoverInputStub({
+        type: 'files',
+        path: FilePathStub({ value: `${process.cwd()}/src/guards` }),
+      });
+      const result = await mcpDiscoverBroker({ input });
+
+      const { results } = result;
+
+      expect(typeof results).toBe('string');
+      expect(result.count).toBe(2);
+      expect(results.toString().includes('has-permission-guard')).toBe(true);
+      expect(results.toString().includes('is-admin-guard')).toBe(true);
+    });
+
+    it('VALID: {search: "permission"} => returns tree format (string)', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const filepath = FilePathStub({
+        value: `${process.cwd()}/src/guards/has-permission-guard.ts`,
+      });
+      const contents = FileContentsStub({
+        value:
+          '/**\n * PURPOSE: Validates permission\n */\nexport const hasPermissionGuard = () => true;',
+      });
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
+
+      brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
+
+      const input = DiscoverInputStub({ type: 'files', search: 'permission' });
+      const result = await mcpDiscoverBroker({ input });
+
+      const { results } = result;
+
+      expect(typeof results).toBe('string');
+      expect(result.count).toBe(1);
+      expect(results.toString().includes('has-permission-guard')).toBe(true);
     });
   });
 

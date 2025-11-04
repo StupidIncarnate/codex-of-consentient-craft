@@ -10,6 +10,7 @@ import { RpcMethodStub } from '../contracts/rpc-method/rpc-method.stub';
 import { ToolListResultStub } from '../contracts/tool-list-result/tool-list-result.stub';
 import { ToolCallResultStub } from '../contracts/tool-call-result/tool-call-result.stub';
 import { DiscoverResultStub } from '../contracts/discover-result/discover-result.stub';
+import { DiscoverTreeResultStub } from '../contracts/discover-tree-result/discover-tree-result.stub';
 
 describe('StartMcpServer', () => {
   describe('initialization', () => {
@@ -147,7 +148,7 @@ describe('StartMcpServer', () => {
   });
 
   describe('tools/call - discover tool', () => {
-    it('VALID: Discover tool responds without errors', async () => {
+    it('VALID: Discover tool responds without errors with tree format', async () => {
       const proxy = StartMcpServerProxy();
       const client = await proxy.createClient();
 
@@ -174,7 +175,7 @@ describe('StartMcpServer', () => {
 
       expect(firstContent!.type).toBe('text');
 
-      const parsedContent = DiscoverResultStub(JSON.parse(firstContent!.text) as never);
+      const parsedContent = DiscoverTreeResultStub(JSON.parse(firstContent!.text) as never);
 
       await client.close();
 
