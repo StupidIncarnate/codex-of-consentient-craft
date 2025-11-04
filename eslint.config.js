@@ -42,6 +42,8 @@ module.exports = [
       '**/test/**',
       'packages/testing/**',
       '**/*.d.ts',
+      '*.md',
+      '**/*.md',
     ],
   },
   // Configuration for TypeScript files
