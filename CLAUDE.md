@@ -67,53 +67,32 @@ efficiency:
 - You're analyzing code for a specific purpose (NOT for discovering patterns)
 
 **MCP-First Discovery Pattern:**
-```typescript
+
+```markdown
 // 1. Get orientation - WHERE does code go?
-get - architecture() // Returns decision tree, folder purposes
+get-architecture() // Returns decision tree, folder purposes
 
 // 2. Get folder-specific rules with EXAMPLES
-get - folder - detail({folderType: "guards"})
+get-folder-detail({ folderType: "guards" })
 // Returns: purpose, naming, imports, constraints, code examples, testing requirements
 
 // 3. Check if similar utility already exists (avoid duplication)
-discover({type: "files", path: "packages/eslint-plugin/src/guards"})
+discover({ type: "files", path: "packages/eslint-plugin/src/guards" })
 // Browse: Returns tree of existing guards
-discover({type: "files", name: "has-permission-guard"})
+discover({ type: "files", name: "has-permission-guard" })
 // Get details: If promising match found, check if you can reuse it
 
 // 4. Get universal syntax rules (final refresh before writing)
-get - syntax - rules()
+get-syntax-rules()
 // Returns: all conventions with correct/incorrect examples
 
 // 5. Write ALL required files from MCP guidance (no Read needed!)
-Write
-implementation
-file
-following
-get - folder - detail
-and
-get - syntax - rules
-examples
-Write
-test
-file
-following
-get - folder - detail
-testing
-patterns
-Write
-any
-other
-required
-files(proxy, stub, etc.)
-per
-folder
-requirements
+Write implementation file following get-folder-detail and get-syntax-rules examples
+Write test file following get-folder-detail testing patterns
+Write any other required files (proxy, stub, etc.) per folder requirements
 
 // 6. Run tests to verify
-npm
-test--
-path / to / file.test.ts
+npm test -- path/to/file.test.ts
 ```
 
 **Parameter Format Reference:**
@@ -123,13 +102,14 @@ path / to / file.test.ts
 - `search`: Keywords in purpose/name → `"user authentication"`, `"error handling"`
 
 **Two-Step Discovery Example:**
-```typescript
+
+```markdown
 // Step 1: Browse guards
-discover({type: "files", path: "packages/eslint-plugin/src/guards"})
+discover({ type: "files", path: "packages/eslint-plugin/src/guards" })
 // Returns: "has-file-suffix-guard (guard) - Checks if a filename ends..."
 
 // Step 2: Get details on that specific guard
-discover({type: "files", name: "has-file-suffix-guard"})
+discover({ type: "files", name: "has-file-suffix-guard" })
 // Returns: { signature: "export const hasFileSuffixGuard = ...", usage: "...", ... }
 ```
 
@@ -139,191 +119,120 @@ discover({type: "files", name: "has-file-suffix-guard"})
 
 ### Scenario A: Create New File From Scratch
 
-```typescript
+```markdown
 // 1. Orient: Where does this code go?
-get - architecture() // Use decision tree
+get-architecture() // Use decision tree
 
 // 2. Get complete folder-specific rules WITH EXAMPLES
-get - folder - detail({folderType: "guards"})
+get-folder-detail({ folderType: "guards" })
 // Returns everything: patterns, naming, imports, code examples, testing requirements
 
 // 3. Browse existing utilities (avoid reinventing)
-discover({type: "files", path: "packages/eslint-plugin/src/guards"})
+discover({ type: "files", path: "packages/eslint-plugin/src/guards" })
 // Returns tree: "has-permission-guard (guard) - Validates permissions..."
-discover({type: "files", name: "has-permission-guard"})
+discover({ type: "files", name: "has-permission-guard" })
 // Get details on promising match - decide if you can reuse it
 
 // 4. Get universal syntax rules (final refresh before writing)
-get - syntax - rules()
+get-syntax-rules()
 // Returns all conventions with correct/incorrect code examples
 
 // 5. Write ALL required files from MCP examples (no Read needed!)
-Write
-implementation
-file
-following
-get - folder - detail
-and
-get - syntax - rules
-examples
-Write
-test
-file
-following
-get - folder - detail
-testing
-patterns
-Write
-any
-other
-required
-files(proxy, stub, etc.)
-per
-folder
-requirements
+Write implementation file following get-folder-detail and get-syntax-rules examples
+Write test file following get-folder-detail testing patterns
+Write any other required files (proxy, stub, etc.) per folder requirements
 
 // 6. Run tests to verify
-npm
-test--
-path / to / file.test.ts
+npm test -- path/to/file.test.ts
 ```
 
 ### Scenario B: Fix Bug in Existing File
 
-```typescript
+```markdown
 // 1. Get architecture roadmap FIRST
-get - architecture()
+get-architecture()
 // Understand folder structure and import rules
 
 // 2. Find the file you need to fix
-discover({type: "files", fileType: "broker", search: "user fetch"})
+discover({ type: "files", fileType: "broker", search: "user fetch" })
 // Browse results to find the file
-discover({type: "files", name: "user-fetch-broker"})
+discover({ type: "files", name: "user-fetch-broker" })
 // Get details to see current signature/usage
 
 // 3. Read the file you need to modify (this is valid - you're editing it)
-Read
-the
-path
-from
-discover
-result
+Read the path from discover result
 
 // 4. Get the correct patterns from MCP (NOT from other files)
-get - folder - detail({folderType: "brokers"})
+get-folder-detail({ folderType: "brokers" })
 // Returns: patterns, testing requirements
 
 // 5. Get syntax rules (final refresh before fixing)
-get - syntax - rules()
+get-syntax-rules()
 // Returns complete examples of correct patterns
 
 // 6. Fix using MCP-provided patterns
-Edit
-the
-file
-following
-MCP
-examples
+Edit the file following MCP examples
 
 // 7. Update tests if needed (Read only what you're editing)
-Read
-existing
-test(
-if you need
-to
-modify
-it
-)
-Edit
-following
-MCP - provided
-testing
-patterns
-from
-get - folder - detail
+Read existing test (if you need to modify it)
+Edit following MCP-provided testing patterns from get-folder-detail
 
 // 8. Run tests to verify fix
-npm
-test--
-path / to / file.test.ts
+npm test -- path/to/file.test.ts
 ```
 
 ### Scenario C: Write Tests for Existing Code
 
-```typescript
+```markdown
 // 1. Get architecture roadmap FIRST
-get - architecture()
+get-architecture()
 // Understand folder structure and testing requirements
 
 // 2. Read the implementation you're testing
-Read
-the
-file
-to
-test
+Read the file to test
 
 // 3. Get testing patterns from MCP (NOT from other test files)
-get - folder - detail({folderType: "guards"})
+get-folder-detail({ folderType: "guards" })
 // Returns complete testing guidance: proxy requirements, patterns, examples
 
 // 4. Get syntax rules (final refresh before writing)
-get - syntax - rules()
+get-syntax-rules()
 // Ensure test follows all conventions
 
 // 5. Write test from MCP examples (no searching needed!)
-Write
-test
-file
-following
-get - folder - detail
-testing
-examples
+Write test file following get-folder-detail testing examples
 
 // 6. Run tests to verify
-npm
-test--
-path / to / file.test.ts
+npm test -- path/to/file.test.ts
 ```
 
 ### Scenario D: Refactor Across Multiple Files
 
-```typescript
+```markdown
 // 1. Get architecture roadmap FIRST
-get - architecture()
+get-architecture()
 // CRITICAL: See import hierarchy and layer boundaries before refactoring
 
 // 2. Find all files you need to modify
-discover({type: "files", search: "feature-name"})
+discover({ type: "files", search: "feature-name" })
 
 // 3. Read the files you need to edit (valid - you're modifying them)
-Read
-each
-file
-from
-discover
-results
+Read each file from discover results
 
 // 4. Get refactoring guidance from MCP for each layer
-get - folder - detail({folderType: "brokers"})
-get - folder - detail({folderType: "adapters"})
+get-folder-detail({ folderType: "brokers" })
+get-folder-detail({ folderType: "adapters" })
 // Each returns complete patterns and constraints
 
 // 5. Get syntax rules (final refresh before refactoring)
-get - syntax - rules()
+get-syntax-rules()
 // Ensure all changes follow conventions
 
 // 6. Refactor using MCP patterns
-Edit
-files
-following
-MCP - provided
-examples
-and
-import rules
+Edit files following MCP-provided examples and import rules
 
 // 7. Run tests to verify refactor
-npm
-test
+npm test
 ```
 
 ---
@@ -349,7 +258,7 @@ test
 
 ## Example Workflow: "Add user authentication guard"
 
-```typescript
+```markdown
 // Step 1: Understand - need a guard for user authentication
 
 // Step 2: Get architecture roadmap FIRST
