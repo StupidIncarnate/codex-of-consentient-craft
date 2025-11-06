@@ -1,16 +1,15 @@
 import { HookPreEditResponder } from './hook-pre-edit-responder';
-import { violationsCheckNewBroker } from '../../../brokers/violations/check-new/violations-check-new-broker';
+import { HookPreEditResponderProxy } from './hook-pre-edit-responder.proxy';
 import {
   EditToolHookStub,
   WriteToolHookStub,
 } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub';
 import { ViolationCountStub } from '../../../contracts/violation-count/violation-count.stub';
 import { ViolationDetailStub } from '../../../contracts/violation-detail/violation-detail.stub';
-
-jest.mock('../../../brokers/violations/check-new/violations-check-new-broker');
+import { ViolationComparisonStub } from '../../../contracts/violation-comparison/violation-comparison.stub';
 
 describe('HookPreEditResponder', () => {
-  const mockViolationsCheckNewBroker = jest.mocked(violationsCheckNewBroker);
+  const proxy = HookPreEditResponderProxy();
 
   it('VALID: {hasNewViolations: false} => returns {shouldBlock: false}', async () => {
     const hookData = EditToolHookStub({
@@ -22,20 +21,17 @@ describe('HookPreEditResponder', () => {
       },
     });
 
-    mockViolationsCheckNewBroker.mockResolvedValue({
-      hasNewViolations: false,
-      newViolations: [],
+    proxy.setupViolationCheck({
+      result: ViolationComparisonStub({
+        hasNewViolations: false,
+        newViolations: [],
+      }),
     });
 
     const result = await HookPreEditResponder({ input: hookData });
 
     expect(result).toStrictEqual({
       shouldBlock: false,
-    });
-    expect(mockViolationsCheckNewBroker).toHaveBeenCalledTimes(1);
-    expect(mockViolationsCheckNewBroker).toHaveBeenCalledWith({
-      toolInput: hookData.tool_input,
-      cwd: hookData.cwd,
     });
   });
 
@@ -49,23 +45,25 @@ describe('HookPreEditResponder', () => {
       },
     });
 
-    mockViolationsCheckNewBroker.mockResolvedValue({
-      hasNewViolations: true,
-      newViolations: [
-        ViolationCountStub({
-          ruleId: 'no-unused-vars',
-          count: 1,
-          details: [
-            ViolationDetailStub({
-              ruleId: 'no-unused-vars',
-              line: 1,
-              column: 1,
-              message: 'Variable is unused',
-            }),
-          ],
-        }),
-      ],
-      message: 'Found 1 new violation',
+    proxy.setupViolationCheck({
+      result: ViolationComparisonStub({
+        hasNewViolations: true,
+        newViolations: [
+          ViolationCountStub({
+            ruleId: 'no-unused-vars',
+            count: 1,
+            details: [
+              ViolationDetailStub({
+                ruleId: 'no-unused-vars',
+                line: 1,
+                column: 1,
+                message: 'Variable is unused',
+              }),
+            ],
+          }),
+        ],
+        message: 'Found 1 new violation',
+      }),
     });
 
     const result = await HookPreEditResponder({ input: hookData });
@@ -73,11 +71,6 @@ describe('HookPreEditResponder', () => {
     expect(result).toStrictEqual({
       shouldBlock: true,
       message: 'Found 1 new violation',
-    });
-    expect(mockViolationsCheckNewBroker).toHaveBeenCalledTimes(1);
-    expect(mockViolationsCheckNewBroker).toHaveBeenCalledWith({
-      toolInput: hookData.tool_input,
-      cwd: hookData.cwd,
     });
   });
 
@@ -90,22 +83,25 @@ describe('HookPreEditResponder', () => {
       },
     });
 
-    mockViolationsCheckNewBroker.mockResolvedValue({
-      hasNewViolations: true,
-      newViolations: [
-        ViolationCountStub({
-          ruleId: 'no-console',
-          count: 1,
-          details: [
-            ViolationDetailStub({
-              ruleId: 'no-console',
-              line: 5,
-              column: 3,
-              message: 'Unexpected console statement',
-            }),
-          ],
-        }),
-      ],
+    proxy.setupViolationCheck({
+      result: ViolationComparisonStub({
+        hasNewViolations: true,
+        newViolations: [
+          ViolationCountStub({
+            ruleId: 'no-console',
+            count: 1,
+            details: [
+              ViolationDetailStub({
+                ruleId: 'no-console',
+                line: 5,
+                column: 3,
+                message: 'Unexpected console statement',
+              }),
+            ],
+          }),
+        ],
+        message: undefined,
+      }),
     });
 
     const result = await HookPreEditResponder({ input: hookData });
@@ -113,11 +109,6 @@ describe('HookPreEditResponder', () => {
     expect(result).toStrictEqual({
       shouldBlock: true,
       message: 'New violations detected',
-    });
-    expect(mockViolationsCheckNewBroker).toHaveBeenCalledTimes(1);
-    expect(mockViolationsCheckNewBroker).toHaveBeenCalledWith({
-      toolInput: hookData.tool_input,
-      cwd: hookData.cwd,
     });
   });
 

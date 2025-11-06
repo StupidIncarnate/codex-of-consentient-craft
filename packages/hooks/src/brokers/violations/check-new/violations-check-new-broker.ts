@@ -12,7 +12,10 @@ import { eslintConfigFilterTransformer } from '../../../transformers/eslint-conf
 import { violationsAnalyzeBroker } from '../analyze/violations-analyze-broker';
 import { eslintLintRunTargetedBroker } from '../../eslint/lint-run-targeted/eslint-lint-run-targeted-broker';
 import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
-import type { ViolationComparison } from '../../../contracts/violation-comparison/violation-comparison-contract';
+import {
+  violationComparisonContract,
+  type ViolationComparison,
+} from '../../../contracts/violation-comparison/violation-comparison-contract';
 
 /**
  * Checks for new ESLint violations introduced by a tool input operation.
@@ -39,10 +42,10 @@ export const violationsCheckNewBroker = async ({
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
   if (filePath === '') {
-    return {
+    return violationComparisonContract.parse({
       hasNewViolations: false,
       newViolations: [],
-    };
+    });
   }
 
   // Load configuration if not provided
@@ -59,30 +62,30 @@ export const violationsCheckNewBroker = async ({
   const contentChanges = await toolInputGetContentChangesBroker({ toolInput });
 
   if (contentChanges.length === 0) {
-    return {
+    return violationComparisonContract.parse({
       hasNewViolations: false,
       newViolations: [],
-    };
+    });
   }
 
   // Process the first content change (typically there's only one)
   const { 0: firstChange } = contentChanges;
   if (!firstChange) {
-    return {
+    return violationComparisonContract.parse({
       hasNewViolations: false,
       message: 'No content changes detected',
       newViolations: [],
-    };
+    });
   }
 
   const { oldContent, newContent } = firstChange;
 
   // Skip if content is identical
   if (oldContent === newContent) {
-    return {
+    return violationComparisonContract.parse({
       hasNewViolations: false,
       newViolations: [],
-    };
+    });
   }
 
   // Run targeted lint on both old and new content

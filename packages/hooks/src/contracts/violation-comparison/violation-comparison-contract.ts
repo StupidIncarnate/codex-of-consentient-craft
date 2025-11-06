@@ -11,7 +11,7 @@ import { violationCountContract } from '../violation-count/violation-count-contr
 export const violationComparisonContract = z.object({
   hasNewViolations: z.boolean(),
   newViolations: z.array(violationCountContract),
-  message: z.string().optional(),
+  message: z.string().brand<'ViolationComparisonMessage'>().optional(),
 });
 
 export type ViolationComparison = z.infer<typeof violationComparisonContract>;

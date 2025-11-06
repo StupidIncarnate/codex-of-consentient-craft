@@ -9,7 +9,8 @@ import type { ViolationCount } from '../../contracts/violation-count/violation-c
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { ruleDisplayConfigExtractTransformer } from '../rule-display-config-extract/rule-display-config-extract-transformer';
 import { violationDisplayNameDefaultTransformer } from '../violation-display-name-default/violation-display-name-default-transformer';
-import { violationRuleMessageDefaultTransformer } from '../violation-rule-message-default/violation-rule-message-default-transformer';
+import { violationMessageExtractTransformer } from '../violation-message-extract/violation-message-extract-transformer';
+import { violationMessageStatics } from '../../statics/violation-message/violation-message-statics';
 
 /**
  * Formats a complete violation message for display to the user.
@@ -34,7 +35,7 @@ export const violationMessageFormatFullTransformer = ({
   config: PreEditLintConfig;
   hookData: unknown;
 }): string => {
-  const lines = ['🛑 New code quality violations detected:'];
+  const lines = [violationMessageStatics.header];
 
   for (const violation of violations) {
     const count = violation.count === 1 ? '1 violation' : `${violation.count} violations`;
@@ -53,26 +54,11 @@ export const violationMessageFormatFullTransformer = ({
     lines.push(`  ❌ ${displayName}: ${count}`);
 
     // Get custom or default message
-    const getMessage = (): string => {
-      const configMessage = displayConfig.message;
-
-      if (configMessage === undefined) {
-        return violationRuleMessageDefaultTransformer({ ruleId: violation.ruleId });
-      }
-
-      if (typeof configMessage === 'string') {
-        return configMessage;
-      }
-
-      // If it's a function, call it
-      try {
-        const result = configMessage(hookData);
-        return typeof result === 'string' ? result : String(result);
-      } catch (error: unknown) {
-        return `Custom message function failed: ${error instanceof Error ? error.message : String(error)}`;
-      }
-    };
-    const message = getMessage();
+    const message = violationMessageExtractTransformer({
+      displayConfig,
+      ruleId: violation.ruleId,
+      hookData,
+    });
 
     lines.push(`     ${message}`);
 
@@ -83,9 +69,7 @@ export const violationMessageFormatFullTransformer = ({
   }
 
   lines.push('');
-  lines.push(
-    'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
-  );
+  lines.push(violationMessageStatics.footerFull);
 
   return lines.join('\n');
 };

@@ -1,14 +1,12 @@
-import type { z } from 'zod';
 import type { WriteToolInput } from './write-tool-input-contract';
 import { writeToolInputContract } from './write-tool-input-contract';
+import type { StubArgument } from '@questmaestro/shared/@types';
 
-type UnbrandedInput<T extends z.ZodTypeAny> = Partial<z.input<T>>;
-
-export const WriteToolInputStub = (
-  overrides: UnbrandedInput<typeof writeToolInputContract> = {},
-): WriteToolInput =>
+export const WriteToolInputStub = ({
+  ...props
+}: StubArgument<WriteToolInput> = {}): WriteToolInput =>
   writeToolInputContract.parse({
     file_path: '/test/file.ts',
     content: '',
-    ...overrides,
+    ...props,
   });

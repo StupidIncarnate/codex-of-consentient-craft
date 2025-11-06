@@ -13,11 +13,9 @@ import { contentTextContract } from '../../contracts/content-text/content-text-c
 import type { FolderType } from '@questmaestro/shared/contracts';
 import { folderTypeContract } from '@questmaestro/shared/contracts';
 import type { folderConfigStatics } from '@questmaestro/shared/statics';
-import type {
-  FolderDependencyTree,
-  ImportPath,
-} from '../../contracts/folder-dependency-tree/folder-dependency-tree-contract';
+import type { FolderDependencyTree } from '../../contracts/folder-dependency-tree/folder-dependency-tree-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
+import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 export const folderDependencyTreeTransformer = ({
   folderConfigs,

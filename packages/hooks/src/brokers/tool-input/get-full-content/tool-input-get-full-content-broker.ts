@@ -5,10 +5,10 @@
  * const newContent = await toolInputGetFullContentBroker({ toolInput: editToolInput });
  * // Returns full file content string after applying edits, or null if not applicable
  */
-import { fsReadFile } from '../../../adapters/fs/fs-read-file';
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
 import { regexEscapeTransformer } from '../../../transformers/regex-escape/regex-escape-transformer';
-import { isNodeError } from '../../../contracts/is-node-error/is-node-error';
+import { isNodeErrorContract } from '../../../contracts/is-node-error/is-node-error-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 
 interface Edit {
@@ -66,10 +66,14 @@ const applyMultipleEdits = ({ content, edits }: { content: string; edits: Edit[]
 
 const readFileContent = async (filePath: string): Promise<string | null> => {
   try {
-    return await fsReadFile({ filePath: filePathContract.parse(filePath) });
-  } catch (error) {
-    if (isNodeError(error) && error.code === 'ENOENT') {
-      return null;
+    return await fsReadFileAdapter({ filePath: filePathContract.parse(filePath) });
+  } catch (error: unknown) {
+    const isNodeError = isNodeErrorContract({ error });
+    if (isNodeError) {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code === 'ENOENT') {
+        return null;
+      }
     }
     throw error;
   }

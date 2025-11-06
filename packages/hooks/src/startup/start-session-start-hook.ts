@@ -8,11 +8,38 @@
  * // Reads JSON from stdin, validates, outputs standards content to stdout if new session
  */
 import { HookSessionStartResponder } from '../responders/hook/session-start/hook-session-start-responder';
-import { isSessionStartHookData } from '../contracts/is-session-start-hook-data/is-session-start-hook-data';
-import { debugDebug } from '../adapters/debug/debug-debug';
+import { isSessionStartHookDataContract } from '../contracts/is-session-start-hook-data/is-session-start-hook-data-contract';
+import { debugDebugAdapter } from '../adapters/debug/debug/debug-debug-adapter';
+import type { SessionStartHookData } from '../contracts/session-start-hook-data/session-start-hook-data-contract';
 
-const log = debugDebug({ namespace: 'questmaestro:session-start-hook' });
+const log = debugDebugAdapter({ namespace: 'questmaestro:session-start-hook' });
 const ERROR_CODE_INVALID_INPUT = 1;
+
+export const StartSessionStartHook = async ({
+  inputData,
+}: {
+  inputData: string;
+}): Promise<void> => {
+  try {
+    const parsedData: unknown = JSON.parse(inputData);
+
+    if (!isSessionStartHookDataContract({ data: parsedData })) {
+      log('Invalid hook data format');
+      process.exit(ERROR_CODE_INVALID_INPUT);
+    }
+
+    const result = await HookSessionStartResponder({ input: parsedData as SessionStartHookData });
+
+    if (result.shouldOutput && result.content !== undefined && result.content !== '') {
+      process.stdout.write(result.content);
+    }
+
+    process.exit(0);
+  } catch (error: unknown) {
+    log('Error in session start hook:', error);
+    process.exit(ERROR_CODE_INVALID_INPUT);
+  }
+};
 
 if (require.main === module) {
   let inputData = '';
@@ -22,28 +49,6 @@ if (require.main === module) {
   });
 
   process.stdin.on('end', () => {
-    const runAsync = async (): Promise<void> => {
-      try {
-        const parsedData: unknown = JSON.parse(inputData);
-        const dataWrapper = { data: parsedData };
-
-        if (!isSessionStartHookData(dataWrapper)) {
-          log('Invalid hook data format');
-          process.exit(ERROR_CODE_INVALID_INPUT);
-        }
-
-        const result = await HookSessionStartResponder({ input: dataWrapper.data });
-
-        if (result.shouldOutput && result.content !== undefined && result.content !== '') {
-          process.stdout.write(result.content);
-        }
-
-        process.exit(0);
-      } catch (error) {
-        log('Error in session start hook:', error);
-        process.exit(ERROR_CODE_INVALID_INPUT);
-      }
-    };
-    runAsync().catch(() => undefined);
+    StartSessionStartHook({ inputData }).catch(() => undefined);
   });
 }

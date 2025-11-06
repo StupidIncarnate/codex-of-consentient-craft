@@ -9,8 +9,13 @@ import { z } from 'zod';
 
 export const ruleConfigContract = z.object({
   rule: z.string().min(1).brand<'Rule'>(),
-  displayName: z.string().optional(),
-  message: z.union([z.string(), z.function().args(z.unknown()).returns(z.string())]).optional(),
+  displayName: z.string().brand<'DisplayName'>().optional(),
+  message: z
+    .union([
+      z.string().brand<'Message'>(),
+      z.function().args(z.unknown()).returns(z.string().brand<'Message'>()),
+    ])
+    .optional(),
 });
 
 export type RuleConfig = z.infer<typeof ruleConfigContract>;

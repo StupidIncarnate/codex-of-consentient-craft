@@ -1,6 +1,7 @@
 import { FolderDependencyTreeStub } from './folder-dependency-tree.stub';
 import { ContentTextStub } from '../content-text/content-text.stub';
 import { FolderTypeStub } from '@questmaestro/shared/contracts';
+import { ImportPathStub } from '../import-path/import-path.stub';
 
 describe('folderDependencyTreeContract', () => {
   it('VALID: {} => parses successfully with default values', () => {
@@ -18,14 +19,15 @@ describe('folderDependencyTreeContract', () => {
   });
 
   it('VALID: {graph: {guards: [statics]}} => parses successfully', () => {
+    const guardsKey = FolderTypeStub({ value: 'guards' });
+    const staticsPath = ImportPathStub({ value: 'statics' });
+
     const result = FolderDependencyTreeStub({
       graph: {
-        [FolderTypeStub({ value: 'guards' })]: [FolderTypeStub({ value: 'statics' })],
+        [guardsKey]: [staticsPath],
       },
     });
 
-    expect(result.graph).toStrictEqual({
-      [FolderTypeStub({ value: 'guards' })]: [FolderTypeStub({ value: 'statics' })],
-    });
+    expect(result.graph[guardsKey]).toStrictEqual([staticsPath]);
   });
 });

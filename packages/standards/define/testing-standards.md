@@ -1191,7 +1191,7 @@ expect(error).toStrictEqual({
 })
 ```
 
-## Writing Tests (LLM Instructions)
+## Writing Tests
 
 ### When Types Don't Match
 

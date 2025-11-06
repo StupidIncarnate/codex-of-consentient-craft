@@ -1,10 +1,10 @@
 import { eslintLoadConfigBroker } from './eslint-load-config-broker';
-import { eslintEslint, type ESLint } from '../../../adapters/eslint/eslint-eslint';
-import type { Linter } from '../../../adapters/eslint/eslint-linter';
+import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
+import type { ESLint, Linter } from 'eslint';
 
-jest.mock('../../../adapters/eslint/eslint-eslint');
+jest.mock('../../../adapters/eslint/eslint/eslint-eslint-adapter');
 
-const mockEslintEslint = jest.mocked(eslintEslint);
+const mockEslintEslint = jest.mocked(eslintEslintAdapter);
 
 // Helper to create a mock ESLint instance
 // Provides all required methods for type safety

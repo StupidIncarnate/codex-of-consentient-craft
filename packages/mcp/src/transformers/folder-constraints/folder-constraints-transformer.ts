@@ -11,11 +11,14 @@ import { contentTextContract } from '../../contracts/content-text/content-text-c
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 export const folderConstraintsTransformer = ({
-  folderType,
   config,
+  supplementalConstraints,
+  layerConstraints,
 }: {
   folderType: FolderType;
   config: FolderConfig;
+  supplementalConstraints?: ContentText;
+  layerConstraints?: ContentText;
 }): ContentText => {
   const constraints: ContentText[] = [];
 
@@ -48,18 +51,14 @@ export const folderConstraintsTransformer = ({
     constraints.push(importConstraints);
   }
 
-  if (folderType === 'brokers' || folderType === 'widgets') {
-    const complexityConstraints = contentTextContract.parse(
-      '\n**COMPLEXITY:**\n- Keep files under 300 lines\n- If exceeding, decompose into layer files\n- Each layer file has own proxy and tests',
-    );
-    constraints.push(complexityConstraints);
+  // Folder-specific supplemental constraints (passed from caller)
+  if (supplementalConstraints) {
+    constraints.push(supplementalConstraints);
   }
 
-  if (folderType === 'transformers' || folderType === 'guards') {
-    const objectArgConstraints = contentTextContract.parse(
-      '\n**OBJECT ARGUMENTS:**\n- Simple inputs: use primitives directly (string, number)\n- Complex static objects: use `Record<string, (typeof staticObject)[keyof typeof staticObject]>`\n- Example: `folderConfigs: Record<string, (typeof folderConfigStatics)[keyof typeof folderConfigStatics]>`\n- This avoids type duplication while enabling safe indexed access',
-    );
-    constraints.push(objectArgConstraints);
+  // Layer constraints (only appended for brokers, widgets, responders)
+  if (layerConstraints) {
+    constraints.push(layerConstraints);
   }
 
   return contentTextContract.parse(constraints.join('\n'));

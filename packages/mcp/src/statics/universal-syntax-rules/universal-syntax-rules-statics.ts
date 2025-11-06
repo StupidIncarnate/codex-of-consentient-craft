@@ -267,6 +267,70 @@ export const universalSyntaxRulesStatics = {
     ],
   },
 
+  testing: {
+    antiPatterns: {
+      assertions: {
+        propertyBleedthrough:
+          'Using partial matchers (toMatchObject, toContain) that allow extra properties to leak through',
+        existenceOnlyChecks: 'Using toBeDefined() instead of testing actual values',
+        countOnlyChecks: 'Testing array.length without verifying complete content',
+        weakMatchers:
+          'Using .toEqual(), .toMatchObject(), .toContain(), .toBeTruthy()/.toBeFalsy()',
+        violations: [
+          'expect(result).toMatchObject({id: "123"}); // Extra properties pass!',
+          'expect(userId).toBeDefined(); // Could be any value!',
+          'expect(items).toHaveLength(2); // Could be wrong items!',
+          'expect(config.includes("parser")).toBe(true); // Could be anywhere',
+        ],
+        correctApproach:
+          'Use .toStrictEqual() for all objects/arrays to catch property bleedthrough',
+      },
+      mockingAndProxies: {
+        directMockManipulation: 'Using jest.mocked() in tests instead of proxy semantic methods',
+        mockingApplicationCode:
+          'Using jest.mock() on application code (only mock npm packages in proxies)',
+        manualMockCleanup: 'Calling mockReset(), mockClear() (@questmaestro/testing handles this)',
+        jestSpyOnModules: 'Using jest.spyOn() for module imports (only use for global objects)',
+        sharedProxyInstances:
+          'Creating proxy once outside tests (always create fresh proxy per test)',
+        violations: [
+          'const mockAxios = jest.mocked(axios.get); mockAxios.mockResolvedValue({data: user}); // Use proxy methods',
+          'jest.mock("../../brokers/user/fetch/user-fetch-broker"); // Never mock app code',
+          'beforeEach(() => { jest.clearAllMocks(); }); // @questmaestro/testing handles this',
+          'jest.spyOn(adapter, "fsReadFile"); // Use jest.mock for modules',
+          'const proxy = userFetchBrokerProxy(); it("test 1", () => {}); it("test 2", () => {}); // Stale mocks',
+        ],
+        correctApproach:
+          'Create fresh proxy per test, use semantic methods, only mock npm packages in proxies',
+      },
+      typeSafety: {
+        typeEscapeHatches: 'Using any, as, @ts-ignore in tests to bypass type errors',
+        violations: [
+          'const data: any = response.data; // Loses all type safety',
+          'const user = {} as User; // Hides missing properties',
+          '// @ts-ignore - Testing invalid input',
+        ],
+        correctApproach:
+          'Use ReturnType<typeof Stub> for types, use stubs to create valid instances, use "as never" for testing invalid inputs',
+      },
+      testOrganization: {
+        testingImplementation: 'Spying on internal methods instead of testing outputs',
+        sharedTestState: 'Tests depending on each other or shared setup',
+        unitTestingDslLogic:
+          'Mocking systems that interpret DSL/queries (ESLint selectors, SQL, GraphQL)',
+        commentOrganization: 'Using comments instead of describe blocks for test structure',
+        violations: [
+          'jest.spyOn(myClass, "_internalMethod"); // Test behavior, not implementation',
+          'let sharedUser; beforeEach(() => { sharedUser = UserStub(); }); // No hooks',
+          'const mockContext = {report: jest.fn()}; rule.create(mockContext); // ESLint needs real parsing',
+          '// valid cases it("test 1"); it("test 2"); // Use describe blocks',
+        ],
+        correctApproach:
+          'Test outputs not internals, inline setup/teardown, integration tests for DSL logic, describe blocks for organization',
+      },
+    },
+  },
+
   summaryChecklist: {
     items: [
       'File uses kebab-case naming',

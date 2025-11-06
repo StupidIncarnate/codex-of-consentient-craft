@@ -23,8 +23,12 @@ import { firstFileSuffixTransformer } from '../../../transformers/first-file-suf
 
 export const architectureFolderDetailBroker = ({
   folderType,
+  supplementalConstraints,
+  layerConstraints,
 }: {
   folderType: FolderType;
+  supplementalConstraints?: ContentText;
+  layerConstraints?: ContentText;
 }): ContentText => {
   // Look up config from statics using type-safe key check
   if (!isKeyOfGuard(folderType, folderConfigStatics)) {
@@ -139,7 +143,18 @@ export const architectureFolderDetailBroker = ({
 
   // 7. Critical Constraints
   sections.push(contentTextContract.parse(`## Critical Constraints\n`));
-  sections.push(folderConstraintsTransformer({ folderType, config }));
+
+  // Check if layer constraints should be appended (only for brokers, widgets, responders)
+  const shouldAppendLayerConstraints = config.allowsLayerFiles && layerConstraints;
+
+  sections.push(
+    folderConstraintsTransformer({
+      folderType,
+      config,
+      ...(supplementalConstraints && { supplementalConstraints }),
+      ...(shouldAppendLayerConstraints && { layerConstraints }),
+    }),
+  );
   sections.push(contentTextContract.parse(''));
 
   // 8. Examples Link

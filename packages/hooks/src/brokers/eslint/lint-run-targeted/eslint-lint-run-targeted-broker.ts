@@ -5,9 +5,9 @@
  * const results = await eslintLintRunTargetedBroker({ content: code, filePath: 'file.ts', config: linterConfig, cwd: '/path' });
  * // Returns array of LintResult with violations found
  */
-import { eslintEslint } from '../../../adapters/eslint/eslint-eslint';
-import { pathResolve } from '../../../adapters/path/path-resolve';
-import type { Linter } from '../../../adapters/eslint/eslint-linter';
+import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
+import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import type { Linter } from 'eslint';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
 
@@ -43,7 +43,7 @@ export const eslintLintRunTargetedBroker = async ({
 
   try {
     // Create ESLint instance with ONLY the filtered rules
-    const eslint = eslintEslint({
+    const eslint = eslintEslintAdapter({
       options: {
         cwd,
         overrideConfigFile: true, // Completely bypass project config
@@ -56,7 +56,7 @@ export const eslintLintRunTargetedBroker = async ({
     // - File extension detection (.ts, .tsx, etc.)
     // - Rule pattern matching
     // It doesn't actually read from disk since we're using lintText()
-    const absolutePath = pathResolve({ paths: [cwd, filePath] });
+    const absolutePath = pathResolveAdapter({ paths: [cwd, filePath] });
     let results = await eslint.lintText(content, { filePath: absolutePath });
 
     // If we get a TypeScript project parsing error, try again without project reference
@@ -80,7 +80,7 @@ export const eslintLintRunTargetedBroker = async ({
         },
       };
 
-      const fallbackEslint = eslintEslint({
+      const fallbackEslint = eslintEslintAdapter({
         options: {
           cwd,
           overrideConfigFile: true, // Completely bypass project config

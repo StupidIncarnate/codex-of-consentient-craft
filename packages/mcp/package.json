@@ -8,7 +8,8 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "mcp:dev": "npx @modelcontextprotocol/inspector ./start-server.sh"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

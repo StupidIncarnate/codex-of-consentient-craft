@@ -13,9 +13,7 @@
 import { z } from 'zod';
 import { contentTextContract } from '../content-text/content-text-contract';
 import { folderTypeContract } from '@questmaestro/shared/contracts';
-
-const importPathContract = z.string().brand<'ImportPath'>();
-export type ImportPath = z.infer<typeof importPathContract>;
+import { importPathContract } from '../import-path/import-path-contract';
 
 export const folderDependencyTreeContract = z.object({
   hierarchy: contentTextContract,

@@ -3,18 +3,46 @@
 **Critical:** DO NOT run anything in /tmp if you're trying to test eslint effects. That folder is outside the repo and
 thus won't trigger eslint at all.
 
-## MCP Architecture Tools - Recommended Workflow
+## MCP Architecture Tools - MANDATORY WORKFLOW
 
-When starting ANY task in this codebase, follow this systematic workflow to minimize token usage and maximize
-efficiency:
+**🚨 CRITICAL: This workflow is REQUIRED for EVERY task. No exceptions. No discretion. No shortcuts. 🚨**
+
+**This is NOT a suggestion. This is NOT optional. This is NOT "recommended best practice".**
+
+**EVERY Claude Code instance MUST follow this workflow for EVERY request without deviation.**
+
+When starting ANY task in this codebase, you MUST follow this workflow exactly:
+
+### ⚠️ ENFORCEMENT RULE
+
+**You MUST run `get-architecture()` FIRST for ANY request, including:**
+
+- Bug fixes
+- Lint violation fixes
+- New features
+- Refactoring
+- Writing tests
+- Documentation
+- Exploring code
+- EVERYTHING
+
+**DO NOT:**
+
+- Skip steps because you "already know" the architecture
+- Use Grep/Read to discover patterns instead of MCP tools
+- Jump straight to fixing code without MCP tools
+- Assume anything about folder structure or conventions
+- Fix code without running tests to verify functionality
+- Consider a task "done" if tests are failing or lint violations remain
 
 ### 1. **Understand the Request**
 - Identify what needs to be built, fixed, or explored
 - Extract key requirements and constraints from user request
 
-### 2. **Get Repository Orientation** (`get-architecture`)
+### 2. **Get Repository Orientation** (`get-architecture`) - ALWAYS RUN FIRST
 - **Tool**: `mcp__questmaestro__get-architecture`
-- **When**: First time in repo, or when unfamiliar with architecture
+- **MANDATORY**: Run this for EVERY request - bug fixes, new features, lint fixes, refactors, everything
+- **NO EXCEPTIONS**: Even if you "know" the architecture, run this first
 - **Returns**: Folder types, import hierarchy, decision tree, critical rules (~1K tokens)
 - **Purpose**: Understand where code should go and architectural constraints
 
@@ -45,7 +73,14 @@ efficiency:
 - **Returns**: All universal rules (file naming, exports, types, etc.) (~5K tokens)
 - **Purpose**: Ensure code passes ESLint and follows conventions
 
-### 6. **Execute the Task**
+### 6. **Get Testing Patterns** (`get-testing-patterns`)
+
+- **Tool**: `mcp__questmaestro__get-testing-patterns`
+- **When**: Writing tests or creating proxy files
+- **Returns**: Testing philosophy, proxy patterns, assertions, test structure (~5K tokens)
+- **Purpose**: Understand testing architecture, mock boundaries, and proxy creation
+
+### 7. **Execute the Task**
 - Use TodoWrite to track implementation steps
 - Write code following MCP-provided patterns and rules
 - Run tests and verify
@@ -55,10 +90,11 @@ efficiency:
 
 ## Critical: MCP Tools Provide Complete Guidance
 
-**NEVER Read files to discover patterns** - the 4 MCP tools provide everything:
+**NEVER Read files to discover patterns** - the 5 MCP tools provide everything:
 - `get-architecture` → Full folder type descriptions with examples
 - `get-folder-detail` → Complete patterns, constraints, and code examples for each folder
 - `get-syntax-rules` → Universal syntax with examples and violations
+- `get-testing-patterns` → Testing philosophy, proxy patterns, assertions, test structure
 - `discover({ type: "files" })` → Find what exists, browse/get details (for reuse detection)
 
 **Only use Read when:**
@@ -74,7 +110,7 @@ get-architecture() // Returns decision tree, folder purposes
 
 // 2. Get folder-specific rules with EXAMPLES
 get-folder-detail({ folderType: "guards" })
-// Returns: purpose, naming, imports, constraints, code examples, testing requirements
+// Returns: purpose, naming, imports, constraints, code examples, proxy requirements
 
 // 3. Check if similar utility already exists (avoid duplication)
 discover({ type: "files", path: "packages/eslint-plugin/src/guards" })
@@ -86,12 +122,17 @@ discover({ type: "files", name: "has-permission-guard" })
 get-syntax-rules()
 // Returns: all conventions with correct/incorrect examples
 
-// 5. Write ALL required files from MCP guidance (no Read needed!)
-Write implementation file following get-folder-detail and get-syntax-rules examples
-Write test file following get-folder-detail testing patterns
-Write any other required files (proxy, stub, etc.) per folder requirements
+// 5. Get testing patterns (when writing tests/proxies)
+get-testing-patterns()
+// Returns: testing philosophy, proxy patterns, assertions, test structure
 
-// 6. Run tests to verify
+// 6. Write ALL required files from MCP guidance (no Read needed!)
+Write implementation file following get-folder-detail and get-syntax-rules examples
+Write test file following get-testing-patterns
+Write proxy file following get-testing-patterns and get-folder-detail proxy patterns
+Write any other required files (stub, etc.) per folder requirements
+
+// 7. Run tests to verify
 npm test -- path/to/file.test.ts
 ```
 
@@ -125,7 +166,7 @@ get-architecture() // Use decision tree
 
 // 2. Get complete folder-specific rules WITH EXAMPLES
 get-folder-detail({ folderType: "guards" })
-// Returns everything: patterns, naming, imports, code examples, testing requirements
+// Returns everything: patterns, naming, imports, code examples, proxy requirements
 
 // 3. Browse existing utilities (avoid reinventing)
 discover({ type: "files", path: "packages/eslint-plugin/src/guards" })
@@ -137,12 +178,17 @@ discover({ type: "files", name: "has-permission-guard" })
 get-syntax-rules()
 // Returns all conventions with correct/incorrect code examples
 
-// 5. Write ALL required files from MCP examples (no Read needed!)
-Write implementation file following get-folder-detail and get-syntax-rules examples
-Write test file following get-folder-detail testing patterns
-Write any other required files (proxy, stub, etc.) per folder requirements
+// 5. Get testing patterns (for writing tests/proxies)
+get-testing-patterns()
+// Returns testing philosophy, proxy patterns, assertions, test structure
 
-// 6. Run tests to verify
+// 6. Write ALL required files from MCP examples (no Read needed!)
+Write implementation file following get-folder-detail and get-syntax-rules examples
+Write test file following get-testing-patterns
+Write proxy file following get-testing-patterns and get-folder-detail proxy patterns
+Write any other required files (stub, etc.) per folder requirements
+
+// 7. Run tests to verify
 npm test -- path/to/file.test.ts
 ```
 
@@ -164,7 +210,7 @@ Read the path from discover result
 
 // 4. Get the correct patterns from MCP (NOT from other files)
 get-folder-detail({ folderType: "brokers" })
-// Returns: patterns, testing requirements
+// Returns: patterns, proxy requirements
 
 // 5. Get syntax rules (final refresh before fixing)
 get-syntax-rules()
@@ -174,8 +220,9 @@ get-syntax-rules()
 Edit the file following MCP examples
 
 // 7. Update tests if needed (Read only what you're editing)
+get-testing-patterns() // Get test patterns before updating tests
 Read existing test (if you need to modify it)
-Edit following MCP-provided testing patterns from get-folder-detail
+Edit following get-testing-patterns
 
 // 8. Run tests to verify fix
 npm test -- path/to/file.test.ts
@@ -191,25 +238,30 @@ get-architecture()
 // 2. Read the implementation you're testing
 Read the file to test
 
-// 3. Get testing patterns from MCP (NOT from other test files)
+// 3. Get folder-specific testing requirements
 get-folder-detail({ folderType: "guards" })
-// Returns complete testing guidance: proxy requirements, patterns, examples
+// Returns: proxy requirements, folder-specific patterns
 
-// 4. Get syntax rules (final refresh before writing)
+// 4. Get testing patterns from MCP (NOT from other test files)
+get-testing-patterns()
+// Returns complete testing guidance: philosophy, proxy patterns, assertions, structure
+
+// 5. Get syntax rules (final refresh before writing)
 get-syntax-rules()
 // Ensure test follows all conventions
 
-// 5. Write test from MCP examples (no searching needed!)
-Write test file following get-folder-detail testing examples
+// 6. Write test and proxy from MCP examples (no searching needed!)
+Write test file following get-testing-patterns
+Write proxy file following get-testing-patterns and get-folder-detail proxy patterns
 
-// 6. Run tests to verify
+// 7. Run tests to verify
 npm test -- path/to/file.test.ts
 ```
 
 ### Scenario D: Refactor Across Multiple Files
 
 ```markdown
-// 1. Get architecture roadmap FIRST
+// 1. Get architecture roadmap FIRST - MANDATORY
 get-architecture()
 // CRITICAL: See import hierarchy and layer boundaries before refactoring
 
@@ -233,6 +285,51 @@ Edit files following MCP-provided examples and import rules
 
 // 7. Run tests to verify refactor
 npm test
+```
+
+### Scenario E: Fix Lint Violations (Multiple Files)
+
+```markdown
+// 1. Get architecture roadmap FIRST - MANDATORY even for lint fixes
+get-architecture()
+// Understand folder structure, import rules, and architectural constraints
+
+// 2. Get folder-specific rules for the affected folder type
+get-folder-detail({ folderType: "contracts" })
+// Returns: naming conventions, required files (stubs, tests), parameter patterns, proxy requirements
+
+// 3. Get universal syntax rules
+get-syntax-rules()
+// Returns: destructuring patterns, branding requirements, all conventions with examples
+
+// 4. Get testing patterns (if creating/fixing tests/proxies/stubs)
+get-testing-patterns()
+// Returns: testing philosophy, proxy patterns, stub patterns, assertions
+
+// 5. Discover existing files in the folder to understand structure
+discover({ type: "files", path: "packages/hooks/src/contracts" })
+// Browse to see which files exist and their structure
+
+// 6. Read ONLY the files you need to fix
+Read each file that needs modification
+
+// 7. Fix violations using MCP-provided patterns
+// Group by error type for efficiency:
+// - Missing stubs/tests: Create using get-testing-patterns and get-folder-detail examples
+// - Missing proxies: Create using get-testing-patterns proxy patterns
+// - Parameter patterns: Fix using get-syntax-rules destructuring examples
+// - Branding issues: Fix using get-syntax-rules branded type examples
+
+// 8. Run tests FIRST to verify fixes don't break functionality - MANDATORY
+npm test -- path/to/affected/files
+// Tests MUST pass before considering the fix complete
+
+// 9. Run lint to verify all violations are resolved
+npm run ward "*pattern*"
+// OR npx eslint path/to/files
+
+// 10. If tests fail, fix the issues and repeat steps 8-9
+// NEVER leave broken tests or lint violations
 ```
 
 ---
@@ -268,8 +365,7 @@ mcp__questmaestro__get-architecture()
 
 // Step 3: Get complete guard patterns WITH EXAMPLES
 mcp__questmaestro__get-folder-detail({ folderType: "guards" })
-// Returns: purpose, naming (-guard.ts suffix), imports, constraints, code examples
-// Includes testing guidance: guards are pure - no proxy needed
+// Returns: purpose, naming (-guard.ts suffix), imports, constraints, code examples, proxy requirements
 
 // Step 4: Browse existing guards (avoid duplication)
 mcp__questmaestro__discover({ type: "files", path: "packages/eslint-plugin/src/guards" })
@@ -281,13 +377,17 @@ mcp__questmaestro__discover({ type: "files", name: "is-authenticated-guard" })
 mcp__questmaestro__get-syntax-rules()
 // Returns: export const arrow functions, object destructuring, branded types, WITH examples
 
-// Step 6: Write ALL required files directly from MCP examples (no Read needed!)
+// Step 6: Get testing patterns
+mcp__questmaestro__get-testing-patterns()
+// Returns: testing philosophy, proxy patterns (guards typically don't need proxies), assertions
+
+// Step 7: Write ALL required files directly from MCP examples (no Read needed!)
 Write("packages/eslint-plugin/src/guards/is-authenticated/is-authenticated-guard.ts")
 // Follow patterns from get-folder-detail and get-syntax-rules
 Write("packages/eslint-plugin/src/guards/is-authenticated/is-authenticated-guard.test.ts")
-// Follow testing patterns from get-folder-detail (no proxy for pure functions)
+// Follow testing patterns from get-testing-patterns (no proxy for pure functions)
 
-// Step 7: Run tests to verify
+// Step 8: Run tests to verify
 npm test -- packages/eslint-plugin/src/guards/is-authenticated/is-authenticated-guard.test.ts
 ```
 

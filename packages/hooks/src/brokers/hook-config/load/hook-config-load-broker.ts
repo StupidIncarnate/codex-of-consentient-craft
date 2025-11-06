@@ -5,8 +5,8 @@
  * const config = hookConfigLoadBroker({ cwd: '/project/path' });
  * // Returns PreEditLintConfig from config file or defaults
  */
-import { pathResolve } from '../../../adapters/path/path-resolve';
-import { fsExistsSync } from '../../../adapters/fs/fs-exists-sync';
+import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import type { PreEditLintConfig } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import type { QuestmaestroHooksConfig } from '../../../contracts/questmaestro-hooks-config/questmaestro-hooks-config-contract';
 import { hookConfigMergeTransformer } from '../../../transformers/hook-config-merge/hook-config-merge-transformer';
@@ -37,13 +37,13 @@ export const hookConfigLoadBroker = ({
   cwd = process.cwd(),
 }: { cwd?: string } = {}): PreEditLintConfig => {
   const configPaths = [
-    pathResolve({ paths: [cwd, '.questmaestro-hooks.config.js'] }),
-    pathResolve({ paths: [cwd, '.questmaestro-hooks.config.mjs'] }),
-    pathResolve({ paths: [cwd, '.questmaestro-hooks.config.cjs'] }),
+    pathResolveAdapter({ paths: [cwd, '.questmaestro-hooks.config.js'] }),
+    pathResolveAdapter({ paths: [cwd, '.questmaestro-hooks.config.mjs'] }),
+    pathResolveAdapter({ paths: [cwd, '.questmaestro-hooks.config.cjs'] }),
   ];
 
   for (const configPath of configPaths) {
-    if (fsExistsSync({ filePath: configPath })) {
+    if (fsExistsSyncAdapter({ filePath: configPath })) {
       const config = loadConfigFile({ configPath });
       if (config !== null) {
         return config;

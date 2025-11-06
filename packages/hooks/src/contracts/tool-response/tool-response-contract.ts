@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 export const toolResponseContract = z
   .object({
-    filePath: z.string().optional(),
+    filePath: z.string().brand<'ToolResponseFilePath'>().optional(),
     success: z.boolean().optional(),
     // Additional fields depend on the specific tool
   })

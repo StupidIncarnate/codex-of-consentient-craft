@@ -15,7 +15,7 @@ export const lintMessageContract = z.object({
   column: z.number().int().nonnegative().brand<'ColumnNumber'>(),
   message: z.string().min(1).brand<'LintMessageText'>(),
   severity: z.number().int().min(LINT_SEVERITY_MIN).max(LINT_SEVERITY_MAX).brand<'LintSeverity'>(), // 1 = warn, 2 = error
-  ruleId: z.string().optional(),
+  ruleId: z.string().brand<'RuleId'>().optional(),
 });
 
 export type LintMessage = z.infer<typeof lintMessageContract>;

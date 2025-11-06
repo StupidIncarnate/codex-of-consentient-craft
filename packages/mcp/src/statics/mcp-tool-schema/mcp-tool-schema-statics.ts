@@ -91,4 +91,13 @@ export const mcpToolSchemaStatics = {
       required: [],
     },
   },
+  'get-testing-patterns': {
+    name: 'get-testing-patterns',
+    description: 'Returns testing patterns and philosophy for writing tests and proxies',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+  },
 } as const;

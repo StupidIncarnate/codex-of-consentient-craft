@@ -1,13 +1,13 @@
 import { hookConfigLoadBroker } from './hook-config-load-broker';
-import { fsExistsSync } from '../../../adapters/fs/fs-exists-sync';
-import { pathResolve } from '../../../adapters/path/path-resolve';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 
-jest.mock('../../../adapters/fs/fs-exists-sync');
-const mockExistsSync = jest.mocked(fsExistsSync);
+jest.mock('../../../adapters/fs/exists-sync/fs-exists-sync-adapter');
+const mockExistsSync = jest.mocked(fsExistsSyncAdapter);
 
-jest.mock('../../../adapters/path/path-resolve');
-const mockResolve = jest.mocked(pathResolve);
+jest.mock('../../../adapters/path/resolve/path-resolve-adapter');
+const mockResolve = jest.mocked(pathResolveAdapter);
 
 describe('hookConfigLoadBroker', () => {
   beforeEach(() => {

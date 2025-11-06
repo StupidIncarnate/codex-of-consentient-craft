@@ -5,14 +5,14 @@ import { multiEditToolInputContract } from '../../../contracts/multi-edit-tool-i
 import type { MultiEditToolInput } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input-contract';
 import { writeToolInputContract } from '../../../contracts/write-tool-input/write-tool-input-contract';
 import { WriteToolInputStub } from '../../../contracts/write-tool-input/write-tool-input.stub';
-import { fsReadFile } from '../../../adapters/fs/fs-read-file';
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 
 // Mock fs modules
-jest.mock('../../../adapters/fs/fs-read-file');
+jest.mock('../../../adapters/fs/read-file/fs-read-file-adapter');
 
-const mockReadFile = jest.mocked(fsReadFile);
+const mockReadFile = jest.mocked(fsReadFileAdapter);
 
 describe('toolInputGetFullContentBroker', () => {
   beforeEach(() => {

@@ -1,6 +1,4 @@
 import { violationsCountByRuleTransformer } from './violations-count-by-rule-transformer';
-import type { LintMessage } from '../../contracts/lint-message/lint-message-contract';
-import type { LintResult } from '../../contracts/lint-result/lint-result-contract';
 import { LintMessageStub } from '../../contracts/lint-message/lint-message.stub';
 import { LintResultStub } from '../../contracts/lint-result/lint-result.stub';
 import { ViolationCountStub } from '../../contracts/violation-count/violation-count.stub';
@@ -8,7 +6,7 @@ import { ViolationDetailStub } from '../../contracts/violation-detail/violation-
 
 describe('violationsCountByRuleTransformer', () => {
   it('VALID: {results: []} => returns empty array', () => {
-    const results: LintResult[] = [];
+    const results = [];
 
     const counts = violationsCountByRuleTransformer({ results });
 
@@ -16,7 +14,7 @@ describe('violationsCountByRuleTransformer', () => {
   });
 
   it('VALID: {results: [1 any violation]} => returns correct counts', () => {
-    const message: LintMessage = LintMessageStub({
+    const message = LintMessageStub({
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
@@ -24,7 +22,7 @@ describe('violationsCountByRuleTransformer', () => {
       ruleId: '@typescript-eslint/no-explicit-any',
     });
 
-    const results: LintResult[] = [
+    const results = [
       LintResultStub({
         filePath: '/test/file.ts',
         messages: [message],
@@ -52,7 +50,7 @@ describe('violationsCountByRuleTransformer', () => {
   });
 
   it('VALID: {results: [multiple violations of same rule]} => returns correct counts', () => {
-    const message1: LintMessage = LintMessageStub({
+    const message1 = LintMessageStub({
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
@@ -60,7 +58,7 @@ describe('violationsCountByRuleTransformer', () => {
       ruleId: '@typescript-eslint/no-explicit-any',
     });
 
-    const message2: LintMessage = LintMessageStub({
+    const message2 = LintMessageStub({
       line: 2,
       column: 20,
       message: 'Unexpected any. Specify a different type.',
@@ -68,7 +66,7 @@ describe('violationsCountByRuleTransformer', () => {
       ruleId: '@typescript-eslint/no-explicit-any',
     });
 
-    const results: LintResult[] = [
+    const results = [
       LintResultStub({
         filePath: '/test/file.ts',
         messages: [message1, message2],
@@ -102,7 +100,7 @@ describe('violationsCountByRuleTransformer', () => {
   });
 
   it('VALID: {results: [multiple different rules]} => returns correct counts', () => {
-    const anyMessage: LintMessage = LintMessageStub({
+    const anyMessage = LintMessageStub({
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
@@ -110,7 +108,7 @@ describe('violationsCountByRuleTransformer', () => {
       ruleId: '@typescript-eslint/no-explicit-any',
     });
 
-    const tsIgnoreMessage: LintMessage = LintMessageStub({
+    const tsIgnoreMessage = LintMessageStub({
       line: 2,
       column: 1,
       message: 'Do not use "@ts-ignore" because it alters compilation errors.',
@@ -118,7 +116,7 @@ describe('violationsCountByRuleTransformer', () => {
       ruleId: '@typescript-eslint/ban-ts-comment',
     });
 
-    const results: LintResult[] = [
+    const results = [
       LintResultStub({
         filePath: '/test/file.ts',
         messages: [anyMessage, tsIgnoreMessage],
@@ -158,7 +156,7 @@ describe('violationsCountByRuleTransformer', () => {
   });
 
   it('VALID: {results: [warnings ignored, only errors counted]} => returns only errors', () => {
-    const errorMessage: LintMessage = LintMessageStub({
+    const errorMessage = LintMessageStub({
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
@@ -166,7 +164,7 @@ describe('violationsCountByRuleTransformer', () => {
       ruleId: '@typescript-eslint/no-explicit-any',
     });
 
-    const warningMessage: LintMessage = LintMessageStub({
+    const warningMessage = LintMessageStub({
       line: 2,
       column: 10,
       message: 'Some warning message.',
@@ -174,7 +172,7 @@ describe('violationsCountByRuleTransformer', () => {
       ruleId: 'some-warning-rule',
     });
 
-    const results: LintResult[] = [
+    const results = [
       LintResultStub({
         filePath: '/test/file.ts',
         messages: [errorMessage, warningMessage],
@@ -202,7 +200,7 @@ describe('violationsCountByRuleTransformer', () => {
   });
 
   it('VALID: {results: [messages without ruleId]} => ignores messages without ruleId', () => {
-    const errorWithRuleId: LintMessage = LintMessageStub({
+    const errorWithRuleId = LintMessageStub({
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
@@ -210,7 +208,7 @@ describe('violationsCountByRuleTransformer', () => {
       ruleId: '@typescript-eslint/no-explicit-any',
     });
 
-    const errorWithoutRuleId: LintMessage = LintMessageStub({
+    const errorWithoutRuleId = LintMessageStub({
       line: 2,
       column: 10,
       message: 'Parse error message.',
@@ -218,7 +216,7 @@ describe('violationsCountByRuleTransformer', () => {
       // No ruleId
     });
 
-    const results: LintResult[] = [
+    const results = [
       LintResultStub({
         filePath: '/test/file.ts',
         messages: [errorWithRuleId, errorWithoutRuleId],

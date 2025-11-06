@@ -641,6 +641,7 @@ describe('universalSyntaxRulesStatics', () => {
         'errorHandling',
         'performance',
         'cliOutput',
+        'testing',
         'summaryChecklist',
       ];
 

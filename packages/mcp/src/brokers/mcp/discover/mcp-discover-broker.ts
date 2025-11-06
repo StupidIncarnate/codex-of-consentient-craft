@@ -15,6 +15,9 @@ import type { ResultCount } from '../../../contracts/result-count/result-count-c
 import { fileScannerBroker } from '../../file/scanner/file-scanner-broker';
 import { treeFormatterTransformer } from '../../../transformers/tree-formatter/tree-formatter-transformer';
 import type { TreeOutput } from '../../../contracts/tree-output/tree-output-contract';
+import { standardsParserParseBroker } from '../../standards-parser/parse/standards-parser-parse-broker';
+
+const STANDARDS_USAGE_PREVIEW_LENGTH = 200;
 
 export const mcpDiscoverBroker = async ({
   input,
@@ -27,6 +30,32 @@ export const mcpDiscoverBroker = async ({
   // Validate input
   const validated = discoverInputContract.parse(input);
 
+  // Handle standards type - return standards sections as DiscoverResultItems
+  if (validated.type === 'standards') {
+    const sections = await standardsParserParseBroker({
+      ...(validated.section && { section: validated.section }),
+    });
+
+    // Map StandardsSection to DiscoverResultItem format
+    const resultItems = sections.map((standardsSection) =>
+      discoverResultItemContract.parse({
+        name: standardsSection.section,
+        path: standardsSection.path,
+        type: 'standard',
+        purpose: `Standard section: ${standardsSection.section}`,
+        usage: standardsSection.content.slice(0, STANDARDS_USAGE_PREVIEW_LENGTH),
+        signature: undefined,
+        relatedFiles: [],
+      }),
+    );
+
+    return {
+      results: resultItems,
+      count: resultCountContract.parse(resultItems.length),
+    };
+  }
+
+  // Handle files type
   const fileResults = await fileScannerBroker({
     ...(validated.path && { path: validated.path }),
     ...(validated.fileType && { fileType: validated.fileType }),

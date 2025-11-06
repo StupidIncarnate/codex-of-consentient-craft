@@ -6,13 +6,14 @@
  * // Returns multi-line formatted string with generic violation info
  */
 import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
+import { violationMessageStatics } from '../../statics/violation-message/violation-message-statics';
 
 export const violationMessageFormatTransformer = ({
   violations,
 }: {
   violations: ViolationCount[];
 }): string => {
-  const lines = ['🛑 New code quality violations detected:'];
+  const lines = [violationMessageStatics.header];
 
   for (const violation of violations) {
     const count = violation.count === 1 ? '1 violation' : `${violation.count} violations`;
@@ -25,7 +26,7 @@ export const violationMessageFormatTransformer = ({
   }
 
   lines.push('');
-  lines.push('These rules help maintain code quality and safety. Please fix the violations.');
+  lines.push(violationMessageStatics.footerBasic);
 
   return lines.join('\n');
 };

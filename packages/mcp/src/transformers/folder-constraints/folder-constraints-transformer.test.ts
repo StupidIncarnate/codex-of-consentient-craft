@@ -1,4 +1,5 @@
 import { FolderTypeStub, FolderConfigStub } from '@questmaestro/shared/contracts';
+import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { folderConstraintsTransformer } from './folder-constraints-transformer';
 
 describe('folderConstraintsTransformer', () => {
@@ -87,35 +88,45 @@ describe('folderConstraintsTransformer', () => {
     });
   });
 
-  describe('complexity constraints', () => {
-    it('VALID: {folderType: brokers} => includes complexity constraints', () => {
+  describe('supplemental constraints', () => {
+    it('VALID: {supplementalConstraints: provided} => includes supplemental content', () => {
+      const supplementalConstraints = ContentTextStub({
+        value: '\n**COMPLEXITY:**\n- Keep files under 300 lines',
+      });
+
+      const constraints = folderConstraintsTransformer({
+        folderType: FolderTypeStub({ value: 'brokers' }),
+        config: FolderConfigStub({}),
+        supplementalConstraints,
+      });
+
+      expect(constraints).toMatch(/COMPLEXITY:/u);
+      expect(constraints).toMatch(/300 lines/u);
+    });
+
+    it('VALID: {supplementalConstraints: not provided} => excludes supplemental content', () => {
       const constraints = folderConstraintsTransformer({
         folderType: FolderTypeStub({ value: 'brokers' }),
         config: FolderConfigStub({}),
       });
 
-      expect(constraints).toMatch(/COMPLEXITY:/u);
-      expect(constraints).toMatch(/300 lines/u);
-      expect(constraints).toMatch(/layer files/u);
-    });
-
-    it('VALID: {folderType: widgets} => includes complexity constraints', () => {
-      const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'widgets' }),
-        config: FolderConfigStub({}),
-      });
-
-      expect(constraints).toMatch(/COMPLEXITY:/u);
-      expect(constraints).toMatch(/300 lines/u);
-    });
-
-    it('VALID: {folderType: guards} => excludes complexity constraints', () => {
-      const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'guards' }),
-        config: FolderConfigStub({}),
-      });
-
       expect(constraints).not.toMatch(/COMPLEXITY:/u);
+    });
+
+    it('VALID: {supplementalConstraints: with examples} => includes example code', () => {
+      const supplementalConstraints = ContentTextStub({
+        value: '\n**EXAMPLES:**\n```typescript\nexport const example = () => {};\n```',
+      });
+
+      const constraints = folderConstraintsTransformer({
+        folderType: FolderTypeStub({ value: 'transformers' }),
+        config: FolderConfigStub({}),
+        supplementalConstraints,
+      });
+
+      expect(constraints).toMatch(/EXAMPLES:/u);
+      expect(constraints).toMatch(/```typescript/u);
+      expect(constraints).toMatch(/export const example/u);
     });
   });
 });

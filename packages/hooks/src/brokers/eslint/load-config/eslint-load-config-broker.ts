@@ -5,9 +5,9 @@
  * const config = await eslintLoadConfigBroker({ cwd: '/project/path', filePath: 'src/file.ts' });
  * // Returns Linter.Config for the specified file path
  */
-import { eslintEslint } from '../../../adapters/eslint/eslint-eslint';
-import type { Linter } from '../../../adapters/eslint/eslint-linter';
-import { eslintCalculateConfigForFile } from '../../../adapters/eslint/eslint-calculate-config-for-file';
+import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
+import type { Linter } from 'eslint';
+import { eslintCalculateConfigForFileAdapter } from '../../../adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter';
 
 interface ConfigCache {
   cwd: string;
@@ -40,8 +40,8 @@ export const eslintLoadConfigBroker = async ({
   const targetCwd = cwd;
 
   try {
-    const eslint = eslintEslint({ options: { cwd: targetCwd } });
-    const config = await eslintCalculateConfigForFile({ eslint, filePath });
+    const eslint = eslintEslintAdapter({ options: { cwd: targetCwd } });
+    const config = await eslintCalculateConfigForFileAdapter({ eslint, filePath });
 
     // Only update cache if no other call has changed it
     // This prevents race conditions where parallel calls overwrite each other

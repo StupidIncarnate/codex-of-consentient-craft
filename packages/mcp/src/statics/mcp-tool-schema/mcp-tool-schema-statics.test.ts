@@ -4,18 +4,18 @@ describe('mcpToolSchemaStatics', () => {
   it('VALID: discover schema structure', () => {
     expect(mcpToolSchemaStatics.discover).toStrictEqual({
       name: 'discover',
-      description: 'Discover utilities, brokers, standards across the codebase',
+      description: 'Discover utilities, brokers, and files across the codebase',
       inputSchema: {
         type: 'object',
         properties: {
           type: {
             type: 'string',
-            enum: ['files', 'standards'],
-            description: 'Type of discovery: files or standards',
+            enum: ['files'],
+            description: 'Type of discovery (only files supported)',
           },
           path: {
             type: 'string',
-            description: 'Path to search (for files)',
+            description: 'Path to search',
           },
           fileType: {
             type: 'string',
@@ -28,10 +28,6 @@ describe('mcpToolSchemaStatics', () => {
           name: {
             type: 'string',
             description: 'Specific file name',
-          },
-          section: {
-            type: 'string',
-            description: 'Standards section path (for standards)',
           },
         },
         required: ['type'],
@@ -88,6 +84,18 @@ describe('mcpToolSchemaStatics', () => {
     expect(mcpToolSchemaStatics['get-syntax-rules']).toStrictEqual({
       name: 'get-syntax-rules',
       description: 'Returns universal syntax rules',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    });
+  });
+
+  it('VALID: get-testing-patterns schema structure', () => {
+    expect(mcpToolSchemaStatics['get-testing-patterns']).toStrictEqual({
+      name: 'get-testing-patterns',
+      description: 'Returns testing patterns and philosophy for writing tests and proxies',
       inputSchema: {
         type: 'object',
         properties: {},

@@ -8,11 +8,7 @@
 import { violationsCheckNewBroker } from '../../../brokers/violations/check-new/violations-check-new-broker';
 import { preToolUseHookDataContract } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
 import type { HookData } from '../../../contracts/hook-data/hook-data-contract';
-
-export interface HookPreEditResponderResult {
-  shouldBlock: boolean;
-  message?: string;
-}
+import type { HookPreEditResponderResult } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
 
 /**
  * Responder for pre-edit hook events.

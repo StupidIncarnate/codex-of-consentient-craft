@@ -5,10 +5,10 @@
  * const changes = await toolInputGetContentChangesBroker({ toolInput: writeToolInput });
  * // Returns array of ContentChange with oldContent and newContent
  */
-import { fsReadFile } from '../../../adapters/fs/fs-read-file';
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
 import { toolInputGetFullContentBroker } from '../get-full-content/tool-input-get-full-content-broker';
-import { isNodeError } from '../../../contracts/is-node-error/is-node-error';
+import { isNodeErrorContract } from '../../../contracts/is-node-error/is-node-error-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 
 export interface ContentChange {
@@ -18,11 +18,17 @@ export interface ContentChange {
 
 const readOldContent = async (filePath: string): Promise<string> => {
   try {
-    return await fsReadFile({ filePath: filePathContract.parse(filePath) });
-  } catch (error) {
+    return await fsReadFileAdapter({ filePath: filePathContract.parse(filePath) });
+  } catch (error: unknown) {
     // File doesn't exist - new file case
-    if (isNodeError(error) && error.code !== 'ENOENT') {
-      throw error;
+    // Return empty string for file-not-found or non-Node errors
+    const isNodeError = isNodeErrorContract({ error });
+    if (isNodeError) {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code !== 'ENOENT') {
+        // Re-throw errors that aren't ENOENT
+        throw error;
+      }
     }
     return '';
   }

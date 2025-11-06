@@ -1,74 +1,53 @@
 import { HookSessionStartResponder } from './hook-session-start-responder';
-import { isNewSession } from '../../../contracts/is-new-session/is-new-session';
-import { standardsLoadFilesBroker } from '../../../brokers/standards/load-files/standards-load-files-broker';
+import { HookSessionStartResponderProxy } from './hook-session-start-responder.proxy';
 import { SessionStartHookStub } from '../../../contracts/session-start-hook-data/session-start-hook-data.stub';
 
-jest.mock('../../../contracts/is-new-session/is-new-session');
-jest.mock('../../../brokers/standards/load-files/standards-load-files-broker');
-
 describe('HookSessionStartResponder', () => {
-  const mockIsNewSession = jest.mocked(isNewSession);
-  const mockStandardsLoadFilesBroker = jest.mocked(standardsLoadFilesBroker);
-
-  beforeEach(() => {
-    delete process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS;
-  });
+  const proxy = HookSessionStartResponderProxy();
 
   describe('New Session', () => {
     it('VALID: {isNew: true, standardsContent: "content"} => returns {shouldOutput: true, content: formatted}', async () => {
       const hookData = SessionStartHookStub({ cwd: '/test/project' });
       const standardsContent = '# Project Standards\n\nFollow these guidelines...';
 
-      mockIsNewSession.mockResolvedValue(true);
-      mockStandardsLoadFilesBroker.mockResolvedValue(standardsContent);
+      proxy.setupIsNewSession({ isNew: true });
+      proxy.setupStandardsLoad({ content: standardsContent });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      expect(result.shouldOutput).toBe(true);
+      expect(result.shouldOutput).toStrictEqual(true);
       expect(result.content).toMatch(/\[NEW SESSION\]/u);
       expect(result.content).toMatch(/<questmaestro-standards>/u);
       expect(result.content).toContain(standardsContent);
       expect(result.content).toContain(
         'Please refer to these standards when writing, reviewing, or suggesting code changes',
       );
-      expect(mockIsNewSession).toHaveBeenCalledTimes(1);
-      expect(mockIsNewSession).toHaveBeenCalledWith({
-        transcriptPath: hookData.transcript_path,
-      });
-      expect(mockStandardsLoadFilesBroker).toHaveBeenCalledTimes(1);
-      expect(mockStandardsLoadFilesBroker).toHaveBeenCalledWith({
-        cwd: hookData.cwd,
-      });
     });
 
     it('EMPTY: {isNew: true, standardsContent: ""} => returns {shouldOutput: false}', async () => {
       const hookData = SessionStartHookStub();
 
-      mockIsNewSession.mockResolvedValue(true);
-      mockStandardsLoadFilesBroker.mockResolvedValue('');
+      proxy.setupIsNewSession({ isNew: true });
+      proxy.setupStandardsLoad({ content: '' });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
       expect(result).toStrictEqual({
         shouldOutput: false,
       });
-      expect(mockIsNewSession).toHaveBeenCalledTimes(1);
-      expect(mockStandardsLoadFilesBroker).toHaveBeenCalledTimes(1);
     });
 
     it('EMPTY: {isNew: true, standardsContent: "   \\n\\t  "} => returns {shouldOutput: false}', async () => {
       const hookData = SessionStartHookStub();
 
-      mockIsNewSession.mockResolvedValue(true);
-      mockStandardsLoadFilesBroker.mockResolvedValue('   \n\t  ');
+      proxy.setupIsNewSession({ isNew: true });
+      proxy.setupStandardsLoad({ content: '   \n\t  ' });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
       expect(result).toStrictEqual({
         shouldOutput: false,
       });
-      expect(mockIsNewSession).toHaveBeenCalledTimes(1);
-      expect(mockStandardsLoadFilesBroker).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -76,18 +55,13 @@ describe('HookSessionStartResponder', () => {
     it('VALID: {isNew: false, ALWAYS_LOAD: undefined} => returns {shouldOutput: false}', async () => {
       const hookData = SessionStartHookStub();
 
-      mockIsNewSession.mockResolvedValue(false);
+      proxy.setupIsNewSession({ isNew: false });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
       expect(result).toStrictEqual({
         shouldOutput: false,
       });
-      expect(mockIsNewSession).toHaveBeenCalledTimes(1);
-      expect(mockIsNewSession).toHaveBeenCalledWith({
-        transcriptPath: hookData.transcript_path,
-      });
-      expect(mockStandardsLoadFilesBroker).not.toHaveBeenCalled();
     });
 
     it('VALID: {isNew: false, ALWAYS_LOAD: "true", standardsContent: "content"} => returns {shouldOutput: true, content: formatted with RESUMED SESSION}', async () => {
@@ -95,19 +69,16 @@ describe('HookSessionStartResponder', () => {
       process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS = 'true';
       const standardsContent = '# Standards content';
 
-      mockIsNewSession.mockResolvedValue(false);
-      mockStandardsLoadFilesBroker.mockResolvedValue(standardsContent);
+      proxy.setupIsNewSession({ isNew: false });
+      proxy.setupStandardsLoad({ content: standardsContent });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      expect(result.shouldOutput).toBe(true);
+      expect(result.shouldOutput).toStrictEqual(true);
       expect(result.content).toMatch(/\[RESUMED SESSION\]/u);
       expect(result.content).toContain(standardsContent);
-      expect(mockIsNewSession).toHaveBeenCalledTimes(1);
-      expect(mockStandardsLoadFilesBroker).toHaveBeenCalledTimes(1);
-      expect(mockStandardsLoadFilesBroker).toHaveBeenCalledWith({
-        cwd: hookData.cwd,
-      });
+
+      delete process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS;
     });
   });
 
@@ -117,27 +88,29 @@ describe('HookSessionStartResponder', () => {
       process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS = 'true';
       const standardsContent = '# Test standards';
 
-      mockIsNewSession.mockResolvedValue(false);
-      mockStandardsLoadFilesBroker.mockResolvedValue(standardsContent);
+      proxy.setupIsNewSession({ isNew: false });
+      proxy.setupStandardsLoad({ content: standardsContent });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      expect(result.shouldOutput).toBe(true);
-      expect(mockStandardsLoadFilesBroker).toHaveBeenCalledTimes(1);
+      expect(result.shouldOutput).toStrictEqual(true);
+
+      delete process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS;
     });
 
     it('VALID: {isNew: false, ALWAYS_LOAD: "false"} => returns {shouldOutput: false}', async () => {
       const hookData = SessionStartHookStub();
       process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS = 'false';
 
-      mockIsNewSession.mockResolvedValue(false);
+      proxy.setupIsNewSession({ isNew: false });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
       expect(result).toStrictEqual({
         shouldOutput: false,
       });
-      expect(mockStandardsLoadFilesBroker).not.toHaveBeenCalled();
+
+      delete process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS;
     });
   });
 
@@ -146,12 +119,12 @@ describe('HookSessionStartResponder', () => {
       const hookData = SessionStartHookStub();
       const standardsContent = 'Test content';
 
-      mockIsNewSession.mockResolvedValue(true);
-      mockStandardsLoadFilesBroker.mockResolvedValue(standardsContent);
+      proxy.setupIsNewSession({ isNew: true });
+      proxy.setupStandardsLoad({ content: standardsContent });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      expect(result.shouldOutput).toBe(true);
+      expect(result.shouldOutput).toStrictEqual(true);
       expect(result.content).toMatch(/<questmaestro-standards>/u);
       expect(result.content).toMatch(/<\/questmaestro-standards>/u);
       expect(result.content).toContain('Test content');

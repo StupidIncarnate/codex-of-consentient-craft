@@ -1,12 +1,11 @@
 import { violationsFindNewTransformer } from './violations-find-new-transformer';
-import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
 import { ViolationCountStub } from '../../contracts/violation-count/violation-count.stub';
 
 describe('violationsFindNewTransformer', () => {
   describe('success cases', () => {
     it('VALID: {oldViolations: [], newViolations: []} => returns no new violations', () => {
-      const oldViolations: ViolationCount[] = [];
-      const newViolations: ViolationCount[] = [];
+      const oldViolations = [];
+      const newViolations = [];
 
       const result = violationsFindNewTransformer({ oldViolations, newViolations });
 
@@ -14,11 +13,11 @@ describe('violationsFindNewTransformer', () => {
     });
 
     it('VALID: {oldViolations: [1 any], newViolations: [same 1 any]} => returns no new violations', () => {
-      const oldViolations: ViolationCount[] = [
+      const oldViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
       ];
 
-      const newViolations: ViolationCount[] = [
+      const newViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
       ];
 
@@ -28,11 +27,11 @@ describe('violationsFindNewTransformer', () => {
     });
 
     it('VALID: {oldViolations: [2 any], newViolations: [1 any]} => returns no new violations (removing violations)', () => {
-      const oldViolations: ViolationCount[] = [
+      const oldViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
       ];
 
-      const newViolations: ViolationCount[] = [
+      const newViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
       ];
 
@@ -42,12 +41,12 @@ describe('violationsFindNewTransformer', () => {
     });
 
     it('VALID: {oldViolations: [mixed], newViolations: [same counts]} => returns no new violations', () => {
-      const oldViolations: ViolationCount[] = [
+      const oldViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
         ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
       ];
 
-      const newViolations: ViolationCount[] = [
+      const newViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
         ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
       ];
@@ -60,9 +59,9 @@ describe('violationsFindNewTransformer', () => {
 
   describe('failure cases', () => {
     it('INVALID: {oldViolations: [], newViolations: [1 any]} => returns new violations', () => {
-      const oldViolations: ViolationCount[] = [];
+      const oldViolations = [];
 
-      const newViolations: ViolationCount[] = [
+      const newViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
       ];
 
@@ -74,11 +73,11 @@ describe('violationsFindNewTransformer', () => {
     });
 
     it('INVALID: {oldViolations: [1 any], newViolations: [2 any]} => returns 1 new violation', () => {
-      const oldViolations: ViolationCount[] = [
+      const oldViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
       ];
 
-      const newViolations: ViolationCount[] = [
+      const newViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
       ];
 
@@ -90,11 +89,11 @@ describe('violationsFindNewTransformer', () => {
     });
 
     it('INVALID: {oldViolations: [1 any], newViolations: [1 ts-ignore]} => returns new violations (different rule)', () => {
-      const oldViolations: ViolationCount[] = [
+      const oldViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
       ];
 
-      const newViolations: ViolationCount[] = [
+      const newViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
       ];
 
@@ -106,9 +105,9 @@ describe('violationsFindNewTransformer', () => {
     });
 
     it('INVALID: {oldViolations: [], newViolations: [multiple violations]} => returns all as new violations', () => {
-      const oldViolations: ViolationCount[] = [];
+      const oldViolations = [];
 
-      const newViolations: ViolationCount[] = [
+      const newViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 2 }),
         ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
         ViolationCountStub({ ruleId: 'eslint-comments/no-use', count: 1 }),
@@ -124,12 +123,12 @@ describe('violationsFindNewTransformer', () => {
     });
 
     it('COMPLEX: {oldViolations: [mixed], newViolations: [some removed, some added]} => returns only new violations', () => {
-      const oldViolations: ViolationCount[] = [
+      const oldViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
         ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 2 }),
       ];
 
-      const newViolations: ViolationCount[] = [
+      const newViolations = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 3 }), // +2 new
         ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }), // -1 (removed, no new)
         ViolationCountStub({ ruleId: 'eslint-comments/no-use', count: 1 }), // +1 new rule

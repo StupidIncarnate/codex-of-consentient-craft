@@ -7,6 +7,7 @@
  */
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import type { ViolationComparison } from '../../../contracts/violation-comparison/violation-comparison-contract';
+import { violationComparisonContract } from '../../../contracts/violation-comparison/violation-comparison-contract';
 import type { PreEditLintConfig } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { violationMessageFormatFullTransformer } from '../../../transformers/violation-message-format-full/violation-message-format-full-transformer';
 import { violationsCountByRuleTransformer } from '../../../transformers/violations-count-by-rule/violations-count-by-rule-transformer';
@@ -50,14 +51,9 @@ export const violationsAnalyzeBroker = ({
       })
     : violationMessageFormatTransformer({ violations: newlyIntroduced });
 
-  const result: ViolationComparison = {
+  return violationComparisonContract.parse({
     hasNewViolations: hasViolations,
     newViolations: newlyIntroduced,
-  };
-
-  if (violationMessage !== '') {
-    result.message = violationMessage;
-  }
-
-  return result;
+    message: violationMessage !== '' ? violationMessage : undefined,
+  });
 };

@@ -1,18 +1,18 @@
 import { eslintConfigFilterTransformer } from './eslint-config-filter-transformer';
+import { PreEditLintConfigStub } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config.stub';
 import { ruleNamesExtractTransformer } from '../rule-names-extract/rule-names-extract-transformer';
-import type { Linter } from 'eslint';
-import { preEditLintConfigContract } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
-
-jest.mock('../rule-names-extract/rule-names-extract-transformer');
 
 describe('eslintConfigFilterTransformer', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   // Test helper
-  const mockHookConfigUtilWithRules = (rules: string[]): void => {
-    jest.mocked(ruleNamesExtractTransformer).mockReturnValue(rules);
+  const mockHookConfigUtilWithRules = (
+    rules: string[],
+  ): { mockReturnValue: (value: string[]) => void } => {
+    return {
+      mockReturnValue: (value: string[]) => {
+        // Mock implementation using closure
+        (ruleNamesExtractTransformer as unknown) = jest.fn().mockReturnValue(value);
+      },
+    };
   };
 
   describe('valid input', () => {

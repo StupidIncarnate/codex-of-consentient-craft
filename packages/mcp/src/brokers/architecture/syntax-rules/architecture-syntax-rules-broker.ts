@@ -22,6 +22,7 @@ import { formatPerformanceSectionLayerBroker } from './format-performance-sectio
 import { formatPromiseHandlingSectionLayerBroker } from './format-promise-handling-section-layer-broker';
 import { formatSingleResponsibilitySectionLayerBroker } from './format-single-responsibility-section-layer-broker';
 import { formatSummaryChecklistSectionLayerBroker } from './format-summary-checklist-section-layer-broker';
+import { formatTestingAntiPatternsSectionLayerBroker } from './format-testing-anti-patterns-section-layer-broker';
 import { formatTypeExportsSectionLayerBroker } from './format-type-exports-section-layer-broker';
 import { formatTypeSafetySectionLayerBroker } from './format-type-safety-section-layer-broker';
 
@@ -45,6 +46,7 @@ export const architectureSyntaxRulesBroker = (): ContentText => {
     ...formatErrorHandlingSectionLayerBroker(),
     ...formatPerformanceSectionLayerBroker(),
     ...formatCliOutputSectionLayerBroker(),
+    ...formatTestingAntiPatternsSectionLayerBroker(),
     ...formatSummaryChecklistSectionLayerBroker(),
   ];
 
