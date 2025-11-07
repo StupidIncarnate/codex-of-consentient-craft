@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Load all folder constraint markdown files and layer constraints into memory
+ * PURPOSE: Load all folder constraint markdown files into memory
  *
  * USAGE:
- * const {folderConstraints, layerConstraints} = await folderConstraintsInitBroker();
- * // Returns Map of folder types to constraint content and layer constraints content
+ * const {folderConstraints} = await folderConstraintsInitBroker();
+ * // Returns Map of folder types to constraint content
  */
 import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
@@ -14,7 +14,6 @@ import type { FolderType } from '@questmaestro/shared/contracts';
 
 export const folderConstraintsInitBroker = async (): Promise<{
   folderConstraints: Map<FolderType, ContentText>;
-  layerConstraints: ContentText | undefined;
 }> => {
   const constraintsMap = new Map<FolderType, ContentText>();
   const constraintsDir = pathResolveAdapter({
@@ -36,18 +35,5 @@ export const folderConstraintsInitBroker = async (): Promise<{
     }
   }
 
-  // Load universal layer constraints (applies to brokers, widgets, responders)
-  let layerConstraints: ContentText | undefined;
-  try {
-    const layerFilepath = pathResolveAdapter({
-      paths: [constraintsDir, 'layer-constraints.md'],
-    });
-    const layerContent = await fsReadFileAdapter({ filepath: layerFilepath });
-    layerConstraints = contentTextContract.parse(`\n${layerContent}`);
-  } catch (error) {
-    // If file doesn't exist, skip (graceful degradation)
-    process.stderr.write(`Warning: Could not load layer-constraints.md: ${error}\n`);
-  }
-
-  return { folderConstraints: constraintsMap, layerConstraints };
+  return { folderConstraints: constraintsMap };
 };

@@ -15,7 +15,7 @@ describe('index', () => {
     const plugin = StartEslintPlugin();
 
     expect(plugin.rules['ban-primitives']).toBeDefined();
-    expect(plugin.rules['ban-contract-in-tests']).toBeDefined();
+    expect(plugin.rules['enforce-contract-usage-in-tests']).toBeDefined();
     expect(plugin.rules['explicit-return-types']).toBeDefined();
     expect(plugin.rules['enforce-project-structure']).toBeDefined();
   });

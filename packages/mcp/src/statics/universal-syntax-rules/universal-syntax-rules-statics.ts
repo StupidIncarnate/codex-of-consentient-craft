@@ -31,7 +31,11 @@ export const universalSyntaxRulesStatics = {
 
   namedExports: {
     rule: 'Always use named exports, never default exports',
-    exceptions: ['Index files connecting to systems that require default exports'],
+    exceptions: [
+      'Index files ONLY when connecting to systems that REQUIRE default exports (not just prefer)',
+    ],
+    criticalNote:
+      'LLM training instinct: Use export default liberally. Resist this - only use when system absolutely requires it.',
     examples: ['export const userFetchBroker = ...', 'export type User = { ... }'],
     violations: [
       'export default function userFetchBroker() { ... }',
@@ -52,6 +56,9 @@ export const universalSyntaxRulesStatics = {
 
   fileMetadata: {
     rule: 'Every implementation file must have structured metadata comments at the very top (before imports)',
+    criticalPosition: 'MUST be BEFORE all imports at the very top of the file',
+    llmTrainingViolation:
+      'LLM training instinct: Place JSDoc immediately before function. Resist this - metadata goes BEFORE imports.',
     requiredFormat:
       '/** * PURPOSE: [One-line description] * * USAGE: * [Code example] * // [Comment explaining what it returns] */',
     requiredFor: [
@@ -96,12 +103,18 @@ export const universalSyntaxRulesStatics = {
     rule: 'Type export syntax varies by file type',
     regularFiles: 'Only define types with export type Name = { ... }',
     indexFiles: 'Only re-export with export type { Name } from "./types"',
-    forbidden: 'Never use export { type Name } (forbidden inline syntax)',
+    forbidden: 'NEVER use export { type Name } - This inline syntax is ABSOLUTELY FORBIDDEN',
+    llmTrainingViolation:
+      'LLM training instinct: Use export { type Foo } (modern TS 4.5+ inline syntax). This is FORBIDDEN here - always use export type { Foo } in index files.',
+    criticalNote:
+      'The inline syntax export { type Name } looks modern and correct, but it is explicitly banned in this codebase.',
     examples: [
       'export type User = { id: UserId; name: UserName; }; // Regular file',
       'export type {User} from "./user-contract"; // index.ts re-export',
     ],
-    violations: ['export {type User} from "./user-contract"; // Forbidden inline syntax'],
+    violations: [
+      'export {type User} from "./user-contract"; // FORBIDDEN inline syntax - triggers lint error',
+    ],
   },
 
   typeSafety: {
@@ -157,6 +170,10 @@ export const universalSyntaxRulesStatics = {
       rule: 'ban-primitives rule: Inputs allow primitives, returns require branded types',
       inputsAllowPrimitives: 'Input args can use raw primitives (inline object types)',
       returnsMustUseBranded: 'Return types must use branded types/contracts',
+      criticalAsymmetry:
+        'COUNTERINTUITIVE: Inputs CAN use primitives (string, number), but returns MUST use branded types (UserId, UserName). This is intentional asymmetry.',
+      llmTrainingViolation:
+        'LLM training instinct: Be consistent - either brand everything or brand nothing. Resist this - inputs and outputs have different rules.',
       examples: [
         'export type SomeService = { doSomething: (params: {name: string; count: number}) => Result; getUser: () => User; getConfig: () => {apiKey: ApiKey; timeout: Milliseconds}; };',
         'export const loadConfig = (): Config => { return configContract.parse({apiUrl: process.env.API_URL || "http://localhost:3000", timeout: parseInt(process.env.TIMEOUT || "5000")}); };',
@@ -242,6 +259,10 @@ export const universalSyntaxRulesStatics = {
       get: {
         rule: 'Use Reflect.get() for accessing properties on objects when TypeScript narrows to object type',
         rationale: 'Avoids unsafe type assertions from object to Record<PropertyKey, unknown>',
+        llmTrainingViolation:
+          'LLM training instinct: Use obj as Record<PropertyKey, unknown> to access dynamic properties. This is UNSAFE - use Reflect.get() instead.',
+        antiPattern:
+          'const record = obj as Record<string, unknown> // TypeScript allows this but it bypasses safety',
         examples: [
           'export const hasStringProperty = (params: {obj: unknown; property: string;}): params is {obj: Record<PropertyKey, string>; property: string} => { const {obj, property} = params; if (typeof obj !== "object" || obj === null) { return false; } return property in obj && typeof Reflect.get(obj, property) === "string"; };',
         ],

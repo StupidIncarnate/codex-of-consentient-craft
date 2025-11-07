@@ -216,17 +216,120 @@ export const UserCreateResponder = async ({req, res}: {
 
 Only **entry files** can be imported across domain folders.
 
-**Entry files** = files matching folder's suffix pattern (\`-adapter.ts\`, \`-contract.ts\`, \`-broker.ts\`, etc.)
+**Entry files** = filename exactly matches folder path + suffix (no extra words)
+
+**Pattern:** \`[folder-path]-[folder-suffix].ts\`
+
+**Examples:**
+- \`brokers/user/fetch/user-fetch-broker.ts\` ✅ Entry file (filename = folder path)
+- \`adapters/axios/get/axios-get-adapter.ts\` ✅ Entry file (filename = folder path)
+- \`contracts/user/user-contract.ts\` ✅ Entry file (filename = folder path)
+- \`brokers/user/fetch/validate-helper.ts\` ❌ NOT entry (has validate-helper as a name instead of user-fetch-broker)
+- \`brokers/user/fetch/validate-layer-broker.ts\` ❌ NOT entry (has "validate-layer")
+- \`widgets/user-card/avatar-layer-widget.tsx\` ❌ NOT entry (has "avatar-layer")
 
 \`\`\`typescript
-// ✅ CORRECT - Importing entry file
+// ✅ CORRECT - Importing entry file (name matches folders)
 import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker';
+import {axiosGetAdapter} from '../../../adapters/axios/get/axios-get-adapter';
 
-// ❌ WRONG - Importing helper/layer file
+// ❌ WRONG - Importing non-entry files (names have extra parts)
 import {validateHelper} from '../../brokers/user/fetch/validate-helper';
+import {validateLayerBroker} from '../../brokers/user/fetch/validate-layer-broker';
+import {avatarLayerWidget} from '../user-card/avatar-layer-widget';
 \`\`\`
 
-**Same-folder imports:** Files within same domain folder can import each other freely.`;
+**Same-folder imports:** Files within same domain folder can import each other freely (including helpers and layers).
+
+**Layer files** (\`-layer-\` in filename) are internal implementation details - they can ONLY be imported within their own domain folder, never across domains.`;
+
+  // Build layer files section - dynamically generate allowed folders
+  const allowsLayerFolders = (Object.entries(folderConfigStatics) as FolderEntry[])
+    .filter(([_name, config]) => config.allowsLayerFiles)
+    .map(([name]) => `\`${name}/\``)
+    .join(', ');
+
+  const layerFiles = `**Purpose:** Decompose complex files (>300 lines) into focused, testable layers while maintaining domain context.
+
+**Naming:** \`{descriptive-name}-layer-{folder-suffix}.{ext}\`
+
+**Allowed in:** ${allowsLayerFolders} only
+
+**Structure:**
+\`\`\`
+brokers/user/fetch/
+  user-fetch-broker.ts              # Parent - orchestrates layers
+  user-fetch-broker.proxy.ts
+  user-fetch-broker.test.ts
+
+  validate-input-layer-broker.ts    # Layer - validation logic
+  validate-input-layer-broker.proxy.ts
+  validate-input-layer-broker.test.ts
+
+  format-response-layer-broker.ts   # Layer - formatting logic
+  format-response-layer-broker.proxy.ts
+  format-response-layer-broker.test.ts
+\`\`\`
+
+**Layer files ARE:**
+- ✅ Co-located with parent (same directory, flat structure)
+- ✅ Full entities with own \`.proxy.ts\` and \`.test.ts\` if complex
+- ✅ Independently testable with their own test suite
+- ✅ Scoped to parent's domain (not reusable across codebase)
+- ✅ Named with \`-layer-\` infix before folder suffix
+
+**Layer files are NOT:**
+- ❌ Utilities (those go in \`transformers/\` or \`guards/\`)
+- ❌ Reusable across parents (create new domain folder instead)
+- ❌ Separate domains (create sibling folder instead)
+- ❌ In subfolders (must be flat with parent, no nesting)
+
+**Import rules:**
+- ✅ Parent can import layers (same folder)
+- ✅ Layers can import other layers (same folder)
+- ❌ Cannot import layers from different domain folders
+- ❌ Cannot import layers from different actions (even same domain)
+
+**Example:**
+\`\`\`typescript
+// ✅ CORRECT - Same folder imports
+// In: brokers/user/fetch/user-fetch-broker.ts
+import {validateInputLayerBroker} from './validate-input-layer-broker';
+import {formatResponseLayerBroker} from './format-response-layer-broker';
+
+// ✅ CORRECT - Layer importing layer (same folder)
+// In: brokers/user/fetch/validate-input-layer-broker.ts
+import {formatResponseLayerBroker} from './format-response-layer-broker';
+
+// ❌ WRONG - Cross-domain layer import
+// In: brokers/auth/login/auth-login-broker.ts
+import {validateInputLayerBroker} from '../../user/fetch/validate-input-layer-broker';
+
+// ❌ WRONG - Different action layer import (same domain)
+// In: brokers/user/update/user-update-broker.ts
+import {validateInputLayerBroker} from '../fetch/validate-input-layer-broker';
+\`\`\`
+
+**When to create layer:**
+- Parent exceeds 300 lines
+- Layer calls different dependencies (needs own proxy)
+- Layer has distinct responsibility
+- Layer needs >10 test cases
+
+**When NOT to create layer:**
+- Logic is reusable → extract to \`guards/\` or \`transformers/\`
+- Logic is <50 lines → keep inline
+- Folder doesn't allow layers (see \`allowsLayerFiles\` in config)
+
+**Testing:**
+- Each layer has its own test file following standard proxy pattern
+- Create fresh proxy per test
+- Tests verify layer's focused responsibility independently
+
+**Lint Enforcement:**
+- \`@questmaestro/enforce-project-structure\` - validates folder allows layers
+- \`@questmaestro/enforce-implementation-colocation\` - validates layer has parent in same directory
+- File suffix rules - validates \`-layer-\` appears before folder suffix`;
 
   // Build @types folder section
   const typesFolder = `**Special Case: @types/ Folder**
@@ -303,6 +406,10 @@ ${typesFolder}
 ## Import Rules
 
 ${importRules}
+
+## Layer Files - Decomposing Complex Components
+
+${layerFiles}
 
 ## Extension Over Creation Philosophy
 

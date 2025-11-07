@@ -85,6 +85,13 @@ element = { < UserProfileResponder / >
 )
 ;
 
+/**
+ * PURPOSE: Defines API documentation routes mapping paths to responders
+ *
+ * USAGE:
+ * <ApiFlow /> // In React app routing
+ * // Renders API docs at /api/docs
+ */
 // flows/api/api-flow.tsx (Frontend API routes)
 import {Route} from 'react-router-dom';
 import {ApiDocsResponder} from '../../responders/api/docs/api-docs-responder';

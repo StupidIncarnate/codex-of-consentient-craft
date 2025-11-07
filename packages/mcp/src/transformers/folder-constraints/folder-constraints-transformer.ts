@@ -13,12 +13,10 @@ import type { ContentText } from '../../contracts/content-text/content-text-cont
 export const folderConstraintsTransformer = ({
   config,
   supplementalConstraints,
-  layerConstraints,
 }: {
   folderType: FolderType;
   config: FolderConfig;
   supplementalConstraints?: ContentText;
-  layerConstraints?: ContentText;
 }): ContentText => {
   const constraints: ContentText[] = [];
 
@@ -54,11 +52,6 @@ export const folderConstraintsTransformer = ({
   // Folder-specific supplemental constraints (passed from caller)
   if (supplementalConstraints) {
     constraints.push(supplementalConstraints);
-  }
-
-  // Layer constraints (only appended for brokers, widgets, responders)
-  if (layerConstraints) {
-    constraints.push(layerConstraints);
   }
 
   return contentTextContract.parse(constraints.join('\n'));

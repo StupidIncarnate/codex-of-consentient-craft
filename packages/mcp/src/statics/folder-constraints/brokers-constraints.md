@@ -81,6 +81,72 @@ export const userCreateBroker = async ({userData}: { userData: UserCreateData })
 - If exceeding, decompose into layer files
 - Each layer file has own proxy and tests
 
+**LAYER FILE STRUCTURE:**
+
+```
+brokers/rule/enforce-project-structure/
+  rule-enforce-project-structure-broker.ts        # Parent
+  rule-enforce-project-structure-broker.proxy.ts
+  rule-enforce-project-structure-broker.test.ts
+
+  validate-folder-depth-layer-broker.ts           # Layer
+  validate-folder-depth-layer-broker.proxy.ts
+  validate-folder-depth-layer-broker.test.ts
+```
+
+**LAYER FILE EXAMPLE:**
+
+```typescript
+// Parent orchestrates layers
+// brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker.ts
+import {validateFolderLocationLayerBroker} from './validate-folder-location-layer-broker';
+import {validateFolderDepthLayerBroker} from './validate-folder-depth-layer-broker';
+
+export const ruleEnforceProjectStructureBroker = (): EslintRule => ({
+    create: (context: unknown) => {
+        const ctx = context as EslintContext;
+        return {
+            Program: (node: Tsestree): void => {
+                if (!validateFolderLocationLayerBroker({node, context: ctx})) return;
+                validateFolderDepthLayerBroker({node, context: ctx});
+            }
+        };
+    }
+});
+
+// Layer implementation - focused responsibility
+// validate-folder-depth-layer-broker.ts
+export const validateFolderDepthLayerBroker = ({node, context}: {
+    node: Tsestree;
+    context: EslintContext;
+}): boolean => {
+    const depth = calculateDepth({filepath: context.filename});
+    if (depth !== expectedDepth) {
+        context.report({
+            node,
+            messageId: 'invalidDepth',
+            data: {expected: expectedDepth, actual: depth}
+        });
+        return false;
+    }
+    return true;
+};
+
+// Layer test
+// validate-folder-depth-layer-broker.test.ts
+import {ruleTester} from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import {validateFolderDepthLayerBroker} from './validate-folder-depth-layer-broker';
+
+ruleTester.run('validate-folder-depth-layer', validateFolderDepthLayerBroker(), {
+    valid: [{code: '...', filename: 'src/brokers/user/fetch/user-fetch-broker.ts'}],
+    invalid: [{
+        code: '...',
+        filename: 'src/brokers/user-fetch-broker.ts',
+        errors: [{messageId: 'invalidDepth'}]
+    }]
+});
+```
+
 **EXAMPLES:**
 
 ```typescript
@@ -102,6 +168,13 @@ export const userFetchBroker = async ({userId}: { userId: UserId }): Promise<Use
     return userContract.parse(response.data);
 };
 
+/**
+ * PURPOSE: Orchestrates comment creation with notification sending
+ *
+ * USAGE:
+ * await commentCreateProcessBroker({content, postId, userId});
+ * // Returns created Comment after sending notification
+ */
 // brokers/comment/create-process/comment-create-process-broker.ts (Orchestration)
 import {commentCreateBroker} from '../create/comment-create-broker';
 import {notificationSendBroker} from '../../notification/send/notification-send-broker';

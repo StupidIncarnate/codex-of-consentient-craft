@@ -1,10 +1,28 @@
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
-import { ruleBanContractInTestsBroker } from './rule-ban-contract-in-tests-broker';
+import { ruleEnforceContractUsageInTestsBroker } from './rule-enforce-contract-usage-in-tests-broker';
 
 const ruleTester = eslintRuleTesterAdapter();
 
-ruleTester.run('ban-contract-in-tests', ruleBanContractInTestsBroker(), {
+ruleTester.run('enforce-contract-usage-in-tests', ruleEnforceContractUsageInTestsBroker(), {
   valid: [
+    // Contract test files MUST import both contract and stub
+    {
+      code: 'import { userContract } from "./user-contract";\nimport { UserStub } from "./user.stub";',
+      filename: '/project/src/contracts/user/user-contract.test.ts',
+    },
+    {
+      code: 'import { emailAddressContract } from "./email-address-contract";\nimport { EmailAddressStub } from "./email-address.stub";',
+      filename: '/project/src/contracts/email-address/email-address-contract.test.ts',
+    },
+    {
+      code: 'import type { User } from "./user-contract";\nimport { userContract } from "./user-contract";\nimport { UserStub } from "./user.stub";',
+      filename: '/project/src/contracts/user/user-contract.test.ts',
+    },
+    {
+      code: 'import { configContract } from "./config-contract";\nimport { ConfigStub } from "./config.stub";',
+      filename: '/project/src/contracts/config/config-contract.test.ts',
+    },
+
     // Stub imports are allowed in test files
     {
       code: 'import { UserStub } from "../../contracts/user/user.stub";',
@@ -116,7 +134,69 @@ ruleTester.run('ban-contract-in-tests', ruleBanContractInTestsBroker(), {
     },
   ],
   invalid: [
-    // Type-only imports are NOT allowed - use stubs for types
+    // Contract test files MUST import both contract and stub
+    {
+      code: 'import { userContract } from "./user-contract";',
+      filename: '/project/src/contracts/user/user-contract.test.ts',
+      errors: [
+        {
+          messageId: 'contractTestMissingStub',
+          data: {
+            stubPath: './user.stub',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { UserStub } from "./user.stub";',
+      filename: '/project/src/contracts/user/user-contract.test.ts',
+      errors: [
+        {
+          messageId: 'contractTestMissingContract',
+          data: {
+            contractPath: './user-contract',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import type { User } from "./user-contract";',
+      filename: '/project/src/contracts/user/user-contract.test.ts',
+      errors: [
+        {
+          messageId: 'contractTestMissingStub',
+          data: {
+            stubPath: './user.stub',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { emailAddressContract } from "./email-address-contract";',
+      filename: '/project/src/contracts/email-address/email-address-contract.test.ts',
+      errors: [
+        {
+          messageId: 'contractTestMissingStub',
+          data: {
+            stubPath: './email-address.stub',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { ConfigStub } from "./config.stub";',
+      filename: '/project/src/contracts/config/config-contract.test.ts',
+      errors: [
+        {
+          messageId: 'contractTestMissingContract',
+          data: {
+            contractPath: './config-contract',
+          },
+        },
+      ],
+    },
+
+    // Type-only imports are NOT allowed in non-contract test files - use stubs for types
     {
       code: 'import type { User } from "../../contracts/user/user-contract";',
       filename: '/project/src/adapters/api/api-adapter.test.ts',

@@ -101,6 +101,13 @@ export const useUserDataBinding = ({userId}: { userId: UserId }): {
     return {data, loading, error};
 };
 
+/**
+ * PURPOSE: React hook that fetches and manages list of all users with loading/error states
+ *
+ * USAGE:
+ * const {data, loading, error} = useUsersListBinding();
+ * // Returns {data: User[], loading: boolean, error: Error | null}
+ */
 // bindings/use-users-list/use-users-list-binding.ts
 import {useState, useEffect} from 'react';
 import {usersListBroker} from '../../brokers/users/list/users-list-broker';

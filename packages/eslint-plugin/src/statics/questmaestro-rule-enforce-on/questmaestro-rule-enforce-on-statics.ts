@@ -25,7 +25,7 @@ export const questmaestroRuleEnforceOnStatics = {
 
   // @questmaestro - PRE-EDIT (25 rules)
   '@questmaestro/ban-adhoc-types': 'pre-edit',
-  '@questmaestro/ban-contract-in-tests': 'pre-edit',
+  '@questmaestro/enforce-contract-usage-in-tests': 'pre-edit',
   '@questmaestro/ban-jest-mock-in-tests': 'pre-edit',
   '@questmaestro/ban-primitives': 'pre-edit',
   '@questmaestro/enforce-file-metadata': 'pre-edit',

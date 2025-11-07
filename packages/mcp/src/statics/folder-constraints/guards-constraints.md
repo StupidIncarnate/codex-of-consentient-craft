@@ -93,6 +93,13 @@ export const hasPermissionGuard = ({user, permission}: {
     return user.permissions.includes(permission);
 };
 
+/**
+ * PURPOSE: Checks if a user has admin role
+ *
+ * USAGE:
+ * isAdminGuard({user});
+ * // Returns true if user has admin role, false otherwise
+ */
 // guards/is-admin/is-admin-guard.ts
 import type {User} from '../../contracts/user/user-contract';
 import {userStatics} from '../../statics/user/user-statics';
@@ -104,6 +111,13 @@ export const isAdminGuard = ({user}: { user?: User }): boolean => {
     return user.role === userStatics.roles.ADMIN;
 };
 
+/**
+ * PURPOSE: Validates if a string is a valid folder type using folder configs
+ *
+ * USAGE:
+ * isValidFolderTypeGuard({folderType: 'brokers', folderConfigs: folderConfigStatics});
+ * // Returns true if folderType exists in folderConfigs, false otherwise
+ */
 // Using Record pattern with statics
 import {folderConfigStatics} from '../../statics/folder-config/folder-config-statics';
 import type {FolderType} from '../../contracts/folder-type/folder-type-contract';

@@ -73,7 +73,7 @@ export const configQuestmaestroBroker = ({
     'eslint-comments/no-unlimited-disable': 'error',
     'eslint-comments/no-use': ['error', { allow: [] }],
     '@questmaestro/ban-adhoc-types': 'error',
-    '@questmaestro/ban-contract-in-tests': 'error',
+    '@questmaestro/enforce-contract-usage-in-tests': 'error',
     '@questmaestro/ban-jest-mock-in-tests': 'error',
     '@questmaestro/ban-primitives': [
       'error',

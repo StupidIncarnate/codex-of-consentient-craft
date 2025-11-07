@@ -129,6 +129,13 @@ export const formatDateTransformer = ({date}: { date: Date }): DateString => {
     return dateStringContract.parse(formatted);
 };
 
+/**
+ * PURPOSE: Transforms a folder type and config into human-readable purpose description
+ *
+ * USAGE:
+ * folderPurposeTransformer({folderType: 'brokers', folderConfigs: folderConfigStatics});
+ * // Returns purpose text from folder config
+ */
 // Using Record pattern with statics
 import {folderConfigStatics} from '../../statics/folder-config/folder-config-statics';
 import type {FolderType} from '../../contracts/folder-type/folder-type-contract';

@@ -28,7 +28,7 @@ export const UserCardWidget = ({userId}: Props): JSX.Element => {
         const {data} = useUserDataBinding({userId});  // React error: hooks in callback
     };
 
-    return <button onClick = {handleUpdate} > Update < /button>;
+    return <button onClick={handleUpdate}>Update</button>;
 };
 ```
 
@@ -61,9 +61,69 @@ Create layer widgets when they:
 - Have focused rendering responsibility
 - Need own proxy for test setup
 
+**LAYER FILE EXAMPLE:**
+
+```typescript
+// Parent widget
+// widgets/user-card/user-card-widget.tsx
+import {AvatarLayerWidget} from './avatar-layer-widget';
+import {UserMetaLayerWidget} from './user-meta-layer-widget';
+
+export const UserCardWidget = ({userId}: UserCardWidgetProps) => {
+    const {data: user} = useUserDataBinding({userId});  // Parent's binding
+    return (
+        <div>
+            <AvatarLayerWidget userId={userId} />
+            <h1>{user.name}</h1>
+            <UserMetaLayerWidget userId={userId} />
+        </div>
+    );
+};
+
+// Layer widget with own dependency
+// avatar-layer-widget.tsx
+export const AvatarLayerWidget = ({userId}: AvatarLayerWidgetProps) => {
+    const {data: avatar} = useAvatarDataBinding({userId});  // Different binding!
+    return <img src={avatar.url} alt={avatar.alt} />;
+};
+
+// Layer has own proxy for different dependency
+// avatar-layer-widget.proxy.ts
+export const avatarLayerWidgetProxy = () => {
+    const avatarBindingProxy = useAvatarDataBindingProxy();
+    return {
+        setupAvatar: ({userId, avatar}) => {
+            avatarBindingProxy.setupAvatar({userId, avatar});
+        }
+    };
+};
+
+// Layer test
+// avatar-layer-widget.test.tsx
+describe('AvatarLayerWidget', () => {
+    it('VALID: {avatar url} => renders avatar image', () => {
+        const proxy = avatarLayerWidgetProxy();
+        const userId = UserIdStub('user-1');
+        const avatar = AvatarStub({url: 'https://example.com/avatar.jpg'});
+
+        proxy.setupAvatar({userId, avatar});
+        render(<AvatarLayerWidget userId={userId} />);
+
+        expect(screen.getByRole('img')).toHaveAttribute('src', 'https://example.com/avatar.jpg');
+    });
+});
+```
+
 **EXAMPLES:**
 
 ```typescript
+/**
+ * PURPOSE: Displays user card with avatar and metadata using layer widgets
+ *
+ * USAGE:
+ * <UserCardWidget userId={userId} />
+ * // Renders user card with avatar and name
+ */
 // widgets/user-card/user-card-widget.tsx (Parent)
 import {AvatarLayerWidget} from './avatar-layer-widget';
 import {UserMetaLayerWidget} from './user-meta-layer-widget';
@@ -73,26 +133,25 @@ export const UserCardWidget = ({userId}: UserCardWidgetProps) => {
 
     return (
         <div>
-            <AvatarLayerWidget userId = {userId}
-    />  {/ * Layer - different
-    binding * /}
-    < h1 > {user.name} < /h1>
-    < UserMetaLayerWidget
-    userId = {userId}
-    />  {/ * Layer - different
-    binding * /}
-    < /div>
-)
-    ;
+            <AvatarLayerWidget userId={userId} />  {/* Layer - different binding */}
+            <h1>{user.name}</h1>
+            <UserMetaLayerWidget userId={userId} />  {/* Layer - different binding */}
+        </div>
+    );
 };
 
+/**
+ * PURPOSE: Layer widget that displays user avatar using avatar binding
+ *
+ * USAGE:
+ * <AvatarLayerWidget userId={userId} />
+ * // Renders user avatar image
+ */
 // avatar-layer-widget.tsx (Layer - calls different broker)
 export const AvatarLayerWidget = ({userId}: AvatarLayerWidgetProps) => {
     const {data: avatar} = useAvatarDataBinding({userId});  // Different binding!
 
-    return <img src = {avatar.url}
-    alt = {avatar.alt}
-    />;
+    return <img src={avatar.url} alt={avatar.alt} />;
 };
 
 // avatar-layer-widget.proxy.ts (Layer has own proxy for different dependency)
@@ -195,8 +254,7 @@ describe('UserCardWidget', () => {
 
             proxy.setupUser({userId, user});
 
-            render(<UserCardWidget userId = {userId}
-            />);
+            render(<UserCardWidget userId={userId} />);
 
             expect(proxy.getUserName()).toBe('John Doe');
         });
@@ -208,8 +266,7 @@ describe('UserCardWidget', () => {
 
             proxy.setupUser({userId, user});
 
-            render(<UserCardWidget userId = {userId}
-            />);
+            render(<UserCardWidget userId={userId} />);
 
             await proxy.triggerEdit();
 
@@ -224,8 +281,7 @@ describe('UserCardWidget', () => {
 
             proxy.setupLoadingState({userId});
 
-            render(<UserCardWidget userId = {userId}
-            />);
+            render(<UserCardWidget userId={userId} />);
 
             expect(proxy.isLoading()).toBe(true);
         });
@@ -238,8 +294,7 @@ describe('UserCardWidget', () => {
 
             proxy.setupUserNotFound({userId});
 
-            render(<UserCardWidget userId = {userId}
-            />);
+            render(<UserCardWidget userId={userId} />);
 
             expect(proxy.hasError()).toBe(true);
         });

@@ -66,7 +66,7 @@ describe('universalSyntaxRulesStatics', () => {
 
     it('VALID: {exceptions} => returns array of exceptions', () => {
       expect(universalSyntaxRulesStatics.namedExports.exceptions).toStrictEqual([
-        'Index files connecting to systems that require default exports',
+        'Index files ONLY when connecting to systems that REQUIRE default exports (not just prefer)',
       ]);
     });
 

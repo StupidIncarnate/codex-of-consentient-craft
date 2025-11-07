@@ -18,21 +18,25 @@ export const architectureTestingPatternsBroker = (): ContentText => {
   // Core Principles - Type Safety
   const typeSafety = `**CRITICAL:** Test files AND proxy files CANNOT import types from contracts.
 
-Use \`ReturnType<typeof StubName>\` to get types:
+Use \`ReturnType<typeof StubName>\` ONLY when you need the type in function signatures or annotations:
 
 \`\`\`typescript
 // ❌ WRONG - Importing type from contract
 import type {User} from '../contracts/user/user-contract';
 
-// ✅ CORRECT - Get type from stub
+// ✅ CORRECT - Most of the time, just call the stub (TypeScript infers the type)
 import {UserStub} from '../contracts/user/user.stub';
-type User = ReturnType<typeof UserStub>;
+const user = UserStub({id: userId}); // TypeScript knows this is User type
 
-// ✅ CORRECT - Inline when needed once
+// ✅ CORRECT - Only create type alias if needed in signatures
+type User = ReturnType<typeof UserStub>;
+const processUser = ({user}: {user: User}): void => { /* ... */ };
+
+// ❌ WRONG - Stub already returns typed value, don't annotate
 const user: ReturnType<typeof UserStub> = UserStub({id: userId});
 \`\`\`
 
-**Why:** Stubs are single source of truth for test data.
+**Why:** Stubs are single source of truth for test data. They return typed values automatically.
 
 **Exception for mocks:** Use \`jest.mocked()\` instead of type assertions. For branded types, use stubs:
 
@@ -56,12 +60,17 @@ MyStub({ value: 123 as string })
 
 **exactOptionalPropertyTypes:** Omit optional properties instead of passing undefined:
 
+**CRITICAL:** This tsconfig setting causes runtime failures if you pass \`undefined\` explicitly. The LLM training instinct is to pass \`undefined\` for optional properties, but you MUST omit them instead.
+
 \`\`\`typescript
-// ✅ CORRECT - Omit optional parameter
+// ✅ CORRECT - Omit optional parameter (don't pass it at all)
 expect(myGuard({value: 'test'})).toBe(false);
 
-// ❌ WRONG - Explicit undefined fails
+// ❌ WRONG - Explicit undefined fails with exactOptionalPropertyTypes
 expect(myGuard({value: 'test', optional: undefined})).toBe(false);
+
+// LLM training says: optional?: string means you can pass undefined
+// This codebase says: optional?: string means you must OMIT it, not pass undefined
 \`\`\``;
 
   // Core Principles - DAMP > DRY

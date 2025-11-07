@@ -8,7 +8,7 @@ describe('StartEslintPlugin', () => {
       expect(Object.keys(plugin.rules)).toStrictEqual([
         'ban-adhoc-types',
         'ban-primitives',
-        'ban-contract-in-tests',
+        'enforce-contract-usage-in-tests',
         'ban-jest-mock-in-tests',
         'require-zod-on-primitives',
         'explicit-return-types',

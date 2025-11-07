@@ -22,18 +22,14 @@ import { mcpDiscoverBroker } from '../brokers/mcp/discover/mcp-discover-broker.j
 import { mcpToolSchemaStatics } from '../statics/mcp-tool-schema/mcp-tool-schema-statics.js';
 import { folderConstraintsInitBroker } from '../brokers/folder-constraints/init/folder-constraints-init-broker.js';
 import { folderConstraintsState } from '../state/folder-constraints/folder-constraints-state.js';
-import { layerConstraintsState } from '../state/layer-constraints/layer-constraints-state.js';
 
 const JSON_INDENT_SPACES = 2;
 
 export const StartMcpServer = async (): Promise<void> => {
-  // Load folder constraints and layer constraints into memory at startup
-  const { folderConstraints, layerConstraints } = await folderConstraintsInitBroker();
+  // Load folder constraints into memory at startup
+  const { folderConstraints } = await folderConstraintsInitBroker();
   for (const [folderType, content] of folderConstraints) {
     folderConstraintsState.set({ folderType, content });
-  }
-  if (layerConstraints) {
-    layerConstraintsState.set({ content: layerConstraints });
   }
 
   const server = new Server(
@@ -93,12 +89,10 @@ export const StartMcpServer = async (): Promise<void> => {
       const args = request.params.arguments as never;
       const folderType = Reflect.get(args, 'folderType') as FolderType;
       const supplementalConstraints = folderConstraintsState.get({ folderType });
-      const layerConstraints = layerConstraintsState.get();
 
       const result = architectureFolderDetailBroker({
         folderType,
         ...(supplementalConstraints && { supplementalConstraints }),
-        ...(layerConstraints && { layerConstraints }),
       });
 
       return {

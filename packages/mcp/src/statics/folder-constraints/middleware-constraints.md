@@ -79,6 +79,13 @@ export const httpTelemetryMiddleware = async ({
     });
 };
 
+/**
+ * PURPOSE: Combines error logging to Sentry and Winston for comprehensive error tracking
+ *
+ * USAGE:
+ * await errorTrackingMiddleware({error: new Error('Something broke'), context: {userId: '123'}});
+ * // Logs error to both Sentry and Winston with context
+ */
 // middleware/error-tracking/error-tracking-middleware.ts
 import {sentryLogErrorAdapter} from '../../adapters/sentry/log-error/sentry-log-error-adapter';
 import {winstonLogAdapter} from '../../adapters/winston/log/winston-log-adapter';

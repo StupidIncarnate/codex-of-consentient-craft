@@ -22,7 +22,7 @@ describe('configQuestmaestroBroker', () => {
 
       expect(typescript).toBeDefined();
       expect(typescript.rules).toBeDefined();
-      expect(typescript.rules?.['@questmaestro/ban-contract-in-tests']).toBe('error');
+      expect(typescript.rules?.['@questmaestro/enforce-contract-usage-in-tests']).toBe('error');
       expect(typescript.rules?.['@questmaestro/enforce-object-destructuring-params']).toBe('error');
     });
 

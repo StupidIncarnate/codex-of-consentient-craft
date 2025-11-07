@@ -154,20 +154,12 @@ export const StartApp = (): void => {
         <React.StrictMode>
             <BrowserRouter>
                 <Routes>
-                    <Route path = "/"
-    element = { < HomeFlow / >
-}
-    />
-    < Route
-    path = "/users/*"
-    element = { < UserFlow / >
-}
-    />
-    < /Routes>
-    < /BrowserRouter>
-    < /React.StrictMode>
-)
-    ;
+                    <Route path="/" element={<HomeFlow />} />
+                    <Route path="/users/*" element={<UserFlow />} />
+                </Routes>
+            </BrowserRouter>
+        </React.StrictMode>
+    );
 };
 ```
 

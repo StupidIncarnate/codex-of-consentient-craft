@@ -146,6 +146,52 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
     },
 
+    // Same-folder layer file imports are allowed (brokers)
+    {
+      code: 'import { validateFolderDepthLayerBroker } from "./validate-folder-depth-layer-broker";',
+      filename:
+        '/project/src/brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker.ts',
+    },
+    {
+      code: 'import { validateFolderLocationLayerBroker } from "./validate-folder-location-layer-broker";',
+      filename:
+        '/project/src/brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker.ts',
+    },
+    {
+      code: 'import { formatResponseLayerBroker } from "./format-response-layer-broker";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+    // Layer files can import other layer files in same folder
+    {
+      code: 'import { validateFilenamePatternLayerBroker } from "./validate-filename-pattern-layer-broker";',
+      filename:
+        '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.ts',
+    },
+    {
+      code: 'import { helperLayerBroker } from "./helper-layer-broker";',
+      filename: '/project/src/brokers/user/fetch/format-response-layer-broker.ts',
+    },
+
+    // Same-folder layer file imports are allowed (widgets)
+    {
+      code: 'import { AvatarLayerWidget } from "./avatar-layer-widget";',
+      filename: '/project/src/widgets/user-card/user-card-widget.tsx',
+    },
+    {
+      code: 'import { UserMetaLayerWidget } from "./user-meta-layer-widget";',
+      filename: '/project/src/widgets/user-card/user-card-widget.tsx',
+    },
+
+    // Same-folder layer file imports are allowed (responders)
+    {
+      code: 'import { validateRequestLayerResponder } from "./validate-request-layer-responder";',
+      filename: '/project/src/responders/user/create/user-create-responder.ts',
+    },
+    {
+      code: 'import { processUserCreationLayerResponder } from "./process-user-creation-layer-responder";',
+      filename: '/project/src/responders/user/create/user-create-responder.ts',
+    },
+
     // Stub files can import other stubs from different contract folders
     {
       code: 'import { UserIdStub } from "../user-id/user-id.stub";',
@@ -685,6 +731,55 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'brokers',
             importedFile: 'helper',
+            importedFolder: 'brokers',
+            pattern: '-broker.ts',
+          },
+        },
+      ],
+    },
+
+    // Cannot import layer files from different broker domains (cross-domain)
+    {
+      code: 'import { validateFolderDepthLayerBroker } from "../../rule/enforce-project-structure/validate-folder-depth-layer-broker";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [
+        {
+          messageId: 'nonEntryFileImport',
+          data: {
+            folderType: 'brokers',
+            importedFile: 'validate-folder-depth-layer-broker',
+            importedFolder: 'brokers',
+            pattern: '-broker.ts',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { formatResponseLayerBroker } from "../../user/fetch/format-response-layer-broker";',
+      filename: '/project/src/brokers/auth/login/auth-login-broker.ts',
+      errors: [
+        {
+          messageId: 'nonEntryFileImport',
+          data: {
+            folderType: 'brokers',
+            importedFile: 'format-response-layer-broker',
+            importedFolder: 'brokers',
+            pattern: '-broker.ts',
+          },
+        },
+      ],
+    },
+
+    // Cannot import layer files from different broker actions (same domain, different action)
+    {
+      code: 'import { validateUserLayerBroker } from "../fetch/validate-user-layer-broker";',
+      filename: '/project/src/brokers/user/update/user-update-broker.ts',
+      errors: [
+        {
+          messageId: 'nonEntryFileImport',
+          data: {
+            folderType: 'brokers',
+            importedFile: 'validate-user-layer-broker',
             importedFolder: 'brokers',
             pattern: '-broker.ts',
           },

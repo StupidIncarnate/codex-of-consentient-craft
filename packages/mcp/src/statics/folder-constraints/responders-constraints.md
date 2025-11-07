@@ -32,17 +32,12 @@ responders/
 
 ```typescript
 // flows/user/user-flow.tsx
-<Route path = "/users/:id"
-element = { < UserProfileResponder / >
-}
-/>
+<Route path="/users/:id" element={<UserProfileResponder />} />
 // ↑ Route points to it = RESPONDER
 
 // responders/user/profile/user-profile-responder.tsx
 export const UserProfileResponder = (): JSX.Element => {
-    return <UserCardWidget user = {user}
-    />;  /
-    / ← Component renders it = WIDGET
+    return <UserCardWidget user={user} />;  // ← Component renders it = WIDGET
 };
 ```
 
@@ -166,12 +161,11 @@ export const UserProfileResponder = (): JSX.Element => {
     const params = useParams();  // External source
     const validated = userIdContract.safeParse(params.id);
     if (!validated.success) {
-        return <ErrorWidget message = "Invalid user ID" / >;
+        return <ErrorWidget message="Invalid user ID" />;
     }
     // Use validated.data with full type safety
     const userId = validated.data;
-    return <UserProfileWidget userId = {userId}
-    />;
+    return <UserProfileWidget userId={userId} />;
 };
 
 // CLI/Hook boundary
@@ -190,6 +184,63 @@ export const HookResponder = async ({input}: { input: unknown }): Promise<Result
 - Without `unknown`, LLMs use `req.body` directly → injection vulnerabilities
 - Without validation, external data bypasses type safety
 - `safeParse()` prevents throwing on invalid input (allows error handling)
+
+**LAYER FILE STRUCTURE:**
+
+```
+responders/user/create/
+  user-create-responder.ts                        # Parent
+  user-create-responder.proxy.ts
+  user-create-responder.test.ts
+
+  validate-request-layer-responder.ts             # Layer
+  validate-request-layer-responder.proxy.ts
+  validate-request-layer-responder.test.ts
+```
+
+**LAYER FILE EXAMPLE:**
+
+```typescript
+// Parent responder
+// responders/user/create/user-create-responder.ts
+import {validateRequestLayerResponder} from './validate-request-layer-responder';
+import {processUserCreationLayerResponder} from './process-user-creation-layer-responder';
+
+export const UserCreateResponder = async ({req, res}: ResponderParams) => {
+    const userData = validateRequestLayerResponder({req, res});
+    if (!userData) return;
+    const user = await processUserCreationLayerResponder({userData, res});
+    res.status(201).json(user);
+};
+
+// Layer implementation - focused responsibility
+// validate-request-layer-responder.ts
+export const validateRequestLayerResponder = ({req, res}: {
+    req: Request;
+    res: Response;
+}): UserCreateData | undefined => {
+    const body: unknown = req.body;
+    const validated = userCreateContract.safeParse(body);
+    if (!validated.success) {
+        res.status(400).json({error: validated.error});
+        return undefined;
+    }
+    return validated.data;
+};
+
+// Layer test
+// validate-request-layer-responder.test.ts
+describe('validateRequestLayerResponder', () => {
+    it('VALID: {valid body} => returns parsed data', () => {
+        const req = {body: {name: 'John', email: 'john@example.com'}} as Request;
+        const res = {status: jest.fn(), json: jest.fn()} as never;
+
+        const result = validateRequestLayerResponder({req, res});
+
+        expect(result).toStrictEqual({name: 'John', email: 'john@example.com'});
+    });
+});
+```
 
 **EXAMPLES:**
 
@@ -217,6 +268,13 @@ export const UserGetResponder = async ({req, res}: {
     res.json(userDto);
 };
 
+/**
+ * PURPOSE: Renders user profile page with user data from route params
+ *
+ * USAGE:
+ * <Route path="/users/:id" element={<UserProfileResponder />} />
+ * // Renders user profile page at /users/:id
+ */
 // responders/user/profile/user-profile-responder.tsx (Frontend page)
 import {useParams} from 'react-router-dom';
 import {useUserDataBinding} from '../../../bindings/use-user-data/use-user-data-binding';
@@ -227,21 +285,11 @@ export const UserProfileResponder = (): JSX.Element => {
     const {id} = useParams<{ id: UserId }>();
     const {data: user, loading, error} = useUserDataBinding({userId: id});
 
-    if (loading) return <div>Loading
-...
-    </div>;
-    if (error) return <div>Error
-:
-    {
-        error.message
-    }
-    </div>;
-    if (!user) return <div>User
-    not
-    found < /div>;
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
+    if (!user) return <div>User not found</div>;
 
-    return <UserCardWidget user = {user}
-    />;
+    return <UserCardWidget user={user} />;
 };
 ```
 
@@ -273,6 +321,13 @@ export const EmailProcessQueueResponder = async ({job}: {
     });
 };
 
+/**
+ * PURPOSE: Generates daily report on schedule and emails it to admin
+ *
+ * USAGE:
+ * cron.schedule('0 0 * * *', ReportGenerateScheduledResponder);
+ * // Runs daily at midnight to generate and email report
+ */
 // responders/report/generate-scheduled/report-generate-scheduled-responder.ts (Scheduled task)
 import {reportGenerateBroker} from '../../../brokers/report/generate/report-generate-broker';
 import {emailSendBroker} from '../../../brokers/email/send/email-send-broker';

@@ -11,7 +11,7 @@
  */
 import { ruleBanAdhocTypesBroker } from '../brokers/rule/ban-adhoc-types/rule-ban-adhoc-types-broker';
 import { ruleBanPrimitivesBroker } from '../brokers/rule/ban-primitives/rule-ban-primitives-broker';
-import { ruleBanContractInTestsBroker } from '../brokers/rule/ban-contract-in-tests/rule-ban-contract-in-tests-broker';
+import { ruleEnforceContractUsageInTestsBroker } from '../brokers/rule/enforce-contract-usage-in-tests/rule-enforce-contract-usage-in-tests-broker';
 import { ruleBanJestMockInTestsBroker } from '../brokers/rule/ban-jest-mock-in-tests/rule-ban-jest-mock-in-tests-broker';
 import { ruleRequireZodOnPrimitivesBroker } from '../brokers/rule/require-zod-on-primitives/rule-require-zod-on-primitives-broker';
 import { ruleExplicitReturnTypesBroker } from '../brokers/rule/explicit-return-types/rule-explicit-return-types-broker';
@@ -46,7 +46,7 @@ export const StartEslintPlugin = (): {
   readonly rules: {
     readonly 'ban-adhoc-types': EslintRule;
     readonly 'ban-primitives': EslintRule;
-    readonly 'ban-contract-in-tests': EslintRule;
+    readonly 'enforce-contract-usage-in-tests': EslintRule;
     readonly 'ban-jest-mock-in-tests': EslintRule;
     readonly 'require-zod-on-primitives': EslintRule;
     readonly 'explicit-return-types': EslintRule;
@@ -86,7 +86,7 @@ export const StartEslintPlugin = (): {
     rules: {
       'ban-adhoc-types': ruleBanAdhocTypesBroker(),
       'ban-primitives': ruleBanPrimitivesBroker(),
-      'ban-contract-in-tests': ruleBanContractInTestsBroker(),
+      'enforce-contract-usage-in-tests': ruleEnforceContractUsageInTestsBroker(),
       'ban-jest-mock-in-tests': ruleBanJestMockInTestsBroker(),
       'require-zod-on-primitives': ruleRequireZodOnPrimitivesBroker(),
       'explicit-return-types': ruleExplicitReturnTypesBroker(),

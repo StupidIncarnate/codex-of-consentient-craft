@@ -56,6 +56,13 @@ export class ValidationError extends Error {
     }
 }
 
+/**
+ * PURPOSE: Represents resource not found errors with resource context
+ *
+ * USAGE:
+ * throw new NotFoundError({message: 'User not found', resourceId: '123', resourceType: 'User'});
+ * // Throws NotFoundError with resource context
+ */
 // errors/not-found/not-found-error.ts
 export class NotFoundError extends Error {
     public readonly resourceId?: string;
@@ -77,6 +84,13 @@ export class NotFoundError extends Error {
     }
 }
 
+/**
+ * PURPOSE: Represents authentication errors with error code context
+ *
+ * USAGE:
+ * throw new AuthenticationError({message: 'Invalid token', code: 'TOKEN_EXPIRED'});
+ * // Throws AuthenticationError with error code
+ */
 // errors/authentication/authentication-error.ts
 export class AuthenticationError extends Error {
     public readonly code?: string;
@@ -90,13 +104,6 @@ export class AuthenticationError extends Error {
 ```
 
 **TEST EXAMPLE:**
-
-```typescript
-
-**
-TEST
-EXAMPLE:*
-*
 
 ```typescript
 // errors/validation/validation-error.test.ts

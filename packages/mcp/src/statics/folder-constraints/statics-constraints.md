@@ -68,6 +68,13 @@ export const userStatics = {
         }
     } as const;
 
+/**
+ * PURPOSE: Defines immutable API configuration values and timeouts
+ *
+ * USAGE:
+ * apiStatics.endpoints.users;
+ * // Returns '/api/users' endpoint constant
+ */
 // statics/api/api-statics.ts
 export const apiStatics = {
     endpoints: {
@@ -85,6 +92,13 @@ export const apiStatics = {
     }
 } as const;
 
+/**
+ * PURPOSE: Defines immutable validation rules and patterns for user input
+ *
+ * USAGE:
+ * validationStatics.email.pattern;
+ * // Returns email validation regex pattern
+ */
 // statics/validation/validation-statics.ts
 export const validationStatics = {
     email: {
