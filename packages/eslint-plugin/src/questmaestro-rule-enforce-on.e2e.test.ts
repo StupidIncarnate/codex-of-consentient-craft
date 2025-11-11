@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { questmaestroRuleEnforceOnStatics } from './statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics';
+import { questmaestroRuleEnforceOnStatics } from '@questmaestro/shared/statics';
 import { configQuestmaestroBroker } from './brokers/config/questmaestro/config-questmaestro-broker';
 
 interface Violation {

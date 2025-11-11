@@ -14,8 +14,12 @@
  * @param ruleId - The ESLint rule ID
  * @returns An instructional message for the rule violation
  */
-export const violationRuleMessageDefaultTransformer = ({ ruleId }: { ruleId: string }): string => {
-  const defaultMessages: Record<string, string> = {
+export const violationRuleMessageDefaultTransformer = ({
+  ruleId,
+}: {
+  ruleId: PropertyKey;
+}): PropertyKey => {
+  const defaultMessages: Record<PropertyKey, PropertyKey> = {
     '@typescript-eslint/no-explicit-any':
       'Using type "any" violates TypeScript\'s type safety rules. Go explore types for this project and use a known or make a new type to use.',
     '@typescript-eslint/ban-ts-comment':

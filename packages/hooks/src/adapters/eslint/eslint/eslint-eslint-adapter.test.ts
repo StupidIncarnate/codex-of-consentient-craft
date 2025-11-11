@@ -1,20 +1,15 @@
 import { eslintEslintAdapter } from './eslint-eslint-adapter';
 import { eslintEslintAdapterProxy } from './eslint-eslint-adapter.proxy';
-import type { ESLint } from 'eslint';
+import { EslintOptionsStub } from '../../../contracts/eslint-options/eslint-options.stub';
+import { ESLint } from 'eslint';
 
 describe('eslintEslintAdapter', () => {
-  it('should create ESLint instance with options', () => {
-    const mockEslint = {} as ESLint;
-    eslintEslintAdapterProxy.mockReturnValue(mockEslint);
-
-    const options: ESLint.Options = {
-      overrideConfigFile: true,
-      baseConfig: { rules: { 'no-console': 'error' } },
-    };
+  it('VALID: {options} => creates ESLint instance with options', () => {
+    eslintEslintAdapterProxy();
+    const options = EslintOptionsStub({ overrideConfigFile: true }) as ESLint.Options;
 
     const result = eslintEslintAdapter({ options });
 
-    expect(result).toBe(mockEslint);
-    expect(eslintEslintAdapterProxy).toHaveBeenCalledWith({ options });
+    expect(result).toBeInstanceOf(ESLint);
   });
 });

@@ -23,8 +23,7 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
       messages: {
         missingMetadata:
           'Implementation file must have a metadata comment with PURPOSE and USAGE fields. Example:\n\n/**\n * PURPOSE: [One-line description]\n *\n * USAGE:\n * [Code example]\n * // [Comment explaining return]\n *\n */',
-        metadataNotAtTop:
-          'Metadata comment must be at the very top of the file, before all imports and code.',
+        metadataNotBeforeImports: 'Metadata comment must appear before all import statements.',
       },
       schema: [],
       fixable: 'code',
@@ -81,8 +80,30 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
           return;
         }
 
-        // Check if metadata comment is at the very top of the file (position 0)
-        // ESLint comment ranges are [start, end] positions in the source code
+        // Find first import declaration in the AST
+        const { body } = node;
+        if (!Array.isArray(body)) {
+          return;
+        }
+
+        let firstImport = null;
+        for (const statement of body) {
+          const statementType = statement.type;
+          if (
+            statementType === 'ImportDeclaration' ||
+            statementType === 'TSImportEqualsDeclaration'
+          ) {
+            firstImport = statement;
+            break;
+          }
+        }
+
+        // No imports in the file - metadata can be anywhere
+        if (!firstImport) {
+          return;
+        }
+
+        // Check if metadata comment comes before first import
         const commentRange = metadataComment.range;
         const isCommentRangeValid =
           typeof commentRange === 'object' &&
@@ -91,17 +112,27 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
           commentRange.length === RANGE_TUPLE_LENGTH;
 
         if (!isCommentRangeValid) {
-          // Can't determine position, skip fix check
+          return;
+        }
+
+        const importRange = firstImport.range;
+        if (!importRange || !Array.isArray(importRange)) {
           return;
         }
 
         const { 0: commentStartPos } = commentRange;
+        const { 0: importStartPos } = importRange;
 
-        // Metadata exists but is not at the very top of the file
-        if (typeof commentStartPos === 'number' && commentStartPos > 0 && ctx.sourceCode) {
+        // Metadata exists but comes after the first import
+        if (
+          typeof commentStartPos === 'number' &&
+          typeof importStartPos === 'number' &&
+          commentStartPos > importStartPos &&
+          ctx.sourceCode
+        ) {
           ctx.report({
             node,
-            messageId: 'metadataNotAtTop',
+            messageId: 'metadataNotBeforeImports',
             fix: (fixer) => {
               if (!ctx.sourceCode) {
                 return null;

@@ -1,13 +1,16 @@
 import { violationsAnalyzeBroker } from './violations-analyze-broker';
-import type { LintMessage } from '../../../contracts/lint-message/lint-message-contract';
-import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
-import { ViolationCountStub } from '../../../contracts/violation-count/violation-count.stub';
+import { violationsAnalyzeBrokerProxy } from './violations-analyze-broker.proxy';
 import { LintMessageStub } from '../../../contracts/lint-message/lint-message.stub';
 import { LintResultStub } from '../../../contracts/lint-result/lint-result.stub';
+import { ViolationCountStub } from '../../../contracts/violation-count/violation-count.stub';
 import { ViolationDetailStub } from '../../../contracts/violation-detail/violation-detail.stub';
+
+type LintMessage = ReturnType<typeof LintMessageStub>;
+type LintResult = ReturnType<typeof LintResultStub>;
 
 describe('violationsAnalyzeBroker', () => {
   it('VALID: {oldResults: [], newResults: []} => returns no new violations', () => {
+    violationsAnalyzeBrokerProxy();
     const oldResults: LintResult[] = [];
     const newResults: LintResult[] = [];
 
@@ -20,7 +23,8 @@ describe('violationsAnalyzeBroker', () => {
   });
 
   it('VALID: {oldResults: [1 any], newResults: [same 1 any]} => returns no new violations', () => {
-    const message: LintMessage = LintMessageStub({
+    violationsAnalyzeBrokerProxy();
+    const message = LintMessageStub({
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
@@ -55,7 +59,8 @@ describe('violationsAnalyzeBroker', () => {
   });
 
   it('INVALID: {oldResults: [], newResults: [1 any]} => returns new violations with message', () => {
-    const message: LintMessage = LintMessageStub({
+    violationsAnalyzeBrokerProxy();
+    const message = LintMessageStub({
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
@@ -76,19 +81,17 @@ describe('violationsAnalyzeBroker', () => {
 
     const result = violationsAnalyzeBroker({ oldResults, newResults });
 
-    expect(result).toStrictEqual({
-      hasNewViolations: true,
-      newViolations: [
-        ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
-      ],
-      message: expect.stringMatching(/🛑 New code quality violations detected:/u),
-    });
-
-    expect(result.message).toContain('Code Quality Issue: 1 violation');
+    expect(result.hasNewViolations).toBe(true);
+    expect(result.newViolations).toStrictEqual([
+      ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
+    ]);
+    expect(result.message).toMatch(/🛑 New code quality violations detected:/u);
+    expect(result.message).toMatch(/Code Quality Issue: 1 violation/u);
   });
 
   it('INVALID: {oldResults: [1 any], newResults: [3 any, 1 ts-ignore]} => returns new violations with formatted message', () => {
-    const oldMessage: LintMessage = LintMessageStub({
+    violationsAnalyzeBrokerProxy();
+    const oldMessage = LintMessageStub({
       line: 1,
       column: 15,
       message: 'Unexpected any. Specify a different type.',
@@ -148,44 +151,41 @@ describe('violationsAnalyzeBroker', () => {
 
     const result = violationsAnalyzeBroker({ oldResults, newResults });
 
-    expect(result).toStrictEqual({
-      hasNewViolations: true,
-      newViolations: [
-        ViolationCountStub({
-          ruleId: '@typescript-eslint/no-explicit-any',
-          count: 2,
-          details: [
-            ViolationDetailStub({
-              ruleId: '@typescript-eslint/no-explicit-any',
-              line: 2,
-              column: 20,
-              message: 'Unexpected any. Specify a different type.',
-            }),
-            ViolationDetailStub({
-              ruleId: '@typescript-eslint/no-explicit-any',
-              line: 3,
-              column: 25,
-              message: 'Unexpected any. Specify a different type.',
-            }),
-          ],
-        }),
-        ViolationCountStub({
-          ruleId: '@typescript-eslint/ban-ts-comment',
-          count: 1,
-          details: [
-            ViolationDetailStub({
-              ruleId: '@typescript-eslint/ban-ts-comment',
-              line: 4,
-              column: 1,
-              message: 'Do not use "@ts-ignore" because it alters compilation errors.',
-            }),
-          ],
-        }),
-      ],
-      message: expect.stringMatching(/🛑 New code quality violations detected:/u),
-    });
-
-    expect(result.message).toContain('Code Quality Issue: 2 violations');
-    expect(result.message).toContain('Code Quality Issue: 1 violation');
+    expect(result.hasNewViolations).toBe(true);
+    expect(result.newViolations).toStrictEqual([
+      ViolationCountStub({
+        ruleId: '@typescript-eslint/no-explicit-any',
+        count: 2,
+        details: [
+          ViolationDetailStub({
+            ruleId: '@typescript-eslint/no-explicit-any',
+            line: 2,
+            column: 20,
+            message: 'Unexpected any. Specify a different type.',
+          }),
+          ViolationDetailStub({
+            ruleId: '@typescript-eslint/no-explicit-any',
+            line: 3,
+            column: 25,
+            message: 'Unexpected any. Specify a different type.',
+          }),
+        ],
+      }),
+      ViolationCountStub({
+        ruleId: '@typescript-eslint/ban-ts-comment',
+        count: 1,
+        details: [
+          ViolationDetailStub({
+            ruleId: '@typescript-eslint/ban-ts-comment',
+            line: 4,
+            column: 1,
+            message: 'Do not use "@ts-ignore" because it alters compilation errors.',
+          }),
+        ],
+      }),
+    ]);
+    expect(result.message).toMatch(/🛑 New code quality violations detected:/u);
+    expect(result.message).toMatch(/Code Quality Issue: 2 violations/u);
+    expect(result.message).toMatch(/Code Quality Issue: 1 violation/u);
   });
 });

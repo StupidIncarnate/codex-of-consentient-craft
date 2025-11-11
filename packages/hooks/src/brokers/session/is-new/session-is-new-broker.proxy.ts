@@ -1,20 +1,19 @@
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
-import type { Stats } from 'fs';
-
-jest.mock('../../../adapters/fs/stat/fs-stat-adapter');
+import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
+import { FileStatsStub } from '../../../contracts/file-stats/file-stats.stub';
 
 export const sessionIsNewBrokerProxy = (): {
-  setupFileExists: (params: { size: number }) => void;
+  setupFileExists: ({ size }: { size: number }) => void;
   setupFileNotFound: () => void;
 } => {
-  const mockFsStatAdapter = jest.mocked(fsStatAdapter);
+  const fsProxy = fsStatAdapterProxy();
 
   return {
     setupFileExists: ({ size }: { size: number }): void => {
-      mockFsStatAdapter.mockResolvedValueOnce({ size } as Stats);
+      const stats = FileStatsStub({ size });
+      fsProxy.returns({ stats });
     },
     setupFileNotFound: (): void => {
-      mockFsStatAdapter.mockRejectedValueOnce(new Error('ENOENT: no such file or directory'));
+      fsProxy.throws({ error: new Error('ENOENT: no such file or directory') });
     },
   };
 };

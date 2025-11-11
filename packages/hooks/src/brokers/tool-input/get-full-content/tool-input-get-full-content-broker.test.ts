@@ -1,215 +1,185 @@
 import { toolInputGetFullContentBroker } from './tool-input-get-full-content-broker';
-import { editToolInputContract } from '../../../contracts/edit-tool-input/edit-tool-input-contract';
-import type { EditToolInput } from '../../../contracts/edit-tool-input/edit-tool-input-contract';
-import { multiEditToolInputContract } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input-contract';
-import type { MultiEditToolInput } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input-contract';
-import { writeToolInputContract } from '../../../contracts/write-tool-input/write-tool-input-contract';
+import { toolInputGetFullContentBrokerProxy } from './tool-input-get-full-content-broker.proxy';
+import { EditToolInputStub } from '../../../contracts/edit-tool-input/edit-tool-input.stub';
+import { MultiEditToolInputStub } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input.stub';
 import { WriteToolInputStub } from '../../../contracts/write-tool-input/write-tool-input.stub';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-
-// Mock fs modules
-jest.mock('../../../adapters/fs/read-file/fs-read-file-adapter');
-
-const mockReadFile = jest.mocked(fsReadFileAdapter);
+import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('toolInputGetFullContentBroker', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  describe('Write tool', () => {
+    it('VALID: WriteToolInput with content => returns content', async () => {
+      toolInputGetFullContentBrokerProxy();
+      const toolInput = WriteToolInputStub({
+        file_path: FilePathStub({ value: '/test/file.txt' }),
+        content: 'Hello world',
+      });
 
-  it('VALID: WriteToolInput with content => returns content', async () => {
-    const toolInput = writeToolInputContract.parse({
-      file_path: '/test/file.txt',
-      content: 'Hello world',
+      const result = await toolInputGetFullContentBroker({ toolInput });
+
+      expect(result).toBe('Hello world');
     });
 
-    const result = await toolInputGetFullContentBroker({ toolInput });
+    it("EDGE: file doesn't exist for Write tool => returns content", async () => {
+      const proxy = toolInputGetFullContentBrokerProxy();
+      const toolInput = WriteToolInputStub({
+        file_path: FilePathStub({ value: '/test/newfile.txt' }),
+        content: 'New file content',
+      });
 
-    expect(result).toBe('Hello world');
-  });
+      proxy.setupReadFileNotFound();
 
-  it('VALID: EditToolInput single edit => returns modified content', async () => {
-    const toolInput = editToolInputContract.parse({
-      file_path: '/test/file.txt',
-      old_string: 'Hello',
-      new_string: 'Hi',
-    });
+      const result = await toolInputGetFullContentBroker({ toolInput });
 
-    mockReadFile.mockResolvedValue(fileContentsContract.parse('Hello world'));
-
-    const result = await toolInputGetFullContentBroker({ toolInput });
-
-    expect(result).toBe('Hi world');
-    expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith({
-      filePath: filePathContract.parse('/test/file.txt'),
+      expect(result).toBe('New file content');
     });
   });
 
-  it('VALID: EditToolInput with replace_all => returns content with all replacements', async () => {
-    const toolInput = editToolInputContract.parse({
-      file_path: '/test/file.txt',
-      old_string: 'test',
-      new_string: 'demo',
-      replace_all: true,
+  describe('Edit tool', () => {
+    it('VALID: EditToolInput single edit => returns modified content', async () => {
+      const proxy = toolInputGetFullContentBrokerProxy();
+      const toolInput = EditToolInputStub({
+        file_path: FilePathStub({ value: '/test/file.txt' }),
+        old_string: 'Hello',
+        new_string: 'Hi',
+      });
+
+      const contents = FileContentsStub({ value: 'Hello world' });
+      proxy.setupReadFileSuccess({ contents });
+
+      const result = await toolInputGetFullContentBroker({ toolInput });
+
+      expect(result).toBe('Hi world');
     });
 
-    mockReadFile.mockResolvedValue(
-      fileContentsContract.parse('test file with test content and test data'),
-    );
+    it('VALID: EditToolInput with replace_all => returns content with all replacements', async () => {
+      const proxy = toolInputGetFullContentBrokerProxy();
+      const toolInput = EditToolInputStub({
+        file_path: FilePathStub({ value: '/test/file.txt' }),
+        old_string: 'test',
+        new_string: 'demo',
+        replace_all: true,
+      });
 
-    const result = await toolInputGetFullContentBroker({ toolInput });
+      proxy.setupReadFileSuccess({
+        contents: FileContentsStub({ value: 'test file with test content and test data' }),
+      });
 
-    expect(result).toBe('demo file with demo content and demo data');
-    expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith({
-      filePath: filePathContract.parse('/test/file.txt'),
-    });
-  });
+      const result = await toolInputGetFullContentBroker({ toolInput });
 
-  it('EDGE: toolInput without file_path => returns null', async () => {
-    const toolInput = WriteToolInputStub({
-      content: 'Hello world',
-      file_path: '',
-    });
-
-    const result = await toolInputGetFullContentBroker({
-      toolInput,
+      expect(result).toBe('demo file with demo content and demo data');
     });
 
-    expect(result).toBeNull();
-  });
+    it("ERROR: file doesn't exist for Edit tool => returns null", async () => {
+      const proxy = toolInputGetFullContentBrokerProxy();
+      const toolInput = EditToolInputStub({
+        file_path: FilePathStub({ value: '/test/nonexistent.txt' }),
+        old_string: 'Hello',
+        new_string: 'Hi',
+      });
 
-  it("ERROR: file doesn't exist for Edit tool => returns null", async () => {
-    const toolInput = editToolInputContract.parse({
-      file_path: '/test/nonexistent.txt',
-      old_string: 'Hello',
-      new_string: 'Hi',
+      proxy.setupReadFileNotFound();
+
+      const result = await toolInputGetFullContentBroker({ toolInput });
+
+      expect(result).toBeNull();
     });
 
-    const error = new Error('File not found') as NodeJS.ErrnoException;
-    error.code = 'ENOENT';
-    mockReadFile.mockRejectedValue(error);
+    it('ERROR: file read error (not ENOENT) => throws error', async () => {
+      const proxy = toolInputGetFullContentBrokerProxy();
+      const toolInput = EditToolInputStub({
+        file_path: FilePathStub({ value: '/test/file.txt' }),
+        old_string: 'Hello',
+        new_string: 'Hi',
+      });
 
-    const result = await toolInputGetFullContentBroker({ toolInput });
+      const error = new Error('Permission denied') as NodeJS.ErrnoException;
+      error.code = 'EACCES';
+      proxy.setupReadFileError({ error });
 
-    expect(result).toBeNull();
-    expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith({
-      filePath: filePathContract.parse('/test/nonexistent.txt'),
-    });
-  });
-
-  it('ERROR: file read error (not ENOENT) => throws error', async () => {
-    const toolInput: EditToolInput = editToolInputContract.parse({
-      file_path: '/test/file.txt',
-      old_string: 'Hello',
-      new_string: 'Hi',
-    });
-
-    const error = new Error('Permission denied') as NodeJS.ErrnoException;
-    error.code = 'EACCES';
-    mockReadFile.mockRejectedValue(error);
-
-    await expect(toolInputGetFullContentBroker({ toolInput })).rejects.toThrow('Permission denied');
-    expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith({
-      filePath: filePathContract.parse('/test/file.txt'),
+      await expect(toolInputGetFullContentBroker({ toolInput })).rejects.toThrow(
+        /Permission denied/u,
+      );
     });
   });
 
-  it('VALID: MultiEditToolInput single edit => returns content with edit applied', async () => {
-    const toolInput: MultiEditToolInput = multiEditToolInputContract.parse({
-      file_path: '/test/file.txt',
-      edits: [{ old_string: 'Hello', new_string: 'Hi' }],
+  describe('MultiEdit tool', () => {
+    it('VALID: MultiEditToolInput single edit => returns content with edit applied', async () => {
+      const proxy = toolInputGetFullContentBrokerProxy();
+      const toolInput = MultiEditToolInputStub({
+        file_path: FilePathStub({ value: '/test/file.txt' }),
+        edits: [{ old_string: 'Hello', new_string: 'Hi' }],
+      });
+
+      proxy.setupReadFileSuccess({ contents: FileContentsStub({ value: 'Hello world' }) });
+
+      const result = await toolInputGetFullContentBroker({ toolInput });
+
+      expect(result).toBe('Hi world');
     });
 
-    mockReadFile.mockResolvedValue(fileContentsContract.parse('Hello world'));
+    it('VALID: MultiEditToolInput multiple edits => returns content with all edits applied', async () => {
+      const proxy = toolInputGetFullContentBrokerProxy();
+      const toolInput = MultiEditToolInputStub({
+        file_path: FilePathStub({ value: '/test/file.txt' }),
+        edits: [
+          { old_string: 'Hello', new_string: 'Hi' },
+          { old_string: 'world', new_string: 'universe' },
+        ],
+      });
 
-    const result = await toolInputGetFullContentBroker({ toolInput });
+      proxy.setupReadFileSuccess({ contents: FileContentsStub({ value: 'Hello world' }) });
 
-    expect(result).toBe('Hi world');
-    expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith({
-      filePath: filePathContract.parse('/test/file.txt'),
-    });
-  });
+      const result = await toolInputGetFullContentBroker({ toolInput });
 
-  it('VALID: MultiEditToolInput multiple edits => returns content with all edits applied', async () => {
-    const toolInput: MultiEditToolInput = multiEditToolInputContract.parse({
-      file_path: '/test/file.txt',
-      edits: [
-        { old_string: 'Hello', new_string: 'Hi' },
-        { old_string: 'world', new_string: 'universe' },
-      ],
+      expect(result).toBe('Hi universe');
     });
 
-    mockReadFile.mockResolvedValue(fileContentsContract.parse('Hello world'));
+    it('VALID: MultiEditToolInput with replace_all edits => returns content with all replacements', async () => {
+      const proxy = toolInputGetFullContentBrokerProxy();
+      const toolInput = MultiEditToolInputStub({
+        file_path: FilePathStub({ value: '/test/file.txt' }),
+        edits: [
+          { old_string: 'test', new_string: 'demo', replace_all: true },
+          { old_string: 'file', new_string: 'document' },
+        ],
+      });
 
-    const result = await toolInputGetFullContentBroker({ toolInput });
+      proxy.setupReadFileSuccess({
+        contents: FileContentsStub({ value: 'test file with test content in test file' }),
+      });
 
-    expect(result).toBe('Hi universe');
-    expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith({
-      filePath: filePathContract.parse('/test/file.txt'),
-    });
-  });
+      const result = await toolInputGetFullContentBroker({ toolInput });
 
-  it('VALID: MultiEditToolInput with replace_all edits => returns content with all replacements', async () => {
-    const toolInput: MultiEditToolInput = multiEditToolInputContract.parse({
-      file_path: '/test/file.txt',
-      edits: [
-        { old_string: 'test', new_string: 'demo', replace_all: true },
-        { old_string: 'file', new_string: 'document' },
-      ],
-    });
-
-    mockReadFile.mockResolvedValue(
-      fileContentsContract.parse('test file with test content in test file'),
-    );
-
-    const result = await toolInputGetFullContentBroker({ toolInput });
-
-    expect(result).toBe('demo document with demo content in demo file');
-    expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith({
-      filePath: filePathContract.parse('/test/file.txt'),
-    });
-  });
-
-  it("ERROR: file doesn't exist for MultiEdit tool => returns null", async () => {
-    const toolInput: MultiEditToolInput = multiEditToolInputContract.parse({
-      file_path: '/test/nonexistent.txt',
-      edits: [{ old_string: 'Hello', new_string: 'Hi' }],
+      expect(result).toBe('demo document with demo content in demo file');
     });
 
-    const error = new Error('File not found') as NodeJS.ErrnoException;
-    error.code = 'ENOENT';
-    mockReadFile.mockRejectedValue(error);
+    it("ERROR: file doesn't exist for MultiEdit tool => returns null", async () => {
+      const proxy = toolInputGetFullContentBrokerProxy();
+      const toolInput = MultiEditToolInputStub({
+        file_path: FilePathStub({ value: '/test/nonexistent.txt' }),
+        edits: [{ old_string: 'Hello', new_string: 'Hi' }],
+      });
 
-    const result = await toolInputGetFullContentBroker({ toolInput });
+      proxy.setupReadFileNotFound();
 
-    expect(result).toBeNull();
-    expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockReadFile).toHaveBeenCalledWith({
-      filePath: filePathContract.parse('/test/nonexistent.txt'),
+      const result = await toolInputGetFullContentBroker({ toolInput });
+
+      expect(result).toBeNull();
     });
   });
 
-  it("EDGE: file doesn't exist for Write tool => returns content", async () => {
-    const toolInput = writeToolInputContract.parse({
-      file_path: '/test/newfile.txt',
-      content: 'New file content',
+  describe('edge cases', () => {
+    it('EDGE: toolInput with empty file_path => returns null', async () => {
+      toolInputGetFullContentBrokerProxy();
+      const baseInput = WriteToolInputStub({ content: 'Hello world' });
+      const { file_path: _file_path, ...toolInputNoPath } = baseInput;
+
+      const result = await toolInputGetFullContentBroker({
+        toolInput: { ...toolInputNoPath, file_path: '' } as never,
+      });
+
+      expect(result).toBeNull();
     });
-
-    const error = new Error('File not found') as NodeJS.ErrnoException;
-    error.code = 'ENOENT';
-    mockReadFile.mockRejectedValue(error);
-
-    const result = await toolInputGetFullContentBroker({ toolInput });
-
-    expect(result).toBe('New file content');
   });
 });

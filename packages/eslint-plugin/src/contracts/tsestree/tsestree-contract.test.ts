@@ -1,3 +1,4 @@
+import { tsestreeContract } from './tsestree-contract';
 import { TsestreeStub, TsestreeNodeType } from './tsestree.stub';
 
 describe('TsestreeStub', () => {
@@ -6,6 +7,9 @@ describe('TsestreeStub', () => {
 
     expect(result.type).toBe(TsestreeNodeType.Identifier);
     expect(result.parent).toBeNull();
+
+    // Validate contract parsing
+    expect(() => tsestreeContract.parse(result)).not.toThrow();
   });
 
   it('VALID: {type: TsestreeNodeType.CallExpression} => returns Tsestree with custom type', () => {

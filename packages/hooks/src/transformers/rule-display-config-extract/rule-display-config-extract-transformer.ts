@@ -12,12 +12,15 @@ export const ruleDisplayConfigExtractTransformer = ({
   ruleId,
 }: {
   config: PreEditLintConfig;
-  ruleId: string;
-}): { displayName?: string; message?: string | ((hookData: unknown) => string) } => {
+  ruleId: PropertyKey;
+}): { displayName?: PropertyKey; message?: PropertyKey | ((hookData: unknown) => PropertyKey) } => {
   const ruleConfig = config.rules.find((rule) => typeof rule === 'object' && rule.rule === ruleId);
 
   if (typeof ruleConfig === 'object') {
-    const result: { displayName?: string; message?: string | ((hookData: unknown) => string) } = {};
+    const result: {
+      displayName?: PropertyKey;
+      message?: PropertyKey | ((hookData: unknown) => PropertyKey);
+    } = {};
 
     if (ruleConfig.displayName !== undefined) {
       result.displayName = ruleConfig.displayName;

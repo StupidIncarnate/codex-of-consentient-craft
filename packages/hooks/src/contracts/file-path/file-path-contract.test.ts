@@ -1,3 +1,4 @@
+import { filePathContract } from './file-path-contract';
 import { FilePathStub } from './file-path.stub';
 
 describe('filePathContract', () => {
@@ -17,5 +18,13 @@ describe('filePathContract', () => {
     const result = FilePathStub({ value: 'src/contracts/file.ts' });
 
     expect(result).toBe('src/contracts/file.ts');
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {number instead of string} => throws validation error', () => {
+      expect(() => {
+        return filePathContract.parse(123 as never);
+      }).toThrow(/Expected string/u);
+    });
   });
 });

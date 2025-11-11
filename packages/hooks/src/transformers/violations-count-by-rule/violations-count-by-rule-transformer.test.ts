@@ -4,9 +4,11 @@ import { LintResultStub } from '../../contracts/lint-result/lint-result.stub';
 import { ViolationCountStub } from '../../contracts/violation-count/violation-count.stub';
 import { ViolationDetailStub } from '../../contracts/violation-detail/violation-detail.stub';
 
+type LintResult = ReturnType<typeof LintResultStub>;
+
 describe('violationsCountByRuleTransformer', () => {
   it('VALID: {results: []} => returns empty array', () => {
-    const results = [];
+    const results: LintResult[] = [];
 
     const counts = violationsCountByRuleTransformer({ results });
 

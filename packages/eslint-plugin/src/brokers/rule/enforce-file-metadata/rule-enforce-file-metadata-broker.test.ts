@@ -66,6 +66,57 @@ export const userFetchBroker = async ({ userId }) => {
       code: `export const test = () => {};`,
       filename: 'src/startup/start-server.integration.test.ts',
     },
+    // NEW: Copyright header before metadata (no imports) should be allowed
+    {
+      code: `// Copyright header
+// Some rights reserved
+
+/**
+ * PURPOSE: Validates email format
+ *
+ * USAGE:
+ * const isValid = emailValidator({ email });
+ * // Returns true if email is valid
+ */
+export const emailValidator = ({ email }) => {
+  return email.includes('@');
+};`,
+      filename: 'src/guards/email-validator/email-validator-guard.ts',
+    },
+    // NEW: Whitespace before metadata (no imports) should be allowed
+    {
+      code: `
+
+/**
+ * PURPOSE: Calculates total price
+ *
+ * USAGE:
+ * const total = calculateTotal({ items });
+ * // Returns sum of all item prices
+ */
+export const calculateTotal = ({ items }) => {
+  return items.reduce((sum, item) => sum + item.price, 0);
+};`,
+      filename: 'src/transformers/calculate-total/calculate-total-transformer.ts',
+    },
+    // NEW: Multiple comments before metadata (no imports) should be allowed
+    {
+      code: `/* eslint-disable */
+// Some configuration
+// More comments
+
+/**
+ * PURPOSE: Helper utility function
+ *
+ * USAGE:
+ * const result = helperUtil({ data });
+ * // Returns processed data
+ */
+export const helperUtil = ({ data }) => {
+  return data;
+};`,
+      filename: 'src/guards/helper-util/helper-util-guard.ts',
+    },
   ],
   invalid: [
     {
@@ -143,7 +194,7 @@ export const hasAdminGuard = ({ user }) => {
   return user.role === 'admin';
 };`,
       filename: 'src/guards/has-admin/has-admin-guard.ts',
-      errors: [{ messageId: 'metadataNotAtTop' }],
+      errors: [{ messageId: 'metadataNotBeforeImports' }],
     },
     {
       code: `// Some other comment
@@ -173,7 +224,7 @@ export const userFetchBroker = async ({ userId }) => {
   return await fetch(\`/api/users/\${userId}\`);
 };`,
       filename: 'src/brokers/user/fetch/user-fetch-broker.ts',
-      errors: [{ messageId: 'metadataNotAtTop' }],
+      errors: [{ messageId: 'metadataNotBeforeImports' }],
     },
     {
       code: `import type { User } from './user-contract';
@@ -201,63 +252,7 @@ export const userToDtoTransformer = ({ user }) => {
   return { id: user.id, name: user.name };
 };`,
       filename: 'src/transformers/user-to-dto/user-to-dto-transformer.ts',
-      errors: [{ messageId: 'metadataNotAtTop' }],
-    },
-    {
-      code: `// Copyright header
-// Some rights reserved
-
-/**
- * PURPOSE: Validates email format
- *
- * USAGE:
- * const isValid = emailValidator({ email });
- * // Returns true if email is valid
- */
-export const emailValidator = ({ email }) => {
-  return email.includes('@');
-};`,
-      output: `/**
- * PURPOSE: Validates email format
- *
- * USAGE:
- * const isValid = emailValidator({ email });
- * // Returns true if email is valid
- */
-// Copyright header
-// Some rights reserved
-
-export const emailValidator = ({ email }) => {
-  return email.includes('@');
-};`,
-      filename: 'src/guards/email-validator/email-validator-guard.ts',
-      errors: [{ messageId: 'metadataNotAtTop' }],
-    },
-    {
-      code: `
-/**
- * PURPOSE: Calculates total price
- *
- * USAGE:
- * const total = calculateTotal({ items });
- * // Returns sum of all item prices
- */
-export const calculateTotal = ({ items }) => {
-  return items.reduce((sum, item) => sum + item.price, 0);
-};`,
-      output: `/**
- * PURPOSE: Calculates total price
- *
- * USAGE:
- * const total = calculateTotal({ items });
- * // Returns sum of all item prices
- */
-
-export const calculateTotal = ({ items }) => {
-  return items.reduce((sum, item) => sum + item.price, 0);
-};`,
-      filename: 'src/transformers/calculate-total/calculate-total-transformer.ts',
-      errors: [{ messageId: 'metadataNotAtTop' }],
+      errors: [{ messageId: 'metadataNotBeforeImports' }],
     },
     {
       code: `import { z } from 'zod';
@@ -293,7 +288,7 @@ export const loadConfig = async ({ path }) => {
   return {};
 };`,
       filename: 'src/brokers/config/load/config-load-broker.ts',
-      errors: [{ messageId: 'metadataNotAtTop' }],
+      errors: [{ messageId: 'metadataNotBeforeImports' }],
     },
     {
       code: `/* Block comment before imports */
@@ -323,7 +318,7 @@ export const fileReader = async ({ path }) => {
   return await readFile(path, 'utf-8');
 };`,
       filename: 'src/adapters/file-reader/file-reader-adapter.ts',
-      errors: [{ messageId: 'metadataNotAtTop' }],
+      errors: [{ messageId: 'metadataNotBeforeImports' }],
     },
   ],
 });

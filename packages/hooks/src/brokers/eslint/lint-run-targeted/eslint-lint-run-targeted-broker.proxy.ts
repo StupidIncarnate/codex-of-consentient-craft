@@ -1,81 +1,46 @@
 /**
- * PURPOSE: Proxy for eslint-lint-run-targeted-broker that mocks ESLint adapter
+ * PURPOSE: Proxy for eslint-lint-run-targeted-broker that delegates to adapter proxies
  *
  * USAGE:
  * const proxy = eslintLintRunTargetedBrokerProxy();
- * proxy.setupLintResults({ results: [{ filePath: '/test.ts', messages: [] }] });
  * const results = await eslintLintRunTargetedBroker({ content, filePath, config });
  */
 
-import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
-import type { ESLint } from 'eslint';
-
-jest.mock('../../../adapters/eslint/eslint/eslint-eslint-adapter');
-
-const mockEslintEslintAdapter = jest.mocked(eslintEslintAdapter);
+import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
+import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
 
 export const eslintLintRunTargetedBrokerProxy = (): {
-  setupLintResults: (params: { results: ESLint.LintResult[] }) => void;
-  setupLintError: (params: { error: Error }) => void;
-  setupProjectError: (params: {
-    firstResults: ESLint.LintResult[];
-    fallbackResults: ESLint.LintResult[];
-  }) => void;
+  setupLintResults: (params: { oldResults: unknown[]; newResults: unknown[] }) => void;
+  returnsLintResults: (params: { results: unknown[] }) => void;
 } => {
+  const eslintProxy = eslintEslintAdapterProxy();
+  pathResolveAdapterProxy();
+
   return {
-    setupLintResults: ({ results }: { results: ESLint.LintResult[] }): void => {
-      const mockLintText = jest.fn().mockResolvedValue(results);
-      const mockESLintInstance = {
-        lintText: mockLintText,
-        lintFiles: jest.fn(),
-        getRulesMetaForResults: jest.fn(),
-        calculateConfigForFile: jest.fn(),
-        isPathIgnored: jest.fn(),
-        loadFormatter: jest.fn(),
-        hasFlag: jest.fn(),
-        findConfigFile: jest.fn(),
-      } satisfies ESLint;
-
-      mockEslintEslintAdapter.mockReturnValue(mockESLintInstance);
-    },
-
-    setupLintError: ({ error }: { error: Error }): void => {
-      mockEslintEslintAdapter.mockImplementation(() => {
-        throw error;
-      });
-    },
-
-    setupProjectError: ({
-      firstResults,
-      fallbackResults,
+    setupLintResults: ({
+      oldResults,
+      newResults,
     }: {
-      firstResults: ESLint.LintResult[];
-      fallbackResults: ESLint.LintResult[];
+      oldResults: unknown[];
+      newResults: unknown[];
     }): void => {
-      const mockLintTextFirst = jest.fn().mockResolvedValue(firstResults);
-      const mockLintTextSecond = jest.fn().mockResolvedValue(fallbackResults);
+      const mockLintText = eslintProxy.getMockLintText();
 
-      mockEslintEslintAdapter
-        .mockReturnValueOnce({
-          lintText: mockLintTextFirst,
-          lintFiles: jest.fn(),
-          getRulesMetaForResults: jest.fn(),
-          calculateConfigForFile: jest.fn(),
-          isPathIgnored: jest.fn(),
-          loadFormatter: jest.fn(),
-          hasFlag: jest.fn(),
-          findConfigFile: jest.fn(),
-        } satisfies ESLint)
-        .mockReturnValueOnce({
-          lintText: mockLintTextSecond,
-          lintFiles: jest.fn(),
-          getRulesMetaForResults: jest.fn(),
-          calculateConfigForFile: jest.fn(),
-          isPathIgnored: jest.fn(),
-          loadFormatter: jest.fn(),
-          hasFlag: jest.fn(),
-          findConfigFile: jest.fn(),
-        } satisfies ESLint);
+      // Reset mock and set up to return different results on each call
+      mockLintText.mockReset();
+      mockLintText.mockResolvedValueOnce(oldResults);
+      mockLintText.mockResolvedValueOnce(newResults);
+
+      // Set default for any additional calls
+      mockLintText.mockResolvedValue(newResults);
+    },
+
+    returnsLintResults: ({ results }: { results: unknown[] }): void => {
+      const mockLintText = eslintProxy.getMockLintText();
+
+      // Set up single call to return specific results
+      mockLintText.mockReset();
+      mockLintText.mockResolvedValue(results);
     },
   };
 };

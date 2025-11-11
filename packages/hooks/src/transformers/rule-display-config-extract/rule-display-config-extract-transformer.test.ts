@@ -1,11 +1,10 @@
 import { ruleDisplayConfigExtractTransformer } from './rule-display-config-extract-transformer';
-import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
-import { preEditLintConfigContract } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
+import { PreEditLintConfigStub } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config.stub';
 
 describe('ruleDisplayConfigExtractTransformer', () => {
   describe('valid input', () => {
     it('VALID: {config: with object rule, ruleId: "test-rule"} => returns display config', () => {
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: [
           'string-rule',
           {
@@ -28,7 +27,7 @@ describe('ruleDisplayConfigExtractTransformer', () => {
     });
 
     it('VALID: {config: with partial object rule, ruleId: "partial-rule"} => returns partial config', () => {
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: [
           {
             rule: 'partial-rule',
@@ -50,7 +49,7 @@ describe('ruleDisplayConfigExtractTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: {config: with string rules only, ruleId: "string-rule"} => returns empty object', () => {
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: ['string-rule', 'another-rule'],
       });
 
@@ -63,7 +62,7 @@ describe('ruleDisplayConfigExtractTransformer', () => {
     });
 
     it('EDGE: {config: with rules, ruleId: "nonexistent"} => returns empty object', () => {
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: ['string-rule', { rule: 'object-rule', displayName: 'Object Rule' }],
       });
 
@@ -76,7 +75,7 @@ describe('ruleDisplayConfigExtractTransformer', () => {
     });
 
     it('EDGE: {config: {rules: []}, ruleId: "any-rule"} => returns empty object', () => {
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: [],
       });
 

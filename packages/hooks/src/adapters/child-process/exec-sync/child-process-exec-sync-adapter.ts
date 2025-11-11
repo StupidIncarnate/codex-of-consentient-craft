@@ -3,11 +3,12 @@
  *
  * USAGE:
  * const result = childProcessExecSyncAdapter({ command: 'git status', options: { encoding: 'utf8' } });
- * // Returns string or Buffer output from the executed command
+ * // Returns CommandOutput from the executed command
  */
 import { execSync } from 'child_process';
 import type { ExecSyncOptions } from 'child_process';
-import type { Buffer } from 'node:buffer';
+import { commandOutputContract } from '../../../contracts/command-output/command-output-contract';
+import type { CommandOutput } from '../../../contracts/command-output/command-output-contract';
 
 export const childProcessExecSyncAdapter = ({
   command,
@@ -15,9 +16,10 @@ export const childProcessExecSyncAdapter = ({
 }: {
   command: string;
   options?: ExecSyncOptions;
-}): string | Buffer => {
+}): CommandOutput => {
   try {
-    return execSync(command, options);
+    const output = execSync(command, options);
+    return commandOutputContract.parse(String(output));
   } catch (error) {
     throw new Error(`Failed to execute command: ${command}`, { cause: error });
   }

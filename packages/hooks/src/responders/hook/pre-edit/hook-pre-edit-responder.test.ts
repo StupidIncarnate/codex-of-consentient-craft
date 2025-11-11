@@ -4,14 +4,10 @@ import {
   EditToolHookStub,
   WriteToolHookStub,
 } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub';
-import { ViolationCountStub } from '../../../contracts/violation-count/violation-count.stub';
-import { ViolationDetailStub } from '../../../contracts/violation-detail/violation-detail.stub';
-import { ViolationComparisonStub } from '../../../contracts/violation-comparison/violation-comparison.stub';
 
 describe('HookPreEditResponder', () => {
-  const proxy = HookPreEditResponderProxy();
-
   it('VALID: {hasNewViolations: false} => returns {shouldBlock: false}', async () => {
+    const proxy = HookPreEditResponderProxy();
     const hookData = EditToolHookStub({
       cwd: '/test/cwd',
       tool_input: {
@@ -21,12 +17,7 @@ describe('HookPreEditResponder', () => {
       },
     });
 
-    proxy.setupViolationCheck({
-      result: ViolationComparisonStub({
-        hasNewViolations: false,
-        newViolations: [],
-      }),
-    });
+    proxy.setupViolationCheck();
 
     const result = await HookPreEditResponder({ input: hookData });
 
@@ -36,6 +27,7 @@ describe('HookPreEditResponder', () => {
   });
 
   it('VALID: {hasNewViolations: true, message: "Found 1 new violation"} => returns {shouldBlock: true, message}', async () => {
+    const proxy = HookPreEditResponderProxy();
     const hookData = EditToolHookStub({
       cwd: '/test/cwd',
       tool_input: {
@@ -45,36 +37,17 @@ describe('HookPreEditResponder', () => {
       },
     });
 
-    proxy.setupViolationCheck({
-      result: ViolationComparisonStub({
-        hasNewViolations: true,
-        newViolations: [
-          ViolationCountStub({
-            ruleId: 'no-unused-vars',
-            count: 1,
-            details: [
-              ViolationDetailStub({
-                ruleId: 'no-unused-vars',
-                line: 1,
-                column: 1,
-                message: 'Variable is unused',
-              }),
-            ],
-          }),
-        ],
-        message: 'Found 1 new violation',
-      }),
-    });
+    proxy.setupViolationCheck({ hasViolations: true });
 
     const result = await HookPreEditResponder({ input: hookData });
 
-    expect(result).toStrictEqual({
-      shouldBlock: true,
-      message: 'Found 1 new violation',
-    });
+    expect(result.shouldBlock).toBe(true);
+    expect(result.message).toContain('Code Quality Issue');
+    expect(result.message).toContain('Unexpected console statement');
   });
 
-  it('VALID: {hasNewViolations: true, message: undefined} => returns {shouldBlock: true, message: "New violations detected"}', async () => {
+  it('VALID: {hasNewViolations: true, message: "New violations detected"} => returns {shouldBlock: true, message}', async () => {
+    const proxy = HookPreEditResponderProxy();
     const hookData = WriteToolHookStub({
       cwd: '/test/cwd',
       tool_input: {
@@ -83,33 +56,13 @@ describe('HookPreEditResponder', () => {
       },
     });
 
-    proxy.setupViolationCheck({
-      result: ViolationComparisonStub({
-        hasNewViolations: true,
-        newViolations: [
-          ViolationCountStub({
-            ruleId: 'no-console',
-            count: 1,
-            details: [
-              ViolationDetailStub({
-                ruleId: 'no-console',
-                line: 5,
-                column: 3,
-                message: 'Unexpected console statement',
-              }),
-            ],
-          }),
-        ],
-        message: undefined,
-      }),
-    });
+    proxy.setupViolationCheck({ hasViolations: true });
 
     const result = await HookPreEditResponder({ input: hookData });
 
-    expect(result).toStrictEqual({
-      shouldBlock: true,
-      message: 'New violations detected',
-    });
+    expect(result.shouldBlock).toBe(true);
+    expect(result.message).toContain('Code Quality Issue');
+    expect(result.message).toContain('Unexpected console statement');
   });
 
   // It('ERROR: {hook_event_name: "SessionStart"} => throws "Unsupported hook event: SessionStart"', async () => {

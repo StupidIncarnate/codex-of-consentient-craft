@@ -1,7 +1,18 @@
-import type { FilePath } from '../../../../contracts/file-path/file-path-contract';
+jest.mock('path');
 
-export const pathResolveAdapterProxy = jest.fn<FilePath, [{ paths: string[] }]>();
+import { resolve } from 'path';
 
-jest.mock('./path-resolve-adapter', () => ({
-  pathResolveAdapter: pathResolveAdapterProxy,
-}));
+export const pathResolveAdapterProxy = (): {
+  returns: ({ path }: { path: string }) => void;
+} => {
+  const mock = jest.mocked(resolve);
+
+  // Default: return the last path segment
+  mock.mockImplementation((...paths) => paths[paths.length - 1] ?? '');
+
+  return {
+    returns: ({ path }: { path: string }) => {
+      mock.mockReturnValueOnce(path);
+    },
+  };
+};

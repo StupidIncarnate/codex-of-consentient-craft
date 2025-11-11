@@ -5,7 +5,6 @@
  * const lintResult = eslintResultToLintResultTransformer({ eslintResult });
  * // Returns validated LintResult with simplified structure
  */
-import type { ESLint } from 'eslint';
 import type { LintResult } from '../../contracts/lint-result/lint-result-contract';
 import { lintMessageContract } from '../../contracts/lint-message/lint-message-contract';
 import { lintResultContract } from '../../contracts/lint-result/lint-result-contract';
@@ -22,7 +21,18 @@ import { lintResultContract } from '../../contracts/lint-result/lint-result-cont
 export const eslintResultToLintResultTransformer = ({
   eslintResult,
 }: {
-  eslintResult: ESLint.LintResult;
+  eslintResult: {
+    filePath: string;
+    messages: {
+      line: number;
+      column: number;
+      message: string;
+      severity: number;
+      ruleId?: string | null;
+    }[];
+    errorCount: number;
+    warningCount: number;
+  };
 }): LintResult =>
   lintResultContract.parse({
     filePath: eslintResult.filePath,

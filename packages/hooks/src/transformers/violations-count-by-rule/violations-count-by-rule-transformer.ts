@@ -18,7 +18,7 @@ export const violationsCountByRuleTransformer = ({
 }: {
   results: LintResult[];
 }): ViolationCount[] => {
-  const violationMap = new Map<string, ViolationDetail[]>();
+  const violationMap = new Map<PropertyKey, ViolationDetail[]>();
 
   for (const result of results) {
     for (const message of result.messages) {

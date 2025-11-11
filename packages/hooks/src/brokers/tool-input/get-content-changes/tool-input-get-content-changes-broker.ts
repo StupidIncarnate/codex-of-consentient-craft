@@ -5,94 +5,13 @@
  * const changes = await toolInputGetContentChangesBroker({ toolInput: writeToolInput });
  * // Returns array of ContentChange with oldContent and newContent
  */
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
+import type { ContentChange } from '../../../contracts/content-change/content-change-contract';
+import { contentChangeContract } from '../../../contracts/content-change/content-change-contract';
 import { toolInputGetFullContentBroker } from '../get-full-content/tool-input-get-full-content-broker';
-import { isNodeErrorContract } from '../../../contracts/is-node-error/is-node-error-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-
-export interface ContentChange {
-  oldContent: string;
-  newContent: string;
-}
-
-const readOldContent = async (filePath: string): Promise<string> => {
-  try {
-    return await fsReadFileAdapter({ filePath: filePathContract.parse(filePath) });
-  } catch (error: unknown) {
-    // File doesn't exist - new file case
-    // Return empty string for file-not-found or non-Node errors
-    const isNodeError = isNodeErrorContract({ error });
-    if (isNodeError) {
-      const nodeError = error as NodeJS.ErrnoException;
-      if (nodeError.code !== 'ENOENT') {
-        // Re-throw errors that aren't ENOENT
-        throw error;
-      }
-    }
-    return '';
-  }
-};
-
-const handleWriteToolInput = async ({
-  toolInput,
-  filePath,
-}: {
-  toolInput: ToolInput;
-  filePath: string;
-}): Promise<ContentChange | null> => {
-  if (!('content' in toolInput)) {
-    return null;
-  }
-
-  const oldContent = await readOldContent(filePath);
-  return { oldContent, newContent: toolInput.content };
-};
-
-const handleEditToolInput = async ({
-  toolInput,
-  filePath,
-}: {
-  toolInput: ToolInput;
-  filePath: string;
-}): Promise<ContentChange | null> => {
-  const isEditTool =
-    'new_string' in toolInput && 'old_string' in toolInput && !('edits' in toolInput);
-
-  if (!isEditTool) {
-    return null;
-  }
-
-  const oldContent = await readOldContent(filePath);
-  const newContent = await toolInputGetFullContentBroker({ toolInput });
-
-  if (newContent === null) {
-    return null;
-  }
-
-  return { oldContent, newContent };
-};
-
-const handleMultiEditToolInput = async ({
-  toolInput,
-  filePath,
-}: {
-  toolInput: ToolInput;
-  filePath: string;
-}): Promise<ContentChange | null> => {
-  if (!('edits' in toolInput)) {
-    return null;
-  }
-
-  const oldContent = await readOldContent(filePath);
-  const newContent = await toolInputGetFullContentBroker({ toolInput });
-
-  if (newContent === null) {
-    return null;
-  }
-
-  return { oldContent, newContent };
-};
+import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
+import { fileReadOrEmptyBroker } from '../../file/read-or-empty/file-read-or-empty-broker';
 
 export const toolInputGetContentChangesBroker = async ({
   toolInput,
@@ -105,20 +24,58 @@ export const toolInputGetContentChangesBroker = async ({
     return [];
   }
 
-  // Try each handler in order
-  const writeChange = await handleWriteToolInput({ toolInput, filePath });
-  if (writeChange !== null) {
-    return [writeChange];
+  // Handle Write tool
+  if ('content' in toolInput) {
+    const oldContent = await fileReadOrEmptyBroker({
+      filePath: filePathContract.parse(filePath),
+    });
+
+    return [
+      contentChangeContract.parse({
+        oldContent,
+        newContent: fileContentsContract.parse(toolInput.content),
+      }),
+    ];
   }
 
-  const editChange = await handleEditToolInput({ toolInput, filePath });
-  if (editChange !== null) {
-    return [editChange];
+  // Handle Edit tool
+  if ('new_string' in toolInput && 'old_string' in toolInput && !('edits' in toolInput)) {
+    const oldContent = await fileReadOrEmptyBroker({
+      filePath: filePathContract.parse(filePath),
+    });
+
+    const newContent = await toolInputGetFullContentBroker({ toolInput });
+
+    if (newContent === null) {
+      return [];
+    }
+
+    return [
+      contentChangeContract.parse({
+        oldContent,
+        newContent: fileContentsContract.parse(newContent),
+      }),
+    ];
   }
 
-  const multiEditChange = await handleMultiEditToolInput({ toolInput, filePath });
-  if (multiEditChange !== null) {
-    return [multiEditChange];
+  // Handle MultiEdit tool
+  if ('edits' in toolInput) {
+    const oldContent = await fileReadOrEmptyBroker({
+      filePath: filePathContract.parse(filePath),
+    });
+
+    const newContent = await toolInputGetFullContentBroker({ toolInput });
+
+    if (newContent === null) {
+      return [];
+    }
+
+    return [
+      contentChangeContract.parse({
+        oldContent,
+        newContent: fileContentsContract.parse(newContent),
+      }),
+    ];
   }
 
   return [];

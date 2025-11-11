@@ -25,60 +25,72 @@ export const PreToolUseHookStub = ({
   });
 
 export const WriteToolHookStub = ({
-  tool_input,
   ...props
-}: StubArgument<PreToolUseHookData> & {
-  tool_input?: StubArgument<WriteToolInput>;
-} = {}): PreToolUseHookData =>
-  preToolUseHookDataContract.parse({
+}: StubArgument<PreToolUseHookData> = {}): PreToolUseHookData => {
+  const toolInput =
+    'tool_input' in props
+      ? (props.tool_input as StubArgument<WriteToolInput> | undefined)
+      : undefined;
+  const { tool_input: _removed, ...restProps } = props as { tool_input?: unknown };
+
+  return preToolUseHookDataContract.parse({
     session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     transcript_path: '/tmp/transcript.jsonl',
     cwd: process.cwd(),
     hook_event_name: 'PreToolUse',
     tool_name: 'Write',
     tool_input: writeToolInputContract.parse({
-      file_path: tool_input?.file_path ?? '/test/file.ts',
-      content: tool_input?.content ?? '',
+      file_path: toolInput?.file_path ?? '/test/file.ts',
+      content: toolInput?.content ?? '',
     }),
-    ...props,
+    ...restProps,
   });
+};
 
 export const EditToolHookStub = ({
-  tool_input,
   ...props
-}: StubArgument<PreToolUseHookData> & {
-  tool_input?: StubArgument<EditToolInput>;
-} = {}): PreToolUseHookData =>
-  preToolUseHookDataContract.parse({
+}: StubArgument<PreToolUseHookData> = {}): PreToolUseHookData => {
+  const toolInput =
+    'tool_input' in props
+      ? (props.tool_input as StubArgument<EditToolInput> | undefined)
+      : undefined;
+  const { tool_input: _removed, ...restProps } = props as { tool_input?: unknown };
+
+  return preToolUseHookDataContract.parse({
     session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     transcript_path: '/tmp/transcript.jsonl',
     cwd: process.cwd(),
     hook_event_name: 'PreToolUse',
     tool_name: 'Edit',
     tool_input: editToolInputContract.parse({
-      file_path: tool_input?.file_path ?? '/test/file.ts',
-      old_string: tool_input?.old_string ?? 'old',
-      new_string: tool_input?.new_string ?? 'new',
-      ...(tool_input?.replace_all !== undefined && { replace_all: tool_input.replace_all }),
+      file_path: toolInput?.file_path ?? '/test/file.ts',
+      old_string: toolInput?.old_string ?? 'old',
+      new_string: toolInput?.new_string ?? 'new',
+      ...(toolInput?.replace_all !== undefined && { replace_all: toolInput.replace_all }),
     }),
-    ...props,
+    ...restProps,
   });
+};
 
 export const MultiEditToolHookStub = ({
-  tool_input,
   ...props
-}: StubArgument<PreToolUseHookData> & {
-  tool_input?: StubArgument<MultiEditToolInput>;
-} = {}): PreToolUseHookData =>
-  preToolUseHookDataContract.parse({
+}: StubArgument<PreToolUseHookData> = {}): PreToolUseHookData => {
+  const toolInput =
+    'tool_input' in props
+      ? (props.tool_input as StubArgument<MultiEditToolInput> | undefined)
+      : undefined;
+  const { tool_input: _removed, ...restProps } = props as { tool_input?: unknown };
+
+  return preToolUseHookDataContract.parse({
     session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     transcript_path: '/tmp/transcript.jsonl',
     cwd: process.cwd(),
     hook_event_name: 'PreToolUse',
     tool_name: 'MultiEdit',
     tool_input: multiEditToolInputContract.parse({
-      file_path: tool_input?.file_path ?? '/test/file.ts',
-      edits: tool_input?.edits ?? [],
+      file_path: toolInput?.file_path ?? '/test/file.ts',
+      edits: toolInput?.edits ?? [],
     }),
-    ...props,
+    ...restProps,
   });
+};

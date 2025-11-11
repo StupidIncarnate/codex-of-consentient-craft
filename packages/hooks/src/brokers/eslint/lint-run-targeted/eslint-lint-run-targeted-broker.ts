@@ -7,7 +7,6 @@
  */
 import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
-import type { Linter } from 'eslint';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
 
@@ -34,7 +33,7 @@ export const eslintLintRunTargetedBroker = async ({
 }: {
   content: string;
   filePath: string;
-  config: Linter.Config;
+  config: unknown;
   cwd?: string;
 }): Promise<LintResult[]> => {
   if (!content.trim()) {
@@ -43,11 +42,12 @@ export const eslintLintRunTargetedBroker = async ({
 
   try {
     // Create ESLint instance with ONLY the filtered rules
+    // Type assertion needed because config is unknown at broker level but typed at adapter boundary
     const eslint = eslintEslintAdapter({
       options: {
         cwd,
-        overrideConfigFile: true, // Completely bypass project config
-        overrideConfig: [config], // Use only our filtered rules
+        overrideConfigFile: true,
+        overrideConfig: [config] as never,
       },
     });
 
@@ -69,22 +69,33 @@ export const eslintLintRunTargetedBroker = async ({
 
     if (hasProjectError) {
       // Create a simplified config without project reference
+      const configObj = config as Record<PropertyKey, unknown>;
+      const languageOptions = Reflect.get(configObj, 'languageOptions') as
+        | Record<PropertyKey, unknown>
+        | undefined;
+      const parserOptions = languageOptions
+        ? (Reflect.get(languageOptions, 'parserOptions') as
+            | Record<PropertyKey, unknown>
+            | undefined)
+        : undefined;
+
       const simplifiedConfig = {
-        ...config,
+        ...configObj,
         languageOptions: {
-          ...config.languageOptions,
+          ...languageOptions,
           parserOptions: {
-            ...config.languageOptions?.parserOptions,
+            ...parserOptions,
             project: undefined, // Remove project reference
           },
         },
       };
 
+      // Type assertion needed because config is unknown at broker level but typed at adapter boundary
       const fallbackEslint = eslintEslintAdapter({
         options: {
           cwd,
-          overrideConfigFile: true, // Completely bypass project config
-          overrideConfig: [simplifiedConfig],
+          overrideConfigFile: true,
+          overrideConfig: [simplifiedConfig] as never,
         },
       });
 

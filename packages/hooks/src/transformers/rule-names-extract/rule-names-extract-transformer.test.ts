@@ -1,11 +1,10 @@
 import { ruleNamesExtractTransformer } from './rule-names-extract-transformer';
-import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
-import { preEditLintConfigContract } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
+import { PreEditLintConfigStub } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config.stub';
 
 describe('ruleNamesExtractTransformer', () => {
   describe('valid input', () => {
     it('VALID: {config: {rules: ["rule1", "rule2"]}} => returns string array', () => {
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: ['rule1', 'rule2'],
       });
 
@@ -15,7 +14,7 @@ describe('ruleNamesExtractTransformer', () => {
     });
 
     it('VALID: {config: {rules: [{rule: "rule1"}, {rule: "rule2"}]}} => returns rule names', () => {
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: [
           { rule: 'rule1', displayName: 'Rule 1' },
           { rule: 'rule2', message: 'Custom message' },
@@ -28,7 +27,7 @@ describe('ruleNamesExtractTransformer', () => {
     });
 
     it('VALID: {config: {rules: ["rule1", {rule: "rule2"}]}} => returns mixed rule names', () => {
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: ['rule1', { rule: 'rule2', displayName: 'Rule 2' }],
       });
 
@@ -40,7 +39,7 @@ describe('ruleNamesExtractTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: {config: {rules: []}} => returns empty array', () => {
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: [],
       });
 

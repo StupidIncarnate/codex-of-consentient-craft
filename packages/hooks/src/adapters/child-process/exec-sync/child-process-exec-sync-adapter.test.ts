@@ -2,9 +2,10 @@ import { childProcessExecSyncAdapter } from './child-process-exec-sync-adapter';
 import { childProcessExecSyncAdapterProxy } from './child-process-exec-sync-adapter.proxy';
 
 describe('childProcessExecSyncAdapter', () => {
-  it('should execute command successfully', () => {
+  it('VALID: {command: "echo test"} => returns command output', () => {
+    const proxy = childProcessExecSyncAdapterProxy();
     const mockOutput = 'command output';
-    childProcessExecSyncAdapterProxy.mockReturnValue(mockOutput);
+    proxy.returns({ output: mockOutput });
 
     const result = childProcessExecSyncAdapter({
       command: 'echo test',
@@ -14,11 +15,10 @@ describe('childProcessExecSyncAdapter', () => {
     expect(result).toBe(mockOutput);
   });
 
-  it('should throw error on command failure', () => {
+  it('ERROR: {command: "invalid-command"} => throws execution error', () => {
+    const proxy = childProcessExecSyncAdapterProxy();
     const mockError = new Error('Command failed');
-    childProcessExecSyncAdapterProxy.mockImplementation(() => {
-      throw mockError;
-    });
+    proxy.throws({ error: mockError });
 
     expect(() =>
       childProcessExecSyncAdapter({

@@ -1,7 +1,17 @@
-import type { FilePath } from '../../../../contracts/file-path/file-path-contract';
+jest.mock('fs');
 
-export const fsExistsSyncAdapterProxy = jest.fn<boolean, [{ filePath: FilePath }]>();
+import { existsSync } from 'fs';
 
-jest.mock('./fs-exists-sync-adapter', () => ({
-  fsExistsSyncAdapter: fsExistsSyncAdapterProxy,
-}));
+export const fsExistsSyncAdapterProxy = (): {
+  returns: ({ exists }: { exists: boolean }) => void;
+} => {
+  const mock = jest.mocked(existsSync);
+
+  mock.mockReturnValue(false);
+
+  return {
+    returns: ({ exists }: { exists: boolean }) => {
+      mock.mockReturnValueOnce(exists);
+    },
+  };
+};

@@ -1,4 +1,5 @@
-import { isValidHookDataContract } from './is-valid-hook-data.stub';
+import { isValidHookDataContract } from './is-valid-hook-data-contract';
+import { isValidHookDataContract as _isValidHookDataStub } from './is-valid-hook-data.stub';
 import { HookDataStub } from '../hook-data/hook-data.stub';
 
 describe('isValidHookDataContract()', () => {
@@ -16,16 +17,14 @@ describe('isValidHookDataContract()', () => {
     });
 
     it('VALID: {data: HookData with extra properties} => returns true', () => {
-      const data = {
-        ...HookDataStub({
-          hook_event_name: 'PostToolUse',
-          session_id: 'session456',
-          transcript_path: '/path/to/transcript',
-          cwd: '/cwd',
-          tool_name: 'Edit',
-        }),
-        extra_field: 'extra',
-      };
+      const data = HookDataStub({
+        hook_event_name: 'PostToolUse',
+        session_id: 'session456',
+        transcript_path: '/path/to/transcript',
+        cwd: '/cwd',
+        tool_name: 'Edit',
+      });
+      Reflect.set(data, 'extra_field', 'extra');
       const result = isValidHookDataContract({ data });
 
       expect(result).toBe(true);
@@ -80,40 +79,34 @@ describe('isValidHookDataContract()', () => {
 
   describe('invalid inputs - wrong types', () => {
     it('INVALID: {data: hook_event_name is number} => returns false', () => {
-      const data = {
-        ...HookDataStub(),
-        hook_event_name: 123 as unknown as string,
-      };
+      const data = HookDataStub();
+      Reflect.set(data, 'hook_event_name', 123 as never);
       const result = isValidHookDataContract({ data });
 
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: session_id is boolean} => returns false', () => {
-      const data = {
-        ...HookDataStub(),
-        session_id: true as unknown as string,
-      };
+      const data = HookDataStub();
+      Reflect.set(data, 'session_id', true as never);
       const result = isValidHookDataContract({ data });
 
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: transcript_path is null} => returns false', () => {
-      const data = {
-        ...HookDataStub(),
-        transcript_path: null as unknown as string,
-      };
+      const data = HookDataStub();
+      Reflect.set(data, 'transcript_path', null as never);
       const result = isValidHookDataContract({ data });
 
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: cwd is object} => returns false', () => {
-      const data = {
-        ...HookDataStub(),
-        cwd: { path: '/cwd' } as unknown as string,
-      };
+      const data = HookDataStub();
+      const invalidCwd = Object.create(null);
+      Reflect.set(invalidCwd, 'path', '/cwd');
+      Reflect.set(data, 'cwd', invalidCwd as never);
       const result = isValidHookDataContract({ data });
 
       expect(result).toBe(false);
@@ -160,12 +153,11 @@ describe('isValidHookDataContract()', () => {
     });
 
     it('EDGE: {data: all fields are empty strings} => returns true', () => {
-      const data = {
-        hook_event_name: '',
-        session_id: '',
-        transcript_path: '',
-        cwd: '',
-      };
+      const data = HookDataStub();
+      Reflect.set(data, 'hook_event_name', '');
+      Reflect.set(data, 'session_id', '');
+      Reflect.set(data, 'transcript_path', '');
+      Reflect.set(data, 'cwd', '');
       const result = isValidHookDataContract({ data });
 
       expect(result).toBe(true);

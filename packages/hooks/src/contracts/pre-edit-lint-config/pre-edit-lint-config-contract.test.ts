@@ -1,3 +1,4 @@
+import { preEditLintConfigContract } from './pre-edit-lint-config-contract';
 import { PreEditLintConfigStub } from './pre-edit-lint-config.stub';
 
 describe('preEditLintConfigContract', () => {
@@ -15,5 +16,13 @@ describe('preEditLintConfigContract', () => {
     });
 
     expect(result.rules).toHaveLength(3);
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return preEditLintConfigContract.parse({} as never);
+      }).toThrow(/Required/u);
+    });
   });
 });

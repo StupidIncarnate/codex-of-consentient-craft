@@ -3,16 +3,10 @@
  *
  * USAGE:
  * const config = await eslintLoadConfigBroker({ cwd: '/project/path', filePath: 'src/file.ts' });
- * // Returns Linter.Config for the specified file path
+ * // Returns config object for the specified file path
  */
 import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
-import type { Linter } from 'eslint';
 import { eslintCalculateConfigForFileAdapter } from '../../../adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter';
-
-interface ConfigCache {
-  cwd: string;
-  config: Linter.Config;
-}
 
 // Cache the config to avoid repeated expensive loading
 // WARNING: This is a module-level cache that persists across function calls.
@@ -21,7 +15,7 @@ interface ConfigCache {
 // In practice, this is safe for the pre-edit-lint use case since:
 // 1. Calls are serialized through the CLI
 // 2. The cwd rarely changes during a session
-let configCache: ConfigCache | null = null;
+let configCache: { cwd: PropertyKey; config: unknown } | null = null;
 
 export const eslintLoadConfigBroker = async ({
   cwd = process.cwd(),
@@ -29,7 +23,7 @@ export const eslintLoadConfigBroker = async ({
 }: {
   cwd?: string;
   filePath: string;
-}): Promise<Linter.Config> => {
+}): Promise<unknown> => {
   // Return cached config if same cwd
   const currentCache = configCache;
   if (currentCache !== null && currentCache.cwd === cwd) {

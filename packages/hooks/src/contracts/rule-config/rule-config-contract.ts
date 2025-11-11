@@ -6,15 +6,13 @@
  * // Returns validated RuleConfig with rule, optional displayName, optional message
  */
 import { z } from 'zod';
+import { messageContract } from '../message/message-contract';
 
 export const ruleConfigContract = z.object({
   rule: z.string().min(1).brand<'Rule'>(),
   displayName: z.string().brand<'DisplayName'>().optional(),
   message: z
-    .union([
-      z.string().brand<'Message'>(),
-      z.function().args(z.unknown()).returns(z.string().brand<'Message'>()),
-    ])
+    .union([messageContract, z.function().args(z.unknown()).returns(messageContract)])
     .optional(),
 });
 

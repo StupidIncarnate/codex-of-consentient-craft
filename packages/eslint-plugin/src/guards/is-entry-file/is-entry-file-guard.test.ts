@@ -1,4 +1,4 @@
-import { FolderTypeStub } from '../../contracts/folder-type/folder-type.stub';
+import { FolderTypeStub } from '@questmaestro/shared/contracts';
 import { isEntryFileGuard } from './is-entry-file-guard';
 
 describe('isEntryFileGuard', () => {

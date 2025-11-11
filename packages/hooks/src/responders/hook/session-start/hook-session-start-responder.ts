@@ -7,6 +7,8 @@
  */
 import { sessionIsNewBroker } from '../../../brokers/session/is-new/session-is-new-broker';
 import { standardsLoadFilesBroker } from '../../../brokers/standards/load-files/standards-load-files-broker';
+import { hookSessionStartResponderResultContract } from '../../../contracts/hook-session-start-responder-result/hook-session-start-responder-result-contract';
+import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { SessionStartHookData } from '../../../contracts/session-start-hook-data/session-start-hook-data-contract';
 import type { HookSessionStartResponderResult } from '../../../contracts/hook-session-start-responder-result/hook-session-start-responder-result-contract';
 
@@ -31,7 +33,9 @@ export const HookSessionStartResponder = async ({
   const shouldLoadStandards = isNew || process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS === 'true';
 
   if (shouldLoadStandards) {
-    const standardsContent = await standardsLoadFilesBroker({ cwd: input.cwd });
+    const standardsContent = await standardsLoadFilesBroker({
+      cwd: filePathContract.parse(input.cwd),
+    });
 
     if (standardsContent.trim()) {
       const sessionType = isNew ? 'NEW SESSION' : 'RESUMED SESSION';
@@ -43,14 +47,14 @@ ${standardsContent}
 Please refer to these standards when writing, reviewing, or suggesting code changes.
 </questmaestro-standards>\n`;
 
-      return {
+      return hookSessionStartResponderResultContract.parse({
         shouldOutput: true,
         content,
-      };
+      });
     }
   }
 
-  return {
+  return hookSessionStartResponderResultContract.parse({
     shouldOutput: false,
-  };
+  });
 };

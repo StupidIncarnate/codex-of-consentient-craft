@@ -1,4 +1,5 @@
-import { isSessionStartHookDataContract } from './is-session-start-hook-data.stub';
+import { isSessionStartHookDataContract } from './is-session-start-hook-data-contract';
+import { isSessionStartHookDataContract as _isSessionStartHookDataStub } from './is-session-start-hook-data.stub';
 import { SessionStartHookStub } from '../session-start-hook-data/session-start-hook-data.stub';
 
 describe('isSessionStartHookDataContract()', () => {
@@ -26,14 +27,12 @@ describe('isSessionStartHookDataContract()', () => {
     });
 
     it('VALID: {data: SessionStartHookData with extra fields} => returns true', () => {
-      const data = {
-        ...SessionStartHookStub({
-          session_id: 'session456',
-          transcript_path: '/path/to/transcript',
-          cwd: '/cwd',
-        }),
-        extra_field: 'extra',
-      };
+      const data = SessionStartHookStub({
+        session_id: 'session456',
+        transcript_path: '/path/to/transcript',
+        cwd: '/cwd',
+      });
+      Reflect.set(data, 'extra_field', 'extra');
       const result = isSessionStartHookDataContract({ data });
 
       expect(result).toBe(true);
@@ -76,30 +75,24 @@ describe('isSessionStartHookDataContract()', () => {
 
   describe('invalid inputs - wrong hook_event_name', () => {
     it('INVALID: {data: hook_event_name is "PreToolUse"} => returns false', () => {
-      const data = {
-        ...SessionStartHookStub(),
-        hook_event_name: 'PreToolUse' as 'SessionStart',
-      };
+      const data = SessionStartHookStub();
+      Reflect.set(data, 'hook_event_name', 'PreToolUse' as never);
       const result = isSessionStartHookDataContract({ data });
 
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: hook_event_name is "PostToolUse"} => returns false', () => {
-      const data = {
-        ...SessionStartHookStub(),
-        hook_event_name: 'PostToolUse' as 'SessionStart',
-      };
+      const data = SessionStartHookStub();
+      Reflect.set(data, 'hook_event_name', 'PostToolUse' as never);
       const result = isSessionStartHookDataContract({ data });
 
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: hook_event_name is number} => returns false', () => {
-      const data = {
-        ...SessionStartHookStub(),
-        hook_event_name: 123 as unknown as 'SessionStart',
-      };
+      const data = SessionStartHookStub();
+      Reflect.set(data, 'hook_event_name', 123 as never);
       const result = isSessionStartHookDataContract({ data });
 
       expect(result).toBe(false);
@@ -108,30 +101,26 @@ describe('isSessionStartHookDataContract()', () => {
 
   describe('invalid inputs - wrong types', () => {
     it('INVALID: {data: session_id is number} => returns false', () => {
-      const data = {
-        ...SessionStartHookStub(),
-        session_id: 123 as unknown as string,
-      };
+      const data = SessionStartHookStub();
+      Reflect.set(data, 'session_id', 123 as never);
       const result = isSessionStartHookDataContract({ data });
 
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: transcript_path is null} => returns false', () => {
-      const data = {
-        ...SessionStartHookStub(),
-        transcript_path: null as unknown as string,
-      };
+      const data = SessionStartHookStub();
+      Reflect.set(data, 'transcript_path', null as never);
       const result = isSessionStartHookDataContract({ data });
 
       expect(result).toBe(false);
     });
 
     it('INVALID: {data: cwd is object} => returns false', () => {
-      const data = {
-        ...SessionStartHookStub(),
-        cwd: { path: '/cwd' } as unknown as string,
-      };
+      const data = SessionStartHookStub();
+      const invalidCwd = Object.create(null);
+      Reflect.set(invalidCwd, 'path', '/cwd');
+      Reflect.set(data, 'cwd', invalidCwd as never);
       const result = isSessionStartHookDataContract({ data });
 
       expect(result).toBe(false);
@@ -178,11 +167,10 @@ describe('isSessionStartHookDataContract()', () => {
     });
 
     it('EDGE: {data: all string fields are empty strings} => returns true', () => {
-      const data = SessionStartHookStub({
-        session_id: '',
-        transcript_path: '',
-        cwd: '',
-      });
+      const data = SessionStartHookStub();
+      Reflect.set(data, 'session_id', '');
+      Reflect.set(data, 'transcript_path', '');
+      Reflect.set(data, 'cwd', '');
       const result = isSessionStartHookDataContract({ data });
 
       expect(result).toBe(true);

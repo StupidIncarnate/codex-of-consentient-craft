@@ -1,3 +1,4 @@
+import { lintResultContract } from './lint-result-contract';
 import { LintResultStub } from './lint-result.stub';
 import { LintMessageStub } from '../lint-message/lint-message.stub';
 
@@ -25,5 +26,13 @@ describe('lintResultContract', () => {
     const result = LintResultStub({ messages: [] });
 
     expect(result.messages).toStrictEqual([]);
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return lintResultContract.parse({} as never);
+      }).toThrow(/Required/u);
+    });
   });
 });

@@ -1,3 +1,4 @@
+import { ruleConfigContract } from './rule-config-contract';
 import { RuleConfigStub } from './rule-config.stub';
 
 describe('ruleConfigContract', () => {
@@ -18,5 +19,13 @@ describe('ruleConfigContract', () => {
     });
 
     expect(result.message).toBe('Console statements are not allowed');
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return ruleConfigContract.parse({} as never);
+      }).toThrow(/Required/u);
+    });
   });
 });

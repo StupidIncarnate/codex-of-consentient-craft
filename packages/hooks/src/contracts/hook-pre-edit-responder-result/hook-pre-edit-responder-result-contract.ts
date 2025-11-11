@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 export const hookPreEditResponderResultContract = z.object({
   shouldBlock: z.boolean(),
-  message: z.string().optional(),
+  message: z.string().brand<'HookMessage'>().optional(),
 });
 
 export type HookPreEditResponderResult = z.infer<typeof hookPreEditResponderResultContract>;

@@ -14,8 +14,12 @@
  * @param ruleId - The ESLint rule ID
  * @returns A human-friendly display name for the rule
  */
-export const violationDisplayNameDefaultTransformer = ({ ruleId }: { ruleId: string }): string => {
-  const defaultDisplayNames: Record<string, string> = {
+export const violationDisplayNameDefaultTransformer = ({
+  ruleId,
+}: {
+  ruleId: PropertyKey;
+}): PropertyKey => {
+  const defaultDisplayNames: Record<PropertyKey, PropertyKey> = {
     '@typescript-eslint/no-explicit-any': 'Type Safety Violation',
     '@typescript-eslint/ban-ts-comment': 'Type Error Suppression',
     'eslint-comments/no-use': 'Code Quality Rule Bypass',

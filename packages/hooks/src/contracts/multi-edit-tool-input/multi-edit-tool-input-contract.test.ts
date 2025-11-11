@@ -1,3 +1,4 @@
+import { multiEditToolInputContract } from './multi-edit-tool-input-contract';
 import { MultiEditToolInputStub } from './multi-edit-tool-input.stub';
 
 describe('multiEditToolInputContract', () => {
@@ -24,7 +25,17 @@ describe('multiEditToolInputContract', () => {
       ],
     });
 
-    expect(result.edits).toHaveLength(2);
-    expect(result.edits[1].replace_all).toBe(true);
+    expect(result.edits).toStrictEqual([
+      { old_string: 'a', new_string: 'b', replace_all: false },
+      { old_string: 'c', new_string: 'd', replace_all: true },
+    ]);
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return multiEditToolInputContract.parse({} as never);
+      }).toThrow(/Required/u);
+    });
   });
 });

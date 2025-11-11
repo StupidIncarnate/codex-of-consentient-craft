@@ -1,24 +1,25 @@
 import { violationMessageStatics } from './violation-message-statics';
 
 describe('violationMessageStatics', () => {
-  it('VALID: header => contains expected message', () => {
-    expect(violationMessageStatics.header).toContain('New code quality violations');
+  it('VALID: header => returns exact header message', () => {
+    expect(violationMessageStatics.header).toBe('🛑 New code quality violations detected:');
   });
 
-  it('VALID: footerBasic => contains expected message', () => {
-    expect(violationMessageStatics.footerBasic).toContain('maintain code quality');
-    expect(violationMessageStatics.footerBasic).toContain('Please fix');
+  it('VALID: footerBasic => returns exact footer message', () => {
+    expect(violationMessageStatics.footerBasic).toBe(
+      'These rules help maintain code quality and safety. Please fix the violations.',
+    );
   });
 
-  it('VALID: footerFull => contains expected message', () => {
-    expect(violationMessageStatics.footerFull).toContain('maintain code quality');
-    expect(violationMessageStatics.footerFull).toContain('blocked');
-    expect(violationMessageStatics.footerFull).toContain('submit the correct change');
+  it('VALID: footerFull => returns exact full footer message', () => {
+    expect(violationMessageStatics.footerFull).toBe(
+      'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+    );
   });
 
   it('VALID: all properties => are strings', () => {
-    expect(typeof violationMessageStatics.header).toStrictEqual('string');
-    expect(typeof violationMessageStatics.footerBasic).toStrictEqual('string');
-    expect(typeof violationMessageStatics.footerFull).toStrictEqual('string');
+    expect(typeof violationMessageStatics.header).toBe('string');
+    expect(typeof violationMessageStatics.footerBasic).toBe('string');
+    expect(typeof violationMessageStatics.footerFull).toBe('string');
   });
 });

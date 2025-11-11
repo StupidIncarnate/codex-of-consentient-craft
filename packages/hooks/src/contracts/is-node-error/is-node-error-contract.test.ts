@@ -1,4 +1,5 @@
-import { isNodeErrorContract } from './is-node-error.stub';
+import { isNodeErrorContract } from './is-node-error-contract';
+import { isNodeErrorContract as _isNodeErrorStub } from './is-node-error.stub';
 
 describe('isNodeErrorContract', () => {
   describe('valid input', () => {
@@ -40,7 +41,10 @@ describe('isNodeErrorContract', () => {
     });
 
     it('INVALID: non-Error object with code => returns false', () => {
-      const notError = { code: 'ENOENT', message: 'fake error' };
+      const notError = Object.assign(Object.create(null), {
+        code: 'ENOENT',
+        message: 'fake error',
+      });
 
       const result = isNodeErrorContract({ error: notError });
 

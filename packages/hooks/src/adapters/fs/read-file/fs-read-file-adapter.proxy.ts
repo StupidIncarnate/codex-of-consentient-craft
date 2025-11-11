@@ -1,8 +1,22 @@
-import type { FilePath } from '../../../../contracts/file-path/file-path-contract';
-import type { FileContents } from '../../../../contracts/file-contents/file-contents-contract';
+jest.mock('fs/promises');
 
-export const fsReadFileAdapterProxy = jest.fn<Promise<FileContents>, [{ filePath: FilePath }]>();
+import { readFile } from 'fs/promises';
+import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 
-jest.mock('./fs-read-file-adapter', () => ({
-  fsReadFileAdapter: fsReadFileAdapterProxy,
-}));
+export const fsReadFileAdapterProxy = (): {
+  returns: ({ contents }: { contents: FileContents }) => void;
+  throws: ({ error }: { error: Error }) => void;
+} => {
+  const mock = jest.mocked(readFile);
+
+  mock.mockResolvedValue('');
+
+  return {
+    returns: ({ contents }: { contents: FileContents }) => {
+      mock.mockResolvedValueOnce(contents);
+    },
+    throws: ({ error }: { error: Error }) => {
+      mock.mockRejectedValueOnce(error);
+    },
+  };
+};

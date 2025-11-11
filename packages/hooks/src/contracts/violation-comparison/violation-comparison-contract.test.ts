@@ -1,3 +1,4 @@
+import { violationComparisonContract } from './violation-comparison-contract';
 import { ViolationComparisonStub } from './violation-comparison.stub';
 
 describe('violationComparisonContract', () => {
@@ -27,5 +28,13 @@ describe('violationComparisonContract', () => {
     });
 
     expect(result.message).toBeUndefined();
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return violationComparisonContract.parse({} as never);
+      }).toThrow(/Required/u);
+    });
   });
 });

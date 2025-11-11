@@ -1,3 +1,4 @@
+import { questmaestroHooksConfigContract } from './questmaestro-hooks-config-contract';
 import { QuestmaestroHooksConfigStub } from './questmaestro-hooks-config.stub';
 
 describe('questmaestroHooksConfigContract', () => {
@@ -11,5 +12,13 @@ describe('questmaestroHooksConfigContract', () => {
     const result = QuestmaestroHooksConfigStub({ preEditLint: undefined });
 
     expect(result.preEditLint).toBeUndefined();
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return questmaestroHooksConfigContract.parse('invalid' as never);
+      }).toThrow(/Expected object/u);
+    });
   });
 });

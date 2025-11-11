@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 export const hookSessionStartResponderResultContract = z.object({
   shouldOutput: z.boolean(),
-  content: z.string().optional(),
+  content: z.string().brand<'HookContent'>().optional(),
 });
 
 export type HookSessionStartResponderResult = z.infer<

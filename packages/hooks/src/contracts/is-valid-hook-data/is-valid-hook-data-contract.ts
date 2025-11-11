@@ -5,7 +5,6 @@
  * if (isValidHookDataContract({ data })) { console.log(data.hook_event_name); }
  * // Returns true if data has hook_event_name, session_id, transcript_path, cwd as strings
  */
-import type { HookData } from '../hook-data/hook-data-contract';
 import { hasStringPropertyContract } from '../has-string-property/has-string-property-contract';
 
 /**
@@ -21,7 +20,7 @@ import { hasStringPropertyContract } from '../has-string-property/has-string-pro
  * @param params.data - The data to validate
  * @returns True if the data is a valid HookData object
  */
-export const isValidHookDataContract = ({ data }: { data: unknown }): data is HookData => {
+export const isValidHookDataContract = ({ data }: { data: unknown }): boolean => {
   if (typeof data !== 'object' || data === null) {
     return false;
   }

@@ -1,4 +1,5 @@
-import { hasStringPropertyContract } from './has-string-property.stub';
+import { hasStringPropertyContract } from './has-string-property-contract';
+import { hasStringPropertyContract as _hasStringPropertyStub } from './has-string-property.stub';
 
 describe('hasStringPropertyContract()', () => {
   describe('valid inputs', () => {

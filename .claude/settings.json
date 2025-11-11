@@ -36,20 +36,14 @@
       "Bash(find:*)",
       "Bash(npm run:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(done)",
       "Bash(tree:*)",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(exit 0)",
-      "Bash(true)",
+      "WebFetch(domain:*)",
       "Bash(env)",
       "Bash(claude config:*)",
       "Bash(npx tsc:*)",
       "Bash(npx ts-node:*)",
-      "Bash(npx eslint:*)",
-      "Bash(cat:*)",
-      "WebFetch(domain:docs.anthropic.com)"
+      "Bash(npx eslint:*)"
     ],
-    "deny": []
+    "deny": ["Bash(cat:*)", "Bash(sed:*)"]
   }
 }

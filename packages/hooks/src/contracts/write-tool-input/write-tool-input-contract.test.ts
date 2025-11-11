@@ -1,3 +1,4 @@
+import { writeToolInputContract } from './write-tool-input-contract';
 import { WriteToolInputStub } from './write-tool-input.stub';
 
 describe('writeToolInputContract', () => {
@@ -19,6 +20,14 @@ describe('writeToolInputContract', () => {
     expect(result).toStrictEqual({
       file_path: '/src/example.ts',
       content: 'export const test = "value";',
+    });
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return writeToolInputContract.parse({} as never);
+      }).toThrow(/Required/u);
     });
   });
 });

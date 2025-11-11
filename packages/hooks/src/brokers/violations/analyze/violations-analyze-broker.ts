@@ -35,25 +35,25 @@ export const violationsAnalyzeBroker = ({
 
   const hasViolations = newlyIntroduced.length > 0;
 
-  if (!hasViolations) {
-    return {
-      hasNewViolations: false,
+  if (hasViolations) {
+    const isMissingConfigOrData = config === undefined || hookData === undefined;
+    const violationMessage = isMissingConfigOrData
+      ? violationMessageFormatTransformer({ violations: newlyIntroduced })
+      : violationMessageFormatFullTransformer({
+          violations: newlyIntroduced,
+          config,
+          hookData,
+        });
+
+    return violationComparisonContract.parse({
+      hasNewViolations: hasViolations,
       newViolations: newlyIntroduced,
-    };
+      message: violationMessage === '' ? undefined : violationMessage,
+    });
   }
 
-  const hasConfigAndData = config !== undefined && hookData !== undefined;
-  const violationMessage = hasConfigAndData
-    ? violationMessageFormatFullTransformer({
-        violations: newlyIntroduced,
-        config,
-        hookData,
-      })
-    : violationMessageFormatTransformer({ violations: newlyIntroduced });
-
-  return violationComparisonContract.parse({
-    hasNewViolations: hasViolations,
+  return {
+    hasNewViolations: false,
     newViolations: newlyIntroduced,
-    message: violationMessage !== '' ? violationMessage : undefined,
-  });
+  };
 };

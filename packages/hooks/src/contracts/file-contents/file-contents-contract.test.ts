@@ -1,3 +1,4 @@
+import { fileContentsContract } from './file-contents-contract';
 import { FileContentsStub } from './file-contents.stub';
 
 describe('fileContentsContract', () => {
@@ -18,5 +19,13 @@ describe('fileContentsContract', () => {
     const result = FileContentsStub({ value: content });
 
     expect(result).toBe(content);
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {number instead of string} => throws validation error', () => {
+      expect(() => {
+        return fileContentsContract.parse(123 as never);
+      }).toThrow(/Expected string/u);
+    });
   });
 });

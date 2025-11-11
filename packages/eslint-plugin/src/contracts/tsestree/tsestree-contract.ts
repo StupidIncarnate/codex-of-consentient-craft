@@ -32,6 +32,7 @@ const nodeTypeValues = Object.values(tsestreeNodeTypeStatics.nodeTypes) as [
 // Output type (after parsing)
 interface RecursiveNodeOutput {
   type: TsestreeNodeTypeValue;
+  range?: readonly [unknown, unknown] | undefined;
   parent?: RecursiveNodeOutput | null | undefined;
   init?: RecursiveNodeOutput | null | undefined;
   returnType?: RecursiveNodeOutput | null | undefined;
@@ -92,6 +93,7 @@ interface RecursiveNodeOutput {
 // Input type (before parsing)
 interface RecursiveNodeInput {
   type: TsestreeNodeTypeValue;
+  range?: readonly [unknown, unknown] | undefined;
   parent?: RecursiveNodeInput | null | undefined;
   init?: RecursiveNodeInput | null | undefined;
   returnType?: RecursiveNodeInput | null | undefined;
@@ -151,6 +153,7 @@ interface RecursiveNodeInput {
 
 const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput> = z.object({
   type: z.enum(nodeTypeValues),
+  range: z.tuple([z.unknown(), z.unknown()]).readonly().optional(),
   parent: z
     .lazy(() => recursiveBase)
     .nullable()
@@ -271,6 +274,7 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
 // Root level contract - parent is OPTIONAL
 export const tsestreeContract = z.object({
   type: z.enum(nodeTypeValues),
+  range: z.tuple([z.unknown(), z.unknown()]).readonly().optional(),
   parent: recursiveBase.nullable().optional(),
   init: recursiveBase.nullable().optional(),
   returnType: recursiveBase.nullable().optional(),

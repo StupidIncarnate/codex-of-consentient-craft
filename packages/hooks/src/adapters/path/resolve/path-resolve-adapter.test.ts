@@ -1,16 +1,13 @@
 import { pathResolveAdapter } from './path-resolve-adapter';
 import { pathResolveAdapterProxy } from './path-resolve-adapter.proxy';
-import { filePathStub } from '../../../../contracts/file-path/file-path.stub';
+import { resolve } from 'path';
 
 describe('pathResolveAdapter', () => {
-  it('should resolve paths to absolute file path', () => {
-    pathResolveAdapterProxy.mockReturnValue(filePathStub);
+  it('VALID: {paths: ["/base", "relative", "file.ts"]} => resolves paths to absolute file path', () => {
+    pathResolveAdapterProxy();
 
     const result = pathResolveAdapter({ paths: ['/base', 'relative', 'file.ts'] });
 
-    expect(result).toBe(filePathStub);
-    expect(pathResolveAdapterProxy).toHaveBeenCalledWith({
-      paths: ['/base', 'relative', 'file.ts'],
-    });
+    expect(result).toBe(resolve('/base', 'relative', 'file.ts'));
   });
 });

@@ -10,144 +10,14 @@ import type { ToolInput } from '../../../contracts/tool-input/tool-input-contrac
 import { regexEscapeTransformer } from '../../../transformers/regex-escape/regex-escape-transformer';
 import { isNodeErrorContract } from '../../../contracts/is-node-error/is-node-error-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-
-interface Edit {
-  old_string: string;
-  new_string: string;
-  replace_all?: boolean;
-}
-
-// Type guard for Record<string, unknown>
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const applyEdit = ({
-  content,
-  oldString,
-  newString,
-  replaceAll,
-}: {
-  content: string;
-  oldString: string;
-  newString: string;
-  replaceAll?: boolean;
-}): string => {
-  if (replaceAll === true) {
-    const regex = new RegExp(regexEscapeTransformer({ str: oldString }), 'gu');
-    return content.replace(regex, newString);
-  }
-  return content.replace(oldString, newString);
-};
-
-const applyMultipleEdits = ({ content, edits }: { content: string; edits: Edit[] }): string => {
-  let result = content;
-
-  for (const edit of edits) {
-    const editParams: {
-      content: string;
-      oldString: string;
-      newString: string;
-      replaceAll?: boolean;
-    } = {
-      content: result,
-      oldString: edit.old_string,
-      newString: edit.new_string,
-    };
-
-    if (edit.replace_all === true) {
-      editParams.replaceAll = true;
-    }
-
-    result = applyEdit(editParams);
-  }
-
-  return result;
-};
-
-const readFileContent = async (filePath: string): Promise<string | null> => {
-  try {
-    return await fsReadFileAdapter({ filePath: filePathContract.parse(filePath) });
-  } catch (error: unknown) {
-    const isNodeError = isNodeErrorContract({ error });
-    if (isNodeError) {
-      const nodeError = error as NodeJS.ErrnoException;
-      if (nodeError.code === 'ENOENT') {
-        return null;
-      }
-    }
-    throw error;
-  }
-};
-
-const applySingleEdit = ({
-  content,
-  toolInput,
-}: {
-  content: string;
-  toolInput: ToolInput;
-}): string => {
-  if (!('new_string' in toolInput && 'old_string' in toolInput)) {
-    throw new Error('Invalid edit input');
-  }
-
-  const editParams: {
-    content: string;
-    oldString: string;
-    newString: string;
-    replaceAll?: boolean;
-  } = {
-    content,
-    oldString: toolInput.old_string,
-    newString: toolInput.new_string,
-  };
-
-  if (toolInput.replace_all === true) {
-    editParams.replaceAll = true;
-  }
-
-  return applyEdit(editParams);
-};
-
-const applyMultiEdits = ({
-  content,
-  toolInput,
-}: {
-  content: string;
-  toolInput: ToolInput;
-}): string => {
-  if (!('edits' in toolInput && Array.isArray(toolInput.edits))) {
-    throw new Error('Invalid multi-edit input');
-  }
-
-  const editsArray: Edit[] = toolInput.edits.map((editItem: unknown): Edit => {
-    if (!isRecord(editItem)) {
-      throw new Error('Invalid edit format: expected object');
-    }
-
-    const oldString = editItem.old_string;
-    const newString = editItem.new_string;
-    const replaceAll = editItem.replace_all;
-
-    const result: Edit = {
-      old_string: typeof oldString === 'string' ? oldString : String(oldString),
-      new_string: typeof newString === 'string' ? newString : String(newString),
-    };
-
-    if (replaceAll === true) {
-      result.replace_all = true;
-    }
-
-    return result;
-  });
-
-  return applyMultipleEdits({ content, edits: editsArray });
-};
+import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
+import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 
 export const toolInputGetFullContentBroker = async ({
   toolInput,
 }: {
   toolInput: ToolInput;
-}): Promise<string | null> => {
+}): Promise<FileContents | null> => {
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
   if (filePath === '') {
@@ -156,23 +26,69 @@ export const toolInputGetFullContentBroker = async ({
 
   // For Write tool, we already have the full content
   if ('content' in toolInput) {
-    return toolInput.content;
+    return fileContentsContract.parse(toolInput.content);
   }
 
-  const existingContent = await readFileContent(filePath);
+  // Read file content - return null if file doesn't exist
+  const readResult = await fsReadFileAdapter({ filePath: filePathContract.parse(filePath) }).catch(
+    (error: unknown) => {
+      const isNodeError = isNodeErrorContract({ error });
+      if (isNodeError) {
+        const nodeError = error as NodeJS.ErrnoException;
+        if (nodeError.code === 'ENOENT') {
+          return null;
+        }
+      }
+      throw error;
+    },
+  );
 
-  if (existingContent === null) {
+  if (readResult === null) {
     return null;
   }
 
+  const existingContent = readResult;
+
   // For Edit tool, apply the single edit
   if ('new_string' in toolInput && 'old_string' in toolInput && !('edits' in toolInput)) {
-    return applySingleEdit({ content: existingContent, toolInput });
+    if (toolInput.replace_all === true) {
+      const escapedPattern = regexEscapeTransformer({ str: toolInput.old_string });
+      const regex = new RegExp(String(escapedPattern), 'gu');
+      return fileContentsContract.parse(existingContent.replace(regex, toolInput.new_string));
+    }
+
+    return fileContentsContract.parse(
+      existingContent.replace(toolInput.old_string, toolInput.new_string),
+    );
   }
 
   // For MultiEdit tool, apply all edits sequentially
   if ('edits' in toolInput && Array.isArray(toolInput.edits)) {
-    return applyMultiEdits({ content: existingContent, toolInput });
+    let result = existingContent;
+
+    for (const editItem of toolInput.edits) {
+      // Type guard check
+      if (typeof editItem !== 'object' || editItem === null || Array.isArray(editItem)) {
+        throw new Error('Invalid edit format: expected object');
+      }
+
+      const oldString: unknown = Reflect.get(editItem, 'old_string');
+      const newString: unknown = Reflect.get(editItem, 'new_string');
+      const replaceAll: unknown = Reflect.get(editItem, 'replace_all');
+
+      const oldStringStr = typeof oldString === 'string' ? oldString : String(oldString);
+      const newStringStr = typeof newString === 'string' ? newString : String(newString);
+
+      if (replaceAll === true) {
+        const escapedPattern = regexEscapeTransformer({ str: oldStringStr });
+        const regex = new RegExp(String(escapedPattern), 'gu');
+        result = fileContentsContract.parse(result.replace(regex, newStringStr));
+      } else {
+        result = fileContentsContract.parse(result.replace(oldStringStr, newStringStr));
+      }
+    }
+
+    return result;
   }
 
   return null;

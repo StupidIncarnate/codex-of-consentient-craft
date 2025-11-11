@@ -1,11 +1,23 @@
-import type { ExecSyncOptions } from 'child_process';
-import type { Buffer } from 'node:buffer';
+jest.mock('child_process');
 
-export const childProcessExecSyncAdapterProxy = jest.fn<
-  string | Buffer,
-  [{ command: string; options?: ExecSyncOptions }]
->();
+import { execSync } from 'child_process';
 
-jest.mock('./child-process-exec-sync-adapter', () => ({
-  childProcessExecSyncAdapter: childProcessExecSyncAdapterProxy,
-}));
+export const childProcessExecSyncAdapterProxy = (): {
+  returns: ({ output }: { output: string | Buffer }) => void;
+  throws: ({ error }: { error: Error }) => void;
+} => {
+  const mock = jest.mocked(execSync);
+
+  mock.mockReturnValue(Buffer.from(''));
+
+  return {
+    returns: ({ output }: { output: string | Buffer }) => {
+      mock.mockReturnValueOnce(output);
+    },
+    throws: ({ error }: { error: Error }) => {
+      mock.mockImplementationOnce(() => {
+        throw error;
+      });
+    },
+  };
+};

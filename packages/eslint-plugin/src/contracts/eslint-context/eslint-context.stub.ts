@@ -37,6 +37,7 @@ export const EslintContextStub = ({
         ast: {},
         getAncestors: (_node) => [],
         getAllComments: () => [],
+        getText: () => '',
       })),
     // sourceCode property with same structure as getSourceCode return
     sourceCode: sourceCode
@@ -45,12 +46,14 @@ export const EslintContextStub = ({
           ast: sourceCode.ast ?? {},
           getAncestors: sourceCode.getAncestors ?? ((_node) => []),
           getAllComments: sourceCode.getAllComments ?? (() => []),
+          getText: sourceCode.getText ?? (() => ''),
         } as EslintSourceCode)
       : ({
           text: sourceTextContract.parse(''),
           ast: {},
           getAncestors: (_node) => [],
           getAllComments: () => [],
+          getText: () => '',
         } as EslintSourceCode),
   };
 };

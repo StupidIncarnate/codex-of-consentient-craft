@@ -1,3 +1,4 @@
+import { lintMessageContract } from './lint-message-contract';
 import { LintMessageStub } from './lint-message.stub';
 
 describe('lintMessageContract', () => {
@@ -22,5 +23,13 @@ describe('lintMessageContract', () => {
 
     expect(result.ruleId).toBe('no-console');
     expect(result.severity).toBe(1);
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return lintMessageContract.parse({} as never);
+      }).toThrow(/Required/u);
+    });
   });
 });

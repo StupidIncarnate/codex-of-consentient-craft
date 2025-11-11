@@ -1,9 +1,10 @@
 import { violationMessageFormatFullTransformer } from './violation-message-format-full-transformer';
-import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
-import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
-import { preEditLintConfigContract } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { ViolationCountStub } from '../../contracts/violation-count/violation-count.stub';
 import { ViolationDetailStub } from '../../contracts/violation-detail/violation-detail.stub';
+import { PreEditLintConfigStub } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config.stub';
+import { MessageStub } from '../../contracts/message/message.stub';
+
+type ViolationCount = ReturnType<typeof ViolationCountStub>;
 
 describe('violationMessageFormatFullTransformer()', () => {
   describe('basic formatting', () => {
@@ -22,7 +23,7 @@ describe('violationMessageFormatFullTransformer()', () => {
           ],
         }),
       ];
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({ rules: [] });
+      const config = PreEditLintConfigStub({ rules: [] });
 
       const result = violationMessageFormatFullTransformer({
         violations,
@@ -30,20 +31,20 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toContain('🛑 New code quality violations detected:');
-      expect(result).toContain('❌ Type Safety Violation: 1 violation');
-      expect(result).toContain(
-        'Using type "any" violates TypeScript\'s type safety rules. Go explore types for this project and use a known or make a new type to use.',
+      expect(result).toMatch(/🛑 New code quality violations detected:/u);
+      expect(result).toMatch(/❌ Type Safety Violation: 1 violation/u);
+      expect(result).toMatch(
+        /Using type "any" violates TypeScript's type safety rules\. Go explore types for this project and use a known or make a new type to use\./u,
       );
-      expect(result).toContain('Line 5:10 - Unexpected any');
-      expect(result).toContain(
-        'These rules help maintain code quality and safety. Please fix the violations.',
+      expect(result).toMatch(/Line 5:10 - Unexpected any/u);
+      expect(result).toMatch(
+        /These rules help maintain code quality and safety\. The write\/edit\/multi edit operation has been blocked/u,
       );
     });
 
     it('VALID: {violations: empty array} => returns header and footer only', () => {
       const violations: ViolationCount[] = [];
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({ rules: [] });
+      const config = PreEditLintConfigStub({ rules: [] });
 
       const result = violationMessageFormatFullTransformer({
         violations,
@@ -73,7 +74,7 @@ describe('violationMessageFormatFullTransformer()', () => {
           ],
         }),
       ];
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: [
           {
             rule: 'custom-rule',
@@ -88,7 +89,7 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toContain('❌ Custom Rule Name: 1 violation');
+      expect(result).toMatch(/❌ Custom Rule Name: 1 violation/u);
     });
   });
 
@@ -108,7 +109,7 @@ describe('violationMessageFormatFullTransformer()', () => {
           ],
         }),
       ];
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: [
           {
             rule: 'custom-rule',
@@ -123,7 +124,7 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toContain('This is a custom message explaining the rule.');
+      expect(result).toMatch(/This is a custom message explaining the rule\./u);
     });
 
     it('VALID: {violations: rule with custom function message} => calls function and uses result', () => {
@@ -141,12 +142,14 @@ describe('violationMessageFormatFullTransformer()', () => {
           ],
         }),
       ];
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: [
           {
             rule: 'custom-rule',
             message: (hookData: unknown) => {
-              return `Dynamic message for ${JSON.stringify(hookData)}`;
+              return MessageStub({
+                value: `Dynamic message for ${JSON.stringify(hookData)}`,
+              });
             },
           },
         ],
@@ -158,7 +161,7 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: { test: 'data' },
       });
 
-      expect(result).toContain('Dynamic message for {"test":"data"}');
+      expect(result).toMatch(/Dynamic message for \{"test":"data"\}/u);
     });
 
     it('ERROR: {violations: rule with function message that throws} => returns error message', () => {
@@ -176,7 +179,7 @@ describe('violationMessageFormatFullTransformer()', () => {
           ],
         }),
       ];
-      const config: PreEditLintConfig = preEditLintConfigContract.parse({
+      const config = PreEditLintConfigStub({
         rules: [
           {
             rule: 'custom-rule',
@@ -193,7 +196,7 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toContain('Custom message function failed: Function failed');
+      expect(result).toMatch(/Custom message function failed: Function failed/u);
     });
   });
 });

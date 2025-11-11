@@ -65,6 +65,11 @@ ruleTester.run(
       'const process = ({ data = "default" } = {}) => data',
       'export const stub = ({ id = "123" } = {}) => id',
 
+      // Type predicates (TypeScript limitation: cannot use destructured parameters)
+      'export const isString = (value: unknown): value is string => typeof value === "string"',
+      'export const isUser = (data: unknown): data is User => typeof data === "object" && data !== null && "id" in data',
+      'export const hasPermission = (user: unknown): user is UserWithPermission => typeof user === "object"',
+
       // Code examples in comments should not trigger
       '// Example: export const bad = (data: unknown) => data',
       '/* export function process(input: string): string { return input; } */',

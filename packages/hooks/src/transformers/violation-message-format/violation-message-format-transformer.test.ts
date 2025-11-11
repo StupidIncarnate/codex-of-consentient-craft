@@ -1,9 +1,11 @@
 import { violationMessageFormatTransformer } from './violation-message-format-transformer';
 import { ViolationCountStub } from '../../contracts/violation-count/violation-count.stub';
 
+type ViolationCount = ReturnType<typeof ViolationCountStub>;
+
 describe('violationMessageFormatTransformer', () => {
   it('VALID: {violations: []} => returns basic message', () => {
-    const violations = [];
+    const violations: ViolationCount[] = [];
 
     const message = violationMessageFormatTransformer({ violations });
 
@@ -13,7 +15,7 @@ These rules help maintain code quality and safety. Please fix the violations.`);
   });
 
   it('VALID: {violations: [1 any]} => returns formatted message', () => {
-    const violations = [
+    const violations: ViolationCount[] = [
       ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
     ];
 
@@ -27,7 +29,7 @@ These rules help maintain code quality and safety. Please fix the violations.`);
   });
 
   it('VALID: {violations: [multiple violations]} => returns formatted message with plurals', () => {
-    const violations = [
+    const violations: ViolationCount[] = [
       ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 3 }),
       ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 1 }),
       ViolationCountStub({ ruleId: 'eslint-comments/no-use', count: 2 }),

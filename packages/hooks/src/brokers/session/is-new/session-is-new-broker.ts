@@ -20,7 +20,7 @@ export const sessionIsNewBroker = async ({
     const filePath = filePathContract.parse(transcriptPath);
     const stats = await fsStatAdapter({ filePath });
     return isNewSessionGuard({ fileSize: stats.size });
-  } catch (error) {
+  } catch {
     // File doesn't exist - this is a new session (omit fileSize property)
     return isNewSessionGuard({});
   }

@@ -3,39 +3,43 @@
  *
  * USAGE:
  * const filtered = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
- * // Returns Linter.Config with only allowed rules enabled
+ * // Returns LinterConfig with only allowed rules enabled
  */
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
-import type { Linter } from 'eslint';
+import type { LinterConfig } from '../../contracts/linter-config/linter-config-contract';
+import { linterConfigContract } from '../../contracts/linter-config/linter-config-contract';
 import { ruleNamesExtractTransformer } from '../rule-names-extract/rule-names-extract-transformer';
 
 export const eslintConfigFilterTransformer = ({
   eslintConfig,
   hookConfig,
 }: {
-  eslintConfig: Linter.Config;
+  eslintConfig: LinterConfig;
   hookConfig: PreEditLintConfig;
-}): Linter.Config => {
+}): LinterConfig => {
   // Create new config with filtered rules
-  const filteredRules: Record<string, Linter.RuleEntry> = {};
+  const filteredRules: Record<PropertyKey, unknown> = {};
 
   // Only keep allowed rules, set others to 'off'
   const eslintRules = eslintConfig.rules;
   if (eslintRules !== undefined) {
     const ruleNames = ruleNamesExtractTransformer({ config: hookConfig });
     ruleNames.forEach((rule) => {
-      const ruleValue = eslintRules[rule];
-      if (ruleValue !== undefined) {
-        filteredRules[rule] = ruleValue;
+      // ESLint rules are always strings, filter out symbols
+      if (typeof rule === 'string') {
+        const ruleValue = eslintRules[rule];
+        if (ruleValue !== undefined) {
+          filteredRules[rule] = ruleValue;
+        }
       }
     });
   }
 
   // Return new config with same structure but filtered rules
   const { language: _language, ...configWithoutLanguage } = eslintConfig;
-  return {
+  return linterConfigContract.parse({
     ...configWithoutLanguage,
     files: ['**/*.ts', '**/*.tsx'], // Ensure files pattern is set
     rules: filteredRules,
-  };
+  });
 };

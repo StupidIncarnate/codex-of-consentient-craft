@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /**
  * PURPOSE: Entry point for session start hook that loads standards for new sessions
  *
@@ -7,6 +6,7 @@
  * echo '{"hook_event_name":"SessionStart",...}' | node start-session-start-hook.ts
  * // Reads JSON from stdin, validates, outputs standards content to stdout if new session
  */
+
 import { HookSessionStartResponder } from '../responders/hook/session-start/hook-session-start-responder';
 import { isSessionStartHookDataContract } from '../contracts/is-session-start-hook-data/is-session-start-hook-data-contract';
 import { debugDebugAdapter } from '../adapters/debug/debug/debug-debug-adapter';

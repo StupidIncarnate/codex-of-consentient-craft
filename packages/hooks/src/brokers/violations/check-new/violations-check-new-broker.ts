@@ -16,6 +16,8 @@ import {
   violationComparisonContract,
   type ViolationComparison,
 } from '../../../contracts/violation-comparison/violation-comparison-contract';
+import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
+import { linterConfigContract } from '../../../contracts/linter-config/linter-config-contract';
 
 /**
  * Checks for new ESLint violations introduced by a tool input operation.
@@ -34,11 +36,12 @@ import {
  */
 export const violationsCheckNewBroker = async ({
   toolInput,
-  cwd = process.cwd(),
+  cwd,
 }: {
   toolInput: ToolInput;
-  cwd?: string;
+  cwd?: FilePath;
 }): Promise<ViolationComparison> => {
+  const workingDir = cwd ?? filePathContract.parse(process.cwd());
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
   if (filePath === '') {
@@ -49,10 +52,11 @@ export const violationsCheckNewBroker = async ({
   }
 
   // Load configuration if not provided
-  const hookConfig = hookConfigLoadBroker({ cwd });
+  const hookConfig = hookConfigLoadBroker({ cwd: workingDir });
 
   // Load and filter the host ESLint configuration for the actual file
-  const eslintConfig = await eslintLoadConfigBroker({ cwd, filePath });
+  const rawEslintConfig = await eslintLoadConfigBroker({ cwd: workingDir, filePath });
+  const eslintConfig = linterConfigContract.parse(rawEslintConfig);
   const filteredConfig = eslintConfigFilterTransformer({
     eslintConfig,
     hookConfig,
@@ -94,13 +98,13 @@ export const violationsCheckNewBroker = async ({
       content: oldContent,
       filePath,
       config: filteredConfig,
-      cwd,
+      cwd: workingDir,
     }),
     eslintLintRunTargetedBroker({
       content: newContent,
       filePath,
       config: filteredConfig,
-      cwd,
+      cwd: workingDir,
     }),
   ]);
 

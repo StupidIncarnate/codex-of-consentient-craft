@@ -16,7 +16,7 @@ import {
 import { eslintRuleStatics } from '../../../statics/eslint-rule/eslint-rule-statics';
 import { typescriptEslintRuleStatics } from '../../../statics/typescript-eslint-rule/typescript-eslint-rule-statics';
 import { jestRuleStatics } from '../../../statics/jest-rule/jest-rule-statics';
-import { questmaestroRuleEnforceOnStatics } from '../../../statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics';
+import { questmaestroRuleEnforceOnStatics } from '@questmaestro/shared/statics';
 import { typescriptEslintEslintPluginLoadAdapter } from '../../../adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter';
 import { eslintPluginJestLoadAdapter } from '../../../adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter';
 import { eslintPluginEslintCommentsLoadAdapter } from '../../../adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter';
@@ -166,10 +166,12 @@ export const configQuestmaestroBroker = ({
     },
   });
 
-  // Stub files need to use primitives and magic numbers for type conversion
+  // Proxy files need to use type assertions for mock compatibility
   const proxyOverrides: EslintConfig = eslintConfigContract.parse({
     files: ['**/*.proxy.ts', '**/*.proxy.tsx'],
-    rules: {},
+    rules: {
+      '@typescript-eslint/no-unsafe-type-assertion': 'off',
+    },
   });
 
   // Stub files need to use primitives and magic numbers for type conversion

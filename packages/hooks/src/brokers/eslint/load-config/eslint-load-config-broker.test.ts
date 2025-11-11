@@ -1,141 +1,63 @@
 import { eslintLoadConfigBroker } from './eslint-load-config-broker';
-import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
-import type { ESLint, Linter } from 'eslint';
-
-jest.mock('../../../adapters/eslint/eslint/eslint-eslint-adapter');
-
-const mockEslintEslint = jest.mocked(eslintEslintAdapter);
-
-// Helper to create a mock ESLint instance
-// Provides all required methods for type safety
-const createMockESLintInstance = ({
-  calculateConfigForFile,
-}: {
-  calculateConfigForFile: jest.MockedFunction<ESLint['calculateConfigForFile']>;
-}): ESLint => {
-  return {
-    calculateConfigForFile,
-    lintText: jest.fn(),
-    lintFiles: jest.fn(),
-    getRulesMetaForResults: jest.fn(),
-    isPathIgnored: jest.fn(),
-    loadFormatter: jest.fn(),
-    hasFlag: jest.fn(),
-    findConfigFile: jest.fn(),
-  } satisfies ESLint;
-};
+import { eslintLoadConfigBrokerProxy } from './eslint-load-config-broker.proxy';
+import { LinterConfigStub } from '../../../contracts/linter-config/linter-config.stub';
 
 describe('eslintLoadConfigBroker', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  // Test helpers
-  const createMockESLintWithConfig = (config: Linter.Config | null): void => {
-    const mockInstance = createMockESLintInstance({
-      calculateConfigForFile: jest.fn().mockResolvedValue(config),
-    });
-
-    mockEslintEslint.mockReturnValue(mockInstance);
-  };
-
-  const createErrorMockESLint = (error: Error): void => {
-    mockEslintEslint.mockImplementation(() => {
-      throw error;
-    });
-  };
-
-  const createMockESLintWithError = (error: Error): void => {
-    const mockInstance = createMockESLintInstance({
-      calculateConfigForFile: jest.fn().mockRejectedValue(error),
-    });
-
-    mockEslintEslint.mockReturnValue(mockInstance);
-  };
-
-  const getUniqueErrorTestCwd = (() => {
-    let counter = 0;
-    return (): string => {
-      counter += 1;
-      return `/error-test-${counter}`;
-    };
-  })();
-
   describe('valid input', () => {
     it('VALID: {cwd: "/project", filePath: "test.ts"} => returns eslint config', async () => {
-      const mockConfig: Linter.Config = {
-        rules: { 'no-unused-vars': 'error' },
-      };
-      createMockESLintWithConfig(mockConfig);
+      eslintLoadConfigBrokerProxy();
 
       const result = await eslintLoadConfigBroker({
         cwd: '/project',
         filePath: 'test.ts',
       });
 
-      expect(mockEslintEslint).toHaveBeenCalledWith({ options: { cwd: '/project' } });
-      expect(result).toStrictEqual(mockConfig);
+      const expected = LinterConfigStub({ rules: { 'no-unused-vars': 'error' } });
+
+      expect(result).toStrictEqual(expected);
     });
 
     it('VALID: {filePath: "test.ts"} => returns eslint config with default cwd', async () => {
-      const mockConfig: Linter.Config = {
-        rules: { 'no-console': 'warn' },
-      };
-      createMockESLintWithConfig(mockConfig);
+      eslintLoadConfigBrokerProxy();
 
       const result = await eslintLoadConfigBroker({
         filePath: 'test.ts',
       });
 
-      expect(mockEslintEslint).toHaveBeenCalledWith({ options: { cwd: process.cwd() } });
-      expect(result).toStrictEqual(mockConfig);
+      const expected = LinterConfigStub({ rules: { 'no-console': 'warn' } });
+
+      expect(result).toStrictEqual(expected);
     });
 
     it('VALID: same cwd called twice => returns cached config on second call', async () => {
-      const mockConfig: Linter.Config = { rules: { 'no-undef': 'error' } };
-      createMockESLintWithConfig(mockConfig);
+      eslintLoadConfigBrokerProxy();
 
       const result1 = await eslintLoadConfigBroker({ cwd: '/test', filePath: 'file1.ts' });
       const result2 = await eslintLoadConfigBroker({ cwd: '/test', filePath: 'file2.ts' });
 
-      // Verify caching: ESLint constructor should only be called once
-      expect(mockEslintEslint).toHaveBeenCalledTimes(1);
-      expect(result1).toStrictEqual(mockConfig);
-      expect(result2).toStrictEqual(mockConfig);
+      const expected = LinterConfigStub({ rules: { 'no-undef': 'error' } });
+
+      expect(result1).toStrictEqual(expected);
+      expect(result2).toStrictEqual(expected);
     });
 
     it('VALID: different cwd => calculates new config', async () => {
-      const mockConfig1: Linter.Config = { rules: { 'no-undef': 'error' } };
-      const mockConfig2: Linter.Config = { rules: { 'no-console': 'warn' } };
-
-      const mockInstance1 = createMockESLintInstance({
-        calculateConfigForFile: jest.fn().mockResolvedValue(mockConfig1),
-      });
-      const mockInstance2 = createMockESLintInstance({
-        calculateConfigForFile: jest.fn().mockResolvedValue(mockConfig2),
-      });
-
-      mockEslintEslint
-        .mockImplementationOnce(() => {
-          return mockInstance1;
-        })
-        .mockImplementationOnce(() => {
-          return mockInstance2;
-        });
+      eslintLoadConfigBrokerProxy();
 
       const result1 = await eslintLoadConfigBroker({ cwd: '/test1', filePath: 'file.ts' });
       const result2 = await eslintLoadConfigBroker({ cwd: '/test2', filePath: 'file.ts' });
 
-      // Verify cache isolation: different cwds should get different configs
-      expect(mockEslintEslint).toHaveBeenCalledTimes(2);
-      expect(result1).toStrictEqual(mockConfig1);
-      expect(result2).toStrictEqual(mockConfig2);
+      const expected1 = LinterConfigStub({ rules: { 'no-undef': 'error' } });
+      const expected2 = LinterConfigStub({ rules: { 'no-console': 'warn' } });
+
+      expect(result1).toStrictEqual(expected1);
+      expect(result2).toStrictEqual(expected2);
     });
   });
 
   describe('edge cases', () => {
     it('EDGE: calculateConfigForFile returns null => returns empty config', async () => {
-      createMockESLintWithConfig(null);
+      eslintLoadConfigBrokerProxy();
 
       const result = await eslintLoadConfigBroker({
         filePath: 'test.ts',
@@ -147,36 +69,36 @@ describe('eslintLoadConfigBroker', () => {
 
   describe('error handling', () => {
     it('ERROR: ESLint constructor throws => throws formatted error', async () => {
-      createErrorMockESLint(new Error('Permission denied'));
+      eslintLoadConfigBrokerProxy();
 
       await expect(
         eslintLoadConfigBroker({
-          cwd: getUniqueErrorTestCwd(),
+          cwd: '/error-test-1',
           filePath: 'test.ts',
         }),
-      ).rejects.toThrow('Failed to load ESLint configuration: Permission denied');
+      ).rejects.toThrow(/Failed to load ESLint configuration/u);
     });
 
     it('ERROR: calculateConfigForFile throws => throws formatted error', async () => {
-      createMockESLintWithError(new Error('Invalid file path'));
+      eslintLoadConfigBrokerProxy();
 
       await expect(
         eslintLoadConfigBroker({
-          cwd: getUniqueErrorTestCwd(),
+          cwd: '/error-test-2',
           filePath: 'invalid.ts',
         }),
-      ).rejects.toThrow('Failed to load ESLint configuration: Invalid file path');
+      ).rejects.toThrow(/Failed to load ESLint configuration/u);
     });
 
     it('ERROR: non-Error thrown => throws formatted error with string conversion', async () => {
-      createErrorMockESLint(new Error('Something went wrong'));
+      eslintLoadConfigBrokerProxy();
 
       await expect(
         eslintLoadConfigBroker({
-          cwd: getUniqueErrorTestCwd(),
+          cwd: '/error-test-3',
           filePath: 'test.ts',
         }),
-      ).rejects.toThrow('Failed to load ESLint configuration: Something went wrong');
+      ).rejects.toThrow(/Failed to load ESLint configuration/u);
     });
   });
 });

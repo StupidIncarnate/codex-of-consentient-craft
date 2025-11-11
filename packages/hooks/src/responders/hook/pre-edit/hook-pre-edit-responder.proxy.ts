@@ -1,16 +1,13 @@
-import { violationsCheckNewBroker } from '../../../brokers/violations/check-new/violations-check-new-broker';
-import type { ViolationComparison } from '../../../contracts/violation-comparison/violation-comparison-contract';
-
-jest.mock('../../../brokers/violations/check-new/violations-check-new-broker');
+import { violationsCheckNewBrokerProxy } from '../../../brokers/violations/check-new/violations-check-new-broker.proxy';
 
 export const HookPreEditResponderProxy = (): {
-  setupViolationCheck: (params: { result: ViolationComparison }) => void;
+  setupViolationCheck: (params?: { hasViolations?: boolean }) => void;
 } => {
-  const mockViolationsCheckNewBroker = jest.mocked(violationsCheckNewBroker);
+  const brokerProxy = violationsCheckNewBrokerProxy();
 
   return {
-    setupViolationCheck: ({ result }: { result: ViolationComparison }): void => {
-      mockViolationsCheckNewBroker.mockResolvedValueOnce(result);
+    setupViolationCheck: ({ hasViolations = false }: { hasViolations?: boolean } = {}): void => {
+      brokerProxy.setupViolationCheck({ hasViolations });
     },
   };
 };

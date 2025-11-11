@@ -9,11 +9,20 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { debugDebugAdapter } from '../../../adapters/debug/debug/debug-debug-adapter';
+import { standardsFilesStatics } from '../../../statics/standards-files/standards-files-statics';
+import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import {
+  fileContentsContract,
+  type FileContents,
+} from '../../../contracts/file-contents/file-contents-contract';
 
-const log = debugDebugAdapter({ namespace: 'questmaestro:session-start-hook' });
-
-export const standardsLoadFilesBroker = async ({ cwd }: { cwd: string }): Promise<string> => {
-  const standardsFiles = ['coding-standards.md', 'testing-standards.md'];
+export const standardsLoadFilesBroker = async ({
+  cwd,
+}: {
+  cwd: FilePath;
+}): Promise<FileContents> => {
+  const log = debugDebugAdapter({ namespace: 'questmaestro:session-start-hook' });
+  const standardsFiles = standardsFilesStatics;
 
   const standardsPath = pathResolveAdapter({
     paths: [cwd, 'node_modules/@questmaestro/standards'],
@@ -40,5 +49,5 @@ export const standardsLoadFilesBroker = async ({ cwd }: { cwd: string }): Promis
     }),
   );
 
-  return fileContents.join('');
+  return fileContentsContract.parse(fileContents.join(''));
 };

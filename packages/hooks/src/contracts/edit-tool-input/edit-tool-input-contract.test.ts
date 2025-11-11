@@ -194,4 +194,12 @@ describe('editToolInputContract', () => {
       }).toThrow(/Expected boolean/u);
     });
   });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return editToolInputContract.parse({} as never);
+      }).toThrow(/Required/u);
+    });
+  });
 });

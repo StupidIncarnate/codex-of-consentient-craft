@@ -8,3 +8,4 @@
 
 // Export all statics
 export * from './src/statics/folder-config/folder-config-statics';
+export * from './src/statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics';

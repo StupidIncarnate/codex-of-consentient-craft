@@ -1,3 +1,4 @@
+import { userPromptSubmitHookDataContract } from './user-prompt-submit-hook-data-contract';
 import { UserPromptSubmitHookDataStub } from './user-prompt-submit-hook-data.stub';
 
 describe('userPromptSubmitHookDataContract', () => {
@@ -15,5 +16,13 @@ describe('userPromptSubmitHookDataContract', () => {
     });
 
     expect(result.user_prompt).toBe('Create a new feature');
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return userPromptSubmitHookDataContract.parse({} as never);
+      }).toThrow(/Required/u);
+    });
   });
 });

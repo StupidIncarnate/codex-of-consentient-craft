@@ -25,6 +25,11 @@ export const validateFunctionParamsUseObjectDestructuringTransformer = ({
     return;
   }
 
+  // Skip validation for type predicates (TypeScript limitation: type predicates cannot reference destructured parameters)
+  if (node.returnType?.typeAnnotation?.type === 'TSTypePredicate') {
+    return;
+  }
+
   // Check each parameter - all must use object destructuring
   for (const param of node.params) {
     // Check if parameter uses object destructuring

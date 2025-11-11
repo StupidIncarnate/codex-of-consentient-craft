@@ -1,14 +1,13 @@
 import { eslintLinterAdapter } from './eslint-linter-adapter';
 import { eslintLinterAdapterProxy } from './eslint-linter-adapter.proxy';
-import type { Linter } from 'eslint';
+import { Linter } from 'eslint';
 
 describe('eslintLinterAdapter', () => {
-  it('should create Linter instance', () => {
-    const mockLinter = {} as Linter;
-    eslintLinterAdapterProxy.mockReturnValue(mockLinter);
+  it('VALID: {} => creates Linter instance', () => {
+    eslintLinterAdapterProxy();
 
     const result = eslintLinterAdapter();
 
-    expect(result).toBe(mockLinter);
+    expect(result).toBeInstanceOf(Linter);
   });
 });

@@ -1,3 +1,4 @@
+import { violationDetailContract } from './violation-detail-contract';
 import { ViolationDetailStub } from './violation-detail.stub';
 
 describe('violationDetailContract', () => {
@@ -23,5 +24,13 @@ describe('violationDetailContract', () => {
     expect(result.ruleId).toBe('no-console');
     expect(result.line).toBe(42);
     expect(result.column).toBe(10);
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return violationDetailContract.parse({} as never);
+      }).toThrow(/Required/u);
+    });
   });
 });

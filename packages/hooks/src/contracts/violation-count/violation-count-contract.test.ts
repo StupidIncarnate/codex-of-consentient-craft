@@ -1,3 +1,4 @@
+import { violationCountContract } from './violation-count-contract';
 import { ViolationCountStub } from './violation-count.stub';
 import { ViolationDetailStub } from '../violation-detail/violation-detail.stub';
 
@@ -7,7 +8,7 @@ describe('violationCountContract', () => {
 
     expect(result.ruleId).toBe('@typescript-eslint/no-explicit-any');
     expect(result.count).toBe(1);
-    expect(result.details[0].ruleId).toBe('@typescript-eslint/no-explicit-any');
+    expect(result.details[0]?.ruleId).toBe('@typescript-eslint/no-explicit-any');
   });
 
   it('VALID: {multiple violations} => parses successfully', () => {
@@ -22,5 +23,13 @@ describe('violationCountContract', () => {
     });
 
     expect(result.count).toBe(3);
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {invalid data} => throws validation error', () => {
+      expect(() => {
+        return violationCountContract.parse({} as never);
+      }).toThrow(/Required/u);
+    });
   });
 });

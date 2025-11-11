@@ -1,3 +1,4 @@
+import { toolResponseContract } from './tool-response-contract';
 import { ToolResponseStub } from './tool-response.stub';
 
 describe('toolResponseContract', () => {
@@ -18,5 +19,13 @@ describe('toolResponseContract', () => {
 
     expect(result.success).toBe(false);
     expect(result.filePath).toBe('/src/test.ts');
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {success: not a boolean} => throws validation error', () => {
+      expect(() => {
+        return toolResponseContract.parse({ success: 'yes' as never });
+      }).toThrow(/Expected boolean/u);
+    });
   });
 });

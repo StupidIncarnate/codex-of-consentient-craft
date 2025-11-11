@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /**
  * PURPOSE: Entry point for pre-edit hook that validates and processes tool use events
  *
@@ -7,6 +6,7 @@
  * echo '{"hook_event_name":"PreToolUse",...}' | node start-pre-edit-hook.ts
  * // Reads JSON from stdin, validates, checks violations, exits with code 2 if blocked
  */
+
 import { HookPreEditResponder } from '../responders/hook/pre-edit/hook-pre-edit-responder';
 import { isValidHookDataContract } from '../contracts/is-valid-hook-data/is-valid-hook-data-contract';
 import type { HookData } from '../contracts/hook-data/hook-data-contract';

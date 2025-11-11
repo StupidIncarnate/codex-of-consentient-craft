@@ -1,21 +1,24 @@
 import { fsExistsSyncAdapter } from './fs-exists-sync-adapter';
 import { fsExistsSyncAdapterProxy } from './fs-exists-sync-adapter.proxy';
-import { filePathStub } from '../../../../contracts/file-path/file-path.stub';
+import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('fsExistsSyncAdapter', () => {
-  it('should return true when file exists', () => {
-    fsExistsSyncAdapterProxy.mockReturnValue(true);
+  it('VALID: {filePath} => returns true when file exists', () => {
+    const proxy = fsExistsSyncAdapterProxy();
+    const filePath = FilePathStub({ value: '/test/file.ts' });
+    proxy.returns({ exists: true });
 
-    const result = fsExistsSyncAdapter({ filePath: filePathStub });
+    const result = fsExistsSyncAdapter({ filePath });
 
     expect(result).toBe(true);
-    expect(fsExistsSyncAdapterProxy).toHaveBeenCalledWith({ filePath: filePathStub });
   });
 
-  it('should return false when file does not exist', () => {
-    fsExistsSyncAdapterProxy.mockReturnValue(false);
+  it('VALID: {filePath} => returns false when file does not exist', () => {
+    const proxy = fsExistsSyncAdapterProxy();
+    const filePath = FilePathStub({ value: '/test/file.ts' });
+    proxy.returns({ exists: false });
 
-    const result = fsExistsSyncAdapter({ filePath: filePathStub });
+    const result = fsExistsSyncAdapter({ filePath });
 
     expect(result).toBe(false);
   });

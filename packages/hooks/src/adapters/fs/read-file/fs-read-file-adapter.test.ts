@@ -1,15 +1,17 @@
 import { fsReadFileAdapter } from './fs-read-file-adapter';
 import { fsReadFileAdapterProxy } from './fs-read-file-adapter.proxy';
-import { filePathStub } from '../../../../contracts/file-path/file-path.stub';
-import { fileContentsStub } from '../../../../contracts/file-contents/file-contents.stub';
+import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 
 describe('fsReadFileAdapter', () => {
-  it('should read file contents', async () => {
-    fsReadFileAdapterProxy.mockResolvedValue(fileContentsStub);
+  it('VALID: {filePath} => reads file contents', async () => {
+    const proxy = fsReadFileAdapterProxy();
+    const filePath = FilePathStub({ value: '/test/file.ts' });
+    const contents = FileContentsStub({ value: 'test content' });
+    proxy.returns({ contents });
 
-    const result = await fsReadFileAdapter({ filePath: filePathStub });
+    const result = await fsReadFileAdapter({ filePath });
 
-    expect(result).toBe(fileContentsStub);
-    expect(fsReadFileAdapterProxy).toHaveBeenCalledWith({ filePath: filePathStub });
+    expect(result).toStrictEqual(contents);
   });
 });
