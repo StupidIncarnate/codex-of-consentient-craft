@@ -215,7 +215,7 @@ describe('violationsCountByRuleTransformer', () => {
       column: 10,
       message: 'Parse error message.',
       severity: 2,
-      // No ruleId
+      ruleId: undefined, // Explicitly omit ruleId to override stub default
     });
 
     const results = [

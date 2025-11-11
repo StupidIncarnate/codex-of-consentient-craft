@@ -14,16 +14,17 @@ import type { Linter } from 'eslint';
 const mockCalculateConfigForFile = jest.fn();
 const mockLintText = jest.fn();
 
-const mockEslintInstance = {
-  calculateConfigForFile: mockCalculateConfigForFile,
-  lintText: mockLintText,
-} as unknown as ESLint;
+// Create mock instance that passes instanceof checks
+const mockEslintInstance = Object.create(ESLint.prototype) as ESLint;
+mockEslintInstance.calculateConfigForFile =
+  mockCalculateConfigForFile as ESLint['calculateConfigForFile'];
+mockEslintInstance.lintText = mockLintText as ESLint['lintText'];
 
 export const eslintEslintAdapterProxy = (): {
   returns: ({ config }: { config: Linter.Config }) => void;
   throws: ({ error }: { error: Error }) => void;
   setLintTextBehavior: (implementation: () => Promise<unknown[]>) => void;
-  getMockLintText: () => jest.Mock;
+  getLintTextHandler: () => jest.Mock;
 } => {
   const MockESLintConstructor = jest.mocked(ESLint);
 
@@ -48,6 +49,6 @@ export const eslintEslintAdapterProxy = (): {
     setLintTextBehavior: (implementation: () => Promise<unknown[]>) => {
       mockLintText.mockImplementation(implementation);
     },
-    getMockLintText: () => mockLintText,
+    getLintTextHandler: () => mockLintText,
   };
 };

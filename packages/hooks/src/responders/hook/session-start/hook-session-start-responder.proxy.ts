@@ -13,7 +13,8 @@ export const HookSessionStartResponderProxy = (): {
       if (isNew) {
         sessionProxy.setupFileNotFound();
       } else {
-        sessionProxy.setupFileExists({ size: 100 });
+        // Use >= 1024 bytes to represent a resumed session (see isNewSessionGuard threshold)
+        sessionProxy.setupFileExists({ size: 2000 });
       }
     },
     setupStandardsLoad: ({ content }: { content: string }): void => {

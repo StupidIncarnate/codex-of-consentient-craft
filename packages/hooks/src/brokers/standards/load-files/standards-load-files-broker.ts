@@ -37,7 +37,11 @@ export const standardsLoadFilesBroker = async ({
         try {
           const fileContent = await fsReadFileAdapter({ filePath });
           log(`Loaded standards file: ${file}`);
-          return `\n\n# ${file.replace('.md', '').replace('-', ' ').toUpperCase()}\n\n${fileContent}`;
+          // Only add headers if content is not empty/whitespace
+          if (fileContent.trim()) {
+            return `\n\n# ${file.replace('.md', '').replace('-', ' ').toUpperCase()}\n\n${fileContent}`;
+          }
+          return '';
         } catch (error) {
           log(`Failed to load ${file}:`, error);
           return '';

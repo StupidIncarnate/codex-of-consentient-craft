@@ -24,23 +24,23 @@ export const eslintLintRunTargetedBrokerProxy = (): {
       oldResults: unknown[];
       newResults: unknown[];
     }): void => {
-      const mockLintText = eslintProxy.getMockLintText();
+      const lintTextHandler = eslintProxy.getLintTextHandler();
 
       // Reset mock and set up to return different results on each call
-      mockLintText.mockReset();
-      mockLintText.mockResolvedValueOnce(oldResults);
-      mockLintText.mockResolvedValueOnce(newResults);
+      lintTextHandler.mockReset();
+      lintTextHandler.mockResolvedValueOnce(oldResults);
+      lintTextHandler.mockResolvedValueOnce(newResults);
 
       // Set default for any additional calls
-      mockLintText.mockResolvedValue(newResults);
+      lintTextHandler.mockResolvedValue(newResults);
     },
 
     returnsLintResults: ({ results }: { results: unknown[] }): void => {
-      const mockLintText = eslintProxy.getMockLintText();
+      const lintTextHandler = eslintProxy.getLintTextHandler();
 
       // Set up single call to return specific results
-      mockLintText.mockReset();
-      mockLintText.mockResolvedValue(results);
+      lintTextHandler.mockReset();
+      lintTextHandler.mockResolvedValue(results);
     },
   };
 };
