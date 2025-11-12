@@ -57,6 +57,7 @@ describe('rawEslintConfigToPartialTransformer', () => {
       const rawConfig = RawEslintConfigStub({
         language: { fileType: 'text' },
       });
+      Reflect.deleteProperty(rawConfig, 'rules');
 
       const result = rawEslintConfigToPartialTransformer({ rawConfig });
 

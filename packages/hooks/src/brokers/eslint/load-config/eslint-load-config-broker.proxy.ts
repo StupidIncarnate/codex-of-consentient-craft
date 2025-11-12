@@ -11,16 +11,23 @@ import type { Linter } from 'eslint';
 jest.mock('eslint');
 
 import { ESLint } from 'eslint';
+import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
+import { eslintCalculateConfigForFileAdapterProxy } from '../../../adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.proxy';
+
+const EDGE_CASE_TEST_CONSTRUCTOR_CALL_COUNT = 6;
 
 // Track which test we're in based on constructor calls across ALL tests
-let globalConstructorCallCount = 0;
+const globalState = { constructorCallCount: 0 };
 
 export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
+  // Create child proxies
+  eslintEslintAdapterProxy();
+  eslintCalculateConfigForFileAdapterProxy();
 
   // Create a mock that returns different values based on which test is running
   const mockEslintConstructor = jest.fn((options: { cwd?: string } | undefined) => {
     const cwd = options?.cwd ?? '';
-    globalConstructorCallCount++;
+    globalState.constructorCallCount += 1;
 
     // Error test cases - check cwd first
     if (cwd === '/error-test-1') {
@@ -34,27 +41,30 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
     }
 
     // Create mock calculateConfigForFile that returns based on cwd
-    const mockCalculateConfigForFile = jest.fn(async (): Promise<Linter.Config | null> => {
-      // Edge case: test 5 (6th constructor call - after test1:1, test2:1, test3:1, test4:2, test5:1)
-      if (globalConstructorCallCount === 6) {
-        // eslint-disable-next-line unicorn/no-null
-        return null;
-      }
+    const mockCalculateConfigForFile = jest.fn();
 
+    // Edge case: test 5 (6th constructor call - after test1:1, test2:1, test3:1, test4:2, test5:1)
+    if (globalState.constructorCallCount === EDGE_CASE_TEST_CONSTRUCTOR_CALL_COUNT) {
+      mockCalculateConfigForFile.mockResolvedValue(null);
+    } else if (cwd === '/project') {
       // Return different configs based on cwd
-      if (cwd === '/project') {
-        return { rules: { 'no-unused-vars': 'error' } } as Linter.Config;
-      }
-      if (cwd === '/test' || cwd === '/test1') {
-        return { rules: { 'no-undef': 'error' } } as Linter.Config;
-      }
-      if (cwd === '/test2') {
-        return { rules: { 'no-console': 'warn' } } as Linter.Config;
-      }
-
+      mockCalculateConfigForFile.mockResolvedValue({
+        rules: { 'no-unused-vars': 'error' },
+      } as Linter.Config);
+    } else if (cwd === '/test' || cwd === '/test1') {
+      mockCalculateConfigForFile.mockResolvedValue({
+        rules: { 'no-undef': 'error' },
+      } as Linter.Config);
+    } else if (cwd === '/test2') {
+      mockCalculateConfigForFile.mockResolvedValue({
+        rules: { 'no-console': 'warn' },
+      } as Linter.Config);
+    } else {
       // Default cwd test (process.cwd())
-      return { rules: { 'no-console': 'warn' } } as Linter.Config;
-    });
+      mockCalculateConfigForFile.mockResolvedValue({
+        rules: { 'no-console': 'warn' },
+      } as Linter.Config);
+    }
 
     return {
       calculateConfigForFile: mockCalculateConfigForFile,
