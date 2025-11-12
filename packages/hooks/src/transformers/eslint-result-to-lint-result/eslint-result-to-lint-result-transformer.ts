@@ -23,36 +23,53 @@ export const eslintResultToLintResultTransformer = ({
 }: {
   eslintResult: {
     filePath: string;
-    messages: {
-      line: number;
-      column: number;
-      message: string;
-      severity: number;
-      ruleId?: string | null;
-    }[];
+    messages: unknown[];
     errorCount: number;
     warningCount: number;
   };
-}): LintResult =>
-  lintResultContract.parse({
-    filePath: eslintResult.filePath,
-    messages: eslintResult.messages.map((msg) => {
+}): LintResult => {
+  // Filter and validate messages
+  const validMessages = eslintResult.messages
+    .filter((msg): msg is { line: unknown; column: unknown; message: unknown; severity: unknown; ruleId?: unknown } => {
+      // ESLint can return messages without line/column for non-TypeScript files
+      if (typeof msg !== 'object' || msg === null) return false;
+
+      const msgObj = msg as Record<PropertyKey, unknown>;
+      const line = Reflect.get(msgObj, 'line');
+      const column = Reflect.get(msgObj, 'column');
+
+      // Filter out messages with invalid line/column
+      return (
+        typeof line === 'number' &&
+        line > 0 &&
+        typeof column === 'number' &&
+        column >= 0
+      );
+    })
+    .map((msg) => {
+      const msgObj = msg as Record<PropertyKey, unknown>;
       const messageData = {
-        line: msg.line,
-        column: msg.column,
-        message: msg.message,
-        severity: msg.severity,
+        line: Reflect.get(msgObj, 'line'),
+        column: Reflect.get(msgObj, 'column'),
+        message: Reflect.get(msgObj, 'message'),
+        severity: Reflect.get(msgObj, 'severity'),
       };
 
-      if (msg.ruleId !== null && msg.ruleId !== '') {
+      const ruleId = Reflect.get(msgObj, 'ruleId');
+      if (ruleId !== null && ruleId !== '') {
         return lintMessageContract.parse({
           ...messageData,
-          ruleId: msg.ruleId,
+          ruleId,
         });
       }
 
       return lintMessageContract.parse(messageData);
-    }),
+    });
+
+  return lintResultContract.parse({
+    filePath: eslintResult.filePath,
+    messages: validMessages,
     errorCount: eslintResult.errorCount,
     warningCount: eslintResult.warningCount,
   });
+};
