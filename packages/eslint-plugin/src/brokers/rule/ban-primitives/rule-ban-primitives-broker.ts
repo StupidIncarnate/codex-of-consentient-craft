@@ -10,6 +10,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { checkPrimitiveViolationLayerBroker } from './check-primitive-violation-layer-broker';
 
 export const ruleBanPrimitivesBroker = (): EslintRule => ({
@@ -46,6 +47,11 @@ export const ruleBanPrimitivesBroker = (): EslintRule => ({
       options?: { allowPrimitiveInputs?: boolean; allowPrimitiveReturns?: boolean }[];
     };
     const filename = ctx.getFilename?.() ?? undefined;
+
+    // PRE-VALIDATION: Exclude files from structure validation
+    if (shouldExcludeFileFromProjectStructureRulesGuard({ filename: filename ?? '' })) {
+      return {};
+    }
 
     // Get rule options (default both to false)
     const options = ctx.options?.[0] ?? {};

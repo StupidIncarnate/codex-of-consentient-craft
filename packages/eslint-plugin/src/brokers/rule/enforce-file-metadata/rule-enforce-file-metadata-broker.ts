@@ -10,6 +10,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isImplementationFileGuard } from '../../../guards/is-implementation-file/is-implementation-file-guard';
+import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { extractFileMetadataTransformer } from '../../../transformers/extract-file-metadata/extract-file-metadata-transformer';
 
 export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
@@ -32,6 +33,11 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
   create: (context: EslintContext) => {
     const ctx = context;
     const { filename } = ctx;
+
+    // PRE-VALIDATION: Exclude files from structure validation
+    if (shouldExcludeFileFromProjectStructureRulesGuard({ filename: filename ?? '' })) {
+      return {};
+    }
 
     // Only check implementation files (single-dot, not .test.ts, .proxy.ts, etc.)
     if (!isImplementationFileGuard({ filename: filename ?? '' })) {

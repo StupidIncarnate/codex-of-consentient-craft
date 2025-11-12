@@ -1,6 +1,7 @@
 import { eslintConfigFilterTransformer } from './eslint-config-filter-transformer';
 import { PreEditLintConfigStub } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config.stub';
 import { LinterConfigStub } from '../../contracts/linter-config/linter-config.stub';
+import { RawEslintConfigStub } from '../../contracts/raw-eslint-config/raw-eslint-config.stub';
 
 describe('eslintConfigFilterTransformer', () => {
   describe('valid input', () => {
@@ -56,9 +57,9 @@ describe('eslintConfigFilterTransformer', () => {
     });
 
     it('VALID: {eslintConfig with language property, hookConfig} => removes language property', () => {
-      const eslintConfig = LinterConfigStub({
+      const eslintConfig = RawEslintConfigStub({
         rules: { 'no-unused-vars': 'error' },
-        language: 'typescript' as never,
+        language: { fileType: 'text' },
       });
       const hookConfig = PreEditLintConfigStub({
         rules: ['no-unused-vars'],

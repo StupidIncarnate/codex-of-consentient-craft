@@ -1,29 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import * as crypto from 'crypto';
 import {
   EditToolHookStub,
   MultiEditToolHookStub,
   WriteToolHookStub,
-} from '../src/contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub';
+} from '../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub';
 
-interface ExecError extends Error {
-  status?: number;
-  stdout?: Buffer;
-  stderr?: Buffer;
-}
-
-const isExecError = (error: unknown): error is ExecError => {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'status' in error &&
-    typeof (error as { status: unknown }).status === 'number'
-  );
-};
-
-const tempRoot = path.join(process.cwd(), '.test-tmp', 'pre-edit-lint-tests');
+// CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
+// Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
+const tempRoot = path.join(process.cwd(), 'src', '.test-tmp', 'pre-edit-lint-tests');
 const hookPath = path.join(process.cwd(), 'src', 'startup', 'start-pre-edit-hook.ts');
 
 const createTestProject = ({ name }: { name: string }): string => {
@@ -44,29 +31,18 @@ const runHook = ({
 } => {
   const input = JSON.stringify(hookData);
 
-  try {
-    const stdout = execSync(`npx tsx ${hookPath}`, {
-      input,
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-      cwd: process.cwd(),
-    });
-    return { exitCode: 0, stdout, stderr: '' };
-  } catch (error) {
-    if (!isExecError(error)) {
-      throw error;
-    }
-    const execError = error;
-    const DEFAULT_EXIT_CODE = 1;
-    const exitCode = execError.status ?? DEFAULT_EXIT_CODE;
-    const stdout = execError.stdout?.toString() ?? '';
-    const stderr = execError.stderr?.toString() ?? '';
-    return {
-      exitCode,
-      stdout,
-      stderr,
-    };
-  }
+  // Use spawnSync to capture both stdout and stderr on success AND failure
+  const result = spawnSync('npx', ['tsx', hookPath], {
+    input,
+    encoding: 'utf8',
+    cwd: process.cwd(),
+  });
+
+  return {
+    exitCode: result.status ?? 0,
+    stdout: result.stdout ?? '',
+    stderr: result.stderr ?? '',
+  };
 };
 
 describe('pre-edit-lint', () => {
@@ -203,7 +179,7 @@ describe('pre-edit-lint', () => {
         const filePath = path.join(projectDir, 'example.ts');
 
         const hookData = WriteToolHookStub({
-          cwd: projectDir,
+          cwd: path.resolve(process.cwd(), '../..'), // Use monorepo root so ESLint can find eslint.config.js
           tool_input: {
             file_path: filePath,
             content: `export function test({ param }: { param: any }): void {}`,

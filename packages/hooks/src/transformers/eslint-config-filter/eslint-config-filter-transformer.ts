@@ -9,19 +9,28 @@ import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre
 import type { LinterConfig } from '../../contracts/linter-config/linter-config-contract';
 import { linterConfigContract } from '../../contracts/linter-config/linter-config-contract';
 import { ruleNamesExtractTransformer } from '../rule-names-extract/rule-names-extract-transformer';
+import { rawEslintConfigToPartialTransformer } from '../raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer';
 
 export const eslintConfigFilterTransformer = ({
   eslintConfig,
   hookConfig,
 }: {
-  eslintConfig: LinterConfig;
+  eslintConfig: unknown;
   hookConfig: PreEditLintConfig;
 }): LinterConfig => {
+  // Transform raw ESLint config to partial config (strips language field)
+  const partialConfig = rawEslintConfigToPartialTransformer({ rawConfig: eslintConfig });
+
+  // Extract required fields from raw config (needed for ESLint to work properly)
+  const rawConfigObj = typeof eslintConfig === 'object' && eslintConfig !== null ? eslintConfig : {};
+  const plugins: unknown = Reflect.get(rawConfigObj, 'plugins');
+  const languageOptions: unknown = Reflect.get(rawConfigObj, 'languageOptions');
+
   // Create new config with filtered rules
   const filteredRules: Record<PropertyKey, unknown> = {};
 
   // Only keep allowed rules, set others to 'off'
-  const eslintRules = eslintConfig.rules;
+  const eslintRules = partialConfig.rules;
   if (eslintRules !== undefined) {
     const ruleNames = ruleNamesExtractTransformer({ config: hookConfig });
     ruleNames.forEach((rule) => {
@@ -35,11 +44,11 @@ export const eslintConfigFilterTransformer = ({
     });
   }
 
-  // Return new config with same structure but filtered rules
-  const { language: _language, ...configWithoutLanguage } = eslintConfig;
+  // Return new validated config with filtered rules and required ESLint fields
   return linterConfigContract.parse({
-    ...configWithoutLanguage,
     files: ['**/*.ts', '**/*.tsx'], // Ensure files pattern is set
     rules: filteredRules,
+    ...(plugins !== undefined && { plugins }),
+    ...(languageOptions !== undefined && { languageOptions }),
   });
 };

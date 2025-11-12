@@ -36,6 +36,11 @@ export const shouldExcludeFileFromProjectStructureRulesGuard = ({
     }
   }
 
+  // Exclude test temp files (integration test fixtures)
+  if (filename.includes('/.test-tmp/')) {
+    return true;
+  }
+
   // Exclude files not in /src/
   const isInSrcFolder = filename.includes('/src/');
   if (!isInSrcFolder) {
