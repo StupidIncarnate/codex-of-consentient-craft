@@ -30,22 +30,27 @@ export const eslintResultToLintResultTransformer = ({
 }): LintResult => {
   // Filter and validate messages
   const validMessages = eslintResult.messages
-    .filter((msg): msg is { line: unknown; column: unknown; message: unknown; severity: unknown; ruleId?: unknown } => {
-      // ESLint can return messages without line/column for non-TypeScript files
-      if (typeof msg !== 'object' || msg === null) return false;
+    .filter(
+      (
+        msg,
+      ): msg is {
+        line: unknown;
+        column: unknown;
+        message: unknown;
+        severity: unknown;
+        ruleId?: unknown;
+      } => {
+        // ESLint can return messages without line/column for non-TypeScript files
+        if (typeof msg !== 'object' || msg === null) return false;
 
-      const msgObj = msg as Record<PropertyKey, unknown>;
-      const line = Reflect.get(msgObj, 'line');
-      const column = Reflect.get(msgObj, 'column');
+        const msgObj = msg as Record<PropertyKey, unknown>;
+        const line = Reflect.get(msgObj, 'line');
+        const column = Reflect.get(msgObj, 'column');
 
-      // Filter out messages with invalid line/column
-      return (
-        typeof line === 'number' &&
-        line > 0 &&
-        typeof column === 'number' &&
-        column >= 0
-      );
-    })
+        // Filter out messages with invalid line/column
+        return typeof line === 'number' && line > 0 && typeof column === 'number' && column >= 0;
+      },
+    )
     .map((msg) => {
       const msgObj = msg as Record<PropertyKey, unknown>;
       const messageData = {
