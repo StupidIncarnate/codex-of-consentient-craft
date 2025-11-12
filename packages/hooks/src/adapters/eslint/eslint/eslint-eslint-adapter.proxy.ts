@@ -13,18 +13,21 @@ import type { Linter } from 'eslint';
 // Module-level mock functions that can be accessed across all proxy calls
 const mockCalculateConfigForFile = jest.fn();
 const mockLintText = jest.fn();
+const mockLintFiles = jest.fn();
 
 // Create mock instance that passes instanceof checks
 const mockEslintInstance = Object.create(ESLint.prototype) as ESLint;
 mockEslintInstance.calculateConfigForFile =
   mockCalculateConfigForFile as ESLint['calculateConfigForFile'];
 mockEslintInstance.lintText = mockLintText as ESLint['lintText'];
+mockEslintInstance.lintFiles = mockLintFiles as ESLint['lintFiles'];
 
 export const eslintEslintAdapterProxy = (): {
   returns: ({ config }: { config: Linter.Config }) => void;
   throws: ({ error }: { error: Error }) => void;
   setLintTextBehavior: (implementation: () => Promise<unknown[]>) => void;
   getLintTextHandler: () => jest.Mock;
+  getLintFilesHandler: () => jest.Mock;
 } => {
   const MockESLintConstructor = jest.mocked(ESLint);
 
@@ -36,6 +39,9 @@ export const eslintEslintAdapterProxy = (): {
 
   // Default: lintText returns empty results
   mockLintText.mockResolvedValue([]);
+
+  // Default: lintFiles returns empty results
+  mockLintFiles.mockResolvedValue([]);
 
   return {
     returns: ({ config }: { config: Linter.Config }) => {
@@ -50,5 +56,6 @@ export const eslintEslintAdapterProxy = (): {
       mockLintText.mockImplementation(implementation);
     },
     getLintTextHandler: () => mockLintText,
+    getLintFilesHandler: () => mockLintFiles,
   };
 };

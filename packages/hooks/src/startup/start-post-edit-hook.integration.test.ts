@@ -1,0 +1,297 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import { spawnSync } from 'child_process';
+import * as crypto from 'crypto';
+import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
+import { EditToolInputStub } from '../contracts/edit-tool-input/edit-tool-input.stub';
+import { WriteToolInputStub } from '../contracts/write-tool-input/write-tool-input.stub';
+
+// CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
+// Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
+const tempRoot = path.join(process.cwd(), 'src', '.test-tmp', 'post-edit-tests');
+const hookPath = path.join(process.cwd(), 'src', 'startup', 'start-post-edit-hook.ts');
+
+const createTestProject = ({ name }: { name: string }): string => {
+  const testId = crypto.randomBytes(4).toString('hex');
+  const projectDir = path.join(tempRoot, `${name}-${testId}`);
+  fs.mkdirSync(projectDir, { recursive: true });
+  return projectDir;
+};
+
+const runHook = ({
+  hookData,
+}: {
+  hookData: unknown;
+}): {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+} => {
+  const input = JSON.stringify(hookData);
+
+  // Use spawnSync to capture both stdout and stderr on success AND failure
+  const result = spawnSync('npx', ['tsx', hookPath], {
+    input,
+    encoding: 'utf8',
+    cwd: process.cwd(),
+  });
+
+  return {
+    exitCode: result.status === null ? 1 : result.status,
+    stdout: result.stdout,
+    stderr: result.stderr,
+  };
+};
+
+describe('post-edit-hook', () => {
+  beforeEach(() => {
+    // Ensure temp directory exists
+    fs.mkdirSync(tempRoot, { recursive: true });
+  });
+
+  afterEach(() => {
+    // Clean up temp directory
+    if (fs.existsSync(tempRoot)) {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
+  });
+
+  describe('with Write tool', () => {
+    describe('success cases', () => {
+      it('VALID: {content: clean TypeScript code} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'clean-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const fileContent = `export function add({ a, b }: { a: number; b: number }): number {
+  return a + b;
+}`;
+
+        const hookData = PostToolUseHookStub({
+          cwd: projectDir,
+          tool_name: 'Write',
+          tool_input: WriteToolInputStub({
+            file_path: filePath,
+            content: fileContent,
+          }),
+        });
+
+        // Actually write the file so hook can check it
+        fs.writeFileSync(filePath, fileContent);
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+        // Post-edit hook may output auto-fix messages to stderr
+        expect(result.stderr).toMatch(/All violations auto-fixed successfully|^$/u);
+      });
+
+      it('VALID: {content: with console.log} => reports auto-fix but exits with 0', () => {
+        const projectDir = createTestProject({ name: 'console-log-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const fileContent = `export function test(): void {
+  console.log('test');
+}`;
+
+        const hookData = PostToolUseHookStub({
+          cwd: projectDir,
+          tool_name: 'Write',
+          tool_input: WriteToolInputStub({
+            file_path: filePath,
+            content: fileContent,
+          }),
+        });
+
+        // Actually write the file so hook can check it
+        fs.writeFileSync(filePath, fileContent);
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(0);
+        // Post-edit hook auto-fixes or reports success
+        expect(result.stderr).toMatch(/All violations auto-fixed successfully/iu);
+      });
+
+      it('EMPTY: {content: empty file} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'empty-write' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const fileContent = '';
+
+        const hookData = PostToolUseHookStub({
+          cwd: projectDir,
+          tool_name: 'Write',
+          tool_input: WriteToolInputStub({
+            file_path: filePath,
+            content: fileContent,
+          }),
+        });
+
+        // Actually write the file so hook can check it
+        fs.writeFileSync(filePath, fileContent);
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+        // Post-edit hook may output auto-fix messages to stderr
+        expect(result.stderr).toMatch(/All violations auto-fixed successfully|^$/u);
+      });
+    });
+  });
+
+  describe('with Edit tool', () => {
+    describe('success cases', () => {
+      it('VALID: {old_string: clean code, new_string: clean code} => returns exit code 0', () => {
+        const projectDir = createTestProject({ name: 'clean-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        // Create initial file
+        const initialContent = `export function oldFunction(): string {
+  return 'hello';
+}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const newContent = `export function newFunction(): string {
+  return 'hello world';
+}`;
+
+        const hookData = PostToolUseHookStub({
+          cwd: projectDir,
+          tool_name: 'Edit',
+          tool_input: EditToolInputStub({
+            file_path: filePath,
+            old_string: initialContent,
+            new_string: newContent,
+          }),
+        });
+
+        // Apply the edit so hook can check the result
+        fs.writeFileSync(filePath, newContent);
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+        // Post-edit hook may output auto-fix messages to stderr
+        expect(result.stderr).toMatch(/All violations auto-fixed successfully|^$/u);
+      });
+
+      it('VALID: {new_string: adds console.log} => reports auto-fix but exits with 0', () => {
+        const projectDir = createTestProject({ name: 'add-console-edit' });
+        const filePath = path.join(projectDir, 'example.ts');
+
+        const initialContent = `export function test(): void {}`;
+        fs.writeFileSync(filePath, initialContent);
+
+        const newContent = `export function test(): void {
+  console.log('debug');
+}`;
+
+        const hookData = PostToolUseHookStub({
+          cwd: projectDir,
+          tool_name: 'Edit',
+          tool_input: EditToolInputStub({
+            file_path: filePath,
+            old_string: initialContent,
+            new_string: newContent,
+          }),
+        });
+
+        // Apply the edit so hook can check the result
+        fs.writeFileSync(filePath, newContent);
+
+        const result = runHook({ hookData });
+
+        expect(result.exitCode).toBe(0);
+        // Post-edit hook auto-fixes or reports success
+        expect(result.stderr).toMatch(/All violations auto-fixed successfully/iu);
+      });
+    });
+  });
+
+  describe('with invalid hook data', () => {
+    it('INVALID_INPUT: {invalid JSON} => exits with 1', () => {
+      const result = spawnSync('npx', ['tsx', hookPath], {
+        input: 'not valid json',
+        encoding: 'utf8',
+        cwd: process.cwd(),
+      });
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toMatch(/Hook error/iu);
+    });
+
+    it('INVALID_INPUT: {missing required fields} => exits with 1', () => {
+      const result = spawnSync('npx', ['tsx', hookPath], {
+        input: JSON.stringify({ invalid: 'data' }),
+        encoding: 'utf8',
+        cwd: process.cwd(),
+      });
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toMatch(/Invalid hook data format/iu);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('EDGE: {tool_input: non-TypeScript file} => returns exit code 0', () => {
+      const projectDir = createTestProject({ name: 'non-ts-file' });
+      const filePath = path.join(projectDir, 'README.md');
+
+      const fileContent = `# TypeScript Guide
+
+Here are some examples with console.log:
+
+\`\`\`typescript
+function test(): void {
+  console.log('test');
+}
+\`\`\``;
+
+      const hookData = PostToolUseHookStub({
+        cwd: projectDir,
+        tool_name: 'Write',
+        tool_input: WriteToolInputStub({
+          file_path: filePath,
+          content: fileContent,
+        }),
+      });
+
+      // Actually write the file so hook can check it
+      fs.writeFileSync(filePath, fileContent);
+
+      const result = runHook({ hookData });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toBe('');
+      // Post-edit hook may output auto-fix messages to stderr
+      expect(result.stderr).toMatch(/All violations auto-fixed successfully|^$/u);
+    });
+
+    it('EDGE: {file_path: non-existent file} => returns exit code 0', () => {
+      const projectDir = createTestProject({ name: 'non-existent-edit' });
+      const filePath = path.join(projectDir, 'does-not-exist.ts');
+
+      const hookData = PostToolUseHookStub({
+        cwd: projectDir,
+        tool_name: 'Edit',
+        tool_input: EditToolInputStub({
+          file_path: filePath,
+          old_string: 'old',
+          new_string: 'new',
+        }),
+      });
+
+      // Don't create the file - testing non-existent scenario
+
+      const result = runHook({ hookData });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toBe('');
+      // Post-edit hook may output ESLint error about missing file
+      expect(result.stderr).toMatch(/ESLint error|All violations auto-fixed successfully|^$/u);
+    });
+  });
+});
