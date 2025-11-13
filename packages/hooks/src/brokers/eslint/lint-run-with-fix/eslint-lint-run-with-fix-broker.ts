@@ -6,6 +6,7 @@
  * // Returns array of LintResult with only error-level violations after auto-fixing
  */
 import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
+import { eslintOutputFixesAdapter } from '../../../adapters/eslint/output-fixes/eslint-output-fixes-adapter';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
@@ -27,7 +28,6 @@ import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severit
  */
 export const eslintLintRunWithFixBroker = async ({
   filePath,
-  config,
   cwd = process.cwd(),
 }: {
   filePath: string;
@@ -36,21 +36,23 @@ export const eslintLintRunWithFixBroker = async ({
 }): Promise<LintResult[]> => {
   try {
     // Create ESLint instance with fix: true
-    // Type assertion needed because config is unknown at broker level but typed at adapter boundary
+    // Use the project's eslint.config.js instead of overriding
+    // The 'config' parameter is not used since we rely on the project config
     const eslint = eslintEslintAdapter({
       options: {
         cwd,
         fix: true, // Auto-fix violations
-        overrideConfigFile: true,
-        overrideConfig: [config] as never,
       },
     });
 
     // Ensure we have an absolute path for ESLint
     const absolutePath = pathResolveAdapter({ paths: [cwd, filePath] });
 
-    // Run linting with auto-fix (ESLint writes fixes to disk automatically)
+    // Run linting with auto-fix (generates fixes in memory)
     const results = await eslint.lintFiles([absolutePath]);
+
+    // Write fixes to disk
+    await eslintOutputFixesAdapter({ results });
 
     // Filter to errors only (quiet mode - severity === 2)
     const errorOnlyResults = results.map((result) => ({

@@ -24,12 +24,23 @@ export const StartPostEditHook = async ({ inputData }: { inputData: string }): P
 
     const result = await HookPostEditResponder({ input: parsedData as HookData });
 
-    // Output violations to stderr (informational - never blocks)
-    if (result.violations.length > 0) {
-      process.stderr.write(`${result.message}\n`);
+    // Write status message to stderr for visibility
+    process.stderr.write(`${result.message}\n`);
+
+    // Post-edit hook outputs violations to stdout ONLY if there are unfixable errors
+    // This is informational only - never blocks (always exit 0)
+    if (
+      result.violations.length > 0 &&
+      result.message !== 'All violations auto-fixed successfully'
+    ) {
+      const output = {
+        decision: 'block',
+        reason: result.message,
+      };
+      process.stdout.write(JSON.stringify(output));
     }
 
-    // Always exit with success (post-edit hook never blocks)
+    // Always exit with success (post-edit hook never blocks execution, just provides feedback)
     process.exit(0);
   } catch (parseError: unknown) {
     const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);

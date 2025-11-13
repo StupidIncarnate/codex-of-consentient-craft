@@ -26,7 +26,9 @@ Run tests in `packages/hooks/src/.test-tmp/` directory with hook enabled.
 **Command:**
 
 ```typescript
-Write: packages / hooks / src / test - tmp / write - any - test.ts
+Write: packages / hooks / src /
+.
+test - tmp / write - any - test.ts
 Content:
     function testAny(param: any): void {
         console.log(param);
@@ -40,7 +42,9 @@ Content:
 **Command:**
 
 ```typescript
-Write: packages / hooks / src / test - tmp / write - clean - test.ts
+Write: packages / hooks / src /
+.
+test - tmp / write - clean - test.ts
 Content:
     function testClean(param: string): void {
         console.log(param);
@@ -54,7 +58,9 @@ Content:
 **Command:**
 
 ```typescript
-Write: packages / hooks / src / test - tmp / write - unused - vars - test.ts
+Write: packages / hooks / src /
+.
+test - tmp / write - unused - vars - test.ts
 Content:
     function testUnused(param: string): void {
         const unusedVariable = "this should be allowed";
@@ -72,10 +78,13 @@ Content:
 ### Test 4: Edit adding `any` type
 
 **Setup:** First create clean file from Test 2
+
 **Command:**
 
 ```typescript
-Edit: packages / hooks / src / test - tmp / write - clean - test.ts
+Edit: packages / hooks / src /
+.
+test - tmp / write - clean - test.ts
 Old: function testClean(param: string): void {
     New: function testClean(param: any): void {
 ```
@@ -87,7 +96,9 @@ Old: function testClean(param: string): void {
 **Command:**
 
 ```typescript
-Edit: packages / hooks / src / test - tmp / write - clean - test.ts
+Edit: packages / hooks / src /
+.
+test - tmp / write - clean - test.ts
 Old: console.log(param);
 New: console.log("Processing:", param);
 ```
@@ -101,19 +112,23 @@ New: console.log("Processing:", param);
 ### Test 6: MultiEdit with violations
 
 **Setup:** Use file from Test 3
+
 **Command:**
 
 ```typescript
-MultiEdit: packages / hooks / src / test - tmp / write - unused - vars - test.ts
+MultiEdit: packages / hooks / src /
+.
+test - tmp / write - unused - vars - test.ts
 Edit
 1
 :
-
-function testUnused(param: string): void { → function testUnused(param: any): void {
-    Edit
-    2
-:
-    console.log(param); → console.log("Result:", param);
+Old: function testUnused(param: string): void {
+    New: function testUnused(param: any): void {
+        Edit
+        2
+    :
+        Old: console.log(param);
+        New: console.log("Result:", param);
 ```
 
 **Expected:** BLOCKED - Should show `@typescript-eslint/no-explicit-any` violation
@@ -123,15 +138,19 @@ function testUnused(param: string): void { → function testUnused(param: any): 
 **Command:**
 
 ```typescript
-MultiEdit: packages / hooks / src / test - tmp / write - unused - vars - test.ts
+MultiEdit: packages / hooks / src /
+.
+test - tmp / write - unused - vars - test.ts
 Edit
 1
 :
-const unusedVariable = "this should be allowed"; → const unusedVariable = "this is still allowed";
+Old: const unusedVariable = "this should be allowed";
+New: const unusedVariable = "this is still allowed";
 Edit
 2
 :
-console.log(param); → console.log("Processing:", param);
+Old: console.log(param);
+New: console.log("Processing:", param);
 ```
 
 **Expected:** ALLOWED - Should apply both edits successfully
@@ -139,21 +158,25 @@ console.log(param); → console.log("Processing:", param);
 ### Test 7.1: MultiEdit with multiple `any` violations
 
 **Setup:** Use file from Test 2
+
 **Command:**
 
 ```typescript
-MultiEdit: packages / hooks / src / test - tmp / write - clean - test.ts
+MultiEdit: packages / hooks / src /
+.
+test - tmp / write - clean - test.ts
 Edit
 1
 :
-
-function testClean(param: string): void { → function testClean(param: any): any {
-    Edit
-    2
-:
-    console.log("Processing:", param); → const result: any = param;
-    console.log("Processing:", result);
-    return result;
+Old: function testClean(param: string): void {
+    New: function testClean(param: any): any {
+        Edit
+        2
+    :
+        Old: console.log("Processing:", param);
+        New: const result: any = param;
+        console.log("Processing:", result);
+        return result;
 ```
 
 **Expected:** BLOCKED - Should show multiple `@typescript-eslint/no-explicit-any` violations with count
@@ -167,7 +190,9 @@ function testClean(param: string): void { → function testClean(param: any): an
 **Command:**
 
 ```typescript
-Write: packages / hooks / src / test - tmp / ts - ignore - test.ts
+Write: packages / hooks / src /
+.
+test - tmp / ts - ignore - test.ts
 Content:
     function testTsIgnore(): void {
         // @ts-ignore
@@ -183,7 +208,9 @@ Content:
 **Command:**
 
 ```typescript
-Write: packages / hooks / src / test - tmp / eslint - disable - test.ts
+Write: packages / hooks / src /
+.
+test - tmp / eslint - disable - test.ts
 Content:
     function testEslintDisable(): void {
         // eslint-disable-next-line no-console
@@ -209,269 +236,6 @@ rm packages/hooks/src/.test-tmp/*
 - All three tools (Write, Edit, MultiEdit) should be properly intercepted
 
 ---
-
-# Post-Edit Hook Manual Tests
-
-## Overview
-
-The post-edit hook runs **after** file changes are applied. It:
-
-- Runs ESLint with `--fix` on the modified file
-- Writes auto-fixes back to disk automatically
-- Reports only **error-level** violations (quiet mode - no warnings)
-- Uses **all ESLint rules** (not filtered like pre-edit)
-- **Never blocks** (always exits with code 0)
-
-## Test Setup
-
-For manual command-line testing:
-
-```bash
-cd packages/hooks
-```
-
-## Command-Line Tests
-
-### Test 1: Clean Code (No Violations)
-
-**Scenario:** Write file with clean TypeScript code
-
-**Command:**
-
-```bash
-echo '{
-  "hook_event_name": "PostToolUse",
-  "cwd": "'$(pwd)'",
-  "tool_name": "Write",
-  "tool_input": {
-    "tool_name": "Write",
-    "file_path": "/tmp/test-clean.ts",
-    "content": "export const add = ({ a, b }: { a: number; b: number }): number => a + b;"
-  }
-}' | npx tsx src/startup/start-post-edit-hook.ts
-echo "Exit code: $?"
-```
-
-**Expected:**
-
-- Exit code: `0`
-- Stderr: Empty or "All violations auto-fixed successfully"
-- File `/tmp/test-clean.ts` unchanged (already clean)
-
----
-
-### Test 2: Auto-Fixable Violations
-
-**Scenario:** File with fixable violations (e.g., missing semicolons)
-
-**Setup:**
-
-```bash
-cat > /tmp/test-fixable.ts << 'EOF'
-export const greet = ({ name }: { name: string }): string => {
-  return `Hello, ${name}`
-}
-EOF
-```
-
-**Command:**
-
-```bash
-echo '{
-  "hook_event_name": "PostToolUse",
-  "cwd": "'$(pwd)'",
-  "tool_name": "Write",
-  "tool_input": {
-    "tool_name": "Write",
-    "file_path": "/tmp/test-fixable.ts",
-    "content": "export const greet = ({ name }: { name: string }): string => {\n  return \`Hello, \${name}\`\n}"
-  }
-}' | npx tsx src/startup/start-post-edit-hook.ts
-echo "Exit code: $?"
-cat /tmp/test-fixable.ts
-```
-
-**Expected:**
-
-- Exit code: `0`
-- Stderr: "All violations auto-fixed successfully"
-- File `/tmp/test-fixable.ts` is auto-fixed with semicolons added
-
----
-
-### Test 3: Non-Fixable Error Violations
-
-**Scenario:** File with error-level violations that cannot be auto-fixed
-
-**Setup:**
-
-```bash
-cat > /tmp/test-errors.ts << 'EOF'
-export const debug = (): void => {
-  console.log('debug message');
-};
-EOF
-```
-
-**Command:**
-
-```bash
-echo '{
-  "hook_event_name": "PostToolUse",
-  "cwd": "'$(pwd)'",
-  "tool_name": "Write",
-  "tool_input": {
-    "tool_name": "Write",
-    "file_path": "/tmp/test-errors.ts",
-    "content": "export const debug = (): void => {\n  console.log(\"debug message\");\n};"
-  }
-}' | npx tsx src/startup/start-post-edit-hook.ts
-echo "Exit code: $?"
-```
-
-**Expected:**
-
-- Exit code: `0` (never blocks!)
-- Stderr contains:
-  ```
-  🛑 New code quality violations detected:
-    ❌ Code Quality Issue: 1 violation
-       Line 2:3 - Unexpected console statement
-
-  These rules help maintain code quality and safety. Please fix the violations.
-  ```
-- File may have fixable violations auto-fixed, but unfixable errors remain
-
----
-
-### Test 4: Warning Violations (Quiet Mode Test)
-
-**Scenario:** File with only warning-level violations
-
-**Setup:**
-
-```bash
-# Assuming some rule is configured as "warn" instead of "error"
-cat > /tmp/test-warnings.ts << 'EOF'
-export const test = (): string => {
-  const unused = 'value';  // Might be warning-level
-  return 'test';
-};
-EOF
-```
-
-**Command:**
-
-```bash
-echo '{
-  "hook_event_name": "PostToolUse",
-  "cwd": "'$(pwd)'",
-  "tool_name": "Write",
-  "tool_input": {
-    "tool_name": "Write",
-    "file_path": "/tmp/test-warnings.ts",
-    "content": "export const test = (): string => {\n  const unused = '\''value'\'';\n  return '\''test'\'';\n};"
-  }
-}' | npx tsx src/startup/start-post-edit-hook.ts
-echo "Exit code: $?"
-```
-
-**Expected:**
-
-- Exit code: `0`
-- Stderr: "All violations auto-fixed successfully" (warnings filtered out by quiet mode)
-- Warnings are **NOT** reported
-
----
-
-### Test 5: Edit Tool
-
-**Scenario:** Edit existing file
-
-**Setup:**
-
-```bash
-cat > /tmp/test-edit.ts << 'EOF'
-export const oldFunc = (): string => 'old';
-EOF
-```
-
-**Command:**
-
-```bash
-echo '{
-  "hook_event_name": "PostToolUse",
-  "cwd": "'$(pwd)'",
-  "tool_name": "Edit",
-  "tool_input": {
-    "tool_name": "Edit",
-    "file_path": "/tmp/test-edit.ts",
-    "old_string": "export const oldFunc = (): string => '\''old'\'';",
-    "new_string": "export const newFunc = (): string => '\''new'\'';"
-  }
-}' | npx tsx src/startup/start-post-edit-hook.ts
-echo "Exit code: $?"
-cat /tmp/test-edit.ts
-```
-
-**Expected:**
-
-- Exit code: `0`
-- File checked, auto-fixed if needed
-- Stderr reports success or remaining errors
-
----
-
-### Test 6: Invalid Hook Data
-
-**Test 6a: Invalid JSON**
-
-**Command:**
-
-```bash
-echo 'invalid json' | npx tsx src/startup/start-post-edit-hook.ts
-echo "Exit code: $?"
-```
-
-**Expected:**
-
-- Exit code: `1`
-- Stderr: "Hook error: Unexpected token"
-
-**Test 6b: Missing Required Fields**
-
-**Command:**
-
-```bash
-echo '{"invalid": "data"}' | npx tsx src/startup/start-post-edit-hook.ts
-echo "Exit code: $?"
-```
-
-**Expected:**
-
-- Exit code: `1`
-- Stderr: "Invalid hook data format"
-
----
-
-## Integration with Claude Code
-
-### Setup Configuration
-
-Add to your Claude Code config (`.claude-code-config.json` or similar):
-
-```json
-{
-  "hooks": {
-    "preToolUse": {
-      "command": "npx tsx packages/hooks/src/startup/start-pre-edit-hook.ts"
-    },
-    "postToolUse": {
-      "command": "npx tsx packages/hooks/src/startup/start-post-edit-hook.ts"
-    }
-  }
-}
-```
 
 ### Expected Workflow
 
@@ -581,3 +345,483 @@ npm test --workspace=@questmaestro/hooks -- start-pre-edit-hook.integration.test
 - **Post-edit**: Runs ESLint once with `--fix` enabled
 - Both use ESLint's caching when available
 - Integration tests use temp directories to avoid affecting real files
+
+---
+
+# Post-Edit Hook Manual Test Cases
+
+## Overview
+
+The post-edit hook runs AFTER changes are applied to files. It:
+
+- Runs ESLint with `--fix` on the modified file
+- Auto-fixes violations and writes changes to disk
+- Reports remaining **error-level** violations to stderr (informational only)
+- **NEVER blocks** - always exits with code 0
+
+## Test Setup
+
+Run tests in `packages/hooks/src/.test-tmp/` directory with post-edit hook enabled.
+
+**Important:**
+
+- Post-edit hook runs automatically after Write/Edit/MultiEdit operations complete
+- These tests use violations NOT in pre-edit filter (pre-edit only blocks: `no-explicit-any`, `ban-ts-comment`,
+  `no-use`)
+- Post-edit checks ALL ESLint rules and auto-fixes what it can
+
+---
+
+## Write Tool Tests (Post-Edit)
+
+### Test 1: Write with auto-fixable violation (arrow-body-style)
+
+**Command:**
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - write - arrow - body.ts
+Content:
+    export const add = ({a, b}: { a: number; b: number }): number => {
+        return a + b;
+    };
+```
+
+**Expected:**
+
+- File is written successfully (pre-edit allows - not in filtered rules)
+- Post-edit hook runs automatically
+- Hook auto-fixes arrow-body-style (removes braces, converts to `=> a + b`)
+- Reports "All violations auto-fixed successfully" to stderr
+- Exit code: 0 (never blocks)
+
+### Test 2: Write with non-fixable error (enforce-object-destructuring-params)
+
+**Command:**
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - write - no - destructure.ts
+Content:
+    export const process = (data: unknown): unknown => data;
+```
+
+**Expected:**
+
+- File is written successfully (pre-edit allows - not in filtered rules)
+- Post-edit hook runs automatically
+- Hook reports remaining violation: `@questmaestro/enforce-object-destructuring-params`
+- Error message to stderr: "Parameters must use object destructuring pattern"
+- Exit code: 0 (never blocks)
+
+### Test 3: Write with clean code
+
+**Command:**
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - write - clean - test.ts
+Content:
+    export function testClean(param: string): string {
+        return param.toUpperCase();
+    }
+```
+
+**Expected:**
+
+- File is written successfully
+- Post-edit hook runs automatically
+- No violations found
+- Reports "All violations auto-fixed successfully" to stderr
+- Exit code: 0
+
+### Test 4: Write with multiple violations (missing return type + can be fixed)
+
+**Command:**
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - write - multiple - test.ts
+Content:
+    export const add = ({a, b}: { a: number; b: number }) => {
+        return a + b;
+    };
+```
+
+**Expected:**
+
+- File is written successfully (pre-edit allows - not in filtered rules)
+- Post-edit hook runs automatically
+- Hook reports violation: `@questmaestro/explicit-return-types` (missing return type)
+- Hook may also auto-fix arrow-body-style
+- Error message to stderr with violation details
+- Exit code: 0 (never blocks)
+
+---
+
+## Edit Tool Tests (Post-Edit)
+
+### Test 5: Edit adding auto-fixable violation (arrow-body-style)
+
+**Setup:** First create clean file from Test 3
+
+**Command:**
+
+```typescript
+Edit: packages / hooks / src /
+.
+test - tmp / post - write - clean - test.ts
+Old: return param.toUpperCase();
+New: return param.toUpperCase() + param.toLowerCase();
+```
+
+Then change to block style:
+
+```typescript
+Edit: packages / hooks / src /
+.
+test - tmp / post - write - clean - test.ts
+Old: export function testClean(param: string): string {
+    return param.toUpperCase() + param.toLowerCase();
+}
+New: export const testClean = ({param}: { param: string }): string => {
+    return param.toUpperCase() + param.toLowerCase();
+};
+```
+
+**Expected:**
+
+- Edit is applied successfully (pre-edit allows - not in filtered rules)
+- Post-edit hook runs automatically
+- Hook auto-fixes arrow-body-style (removes braces)
+- Reports "All violations auto-fixed successfully" to stderr
+- Exit code: 0
+
+### Test 6: Edit adding non-fixable error (forbid-non-exported-functions)
+
+**Setup:** Use file from Test 3
+
+**Command:**
+
+```typescript
+Edit: packages / hooks / src /
+.
+test - tmp / post - write - clean - test.ts
+Old: export function testClean(param: string): string {
+    return param.toUpperCase();
+}
+New: const helper = (): string => "test";
+
+export function testClean(param: string): string {
+    return param.toUpperCase();
+}
+```
+
+**Expected:**
+
+- Edit is applied successfully (pre-edit allows - not in filtered rules)
+- Post-edit hook runs automatically
+- Hook reports remaining violation: `@questmaestro/forbid-non-exported-functions`
+- Error message to stderr: "All functions must be exported"
+- Exit code: 0 (never blocks)
+
+### Test 7: Edit removing violations
+
+**Setup:** Use file from Test 2
+
+**Command:**
+
+```typescript
+Edit: packages / hooks / src /
+.
+test - tmp / post - write - no - destructure.ts
+Old: export const process = (data: unknown): unknown => data;
+New: export const process = ({data}: { data: unknown }): unknown => data;
+```
+
+**Expected:**
+
+- Edit is applied successfully
+- Post-edit hook runs automatically
+- No violations found (destructuring pattern now used)
+- Reports "All violations auto-fixed successfully" to stderr
+- Exit code: 0
+
+---
+
+## MultiEdit Tool Tests (Post-Edit)
+
+### Test 8: MultiEdit with auto-fixable violations (arrow-body-style)
+
+**Setup:** Create a new file with multiple arrow functions
+
+**Command:**
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - multi - arrows.ts
+Content:
+    export const add = ({a, b}: { a: number; b: number }): number => {
+        return a + b;
+    };
+
+export const subtract = ({a, b}: { a: number; b: number }): number => {
+    return a - b;
+};
+```
+
+**Expected:**
+
+- Both edits are applied successfully (pre-edit allows - not in filtered rules)
+- Post-edit hook runs automatically
+- Hook auto-fixes both arrow-body-style violations (removes braces)
+- Reports "All violations auto-fixed successfully" to stderr
+- Exit code: 0
+
+### Test 9: MultiEdit with mixed violations (missing return type + non-exported function)
+
+**Setup:** Use file from Test 3
+
+**Command:**
+
+```typescript
+MultiEdit: packages / hooks / src /
+.
+test - tmp / post - write - clean - test.ts
+Edit
+1
+:
+Old: export function testClean(param: string): string {
+    New: const helper = (): string => "test";
+
+    export function testClean(param: string): string {
+        Edit
+        2
+    :
+        Old: return param.toUpperCase();
+        New: const transform = (x: string) => x.toLowerCase();
+        return param.toUpperCase();
+```
+
+**Expected:**
+
+- Both edits are applied successfully (pre-edit allows - not in filtered rules)
+- Post-edit hook runs automatically
+- Hook reports violations:
+    - `@questmaestro/forbid-non-exported-functions` for helper
+    - `@questmaestro/explicit-return-types` for transform
+    - `@questmaestro/forbid-non-exported-functions` for transform
+- Error message to stderr with violation details
+- Exit code: 0 (never blocks)
+
+---
+
+## Edge Cases (Post-Edit)
+
+### Test 10: Non-TypeScript file (Markdown)
+
+**Command:**
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - readme.md
+Content:
+    #
+Test
+README
+
+Some
+markdown
+content.
+```
+
+**Expected:**
+
+- File is written successfully
+- Post-edit hook runs automatically
+- ESLint ignores non-TypeScript file
+- Reports "All violations auto-fixed successfully" to stderr
+- Exit code: 0
+
+### Test 11: Empty file
+
+**Command:**
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - empty.ts
+Content:
+    (empty)
+```
+
+**Expected:**
+
+- File is written successfully
+- Post-edit hook runs automatically
+- No violations found
+- Reports "All violations auto-fixed successfully" to stderr
+- Exit code: 0
+
+### Test 12: File with only auto-fixable violations (arrow-body-style)
+
+**Command:**
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - all - fixable.ts
+Content:
+    export const add = ({a, b}: { a: number; b: number }): number => {
+        return a + b;
+    };
+
+export const multiply = ({a, b}: { a: number; b: number }): number => {
+    return a * b;
+};
+
+export const divide = ({a, b}: { a: number; b: number }): number => {
+    return a / b;
+};
+```
+
+**Expected:**
+
+- File is written successfully (pre-edit allows - not in filtered rules)
+- Post-edit hook runs automatically
+- Hook auto-fixes all arrow-body-style violations (removes braces from all 3 functions)
+- User can see file is modified after hook completes
+- Reports "All violations auto-fixed successfully" to stderr
+- Exit code: 0
+
+---
+
+---
+
+## Verification Tests (Post-Edit Auto-Fix)
+
+### Test 13: Verify auto-fix actually modified file
+
+**Step 1 - Write file with fixable violations:**
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - verify - autofix.ts
+Content:
+    export const add = ({a, b}: { a: number; b: number }): number => {
+        return a + b;
+    };
+
+export const subtract = ({a, b}: { a: number; b: number }): number => {
+    return a - b;
+};
+```
+
+**Step 2 - Read file to verify auto-fix applied:**
+
+```typescript
+Read: packages / hooks / src /
+.
+test - tmp / post - verify - autofix.ts
+```
+
+**Expected:**
+
+- File content should be different from what was written (auto-fixed)
+- Arrow functions should be converted to expression body (no braces)
+- Should see: `=> a + b` and `=> a - b` instead of `{ return ... }`
+- Post-edit hook reported "All violations auto-fixed successfully"
+
+### Test 14: Verify non-fixable violations remain in file
+
+**Step 1 - Write file with non-fixable violation:**
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - verify - nonfixable.ts
+Content:
+    export const process = (data: unknown): unknown => data;
+```
+
+**Step 2 - Read file to verify violations remain:**
+
+```typescript
+Read: packages / hooks / src /
+.
+test - tmp / post - verify - nonfixable.ts
+```
+
+**Expected:**
+
+- File content unchanged (no auto-fix available for enforce-object-destructuring-params)
+- Post-edit hook reported violations to stderr: `@questmaestro/enforce-object-destructuring-params`
+- File still contains `(data: unknown)` instead of `({ data }: { data: unknown })`
+
+---
+
+## Success Criteria (Post-Edit Hook)
+
+- All tests complete successfully with exit code 0
+- Auto-fixable violations are fixed and written to disk
+- Remaining error-level violations are reported to stderr (informational)
+- Hook NEVER blocks any operation (always exits 0)
+- All three tools (Write, Edit, MultiEdit) trigger post-edit hook
+- Non-TypeScript files are handled gracefully
+
+---
+
+## Post-Edit Hook Output Examples
+
+### Success with auto-fix:
+
+```
+All violations auto-fixed successfully
+```
+
+### Remaining violations after auto-fix (non-fixable rules):
+
+```
+Found 1 ESLint error(s):
+  - @questmaestro/enforce-object-destructuring-params: 1 violation(s)
+```
+
+Or:
+
+```
+Found 2 ESLint error(s):
+  - @questmaestro/forbid-non-exported-functions: 2 violation(s)
+```
+
+Or:
+
+```
+Found 1 ESLint error(s):
+  - @questmaestro/explicit-return-types: 1 violation(s)
+```
+
+### No violations:
+
+```
+All violations auto-fixed successfully
+```
+
+**Note:** Post-edit tests use violations NOT in pre-edit filter. Pre-edit ONLY blocks:
+
+- `@typescript-eslint/no-explicit-any`
+- `@typescript-eslint/ban-ts-comment`
+- `eslint-comments/no-use`
+
+Post-edit tests use rules like:
+
+- `arrow-body-style` (auto-fixable)
+- `@questmaestro/enforce-object-destructuring-params` (non-fixable)
+- `@questmaestro/explicit-return-types` (non-fixable)
+- `@questmaestro/forbid-non-exported-functions` (non-fixable)

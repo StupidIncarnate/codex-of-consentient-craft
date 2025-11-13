@@ -14,7 +14,12 @@
     "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
-        "hooks": []
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-post-edit-hook.ts"
+          }
+        ]
       }
     ]
   },
