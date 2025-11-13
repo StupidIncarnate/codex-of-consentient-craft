@@ -1,4 +1,12 @@
-import { fsReadFile } from '../../../adapters/fs/fs-read-file';
+/**
+ * PURPOSE: Loads and validates .questmaestro config file from filesystem
+ *
+ * USAGE:
+ * await configFileLoadBroker({configPath: FilePathStub({value: '/project/.questmaestro'})});
+ * // Returns validated QuestmaestroConfig object
+ */
+
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import {
@@ -15,7 +23,7 @@ export const configFileLoadBroker = async ({
   try {
     // Read the config file
     const filePath = filePathContract.parse(configPath);
-    const fileContents = await fsReadFile({ filePath });
+    const fileContents = await fsReadFileAdapter({ filePath });
 
     // Parse JSON contents
     const configData: unknown = JSON.parse(fileContents);

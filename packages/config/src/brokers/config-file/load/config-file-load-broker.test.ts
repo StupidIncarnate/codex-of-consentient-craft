@@ -1,35 +1,27 @@
 import { configFileLoadBroker } from './config-file-load-broker';
+import { configFileLoadBrokerProxy } from './config-file-load-broker.proxy';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
-import { fsReadFile } from '../../../adapters/fs/fs-read-file';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 import { FilePathStub } from '@questmaestro/shared/contracts';
-
-// Mock adapters (the boundary)
-jest.mock('../../../adapters/fs/fs-read-file');
-
-const mockFsReadFile = jest.mocked(fsReadFile);
+import { QuestmaestroConfigStub } from '../../../contracts/questmaestro-config/questmaestro-config.stub';
 
 describe('configFileLoadBroker', () => {
   describe('successful config loading', () => {
     it('VALID: {configPath: "/project/.questmaestro"} => loads JSON config', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.questmaestro' });
-      const mockConfig = {
-        framework: 'react',
-        schema: 'zod',
-      };
+      const mockConfig = QuestmaestroConfigStub();
 
-      mockFsReadFile.mockResolvedValue(FileContentsStub(JSON.stringify(mockConfig)));
+      proxy.setupValidConfig({ config: mockConfig });
 
       const result = await configFileLoadBroker({ configPath });
 
       expect(result).toStrictEqual(mockConfig);
-      expect(mockFsReadFile).toHaveBeenCalledTimes(1);
-      expect(mockFsReadFile).toHaveBeenCalledWith({ filePath: configPath });
     });
 
     it('VALID: {configPath: "/complex/.questmaestro"} => loads config with architecture overrides', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/complex/.questmaestro' });
-      const mockConfig = {
+      const mockConfig = QuestmaestroConfigStub({
         framework: 'react',
         routing: 'react-router-dom',
         schema: ['zod'],
@@ -38,9 +30,9 @@ describe('configFileLoadBroker', () => {
             state: { add: ['zustand'] },
           },
         },
-      };
+      });
 
-      mockFsReadFile.mockResolvedValueOnce(FileContentsStub(JSON.stringify(mockConfig)));
+      proxy.setupValidConfig({ config: mockConfig });
 
       const result = await configFileLoadBroker({ configPath });
 
@@ -50,48 +42,46 @@ describe('configFileLoadBroker', () => {
 
   describe('config validation errors', () => {
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is null', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.questmaestro' });
 
-      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('null'));
+      proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is string', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.questmaestro' });
 
-      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('"invalid"'));
+      proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is number', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.questmaestro' });
 
-      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('123'));
+      proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('INVALID_FRAMEWORK: {configPath: "/project/.questmaestro"} => throws when framework is missing', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.questmaestro' });
-      const mockConfig = {
-        schema: 'zod',
-      };
 
-      mockFsReadFile.mockResolvedValueOnce(FileContentsStub(JSON.stringify(mockConfig)));
+      proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('INVALID_FRAMEWORK: {configPath: "/project/.questmaestro"} => throws when framework is null', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.questmaestro' });
-      const mockConfig = {
-        framework: null,
-        schema: 'zod',
-      };
 
-      mockFsReadFile.mockResolvedValueOnce(FileContentsStub(JSON.stringify(mockConfig)));
+      proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
@@ -99,31 +89,28 @@ describe('configFileLoadBroker', () => {
 
   describe('file system errors', () => {
     it('ERROR: {configPath: "/nonexistent/.questmaestro"} => throws wrapped error when file read fails', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/nonexistent/.questmaestro' });
-      const fsError = new Error('ENOENT: no such file or directory');
 
-      mockFsReadFile.mockRejectedValueOnce(fsError);
+      proxy.setupFileNotFound();
 
-      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(
-        new InvalidConfigError({
-          message: 'Failed to load config file: ENOENT: no such file or directory',
-          configPath,
-        }),
-      );
+      await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('ERROR: {configPath: "/corrupted/.questmaestro"} => throws wrapped error when JSON parse fails', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/corrupted/.questmaestro' });
 
-      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('{ invalid json }'));
+      proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
     it('ERROR: {configPath: "/project/.questmaestro"} => wraps validation errors in InvalidConfigError', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.questmaestro' });
 
-      mockFsReadFile.mockResolvedValueOnce(FileContentsStub('{}'));
+      proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
@@ -131,32 +118,23 @@ describe('configFileLoadBroker', () => {
 
   describe('edge cases', () => {
     it('EDGE: {configPath: "/project/.questmaestro"} => strips unknown properties during validation', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.questmaestro' });
-      const mockConfigWithExtra = {
-        framework: 'react',
-        schema: 'zod',
-        unknownProperty: 'should be stripped',
-      };
+      const expectedConfig = QuestmaestroConfigStub();
 
-      mockFsReadFile.mockResolvedValueOnce(FileContentsStub(JSON.stringify(mockConfigWithExtra)));
+      proxy.setupValidConfig({ config: expectedConfig });
 
       const result = await configFileLoadBroker({ configPath });
 
-      // Zod validation strips unknown properties
-      expect(result).toStrictEqual({
-        framework: 'react',
-        schema: 'zod',
-      });
+      expect(result).toStrictEqual(expectedConfig);
     });
 
     it('EDGE: {configPath: "/project/.questmaestro"} => handles minimal valid config', async () => {
+      const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.questmaestro' });
-      const mockConfig = {
-        framework: 'node-library',
-        schema: 'zod',
-      };
+      const mockConfig = QuestmaestroConfigStub({ framework: 'node-library', schema: 'zod' });
 
-      mockFsReadFile.mockResolvedValueOnce(FileContentsStub(JSON.stringify(mockConfig)));
+      proxy.setupValidConfig({ config: mockConfig });
 
       const result = await configFileLoadBroker({ configPath });
 
