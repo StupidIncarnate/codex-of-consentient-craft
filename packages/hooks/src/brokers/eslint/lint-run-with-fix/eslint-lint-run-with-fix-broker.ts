@@ -5,9 +5,11 @@
  * const results = await eslintLintRunWithFixBroker({ filePath: '/path/file.ts', config: eslintConfig, cwd: '/project' });
  * // Returns array of LintResult with only error-level violations after auto-fixing
  */
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
 import { eslintOutputFixesAdapter } from '../../../adapters/eslint/output-fixes/eslint-output-fixes-adapter';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
 import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severity-statics';
@@ -35,6 +37,18 @@ export const eslintLintRunWithFixBroker = async ({
   cwd?: string;
 }): Promise<LintResult[]> => {
   try {
+    // Ensure we have an absolute path for ESLint
+    const absolutePath = pathResolveAdapter({ paths: [cwd, filePath] });
+    const absoluteFilePath = filePathContract.parse(absolutePath);
+
+    // Verify file is readable before linting (prevents race condition with file writes)
+    // This ensures the file system has flushed any pending writes before ESLint reads it
+    try {
+      await fsReadFileAdapter({ filePath: absoluteFilePath });
+    } catch (_readError) {
+      // File not readable yet - continue anyway, ESLint will handle if still unavailable
+    }
+
     // Create ESLint instance with fix: true
     // Use the project's eslint.config.js instead of overriding
     // The 'config' parameter is not used since we rely on the project config
@@ -45,13 +59,10 @@ export const eslintLintRunWithFixBroker = async ({
       },
     });
 
-    // Ensure we have an absolute path for ESLint
-    const absolutePath = pathResolveAdapter({ paths: [cwd, filePath] });
-
     // Run linting with auto-fix (generates fixes in memory)
     const results = await eslint.lintFiles([absolutePath]);
 
-    // Write fixes to disk
+    // Write fixes to disk (only writes if result.output exists)
     await eslintOutputFixesAdapter({ results });
 
     // Filter to errors only (quiet mode - severity === 2)

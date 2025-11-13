@@ -333,7 +333,6 @@ npm test --workspace=@questmaestro/hooks -- start-pre-edit-hook.integration.test
 **Cause:** File path incorrect or permissions issue
 
 **Solution:**
-
 - Verify file path is absolute
 - Check file is writable: `ls -la /tmp/test-file.ts`
 
@@ -353,7 +352,6 @@ npm test --workspace=@questmaestro/hooks -- start-pre-edit-hook.integration.test
 ## Overview
 
 The post-edit hook runs AFTER changes are applied to files. It:
-
 - Runs ESLint with `--fix` on the modified file
 - Auto-fixes violations and writes changes to disk
 - Reports remaining **error-level** violations to stderr (informational only)
@@ -361,14 +359,15 @@ The post-edit hook runs AFTER changes are applied to files. It:
 
 ## Test Setup
 
-Run tests in `packages/hooks/src/.test-tmp/` directory with post-edit hook enabled.
+**IMPORTANT:** Use `.info.ts` extension to avoid colocation rule violations during testing.
 
-**Important:**
+**Run tests in:** Any location inside the repo (e.g., `packages/hooks/src/.test-tmp/`)
 
-- Post-edit hook runs automatically after Write/Edit/MultiEdit operations complete
-- These tests use violations NOT in pre-edit filter (pre-edit only blocks: `no-explicit-any`, `ban-ts-comment`,
-  `no-use`)
-- Post-edit checks ALL ESLint rules and auto-fixes what it can
+**Hook behavior:**
+
+- Post-edit hook runs automatically after Write/Edit operations complete
+- Uses full `eslint.config.js` (all rules)
+- Auto-fixes what it can, reports remaining errors
 
 ---
 
@@ -381,7 +380,7 @@ Run tests in `packages/hooks/src/.test-tmp/` directory with post-edit hook enabl
 ```typescript
 Write: packages / hooks / src /
 .
-test - tmp / post - write - arrow - body.ts
+test - tmp / post - arrow - test.info.ts
 Content:
     export const add = ({a, b}: { a: number; b: number }): number => {
         return a + b;
@@ -390,30 +389,34 @@ Content:
 
 **Expected:**
 
-- File is written successfully (pre-edit allows - not in filtered rules)
+- File is written successfully
 - Post-edit hook runs automatically
 - Hook auto-fixes arrow-body-style (removes braces, converts to `=> a + b`)
+- **Verify file was modified:** Read the file back - should be `=> a + b` not `{ return a + b; }`
 - Reports "All violations auto-fixed successfully" to stderr
 - Exit code: 0 (never blocks)
 
-### Test 2: Write with non-fixable error (enforce-object-destructuring-params)
+### Test 2: Write with non-fixable error (no-console)
 
 **Command:**
 
 ```typescript
 Write: packages / hooks / src /
 .
-test - tmp / post - write - no - destructure.ts
+test - tmp / post - console - test.info.ts
 Content:
-    export const process = (data: unknown): unknown => data;
+    export const test = (): void => {
+        console.log('debug');
+    };
 ```
 
 **Expected:**
 
-- File is written successfully (pre-edit allows - not in filtered rules)
+- File is written successfully
 - Post-edit hook runs automatically
-- Hook reports remaining violation: `@questmaestro/enforce-object-destructuring-params`
-- Error message to stderr: "Parameters must use object destructuring pattern"
+- Hook reports remaining violation: `no-console` (Unexpected console statement)
+- **Verify file unchanged:** console.log remains (not auto-fixable)
+- Reports violation to stderr with error details
 - Exit code: 0 (never blocks)
 
 ### Test 3: Write with clean code
@@ -423,42 +426,40 @@ Content:
 ```typescript
 Write: packages / hooks / src /
 .
-test - tmp / post - write - clean - test.ts
+test - tmp / post - clean - test.info.ts
 Content:
-    export function testClean(param: string): string {
-        return param.toUpperCase();
-    }
+    export const testClean = ({param}: { param: string }): string => param.toUpperCase();
 ```
 
 **Expected:**
-
 - File is written successfully
 - Post-edit hook runs automatically
-- No violations found
+- No violations found (code is already clean)
+- **Verify file unchanged:** Code matches what was written
 - Reports "All violations auto-fixed successfully" to stderr
 - Exit code: 0
 
-### Test 4: Write with multiple violations (missing return type + can be fixed)
+### Test 4: Write with multiple fixable violations (arrow-body + prettier)
 
 **Command:**
 
 ```typescript
 Write: packages / hooks / src /
 .
-test - tmp / post - write - multiple - test.ts
+test - tmp / post - multi - test.info.ts
 Content:
-    export const add = ({a, b}: { a: number; b: number }) => {
+    export const add = ({a, b}: { a: number; b: number }): number => {
         return a + b;
     };
 ```
 
 **Expected:**
 
-- File is written successfully (pre-edit allows - not in filtered rules)
+- File is written successfully
 - Post-edit hook runs automatically
-- Hook reports violation: `@questmaestro/explicit-return-types` (missing return type)
-- Hook may also auto-fix arrow-body-style
-- Error message to stderr with violation details
+- Hook auto-fixes both arrow-body-style and prettier violations
+- **Verify file was fixed:** Should have proper spacing and `=> a + b`
+- Reports "All violations auto-fixed successfully" to stderr
 - Exit code: 0 (never blocks)
 
 ---
@@ -467,157 +468,148 @@ Content:
 
 ### Test 5: Edit adding auto-fixable violation (arrow-body-style)
 
-**Setup:** First create clean file from Test 3
+**Setup:** First create a clean file
+
+```typescript
+Write: packages / hooks / src /
+.
+test - tmp / post - edit - test.info.ts
+Content:
+    export const testFunc = ({x}: { x: number }): number => x;
+```
 
 **Command:**
 
 ```typescript
 Edit: packages / hooks / src /
 .
-test - tmp / post - write - clean - test.ts
-Old: return param.toUpperCase();
-New: return param.toUpperCase() + param.toLowerCase();
-```
-
-Then change to block style:
-
-```typescript
-Edit: packages / hooks / src /
-.
-test - tmp / post - write - clean - test.ts
-Old: export function testClean(param: string): string {
-    return param.toUpperCase() + param.toLowerCase();
-}
-New: export const testClean = ({param}: { param: string }): string => {
-    return param.toUpperCase() + param.toLowerCase();
+test - tmp / post - edit - test.info.ts
+Old: export const testFunc = ({x}: { x: number }): number => x;
+New: export const testFunc = ({x}: { x: number }): number => {
+    return x;
 };
-```
-
-**Expected:**
-
-- Edit is applied successfully (pre-edit allows - not in filtered rules)
-- Post-edit hook runs automatically
-- Hook auto-fixes arrow-body-style (removes braces)
-- Reports "All violations auto-fixed successfully" to stderr
-- Exit code: 0
-
-### Test 6: Edit adding non-fixable error (forbid-non-exported-functions)
-
-**Setup:** Use file from Test 3
-
-**Command:**
-
-```typescript
-Edit: packages / hooks / src /
-.
-test - tmp / post - write - clean - test.ts
-Old: export function testClean(param: string): string {
-    return param.toUpperCase();
-}
-New: const helper = (): string => "test";
-
-export function testClean(param: string): string {
-    return param.toUpperCase();
-}
-```
-
-**Expected:**
-
-- Edit is applied successfully (pre-edit allows - not in filtered rules)
-- Post-edit hook runs automatically
-- Hook reports remaining violation: `@questmaestro/forbid-non-exported-functions`
-- Error message to stderr: "All functions must be exported"
-- Exit code: 0 (never blocks)
-
-### Test 7: Edit removing violations
-
-**Setup:** Use file from Test 2
-
-**Command:**
-
-```typescript
-Edit: packages / hooks / src /
-.
-test - tmp / post - write - no - destructure.ts
-Old: export const process = (data: unknown): unknown => data;
-New: export const process = ({data}: { data: unknown }): unknown => data;
 ```
 
 **Expected:**
 
 - Edit is applied successfully
 - Post-edit hook runs automatically
-- No violations found (destructuring pattern now used)
+- Hook auto-fixes arrow-body-style (removes braces again)
+- **Verify file was fixed:** Should be back to `=> x` not `{ return x; }`
+- Reports "All violations auto-fixed successfully" to stderr
+- Exit code: 0
+
+### Test 6: Edit adding non-fixable error (no-console)
+
+**Setup:** Use file from Test 5
+
+**Command:**
+
+```typescript
+Edit: packages / hooks / src /
+.
+test - tmp / post - edit - test.info.ts
+Old: export const testFunc = ({x}: { x: number }): number => x;
+New: export const testFunc = ({x}: { x: number }): number => {
+    console.log(x);
+    return x;
+};
+```
+
+**Expected:**
+
+- Edit is applied successfully
+- Post-edit hook runs automatically
+- Hook reports remaining violation: `no-console` (Unexpected console statement)
+- **Verify violation reported:** stderr shows console.log error
+- Exit code: 0 (never blocks)
+
+### Test 7: Edit removing violations
+
+**Setup:** Use file from Test 6
+
+**Command:**
+
+```typescript
+Edit: packages / hooks / src /
+.
+test - tmp / post - edit - test.info.ts
+Old: export const testFunc = ({x}: { x: number }): number => {
+    console.log(x);
+    return x;
+};
+New: export const testFunc = ({x}: { x: number }): number => x;
+```
+
+**Expected:**
+- Edit is applied successfully
+- Post-edit hook runs automatically
+- No violations found (console.log removed, arrow-body auto-fixed)
+- **Verify file is clean:** Code is properly formatted
 - Reports "All violations auto-fixed successfully" to stderr
 - Exit code: 0
 
 ---
 
-## MultiEdit Tool Tests (Post-Edit)
+## Verification Tests
 
-### Test 8: MultiEdit with auto-fixable violations (arrow-body-style)
-
-**Setup:** Create a new file with multiple arrow functions
+### Test 8: Verify auto-fix actually modifies file on disk
 
 **Command:**
 
 ```typescript
 Write: packages / hooks / src /
 .
-test - tmp / post - multi - arrows.ts
+test - tmp / post - verify - fix.info.ts
 Content:
-    export const add = ({a, b}: { a: number; b: number }): number => {
-        return a + b;
+    export const multiply = ({x, y}: { x: number; y: number }): number => {
+        return x * y;
     };
+```
 
-export const subtract = ({a, b}: { a: number; b: number }): number => {
-    return a - b;
-};
+**Then immediately read the file:**
+
+```typescript
+Read: packages / hooks / src /
+.
+test - tmp / post - verify - fix.info.ts
 ```
 
 **Expected:**
 
-- Both edits are applied successfully (pre-edit allows - not in filtered rules)
-- Post-edit hook runs automatically
-- Hook auto-fixes both arrow-body-style violations (removes braces)
-- Reports "All violations auto-fixed successfully" to stderr
-- Exit code: 0
+- File should NOT contain original content with braces
+- File should be auto-fixed to: `=> x * y` (no braces, no return statement)
+- This proves post-edit hook actually wrote fixes to disk
+- stderr showed "All violations auto-fixed successfully"
 
-### Test 9: MultiEdit with mixed violations (missing return type + non-exported function)
-
-**Setup:** Use file from Test 3
+### Test 9: Verify non-fixable violations remain in file
 
 **Command:**
 
 ```typescript
-MultiEdit: packages / hooks / src /
+Write: packages / hooks / src /
 .
-test - tmp / post - write - clean - test.ts
-Edit
-1
-:
-Old: export function testClean(param: string): string {
-    New: const helper = (): string => "test";
+test - tmp / post - verify - nonfixable.info.ts
+Content:
+    export const debug = (): void => {
+        console.log('test');
+    };
+```
 
-    export function testClean(param: string): string {
-        Edit
-        2
-    :
-        Old: return param.toUpperCase();
-        New: const transform = (x: string) => x.toLowerCase();
-        return param.toUpperCase();
+**Then immediately read the file:**
+
+```typescript
+Read: packages / hooks / src /
+.
+test - tmp / post - verify - nonfixable.info.ts
 ```
 
 **Expected:**
 
-- Both edits are applied successfully (pre-edit allows - not in filtered rules)
-- Post-edit hook runs automatically
-- Hook reports violations:
-    - `@questmaestro/forbid-non-exported-functions` for helper
-    - `@questmaestro/explicit-return-types` for transform
-    - `@questmaestro/forbid-non-exported-functions` for transform
-- Error message to stderr with violation details
-- Exit code: 0 (never blocks)
+- File still contains `console.log('test');` (not auto-fixable)
+- stderr showed `no-console` violation error
+- This proves non-fixable violations are reported but file left as-is
+- Exit code was 0 (non-fixable violations don't block)
 
 ---
 
@@ -642,186 +634,113 @@ content.
 ```
 
 **Expected:**
-
 - File is written successfully
 - Post-edit hook runs automatically
-- ESLint ignores non-TypeScript file
+- ESLint ignores non-TypeScript file (no violations)
 - Reports "All violations auto-fixed successfully" to stderr
 - Exit code: 0
 
-### Test 11: Empty file
+### Test 11: Empty TypeScript file
 
 **Command:**
 
 ```typescript
 Write: packages / hooks / src /
 .
-test - tmp / post - empty.ts
+test - tmp / post - empty.info.ts
 Content:
-    (empty)
+    (empty - no
+content
+)
 ```
 
 **Expected:**
-
 - File is written successfully
 - Post-edit hook runs automatically
-- No violations found
+- No violations found (empty file is valid)
 - Reports "All violations auto-fixed successfully" to stderr
 - Exit code: 0
 
-### Test 12: File with only auto-fixable violations (arrow-body-style)
+### Test 12: File with colocation violation (non-fixable post-edit rule)
 
 **Command:**
 
 ```typescript
 Write: packages / hooks / src /
 .
-test - tmp / post - all - fixable.ts
+test - tmp / post - colocation - test - broker.ts
 Content:
-    export const add = ({a, b}: { a: number; b: number }): number => {
-        return a + b;
-    };
-
-export const multiply = ({a, b}: { a: number; b: number }): number => {
-    return a * b;
-};
-
-export const divide = ({a, b}: { a: number; b: number }): number => {
-    return a / b;
-};
+    export const testBroker = async ({data}: { data: string }): Promise<string> => data;
 ```
 
 **Expected:**
 
-- File is written successfully (pre-edit allows - not in filtered rules)
+- File is written successfully
 - Post-edit hook runs automatically
-- Hook auto-fixes all arrow-body-style violations (removes braces from all 3 functions)
-- User can see file is modified after hook completes
-- Reports "All violations auto-fixed successfully" to stderr
-- Exit code: 0
-
----
-
----
-
-## Verification Tests (Post-Edit Auto-Fix)
-
-### Test 13: Verify auto-fix actually modified file
-
-**Step 1 - Write file with fixable violations:**
-
-```typescript
-Write: packages / hooks / src /
-.
-test - tmp / post - verify - autofix.ts
-Content:
-    export const add = ({a, b}: { a: number; b: number }): number => {
-        return a + b;
-    };
-
-export const subtract = ({a, b}: { a: number; b: number }): number => {
-    return a - b;
-};
-```
-
-**Step 2 - Read file to verify auto-fix applied:**
-
-```typescript
-Read: packages / hooks / src /
-.
-test - tmp / post - verify - autofix.ts
-```
-
-**Expected:**
-
-- File content should be different from what was written (auto-fixed)
-- Arrow functions should be converted to expression body (no braces)
-- Should see: `=> a + b` and `=> a - b` instead of `{ return ... }`
-- Post-edit hook reported "All violations auto-fixed successfully"
-
-### Test 14: Verify non-fixable violations remain in file
-
-**Step 1 - Write file with non-fixable violation:**
-
-```typescript
-Write: packages / hooks / src /
-.
-test - tmp / post - verify - nonfixable.ts
-Content:
-    export const process = (data: unknown): unknown => data;
-```
-
-**Step 2 - Read file to verify violations remain:**
-
-```typescript
-Read: packages / hooks / src /
-.
-test - tmp / post - verify - nonfixable.ts
-```
-
-**Expected:**
-
-- File content unchanged (no auto-fix available for enforce-object-destructuring-params)
-- Post-edit hook reported violations to stderr: `@questmaestro/enforce-object-destructuring-params`
-- File still contains `(data: unknown)` instead of `({ data }: { data: unknown })`
+- Hook reports colocation violation: "Implementation file must have a colocated test file"
+- **Verify violation reported:** stderr shows error about missing `.test.ts` file
+- Exit code: 0 (never blocks, just reports)
 
 ---
 
 ## Success Criteria (Post-Edit Hook)
 
-- All tests complete successfully with exit code 0
-- Auto-fixable violations are fixed and written to disk
-- Remaining error-level violations are reported to stderr (informational)
-- Hook NEVER blocks any operation (always exits 0)
-- All three tools (Write, Edit, MultiEdit) trigger post-edit hook
-- Non-TypeScript files are handled gracefully
+- ✅ All tests complete successfully with exit code 0
+- ✅ Auto-fixable violations are fixed and written to disk
+- ✅ Remaining error-level violations are reported to stderr (informational)
+- ✅ Hook NEVER blocks any operation (always exits 0)
+- ✅ Verification tests confirm file modifications actually happened
+- ✅ Non-TypeScript files are handled gracefully
 
 ---
 
 ## Post-Edit Hook Output Examples
 
 ### Success with auto-fix:
-
 ```
 All violations auto-fixed successfully
 ```
 
 ### Remaining violations after auto-fix (non-fixable rules):
-
 ```
-Found 1 ESLint error(s):
-  - @questmaestro/enforce-object-destructuring-params: 1 violation(s)
-```
-
-Or:
-
-```
-Found 2 ESLint error(s):
-  - @questmaestro/forbid-non-exported-functions: 2 violation(s)
+🛑 New code quality violations detected:
+  ❌ Code Quality Issue: 1 violation
+     Line 2:3 - Unexpected console statement.
+These rules help maintain code quality and safety. Please fix the violations.
 ```
 
 Or:
-
 ```
-Found 1 ESLint error(s):
-  - @questmaestro/explicit-return-types: 1 violation(s)
+🛑 New code quality violations detected:
+  ❌ Code Quality Issue: 1 violation
+     Line 1:1 - Implementation file must have a colocated test file. Create example-broker.test.ts (or .integration.test.ts or .spec.ts variant) in the same directory.
+These rules help maintain code quality and safety. Please fix the violations.
 ```
 
 ### No violations:
-
 ```
 All violations auto-fixed successfully
 ```
 
-**Note:** Post-edit tests use violations NOT in pre-edit filter. Pre-edit ONLY blocks:
+---
 
-- `@typescript-eslint/no-explicit-any`
-- `@typescript-eslint/ban-ts-comment`
-- `eslint-comments/no-use`
+## Key Differences from Pre-Edit Hook
 
-Post-edit tests use rules like:
+| Aspect                 | Pre-Edit Hook                       | Post-Edit Hook                                          |
+|------------------------|-------------------------------------|---------------------------------------------------------|
+| **When runs**          | Before file write                   | After file write                                        |
+| **Purpose**            | Block bad code                      | Auto-fix + report                                       |
+| **Blocks?**            | Yes (exit 2)                        | No (always exit 0)                                      |
+| **Auto-fix**           | No                                  | **Yes** - writes to disk                                |
+| **Rules checked**      | Filtered subset (35 pre-edit rules) | All ESLint rules                                        |
+| **File extension tip** | N/A                                 | Use `.info.ts` to avoid colocation rules during testing |
 
-- `arrow-body-style` (auto-fixable)
-- `@questmaestro/enforce-object-destructuring-params` (non-fixable)
-- `@questmaestro/explicit-return-types` (non-fixable)
-- `@questmaestro/forbid-non-exported-functions` (non-fixable)
+---
+
+## Tips for Manual Testing
+
+1. **Use `.info.ts` extension** - Avoids colocation rule violations during testing
+2. **Verify fixes were written** - Always read file back to confirm auto-fix worked
+3. **Check stderr output** - Post-edit hook reports all status to stderr
+4. **Exit code always 0** - Post-edit never blocks, even with violations
+5. **Test in repo** - Files must be inside the repo for ESLint config discovery
