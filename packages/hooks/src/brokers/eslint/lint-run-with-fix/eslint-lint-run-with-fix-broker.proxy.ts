@@ -8,12 +8,16 @@
  */
 
 import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
+import { eslintOutputFixesAdapterProxy } from '../../../adapters/eslint/output-fixes/eslint-output-fixes-adapter.proxy';
+import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
 
 export const eslintLintRunWithFixBrokerProxy = (): {
   returnsLintResults: (params: { results: unknown[] }) => void;
 } => {
   const eslintProxy = eslintEslintAdapterProxy();
+  eslintOutputFixesAdapterProxy();
+  fsReadFileAdapterProxy();
   pathResolveAdapterProxy();
 
   return {

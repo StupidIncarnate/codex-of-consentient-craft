@@ -24,6 +24,9 @@ export const StartPostEditHook = async ({ inputData }: { inputData: string }): P
 
     const result = await HookPostEditResponder({ input: parsedData as HookData });
 
+    // Write status message to stderr for visibility
+    process.stderr.write(`${result.message}\n`);
+
     // Post-edit hook outputs violations to stdout ONLY if there are unfixable errors
     // This is informational only - never blocks (always exit 0)
     if (
