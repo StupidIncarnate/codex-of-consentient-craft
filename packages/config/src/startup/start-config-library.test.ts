@@ -3,123 +3,11 @@ import {
   getAllFrameworks,
   getAllSchemaLibraries,
   getFrameworkPreset,
-  resolveConfigForFile,
   validateConfig,
 } from './start-config-library';
-import { configResolveBroker } from '../brokers/config/resolve/config-resolve-broker';
-import { computeAllowedImportsTransformer } from '../transformers/compute-allowed-imports/compute-allowed-imports-transformer';
-import type { QuestmaestroConfig } from '../contracts/questmaestro-config/questmaestro-config-contract';
-import type { AllowedExternalImports } from '../contracts/folder-config/folder-config-contract';
-
-// Mock dependencies
-jest.mock('../brokers/config/resolve/config-resolve-broker');
-jest.mock('../transformers/compute-allowed-imports/compute-allowed-imports-transformer');
-
-const mockConfigResolveBroker = jest.mocked(configResolveBroker);
-const mockComputeAllowedImportsTransformer = jest.mocked(computeAllowedImportsTransformer);
+import { QuestmaestroConfigStub } from '../contracts/questmaestro-config/questmaestro-config.stub';
 
 describe('start-config-library', () => {
-  beforeEach(() => {
-    mockConfigResolveBroker.mockReset();
-    mockComputeAllowedImportsTransformer.mockReset();
-  });
-
-  describe('resolveConfigForFile', () => {
-    it('VALID: {filePath: "/project/src/file.ts"} => resolves and transforms config', async () => {
-      const filePath = '/project/src/file.ts';
-      const resolvedConfig: QuestmaestroConfig = {
-        framework: 'react',
-        routing: 'react-router-dom',
-        schema: 'zod',
-      };
-      const allowedImports: AllowedExternalImports = {
-        widgets: ['react', 'react-dom'],
-        bindings: ['react', 'react-dom'],
-        state: ['react', 'react-dom'],
-        flows: ['react-router-dom'],
-        responders: [],
-        contracts: ['zod'],
-        brokers: [],
-        transformers: [],
-        errors: [],
-        middleware: [],
-        adapters: ['*'],
-        startup: ['*'],
-      };
-
-      mockConfigResolveBroker.mockResolvedValueOnce(resolvedConfig);
-      mockComputeAllowedImportsTransformer.mockReturnValueOnce(allowedImports);
-
-      const result = await resolveConfigForFile({ filePath });
-
-      expect(result).toStrictEqual(allowedImports);
-      expect(mockConfigResolveBroker).toHaveBeenCalledTimes(1);
-      expect(mockConfigResolveBroker).toHaveBeenCalledWith({ filePath });
-      expect(mockComputeAllowedImportsTransformer).toHaveBeenCalledTimes(1);
-      expect(mockComputeAllowedImportsTransformer).toHaveBeenCalledWith({ config: resolvedConfig });
-    });
-
-    it('VALID: {filePath: "/monorepo/packages/api/server.ts"} => handles backend framework config', async () => {
-      const filePath = '/monorepo/packages/api/server.ts';
-      const resolvedConfig: QuestmaestroConfig = {
-        framework: 'express',
-        schema: 'zod',
-      };
-      const allowedImports: AllowedExternalImports = {
-        widgets: null,
-        bindings: null,
-        state: [],
-        flows: ['express'],
-        responders: [],
-        contracts: ['joi'],
-        brokers: [],
-        transformers: [],
-        errors: [],
-        middleware: [],
-        adapters: ['*'],
-        startup: ['*'],
-      };
-
-      mockConfigResolveBroker.mockResolvedValueOnce(resolvedConfig);
-      mockComputeAllowedImportsTransformer.mockReturnValueOnce(allowedImports);
-
-      const result = await resolveConfigForFile({ filePath });
-
-      expect(result).toStrictEqual(allowedImports);
-      expect(mockConfigResolveBroker).toHaveBeenCalledWith({ filePath });
-      expect(mockComputeAllowedImportsTransformer).toHaveBeenCalledWith({ config: resolvedConfig });
-    });
-
-    it('ERROR: {filePath: "/nonexistent/file.ts"} => propagates config resolution errors', async () => {
-      const filePath = '/nonexistent/file.ts';
-      const configError = new Error('Config not found');
-
-      mockConfigResolveBroker.mockRejectedValueOnce(configError);
-
-      await expect(resolveConfigForFile({ filePath })).rejects.toThrow(configError);
-      expect(mockConfigResolveBroker).toHaveBeenCalledWith({ filePath });
-      expect(mockComputeAllowedImportsTransformer).not.toHaveBeenCalled();
-    });
-
-    it('ERROR: {filePath: "/project/invalid.ts"} => propagates transformation errors', async () => {
-      const filePath = '/project/invalid.ts';
-      const resolvedConfig: QuestmaestroConfig = {
-        framework: 'react',
-        schema: 'zod',
-      };
-      const transformError = new Error('Invalid framework');
-
-      mockConfigResolveBroker.mockResolvedValueOnce(resolvedConfig);
-      mockComputeAllowedImportsTransformer.mockImplementationOnce(() => {
-        throw transformError;
-      });
-
-      await expect(resolveConfigForFile({ filePath })).rejects.toThrow(transformError);
-      expect(mockConfigResolveBroker).toHaveBeenCalledWith({ filePath });
-      expect(mockComputeAllowedImportsTransformer).toHaveBeenCalledWith({ config: resolvedConfig });
-    });
-  });
-
   describe('getFrameworkPreset', () => {
     it('VALID: {framework: "react"} => returns React framework preset', () => {
       const result = getFrameworkPreset({ framework: 'react' });
@@ -201,10 +89,7 @@ describe('start-config-library', () => {
   describe('validateConfig', () => {
     describe('valid configs', () => {
       it('VALID: {framework: "react", schema: "zod"} => returns config as-is', () => {
-        const config = {
-          framework: 'react',
-          schema: 'zod',
-        };
+        const config = QuestmaestroConfigStub();
 
         const result = validateConfig({ config });
 
@@ -212,15 +97,10 @@ describe('start-config-library', () => {
       });
 
       it('VALID: {framework: "express", schema: ["zod"]} => validates multi-schema config', () => {
-        const config = {
+        const config = QuestmaestroConfigStub({
           framework: 'express',
           schema: ['zod'],
-          architecture: {
-            overrides: {
-              state: { add: ['redis'] },
-            },
-          },
-        };
+        });
 
         const result = validateConfig({ config });
 
@@ -231,96 +111,74 @@ describe('start-config-library', () => {
     describe('invalid configs', () => {
       it('INVALID_CONFIG: {config: null} => throws ZodError for null config', () => {
         expect(() => {
-          return validateConfig({ config: null });
-        }).toThrow();
+          return validateConfig({ config: null as never });
+        }).toThrow(/required/u);
       });
 
       it('INVALID_CONFIG: {config: undefined} => throws ZodError for undefined config', () => {
         expect(() => {
-          return validateConfig({ config: undefined });
-        }).toThrow();
+          return validateConfig({ config: undefined as never });
+        }).toThrow(/required/u);
       });
 
       it('INVALID_CONFIG: {config: "string"} => throws ZodError for string config', () => {
         expect(() => {
-          return validateConfig({ config: 'string' });
-        }).toThrow();
+          return validateConfig({ config: 'string' as never });
+        }).toThrow(/expected.*object/iu);
       });
 
       it('INVALID_CONFIG: {config: 123} => throws ZodError for number config', () => {
         expect(() => {
-          return validateConfig({ config: 123 });
-        }).toThrow();
+          return validateConfig({ config: 123 as never });
+        }).toThrow(/expected.*object/iu);
       });
 
       it('INVALID_CONFIG: {config: true} => throws ZodError for boolean config', () => {
         expect(() => {
-          return validateConfig({ config: true });
-        }).toThrow();
+          return validateConfig({ config: true as never });
+        }).toThrow(/expected.*object/iu);
       });
 
       it('INVALID_FRAMEWORK: {framework: missing} => throws ZodError when framework is missing', () => {
-        const config = {
-          schema: 'zod',
-        };
-
         expect(() => {
-          return validateConfig({ config });
-        }).toThrow();
+          return validateConfig({ config: { schema: 'zod' } as never });
+        }).toThrow(/required/u);
       });
 
       it('INVALID_FRAMEWORK: {framework: null} => throws ZodError when framework is null', () => {
-        const config = {
-          framework: null,
-          schema: 'zod',
-        };
-
         expect(() => {
-          return validateConfig({ config });
-        }).toThrow();
+          return validateConfig({
+            config: { framework: null, schema: 'zod' } as never,
+          });
+        }).toThrow(/required/u);
       });
 
       it('INVALID_FRAMEWORK: {framework: "unknown"} => throws ZodError for invalid framework', () => {
-        const config = {
-          framework: 'unknown',
-          schema: 'zod',
-        };
-
         expect(() => {
-          return validateConfig({ config });
-        }).toThrow();
+          return validateConfig({
+            config: QuestmaestroConfigStub({ framework: 'unknown' as never }),
+          });
+        }).toThrow(/invalid.*enum/iu);
       });
 
       it('INVALID_SCHEMA: {schema: missing} => throws ZodError when schema is missing', () => {
-        const config = {
-          framework: 'react',
-        };
-
         expect(() => {
-          return validateConfig({ config });
-        }).toThrow();
+          return validateConfig({ config: { framework: 'react' } as never });
+        }).toThrow(/required/u);
       });
 
       it('INVALID_SCHEMA: {schema: null} => throws ZodError when schema is null', () => {
-        const config = {
-          framework: 'react',
-          schema: null,
-        };
-
         expect(() => {
-          return validateConfig({ config });
-        }).toThrow();
+          return validateConfig({
+            config: { framework: 'react', schema: null } as never,
+          });
+        }).toThrow(/required/u);
       });
 
       it('INVALID_SCHEMA: {schema: undefined} => throws ZodError when schema is undefined', () => {
-        const config = {
-          framework: 'react',
-          schema: undefined,
-        };
-
         expect(() => {
-          return validateConfig({ config });
-        }).toThrow();
+          return validateConfig({ config: { framework: 'react' } as never });
+        }).toThrow(/required/u);
       });
     });
   });

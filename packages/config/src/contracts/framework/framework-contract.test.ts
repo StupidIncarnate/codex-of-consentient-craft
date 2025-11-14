@@ -1,166 +1,60 @@
-import type { Framework } from './framework-contract';
-import { ALL_FRAMEWORKS, isValidFramework } from './framework-contract';
+import { frameworkContract } from './framework-contract';
+import { FrameworkStub } from './framework.stub';
 
-describe('framework-contract', () => {
-  describe('ALL_FRAMEWORKS', () => {
-    it('VALID: => returns all framework names in expected order', () => {
-      expect(ALL_FRAMEWORKS).toStrictEqual([
-        'react',
-        'vue',
-        'angular',
-        'svelte',
-        'solid',
-        'preact',
-        'express',
-        'fastify',
-        'koa',
-        'hapi',
-        'nestjs',
-        'nextjs',
-        'nuxtjs',
-        'remix',
-        'node-library',
-        'react-library',
-        'cli',
-        'ink-cli',
-        'monorepo',
-      ]);
+describe('frameworkContract', () => {
+  describe('valid frameworks', () => {
+    it('VALID: "react" => parses successfully', () => {
+      const framework = frameworkContract.parse('react');
+
+      expect(framework).toBe('react');
     });
 
-    it('VALID: => returns readonly array', () => {
-      expect(Array.isArray(ALL_FRAMEWORKS)).toBe(true);
-      // Test that it's a const assertion (readonly) by checking it exists
-      expect(ALL_FRAMEWORKS.length).toBeGreaterThan(0);
-    });
-  });
+    it('VALID: "express" => parses successfully', () => {
+      const framework = frameworkContract.parse('express');
 
-  describe('isValidFramework()', () => {
-    describe('valid frameworks', () => {
-      it('VALID: "react" => returns true', () => {
-        const result = isValidFramework('react');
-
-        expect(result).toBe(true);
-      });
-
-      it('VALID: "express" => returns true', () => {
-        const result = isValidFramework('express');
-
-        expect(result).toBe(true);
-      });
-
-      it('VALID: "monorepo" => returns true', () => {
-        const result = isValidFramework('monorepo');
-
-        expect(result).toBe(true);
-      });
+      expect(framework).toBe('express');
     });
 
-    describe('invalid frameworks', () => {
-      it('INVALID_FRAMEWORK: "invalid" => returns false', () => {
-        const result = isValidFramework('invalid');
+    it('VALID: "nextjs" => parses successfully', () => {
+      const framework = frameworkContract.parse('nextjs');
 
-        expect(result).toBe(false);
-      });
-
-      it('INVALID_FRAMEWORK: "React" => returns false', () => {
-        const result = isValidFramework('React');
-
-        expect(result).toBe(false);
-      });
-
-      it('INVALID_FRAMEWORK: "" => returns false', () => {
-        const result = isValidFramework('');
-
-        expect(result).toBe(false);
-      });
+      expect(framework).toBe('nextjs');
     });
 
-    describe('non-string inputs', () => {
-      it('INVALID_TYPE: null => returns false', () => {
-        const result = isValidFramework(null);
+    it('VALID: stub with default => parses as react', () => {
+      const framework = FrameworkStub();
 
-        expect(result).toBe(false);
-      });
+      const result = frameworkContract.parse(framework);
 
-      it('INVALID_TYPE: undefined => returns false', () => {
-        const result = isValidFramework(undefined);
+      expect(result).toBe('react');
+    });
 
-        expect(result).toBe(false);
-      });
+    it('VALID: stub with override => parses with custom value', () => {
+      const framework = FrameworkStub({ value: 'vue' });
 
-      it('INVALID_TYPE: 123 => returns false', () => {
-        const result = isValidFramework(123);
+      const result = frameworkContract.parse(framework);
 
-        expect(result).toBe(false);
-      });
-
-      it('INVALID_TYPE: {} => returns false', () => {
-        const result = isValidFramework({});
-
-        expect(result).toBe(false);
-      });
-
-      it('INVALID_TYPE: [] => returns false', () => {
-        const result = isValidFramework([]);
-
-        expect(result).toBe(false);
-      });
-
-      it('INVALID_TYPE: true => returns false', () => {
-        const result = isValidFramework(true);
-
-        expect(result).toBe(false);
-      });
+      expect(result).toBe('vue');
     });
   });
 
-  describe('Framework type', () => {
-    describe('type compilation', () => {
-      it('VALID: type accepts all valid frameworks => compiles successfully', () => {
-        const validFrameworks: Framework[] = [
-          'react',
-          'vue',
-          'angular',
-          'svelte',
-          'solid',
-          'preact',
-          'express',
-          'fastify',
-          'koa',
-          'hapi',
-          'nestjs',
-          'nextjs',
-          'nuxtjs',
-          'remix',
-          'node-library',
-          'react-library',
-          'cli',
-          'ink-cli',
-          'monorepo',
-        ];
+  describe('invalid frameworks', () => {
+    it('INVALID_VALUE: "invalid" => throws validation error', () => {
+      expect(() => {
+        return frameworkContract.parse('invalid');
+      }).toThrow(/Invalid enum value/u);
+    });
 
-        expect(validFrameworks).toStrictEqual([
-          'react',
-          'vue',
-          'angular',
-          'svelte',
-          'solid',
-          'preact',
-          'express',
-          'fastify',
-          'koa',
-          'hapi',
-          'nestjs',
-          'nextjs',
-          'nuxtjs',
-          'remix',
-          'node-library',
-          'react-library',
-          'cli',
-          'ink-cli',
-          'monorepo',
-        ]);
-      });
+    it('INVALID_TYPE: 123 => throws validation error', () => {
+      expect(() => {
+        return frameworkContract.parse(123);
+      }).toThrow(/Expected/u);
+    });
+
+    it('INVALID_UNDEFINED: undefined => throws validation error', () => {
+      expect(() => {
+        return frameworkContract.parse(undefined);
+      }).toThrow(/Required/u);
     });
   });
 });

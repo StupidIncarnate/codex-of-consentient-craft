@@ -1,10 +1,10 @@
 /**
- * PURPOSE: Validates folder configuration structure for allowed external imports
+ * PURPOSE: Validates framework preset configurations with branded types for allowed external imports
  *
  * USAGE:
- * import {folderConfigContract} from './folder-config-contract';
- * const config = folderConfigContract.parse({widgets: ['react'], contracts: ['zod']});
- * // Returns validated AllowedExternalImports type
+ * import {frameworkPresetsContract} from './framework-presets-contract';
+ * const preset = frameworkPresetsContract.parse({...});
+ * // Returns validated FrameworkPreset type with branded strings
  */
 
 import { z } from 'zod';
@@ -12,8 +12,8 @@ import { z } from 'zod';
 const packageNameArrayContract = z.array(z.string().brand<'PackageName'>());
 const nullablePackageNameArrayContract = packageNameArrayContract.nullable();
 
-// The computed structure that lint rules actually check
-export const folderConfigContract = z.object({
+// Base preset structure - what each framework allows by default
+export const frameworkPresetsContract = z.object({
   widgets: nullablePackageNameArrayContract,
   bindings: nullablePackageNameArrayContract,
   state: nullablePackageNameArrayContract,
@@ -28,4 +28,4 @@ export const folderConfigContract = z.object({
   startup: packageNameArrayContract,
 });
 
-export type AllowedExternalImports = z.infer<typeof folderConfigContract>;
+export type FrameworkPreset = z.infer<typeof frameworkPresetsContract>;

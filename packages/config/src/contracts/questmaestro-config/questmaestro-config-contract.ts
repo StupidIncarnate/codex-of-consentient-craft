@@ -1,20 +1,34 @@
-import { z } from 'zod';
-import { ALL_FRAMEWORKS } from '../framework/framework-contract';
-import { ALL_ROUTING_LIBRARIES } from '../routing-library/routing-library-contract';
-import { ALL_SCHEMA_LIBRARIES } from '../schema-library/schema-library-contract';
+/**
+ * PURPOSE: Validates questmaestro configuration structure for projects
+ *
+ * USAGE:
+ * import {questmaestroConfigContract} from './questmaestro-config-contract';
+ * const config = questmaestroConfigContract.parse({framework: 'react', schema: 'zod'});
+ * // Returns validated QuestmaestroConfig type
+ */
 
-export const DEFAULT_ALLOWED_ROOT_FILES = ['global.d.ts'];
-export const DEFAULT_BOOLEAN_FUNCTION_PREFIXES = ['is', 'has', 'can', 'should', 'will', 'was'];
+import { z } from 'zod';
+import { frameworkStatics } from '../../statics/framework/framework-statics';
+import { routingLibraryStatics } from '../../statics/routing-library/routing-library-statics';
+import { schemaLibraryStatics } from '../../statics/schema-library/schema-library-statics';
 
 export const questmaestroConfigContract = z.object({
-  framework: z.enum(ALL_FRAMEWORKS),
-  routing: z.enum(ALL_ROUTING_LIBRARIES).optional(),
-  schema: z.union([z.enum(ALL_SCHEMA_LIBRARIES), z.array(z.enum(ALL_SCHEMA_LIBRARIES))]),
+  framework: z.enum(frameworkStatics.frameworks.all),
+  routing: z.enum(routingLibraryStatics.libraries.all).optional(),
+  schema: z.union([
+    z.enum(schemaLibraryStatics.libraries.all),
+    z.array(z.enum(schemaLibraryStatics.libraries.all)),
+  ]),
   architecture: z
     .object({
-      overrides: z.record(z.string(), z.object({ add: z.array(z.string()).optional() })).optional(),
-      allowedRootFiles: z.array(z.string()).optional(),
-      booleanFunctionPrefixes: z.array(z.string()).optional(),
+      overrides: z
+        .record(
+          z.string().brand<'FolderName'>(),
+          z.object({ add: z.array(z.string().brand<'PackageName'>()).optional() }),
+        )
+        .optional(),
+      allowedRootFiles: z.array(z.string().brand<'FileName'>()).optional(),
+      booleanFunctionPrefixes: z.array(z.string().brand<'FunctionPrefix'>()).optional(),
     })
     .optional(),
 });

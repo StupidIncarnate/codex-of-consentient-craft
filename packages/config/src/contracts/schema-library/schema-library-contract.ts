@@ -1,8 +1,14 @@
-import { isInReadonlyArray } from '../is-in-readonly-array/is-in-readonly-array';
+/**
+ * PURPOSE: Validates and defines schema library type for project configuration
+ *
+ * USAGE:
+ * import {schemaLibraryContract} from './schema-library-contract';
+ * const library = schemaLibraryContract.parse('zod');
+ * // Returns validated SchemaLibrary type
+ */
 
-export const ALL_SCHEMA_LIBRARIES = ['zod'] as const;
+import { z } from 'zod';
+import { schemaLibraryStatics } from '../../statics/schema-library/schema-library-statics';
 
-export type SchemaLibrary = (typeof ALL_SCHEMA_LIBRARIES)[number];
-
-export const isValidSchemaLibrary = (library: unknown): library is SchemaLibrary =>
-  isInReadonlyArray({ value: library, array: ALL_SCHEMA_LIBRARIES });
+export const schemaLibraryContract = z.enum(schemaLibraryStatics.libraries.all);
+export type SchemaLibrary = z.infer<typeof schemaLibraryContract>;

@@ -1,3 +1,8 @@
-import { fileContentsContract, type FileContents } from './file-contents-contract';
+import { fileContentsContract } from './file-contents-contract';
+import type { FileContents } from './file-contents-contract';
 
-export const FileContentsStub = (value: string): FileContents => fileContentsContract.parse(value);
+export const FileContentsStub = (
+  { value }: { value?: string } = {
+    value: 'test file contents',
+  },
+): FileContents => fileContentsContract.parse(value);
