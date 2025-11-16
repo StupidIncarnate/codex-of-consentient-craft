@@ -201,4 +201,132 @@ describe('StubArgument', () => {
       expect(result.getFilename?.()).toBe('/custom/path.ts');
     });
   });
+
+  describe('edge cases: nested structures', () => {
+    const userIdContract = z.string().uuid().brand<'UserId'>();
+    const addressIdContract = z.string().brand<'AddressId'>();
+    const cityNameContract = z.string().brand<'CityName'>();
+
+    const addressContract = z.object({
+      id: addressIdContract,
+      city: cityNameContract,
+    });
+
+    const userContract = z.object({
+      id: userIdContract,
+      address: addressContract,
+    });
+
+    type User = z.infer<typeof userContract>;
+
+    const UserStub = ({ ...props }: StubArgument<User> = {}): User => {
+      return userContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        address: {
+          id: 'addr-123',
+          city: 'San Francisco',
+        },
+        ...props,
+      });
+    };
+
+    it('VALID: Nested objects with branded types => accepts plain strings at all levels', () => {
+      const result = UserStub({
+        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+        address: {
+          id: 'addr-456',
+          city: 'New York',
+        },
+      });
+
+      expect(result.id).toBe('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d');
+      expect(result.address.id).toBe('addr-456');
+      expect(result.address.city).toBe('New York');
+    });
+  });
+
+  describe('edge cases: arrays with branded types', () => {
+    const tagContract = z.string().brand<'Tag'>();
+    const tagsContract = z.array(tagContract);
+
+    type Tags = z.infer<typeof tagsContract>;
+
+    const TagsStub = (tags: StubArgument<Tags> = []): Tags => {
+      return tagsContract.parse(tags);
+    };
+
+    it('VALID: Array of branded strings => accepts plain string array', () => {
+      const result = TagsStub(['typescript', 'testing', 'zod']);
+
+      expect(result).toStrictEqual(['typescript', 'testing', 'zod']);
+    });
+  });
+
+  describe('edge cases: Records with branded values', () => {
+    const userIdContract = z.string().uuid().brand<'UserId'>();
+    const roleContract = z.string().brand<'Role'>();
+    const userRolesContract = z.record(userIdContract, roleContract);
+
+    type UserRoles = z.infer<typeof userRolesContract>;
+
+    const UserRolesStub = ({ ...props }: StubArgument<UserRoles> = {}): UserRoles => {
+      return userRolesContract.parse({
+        'f47ac10b-58cc-4372-a567-0e02b2c3d479': 'admin',
+        ...props,
+      });
+    };
+
+    it('VALID: Record with branded keys AND values => accepts plain strings for both', () => {
+      const result = UserRolesStub({
+        'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d': 'editor',
+        'b2c3d4e5-f6a7-4b5c-8d9e-1f2a3b4c5d6e': 'viewer',
+      });
+
+      const keys = Object.keys(result).sort((a, b) => a.localeCompare(b));
+      const values = (Object.values(result) as string[]).sort((a, b) => a.localeCompare(b));
+
+      expect(keys).toStrictEqual([
+        'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+        'b2c3d4e5-f6a7-4b5c-8d9e-1f2a3b4c5d6e',
+        'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      ]);
+      expect(values).toStrictEqual(['admin', 'editor', 'viewer']);
+    });
+  });
+
+  describe('edge cases: union types with branded types', () => {
+    const userIdContract = z.string().uuid().brand<'UserId'>();
+    const optionalUserIdContract = userIdContract.optional();
+
+    type OptionalUserId = z.infer<typeof optionalUserIdContract>;
+
+    const OptionalUserIdStub = ({ value }: { value?: string } = {}): OptionalUserId => {
+      return optionalUserIdContract.parse(value);
+    };
+
+    it('VALID: Optional branded type => accepts string or undefined', () => {
+      const result1 = OptionalUserIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+      const result2 = OptionalUserIdStub();
+
+      expect(result1).toBe('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d');
+      expect(result2).toBeUndefined();
+    });
+  });
+
+  describe('edge cases: readonly arrays with branded types', () => {
+    const idContract = z.string().brand<'Id'>();
+    const idsContract = z.array(idContract).readonly();
+
+    type Ids = z.infer<typeof idsContract>;
+
+    const IdsStub = (ids: StubArgument<Ids> = []): Ids => {
+      return idsContract.parse(ids);
+    };
+
+    it('VALID: Readonly array of branded strings => accepts plain string array', () => {
+      const result = IdsStub(['id-1', 'id-2', 'id-3']);
+
+      expect(result).toStrictEqual(['id-1', 'id-2', 'id-3']);
+    });
+  });
 });

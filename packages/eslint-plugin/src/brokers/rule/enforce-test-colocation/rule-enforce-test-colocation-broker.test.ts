@@ -19,6 +19,7 @@ beforeEach(() => {
       '/project/src/guards/has-permission/has-permission-guard.ts',
       '/project/src/statics/config/config-statics.ts',
       '/project/src/widgets/user-card/user-card-widget.tsx',
+      '/project/src/@types/stub-argument.type.ts',
     ];
 
     return existingFiles.includes(path);
@@ -54,6 +55,10 @@ ruleTester.run('enforce-test-colocation', ruleEnforceTestColocationBroker(), {
     {
       code: 'describe("test", () => {});',
       filename: '/project/src/widgets/user-card/user-card-widget.test.tsx',
+    },
+    {
+      code: 'describe("test", () => {});',
+      filename: '/project/src/@types/stub-argument.test.ts',
     },
     // {
     //   code: 'describe("test", () => {});',
