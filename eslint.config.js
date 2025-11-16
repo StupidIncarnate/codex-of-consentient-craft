@@ -137,6 +137,12 @@ module.exports = [
       '@questmaestro/require-contract-validation': 'off',
     },
   },
+  {
+    files: ['packages/shared/src/@types/stub-argument.type.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off'
+    }
+  }
   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {

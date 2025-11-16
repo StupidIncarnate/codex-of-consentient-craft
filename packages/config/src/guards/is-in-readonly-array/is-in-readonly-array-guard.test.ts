@@ -37,7 +37,7 @@ describe('isInReadonlyArrayGuard', () => {
     });
 
     it('INVALID_UNDEFINED: {value: undefined, array: testArray} => returns false', () => {
-      const result = isInReadonlyArrayGuard({ value: undefined, array: testArray });
+      const result = isInReadonlyArrayGuard({ array: testArray });
 
       expect(result).toBe(false);
     });
@@ -49,7 +49,7 @@ describe('isInReadonlyArrayGuard', () => {
     });
 
     it('INVALID_ARRAY: {value: "react", array: undefined} => returns false', () => {
-      const result = isInReadonlyArrayGuard({ value: 'react', array: undefined });
+      const result = isInReadonlyArrayGuard({ value: 'react' });
 
       expect(result).toBe(false);
     });
@@ -61,7 +61,7 @@ describe('isInReadonlyArrayGuard', () => {
     });
 
     it('INVALID_BOTH: {value: undefined, array: undefined} => returns false', () => {
-      const result = isInReadonlyArrayGuard({ value: undefined, array: undefined });
+      const result = isInReadonlyArrayGuard({});
 
       expect(result).toBe(false);
     });

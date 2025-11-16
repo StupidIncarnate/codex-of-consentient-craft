@@ -82,6 +82,57 @@ describe('StubArgument', () => {
     });
   });
 
+  describe('Record types with branded keys', () => {
+    const folderNameContract = z.string().brand<'FolderName'>();
+    const packageNameContract = z.string().brand<'PackageName'>();
+
+    const overridesContract = z.record(
+      folderNameContract,
+      z.object({ add: z.array(packageNameContract).optional() }),
+    );
+
+    const configContract = z.object({
+      framework: z.string().brand<'Framework'>(),
+      overrides: overridesContract.optional(),
+    });
+
+    type Config = z.infer<typeof configContract>;
+
+    const ConfigStub = ({ ...props }: StubArgument<Config> = {}): Config => {
+      return configContract.parse({
+        framework: 'react',
+        ...props,
+      });
+    };
+
+    it('VALID: {overrides: {widgets: {add: ["react"]}}} => accepts plain string keys for branded Record keys', () => {
+      const result = ConfigStub({
+        overrides: {
+          widgets: { add: ['react'] },
+          bindings: { add: ['react-query'] },
+        },
+      });
+
+      expect(result.overrides).toBeDefined();
+
+      // Verify data using runtime access since output has branded keys
+      const overridesObj = result.overrides as Record<string, unknown>;
+      const keys = Object.keys(overridesObj);
+
+      expect(keys).toStrictEqual(['widgets', 'bindings']);
+      expect(Object.values(overridesObj)[0]).toStrictEqual({ add: ['react'] });
+      expect(Object.values(overridesObj)[1]).toStrictEqual({ add: ['react-query'] });
+    });
+
+    it('VALID: {overrides: {}} => accepts empty overrides object', () => {
+      const result = ConfigStub({
+        overrides: {},
+      });
+
+      expect(result.overrides).toStrictEqual({});
+    });
+  });
+
   describe('complex objects with mixed types', () => {
     const contextContract = z.object({
       filename: z.string().brand<'Filename'>().optional(),

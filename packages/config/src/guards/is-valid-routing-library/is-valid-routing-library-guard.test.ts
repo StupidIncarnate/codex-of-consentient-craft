@@ -35,7 +35,7 @@ describe('isValidRoutingLibraryGuard', () => {
     });
 
     it('INVALID_UNDEFINED: {library: undefined} => returns false', () => {
-      const result = isValidRoutingLibraryGuard({ library: undefined });
+      const result = isValidRoutingLibraryGuard({});
 
       expect(result).toBe(false);
     });

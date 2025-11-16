@@ -1,23 +1,14 @@
-import type { FrameworkPreset } from '../../contracts/framework-presets/framework-presets';
+/**
+ * PURPOSE: Applies user-defined architecture overrides to a framework preset configuration
+ *
+ * USAGE:
+ * applyOverridesTransformer({preset, config});
+ * // Returns modified preset with override packages added to each folder array
+ */
+
+import type { FrameworkPreset } from '../../contracts/framework-presets/framework-presets-contract';
 import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/questmaestro-config-contract';
-
-const FRAMEWORK_PRESET_KEYS: readonly string[] = [
-  'widgets',
-  'bindings',
-  'state',
-  'flows',
-  'responders',
-  'contracts',
-  'brokers',
-  'transformers',
-  'errors',
-  'middleware',
-  'adapters',
-  'startup',
-] as const;
-
-const isFrameworkPresetKey = (key: string): key is keyof FrameworkPreset =>
-  FRAMEWORK_PRESET_KEYS.includes(key);
+import { isFrameworkPresetKeyGuard } from '../../guards/is-framework-preset-key/is-framework-preset-key-guard';
 
 export const applyOverridesTransformer = ({
   preset,
@@ -30,17 +21,20 @@ export const applyOverridesTransformer = ({
     return preset;
   }
 
-  const result = { ...preset };
+  const result: FrameworkPreset = { ...preset };
 
   // Apply each override
   for (const [folder, override] of Object.entries(config.architecture.overrides)) {
-    if (override.add && isFrameworkPresetKey(folder)) {
-      const currentValues = result[folder];
+    if (!override.add || !isFrameworkPresetKeyGuard({ key: folder })) {
+      continue;
+    }
 
-      // Only add to folders that allow packages (not null)
-      if (Array.isArray(currentValues)) {
-        result[folder] = [...currentValues, ...override.add];
-      }
+    const folderKey = folder as keyof FrameworkPreset;
+    const currentValues = result[folderKey];
+
+    // Only add to folders that allow packages (not null)
+    if (Array.isArray(currentValues)) {
+      result[folderKey] = [...currentValues, ...override.add] as typeof currentValues;
     }
   }
 

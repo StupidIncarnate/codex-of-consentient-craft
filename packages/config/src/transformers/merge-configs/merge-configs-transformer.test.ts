@@ -1,5 +1,5 @@
 import { mergeConfigsTransformer } from './merge-configs-transformer';
-import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/questmaestro-config-contract';
+import { QuestmaestroConfigStub } from '../../contracts/questmaestro-config/questmaestro-config.stub';
 
 describe('mergeConfigsTransformer', () => {
   describe('empty configs array', () => {
@@ -12,22 +12,7 @@ describe('mergeConfigsTransformer', () => {
 
   describe('single config', () => {
     it('VALID: {configs: [singleConfig]} => returns same config', () => {
-      const config: QuestmaestroConfig = {
-        framework: 'react',
-        schema: 'zod',
-        routing: 'react-router-dom',
-        architecture: {
-          overrides: {
-            widgets: { add: ['styled-components'] },
-          },
-          allowedRootFiles: ['custom.d.ts'],
-          booleanFunctionPrefixes: ['check'],
-        },
-      };
-
-      const result = mergeConfigsTransformer({ configs: [config] });
-
-      expect(result).toStrictEqual({
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
@@ -39,12 +24,16 @@ describe('mergeConfigsTransformer', () => {
           booleanFunctionPrefixes: ['check'],
         },
       });
+
+      const result = mergeConfigsTransformer({ configs: [config] });
+
+      expect(result).toStrictEqual(config);
     });
   });
 
   describe('two configs merging', () => {
     it('VALID: monorepo + package config => framework from package wins', () => {
-      const monorepoConfig: QuestmaestroConfig = {
+      const monorepoConfig = QuestmaestroConfigStub({
         framework: 'monorepo',
         schema: 'zod',
         architecture: {
@@ -54,19 +43,19 @@ describe('mergeConfigsTransformer', () => {
           allowedRootFiles: ['global.d.ts'],
           booleanFunctionPrefixes: ['is', 'has'],
         },
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [monorepoConfig, packageConfig],
       });
 
-      expect(result).toStrictEqual({
+      const expectedConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
@@ -78,20 +67,22 @@ describe('mergeConfigsTransformer', () => {
           booleanFunctionPrefixes: ['is', 'has'],
         },
       });
+
+      expect(result).toStrictEqual(expectedConfig);
     });
 
     it('VALID: base + override config => package routing wins when present', () => {
-      const baseConfig: QuestmaestroConfig = {
+      const baseConfig = QuestmaestroConfigStub({
         framework: 'vue',
         schema: 'zod',
         routing: 'vue-router',
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'vue',
         schema: 'zod',
         routing: 'vue-router',
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [baseConfig, packageConfig],
@@ -105,16 +96,16 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: base + package without routing => base routing preserved', () => {
-      const baseConfig: QuestmaestroConfig = {
+      const baseConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [baseConfig, packageConfig],
@@ -128,16 +119,16 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: base + package without schema => base schema preserved', () => {
-      const baseConfig: QuestmaestroConfig = {
+      const baseConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: ['zod'],
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [baseConfig, packageConfig],
@@ -153,12 +144,12 @@ describe('mergeConfigsTransformer', () => {
 
   describe('architecture merging', () => {
     it('VALID: base without architecture + package with architecture => package architecture added', () => {
-      const baseConfig: QuestmaestroConfig = {
+      const baseConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -168,27 +159,17 @@ describe('mergeConfigsTransformer', () => {
           allowedRootFiles: ['types.d.ts'],
           booleanFunctionPrefixes: ['validate'],
         },
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [baseConfig, packageConfig],
       });
 
-      expect(result).toStrictEqual({
-        framework: 'react',
-        schema: 'zod',
-        architecture: {
-          overrides: {
-            widgets: { add: ['material-ui'] },
-          },
-          allowedRootFiles: ['types.d.ts'],
-          booleanFunctionPrefixes: ['validate'],
-        },
-      });
+      expect(result).toStrictEqual(packageConfig);
     });
 
     it('VALID: base with architecture + package without architecture => base architecture preserved', () => {
-      const baseConfig: QuestmaestroConfig = {
+      const baseConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -198,32 +179,22 @@ describe('mergeConfigsTransformer', () => {
           allowedRootFiles: ['global.d.ts'],
           booleanFunctionPrefixes: ['is'],
         },
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [baseConfig, packageConfig],
       });
 
-      expect(result).toStrictEqual({
-        framework: 'react',
-        schema: 'zod',
-        architecture: {
-          overrides: {
-            contracts: { add: ['class-validator'] },
-          },
-          allowedRootFiles: ['global.d.ts'],
-          booleanFunctionPrefixes: ['is'],
-        },
-      });
+      expect(result).toStrictEqual(baseConfig);
     });
 
     it('VALID: both configs with architecture => package settings win, overrides merge', () => {
-      const baseConfig: QuestmaestroConfig = {
+      const baseConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -234,9 +205,9 @@ describe('mergeConfigsTransformer', () => {
           allowedRootFiles: ['global.d.ts'],
           booleanFunctionPrefixes: ['is', 'has'],
         },
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -247,13 +218,13 @@ describe('mergeConfigsTransformer', () => {
           allowedRootFiles: ['custom.d.ts'],
           booleanFunctionPrefixes: ['check', 'validate'],
         },
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [baseConfig, packageConfig],
       });
 
-      expect(result).toStrictEqual({
+      const expectedConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -266,10 +237,12 @@ describe('mergeConfigsTransformer', () => {
           booleanFunctionPrefixes: ['check', 'validate'],
         },
       });
+
+      expect(result).toStrictEqual(expectedConfig);
     });
 
     it('VALID: base with overrides + package without overrides => base overrides preserved', () => {
-      const baseConfig: QuestmaestroConfig = {
+      const baseConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -277,21 +250,21 @@ describe('mergeConfigsTransformer', () => {
             widgets: { add: ['styled-components'] },
           },
         },
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
           allowedRootFiles: ['types.d.ts'],
         },
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [baseConfig, packageConfig],
       });
 
-      expect(result).toStrictEqual({
+      const expectedConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -301,18 +274,20 @@ describe('mergeConfigsTransformer', () => {
           allowedRootFiles: ['types.d.ts'],
         },
       });
+
+      expect(result).toStrictEqual(expectedConfig);
     });
 
     it('VALID: base without overrides + package with overrides => package overrides added', () => {
-      const baseConfig: QuestmaestroConfig = {
+      const baseConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
           allowedRootFiles: ['global.d.ts'],
         },
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -320,13 +295,13 @@ describe('mergeConfigsTransformer', () => {
             state: { add: ['zustand'] },
           },
         },
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [baseConfig, packageConfig],
       });
 
-      expect(result).toStrictEqual({
+      const expectedConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -336,21 +311,23 @@ describe('mergeConfigsTransformer', () => {
           allowedRootFiles: ['global.d.ts'],
         },
       });
+
+      expect(result).toStrictEqual(expectedConfig);
     });
   });
 
   describe('three configs merging', () => {
     it('VALID: monorepo + workspace + package => final package settings win', () => {
-      const monorepoConfig: QuestmaestroConfig = {
+      const monorepoConfig = QuestmaestroConfigStub({
         framework: 'monorepo',
         schema: 'zod',
         architecture: {
           allowedRootFiles: ['global.d.ts'],
           booleanFunctionPrefixes: ['is'],
         },
-      };
+      });
 
-      const workspaceConfig: QuestmaestroConfig = {
+      const workspaceConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
@@ -361,9 +338,9 @@ describe('mergeConfigsTransformer', () => {
           allowedRootFiles: ['workspace.d.ts'],
           booleanFunctionPrefixes: ['has', 'can'],
         },
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -372,13 +349,13 @@ describe('mergeConfigsTransformer', () => {
           },
           booleanFunctionPrefixes: ['check'],
         },
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [monorepoConfig, workspaceConfig, packageConfig],
       });
 
-      expect(result).toStrictEqual({
+      const expectedConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
@@ -391,10 +368,12 @@ describe('mergeConfigsTransformer', () => {
           booleanFunctionPrefixes: ['check'],
         },
       });
+
+      expect(result).toStrictEqual(expectedConfig);
     });
 
     it('VALID: multiple configs with partial overrides => all overrides accumulate correctly', () => {
-      const config1: QuestmaestroConfig = {
+      const config1 = QuestmaestroConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -403,9 +382,9 @@ describe('mergeConfigsTransformer', () => {
             middleware: { add: ['helmet'] },
           },
         },
-      };
+      });
 
-      const config2: QuestmaestroConfig = {
+      const config2 = QuestmaestroConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -414,9 +393,9 @@ describe('mergeConfigsTransformer', () => {
             middleware: { add: ['cors'] },
           },
         },
-      };
+      });
 
-      const config3: QuestmaestroConfig = {
+      const config3 = QuestmaestroConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -425,13 +404,13 @@ describe('mergeConfigsTransformer', () => {
             middleware: { add: ['express-rate-limit'] },
           },
         },
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [config1, config2, config3],
       });
 
-      expect(result).toStrictEqual({
+      const expectedConfig = QuestmaestroConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -443,20 +422,22 @@ describe('mergeConfigsTransformer', () => {
           },
         },
       });
+
+      expect(result).toStrictEqual(expectedConfig);
     });
   });
 
   describe('edge cases', () => {
     it('EDGE: multiple configs with undefined schema => last undefined preserved', () => {
-      const config1: QuestmaestroConfig = {
+      const config1 = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
-      };
+      });
 
-      const config2: QuestmaestroConfig = {
+      const config2 = QuestmaestroConfigStub({
         framework: 'react',
         schema: ['zod'],
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [config1, config2],
@@ -469,15 +450,15 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('EDGE: architecture with empty overrides object => preserves empty object', () => {
-      const baseConfig: QuestmaestroConfig = {
+      const baseConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
           overrides: {},
         },
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -485,33 +466,25 @@ describe('mergeConfigsTransformer', () => {
             widgets: { add: ['material-ui'] },
           },
         },
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [baseConfig, packageConfig],
       });
 
-      expect(result).toStrictEqual({
-        framework: 'react',
-        schema: 'zod',
-        architecture: {
-          overrides: {
-            widgets: { add: ['material-ui'] },
-          },
-        },
-      });
+      expect(result).toStrictEqual(packageConfig);
     });
 
     it('EDGE: package config overwrites undefined routing with undefined => undefined preserved', () => {
-      const baseConfig: QuestmaestroConfig = {
+      const baseConfig = QuestmaestroConfigStub({
         framework: 'node-library',
         schema: 'zod',
-      };
+      });
 
-      const packageConfig: QuestmaestroConfig = {
+      const packageConfig = QuestmaestroConfigStub({
         framework: 'node-library',
         schema: 'zod',
-      };
+      });
 
       const result = mergeConfigsTransformer({
         configs: [baseConfig, packageConfig],

@@ -41,7 +41,7 @@ describe('isValidSchemaLibraryGuard', () => {
     });
 
     it('INVALID_UNDEFINED: {library: undefined} => returns false', () => {
-      const result = isValidSchemaLibraryGuard({ library: undefined });
+      const result = isValidSchemaLibraryGuard({});
 
       expect(result).toBe(false);
     });

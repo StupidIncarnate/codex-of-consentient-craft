@@ -35,7 +35,7 @@ describe('isValidFrameworkGuard', () => {
     });
 
     it('INVALID_UNDEFINED: {framework: undefined} => returns false', () => {
-      const result = isValidFrameworkGuard({ framework: undefined });
+      const result = isValidFrameworkGuard({});
 
       expect(result).toBe(false);
     });

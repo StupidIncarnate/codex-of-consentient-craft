@@ -1,35 +1,12 @@
+/**
+ * PURPOSE: Merges multiple Questmaestro configuration objects with package-specific settings taking precedence
+ *
+ * USAGE:
+ * mergeConfigsTransformer({configs: [rootConfig, packageConfig]});
+ * // Returns merged configuration with package config overriding root config
+ */
+
 import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/questmaestro-config-contract';
-
-const mergeArchitecture = ({
-  merged,
-  config,
-}: {
-  merged: QuestmaestroConfig;
-  config: QuestmaestroConfig;
-}): void => {
-  if (!config.architecture) {
-    return;
-  }
-
-  merged.architecture ??= {};
-
-  // Merge overrides
-  if (config.architecture.overrides) {
-    merged.architecture.overrides = {
-      ...merged.architecture.overrides,
-      ...config.architecture.overrides,
-    };
-  }
-
-  // Package-specific settings win
-  if (config.architecture.allowedRootFiles) {
-    merged.architecture.allowedRootFiles = config.architecture.allowedRootFiles;
-  }
-
-  if (config.architecture.booleanFunctionPrefixes) {
-    merged.architecture.booleanFunctionPrefixes = config.architecture.booleanFunctionPrefixes;
-  }
-};
 
 export const mergeConfigsTransformer = ({
   configs,
@@ -66,7 +43,26 @@ export const mergeConfigsTransformer = ({
     merged.schema = config.schema;
 
     // Merge architecture settings
-    mergeArchitecture({ merged, config });
+    if (config.architecture) {
+      merged.architecture ??= {};
+
+      // Merge overrides
+      if (config.architecture.overrides) {
+        merged.architecture.overrides = {
+          ...merged.architecture.overrides,
+          ...config.architecture.overrides,
+        };
+      }
+
+      // Package-specific settings win
+      if (config.architecture.allowedRootFiles) {
+        merged.architecture.allowedRootFiles = config.architecture.allowedRootFiles;
+      }
+
+      if (config.architecture.booleanFunctionPrefixes) {
+        merged.architecture.booleanFunctionPrefixes = config.architecture.booleanFunctionPrefixes;
+      }
+    }
   }
 
   return merged;

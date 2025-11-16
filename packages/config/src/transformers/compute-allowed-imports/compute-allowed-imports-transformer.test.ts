@@ -1,13 +1,13 @@
 import { computeAllowedImportsTransformer } from './compute-allowed-imports-transformer';
-import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/questmaestro-config-contract';
+import { QuestmaestroConfigStub } from '../../contracts/questmaestro-config/questmaestro-config.stub';
 
 describe('computeAllowedImportsTransformer', () => {
   describe('valid transformations', () => {
     it('VALID: {framework: "react", schema: "zod"} => returns complete config with schema array', () => {
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
-      };
+      });
 
       const result = computeAllowedImportsTransformer({ config });
 
@@ -28,10 +28,10 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "express", schema: ["zod"]} => returns complete config with schema array unchanged', () => {
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'express',
         schema: ['zod'],
-      };
+      });
 
       const result = computeAllowedImportsTransformer({ config });
 
@@ -52,11 +52,11 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "react", routing: "vue-router"} => adds routing to flows when not already present', () => {
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         routing: 'vue-router',
         schema: 'zod',
-      };
+      });
 
       const result = computeAllowedImportsTransformer({ config });
 
@@ -77,11 +77,11 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "express", routing: "fastify"} => adds routing to flows when not already present', () => {
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'express',
         routing: 'fastify',
         schema: 'zod',
-      };
+      });
 
       const result = computeAllowedImportsTransformer({ config });
 
@@ -102,11 +102,11 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "express", routing: "express"} => does not duplicate routing when already in flows', () => {
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'express',
         routing: 'express',
         schema: 'zod',
-      };
+      });
 
       const result = computeAllowedImportsTransformer({ config });
 
@@ -127,10 +127,10 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "node-library"} => handles null flows correctly', () => {
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'node-library',
         schema: 'zod',
-      };
+      });
 
       const result = computeAllowedImportsTransformer({ config });
 
@@ -151,8 +151,8 @@ describe('computeAllowedImportsTransformer', () => {
       });
     });
 
-    it('VALID: {framework: "react", architecture: {overrides: {widgets: {add: ["custom-lib"]}}}} => applies overrides correctly', () => {
-      const config: QuestmaestroConfig = {
+    it('VALID: {framework: "react", architecture: {overrides: {widgets: {add: ["custom-lib"]} as any}}} => applies overrides correctly', () => {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -162,7 +162,7 @@ describe('computeAllowedImportsTransformer', () => {
             },
           },
         },
-      };
+      });
 
       const result = computeAllowedImportsTransformer({ config });
 
@@ -185,10 +185,10 @@ describe('computeAllowedImportsTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: {framework: "react"} => handles missing routing property', () => {
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
-      };
+      });
 
       const result = computeAllowedImportsTransformer({ config });
 
@@ -210,11 +210,11 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('EDGE: {framework: "node-library", routing: "express"} => does not add routing when flows is null', () => {
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'node-library',
         routing: 'express',
         schema: 'zod',
-      };
+      });
 
       const result = computeAllowedImportsTransformer({ config });
 

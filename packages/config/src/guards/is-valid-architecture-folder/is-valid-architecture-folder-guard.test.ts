@@ -35,7 +35,7 @@ describe('isValidArchitectureFolderGuard', () => {
     });
 
     it('INVALID_UNDEFINED: {folder: undefined} => returns false', () => {
-      const result = isValidArchitectureFolderGuard({ folder: undefined });
+      const result = isValidArchitectureFolderGuard({});
 
       expect(result).toBe(false);
     });

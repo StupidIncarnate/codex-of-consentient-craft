@@ -1,11 +1,11 @@
 import { applyOverridesTransformer } from './apply-overrides-transformer';
-import type { FrameworkPreset } from '../../contracts/framework-presets/framework-presets';
-import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/questmaestro-config-contract';
+import { FrameworkPresetStub } from '../../contracts/framework-presets/framework-presets.stub';
+import { QuestmaestroConfigStub } from '../../contracts/questmaestro-config/questmaestro-config.stub';
 
 describe('applyOverridesTransformer', () => {
   describe('config without overrides', () => {
     it('VALID: config without architecture => returns original preset', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -18,12 +18,12 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -44,7 +44,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: config with architecture but no overrides => returns original preset', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -57,16 +57,16 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
           allowedRootFiles: ['custom.d.ts'],
           booleanFunctionPrefixes: ['check'],
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -87,7 +87,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: config with empty overrides object => returns original preset', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['vue'],
         bindings: ['vue'],
         state: ['vue'],
@@ -100,15 +100,15 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'vue',
         schema: 'zod',
         architecture: {
           overrides: {},
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -131,7 +131,7 @@ describe('applyOverridesTransformer', () => {
 
   describe('single folder override', () => {
     it('VALID: widgets override with add => adds packages to widgets array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -144,9 +144,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -154,7 +154,7 @@ describe('applyOverridesTransformer', () => {
             widgets: { add: ['styled-components', 'material-ui'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -175,7 +175,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: bindings override with add => adds packages to bindings array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -188,9 +188,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -198,7 +198,7 @@ describe('applyOverridesTransformer', () => {
             bindings: { add: ['react-query', 'swr'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -219,7 +219,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: state override with add => adds packages to state array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -232,9 +232,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -242,7 +242,7 @@ describe('applyOverridesTransformer', () => {
             state: { add: ['redux', 'zustand'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -263,7 +263,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: flows override with add => adds packages to flows array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -276,9 +276,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -286,7 +286,7 @@ describe('applyOverridesTransformer', () => {
             flows: { add: ['@reach/router'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -307,7 +307,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: responders override with add => adds packages to responders array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -320,9 +320,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -330,7 +330,7 @@ describe('applyOverridesTransformer', () => {
             responders: { add: ['express', 'fastify'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -351,7 +351,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: contracts override with add => adds packages to contracts array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -364,9 +364,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -374,7 +374,7 @@ describe('applyOverridesTransformer', () => {
             contracts: { add: ['class-validator', 'joi'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -395,7 +395,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: brokers override with add => adds packages to brokers array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -408,9 +408,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -418,7 +418,7 @@ describe('applyOverridesTransformer', () => {
             brokers: { add: ['mongoose', 'typeorm'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -439,7 +439,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: transformers override with add => adds packages to transformers array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -452,9 +452,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -462,7 +462,7 @@ describe('applyOverridesTransformer', () => {
             transformers: { add: ['lodash', 'ramda'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -483,7 +483,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: errors override with add => adds packages to errors array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -496,9 +496,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -506,7 +506,7 @@ describe('applyOverridesTransformer', () => {
             errors: { add: ['http-errors', 'boom'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -527,7 +527,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: middleware override with add => adds packages to middleware array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -540,9 +540,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -550,7 +550,7 @@ describe('applyOverridesTransformer', () => {
             middleware: { add: ['helmet', 'cors'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -571,7 +571,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: adapters override with add => adds packages to adapters array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -584,9 +584,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -594,7 +594,7 @@ describe('applyOverridesTransformer', () => {
             adapters: { add: ['axios', 'node-fetch'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -615,7 +615,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: startup override with add => adds packages to startup array', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -628,9 +628,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -638,7 +638,7 @@ describe('applyOverridesTransformer', () => {
             startup: { add: ['dotenv', 'config'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -661,7 +661,7 @@ describe('applyOverridesTransformer', () => {
 
   describe('multiple folder overrides', () => {
     it('VALID: multiple array folder overrides => all arrays get packages added', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -674,9 +674,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -686,7 +686,7 @@ describe('applyOverridesTransformer', () => {
             brokers: { add: ['axios'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -707,7 +707,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: all folder types with overrides => all get packages added', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -720,9 +720,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -740,7 +740,7 @@ describe('applyOverridesTransformer', () => {
             startup: { add: ['dotenv'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -763,7 +763,7 @@ describe('applyOverridesTransformer', () => {
 
   describe('null folder handling', () => {
     it('VALID: override on null widgets folder => no packages added, remains null', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -776,9 +776,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -786,7 +786,7 @@ describe('applyOverridesTransformer', () => {
             widgets: { add: ['react'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -807,7 +807,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: override on null bindings folder => no packages added, remains null', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -820,9 +820,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -830,7 +830,7 @@ describe('applyOverridesTransformer', () => {
             bindings: { add: ['react-query'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -851,7 +851,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: override on null flows folder => no packages added, remains null', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -864,9 +864,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -874,7 +874,7 @@ describe('applyOverridesTransformer', () => {
             flows: { add: ['express'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -895,7 +895,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: override on null responders folder => no packages added, remains null', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -908,9 +908,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -918,7 +918,7 @@ describe('applyOverridesTransformer', () => {
             responders: { add: ['express'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -939,7 +939,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('VALID: multiple null folder overrides => all remain null, array folders get packages', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -952,9 +952,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -966,7 +966,7 @@ describe('applyOverridesTransformer', () => {
             state: { add: ['redis'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -989,7 +989,7 @@ describe('applyOverridesTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: empty add array => no packages added to folder', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -1002,9 +1002,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -1013,7 +1013,7 @@ describe('applyOverridesTransformer', () => {
             state: { add: [] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -1034,7 +1034,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('EDGE: override without add property => no packages added', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -1047,9 +1047,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -1058,7 +1058,7 @@ describe('applyOverridesTransformer', () => {
             state: {},
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
@@ -1079,7 +1079,7 @@ describe('applyOverridesTransformer', () => {
     });
 
     it('EDGE: single package in add array => single package added correctly', () => {
-      const preset: FrameworkPreset = {
+      const preset = FrameworkPresetStub({
         widgets: [],
         bindings: [],
         state: [],
@@ -1092,9 +1092,9 @@ describe('applyOverridesTransformer', () => {
         middleware: [],
         adapters: ['*'],
         startup: ['*'],
-      };
+      });
 
-      const config: QuestmaestroConfig = {
+      const config = QuestmaestroConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -1102,7 +1102,7 @@ describe('applyOverridesTransformer', () => {
             widgets: { add: ['single-package'] },
           },
         },
-      };
+      });
 
       const result = applyOverridesTransformer({ preset, config });
 
