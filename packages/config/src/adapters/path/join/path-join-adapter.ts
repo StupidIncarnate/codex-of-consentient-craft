@@ -8,8 +8,7 @@
  */
 
 import { join } from 'path';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { filePathContract, type FilePath } from '@questmaestro/shared/contracts';
 
-export const pathJoinAdapter = ({ paths }: { paths: FilePath[] }): FilePath =>
+export const pathJoinAdapter = ({ paths }: { paths: string[] }): FilePath =>
   filePathContract.parse(join(...paths));

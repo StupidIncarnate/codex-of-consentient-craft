@@ -5,12 +5,8 @@ describe('InvalidConfigError', () => {
     it('VALID: {message: "test error"} => creates error without config path', () => {
       const error = new InvalidConfigError({ message: 'test error' });
 
-      expect(error).toStrictEqual(
-        expect.objectContaining({
-          name: 'InvalidConfigError',
-          message: 'Invalid configuration: test error',
-        }),
-      );
+      expect(error.name).toBe('InvalidConfigError');
+      expect(error.message).toBe('Invalid configuration: test error');
       expect(error).toBeInstanceOf(Error);
       expect(error).toBeInstanceOf(InvalidConfigError);
     });
@@ -21,12 +17,8 @@ describe('InvalidConfigError', () => {
         configPath: '/path/config',
       });
 
-      expect(error).toStrictEqual(
-        expect.objectContaining({
-          name: 'InvalidConfigError',
-          message: 'Invalid configuration in /path/config: test error',
-        }),
-      );
+      expect(error.name).toBe('InvalidConfigError');
+      expect(error.message).toBe('Invalid configuration in /path/config: test error');
       expect(error).toBeInstanceOf(Error);
       expect(error).toBeInstanceOf(InvalidConfigError);
     });

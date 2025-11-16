@@ -5,12 +5,9 @@ describe('ConfigNotFoundError', () => {
     it('VALID: {startPath: "/path/to/file.js"} => creates error with start path in message', () => {
       const error = new ConfigNotFoundError({ startPath: '/path/to/file.js' });
 
-      expect(error).toStrictEqual(
-        expect.objectContaining({
-          name: 'ConfigNotFoundError',
-          message:
-            'No .questmaestro configuration file found starting from /path/to/file.js. Searched up the directory tree but no config file was found.',
-        }),
+      expect(error.name).toBe('ConfigNotFoundError');
+      expect(error.message).toBe(
+        'No .questmaestro configuration file found starting from /path/to/file.js. Searched up the directory tree but no config file was found.',
       );
       expect(error).toBeInstanceOf(Error);
       expect(error).toBeInstanceOf(ConfigNotFoundError);

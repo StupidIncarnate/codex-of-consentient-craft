@@ -8,12 +8,11 @@
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { filePathContract, type FilePath } from '@questmaestro/shared/contracts';
 import {
   questmaestroConfigContract,
   type QuestmaestroConfig,
 } from '../../../contracts/questmaestro-config/questmaestro-config-contract';
-import type { FilePath } from '@questmaestro/shared/contracts';
 
 export const configFileLoadBroker = async ({
   configPath,

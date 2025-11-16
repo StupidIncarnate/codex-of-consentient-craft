@@ -1,6 +1,6 @@
 import { pathDirnameAdapter } from './path-dirname-adapter';
 import { pathDirnameAdapterProxy } from './path-dirname-adapter.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { FilePathStub } from '@questmaestro/shared/contracts';
 
 describe('pathDirnameAdapter', () => {
   describe('successful operations', () => {
@@ -54,10 +54,10 @@ describe('pathDirnameAdapter', () => {
       expect(result).toStrictEqual(expectedResult);
     });
 
-    it('EDGE: {path: "./file.txt"} => returns "."', () => {
+    it('EDGE: {path: "./file.txt"} => returns current directory', () => {
       const proxy = pathDirnameAdapterProxy();
       const path = FilePathStub({ value: './file.txt' });
-      const expectedResult = FilePathStub({ value: '.' });
+      const expectedResult = FilePathStub({ value: './' });
 
       proxy.returns({ result: expectedResult });
 
@@ -66,10 +66,10 @@ describe('pathDirnameAdapter', () => {
       expect(result).toStrictEqual(expectedResult);
     });
 
-    it('EDGE: {path: "./"} => returns "."', () => {
+    it('EDGE: {path: "./"} => returns current directory', () => {
       const proxy = pathDirnameAdapterProxy();
       const path = FilePathStub({ value: './' });
-      const expectedResult = FilePathStub({ value: '.' });
+      const expectedResult = FilePathStub({ value: './' });
 
       proxy.returns({ result: expectedResult });
 

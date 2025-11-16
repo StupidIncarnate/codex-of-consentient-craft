@@ -5,12 +5,9 @@ describe('InvalidFrameworkError', () => {
     it('VALID: {framework: "unknown"} => creates error with framework in message', () => {
       const error = new InvalidFrameworkError({ framework: 'unknown' });
 
-      expect(error).toStrictEqual(
-        expect.objectContaining({
-          name: 'InvalidFrameworkError',
-          message:
-            'Invalid framework "unknown". Must be one of: react, vue, angular, svelte, solid, preact, express, fastify, koa, hapi, nestjs, nextjs, nuxtjs, remix, node-library, react-library, cli, ink-cli, monorepo',
-        }),
+      expect(error.name).toBe('InvalidFrameworkError');
+      expect(error.message).toBe(
+        'Invalid framework "unknown". Must be one of: react, vue, angular, svelte, solid, preact, express, fastify, koa, hapi, nestjs, nextjs, nuxtjs, remix, node-library, react-library, cli, ink-cli, monorepo',
       );
       expect(error).toBeInstanceOf(Error);
       expect(error).toBeInstanceOf(InvalidFrameworkError);

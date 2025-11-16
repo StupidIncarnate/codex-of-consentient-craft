@@ -10,11 +10,11 @@ export const configFileLoadBrokerProxy = (): {
 
   return {
     setupValidConfig: ({ config }: { config: Record<string, unknown> }) => {
-      fsProxy.returns({ contents: FileContentsStub(JSON.stringify(config)) });
+      fsProxy.returns({ contents: FileContentsStub({ value: JSON.stringify(config) }) });
     },
 
     setupInvalidJson: () => {
-      fsProxy.returns({ contents: FileContentsStub('{ invalid json }') });
+      fsProxy.returns({ contents: FileContentsStub({ value: '{ invalid json }' }) });
     },
 
     setupFileNotFound: () => {

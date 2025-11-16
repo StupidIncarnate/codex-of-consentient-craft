@@ -1,50 +1,48 @@
-import { access, constants } from 'fs/promises';
-import { pathDirname } from '../../../adapters/path/path-dirname';
-import { pathJoin } from '../../../adapters/path/path-join';
+/**
+ * PURPOSE: Finds the nearest .questmaestro config file by searching up the directory tree
+ *
+ * USAGE:
+ * await configFileFindBroker({startPath: FilePathStub({value: '/project/src/file.ts'})});
+ * // Returns FilePath to nearest .questmaestro file
+ */
+
+import { fsAccessAdapter } from '../../../adapters/fs/access/fs-access-adapter';
+import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { ConfigNotFoundError } from '../../../errors/config-not-found/config-not-found-error';
 import type { FilePath } from '@questmaestro/shared/contracts';
-import { filePathContract } from '@questmaestro/shared/contracts';
 
 const CONFIG_FILENAME = '.questmaestro';
-
-const checkConfigExists = async ({ configPath }: { configPath: FilePath }): Promise<boolean> => {
-  try {
-    await access(configPath, constants.R_OK);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const searchConfigRecursive = async ({
-  currentPath,
-  originalPath,
-}: {
-  currentPath: FilePath;
-  originalPath: FilePath;
-}): Promise<FilePath> => {
-  const configPath = filePathContract.parse(pathJoin({ paths: [currentPath, CONFIG_FILENAME] }));
-
-  const exists = await checkConfigExists({ configPath });
-  if (exists) {
-    return configPath;
-  }
-
-  // Check if we've reached the root directory
-  const parentPath = pathDirname({ path: currentPath });
-  if (parentPath === currentPath) {
-    // We've reached the root directory
-    throw new ConfigNotFoundError({ startPath: originalPath });
-  }
-
-  return searchConfigRecursive({ currentPath: parentPath, originalPath });
-};
+const R_OK = 4;
 
 export const configFileFindBroker = async ({
   startPath,
+  currentPath,
 }: {
   startPath: FilePath;
+  currentPath?: FilePath;
 }): Promise<FilePath> => {
-  const currentPath = pathDirname({ path: startPath });
-  return searchConfigRecursive({ currentPath, originalPath: startPath });
+  const searchPath = currentPath ?? pathDirnameAdapter({ path: startPath });
+
+  const configPath = pathJoinAdapter({
+    paths: [searchPath, CONFIG_FILENAME],
+  });
+
+  // Check if config file exists at this level
+  try {
+    await fsAccessAdapter({ filePath: configPath, mode: R_OK });
+    return configPath;
+  } catch {
+    // Config doesn't exist at this level, check parent
+  }
+
+  // Check if we've reached the root directory
+  const parentPath = pathDirnameAdapter({ path: searchPath });
+  if (parentPath === searchPath) {
+    // We've reached the root directory without finding config
+    throw new ConfigNotFoundError({ startPath });
+  }
+
+  // Recurse to parent directory
+  return configFileFindBroker({ startPath, currentPath: parentPath });
 };

@@ -1,10 +1,7 @@
 import { dirname } from 'path';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import type { FilePath } from '@questmaestro/shared/contracts';
 
-// Declare jest.mock() in proxy (auto-hoisted by Jest)
-jest.mock('path', () => ({
-  dirname: jest.fn(),
-}));
+jest.mock('path');
 
 export const pathDirnameAdapterProxy = (): {
   returns: ({ result }: { result: FilePath }) => void;

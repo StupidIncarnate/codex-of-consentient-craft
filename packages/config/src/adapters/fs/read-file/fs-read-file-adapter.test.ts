@@ -8,7 +8,7 @@ describe('fsReadFileAdapter', () => {
     it("VALID: {filePath: '/path/to/file.txt'} => returns file content", async () => {
       const proxy = fsReadFileAdapterProxy();
       const filePath = FilePathStub({ value: '/path/to/file.txt' });
-      const expectedContent = FileContentsStub('file content here');
+      const expectedContent = FileContentsStub({ value: 'file content here' });
 
       proxy.returns({ contents: expectedContent });
 
@@ -20,7 +20,7 @@ describe('fsReadFileAdapter', () => {
     it("VALID: {filePath: './relative/path/config.json'} => returns JSON content", async () => {
       const proxy = fsReadFileAdapterProxy();
       const filePath = FilePathStub({ value: './relative/path/config.json' });
-      const jsonContent = FileContentsStub('{"key": "value", "number": 42}');
+      const jsonContent = FileContentsStub({ value: '{"key": "value", "number": 42}' });
 
       proxy.returns({ contents: jsonContent });
 
@@ -32,7 +32,7 @@ describe('fsReadFileAdapter', () => {
     it("VALID: {filePath: '/absolute/path/empty.txt'} => returns empty string", async () => {
       const proxy = fsReadFileAdapterProxy();
       const filePath = FilePathStub({ value: '/absolute/path/empty.txt' });
-      const expectedContent = FileContentsStub('');
+      const expectedContent = FileContentsStub({ value: '' });
 
       proxy.returns({ contents: expectedContent });
 
@@ -104,7 +104,9 @@ describe('fsReadFileAdapter', () => {
     it("EDGE: {filePath: '/path/with/unicode/файл.txt'} => returns unicode content", async () => {
       const proxy = fsReadFileAdapterProxy();
       const filePath = FilePathStub({ value: '/path/with/unicode/файл.txt' });
-      const unicodeContent = FileContentsStub('🚀 Unicode content with специальные символы');
+      const unicodeContent = FileContentsStub({
+        value: '🚀 Unicode content with специальные символы',
+      });
 
       proxy.returns({ contents: unicodeContent });
 
