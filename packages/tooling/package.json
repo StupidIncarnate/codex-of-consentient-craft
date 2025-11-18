@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "detect-duplicates": "tsx src/index.ts"
