@@ -41,13 +41,16 @@ export const shouldExcludeFileFromProjectStructureRulesGuard = ({
     return true;
   }
 
-  // Exclude files not in /src/
-  const isInSrcFolder = filename.includes('/src/');
+  // Exclude files not in /src/ or src/ (handle both absolute and relative paths)
+  const isInSrcFolder = filename.includes('/src/') || filename.startsWith('src/');
   if (!isInSrcFolder) {
     return true;
   }
 
-  const [, pathAfterSrc] = filename.split('/src/');
+  // Extract path after src/ (handle both /src/ and src/ prefixes)
+  const srcMatch = /(?:^|\/)(src\/.+)$/u.exec(filename);
+  const pathAfterSrc = srcMatch?.[1]?.replace(/^src\//u, '');
+
   if (pathAfterSrc === undefined || pathAfterSrc === '') {
     return true;
   }

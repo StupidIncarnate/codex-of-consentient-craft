@@ -47,95 +47,64 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
     return {
       // Check comments once at Program level
       Program: (node: Tsestree): void => {
-        // ESLint range is always a tuple of [start, end]
         const RANGE_TUPLE_LENGTH = 2;
-
-        // Get all comments in the file
         const allComments = ctx.sourceCode?.getAllComments() ?? [];
 
         // Find the first comment with valid metadata
-        let metadataCommentIndex = -1;
         let metadataComment = null;
-
-        for (let i = 0; i < allComments.length; i++) {
-          const comment = allComments[i];
-          if (!comment) {
-            continue;
-          }
-
-          const commentValue = comment.value;
-
-          if (typeof commentValue !== 'string') {
-            continue;
-          }
-
-          const metadata = extractFileMetadataTransformer({ commentText: commentValue });
-          if (metadata !== null) {
-            metadataCommentIndex = i;
-            metadataComment = comment;
-            break;
+        for (const comment of allComments) {
+          if (typeof comment.value === 'string') {
+            const metadata = extractFileMetadataTransformer({ commentText: comment.value });
+            if (metadata !== null) {
+              metadataComment = comment;
+              break;
+            }
           }
         }
 
         // No metadata found at all
-        if (metadataCommentIndex === -1 || !metadataComment) {
-          ctx.report({
-            node,
-            messageId: 'missingMetadata',
-          });
+        if (!metadataComment) {
+          ctx.report({ node, messageId: 'missingMetadata' });
           return;
         }
 
         // Find first import declaration in the AST
         const { body } = node;
-        if (!Array.isArray(body)) {
-          return;
-        }
-
         let firstImport = null;
-        for (const statement of body) {
-          const statementType = statement.type;
-          if (
-            statementType === 'ImportDeclaration' ||
-            statementType === 'TSImportEqualsDeclaration'
-          ) {
-            firstImport = statement;
-            break;
+        if (Array.isArray(body)) {
+          for (const statement of body) {
+            if (
+              statement.type === 'ImportDeclaration' ||
+              statement.type === 'TSImportEqualsDeclaration'
+            ) {
+              firstImport = statement;
+              break;
+            }
           }
         }
 
-        // No imports in the file - metadata can be anywhere
+        // No imports - metadata can be anywhere
         if (!firstImport) {
           return;
         }
 
-        // Check if metadata comment comes before first import
+        // Validate ranges
         const commentRange = metadataComment.range;
-        const isCommentRangeValid =
-          typeof commentRange === 'object' &&
-          commentRange !== null &&
-          Array.isArray(commentRange) &&
-          commentRange.length === RANGE_TUPLE_LENGTH;
-
-        if (!isCommentRangeValid) {
-          return;
-        }
-
         const importRange = firstImport.range;
-        if (!importRange || !Array.isArray(importRange)) {
+        if (
+          !commentRange ||
+          !importRange ||
+          !Array.isArray(commentRange) ||
+          !Array.isArray(importRange) ||
+          commentRange.length !== RANGE_TUPLE_LENGTH ||
+          typeof commentRange[0] !== 'number' ||
+          typeof importRange[0] !== 'number'
+        ) {
           return;
         }
 
-        const { 0: commentStartPos } = commentRange;
-        const { 0: importStartPos } = importRange;
-
-        // Metadata exists but comes after the first import
-        if (
-          typeof commentStartPos === 'number' &&
-          typeof importStartPos === 'number' &&
-          commentStartPos > importStartPos &&
-          ctx.sourceCode
-        ) {
+        // Metadata comes after import - report with fixer
+        if (commentRange[0] > importRange[0] && ctx.sourceCode) {
           ctx.report({
             node,
             messageId: 'metadataNotBeforeImports',
@@ -143,47 +112,28 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
               if (!ctx.sourceCode) {
                 return null;
               }
-
-              // Get the comment text including delimiters
               const commentText = ctx.sourceCode.getText(metadataComment);
-              if (typeof commentText !== 'string') {
-                return null;
-              }
-
-              // Get the range of the metadata comment for removal
               const removalRange = metadataComment.range;
-              if (typeof removalRange !== 'object' || removalRange === null) {
-                return null;
-              }
+              const sourceText = ctx.sourceCode.getText();
 
-              // Type guard for range tuple
-              if (!Array.isArray(removalRange) || removalRange.length !== RANGE_TUPLE_LENGTH) {
-                return null;
-              }
-
-              // Validate array elements are numbers before extracting
-              if (typeof removalRange[0] !== 'number' || typeof removalRange[1] !== 'number') {
+              if (
+                typeof sourceText !== 'string' ||
+                !Array.isArray(removalRange) ||
+                removalRange.length !== RANGE_TUPLE_LENGTH ||
+                typeof removalRange[0] !== 'number' ||
+                typeof removalRange[1] !== 'number'
+              ) {
                 return null;
               }
 
               const { 0: startPos, 1: originalEndPos } = removalRange;
+              const endPos =
+                originalEndPos < sourceText.length && sourceText[originalEndPos] === '\n'
+                  ? originalEndPos + 1
+                  : originalEndPos;
 
-              // Remove the comment from its current location (including trailing newline if present)
-              const sourceText = ctx.sourceCode.getText();
-              if (typeof sourceText !== 'string') {
-                return null;
-              }
-
-              let endPos = originalEndPos;
-
-              // Check if there's a newline after the comment and include it in removal
-              if (endPos < sourceText.length && sourceText[endPos] === '\n') {
-                endPos += 1;
-              }
-
-              // Insert at position 0 and remove from current position
               return [
-                fixer.insertTextBeforeRange([0, 0], `${commentText}\n`),
+                fixer.insertTextBeforeRange([0, 0], `${String(commentText)}\n`),
                 fixer.removeRange([startPos, endPos]),
               ];
             },

@@ -21,7 +21,7 @@ describe('testing package exports', () => {
   describe('ChildProcessMocker', () => {
     it('VALID: exports ChildProcessMocker => is defined', () => {
       expect(ChildProcessMocker).toBeDefined();
-      expect(typeof ChildProcessMocker).toBe('function');
+      expect(typeof ChildProcessMocker).toBe('object');
     });
   });
 

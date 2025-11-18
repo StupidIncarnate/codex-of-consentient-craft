@@ -37,45 +37,42 @@ export const checkPrimitiveViolationLayerBroker = ({
   let isPropertyInParameter = false;
 
   while (current) {
-    if (current.type !== 'TSTypeAnnotation') {
-      current = current.parent;
-      continue;
-    }
-
-    const annotationParent = current.parent;
-    if (!annotationParent) {
-      current = current.parent;
-      continue;
-    }
-
     // Check if this annotation is on a function's return type
-    const isReturnTypeCheck =
-      'returnType' in annotationParent && annotationParent.returnType === current;
-    if (isReturnTypeCheck) {
-      isReturnType = true;
-      break;
-    }
+    if (current.type === 'TSTypeAnnotation') {
+      const annotationParent = current.parent;
+      if (annotationParent) {
+        const isReturnTypeCheck =
+          'returnType' in annotationParent && annotationParent.returnType === current;
+        if (isReturnTypeCheck) {
+          isReturnType = true;
+          break;
+        }
 
-    // Check if this annotation is on a direct parameter
-    if (annotationParent.type === 'Identifier') {
-      const identifierParent = annotationParent.parent;
-      const hasParams =
-        identifierParent && 'params' in identifierParent && Array.isArray(identifierParent.params);
-      if (hasParams) {
-        isParameter = true;
-        break;
-      }
-    }
+        // Check if this annotation is on a direct parameter
+        if (annotationParent.type === 'Identifier') {
+          const identifierParent = annotationParent.parent;
+          const hasParams =
+            identifierParent &&
+            'params' in identifierParent &&
+            Array.isArray(identifierParent.params);
+          if (hasParams) {
+            isParameter = true;
+            break;
+          }
+        }
 
-    // Check if this annotation is on a destructured parameter
-    if (annotationParent.type === 'ObjectPattern') {
-      const objectPatternParent = annotationParent.parent;
-      const hasParams =
-        objectPatternParent &&
-        'params' in objectPatternParent &&
-        Array.isArray(objectPatternParent.params);
-      if (hasParams) {
-        isPropertyInParameter = true;
+        // Check if this annotation is on a destructured parameter
+        if (annotationParent.type === 'ObjectPattern') {
+          const objectPatternParent = annotationParent.parent;
+          const hasParams =
+            objectPatternParent &&
+            'params' in objectPatternParent &&
+            Array.isArray(objectPatternParent.params);
+          if (hasParams) {
+            isPropertyInParameter = true;
+            break;
+          }
+        }
       }
     }
 

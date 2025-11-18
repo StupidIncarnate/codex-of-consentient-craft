@@ -7,6 +7,34 @@ import { identifierContract } from '@questmaestro/shared/contracts';
 const filenameContract = z.string().brand<'Filename'>();
 const sourceTextContract = z.string().brand<'SourceText'>();
 
+const createDefaultSourceCode = (): EslintSourceCode => ({
+  text: sourceTextContract.parse(''),
+  ast: {},
+  getAncestors: (_node) => [],
+  getAllComments: () => [],
+  getText: () => '',
+});
+
+const createSourceCodeWithOverrides = (overrides?: {
+  text?: string;
+  ast?: unknown;
+  getAncestors?: EslintSourceCode['getAncestors'];
+  getAllComments?: EslintSourceCode['getAllComments'];
+  getText?: EslintSourceCode['getText'];
+}): EslintSourceCode => {
+  const defaults = createDefaultSourceCode();
+  if (!overrides) {
+    return defaults;
+  }
+  return {
+    text: overrides.text ? sourceTextContract.parse(overrides.text) : defaults.text,
+    ast: overrides.ast ?? defaults.ast,
+    getAncestors: overrides.getAncestors ?? defaults.getAncestors,
+    getAllComments: overrides.getAllComments ?? defaults.getAllComments,
+    getText: overrides.getText ?? defaults.getText,
+  };
+};
+
 export const EslintContextStub = ({
   ...props
 }: StubArgument<EslintContext> = {}): EslintContext => {
@@ -30,30 +58,8 @@ export const EslintContextStub = ({
         type: identifierContract.parse('global'),
         variables: [],
       })),
-    getSourceCode:
-      getSourceCode ??
-      ((): EslintSourceCode => ({
-        text: sourceTextContract.parse(''),
-        ast: {},
-        getAncestors: (_node) => [],
-        getAllComments: () => [],
-        getText: () => '',
-      })),
+    getSourceCode: getSourceCode ?? ((): EslintSourceCode => createDefaultSourceCode()),
     // sourceCode property with same structure as getSourceCode return
-    sourceCode: sourceCode
-      ? ({
-          text: sourceCode.text ?? sourceTextContract.parse(''),
-          ast: sourceCode.ast ?? {},
-          getAncestors: sourceCode.getAncestors ?? ((_node) => []),
-          getAllComments: sourceCode.getAllComments ?? (() => []),
-          getText: sourceCode.getText ?? (() => ''),
-        } as EslintSourceCode)
-      : ({
-          text: sourceTextContract.parse(''),
-          ast: {},
-          getAncestors: (_node) => [],
-          getAllComments: () => [],
-          getText: () => '',
-        } as EslintSourceCode),
+    sourceCode: createSourceCodeWithOverrides(sourceCode),
   };
 };

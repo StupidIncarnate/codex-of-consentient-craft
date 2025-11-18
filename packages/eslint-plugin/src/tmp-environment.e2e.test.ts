@@ -23,34 +23,49 @@ import { createIntegrationEnvironment } from '@questmaestro/testing';
 describe('Tmp Environment E2E', () => {
   describe('file operations in /tmp', () => {
     it('VALID: can create and read files in /tmp', () => {
-      const env = createIntegrationEnvironment('file-ops-test', { createPackageJson: false });
+      const env = createIntegrationEnvironment({
+        baseName: 'file-ops-test',
+        options: { createPackageJson: false },
+      });
 
-      env.writeFile('test.txt', 'Hello from /tmp!');
+      env.writeFile({ fileName: 'test.txt', content: 'Hello from /tmp!' });
 
-      expect(env.fileExists('test.txt')).toBe(true);
-      expect(env.readFile('test.txt')).toBe('Hello from /tmp!');
+      expect(env.fileExists({ fileName: 'test.txt' })).toBe(true);
+      expect(env.readFile({ fileName: 'test.txt' })).toBe('Hello from /tmp!');
     });
 
     it('VALID: can create nested directory structure', () => {
-      const env = createIntegrationEnvironment('nested-dirs', { createPackageJson: false });
+      const env = createIntegrationEnvironment({
+        baseName: 'nested-dirs',
+        options: { createPackageJson: false },
+      });
 
-      env.writeFile('src/components/Button.tsx', 'export const Button = () => <button />;');
-      env.writeFile('src/utils/helpers.ts', 'export const helper = () => {};');
+      env.writeFile({
+        fileName: 'src/components/Button.tsx',
+        content: 'export const Button = () => <button />;',
+      });
+      env.writeFile({
+        fileName: 'src/utils/helpers.ts',
+        content: 'export const helper = () => {};',
+      });
 
-      expect(env.fileExists('src/components/Button.tsx')).toBe(true);
-      expect(env.fileExists('src/utils/helpers.ts')).toBe(true);
+      expect(env.fileExists({ fileName: 'src/components/Button.tsx' })).toBe(true);
+      expect(env.fileExists({ fileName: 'src/utils/helpers.ts' })).toBe(true);
     });
   });
 
   describe('executing TypeScript files in /tmp', () => {
     it('VALID: can run tsx on files in /tmp', () => {
-      const env = createIntegrationEnvironment('tsx-execution', { createPackageJson: false });
+      const env = createIntegrationEnvironment({
+        baseName: 'tsx-execution',
+        options: { createPackageJson: false },
+      });
 
-      env.writeFile(
-        'hello.ts',
-        `const greeting: string = 'Hello from /tmp';
+      env.writeFile({
+        fileName: 'hello.ts',
+        content: `const greeting: string = 'Hello from /tmp';
 console.log(greeting);`,
-      );
+      });
 
       const result = execSync(`npx tsx ${path.join(env.projectPath, 'hello.ts')}`, {
         encoding: 'utf8',
@@ -61,15 +76,21 @@ console.log(greeting);`,
     });
 
     it('VALID: can run Node.js scripts that import from other files', () => {
-      const env = createIntegrationEnvironment('module-imports', { createPackageJson: false });
+      const env = createIntegrationEnvironment({
+        baseName: 'module-imports',
+        options: { createPackageJson: false },
+      });
 
-      env.writeFile('utils.ts', `export const add = (a: number, b: number): number => a + b;`);
+      env.writeFile({
+        fileName: 'utils.ts',
+        content: `export const add = (a: number, b: number): number => a + b;`,
+      });
 
-      env.writeFile(
-        'main.ts',
-        `import { add } from './utils';
+      env.writeFile({
+        fileName: 'main.ts',
+        content: `import { add } from './utils';
 console.log(add(2, 3));`,
-      );
+      });
 
       const result = execSync(`npx tsx ${path.join(env.projectPath, 'main.ts')}`, {
         encoding: 'utf8',
@@ -82,10 +103,16 @@ console.log(add(2, 3));`,
 
   describe('CLI tool testing in /tmp', () => {
     it('VALID: can test a CLI tool that reads files from /tmp', () => {
-      const env = createIntegrationEnvironment('cli-tool-test', { createPackageJson: false });
+      const env = createIntegrationEnvironment({
+        baseName: 'cli-tool-test',
+        options: { createPackageJson: false },
+      });
 
       // Create a config file
-      env.writeFile('config.json', JSON.stringify({ name: 'test-app', version: '1.0.0' }));
+      env.writeFile({
+        fileName: 'config.json',
+        content: JSON.stringify({ name: 'test-app', version: '1.0.0' }),
+      });
 
       // Read it back programmatically (simulating what a CLI tool would do)
       const configPath = path.join(env.projectPath, 'config.json');
@@ -97,24 +124,30 @@ console.log(add(2, 3));`,
     });
 
     it('VALID: can test file existence checks in /tmp', () => {
-      const env = createIntegrationEnvironment('file-checks', { createPackageJson: false });
+      const env = createIntegrationEnvironment({
+        baseName: 'file-checks',
+        options: { createPackageJson: false },
+      });
 
-      env.writeFile('package.json', '{}');
-      env.writeFile('.gitignore', 'node_modules');
+      env.writeFile({ fileName: 'package.json', content: '{}' });
+      env.writeFile({ fileName: '.gitignore', content: 'node_modules' });
 
-      expect(env.fileExists('package.json')).toBe(true);
-      expect(env.fileExists('.gitignore')).toBe(true);
-      expect(env.fileExists('nonexistent.txt')).toBe(false);
+      expect(env.fileExists({ fileName: 'package.json' })).toBe(true);
+      expect(env.fileExists({ fileName: '.gitignore' })).toBe(true);
+      expect(env.fileExists({ fileName: 'nonexistent.txt' })).toBe(false);
     });
   });
 
   describe('automatic cleanup', () => {
     it('VALID: environments are automatically cleaned up after each test', () => {
-      const env = createIntegrationEnvironment('cleanup-test', { createPackageJson: false });
+      const env = createIntegrationEnvironment({
+        baseName: 'cleanup-test',
+        options: { createPackageJson: false },
+      });
 
-      env.writeFile('test1.txt', 'content 1');
-      env.writeFile('test2.txt', 'content 2');
-      env.writeFile('subdir/test3.txt', 'content 3');
+      env.writeFile({ fileName: 'test1.txt', content: 'content 1' });
+      env.writeFile({ fileName: 'test2.txt', content: 'content 2' });
+      env.writeFile({ fileName: 'subdir/test3.txt', content: 'content 3' });
 
       const { projectPath } = env;
 
@@ -128,12 +161,15 @@ console.log(add(2, 3));`,
 
   describe('running ESLint in /tmp WITH setupEslint option', () => {
     it('VALID: setupEslint creates exact tsconfig.json', () => {
-      const env = createIntegrationEnvironment('eslint-tsconfig', {
-        createPackageJson: false,
-        setupEslint: true,
+      const env = createIntegrationEnvironment({
+        baseName: 'eslint-tsconfig',
+        options: {
+          createPackageJson: false,
+          setupEslint: true,
+        },
       });
 
-      const tsconfig = JSON.parse(env.readFile('tsconfig.json'));
+      const tsconfig = JSON.parse(env.readFile({ fileName: 'tsconfig.json' }));
 
       expect(tsconfig).toStrictEqual({
         compilerOptions: {
@@ -153,12 +189,15 @@ console.log(add(2, 3));`,
     });
 
     it('VALID: setupEslint creates exact eslint.config.js', () => {
-      const env = createIntegrationEnvironment('eslint-config-js', {
-        createPackageJson: false,
-        setupEslint: true,
+      const env = createIntegrationEnvironment({
+        baseName: 'eslint-config-js',
+        options: {
+          createPackageJson: false,
+          setupEslint: true,
+        },
       });
 
-      const eslintConfig = env.readFile('eslint.config.js');
+      const eslintConfig = env.readFile({ fileName: 'eslint.config.js' });
       const expectedEslintConfig = `
 // Auto-generated eslint config for integration test environment
 const tsParser = require('@typescript-eslint/parser');
