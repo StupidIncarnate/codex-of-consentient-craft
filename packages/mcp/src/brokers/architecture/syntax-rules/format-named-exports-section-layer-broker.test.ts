@@ -15,7 +15,7 @@ describe('formatNamedExportsSectionLayerBroker', () => {
         '**Always use named exports, never default exports**',
         '',
         '**Exceptions:**',
-        '- Index files connecting to systems that require default exports',
+        '- Index files ONLY when connecting to systems that REQUIRE default exports (not just prefer)',
         '',
         '**Examples:**',
         '- ✅ `export const userFetchBroker = ...`',

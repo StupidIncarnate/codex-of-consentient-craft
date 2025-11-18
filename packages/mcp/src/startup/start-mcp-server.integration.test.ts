@@ -150,7 +150,7 @@ describe('StartMcpServer', () => {
 
       expect(firstContent).toBeDefined();
 
-      const data = DiscoverTreeResultStub(JSON.parse(firstContent.text) as never);
+      const data = DiscoverTreeResultStub(JSON.parse(firstContent!.text) as never);
 
       expect(typeof data.results).toBe('string');
       expect(data.count).toBeGreaterThan(0);

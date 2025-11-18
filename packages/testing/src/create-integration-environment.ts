@@ -52,23 +52,23 @@ export interface TestProject {
 
   installQuestmaestro: () => string;
 
-  hasCommand: (command: string) => boolean;
+  hasCommand: ({ command }: { command: string }) => boolean;
 
-  fileExists: (fileName: string) => boolean;
+  fileExists: ({ fileName }: { fileName: string }) => boolean;
 
-  readFile: (fileName: string) => string;
+  readFile: ({ fileName }: { fileName: string }) => string;
 
-  writeFile: (fileName: string, content: string) => void;
+  writeFile: ({ fileName, content }: { fileName: string; content: string }) => void;
 
-  deleteFile: (fileName: string) => void;
+  deleteFile: ({ fileName }: { fileName: string }) => void;
 
   getConfig: () => QuestmaestroConfig | null;
 
   getPackageJson: () => PackageJson;
 
-  getQuestFiles: (subdir?: string) => string[];
+  getQuestFiles: ({ subdir }: { subdir?: string }) => string[];
 
-  executeCommand: (command: string) => ExecResult;
+  executeCommand: ({ command }: { command: string }) => ExecResult;
 
   cleanup: () => void;
 }

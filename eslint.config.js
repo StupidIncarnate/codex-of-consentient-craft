@@ -48,7 +48,13 @@ module.exports = [
   // Configuration for TypeScript files
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js'],
-    ignores: ['eslint.config.js', '**/jest.config.js', 'jest.config.base.js', '**/jest.setup.js', '**/configs/**/*.js'],
+    ignores: [
+      'eslint.config.js',
+      '**/jest.config.js',
+      'jest.config.base.js',
+      '**/jest.setup.js',
+      '**/configs/**/*.js',
+    ],
     languageOptions: {
       parser: tsparser,
       parserOptions: {

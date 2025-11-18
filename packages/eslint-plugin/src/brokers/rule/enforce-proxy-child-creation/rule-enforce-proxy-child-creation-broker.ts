@@ -14,7 +14,7 @@ import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suf
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
 import type { FileContents, Identifier, ModulePath } from '@questmaestro/shared/contracts';
-import { identifierContract } from '@questmaestro/shared/contracts';
+import { identifierContract, filePathContract } from '@questmaestro/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
@@ -54,7 +54,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     const implementationFileResult = ((): FileContents | null => {
       try {
         return fsEnsureReadFileSyncAdapter({
-          filePath: implementationPath as never,
+          filePath: filePathContract.parse(implementationPath),
           encoding: 'utf-8',
         });
       } catch {

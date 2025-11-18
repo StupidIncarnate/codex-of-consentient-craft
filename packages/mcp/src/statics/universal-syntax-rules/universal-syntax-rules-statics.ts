@@ -103,7 +103,7 @@ export const universalSyntaxRulesStatics = {
     rule: 'Type export syntax varies by file type',
     regularFiles: 'Only define types with export type Name = { ... }',
     indexFiles: 'Only re-export with export type { Name } from "./types"',
-    forbidden: 'NEVER use export { type Name } - This inline syntax is ABSOLUTELY FORBIDDEN',
+    forbidden: 'Never use export { type Name } (forbidden inline syntax)',
     llmTrainingViolation:
       'LLM training instinct: Use export { type Foo } (modern TS 4.5+ inline syntax). This is FORBIDDEN here - always use export type { Foo } in index files.',
     criticalNote:
@@ -112,9 +112,7 @@ export const universalSyntaxRulesStatics = {
       'export type User = { id: UserId; name: UserName; }; // Regular file',
       'export type {User} from "./user-contract"; // index.ts re-export',
     ],
-    violations: [
-      'export {type User} from "./user-contract"; // FORBIDDEN inline syntax - triggers lint error',
-    ],
+    violations: ['export {type User} from "./user-contract"; // Forbidden inline syntax'],
   },
 
   typeSafety: {

@@ -20,4 +20,4 @@ export const layerConstraintsState = {
   clear: (): void => {
     layerConstraintsState.content = undefined;
   },
-} as const;
+};

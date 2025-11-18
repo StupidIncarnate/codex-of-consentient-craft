@@ -1,7 +1,8 @@
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { ruleEnforceProxyChildCreationBroker } from './rule-enforce-proxy-child-creation-broker';
 import { ruleEnforceProxyChildCreationBrokerProxy } from './rule-enforce-proxy-child-creation-broker.proxy';
-import type { FileContentsStub, FilePathStub } from '@questmaestro/shared/contracts';
+import type { FilePathStub } from '@questmaestro/shared/contracts';
+import { FileContentsStub } from '@questmaestro/shared/contracts';
 
 type FileContents = ReturnType<typeof FileContentsStub>;
 type FilePath = ReturnType<typeof FilePathStub>;

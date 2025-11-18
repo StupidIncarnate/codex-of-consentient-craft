@@ -225,7 +225,7 @@ Only **entry files** can be imported across domain folders.
 - \`brokers/user/fetch/user-fetch-broker.ts\` ✅ Entry file (filename = folder path)
 - \`adapters/axios/get/axios-get-adapter.ts\` ✅ Entry file (filename = folder path)
 - \`contracts/user/user-contract.ts\` ✅ Entry file (filename = folder path)
-- \`brokers/user/fetch/validate-helper.ts\` ❌ NOT entry (has validate-helper as a name instead of user-fetch-broker)
+- \`brokers/user/fetch/validate-helper.ts\` ❌ NOT entry (has extra "validate")
 - \`brokers/user/fetch/validate-layer-broker.ts\` ❌ NOT entry (has "validate-layer")
 - \`widgets/user-card/avatar-layer-widget.tsx\` ❌ NOT entry (has "avatar-layer")
 
