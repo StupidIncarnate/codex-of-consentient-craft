@@ -1,4 +1,5 @@
 import { FolderSuggestionStub } from './folder-suggestion.stub';
+import { folderSuggestionContract } from './folder-suggestion-contract';
 
 describe('FolderSuggestionStub', () => {
   it('VALID: {value: "adapters or transformers"} => returns branded FolderSuggestion', () => {
@@ -39,7 +40,7 @@ describe('FolderSuggestionStub', () => {
 
   it('INVALID: {value: number} => throws ZodError with "Expected string"', () => {
     expect(() => {
-      return FolderSuggestionStub({ value: 123 as never });
+      return folderSuggestionContract.parse(123 as never);
     }).toThrow(/Expected string/u);
   });
 });

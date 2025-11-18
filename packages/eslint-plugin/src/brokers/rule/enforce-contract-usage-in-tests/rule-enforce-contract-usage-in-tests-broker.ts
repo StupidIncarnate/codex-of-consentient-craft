@@ -145,7 +145,7 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
         if (imports.hasContractImport && !imports.hasStubImport) {
           // Has contract but missing stub
           const basename = filename.split('/').pop() ?? '';
-          const stubPath = './' + basename.replace('-contract.test.ts', '.stub');
+          const stubPath = `./${basename.replace('-contract.test.ts', '.stub')}`;
           ctx.report({
             node: imports.contractImportNode ?? ({} as Tsestree),
             messageId: 'contractTestMissingStub',
@@ -156,7 +156,7 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
         } else if (!imports.hasContractImport && imports.hasStubImport) {
           // Has stub but missing contract
           const basename = filename.split('/').pop() ?? '';
-          const contractPath = './' + basename.replace('.test.ts', '');
+          const contractPath = `./${basename.replace('.test.ts', '')}`;
           ctx.report({
             node: imports.stubImportNode ?? ({} as Tsestree),
             messageId: 'contractTestMissingContract',
@@ -167,7 +167,7 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
         } else if (!imports.hasContractImport && !imports.hasStubImport) {
           // Missing both - report missing contract (primary requirement)
           const basename = filename.split('/').pop() ?? '';
-          const contractPath = './' + basename.replace('.test.ts', '');
+          const contractPath = `./${basename.replace('.test.ts', '')}`;
           ctx.report({
             node: {} as Tsestree,
             messageId: 'contractTestMissingContract',

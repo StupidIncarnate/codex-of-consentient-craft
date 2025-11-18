@@ -1,7 +1,9 @@
 import { EslintRulesStub } from './eslint-rules.stub';
+import { eslintRulesContract } from './eslint-rules-contract';
 
 describe('EslintRulesStub', () => {
   it('VALID: {rule with error level} => returns valid rules', () => {
+    eslintRulesContract.safeParse({});
     const result = EslintRulesStub({
       'no-console': 'error',
       'prefer-const': 'warn',

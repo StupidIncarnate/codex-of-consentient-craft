@@ -13,9 +13,9 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@questmaestro/shared/contracts';
-import type { FilePath } from '@questmaestro/shared/contracts';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { testFilePathToImplementationPathTransformer } from '../../../transformers/test-file-path-to-implementation-path/test-file-path-to-implementation-path-transformer';
+import { filePathWithTypeInfixTransformer } from '../../../transformers/file-path-with-type-infix/file-path-with-type-infix-transformer';
 
 export const ruleEnforceTestColocationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -66,8 +66,7 @@ export const ruleEnforceTestColocationBroker = (): EslintRule => ({
         const hasStandardImpl = fsExistsSyncAdapter({ filePath: basePath });
 
         // Check for .type implementation file (e.g., stub-argument.type.ts)
-        // Insert .type before the file extension
-        const typeImplPath = basePath.replace(/\.(ts|tsx)$/u, '.type.$1') as FilePath;
+        const typeImplPath = filePathWithTypeInfixTransformer({ filePath: basePath });
         const hasTypeImpl = fsExistsSyncAdapter({ filePath: typeImplPath });
 
         if (!hasStandardImpl && !hasTypeImpl) {

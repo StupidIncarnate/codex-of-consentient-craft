@@ -1,3 +1,4 @@
+import { allowedImportContract } from './allowed-import-contract';
 import { AllowedImportStub } from './allowed-import.stub';
 
 describe('AllowedImportStub', () => {
@@ -21,7 +22,7 @@ describe('AllowedImportStub', () => {
 
   it('INVALID: {value: "invalid-value"} => throws ZodError', () => {
     expect(() => {
-      AllowedImportStub({ value: 'invalid-value' });
+      allowedImportContract.parse('invalid-value');
     }).toThrow('Invalid enum value');
   });
 });

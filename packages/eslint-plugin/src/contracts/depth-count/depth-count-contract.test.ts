@@ -1,4 +1,5 @@
 import { DepthCountStub } from './depth-count.stub';
+import { depthCountContract } from './depth-count-contract';
 
 describe('DepthCountStub', () => {
   it('VALID: {value: 0} => returns branded DepthCount', () => {
@@ -27,7 +28,7 @@ describe('DepthCountStub', () => {
 
   it('INVALID: {value: -1} => throws ZodError', () => {
     expect(() => {
-      return DepthCountStub({ value: -1 });
+      return depthCountContract.parse(-1);
     }).toThrow(/Number must be greater than or equal to 0/u);
   });
 

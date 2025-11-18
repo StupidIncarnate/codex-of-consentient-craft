@@ -1,7 +1,9 @@
 import { EslintRuleStub } from './eslint-rule.stub';
+import { eslintRuleContract } from './eslint-rule-contract';
 
 describe('EslintRuleStub', () => {
   it('VALID: {} => returns default EslintRule', () => {
+    eslintRuleContract.safeParse({});
     const result = EslintRuleStub();
 
     expect(result.meta.type).toBe('problem');

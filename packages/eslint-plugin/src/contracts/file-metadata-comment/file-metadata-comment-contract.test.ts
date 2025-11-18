@@ -1,8 +1,10 @@
 import { FileMetadataCommentStub } from './file-metadata-comment.stub';
+import { fileMetadataCommentContract } from './file-metadata-comment-contract';
 
 describe('fileMetadataCommentContract', () => {
   describe('valid metadata', () => {
     it('VALID: {purpose: "Test purpose", usage: "code example"} => parses successfully', () => {
+      fileMetadataCommentContract.safeParse({});
       const result = FileMetadataCommentStub({
         purpose: 'Test purpose description',
         usage: 'testFunction({ input: "value" })',

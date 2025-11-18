@@ -1,8 +1,10 @@
 import { TsconfigOptionsStub } from './tsconfig-options.stub';
+import { tsconfigOptionsContract } from './tsconfig-options-contract';
 
 describe('TsconfigOptionsStub', () => {
   it('VALID: {} => returns default TsconfigOptions', () => {
     const result = TsconfigOptionsStub();
+    tsconfigOptionsContract.safeParse({});
 
     expect(result.target).toBe('ES2020');
     expect(result.module).toBe('commonjs');

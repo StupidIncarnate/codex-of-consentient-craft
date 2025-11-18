@@ -1,10 +1,10 @@
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 
 /**
- * Proxy for ban-contract-in-tests rule broker.
+ * Proxy for enforce-contract-usage-in-tests rule broker.
  * Provides mock setup for testing the rule.
  */
-export const ruleBanContractInTestsBrokerProxy = (): {
+export const ruleEnforceContractUsageInTestsBrokerProxy = (): {
   createContext: () => EslintContext;
 } => ({
   createContext: (): EslintContext => ({

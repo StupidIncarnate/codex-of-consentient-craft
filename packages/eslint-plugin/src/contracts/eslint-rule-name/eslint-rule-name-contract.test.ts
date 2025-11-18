@@ -1,8 +1,10 @@
 import { EslintRuleNameStub } from './eslint-rule-name.stub';
+import { eslintRuleNameContract } from './eslint-rule-name-contract';
 
 describe('eslintRuleNameContract', () => {
   describe('parse()', () => {
     it("VALID: {value: 'explicit-return-types'} => returns branded EslintRuleName", () => {
+      eslintRuleNameContract.safeParse('');
       const result = EslintRuleNameStub({ value: 'explicit-return-types' });
 
       expect(result).toBe('explicit-return-types');

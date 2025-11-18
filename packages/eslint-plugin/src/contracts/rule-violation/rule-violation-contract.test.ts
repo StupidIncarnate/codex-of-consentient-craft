@@ -1,4 +1,5 @@
 import { RuleViolationStub } from './rule-violation.stub';
+import { ruleViolationContract } from './rule-violation-contract';
 
 describe('RuleViolationStub', () => {
   it('VALID: {} => returns default RuleViolation', () => {
@@ -36,7 +37,7 @@ describe('RuleViolationStub', () => {
 
   it('INVALID: {message: ""} => throws ZodError for empty message', () => {
     expect(() => {
-      RuleViolationStub({ message: '' });
+      ruleViolationContract.parse({ message: '' });
     }).toThrow('String must contain at least 1 character(s)');
   });
 });

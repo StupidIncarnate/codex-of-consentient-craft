@@ -1,3 +1,4 @@
+import { astNodeContract } from './ast-node-contract';
 import { AstNodeStub } from './ast-node.stub';
 
 describe('AstNodeStub', () => {
@@ -42,7 +43,11 @@ describe('AstNodeStub', () => {
 
   it('INVALID: {type: ""} => throws ZodError for empty type', () => {
     expect(() => {
-      AstNodeStub({ type: '' });
+      astNodeContract.parse({
+        type: '',
+        range: [0, 10],
+        loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 10 } },
+      });
     }).toThrow('String must contain at least 1 character(s)');
   });
 

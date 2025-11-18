@@ -1,4 +1,5 @@
 import { KebabCaseStringStub } from './kebab-case-string.stub';
+import { kebabCaseStringContract } from './kebab-case-string-contract';
 
 describe('KebabCaseStringStub', () => {
   describe('valid kebab-case strings', () => {
@@ -30,7 +31,7 @@ describe('KebabCaseStringStub', () => {
   describe('invalid strings', () => {
     it('INVALID_FORMAT: {value: "CamelCase"} => throws ZodError', () => {
       expect(() => {
-        KebabCaseStringStub({ value: 'CamelCase' });
+        kebabCaseStringContract.parse('CamelCase');
       }).toThrow('Must be kebab-case');
     });
 

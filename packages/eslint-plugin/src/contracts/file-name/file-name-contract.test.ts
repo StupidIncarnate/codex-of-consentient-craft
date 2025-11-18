@@ -1,4 +1,5 @@
 import { FileNameStub } from './file-name.stub';
+import { fileNameContract } from './file-name-contract';
 
 describe('fileNameContract', () => {
   it('VALID: {value: "test-file.ts"} => returns branded FileName', () => {
@@ -33,7 +34,7 @@ describe('fileNameContract', () => {
 
   it('INVALID_PATH_SEPARATOR: {value: "path/to/file.ts"} => throws error', () => {
     expect(() => {
-      return FileNameStub({ value: 'path/to/file.ts' });
+      return fileNameContract.parse('path/to/file.ts');
     }).toThrow(/path separators/u);
   });
 

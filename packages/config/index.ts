@@ -52,5 +52,5 @@ export type {
   SchemaLibrary,
   QuestmaestroConfig,
   AllowedExternalImports,
-  FrameworkPreset
+  FrameworkPreset,
 };

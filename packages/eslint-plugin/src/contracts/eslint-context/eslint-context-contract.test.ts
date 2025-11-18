@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { eslintContextContract } from './eslint-context-contract';
 import { EslintContextStub } from './eslint-context.stub';
 
 describe('EslintContextStub', () => {
   it('VALID: {} => returns default EslintContext', () => {
+    eslintContextContract.safeParse({});
     const result = EslintContextStub();
 
     expect(result).toStrictEqual({

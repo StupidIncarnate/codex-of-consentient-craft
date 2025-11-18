@@ -1,4 +1,5 @@
 import { ForbiddenFolderNameStub } from './forbidden-folder-name.stub';
+import { forbiddenFolderNameContract } from './forbidden-folder-name-contract';
 
 describe('ForbiddenFolderNameStub', () => {
   it('VALID: {value: "utils"} => returns branded ForbiddenFolderName', () => {
@@ -33,7 +34,7 @@ describe('ForbiddenFolderNameStub', () => {
 
   it('INVALID: {value: number} => throws ZodError with "Expected string"', () => {
     expect(() => {
-      return ForbiddenFolderNameStub({ value: 123 as never });
+      return forbiddenFolderNameContract.parse(123 as never);
     }).toThrow(/Expected string/u);
   });
 });

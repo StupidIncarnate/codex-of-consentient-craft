@@ -1,4 +1,5 @@
 import { EslintConfigStub } from './eslint-config.stub';
+import { eslintConfigContract } from './eslint-config-contract';
 
 describe('EslintConfigStub', () => {
   it('VALID: {} => returns default EslintConfig', () => {
@@ -81,9 +82,16 @@ describe('EslintConfigStub', () => {
 
   it('INVALID_RULE: {rules: {"test": "invalid"}} => throws ZodError', () => {
     expect(() => {
-      EslintConfigStub({
+      eslintConfigContract.parse({
+        plugins: {},
         rules: {
           test: 'invalid' as never,
+        },
+        files: ['**/*.ts'],
+        ignores: ['node_modules'],
+        languageOptions: {
+          globals: {},
+          parserOptions: {},
         },
       });
     }).toThrow('Invalid input');

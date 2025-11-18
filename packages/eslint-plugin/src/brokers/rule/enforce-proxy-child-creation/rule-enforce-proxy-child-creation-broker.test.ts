@@ -1,8 +1,10 @@
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { ruleEnforceProxyChildCreationBroker } from './rule-enforce-proxy-child-creation-broker';
 import { ruleEnforceProxyChildCreationBrokerProxy } from './rule-enforce-proxy-child-creation-broker.proxy';
-import { fileContentsContract } from '@questmaestro/shared/contracts';
-import type { FileContents, FilePath } from '@questmaestro/shared/contracts';
+import type { FileContentsStub, FilePathStub } from '@questmaestro/shared/contracts';
+
+type FileContents = ReturnType<typeof FileContentsStub>;
+type FilePath = ReturnType<typeof FilePathStub>;
 
 const ruleTester = eslintRuleTesterAdapter();
 
@@ -24,22 +26,26 @@ beforeEach(() => {
         filePath.includes('brokers/user/after-return-broker.ts') ||
         filePath.includes('brokers/user/phantom-proxy-broker.ts')
       ) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         import { httpAdapter } from '../../adapters/http/http-adapter';
 
         export const userBroker = () => {
           return httpAdapter.get();
         };
-      `);
+      `,
+        });
       }
 
       // Empty broker with no imports
       if (filePath.includes('brokers/empty/empty-broker.ts')) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         export const emptyBroker = () => {
           return { data: 'test' };
         };
-      `);
+      `,
+        });
       }
 
       // user-broker.ts with multiple adapters
@@ -48,7 +54,8 @@ beforeEach(() => {
         filePath.includes('brokers/user-multi/missing-db-broker.ts') ||
         filePath.includes('brokers/user-multi/no-proxies-broker.ts')
       ) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         import { httpAdapter } from '../../adapters/http/http-adapter';
         import { dbAdapter } from '../../adapters/db/db-adapter';
 
@@ -57,71 +64,84 @@ beforeEach(() => {
           const db = dbAdapter.query();
           return { http, db };
         };
-      `);
+      `,
+        });
       }
 
       // user-transformer.ts - no dependencies
       if (filePath.includes('transformers/user/user-transformer.ts')) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         export const userTransformer = (data: unknown) => {
           return { name: 'John' };
         };
-      `);
+      `,
+        });
       }
 
       // user-guard.ts - only contracts
       if (filePath.includes('guards/user/user-guard.ts')) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         import type { User } from '../../contracts/user/user-contract';
 
         export const userGuard = (user: User): boolean => {
           return user.isActive;
         };
-      `);
+      `,
+        });
       }
 
       // Broker that imports transformer (requireProxy: false)
       if (filePath.includes('brokers/user-with-transformer/user-broker.ts')) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         import { formatDateTransformer } from '../../transformers/format-date/format-date-transformer';
 
         export const userBroker = () => {
           return { data: 'test' };
         };
-      `);
+      `,
+        });
       }
 
       // Broker that imports guard (requireProxy: false)
       if (filePath.includes('brokers/user-with-guard/user-broker.ts')) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         import { hasPermissionGuard } from '../../guards/has-permission/has-permission-guard';
 
         export const userBroker = () => {
           return { data: 'test' };
         };
-      `);
+      `,
+        });
       }
 
       // Broker that imports statics (requireProxy: false)
       if (filePath.includes('brokers/user-with-statics/user-broker.ts')) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         import { userStatics } from '../../statics/user/user-statics';
 
         export const userBroker = () => {
           return { data: 'test' };
         };
-      `);
+      `,
+        });
       }
 
       // Broker that imports error (requireProxy: false)
       if (filePath.includes('brokers/user-with-error/user-broker.ts')) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         import { ValidationError } from '../../errors/validation/validation-error';
 
         export const userBroker = () => {
           return { data: 'test' };
         };
-      `);
+      `,
+        });
       }
 
       // Broker that imports another broker (requireProxy: true) - same folder type
@@ -130,7 +150,8 @@ beforeEach(() => {
           'brokers/user-orchestration/orchestrate/user-orchestration-orchestrate-broker.ts',
         )
       ) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         import { userFetchBroker } from '../../user/fetch/user-fetch-broker';
         import { emailSendBroker } from '../../email/send/email-send-broker';
 
@@ -138,12 +159,14 @@ beforeEach(() => {
           const user = userFetchBroker();
           emailSendBroker({ to: user.email });
         };
-      `);
+      `,
+        });
       }
 
       // eslint-rule-tester-adapter.ts - has example code in comments
       if (filePath.includes('adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts')) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         /**
          * @example
          * \`\`\`typescript
@@ -156,18 +179,21 @@ beforeEach(() => {
         export const eslintRuleTesterAdapter = (): RuleTester => {
           return new RuleTester();
         };
-      `);
+      `,
+        });
       }
 
       // http-adapter.ts - only npm packages
       if (filePath.includes('adapters/http/http-adapter.ts')) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         import axios from 'axios';
 
         export const httpAdapter = {
           get: async () => axios.get('/api')
         };
-      `);
+      `,
+        });
       }
 
       // test-file-path-variants-transformer.ts - imports statics
@@ -176,17 +202,19 @@ beforeEach(() => {
           'transformers/test-file-path-variants/test-file-path-variants-transformer.ts',
         )
       ) {
-        return fileContentsContract.parse(`
+        return FileContentsStub({
+          value: `
         import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
 
         export const testFilePathVariantsTransformer = ({ sourceFilePath }) => {
           return testFilePatternStatics.suffixes.map((suffix) => \`\${sourceFilePath}\${suffix}\`);
         };
-      `);
+      `,
+        });
       }
 
       // Default empty implementation
-      return fileContentsContract.parse(`export const placeholder = () => {};`);
+      return FileContentsStub({ value: `export const placeholder = () => {};` });
     },
   });
 });

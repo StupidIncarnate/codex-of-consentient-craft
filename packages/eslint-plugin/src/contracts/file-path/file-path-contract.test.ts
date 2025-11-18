@@ -1,7 +1,9 @@
 import { FilePathStub } from './file-path.stub';
+import { filePathContract } from './file-path-contract';
 
 describe('FilePathStub', () => {
   it('VALID: {value: "/absolute/path.ts"} => returns branded FilePath', () => {
+    filePathContract.safeParse('');
     const result = FilePathStub({ value: '/absolute/path.ts' });
 
     expect(result).toBe('/absolute/path.ts');

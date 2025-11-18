@@ -1,7 +1,9 @@
 import { EslintPluginStub } from './eslint-plugin.stub';
+import { eslintPluginContract } from './eslint-plugin-contract';
 
 describe('eslintPluginContract', () => {
   it('VALID: {rules: {}} => returns plugin object', () => {
+    eslintPluginContract.safeParse({});
     const result = EslintPluginStub({ rules: {} });
 
     expect(result).toStrictEqual({ rules: {} });
