@@ -1,3 +1,4 @@
+import { returnTypeContract as _returnTypeContract } from './return-type-contract';
 import { ReturnTypeStub } from './return-type.stub';
 
 describe('returnTypeContract', () => {

@@ -1,3 +1,4 @@
+import { execErrorContract as _execErrorContract } from './exec-error-contract';
 import { ExecErrorStub } from './exec-error.stub';
 import { ExitCodeStub } from '../exit-code/exit-code.stub';
 

@@ -1,3 +1,10 @@
+/**
+ * PURPOSE: Validates folder type enum values dynamically extracted from folder configuration statics
+ *
+ * USAGE:
+ * const folderType = folderTypeContract.parse('brokers');
+ * // Returns branded FolderType (e.g., 'brokers', 'adapters', 'contracts', 'guards')
+ */
 import { z } from 'zod';
 import { folderConfigStatics } from '@questmaestro/shared/statics';
 
@@ -15,13 +22,6 @@ if (firstType === undefined) {
   throw new Error('Unexpected: first folder type is undefined despite length check');
 }
 
-/**
- * PURPOSE: Validates folder type enum values dynamically extracted from folder configuration statics
- *
- * USAGE:
- * const folderType = folderTypeContract.parse('brokers');
- * // Returns branded FolderType (e.g., 'brokers', 'adapters', 'contracts', 'guards')
- */
 export const folderTypeContract = z.enum([firstType, ...restTypes]).brand<'FolderType'>();
 
 export type FolderType = z.infer<typeof folderTypeContract>;

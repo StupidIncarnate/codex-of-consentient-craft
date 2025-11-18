@@ -1,3 +1,4 @@
+import { absoluteFilePathContract as _absoluteFilePathContract } from './absolute-file-path-contract';
 import { AbsoluteFilePathStub } from './absolute-file-path.stub';
 
 describe('absoluteFilePathContract', () => {

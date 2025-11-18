@@ -40,12 +40,19 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
     }
 
     // Check if this folder type has the config
-    const folderConfig = Reflect.get(folderConfigStatics, folderType) as
-      | { disallowAdhocTypes?: boolean }
-      | undefined;
+    const folderConfigValue: unknown = Reflect.get(folderConfigStatics, folderType);
+    const hasDisallowAdhocTypes =
+      folderConfigValue !== null &&
+      typeof folderConfigValue === 'object' &&
+      'disallowAdhocTypes' in folderConfigValue;
 
     // If config doesn't exist or disallowAdhocTypes is false, skip validation
-    if (!folderConfig || folderConfig.disallowAdhocTypes === false) {
+    if (!hasDisallowAdhocTypes) {
+      return {};
+    }
+
+    const disallowAdhocTypesValue: unknown = Reflect.get(folderConfigValue, 'disallowAdhocTypes');
+    if (disallowAdhocTypesValue === false) {
       return {};
     }
 

@@ -1,3 +1,4 @@
+import { testProjectNameContract as _testProjectNameContract } from './test-project-name-contract';
 import { TestProjectNameStub } from './test-project-name.stub';
 
 describe('testProjectNameContract', () => {

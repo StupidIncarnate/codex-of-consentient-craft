@@ -32,9 +32,7 @@ describe('proxyMockTransformer', () => {
     }): string => {
       // Create a temporary directory for test files
       const tempDir = path.join(__dirname, '__temp_transformer_test__');
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
-      }
+      fs.mkdirSync(tempDir, { recursive: true });
 
       const testFilePath = path.join(tempDir, testFileName);
       const proxyFilePath = path.join(tempDir, proxyFileName);
@@ -52,7 +50,7 @@ describe('proxyMockTransformer', () => {
         const program = ts.createProgram([testFilePath], {
           target: ts.ScriptTarget.ES2020,
           module: ts.ModuleKind.CommonJS,
-          moduleResolution: ts.ModuleResolutionKind.NodeJs,
+          moduleResolution: ts.ModuleResolutionKind.Node10,
           skipLibCheck: true,
         });
 
@@ -63,9 +61,9 @@ describe('proxyMockTransformer', () => {
         }
 
         // Apply the transformer
-        const transformerFactory = proxyMockTransformer(program, { baseDir: tempDir });
+        const transformerFactory = proxyMockTransformer({ program, options: { baseDir: tempDir } });
         const result = ts.transform(sourceFile, [transformerFactory]);
-        const transformedSourceFile = result.transformed[0] as ts.SourceFile;
+        const transformedSourceFile = result.transformed[0]!;
 
         // Print the transformed source
         const printer = ts.createPrinter();
@@ -75,15 +73,8 @@ describe('proxyMockTransformer', () => {
 
         return output;
       } finally {
-        // Cleanup
-        try {
-          if (fs.existsSync(testFilePath)) fs.unlinkSync(testFilePath);
-          if (fs.existsSync(proxyFilePath)) fs.unlinkSync(proxyFilePath);
-          if (fs.existsSync(adapterFilePath)) fs.unlinkSync(adapterFilePath);
-          if (fs.existsSync(tempDir)) fs.rmdirSync(tempDir);
-        } catch (error) {
-          // Ignore cleanup errors
-        }
+        // Cleanup - inline per test
+        fs.rmSync(tempDir, { recursive: true, force: true });
       }
     };
 
@@ -112,13 +103,13 @@ export const adapterProxy = () => {
       });
 
       // Verify jest.mock was hoisted to the top
-      expect(output).toMatch(/jest\.mock\(['"]fs['"]\)/);
+      expect(output).toMatch(/jest\.mock\(['"]fs['"]\)/u);
 
       // Verify the comment indicating auto-hoisting
-      expect(output).toMatch(/Auto-hoisted from.*test\.proxy\.ts/);
+      expect(output).toMatch(/Auto-hoisted from.*test\.proxy\.ts/u);
 
       // Verify the original imports are still there
-      expect(output).toMatch(/import.*adapterProxy.*from.*test\.proxy/);
+      expect(output).toMatch(/import.*adapterProxy.*from.*test\.proxy/u);
     });
 
     it('VALID: {proxy chain: test -> proxy1 -> proxy2 with mocks} => hoists all mocks', () => {
@@ -151,57 +142,44 @@ export const proxy2 = () => {
 `;
 
       const tempDir = path.join(__dirname, '__temp_transformer_test__');
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
-      }
+      fs.mkdirSync(tempDir, { recursive: true });
 
       const testFilePath = path.join(tempDir, 'test.test.ts');
       const proxy1Path = path.join(tempDir, 'proxy1.proxy.ts');
       const proxy2Path = path.join(tempDir, 'proxy2.proxy.ts');
 
-      try {
-        fs.writeFileSync(testFilePath, testFileContent);
-        fs.writeFileSync(proxy1Path, proxy1Content);
-        fs.writeFileSync(proxy2Path, proxy2Content);
+      fs.writeFileSync(testFilePath, testFileContent);
+      fs.writeFileSync(proxy1Path, proxy1Content);
+      fs.writeFileSync(proxy2Path, proxy2Content);
 
-        const program = ts.createProgram([testFilePath], {
-          target: ts.ScriptTarget.ES2020,
-          module: ts.ModuleKind.CommonJS,
-          moduleResolution: ts.ModuleResolutionKind.NodeJs,
-          skipLibCheck: true,
-        });
+      const program = ts.createProgram([testFilePath], {
+        target: ts.ScriptTarget.ES2020,
+        module: ts.ModuleKind.CommonJS,
+        moduleResolution: ts.ModuleResolutionKind.Node10,
+        skipLibCheck: true,
+      });
 
-        const sourceFile = program.getSourceFile(testFilePath);
-        if (!sourceFile) {
-          throw new Error('Could not get source file');
-        }
+      const sourceFile = program.getSourceFile(testFilePath)!;
 
-        const transformerFactory = proxyMockTransformer(program, { baseDir: tempDir });
-        const result = ts.transform(sourceFile, [transformerFactory]);
-        const transformedSourceFile = result.transformed[0] as ts.SourceFile;
+      const transformerFactory = proxyMockTransformer({ program, options: { baseDir: tempDir } });
+      const result = ts.transform(sourceFile, [transformerFactory]);
+      const transformedSourceFile = result.transformed[0]!;
 
-        const printer = ts.createPrinter();
-        const output = printer.printFile(transformedSourceFile);
+      const printer = ts.createPrinter();
+      const output = printer.printFile(transformedSourceFile);
 
-        result.dispose();
+      result.dispose();
 
-        // Verify both mocks were hoisted
-        expect(output).toMatch(/jest\.mock\(['"]axios['"]\)/);
-        expect(output).toMatch(/jest\.mock\(['"]fs['"]\)/);
+      // Cleanup inline before assertions
+      fs.rmSync(tempDir, { recursive: true, force: true });
 
-        // Verify comments for both
-        expect(output).toMatch(/Auto-hoisted from.*proxy1\.proxy\.ts/);
-        expect(output).toMatch(/Auto-hoisted from.*proxy2\.proxy\.ts/);
-      } finally {
-        try {
-          if (fs.existsSync(testFilePath)) fs.unlinkSync(testFilePath);
-          if (fs.existsSync(proxy1Path)) fs.unlinkSync(proxy1Path);
-          if (fs.existsSync(proxy2Path)) fs.unlinkSync(proxy2Path);
-          if (fs.existsSync(tempDir)) fs.rmdirSync(tempDir);
-        } catch (error) {
-          // Ignore cleanup errors
-        }
-      }
+      // Verify both mocks were hoisted
+      expect(output).toMatch(/jest\.mock\(['"]axios['"]\)/u);
+      expect(output).toMatch(/jest\.mock\(['"]fs['"]\)/u);
+
+      // Verify comments for both
+      expect(output).toMatch(/Auto-hoisted from.*proxy1\.proxy\.ts/u);
+      expect(output).toMatch(/Auto-hoisted from.*proxy2\.proxy\.ts/u);
     });
 
     it('VALID: {non-test file imports proxy} => does not hoist mocks', () => {
@@ -228,7 +206,7 @@ export const adapterProxy = () => {
       });
 
       // Verify jest.mock was NOT hoisted (file doesn't end in .test.ts)
-      expect(output).not.toMatch(/jest\.mock\(['"]fs['"]\)/);
+      expect(output).not.toMatch(/jest\.mock\(['"]fs['"]\)/u);
     });
 
     it('VALID: {proxy without jest.mock} => no changes to test file', () => {
@@ -254,10 +232,10 @@ export const adapterProxy = () => {
       });
 
       // Verify no jest.mock was added
-      expect(output).not.toMatch(/jest\.mock/);
+      expect(output).not.toMatch(/jest\.mock/u);
 
       // Verify the import is still there
-      expect(output).toMatch(/import.*adapterProxy.*from.*test\.proxy/);
+      expect(output).toMatch(/import.*adapterProxy.*from.*test\.proxy/u);
     });
 
     it('VALID: {test file without proxy imports} => no changes', () => {
@@ -290,7 +268,7 @@ export const adapterProxy = () => {
       });
 
       // Verify no jest.mock was added (no proxy import)
-      expect(output).not.toMatch(/jest\.mock/);
+      expect(output).not.toMatch(/jest\.mock/u);
     });
 
     it('EDGE: {circular proxy imports} => handles gracefully without infinite loop', () => {
@@ -325,60 +303,47 @@ export const proxy2 = () => {
 `;
 
       const tempDir = path.join(__dirname, '__temp_transformer_test__');
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
-      }
+      fs.mkdirSync(tempDir, { recursive: true });
 
       const testFilePath = path.join(tempDir, 'test.test.ts');
       const proxy1Path = path.join(tempDir, 'proxy1.proxy.ts');
       const proxy2Path = path.join(tempDir, 'proxy2.proxy.ts');
 
-      try {
-        fs.writeFileSync(testFilePath, testFileContent);
-        fs.writeFileSync(proxy1Path, proxy1Content);
-        fs.writeFileSync(proxy2Path, proxy2Content);
+      fs.writeFileSync(testFilePath, testFileContent);
+      fs.writeFileSync(proxy1Path, proxy1Content);
+      fs.writeFileSync(proxy2Path, proxy2Content);
 
-        const program = ts.createProgram([testFilePath], {
-          target: ts.ScriptTarget.ES2020,
-          module: ts.ModuleKind.CommonJS,
-          moduleResolution: ts.ModuleResolutionKind.NodeJs,
-          skipLibCheck: true,
-        });
+      const program = ts.createProgram([testFilePath], {
+        target: ts.ScriptTarget.ES2020,
+        module: ts.ModuleKind.CommonJS,
+        moduleResolution: ts.ModuleResolutionKind.Node10,
+        skipLibCheck: true,
+      });
 
-        const sourceFile = program.getSourceFile(testFilePath);
-        if (!sourceFile) {
-          throw new Error('Could not get source file');
-        }
+      const sourceFile = program.getSourceFile(testFilePath)!;
 
-        const transformerFactory = proxyMockTransformer(program, { baseDir: tempDir });
-        const result = ts.transform(sourceFile, [transformerFactory]);
-        const transformedSourceFile = result.transformed[0] as ts.SourceFile;
+      const transformerFactory = proxyMockTransformer({ program, options: { baseDir: tempDir } });
+      const result = ts.transform(sourceFile, [transformerFactory]);
+      const transformedSourceFile = result.transformed[0]!;
 
-        const printer = ts.createPrinter();
-        const output = printer.printFile(transformedSourceFile);
+      const printer = ts.createPrinter();
+      const output = printer.printFile(transformedSourceFile);
 
-        result.dispose();
+      result.dispose();
 
-        // Should hoist both mocks without infinite loop
-        expect(output).toMatch(/jest\.mock\(['"]axios['"]\)/);
-        expect(output).toMatch(/jest\.mock\(['"]fs['"]\)/);
+      // Cleanup inline before assertions
+      fs.rmSync(tempDir, { recursive: true, force: true });
 
-        // Should not duplicate mocks (each mock should appear only once)
-        const axiosMocks = output.match(/jest\.mock\(['"]axios['"]\)/g);
-        const fsMocks = output.match(/jest\.mock\(['"]fs['"]\)/g);
+      // Should hoist both mocks without infinite loop
+      expect(output).toMatch(/jest\.mock\(['"]axios['"]\)/u);
+      expect(output).toMatch(/jest\.mock\(['"]fs['"]\)/u);
 
-        expect(axiosMocks).toHaveLength(1);
-        expect(fsMocks).toHaveLength(1);
-      } finally {
-        try {
-          if (fs.existsSync(testFilePath)) fs.unlinkSync(testFilePath);
-          if (fs.existsSync(proxy1Path)) fs.unlinkSync(proxy1Path);
-          if (fs.existsSync(proxy2Path)) fs.unlinkSync(proxy2Path);
-          if (fs.existsSync(tempDir)) fs.rmdirSync(tempDir);
-        } catch (error) {
-          // Ignore cleanup errors
-        }
-      }
+      // Should not duplicate mocks (each mock should appear only once)
+      const axiosMocks = output.match(/jest\.mock\(['"]axios['"]\)/gu);
+      const fsMocks = output.match(/jest\.mock\(['"]fs['"]\)/gu);
+
+      expect(axiosMocks).toHaveLength(1);
+      expect(fsMocks).toHaveLength(1);
     });
 
     it('VALID: {jest.mock with factory function} => hoists both module name and factory', () => {
@@ -409,11 +374,11 @@ export const adapterProxy = () => {
       });
 
       // Verify jest.mock with factory was hoisted
-      expect(output).toMatch(/jest\.mock\(['"]axios['"]/);
+      expect(output).toMatch(/jest\.mock\(['"]axios['"]/u);
 
       // Verify factory function is present (contains get and post)
-      expect(output).toMatch(/get.*jest\.fn/);
-      expect(output).toMatch(/post.*jest\.fn/);
+      expect(output).toMatch(/get.*jest\.fn/u);
+      expect(output).toMatch(/post.*jest\.fn/u);
     });
   });
 });

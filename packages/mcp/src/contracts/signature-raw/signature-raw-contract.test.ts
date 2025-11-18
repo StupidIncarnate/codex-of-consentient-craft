@@ -1,3 +1,4 @@
+import { signatureRawContract as _signatureRawContract } from './signature-raw-contract';
 import { SignatureRawStub } from './signature-raw.stub';
 
 describe('signatureRawContract', () => {

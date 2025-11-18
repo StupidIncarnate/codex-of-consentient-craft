@@ -1,4 +1,5 @@
 import { filePathContract } from './file-path-contract';
+import { FilePathStub as _FilePathStub } from './file-path.stub';
 
 describe('filePathContract', () => {
   describe('valid paths', () => {

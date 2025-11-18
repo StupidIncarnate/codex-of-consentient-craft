@@ -14,22 +14,26 @@ export interface MockProcessBehavior {
 }
 
 class MockChildProcess extends EventEmitter {
-  stdout = new EventEmitter();
-  stderr = new EventEmitter();
-  stdin = {
+  public stdout = new EventEmitter();
+  public stderr = new EventEmitter();
+  public stdin = {
     write: jest.fn(),
     end: jest.fn(),
   };
+  private readonly behavior: MockProcessBehavior;
 
-  constructor(private readonly behavior: MockProcessBehavior) {
+  public constructor(behavior: MockProcessBehavior) {
     super();
+    this.behavior = behavior;
   }
 
-  async simulateProcess() {
+  public async simulateProcess(): Promise<void> {
     const { result = { code: 0, stdout: '', stderr: '' }, delay = 0 } = this.behavior;
 
     if (delay > 0) {
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, delay);
+      });
     }
 
     if (result.stdout) {
@@ -45,7 +49,7 @@ class MockChildProcess extends EventEmitter {
 }
 
 export const ChildProcessMocker = {
-  mockSpawn: (behavior: MockProcessBehavior) => {
+  mockSpawn: (behavior: MockProcessBehavior): { restore: () => void } => {
     // Reset modules to ensure fresh imports
     jest.resetModules();
 

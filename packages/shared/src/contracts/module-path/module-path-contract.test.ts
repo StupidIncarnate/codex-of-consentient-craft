@@ -1,3 +1,4 @@
+import { modulePathContract as _modulePathContract } from './module-path-contract';
 import { ModulePathStub } from './module-path.stub';
 
 describe('modulePathContract', () => {

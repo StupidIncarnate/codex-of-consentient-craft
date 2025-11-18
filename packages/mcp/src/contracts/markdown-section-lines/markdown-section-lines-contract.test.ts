@@ -1,3 +1,4 @@
+import { markdownSectionLinesContract as _markdownSectionLinesContract } from './markdown-section-lines-contract';
 import { MarkdownSectionLinesStub } from './markdown-section-lines.stub';
 
 describe('markdownSectionLinesContract', () => {

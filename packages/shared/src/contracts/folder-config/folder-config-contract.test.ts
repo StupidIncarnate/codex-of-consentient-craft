@@ -1,3 +1,4 @@
+import { folderConfigContract as _folderConfigContract } from './folder-config-contract';
 import { FolderConfigStub } from './folder-config.stub';
 
 describe('folderConfigContract', () => {

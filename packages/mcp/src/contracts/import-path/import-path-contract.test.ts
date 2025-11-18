@@ -1,3 +1,4 @@
+import { importPathContract as _importPathContract } from './import-path-contract';
 import { ImportPathStub } from './import-path.stub';
 
 describe('importPathContract', () => {

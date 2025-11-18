@@ -5,7 +5,7 @@
  *
  * USAGE:
  * await StartPrimitiveDuplicateDetection();
- * // Or with CLI args: node script.js --pattern="**/*.ts" --threshold=3 --min-length=3
+ * // Or with CLI args: node script.js --pattern="**\/*.ts" --threshold=3 --min-length=3
  * // Returns: void (outputs duplicate literal report to stdout)
  */
 import { duplicateDetectionDetectBroker } from '../brokers/duplicate-detection/detect/duplicate-detection-detect-broker';

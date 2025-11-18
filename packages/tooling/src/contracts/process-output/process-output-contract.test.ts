@@ -1,3 +1,4 @@
+import { processOutputContract as _processOutputContract } from './process-output-contract';
 import { ProcessOutputStub } from './process-output.stub';
 
 describe('processOutputContract', () => {

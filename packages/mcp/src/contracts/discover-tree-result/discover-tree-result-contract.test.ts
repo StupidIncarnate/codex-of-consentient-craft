@@ -1,3 +1,4 @@
+import { discoverTreeResultContract as _discoverTreeResultContract } from './discover-tree-result-contract';
 import { DiscoverTreeResultStub } from './discover-tree-result.stub';
 import { TreeOutputStub } from '../tree-output/tree-output.stub';
 import { ResultCountStub } from '../result-count/result-count.stub';

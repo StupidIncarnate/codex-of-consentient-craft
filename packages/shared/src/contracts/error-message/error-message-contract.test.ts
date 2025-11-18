@@ -1,3 +1,4 @@
+import { errorMessageContract as _errorMessageContract } from './error-message-contract';
 import { ErrorMessageStub } from './error-message.stub';
 
 describe('errorMessageContract', () => {

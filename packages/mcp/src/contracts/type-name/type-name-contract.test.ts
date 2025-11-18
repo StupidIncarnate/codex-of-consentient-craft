@@ -1,3 +1,4 @@
+import { typeNameContract as _typeNameContract } from './type-name-contract';
 import { TypeNameStub } from './type-name.stub';
 
 describe('typeNameContract', () => {

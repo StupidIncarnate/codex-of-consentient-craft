@@ -1,3 +1,4 @@
+import { literalOccurrenceContract as _literalOccurrenceContract } from './literal-occurrence-contract';
 import { LiteralOccurrenceStub } from './literal-occurrence.stub';
 import { AbsoluteFilePathStub } from '../absolute-file-path/absolute-file-path.stub';
 

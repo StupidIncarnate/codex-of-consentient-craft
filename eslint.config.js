@@ -40,7 +40,6 @@ module.exports = [
       '.git/**',
       'v1/**',
       '**/test/**',
-      'packages/testing/**',
       '**/*.d.ts',
       '*.md',
       '**/*.md',
@@ -49,7 +48,7 @@ module.exports = [
   // Configuration for TypeScript files
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js'],
-    ignores: ['eslint.config.js', '**/jest.config.js', 'jest.config.base.js', '**/configs/**/*.js'],
+    ignores: ['eslint.config.js', '**/jest.config.js', 'jest.config.base.js', '**/jest.setup.js', '**/configs/**/*.js'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -78,7 +77,7 @@ module.exports = [
   ...questmaestroConfigs.fileOverrides,
   // Test files can be more relaxed
   {
-    files: ['**/*.test.ts', '**/tests/**/*.ts'],
+    files: ['**/*.test.ts', '**/*.test.js', '**/tests/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {

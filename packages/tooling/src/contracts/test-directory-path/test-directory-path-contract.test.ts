@@ -1,3 +1,4 @@
+import { testDirectoryPathContract as _testDirectoryPathContract } from './test-directory-path-contract';
 import { TestDirectoryPathStub } from './test-directory-path.stub';
 
 describe('testDirectoryPathContract', () => {

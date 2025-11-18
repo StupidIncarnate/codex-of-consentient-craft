@@ -1,3 +1,4 @@
+import { toolCallContentContract as _toolCallContentContract } from './tool-call-content-contract';
 import { ToolCallContentStub } from './tool-call-content.stub';
 
 describe('toolCallContentContract', () => {

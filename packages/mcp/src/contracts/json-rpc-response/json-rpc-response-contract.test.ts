@@ -1,3 +1,4 @@
+import { jsonRpcResponseContract as _jsonRpcResponseContract } from './json-rpc-response-contract';
 import { JsonRpcResponseStub } from './json-rpc-response.stub';
 
 describe('jsonRpcResponseContract', () => {

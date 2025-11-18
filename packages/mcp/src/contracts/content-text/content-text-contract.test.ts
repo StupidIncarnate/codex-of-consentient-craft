@@ -1,3 +1,4 @@
+import { contentTextContract as _contentTextContract } from './content-text-contract';
 import { ContentTextStub } from './content-text.stub';
 
 describe('contentTextContract', () => {

@@ -39,8 +39,8 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
         schema: [],
       },
     }),
-    create: (context: unknown) => {
-      const ctx = context as EslintContext;
+    create: (context: EslintContext) => {
+      const ctx = context;
       // Reset state for each file
       importedNames.clear();
 

@@ -2,7 +2,7 @@
  * PURPOSE: Defines a branded string type for glob patterns with validation.
  *
  * USAGE:
- * const pattern = globPatternContract.parse('**/*.ts');
+ * const pattern = globPatternContract.parse('**\/*.ts');
  * // Returns: GlobPattern (branded string)
  */
 import { z } from 'zod';

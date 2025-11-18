@@ -1,3 +1,4 @@
+import { parameterNameContract as _parameterNameContract } from './parameter-name-contract';
 import { ParameterNameStub } from './parameter-name.stub';
 
 describe('parameterNameContract', () => {

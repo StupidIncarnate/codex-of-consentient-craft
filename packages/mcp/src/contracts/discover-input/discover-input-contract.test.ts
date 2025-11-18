@@ -1,3 +1,4 @@
+import { discoverInputContract as _discoverInputContract } from './discover-input-contract';
 import { DiscoverInputStub } from './discover-input.stub';
 
 describe('discoverInputContract', () => {

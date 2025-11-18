@@ -1,3 +1,4 @@
+import { treeItemContract as _treeItemContract } from './tree-item-contract';
 import { TreeItemStub } from './tree-item.stub';
 
 describe('treeItemContract', () => {

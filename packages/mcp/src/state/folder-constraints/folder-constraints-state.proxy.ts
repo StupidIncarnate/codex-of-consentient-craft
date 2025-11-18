@@ -10,10 +10,8 @@ import { folderConstraintsState } from './folder-constraints-state';
 
 export const folderConstraintsStateProxy = (): {
   setupClear: () => void;
-} => {
-  return {
-    setupClear: (): void => {
-      folderConstraintsState.clear();
-    },
-  };
-};
+} => ({
+  setupClear: (): void => {
+    folderConstraintsState.clear();
+  },
+});

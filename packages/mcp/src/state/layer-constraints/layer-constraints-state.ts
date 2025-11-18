@@ -8,16 +8,16 @@
  */
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
-let layerConstraintsContent: ContentText | undefined;
-
 export const layerConstraintsState = {
+  content: undefined as ContentText | undefined,
+
   set: ({ content }: { content: ContentText }): void => {
-    layerConstraintsContent = content;
+    layerConstraintsState.content = content;
   },
 
-  get: (): ContentText | undefined => layerConstraintsContent,
+  get: (): ContentText | undefined => layerConstraintsState.content,
 
   clear: (): void => {
-    layerConstraintsContent = undefined;
+    layerConstraintsState.content = undefined;
   },
 } as const;

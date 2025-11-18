@@ -1,3 +1,4 @@
+import { sourceCodeContract as _sourceCodeContract } from './source-code-contract';
 import { SourceCodeStub } from './source-code.stub';
 
 describe('sourceCodeContract', () => {

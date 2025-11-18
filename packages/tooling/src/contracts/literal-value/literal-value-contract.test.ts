@@ -1,3 +1,4 @@
+import { literalValueContract as _literalValueContract } from './literal-value-contract';
 import { LiteralValueStub } from './literal-value.stub';
 
 describe('literalValueContract', () => {

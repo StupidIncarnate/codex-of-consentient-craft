@@ -1,3 +1,4 @@
+import { functionNameContract as _functionNameContract } from './function-name-contract';
 import { FunctionNameStub } from './function-name.stub';
 
 describe('functionNameContract', () => {

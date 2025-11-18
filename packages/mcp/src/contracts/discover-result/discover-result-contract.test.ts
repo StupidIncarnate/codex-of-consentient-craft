@@ -1,3 +1,4 @@
+import { discoverResultContract as _discoverResultContract } from './discover-result-contract';
 import { DiscoverResultStub } from './discover-result.stub';
 
 describe('discoverResultContract', () => {

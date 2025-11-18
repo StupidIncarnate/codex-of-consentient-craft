@@ -14,26 +14,46 @@ import type { FolderType } from '@questmaestro/shared/contracts';
 
 export const folderConstraintsInitBroker = async (): Promise<{
   folderConstraints: Map<FolderType, ContentText>;
+  layerConstraints: ContentText;
 }> => {
   const constraintsMap = new Map<FolderType, ContentText>();
   const constraintsDir = pathResolveAdapter({
     paths: [__dirname, '../../../statics/folder-constraints'],
   });
 
-  // Load each folder-specific constraint file
-  for (const [folderType, filename] of Object.entries(folderConstraintsStatics)) {
-    try {
-      const filepath = pathResolveAdapter({ paths: [constraintsDir, filename] });
-      const content = await fsReadFileAdapter({ filepath });
-      const validated = contentTextContract.parse(`\n${content}`);
+  // Load each folder-specific constraint file using Promise.all
+  const entries = Object.entries(folderConstraintsStatics);
+  const results = await Promise.all(
+    entries.map(async ([folderType, filename]) => {
+      try {
+        const filepath = pathResolveAdapter({ paths: [constraintsDir, filename] });
+        const content = await fsReadFileAdapter({ filepath });
+        const validated = contentTextContract.parse(`\n${content}`);
+        return { folderType: folderType as FolderType, content: validated, error: null };
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return { folderType: folderType as FolderType, content: null, error: errorMessage };
+      }
+    }),
+  );
 
-      constraintsMap.set(folderType as FolderType, validated);
-    } catch (error) {
-      // If file doesn't exist, skip (graceful degradation)
-      // Log error but don't fail startup
-      process.stderr.write(`Warning: Could not load constraint file for ${folderType}: ${error}\n`);
+  // Process results
+  for (const result of results) {
+    if (result.content) {
+      constraintsMap.set(result.folderType, result.content);
+    } else {
+      process.stderr.write(
+        `Warning: Could not load constraint file for ${result.folderType}: ${result.error}\n`,
+      );
     }
   }
 
-  return { folderConstraints: constraintsMap };
+  // Load layer constraints file
+  const layerConstraintsPath = pathResolveAdapter({
+    paths: [constraintsDir, 'layer-constraints.md'],
+  });
+  const layerContent = await fsReadFileAdapter({ filepath: layerConstraintsPath });
+  const layerConstraints = contentTextContract.parse(`\n${layerContent}`);
+
+  return { folderConstraints: constraintsMap, layerConstraints };
 };

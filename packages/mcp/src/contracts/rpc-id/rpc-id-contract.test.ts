@@ -1,3 +1,4 @@
+import { rpcIdContract as _rpcIdContract } from './rpc-id-contract';
 import { RpcIdStub } from './rpc-id.stub';
 
 describe('rpcIdContract', () => {

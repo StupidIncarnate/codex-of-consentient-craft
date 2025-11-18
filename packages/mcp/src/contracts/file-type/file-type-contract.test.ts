@@ -1,3 +1,4 @@
+import { fileTypeContract as _fileTypeContract } from './file-type-contract';
 import { FileTypeStub } from './file-type.stub';
 
 describe('fileTypeContract', () => {

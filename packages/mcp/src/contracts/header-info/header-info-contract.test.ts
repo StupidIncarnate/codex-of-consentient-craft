@@ -1,3 +1,4 @@
+import { headerInfoContract as _headerInfoContract } from './header-info-contract';
 import { HeaderInfoStub } from './header-info.stub';
 import { LineIndexStub } from '../line-index/line-index.stub';
 import { HeaderTextStub } from '../header-text/header-text.stub';

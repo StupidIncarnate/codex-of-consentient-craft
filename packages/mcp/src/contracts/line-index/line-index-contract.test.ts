@@ -1,3 +1,4 @@
+import { lineIndexContract as _lineIndexContract } from './line-index-contract';
 import { LineIndexStub } from './line-index.stub';
 
 describe('lineIndexContract', () => {

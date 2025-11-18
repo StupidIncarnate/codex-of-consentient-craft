@@ -47,7 +47,12 @@
       "Bash(claude config:*)",
       "Bash(npx tsc:*)",
       "Bash(npx ts-node:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "mcp__questmaestro__get-architecture",
+      "mcp__questmaestro__get-syntax-rules",
+      "mcp__questmaestro__get-folder-detail",
+      "mcp__questmaestro__get-testing-patterns",
+      "mcp__questmaestro__discover"
     ],
     "deny": ["Bash(cat:*)", "Bash(sed:*)"]
   }

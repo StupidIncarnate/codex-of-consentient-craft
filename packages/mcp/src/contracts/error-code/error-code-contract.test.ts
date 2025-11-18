@@ -1,3 +1,4 @@
+import { errorCodeContract as _errorCodeContract } from './error-code-contract';
 import { ErrorCodeStub } from './error-code.stub';
 
 describe('errorCodeContract', () => {

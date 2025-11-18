@@ -1,3 +1,4 @@
+import { fileMetadataContract as _fileMetadataContract } from './file-metadata-contract';
 import { FileMetadataStub } from './file-metadata.stub';
 
 describe('fileMetadataContract', () => {

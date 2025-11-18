@@ -1,3 +1,4 @@
+import { duplicateLiteralReportContract as _duplicateLiteralReportContract } from './duplicate-literal-report-contract';
 import { DuplicateLiteralReportStub } from './duplicate-literal-report.stub';
 import { LiteralValueStub } from '../literal-value/literal-value.stub';
 import { LiteralTypeStub } from '../literal-type/literal-type.stub';

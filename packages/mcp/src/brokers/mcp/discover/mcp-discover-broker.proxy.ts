@@ -8,6 +8,7 @@
  */
 
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
+import { standardsParserParseBrokerProxy } from '../../standards-parser/parse/standards-parser-parse-broker.proxy';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
@@ -24,6 +25,7 @@ export const mcpDiscoverBrokerProxy = (): {
   }) => void;
 } => {
   const fileScannerProxy = fileScannerBrokerProxy();
+  standardsParserParseBrokerProxy();
 
   return {
     setupFileDiscovery: ({

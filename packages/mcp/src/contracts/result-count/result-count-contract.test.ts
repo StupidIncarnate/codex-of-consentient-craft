@@ -1,3 +1,4 @@
+import { resultCountContract as _resultCountContract } from './result-count-contract';
 import { ResultCountStub } from './result-count.stub';
 
 describe('resultCountContract', () => {

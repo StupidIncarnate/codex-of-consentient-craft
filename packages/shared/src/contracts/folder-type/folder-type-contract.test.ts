@@ -1,3 +1,4 @@
+import { folderTypeContract as _folderTypeContract } from './folder-type-contract';
 import { FolderTypeStub } from './folder-type.stub';
 
 describe('FolderTypeStub', () => {

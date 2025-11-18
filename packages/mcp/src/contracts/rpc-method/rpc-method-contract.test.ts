@@ -1,3 +1,4 @@
+import { rpcMethodContract as _rpcMethodContract } from './rpc-method-contract';
 import { RpcMethodStub } from './rpc-method.stub';
 
 describe('rpcMethodContract', () => {

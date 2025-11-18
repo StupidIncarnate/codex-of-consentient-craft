@@ -1,3 +1,4 @@
+import { exitCodeContract as _exitCodeContract } from './exit-code-contract';
 import { ExitCodeStub } from './exit-code.stub';
 
 describe('exitCodeContract', () => {

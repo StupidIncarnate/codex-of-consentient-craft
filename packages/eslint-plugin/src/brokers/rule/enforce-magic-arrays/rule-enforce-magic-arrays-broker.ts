@@ -27,8 +27,8 @@ export const ruleEnforceMagicArraysBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
+  create: (context: EslintContext) => {
+    const ctx = context;
     const filename = ctx.getFilename?.() ?? undefined;
 
     // Skip files that are allowed to have inline arrays

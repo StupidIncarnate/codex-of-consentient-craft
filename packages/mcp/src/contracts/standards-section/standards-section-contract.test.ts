@@ -1,3 +1,4 @@
+import { standardsSectionContract as _standardsSectionContract } from './standards-section-contract';
 import { StandardsSectionStub } from './standards-section.stub';
 
 describe('standardsSectionContract', () => {

@@ -212,7 +212,8 @@ export const UserCreateResponder = async ({req, res}: {
 **NO business logic in responders!**`;
 
   // Build import rules section
-  const importRules = `**Cross-Folder Import Rules:**
+  const importRules =
+    `**Cross-Folder Import Rules:**
 
 Only **entry files** can be imported across domain folders.
 
@@ -230,13 +231,18 @@ Only **entry files** can be imported across domain folders.
 
 \`\`\`typescript
 // ✅ CORRECT - Importing entry file (name matches folders)
-import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker';
-import {axiosGetAdapter} from '../../../adapters/axios/get/axios-get-adapter';
+import {userFetchBroker} ` +
+    `from '../../brokers/user/fetch/user-fetch-broker';
+import {axiosGetAdapter} ` +
+    `from '../../../adapters/axios/get/axios-get-adapter';
 
 // ❌ WRONG - Importing non-entry files (names have extra parts)
-import {validateHelper} from '../../brokers/user/fetch/validate-helper';
-import {validateLayerBroker} from '../../brokers/user/fetch/validate-layer-broker';
-import {avatarLayerWidget} from '../user-card/avatar-layer-widget';
+import {validateHelper} ` +
+    `from '../../brokers/user/fetch/validate-helper';
+import {validateLayerBroker} ` +
+    `from '../../brokers/user/fetch/validate-layer-broker';
+import {avatarLayerWidget} ` +
+    `from '../user-card/avatar-layer-widget';
 \`\`\`
 
 **Same-folder imports:** Files within same domain folder can import each other freely (including helpers and layers).
@@ -249,7 +255,8 @@ import {avatarLayerWidget} from '../user-card/avatar-layer-widget';
     .map(([name]) => `\`${name}/\``)
     .join(', ');
 
-  const layerFiles = `**Purpose:** Decompose complex files (>300 lines) into focused, testable layers while maintaining domain context.
+  const layerFiles =
+    `**Purpose:** Decompose complex files (>300 lines) into focused, testable layers while maintaining domain context.
 
 **Naming:** \`{descriptive-name}-layer-{folder-suffix}.{ext}\`
 
@@ -294,20 +301,25 @@ brokers/user/fetch/
 \`\`\`typescript
 // ✅ CORRECT - Same folder imports
 // In: brokers/user/fetch/user-fetch-broker.ts
-import {validateInputLayerBroker} from './validate-input-layer-broker';
-import {formatResponseLayerBroker} from './format-response-layer-broker';
+import {validateInputLayerBroker} ` +
+    `from './validate-input-layer-broker';
+import {formatResponseLayerBroker} ` +
+    `from './format-response-layer-broker';
 
 // ✅ CORRECT - Layer importing layer (same folder)
 // In: brokers/user/fetch/validate-input-layer-broker.ts
-import {formatResponseLayerBroker} from './format-response-layer-broker';
+import {formatResponseLayerBroker} ` +
+    `from './format-response-layer-broker';
 
 // ❌ WRONG - Cross-domain layer import
 // In: brokers/auth/login/auth-login-broker.ts
-import {validateInputLayerBroker} from '../../user/fetch/validate-input-layer-broker';
+import {validateInputLayerBroker} ` +
+    `from '../../user/fetch/validate-input-layer-broker';
 
 // ❌ WRONG - Different action layer import (same domain)
 // In: brokers/user/update/user-update-broker.ts
-import {validateInputLayerBroker} from '../fetch/validate-input-layer-broker';
+import {validateInputLayerBroker} ` +
+    `from '../fetch/validate-input-layer-broker';
 \`\`\`
 
 **When to create layer:**

@@ -1,3 +1,4 @@
+import { folderNameContract as _folderNameContract } from './folder-name-contract';
 import { FolderNameStub } from './folder-name.stub';
 
 describe('folderNameContract', () => {

@@ -1,3 +1,4 @@
+import { extractedMetadataContract as _extractedMetadataContract } from './extracted-metadata-contract';
 import { ExtractedMetadataStub } from './extracted-metadata.stub';
 
 describe('extractedMetadataContract', () => {

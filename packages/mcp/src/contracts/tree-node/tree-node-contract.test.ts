@@ -1,3 +1,4 @@
+import { treeNodeContract as _treeNodeContract } from './tree-node-contract';
 import { TreeNodeStub } from './tree-node.stub';
 import { FolderNameStub } from '../folder-name/folder-name.stub';
 

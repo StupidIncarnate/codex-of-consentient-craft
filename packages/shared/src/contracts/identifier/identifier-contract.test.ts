@@ -1,3 +1,4 @@
+import { identifierContract as _identifierContract } from './identifier-contract';
 import { IdentifierStub } from './identifier.stub';
 
 describe('identifierContract', () => {

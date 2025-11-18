@@ -1,3 +1,4 @@
+import { treeOutputContract as _treeOutputContract } from './tree-output-contract';
 import { TreeOutputStub } from './tree-output.stub';
 
 describe('treeOutputContract', () => {

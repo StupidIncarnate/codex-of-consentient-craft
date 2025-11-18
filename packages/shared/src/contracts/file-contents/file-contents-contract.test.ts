@@ -1,4 +1,5 @@
 import { fileContentsContract } from './file-contents-contract';
+import { FileContentsStub as _FileContentsStub } from './file-contents.stub';
 
 describe('fileContentsContract', () => {
   describe('valid content', () => {

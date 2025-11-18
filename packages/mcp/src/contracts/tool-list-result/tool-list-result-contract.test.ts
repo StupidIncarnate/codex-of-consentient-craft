@@ -1,3 +1,4 @@
+import { toolListResultContract as _toolListResultContract } from './tool-list-result-contract';
 import { ToolListResultStub } from './tool-list-result.stub';
 
 describe('toolListResultContract', () => {

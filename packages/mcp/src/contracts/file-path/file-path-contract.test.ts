@@ -1,3 +1,4 @@
+import { filePathContract as _filePathContract } from './file-path-contract';
 import { FilePathStub } from './file-path.stub';
 
 describe('filePathContract', () => {

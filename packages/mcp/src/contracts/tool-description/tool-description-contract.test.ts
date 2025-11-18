@@ -1,3 +1,4 @@
+import { toolDescriptionContract as _toolDescriptionContract } from './tool-description-contract';
 import { ToolDescriptionStub } from './tool-description.stub';
 
 describe('toolDescriptionContract', () => {

@@ -18,6 +18,7 @@ import { formatPerformanceSectionLayerBrokerProxy } from './format-performance-s
 import { formatPromiseHandlingSectionLayerBrokerProxy } from './format-promise-handling-section-layer-broker.proxy';
 import { formatSingleResponsibilitySectionLayerBrokerProxy } from './format-single-responsibility-section-layer-broker.proxy';
 import { formatSummaryChecklistSectionLayerBrokerProxy } from './format-summary-checklist-section-layer-broker.proxy';
+import { formatTestingAntiPatternsSectionLayerBrokerProxy } from './format-testing-anti-patterns-section-layer-broker.proxy';
 import { formatTypeExportsSectionLayerBrokerProxy } from './format-type-exports-section-layer-broker.proxy';
 import { formatTypeSafetySectionLayerBrokerProxy } from './format-type-safety-section-layer-broker.proxy';
 
@@ -35,6 +36,7 @@ export const architectureSyntaxRulesBrokerProxy = (): Record<PropertyKey, never>
   formatPromiseHandlingSectionLayerBrokerProxy();
   formatSingleResponsibilitySectionLayerBrokerProxy();
   formatSummaryChecklistSectionLayerBrokerProxy();
+  formatTestingAntiPatternsSectionLayerBrokerProxy();
   formatTypeExportsSectionLayerBrokerProxy();
   formatTypeSafetySectionLayerBrokerProxy();
 

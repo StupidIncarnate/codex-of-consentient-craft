@@ -8,7 +8,7 @@ describe('jest.setup runtime enforcement', () => {
   describe('test.todo', () => {
     it('VALID: attempting test.todo => throws error', () => {
       expect(() => {
-        test.todo('this should throw');
+        global.test.todo('this should throw');
       }).toThrow(/test\.todo\(\) is forbidden/u);
     });
   });
@@ -16,7 +16,7 @@ describe('jest.setup runtime enforcement', () => {
   describe('it.todo', () => {
     it('VALID: attempting it.todo => throws error', () => {
       expect(() => {
-        it.todo('this should throw');
+        global.it.todo('this should throw');
       }).toThrow(/it\.todo\(\) is forbidden/u);
     });
   });
@@ -24,7 +24,7 @@ describe('jest.setup runtime enforcement', () => {
   describe('describe.skip', () => {
     it('VALID: attempting describe.skip => throws error', () => {
       expect(() => {
-        describe.skip('this should throw', () => {});
+        global.describe.skip('this should throw', () => {});
       }).toThrow(/describe\.skip\(\) is forbidden/u);
     });
   });
@@ -32,7 +32,7 @@ describe('jest.setup runtime enforcement', () => {
   describe('test.skip', () => {
     it('VALID: attempting test.skip => throws error', () => {
       expect(() => {
-        test.skip('this should throw', () => {});
+        global.test.skip('this should throw', () => {});
       }).toThrow(/test\.skip\(\) is forbidden/u);
     });
   });
@@ -40,7 +40,7 @@ describe('jest.setup runtime enforcement', () => {
   describe('it.skip', () => {
     it('VALID: attempting it.skip => throws error', () => {
       expect(() => {
-        it.skip('this should throw', () => {});
+        global.it.skip('this should throw', () => {});
       }).toThrow(/it\.skip\(\) is forbidden/u);
     });
   });
@@ -50,7 +50,7 @@ describe('jest.setup runtime enforcement', () => {
       expect(true).toBe(true);
     });
 
-    test('VALID: regular test() => works normally', () => {
+    it('VALID: regular test() => works normally', () => {
       expect(true).toBe(true);
     });
 

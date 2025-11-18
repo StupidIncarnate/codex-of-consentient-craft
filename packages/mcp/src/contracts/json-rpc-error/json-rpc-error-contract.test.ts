@@ -1,3 +1,4 @@
+import { jsonRpcErrorContract as _jsonRpcErrorContract } from './json-rpc-error-contract';
 import { JsonRpcErrorStub } from './json-rpc-error.stub';
 
 describe('jsonRpcErrorContract', () => {

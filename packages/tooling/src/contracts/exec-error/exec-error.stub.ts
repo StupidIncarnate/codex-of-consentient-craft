@@ -9,8 +9,6 @@ const errorNameContract = execErrorContract.shape.name;
 export const ExecErrorStub = ({ ...props }: StubArgument<ExecError> = {}): ExecError => {
   const { stack, ...dataProps } = props;
 
-  const error = new Error() as ExecError;
-
   const validated = execErrorContract.parse({
     status: ExitCodeStub({ value: 1 }),
     stdout: Buffer.from(''),
@@ -20,11 +18,12 @@ export const ExecErrorStub = ({ ...props }: StubArgument<ExecError> = {}): ExecE
     ...dataProps,
   });
 
+  const error = new Error(validated.message);
   Object.assign(error, validated);
 
   if (stack) {
     error.stack = stack;
   }
 
-  return error;
+  return error as ExecError;
 };

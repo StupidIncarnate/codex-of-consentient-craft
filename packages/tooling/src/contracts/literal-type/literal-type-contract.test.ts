@@ -1,3 +1,4 @@
+import { literalTypeContract as _literalTypeContract } from './literal-type-contract';
 import { LiteralTypeStub } from './literal-type.stub';
 
 describe('literalTypeContract', () => {

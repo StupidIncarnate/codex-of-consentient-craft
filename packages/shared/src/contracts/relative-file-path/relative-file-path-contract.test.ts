@@ -1,4 +1,5 @@
 import { relativeFilePathContract } from './relative-file-path-contract';
+import { RelativeFilePathStub as _RelativeFilePathStub } from './relative-file-path.stub';
 
 describe('relativeFilePathContract', () => {
   describe('valid relative paths', () => {

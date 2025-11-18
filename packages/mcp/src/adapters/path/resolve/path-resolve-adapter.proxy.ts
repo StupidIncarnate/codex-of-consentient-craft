@@ -5,6 +5,4 @@
  * const proxy = pathResolveAdapterProxy();
  * // No mocking needed - adapter is deterministic
  */
-export const pathResolveAdapterProxy = (): object => {
-  return {};
-};
+export const pathResolveAdapterProxy = (): object => ({});

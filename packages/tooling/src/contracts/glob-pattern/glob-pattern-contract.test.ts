@@ -1,3 +1,4 @@
+import { globPatternContract as _globPatternContract } from './glob-pattern-contract';
 import { GlobPatternStub } from './glob-pattern.stub';
 
 describe('globPatternContract', () => {

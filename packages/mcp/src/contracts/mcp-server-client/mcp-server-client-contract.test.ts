@@ -1,3 +1,4 @@
+import { mcpServerClientContract as _mcpServerClientContract } from './mcp-server-client-contract';
 import { McpServerClientStub } from './mcp-server-client.stub';
 import { JsonRpcRequestStub } from '../json-rpc-request/json-rpc-request.stub';
 import { JsonRpcResponseStub } from '../json-rpc-response/json-rpc-response.stub';

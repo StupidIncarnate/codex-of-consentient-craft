@@ -1,3 +1,4 @@
+import { commandResultContract as _commandResultContract } from './command-result-contract';
 import { CommandResultStub } from './command-result.stub';
 import { ExitCodeStub } from '../exit-code/exit-code.stub';
 import { ProcessOutputStub } from '../process-output/process-output.stub';

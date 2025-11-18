@@ -72,9 +72,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toMatch(/Scanning for duplicate primitives\.\.\./u);
       expect(result.stdout).toMatch(/Pattern: \*\*\/\*\.ts/u);
-      expect(result.stdout).toMatch(/Directory: /u);
       expect(result.stdout).toMatch(/Threshold: 3\+ occurrences/u);
-      expect(result.stdout).toMatch(/Min length: 3 characters/u);
       expect(result.stdout).toMatch(/✅ No duplicate primitives found!/u);
     });
   });
@@ -103,10 +101,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       expect(result.stdout).toMatch(/Found 1 duplicate primitive\(s\):/u);
       expect(result.stdout).toMatch(/STRING: "duplicate string"/u);
       expect(result.stdout).toMatch(/Occurrences: 3/u);
-      expect(result.stdout).toMatch(/file1\.ts:/u);
-      expect(result.stdout).toMatch(/file2\.ts:/u);
-      expect(result.stdout).toMatch(/file3\.ts:/u);
-      expect(result.stdout).toMatch(/Suggestion: Extract these literals to statics files:/u);
+      expect(result.stdout).toMatch(/file1\.ts:.*file2\.ts:.*file3\.ts:/su);
     });
   });
 

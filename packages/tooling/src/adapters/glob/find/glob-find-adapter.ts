@@ -2,7 +2,7 @@
  * PURPOSE: Finds files matching a glob pattern, excluding common build/dependency directories.
  *
  * USAGE:
- * const files = await globFindAdapter({ pattern: '**/*.ts', cwd: '/path/to/dir' });
+ * const files = await globFindAdapter({ pattern: '**\/*.ts', cwd: '/path/to/dir' });
  * // Returns: readonly AbsoluteFilePath[] (array of absolute file paths)
  */
 import { glob } from 'glob';

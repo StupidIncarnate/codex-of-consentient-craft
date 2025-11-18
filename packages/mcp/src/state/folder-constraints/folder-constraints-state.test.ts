@@ -3,11 +3,9 @@ import { ContentTextStub } from '../../contracts/content-text/content-text.stub'
 import { FolderTypeStub } from '@questmaestro/shared/contracts';
 
 describe('folderConstraintsState', () => {
-  beforeEach(() => {
-    folderConstraintsState.clear();
-  });
-
   it('VALID: {folderType, content} => stores and retrieves content', () => {
+    folderConstraintsState.clear();
+
     const folderType = FolderTypeStub({ value: 'brokers' });
     const content = ContentTextStub({ value: '**COMPLEXITY:**\n- Keep files under 300 lines' });
 
@@ -18,6 +16,8 @@ describe('folderConstraintsState', () => {
   });
 
   it('VALID: {unknown folderType} => returns undefined', () => {
+    folderConstraintsState.clear();
+
     const folderType = FolderTypeStub({ value: 'brokers' });
 
     const retrieved = folderConstraintsState.get({ folderType });
@@ -26,6 +26,8 @@ describe('folderConstraintsState', () => {
   });
 
   it('VALID: clear() => removes all stored constraints', () => {
+    folderConstraintsState.clear();
+
     const folderType1 = FolderTypeStub({ value: 'brokers' });
     const folderType2 = FolderTypeStub({ value: 'guards' });
     const content1 = ContentTextStub({ value: 'constraint 1' });
@@ -41,6 +43,8 @@ describe('folderConstraintsState', () => {
   });
 
   it('VALID: getAll() => returns Map with all stored constraints', () => {
+    folderConstraintsState.clear();
+
     const folderType1 = FolderTypeStub({ value: 'brokers' });
     const folderType2 = FolderTypeStub({ value: 'guards' });
     const content1 = ContentTextStub({ value: 'constraint 1' });
@@ -57,6 +61,8 @@ describe('folderConstraintsState', () => {
   });
 
   it('VALID: set() => overwrites existing content for same folderType', () => {
+    folderConstraintsState.clear();
+
     const folderType = FolderTypeStub({ value: 'brokers' });
     const content1 = ContentTextStub({ value: 'old content' });
     const content2 = ContentTextStub({ value: 'new content' });

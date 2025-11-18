@@ -1,3 +1,4 @@
+import { occurrenceThresholdContract as _occurrenceThresholdContract } from './occurrence-threshold-contract';
 import { OccurrenceThresholdStub } from './occurrence-threshold.stub';
 
 describe('occurrenceThresholdContract', () => {

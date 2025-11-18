@@ -72,9 +72,15 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
 
         // Get folder type and config
         const folderType = projectFolderTypeFromFilePathTransformer({ filename });
-        const folderConfig = folderType
-          ? folderConfigStatics[folderType as keyof typeof folderConfigStatics]
+        const folderConfigValue: unknown = folderType
+          ? Reflect.get(folderConfigStatics, folderType)
           : undefined;
+        const folderConfig =
+          folderConfigValue !== null &&
+          folderConfigValue !== undefined &&
+          typeof folderConfigValue === 'object'
+            ? folderConfigValue
+            : undefined;
 
         // Determine if this is a contract file
         const isContract = isFileInFolderTypeGuard({
@@ -102,11 +108,13 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
         // Check for test file (skip statics)
         if (!isStatics && !hasTestFile) {
           const primaryTestFileName = testFilePaths[0] ?? filename;
+          const allowsLayerFiles =
+            folderConfig && 'allowsLayerFiles' in folderConfig
+              ? Boolean(Reflect.get(folderConfig, 'allowsLayerFiles'))
+              : false;
           ctx.report({
             node,
-            messageId: folderConfig?.allowsLayerFiles
-              ? 'missingTestFileWithLayer'
-              : 'missingTestFile',
+            messageId: allowsLayerFiles ? 'missingTestFileWithLayer' : 'missingTestFile',
             data: {
               testFileName: primaryTestFileName.split('/').pop() ?? primaryTestFileName,
             },
@@ -143,7 +151,11 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
         // Note: folderType and folderConfig already declared above
 
         // Default to not requiring proxy if config doesn't exist or doesn't specify
-        const needsProxyFile = folderConfig?.requireProxy === true;
+        const requireProxyValue: unknown =
+          folderConfig && 'requireProxy' in folderConfig
+            ? Reflect.get(folderConfig, 'requireProxy')
+            : undefined;
+        const needsProxyFile = requireProxyValue === true;
 
         if (needsProxyFile) {
           // Derive expected proxy file name
@@ -192,9 +204,13 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
               }
             }
 
+            const allowsLayerFilesForProxy =
+              folderConfig && 'allowsLayerFiles' in folderConfig
+                ? Boolean(Reflect.get(folderConfig, 'allowsLayerFiles'))
+                : false;
             ctx.report({
               node,
-              messageId: folderConfig.allowsLayerFiles
+              messageId: allowsLayerFilesForProxy
                 ? 'missingProxyFileWithLayer'
                 : 'missingProxyFile',
               data: {

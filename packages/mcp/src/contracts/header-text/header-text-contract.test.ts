@@ -1,3 +1,4 @@
+import { headerTextContract as _headerTextContract } from './header-text-contract';
 import { HeaderTextStub } from './header-text.stub';
 
 describe('headerTextContract', () => {

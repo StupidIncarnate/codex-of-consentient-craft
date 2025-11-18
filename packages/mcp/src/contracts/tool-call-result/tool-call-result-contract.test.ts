@@ -1,3 +1,4 @@
+import { toolCallResultContract as _toolCallResultContract } from './tool-call-result-contract';
 import { ToolCallResultStub } from './tool-call-result.stub';
 
 describe('toolCallResultContract', () => {

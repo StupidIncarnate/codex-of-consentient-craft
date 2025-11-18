@@ -1,6 +1,3 @@
-import { extractedMetadataContract } from '../../contracts/extracted-metadata/extracted-metadata-contract';
-import type { ExtractedMetadata } from '../../contracts/extracted-metadata/extracted-metadata-contract';
-
 /**
  * PURPOSE: Extracts structured metadata from comment blocks in source files
  *
@@ -10,6 +7,9 @@ import type { ExtractedMetadata } from '../../contracts/extracted-metadata/extra
  * });
  * // Returns: { purpose: 'Test', usage: 'test()', metadata: {} }
  */
+import { extractedMetadataContract } from '../../contracts/extracted-metadata/extracted-metadata-contract';
+import type { ExtractedMetadata } from '../../contracts/extracted-metadata/extracted-metadata-contract';
+
 export const metadataExtractorTransformer = ({
   commentText,
 }: {

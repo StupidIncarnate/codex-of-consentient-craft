@@ -7,7 +7,7 @@ describe('pathResolveAdapter', () => {
 
     const result = pathResolveAdapter({ paths: ['/base', 'file.ts'] });
 
-    expect(result).toStrictEqual('/base/file.ts');
+    expect(result).toBe('/base/file.ts');
   });
 
   it('VALID: {paths: ["/base", "sub", "file.ts"]} => resolves multiple segments', () => {
@@ -15,7 +15,7 @@ describe('pathResolveAdapter', () => {
 
     const result = pathResolveAdapter({ paths: ['/base', 'sub', 'file.ts'] });
 
-    expect(result).toStrictEqual('/base/sub/file.ts');
+    expect(result).toBe('/base/sub/file.ts');
   });
 
   it('VALID: {paths: ["relative/path.ts"]} => resolves to absolute path from cwd', () => {

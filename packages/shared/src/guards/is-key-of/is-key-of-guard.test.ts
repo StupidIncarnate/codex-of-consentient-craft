@@ -1,9 +1,11 @@
 import { isKeyOfGuard } from './is-key-of-guard';
 
+const TestObjectStub = () => ({ foo: 1, bar: 2 }) as const;
+
 describe('isKeyOfGuard', () => {
   describe('valid keys', () => {
     it('VALID: returns true for existing key', () => {
-      const obj = { foo: 1, bar: 2 } as const;
+      const obj = TestObjectStub();
 
       const result = isKeyOfGuard('foo', obj);
 
@@ -11,7 +13,7 @@ describe('isKeyOfGuard', () => {
     });
 
     it('VALID: returns true for another existing key', () => {
-      const obj = { foo: 1, bar: 2 } as const;
+      const obj = TestObjectStub();
 
       const result = isKeyOfGuard('bar', obj);
 
@@ -21,7 +23,7 @@ describe('isKeyOfGuard', () => {
 
   describe('invalid keys', () => {
     it('INVALID: returns false for non-existing key', () => {
-      const obj = { foo: 1, bar: 2 } as const;
+      const obj = TestObjectStub();
 
       const result = isKeyOfGuard('baz', obj);
 
@@ -29,7 +31,7 @@ describe('isKeyOfGuard', () => {
     });
 
     it('INVALID: returns false for empty string', () => {
-      const obj = { foo: 1, bar: 2 } as const;
+      const obj = TestObjectStub();
 
       const result = isKeyOfGuard('', obj);
 

@@ -1,3 +1,4 @@
+import { discoverListItemContract as _discoverListItemContract } from './discover-list-item-contract';
 import { DiscoverListItemStub } from './discover-list-item.stub';
 
 describe('discoverListItemContract', () => {

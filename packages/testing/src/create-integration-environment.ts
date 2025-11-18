@@ -25,24 +25,24 @@ interface ExecResult {
 }
 
 interface PackageJson {
+  [key: string]: unknown;
   name: string;
   version: string;
+  devDependencies?: Record<string, string>;
+  eslintConfig?: unknown;
+  jest?: unknown;
   scripts: {
+    [key: string]: string | undefined;
     test: string;
     lint?: string;
     typecheck: string;
-    [key: string]: string | undefined;
   };
-  eslintConfig?: unknown;
-  jest?: unknown;
-  devDependencies?: Record<string, string>;
 }
 
 export interface QuestmaestroConfig {
+  [key: string]: unknown;
   questFolder: string;
   wardCommands: Record<string, unknown>;
-
-  [key: string]: unknown;
 }
 
 export interface TestProject {
@@ -76,25 +76,29 @@ export interface TestProject {
 // Global tracking of created test environments for automatic cleanup
 const createdEnvironments: TestProject[] = [];
 
-export function getCreatedEnvironments(): readonly TestProject[] {
-  return createdEnvironments;
-}
+const RANDOM_BYTES_LENGTH = 4;
+const JSON_INDENT_SPACES = 2;
 
-export function cleanupAllEnvironments(): void {
+export const getCreatedEnvironments = (): readonly TestProject[] => createdEnvironments;
+
+export const cleanupAllEnvironments = (): void => {
   for (const env of createdEnvironments) {
     env.cleanup();
   }
   createdEnvironments.length = 0;
-}
+};
 
-export function createIntegrationEnvironment(
-  baseName: string,
+export const createIntegrationEnvironment = ({
+  baseName,
+  options,
+}: {
+  baseName: string;
   options?: {
     createPackageJson?: boolean;
     setupEslint?: boolean; // Copy tsconfig/eslint from project for type-aware linting
-  },
-): TestProject {
-  const testId = crypto.randomBytes(4).toString('hex');
+  };
+}): TestProject => {
+  const testId = crypto.randomBytes(RANDOM_BYTES_LENGTH).toString('hex');
   const projectName = `${baseName}-${testId}`;
   // Use /tmp to keep test artifacts out of the repo
   // Most integration tests don't need ESLint to run on test files
@@ -118,7 +122,10 @@ export function createIntegrationEnvironment(
       },
     };
 
-    fs.writeFileSync(path.join(projectPath, 'package.json'), JSON.stringify(packageJson, null, 2));
+    fs.writeFileSync(
+      path.join(projectPath, 'package.json'),
+      JSON.stringify(packageJson, null, JSON_INDENT_SPACES),
+    );
   }
 
   // Setup ESLint support (optional) - creates tsconfig and eslint config
@@ -140,7 +147,10 @@ export function createIntegrationEnvironment(
       include: ['**/*.ts', '**/*.tsx'],
       exclude: ['node_modules'],
     };
-    fs.writeFileSync(path.join(projectPath, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
+    fs.writeFileSync(
+      path.join(projectPath, 'tsconfig.json'),
+      JSON.stringify(tsconfig, null, JSON_INDENT_SPACES),
+    );
 
     // Always create a minimal eslint config that uses the local tsconfig
     // This allows type-aware ESLint rules to work on files in /tmp
@@ -169,14 +179,14 @@ module.exports = [
     projectName,
     rootDir: projectPath,
 
-    installQuestmaestro(): string {
+    installQuestmaestro: (): string => {
       try {
         const result = execSync('npm run install-questmaestro', {
           cwd: projectPath,
           encoding: 'utf-8',
           stdio: 'pipe',
         });
-        return result.toString();
+        return result;
       } catch (error) {
         if (error instanceof Error && 'stdout' in error) {
           const execError = error as Error & { stdout?: Buffer | string };
@@ -186,25 +196,23 @@ module.exports = [
       }
     },
 
-    hasCommand(command: string): boolean {
+    hasCommand: ({ command }: { command: string }): boolean => {
       const packageJsonPath = path.join(projectPath, 'package.json');
       if (!fs.existsSync(packageJsonPath)) {
         return false;
       }
 
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
-      return Boolean(packageJson.scripts?.[command]);
+      return Boolean(packageJson.scripts[command]);
     },
 
-    fileExists(fileName: string): boolean {
-      return fs.existsSync(path.join(projectPath, fileName));
-    },
+    fileExists: ({ fileName }: { fileName: string }): boolean =>
+      fs.existsSync(path.join(projectPath, fileName)),
 
-    readFile(fileName: string): string {
-      return fs.readFileSync(path.join(projectPath, fileName), 'utf-8');
-    },
+    readFile: ({ fileName }: { fileName: string }): string =>
+      fs.readFileSync(path.join(projectPath, fileName), 'utf-8'),
 
-    writeFile(fileName: string, content: string): void {
+    writeFile: ({ fileName, content }: { fileName: string; content: string }): void => {
       const filePath = path.join(projectPath, fileName);
       const dir = path.dirname(filePath);
       if (!fs.existsSync(dir)) {
@@ -213,14 +221,14 @@ module.exports = [
       fs.writeFileSync(filePath, content);
     },
 
-    deleteFile(fileName: string): void {
+    deleteFile: ({ fileName }: { fileName: string }): void => {
       const filePath = path.join(projectPath, fileName);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
     },
 
-    getConfig(): QuestmaestroConfig | null {
+    getConfig: (): QuestmaestroConfig | null => {
       const configPath = path.join(projectPath, '.questmaestro');
       if (!fs.existsSync(configPath)) {
         return null;
@@ -228,13 +236,13 @@ module.exports = [
       return JSON.parse(fs.readFileSync(configPath, 'utf-8')) as QuestmaestroConfig;
     },
 
-    getPackageJson(): PackageJson {
+    getPackageJson: (): PackageJson => {
       const packageJsonPath = path.join(projectPath, 'package.json');
       const content = fs.readFileSync(packageJsonPath, 'utf-8');
       return JSON.parse(content) as PackageJson;
     },
 
-    getQuestFiles(subdir?: string): string[] {
+    getQuestFiles: ({ subdir }: { subdir?: string }): string[] => {
       const questDir = subdir
         ? path.join(projectPath, 'questmaestro', subdir)
         : path.join(projectPath, 'questmaestro');
@@ -252,7 +260,7 @@ module.exports = [
         .map((file) => path.join(basePath, file));
     },
 
-    executeCommand(command: string): ExecResult {
+    executeCommand: ({ command }: { command: string }): ExecResult => {
       try {
         const result = execSync(command, {
           cwd: projectPath,
@@ -260,7 +268,7 @@ module.exports = [
           stdio: 'pipe',
         });
         return {
-          stdout: result.toString(),
+          stdout: result,
           stderr: '',
           exitCode: 0,
         };
@@ -285,7 +293,7 @@ module.exports = [
       }
     },
 
-    cleanup(): void {
+    cleanup: (): void => {
       if (fs.existsSync(projectPath)) {
         fs.rmSync(projectPath, { recursive: true, force: true });
       }
@@ -296,4 +304,4 @@ module.exports = [
   createdEnvironments.push(testProject);
 
   return testProject;
-}
+};

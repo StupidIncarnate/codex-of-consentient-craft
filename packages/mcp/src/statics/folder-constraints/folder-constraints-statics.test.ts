@@ -59,12 +59,14 @@ describe('folderConstraintsStatics', () => {
 
   it('VALID: all filenames end with -constraints.md', () => {
     const filenames = Object.values(folderConstraintsStatics);
-    for (const filename of filenames) {
-      expect(filename).toMatch(/-constraints\.md$/u);
-    }
+    const allMatch = filenames.every((filename) => filename.endsWith('-constraints.md'));
+
+    expect(allMatch).toBe(true);
   });
 
   it('VALID: has 14 folder type mappings', () => {
-    expect(Object.keys(folderConstraintsStatics).length).toBe(14);
+    const keys = Object.keys(folderConstraintsStatics);
+
+    expect(keys).toHaveLength(14);
   });
 });
