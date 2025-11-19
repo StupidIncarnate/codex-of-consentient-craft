@@ -83,7 +83,7 @@ module.exports = [
   ...questmaestroConfigs.fileOverrides,
   // Test files can be more relaxed
   {
-    files: ['**/*.test.ts', '**/*.test.js', '**/tests/**/*.ts'],
+    files: ['**/*.test.ts', '**/tests/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {

@@ -6,7 +6,7 @@
  * // Starts MCP server listening on stdio, registers discover, get-architecture, get-folder-detail, get-syntax-rules, get-testing-patterns tools
  */
 
-import type { FolderType } from '@questmaestro/eslint-plugin/dist/contracts/folder-type/folder-type-contract';
+import type { FolderType } from '@questmaestro/shared/contracts';
 import { Server } from '@modelcontextprotocol/sdk/server';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
 import {

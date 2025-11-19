@@ -58,12 +58,21 @@ const runStartup = ({ args }: { args: readonly string[] }) => {
 describe('StartPrimitiveDuplicateDetection', () => {
   describe('with no duplicates', () => {
     it('VALID: {pattern: "**/*.ts", files: unique strings} => returns exit code 0 with success message', () => {
-      const env = createIntegrationEnvironment('no-duplicates', {
-        createPackageJson: false,
+      const env = createIntegrationEnvironment({
+        baseName: 'no-duplicates',
+        options: {
+          createPackageJson: false,
+        },
       });
 
-      env.writeFile('file1.ts', `export const message1 = 'unique message one';`);
-      env.writeFile('file2.ts', `export const message2 = 'unique message two';`);
+      env.writeFile({
+        fileName: 'file1.ts',
+        content: `export const message1 = 'unique message one';`,
+      });
+      env.writeFile({
+        fileName: 'file2.ts',
+        content: `export const message2 = 'unique message two';`,
+      });
 
       const result = runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
@@ -79,19 +88,22 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with duplicates', () => {
     it('VALID: {pattern: "**/*.ts", files: 3 occurrences of same string} => reports duplicate with locations', () => {
-      const env = createIntegrationEnvironment('basic-duplicates', {
-        createPackageJson: false,
+      const env = createIntegrationEnvironment({
+        baseName: 'basic-duplicates',
+        options: {
+          createPackageJson: false,
+        },
       });
 
-      env.writeFile(
-        'file1.ts',
-        `export const message = 'duplicate string';\nexport const other = 'different';`,
-      );
-      env.writeFile(
-        'file2.ts',
-        `export const msg = 'duplicate string';\nexport const value = 123;`,
-      );
-      env.writeFile('file3.ts', `export const text = 'duplicate string';`);
+      env.writeFile({
+        fileName: 'file1.ts',
+        content: `export const message = 'duplicate string';\nexport const other = 'different';`,
+      });
+      env.writeFile({
+        fileName: 'file2.ts',
+        content: `export const msg = 'duplicate string';\nexport const value = 123;`,
+      });
+      env.writeFile({ fileName: 'file3.ts', content: `export const text = 'duplicate string';` });
 
       const result = runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
@@ -101,18 +113,21 @@ describe('StartPrimitiveDuplicateDetection', () => {
       expect(result.stdout).toMatch(/Found 1 duplicate primitive\(s\):/u);
       expect(result.stdout).toMatch(/STRING: "duplicate string"/u);
       expect(result.stdout).toMatch(/Occurrences: 3/u);
-      expect(result.stdout).toMatch(/file1\.ts:.*file2\.ts:.*file3\.ts:/su);
+      expect(result.stdout).toMatch(/file3\.ts:[\s\S]*file2\.ts:[\s\S]*file1\.ts:/u);
     });
   });
 
   describe('with custom threshold', () => {
     it('VALID: {threshold: 2, files: 2 occurrences} => reports duplicate', () => {
-      const env = createIntegrationEnvironment('threshold-2', {
-        createPackageJson: false,
+      const env = createIntegrationEnvironment({
+        baseName: 'threshold-2',
+        options: {
+          createPackageJson: false,
+        },
       });
 
-      env.writeFile('file1.ts', `export const msg = 'twice only';`);
-      env.writeFile('file2.ts', `export const text = 'twice only';`);
+      env.writeFile({ fileName: 'file1.ts', content: `export const msg = 'twice only';` });
+      env.writeFile({ fileName: 'file2.ts', content: `export const text = 'twice only';` });
 
       const result = runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`, `--threshold=2`],
@@ -128,8 +143,11 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('edge cases', () => {
     it('EDGE: {files: empty directory} => returns no duplicates message', () => {
-      const env = createIntegrationEnvironment('empty-dir', {
-        createPackageJson: false,
+      const env = createIntegrationEnvironment({
+        baseName: 'empty-dir',
+        options: {
+          createPackageJson: false,
+        },
       });
 
       const result = runStartup({
@@ -141,14 +159,17 @@ describe('StartPrimitiveDuplicateDetection', () => {
     });
 
     it('EDGE: {files: very long string duplicated} => reports duplicate with full value', () => {
-      const env = createIntegrationEnvironment('long-string', {
-        createPackageJson: false,
+      const env = createIntegrationEnvironment({
+        baseName: 'long-string',
+        options: {
+          createPackageJson: false,
+        },
       });
 
       const longString = 'This is a very long string that appears multiple times in the codebase';
-      env.writeFile('file1.ts', `export const msg1 = '${longString}';`);
-      env.writeFile('file2.ts', `export const msg2 = '${longString}';`);
-      env.writeFile('file3.ts', `export const msg3 = '${longString}';`);
+      env.writeFile({ fileName: 'file1.ts', content: `export const msg1 = '${longString}';` });
+      env.writeFile({ fileName: 'file2.ts', content: `export const msg2 = '${longString}';` });
+      env.writeFile({ fileName: 'file3.ts', content: `export const msg3 = '${longString}';` });
 
       const result = runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
@@ -165,13 +186,16 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with regex literals', () => {
     it('VALID: {files: duplicate regex patterns} => reports as REGEX type', () => {
-      const env = createIntegrationEnvironment('regex-duplicates', {
-        createPackageJson: false,
+      const env = createIntegrationEnvironment({
+        baseName: 'regex-duplicates',
+        options: {
+          createPackageJson: false,
+        },
       });
 
-      env.writeFile('file1.ts', `export const pattern1 = /^[a-z]+$/;`);
-      env.writeFile('file2.ts', `export const pattern2 = /^[a-z]+$/;`);
-      env.writeFile('file3.ts', `export const pattern3 = /^[a-z]+$/;`);
+      env.writeFile({ fileName: 'file1.ts', content: `export const pattern1 = /^[a-z]+$/;` });
+      env.writeFile({ fileName: 'file2.ts', content: `export const pattern2 = /^[a-z]+$/;` });
+      env.writeFile({ fileName: 'file3.ts', content: `export const pattern3 = /^[a-z]+$/;` });
 
       const result = runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
