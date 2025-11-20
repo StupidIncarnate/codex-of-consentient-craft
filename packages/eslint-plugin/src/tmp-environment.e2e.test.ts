@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { createIntegrationEnvironment } from '@questmaestro/testing';
+import { integrationEnvironmentCreateBroker } from '@questmaestro/testing';
 
 /**
  * E2E test to prove that integration test environments can work in /tmp
@@ -17,13 +17,13 @@ import { createIntegrationEnvironment } from '@questmaestro/testing';
  * ESLint's type-aware rules need files in the TypeScript project (tsconfig.json include paths).
  * But if we're NOT running ESLint on test files, /tmp should work fine!
  *
- * This test uses createIntegrationEnvironment which automatically cleans up via jest.setup.js
+ * This test uses integrationEnvironmentCreateBroker which automatically cleans up via jest.setup.js
  */
 
 describe('Tmp Environment E2E', () => {
   describe('file operations in /tmp', () => {
     it('VALID: can create and read files in /tmp', () => {
-      const env = createIntegrationEnvironment({
+      const env = integrationEnvironmentCreateBroker({
         baseName: 'file-ops-test',
         options: { createPackageJson: false },
       });
@@ -35,7 +35,7 @@ describe('Tmp Environment E2E', () => {
     });
 
     it('VALID: can create nested directory structure', () => {
-      const env = createIntegrationEnvironment({
+      const env = integrationEnvironmentCreateBroker({
         baseName: 'nested-dirs',
         options: { createPackageJson: false },
       });
@@ -56,7 +56,7 @@ describe('Tmp Environment E2E', () => {
 
   describe('executing TypeScript files in /tmp', () => {
     it('VALID: can run tsx on files in /tmp', () => {
-      const env = createIntegrationEnvironment({
+      const env = integrationEnvironmentCreateBroker({
         baseName: 'tsx-execution',
         options: { createPackageJson: false },
       });
@@ -76,7 +76,7 @@ console.log(greeting);`,
     });
 
     it('VALID: can run Node.js scripts that import from other files', () => {
-      const env = createIntegrationEnvironment({
+      const env = integrationEnvironmentCreateBroker({
         baseName: 'module-imports',
         options: { createPackageJson: false },
       });
@@ -103,7 +103,7 @@ console.log(add(2, 3));`,
 
   describe('CLI tool testing in /tmp', () => {
     it('VALID: can test a CLI tool that reads files from /tmp', () => {
-      const env = createIntegrationEnvironment({
+      const env = integrationEnvironmentCreateBroker({
         baseName: 'cli-tool-test',
         options: { createPackageJson: false },
       });
@@ -124,7 +124,7 @@ console.log(add(2, 3));`,
     });
 
     it('VALID: can test file existence checks in /tmp', () => {
-      const env = createIntegrationEnvironment({
+      const env = integrationEnvironmentCreateBroker({
         baseName: 'file-checks',
         options: { createPackageJson: false },
       });
@@ -140,7 +140,7 @@ console.log(add(2, 3));`,
 
   describe('automatic cleanup', () => {
     it('VALID: environments are automatically cleaned up after each test', () => {
-      const env = createIntegrationEnvironment({
+      const env = integrationEnvironmentCreateBroker({
         baseName: 'cleanup-test',
         options: { createPackageJson: false },
       });
@@ -161,7 +161,7 @@ console.log(add(2, 3));`,
 
   describe('running ESLint in /tmp WITH setupEslint option', () => {
     it('VALID: setupEslint creates exact tsconfig.json', () => {
-      const env = createIntegrationEnvironment({
+      const env = integrationEnvironmentCreateBroker({
         baseName: 'eslint-tsconfig',
         options: {
           createPackageJson: false,
@@ -189,7 +189,7 @@ console.log(add(2, 3));`,
     });
 
     it('VALID: setupEslint creates exact eslint.config.js', () => {
-      const env = createIntegrationEnvironment({
+      const env = integrationEnvironmentCreateBroker({
         baseName: 'eslint-config-js',
         options: {
           createPackageJson: false,

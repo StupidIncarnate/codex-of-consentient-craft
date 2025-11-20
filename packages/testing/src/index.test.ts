@@ -4,10 +4,10 @@
 
 import {
   TESTING_PACKAGE_VERSION,
-  ChildProcessMocker,
-  createIntegrationEnvironment,
-  cleanupAllEnvironments,
-  getCreatedEnvironments,
+  childProcessMockerAdapter,
+  integrationEnvironmentCreateBroker,
+  integrationEnvironmentCleanupAllBroker,
+  integrationEnvironmentListBroker,
 } from './index';
 
 describe('testing package exports', () => {
@@ -18,31 +18,31 @@ describe('testing package exports', () => {
     });
   });
 
-  describe('ChildProcessMocker', () => {
-    it('VALID: exports ChildProcessMocker => is defined', () => {
-      expect(ChildProcessMocker).toBeDefined();
-      expect(typeof ChildProcessMocker).toBe('object');
+  describe('childProcessMockerAdapter', () => {
+    it('VALID: exports childProcessMockerAdapter => is defined as function', () => {
+      expect(childProcessMockerAdapter).toBeDefined();
+      expect(typeof childProcessMockerAdapter).toBe('function');
     });
   });
 
-  describe('createIntegrationEnvironment', () => {
-    it('VALID: exports createIntegrationEnvironment => is defined', () => {
-      expect(createIntegrationEnvironment).toBeDefined();
-      expect(typeof createIntegrationEnvironment).toBe('function');
+  describe('integrationEnvironmentCreateBroker', () => {
+    it('VALID: exports integrationEnvironmentCreateBroker => is defined', () => {
+      expect(integrationEnvironmentCreateBroker).toBeDefined();
+      expect(typeof integrationEnvironmentCreateBroker).toBe('function');
     });
   });
 
-  describe('cleanupAllEnvironments', () => {
-    it('VALID: exports cleanupAllEnvironments => is defined', () => {
-      expect(cleanupAllEnvironments).toBeDefined();
-      expect(typeof cleanupAllEnvironments).toBe('function');
+  describe('integrationEnvironmentCleanupAllBroker', () => {
+    it('VALID: exports integrationEnvironmentCleanupAllBroker => is defined', () => {
+      expect(integrationEnvironmentCleanupAllBroker).toBeDefined();
+      expect(typeof integrationEnvironmentCleanupAllBroker).toBe('function');
     });
   });
 
-  describe('getCreatedEnvironments', () => {
-    it('VALID: exports getCreatedEnvironments => is defined', () => {
-      expect(getCreatedEnvironments).toBeDefined();
-      expect(typeof getCreatedEnvironments).toBe('function');
+  describe('integrationEnvironmentListBroker', () => {
+    it('VALID: exports integrationEnvironmentListBroker => is defined', () => {
+      expect(integrationEnvironmentListBroker).toBeDefined();
+      expect(typeof integrationEnvironmentListBroker).toBe('function');
     });
   });
 });

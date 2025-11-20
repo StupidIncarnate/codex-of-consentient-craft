@@ -1,17 +1,21 @@
 /**
- * Custom TypeScript AST transformer for Jest that automatically hoists jest.mock() calls
- * from .proxy.ts files to test files that import them.
+ * PURPOSE: TypeScript AST transformer for Jest that hoists jest.mock() calls from .proxy.ts files to test files
  *
- * Problem:
- * - Jest only hoists jest.mock() calls within the same file
- * - When jest.mock() is in a proxy file, it doesn't work for the test file that imports it
+ * USAGE:
+ * // In jest.config.js
+ * module.exports = {
+ *   globals: {
+ *     'ts-jest': {
+ *       astTransformers: {
+ *         before: ['@questmaestro/testing/dist/adapters/typescript/proxy-mock-transformer/typescript-proxy-mock-transformer-adapter.js']
+ *       }
+ *     }
+ *   }
+ * };
+ * // Automatically hoists jest.mock() calls from proxy files to the top of test files during compilation
  *
- * Solution:
- * - When a test file imports a .proxy.ts file, this transformer:
- *   1. Walks the entire proxy import chain recursively
- *   2. Finds ALL jest.mock() calls in any proxy file
- *   3. Hoists them to the top of the test file during transpilation
- *   4. Comments out jest.mock() in proxy files to prevent duplicate calls
+ * WHEN-TO-USE: When using proxy pattern with jest.mock() calls that need to be hoisted for Jest to recognize them
+ * WHEN-NOT-TO-USE: This is infrastructure code - required by ts-jest, do not modify unless changing transformer behavior
  */
 
 import * as ts from 'typescript';
@@ -251,7 +255,7 @@ const hoistMocksToTop = ({
 /**
  * Main transformer factory function
  */
-export const proxyMockTransformer =
+export const typescriptProxyMockTransformerAdapter =
   ({
     program,
     options: _options,
@@ -311,5 +315,5 @@ export const factory = ({
   if (!program) {
     throw new Error('jest-proxy-mock-transformer requires a TypeScript Program');
   }
-  return proxyMockTransformer({ program });
+  return typescriptProxyMockTransformerAdapter({ program });
 };

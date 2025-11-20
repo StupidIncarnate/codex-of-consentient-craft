@@ -1,5 +1,5 @@
 /**
- * Integration tests for jest-proxy-mock-transformer
+ * Integration tests for typescript-proxy-mock-transformer-adapter
  *
  * These tests verify that the transformer correctly hoists jest.mock() calls
  * from .proxy.ts files to test files during TypeScript compilation.
@@ -8,9 +8,9 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
-import { proxyMockTransformer } from './jest-proxy-mock-transformer';
+import { typescriptProxyMockTransformerAdapter } from './typescript-proxy-mock-transformer-adapter';
 
-describe('proxyMockTransformer', () => {
+describe('typescriptProxyMockTransformerAdapter', () => {
   describe('integration', () => {
     /**
      * Helper to compile a test file with the transformer and return the output
@@ -61,7 +61,10 @@ describe('proxyMockTransformer', () => {
         }
 
         // Apply the transformer
-        const transformerFactory = proxyMockTransformer({ program, options: { baseDir: tempDir } });
+        const transformerFactory = typescriptProxyMockTransformerAdapter({
+          program,
+          options: { baseDir: tempDir },
+        });
         const result = ts.transform(sourceFile, [transformerFactory]);
         const transformedSourceFile = result.transformed[0]!;
 
@@ -161,7 +164,10 @@ export const proxy2 = () => {
 
       const sourceFile = program.getSourceFile(testFilePath)!;
 
-      const transformerFactory = proxyMockTransformer({ program, options: { baseDir: tempDir } });
+      const transformerFactory = typescriptProxyMockTransformerAdapter({
+        program,
+        options: { baseDir: tempDir },
+      });
       const result = ts.transform(sourceFile, [transformerFactory]);
       const transformedSourceFile = result.transformed[0]!;
 
@@ -322,7 +328,10 @@ export const proxy2 = () => {
 
       const sourceFile = program.getSourceFile(testFilePath)!;
 
-      const transformerFactory = proxyMockTransformer({ program, options: { baseDir: tempDir } });
+      const transformerFactory = typescriptProxyMockTransformerAdapter({
+        program,
+        options: { baseDir: tempDir },
+      });
       const result = ts.transform(sourceFile, [transformerFactory]);
       const transformedSourceFile = result.transformed[0]!;
 

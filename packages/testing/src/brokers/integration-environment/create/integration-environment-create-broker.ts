@@ -1,13 +1,15 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { execSync } from 'child_process';
-import * as crypto from 'crypto';
-
 /**
- * Integration test environment utilities
+ * PURPOSE: Creates and manages temporary test projects for integration testing
  *
- * Creates temporary test projects in /tmp for integration testing.
- * Test environments are automatically cleaned up after each test via jest.setup.js.
+ * USAGE:
+ * const testProject = integrationEnvironmentCreateBroker({
+ *   baseName: 'my-test',
+ *   options: { createPackageJson: true, setupEslint: true }
+ * });
+ * testProject.writeFile({ fileName: 'src/index.ts', content: 'export const foo = 42;' });
+ * const result = testProject.executeCommand({ command: 'npm test' });
+ * testProject.cleanup();
+ * // Creates isolated test environment in /tmp with automatic cleanup tracking
  *
  * IMPORTANT: Files in /tmp are outside the TypeScript project, so:
  * - ✅ Works great for: CLI tools, file operations, command execution
@@ -16,7 +18,18 @@ import * as crypto from 'crypto';
  *   (type-aware rules need files in tsconfig.json include paths)
  */
 
-// Import { jest } from '@jest/globals'; // Not needed in this version
+import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { fsExistsAdapter } from '../../../adapters/fs/exists/fs-exists-adapter';
+import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
+import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
+import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
+import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { cryptoRandomBytesAdapter } from '../../../adapters/crypto/random-bytes/crypto-random-bytes-adapter';
+import { childProcessExecSyncAdapter } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter';
+import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
 
 interface ExecResult {
   stdout: string;
@@ -79,16 +92,16 @@ const createdEnvironments: TestProject[] = [];
 const RANDOM_BYTES_LENGTH = 4;
 const JSON_INDENT_SPACES = 2;
 
-export const getCreatedEnvironments = (): readonly TestProject[] => createdEnvironments;
+export const integrationEnvironmentListBroker = (): readonly TestProject[] => createdEnvironments;
 
-export const cleanupAllEnvironments = (): void => {
+export const integrationEnvironmentCleanupAllBroker = (): void => {
   for (const env of createdEnvironments) {
     env.cleanup();
   }
   createdEnvironments.length = 0;
 };
 
-export const createIntegrationEnvironment = ({
+export const integrationEnvironmentCreateBroker = ({
   baseName,
   options,
 }: {
@@ -98,16 +111,16 @@ export const createIntegrationEnvironment = ({
     setupEslint?: boolean; // Copy tsconfig/eslint from project for type-aware linting
   };
 }): TestProject => {
-  const testId = crypto.randomBytes(RANDOM_BYTES_LENGTH).toString('hex');
+  const testId = cryptoRandomBytesAdapter({ length: RANDOM_BYTES_LENGTH }).toString('hex');
   const projectName = `${baseName}-${testId}`;
   // Use /tmp to keep test artifacts out of the repo
   // Most integration tests don't need ESLint to run on test files
   const baseDir = '/tmp';
-  const projectPath = path.join(baseDir, projectName);
+  const projectPath = pathJoinAdapter({ paths: [baseDir, projectName] });
 
   // Create project directory
-  if (!fs.existsSync(projectPath)) {
-    fs.mkdirSync(projectPath, { recursive: true });
+  if (!fsExistsAdapter({ filePath: projectPath })) {
+    fsMkdirAdapter({ dirPath: projectPath, recursive: true });
   }
 
   // Create basic package.json (optional)
@@ -122,10 +135,10 @@ export const createIntegrationEnvironment = ({
       },
     };
 
-    fs.writeFileSync(
-      path.join(projectPath, 'package.json'),
-      JSON.stringify(packageJson, null, JSON_INDENT_SPACES),
-    );
+    fsWriteFileAdapter({
+      filePath: pathJoinAdapter({ paths: [projectPath, 'package.json'] }),
+      content: fileContentContract.parse(JSON.stringify(packageJson, null, JSON_INDENT_SPACES)),
+    });
   }
 
   // Setup ESLint support (optional) - creates tsconfig and eslint config
@@ -147,10 +160,10 @@ export const createIntegrationEnvironment = ({
       include: ['**/*.ts', '**/*.tsx'],
       exclude: ['node_modules'],
     };
-    fs.writeFileSync(
-      path.join(projectPath, 'tsconfig.json'),
-      JSON.stringify(tsconfig, null, JSON_INDENT_SPACES),
-    );
+    fsWriteFileAdapter({
+      filePath: pathJoinAdapter({ paths: [projectPath, 'tsconfig.json'] }),
+      content: fileContentContract.parse(JSON.stringify(tsconfig, null, JSON_INDENT_SPACES)),
+    });
 
     // Always create a minimal eslint config that uses the local tsconfig
     // This allows type-aware ESLint rules to work on files in /tmp
@@ -171,7 +184,10 @@ module.exports = [
   },
 ];
 `;
-    fs.writeFileSync(path.join(projectPath, 'eslint.config.js'), minimalEslintConfig);
+    fsWriteFileAdapter({
+      filePath: pathJoinAdapter({ paths: [projectPath, 'eslint.config.js'] }),
+      content: fileContentContract.parse(minimalEslintConfig),
+    });
   }
 
   const testProject: TestProject = {
@@ -181,12 +197,15 @@ module.exports = [
 
     installQuestmaestro: (): string => {
       try {
-        const result = execSync('npm run install-questmaestro', {
-          cwd: projectPath,
-          encoding: 'utf-8',
-          stdio: 'pipe',
+        const result = childProcessExecSyncAdapter({
+          command: 'npm run install-questmaestro',
+          options: {
+            cwd: projectPath,
+            encoding: 'utf-8',
+            stdio: 'pipe',
+          },
         });
-        return result;
+        return Buffer.isBuffer(result) ? result.toString('utf-8') : result;
       } catch (error) {
         if (error instanceof Error && 'stdout' in error) {
           const execError = error as Error & { stdout?: Buffer | string };
@@ -197,78 +216,84 @@ module.exports = [
     },
 
     hasCommand: ({ command }: { command: string }): boolean => {
-      const packageJsonPath = path.join(projectPath, 'package.json');
-      if (!fs.existsSync(packageJsonPath)) {
+      const packageJsonPath = pathJoinAdapter({ paths: [projectPath, 'package.json'] });
+      if (!fsExistsAdapter({ filePath: packageJsonPath })) {
         return false;
       }
 
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
+      const packageJson = JSON.parse(
+        fsReadFileAdapter({ filePath: packageJsonPath }),
+      ) as PackageJson;
       return Boolean(packageJson.scripts[command]);
     },
 
     fileExists: ({ fileName }: { fileName: string }): boolean =>
-      fs.existsSync(path.join(projectPath, fileName)),
+      fsExistsAdapter({ filePath: pathJoinAdapter({ paths: [projectPath, fileName] }) }),
 
     readFile: ({ fileName }: { fileName: string }): string =>
-      fs.readFileSync(path.join(projectPath, fileName), 'utf-8'),
+      fsReadFileAdapter({ filePath: pathJoinAdapter({ paths: [projectPath, fileName] }) }),
 
     writeFile: ({ fileName, content }: { fileName: string; content: string }): void => {
-      const filePath = path.join(projectPath, fileName);
-      const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+      const filePath = pathJoinAdapter({ paths: [projectPath, fileName] });
+      const dir = pathDirnameAdapter({ filePath });
+      if (!fsExistsAdapter({ filePath: dir })) {
+        fsMkdirAdapter({ dirPath: dir, recursive: true });
       }
-      fs.writeFileSync(filePath, content);
+      fsWriteFileAdapter({ filePath, content: fileContentContract.parse(content) });
     },
 
     deleteFile: ({ fileName }: { fileName: string }): void => {
-      const filePath = path.join(projectPath, fileName);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      const filePath = pathJoinAdapter({ paths: [projectPath, fileName] });
+      if (fsExistsAdapter({ filePath })) {
+        fsUnlinkAdapter({ filePath });
       }
     },
 
     getConfig: (): QuestmaestroConfig | null => {
-      const configPath = path.join(projectPath, '.questmaestro');
-      if (!fs.existsSync(configPath)) {
+      const configPath = pathJoinAdapter({ paths: [projectPath, '.questmaestro'] });
+      if (!fsExistsAdapter({ filePath: configPath })) {
         return null;
       }
-      return JSON.parse(fs.readFileSync(configPath, 'utf-8')) as QuestmaestroConfig;
+      return JSON.parse(fsReadFileAdapter({ filePath: configPath })) as QuestmaestroConfig;
     },
 
     getPackageJson: (): PackageJson => {
-      const packageJsonPath = path.join(projectPath, 'package.json');
-      const content = fs.readFileSync(packageJsonPath, 'utf-8');
+      const packageJsonPath = pathJoinAdapter({ paths: [projectPath, 'package.json'] });
+      const content = fsReadFileAdapter({ filePath: packageJsonPath });
       return JSON.parse(content) as PackageJson;
     },
 
     getQuestFiles: ({ subdir }: { subdir?: string }): string[] => {
       const questDir = subdir
-        ? path.join(projectPath, 'questmaestro', subdir)
-        : path.join(projectPath, 'questmaestro');
+        ? pathJoinAdapter({ paths: [projectPath, 'questmaestro', subdir] })
+        : pathJoinAdapter({ paths: [projectPath, 'questmaestro'] });
 
-      if (!fs.existsSync(questDir)) {
+      if (!fsExistsAdapter({ filePath: questDir })) {
         return [];
       }
 
       const extension = subdir ? '.json' : '.md';
-      const basePath = subdir ? path.join('questmaestro', subdir) : 'questmaestro';
+      const basePath = subdir
+        ? pathJoinAdapter({ paths: ['questmaestro', subdir] })
+        : 'questmaestro';
 
-      return fs
-        .readdirSync(questDir)
+      return fsReaddirAdapter({ dirPath: questDir })
         .filter((file) => file.endsWith(extension))
-        .map((file) => path.join(basePath, file));
+        .map((file) => pathJoinAdapter({ paths: [basePath, file] }));
     },
 
     executeCommand: ({ command }: { command: string }): ExecResult => {
       try {
-        const result = execSync(command, {
-          cwd: projectPath,
-          encoding: 'utf-8',
-          stdio: 'pipe',
+        const result = childProcessExecSyncAdapter({
+          command,
+          options: {
+            cwd: projectPath,
+            encoding: 'utf-8',
+            stdio: 'pipe',
+          },
         });
         return {
-          stdout: result,
+          stdout: Buffer.isBuffer(result) ? result.toString('utf-8') : result,
           stderr: '',
           exitCode: 0,
         };
@@ -294,8 +319,8 @@ module.exports = [
     },
 
     cleanup: (): void => {
-      if (fs.existsSync(projectPath)) {
-        fs.rmSync(projectPath, { recursive: true, force: true });
+      if (fsExistsAdapter({ filePath: projectPath })) {
+        fsRmAdapter({ filePath: projectPath, recursive: true, force: true });
       }
     },
   };
