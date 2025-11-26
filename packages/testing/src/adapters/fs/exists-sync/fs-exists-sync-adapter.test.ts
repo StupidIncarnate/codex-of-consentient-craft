@@ -5,10 +5,9 @@ import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 describe('fsExistsSyncAdapter', () => {
   describe('file exists', () => {
     it('VALID: {filePath: existing file} => returns true', () => {
-      const proxy = fsExistsSyncAdapterProxy();
-      const filePath = FilePathStub({ value: '/tmp/test.ts' });
-
-      proxy.returnsTrue({ filePath });
+      fsExistsSyncAdapterProxy();
+      // Use a file that actually exists
+      const filePath = FilePathStub({ value: __filename });
 
       const result = fsExistsSyncAdapter({ filePath });
 
@@ -16,10 +15,9 @@ describe('fsExistsSyncAdapter', () => {
     });
 
     it('VALID: {filePath: different existing file} => returns true', () => {
-      const proxy = fsExistsSyncAdapterProxy();
-      const filePath = FilePathStub({ value: '/path/to/file.proxy.ts' });
-
-      proxy.returnsTrue({ filePath });
+      fsExistsSyncAdapterProxy();
+      // Use the adapter file which exists
+      const filePath = FilePathStub({ value: `${__dirname}/fs-exists-sync-adapter.ts` });
 
       const result = fsExistsSyncAdapter({ filePath });
 
@@ -29,10 +27,8 @@ describe('fsExistsSyncAdapter', () => {
 
   describe('file does not exist', () => {
     it('INVALID: {filePath: nonexistent file} => returns false', () => {
-      const proxy = fsExistsSyncAdapterProxy();
-      const filePath = FilePathStub({ value: '/nonexistent/file.ts' });
-
-      proxy.returnsFalse({ filePath });
+      fsExistsSyncAdapterProxy();
+      const filePath = FilePathStub({ value: '/nonexistent/file/that/does/not/exist.ts' });
 
       const result = fsExistsSyncAdapter({ filePath });
 
@@ -40,10 +36,8 @@ describe('fsExistsSyncAdapter', () => {
     });
 
     it('INVALID: {filePath: different nonexistent file} => returns false', () => {
-      const proxy = fsExistsSyncAdapterProxy();
-      const filePath = FilePathStub({ value: '/another/missing.ts' });
-
-      proxy.returnsFalse({ filePath });
+      fsExistsSyncAdapterProxy();
+      const filePath = FilePathStub({ value: '/another/missing/path/nowhere.ts' });
 
       const result = fsExistsSyncAdapter({ filePath });
 

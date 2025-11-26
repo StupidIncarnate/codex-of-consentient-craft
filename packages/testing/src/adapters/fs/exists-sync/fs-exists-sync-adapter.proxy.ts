@@ -7,28 +7,8 @@
  * // Sets up mock to return true for the given file path
  */
 
-import { existsSync } from 'fs';
-import type { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-
-jest.mock('fs');
-
-type FilePath = ReturnType<typeof FilePathStub>;
-
-export const fsExistsSyncAdapterProxy = (): {
-  returnsTrue: ({ filePath }: { filePath: FilePath }) => void;
-  returnsFalse: ({ filePath }: { filePath: FilePath }) => void;
-} => {
-  const mock = jest.mocked(existsSync);
-
-  mock.mockReturnValue(false);
-
-  return {
-    returnsTrue: ({ filePath }: { filePath: FilePath }): void => {
-      mock.mockImplementation((path) => path === filePath);
-    },
-
-    returnsFalse: ({ filePath }: { filePath: FilePath }): void => {
-      mock.mockImplementation((path) => path !== filePath);
-    },
-  };
-};
+/**
+ * Empty proxy - fs.existsSync uses real implementation
+ * This prevents module corruption issues when mocking built-in fs module
+ */
+export const fsExistsSyncAdapterProxy = (): Record<PropertyKey, never> => ({});

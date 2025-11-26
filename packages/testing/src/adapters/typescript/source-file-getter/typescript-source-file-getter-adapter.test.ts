@@ -6,20 +6,15 @@ import { TypescriptProgramStub } from '../../../contracts/typescript-program/typ
 
 describe('typescriptSourceFileGetterAdapter', () => {
   describe('valid source file retrieval', () => {
-    it('VALID: {program with file, filePath} => returns source file', () => {
+    it('VALID: {program with real file, filePath} => returns source file', () => {
       typescriptSourceFileGetterAdapterProxy();
 
-      const code = 'const x = 1;';
-      const filePath = FilePathStub({ value: '/test.ts' });
-      const sourceFile = ts.createSourceFile(filePath, code, ts.ScriptTarget.Latest, true);
+      // Use this actual test file as input - it's a real .ts file
+      const filePath = FilePathStub({ value: __filename });
 
-      const tsProgram = ts.createProgram({
-        rootNames: [filePath],
-        options: {},
-        host: {
-          ...ts.createCompilerHost({}),
-          getSourceFile: () => sourceFile,
-        },
+      const tsProgram = ts.createProgram([filePath], {
+        skipLibCheck: true,
+        noEmit: true,
       });
       const program = TypescriptProgramStub({ value: tsProgram });
 

@@ -53,8 +53,9 @@ describe('typescriptProxyMockTransformerAdapter', () => {
           fs.writeFileSync(adapterFilePath, adapterContent as SourceFileName);
         }
 
-        // Create a TypeScript program
-        const program = ts.createProgram([testFilePath], {
+        // Create a TypeScript program with all files in the temp directory
+        const allFiles = fs.readdirSync(tempDir).map((f) => path.join(tempDir, f));
+        const program = ts.createProgram(allFiles, {
           target: ts.ScriptTarget.ES2020,
           module: ts.ModuleKind.CommonJS,
           moduleResolution: ts.ModuleResolutionKind.Node10,
