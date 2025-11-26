@@ -1,6 +1,9 @@
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { integrationEnvironmentCreateBroker } from '@questmaestro/testing';
+import {
+  integrationEnvironmentCreateBroker,
+  integrationEnvironmentCreateBrokerProxy,
+} from '@questmaestro/testing';
 import { CommandResultStub } from '../contracts/command-result/command-result.stub';
 import { ExitCodeStub } from '../contracts/exit-code/exit-code.stub';
 import { ProcessOutputStub } from '../contracts/process-output/process-output.stub';
@@ -58,6 +61,7 @@ const runStartup = ({ args }: { args: readonly string[] }) => {
 describe('StartPrimitiveDuplicateDetection', () => {
   describe('with no duplicates', () => {
     it('VALID: {pattern: "**/*.ts", files: unique strings} => returns exit code 0 with success message', () => {
+      integrationEnvironmentCreateBrokerProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: 'no-duplicates',
         options: {
@@ -88,6 +92,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with duplicates', () => {
     it('VALID: {pattern: "**/*.ts", files: 3 occurrences of same string} => reports duplicate with locations', () => {
+      integrationEnvironmentCreateBrokerProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: 'basic-duplicates',
         options: {
@@ -119,6 +124,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with custom threshold', () => {
     it('VALID: {threshold: 2, files: 2 occurrences} => reports duplicate', () => {
+      integrationEnvironmentCreateBrokerProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: 'threshold-2',
         options: {
@@ -143,6 +149,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('edge cases', () => {
     it('EDGE: {files: empty directory} => returns no duplicates message', () => {
+      integrationEnvironmentCreateBrokerProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: 'empty-dir',
         options: {
@@ -159,6 +166,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
     });
 
     it('EDGE: {files: very long string duplicated} => reports duplicate with full value', () => {
+      integrationEnvironmentCreateBrokerProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: 'long-string',
         options: {
@@ -186,6 +194,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with regex literals', () => {
     it('VALID: {files: duplicate regex patterns} => reports as REGEX type', () => {
+      integrationEnvironmentCreateBrokerProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: 'regex-duplicates',
         options: {
