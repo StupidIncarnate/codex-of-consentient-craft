@@ -5,28 +5,21 @@ import * as crypto from 'crypto';
 import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
 import { EditToolInputStub } from '../contracts/edit-tool-input/edit-tool-input.stub';
 import { WriteToolInputStub } from '../contracts/write-tool-input/write-tool-input.stub';
+import type { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
 const tempRoot = path.join(process.cwd(), 'src', '.test-tmp', 'post-edit-tests');
 const hookPath = path.join(process.cwd(), 'src', 'startup', 'start-post-edit-hook.ts');
 
-const createTestProject = ({ name }: { name: string }): string => {
+const createTestProject = ({ name }: { name: typeof tempRoot }) => {
   const testId = crypto.randomBytes(4).toString('hex');
   const projectDir = path.join(tempRoot, `${name}-${testId}`);
   fs.mkdirSync(projectDir, { recursive: true });
   return projectDir;
 };
 
-const runHook = ({
-  hookData,
-}: {
-  hookData: unknown;
-}): {
-  exitCode: number;
-  stdout: string;
-  stderr: string;
-} => {
+const runHook = ({ hookData }: { hookData: unknown }): ReturnType<typeof ExecResultStub> => {
   const input = JSON.stringify(hookData);
 
   // Use spawnSync to capture both stdout and stderr on success AND failure

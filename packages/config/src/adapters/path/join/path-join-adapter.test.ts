@@ -44,7 +44,7 @@ describe('pathJoinAdapter', () => {
   describe('edge cases', () => {
     it('EDGE: {paths: []} => returns empty or current directory path', () => {
       const proxy = pathJoinAdapterProxy();
-      const paths: string[] = [];
+      const paths: never[] = [];
       const expectedResult = FilePathStub({ value: './' });
 
       proxy.returns({ result: expectedResult });

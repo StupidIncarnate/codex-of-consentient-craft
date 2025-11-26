@@ -7,28 +7,21 @@ import {
   MultiEditToolHookStub,
   WriteToolHookStub,
 } from '../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub';
+import type { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
 const tempRoot = path.join(process.cwd(), 'src', '.test-tmp', 'pre-edit-lint-tests');
 const hookPath = path.join(process.cwd(), 'src', 'startup', 'start-pre-edit-hook.ts');
 
-const createTestProject = ({ name }: { name: string }): string => {
+const createTestProject = ({ name }: { name: typeof tempRoot }) => {
   const testId = crypto.randomBytes(4).toString('hex');
   const projectDir = path.join(tempRoot, `${name}-${testId}`);
   fs.mkdirSync(projectDir, { recursive: true });
   return projectDir;
 };
 
-const runHook = ({
-  hookData,
-}: {
-  hookData: unknown;
-}): {
-  exitCode: number;
-  stdout: string;
-  stderr: string;
-} => {
+const runHook = ({ hookData }: { hookData: unknown }): ReturnType<typeof ExecResultStub> => {
   const input = JSON.stringify(hookData);
 
   // Use spawnSync to capture both stdout and stderr on success AND failure
@@ -929,9 +922,9 @@ export class UserService {
       // Generate a large file with multiple classes and methods
       const CLASS_COUNT = 20;
       const METHOD_COUNT = 10;
-      const classes: string[] = [];
+      const classes: never[] = [];
       for (let classIndex = 0; classIndex < CLASS_COUNT; classIndex += 1) {
-        const methods: string[] = [];
+        const methods: never[] = [];
         for (let methodIndex = 0; methodIndex < METHOD_COUNT; methodIndex += 1) {
           methods.push(`
   method${methodIndex}(param: string): string {

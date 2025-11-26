@@ -7,7 +7,7 @@ export const cryptoRandomBytesAdapterProxy = (): {
 } => {
   const mock = jest.mocked(randomBytes) as unknown as jest.MockedFunction<(size: number) => Buffer>;
 
-  mock.mockReturnValue(Buffer.from(''));
+  mock.mockReturnValue(Buffer.from('test'));
 
   return {
     returns: ({ bytes }: { length: number; bytes: Buffer }): void => {

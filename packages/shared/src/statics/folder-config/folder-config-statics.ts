@@ -133,7 +133,7 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'middleware/[name]/[name]-middleware.ts',
-    allowedImports: ['adapters/', 'middleware/', 'statics/'],
+    allowedImports: ['adapters/', 'middleware/', 'statics/', 'contracts/', 'guards/'],
     disallowAdhocTypes: true,
     requireProxy: true,
     allowsLayerFiles: false,

@@ -1,6 +1,11 @@
 import type { StubArgument } from '@questmaestro/shared/@types';
 import { testProjectContract } from './test-project-contract';
 import type { TestProject } from './test-project-contract';
+import { processOutputContract } from '../process-output/process-output-contract';
+import { fileContentContract } from '../file-content/file-content-contract';
+import { packageJsonContract } from '../package-json/package-json-contract';
+import { execResultContract } from '../exec-result/exec-result-contract';
+import type { FileName } from '../file-name/file-name-contract';
 
 export const TestProjectStub = ({ ...props }: StubArgument<TestProject> = {}): TestProject => {
   const {
@@ -25,31 +30,37 @@ export const TestProjectStub = ({ ...props }: StubArgument<TestProject> = {}): T
       rootDir: '/tmp/test-project-abc123',
       ...dataProps,
     }),
-    installQuestmaestro: installQuestmaestro ?? ((): string => 'Questmaestro installed'),
+    installQuestmaestro:
+      installQuestmaestro ??
+      ((): ReturnType<TestProject['installQuestmaestro']> =>
+        processOutputContract.parse('Questmaestro installed')),
     hasCommand: hasCommand ?? ((): boolean => false),
     fileExists: fileExists ?? ((): boolean => false),
-    readFile: readFile ?? ((): string => ''),
+    readFile:
+      readFile ?? ((): ReturnType<TestProject['readFile']> => fileContentContract.parse('')),
     writeFile: writeFile ?? ((): void => undefined),
     deleteFile: deleteFile ?? ((): void => undefined),
     getConfig: getConfig ?? ((): null => null),
     getPackageJson:
       getPackageJson ??
-      ((): { name: string; version: string; scripts: { test: string; typecheck: string } } => ({
-        name: 'test-project-abc123',
-        version: '1.0.0',
-        scripts: {
-          test: 'echo "test placeholder"',
-          typecheck: 'echo "typecheck placeholder"',
-        },
-      })),
-    getQuestFiles: getQuestFiles ?? ((): string[] => []),
+      ((): ReturnType<TestProject['getPackageJson']> =>
+        packageJsonContract.parse({
+          name: 'test-project-abc123',
+          version: '1.0.0',
+          scripts: {
+            test: 'echo "test placeholder"',
+            typecheck: 'echo "typecheck placeholder"',
+          },
+        })),
+    getQuestFiles: getQuestFiles ?? ((): FileName[] => []),
     executeCommand:
       executeCommand ??
-      ((): { stdout: string; stderr: string; exitCode: number } => ({
-        stdout: '',
-        stderr: '',
-        exitCode: 0,
-      })),
+      ((): ReturnType<TestProject['executeCommand']> =>
+        execResultContract.parse({
+          stdout: '',
+          stderr: '',
+          exitCode: 0,
+        })),
     cleanup: cleanup ?? ((): void => undefined),
   };
 };

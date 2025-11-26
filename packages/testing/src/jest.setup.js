@@ -5,8 +5,8 @@ const originalDescribe = global.describe;
 const originalIt = global.it;
 const originalTest = global.test;
 
-const forbiddenMethodChecker = (testMethod, methodName) => {
-  return new Proxy(testMethod, {
+const forbiddenMethodChecker = (testMethod, methodName) =>
+  new Proxy(testMethod, {
     get(target, property) {
       if (property === 'todo' || property === 'skip') {
         throw new Error(
@@ -16,7 +16,6 @@ const forbiddenMethodChecker = (testMethod, methodName) => {
       return target[property];
     },
   });
-};
 
 global.describe = forbiddenMethodChecker(originalDescribe, 'describe');
 global.it = forbiddenMethodChecker(originalIt, 'it');
@@ -35,7 +34,7 @@ afterEach(() => {
     // Load from dist folder (jest.setup.js is in src, compiled files in dist)
     const {
       integrationEnvironmentCleanupAllBroker,
-    } = require('../dist/brokers/integration-environment/create/integration-environment-create-broker.js');
+    } = require('../dist/brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker.js');
     integrationEnvironmentCleanupAllBroker();
   } catch (error) {
     // Module might not be built yet, skip cleanup functionality
