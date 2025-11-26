@@ -17,9 +17,7 @@ module.exports = {
         astTransformers: {
           before: [
             {
-              path: require.resolve(
-                './dist/adapters/typescript/proxy-mock-transformer/typescript-proxy-mock-transformer-adapter.js',
-              ),
+              path: require.resolve('./ts-jest/proxy-mock-transformer.js'),
             },
           ],
         },

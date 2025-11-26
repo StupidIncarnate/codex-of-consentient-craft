@@ -14,23 +14,7 @@ export { integrationEnvironmentListBroker } from './brokers/integration-environm
 export type { TestProject } from './contracts/test-project/test-project-contract';
 export type { QuestmaestroConfig } from './contracts/questmaestro-config/questmaestro-config-contract';
 
-// TypeScript transformer adapter
-import type * as ts from 'typescript';
-import { typescriptProxyMockTransformerAdapter as _typescriptProxyMockTransformerAdapter } from './adapters/typescript/proxy-mock-transformer/typescript-proxy-mock-transformer-adapter';
-import { typescriptTransformerStatics } from './statics/typescript-transformer/typescript-transformer-statics';
-
-export { typescriptProxyMockTransformerAdapter } from './adapters/typescript/proxy-mock-transformer/typescript-proxy-mock-transformer-adapter';
-export const { name, version } = typescriptTransformerStatics;
-export const factory = ({
-  program,
-}: {
-  program?: ts.Program;
-}): ts.TransformerFactory<ts.SourceFile> => {
-  if (!program) {
-    throw new Error('jest-proxy-mock-transformer requires a TypeScript Program');
-  }
-  return _typescriptProxyMockTransformerAdapter({ program });
-};
+// TypeScript transformer - use @questmaestro/testing/ts-jest/proxy-mock-transformer in jest.config.js
 
 // Contract stubs
 export { MockSpawnResultStub } from './contracts/mock-spawn-result/mock-spawn-result.stub';
