@@ -150,11 +150,13 @@ module.exports = [
   },
   {
     // ts-jest needs the scalar exports
-    files: ['packages/testing/src/adapters/typescript/proxy-mock-transformer/typescript-proxy-mock-transformer-adapter.ts'],
+    files: [
+      'packages/testing/src/adapters/typescript/proxy-mock-transformer/typescript-proxy-mock-transformer-adapter.ts',
+    ],
     rules: {
-      '@questmaestro/enforce-project-structure':'off'
-    }
-  }
+      '@questmaestro/enforce-project-structure': 'off',
+    },
+  },
   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {
