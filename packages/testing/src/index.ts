@@ -9,7 +9,6 @@ export type { MockProcessBehavior } from './contracts/mock-process-behavior/mock
 
 // Test project utilities
 export { integrationEnvironmentCreateBroker } from './brokers/integration-environment/create/integration-environment-create-broker';
-export { integrationEnvironmentCreateBrokerProxy } from './brokers/integration-environment/create/integration-environment-create-broker.proxy';
 export { integrationEnvironmentCleanupAllBroker } from './brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker';
 export { integrationEnvironmentListBroker } from './brokers/integration-environment/list/integration-environment-list-broker';
 export type { TestProject } from './contracts/test-project/test-project-contract';
@@ -38,3 +37,6 @@ export { MockSpawnResultStub } from './contracts/mock-spawn-result/mock-spawn-re
 export { MockProcessBehaviorStub } from './contracts/mock-process-behavior/mock-process-behavior.stub';
 export { TestProjectStub } from './contracts/test-project/test-project.stub';
 export { QuestmaestroConfigStub } from './contracts/questmaestro-config/questmaestro-config.stub';
+export { BaseNameStub } from './contracts/base-name/base-name.stub';
+export { FileNameStub } from './contracts/file-name/file-name.stub';
+export { FileContentStub } from './contracts/file-content/file-content.stub';

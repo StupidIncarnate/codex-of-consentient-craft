@@ -5,7 +5,7 @@ import * as crypto from 'crypto';
 import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
 import { EditToolInputStub } from '../contracts/edit-tool-input/edit-tool-input.stub';
 import { WriteToolInputStub } from '../contracts/write-tool-input/write-tool-input.stub';
-import type { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
+import { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
@@ -29,11 +29,11 @@ const runHook = ({ hookData }: { hookData: unknown }): ReturnType<typeof ExecRes
     cwd: process.cwd(),
   });
 
-  return {
+  return ExecResultStub({
     exitCode: result.status === null ? 1 : result.status,
     stdout: result.stdout,
     stderr: result.stderr,
-  };
+  });
 };
 
 describe('post-edit-hook', () => {

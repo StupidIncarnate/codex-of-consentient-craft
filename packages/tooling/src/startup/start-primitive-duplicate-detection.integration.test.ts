@@ -1,9 +1,10 @@
 import * as path from 'path';
 import { execSync } from 'child_process';
-import {
-  integrationEnvironmentCreateBroker,
-  integrationEnvironmentCreateBrokerProxy,
-} from '@questmaestro/testing';
+import { integrationEnvironmentCreateBroker } from '@questmaestro/testing';
+import { BaseNameStub } from '@questmaestro/testing/dist/contracts/base-name/base-name.stub';
+import { FileNameStub } from '@questmaestro/testing/dist/contracts/file-name/file-name.stub';
+import { FileContentStub } from '@questmaestro/testing/dist/contracts/file-content/file-content.stub';
+import { StartPrimitiveDuplicateDetectionProxy } from './start-primitive-duplicate-detection.proxy';
 import { CommandResultStub } from '../contracts/command-result/command-result.stub';
 import { ExitCodeStub } from '../contracts/exit-code/exit-code.stub';
 import { ProcessOutputStub } from '../contracts/process-output/process-output.stub';
@@ -61,21 +62,21 @@ const runStartup = ({ args }: { args: readonly string[] }) => {
 describe('StartPrimitiveDuplicateDetection', () => {
   describe('with no duplicates', () => {
     it('VALID: {pattern: "**/*.ts", files: unique strings} => returns exit code 0 with success message', () => {
-      integrationEnvironmentCreateBrokerProxy();
+      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
-        baseName: 'no-duplicates',
+        baseName: BaseNameStub({ value: 'no-duplicates' }),
         options: {
           createPackageJson: false,
         },
       });
 
       env.writeFile({
-        fileName: 'file1.ts',
-        content: `export const message1 = 'unique message one';`,
+        fileName: FileNameStub({ value: 'file1.ts' }),
+        content: FileContentStub({ value: `export const message1 = 'unique message one';` }),
       });
       env.writeFile({
-        fileName: 'file2.ts',
-        content: `export const message2 = 'unique message two';`,
+        fileName: FileNameStub({ value: 'file2.ts' }),
+        content: FileContentStub({ value: `export const message2 = 'unique message two';` }),
       });
 
       const result = runStartup({
@@ -92,23 +93,30 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with duplicates', () => {
     it('VALID: {pattern: "**/*.ts", files: 3 occurrences of same string} => reports duplicate with locations', () => {
-      integrationEnvironmentCreateBrokerProxy();
+      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
-        baseName: 'basic-duplicates',
+        baseName: BaseNameStub({ value: 'basic-duplicates' }),
         options: {
           createPackageJson: false,
         },
       });
 
       env.writeFile({
-        fileName: 'file1.ts',
-        content: `export const message = 'duplicate string';\nexport const other = 'different';`,
+        fileName: FileNameStub({ value: 'file1.ts' }),
+        content: FileContentStub({
+          value: `export const message = 'duplicate string';\nexport const other = 'different';`,
+        }),
       });
       env.writeFile({
-        fileName: 'file2.ts',
-        content: `export const msg = 'duplicate string';\nexport const value = 123;`,
+        fileName: FileNameStub({ value: 'file2.ts' }),
+        content: FileContentStub({
+          value: `export const msg = 'duplicate string';\nexport const value = 123;`,
+        }),
       });
-      env.writeFile({ fileName: 'file3.ts', content: `export const text = 'duplicate string';` });
+      env.writeFile({
+        fileName: FileNameStub({ value: 'file3.ts' }),
+        content: FileContentStub({ value: `export const text = 'duplicate string';` }),
+      });
 
       const result = runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
@@ -124,16 +132,22 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with custom threshold', () => {
     it('VALID: {threshold: 2, files: 2 occurrences} => reports duplicate', () => {
-      integrationEnvironmentCreateBrokerProxy();
+      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
-        baseName: 'threshold-2',
+        baseName: BaseNameStub({ value: 'threshold-2' }),
         options: {
           createPackageJson: false,
         },
       });
 
-      env.writeFile({ fileName: 'file1.ts', content: `export const msg = 'twice only';` });
-      env.writeFile({ fileName: 'file2.ts', content: `export const text = 'twice only';` });
+      env.writeFile({
+        fileName: FileNameStub({ value: 'file1.ts' }),
+        content: FileContentStub({ value: `export const msg = 'twice only';` }),
+      });
+      env.writeFile({
+        fileName: FileNameStub({ value: 'file2.ts' }),
+        content: FileContentStub({ value: `export const text = 'twice only';` }),
+      });
 
       const result = runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`, `--threshold=2`],
@@ -149,9 +163,9 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('edge cases', () => {
     it('EDGE: {files: empty directory} => returns no duplicates message', () => {
-      integrationEnvironmentCreateBrokerProxy();
+      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
-        baseName: 'empty-dir',
+        baseName: BaseNameStub({ value: 'empty-dir' }),
         options: {
           createPackageJson: false,
         },
@@ -166,18 +180,27 @@ describe('StartPrimitiveDuplicateDetection', () => {
     });
 
     it('EDGE: {files: very long string duplicated} => reports duplicate with full value', () => {
-      integrationEnvironmentCreateBrokerProxy();
+      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
-        baseName: 'long-string',
+        baseName: BaseNameStub({ value: 'long-string' }),
         options: {
           createPackageJson: false,
         },
       });
 
       const longString = 'This is a very long string that appears multiple times in the codebase';
-      env.writeFile({ fileName: 'file1.ts', content: `export const msg1 = '${longString}';` });
-      env.writeFile({ fileName: 'file2.ts', content: `export const msg2 = '${longString}';` });
-      env.writeFile({ fileName: 'file3.ts', content: `export const msg3 = '${longString}';` });
+      env.writeFile({
+        fileName: FileNameStub({ value: 'file1.ts' }),
+        content: FileContentStub({ value: `export const msg1 = '${longString}';` }),
+      });
+      env.writeFile({
+        fileName: FileNameStub({ value: 'file2.ts' }),
+        content: FileContentStub({ value: `export const msg2 = '${longString}';` }),
+      });
+      env.writeFile({
+        fileName: FileNameStub({ value: 'file3.ts' }),
+        content: FileContentStub({ value: `export const msg3 = '${longString}';` }),
+      });
 
       const result = runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
@@ -194,17 +217,26 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with regex literals', () => {
     it('VALID: {files: duplicate regex patterns} => reports as REGEX type', () => {
-      integrationEnvironmentCreateBrokerProxy();
+      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
-        baseName: 'regex-duplicates',
+        baseName: BaseNameStub({ value: 'regex-duplicates' }),
         options: {
           createPackageJson: false,
         },
       });
 
-      env.writeFile({ fileName: 'file1.ts', content: `export const pattern1 = /^[a-z]+$/;` });
-      env.writeFile({ fileName: 'file2.ts', content: `export const pattern2 = /^[a-z]+$/;` });
-      env.writeFile({ fileName: 'file3.ts', content: `export const pattern3 = /^[a-z]+$/;` });
+      env.writeFile({
+        fileName: FileNameStub({ value: 'file1.ts' }),
+        content: FileContentStub({ value: `export const pattern1 = /^[a-z]+$/;` }),
+      });
+      env.writeFile({
+        fileName: FileNameStub({ value: 'file2.ts' }),
+        content: FileContentStub({ value: `export const pattern2 = /^[a-z]+$/;` }),
+      });
+      env.writeFile({
+        fileName: FileNameStub({ value: 'file3.ts' }),
+        content: FileContentStub({ value: `export const pattern3 = /^[a-z]+$/;` }),
+      });
 
       const result = runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],

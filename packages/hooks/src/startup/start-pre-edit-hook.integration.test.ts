@@ -7,7 +7,7 @@ import {
   MultiEditToolHookStub,
   WriteToolHookStub,
 } from '../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub';
-import type { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
+import { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
@@ -31,11 +31,11 @@ const runHook = ({ hookData }: { hookData: unknown }): ReturnType<typeof ExecRes
     cwd: process.cwd(),
   });
 
-  return {
+  return ExecResultStub({
     exitCode: result.status === null ? 1 : result.status,
     stdout: result.stdout,
     stderr: result.stderr,
-  };
+  });
 };
 
 describe('pre-edit-lint', () => {
@@ -922,18 +922,17 @@ export class UserService {
       // Generate a large file with multiple classes and methods
       const CLASS_COUNT = 20;
       const METHOD_COUNT = 10;
-      const classes: never[] = [];
-      for (let classIndex = 0; classIndex < CLASS_COUNT; classIndex += 1) {
-        const methods: never[] = [];
-        for (let methodIndex = 0; methodIndex < METHOD_COUNT; methodIndex += 1) {
-          methods.push(`
+      const classes = Array.from({ length: CLASS_COUNT }, (_, classIndex) => {
+        const methods = Array.from(
+          { length: METHOD_COUNT },
+          (__, methodIndex) => `
   method${methodIndex}(param: string): string {
     const result = this.processData(param);
     return result || '';
-  }`);
-        }
+  }`,
+        );
         const methodsCode = methods.join('\n');
-        classes.push(`
+        return `
 export class Service${classIndex} {
   private data = new Map<string, unknown>();
 
@@ -953,8 +952,8 @@ export class Service${classIndex} {
   setData(key: string, value: unknown): void {
     this.data.set(key, value);
   }
-}`);
-      }
+}`;
+      });
       const largeContent = classes.join('\n');
 
       const hookData = WriteToolHookStub({
