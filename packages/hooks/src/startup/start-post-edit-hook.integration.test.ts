@@ -55,7 +55,7 @@ describe('post-edit-hook', () => {
         const projectDir = createTestProject({ name: 'clean-write' });
         const filePath = path.join(projectDir, 'example.info.ts');
 
-        const fileContent = `export const add = ({ a, b }: { a: number; b: number }): number => a + b;
+        const fileContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => a || b;
 `;
 
         const hookData = PostToolUseHookStub({
@@ -141,11 +141,11 @@ describe('post-edit-hook', () => {
         const filePath = path.join(projectDir, 'example.info.ts');
 
         // Create initial file
-        const initialContent = `export const oldFunction = (): string => 'hello';
+        const initialContent = `export const oldFunction = (): boolean => true;
 `;
         fs.writeFileSync(filePath, initialContent);
 
-        const newContent = `export const newFunction = (): string => 'hello world';
+        const newContent = `export const newFunction = (): boolean => false;
 `;
 
         const hookData = PostToolUseHookStub({
@@ -234,12 +234,12 @@ describe('post-edit-hook', () => {
       const filePath = path.join(projectDir, 'test.info.ts');
 
       // Write code with arrow-body-style violation (fixable) - using .info.ts to avoid colocation rules
-      const fileContent = `export const add = ({ a, b }: { a: number; b: number }): number => {
-  return a + b;
+      const fileContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => {
+  return a || b;
 };
 
-export const subtract = ({ a, b }: { a: number; b: number }): number => {
-  return a - b;
+export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => {
+  return a && b;
 };`;
 
       const hookData = PostToolUseHookStub({
@@ -264,9 +264,9 @@ export const subtract = ({ a, b }: { a: number; b: number }): number => {
       const fileContentAfterHook = fs.readFileSync(filePath, 'utf8');
 
       // File should be auto-fixed to expression body
-      const expectedFixedContent = `export const add = ({ a, b }: { a: number; b: number }): number => a + b;
+      const expectedFixedContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => a || b;
 
-export const subtract = ({ a, b }: { a: number; b: number }): number => a - b;
+export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && b;
 `;
 
       expect(fileContentAfterHook).toStrictEqual(expectedFixedContent);
@@ -280,7 +280,7 @@ export const subtract = ({ a, b }: { a: number; b: number }): number => a - b;
       const filePath = path.join(projectDir, 'format.info.ts');
 
       // Write code with prettier violations (extra spaces, missing semicolons)
-      const fileContent = `export const test=({x}:{x:number}):number=>x;`;
+      const fileContent = `export const test=({x}:{x:boolean}):boolean=>x;`;
 
       const hookData = PostToolUseHookStub({
         cwd: process.cwd(),
@@ -304,7 +304,7 @@ export const subtract = ({ a, b }: { a: number; b: number }): number => a - b;
       const fileContentAfterHook = fs.readFileSync(filePath, 'utf8');
 
       // File should be formatted correctly
-      const expectedFixedContent = `export const test = ({ x }: { x: number }): number => x;
+      const expectedFixedContent = `export const test = ({ x }: { x: boolean }): boolean => x;
 `;
 
       expect(fileContentAfterHook).toStrictEqual(expectedFixedContent);
@@ -318,12 +318,12 @@ export const subtract = ({ a, b }: { a: number; b: number }): number => a - b;
       const filePath = path.join(projectDir, 'multi.info.ts');
 
       // Write code with multiple fixable violations
-      const fileContent = `export const add = ({ a, b }: { a: number; b: number }): number => {
-  return a + b;
+      const fileContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => {
+  return a || b;
 };
 
-export const subtract=({a,b}:{a:number;b:number}):number=>{
-return a-b;
+export const subtract=({a,b}:{a:boolean;b:boolean}):boolean=>{
+return a&&b;
 };`;
 
       const hookData = PostToolUseHookStub({
@@ -348,9 +348,9 @@ return a-b;
       const fileContentAfterHook = fs.readFileSync(filePath, 'utf8');
 
       // Both functions should be auto-fixed
-      const expectedFixedContent = `export const add = ({ a, b }: { a: number; b: number }): number => a + b;
+      const expectedFixedContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => a || b;
 
-export const subtract = ({ a, b }: { a: number; b: number }): number => a - b;
+export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && b;
 `;
 
       expect(fileContentAfterHook).toStrictEqual(expectedFixedContent);

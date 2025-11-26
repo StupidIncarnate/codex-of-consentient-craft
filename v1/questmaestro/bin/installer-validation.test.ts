@@ -31,7 +31,7 @@ describe('Installer Validation Tests', () => {
     } catch (error) {
       if (error instanceof Error && error.message.startsWith('Process exit with code')) {
         const match = error.message.match(/code (\d+)/);
-        exitCode = match ? parseInt(match[1], 10) : 1;
+        exitCode = match && match[1] ? parseInt(match[1], 10) : 1;
         success = exitCode === 0;
       } else {
         success = false;

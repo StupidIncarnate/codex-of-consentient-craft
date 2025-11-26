@@ -1009,21 +1009,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'middleware',
             importedFolder: 'brokers',
-            allowed: 'adapters/, middleware/, statics/',
-          },
-        },
-      ],
-    },
-    {
-      code: 'import { userContract } from "../../contracts/user/user-contract";',
-      filename: '/project/src/middleware/validation/validation-middleware.ts',
-      errors: [
-        {
-          messageId: 'forbiddenImport',
-          data: {
-            folderType: 'middleware',
-            importedFolder: 'contracts',
-            allowed: 'adapters/, middleware/, statics/',
+            allowed: 'adapters/, middleware/, statics/, contracts/, guards/',
           },
         },
       ],

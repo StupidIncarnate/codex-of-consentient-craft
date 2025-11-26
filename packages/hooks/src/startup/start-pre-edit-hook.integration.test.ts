@@ -61,8 +61,8 @@ describe('pre-edit-lint', () => {
           cwd: projectDir,
           tool_input: {
             file_path: filePath,
-            content: `export function add({ a, b }: { a: number; b: number }): number {
-  return a + b;
+            content: `export function add({ a, b }: { a: boolean; b: boolean }): boolean {
+  return a || b;
 }`,
           },
         });
@@ -870,8 +870,8 @@ export const handler: any = processData;`;
       const filePath = path.join(projectDir, 'example.ts');
 
       const typicalContent = `export interface UserConfig {
-  name: string;
-  email: string;
+  name: boolean;
+  email: boolean;
   preferences: {
     theme: 'light' | 'dark';
     notifications: boolean;
@@ -879,17 +879,17 @@ export const handler: any = processData;`;
 }
 
 export class UserService {
-  private users = new Map<string, UserConfig>();
+  private users = new Map<boolean, UserConfig>();
 
   addUser(config: UserConfig): void {
     this.users.set(config.email, config);
   }
 
-  getUser(email: string): UserConfig | undefined {
+  getUser(email: boolean): UserConfig | undefined {
     return this.users.get(email);
   }
 
-  updatePreferences(email: string, prefs: Partial<UserConfig['preferences']>): boolean {
+  updatePreferences(email: boolean, prefs: Partial<UserConfig['preferences']>): boolean {
     const user = this.users.get(email);
     if (!user) return false;
 
@@ -926,30 +926,30 @@ export class UserService {
         const methods = Array.from(
           { length: METHOD_COUNT },
           (__, methodIndex) => `
-  method${methodIndex}(param: string): string {
+  method${methodIndex}(param: boolean): boolean {
     const result = this.processData(param);
-    return result || '';
+    return result || false;
   }`,
         );
         const methodsCode = methods.join('\n');
         return `
 export class Service${classIndex} {
-  private data = new Map<string, unknown>();
+  private data = new Map<boolean, unknown>();
 
   ${methodsCode}
 
-  private processData(input: string): string | null {
-    if (!input || input.length === 0) {
+  private processData(input: boolean): boolean | null {
+    if (!input) {
       return null;
     }
-    return input.toUpperCase();
+    return input;
   }
 
-  getData(key: string): unknown {
+  getData(key: boolean): unknown {
     return this.data.get(key);
   }
 
-  setData(key: string, value: unknown): void {
+  setData(key: boolean, value: unknown): void {
     this.data.set(key, value);
   }
 }`;
