@@ -14,7 +14,7 @@ import {
   ListToolsRequestSchema,
   type CallToolRequest,
 } from '@modelcontextprotocol/sdk/types';
-import { architectureOverviewBroker } from '../brokers/architecture/overview/architecture-overview-broker.js';
+import { architectureOverviewBroker } from '@questmaestro/shared/brokers';
 import { architectureFolderDetailBroker } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker.js';
 import { architectureSyntaxRulesBroker } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker.js';
 import { architectureTestingPatternsBroker } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.js';

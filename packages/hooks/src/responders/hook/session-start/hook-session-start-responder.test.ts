@@ -4,51 +4,32 @@ import { SessionStartHookStub } from '../../../contracts/session-start-hook-data
 
 describe('HookSessionStartResponder', () => {
   describe('New Session', () => {
-    it('VALID: {isNew: true, standardsContent: "content"} => returns {shouldOutput: true, content: formatted}', async () => {
+    it('VALID: {isNew: true} => returns {shouldOutput: true, content: architecture overview}', async () => {
       const proxy = HookSessionStartResponderProxy();
       const hookData = SessionStartHookStub({ cwd: '/test/project' });
-      const standardsContent = '# Project Standards\n\nFollow these guidelines...';
 
       proxy.setupIsNewSession({ isNew: true });
-      proxy.setupStandardsLoad({ content: standardsContent });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
       expect(result.shouldOutput).toBe(true);
       expect(result.content).toMatch(/\[NEW SESSION\]/u);
-      expect(result.content).toMatch(/<questmaestro-standards>/u);
-      expect(result.content).toMatch(/# Project Standards\n\nFollow these guidelines\.\.\./u);
-      expect(result.content).toMatch(
-        /Please refer to these standards when writing, reviewing, or suggesting code changes/u,
-      );
+      expect(result.content).toMatch(/<questmaestro-architecture>/u);
+      expect(result.content).toMatch(/# Architecture Overview/u);
+      expect(result.content).toMatch(/Use MCP tools/u);
     });
 
-    it('EMPTY: {isNew: true, standardsContent: ""} => returns {shouldOutput: false}', async () => {
+    it('VALID: {isNew: true} => includes folder types table', async () => {
       const proxy = HookSessionStartResponderProxy();
       const hookData = SessionStartHookStub();
 
       proxy.setupIsNewSession({ isNew: true });
-      proxy.setupStandardsLoad({ content: '' });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      expect(result).toStrictEqual({
-        shouldOutput: false,
-      });
-    });
-
-    it('EMPTY: {isNew: true, standardsContent: "   \\n\\t  "} => returns {shouldOutput: false}', async () => {
-      const proxy = HookSessionStartResponderProxy();
-      const hookData = SessionStartHookStub();
-
-      proxy.setupIsNewSession({ isNew: true });
-      proxy.setupStandardsLoad({ content: '   \n\t  ' });
-
-      const result = await HookSessionStartResponder({ input: hookData });
-
-      expect(result).toStrictEqual({
-        shouldOutput: false,
-      });
+      expect(result.shouldOutput).toBe(true);
+      expect(result.content).toMatch(/## Folder Types/u);
+      expect(result.content).toMatch(/\| Folder \| Purpose \| Depth \| When to Use \|/u);
     });
   });
 
@@ -66,14 +47,12 @@ describe('HookSessionStartResponder', () => {
       });
     });
 
-    it('VALID: {isNew: false, ALWAYS_LOAD: "true", standardsContent: "content"} => returns {shouldOutput: true, content: formatted with RESUMED SESSION}', async () => {
+    it('VALID: {isNew: false, ALWAYS_LOAD: "true"} => returns {shouldOutput: true, content: with RESUMED SESSION}', async () => {
       const proxy = HookSessionStartResponderProxy();
       const hookData = SessionStartHookStub({ cwd: '/test/project' });
       process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS = 'true';
-      const standardsContent = '# Standards content';
 
       proxy.setupIsNewSession({ isNew: false });
-      proxy.setupStandardsLoad({ content: standardsContent });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
@@ -81,26 +60,24 @@ describe('HookSessionStartResponder', () => {
 
       expect(result.shouldOutput).toBe(true);
       expect(result.content).toMatch(/\[RESUMED SESSION\]/u);
-      expect(result.content).toMatch(/# Standards content/u);
+      expect(result.content).toMatch(/# Architecture Overview/u);
     });
   });
 
   describe('Environment Variables', () => {
-    it('VALID: {isNew: false, ALWAYS_LOAD: "true"} => loads standards', async () => {
+    it('VALID: {isNew: false, ALWAYS_LOAD: "true"} => loads architecture', async () => {
       const proxy = HookSessionStartResponderProxy();
       const hookData = SessionStartHookStub();
       process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS = 'true';
-      const standardsContent = '# Test standards';
 
       proxy.setupIsNewSession({ isNew: false });
-      proxy.setupStandardsLoad({ content: standardsContent });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
       delete process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS;
 
       expect(result.shouldOutput).toBe(true);
-      expect(result.content).toMatch(/# Test standards/u);
+      expect(result.content).toMatch(/# Architecture Overview/u);
     });
 
     it('VALID: {isNew: false, ALWAYS_LOAD: "false"} => returns {shouldOutput: false}', async () => {
@@ -120,24 +97,35 @@ describe('HookSessionStartResponder', () => {
     });
   });
 
-  describe('Standards Content Output', () => {
-    it('VALID: output includes XML tags and instructions', async () => {
+  describe('Architecture Content Output', () => {
+    it('VALID: output includes XML tags and MCP instructions', async () => {
       const proxy = HookSessionStartResponderProxy();
       const hookData = SessionStartHookStub();
-      const standardsContent = 'Test content';
 
       proxy.setupIsNewSession({ isNew: true });
-      proxy.setupStandardsLoad({ content: standardsContent });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
       expect(result.shouldOutput).toBe(true);
-      expect(result.content).toMatch(/<questmaestro-standards>/u);
-      expect(result.content).toMatch(/<\/questmaestro-standards>/u);
-      expect(result.content).toMatch(/Test content/u);
+      expect(result.content).toMatch(/<questmaestro-architecture>/u);
+      expect(result.content).toMatch(/<\/questmaestro-architecture>/u);
+      expect(result.content).toMatch(/# Architecture Overview/u);
       expect(result.content).toMatch(
-        /Please refer to these standards when writing, reviewing, or suggesting code changes/u,
+        /Use MCP tools \(get-folder-detail, get-syntax-rules, get-testing-patterns\)/u,
       );
+    });
+
+    it('VALID: output includes critical rules section', async () => {
+      const proxy = HookSessionStartResponderProxy();
+      const hookData = SessionStartHookStub();
+
+      proxy.setupIsNewSession({ isNew: true });
+
+      const result = await HookSessionStartResponder({ input: hookData });
+
+      expect(result.shouldOutput).toBe(true);
+      expect(result.content).toMatch(/## Critical Rules Summary/u);
+      expect(result.content).toMatch(/Never do these things/u);
     });
   });
 });

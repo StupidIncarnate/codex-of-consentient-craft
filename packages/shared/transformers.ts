@@ -9,3 +9,6 @@
 
 // Metadata Extractor
 export * from './src/transformers/metadata-extractor/metadata-extractor-transformer';
+
+// Folder Dependency Tree
+export * from './src/transformers/folder-dependency-tree/folder-dependency-tree-transformer';

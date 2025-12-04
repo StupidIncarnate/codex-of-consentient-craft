@@ -27,6 +27,11 @@
       "import": "./dist/statics.js",
       "require": "./dist/statics.js",
       "types": "./dist/statics.d.ts"
+    },
+    "./brokers": {
+      "import": "./dist/brokers.js",
+      "require": "./dist/brokers.js",
+      "types": "./dist/brokers.d.ts"
     }
   },
   "files": [

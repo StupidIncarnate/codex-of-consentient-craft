@@ -1,21 +1,20 @@
 /**
- * PURPOSE: Handles session start hook events by loading standards for new sessions
+ * PURPOSE: Handles session start hook events by loading architecture overview for new sessions
  *
  * USAGE:
  * const result = await HookSessionStartResponder({ input: sessionStartData });
- * // Returns { shouldOutput: boolean, content?: string } with standards to inject
+ * // Returns { shouldOutput: boolean, content?: string } with architecture overview to inject
  */
+import { architectureOverviewBroker } from '@questmaestro/shared/brokers';
 import { sessionIsNewBroker } from '../../../brokers/session/is-new/session-is-new-broker';
-import { standardsLoadFilesBroker } from '../../../brokers/standards/load-files/standards-load-files-broker';
 import { hookSessionStartResponderResultContract } from '../../../contracts/hook-session-start-responder-result/hook-session-start-responder-result-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { SessionStartHookData } from '../../../contracts/session-start-hook-data/session-start-hook-data-contract';
 import type { HookSessionStartResponderResult } from '../../../contracts/hook-session-start-responder-result/hook-session-start-responder-result-contract';
 
 /**
  * Responder for session-start hook events.
  *
- * Determines if a session is new and optionally loads coding standards
+ * Determines if a session is new and optionally loads architecture overview
  * to inject into the Claude context.
  *
  * @param params - The parameters object
@@ -29,29 +28,25 @@ export const HookSessionStartResponder = async ({
 }): Promise<HookSessionStartResponderResult> => {
   const isNew = await sessionIsNewBroker({ transcriptPath: input.transcript_path });
 
-  // Only load standards for new sessions (or always, based on preference)
-  const shouldLoadStandards = isNew || process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS === 'true';
+  // Only load architecture for new sessions (or always, based on preference)
+  const shouldLoadArchitecture = isNew || process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS === 'true';
 
-  if (shouldLoadStandards) {
-    const standardsContent = await standardsLoadFilesBroker({
-      cwd: filePathContract.parse(input.cwd),
+  if (shouldLoadArchitecture) {
+    const architectureContent = architectureOverviewBroker();
+
+    const sessionType = isNew ? 'NEW SESSION' : 'RESUMED SESSION';
+    const content = `<questmaestro-architecture>
+[${sessionType}] Architecture overview for this codebase:
+
+${architectureContent}
+
+Use MCP tools (get-folder-detail, get-syntax-rules, get-testing-patterns) for detailed patterns.
+</questmaestro-architecture>\n`;
+
+    return hookSessionStartResponderResultContract.parse({
+      shouldOutput: true,
+      content,
     });
-
-    if (standardsContent.trim()) {
-      const sessionType = isNew ? 'NEW SESSION' : 'RESUMED SESSION';
-      const content = `<questmaestro-standards>
-[${sessionType}] The following coding and testing standards should be followed throughout this session:
-
-${standardsContent}
-
-Please refer to these standards when writing, reviewing, or suggesting code changes.
-</questmaestro-standards>\n`;
-
-      return hookSessionStartResponderResultContract.parse({
-        shouldOutput: true,
-        content,
-      });
-    }
   }
 
   return hookSessionStartResponderResultContract.parse({

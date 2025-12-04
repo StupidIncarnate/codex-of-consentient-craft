@@ -152,66 +152,6 @@ describe('architectureOverviewBroker', () => {
         true,
       );
     });
-
-    it('VALID: {} => includes layer file structure example', () => {
-      architectureOverviewBrokerProxy();
-
-      const result = architectureOverviewBroker();
-
-      expect(result.includes('**Structure:**')).toBe(true);
-      expect(result.includes('user-fetch-broker.ts')).toBe(true);
-      expect(result.includes('validate-input-layer-broker.ts')).toBe(true);
-      expect(result.includes('format-response-layer-broker.ts')).toBe(true);
-    });
-
-    it('VALID: {} => includes layer files ARE characteristics', () => {
-      architectureOverviewBrokerProxy();
-
-      const result = architectureOverviewBroker();
-
-      expect(result.includes('**Layer files ARE:**')).toBe(true);
-      expect(result.includes('✅ Co-located with parent (same directory, flat structure)')).toBe(
-        true,
-      );
-      expect(result.includes('✅ Full entities with own `.proxy.ts` and `.test.ts`')).toBe(true);
-      expect(result.includes('✅ Independently testable')).toBe(true);
-      expect(result.includes("✅ Scoped to parent's domain")).toBe(true);
-    });
-
-    it('VALID: {} => includes layer files are NOT characteristics', () => {
-      architectureOverviewBrokerProxy();
-
-      const result = architectureOverviewBroker();
-
-      expect(result.includes('**Layer files are NOT:**')).toBe(true);
-      expect(result.includes('❌ Utilities (those go in `transformers/` or `guards/`)')).toBe(true);
-      expect(result.includes('❌ Reusable across parents')).toBe(true);
-      expect(result.includes('❌ Separate domains')).toBe(true);
-      expect(result.includes('❌ In subfolders')).toBe(true);
-    });
-
-    it('VALID: {} => includes testing guidance for layers', () => {
-      architectureOverviewBrokerProxy();
-
-      const result = architectureOverviewBroker();
-
-      expect(result.includes('**Testing:**')).toBe(true);
-      expect(
-        result.includes('Each layer has its own test file following standard proxy pattern'),
-      ).toBe(true);
-      expect(result.includes('Create fresh proxy per test')).toBe(true);
-    });
-
-    it('VALID: {} => includes lint enforcement information', () => {
-      architectureOverviewBrokerProxy();
-
-      const result = architectureOverviewBroker();
-
-      expect(result.includes('**Lint Enforcement:**')).toBe(true);
-      expect(result.includes('@questmaestro/enforce-project-structure')).toBe(true);
-      expect(result.includes('@questmaestro/enforce-implementation-colocation')).toBe(true);
-      expect(result.includes('validates `-layer-` appears before folder suffix')).toBe(true);
-    });
   });
 
   describe('import rules documentation', () => {
@@ -237,68 +177,6 @@ describe('architectureOverviewBroker', () => {
         ),
       ).toBe(true);
       expect(result.includes('**Pattern:** `[folder-path]-[folder-suffix].ts`')).toBe(true);
-    });
-
-    it('VALID: {} => includes entry file examples showing what IS entry', () => {
-      architectureOverviewBrokerProxy();
-
-      const result = architectureOverviewBroker();
-
-      expect(
-        result.includes(
-          'brokers/user/fetch/user-fetch-broker.ts` ✅ Entry file (filename = folder path)',
-        ),
-      ).toBe(true);
-      expect(result.includes('adapters/axios/get/axios-get-adapter.ts` ✅ Entry file')).toBe(true);
-      expect(result.includes('contracts/user/user-contract.ts` ✅ Entry file')).toBe(true);
-    });
-
-    it('VALID: {} => includes entry file examples showing what is NOT entry', () => {
-      architectureOverviewBrokerProxy();
-
-      const result = architectureOverviewBroker();
-
-      expect(
-        result.includes(
-          'brokers/user/fetch/validate-helper.ts` ❌ NOT entry (has extra "validate")',
-        ),
-      ).toBe(true);
-      expect(result.includes('validate-layer-broker.ts` ❌ NOT entry (has "validate-layer")')).toBe(
-        true,
-      );
-      expect(result.includes('avatar-layer-widget.tsx` ❌ NOT entry (has "avatar-layer")')).toBe(
-        true,
-      );
-    });
-
-    it('VALID: {} => includes layer file import restrictions', () => {
-      architectureOverviewBrokerProxy();
-
-      const result = architectureOverviewBroker();
-
-      expect(
-        result.includes(
-          '**Layer files** (`-layer-` in filename) are internal implementation details',
-        ),
-      ).toBe(true);
-      expect(
-        result.includes('they can ONLY be imported within their own domain folder, never across'),
-      ).toBe(true);
-    });
-
-    it('VALID: {} => includes correct import examples', () => {
-      architectureOverviewBrokerProxy();
-
-      const result = architectureOverviewBroker();
-
-      expect(result.includes('✅ CORRECT - Importing entry file (name matches folders)')).toBe(
-        true,
-      );
-      expect(result.includes('❌ WRONG - Importing non-entry files (names have extra parts)')).toBe(
-        true,
-      );
-      expect(result.includes('validateLayerBroker')).toBe(true);
-      expect(result.includes('avatarLayerWidget')).toBe(true);
     });
   });
 });

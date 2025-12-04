@@ -7,8 +7,11 @@
  *
  * WHEN-TO-USE: When LLMs need a high-level overview of the project structure and architecture
  */
-import { folderConfigStatics } from '@questmaestro/shared/statics';
-import { folderConfigContract, type FolderConfig } from '@questmaestro/shared/contracts';
+import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+import {
+  folderConfigContract,
+  type FolderConfig,
+} from '../../../contracts/folder-config/folder-config-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { folderDependencyTreeTransformer } from '../../../transformers/folder-dependency-tree/folder-dependency-tree-transformer';
