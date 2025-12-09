@@ -861,7 +861,8 @@ export const hasEditPermissionGuard = ({currentUser, profileUserId}: {
 };
 ```
 
-**Note:** All guard parameters must be optional (enforced by `@questmaestro/enforce-optional-guard-params` rule). Guards
+**Note:** All guard parameters must be optional (enforced by `@dungeonmaster/enforce-optional-guard-params` rule).
+Guards
 validate parameters exist before using them.
 
 **Without Guard Proxy:**
@@ -1003,7 +1004,7 @@ it('VALID: {own profile} => displays name and edit button', async () => {
     expect(screen.getByText(/^Jane Smith$/)).toBeInTheDocument();
     expect(screen.getByTestId('EDIT_BUTTON')).toBeInTheDocument();
 });
-// @questmaestro/testing automatically clears all mocks after test
+// @dungeonmaster/testing automatically clears all mocks after test
 ```
 
 ### Child Proxy Creation: Assignment vs Direct Call
@@ -1134,7 +1135,7 @@ mockFsReadFileAdapter.mockResolvedValue(FileContentsStub({value: 'content'}));
 - **Direct Mock Manipulation**: Using `jest.mocked()` directly in tests instead of proxy semantic methods
 - **Mocking Application Code**: Using `jest.mock()` on application code - only mock npm packages in proxies
 - **Conditional Mocking**: Using if/else logic inside mock implementations
-- **Manual Mock Cleanup**: Calling `mockReset()`, `mockClear()`, `clearAllMocks()` - @questmaestro/testing handles this
+- **Manual Mock Cleanup**: Calling `mockReset()`, `mockClear()`, `clearAllMocks()` - @dungeonmaster/testing handles this
 - **Using jest.spyOn() for Modules**: Only use spyOn for global objects (crypto, Date), not module imports
 - **Unsafe Type Assertions**: Using `as jest.MockedFunction<typeof fn>` instead of `jest.mocked()`
 - **Manual Mock Factories**: Using `jest.mock('module', () => ({...}))` when auto-mocking works
@@ -1283,7 +1284,7 @@ never use `jest.fn()` internally** - they accept mocks via props.
 // contracts/user/user.stub.ts
 import {userContract} from './user-contract';
 import type {User} from './user-contract';
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 
 export const UserStub = ({...props}: StubArgument<User> = {}): User =>
     userContract.parse({
@@ -1296,7 +1297,7 @@ export const UserStub = ({...props}: StubArgument<User> = {}): User =>
 // contracts/thing/thing.stub.ts - with mixed data and functions
 import {thingContract} from './thing-contract';
 import type {Thing} from './thing-contract';
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 
 export const ThingStub = ({...props}: StubArgument<Thing> = {}): Thing => {
     // Separate function props from data props
@@ -1325,7 +1326,7 @@ it('VALID: calls function', () => {
 });
 
 // contracts/async-service/async-service.stub.ts - async functions
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 
 export const AsyncServiceStub = ({...props}: StubArgument<AsyncService> = {}): AsyncService => {
     const {sendRequest, close, ...dataProps} = props;
@@ -1364,7 +1365,7 @@ With the adapter pivot, adapters translate npm types → contract types. Tests u
 ```typescript
 // Contract stub - project-defined type (object)
 // contracts/user/user.stub.ts
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 
 export const UserStub = ({...props}: StubArgument<User> = {}): User =>
     userContract.parse({
@@ -1375,7 +1376,7 @@ export const UserStub = ({...props}: StubArgument<User> = {}): User =>
 
 // Contract stub - translated from npm package (object)
 // contracts/http-response/http-response.stub.ts
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 
 export const HttpResponseStub = ({...props}: StubArgument<HttpResponse> = {}): HttpResponse =>
     httpResponseContract.parse({
@@ -1393,7 +1394,7 @@ export const FilePathStub = (
 
 // Contract stub - complex type with mixed data and functions (object)
 // contracts/eslint-context/eslint-context.stub.ts
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 import {z} from 'zod';
 
 // Contract defines only data properties (functions cause Zod type inference issues)
@@ -1446,11 +1447,11 @@ export const EslintContextStub = ({
 };
 ```
 
-**Stub Patterns (Enforced by `@questmaestro/enforce-stub-patterns` rule):**
+**Stub Patterns (Enforced by `@dungeonmaster/enforce-stub-patterns` rule):**
 
 1. **Object Stubs** (complex types with data properties only):
     - MUST use spread operator: `({ ...props }: StubArgument<Type> = {})`
-    - MUST use `StubArgument<Type>` from `@questmaestro/shared/@types`
+   - MUST use `StubArgument<Type>` from `@dungeonmaster/shared/@types`
     - MUST return `contract.parse({ defaults, ...props })`
    - **Optional fields:** Only provide defaults for required fields, let optional fields be omitted
 
@@ -1757,7 +1758,7 @@ it('VALID: {value: "test"} => parses successfully', () => {
 
 - Enforces consistent test data creation patterns across all test types
 - Validates that stubs correctly use contracts (integration point)
-- Prevents importing contracts in test files (enforced by `@questmaestro/ban-contract-in-tests` rule)
+- Prevents importing contracts in test files (enforced by `@dungeonmaster/ban-contract-in-tests` rule)
 - Tests both the contract validation AND the stub factory in one test
 
 **Contract test structure:**

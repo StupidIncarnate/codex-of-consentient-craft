@@ -14,7 +14,7 @@ statics/
 
 1. **Always use `as const`** - Enforces readonly at compile time
 2. **No primitives at root** - Root must contain only objects or arrays (enforced by
-   `@questmaestro/enforce-grouped-statics`)
+   `@dungeonmaster/enforce-grouped-statics`)
 3. **No conditionals** - No if/else, ternaries, or logic in statics (pure data only)
 4. **One export per file** - Single object with `Statics` suffix
 

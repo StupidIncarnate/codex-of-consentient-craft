@@ -12,7 +12,7 @@ The `init-claude-docs.js` script runs automatically after `npm install` to:
 
 ## Full Implementation
 
-**File:** `@questmaestro/standards/bin/init-claude-docs.js`
+**File:** `@dungeonmaster/standards/bin/init-claude-docs.js`
 
 ```javascript
 #!/usr/bin/env node
@@ -107,10 +107,10 @@ function checkVersionAlignment() {
   const deps = { ...pkgJson.dependencies, ...pkgJson.devDependencies };
 
   const versions = {
-    standards: deps['@questmaestro/standards'],
-    testing: deps['@questmaestro/testing'],
-    eslint: deps['@questmaestro/eslint-plugin'],
-    hooks: deps['@questmaestro/hooks'],
+    standards: deps['@dungeonmaster/standards'],
+    testing: deps['@dungeonmaster/testing'],
+    eslint: deps['@dungeonmaster/eslint-plugin'],
+    hooks: deps['@dungeonmaster/hooks'],
   };
 
   const getMajor = (ver) => ver ? parseInt(ver.replace(/[^0-9.]/g, '').split('.')[0]) : null;
@@ -122,13 +122,13 @@ function checkVersionAlignment() {
     console.warn(`
 ⚠️  WARNING: Version mismatch detected!
 
-  @questmaestro/standards:     ${versions.standards || 'not installed'}
-  @questmaestro/testing:        ${versions.testing || 'not installed'}
-  @questmaestro/eslint-plugin: ${versions.eslint || 'not installed'}
-  @questmaestro/hooks:          ${versions.hooks || 'not installed'}
+  @dungeonmaster/standards:     ${versions.standards || 'not installed'}
+  @dungeonmaster/testing:        ${versions.testing || 'not installed'}
+  @dungeonmaster/eslint-plugin: ${versions.eslint || 'not installed'}
+  @dungeonmaster/hooks:          ${versions.hooks || 'not installed'}
 
-All @questmaestro packages should have matching major versions.
-Run: npm update @questmaestro/standards @questmaestro/testing @questmaestro/eslint-plugin @questmaestro/hooks
+All @dungeonmaster packages should have matching major versions.
+Run: npm update @dungeonmaster/standards @dungeonmaster/testing @dungeonmaster/eslint-plugin @dungeonmaster/hooks
     `);
   }
 }
@@ -151,40 +151,40 @@ async function initClaudeDocs() {
 
   console.log('📁 Setting up framework documentation links...\n');
 
-  // Link @questmaestro/standards docs
+  // Link @dungeonmaster/standards docs
   try {
-    const standardsPath = require.resolve('@questmaestro/standards/package.json');
+    const standardsPath = require.resolve('@dungeonmaster/standards/package.json');
     const standardsRoot = path.dirname(standardsPath);
     createSymlinkSafe(
       path.join(standardsRoot, 'docs'),
       path.join(frameworkDir, 'standards')
     );
   } catch (error) {
-    console.warn('⚠ @questmaestro/standards not found, skipping...');
+    console.warn('⚠ @dungeonmaster/standards not found, skipping...');
   }
 
-  // Link @questmaestro/testing docs
+  // Link @dungeonmaster/testing docs
   try {
-    const testingPath = require.resolve('@questmaestro/testing/package.json');
+    const testingPath = require.resolve('@dungeonmaster/testing/package.json');
     const testingRoot = path.dirname(testingPath);
     createSymlinkSafe(
       path.join(testingRoot, 'docs'),
       path.join(frameworkDir, 'testing')
     );
   } catch (error) {
-    console.warn('⚠ @questmaestro/testing not found, skipping...');
+    console.warn('⚠ @dungeonmaster/testing not found, skipping...');
   }
 
-  // Link @questmaestro/eslint-plugin docs
+  // Link @dungeonmaster/eslint-plugin docs
   try {
-    const eslintPath = require.resolve('@questmaestro/eslint-plugin/package.json');
+    const eslintPath = require.resolve('@dungeonmaster/eslint-plugin/package.json');
     const eslintRoot = path.dirname(eslintPath);
     createSymlinkSafe(
       path.join(eslintRoot, 'docs'),
       path.join(frameworkDir, 'lint')
     );
   } catch (error) {
-    console.warn('⚠ @questmaestro/eslint-plugin not found, skipping...');
+    console.warn('⚠ @dungeonmaster/eslint-plugin not found, skipping...');
   }
 
   // Generate .claude/.gitignore
@@ -192,7 +192,7 @@ async function initClaudeDocs() {
   fs.writeFileSync(
     path.join(claudeDir, '.gitignore'),
     `# Auto-generated framework docs (symlinked from node_modules)
-# These update automatically when you update @questmaestro packages
+# These update automatically when you update @dungeonmaster packages
 _framework/
 
 # Keep custom docs (commit these)
@@ -253,23 +253,23 @@ Keep each doc focused and < 500 lines for optimal LLM context loading.
   console.log('\n✅ Quest Maestro documentation initialized!\n');
   console.log('📂 Structure:');
   console.log('   .claude/');
-  console.log('   ├── _framework/     (auto-synced from @questmaestro packages)');
+  console.log('   ├── _framework/     (auto-synced from @dungeonmaster packages)');
   console.log('   └── custom/         (your project-specific docs - commit these)');
   console.log('   CLAUDE.md           (root orchestrator)');
   console.log('\n💡 Next steps:');
   console.log('   1. Review CLAUDE.md and customize for your project');
   console.log('   2. Add project-specific docs to .claude/custom/');
   console.log('   3. Read .claude/_framework/standards/core-rules.md (10 min)');
-  console.log('   4. Optional: Run `npx @questmaestro/standards scaffold` to generate starter files');
+  console.log('   4. Optional: Run `npx @dungeonmaster/standards scaffold` to generate starter files');
   console.log('');
 }
 
 function generateClaudeMdTemplate(projectInfo) {
   const versions = {
-    standards: getPackageVersion('@questmaestro/standards'),
-    testing: getPackageVersion('@questmaestro/testing'),
-    eslint: getPackageVersion('@questmaestro/eslint-plugin'),
-    hooks: getPackageVersion('@questmaestro/hooks'),
+    standards: getPackageVersion('@dungeonmaster/standards'),
+    testing: getPackageVersion('@dungeonmaster/testing'),
+    eslint: getPackageVersion('@dungeonmaster/eslint-plugin'),
+    hooks: getPackageVersion('@dungeonmaster/hooks'),
   };
 
   let techStackSection = '';
@@ -350,12 +350,12 @@ ${techStackSection || '- **Tech stack:** (Add to .claude/custom/tech-stack.md)'}
 
 ### Framework Versions
 
-- **@questmaestro/standards**: v${versions.standards}
-- **@questmaestro/testing**: v${versions.testing}
-- **@questmaestro/eslint-plugin**: v${versions.eslint}
-- **@questmaestro/hooks**: v${versions.hooks}
+- **@dungeonmaster/standards**: v${versions.standards}
+- **@dungeonmaster/testing**: v${versions.testing}
+- **@dungeonmaster/eslint-plugin**: v${versions.eslint}
+- **@dungeonmaster/hooks**: v${versions.hooks}
 
-**To update:** \`npm update @questmaestro/standards\` (symlinks auto-sync)
+**To update:** \`npm update @dungeonmaster/standards\` (symlinks auto-sync)
 
 ---
 
@@ -382,7 +382,7 @@ initClaudeDocs().catch((error) => {
 
 ```json
 {
-  "name": "@questmaestro/standards",
+  "name": "@dungeonmaster/standards",
   "version": "1.0.0",
   "bin": {
     "init-claude-docs": "./bin/init-claude-docs.js"
@@ -400,7 +400,7 @@ initClaudeDocs().catch((error) => {
 ### Automatic (Post-Install)
 
 ```bash
-npm install @questmaestro/standards
+npm install @dungeonmaster/standards
 # → Triggers postinstall script
 # → Runs init-claude-docs.js automatically
 ```
@@ -408,7 +408,7 @@ npm install @questmaestro/standards
 ### Manual
 
 ```bash
-npx @questmaestro/standards init-claude-docs
+npx @dungeonmaster/standards init-claude-docs
 # → Runs script manually
 # → Useful for re-initialization
 ```
@@ -460,7 +460,7 @@ CLAUDE.md                   ← Generated if missing
 
 📂 Structure:
    .claude/
-   ├── _framework/     (auto-synced from @questmaestro packages)
+   ├── _framework/     (auto-synced from @dungeonmaster packages)
    └── custom/         (your project-specific docs - commit these)
    CLAUDE.md           (root orchestrator)
 
@@ -468,7 +468,7 @@ CLAUDE.md                   ← Generated if missing
    1. Review CLAUDE.md and customize for your project
    2. Add project-specific docs to .claude/custom/
    3. Read .claude/_framework/standards/core-rules.md (10 min)
-   4. Optional: Run `npx @questmaestro/standards scaffold` to generate starter files
+   4. Optional: Run `npx @dungeonmaster/standards scaffold` to generate starter files
 ```
 
 ## Error Handling
@@ -490,10 +490,10 @@ try {
 
 ```javascript
 try {
-    const pkgPath = require.resolve('@questmaestro/testing/package.json');
+    const pkgPath = require.resolve('@dungeonmaster/testing/package.json');
     // ...link docs
 } catch (error) {
-    console.warn('⚠ @questmaestro/testing not found, skipping...');
+    console.warn('⚠ @dungeonmaster/testing not found, skipping...');
     // Continue without error
 }
 ```

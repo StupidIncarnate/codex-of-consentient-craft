@@ -13,7 +13,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { astGetMemberExpressionRootTransformer } from '../../../transformers/ast-get-member-expression-root/ast-get-member-expression-root-transformer';
-import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({

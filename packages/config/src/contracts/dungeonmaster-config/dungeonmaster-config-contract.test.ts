@@ -1,10 +1,10 @@
-import { questmaestroConfigContract } from './questmaestro-config-contract';
-import { QuestmaestroConfigStub } from './questmaestro-config.stub';
+import { dungeonmasterConfigContract } from './dungeonmaster-config-contract';
+import { DungeonmasterConfigStub } from './dungeonmaster-config.stub';
 
-describe('questmaestro-config-contract', () => {
+describe('dungeonmaster-config-contract', () => {
   describe('minimal valid configurations', () => {
     it('VALID: minimal React app config => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         routing: 'react-router-dom',
       });
@@ -14,7 +14,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: minimal backend config => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'express',
         routing: 'express',
       });
@@ -24,7 +24,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: minimal library config without routing => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'node-library',
       });
 
@@ -35,7 +35,7 @@ describe('questmaestro-config-contract', () => {
 
   describe('schema configurations', () => {
     it('VALID: single schema library => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
       });
@@ -44,7 +44,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: array of schema libraries => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'nextjs',
         schema: ['zod'],
       });
@@ -55,7 +55,7 @@ describe('questmaestro-config-contract', () => {
 
   describe('architecture configurations', () => {
     it('VALID: config with allowed root files => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'nextjs',
         architecture: {
           allowedRootFiles: ['global.d.ts', 'env.d.ts'],
@@ -66,7 +66,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: config with boolean function prefixes => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         architecture: {
           booleanFunctionPrefixes: ['is', 'has', 'check'],
         },
@@ -76,7 +76,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: config with empty overrides => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         architecture: {
           overrides: {},
         },
@@ -86,7 +86,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: config with empty arrays => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         architecture: {
           allowedRootFiles: [],
           booleanFunctionPrefixes: [],
@@ -101,7 +101,7 @@ describe('questmaestro-config-contract', () => {
   describe('complex configurations with overrides', () => {
     it('VALID: complex frontend config => parses successfully through contract', () => {
       // Use contract.parse directly to avoid TypeScript record type issues with branded keys
-      const parsed = questmaestroConfigContract.parse({
+      const parsed = dungeonmasterConfigContract.parse({
         framework: 'react',
         routing: 'react-router-dom',
         schema: ['zod'],
@@ -130,7 +130,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: complex backend config => parses successfully through contract', () => {
-      const parsed = questmaestroConfigContract.parse({
+      const parsed = dungeonmasterConfigContract.parse({
         framework: 'fastify',
         routing: 'fastify',
         schema: 'zod',
@@ -156,7 +156,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: library config with overrides => parses successfully through contract', () => {
-      const parsed = questmaestroConfigContract.parse({
+      const parsed = dungeonmasterConfigContract.parse({
         framework: 'node-library',
         schema: ['zod'],
         architecture: {
@@ -180,7 +180,7 @@ describe('questmaestro-config-contract', () => {
 
   describe('framework variations', () => {
     it('VALID: Angular config => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'angular',
         routing: '@angular/router',
       });
@@ -190,7 +190,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: Vue config => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'vue',
         routing: 'vue-router',
       });
@@ -200,7 +200,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: Svelte config without routing => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'svelte',
       });
 
@@ -209,7 +209,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: CLI config without routing => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'cli',
       });
 
@@ -218,7 +218,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: Ink CLI config without routing => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'ink-cli',
       });
 
@@ -227,7 +227,7 @@ describe('questmaestro-config-contract', () => {
     });
 
     it('VALID: Monorepo config without routing => parses successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'monorepo',
       });
 
@@ -238,11 +238,11 @@ describe('questmaestro-config-contract', () => {
 
   describe('contract validation', () => {
     it('VALID: stub data parses through contract => validated successfully', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
       });
 
-      const result = questmaestroConfigContract.parse(config);
+      const result = dungeonmasterConfigContract.parse(config);
 
       expect(result).toBeDefined();
     });

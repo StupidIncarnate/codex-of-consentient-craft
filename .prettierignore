@@ -30,9 +30,9 @@ tsconfig.*.json
 *.min.js
 *.min.css
 
-# Questmaestro runtime folders
-questmaestro/active/
-questmaestro/completed/
-questmaestro/abandoned/
+# Dungeonmaster runtime folders
+dungeonmaster/active/
+dungeonmaster/completed/
+dungeonmaster/abandoned/
 
 *.md

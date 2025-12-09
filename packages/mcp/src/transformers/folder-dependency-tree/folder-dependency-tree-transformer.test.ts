@@ -1,6 +1,6 @@
 import { folderDependencyTreeTransformer } from './folder-dependency-tree-transformer';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
-import { FolderConfigStub } from '@questmaestro/shared/contracts';
+import { FolderConfigStub } from '@dungeonmaster/shared/contracts';
 
 const FolderConfigsStub = (
   configs: Record<PropertyKey, ReturnType<typeof FolderConfigStub>>,

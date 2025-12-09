@@ -10,9 +10,9 @@
  * WHEN-TO-USE: When visualizing folder import dependencies in different formats
  */
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { FolderType } from '@questmaestro/shared/contracts';
-import { folderTypeContract } from '@questmaestro/shared/contracts';
-import type { folderConfigStatics } from '@questmaestro/shared/statics';
+import type { FolderType } from '@dungeonmaster/shared/contracts';
+import { folderTypeContract } from '@dungeonmaster/shared/contracts';
+import type { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import type { FolderDependencyTree } from '../../contracts/folder-dependency-tree/folder-dependency-tree-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';

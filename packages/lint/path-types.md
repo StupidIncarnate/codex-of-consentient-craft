@@ -269,7 +269,7 @@ export const createProjectFilePath = (relativePath = 'src/index.ts'): AbsoluteFi
     return createAbsoluteFilePath(`/mock/project/${relativePath}`);
 };
 
-export const createConfigFilePath = (filename = '.questmaestro.js'): AbsoluteFilePath => {
+export const createConfigFilePath = (filename = '.dungeonmaster.js'): AbsoluteFilePath => {
     return createAbsoluteFilePath(`/mock/project/${filename}`);
 };
 
@@ -324,7 +324,7 @@ export const configFindBroker = async ({
     while (currentDir !== '/') {
         const configPath = joinPathsTransformer({
             basePath: currentDir,
-            paths: ['.questmaestro.js' as RelativePath]
+            paths: ['.dungeonmaster.js' as RelativePath]
         });
 
         try {
@@ -378,7 +378,7 @@ const mockFsReadFile = fsReadFile as jest.MockedFunction<typeof fsReadFile>;
 
 describe('configLoadBroker', () => {
     it('loads config from relative path', async () => {
-        const configPath = createRelativePath('.questmaestro.js');
+        const configPath = createRelativePath('.dungeonmaster.js');
         const configContent = '{"framework": "react"}';
 
         mockFsReadFile.mockResolvedValue(configContent);
@@ -388,7 +388,7 @@ describe('configLoadBroker', () => {
         expect(result).toEqual({framework: 'react'});
         // The mock was called with an absolute path (conversion happened)
         expect(mockFsReadFile).toHaveBeenCalledWith({
-            path: expect.stringMatching(/^\/.*\.questmaestro\.js$/)
+            path: expect.stringMatching(/^\/.*\.dungeonmaster\.js$/)
         });
     });
 

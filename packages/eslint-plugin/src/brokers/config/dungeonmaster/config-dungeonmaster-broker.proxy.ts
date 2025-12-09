@@ -3,7 +3,7 @@ import { typescriptEslintEslintPluginLoadAdapterProxy } from '../../../adapters/
 import { eslintPluginJestLoadAdapterProxy } from '../../../adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter.proxy';
 import { eslintPluginEslintCommentsLoadAdapterProxy } from '../../../adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter.proxy';
 
-export const configQuestmaestroBrokerProxy = (): Record<PropertyKey, never> => {
+export const configDungeonmasterBrokerProxy = (): Record<PropertyKey, never> => {
   // Create child adapter proxies (transformers don't require proxies per folderConfigStatics)
   typescriptEslintEslintPluginLoadAdapterProxy();
   eslintPluginJestLoadAdapterProxy();

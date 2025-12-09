@@ -6,7 +6,7 @@
  * // Returns 'obj' for obj.prop.nested, 'result' for result.files, or null if not found
  */
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const astGetMemberExpressionRootTransformer = ({
   expr,

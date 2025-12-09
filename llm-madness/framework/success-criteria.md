@@ -1,6 +1,7 @@
 # Success Criteria: Agent-Based Completion Standards
 
-How to determine when tasks, observable actions, and complete quests are finished in the Questmaestro orchestration system.
+How to determine when tasks, observable actions, and complete quests are finished in the Dungeonmaster orchestration
+system.
 
 ## Theoretical Foundation
 

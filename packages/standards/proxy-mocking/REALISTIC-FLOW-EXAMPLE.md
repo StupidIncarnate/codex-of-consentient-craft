@@ -1450,7 +1450,7 @@ it('test', async () => {
 
     // Assertions...
 });
-// @questmaestro/testing clears mocks after test
+// @dungeonmaster/testing clears mocks after test
 ```
 
 **Benefits:**

@@ -2,11 +2,11 @@
  * PURPOSE: Barrel export file for all shared contract types and schemas
  *
  * USAGE:
- * import { absoluteFilePathContract, type AbsoluteFilePath } from '@questmaestro/shared/contracts';
+ * import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
  * // Returns branded Zod schemas for type-safe validation
  */
 
-// Subpath export entry for @questmaestro/shared/contracts
+// Subpath export entry for @dungeonmaster/shared/contracts
 
 // File Path Contracts
 export * from './src/contracts/file-path/file-path-contract';

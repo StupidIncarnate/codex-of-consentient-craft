@@ -6,7 +6,7 @@
  * // Returns branded FolderType (e.g., 'brokers', 'adapters', 'contracts', 'guards')
  */
 import { z } from 'zod';
-import { folderConfigStatics } from '@questmaestro/shared/statics';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 const allFolderTypes = Object.keys(folderConfigStatics);
 

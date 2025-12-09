@@ -1,11 +1,11 @@
-# @questmaestro/shared
+# @dungeonmaster/shared
 
-Shared contracts, types, and utilities for Questmaestro packages.
+Shared contracts, types, and utilities for Dungeonmaster packages.
 
 ## Installation
 
 ```bash
-npm install @questmaestro/shared
+npm install @dungeonmaster/shared
 ```
 
 ## Usage
@@ -17,7 +17,7 @@ import {
     filePathContract,
     absoluteFilePathContract,
     relativeFilePathContract,
-} from '@questmaestro/shared/contracts';
+} from '@dungeonmaster/shared/contracts';
 
 // General file path (absolute or relative)
 const path = filePathContract.parse('/home/user/config.json');
@@ -32,7 +32,7 @@ const relativePath = relativeFilePathContract.parse('./config.json');
 ### With require() and import()
 
 ```typescript
-import {filePathContract} from '@questmaestro/shared/contracts';
+import {filePathContract} from '@dungeonmaster/shared/contracts';
 
 // ✅ Correct: Validates path at runtime
 const config = require(filePathContract.parse(configPath));
@@ -47,7 +47,7 @@ const config = require(configPath); // Lint error!
 ### Test Stubs
 
 ```typescript
-import {FilePathStub, AbsoluteFilePathStub} from '@questmaestro/shared/contracts';
+import {FilePathStub, AbsoluteFilePathStub} from '@dungeonmaster/shared/contracts';
 
 it('VALID: loads config from path', () => {
     const path = FilePathStub('/home/user/config.json');

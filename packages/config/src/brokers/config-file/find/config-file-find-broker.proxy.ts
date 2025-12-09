@@ -28,7 +28,7 @@ export const configFileFindBrokerProxy = (): {
       const lastSlashIndex = startPath.lastIndexOf('/');
       const directory = lastSlashIndex === 0 ? '/' : startPath.substring(0, lastSlashIndex);
       pathDirnameProxy.returns({ result: directory as never });
-      pathJoinProxy.returns({ result: `${directory}/.questmaestro` as never });
+      pathJoinProxy.returns({ result: `${directory}/.dungeonmaster` as never });
       fsAccessProxy.rejects({ error: new Error('ENOENT: no such file or directory') });
       // Simulate reaching root
       pathDirnameProxy.returns({ result: directory as never });
@@ -47,7 +47,7 @@ export const configFileFindBrokerProxy = (): {
       const directory = lastSlashIndex === 0 ? '/' : startPath.substring(0, lastSlashIndex);
       // First attempt in current directory
       pathDirnameProxy.returns({ result: directory as never });
-      pathJoinProxy.returns({ result: `${directory}/.questmaestro` as never });
+      pathJoinProxy.returns({ result: `${directory}/.dungeonmaster` as never });
       fsAccessProxy.rejects({ error: new Error('ENOENT') });
       // Move to parent
       pathDirnameProxy.returns({ result: parentPath as never });

@@ -6,7 +6,7 @@
  * // Returns ContentText with first suffix (e.g., '-broker.ts' or '-contract.ts')
  */
 
-import type { FolderConfig } from '@questmaestro/shared/contracts';
+import type { FolderConfig } from '@dungeonmaster/shared/contracts';
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 

@@ -72,18 +72,18 @@ describe('StartEslintPlugin', () => {
       });
     });
 
-    it('VALID: => returns config with questmaestro name', () => {
+    it('VALID: => returns config with dungeonmaster name', () => {
       const plugin = StartEslintPlugin();
 
-      expect(Object.keys(plugin.configs)).toStrictEqual(['questmaestro']);
+      expect(Object.keys(plugin.configs)).toStrictEqual(['dungeonmaster']);
     });
 
-    it('VALID: => returns questmaestro config with enforce-object-destructuring-params enabled', () => {
+    it('VALID: => returns dungeonmaster config with enforce-object-destructuring-params enabled', () => {
       const plugin = StartEslintPlugin();
 
       expect(
-        plugin.configs.questmaestro.typescript.rules?.[
-          '@questmaestro/enforce-object-destructuring-params'
+        plugin.configs.dungeonmaster.typescript.rules?.[
+          '@dungeonmaster/enforce-object-destructuring-params'
         ],
       ).toBe('error');
     });

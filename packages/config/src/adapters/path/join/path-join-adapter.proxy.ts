@@ -1,5 +1,5 @@
 import { join } from 'path';
-import type { FilePath } from '@questmaestro/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 // Declare jest.mock() in proxy (auto-hoisted by Jest)
 jest.mock('path');

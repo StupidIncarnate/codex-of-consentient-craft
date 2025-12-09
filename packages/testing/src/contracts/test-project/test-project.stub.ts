@@ -1,4 +1,4 @@
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { testProjectContract } from './test-project-contract';
 import type { TestProject } from './test-project-contract';
 import { processOutputContract } from '../process-output/process-output-contract';
@@ -9,7 +9,7 @@ import type { FileName } from '../file-name/file-name-contract';
 
 export const TestProjectStub = ({ ...props }: StubArgument<TestProject> = {}): TestProject => {
   const {
-    installQuestmaestro,
+    installDungeonmaster,
     hasCommand,
     fileExists,
     readFile,
@@ -30,10 +30,10 @@ export const TestProjectStub = ({ ...props }: StubArgument<TestProject> = {}): T
       rootDir: '/tmp/test-project-abc123',
       ...dataProps,
     }),
-    installQuestmaestro:
-      installQuestmaestro ??
-      ((): ReturnType<TestProject['installQuestmaestro']> =>
-        processOutputContract.parse('Questmaestro installed')),
+    installDungeonmaster:
+      installDungeonmaster ??
+      ((): ReturnType<TestProject['installDungeonmaster']> =>
+        processOutputContract.parse('Dungeonmaster installed')),
     hasCommand: hasCommand ?? ((): boolean => false),
     fileExists: fileExists ?? ((): boolean => false),
     readFile:

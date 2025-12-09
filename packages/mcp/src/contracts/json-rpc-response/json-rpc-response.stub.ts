@@ -1,6 +1,6 @@
 import { jsonRpcResponseContract } from './json-rpc-response-contract';
 import type { JsonRpcResponse } from './json-rpc-response-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const JsonRpcResponseStub = ({
   ...props

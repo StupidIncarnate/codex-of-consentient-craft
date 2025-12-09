@@ -20,10 +20,10 @@ describe('index', () => {
     expect(plugin.rules['enforce-project-structure']).toBeDefined();
   });
 
-  it('VALID: {default export configs} => includes questmaestro config', () => {
+  it('VALID: {default export configs} => includes dungeonmaster config', () => {
     const plugin = StartEslintPlugin();
 
-    expect(plugin.configs.questmaestro).toBeDefined();
-    expect(typeof plugin.configs.questmaestro).toBe('object');
+    expect(plugin.configs.dungeonmaster).toBeDefined();
+    expect(typeof plugin.configs.dungeonmaster).toBe('object');
   });
 });

@@ -8,7 +8,7 @@
  * const noType = folderTypeTransformer({ filename: '/project/lib/file.ts' });
  * // Returns: null
  */
-import { folderTypeContract, type FolderType } from '@questmaestro/shared/contracts';
+import { folderTypeContract, type FolderType } from '@dungeonmaster/shared/contracts';
 
 export const folderTypeTransformer = ({ filename }: { filename: string }): FolderType | null => {
   const normalizedPath = filename.replace(/\\/gu, '/');

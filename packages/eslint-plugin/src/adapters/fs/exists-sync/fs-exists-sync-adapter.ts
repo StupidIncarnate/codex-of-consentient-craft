@@ -6,7 +6,7 @@
  * // Returns true if file exists, false otherwise
  */
 import { existsSync } from 'fs';
-import type { FilePath } from '@questmaestro/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsExistsSyncAdapter = ({ filePath }: { filePath: FilePath }): boolean =>
   existsSync(filePath);

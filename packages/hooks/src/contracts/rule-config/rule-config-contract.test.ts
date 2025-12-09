@@ -6,7 +6,7 @@ describe('ruleConfigContract', () => {
     const result = RuleConfigStub();
 
     expect(result).toStrictEqual({
-      rule: '@questmaestro/enforce-project-structure',
+      rule: '@dungeonmaster/enforce-project-structure',
       displayName: 'Enforce Project Structure',
     });
   });

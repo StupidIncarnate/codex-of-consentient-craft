@@ -8,8 +8,8 @@
  * WHEN-NOT-TO-USE: When you need to check if file exists first - use fsEnsureReadFileSyncAdapter instead
  */
 import { readFileSync } from 'fs';
-import { fileContentsContract } from '@questmaestro/shared/contracts';
-import type { FilePath, FileContents } from '@questmaestro/shared/contracts';
+import { fileContentsContract } from '@dungeonmaster/shared/contracts';
+import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
 
 export const fsReadFileSyncAdapter = ({
   filePath,

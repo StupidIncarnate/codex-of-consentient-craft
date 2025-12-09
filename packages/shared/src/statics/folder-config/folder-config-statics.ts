@@ -32,7 +32,7 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'contracts/[domain]/[domain]-contract.ts',
-    allowedImports: ['statics/', 'errors/', 'contracts/', 'zod', '@questmaestro/shared/@types'],
+    allowedImports: ['statics/', 'errors/', 'contracts/', 'zod', '@dungeonmaster/shared/@types'],
     disallowAdhocTypes: false,
     requireProxy: false,
     allowsLayerFiles: false,

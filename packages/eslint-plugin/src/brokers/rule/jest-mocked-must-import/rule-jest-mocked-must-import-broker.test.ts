@@ -490,11 +490,11 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
       ],
     },
 
-    // ❌ WRONG: Adapter proxy mocking @questmaestro workspace package
+    // ❌ WRONG: Adapter proxy mocking @dungeonmaster workspace package
     {
       code: `
-        import { sharedContract } from '@questmaestro/shared';
-        jest.mock('@questmaestro/shared');
+        import { sharedContract } from '@dungeonmaster/shared';
+        jest.mock('@dungeonmaster/shared');
 
         export const sharedAdapterProxy = () => {
           const mockShared = jest.mocked(sharedContract);

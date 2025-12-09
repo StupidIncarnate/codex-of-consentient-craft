@@ -13,7 +13,7 @@
  *
  * WHEN-TO-USE: When validating folder depth or structure after src directory
  */
-import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const filepathExtractSegmentsAfterSrcTransformer = ({
   filePath,

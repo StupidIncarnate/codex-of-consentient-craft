@@ -5,8 +5,8 @@
  * const folderType = projectFolderTypeFromFilePathTransformer({ filename: '/project/src/brokers/user/fetch.ts' });
  * // Returns 'brokers'
  */
-import type { Identifier } from '@questmaestro/shared/contracts';
-import { identifierContract } from '@questmaestro/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 export const projectFolderTypeFromFilePathTransformer = ({
   filename,

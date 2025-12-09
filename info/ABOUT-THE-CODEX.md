@@ -14,7 +14,7 @@ In medieval guilds, master craftsmen would work simultaneously on different aspe
 
 The Codex of Consentient Craft brings this guild philosophy to AI-driven development:
 
-- **Questmaestro** - The master builder who orchestrates the grand design
+- **Dungeonmaster** - The master builder who orchestrates the grand design
 - **Pathseeker** - Maps the journey and lays the foundation
 - **Codeweaver** - The swift implementer of services
 - **Lawbringer** - Ensures all work meets the guild's standards

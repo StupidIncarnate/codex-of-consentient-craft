@@ -82,7 +82,9 @@ How to ensure AI agents write comprehensive tests while managing:
 **Testing Philosophy**: DAMP (Descriptive And Meaningful Phrases), Not DRY. Never conflate production code with test code.
 
 ### Standards Management
-1. **Smart Routing**: Questmaestro decides whether corrections belong in CLAUDE.md (component-specific) or internal standards (reusable patterns)
+
+1. **Smart Routing**: Dungeonmaster decides whether corrections belong in CLAUDE.md (component-specific) or internal
+   standards (reusable patterns)
 2. **Package Boundaries**: Use npm project structure as natural organization points for standard deviations
 3. **User Responsibility**: Users who care about quality will provide good feedback; users who don't will get results matching their engagement level
 

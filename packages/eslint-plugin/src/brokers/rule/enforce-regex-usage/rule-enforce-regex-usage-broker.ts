@@ -11,7 +11,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
 import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
-import { folderConfigStatics } from '@questmaestro/shared/statics';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 
 // Get allowed folders from config

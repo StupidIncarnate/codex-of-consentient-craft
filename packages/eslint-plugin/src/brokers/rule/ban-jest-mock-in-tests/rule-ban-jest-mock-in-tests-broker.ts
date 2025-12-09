@@ -25,7 +25,7 @@ export const ruleBanJestMockInTestsBroker = (): EslintRule => ({
         noMockingInTests:
           'Test files must not use {{mockFunction}}(). All mocking and module system manipulation must be done in proxy files (.proxy.ts).',
         noCleanupFunctions:
-          'Never use {{mockFunction}}() - @questmaestro/testing handles mock cleanup globally. Manual cleanup causes issues across tests.',
+          'Never use {{mockFunction}}() - @dungeonmaster/testing handles mock cleanup globally. Manual cleanup causes issues across tests.',
       },
       schema: [],
     },

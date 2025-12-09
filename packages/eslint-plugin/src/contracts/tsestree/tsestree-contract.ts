@@ -16,7 +16,7 @@
  */
 import { z } from 'zod';
 import { tsestreeNodeTypeStatics } from '../../statics/tsestree-node-type/tsestree-node-type-statics';
-import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 // Extract literal type union from statics
 type TsestreeNodeTypeValue =

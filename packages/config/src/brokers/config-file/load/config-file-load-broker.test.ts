@@ -1,15 +1,15 @@
 import { configFileLoadBroker } from './config-file-load-broker';
 import { configFileLoadBrokerProxy } from './config-file-load-broker.proxy';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
-import { FilePathStub } from '@questmaestro/shared/contracts';
-import { QuestmaestroConfigStub } from '../../../contracts/questmaestro-config/questmaestro-config.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { DungeonmasterConfigStub } from '../../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 describe('configFileLoadBroker', () => {
   describe('successful config loading', () => {
-    it('VALID: {configPath: "/project/.questmaestro"} => loads JSON config', async () => {
+    it('VALID: {configPath: "/project/.dungeonmaster"} => loads JSON config', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.questmaestro' });
-      const mockConfig = QuestmaestroConfigStub();
+      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const mockConfig = DungeonmasterConfigStub();
 
       proxy.setupValidConfig({ config: mockConfig });
 
@@ -18,10 +18,10 @@ describe('configFileLoadBroker', () => {
       expect(result).toStrictEqual(mockConfig);
     });
 
-    it('VALID: {configPath: "/complex/.questmaestro"} => loads config with architecture overrides', async () => {
+    it('VALID: {configPath: "/complex/.dungeonmaster"} => loads config with architecture overrides', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/complex/.questmaestro' });
-      const mockConfig = QuestmaestroConfigStub({
+      const configPath = FilePathStub({ value: '/complex/.dungeonmaster' });
+      const mockConfig = DungeonmasterConfigStub({
         framework: 'react',
         routing: 'react-router-dom',
         schema: ['zod'],
@@ -41,45 +41,45 @@ describe('configFileLoadBroker', () => {
   });
 
   describe('config validation errors', () => {
-    it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is null', async () => {
+    it('INVALID_CONFIG: {configPath: "/project/.dungeonmaster"} => throws when config is null', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.questmaestro' });
+      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
       proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
-    it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is string', async () => {
+    it('INVALID_CONFIG: {configPath: "/project/.dungeonmaster"} => throws when config is string', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.questmaestro' });
+      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
       proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
-    it('INVALID_CONFIG: {configPath: "/project/.questmaestro"} => throws when config is number', async () => {
+    it('INVALID_CONFIG: {configPath: "/project/.dungeonmaster"} => throws when config is number', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.questmaestro' });
+      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
       proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
-    it('INVALID_FRAMEWORK: {configPath: "/project/.questmaestro"} => throws when framework is missing', async () => {
+    it('INVALID_FRAMEWORK: {configPath: "/project/.dungeonmaster"} => throws when framework is missing', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.questmaestro' });
+      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
       proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
-    it('INVALID_FRAMEWORK: {configPath: "/project/.questmaestro"} => throws when framework is null', async () => {
+    it('INVALID_FRAMEWORK: {configPath: "/project/.dungeonmaster"} => throws when framework is null', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.questmaestro' });
+      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
       proxy.setupInvalidJson();
 
@@ -88,27 +88,27 @@ describe('configFileLoadBroker', () => {
   });
 
   describe('file system errors', () => {
-    it('ERROR: {configPath: "/nonexistent/.questmaestro"} => throws wrapped error when file read fails', async () => {
+    it('ERROR: {configPath: "/nonexistent/.dungeonmaster"} => throws wrapped error when file read fails', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/nonexistent/.questmaestro' });
+      const configPath = FilePathStub({ value: '/nonexistent/.dungeonmaster' });
 
       proxy.setupFileNotFound();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
-    it('ERROR: {configPath: "/corrupted/.questmaestro"} => throws wrapped error when JSON parse fails', async () => {
+    it('ERROR: {configPath: "/corrupted/.dungeonmaster"} => throws wrapped error when JSON parse fails', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/corrupted/.questmaestro' });
+      const configPath = FilePathStub({ value: '/corrupted/.dungeonmaster' });
 
       proxy.setupInvalidJson();
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
-    it('ERROR: {configPath: "/project/.questmaestro"} => wraps validation errors in InvalidConfigError', async () => {
+    it('ERROR: {configPath: "/project/.dungeonmaster"} => wraps validation errors in InvalidConfigError', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.questmaestro' });
+      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
       proxy.setupInvalidJson();
 
@@ -117,10 +117,10 @@ describe('configFileLoadBroker', () => {
   });
 
   describe('edge cases', () => {
-    it('EDGE: {configPath: "/project/.questmaestro"} => strips unknown properties during validation', async () => {
+    it('EDGE: {configPath: "/project/.dungeonmaster"} => strips unknown properties during validation', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.questmaestro' });
-      const expectedConfig = QuestmaestroConfigStub();
+      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const expectedConfig = DungeonmasterConfigStub();
 
       proxy.setupValidConfig({ config: expectedConfig });
 
@@ -129,10 +129,10 @@ describe('configFileLoadBroker', () => {
       expect(result).toStrictEqual(expectedConfig);
     });
 
-    it('EDGE: {configPath: "/project/.questmaestro"} => handles minimal valid config', async () => {
+    it('EDGE: {configPath: "/project/.dungeonmaster"} => handles minimal valid config', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.questmaestro' });
-      const mockConfig = QuestmaestroConfigStub({ framework: 'node-library', schema: 'zod' });
+      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const mockConfig = DungeonmasterConfigStub({ framework: 'node-library', schema: 'zod' });
 
       proxy.setupValidConfig({ config: mockConfig });
 

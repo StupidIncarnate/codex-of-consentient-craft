@@ -1,6 +1,6 @@
 import type { HookData } from './hook-data-contract';
 import { hookDataContract } from './hook-data-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const HookDataStub = ({ ...props }: StubArgument<HookData> = {}): HookData =>
   hookDataContract.parse({

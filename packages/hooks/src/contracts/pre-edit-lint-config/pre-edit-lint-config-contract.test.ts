@@ -6,7 +6,7 @@ describe('preEditLintConfigContract', () => {
     const result = PreEditLintConfigStub();
 
     expect(result).toStrictEqual({
-      rules: ['@questmaestro/enforce-project-structure'],
+      rules: ['@dungeonmaster/enforce-project-structure'],
     });
   });
 

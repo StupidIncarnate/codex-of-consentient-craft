@@ -37,17 +37,17 @@ ruleTester.run('enforce-contract-usage-in-tests', ruleEnforceContractUsageInTest
       filename: '/project/src/transformers/config/parse/config-parse-transformer.test.ts',
     },
 
-    // Stub imports from @questmaestro/shared are allowed
+    // Stub imports from @dungeonmaster/shared are allowed
     {
-      code: 'import { UserStub } from "@questmaestro/shared/stubs";',
+      code: 'import { UserStub } from "@dungeonmaster/shared/stubs";',
       filename: '/project/src/adapters/api/api-adapter.test.ts',
     },
     {
-      code: 'import { FilePathStub } from "@questmaestro/shared/contracts";',
+      code: 'import { FilePathStub } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/brokers/config/load/config-load-broker.test.ts',
     },
     {
-      code: 'import { AbsoluteFilePathStub, RelativeFilePathStub } from "@questmaestro/shared/contracts";',
+      code: 'import { AbsoluteFilePathStub, RelativeFilePathStub } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/adapters/path/path-adapter.test.ts',
     },
     {
@@ -248,9 +248,9 @@ ruleTester.run('enforce-contract-usage-in-tests', ruleEnforceContractUsageInTest
       ],
     },
 
-    // Contract imports from @questmaestro/shared/contracts are NOT allowed
+    // Contract imports from @dungeonmaster/shared/contracts are NOT allowed
     {
-      code: 'import { filePathContract } from "@questmaestro/shared/contracts/file-path/file-path-contract";',
+      code: 'import { filePathContract } from "@dungeonmaster/shared/contracts/file-path/file-path-contract";',
       filename: '/project/src/config/loader/config-loader.test.ts',
       errors: [
         {
@@ -259,7 +259,7 @@ ruleTester.run('enforce-contract-usage-in-tests', ruleEnforceContractUsageInTest
       ],
     },
     {
-      code: 'import type { FilePath } from "@questmaestro/shared/contracts/file-path/file-path-contract";',
+      code: 'import type { FilePath } from "@dungeonmaster/shared/contracts/file-path/file-path-contract";',
       filename: '/project/src/adapters/fs/fs-adapter.test.ts',
       errors: [
         {

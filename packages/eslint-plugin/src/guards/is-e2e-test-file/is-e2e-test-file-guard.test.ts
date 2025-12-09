@@ -1,4 +1,4 @@
-import { FilePathStub } from '@questmaestro/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { isE2eTestFileGuard } from './is-e2e-test-file-guard';
 
 describe('isE2eTestFileGuard', () => {

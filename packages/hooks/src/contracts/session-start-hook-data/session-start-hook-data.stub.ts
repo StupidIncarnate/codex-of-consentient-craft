@@ -1,6 +1,6 @@
 import type { SessionStartHookData } from './session-start-hook-data-contract';
 import { sessionStartHookDataContract } from './session-start-hook-data-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const SessionStartHookStub = ({
   ...props

@@ -1,6 +1,6 @@
 import { fsExistsSyncAdapter } from './fs-exists-sync-adapter';
 import { fsExistsSyncAdapterProxy } from './fs-exists-sync-adapter.proxy';
-import { FilePathStub } from '@questmaestro/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 describe('fsExistsSyncAdapter', () => {
   it('VALID: {filePath: "/not-exists.ts"} => returns false', () => {

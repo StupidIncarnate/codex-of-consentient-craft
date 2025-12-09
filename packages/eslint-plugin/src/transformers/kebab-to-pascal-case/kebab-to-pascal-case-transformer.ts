@@ -5,8 +5,8 @@
  * const pascalCase = kebabToPascalCaseTransformer({ str: 'user-widget' });
  * // Returns 'UserWidget'
  */
-import type { Identifier } from '@questmaestro/shared/contracts';
-import { identifierContract } from '@questmaestro/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { kebabToCamelCaseTransformer } from '../kebab-to-camel-case/kebab-to-camel-case-transformer';
 
 export const kebabToPascalCaseTransformer = ({ str }: { str: string }): Identifier => {

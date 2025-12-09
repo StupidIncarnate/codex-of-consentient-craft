@@ -1,7 +1,7 @@
 {
-  "name": "@questmaestro/eslint-plugin",
+  "name": "@dungeonmaster/eslint-plugin",
   "version": "0.1.0",
-  "description": "ESLint plugin enforcing QuestMaestro architecture standards with custom rules for Zod contracts, folder structure, and type safety",
+  "description": "ESLint plugin enforcing Dungeonmaster architecture standards with custom rules for Zod contracts, folder structure, and type safety",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -11,7 +11,7 @@
   "exports": {
     ".": "./dist/index.js",
     "./tsconfig": "./configs/tsconfig.json",
-    "./config": "./configs/eslint.questmaestro.js"
+    "./config": "./configs/eslint.dungeonmaster.js"
   },
   "scripts": {
     "build": "tsc",
@@ -28,7 +28,7 @@
     "typescript",
     "zod",
     "architecture",
-    "questmaestro",
+    "dungeonmaster",
     "type-safety",
     "folder-structure"
   ],
@@ -42,11 +42,11 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@questmaestro/shared": "*",
+    "@dungeonmaster/shared": "*",
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@questmaestro/testing": "*",
+    "@dungeonmaster/testing": "*",
     "@typescript-eslint/parser": "^8.45.0"
   },
   "publishConfig": {

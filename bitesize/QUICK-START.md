@@ -11,7 +11,7 @@ Quest Maestro's 1780-line standards document causes LLM attention decay:
 
 **Progressive context loading via npm packages:**
 1. Split docs into focused chunks (< 500 lines each)
-2. Distribute via `@questmaestro/*` packages
+2. Distribute via `@dungeonmaster/*` packages
 3. Auto-sync with symlinks from `node_modules/`
 4. Load only what's needed per task (~1000 lines max)
 5. Enforce with ESLint (catches what LLM forgets)
@@ -21,10 +21,10 @@ Quest Maestro's 1780-line standards document causes LLM attention decay:
 ```
 ┌─────────────────────────────────────────────────┐
 │  NPM Packages                                    │
-│  ├── @questmaestro/standards  (docs + templates)│
-│  ├── @questmaestro/testing    (test patterns)   │
-│  ├── @questmaestro/eslint-plugin (enforcement)  │
-│  └── @questmaestro/hooks      (automation)      │
+│  ├── @dungeonmaster/standards  (docs + templates)│
+│  ├── @dungeonmaster/testing    (test patterns)   │
+│  ├── @dungeonmaster/eslint-plugin (enforcement)  │
+│  └── @dungeonmaster/hooks      (automation)      │
 │                                                  │
 │  ▼ npm install (auto-setup)                     │
 │                                                  │
@@ -40,9 +40,9 @@ Quest Maestro's 1780-line standards document causes LLM attention decay:
 ```bash
 # Consumer installs packages
 npm install --save-dev \
-  @questmaestro/standards \
-  @questmaestro/testing \
-  @questmaestro/eslint-plugin
+  @dungeonmaster/standards \
+  @dungeonmaster/testing \
+  @dungeonmaster/eslint-plugin
 
 # Post-install auto-runs, creates:
 .claude/
@@ -118,8 +118,8 @@ export const userFetchBroker = ({ userId }: { userId: UserId }) => {
 ## Update Propagation
 
 ```bash
-npm update @questmaestro/standards
-# → node_modules/@questmaestro/standards/ updated
+npm update @dungeonmaster/standards
+# → node_modules/@dungeonmaster/standards/ updated
 # → Symlinks automatically reflect new version
 # → Claude sees updated docs immediately
 # → Zero manual steps
@@ -163,16 +163,17 @@ npm update @questmaestro/standards
 
 ### Phase 1: MVP (Weeks 1-2)
 - [ ] Extract docs from monolithic file into chunks
-- [ ] Create `@questmaestro/standards` package structure
+- [ ] Create `@dungeonmaster/standards` package structure
 - [ ] Implement init script with symlinks
 - [ ] Create CLAUDE.md template
 - [ ] Test on macOS, Linux, Windows
 - [ ] Publish beta version
 
 ### Phase 2: Integration (Weeks 3-6)
-- [ ] Add `@questmaestro/testing` package
+
+- [ ] Add `@dungeonmaster/testing` package
 - [ ] Enhance ESLint with pedagogical errors
-- [ ] Create `@questmaestro/hooks` package
+- [ ] Create `@dungeonmaster/hooks` package
 - [ ] Test version alignment
 
 ### Phase 3: Beta Testing (Weeks 7-10)
@@ -233,7 +234,7 @@ Lead with "don't do this":
 ## Common Questions
 
 **Q: Why symlinks instead of direct node_modules imports?**
-A: Clean paths (`.claude/_framework/` vs `node_modules/@questmaestro/standards/docs/`) and abstraction from
+A: Clean paths (`.claude/_framework/` vs `node_modules/@dungeonmaster/standards/docs/`) and abstraction from
 implementation details.
 
 **Q: What if symlinks fail on Windows?**

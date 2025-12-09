@@ -1,4 +1,4 @@
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { linterConfigContract } from './linter-config-contract';
 import type { LinterConfig } from './linter-config-contract';
 

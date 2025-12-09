@@ -9,20 +9,24 @@ thus won't trigger eslint at all.
 
 ### Available MCP Tools
 
-1. **`discover({ type: "files", ... })`** - Find existing code
+- **`get-architecture()`** - ALWAYS RUN FIRST
+    - Returns: Folder types, import hierarchy, decision tree (~1K tokens)
+    - Purpose: Understand where code goes and architectural constraints
+
+- **`discover({ type: "files", ... })`** - Find existing code
     - Browse: `{ path: "packages/X/src/guards" }` → Tree list of files with purposes
     - Details: `{ name: "has-file-suffix-guard" }` → Full metadata (signature, usage, related files)
     - Purpose: Check if similar code exists before creating new
 
-2. **`get-folder-detail({ folderType: "guards" })`** - Get folder-specific rules
+- **`get-folder-detail({ folderType: "guards" })`** - Get folder-specific rules
     - Returns: Purpose, naming, imports, constraints, code examples, proxy requirements (~500-1K tokens)
     - Purpose: Complete patterns for the specific folder you're working in
 
-3. **`get-syntax-rules()`** - Universal syntax conventions
+- **`get-syntax-rules()`** - Universal syntax conventions
     - Returns: File naming, exports, types, destructuring, all conventions with examples (~5K tokens)
     - Purpose: Ensure code passes ESLint
 
-4. **`get-testing-patterns()`** - Testing architecture
+- **`get-testing-patterns()`** - Testing architecture
     - Returns: Testing philosophy, proxy patterns, assertions, test structure (~5K tokens)
     - Purpose: Understand how to write tests and proxy files
 
@@ -72,12 +76,12 @@ When existing code violates architecture:
 **Tech Stack**: TypeScript, Node.js, Jest
 **Package Manager**: npm
 
-**Testing**: Jest mocks auto-reset via `@questmaestro/testing` - no manual cleanup needed
+**Testing**: Jest mocks auto-reset via `@dungeonmaster/testing` - no manual cleanup needed
 
-**Shared Package**: `@questmaestro/shared` for code used by multiple packages
+**Shared Package**: `@dungeonmaster/shared` for code used by multiple packages
 
-- After modifying: `npm run build --workspace=@questmaestro/shared`
-- Import: `import {x} from '@questmaestro/shared/statics'`
+- After modifying: `npm run build --workspace=@dungeonmaster/shared`
+- Import: `import {x} from '@dungeonmaster/shared/statics'`
 
 ### Common Commands
 - **Run tests**: `npm test`

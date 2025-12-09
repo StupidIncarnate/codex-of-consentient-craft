@@ -163,7 +163,7 @@ ruleTester.run('ban-jest-mock-in-tests', ruleBanJestMockInTestsBroker(), {
 
     // jest.mock() - workspace packages
     {
-      code: "jest.mock('@questmaestro/shared');",
+      code: "jest.mock('@dungeonmaster/shared');",
       filename: '/project/src/brokers/config/config-broker.test.ts',
       errors: [
         {

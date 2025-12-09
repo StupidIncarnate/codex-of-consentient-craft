@@ -1,9 +1,9 @@
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { integrationEnvironmentCreateBroker } from '@questmaestro/testing';
-import { BaseNameStub } from '@questmaestro/testing/dist/contracts/base-name/base-name.stub';
-import { FileNameStub } from '@questmaestro/testing/dist/contracts/file-name/file-name.stub';
-import { FileContentStub } from '@questmaestro/testing/dist/contracts/file-content/file-content.stub';
+import { integrationEnvironmentCreateBroker } from '@dungeonmaster/testing';
+import { BaseNameStub } from '@dungeonmaster/testing/dist/contracts/base-name/base-name.stub';
+import { FileNameStub } from '@dungeonmaster/testing/dist/contracts/file-name/file-name.stub';
+import { FileContentStub } from '@dungeonmaster/testing/dist/contracts/file-content/file-content.stub';
 import { StartPrimitiveDuplicateDetectionProxy } from './start-primitive-duplicate-detection.proxy';
 import { CommandResultStub } from '../contracts/command-result/command-result.stub';
 import { ExitCodeStub } from '../contracts/exit-code/exit-code.stub';

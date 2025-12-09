@@ -1,4 +1,4 @@
-# questmaestro/eslint-plugin
+# dungeonmaster/eslint-plugin
 
 This a plugin lib that gets published as an npm package that other projects can bring in to get predefined rulesets that
 constrain LLM coding and make sure it outputs good code. The configurations in here are also used in this repo to
@@ -22,15 +22,15 @@ When creating a new ESLint rule, you MUST update these files:
     - Add to the `rules` type definition
     - Add to the `rules` object
    - Fix test
-4. **Add to config**: `src/brokers/config/questmaestro/config-questmaestro-broker.ts`
-    - Add to `questmaestroCustomRules` object with `'error'` level
+4. **Add to config**: `src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts`
+    - Add to `dungeonmasterCustomRules` object with `'error'` level
 5. **Categorize for hook enforcement**:
-   `src/statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics.ts`
+   `src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts`
     - Add rule with `'pre-edit'` timing (if rule only checks AST/syntax, no file system operations)
     - Add rule with `'post-edit'` timing (if rule uses `fsExistsSyncAdapter`, `fsReadFileSyncAdapter`, or other fs
       operations)
-   - Update test `src/statics/questmaestro-rule-enforce-on/questmaestro-rule-enforce-on-statics.test.ts`
-   - **CRITICAL**: Integration tests in `tests/e2e/questmaestro-rule-enforce-on.e2e.test.ts` will FAIL if you
+   - Update test `src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts`
+   - **CRITICAL**: Integration tests in `tests/e2e/dungeonmaster-rule-enforce-on.e2e.test.ts` will FAIL if you
       skip this step
 
 Missing any of these steps will result in the rule not being available or enforced. Make sure you run tests for each

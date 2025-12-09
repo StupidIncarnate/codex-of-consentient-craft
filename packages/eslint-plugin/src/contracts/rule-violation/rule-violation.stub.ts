@@ -1,7 +1,7 @@
 import { ruleViolationContract } from './rule-violation-contract';
 import type { RuleViolation } from './rule-violation-contract';
 import { astNodeContract } from '../ast-node/ast-node-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const RuleViolationStub = ({ ...props }: StubArgument<RuleViolation> = {}): RuleViolation =>
   ruleViolationContract.parse({

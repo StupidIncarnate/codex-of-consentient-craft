@@ -28,7 +28,7 @@ guards/
 - **MUST be pure functions** (no external calls, no side effects)
 - **MUST return boolean**
 - **MUST have explicit return types**
-- **MUST use optional parameters** (enforced by `@questmaestro/enforce-optional-guard-params` rule)
+- **MUST use optional parameters** (enforced by `@dungeonmaster/enforce-optional-guard-params` rule)
 - **MUST validate parameters exist** before using them
 
 **Example:**

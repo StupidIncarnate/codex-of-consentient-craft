@@ -5,8 +5,8 @@
  * const camelCase = kebabToCamelCaseTransformer({ str: 'user-fetch-broker' });
  * // Returns 'userFetchBroker'
  */
-import type { Identifier } from '@questmaestro/shared/contracts';
-import { identifierContract } from '@questmaestro/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 export const kebabToCamelCaseTransformer = ({ str }: { str: string }): Identifier =>
   identifierContract.parse(

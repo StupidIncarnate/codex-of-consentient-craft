@@ -16,9 +16,9 @@ How specialized agents collaborate without conflicts through stateless orchestra
 - Explicit dependency chains
 - Non-overlapping file ownership
 
-## The Questmaestro Coordination Model
+## The Dungeonmaster Coordination Model
 
-### Orchestration Engine (Questmaestro Node CLI)
+### Orchestration Engine (Dungeonmaster Node CLI)
 
 **Role**: Stateless coordinator that:
 - Maintains quest state in JSON files
@@ -32,7 +32,7 @@ How specialized agents collaborate without conflicts through stateless orchestra
 ### Agent Communication Pattern
 
 ```
-Agent A (Fresh Context) → JSON Report → Questmaestro → Agent B (Fresh Context)
+Agent A (Fresh Context) → JSON Report → Dungeonmaster → Agent B (Fresh Context)
 ```
 
 **Never**:
@@ -96,7 +96,7 @@ Agent A → Agent B → Agent C (Context Chain)
 **1. File Ownership Assignment**
 - Pathseeker assigns exclusive file ownership per task
 - No two agents can write to the same file simultaneously
-- Questmaestro enforces this through task scheduling
+- Dungeonmaster enforces this through task scheduling
 
 **2. Interface Contracts**
 - Pathseeker defines shared interfaces/types needed between tasks
@@ -106,7 +106,7 @@ Agent A → Agent B → Agent C (Context Chain)
 **3. Dependency Sequencing**  
 - Tasks with dependencies run sequentially
 - Parallel tasks have zero dependencies
-- Questmaestro manages execution order
+- Dungeonmaster manages execution order
 
 ### Integration Points
 
@@ -171,7 +171,7 @@ Agent process **dies immediately** after report. No state preservation.
 1. Agent stops work immediately
 2. Reports current state + failure analysis
 3. Agent process terminates
-4. Questmaestro spawns fresh Pathseeker with failure context
+4. Dungeonmaster spawns fresh Pathseeker with failure context
 5. Re-decomposition cycle begins
 
 ## Sub-Agent Coordination
@@ -242,7 +242,7 @@ Pathseeker Assessment:
 **Failed Agent Process**:
 1. Agent reports failure + context
 2. Agent process terminates
-3. Questmaestro preserves failure report
+3. Dungeonmaster preserves failure report
 4. Fresh agent spawned with failure context
 5. No contaminated context carries forward
 
@@ -283,7 +283,8 @@ Pathseeker Assessment:
 - Agent memory of previous interactions
 
 **Required Pattern**:
-- Agent → JSON Report → Questmaestro → Next Agent
+
+- Agent → JSON Report → Dungeonmaster → Next Agent
 - Fresh context per spawn
 - State maintained only in quest JSON files
 

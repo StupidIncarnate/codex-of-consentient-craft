@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Enforces QuestMaestro project structure with hierarchical validation of folders, depth, filenames, and exports
+ * PURPOSE: Enforces Dungeonmaster project structure with hierarchical validation of folders, depth, filenames, and exports
  *
  * USAGE:
  * const rule = ruleEnforceProjectStructureBroker();
@@ -10,13 +10,13 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import { forbiddenFolderNameContract } from '../../../contracts/forbidden-folder-name/forbidden-folder-name-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isCamelCaseGuard } from '../../../guards/is-camel-case/is-camel-case-guard';
 import { isKebabCaseGuard } from '../../../guards/is-kebab-case/is-kebab-case-guard';
 import { isPascalCaseGuard } from '../../../guards/is-pascal-case/is-pascal-case-guard';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
-import { folderConfigStatics } from '@questmaestro/shared/statics';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { forbiddenFolderStatics } from '../../../statics/forbidden-folder/forbidden-folder-statics';
 import { expectedExportNameTransformer } from '../../../transformers/expected-export-name/expected-export-name-transformer';
 import { filepathExtractSegmentsAfterSrcTransformer } from '../../../transformers/filepath-extract-segments-after-src/filepath-extract-segments-after-src-transformer';
@@ -36,7 +36,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
       type: 'problem',
       docs: {
         description:
-          'Enforce QuestMaestro project structure with hierarchical validation (folder → depth → filename → export)',
+          'Enforce Dungeonmaster project structure with hierarchical validation (folder → depth → filename → export)',
       },
       messages: {
         // Level 1: Folder location errors

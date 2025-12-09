@@ -2,12 +2,12 @@
  * PURPOSE: Creates and initializes the ESLint plugin with all custom rules and configurations
  *
  * USAGE:
- * import { StartEslintPlugin } from '@questmaestro/eslint-plugin';
+ * import { StartEslintPlugin } from '@dungeonmaster/eslint-plugin';
  * const plugin = StartEslintPlugin();
  * // Use plugin.rules in ESLint config
- * // Use plugin.configs.questmaestro for pre-configured rulesets
+ * // Use plugin.configs.dungeonmaster for pre-configured rulesets
  *
- * WHEN-TO-USE: When setting up ESLint to use Questmaestro custom rules
+ * WHEN-TO-USE: When setting up ESLint to use Dungeonmaster custom rules
  */
 import { ruleBanAdhocTypesBroker } from '../brokers/rule/ban-adhoc-types/rule-ban-adhoc-types-broker';
 import { ruleBanPrimitivesBroker } from '../brokers/rule/ban-primitives/rule-ban-primitives-broker';
@@ -38,7 +38,7 @@ import { ruleNoMultiplePropertyAssertionsBroker } from '../brokers/rule/no-multi
 import { ruleForbidTodoSkipBroker } from '../brokers/rule/forbid-todo-skip/rule-forbid-todo-skip-broker';
 import { ruleEnforceRegexUsageBroker } from '../brokers/rule/enforce-regex-usage/rule-enforce-regex-usage-broker';
 import { ruleEnforceFileMetadataBroker } from '../brokers/rule/enforce-file-metadata/rule-enforce-file-metadata-broker';
-import { configQuestmaestroBroker } from '../brokers/config/questmaestro/config-questmaestro-broker';
+import { configDungeonmasterBroker } from '../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
 import type { EslintRule } from '../contracts/eslint-rule/eslint-rule-contract';
 
@@ -75,7 +75,7 @@ export const StartEslintPlugin = (): {
     readonly 'enforce-file-metadata': EslintRule;
   };
   readonly configs: {
-    readonly questmaestro: {
+    readonly dungeonmaster: {
       readonly typescript: EslintConfig;
       readonly test: EslintConfig;
       readonly fileOverrides: readonly EslintConfig[];
@@ -115,6 +115,6 @@ export const StartEslintPlugin = (): {
       'enforce-file-metadata': ruleEnforceFileMetadataBroker(),
     },
     configs: {
-      questmaestro: configQuestmaestroBroker(),
+      dungeonmaster: configDungeonmasterBroker(),
     },
   }) as const;

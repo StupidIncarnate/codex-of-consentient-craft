@@ -133,7 +133,7 @@ create: (context: Rule.RuleContext) => {
 ## allow inline imports only for file paths
 
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const config = require(configPath) as QuestmaestroHooksConfig;
+        const config = require(configPath) as DungeonmasterHooksConfig;
 
 That way they can be imported in a function. npm packages however must be excluded. Have to turn off this rule for now
 
@@ -143,8 +143,8 @@ nly has certain keys, so I should validate against those:
 removals
 1    import type { FrameworkPreset } from
 '../../contracts/framework-presets/framework-presets';
-2    import type { QuestmaestroConfig } from
-'../../contracts/questmaestro-config/questmaestro-config-contract';
+2    import type { DungeonmasterConfig } from
+'../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 3
 4 +  const isFrameworkPresetKey = (key: string): key is keyof FrameworkPreset => {
 5 +    const validKeys: Array<keyof FrameworkPreset> = [
@@ -192,7 +192,7 @@ getting it to generate properly.
 
 
 packages/config/
-├── package.json // NPM package definition for @questmaestro/config
+├── package.json // NPM package definition for @dungeonmaster/config
 ├── index.ts // Thin entry point: export * from './src/startup/start-config-library'
 ├── tsconfig.json // TypeScript compiler configuration
 ├── jest.config.js // Jest test runner configuration
@@ -211,9 +211,9 @@ packages/config/
 │ ├── routing-library/ // Router library types
 │ │ ├── routing-library-contract.ts // RoutingLibrary type (react-router-dom, vue-router, etc.)
 │ │ └── routing-library-contract.test.ts // Tests for routing library validation
-│ ├── questmaestro-config/ // Main configuration type
-│ │ ├── questmaestro-config-contract.ts // QuestmaestroConfig type and validation schema
-│ │ └── questmaestro-config-contract.test.ts // Tests for config validation
+│ ├── dungeonmaster-config/ // Main configuration type
+│ │ ├── dungeonmaster-config-contract.ts // DungeonmasterConfig type and validation schema
+│ │ └── dungeonmaster-config-contract.test.ts // Tests for config validation
 │ └── folder-config/ // Computed configuration types
 │ ├── folder-config-contract.ts // AllowedExternalImports type for lint rules
 │ └── folder-config-contract.test.ts // Tests for folder config structure
@@ -230,12 +230,12 @@ packages/config/
 │ └── merge-configs-transformer.test.ts // Tests for merge logic
 │
 ├── brokers/ // Business logic for config operations
-│ ├── config-file/ // Operations on .questmaestro files
+│ ├── config-file/ // Operations on .dungeonmaster files
 │ │ ├── load/ // Loading config files
-│ │ │ ├── config-file-load-broker.ts // Load and parse .questmaestro file content
+│ │ │ ├── config-file-load-broker.ts // Load and parse .dungeonmaster file content
 │ │ │ └── config-file-load-broker.test.ts // Tests for config loading
 │ │ └── find/ // Finding config files
-│ │ ├── config-file-find-broker.ts // Walk up directory tree to find .questmaestro files
+│ │ ├── config-file-find-broker.ts // Walk up directory tree to find .dungeonmaster files
 │ │ └── config-file-find-broker.test.ts // Tests for config finding logic
 │ └── config/ // High-level config operations
 │ └── resolve/ // Config resolution
@@ -258,7 +258,7 @@ packages/config/
 │ │ ├── invalid-config-error.ts // Error thrown for malformed config structure
 │ │ └── invalid-config-error.test.ts // Tests for config error
 │ └── config-not-found/ // Missing config errors
-│ ├── config-not-found-error.ts // Error thrown when no .questmaestro found
+│ ├── config-not-found-error.ts // Error thrown when no .dungeonmaster found
 │ └── config-not-found-error.test.ts // Tests for not found error
 │
 └── startup/ // Library entry point and API composition

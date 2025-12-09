@@ -329,7 +329,7 @@ export const TierBadgeWidget = ({user}: { user: User }) => {
 
 **ESLint Rules for Static Enforcement:**
 
-### Rule 1: `@questmaestro/enforce-static-in-guards-only`
+### Rule 1: `@dungeonmaster/enforce-static-in-guards-only`
 
 **Scans for:** Direct static references outside of guard files
 
@@ -369,7 +369,7 @@ isPremiumTierGuard({user})
 - ✅ `contracts/**/*-contract.ts` files (enum derivation only)
 - ❌ Everywhere else (widgets, brokers, transformers, etc.)
 
-### Rule 2: `@questmaestro/enforce-guard-exhaustiveness`
+### Rule 2: `@dungeonmaster/enforce-guard-exhaustiveness`
 
 **Scans guards for:** Static references that need exhaustive testing
 
@@ -427,7 +427,7 @@ Required:
     );
 ```
 
-### Rule 3: `@questmaestro/ban-contract-guard-imports`
+### Rule 3: `@dungeonmaster/ban-contract-guard-imports`
 
 **What it does:** Prevents contracts from importing guards (creates circular dependency)
 
@@ -462,7 +462,7 @@ Contracts define shape. Guards validate logic.
 Use guards in brokers/widgets, not in contract.refine()
 ```
 
-### Rule 4: `@questmaestro/enforce-enum-from-statics`
+### Rule 4: `@dungeonmaster/enforce-enum-from-statics`
 
 **What it does:** Detects hardcoded enum arrays in contracts, requires deriving from statics
 
@@ -507,7 +507,7 @@ Required:
   3. Use: z.enum(allTiers)
 ```
 
-### Rule 5: `@questmaestro/ban-hardcoded-enum-checks`
+### Rule 5: `@dungeonmaster/ban-hardcoded-enum-checks`
 
 **What it does:** Detects hardcoded array checks anywhere in codebase
 
@@ -544,7 +544,7 @@ Required:
   2. Use: isPremiumTierGuard({ user })
 ```
 
-### Rule 6: `@questmaestro/enforce-guard-type-import`
+### Rule 6: `@dungeonmaster/enforce-guard-type-import`
 
 **What it does:** Ensures guards only use `import type` when importing from contracts
 
@@ -574,7 +574,7 @@ Use type-only import to avoid circular dependencies:
   import type { User } from '../../contracts/user/user-contract';
 ```
 
-### Rule 7: `@questmaestro/enforce-stub-minimal-defaults`
+### Rule 7: `@dungeonmaster/enforce-stub-minimal-defaults`
 
 **What it does:** Ensures stubs default to empty arrays and undefined optionals
 
@@ -668,7 +668,7 @@ export type User = z.infer<typeof userContract>;
 // contracts/user/user.stub.ts
 import {userContract} from './user-contract';
 import type {User} from './user-contract';
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 import {UserIdStub} from '../user-id/user-id.stub';
 import {EmailStub} from '../email/email.stub';
 import {CouponCodeStub} from '../coupon-code/coupon-code.stub';

@@ -1,4 +1,4 @@
-import { folderConfigStatics } from '@questmaestro/shared/statics';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { folderConfigTransformer } from './folder-config-transformer';
 
 describe('folderConfigTransformer', () => {

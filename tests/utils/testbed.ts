@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 import * as crypto from 'crypto';
 import { jest } from '@jest/globals';
 import { main as installMain } from '../../bin/install';
-import { QuestmaestroConfig, Quest } from '../../v1/types';
+import { DungeonmasterConfig, Quest } from '../../v1/types';
 
 interface ExecResult {
   stdout: string;
@@ -73,7 +73,7 @@ export class TestProject {
     return this;
   }
 
-  installQuestmaestro() {
+  installDungeonmaster() {
     // Mock process.exit to prevent test from exiting
     const mockExit = jest
       .spyOn(process, 'exit')
@@ -185,7 +185,7 @@ export class TestProject {
 
   // Get list of quest files in a folder
   getQuestFiles(folder: 'active' | 'completed' | 'abandoned') {
-    const folderPath = path.join(this.rootDir, 'questmaestro', folder);
+    const folderPath = path.join(this.rootDir, 'dungeonmaster', folder);
     if (fs.existsSync(folderPath)) {
       return fs
         .readdirSync(folderPath)
@@ -197,7 +197,7 @@ export class TestProject {
 
   // Get a specific quest file
   getQuest(questId: string, folder: 'active' | 'completed' | 'abandoned' = 'active'): Quest | null {
-    const questPath = path.join(this.rootDir, 'questmaestro', folder, `${questId}.json`);
+    const questPath = path.join(this.rootDir, 'dungeonmaster', folder, `${questId}.json`);
     if (fs.existsSync(questPath)) {
       return JSON.parse(fs.readFileSync(questPath, 'utf8')) as Quest;
     }
@@ -206,9 +206,9 @@ export class TestProject {
 
   // Get configuration
   getConfig() {
-    const configPath = path.join(this.rootDir, '.questmaestro');
+    const configPath = path.join(this.rootDir, '.dungeonmaster');
     if (fs.existsSync(configPath)) {
-      return JSON.parse(fs.readFileSync(configPath, 'utf8')) as QuestmaestroConfig;
+      return JSON.parse(fs.readFileSync(configPath, 'utf8')) as DungeonmasterConfig;
     }
     return null;
   }

@@ -7,7 +7,7 @@
  */
 import { treeItemContract } from './tree-item-contract';
 import type { TreeItem } from './tree-item-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const TreeItemStub = ({ ...props }: StubArgument<TreeItem> = {}): TreeItem =>
   treeItemContract.parse({

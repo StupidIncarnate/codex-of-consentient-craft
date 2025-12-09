@@ -8,7 +8,7 @@ ruleTester.run('enforce-stub-patterns', ruleEnforceStubPatternsBroker(), {
     // Object stub with spread operator, StubArgument type, and contract.parse() in expression body
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { userContract } from './user-contract';
 export const UserStub = ({ ...props }: StubArgument<User> = {}): User =>
   userContract.parse({ id: '123', ...props });
@@ -18,7 +18,7 @@ export const UserStub = ({ ...props }: StubArgument<User> = {}): User =>
     // Object stub with spread operator, StubArgument type, and contract.parse() in block body
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { astNodeContract } from './ast-node-contract';
 export const AstNodeStub = ({ ...props }: StubArgument<AstNode> = {}): AstNode => {
   return astNodeContract.parse({
@@ -32,7 +32,7 @@ export const AstNodeStub = ({ ...props }: StubArgument<AstNode> = {}): AstNode =
     // Object stub with spread operator, StubArgument type, extra logic before contract.parse()
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { configContract } from './config-contract';
 export const ConfigStub = ({ ...props }: StubArgument<Config> = {}): Config => {
   const defaults = { port: 3000 };
@@ -74,7 +74,7 @@ export const EmptyStub = (): Empty => emptyContract.parse({});
     // Stub with nested arrow functions for default function values - nested functions should not be checked
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { z } from 'zod';
 import { eslintContextContract } from './eslint-context-contract';
 const filenameContract = z.string().brand<'Filename'>();
@@ -96,7 +96,7 @@ export const EslintContextStub = ({ ...props }: StubArgument<EslintContext> = {}
     // Stub with contract.parse() assigned to variable, then spread in conditional returns
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { tsestreeContract } from './tsestree-contract';
 export const TsestreeStub = ({ ...props }: StubArgument<Tsestree> = {}): Tsestree => {
   const { parent, ...dataProps } = props;
@@ -134,7 +134,7 @@ export const TsestreeStub = ({ ...props }: StubArgument<Tsestree> = {}): Tsestre
     // Object stub missing spread operator - uses named property instead
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 export const UserStub = ({ props }: StubArgument<User> = {}): User => ({});
       `,
       filename: '/test/user.stub.ts',
@@ -181,7 +181,7 @@ export const ConfigStub = ({ ...props }: { [key: string]: unknown } = {}) =>
     // Object stub with spread operator and StubArgument but missing contract.parse() - returns object literal
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 export const UserStub = ({ ...props }: StubArgument<User> = {}): User => ({
   id: '123',
   ...props,
@@ -193,7 +193,7 @@ export const UserStub = ({ ...props }: StubArgument<User> = {}): User => ({
     // Object stub with spread operator and StubArgument but missing contract.parse() - returns in block body
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 export const DataStub = ({ ...props }: StubArgument<Data> = {}): Data => {
   return { value: 'test', ...props };
 };
@@ -214,7 +214,7 @@ export const FilePathStub = ({ value }: { value: string } = { value: '/test' }):
     // Object stub with multiple named properties (not spread) - should require spread operator
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { userContract } from './user-contract';
 export const UserStub = ({ id, name }: StubArgument<User> = {}): User =>
   userContract.parse({ id, name });
@@ -226,7 +226,7 @@ export const UserStub = ({ id, name }: StubArgument<User> = {}): User =>
     // Object stub with rest operator PLUS additional named property - should be pure spread only
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { userContract } from './user-contract';
 export const UserStub = ({ id, ...props }: StubArgument<User> = {}): User =>
   userContract.parse({ id, ...props });
@@ -249,7 +249,7 @@ export const DataStub = ({ data }: { data: string } = { data: 'test' }): Data =>
     // Object stub with contract.parse() but contract name doesn't end with 'Contract'
     {
       code: `
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { userValidator } from './user-validator';
 export const UserStub = ({ ...props }: StubArgument<User> = {}): User =>
   userValidator.parse({ id: '123', ...props });

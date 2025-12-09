@@ -1,6 +1,6 @@
 import type { WriteToolInput } from './write-tool-input-contract';
 import { writeToolInputContract } from './write-tool-input-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const WriteToolInputStub = ({
   ...props

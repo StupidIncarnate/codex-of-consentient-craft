@@ -1,6 +1,6 @@
-# @questmaestro/mcp
+# @dungeonmaster/mcp
 
-MCP (Model Context Protocol) server for discovering utilities, brokers, and all code files across the Questmaestro
+MCP (Model Context Protocol) server for discovering utilities, brokers, and all code files across the Dungeonmaster
 codebase, plus architecture orientation tools.
 
 ## Purpose
@@ -251,7 +251,7 @@ read files you're directly modifying.
 
 ## Related Packages
 
-- `@questmaestro/eslint-plugin` - Where most utilities live (guards, transformers, brokers)
-- `@questmaestro/shared` - Shared contracts and utilities
-- `@questmaestro/tooling` - Tooling utilities
-- `@questmaestro/hooks` - Hook scripts
+- `@dungeonmaster/eslint-plugin` - Where most utilities live (guards, transformers, brokers)
+- `@dungeonmaster/shared` - Shared contracts and utilities
+- `@dungeonmaster/tooling` - Tooling utilities
+- `@dungeonmaster/hooks` - Hook scripts

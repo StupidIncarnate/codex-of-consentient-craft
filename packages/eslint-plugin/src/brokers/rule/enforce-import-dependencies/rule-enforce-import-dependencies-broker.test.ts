@@ -76,25 +76,25 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/adapters/typescript-eslint/typescript-eslint-rule-adapter.ts',
     },
 
-    // @questmaestro/shared imports follow folder dependency rules
-    // Adapters can import from @questmaestro/shared/contracts
+    // @dungeonmaster/shared imports follow folder dependency rules
+    // Adapters can import from @dungeonmaster/shared/contracts
     {
-      code: 'import { filePathContract } from "@questmaestro/shared/contracts";',
+      code: 'import { filePathContract } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/adapters/path/path-adapter.ts',
     },
-    // Brokers can import from @questmaestro/shared/contracts
+    // Brokers can import from @dungeonmaster/shared/contracts
     {
-      code: 'import { filePathContract } from "@questmaestro/shared/contracts";',
+      code: 'import { filePathContract } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/brokers/config/load/config-load-broker.ts',
     },
-    // Guards can import from @questmaestro/shared/contracts
+    // Guards can import from @dungeonmaster/shared/contracts
     {
-      code: 'import { filePathContract } from "@questmaestro/shared/contracts";',
+      code: 'import { filePathContract } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/guards/file/file-guard.ts',
     },
-    // Contracts can import from @questmaestro/shared/contracts
+    // Contracts can import from @dungeonmaster/shared/contracts
     {
-      code: 'import { filePathContract } from "@questmaestro/shared/contracts";',
+      code: 'import { filePathContract } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/contracts/path/path-contract.ts',
     },
 
@@ -112,23 +112,23 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/guards/validation/validation-guard.spec.ts',
     },
 
-    // Test files can import .stub.ts files from @questmaestro/shared/contracts
+    // Test files can import .stub.ts files from @dungeonmaster/shared/contracts
     {
-      code: 'import { FilePathStub } from "@questmaestro/shared/contracts";',
+      code: 'import { FilePathStub } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/brokers/config/load/config-load-broker.test.ts',
     },
     {
-      code: 'import { AbsoluteFilePathStub } from "@questmaestro/shared/contracts";',
+      code: 'import { AbsoluteFilePathStub } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/adapters/path/path-dirname.test.ts',
     },
 
-    // Stub files can import other stubs from @questmaestro/shared/contracts
+    // Stub files can import other stubs from @dungeonmaster/shared/contracts
     {
-      code: 'import { FilePathStub } from "@questmaestro/shared/contracts";',
+      code: 'import { FilePathStub } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/contracts/user/user.stub.ts',
     },
     {
-      code: 'import { AbsoluteFilePathStub } from "@questmaestro/shared/contracts";',
+      code: 'import { AbsoluteFilePathStub } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/contracts/config/config.stub.ts',
     },
 
@@ -277,7 +277,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/contracts/validation/validation-contract.ts',
     },
     {
-      code: 'import type { StubArgument } from "@questmaestro/shared/@types";',
+      code: 'import type { StubArgument } from "@dungeonmaster/shared/@types";',
       filename: '/project/src/contracts/user/user.stub.ts',
     },
 
@@ -503,7 +503,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'contracts',
             importedFolder: 'brokers',
-            allowed: 'statics/, errors/, contracts/, zod, @questmaestro/shared/@types',
+            allowed: 'statics/, errors/, contracts/, zod, @dungeonmaster/shared/@types',
           },
         },
       ],
@@ -519,7 +519,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'contracts',
             importedFolder: 'guards',
-            allowed: 'statics/, errors/, contracts/, zod, @questmaestro/shared/@types',
+            allowed: 'statics/, errors/, contracts/, zod, @dungeonmaster/shared/@types',
           },
         },
       ],
@@ -1085,10 +1085,10 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       ],
     },
 
-    // @questmaestro/shared imports must follow folder dependency rules
-    // Guards cannot import from @questmaestro/shared/brokers (if it existed)
+    // @dungeonmaster/shared imports must follow folder dependency rules
+    // Guards cannot import from @dungeonmaster/shared/brokers (if it existed)
     {
-      code: 'import { configBroker } from "@questmaestro/shared/brokers";',
+      code: 'import { configBroker } from "@dungeonmaster/shared/brokers";',
       filename: '/project/src/guards/validation/validation-guard.ts',
       errors: [
         {
@@ -1101,9 +1101,9 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
         },
       ],
     },
-    // Statics cannot import from @questmaestro/shared/contracts
+    // Statics cannot import from @dungeonmaster/shared/contracts
     {
-      code: 'import { filePathContract } from "@questmaestro/shared/contracts";',
+      code: 'import { filePathContract } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/statics/config/config-statics.ts',
       errors: [
         {
@@ -1116,9 +1116,9 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
         },
       ],
     },
-    // Cannot import from @questmaestro/shared root - must use subpaths
+    // Cannot import from @dungeonmaster/shared root - must use subpaths
     {
-      code: 'import { filePathContract } from "@questmaestro/shared";',
+      code: 'import { filePathContract } from "@dungeonmaster/shared";',
       filename: '/project/src/adapters/path/path-adapter.ts',
       errors: [
         {
@@ -1127,7 +1127,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       ],
     },
     {
-      code: 'import { filePathContract } from "@questmaestro/shared";',
+      code: 'import { filePathContract } from "@dungeonmaster/shared";',
       filename: '/project/src/brokers/config/load/config-load-broker.ts',
       errors: [
         {

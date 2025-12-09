@@ -1,6 +1,6 @@
 import { fileMetadataCommentContract } from './file-metadata-comment-contract';
 import type { FileMetadataComment } from './file-metadata-comment-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const FileMetadataCommentStub = ({
   ...props

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { DEFAULT_CONFIGS, validateMockBoundaries } from './index';
-import type { PreToolUseHookData } from '@questmaestro/hooks/src/types/hook-type';
+import type { PreToolUseHookData } from '@dungeonmaster/hooks/src/types/hook-type';
 
 /**
  * Hook that validates mock boundaries in test files before Claude writes/edits them

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Returns strict TypeScript compiler configuration options for Questmaestro projects
+ * PURPOSE: Returns strict TypeScript compiler configuration options for Dungeonmaster projects
  *
  * USAGE:
  * const tsconfig = configTsconfigBroker();

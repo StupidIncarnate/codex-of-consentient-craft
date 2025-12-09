@@ -1,6 +1,6 @@
 import type { ToolInput } from './tool-input-contract';
 import { toolInputContract } from './tool-input-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const ToolInputStub = ({ ...props }: StubArgument<ToolInput> = {}): ToolInput =>
   toolInputContract.parse({

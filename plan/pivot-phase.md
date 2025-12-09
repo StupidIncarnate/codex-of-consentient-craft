@@ -1,10 +1,10 @@
-# Questmaestro CLI Pivot Implementation Plan
+# Dungeonmaster CLI Pivot Implementation Plan
 
 ## Current Project Structure Analysis
 
 ### 1. **What subdirectories exist:**
    - `src/commands/` - Contains markdown-based command definitions
-     - `questmaestro.md` - Main orchestrator command
+       - `dungeonmaster.md` - Main orchestrator command
      - `quest/` subdirectory with agent commands (codeweaver, lawbringer, pathseeker, siegemaster, spiritmender, voidpoker)
    - `src/templates/` - Contains project templates
      - Quest templates (JSON)
@@ -39,19 +39,23 @@
    - `spike/claude-interactive/` - Contains working file-watcher implementation proving the pattern works
    - `cli-pivot.md` - The actual design document for the CLI transformation
 
-## What Is Questmaestro and How It's Used
+## What Is Dungeonmaster and How It's Used
 
 ### Overview
-Questmaestro is an **NPM package** that users install via `npx questmaestro` to add quest-themed slash commands to their Claude setup. It transforms development tasks into epic quests with a fellowship of specialized AI agents.
+
+Dungeonmaster is an **NPM package** that users install via `npx dungeonmaster` to add quest-themed slash commands to
+their Claude setup. It transforms development tasks into epic quests with a fellowship of specialized AI agents.
 
 ### Current State (Pre-CLI Pivot)
-- **Installation**: Users run `npx questmaestro` which copies markdown command files to `.claude/commands/`
-- **Usage**: Users type slash commands like `/questmaestro` or `/quest:pathseeker` in Claude
+
+- **Installation**: Users run `npx dungeonmaster` which copies markdown command files to `.claude/commands/`
+- **Usage**: Users type slash commands like `/dungeonmaster` or `/quest:pathseeker` in Claude
 - **Purpose**: Orchestrates multiple AI agents to work on development tasks efficiently
 
 ### Planned State (Post-CLI Pivot)
-- **Installation**: Same `npx questmaestro` but now installs a CLI tool
-- **Usage**: `questmaestro` becomes a CLI command that spawns Claude agents programmatically
+
+- **Installation**: Same `npx dungeonmaster` but now installs a CLI tool
+- **Usage**: `dungeonmaster` becomes a CLI command that spawns Claude agents programmatically
 - **Purpose**: Automates agent orchestration with file-based communication and recovery
 
 ### The Agent Fellowship
@@ -77,17 +81,17 @@ Create the following TypeScript modules in `src/`:
 
 1. **`src/core/`** - Core business logic
    - `quest-manager.ts` - Quest file management and state transitions
-     - Create/load/save quest.json files in questmaestro/active/[quest-folder]/
+       - Create/load/save quest.json files in dungeonmaster/active/[quest-folder]/
      - Track quest status, phases, tasks, and execution history
      - Implement task dependency validation and ordering
      - Validate dependency chains and detect circular dependencies
      - Track task completion and execution order
-   - `config-manager.ts` - .questmaestro configuration handling
+   - `config-manager.ts` - .dungeonmaster configuration handling
      - Define config schema with discoveryComplete flag, ward commands
      - Load and validate user configuration
-     - Default config: `{ questFolder: "questmaestro", discoveryComplete: false }`
+     - Default config: `{ questFolder: "dungeonmaster", discoveryComplete: false }`
    - `file-system.ts` - File operations wrapper
-     - Create questmaestro folder structure (active/, completed/, abandoned/, retros/, lore/, discovery/)
+       - Create dungeonmaster folder structure (active/, completed/, abandoned/, retros/, lore/, discovery/)
      - Safe file operations with error handling
      - Support for moving quest folders between states
 
@@ -123,7 +127,7 @@ Create the following TypeScript modules in `src/`:
    - Individual report handlers for each agent type
 
 4. **`src/commands/`** - Command execution logic  
-   - `command-router.ts` - Route questmaestro commands
+    - `command-router.ts` - Route dungeonmaster commands
      - Parse arguments to detect command type
      - Route to appropriate handler
    - `quest-commands.ts` - Implement commands
@@ -150,8 +154,8 @@ Create the following TypeScript modules in `src/`:
   - Convert Pathseeker from "Components Found" to "tasks" array format
   - Remove complex gate systems from all agents
   - Change from text reports (`=== AGENT REPORT ===`) to JSON file writes
-  - Add Write tool usage: `Write("questmaestro/active/[quest]/[num]-[agent]-report.json", JSON.stringify(report))`
-  - Exception: Voidpoker writes to `questmaestro/discovery/` folder
+  - Add Write tool usage: `Write("dungeonmaster/active/[quest]/[num]-[agent]-report.json", JSON.stringify(report))`
+  - Exception: Voidpoker writes to `dungeonmaster/discovery/` folder
 
 ### Phase 3: CLI Enhancement
 - Create main CLI executable
@@ -160,7 +164,7 @@ Create the following TypeScript modules in `src/`:
     ```json
     {
       "bin": {
-        "questmaestro": "./dist/cli.js"
+        "dungeonmaster": "./dist/cli.js"
       }
     }
     ```
@@ -183,7 +187,7 @@ Create the following TypeScript modules in `src/`:
 - Quest folders: `{number}-{quest-title-slug}/` (e.g., `001-add-authentication/`)
 - Agent reports: `{number}-{agent-type}-report.json` (e.g., `002-codeweaver-report.json`)
 - Sequential numbering: 001, 002, 003... (padded to 3 digits for both quests and reports)
-- Discovery reports: `questmaestro/discovery/voidpoker-{timestamp}-{package-name}-report.json`
+- Discovery reports: `dungeonmaster/discovery/voidpoker-{timestamp}-{package-name}-report.json`
 
 **Agent Context Format:**
 - Each agent receives context through $ARGUMENTS replacement
@@ -209,12 +213,13 @@ Create the following TypeScript modules in `src/`:
 ### CLI Command Structure
 
 **Main Commands:**
-- `questmaestro` - Resume first active quest or create new
-- `questmaestro list` - Show all quests organized by status
-- `questmaestro abandon` - Abandon current quest
-- `questmaestro start <quest-name>` - Jump to specific quest
-- `questmaestro clean` - Remove old completed/abandoned quests
-- `questmaestro <description>` - Create new quest or find existing
+
+- `dungeonmaster` - Resume first active quest or create new
+- `dungeonmaster list` - Show all quests organized by status
+- `dungeonmaster abandon` - Abandon current quest
+- `dungeonmaster start <quest-name>` - Jump to specific quest
+- `dungeonmaster clean` - Remove old completed/abandoned quests
+- `dungeonmaster <description>` - Create new quest or find existing
 
 **Command Detection (without AI):**
 ```javascript
@@ -350,7 +355,7 @@ These features are documented but will be implemented after MVP:
 
 **Concurrent Quest Prevention:**
 - Lock file mechanism to prevent multiple CLI instances
-- Write PID to `.questmaestro/questmaestro.lock`
+- Write PID to `.dungeonmaster/dungeonmaster.lock`
 - Check if process still alive before refusing to start
 
 **Parallel Agent Execution:**
@@ -366,11 +371,13 @@ These features are documented but will be implemented after MVP:
 ### Additional Notes
 
 **Config File Location:**
-- Handled by install.ts - creates .questmaestro in project root
-- Creates questmaestro/ folder structure on install
+
+- Handled by install.ts - creates .dungeonmaster in project root
+- Creates dungeonmaster/ folder structure on install
 
 **Lore Organization:**
-- Agents write to `questmaestro/lore/` for discovered patterns
+
+- Agents write to `dungeonmaster/lore/` for discovered patterns
 - Filename format: `[category]-[description].md`
 - Categories: architecture, integration, discovery, etc.
 

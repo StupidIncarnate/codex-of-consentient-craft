@@ -6,13 +6,13 @@
  * // Returns branded ContentText with markdown documentation for brokers folder
  */
 
-import { folderConfigStatics } from '@questmaestro/shared/statics';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import {
   folderConfigContract,
   type FolderType,
   type FolderConfig,
-} from '@questmaestro/shared/contracts';
-import { isKeyOfGuard } from '@questmaestro/shared/guards';
+} from '@dungeonmaster/shared/contracts';
+import { isKeyOfGuard } from '@dungeonmaster/shared/guards';
 
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';

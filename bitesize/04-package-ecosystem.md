@@ -12,7 +12,7 @@ in `node_modules/` and auto-syncs when packages update.
 │  Framework Packages (Published to NPM)                       │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
-│  @questmaestro/standards                                     │
+│  @dungeonmaster/standards                                     │
 │  ├── docs/                    ← Claude documentation         │
 │  │   ├── core-rules.md                                       │
 │  │   ├── folders/                                            │
@@ -25,19 +25,19 @@ in `node_modules/` and auto-syncs when packages update.
 │  │   └── init-claude-docs.js  ← Post-install script          │
 │  └── package.json                                            │
 │                                                               │
-│  @questmaestro/testing                                       │
+│  @dungeonmaster/testing                                       │
 │  ├── docs/                                                   │
 │  │   └── testing-standards.md                                │
 │  └── templates/                                              │
 │      └── test-examples/                                      │
 │                                                               │
-│  @questmaestro/eslint-plugin                                 │
+│  @dungeonmaster/eslint-plugin                                 │
 │  ├── rules/                   ← Enforcement                  │
 │  ├── configs/                                                │
 │  └── docs/                                                   │
 │      └── rule-explanations.md                                │
 │                                                               │
-│  @questmaestro/hooks                                         │
+│  @dungeonmaster/hooks                                         │
 │  ├── pre-commit/              ← Claude pre-edit hooks        │
 │  └── docs/                                                   │
 │      └── hook-configuration.md                               │
@@ -47,7 +47,7 @@ in `node_modules/` and auto-syncs when packages update.
 
 ## Package Responsibilities
 
-### @questmaestro/standards (Core)
+### @dungeonmaster/standards (Core)
 
 **Purpose:** Architectural standards, folder structure, naming patterns
 
@@ -82,11 +82,11 @@ module.exports = {
 };
 ```
 
-### @questmaestro/testing
+### @dungeonmaster/testing
 
 **Purpose:** Testing patterns, stub generation, test structure
 
-**Dependencies:** `@questmaestro/standards` (references folder structure)
+**Dependencies:** `@dungeonmaster/standards` (references folder structure)
 
 **Contents:**
 
@@ -101,11 +101,11 @@ module.exports = {
 See: `.claude/_framework/standards/folders/contracts-guide.md#stubs` for stub patterns
 ```
 
-### @questmaestro/eslint-plugin
+### @dungeonmaster/eslint-plugin
 
 **Purpose:** Enforce architectural rules via lint
 
-**Dependencies:** `@questmaestro/standards` (validates against same rules)
+**Dependencies:** `@dungeonmaster/standards` (validates against same rules)
 
 **Contents:**
 
@@ -149,14 +149,14 @@ module.exports = {
 };
 ```
 
-### @questmaestro/hooks
+### @dungeonmaster/hooks
 
 **Purpose:** Pre-commit and pre-edit hooks for Claude integration
 
 **Dependencies:**
 
-- `@questmaestro/standards` (loads context intelligently)
-- `@questmaestro/eslint-plugin` (runs validation)
+- `@dungeonmaster/standards` (loads context intelligently)
+- `@dungeonmaster/eslint-plugin` (runs validation)
 
 **Contents:**
 
@@ -171,25 +171,25 @@ module.exports = {
 ## Package Interdependencies
 
 ```
-@questmaestro/standards (base)
+@dungeonmaster/standards (base)
   ├── No dependencies
   └── Provides: docs, templates, scaffold
 
-@questmaestro/testing
-  ├── Depends on: @questmaestro/standards
+@dungeonmaster/testing
+  ├── Depends on: @dungeonmaster/standards
   └── References: folder structure, contract patterns
 
-@questmaestro/eslint-plugin
-  ├── Depends on: @questmaestro/standards
+@dungeonmaster/eslint-plugin
+  ├── Depends on: @dungeonmaster/standards
   ├── Validates: same rules as docs
   └── Provides: pedagogical error messages
 
-@questmaestro/hooks
-  ├── Depends on: @questmaestro/standards, @questmaestro/eslint-plugin
+@dungeonmaster/hooks
+  ├── Depends on: @dungeonmaster/standards, @dungeonmaster/eslint-plugin
   └── Orchestrates: context loading, validation
 
 Consumer Project
-  ├── Installs: all @questmaestro/* packages
+  ├── Installs: all @dungeonmaster/* packages
   ├── Gets: auto-setup via post-install
   └── Receives: docs, enforcement, templates
 ```
@@ -201,28 +201,28 @@ Consumer Project
 All packages use synchronized versioning:
 
 ```json
-// @questmaestro/standards package.json
+// @dungeonmaster/standards package.json
 {
-  "name": "@questmaestro/standards",
+  "name": "@dungeonmaster/standards",
   "version": "1.2.0",
   "peerDependencies": {}
 }
 
-// @questmaestro/testing package.json
+// @dungeonmaster/testing package.json
 {
-  "name": "@questmaestro/testing",
+  "name": "@dungeonmaster/testing",
   "version": "1.2.0",
   "peerDependencies": {
-    "@questmaestro/standards": "^1.0.0"
+    "@dungeonmaster/standards": "^1.0.0"
   }
 }
 
-// @questmaestro/eslint-plugin package.json
+// @dungeonmaster/eslint-plugin package.json
 {
-  "name": "@questmaestro/eslint-plugin",
+  "name": "@dungeonmaster/eslint-plugin",
   "version": "1.2.0",
   "peerDependencies": {
-    "@questmaestro/standards": "^1.0.0"
+    "@dungeonmaster/standards": "^1.0.0"
   }
 }
 ```
@@ -232,15 +232,15 @@ All packages use synchronized versioning:
 **In init script:**
 
 ```javascript
-// @questmaestro/standards/bin/init-claude-docs.js
+// @dungeonmaster/standards/bin/init-claude-docs.js
 
 function checkVersionAlignment() {
   const pkgJson = require(path.join(process.cwd(), 'package.json'));
   const deps = { ...pkgJson.dependencies, ...pkgJson.devDependencies };
 
-  const standardsVersion = deps['@questmaestro/standards'];
-  const eslintVersion = deps['@questmaestro/eslint-plugin'];
-  const testingVersion = deps['@questmaestro/testing'];
+    const standardsVersion = deps['@dungeonmaster/standards'];
+    const eslintVersion = deps['@dungeonmaster/eslint-plugin'];
+    const testingVersion = deps['@dungeonmaster/testing'];
 
   const standardsMajor = getMajorVersion(standardsVersion);
   const eslintMajor = getMajorVersion(eslintVersion);
@@ -250,12 +250,12 @@ function checkVersionAlignment() {
     console.warn(`
 ⚠️  WARNING: Version mismatch detected!
 
-  @questmaestro/standards:     ${standardsVersion}
-  @questmaestro/eslint-plugin: ${eslintVersion}
-  @questmaestro/testing:        ${testingVersion}
+  @dungeonmaster/standards:     ${standardsVersion}
+  @dungeonmaster/eslint-plugin: ${eslintVersion}
+  @dungeonmaster/testing:        ${testingVersion}
 
-All @questmaestro packages should have matching major versions.
-Run: npm update @questmaestro/standards @questmaestro/testing @questmaestro/eslint-plugin
+All @dungeonmaster packages should have matching major versions.
+Run: npm update @dungeonmaster/standards @dungeonmaster/testing @dungeonmaster/eslint-plugin
     `);
   }
 }
@@ -281,10 +281,10 @@ cd packages/eslint-plugin && npm version minor
 cd packages/hooks && npm version minor
 
 # 2. Publish all packages
-npm publish --access public --workspace @questmaestro/standards
-npm publish --access public --workspace @questmaestro/testing
-npm publish --access public --workspace @questmaestro/eslint-plugin
-npm publish --access public --workspace @questmaestro/hooks
+npm publish --access public --workspace @dungeonmaster/standards
+npm publish --access public --workspace @dungeonmaster/testing
+npm publish --access public --workspace @dungeonmaster/eslint-plugin
+npm publish --access public --workspace @dungeonmaster/hooks
 
 # 3. Update CHANGELOG.md in each package
 # 4. Tag release
@@ -298,18 +298,18 @@ git push && git push --tags
 
 ```bash
 npm install --save-dev \
-  @questmaestro/standards \
-  @questmaestro/testing \
-  @questmaestro/eslint-plugin \
-  @questmaestro/hooks
+  @dungeonmaster/standards \
+  @dungeonmaster/testing \
+  @dungeonmaster/eslint-plugin \
+  @dungeonmaster/hooks
 ```
 
 ### Step 2: Post-Install Auto-Runs
 
-**Triggered by:** `@questmaestro/standards` postinstall script
+**Triggered by:** `@dungeonmaster/standards` postinstall script
 
 ```json
-// @questmaestro/standards/package.json
+// @dungeonmaster/standards/package.json
 {
   "scripts": {
     "postinstall": "node ./bin/init-claude-docs.js || true"
@@ -322,7 +322,7 @@ npm install --save-dev \
 ```
 .claude/
 ├── .gitignore
-├── _framework/          ← Symlinked to node_modules/@questmaestro/
+├── _framework/          ← Symlinked to node_modules/@dungeonmaster/
 │   ├── standards/
 │   ├── testing/
 │   └── lint/
@@ -333,7 +333,7 @@ npm install --save-dev \
 ### Step 3: Developer Scaffolds (Optional)
 
 ```bash
-npx @questmaestro/standards scaffold
+npx @dungeonmaster/standards scaffold
 ```
 
 **Generates starter files with embedded patterns.**
@@ -386,7 +386,7 @@ Load: `.claude/custom/business-domain.md`
 
 **Benefits:**
 
-- ✅ No verbose `node_modules/@questmaestro/standards/docs/` paths
+- ✅ No verbose `node_modules/@dungeonmaster/standards/docs/` paths
 - ✅ Framework vs custom clearly separated
 - ✅ Auto-updates with npm (symlinks)
 - ✅ `.gitignore` prevents committing framework docs
@@ -405,10 +405,10 @@ Load: `.claude/custom/business-domain.md`
 
 ## Cross-Package References
 
-**From @questmaestro/testing to @questmaestro/standards:**
+**From @dungeonmaster/testing to @dungeonmaster/standards:**
 
 ```markdown
-<!-- @questmaestro/testing/docs/testing-standards.md -->
+<!-- @dungeonmaster/testing/docs/testing-standards.md -->
 
 # Testing Standards
 

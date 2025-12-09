@@ -1,10 +1,10 @@
 /**
- * PURPOSE: Recursively finds and collects parent .questmaestro config files up the directory tree
+ * PURPOSE: Recursively finds and collects parent .dungeonmaster config files up the directory tree
  *
  * USAGE:
  * await findParentConfigsLayerBroker({
  *   currentPath: FilePathStub({value: '/project/src'}),
- *   originalConfigPath: FilePathStub({value: '/project/src/.questmaestro'}),
+ *   originalConfigPath: FilePathStub({value: '/project/src/.dungeonmaster'}),
  *   configs: []
  * });
  * // Populates configs array with parent configurations
@@ -13,8 +13,8 @@
 import { configFileFindBroker } from '../../config-file/find/config-file-find-broker';
 import { configFileLoadBroker } from '../../config-file/load/config-file-load-broker';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
-import type { FilePath } from '@questmaestro/shared/contracts';
-import type { QuestmaestroConfig } from '../../../contracts/questmaestro-config/questmaestro-config-contract';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const findParentConfigsLayerBroker = async ({
   currentPath,
@@ -23,7 +23,7 @@ export const findParentConfigsLayerBroker = async ({
 }: {
   currentPath: FilePath;
   originalConfigPath: FilePath;
-  configs: QuestmaestroConfig[];
+  configs: DungeonmasterConfig[];
 }): Promise<void> => {
   try {
     const parentConfigPath = await configFileFindBroker({ startPath: currentPath });

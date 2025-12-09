@@ -1,4 +1,4 @@
-import { FolderConfigStub } from '@questmaestro/shared/contracts';
+import { FolderConfigStub } from '@dungeonmaster/shared/contracts';
 import { firstFileSuffixTransformer } from './first-file-suffix-transformer';
 
 describe('firstFileSuffixTransformer', () => {

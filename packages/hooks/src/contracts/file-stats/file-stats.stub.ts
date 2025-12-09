@@ -1,4 +1,4 @@
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { fileStatsContract } from './file-stats-contract';
 import type { FileStats } from './file-stats-contract';
 

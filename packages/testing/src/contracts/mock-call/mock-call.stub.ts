@@ -1,4 +1,4 @@
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { mockCallContract } from './mock-call-contract';
 import type { MockCall } from './mock-call-contract';
 import { ModuleNameStub } from '../module-name/module-name.stub';

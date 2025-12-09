@@ -1,4 +1,4 @@
-# QuestMaestro CLI Installation & Usage Guide
+# Dungeonmaster CLI Installation & Usage Guide
 
 ## Installation
 
@@ -11,8 +11,8 @@
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/questmaestro.git
-cd questmaestro
+git clone https://github.com/yourusername/dungeonmaster.git
+cd dungeonmaster
 ```
 
 2. Install dependencies:
@@ -30,66 +30,68 @@ npm run build
 npm link
 ```
 
-Now you can use `questmaestro` from anywhere on your system.
+Now you can use `dungeonmaster` from anywhere on your system.
 
 ### Install from npm (when published)
 ```bash
-npm install -g questmaestro
+npm install -g dungeonmaster
 ```
 
 ## Usage
 
 ### First Run
 
-When you first run QuestMaestro in a project, it will:
-1. Create a `.questmaestro` config file
+When you first run Dungeonmaster in a project, it will:
+
+1. Create a `.dungeonmaster` config file
 2. Run project discovery with Voidpoker to analyze your codebase
-3. Create the `questmaestro/` directory structure
+3. Create the `dungeonmaster/` directory structure
 
 ```bash
 # In your project directory
-questmaestro
+dungeonmaster
 ```
 
 ### Basic Commands
 
 #### Create a New Quest
 ```bash
-questmaestro "add user authentication"
-questmaestro "fix login timeout bug"
-questmaestro "refactor database module"
+dungeonmaster "add user authentication"
+dungeonmaster "fix login timeout bug"
+dungeonmaster "refactor database module"
 ```
 
 #### List All Quests
 ```bash
-questmaestro list
+dungeonmaster list
 ```
 
 #### Resume Active Quest
 ```bash
 # Resumes the first active quest
-questmaestro
+dungeonmaster
 ```
 
 #### Start Specific Quest
 ```bash
-questmaestro start "quest-name"
-questmaestro start 001-add-auth  # Using quest folder name
+dungeonmaster start "quest-name"
+dungeonmaster start 001-add-auth  # Using quest folder name
 ```
 
 #### Abandon Current Quest
 ```bash
-questmaestro abandon
+dungeonmaster abandon
 ```
 
 #### Clean Old Quests
 ```bash
-questmaestro clean
+dungeonmaster clean
 ```
 
 ## How It Works
 
-1. **Quest Creation**: When you provide a task description, QuestMaestro creates a quest and spawns Pathseeker to plan the implementation.
+1. **Quest Creation**: When you provide a task description, Dungeonmaster creates a quest and spawns Pathseeker to plan
+   the implementation.
 
 2. **Agent Orchestration**: The system sequentially spawns specialized Claude instances:
    - **Pathseeker**: Analyzes requirements and creates implementation tasks
@@ -109,11 +111,11 @@ questmaestro clean
 
 ## Configuration
 
-The `.questmaestro` config file supports:
+The `.dungeonmaster` config file supports:
 
 ```json
 {
-  "questFolder": "questmaestro",
+  "questFolder": "dungeonmaster",
   "discoveryComplete": false,
   "wardCommands": {
     "all": "npm run lint && npm run typecheck && npm run test",
@@ -126,8 +128,8 @@ The `.questmaestro` config file supports:
 
 ```
 your-project/
-├── .questmaestro                    # Config file
-├── questmaestro/                    # Quest data
+├── .dungeonmaster                    # Config file
+├── dungeonmaster/                    # Quest data
 │   ├── active/                      # In-progress quests
 │   │   └── 001-add-auth/           # Quest folder
 │   │       ├── quest.json          # Quest metadata
@@ -142,8 +144,9 @@ your-project/
 
 ## Troubleshooting
 
-### "No .questmaestro config found"
-The CLI now auto-creates the config on first run. Just run `questmaestro` again.
+### "No .dungeonmaster config found"
+
+The CLI now auto-creates the config on first run. Just run `dungeonmaster` again.
 
 ### "Ward validation failed"
 Ensure your project has the required scripts in package.json:
@@ -194,7 +197,7 @@ npm run ward:all
 
 ## Next Steps
 
-1. Create your first quest: `questmaestro "your task description"`
+1. Create your first quest: `dungeonmaster "your task description"`
 2. Watch the agents work their magic
 3. Review the generated code and retrospective
 4. Iterate and improve!

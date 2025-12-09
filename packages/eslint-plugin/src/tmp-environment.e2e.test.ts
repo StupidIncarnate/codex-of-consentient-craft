@@ -6,7 +6,7 @@ import {
   BaseNameStub,
   FileNameStub,
   FileContentStub,
-} from '@questmaestro/testing';
+} from '@dungeonmaster/testing';
 
 /**
  * E2E test to prove that integration test environments can work in /tmp

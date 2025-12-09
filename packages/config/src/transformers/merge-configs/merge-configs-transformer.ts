@@ -1,18 +1,18 @@
 /**
- * PURPOSE: Merges multiple Questmaestro configuration objects with package-specific settings taking precedence
+ * PURPOSE: Merges multiple Dungeonmaster configuration objects with package-specific settings taking precedence
  *
  * USAGE:
  * mergeConfigsTransformer({configs: [rootConfig, packageConfig]});
  * // Returns merged configuration with package config overriding root config
  */
 
-import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/questmaestro-config-contract';
+import type { DungeonmasterConfig } from '../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const mergeConfigsTransformer = ({
   configs,
 }: {
-  configs: QuestmaestroConfig[];
-}): QuestmaestroConfig => {
+  configs: DungeonmasterConfig[];
+}): DungeonmasterConfig => {
   if (configs.length === 0) {
     throw new Error('Cannot merge empty configs array');
   }

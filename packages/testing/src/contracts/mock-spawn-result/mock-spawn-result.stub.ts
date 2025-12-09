@@ -1,4 +1,4 @@
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { mockSpawnResultContract } from './mock-spawn-result-contract';
 import type { MockSpawnResult } from './mock-spawn-result-contract';
 

@@ -3,7 +3,7 @@
  *
  * Usage in jest.config.js:
  *   astTransformers: {
- *     before: ['@questmaestro/testing/ts-jest/proxy-mock-transformer.js']
+ *     before: ['@dungeonmaster/testing/ts-jest/proxy-mock-transformer.js']
  *   }
  */
 'use strict';

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Defines default configuration values for questmaestro config
+ * PURPOSE: Defines default configuration values for dungeonmaster config
  *
  * USAGE:
  * import {configDefaultsStatics} from './config-defaults-statics';

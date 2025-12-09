@@ -1,6 +1,6 @@
 import { discoverResultItemContract } from './discover-result-item-contract';
 import type { DiscoverResultItem } from './discover-result-item-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const DiscoverResultItemStub = ({
   ...props

@@ -1,4 +1,4 @@
-import { FolderTypeStub } from '@questmaestro/shared/contracts';
+import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 import { isEntryFileGuard } from './is-entry-file-guard';
 
 describe('isEntryFileGuard', () => {

@@ -4,13 +4,13 @@ Get complete architecture information dynamically:
 
 ```typescript
 // Complete orientation (all folders, layers, rules):
-mcp__questmaestro__get - architecture()
+mcp__dungeonmaster__get - architecture()
 
 // Deep dive on specific folder:
-mcp__questmaestro__get - folder - detail({folderType: "brokers"})
+mcp__dungeonmaster__get - folder - detail({folderType: "brokers"})
 
 // Universal syntax rules:
-mcp__questmaestro__get - syntax - rules()
+mcp__dungeonmaster__get - syntax - rules()
 ```
 
 This page is a human-readable backup only. MCP provides the authoritative, always-current source.
@@ -174,8 +174,8 @@ startup/
 **"Should I create a new file or extend existing?"**
 
 1. Search for existing domain files using MCP discovery:
-    - `mcp__questmaestro__discover({ type: "files", fileType: "broker", search: "user" })`
-    - `mcp__questmaestro__discover({ type: "files", path: "packages/eslint-plugin/src/guards" })`
+    - `mcp__dungeonmaster__discover({ type: "files", fileType: "broker", search: "user" })`
+    - `mcp__dungeonmaster__discover({ type: "files", path: "packages/eslint-plugin/src/guards" })`
 2. If exists:
     - **bindings/widgets/brokers**: Extend with options
     - **transformers**: Create new file for each output shape

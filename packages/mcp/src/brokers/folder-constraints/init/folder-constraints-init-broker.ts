@@ -10,7 +10,7 @@ import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import type { FolderType } from '@questmaestro/shared/contracts';
+import type { FolderType } from '@dungeonmaster/shared/contracts';
 
 export const folderConstraintsInitBroker = async (): Promise<{
   folderConstraints: Map<FolderType, ContentText>;

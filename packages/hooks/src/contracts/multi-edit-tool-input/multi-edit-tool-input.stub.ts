@@ -1,6 +1,6 @@
 import type { MultiEditToolInput } from './multi-edit-tool-input-contract';
 import { multiEditToolInputContract } from './multi-edit-tool-input-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const MultiEditToolInputStub = ({
   ...props

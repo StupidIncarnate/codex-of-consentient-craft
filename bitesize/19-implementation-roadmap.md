@@ -12,7 +12,7 @@ Implementing the Quest Maestro npm distribution system requires careful phased r
 
 ### Goal
 
-Create working `@questmaestro/standards` package with core documentation and init script.
+Create working `@dungeonmaster/standards` package with core documentation and init script.
 
 ### Tasks
 
@@ -31,7 +31,7 @@ Create working `@questmaestro/standards` package with core documentation and ini
 
 **Package Structure**
 
-- [ ] Create `@questmaestro/standards` directory structure
+- [ ] Create `@dungeonmaster/standards` directory structure
 - [ ] Set up package.json with bin scripts
 - [ ] Implement `bin/init-claude-docs.js`
 - [ ] Create `templates/CLAUDE.md.template`
@@ -46,7 +46,7 @@ Create working `@questmaestro/standards` package with core documentation and ini
 
 **Publishing**
 
-- [ ] Publish `@questmaestro/standards@0.1.0-beta.1` to npm
+- [ ] Publish `@dungeonmaster/standards@0.1.0-beta.1` to npm
 - [ ] Test installation in clean project
 - [ ] Verify documentation loads correctly
 
@@ -61,26 +61,26 @@ Create working `@questmaestro/standards` package with core documentation and ini
 
 ### Goal
 
-Add `@questmaestro/testing` package with cross-references to standards.
+Add `@dungeonmaster/testing` package with cross-references to standards.
 
 ### Tasks
 
 **Package Creation**
 
-- [ ] Create `@questmaestro/testing` package structure
+- [ ] Create `@dungeonmaster/testing` package structure
 - [ ] Extract testing docs from current repo
-- [ ] Add cross-references to `@questmaestro/standards` docs
+- [ ] Add cross-references to `@dungeonmaster/standards` docs
 - [ ] Create test examples and templates
 
 **Integration**
 
-- [ ] Update `@questmaestro/standards` init script to link testing docs
+- [ ] Update `@dungeonmaster/standards` init script to link testing docs
 - [ ] Test combined doc loading (standards + testing)
 - [ ] Verify cross-reference links work
 
 **Publishing**
 
-- [ ] Publish `@questmaestro/testing@0.1.0-beta.1`
+- [ ] Publish `@dungeonmaster/testing@0.1.0-beta.1`
 - [ ] Test peer dependency resolution
 - [ ] Install both packages in clean project
 
@@ -94,7 +94,7 @@ Add `@questmaestro/testing` package with cross-references to standards.
 
 ### Goal
 
-Enhance `@questmaestro/eslint-plugin` with pedagogical errors and doc links.
+Enhance `@dungeonmaster/eslint-plugin` with pedagogical errors and doc links.
 
 ### Tasks
 
@@ -121,7 +121,7 @@ Enhance `@questmaestro/eslint-plugin` with pedagogical errors and doc links.
 
 **Publishing**
 
-- [ ] Publish `@questmaestro/eslint-plugin@0.1.0-beta.1`
+- [ ] Publish `@dungeonmaster/eslint-plugin@0.1.0-beta.1`
 - [ ] Update all packages to peer-depend on each other
 
 **Success Criteria**
@@ -134,7 +134,7 @@ Enhance `@questmaestro/eslint-plugin` with pedagogical errors and doc links.
 
 ### Goal
 
-Create `@questmaestro/hooks` for pre-commit and context loading automation.
+Create `@dungeonmaster/hooks` for pre-commit and context loading automation.
 
 ### Tasks
 
@@ -159,7 +159,7 @@ Create `@questmaestro/hooks` for pre-commit and context loading automation.
 
 **Publishing**
 
-- [ ] Publish `@questmaestro/hooks@0.1.0-beta.1`
+- [ ] Publish `@dungeonmaster/hooks@0.1.0-beta.1`
 - [ ] Document setup instructions
 
 **Success Criteria**
@@ -221,7 +221,7 @@ Release v1.0.0 to public npm registry.
 
 **Documentation Site**
 
-- [ ] Create https://questmaestro.dev (or similar)
+- [ ] Create https://dungeonmaster.dev (or similar)
 - [ ] Document installation process
 - [ ] Provide migration guide
 - [ ] Add API reference for all packages
@@ -389,8 +389,8 @@ Release v1.0.0 to public npm registry.
 
 ### Infrastructure
 
-- npm organization (@questmaestro)
-- GitHub organization (questmaestro)
+- npm organization (@dungeonmaster)
+- GitHub organization (dungeonmaster)
 - Documentation site hosting
 - CI/CD for testing
 

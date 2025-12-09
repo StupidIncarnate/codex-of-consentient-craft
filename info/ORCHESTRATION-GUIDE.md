@@ -55,7 +55,7 @@ The Quest system introduces:
 ### Phase 1: Discovery
 
 ```
-Questmaestro → Pathseeker → discovery.json
+Dungeonmaster → Pathseeker → discovery.json
 ```
 
 - Always run first (except for trivial quests)
@@ -65,7 +65,7 @@ Questmaestro → Pathseeker → discovery.json
 ### Phase 2: Implementation (PARALLEL)
 
 ```
-Questmaestro → Codeweaver-1 → Service A + tests
+Dungeonmaster → Codeweaver-1 → Service A + tests
             → Codeweaver-2 → Service B + tests
             → Codeweaver-3 → Service C + tests
 ```
@@ -77,7 +77,7 @@ Questmaestro → Codeweaver-1 → Service A + tests
 ### Phase 3: Review
 
 ```
-Questmaestro → Lawbringer → Review all code
+Dungeonmaster → Lawbringer → Review all code
 ```
 
 - Reviews all parallel work
@@ -87,7 +87,7 @@ Questmaestro → Lawbringer → Review all code
 ### Phase 4: Integration Tests
 
 ```
-Questmaestro → Siegemaster → Integration tests
+Dungeonmaster → Siegemaster → Integration tests
 ```
 
 - Tests workflows across services
@@ -96,7 +96,7 @@ Questmaestro → Siegemaster → Integration tests
 ### Phase 5: Validation
 
 ```
-Questmaestro → ward:all
+Dungeonmaster → ward:all
             → Spiritmender (if errors)
 ```
 
@@ -108,7 +108,7 @@ Questmaestro → ward:all
 ### Quest Files
 
 ```
-/questmaestro/
+/dungeonmaster/
 ├── active/                # Currently active quests (alphabetical order)
 │   └── [quest-name]-[date].json
 ├── completed/             # Finished quests (local only)
@@ -193,7 +193,7 @@ Questmaestro → ward:all
 
 ## Configuration
 
-The system adapts to your project through `.questmaestro`:
+The system adapts to your project through `.dungeonmaster`:
 - Configure ward commands for your linting/testing
 - Set paths for quest storage
 - Define project-specific settings

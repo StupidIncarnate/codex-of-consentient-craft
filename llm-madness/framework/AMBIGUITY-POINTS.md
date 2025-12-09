@@ -1,6 +1,6 @@
 # Ambiguity Points for Discussion
 
-Implementation details that need clarification to complete the Questmaestro framework.
+Implementation details that need clarification to complete the Dungeonmaster framework.
 
 ## Agent Retro Content Specification
 **Referenced in**: failure-learning.md, agent-coordination.md
@@ -78,7 +78,8 @@ Which format provides better learning input for fresh Pathseeker?
 **Question**: How does empirical learning data persist and apply across quest sessions?
 
 **Current Gap**: Framework describes learning but not implementation:
-- How is failure pattern data stored between Questmaestro sessions?
+
+- How is failure pattern data stored between Dungeonmaster sessions?
 - What triggers system to apply learned patterns vs. try fresh approaches?
 - How does learning transfer between different projects/codebases?
 - Should learning be conservative (apply patterns) or experimental (try new approaches)?

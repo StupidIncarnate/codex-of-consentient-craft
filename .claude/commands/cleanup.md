@@ -75,7 +75,7 @@ using the shared `Tsestree` contract type instead.
 ### STEP 5: Test and Verify
 
 1. Run the tests for ONLY the file you modified: `npm test
-  --workspace=@questmaestro/eslint-plugin -- {file-name}.test.ts`
+  --workspace=@dungeonmaster/eslint-plugin -- {file-name}.test.ts`
 2. Tests MUST pass - if they don't, fix type errors by extending the contract or adding
    proper guards
 3. Do NOT move to the next file until tests pass

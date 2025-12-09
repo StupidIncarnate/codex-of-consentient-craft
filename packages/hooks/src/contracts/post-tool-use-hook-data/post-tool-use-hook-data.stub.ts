@@ -1,7 +1,7 @@
 import type { PostToolUseHookData } from './post-tool-use-hook-data-contract';
 import { postToolUseHookDataContract } from './post-tool-use-hook-data-contract';
 import { writeToolInputContract } from '../write-tool-input/write-tool-input-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const PostToolUseHookStub = ({
   ...props

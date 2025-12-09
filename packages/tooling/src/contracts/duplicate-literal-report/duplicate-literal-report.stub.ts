@@ -1,6 +1,6 @@
 import { duplicateLiteralReportContract } from './duplicate-literal-report-contract';
 import type { DuplicateLiteralReport } from './duplicate-literal-report-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { LiteralValueStub } from '../literal-value/literal-value.stub';
 import { LiteralTypeStub } from '../literal-type/literal-type.stub';
 import { LiteralOccurrenceStub } from '../literal-occurrence/literal-occurrence.stub';

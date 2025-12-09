@@ -37,7 +37,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
         unnecessaryCategoryInPath:
           'Unnecessary category name in import path. When importing within {{folderType}}/, use "{{suggestedPath}}" instead of "{{importPath}}".',
         forbiddenSharedRootImport:
-          'Cannot import from "@questmaestro/shared" directly. Use subpath imports like "@questmaestro/shared/contracts" instead.',
+          'Cannot import from "@dungeonmaster/shared" directly. Use subpath imports like "@dungeonmaster/shared/contracts" instead.',
       },
       schema: [],
     },
@@ -70,10 +70,10 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
           return;
         }
 
-        // Check for @questmaestro/shared imports - treat them like local folder imports
-        if (importSource.startsWith('@questmaestro/shared/')) {
-          // Extract the folder type from the subpath (e.g., "contracts" from "@questmaestro/shared/contracts")
-          const subpath = importSource.replace('@questmaestro/shared/', '');
+        // Check for @dungeonmaster/shared imports - treat them like local folder imports
+        if (importSource.startsWith('@dungeonmaster/shared/')) {
+          // Extract the folder type from the subpath (e.g., "contracts" from "@dungeonmaster/shared/contracts")
+          const subpath = importSource.replace('@dungeonmaster/shared/', '');
           const [sharedFolderType] = subpath.split('/');
 
           // If no folder type found, skip validation
@@ -81,19 +81,19 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
             return;
           }
 
-          // Exception: @questmaestro/shared/@types imports are allowed for all folders (type definitions)
+          // Exception: @dungeonmaster/shared/@types imports are allowed for all folders (type definitions)
           if (sharedFolderType === '@types') {
             return;
           }
 
-          // Exception: Test files and stub files can import .stub.ts files from @questmaestro/shared/contracts
+          // Exception: Test files and stub files can import .stub.ts files from @dungeonmaster/shared/contracts
           const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
           const isCurrentFileStub = isStubFileGuard({ filename: ctx.filename ?? '' });
           const isImportedFileStub = isStubFileGuard({ filename: importSource });
           const isFromContracts = sharedFolderType === 'contracts';
 
           if ((isTestFile || isCurrentFileStub) && isImportedFileStub && isFromContracts) {
-            // Allow test files and stub files to import stubs from @questmaestro/shared/contracts
+            // Allow test files and stub files to import stubs from @dungeonmaster/shared/contracts
             return;
           }
 
@@ -125,8 +125,8 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
           return;
         }
 
-        // Forbid importing from @questmaestro/shared root
-        if (importSource === '@questmaestro/shared') {
+        // Forbid importing from @dungeonmaster/shared root
+        if (importSource === '@dungeonmaster/shared') {
           ctx.report({
             node,
             messageId: 'forbiddenSharedRootImport',

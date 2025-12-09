@@ -13,8 +13,8 @@ import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-fi
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
-import type { FileContents, Identifier, ModulePath } from '@questmaestro/shared/contracts';
-import { identifierContract, filePathContract } from '@questmaestro/shared/contracts';
+import type { FileContents, Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
+import { identifierContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({

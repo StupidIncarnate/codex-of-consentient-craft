@@ -1,5 +1,5 @@
 import { testFilePathToColocatedProxyPathTransformer } from './test-file-path-to-colocated-proxy-path-transformer';
-import { FilePathStub } from '@questmaestro/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 describe('testFilePathToColocatedProxyPathTransformer', () => {
   it('VALID: {testFilePath: "/src/user-broker.test.ts"} => returns "./user-broker.proxy"', () => {

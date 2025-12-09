@@ -12,8 +12,8 @@
  * });
  * // Returns: './http-adapter.proxy'
  */
-import type { FilePath } from '@questmaestro/shared/contracts';
-import { filePathContract } from '@questmaestro/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 export const testFilePathToColocatedProxyPathTransformer = ({
   testFilePath,

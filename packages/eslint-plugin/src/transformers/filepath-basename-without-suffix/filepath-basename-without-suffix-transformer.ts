@@ -15,7 +15,7 @@
  *
  * WHEN-TO-USE: When extracting base names for folder structure validation
  */
-import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const filepathBasenameWithoutSuffixTransformer = ({
   filePath,

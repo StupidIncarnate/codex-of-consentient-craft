@@ -1,7 +1,7 @@
 import { configResolveBroker } from './config-resolve-broker';
 import { configResolveBrokerProxy } from './config-resolve-broker.proxy';
-import { FilePathStub } from '@questmaestro/shared/contracts';
-import { QuestmaestroConfigStub } from '../../../contracts/questmaestro-config/questmaestro-config.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { DungeonmasterConfigStub } from '../../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 describe('configResolveBroker', () => {
   describe('single config resolution', () => {
@@ -10,14 +10,14 @@ describe('configResolveBroker', () => {
       const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/project/src/file.ts' });
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
       });
 
       findProxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/project/.questmaestro',
+        configPath: '/project/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: packageConfig });
       dirnameProxy.returns({ result: '/project' as never });
@@ -33,14 +33,14 @@ describe('configResolveBroker', () => {
       const { findProxy, loadProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/monorepo/src/index.ts' });
-      const monorepoConfig = QuestmaestroConfigStub({
+      const monorepoConfig = DungeonmasterConfigStub({
         framework: 'monorepo',
         schema: 'zod',
       });
 
       findProxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/monorepo/.questmaestro',
+        configPath: '/monorepo/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: monorepoConfig });
 
@@ -56,12 +56,12 @@ describe('configResolveBroker', () => {
       const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/monorepo/packages/web/src/app.tsx' });
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         routing: 'react-router-dom',
         schema: 'zod',
       });
-      const rootConfig = QuestmaestroConfigStub({
+      const rootConfig = DungeonmasterConfigStub({
         framework: 'monorepo',
         schema: 'zod',
         architecture: {
@@ -71,13 +71,13 @@ describe('configResolveBroker', () => {
 
       findProxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/monorepo/packages/web/.questmaestro',
+        configPath: '/monorepo/packages/web/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: packageConfig });
       dirnameProxy.returns({ result: '/monorepo/packages/web' as never });
       findProxy.setupConfigFound({
         startPath: '/monorepo/packages/web',
-        configPath: '/monorepo/.questmaestro',
+        configPath: '/monorepo/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: rootConfig });
 
@@ -100,15 +100,15 @@ describe('configResolveBroker', () => {
       const filePath = FilePathStub({
         value: '/deep/monorepo/workspace/packages/api/src/server.ts',
       });
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
       });
-      const workspaceConfig = QuestmaestroConfigStub({
+      const workspaceConfig = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
       });
-      const rootConfig = QuestmaestroConfigStub({
+      const rootConfig = DungeonmasterConfigStub({
         framework: 'monorepo',
         schema: 'zod',
         architecture: {
@@ -118,19 +118,19 @@ describe('configResolveBroker', () => {
 
       findProxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/deep/monorepo/workspace/packages/api/.questmaestro',
+        configPath: '/deep/monorepo/workspace/packages/api/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: packageConfig });
       dirnameProxy.returns({ result: '/deep/monorepo/workspace/packages/api' as never });
       findProxy.setupConfigFound({
         startPath: '/deep/monorepo/workspace/packages/api',
-        configPath: '/deep/monorepo/workspace/.questmaestro',
+        configPath: '/deep/monorepo/workspace/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: workspaceConfig });
       dirnameProxy.returns({ result: '/deep/monorepo/workspace' as never });
       findProxy.setupConfigFound({
         startPath: '/deep/monorepo/workspace',
-        configPath: '/deep/monorepo/.questmaestro',
+        configPath: '/deep/monorepo/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: rootConfig });
 
@@ -150,24 +150,24 @@ describe('configResolveBroker', () => {
       const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/monorepo/packages/shared/utils.ts' });
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
       });
-      const rootConfig = QuestmaestroConfigStub({
+      const rootConfig = DungeonmasterConfigStub({
         framework: 'monorepo',
         schema: 'zod',
       });
 
       findProxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/monorepo/packages/shared/.questmaestro',
+        configPath: '/monorepo/packages/shared/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: packageConfig });
       dirnameProxy.returns({ result: '/monorepo/packages/shared' as never });
       findProxy.setupConfigFound({
         startPath: '/monorepo/packages/shared',
-        configPath: '/monorepo/.questmaestro',
+        configPath: '/monorepo/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: rootConfig });
 
@@ -186,20 +186,20 @@ describe('configResolveBroker', () => {
       const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/project/deeply/nested/file.ts' });
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'vue',
         schema: 'zod',
       });
 
       findProxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/project/.questmaestro',
+        configPath: '/project/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: packageConfig });
       dirnameProxy.returns({ result: '/project' as never });
       findProxy.setupConfigFound({
         startPath: '/project',
-        configPath: '/project/.questmaestro',
+        configPath: '/project/.dungeonmaster',
       });
 
       const result = await configResolveBroker({ filePath });
@@ -212,14 +212,14 @@ describe('configResolveBroker', () => {
       const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/isolated/project/src/file.ts' });
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'angular',
         schema: 'zod',
       });
 
       findProxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/isolated/project/.questmaestro',
+        configPath: '/isolated/project/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: packageConfig });
       dirnameProxy.returns({ result: '/isolated/project' as never });
@@ -235,20 +235,20 @@ describe('configResolveBroker', () => {
       const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/project/src/file.ts' });
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'svelte',
         schema: 'zod',
       });
 
       findProxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/project/.questmaestro',
+        configPath: '/project/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: packageConfig });
       dirnameProxy.returns({ result: '/project' as never });
       findProxy.setupConfigFound({
         startPath: '/project',
-        configPath: '/root/.questmaestro',
+        configPath: '/root/.dungeonmaster',
       });
       loadProxy.setupFileNotFound();
 
@@ -262,14 +262,14 @@ describe('configResolveBroker', () => {
       const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/minimal/file.js' });
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'cli',
         schema: 'zod',
       });
 
       findProxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/minimal/.questmaestro',
+        configPath: '/minimal/.dungeonmaster',
       });
       loadProxy.setupValidConfig({ config: packageConfig });
       dirnameProxy.returns({ result: '/minimal' as never });

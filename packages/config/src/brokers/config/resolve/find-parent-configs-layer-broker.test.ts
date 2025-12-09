@@ -1,21 +1,21 @@
 import { findParentConfigsLayerBroker } from './find-parent-configs-layer-broker';
 import { findParentConfigsLayerBrokerProxy } from './find-parent-configs-layer-broker.proxy';
-import { FilePathStub } from '@questmaestro/shared/contracts';
-import { QuestmaestroConfigStub } from '../../../contracts/questmaestro-config/questmaestro-config.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { DungeonmasterConfigStub } from '../../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
-type QuestmaestroConfig = ReturnType<typeof QuestmaestroConfigStub>;
+type DungeonmasterConfig = ReturnType<typeof DungeonmasterConfigStub>;
 
 describe('findParentConfigsLayerBroker', () => {
   describe('finding parent configs', () => {
     it('VALID: {same config found} => stops without adding to configs', async () => {
       const proxy = findParentConfigsLayerBrokerProxy();
       const currentPath = FilePathStub({ value: '/project/packages/foo' });
-      const originalConfigPath = FilePathStub({ value: '/project/packages/foo/.questmaestro' });
-      const configs: QuestmaestroConfig[] = [];
+      const originalConfigPath = FilePathStub({ value: '/project/packages/foo/.dungeonmaster' });
+      const configs: DungeonmasterConfig[] = [];
 
       proxy.setupSameConfigFound({
         currentPath: '/project/packages/foo',
-        originalConfigPath: '/project/packages/foo/.questmaestro',
+        originalConfigPath: '/project/packages/foo/.dungeonmaster',
       });
 
       await findParentConfigsLayerBroker({ currentPath, originalConfigPath, configs });
@@ -26,10 +26,10 @@ describe('findParentConfigsLayerBroker', () => {
     it('VALID: {parent is monorepo root} => adds parent to configs and stops', async () => {
       const proxy = findParentConfigsLayerBrokerProxy();
       const currentPath = FilePathStub({ value: '/project/packages/foo' });
-      const originalConfigPath = FilePathStub({ value: '/project/packages/foo/.questmaestro' });
-      const parentConfigPath = '/project/.questmaestro';
-      const parentConfig = QuestmaestroConfigStub({ framework: 'monorepo' });
-      const configs: QuestmaestroConfig[] = [];
+      const originalConfigPath = FilePathStub({ value: '/project/packages/foo/.dungeonmaster' });
+      const parentConfigPath = '/project/.dungeonmaster';
+      const parentConfig = DungeonmasterConfigStub({ framework: 'monorepo' });
+      const configs: DungeonmasterConfig[] = [];
 
       proxy.setupMonorepoRootFound({
         currentPath: '/project/packages/foo',
@@ -45,8 +45,8 @@ describe('findParentConfigsLayerBroker', () => {
     it('ERROR: {no parent config found} => handles gracefully without adding to configs', async () => {
       const proxy = findParentConfigsLayerBrokerProxy();
       const currentPath = FilePathStub({ value: '/project/packages/foo' });
-      const originalConfigPath = FilePathStub({ value: '/project/packages/foo/.questmaestro' });
-      const configs: QuestmaestroConfig[] = [];
+      const originalConfigPath = FilePathStub({ value: '/project/packages/foo/.dungeonmaster' });
+      const configs: DungeonmasterConfig[] = [];
 
       proxy.setupNoParentFound({
         currentPath: '/project/packages/foo',

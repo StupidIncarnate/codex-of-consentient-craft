@@ -9,9 +9,9 @@
  * // Returns: Map { 'userBroker' => '../user/user-broker' }
  * // Note: Excludes contracts, statics, and other non-proxy imports
  */
-import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
-import { identifierContract, modulePathContract } from '@questmaestro/shared/contracts';
-import { folderConfigStatics } from '@questmaestro/shared/statics';
+import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
+import { identifierContract, modulePathContract } from '@dungeonmaster/shared/contracts';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 export const parseImplementationImportsTransformer = ({
   content,

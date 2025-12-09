@@ -16,7 +16,7 @@ How Pathseeker transforms user requests into observable atomic actions and imple
 
 **The Solution**: **Dialogue-driven discovery** where Pathseeker talks with users until **observable atomic actions** are clear, then learns optimal task boundaries through controlled failure cycles.
 
-## The Questmaestro Decomposition Process
+## The Dungeonmaster Decomposition Process
 
 ### Stage 1: User Dialogue and Observable Action Discovery
 

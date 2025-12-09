@@ -2,11 +2,11 @@
 
 ## Original Goal
 
-We're pivoting Questmaestro from a markdown-based orchestrator to a CLI command to solve these pain points:
+We're pivoting Dungeonmaster from a markdown-based orchestrator to a CLI command to solve these pain points:
 - Can't make changes to running agents without restarting
 - Sub-agents can't spawn their own sub-agents
 - Can't communicate with agents while they're working
-- Questmaestro performance degrades with large context
+- Dungeonmaster performance degrades with large context
 
 The CLI will:
 - Launch Claude instances with specific roles
@@ -188,7 +188,7 @@ What's your name?
 ```
 **Result**: Can detect when to prompt user
 
-## Recommendations for Questmaestro CLI Implementation
+## Recommendations for Dungeonmaster CLI Implementation
 
 ### 1. **Use File Watcher Pattern**
 - Most reliable approach for interactive mode
@@ -205,18 +205,18 @@ What's your name?
 ### 3. **Agent Signal Protocol**
 ```javascript
 // Agent completion signal
-Write("questmaestro/signals/[agent-name]-complete.txt", "status: complete")
+Write("dungeonmaster/signals/[agent-name]-complete.txt", "status: complete")
 
 // Agent needs help signal  
-Write("questmaestro/signals/needs-help.txt", "reason: [details]")
+Write("dungeonmaster/signals/needs-help.txt", "reason: [details]")
 
 // Agent spawning sub-agent
-Write("questmaestro/signals/spawn-[sub-agent].txt", "context: [data]")
+Write("dungeonmaster/signals/spawn-[sub-agent].txt", "context: [data]")
 ```
 
 ### 4. **CLI Architecture**
 ```
-questmaestro
+dungeonmaster
 ├── clean signal directory
 ├── spawn agent in interactive mode
 ├── monitor signal files
@@ -236,7 +236,7 @@ Each agent should:
 
 ## Next Steps
 
-1. **Build questmaestro CLI** using kill/restart pattern
+1. **Build dungeonmaster CLI** using kill/restart pattern
 2. **Update agent prompts** with standardized markers
 3. **Implement context summarization** to manage size
 4. **Create spawning protocol** for sub-agents
@@ -273,7 +273,7 @@ Could build a socket server that:
 
 ## Conclusion
 
-The spike successfully demonstrates a working pattern for the Questmaestro CLI pivot:
+The spike successfully demonstrates a working pattern for the Dungeonmaster CLI pivot:
 
 ### Final Implementation: Interactive Mode + File Watcher
 - **Full Claude UI Experience** - Users see the interactive terminal interface
@@ -289,10 +289,12 @@ The spike successfully demonstrates a working pattern for the Questmaestro CLI p
 4. **Interactive mode** gives users the full Claude experience
 
 ### Ready for Production
-The pattern is ready to be implemented in the full Questmaestro CLI:
+
+The pattern is ready to be implemented in the full Dungeonmaster CLI:
 - Proven agent chaining mechanism
 - Reliable completion detection
 - User-friendly interactive experience
 - Automated flow management
 
-This spike validates that we can build a CLI that maintains the benefits of interactive Claude while adding the automation and chaining capabilities needed for the Questmaestro workflow.
+This spike validates that we can build a CLI that maintains the benefits of interactive Claude while adding the
+automation and chaining capabilities needed for the Dungeonmaster workflow.

@@ -1,6 +1,6 @@
 # Orchestration Decision Tree
 
-Visual decision guide for Questmaestro to determine optimal orchestration strategy.
+Visual decision guide for Dungeonmaster to determine optimal orchestration strategy.
 
 ```
 START: New Task Received

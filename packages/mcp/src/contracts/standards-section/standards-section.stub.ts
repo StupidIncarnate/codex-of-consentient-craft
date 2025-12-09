@@ -1,6 +1,6 @@
 import { standardsSectionContract } from './standards-section-contract';
 import type { StandardsSection } from './standards-section-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const StandardsSectionStub = ({
   ...props

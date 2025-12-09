@@ -1,6 +1,7 @@
 # Process Architecture: User Request to Working Implementation
 
-How the Questmaestro orchestration system transforms user requests into working code through dialogue, agent coordination, and empirical learning.
+How the Dungeonmaster orchestration system transforms user requests into working code through dialogue, agent
+coordination, and empirical learning.
 
 ## Theoretical Foundation
 
@@ -23,7 +24,7 @@ How the Questmaestro orchestration system transforms user requests into working 
 - Escape mechanisms for complexity overload
 - Empirical learning through controlled failure
 
-## The Questmaestro Process Pipeline
+## The Dungeonmaster Process Pipeline
 
 ### Stage 1: User Dialogue and Discovery (Pathseeker)
 

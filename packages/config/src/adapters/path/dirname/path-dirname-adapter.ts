@@ -8,7 +8,7 @@
  */
 
 import { dirname } from 'path';
-import { filePathContract, type FilePath } from '@questmaestro/shared/contracts';
+import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 
 export const pathDirnameAdapter = ({ path }: { path: FilePath }): FilePath =>
   filePathContract.parse(dirname(path));

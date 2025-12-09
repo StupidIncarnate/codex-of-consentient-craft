@@ -1,6 +1,6 @@
-# Questmaestro CLI Pivot Plan
+# Dungeonmaster CLI Pivot Plan
 
-## Final Consolidated Plan: Questmaestro CLI Implementation
+## Final Consolidated Plan: Dungeonmaster CLI Implementation
 
 ### Quest Flow Order (Sequential)
 ```
@@ -16,14 +16,14 @@
 
 #### **File-Based Communication**
 ```
-questmaestro/
+dungeonmaster/
 ├── discovery/                        # Voidpoker discovery reports (not quest-specific)
 │   ├── voidpoker-2024-03-15T10-00-00-000Z-core-report.json
 │   ├── voidpoker-2024-03-15T10-05-00-000Z-web-report.json
 │   └── voidpoker-2024-03-15T10-10-00-000Z-api-report.json
 ├── active/                           # Currently active quest folders
 │   ├── 01-add-authentication/
-│   │   ├── quest.json               # Quest state managed by questmaestro
+│   │   ├── quest.json               # Quest state managed by dungeonmaster
 │   │   ├── 001-pathseeker-report.json         # Initial discovery
 │   │   ├── 002-codeweaver-report.json         # First implementation task
 │   │   ├── 003-codeweaver-report.json         # Recovery/retry of task
@@ -57,7 +57,7 @@ questmaestro/
 ### Key Points (Not Changing)
 1. **Sequential only** - One agent at a time
 2. **Ward gates** - After each agent except Pathseeker/Voidpoker
-3. **Pathseeker handles all Q&A** - No back-and-forth with questmaestro
+3. **Pathseeker handles all Q&A** - No back-and-forth with dungeonmaster
 4. **File-based work** - Pathseeker outputs files, not components
 5. **Agent continuity** - Blocked agents spawn continuations
 6. **Auto-discovery** - Voidpoker runs if project not discovered
@@ -70,9 +70,9 @@ questmaestro/
 
 ### Additional Implementation Notes
 
-#### Questmaestro Quest Management
+#### Dungeonmaster Quest Management
 
-2. **Questmaestro reconciliation**:
+2. **Dungeonmaster reconciliation**:
    - Parse Pathseeker's report
    - Add new tasks to task list
    - Update dependencies on existing tasks
@@ -92,7 +92,7 @@ questmaestro/
 1. **Remove complex gate systems** - Agents should focus on their core job
 2. **Remove text report formatting** - Direct JSON output only  
 3. **Simplify output** - One clear JSON report at the end
-4. **Remove human-readable displays** - Questmaestro handles all display
+4. **Remove human-readable displays** - Dungeonmaster handles all display
 5. **Remove TODO tracking** - Not needed for single-purpose runs
 6. **Remove progress tracking** - Code files are the progress
 7. **Focus on core purpose**:

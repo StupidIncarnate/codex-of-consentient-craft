@@ -1,10 +1,10 @@
 import { computeAllowedImportsTransformer } from './compute-allowed-imports-transformer';
-import { QuestmaestroConfigStub } from '../../contracts/questmaestro-config/questmaestro-config.stub';
+import { DungeonmasterConfigStub } from '../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 describe('computeAllowedImportsTransformer', () => {
   describe('valid transformations', () => {
     it('VALID: {framework: "react", schema: "zod"} => returns complete config with schema array', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
       });
@@ -28,7 +28,7 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "express", schema: ["zod"]} => returns complete config with schema array unchanged', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'express',
         schema: ['zod'],
       });
@@ -52,7 +52,7 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "react", routing: "vue-router"} => adds routing to flows when not already present', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         routing: 'vue-router',
         schema: 'zod',
@@ -77,7 +77,7 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "express", routing: "fastify"} => adds routing to flows when not already present', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'express',
         routing: 'fastify',
         schema: 'zod',
@@ -102,7 +102,7 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "express", routing: "express"} => does not duplicate routing when already in flows', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'express',
         routing: 'express',
         schema: 'zod',
@@ -127,7 +127,7 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "node-library"} => handles null flows correctly', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
       });
@@ -152,7 +152,7 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('VALID: {framework: "react", architecture: {overrides: {widgets: {add: ["custom-lib"]} as any}}} => applies overrides correctly', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -185,7 +185,7 @@ describe('computeAllowedImportsTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: {framework: "react"} => handles missing routing property', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
       });
@@ -210,7 +210,7 @@ describe('computeAllowedImportsTransformer', () => {
     });
 
     it('EDGE: {framework: "node-library", routing: "express"} => does not add routing when flows is null', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'node-library',
         routing: 'express',
         schema: 'zod',

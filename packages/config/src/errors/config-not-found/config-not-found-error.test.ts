@@ -7,7 +7,7 @@ describe('ConfigNotFoundError', () => {
 
       expect(error.name).toBe('ConfigNotFoundError');
       expect(error.message).toBe(
-        'No .questmaestro configuration file found starting from /path/to/file.js. Searched up the directory tree but no config file was found.',
+        'No .dungeonmaster configuration file found starting from /path/to/file.js. Searched up the directory tree but no config file was found.',
       );
       expect(error).toBeInstanceOf(Error);
       expect(error).toBeInstanceOf(ConfigNotFoundError);
@@ -19,7 +19,7 @@ describe('ConfigNotFoundError', () => {
       });
 
       expect(error.message).toBe(
-        'No .questmaestro configuration file found starting from /home/user/project/src/widgets/component.tsx. Searched up the directory tree but no config file was found.',
+        'No .dungeonmaster configuration file found starting from /home/user/project/src/widgets/component.tsx. Searched up the directory tree but no config file was found.',
       );
       expect(error.name).toBe('ConfigNotFoundError');
     });
@@ -28,7 +28,7 @@ describe('ConfigNotFoundError', () => {
       const error = new ConfigNotFoundError({ startPath: '' });
 
       expect(error.message).toBe(
-        'No .questmaestro configuration file found starting from . Searched up the directory tree but no config file was found.',
+        'No .dungeonmaster configuration file found starting from . Searched up the directory tree but no config file was found.',
       );
       expect(error.name).toBe('ConfigNotFoundError');
     });
@@ -37,7 +37,7 @@ describe('ConfigNotFoundError', () => {
       const error = new ConfigNotFoundError({ startPath: '/' });
 
       expect(error.message).toBe(
-        'No .questmaestro configuration file found starting from /. Searched up the directory tree but no config file was found.',
+        'No .dungeonmaster configuration file found starting from /. Searched up the directory tree but no config file was found.',
       );
       expect(error.name).toBe('ConfigNotFoundError');
     });
@@ -46,7 +46,7 @@ describe('ConfigNotFoundError', () => {
       const error = new ConfigNotFoundError({ startPath: 'relative/path.js' });
 
       expect(error.message).toBe(
-        'No .questmaestro configuration file found starting from relative/path.js. Searched up the directory tree but no config file was found.',
+        'No .dungeonmaster configuration file found starting from relative/path.js. Searched up the directory tree but no config file was found.',
       );
       expect(error.name).toBe('ConfigNotFoundError');
     });
@@ -55,7 +55,7 @@ describe('ConfigNotFoundError', () => {
       const error = new ConfigNotFoundError({ startPath: '/path/with spaces/file.js' });
 
       expect(error.message).toBe(
-        'No .questmaestro configuration file found starting from /path/with spaces/file.js. Searched up the directory tree but no config file was found.',
+        'No .dungeonmaster configuration file found starting from /path/with spaces/file.js. Searched up the directory tree but no config file was found.',
       );
       expect(error.name).toBe('ConfigNotFoundError');
     });

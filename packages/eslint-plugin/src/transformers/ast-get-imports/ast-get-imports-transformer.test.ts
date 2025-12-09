@@ -255,7 +255,7 @@ describe('astGetImportsTransformer', () => {
     it('VALID: {node: ImportDeclaration from scoped package} => returns Map with import', () => {
       const node = TsestreeStub({
         type: TsestreeNodeType.ImportDeclaration,
-        source: TsestreeStub({ type: TsestreeNodeType.Literal, value: '@questmaestro/shared' }),
+        source: TsestreeStub({ type: TsestreeNodeType.Literal, value: '@dungeonmaster/shared' }),
         specifiers: [
           TsestreeStub({
             type: TsestreeNodeType.ImportSpecifier,
@@ -266,7 +266,7 @@ describe('astGetImportsTransformer', () => {
 
       const result = astGetImportsTransformer({ node });
 
-      expect(result).toStrictEqual(new Map([['filePathContract', '@questmaestro/shared']]));
+      expect(result).toStrictEqual(new Map([['filePathContract', '@dungeonmaster/shared']]));
     });
   });
 });

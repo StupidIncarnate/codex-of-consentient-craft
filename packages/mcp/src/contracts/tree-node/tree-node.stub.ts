@@ -7,7 +7,7 @@
  */
 import { treeNodeContract } from './tree-node-contract';
 import type { TreeNode } from './tree-node-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { FolderNameStub } from '../folder-name/folder-name.stub';
 import { TreeItemStub } from '../tree-item/tree-item.stub';
 

@@ -1,4 +1,4 @@
-import { configQuestmaestroBroker } from './brokers/config/questmaestro/config-questmaestro-broker';
+import { configDungeonmasterBroker } from './brokers/config/dungeonmaster/config-dungeonmaster-broker';
 
 /**
  * E2E test to ensure the eslint-plugin module can be loaded correctly.
@@ -9,21 +9,21 @@ import { configQuestmaestroBroker } from './brokers/config/questmaestro/config-q
  * - Module exports are broken
  *
  * If this test fails, it likely means:
- * 1. The package hasn't been built: run `npm run build --workspace=@questmaestro/eslint-plugin`
+ * 1. The package hasn't been built: run `npm run build --workspace=@dungeonmaster/eslint-plugin`
  * 2. The tsconfig.json rootDir setting doesn't match package.json main entry point
  * 3. The dist folder structure has changed but package.json wasn't updated
  */
 
 describe('ESLint Plugin Module Loading', () => {
-  it('should be able to call configQuestmaestroBroker without errors', () => {
+  it('should be able to call configDungeonmasterBroker without errors', () => {
     // This ensures the module and all its dependencies load correctly
     expect(() => {
-      return configQuestmaestroBroker();
+      return configDungeonmasterBroker();
     }).not.toThrow();
   });
 
-  it('should return valid config from configQuestmaestroBroker', () => {
-    const config = configQuestmaestroBroker();
+  it('should return valid config from configDungeonmasterBroker', () => {
+    const config = configDungeonmasterBroker();
 
     expect(config).toBeDefined();
     expect(config.typescript).toBeDefined();
@@ -36,7 +36,7 @@ describe('ESLint Plugin Module Loading', () => {
     // This import will fail if the package.json "main" doesn't point to a valid file
     // or if the module structure is broken
     const importPlugin = (): unknown => {
-      return require('@questmaestro/eslint-plugin');
+      return require('@dungeonmaster/eslint-plugin');
     };
 
     expect(importPlugin).not.toThrow();

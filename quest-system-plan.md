@@ -70,13 +70,13 @@ Note: Integration/e2e tests wait for their implementation dependencies before st
 - **Responsibility**: Fix tests, lint, typecheck, build issues
 - **Can escape**: When realizes architectural change needed
 
-## Commands Run by QuestMaestro CLI
+## Commands Run by Dungeonmaster CLI
 
 ### Ward (CLI Command, Not Agent)
 - **ward <files>**: CLI runs this after each agent completes, validates specific files
 - **ward:all**: CLI runs this for final integration validation across entire system  
-- **Automatic execution**: QuestMaestro automatically runs ward after agent completion
-- **Spiritmender spawning**: If ward fails, QuestMaestro spawns Spiritmender agent to fix issues
+- **Automatic execution**: Dungeonmaster automatically runs ward after agent completion
+- **Spiritmender spawning**: If ward fails, Dungeonmaster spawns Spiritmender agent to fix issues
 - **Quality gates**: Prevents progression until validation passes
 
 ## Parallel Execution Model
@@ -92,10 +92,11 @@ Note: Integration/e2e tests wait for their implementation dependencies before st
 - Priority-based ordering when multiple tasks ready
 
 ### Resource Management
-- **Task Slots**: QuestMaestro CLI manages configurable number of "task slots" (default 3)
+
+- **Task Slots**: Dungeonmaster CLI manages configurable number of "task slots" (default 3)
 - **Slot Ownership**: Each slot runs one complete task pipeline at a time
 - **Sequential Pipeline**: Within a slot: Codeweaver → Ward → Lawbringer #1 → Ward → Siegemaster → Ward → Lawbringer #2 → Ward
-- **Slot Recycling**: When task completes, QuestMaestro assigns next ready task to that slot
+- **Slot Recycling**: When task completes, Dungeonmaster assigns next ready task to that slot
 - **Dependency Ordering**: Next task selected based on dependency resolution from Pathseeker plan
 - **No Cross-Slot Blocking**: Each slot operates independently, no coordination needed between slots
 
@@ -315,7 +316,7 @@ Ward:all ✓ → COMPLETE
 ```typescript
 // Tools available to agents via MCP server
 // CRITICAL: Agents use MCP tools to write to THEIR OWN Redis keys only
-// Agents never modify shared quest state - that's QuestMaestro's job
+// Agents never modify shared quest state - that's Dungeonmaster's job
 interface AgentMCPTools {
   // Initialize agent session with clean context (READ ONLY)
   startSession(questId: string, taskId: string, agentType: string): AgentSessionPayload;
@@ -729,10 +730,10 @@ class QuestStateManager {
   async saveState(state: QuestState): Promise<void> {
     const key = `quest:${state.id}`;
     const version = state.version || 0;
-    
-    // IMPORTANT: Only QuestMaestro calls this method
+
+      // IMPORTANT: Only Dungeonmaster calls this method
     // Agents NEVER modify quest state directly - they write to their own session keys
-    // This Lua script provides atomic quest state updates when QuestMaestro 
+      // This Lua script provides atomic quest state updates when Dungeonmaster 
     // processes multiple agent completions in a single transaction
     const script = `
       local current = redis.call('GET', KEYS[1])
@@ -786,7 +787,7 @@ class QuestStateManager {
   // CRITICAL ARCHITECTURE: Agent Isolation Pattern
   // - Agents write ONLY to their own session keys: agent:questId:taskId:completion
   // - Agents NEVER modify main quest state directly
-  // - QuestMaestro is the ONLY component that updates quest state
+    // - Dungeonmaster is the ONLY component that updates quest state
   // - This eliminates race conditions and ensures data consistency
   async pollAgentCompletions(questId: string): Promise<AgentCompletion[]> {
     const pattern = `agent:${questId}:*:completion`;
@@ -1167,8 +1168,8 @@ This is a complete ground-up rebuild replacing the entire V1 quest system. No ba
   - `questManager.createNewQuest(input, input)` creates quest folder and metadata
   - System creates initial QuestState in Redis instead of running orchestrator
   - Quest ID/folder structure remains same (`/result/active/001-task-name/`)
-- **CLI command flow unchanged**: `questmaestro "task"` → detect/create quest → runQuest()
-- **Agent communication**: Agents write their own completion state, QuestMaestro pulls and integrates into quest state  
+- **CLI command flow unchanged**: `dungeonmaster "task"` → detect/create quest → runQuest()
+- **Agent communication**: Agents write their own completion state, Dungeonmaster pulls and integrates into quest state
 - **Progress monitoring**: Hotkey interface consumes Redis state to show agent selection menu, individual agent terminals for interaction
 - **File conflict prevention**: Pathseeker plans tasks with non-overlapping file sets to avoid simultaneous modification conflicts
 
@@ -1182,9 +1183,9 @@ This is a complete ground-up rebuild replacing the entire V1 quest system. No ba
 - **Purpose**: Provide structured data access for agents, eliminate file reading/writing
 - **MCP Server**: Exposes Redis operations as MCP tools for Claude agents
 - **Payload Validation**: All agent inputs/outputs validated with Zod schemas before Redis operations
-- **Agent Communication**: Agents write completion state to Redis, QuestMaestro polls for updates
+- **Agent Communication**: Agents write completion state to Redis, Dungeonmaster polls for updates
 - **Data Integrity**: Enforces correct structure through validation, prevents malformed data
-- **Recovery Logic**: If agent doesn't write completion state, QuestMaestro spawns Pathseeker to determine work status
+- **Recovery Logic**: If agent doesn't write completion state, Dungeonmaster spawns Pathseeker to determine work status
 
 ### Ward Command Integration
 Ward is an npm script installed by this CLI package:

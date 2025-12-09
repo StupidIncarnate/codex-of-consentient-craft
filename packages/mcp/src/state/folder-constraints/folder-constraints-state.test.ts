@@ -1,6 +1,6 @@
 import { folderConstraintsState } from './folder-constraints-state';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
-import { FolderTypeStub } from '@questmaestro/shared/contracts';
+import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 
 describe('folderConstraintsState', () => {
   it('VALID: {folderType, content} => stores and retrieves content', () => {

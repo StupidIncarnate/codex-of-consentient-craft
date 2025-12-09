@@ -10,8 +10,8 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
-import { filePathContract, identifierContract } from '@questmaestro/shared/contracts';
-import type { Identifier } from '@questmaestro/shared/contracts';
+import { filePathContract, identifierContract } from '@dungeonmaster/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { validateProxyFunctionReturnLayerBroker } from './validate-proxy-function-return-layer-broker';
 import { validateAdapterMockSetupLayerBroker } from './validate-adapter-mock-setup-layer-broker';

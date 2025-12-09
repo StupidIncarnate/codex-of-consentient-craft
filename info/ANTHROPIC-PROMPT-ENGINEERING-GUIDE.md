@@ -1,4 +1,4 @@
-# Anthropic Prompt Engineering Guide for Questmaestro
+# Anthropic Prompt Engineering Guide for DungeonMaster
 
 This guide summarizes key prompt engineering techniques from Anthropic's official tutorial to ensure our agent prompts follow best practices.
 
@@ -157,7 +157,7 @@ When building complex prompts, use this ordering (start with all, then remove un
 - Use vector databases and embeddings
 - Retrieve relevant context before generating responses
 
-## Best Practices for Questmaestro Agents
+## Best Practices for DungeonMaster Agents
 
 ### 1. Agent Role Definition
 Each agent should have:

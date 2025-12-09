@@ -83,7 +83,7 @@ Learn more:
 ### ESLint Rule Structure
 
 ```javascript
-// @questmaestro/eslint-plugin/rules/explicit-return-type.js
+// @dungeonmaster/eslint-plugin/rules/explicit-return-type.js
 
 module.exports = {
   meta: {
@@ -305,7 +305,7 @@ context.report({
 
 ### Rule Explanations Document
 
-**File:** `@questmaestro/eslint-plugin/docs/rule-explanations.md`
+**File:** `@dungeonmaster/eslint-plugin/docs/rule-explanations.md`
 
 ```markdown
 # ESLint Rule Explanations
@@ -401,13 +401,13 @@ export const userTransformer = ({user}: { user: User }): UserDto => {
 ## Pre-Commit Hook Integration
 
 ```javascript
-// @questmaestro/hooks/pre-commit/validate-structure.js
+// @dungeonmaster/hooks/pre-commit/validate-structure.js
 
 const { ESLint } = require('eslint');
 
 async function validateStructure() {
   const eslint = new ESLint({
-    baseConfig: require('@questmaestro/eslint-plugin/configs/recommended')
+    baseConfig: require('@dungeonmaster/eslint-plugin/configs/recommended')
   });
 
   const results = await eslint.lintFiles(['src/**/*.ts']);

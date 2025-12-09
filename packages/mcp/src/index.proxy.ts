@@ -15,7 +15,7 @@ export const indexProxy = (): {
 } => {
   /**
    * Capture process.exit and process.stderr calls for testing error handling
-   * Returns spies that are automatically restored by @questmaestro/testing
+   * Returns spies that are automatically restored by @dungeonmaster/testing
    */
   const captureProcessInteractions = (): {
     exitSpy: jest.SpyInstance;

@@ -3,7 +3,7 @@ import { preToolUseHookDataContract } from './pre-tool-use-hook-data-contract';
 import { writeToolInputContract } from '../write-tool-input/write-tool-input-contract';
 import { editToolInputContract } from '../edit-tool-input/edit-tool-input-contract';
 import { multiEditToolInputContract } from '../multi-edit-tool-input/multi-edit-tool-input-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import type { WriteToolInput } from '../write-tool-input/write-tool-input-contract';
 import type { EditToolInput } from '../edit-tool-input/edit-tool-input-contract';
 import type { MultiEditToolInput } from '../multi-edit-tool-input/multi-edit-tool-input-contract';

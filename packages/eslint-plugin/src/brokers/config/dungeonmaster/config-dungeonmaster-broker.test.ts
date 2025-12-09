@@ -1,12 +1,12 @@
-import { configQuestmaestroBroker } from './config-questmaestro-broker';
-import { configQuestmaestroBrokerProxy } from './config-questmaestro-broker.proxy';
+import { configDungeonmasterBroker } from './config-dungeonmaster-broker';
+import { configDungeonmasterBrokerProxy } from './config-dungeonmaster-broker.proxy';
 
-describe('configQuestmaestroBroker', () => {
+describe('configDungeonmasterBroker', () => {
   describe('return value structure', () => {
     it('VALID: {} => returns object with typescript, test, fileOverrides, and ruleEnforceOn configs', () => {
-      configQuestmaestroBrokerProxy();
+      configDungeonmasterBrokerProxy();
 
-      const result = configQuestmaestroBroker();
+      const result = configDungeonmasterBroker();
 
       expect(result.typescript).toBeDefined();
       expect(result.test).toBeDefined();
@@ -16,20 +16,22 @@ describe('configQuestmaestroBroker', () => {
     });
 
     it('VALID: {} => typescript config contains main rules', () => {
-      configQuestmaestroBrokerProxy();
+      configDungeonmasterBrokerProxy();
 
-      const { typescript } = configQuestmaestroBroker();
+      const { typescript } = configDungeonmasterBroker();
 
       expect(typescript).toBeDefined();
       expect(typescript.rules).toBeDefined();
-      expect(typescript.rules?.['@questmaestro/enforce-contract-usage-in-tests']).toBe('error');
-      expect(typescript.rules?.['@questmaestro/enforce-object-destructuring-params']).toBe('error');
+      expect(typescript.rules?.['@dungeonmaster/enforce-contract-usage-in-tests']).toBe('error');
+      expect(typescript.rules?.['@dungeonmaster/enforce-object-destructuring-params']).toBe(
+        'error',
+      );
     });
 
     it('VALID: {} => fileOverrides includes stub file config', () => {
-      configQuestmaestroBrokerProxy();
+      configDungeonmasterBrokerProxy();
 
-      const { fileOverrides } = configQuestmaestroBroker();
+      const { fileOverrides } = configDungeonmasterBroker();
       const stubConfig = fileOverrides.find((config) => {
         return Boolean(
           config.files?.some((file) => {
@@ -44,9 +46,9 @@ describe('configQuestmaestroBroker', () => {
     });
 
     it('VALID: {} => typescript config includes TypeScript rules', () => {
-      configQuestmaestroBrokerProxy();
+      configDungeonmasterBrokerProxy();
 
-      const { typescript } = configQuestmaestroBroker();
+      const { typescript } = configDungeonmasterBroker();
 
       expect(typescript).toBeDefined();
       expect(typescript.rules?.['@typescript-eslint/no-explicit-any']).toBe('error');
@@ -54,9 +56,9 @@ describe('configQuestmaestroBroker', () => {
     });
 
     it('VALID: {} => typescript config includes eslint-comments rules', () => {
-      configQuestmaestroBrokerProxy();
+      configDungeonmasterBrokerProxy();
 
-      const { typescript } = configQuestmaestroBroker();
+      const { typescript } = configDungeonmasterBroker();
 
       expect(typescript).toBeDefined();
       expect(typescript.rules?.['eslint-comments/no-unlimited-disable']).toBe('error');
@@ -64,33 +66,33 @@ describe('configQuestmaestroBroker', () => {
     });
 
     it('VALID: {} => ruleEnforceOn contains pre-edit rules', () => {
-      configQuestmaestroBrokerProxy();
+      configDungeonmasterBrokerProxy();
 
-      const { ruleEnforceOn } = configQuestmaestroBroker();
+      const { ruleEnforceOn } = configDungeonmasterBroker();
 
-      expect(ruleEnforceOn['@questmaestro/ban-primitives']).toBe('pre-edit');
-      expect(ruleEnforceOn['@questmaestro/enforce-object-destructuring-params']).toBe('pre-edit');
+      expect(ruleEnforceOn['@dungeonmaster/ban-primitives']).toBe('pre-edit');
+      expect(ruleEnforceOn['@dungeonmaster/enforce-object-destructuring-params']).toBe('pre-edit');
       expect(ruleEnforceOn['@typescript-eslint/no-explicit-any']).toBe('pre-edit');
       expect(ruleEnforceOn['eslint-comments/no-use']).toBe('pre-edit');
     });
 
     it('VALID: {} => ruleEnforceOn contains post-edit rules', () => {
-      configQuestmaestroBrokerProxy();
+      configDungeonmasterBrokerProxy();
 
-      const { ruleEnforceOn } = configQuestmaestroBroker();
+      const { ruleEnforceOn } = configDungeonmasterBroker();
 
-      expect(ruleEnforceOn['@questmaestro/enforce-proxy-patterns']).toBe('post-edit');
-      expect(ruleEnforceOn['@questmaestro/enforce-proxy-child-creation']).toBe('post-edit');
-      expect(ruleEnforceOn['@questmaestro/enforce-implementation-colocation']).toBe('post-edit');
-      expect(ruleEnforceOn['@questmaestro/enforce-test-colocation']).toBe('post-edit');
+      expect(ruleEnforceOn['@dungeonmaster/enforce-proxy-patterns']).toBe('post-edit');
+      expect(ruleEnforceOn['@dungeonmaster/enforce-proxy-child-creation']).toBe('post-edit');
+      expect(ruleEnforceOn['@dungeonmaster/enforce-implementation-colocation']).toBe('post-edit');
+      expect(ruleEnforceOn['@dungeonmaster/enforce-test-colocation']).toBe('post-edit');
     });
   });
 
   describe('forTesting parameter', () => {
     it('VALID: {forTesting: true} => test config has jest plugin', () => {
-      configQuestmaestroBrokerProxy();
+      configDungeonmasterBrokerProxy();
 
-      const { test } = configQuestmaestroBroker({ forTesting: true });
+      const { test } = configDungeonmasterBroker({ forTesting: true });
 
       expect(test).toBeDefined();
       expect(test.plugins).toBeDefined();
@@ -98,18 +100,18 @@ describe('configQuestmaestroBroker', () => {
     });
 
     it('VALID: {forTesting: true} => test config disables magic numbers', () => {
-      configQuestmaestroBrokerProxy();
+      configDungeonmasterBrokerProxy();
 
-      const { test } = configQuestmaestroBroker({ forTesting: true });
+      const { test } = configDungeonmasterBroker({ forTesting: true });
 
       expect(test).toBeDefined();
       expect(test.rules?.['@typescript-eslint/no-magic-numbers']).toBe('off');
     });
 
     it('VALID: {forTesting: false} => typescript config keeps magic numbers enabled', () => {
-      configQuestmaestroBrokerProxy();
+      configDungeonmasterBrokerProxy();
 
-      const { typescript } = configQuestmaestroBroker({ forTesting: false });
+      const { typescript } = configDungeonmasterBroker({ forTesting: false });
 
       expect(typescript).toBeDefined();
       expect(typescript.rules?.['@typescript-eslint/no-magic-numbers']).not.toBe('off');

@@ -308,14 +308,14 @@ export const universalSyntaxRulesStatics = {
         directMockManipulation: 'Using jest.mocked() in tests instead of proxy semantic methods',
         mockingApplicationCode:
           'Using jest.mock() on application code (only mock npm packages in proxies)',
-        manualMockCleanup: 'Calling mockReset(), mockClear() (@questmaestro/testing handles this)',
+        manualMockCleanup: 'Calling mockReset(), mockClear() (@dungeonmaster/testing handles this)',
         jestSpyOnModules: 'Using jest.spyOn() for module imports (only use for global objects)',
         sharedProxyInstances:
           'Creating proxy once outside tests (always create fresh proxy per test)',
         violations: [
           'const mockAxios = jest.mocked(axios.get); mockAxios.mockResolvedValue({data: user}); // Use proxy methods',
           'jest.mock("../../brokers/user/fetch/user-fetch-broker"); // Never mock app code',
-          'beforeEach(() => { jest.clearAllMocks(); }); // @questmaestro/testing handles this',
+          'beforeEach(() => { jest.clearAllMocks(); }); // @dungeonmaster/testing handles this',
           'jest.spyOn(adapter, "fsReadFile"); // Use jest.mock for modules',
           'const proxy = userFetchBrokerProxy(); it("test 1", () => {}); it("test 2", () => {}); // Stale mocks',
         ],

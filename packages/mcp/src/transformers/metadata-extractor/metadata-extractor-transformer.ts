@@ -7,8 +7,8 @@
  * });
  * // Returns: { purpose: 'Test', usage: '...', metadata: {...} }
  */
-import { metadataExtractorTransformer as sharedMetadataExtractor } from '@questmaestro/shared/transformers';
-import type { ExtractedMetadata } from '@questmaestro/shared/contracts';
+import { metadataExtractorTransformer as sharedMetadataExtractor } from '@dungeonmaster/shared/transformers';
+import type { ExtractedMetadata } from '@dungeonmaster/shared/contracts';
 import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
 
 export const metadataExtractorTransformer = ({

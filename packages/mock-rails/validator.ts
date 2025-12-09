@@ -175,7 +175,7 @@ function formatViolationMessage({
     message += `• Integration tests: Use test fixtures and controlled environments\n`;
     message += `• E2E tests: Test against real systems with test data\n\n`;
 
-    message += `Learn more: https://docs.questmaestro.com/testing/mock-boundaries\n`;
+    message += `Learn more: https://docs.dungeonmaster.com/testing/mock-boundaries\n`;
   }
 
   return message;

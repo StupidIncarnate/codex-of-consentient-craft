@@ -23,7 +23,7 @@ interface RuleTesterWithContractSupport {
 }
 
 export const eslintRuleTesterAdapter = (): RuleTesterWithContractSupport => {
-  // Mark as RuleTester test for @questmaestro/testing assertion check
+  // Mark as RuleTester test for @dungeonmaster/testing assertion check
   // RuleTester.run() creates its own assertions internally
   const globalWithRuleTester = globalThis as GlobalWithRuleTester & typeof globalThis;
   globalWithRuleTester.RuleTester = RuleTester;

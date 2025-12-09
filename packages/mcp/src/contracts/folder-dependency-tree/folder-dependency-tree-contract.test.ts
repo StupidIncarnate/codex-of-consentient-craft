@@ -1,7 +1,7 @@
 import { folderDependencyTreeContract as _folderDependencyTreeContract } from './folder-dependency-tree-contract';
 import { FolderDependencyTreeStub } from './folder-dependency-tree.stub';
 import { ContentTextStub } from '../content-text/content-text.stub';
-import { FolderTypeStub } from '@questmaestro/shared/contracts';
+import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 import { ImportPathStub } from '../import-path/import-path.stub';
 
 describe('folderDependencyTreeContract', () => {

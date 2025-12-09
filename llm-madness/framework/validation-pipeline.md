@@ -1,6 +1,7 @@
 # Validation Pipeline: Continuous Verification in Agent Orchestration
 
-How the Questmaestro system maintains code quality through distributed validation, immediate feedback, and agent coordination.
+How the Dungeonmaster system maintains code quality through distributed validation, immediate feedback, and agent
+coordination.
 
 ## Theoretical Foundation
 
@@ -22,7 +23,7 @@ How the Questmaestro system maintains code quality through distributed validatio
 - Learning improves validation effectiveness over time
 - Orchestration coordinates validation across parallel work
 
-## The Questmaestro Validation Architecture
+## The Dungeonmaster Validation Architecture
 
 ### Stage-Based Validation Gates
 
@@ -124,7 +125,7 @@ function validateImplementation(files, tests) {
 }
 ```
 
-**Questmaestro Response**:
+**Dungeonmaster Response**:
 ```json
 {
   "action": "spawn_spiritmender",
@@ -269,7 +270,7 @@ function validateParallelImplementations(agentOutputs) {
 }
 ```
 
-**Questmaestro Response**:
+**Dungeonmaster Response**:
 ```json
 {
   "action": "spawn_fresh_pathseeker",

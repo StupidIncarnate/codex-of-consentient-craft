@@ -1,6 +1,6 @@
-# Questmaestro CLI Pivot Plan
+# Dungeonmaster CLI Pivot Plan
 
-## Final Consolidated Plan: Questmaestro CLI Implementation
+## Final Consolidated Plan: Dungeonmaster CLI Implementation
 
 ### Quest Flow Order (Sequential)
 ```
@@ -16,14 +16,14 @@
 
 #### 1. **File-Based Communication**
 ```
-questmaestro/
+dungeonmaster/
 ├── discovery/                        # Voidpoker discovery reports (not quest-specific)
 │   ├── voidpoker-2024-03-15T10-00-00-000Z-core-report.json
 │   ├── voidpoker-2024-03-15T10-05-00-000Z-web-report.json
 │   └── voidpoker-2024-03-15T10-10-00-000Z-api-report.json
 ├── active/                           # Currently active quest folders
 │   ├── 01-add-authentication/
-│   │   ├── quest.json               # Quest state managed by questmaestro
+│   │   ├── quest.json               # Quest state managed by dungeonmaster
 │   │   ├── 001-pathseeker-report.json         # Initial discovery
 │   │   ├── 002-codeweaver-report.json         # First implementation task
 │   │   ├── 003-codeweaver-report.json         # Recovery/retry of task
@@ -60,8 +60,8 @@ All agents need to add at the end:
 ## Output Instructions
 When you have completed your work, write your final report as a JSON file using the Write tool.
 
-File path: questmaestro/active/[quest-folder]/[number]-[agent-type]-report.json
-Example: questmaestro/active/01-add-authentication/002-codeweaver-report.json
+File path: dungeonmaster/active/[quest-folder]/[number]-[agent-type]-report.json
+Example: dungeonmaster/active/01-add-authentication/002-codeweaver-report.json
 
 Use this code pattern:
 ```javascript
@@ -85,10 +85,10 @@ const report = {
   ]
 };
 
-Write("questmaestro/active/[quest-folder]/[report-filename].json", JSON.stringify(report, null, 2));
+Write("dungeonmaster/active/[quest-folder]/[report-filename].json", JSON.stringify(report, null, 2));
 ```
 
-This signals questmaestro that you have completed your work.
+This signals dungeonmaster that you have completed your work.
 
 ## Spawning Sub-Agents
 
@@ -128,7 +128,7 @@ You are responsible for:
 - Recovery information if agent failed
 
 **Lore Writing**:
-Agents can write to `questmaestro/lore/` when they discover:
+Agents can write to `dungeonmaster/lore/` when they discover:
 - Architectural patterns
 - Integration gotchas
 - Technical insights
@@ -341,7 +341,7 @@ Codeweaver:
 }
 ```
 
-#### 3. **CLI Commands** (from questmaestro.md)
+#### 3. **CLI Commands** (from dungeonmaster.md)
 ```javascript
 // Command detection without AI
 const COMMANDS = {
@@ -416,16 +416,16 @@ async function cleanOldQuests(args) {
   let count = { completed: 0, abandoned: 0 };
   
   // Clean completed quest folders
-  const completedDirs = fs.readdirSync('questmaestro/completed');
+  const completedDirs = fs.readdirSync('dungeonmaster/completed');
   completedDirs.forEach(dir => {
-    fs.rmSync(`questmaestro/completed/${dir}`, { recursive: true });
+    fs.rmSync(`dungeonmaster/completed/${dir}`, { recursive: true });
     count.completed++;
   });
   
   // Clean abandoned quest folders
-  const abandonedDirs = fs.readdirSync('questmaestro/abandoned');
+  const abandonedDirs = fs.readdirSync('dungeonmaster/abandoned');
   abandonedDirs.forEach(dir => {
-    fs.rmSync(`questmaestro/abandoned/${dir}`, { recursive: true });
+    fs.rmSync(`dungeonmaster/abandoned/${dir}`, { recursive: true });
     count.abandoned++;
   });
   
@@ -433,7 +433,7 @@ async function cleanOldQuests(args) {
 }
 
 async function checkProjectDiscovery() {
-  const config = loadConfig('.questmaestro');
+  const config = loadConfig('.dungeonmaster');
   
   if (!config.discoveryComplete) {
     console.log('🔍 PROJECT DISCOVERY REQUIRED 🔍');
@@ -448,9 +448,9 @@ async function checkProjectDiscovery() {
     
     // Sequential Voidpoker spawning - special case, no quest active
     for (const pkg of packages) {
-      // Voidpoker outputs to questmaestro/discovery/ not active quest folder
+      // Voidpoker outputs to dungeonmaster/discovery/ not active quest folder
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const reportPath = `questmaestro/discovery/voidpoker-${timestamp}-${path.basename(pkg.dir)}-report.json`;
+      const reportPath = `dungeonmaster/discovery/voidpoker-${timestamp}-${path.basename(pkg.dir)}-report.json`;
       
       await spawnAndWait('voidpoker', {
         discoveryType: 'Project Analysis',
@@ -485,8 +485,8 @@ async function checkProjectDiscovery() {
     }
     
     if (!allGood) {
-      console.error('\n⚠️  Project setup incomplete. Questmaestro may not function properly.');
-      console.error('Consider running: questmaestro voidpoker');
+      console.error('\n⚠️  Project setup incomplete. Dungeonmaster may not function properly.');
+      console.error('Consider running: dungeonmaster voidpoker');
     }
     
     config.discoveryComplete = true;
@@ -738,7 +738,7 @@ async function runCodeweavers(quest) {
 async function spawnAndWait(agentType, context) {
   // 1. Generate report filename
   const reportFilename = `${context.reportNumber.toString().padStart(3, '0')}-${agentType}-report.json`;
-  const reportPath = `questmaestro/active/${context.questFolder}/${reportFilename}`;
+  const reportPath = `dungeonmaster/active/${context.questFolder}/${reportFilename}`;
   
   // 2. Update quest.json to track agent start
   const quest = loadQuest(context.questFolder);
@@ -911,7 +911,7 @@ async function handleWardFailure(quest, errors, attemptCount = 1) {
     
     // Save errors for user review
     fs.writeFileSync(
-      `questmaestro/active/${quest.folder}/ward-errors-unresolved.txt`,
+      `dungeonmaster/active/${quest.folder}/ward-errors-unresolved.txt`,
       errors
     );
     
@@ -927,12 +927,12 @@ async function handleWardFailure(quest, errors, attemptCount = 1) {
   
   // Track previous attempts for context - look at previous Spiritmender reports
   const previousAttempts = [];
-  const allReports = fs.readdirSync(`questmaestro/active/${quest.folder}`)
+  const allReports = fs.readdirSync(`dungeonmaster/active/${quest.folder}`)
     .filter(f => f.includes('spiritmender-report.json'))
     .sort();
   
   for (const reportFile of allReports) {
-    const report = JSON.parse(fs.readFileSync(`questmaestro/active/${quest.folder}/${reportFile}`, 'utf8'));
+    const report = JSON.parse(fs.readFileSync(`dungeonmaster/active/${quest.folder}/${reportFile}`, 'utf8'));
     if (report.attemptNumber) {
       previousAttempts.push(report);
     }
@@ -982,13 +982,13 @@ async function completeQuest(quest) {
   }
   
   // 2. Create combined retrospective
-  const retroPath = `questmaestro/retros/${Date.now()}-${quest.id}.md`;
+  const retroPath = `dungeonmaster/retros/${Date.now()}-${quest.id}.md`;
   writeRetrospective(retroPath, quest, retros);
   
   // 3. Move entire quest folder to completed
   fs.renameSync(
-    `questmaestro/active/${quest.folder}`,
-    `questmaestro/completed/${quest.folder}`
+    `dungeonmaster/active/${quest.folder}`,
+    `dungeonmaster/completed/${quest.folder}`
   );
   
   console.log(`[🎁] ✅ Quest complete! ${quest.title} vanquished!`);
@@ -1119,18 +1119,18 @@ function parseReport(reportPath) {
 ```javascript
 function getNextReportNumber(quest) {
   // Count existing reports in quest folder
-  const files = fs.readdirSync(`questmaestro/active/${quest.folder}`);
+  const files = fs.readdirSync(`dungeonmaster/active/${quest.folder}`);
   const reportFiles = files.filter(f => f.match(/^\d{3}-.*-report\.json$/));
   return reportFiles.length + 1;
 }
 
 function loadQuest(questFolder) {
-  const questPath = `questmaestro/active/${questFolder}/quest.json`;
+  const questPath = `dungeonmaster/active/${questFolder}/quest.json`;
   return JSON.parse(fs.readFileSync(questPath, 'utf8'));
 }
 
 function saveQuest(quest) {
-  const questPath = `questmaestro/active/${quest.folder}/quest.json`;
+  const questPath = `dungeonmaster/active/${quest.folder}/quest.json`;
   fs.writeFileSync(questPath, JSON.stringify(quest, null, 2));
 }
 
@@ -1152,15 +1152,15 @@ async function validateQuestFreshness(quest) {
 }
 
 function getQuestReports(questFolder) {
-  const files = fs.readdirSync(`questmaestro/active/${questFolder}`);
+  const files = fs.readdirSync(`dungeonmaster/active/${questFolder}`);
   return files
     .filter(f => f.endsWith('-report.json'))
-    .map(f => `questmaestro/active/${questFolder}/${f}`);
+    .map(f => `dungeonmaster/active/${questFolder}/${f}`);
 }
 
 function createQuest(title, id) {
   const questFolder = `${id}-${title.toLowerCase().replace(/\s+/g, '-')}`;
-  const questPath = `questmaestro/active/${questFolder}`;
+  const questPath = `dungeonmaster/active/${questFolder}`;
   
   // Create folder
   fs.mkdirSync(questPath, { recursive: true });
@@ -1218,7 +1218,7 @@ async function runLawbringer(quest) {
 ### Key Points (Not Changing)
 1. **Sequential only** - One agent at a time
 2. **Ward gates** - After each agent except Pathseeker/Voidpoker
-3. **Pathseeker handles all Q&A** - No back-and-forth with questmaestro
+3. **Pathseeker handles all Q&A** - No back-and-forth with dungeonmaster
 4. **File-based work** - Pathseeker outputs files, not components
 5. **Agent continuity** - Blocked agents spawn continuations
 6. **Auto-discovery** - Voidpoker runs if project not discovered
@@ -1231,7 +1231,7 @@ async function runLawbringer(quest) {
 
 ### Additional Implementation Notes
 
-#### Questmaestro Quest Management
+#### Dungeonmaster Quest Management
 
 **Quest.json Structure**:
 ```json
@@ -1326,7 +1326,7 @@ async function runLawbringer(quest) {
      }
      ```
 
-2. **Questmaestro reconciliation**:
+2. **Dungeonmaster reconciliation**:
    - Parse Pathseeker's report
    - Add new tasks to task list
    - Update dependencies on existing tasks
@@ -1346,7 +1346,7 @@ async function runLawbringer(quest) {
 1. **Remove complex gate systems** - Agents should focus on their core job
 2. **Remove text report formatting** - Direct JSON output only  
 3. **Simplify output** - One clear JSON report at the end
-4. **Remove human-readable displays** - Questmaestro handles all display
+4. **Remove human-readable displays** - Dungeonmaster handles all display
 5. **Remove TODO tracking** - Not needed for single-purpose runs
 6. **Remove progress tracking** - Code files are the progress
 7. **Focus on core purpose**:
@@ -1366,7 +1366,7 @@ async function runLawbringer(quest) {
   - filesToCreate: array of file paths to create
   - filesToEdit: array of file paths to modify
   - testTechnology: (if type is "testing")
-- Add interactive Q&A capability within agent (no back-and-forth with questmaestro)
+- Add interactive Q&A capability within agent (no back-and-forth with dungeonmaster)
 - Remove INSUFFICIENT_CONTEXT status - handle all clarifications internally
 - Tasks define execution order through dependencies
 - **Simplified Workflow**:
@@ -1416,7 +1416,8 @@ async function runLawbringer(quest) {
   5. Exit
 
 #### Voidpoker Updates Needed
-- **Special Output Location**: Write to `questmaestro/discovery/` not active quest folder
+
+- **Special Output Location**: Write to `dungeonmaster/discovery/` not active quest folder
 - Output filename should include timestamp and package name
 - Can be run manually by user outside of quest flow
 - Still outputs JSON report like other agents
@@ -1425,8 +1426,8 @@ async function runLawbringer(quest) {
 - **CRITICAL CHANGE**: Convert from text reports to JSON file output
   - Currently agents output text like "=== AGENT REPORT ==="
   - Must change to write JSON files using Write tool
-  - Example: Write("questmaestro/active/01-add-auth/A01-01-codeweaver-report.json", JSON.stringify(report))
-  - Exception: Voidpoker writes to `questmaestro/discovery/` folder
+  - Example: Write("dungeonmaster/active/01-add-auth/A01-01-codeweaver-report.json", JSON.stringify(report))
+  - Exception: Voidpoker writes to `dungeonmaster/discovery/` folder
 - Add output instructions for reports and signals at END of each agent markdown
 - Support blocked state (but no progress files needed)
 - Include retrospective notes in reports
@@ -1506,7 +1507,7 @@ Report number: 006
 Ward errors: [full error output from ward:all]
 Error type: lint | typecheck | test | build
 Failed files: [files with errors]
-Lore folder: questmaestro/lore/
+Lore folder: dungeonmaster/lore/
 ```
 
 **Recovery Mode Context** (for any agent type):
@@ -1535,7 +1536,7 @@ Instruction: "The previous Codeweaver exited unexpectedly while working on task 
 Discovery type: Project Analysis
 Package location: [package directory path]
 User standards: [standards provided by user]
-Report path: questmaestro/discovery/voidpoker-[timestamp]-[package-name]-report.json
+Report path: dungeonmaster/discovery/voidpoker-[timestamp]-[package-name]-report.json
 ```
 
 ### Post-MVP Enhancements
@@ -1545,7 +1546,7 @@ These features are not needed for initial implementation but would improve the e
 #### **Concurrent Quest Prevention**
 - Add lock file mechanism to prevent multiple CLI instances
 - Useful for teams or when running from multiple terminals
-- Implementation: Write PID to `.questmaestro/questmaestro.lock`
+- Implementation: Write PID to `.dungeonmaster/dungeonmaster.lock`
 - Check if process still alive before refusing to start
 
 #### **Agent Timeouts** 

@@ -1,16 +1,16 @@
 /**
- * PURPOSE: Retrieves pre-edit rule names from questmaestro eslint plugin configuration
+ * PURPOSE: Retrieves pre-edit rule names from dungeonmaster eslint plugin configuration
  *
  * USAGE:
- * const ruleNames = questmaestroEslintPluginGetPreEditRulesAdapter();
+ * const ruleNames = dungeonmasterEslintPluginGetPreEditRulesAdapter();
  * // Returns array of rule names configured for pre-edit enforcement
  */
 import type { PreEditLintConfig } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { preEditLintConfigContract } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
-import { questmaestroRuleEnforceOnStatics } from '@questmaestro/shared/statics';
+import { dungeonmasterRuleEnforceOnStatics } from '@dungeonmaster/shared/statics';
 
-export const questmaestroEslintPluginGetPreEditRulesAdapter = (): PreEditLintConfig => {
-  const preEditRules = Object.entries(questmaestroRuleEnforceOnStatics)
+export const dungeonmasterEslintPluginGetPreEditRulesAdapter = (): PreEditLintConfig => {
+  const preEditRules = Object.entries(dungeonmasterRuleEnforceOnStatics)
     .filter(([_ruleName, timing]) => timing === 'pre-edit')
     .map(([ruleName]) => ruleName);
 

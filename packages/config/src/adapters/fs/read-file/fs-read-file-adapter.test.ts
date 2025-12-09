@@ -1,6 +1,6 @@
 import { fsReadFileAdapter } from './fs-read-file-adapter';
 import { fsReadFileAdapterProxy } from './fs-read-file-adapter.proxy';
-import { FilePathStub } from '@questmaestro/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 
 describe('fsReadFileAdapter', () => {

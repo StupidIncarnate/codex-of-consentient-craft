@@ -1,6 +1,6 @@
 import { headerInfoContract } from './header-info-contract';
 import type { HeaderInfo } from './header-info-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { LineIndexStub } from '../line-index/line-index.stub';
 import { HeaderTextStub } from '../header-text/header-text.stub';
 

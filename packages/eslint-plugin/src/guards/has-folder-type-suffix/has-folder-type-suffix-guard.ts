@@ -7,7 +7,7 @@
  * }
  * // Returns true if name matches any configured folder type suffix
  */
-import { folderConfigStatics } from '@questmaestro/shared/statics';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 export const hasFolderTypeSuffixGuard = ({ name }: { name?: string }): boolean => {
   if (!name) {

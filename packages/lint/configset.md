@@ -7,12 +7,12 @@ projects to customize enforcement while maintaining architectural patterns.
 
 ## Installation and Configuration
 
-This architecture lint ruleset is distributed as part of the @questmaestro suite of lint elevators.
+This architecture lint ruleset is distributed as part of the @dungeonmaster suite of lint elevators.
 
 ### Installation
 
 ```bash
-npm install --save-dev @questmaestro/lint
+npm install --save-dev @dungeonmaster/lint
 ```
 
 ### ESLint Configuration
@@ -22,17 +22,17 @@ Enable the rules in your ESLint config:
 ```javascript
 // eslint.config.js (root)
 module.exports = {
-    plugins: ['@questmaestro/lint'],
-    extends: ['plugin:@questmaestro/lint/recommended']
+    plugins: ['@dungeonmaster/lint'],
+    extends: ['plugin:@dungeonmaster/lint/recommended']
 };
 ```
 
 ### Architecture Configuration
 
-Each package with a `package.json` should have a `.questmaestro` file that defines its architecture:
+Each package with a `package.json` should have a `.dungeonmaster` file that defines its architecture:
 
 ```javascript
-// .questmaestro - Simple preset-based configuration
+// .dungeonmaster - Simple preset-based configuration
 module.exports = {
     framework: "react",           // Required: Sets the base preset
     routing: "react-router-dom",  // Required for frontend/backend apps (not libraries)
@@ -91,11 +91,11 @@ type Framework =
 
 ### How It Works
 
-1. When linting a file, `@questmaestro/lint` looks up the directory tree for the nearest `.questmaestro` file
+1. When linting a file, `@dungeonmaster/lint` looks up the directory tree for the nearest `.dungeonmaster` file
 2. The `framework` field selects a preset that automatically configures 90% of folder imports
 3. The `routing` and `schema` fields configure the remaining framework-specific packages
 4. Optional `overrides` let you add or modify specific folder configurations
-5. In monorepos, the root `.questmaestro` can provide shared defaults that all packages inherit
+5. In monorepos, the root `.dungeonmaster` can provide shared defaults that all packages inherit
 
 ### Framework Presets
 
@@ -286,33 +286,33 @@ Each framework automatically configures the appropriate packages for each folder
 
 ```
 monorepo/
-├── eslint.config.js              # Enables @questmaestro/lint
-├── .questmaestro                 # Root config (shared defaults)
+├── eslint.config.js              # Enables @dungeonmaster/lint
+├── .dungeonmaster                 # Root config (shared defaults)
 ├── packages/
 │   ├── web/
 │   │   ├── package.json
-│   │   ├── .questmaestro        # framework: "react" (overrides root)
+│   │   ├── .dungeonmaster        # framework: "react" (overrides root)
 │   │   └── src/
 │   │       ├── widgets/
 │   │       └── flows/
 │   ├── api/
 │   │   ├── package.json
-│   │   ├── .questmaestro        # framework: "express" (overrides root)
+│   │   ├── .dungeonmaster        # framework: "express" (overrides root)
 │   │   └── src/
 │   │       ├── brokers/
 │   │       └── flows/
 │   └── shared/
 │       ├── package.json
-│       ├── .questmaestro        # framework: "node-library" (overrides root)
+│       ├── .dungeonmaster        # framework: "node-library" (overrides root)
 │       └── src/
 │           ├── contracts/
 │           └── transformers/
 ```
 
-### Root .questmaestro Example (Monorepo)
+### Root .dungeonmaster Example (Monorepo)
 
 ```javascript
-// Root .questmaestro - shared defaults for all packages
+// Root .dungeonmaster - shared defaults for all packages
 module.exports = {
     framework: "monorepo",  // Indicates this is a monorepo root
 
@@ -323,21 +323,21 @@ module.exports = {
     }
 };
 
-// packages/web/.questmaestro - Frontend package
+// packages/web/.dungeonmaster - Frontend package
 module.exports = {
     framework: "react",
     routing: "react-router-dom",
     schema: "zod"
 };
 
-// packages/api/.questmaestro - Backend package
+// packages/api/.dungeonmaster - Backend package
 module.exports = {
     framework: "express",
     schema: "joi"
     // No routing field needed - express IS the router
 };
 
-// packages/shared/.questmaestro - Shared library
+// packages/shared/.dungeonmaster - Shared library
 module.exports = {
     framework: "node-library",
     schema: "zod"  // Same validation as frontend for consistency
@@ -361,7 +361,7 @@ export type RoutingLibrary =
     | "react-router-dom" | "vue-router" | "@angular/router"  // Frontend routers
     | "express" | "fastify" | "koa" | "hapi";                // Backend frameworks (act as routers)
 
-export type QuestmaestroConfig = {
+export type DungeonmasterConfig = {
     framework: Framework;                           // Required: Sets the preset
     routing?: RoutingLibrary;                       // Required for apps, not for libraries
     schema: SchemaLibrary | SchemaLibrary[];        // Required: Validation library/libraries
@@ -376,10 +376,10 @@ export type QuestmaestroConfig = {
         booleanFunctionPrefixes?: string[];  // Prefixes for boolean functions
     };
 
-    // Other questmaestro configs (hooks, etc.)
+    // Other dungeonmaster configs (hooks, etc.)
 };
 
-// Example: React Frontend Project (.questmaestro)
+// Example: React Frontend Project (.dungeonmaster)
 module.exports = {
     framework: "react",
     routing: "react-router-dom",
@@ -393,7 +393,7 @@ module.exports = {
     }
 };
 
-// Example: Express Backend Project (.questmaestro)
+// Example: Express Backend Project (.dungeonmaster)
 module.exports = {
     framework: "express",
     schema: "joi"
@@ -401,7 +401,7 @@ module.exports = {
     // No overrides needed - preset handles everything
 };
 
-// Example: Vue Frontend Project (.questmaestro)
+// Example: Vue Frontend Project (.dungeonmaster)
 module.exports = {
     framework: "vue",
     routing: "vue-router",
@@ -415,7 +415,7 @@ module.exports = {
     }
 };
 
-// Example: Project using multiple validation libraries (.questmaestro)
+// Example: Project using multiple validation libraries (.dungeonmaster)
 module.exports = {
     framework: "react",
     routing: "react-router-dom",
@@ -423,21 +423,21 @@ module.exports = {
     // Useful during migration from one to another
 };
 
-// Example: React Component Library (.questmaestro)
+// Example: React Component Library (.dungeonmaster)
 module.exports = {
     framework: "react-library",
     schema: "zod"
     // No routing needed for libraries
 };
 
-// Example: Node.js Utility Library (.questmaestro)
+// Example: Node.js Utility Library (.dungeonmaster)
 module.exports = {
     framework: "node-library",
     schema: "zod"
     // No routing or UI packages needed
 };
 
-// Example: Ink CLI with screens (.questmaestro)
+// Example: Ink CLI with screens (.dungeonmaster)
 module.exports = {
     framework: "ink-cli",
     schema: "zod",
@@ -462,7 +462,7 @@ high-level config into the computed `allowedExternalImports` structure that the 
 ### Input (User Config)
 
 ```javascript
-// .questmaestro
+// .dungeonmaster
 module.exports = {
     framework: "react",
     routing: "react-router-dom",
@@ -568,7 +568,7 @@ This transformation happens when the lint rules load, so the rules themselves ca
 
 ## Additional Configuration Options
 
-These settings can be customized in the `architecture` section of your `.questmaestro` file:
+These settings can be customized in the `architecture` section of your `.dungeonmaster` file:
 
 ### Allowed Root-Level Files
 

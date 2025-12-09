@@ -8,7 +8,7 @@ interface QuestData {
   data: unknown;
 }
 
-interface QuestmaestroConfig {
+interface DungeonmasterConfig {
   commands?: {
     [key: string]: string;
   };
@@ -49,7 +49,7 @@ export class ProjectBootstrapper {
     const claudeDir = path.join(projectDir, '.claude');
     fs.mkdirSync(path.join(claudeDir, 'commands'), { recursive: true });
 
-    // Run the actual npx questmaestro installer
+    // Run the actual npx dungeonmaster installer
     this.runNpxInstall(projectDir);
 
     return {
@@ -69,12 +69,12 @@ export class ProjectBootstrapper {
     const claudeDir = path.join(projectDir, '.claude');
     fs.mkdirSync(path.join(claudeDir, 'commands'), { recursive: true });
 
-    // Run the actual npx questmaestro installer
+    // Run the actual npx dungeonmaster installer
     this.runNpxInstall(projectDir);
 
-    // Update .questmaestro config for monorepo
-    const configPath = path.join(projectDir, '.questmaestro');
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf8')) as QuestmaestroConfig;
+    // Update .dungeonmaster config for monorepo
+    const configPath = path.join(projectDir, '.dungeonmaster');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8')) as DungeonmasterConfig;
     config.commands = {
       ward: 'npm run lint --workspace=$WORKSPACE -- $FILE',
       'ward:all': 'npm run lint && npm run typecheck && npm run build && npm run test',
@@ -99,7 +99,7 @@ export class ProjectBootstrapper {
         : this.createSimpleProject('project-with-quests');
 
     // Add quest files
-    const questDir = path.join(project.rootDir, 'questmaestro');
+    const questDir = path.join(project.rootDir, 'dungeonmaster');
     const activeDir = path.join(questDir, 'active');
 
     for (const quest of quests) {
@@ -113,12 +113,12 @@ export class ProjectBootstrapper {
   }
 
   /**
-   * Run npx questmaestro installer (simulating real user experience)
+   * Run npx dungeonmaster installer (simulating real user experience)
    */
   runNpxInstall(projectDir: string) {
     const installerPath = path.join(process.cwd(), 'bin', 'install.js');
 
-    console.log(`   📦 Installing Questmaestro in ${path.basename(projectDir)}...`);
+    console.log(`   📦 Installing Dungeonmaster in ${path.basename(projectDir)}...`);
 
     // Ensure .claude directory exists before running installer
     const claudeDir = path.join(projectDir, '.claude');
@@ -133,19 +133,19 @@ export class ProjectBootstrapper {
 
     // Verify installation succeeded
     const commandsDir = path.join(projectDir, '.claude', 'commands');
-    const questmaestroCmd = path.join(commandsDir, 'questmaestro.md');
+    const dungeonmasterCmd = path.join(commandsDir, 'dungeonmaster.md');
 
-    if (!fs.existsSync(questmaestroCmd)) {
-      throw new Error('Questmaestro installation failed - commands not found');
+    if (!fs.existsSync(dungeonmasterCmd)) {
+      throw new Error('Dungeonmaster installation failed - commands not found');
     }
 
     return result;
   }
 
   /**
-   * Install Questmaestro in a project (legacy method)
+   * Install Dungeonmaster in a project (legacy method)
    */
-  installQuestmaestro(projectDir: string) {
+  installDungeonmaster(projectDir: string) {
     return this.runNpxInstall(projectDir);
   }
 

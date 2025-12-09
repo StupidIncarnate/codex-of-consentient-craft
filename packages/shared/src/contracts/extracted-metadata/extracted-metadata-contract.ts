@@ -2,7 +2,7 @@
  * PURPOSE: Defines structure for metadata extracted from file comment blocks
  *
  * USAGE:
- * import type { ExtractedMetadata } from '@questmaestro/shared';
+ * import type { ExtractedMetadata } from '@dungeonmaster/shared';
  * const metadata: ExtractedMetadata = { purpose: '...', usage: '...', ... };
  */
 import { z } from 'zod';

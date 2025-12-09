@@ -42,7 +42,7 @@ import type { FileContent } from '../../../contracts/file-content/file-content-c
 import type { CommandName } from '../../../contracts/command-name/command-name-contract';
 import type { ExecResult } from '../../../contracts/exec-result/exec-result-contract';
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
-import type { QuestmaestroConfig } from '../../../contracts/questmaestro-config/questmaestro-config-contract';
+import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import type { TestProject } from '../../../contracts/test-project/test-project-contract';
 import type { BaseName } from '../../../contracts/base-name/base-name-contract';
 
@@ -111,10 +111,10 @@ export const integrationEnvironmentCreateBroker = ({
     projectName: testProjectContract.shape.projectName.parse(projectName),
     rootDir: testProjectContract.shape.rootDir.parse(projectPath),
 
-    installQuestmaestro: (): ProcessOutput => {
+    installDungeonmaster: (): ProcessOutput => {
       try {
         const result = childProcessExecSyncAdapter({
-          command: 'npm run install-questmaestro',
+          command: 'npm run install-dungeonmaster',
           options: {
             cwd: projectPath,
             encoding: 'utf-8',
@@ -172,12 +172,12 @@ export const integrationEnvironmentCreateBroker = ({
       }
     },
 
-    getConfig: (): QuestmaestroConfig | null => {
-      const configPath = pathJoinAdapter({ paths: [projectPath, '.questmaestro'] });
+    getConfig: (): DungeonmasterConfig | null => {
+      const configPath = pathJoinAdapter({ paths: [projectPath, '.dungeonmaster'] });
       if (!fsExistsAdapter({ filePath: configPath })) {
         return null;
       }
-      return JSON.parse(fsReadFileAdapter({ filePath: configPath })) as QuestmaestroConfig;
+      return JSON.parse(fsReadFileAdapter({ filePath: configPath })) as DungeonmasterConfig;
     },
 
     getPackageJson: (): PackageJson => {
@@ -188,8 +188,8 @@ export const integrationEnvironmentCreateBroker = ({
 
     getQuestFiles: ({ subdir }: { subdir?: FileName }): FileName[] => {
       const questDir = subdir
-        ? pathJoinAdapter({ paths: [projectPath, 'questmaestro', subdir] })
-        : pathJoinAdapter({ paths: [projectPath, 'questmaestro'] });
+        ? pathJoinAdapter({ paths: [projectPath, 'dungeonmaster', subdir] })
+        : pathJoinAdapter({ paths: [projectPath, 'dungeonmaster'] });
 
       if (!fsExistsAdapter({ filePath: questDir })) {
         return [];
@@ -197,8 +197,8 @@ export const integrationEnvironmentCreateBroker = ({
 
       const extension = subdir ? '.json' : '.md';
       const basePath = subdir
-        ? pathJoinAdapter({ paths: ['questmaestro', subdir] })
-        : 'questmaestro';
+        ? pathJoinAdapter({ paths: ['dungeonmaster', subdir] })
+        : 'dungeonmaster';
 
       return fsReaddirAdapter({ dirPath: questDir })
         .filter((file) => file.endsWith(extension))

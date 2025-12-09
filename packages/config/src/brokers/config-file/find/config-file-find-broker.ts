@@ -1,18 +1,18 @@
 /**
- * PURPOSE: Finds the nearest .questmaestro config file by searching up the directory tree
+ * PURPOSE: Finds the nearest .dungeonmaster config file by searching up the directory tree
  *
  * USAGE:
  * await configFileFindBroker({startPath: FilePathStub({value: '/project/src/file.ts'})});
- * // Returns FilePath to nearest .questmaestro file
+ * // Returns FilePath to nearest .dungeonmaster file
  */
 
 import { fsAccessAdapter } from '../../../adapters/fs/access/fs-access-adapter';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { ConfigNotFoundError } from '../../../errors/config-not-found/config-not-found-error';
-import type { FilePath } from '@questmaestro/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-const CONFIG_FILENAME = '.questmaestro';
+const CONFIG_FILENAME = '.dungeonmaster';
 const R_OK = 4;
 
 export const configFileFindBroker = async ({

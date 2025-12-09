@@ -635,7 +635,7 @@ No configuration found for this folder type.
 
 **Expected:**
 
-- Server name: `@questmaestro/mcp`
+- Server name: `@dungeonmaster/mcp`
 - Server version: `0.1.0`
 - Capabilities: `{ tools: {} }`
 - Transport: stdio

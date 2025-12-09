@@ -1,6 +1,6 @@
 import { folderConstraintsInitBroker } from './folder-constraints-init-broker';
 import { folderConstraintsInitBrokerProxy } from './folder-constraints-init-broker.proxy';
-import { FolderTypeStub } from '@questmaestro/shared/contracts';
+import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 
 describe('folderConstraintsInitBroker', () => {
   it('VALID: loads all 14 constraint markdown files from disk', async () => {

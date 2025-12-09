@@ -10,13 +10,13 @@ import { frameworkPresetsDataStatics } from '../../statics/framework-presets-dat
 import { applyOverridesTransformer } from '../apply-overrides/apply-overrides-transformer';
 import { folderConfigContract } from '../../contracts/folder-config/folder-config-contract';
 import { frameworkPresetsContract } from '../../contracts/framework-presets/framework-presets-contract';
-import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/questmaestro-config-contract';
+import type { DungeonmasterConfig } from '../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import type { AllowedExternalImports } from '../../contracts/folder-config/folder-config-contract';
 
 export const computeAllowedImportsTransformer = ({
   config,
 }: {
-  config: QuestmaestroConfig;
+  config: DungeonmasterConfig;
 }): AllowedExternalImports => {
   // Get the base preset for the framework (guaranteed to exist by Zod validation)
   const rawPreset = frameworkPresetsDataStatics.presets[config.framework];

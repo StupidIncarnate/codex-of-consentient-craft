@@ -785,7 +785,7 @@ be enforced via ESLint (existing or custom rules) using AST/TypeScript type anal
 **7. Responders Match Framework Patterns**
 
 - **Rule**: Responders must follow patterns specific to the configured framework
-- **AST Check**: Based on `framework` field in .questmaestro:
+- **AST Check**: Based on `framework` field in .dungeonmaster:
     - **Frontend frameworks** (react, vue, angular, svelte, solid, preact):
         - Must return appropriate component type:
             - `react`/`preact`/`solid`: JSX.Element or JSXElement nodes
@@ -807,7 +807,7 @@ be enforced via ESLint (existing or custom rules) using AST/TypeScript type anal
         - Responders not expected (no flows/)
     - **Fullstack** (nextjs, nuxtjs, remix):
         - Follow framework-specific patterns for API routes and pages
-- **Config-driven**: Framework field from .questmaestro file determines which patterns apply
+- **Config-driven**: Framework field from .dungeonmaster file determines which patterns apply
 
 ---
 

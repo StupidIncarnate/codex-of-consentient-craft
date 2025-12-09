@@ -89,7 +89,7 @@ export const userDeleteBroker = async ({userId}: { userId: UserId }): Promise<vo
   `-contract.ts`, `-statics.ts`, etc.)
 - **Not required for:** Test files (`.test.ts`), proxy files (`.proxy.ts`), stub files (`.stub.ts`)
 - **Position:** Must be at the very top of the file, before any imports
-- **Enforcement:** Validated by `@questmaestro/enforce-file-metadata` ESLint rule
+- **Enforcement:** Validated by `@dungeonmaster/enforce-file-metadata` ESLint rule
 
 ### Optional Fields
 

@@ -2,7 +2,7 @@ import type { HookPostEditResponderResult } from './hook-post-edit-responder-res
 import { hookPostEditResponderResultContract } from './hook-post-edit-responder-result-contract';
 import { LintResultStub } from '../lint-result/lint-result.stub';
 import { MessageStub } from '../message/message.stub';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const HookPostEditResponderResultStub = ({
   ...props

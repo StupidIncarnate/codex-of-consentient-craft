@@ -6,7 +6,7 @@
  * // Returns branded AllowedImport type (e.g., 'npm-package', 'relative', 'contract-only')
  */
 import { z } from 'zod';
-import { folderConfigStatics } from '@questmaestro/shared/statics';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 // Extract all unique allowed import values from the config
 const allAllowedImports = Object.values(folderConfigStatics)

@@ -455,7 +455,7 @@ describe('Quest State Builder', () => {
     test('should create directory structure', async () => {
       await builder.prepareTestEnvironment();
 
-      const questDir = path.join(testProject.rootDir, 'questmaestro');
+      const questDir = path.join(testProject.rootDir, 'dungeonmaster');
       const dirs = ['active', 'completed', 'abandoned', 'retros', 'lore'];
 
       for (const dir of dirs) {
@@ -474,7 +474,7 @@ describe('Quest State Builder', () => {
       // Check quest file exists in active folder
       const questFilePath = path.join(
         testProject.rootDir,
-        'questmaestro',
+        'dungeonmaster',
         'active',
         `${env.questId}.json`,
       );
@@ -496,7 +496,7 @@ describe('Quest State Builder', () => {
 
       const completedPath = path.join(
         testProject.rootDir,
-        'questmaestro',
+        'dungeonmaster',
         'completed',
         `${builder.getQuest().id}.json`,
       );

@@ -2,8 +2,8 @@
  * PURPOSE: Transforms folder configuration into 3 dependency visualization formats
  *
  * USAGE:
- * import { folderDependencyTreeTransformer } from '@questmaestro/shared/transformers';
- * import { folderConfigStatics } from '@questmaestro/shared/statics';
+ * import { folderDependencyTreeTransformer } from '@dungeonmaster/shared/transformers';
+ * import { folderConfigStatics } from '@dungeonmaster/shared/statics';
  * const result = folderDependencyTreeTransformer({ folderConfigs: folderConfigStatics });
  * // Returns: FolderDependencyTree with hierarchy, graph, and matrix
  *

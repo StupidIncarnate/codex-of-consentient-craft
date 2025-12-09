@@ -44,19 +44,19 @@ export type User = z.infer<typeof userContract>;
 - Test files MUST import from `.stub.ts` files, NOT from `-contract.ts` files
 - ✅ CORRECT: `import { UserStub } from "./user.stub"`
 - ❌ WRONG: `import { userContract } from "./user-contract"`
-- This is enforced by `@questmaestro/ban-contract-in-tests` ESLint rule
+- This is enforced by `@dungeonmaster/ban-contract-in-tests` ESLint rule
 - Stub files re-export the contract implementation for test use
 
 **STUB PATTERNS:**
 
-Stubs follow strict patterns enforced by `@questmaestro/enforce-stub-patterns` rule:
+Stubs follow strict patterns enforced by `@dungeonmaster/enforce-stub-patterns` rule:
 
 **1. Object Stubs (complex types with data properties only):**
 
 Use spread operator with `StubArgument<Type>`
 
 ```typescript
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 import {userContract} from './user-contract';
 import type {User} from './user-contract';
 
@@ -87,7 +87,7 @@ export const FilePathStub = (
 ```typescript
 
 // src/contracts/eslint-context/eslint-context-contract.ts
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 import {z} from 'zod';
 
 // Contract defines ONLY data properties (no z.function())

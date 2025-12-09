@@ -52,7 +52,7 @@ The easiest way to use Mock Rails is through the pre-built Claude Code hook:
 #### 1. Install the Package
 
 ```bash
-npm install --save-dev @questmaestro/hooks
+npm install --save-dev @dungeonmaster/hooks
 ```
 
 #### 2. Configure Claude Code Hooks
@@ -65,7 +65,7 @@ Create or update `.claude/hooks.json` in your project:
     {
       "command": "npx",
       "args": [
-        "@questmaestro/hooks",
+        "@dungeonmaster/hooks",
         "mockBoundaryHook"
       ]
     }
@@ -81,7 +81,7 @@ Create or update `.claude/hooks.json` in your project:
     {
       "command": "node",
       "args": [
-        "node_modules/@questmaestro/hooks/dist/mock-boundary-hook.js"
+        "node_modules/@dungeonmaster/hooks/dist/mock-boundary-hook.js"
       ]
     }
   ]
@@ -138,7 +138,7 @@ mockChild.stderr = new PassThrough();
 For advanced use cases, you can create custom hooks:
 
 ```typescript
-import {createMockBoundaryHook, DEFAULT_CONFIGS} from '@questmaestro/hooks/mock-rails';
+import {createMockBoundaryHook, DEFAULT_CONFIGS} from '@dungeonmaster/hooks/mock-rails';
 
 const mockBoundaryHook = createMockBoundaryHook(DEFAULT_CONFIGS.strict);
 
@@ -156,8 +156,8 @@ For teams that want to customize the rules beyond the built-in presets:
 
 ```typescript
 // .claude/custom-mock-hook.ts
-import {validateMockBoundaries, type MockRailsConfig} from '@questmaestro/hooks';
-import type {PreToolUseHookData} from '@questmaestro/hooks';
+import {validateMockBoundaries, type MockRailsConfig} from '@dungeonmaster/hooks';
+import type {PreToolUseHookData} from '@dungeonmaster/hooks';
 
 const customConfig: MockRailsConfig = {
     enabled: true,
@@ -224,7 +224,7 @@ export async function customMockBoundaryHook(data: PreToolUseHookData): Promise<
 ### Configuration Presets
 
 ```typescript
-import type {MockRailsConfig} from '@questmaestro/hooks/mock-rails';
+import type {MockRailsConfig} from '@dungeonmaster/hooks/mock-rails';
 
 const config: MockRailsConfig = {
     enabled: true,
@@ -257,7 +257,7 @@ const config: MockRailsConfig = {
 ### Direct Validation
 
 ```typescript
-import {validateMockBoundaries} from '@questmaestro/hooks/mock-rails';
+import {validateMockBoundaries} from '@dungeonmaster/hooks/mock-rails';
 
 const result = validateMockBoundaries({
     filePath: 'src/utils/helper.test.ts',
@@ -309,7 +309,7 @@ if (result.blocked) {
 - Verbose educational messages
 
 ```typescript
-import {DEFAULT_CONFIGS} from '@questmaestro/hooks/mock-rails';
+import {DEFAULT_CONFIGS} from '@dungeonmaster/hooks/mock-rails';
 
 const config = DEFAULT_CONFIGS.strict;
 ```
@@ -375,7 +375,7 @@ mockChild.stderr = new PassThrough();
 ## Extending with Custom Patterns
 
 ```typescript
-import type {MockPattern} from '@questmaestro/hooks/mock-rails';
+import type {MockPattern} from '@dungeonmaster/hooks/mock-rails';
 
 const customPattern: MockPattern = {
     id: 'my-custom.database-mock',
@@ -405,7 +405,7 @@ const config: MockRailsConfig = {
 ## Analysis and Reporting
 
 ```typescript
-import {analyzeTestFile, generateEducationalReport} from '@questmaestro/hooks/mock-rails';
+import {analyzeTestFile, generateEducationalReport} from '@dungeonmaster/hooks/mock-rails';
 
 // Get detailed analysis
 const analysis = analyzeTestFile({filePath, content, config});
@@ -420,16 +420,16 @@ console.log(report);
 
 ```bash
 # List available patterns
-npx @questmaestro/hooks mock-rails list --module child_process
+npx @dungeonmaster/hooks mock-rails list --module child_process
 
 # Explain a specific pattern
-npx @questmaestro/hooks mock-rails explain child_process.spawn.event-emitter
+npx @dungeonmaster/hooks mock-rails explain child_process.spawn.event-emitter
 
 # Generate configuration
-npx @questmaestro/hooks mock-rails init --preset strict
+npx @dungeonmaster/hooks mock-rails init --preset strict
 
 # Analyze test files
-npx @questmaestro/hooks mock-rails analyze src/**/*.test.ts
+npx @dungeonmaster/hooks mock-rails analyze src/**/*.test.ts
 ```
 
 ## Philosophy

@@ -10,10 +10,10 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
-import { filePathContract } from '@questmaestro/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
-import { folderConfigStatics } from '@questmaestro/shared/statics';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 import { removeFileExtensionTransformer } from '../../../transformers/remove-file-extension/remove-file-extension-transformer';

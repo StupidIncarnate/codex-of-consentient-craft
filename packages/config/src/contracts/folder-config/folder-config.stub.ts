@@ -1,4 +1,4 @@
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { folderConfigContract } from './folder-config-contract';
 import type { AllowedExternalImports } from './folder-config-contract';
 

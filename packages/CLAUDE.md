@@ -1,6 +1,6 @@
 # Monorepo Packages Structure
 
-This directory contains all workspace packages for the Questmaestro monorepo.
+This directory contains all workspace packages for the Dungeonmaster monorepo.
 
 ## Creating New Packages
 
@@ -39,20 +39,20 @@ When creating a new package in this monorepo, you MUST configure the following:
 
 ### 2. Package Dependencies
 
-If your package uses `@questmaestro/shared` or other workspace packages, add them to dependencies:
+If your package uses `@dungeonmaster/shared` or other workspace packages, add them to dependencies:
 
 ```json
 {
   "dependencies": {
-    "@questmaestro/shared": "*"
+    "@dungeonmaster/shared": "*"
   }
 }
 ```
 
-**Remember:** After modifying contracts in `@questmaestro/shared`, you MUST rebuild it:
+**Remember:** After modifying contracts in `@dungeonmaster/shared`, you MUST rebuild it:
 
 ```bash
-npm run build --workspace=@questmaestro/shared
+npm run build --workspace=@dungeonmaster/shared
 ```
 
 ### 3. Jest Configuration
@@ -74,7 +74,7 @@ module.exports = {
 **Why:**
 
 - Extends base Jest config for consistent test environment
-- `setupFilesAfterEnv` points to `@questmaestro/testing` which automatically resets/clears/restores Jest mocks globally
+- `setupFilesAfterEnv` points to `@dungeonmaster/testing` which automatically resets/clears/restores Jest mocks globally
 - No need to manually add `jest.clearAllMocks()` in individual test files
 
 ### 4. Scripts
@@ -148,15 +148,15 @@ interface.
 1. Ensure `"extends": "../../tsconfig.json"` is in your package's tsconfig.json
 2. Add `typeRoots` configuration pointing to `../../@types`
 
-### Package can't import from @questmaestro/shared
+### Package can't import from @dungeonmaster/shared
 
 **Cause:** Either:
 
 1. Missing dependency in package.json
-2. `@questmaestro/shared` not built after contract changes
+2. `@dungeonmaster/shared` not built after contract changes
 
 **Fix:**
 
-1. Add `"@questmaestro/shared": "*"` to dependencies
-2. Run `npm run build --workspace=@questmaestro/shared`
+1. Add `"@dungeonmaster/shared": "*"` to dependencies
+2. Run `npm run build --workspace=@dungeonmaster/shared`
 3. Run `npm install` to link workspace packages

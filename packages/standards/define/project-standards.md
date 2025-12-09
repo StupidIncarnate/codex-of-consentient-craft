@@ -37,7 +37,7 @@ Every implementation file must have structured metadata comments at the very top
   `-contract.ts`, `-statics.ts`, etc.)
 - **Not required for:** Test files (`.test.ts`), proxy files (`.proxy.ts`), stub files (`.stub.ts`)
 - **Position:** Must be at the very top of the file, before any imports
-- **Enforcement:** Validated by `@questmaestro/enforce-file-metadata` ESLint rule
+- **Enforcement:** Validated by `@dungeonmaster/enforce-file-metadata` ESLint rule
 
 **Optional fields:**
 
@@ -386,8 +386,8 @@ console.error(`Error: ${errorMessage}`);
 
 Layer files are validated by:
 
-- `@questmaestro/enforce-project-structure` - validates folder allows layers
-- `@questmaestro/enforce-implementation-colocation` - validates layer has parent in same directory
+- `@dungeonmaster/enforce-project-structure` - validates folder allows layers
+- `@dungeonmaster/enforce-implementation-colocation` - validates layer has parent in same directory
 - File suffix rules - validates `-layer-` appears before folder suffix
 
 See `packages/eslint-plugin/src/statics/folder-config/folder-config-statics.ts` for `allowsLayerFiles` configuration.
@@ -586,12 +586,12 @@ export const UserProfileWidget = ({userId}) => {
 
 ```typescript
 // 1. Search for specific domain files
-mcp__questmaestro__discover({type: "files", fileType: "broker", search: "user"})
-mcp__questmaestro__discover({type: "files", fileType: "binding", search: "user-data"})
+mcp__dungeonmaster__discover({type: "files", fileType: "broker", search: "user"})
+mcp__dungeonmaster__discover({type: "files", fileType: "binding", search: "user-data"})
 
 // 2. Get all files in a folder
-mcp__questmaestro__discover({type: "files", path: "packages/eslint-plugin/src/brokers"})
-mcp__questmaestro__discover({type: "files", path: "packages/eslint-plugin/src/bindings"})
+mcp__dungeonmaster__discover({type: "files", path: "packages/eslint-plugin/src/brokers"})
+mcp__dungeonmaster__discover({type: "files", path: "packages/eslint-plugin/src/bindings"})
 ```
 
 **If domain exists → MUST extend existing files, not create new ones**

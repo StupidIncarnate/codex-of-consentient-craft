@@ -1,4 +1,4 @@
-import { FolderTypeStub, FolderConfigStub } from '@questmaestro/shared/contracts';
+import { FolderTypeStub, FolderConfigStub } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { folderConstraintsTransformer } from './folder-constraints-transformer';
 

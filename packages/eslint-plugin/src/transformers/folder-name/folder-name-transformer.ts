@@ -8,8 +8,8 @@
  * const noFolder = folderNameTransformer({ filePath: 'file.ts' });
  * // Returns: null
  */
-import type { Identifier } from '@questmaestro/shared/contracts';
-import { identifierContract } from '@questmaestro/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 export const folderNameTransformer = ({ filePath }: { filePath: string }): Identifier | null => {
   const parts = filePath.split('/');

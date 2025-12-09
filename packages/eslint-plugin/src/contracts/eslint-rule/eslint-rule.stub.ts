@@ -1,6 +1,6 @@
 import { eslintRuleContract } from './eslint-rule-contract';
 import type { EslintRule } from './eslint-rule-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const EslintRuleStub = ({ ...props }: StubArgument<EslintRule> = {}): EslintRule => {
   // Separate function props from data props

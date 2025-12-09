@@ -12,7 +12,7 @@
 
 import { z } from 'zod';
 import { contentTextContract } from '../content-text/content-text-contract';
-import { folderTypeContract } from '@questmaestro/shared/contracts';
+import { folderTypeContract } from '@dungeonmaster/shared/contracts';
 import { importPathContract } from '../import-path/import-path-contract';
 
 export const folderDependencyTreeContract = z.object({

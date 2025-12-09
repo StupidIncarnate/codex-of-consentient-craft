@@ -1,6 +1,6 @@
 # Folder-Specific ESLint Rules Guide
 
-This document explains the **11 folder-specific rules** that enforce unique patterns for each QuestMaestro folder type.
+This document explains the **11 folder-specific rules** that enforce unique patterns for each Dungeonmaster folder type.
 These rules cannot be generalized into the shared config because they require custom AST analysis.
 
 ---
@@ -1423,5 +1423,5 @@ require:
 - Complex AST patterns (function call counting, import analysis)
 - Cross-file validation (import restrictions)
 
-Together with the universal config-driven rules, they provide comprehensive enforcement of the QuestMaestro
+Together with the universal config-driven rules, they provide comprehensive enforcement of the Dungeonmaster
 architecture.

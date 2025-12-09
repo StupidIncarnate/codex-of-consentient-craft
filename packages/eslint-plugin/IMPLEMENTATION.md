@@ -1,8 +1,8 @@
-# @questmaestro/eslint-plugin Implementation Plan
+# @dungeonmaster/eslint-plugin Implementation Plan
 
 ## Overview
 
-This package provides ESLint custom rules and configurations for enforcing QuestMaestro architecture standards,
+This package provides ESLint custom rules and configurations for enforcing Dungeonmaster architecture standards,
 including Zod contract enforcement, folder structure validation, and TypeScript type safety.
 
 ## Package Structure
@@ -112,16 +112,16 @@ packages/eslint-plugin/
 
 ```javascript
 // eslint.config.js
-import questmaestroPlugin from '@questmaestro/eslint-plugin';
+import dungeonmasterPlugin from '@dungeonmaster/eslint-plugin';
 
 export default [
     {
         plugins: {
-            '@questmaestro': questmaestroPlugin
+            '@dungeonmaster': dungeonmasterPlugin
         },
         rules: {
-            '@questmaestro/ban-primitives': 'error',
-            '@questmaestro/require-zod-on-primitives': 'error'
+            '@dungeonmaster/ban-primitives': 'error',
+            '@dungeonmaster/require-zod-on-primitives': 'error'
         }
     }
 ];
@@ -131,9 +131,9 @@ export default [
 
 ```javascript
 // eslint.config.js
-import questmaestroRecommended from '@questmaestro/eslint-plugin/recommended';
+import dungeonmasterRecommended from '@dungeonmaster/eslint-plugin/recommended';
 
-export default [questmaestroRecommended];
+export default [dungeonmasterRecommended];
 ```
 
 ### TSConfig Extension
@@ -141,7 +141,7 @@ export default [questmaestroRecommended];
 ```json
 // tsconfig.json
 {
-  "extends": "@questmaestro/eslint-plugin/tsconfig",
+  "extends": "@dungeonmaster/eslint-plugin/tsconfig",
   "compilerOptions": {
     "outDir": "./dist"
   }
@@ -152,13 +152,13 @@ export default [questmaestroRecommended];
 
 ```javascript
 // eslint.config.js
-import questmaestroPlugin from '@questmaestro/eslint-plugin';
+import dungeonmasterPlugin from '@dungeonmaster/eslint-plugin';
 
 export default [
     {
-        plugins: {'@questmaestro': questmaestroPlugin},
+        plugins: {'@dungeonmaster': dungeonmasterPlugin},
         rules: {
-            '@questmaestro/ban-primitives': 'error'
+            '@dungeonmaster/ban-primitives': 'error'
             // Other rules disabled
         }
     }
@@ -227,7 +227,7 @@ src/transformers/merge-configs/merge-configs-transformer.test.ts
 
 ### Development Dependencies
 
-- `@questmaestro/testing` - Test utilities
+- `@dungeonmaster/testing` - Test utilities
 - `@types/eslint ^9.0.0` - ESLint type definitions
 - Standard TypeScript/Jest/ESLint toolchain
 
@@ -236,7 +236,7 @@ src/transformers/merge-configs/merge-configs-transformer.test.ts
 ### Package Publishing
 
 - Automatic versioning via changesets
-- Published to npm with `@questmaestro` scope
+- Published to npm with `@dungeonmaster` scope
 - Public access for open source usage
 
 ### Release Process
@@ -274,6 +274,6 @@ src/transformers/merge-configs/merge-configs-transformer.test.ts
 ### Breaking Changes
 
 - Flat config requirement (ESLint v9+)
-- Package name change from potential `@questmaestro/lint`
+- Package name change from potential `@dungeonmaster/lint`
 - TypeScript version requirement (5.0+)
 - Peer dependency requirements

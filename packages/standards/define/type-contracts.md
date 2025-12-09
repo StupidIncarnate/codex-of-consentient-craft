@@ -75,7 +75,7 @@ export type User = z.infer<typeof userContract>;
 // contracts/user/user.stub.ts
 import {userContract} from './user-contract';
 import type {User} from './user-contract';
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 
 export const UserStub = ({...props}: StubArgument<User> = {}): User => {
     return userContract.parse({
@@ -89,11 +89,11 @@ export const UserStub = ({...props}: StubArgument<User> = {}): User => {
 
 **Stub Patterns:**
 
-Stubs follow strict patterns enforced by `@questmaestro/enforce-stub-patterns` rule:
+Stubs follow strict patterns enforced by `@dungeonmaster/enforce-stub-patterns` rule:
 
 1. **Object Stubs (complex types with data properties only)**: Use spread operator with `StubArgument<Type>`
    ```tsx
-   import type {StubArgument} from '@questmaestro/shared/@types';
+   import type {StubArgument} from '@dungeonmaster/shared/@types';
 
    export const UserStub = ({ ...props }: StubArgument<User> = {}): User =>
      userContract.parse({
@@ -112,7 +112,7 @@ Stubs follow strict patterns enforced by `@questmaestro/enforce-stub-patterns` r
 
 3. **Mixed Data + Function Stubs (types with both data and functions)**:
    ```tsx
-   import type {StubArgument} from '@questmaestro/shared/@types';
+   import type {StubArgument} from '@dungeonmaster/shared/@types';
    import {z} from 'zod';
 
    // Contract defines ONLY data properties (no z.function())

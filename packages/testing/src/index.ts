@@ -1,4 +1,4 @@
-// Testing utilities and helpers for QuestMaestro projects
+// Testing utilities and helpers for Dungeonmaster projects
 
 export const TESTING_PACKAGE_VERSION = '0.1.0';
 
@@ -12,15 +12,15 @@ export { integrationEnvironmentCreateBroker } from './brokers/integration-enviro
 export { integrationEnvironmentCleanupAllBroker } from './brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker';
 export { integrationEnvironmentListBroker } from './brokers/integration-environment/list/integration-environment-list-broker';
 export type { TestProject } from './contracts/test-project/test-project-contract';
-export type { QuestmaestroConfig } from './contracts/questmaestro-config/questmaestro-config-contract';
+export type { DungeonmasterConfig } from './contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
-// TypeScript transformer - use @questmaestro/testing/ts-jest/proxy-mock-transformer in jest.config.js
+// TypeScript transformer - use @dungeonmaster/testing/ts-jest/proxy-mock-transformer in jest.config.js
 
 // Contract stubs
 export { MockSpawnResultStub } from './contracts/mock-spawn-result/mock-spawn-result.stub';
 export { MockProcessBehaviorStub } from './contracts/mock-process-behavior/mock-process-behavior.stub';
 export { TestProjectStub } from './contracts/test-project/test-project.stub';
-export { QuestmaestroConfigStub } from './contracts/questmaestro-config/questmaestro-config.stub';
+export { DungeonmasterConfigStub } from './contracts/dungeonmaster-config/dungeonmaster-config.stub';
 export { BaseNameStub } from './contracts/base-name/base-name.stub';
 export { FileNameStub } from './contracts/file-name/file-name.stub';
 export { FileContentStub } from './contracts/file-content/file-content.stub';

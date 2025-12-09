@@ -1,5 +1,5 @@
 import { dirname } from 'path';
-import type { FilePath } from '@questmaestro/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 jest.mock('path');
 

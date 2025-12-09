@@ -29,7 +29,7 @@ export const ruleEnforceStubPatternsBroker = (): EslintRule => ({
         useSpreadOperator:
           'Stub functions must use spread operator in parameters: ({ ...props }: StubArgument<Type> = {})',
         useStubArgumentType:
-          'Stub functions must use StubArgument<Type> from @questmaestro/shared/@types',
+          'Stub functions must use StubArgument<Type> from @dungeonmaster/shared/@types',
         useContractParse:
           'Stub functions must return contract.parse() to validate and brand the output',
       },

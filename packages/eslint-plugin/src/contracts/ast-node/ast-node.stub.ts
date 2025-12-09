@@ -1,6 +1,6 @@
 import { astNodeContract } from './ast-node-contract';
 import type { AstNode } from './ast-node-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const AstNodeStub = ({ ...props }: StubArgument<AstNode> = {}): AstNode =>
   astNodeContract.parse({

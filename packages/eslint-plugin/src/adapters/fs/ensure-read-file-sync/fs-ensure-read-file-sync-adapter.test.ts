@@ -1,6 +1,6 @@
 import { fsEnsureReadFileSyncAdapter } from './fs-ensure-read-file-sync-adapter';
 import { fsEnsureReadFileSyncAdapterProxy } from './fs-ensure-read-file-sync-adapter.proxy';
-import { FilePathStub, FileContentsStub } from '@questmaestro/shared/contracts';
+import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 describe('fsEnsureReadFileSyncAdapter', () => {
   it('VALID: {filePath: "/exists.ts"} => returns file contents', () => {

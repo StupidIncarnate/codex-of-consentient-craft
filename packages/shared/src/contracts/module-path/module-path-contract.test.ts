@@ -8,10 +8,10 @@ describe('modulePathContract', () => {
     expect(result).toBe('axios');
   });
 
-  it('VALID: "@questmaestro/shared" => parses successfully', () => {
-    const result = ModulePathStub({ value: '@questmaestro/shared' });
+  it('VALID: "@dungeonmaster/shared" => parses successfully', () => {
+    const result = ModulePathStub({ value: '@dungeonmaster/shared' });
 
-    expect(result).toBe('@questmaestro/shared');
+    expect(result).toBe('@dungeonmaster/shared');
   });
 
   it('VALID: "./my-module" => parses successfully', () => {

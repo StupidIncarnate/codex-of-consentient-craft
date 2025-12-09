@@ -100,10 +100,10 @@ describe('eslintConflictResolverTransformer', () => {
           },
         }),
         EslintConfigStub({
-          plugins: { '@questmaestro': 'questmaestro-plugin' },
+          plugins: { '@dungeonmaster': 'dungeonmaster-plugin' },
           rules: {
-            '@questmaestro/camelcase': 'error',
-            '@questmaestro/no-unused-vars': 'warn',
+            '@dungeonmaster/camelcase': 'error',
+            '@dungeonmaster/no-unused-vars': 'warn',
           },
         }),
       ];
@@ -117,14 +117,14 @@ describe('eslintConflictResolverTransformer', () => {
         plugins: {
           eslint: 'eslint',
           '@typescript-eslint': 'typescript-eslint-plugin',
-          '@questmaestro': 'questmaestro-plugin',
+          '@dungeonmaster': 'dungeonmaster-plugin',
         },
         rules: {
           'no-unused-vars': 'off',
           camelcase: 'off',
           '@typescript-eslint/no-unused-vars': 'error',
-          '@questmaestro/camelcase': 'error',
-          '@questmaestro/no-unused-vars': 'warn',
+          '@dungeonmaster/camelcase': 'error',
+          '@dungeonmaster/no-unused-vars': 'warn',
         },
       });
     });

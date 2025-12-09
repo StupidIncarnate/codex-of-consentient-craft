@@ -5,7 +5,7 @@
  * const metadata = extractFileMetadataTransformer({ commentText: '/** \n * PURPOSE: Does something\n * USAGE: example()\n *\/' });
  * // Returns { purpose: 'Does something', usage: 'example()' }
  */
-import { metadataExtractorTransformer } from '@questmaestro/shared/transformers';
+import { metadataExtractorTransformer } from '@dungeonmaster/shared/transformers';
 import { fileMetadataCommentContract } from '../../contracts/file-metadata-comment/file-metadata-comment-contract';
 import type { FileMetadataComment } from '../../contracts/file-metadata-comment/file-metadata-comment-contract';
 

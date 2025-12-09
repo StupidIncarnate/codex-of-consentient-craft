@@ -12,9 +12,9 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
-import { folderConfigStatics } from '@questmaestro/shared/statics';
-import type { Identifier } from '@questmaestro/shared/contracts';
-import { identifierContract } from '@questmaestro/shared/contracts';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
 
 export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({

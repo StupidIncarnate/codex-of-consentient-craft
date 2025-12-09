@@ -63,10 +63,10 @@
 ### 4. Ecosystem Design
 **[04-package-ecosystem.md](04-package-ecosystem.md)** (20 min)
 - Package structure and responsibilities
-- `@questmaestro/standards` - Core docs
-- `@questmaestro/testing` - Test patterns
-- `@questmaestro/eslint-plugin` - Enforcement
-- `@questmaestro/hooks` - Automation
+- `@dungeonmaster/standards` - Core docs
+- `@dungeonmaster/testing` - Test patterns
+- `@dungeonmaster/eslint-plugin` - Enforcement
+- `@dungeonmaster/hooks` - Automation
 - Version management strategy
 
 **Key Insight:** Documentation is code - versioned, distributed, dependency-managed.

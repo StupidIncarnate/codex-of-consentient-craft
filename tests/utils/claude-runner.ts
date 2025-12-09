@@ -129,7 +129,7 @@ export class ClaudeE2ERunner {
 
   /**
    * Execute a Claude command in headless mode
-   * @param command - The slash command to run (e.g., "/questmaestro")
+   * @param command - The slash command to run (e.g., "/dungeonmaster")
    * @param args - Arguments for the command
    * @param options - Options including streaming
    * @returns Result with stdout, stderr, exitCode
@@ -702,7 +702,7 @@ export class ClaudeE2ERunner {
         return Promise.resolve(content.includes(assertion.content!));
 
       case 'questStatus':
-        const trackerPath = path.join(this.projectDir, 'questmaestro', 'quest-tracker.json');
+        const trackerPath = path.join(this.projectDir, 'dungeonmaster', 'quest-tracker.json');
         if (!fs.existsSync(trackerPath)) {
           return Promise.resolve(false);
         }

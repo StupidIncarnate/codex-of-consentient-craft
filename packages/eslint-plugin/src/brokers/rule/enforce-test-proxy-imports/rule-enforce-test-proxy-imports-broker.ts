@@ -13,7 +13,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { testFilePathToColocatedProxyPathTransformer } from '../../../transformers/test-file-path-to-colocated-proxy-path/test-file-path-to-colocated-proxy-path-transformer';
-import { filePathContract } from '@questmaestro/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
 import { normalizeImportPathTransformer } from '../../../transformers/normalize-import-path/normalize-import-path-transformer';

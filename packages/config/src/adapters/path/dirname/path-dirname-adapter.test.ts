@@ -1,6 +1,6 @@
 import { pathDirnameAdapter } from './path-dirname-adapter';
 import { pathDirnameAdapterProxy } from './path-dirname-adapter.proxy';
-import { FilePathStub } from '@questmaestro/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 describe('pathDirnameAdapter', () => {
   describe('successful operations', () => {

@@ -23,7 +23,7 @@ A comprehensive analysis of why LLMs fail at coding tasks and a practical framew
 ### Phase 3: Learn What Works
 6. **[key-concepts.md](key-concepts.md)** - Core concepts (observable atomic actions, escape hatches, etc.)
 7. **[quick-reference.md](quick-reference.md)** - Practical patterns and templates
-8. **[framework/README.md](framework/README.md)** - The Questmaestro orchestration framework
+8. **[framework/README.md](framework/README.md)** - The Dungeonmaster orchestration framework
 
 ### Phase 4: Deep Dive (If Needed)
 - Framework documents in order specified by framework/README.md
@@ -60,7 +60,7 @@ They fail at:
 
 ## The Practical Framework
 
-### The Questmaestro Approach
+### The Dungeonmaster Approach
 1. **User Dialogue** - Pathseeker discovers observable atomic actions
 2. **Task Decomposition** - Break actions into implementable tasks
 3. **Fresh Context Agents** - Each agent gets clean context, no accumulation

@@ -6,7 +6,7 @@
  * // Starts MCP server listening on stdio, registers discover, get-architecture, get-folder-detail, get-syntax-rules, get-testing-patterns tools
  */
 
-import type { FolderType } from '@questmaestro/shared/contracts';
+import type { FolderType } from '@dungeonmaster/shared/contracts';
 import { Server } from '@modelcontextprotocol/sdk/server';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
 import {
@@ -14,7 +14,7 @@ import {
   ListToolsRequestSchema,
   type CallToolRequest,
 } from '@modelcontextprotocol/sdk/types';
-import { architectureOverviewBroker } from '@questmaestro/shared/brokers';
+import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
 import { architectureFolderDetailBroker } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker.js';
 import { architectureSyntaxRulesBroker } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker.js';
 import { architectureTestingPatternsBroker } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.js';
@@ -34,7 +34,7 @@ export const StartMcpServer = async (): Promise<void> => {
 
   const server = new Server(
     {
-      name: '@questmaestro/mcp',
+      name: '@dungeonmaster/mcp',
       version: '0.1.0',
     },
     {

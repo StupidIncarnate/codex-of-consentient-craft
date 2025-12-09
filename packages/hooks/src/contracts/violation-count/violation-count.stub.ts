@@ -1,7 +1,7 @@
 import type { ViolationCount } from './violation-count-contract';
 import { violationCountContract } from './violation-count-contract';
 import { ViolationDetailStub } from '../violation-detail/violation-detail.stub';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const ViolationCountStub = ({
   ...props

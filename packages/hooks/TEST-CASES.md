@@ -254,16 +254,16 @@ rm packages/hooks/src/.test-tmp/*
 
 ## Key Differences: Pre-Edit vs Post-Edit
 
-| Aspect          | Pre-Edit Hook                   | Post-Edit Hook           |
-|-----------------|---------------------------------|--------------------------|
-| **When**        | Before changes                  | After changes applied    |
-| **Purpose**     | Block bad edits                 | Auto-fix + report        |
-| **Blocking**    | Yes (exit 2 if violations)      | No (always exit 0)       |
-| **Rules**       | Filtered subset (hook config)   | **All ESLint rules**     |
-| **Auto-fix**    | No                              | **Yes** (writes to disk) |
-| **Quiet mode**  | No (all severities)             | **Yes** (errors only)    |
-| **Comparison**  | Old vs new content              | Just new content         |
-| **Config file** | `.questmaestro-hooks.config.js` | Uses `eslint.config.js`  |
+| Aspect          | Pre-Edit Hook                    | Post-Edit Hook           |
+|-----------------|----------------------------------|--------------------------|
+| **When**        | Before changes                   | After changes applied    |
+| **Purpose**     | Block bad edits                  | Auto-fix + report        |
+| **Blocking**    | Yes (exit 2 if violations)       | No (always exit 0)       |
+| **Rules**       | Filtered subset (hook config)    | **All ESLint rules**     |
+| **Auto-fix**    | No                               | **Yes** (writes to disk) |
+| **Quiet mode**  | No (all severities)              | **Yes** (errors only)    |
+| **Comparison**  | Old vs new content               | Just new content         |
+| **Config file** | `.dungeonmaster-hooks.config.js` | Uses `eslint.config.js`  |
 
 ---
 
@@ -292,8 +292,8 @@ npx eslint --print-config /tmp/test-file.ts
 ### Run Integration Tests
 
 ```bash
-npm test --workspace=@questmaestro/hooks -- start-post-edit-hook.integration.test.ts
-npm test --workspace=@questmaestro/hooks -- start-pre-edit-hook.integration.test.ts
+npm test --workspace=@dungeonmaster/hooks -- start-post-edit-hook.integration.test.ts
+npm test --workspace=@dungeonmaster/hooks -- start-pre-edit-hook.integration.test.ts
 ```
 
 ---

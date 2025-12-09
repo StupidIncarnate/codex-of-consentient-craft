@@ -1,6 +1,6 @@
 import type { LintMessage } from './lint-message-contract';
 import { lintMessageContract } from './lint-message-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const LintMessageStub = ({ ...props }: StubArgument<LintMessage> = {}): LintMessage =>
   lintMessageContract.parse({

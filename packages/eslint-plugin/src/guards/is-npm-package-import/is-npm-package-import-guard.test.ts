@@ -5,8 +5,8 @@ describe('isNpmPackageImportGuard', () => {
     expect(isNpmPackageImportGuard({ importSource: 'axios' })).toBe(true);
   });
 
-  it('VALID: {importSource: "@questmaestro/shared"} => returns true', () => {
-    expect(isNpmPackageImportGuard({ importSource: '@questmaestro/shared' })).toBe(true);
+  it('VALID: {importSource: "@dungeonmaster/shared"} => returns true', () => {
+    expect(isNpmPackageImportGuard({ importSource: '@dungeonmaster/shared' })).toBe(true);
   });
 
   it('VALID: {importSource: "react"} => returns true', () => {

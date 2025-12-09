@@ -413,7 +413,7 @@ export const createUserCreateBrokerProxy = () => {
     jest.spyOn(crypto, 'randomUUID')
         .mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
-    // Note: @questmaestro/testing automatically resets all mocks globally
+    // Note: @dungeonmaster/testing automatically resets all mocks globally
     // No manual cleanup needed!
 
     return {
@@ -528,7 +528,7 @@ it('VALID: {specific ID} => creates user with that ID', async () => {
 });
 ```
 
-// Note: @questmaestro/testing automatically clears all mocks after each test
+// Note: @dungeonmaster/testing automatically clears all mocks after each test
 
 ### When to Use Global Mocks
 
@@ -577,7 +577,7 @@ it('VALID: {own profile} => displays user', async () => {
     // All layers share the same mocked Date.now() and crypto.randomUUID()
     expect(screen.getByText('Jane Smith')).toBeInTheDocument();
 });
-// Note: @questmaestro/testing automatically clears all mocks after each test
+// Note: @dungeonmaster/testing automatically clears all mocks after each test
 ```
 
 ### The Pattern
@@ -603,7 +603,7 @@ Test Lifecycle with Create-Per-Test:
 │   // Run test...                       │
 │ })                                     │
 │                                        │
-│ // @questmaestro/testing auto-cleans  │
+│ // @dungeonmaster/testing auto-cleans  │
 └────────────────────────────────────────┘
 ```
 
@@ -612,7 +612,7 @@ Test Lifecycle with Create-Per-Test:
 1. **Centralized**: All setup in proxy constructor
 2. **Automatic**: Higher layers inherit global mocks when creating child proxies
 3. **Deterministic**: Every test gets same predictable values
-4. **Auto-Cleanup**: `@questmaestro/testing` resets all mocks globally - no manual cleanup needed
+4. **Auto-Cleanup**: `@dungeonmaster/testing` resets all mocks globally - no manual cleanup needed
 5. **Explicit**: Clear what globals are mocked
 6. **Simpler**: No beforeEach needed - just create proxy in test
 
@@ -702,7 +702,7 @@ const brokerProxy = createUserCreateBrokerProxy();  // Sets up Date.now() in con
 
 it('test 1', () => {
     brokerProxy.setupUserCreate({userData});
-    // @questmaestro/testing will reset mocks after test
+    // @dungeonmaster/testing will reset mocks after test
 });
 
 // ✅ Better: Create per test (recommended)
@@ -720,7 +720,7 @@ it('test 1', () => {
 
 **Remember:**
 
-- `@questmaestro/testing` automatically resets/clears/restores all mocks globally
+- `@dungeonmaster/testing` automatically resets/clears/restores all mocks globally
 - No manual cleanup needed
 - Test that functions USE the mocked globals, don't manually construct the values they generate
 - Constructor sets **default** mock values - setup methods can override them for specific scenarios

@@ -6,15 +6,15 @@ const prettierConfig = require('eslint-config-prettier');
 const prettierPlugin = require('eslint-plugin-prettier');
 const jestPlugin = require('eslint-plugin-jest');
 const eslintCommentsPlugin = require('eslint-plugin-eslint-comments');
-// Import our own questmaestro plugin and config directly from TypeScript source
-const questmaestroPlugin = require('./packages/eslint-plugin/src/index.ts').default;
+// Import our own dungeonmaster plugin and config directly from TypeScript source
+const dungeonmasterPlugin = require('./packages/eslint-plugin/src/index.ts').default;
 const {
-  configQuestmaestroBroker,
-} = require('./packages/eslint-plugin/src/brokers/config/questmaestro/config-questmaestro-broker.ts');
+  configDungeonmasterBroker,
+} = require('./packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts');
 
-// Get the questmaestro configs (returns object with typescript, test, fileOverrides)
-const questmaestroConfigs = configQuestmaestroBroker();
-const questmaestroTestConfigs = configQuestmaestroBroker({ forTesting: true });
+// Get the dungeonmaster configs (returns object with typescript, test, fileOverrides)
+const dungeonmasterConfigs = configDungeonmasterBroker();
+const dungeonmasterTestConfigs = configDungeonmasterBroker({ forTesting: true });
 
 module.exports = [
   // Global ignores
@@ -64,13 +64,13 @@ module.exports = [
       },
     },
     plugins: {
-      ...questmaestroConfigs.typescript.plugins,
+      ...dungeonmasterConfigs.typescript.plugins,
       prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
-      '@questmaestro': questmaestroPlugin,
+      '@dungeonmaster': dungeonmasterPlugin,
     },
     rules: {
-      ...questmaestroConfigs.typescript.rules,
+      ...dungeonmasterConfigs.typescript.rules,
       ...prettierConfig.rules,
       'prettier/prettier': 'error',
       'arrow-body-style': ['error', 'as-needed'],
@@ -79,8 +79,8 @@ module.exports = [
       // 'eslint-comments/no-use': ['error', { allow: [] }],
     },
   },
-  // File-specific overrides (from questmaestro config)
-  ...questmaestroConfigs.fileOverrides,
+  // File-specific overrides (from dungeonmaster config)
+  ...dungeonmasterConfigs.fileOverrides,
   // Test files can be more relaxed
   {
     files: ['**/*.test.ts', '**/tests/**/*.ts'],
@@ -96,13 +96,13 @@ module.exports = [
       },
     },
     plugins: {
-      ...questmaestroTestConfigs.test.plugins,
+      ...dungeonmasterTestConfigs.test.plugins,
       prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
       jest: jestPlugin,
     },
     rules: {
-      ...questmaestroTestConfigs.test.rules,
+      ...dungeonmasterTestConfigs.test.rules,
       ...jestPlugin.configs.recommended.rules,
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/unbound-method': 'off',
@@ -115,8 +115,8 @@ module.exports = [
       'jest/unbound-method': 'off',
     },
   },
-  // Test file-specific overrides (from questmaestro test config)
-  ...questmaestroTestConfigs.fileOverrides,
+  // Test file-specific overrides (from dungeonmaster test config)
+  ...dungeonmasterTestConfigs.fileOverrides,
   // Promise constructor unavoidably requires 2 parameters (resolve, reject)
   {
     files: ['**/adapters/**/*-promise.ts'],
@@ -132,14 +132,14 @@ module.exports = [
       'jest/require-hook': 'off',
       'jest/require-top-level-describe': 'off',
       'jest/no-hooks': 'off',
-      '@questmaestro/ban-contract-in-tests': 'off',
-      '@questmaestro/enforce-test-creation-of-proxy': 'off',
+      '@dungeonmaster/ban-contract-in-tests': 'off',
+      '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
     },
   },
   {
     files: ['packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts'],
     rules: {
-      '@questmaestro/require-contract-validation': 'off',
+      '@dungeonmaster/require-contract-validation': 'off',
     },
   },
   {
@@ -154,10 +154,16 @@ module.exports = [
       'packages/testing/src/adapters/typescript/proxy-mock-transformer/typescript-proxy-mock-transformer-adapter.ts',
     ],
     rules: {
-      '@questmaestro/enforce-project-structure': 'off',
+      '@dungeonmaster/enforce-project-structure': 'off',
     },
   },
-  // {
+  {
+    files: ['**/@types/*', '**/@types/**'],
+    rules: {
+      '@dungeonmaster/ban-primitives': 'off'
+    }
+  }
+   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {
   //     'eslint-comments/no-use': 'off',

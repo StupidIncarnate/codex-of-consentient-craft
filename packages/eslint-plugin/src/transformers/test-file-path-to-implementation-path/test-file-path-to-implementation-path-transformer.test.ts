@@ -1,4 +1,4 @@
-import { FilePathStub } from '@questmaestro/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { testFilePathToImplementationPathTransformer } from './test-file-path-to-implementation-path-transformer';
 
 describe('testFilePathToImplementationPathTransformer', () => {

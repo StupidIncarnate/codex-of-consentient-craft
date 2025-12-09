@@ -78,16 +78,16 @@ export const jestRuleStatics = {
 
     // Disallow specific jest methods
     // Based on testing-standards.md - Anti-Patterns section
-    // @questmaestro/testing handles mock cleanup globally
+    // @dungeonmaster/testing handles mock cleanup globally
     'jest/no-restricted-jest-methods': [
       'error',
       {
-        clearAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
-        resetAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
-        restoreAllMocks: '@questmaestro/testing handles this globally - no manual cleanup needed',
-        mockClear: '@questmaestro/testing handles this globally - no manual cleanup needed',
-        mockReset: '@questmaestro/testing handles this globally - no manual cleanup needed',
-        mockRestore: '@questmaestro/testing handles this globally - no manual cleanup needed',
+        clearAllMocks: '@dungeonmaster/testing handles this globally - no manual cleanup needed',
+        resetAllMocks: '@dungeonmaster/testing handles this globally - no manual cleanup needed',
+        restoreAllMocks: '@dungeonmaster/testing handles this globally - no manual cleanup needed',
+        mockClear: '@dungeonmaster/testing handles this globally - no manual cleanup needed',
+        mockReset: '@dungeonmaster/testing handles this globally - no manual cleanup needed',
+        mockRestore: '@dungeonmaster/testing handles this globally - no manual cleanup needed',
       },
     ],
 

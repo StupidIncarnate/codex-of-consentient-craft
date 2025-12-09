@@ -1,7 +1,7 @@
 {
-  "name": "@questmaestro/standards",
+  "name": "@dungeonmaster/standards",
   "version": "0.1.0",
-  "description": "Development standards and documentation for questmaestro",
+  "description": "Development standards and documentation for dungeonmaster",
   "main": "index.js",
   "scripts": {
     "build": "echo 'No build needed for docs package'",
@@ -15,7 +15,7 @@
     "README.md"
   ],
   "keywords": [
-    "questmaestro",
+    "dungeonmaster",
     "standards",
     "documentation",
     "coding-standards",

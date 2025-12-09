@@ -1,4 +1,4 @@
-# Questmaestro Agent Framework
+# Dungeonmaster Agent Framework
 
 A practical orchestration system for reliable code generation using specialized AI agents with observable outcomes and empirical learning.
 
@@ -12,9 +12,9 @@ LLMs excel at implementing specific behaviors but fail at:
 
 The solution: **Orchestrated fresh-context agents** where each agent operates as a semantic compiler for single responsibilities, coordinated by a stateless orchestration engine that learns optimal task boundaries through controlled failure.
 
-## The Questmaestro System
+## The Dungeonmaster System
 
-**Questmaestro (Node CLI)**:
+**Dungeonmaster (Node CLI)**:
 - Maintains quest state in JSON files
 - Spawns fresh Claude instances with specialized roles
 - Handles input/output coordination between agents
@@ -138,7 +138,8 @@ Decision made upfront: "Can I handle this myself or need delegation?"
 - Manual context management
 
 **Solidified Into**:
-- Questmaestro orchestration engine
+
+- Dungeonmaster orchestration engine
 - Specialized agent roles with escape hatches
 - Observable atomic action decomposition
 - Empirical learning through failure cycles

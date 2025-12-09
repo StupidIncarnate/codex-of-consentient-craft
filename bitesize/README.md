@@ -32,7 +32,7 @@ training data. However:
 A multi-layered npm package distribution system that achieves **95% compliance**:
 
 1. **Splits documentation** into focused, context-loadable chunks (< 500 lines each)
-2. **Distributes via npm** packages (`@questmaestro/standards`, `@questmaestro/testing`, etc.)
+2. **Distributes via npm** packages (`@dungeonmaster/standards`, `@dungeonmaster/testing`, etc.)
 3. **Auto-syncs** documentation when packages update (symlinks from node_modules)
 4. **Loads progressively** - only what's needed for the current task (~1000 lines max)
 5. **Enforces with lint** - ESLint catches what LLM forgets with pedagogical errors
@@ -42,10 +42,10 @@ A multi-layered npm package distribution system that achieves **95% compliance**
 ```
 ┌─────────────────────────────────────────────────┐
 │  NPM Packages                                    │
-│  ├── @questmaestro/standards  (docs + templates)│
-│  ├── @questmaestro/testing    (test patterns)   │
-│  ├── @questmaestro/eslint-plugin (enforcement)  │
-│  └── @questmaestro/hooks      (automation)      │
+│  ├── @dungeonmaster/standards  (docs + templates)│
+│  ├── @dungeonmaster/testing    (test patterns)   │
+│  ├── @dungeonmaster/eslint-plugin (enforcement)  │
+│  └── @dungeonmaster/hooks      (automation)      │
 │                                                  │
 │  ▼ npm install (auto-setup)                     │
 │                                                  │
@@ -86,7 +86,7 @@ Understanding the problem and solution approach:
 How the npm distribution system works:
 
 4. **[Package Ecosystem Design](04-package-ecosystem.md)** (20 min)
-    - How @questmaestro packages distribute standards
+    - How @dungeonmaster packages distribute standards
     - Package responsibilities and dependencies
     - Version management strategy
 

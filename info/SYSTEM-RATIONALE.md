@@ -12,7 +12,8 @@ The original orchestration approach was hitting fundamental efficiency limits du
 2. **Isolated Contexts**: Each agent has its own context window. No shared memory or context.
 3. **File-Based Communication**: Agents can only share information through files.
 4. **No External Systems**: Can't use RAG, databases, or external orchestration tools.
-5. **Sequential Questmaestro**: The orchestrator (Questmaestro) must spawn agents one at a time and wait for completion.
+5. **Sequential Dungeonmaster**: The orchestrator (Dungeonmaster) must spawn agents one at a time and wait for
+   completion.
 
 ## Pain Points of Original System
 
@@ -189,7 +190,7 @@ The Context Engineering repository provided key insights:
 
 ## Remaining Challenges
 
-1. **Questmaestro Complexity**: Must understand when to parallelize
+1. **Dungeonmaster Complexity**: Must understand when to parallelize
 2. **Agent Proliferation**: More agent types to maintain
 3. **Discovery Quality**: System only as good as initial analysis
 4. **Phase Transitions**: Still some sequential bottlenecks

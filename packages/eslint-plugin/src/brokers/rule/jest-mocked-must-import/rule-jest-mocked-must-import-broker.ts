@@ -16,7 +16,7 @@ import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-
 import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
-import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
+import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 
 export const ruleJestMockedMustImportBroker = (): EslintRule => {
   const importedNames = new Map<Identifier, ModulePath>(); // local name -> source

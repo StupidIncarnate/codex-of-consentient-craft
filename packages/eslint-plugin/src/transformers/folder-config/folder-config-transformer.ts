@@ -8,9 +8,9 @@
  * const unknownConfig = folderConfigTransformer({ folderType: 'unknown' });
  * // Returns: undefined
  */
-import { isKeyOfGuard } from '@questmaestro/shared/guards';
+import { isKeyOfGuard } from '@dungeonmaster/shared/guards';
 
-import { folderConfigStatics } from '@questmaestro/shared/statics';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 type FolderConfig = (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
 

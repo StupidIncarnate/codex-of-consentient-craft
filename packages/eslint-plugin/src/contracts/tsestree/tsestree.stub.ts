@@ -1,6 +1,6 @@
 import { tsestreeContract } from './tsestree-contract';
 import type { Tsestree } from './tsestree-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { tsestreeNodeTypeStatics } from '../../statics/tsestree-node-type/tsestree-node-type-statics';
 
 export const TsestreeStub = ({ ...props }: StubArgument<Tsestree> = {}): Tsestree =>

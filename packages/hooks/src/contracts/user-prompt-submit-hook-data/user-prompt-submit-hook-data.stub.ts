@@ -1,6 +1,6 @@
 import type { UserPromptSubmitHookData } from './user-prompt-submit-hook-data-contract';
 import { userPromptSubmitHookDataContract } from './user-prompt-submit-hook-data-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const UserPromptSubmitHookDataStub = ({
   ...props

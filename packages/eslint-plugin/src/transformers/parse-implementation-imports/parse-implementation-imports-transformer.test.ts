@@ -1,4 +1,4 @@
-import { IdentifierStub, ModulePathStub } from '@questmaestro/shared/contracts';
+import { IdentifierStub, ModulePathStub } from '@dungeonmaster/shared/contracts';
 import { parseImplementationImportsTransformer } from './parse-implementation-imports-transformer';
 
 describe('parseImplementationImportsTransformer', () => {

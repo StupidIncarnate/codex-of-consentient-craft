@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Loads questmaestro hooks configuration from .questmaestro-hooks.config files
+ * PURPOSE: Loads dungeonmaster hooks configuration from .dungeonmaster-hooks.config files
  *
  * USAGE:
  * const config = hookConfigLoadBroker({ cwd: '/project/path' });
@@ -12,14 +12,14 @@ import { hookConfigDefaultBroker } from '../default/hook-config-default-broker';
 import { hookConfigMergeBroker } from '../merge/hook-config-merge-broker';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import { questmaestroHooksConfigContract } from '../../../contracts/questmaestro-hooks-config/questmaestro-hooks-config-contract';
+import { dungeonmasterHooksConfigContract } from '../../../contracts/dungeonmaster-hooks-config/dungeonmaster-hooks-config-contract';
 
 export const hookConfigLoadBroker = ({ cwd }: { cwd?: FilePath } = {}): PreEditLintConfig => {
   const workingDir = cwd ?? filePathContract.parse(process.cwd());
   const configPaths = [
-    pathResolveAdapter({ paths: [workingDir, '.questmaestro-hooks.config.js'] }),
-    pathResolveAdapter({ paths: [workingDir, '.questmaestro-hooks.config.mjs'] }),
-    pathResolveAdapter({ paths: [workingDir, '.questmaestro-hooks.config.cjs'] }),
+    pathResolveAdapter({ paths: [workingDir, '.dungeonmaster-hooks.config.js'] }),
+    pathResolveAdapter({ paths: [workingDir, '.dungeonmaster-hooks.config.mjs'] }),
+    pathResolveAdapter({ paths: [workingDir, '.dungeonmaster-hooks.config.cjs'] }),
   ];
 
   for (const configPath of configPaths) {
@@ -31,7 +31,7 @@ export const hookConfigLoadBroker = ({ cwd }: { cwd?: FilePath } = {}): PreEditL
         // Dynamic require for config file with contract validation
         const loadedModule: unknown = require(filePathContract.parse(configPath));
 
-        const parseResult = questmaestroHooksConfigContract.safeParse(loadedModule);
+        const parseResult = dungeonmasterHooksConfigContract.safeParse(loadedModule);
         if (!parseResult.success) {
           continue;
         }

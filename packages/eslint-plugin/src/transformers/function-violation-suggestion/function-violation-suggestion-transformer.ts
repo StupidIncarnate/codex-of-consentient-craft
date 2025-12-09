@@ -8,8 +8,8 @@
  * const transformerMessage = functionViolationSuggestionTransformer({ functionType: 'transformer' });
  * // Returns: "This appears to be a data transformation. Extract it to a new file in transformers/ folder..."
  */
-import type { ErrorMessage } from '@questmaestro/shared/contracts';
-import { errorMessageContract } from '@questmaestro/shared/contracts';
+import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 export const functionViolationSuggestionTransformer = ({
   functionType,

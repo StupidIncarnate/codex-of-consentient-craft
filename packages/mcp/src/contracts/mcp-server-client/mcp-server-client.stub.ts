@@ -1,6 +1,6 @@
 import { mcpServerClientContract } from './mcp-server-client-contract';
 import type { McpServerClient } from './mcp-server-client-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import type { JsonRpcRequest } from '../json-rpc-request/json-rpc-request-contract';
 import { JsonRpcResponseStub } from '../json-rpc-response/json-rpc-response.stub';
 

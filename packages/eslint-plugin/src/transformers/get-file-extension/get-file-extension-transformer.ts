@@ -8,8 +8,8 @@
  * const extWithoutDot = getFileExtensionTransformer({ filename: 'user-broker.ts', includesDot: false });
  * // Returns: 'ts'
  */
-import { identifierContract } from '@questmaestro/shared/contracts';
-import type { Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const getFileExtensionTransformer = ({
   filename,

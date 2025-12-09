@@ -14,7 +14,7 @@ describe('HookSessionStartResponder', () => {
 
       expect(result.shouldOutput).toBe(true);
       expect(result.content).toMatch(/\[NEW SESSION\]/u);
-      expect(result.content).toMatch(/<questmaestro-architecture>/u);
+      expect(result.content).toMatch(/<dungeonmaster-architecture>/u);
       expect(result.content).toMatch(/# Architecture Overview/u);
       expect(result.content).toMatch(/Use MCP tools/u);
     });
@@ -50,13 +50,13 @@ describe('HookSessionStartResponder', () => {
     it('VALID: {isNew: false, ALWAYS_LOAD: "true"} => returns {shouldOutput: true, content: with RESUMED SESSION}', async () => {
       const proxy = HookSessionStartResponderProxy();
       const hookData = SessionStartHookStub({ cwd: '/test/project' });
-      process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS = 'true';
+      process.env.DUNGEONMASTER_ALWAYS_LOAD_STANDARDS = 'true';
 
       proxy.setupIsNewSession({ isNew: false });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      delete process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS;
+      delete process.env.DUNGEONMASTER_ALWAYS_LOAD_STANDARDS;
 
       expect(result.shouldOutput).toBe(true);
       expect(result.content).toMatch(/\[RESUMED SESSION\]/u);
@@ -68,13 +68,13 @@ describe('HookSessionStartResponder', () => {
     it('VALID: {isNew: false, ALWAYS_LOAD: "true"} => loads architecture', async () => {
       const proxy = HookSessionStartResponderProxy();
       const hookData = SessionStartHookStub();
-      process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS = 'true';
+      process.env.DUNGEONMASTER_ALWAYS_LOAD_STANDARDS = 'true';
 
       proxy.setupIsNewSession({ isNew: false });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      delete process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS;
+      delete process.env.DUNGEONMASTER_ALWAYS_LOAD_STANDARDS;
 
       expect(result.shouldOutput).toBe(true);
       expect(result.content).toMatch(/# Architecture Overview/u);
@@ -83,13 +83,13 @@ describe('HookSessionStartResponder', () => {
     it('VALID: {isNew: false, ALWAYS_LOAD: "false"} => returns {shouldOutput: false}', async () => {
       const proxy = HookSessionStartResponderProxy();
       const hookData = SessionStartHookStub();
-      process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS = 'false';
+      process.env.DUNGEONMASTER_ALWAYS_LOAD_STANDARDS = 'false';
 
       proxy.setupIsNewSession({ isNew: false });
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      delete process.env.QUESTMAESTRO_ALWAYS_LOAD_STANDARDS;
+      delete process.env.DUNGEONMASTER_ALWAYS_LOAD_STANDARDS;
 
       expect(result).toStrictEqual({
         shouldOutput: false,
@@ -107,8 +107,8 @@ describe('HookSessionStartResponder', () => {
       const result = await HookSessionStartResponder({ input: hookData });
 
       expect(result.shouldOutput).toBe(true);
-      expect(result.content).toMatch(/<questmaestro-architecture>/u);
-      expect(result.content).toMatch(/<\/questmaestro-architecture>/u);
+      expect(result.content).toMatch(/<dungeonmaster-architecture>/u);
+      expect(result.content).toMatch(/<\/dungeonmaster-architecture>/u);
       expect(result.content).toMatch(/# Architecture Overview/u);
       expect(result.content).toMatch(
         /Use MCP tools \(get-folder-detail, get-syntax-rules, get-testing-patterns\)/u,

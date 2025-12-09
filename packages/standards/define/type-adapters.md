@@ -119,7 +119,7 @@ export const httpResponseContract = z.object({
 export type HttpResponse = z.infer<typeof httpResponseContract>;
 
 // contracts/http-response/http-response.stub.ts
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 
 export const HttpResponseStub = ({...props}: StubArgument<HttpResponse> = {}): HttpResponse =>
     httpResponseContract.parse({
@@ -197,7 +197,7 @@ export type EslintContext = z.infer<typeof eslintContextContract> & {
 
 ```tsx
 // contracts/eslint-context/eslint-context.stub.ts
-import type {StubArgument} from '@questmaestro/shared/@types';
+import type {StubArgument} from '@dungeonmaster/shared/@types';
 
 const filenameContract = z.string().brand<'Filename'>();
 

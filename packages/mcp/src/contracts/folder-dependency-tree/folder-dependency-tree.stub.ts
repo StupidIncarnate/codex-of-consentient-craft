@@ -1,8 +1,8 @@
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { folderDependencyTreeContract } from './folder-dependency-tree-contract';
 import type { FolderDependencyTree } from './folder-dependency-tree-contract';
 import { ContentTextStub } from '../content-text/content-text.stub';
-import { FolderTypeStub } from '@questmaestro/shared/contracts';
+import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 
 export const FolderDependencyTreeStub = ({
   ...props

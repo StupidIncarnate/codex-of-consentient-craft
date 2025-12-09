@@ -32,16 +32,16 @@ describe('isNpmPackageGuard', () => {
   });
 
   describe('invalid - workspace packages', () => {
-    it('INVALID: {importSource: "@questmaestro/shared"} => returns false', () => {
-      expect(isNpmPackageGuard({ importSource: '@questmaestro/shared' })).toBe(false);
+    it('INVALID: {importSource: "@dungeonmaster/shared"} => returns false', () => {
+      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/shared' })).toBe(false);
     });
 
-    it('INVALID: {importSource: "@questmaestro/testing"} => returns false', () => {
-      expect(isNpmPackageGuard({ importSource: '@questmaestro/testing' })).toBe(false);
+    it('INVALID: {importSource: "@dungeonmaster/testing"} => returns false', () => {
+      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/testing' })).toBe(false);
     });
 
-    it('INVALID: {importSource: "@questmaestro/shared/contracts"} => returns false', () => {
-      expect(isNpmPackageGuard({ importSource: '@questmaestro/shared/contracts' })).toBe(false);
+    it('INVALID: {importSource: "@dungeonmaster/shared/contracts"} => returns false', () => {
+      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/shared/contracts' })).toBe(false);
     });
   });
 

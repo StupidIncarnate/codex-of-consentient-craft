@@ -1,6 +1,6 @@
 import { pathJoinAdapter } from './path-join-adapter';
 import { pathJoinAdapterProxy } from './path-join-adapter.proxy';
-import { FilePathStub } from '@questmaestro/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 describe('pathJoinAdapter', () => {
   describe('successful operations', () => {

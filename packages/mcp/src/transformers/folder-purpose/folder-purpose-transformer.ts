@@ -6,9 +6,9 @@
  * // Returns 'Business logic orchestration. Compose adapters, guards, transformers...'
  */
 
-import { folderConfigStatics } from '@questmaestro/shared/statics';
-import type { FolderType } from '@questmaestro/shared/contracts';
-import { isKeyOfGuard } from '@questmaestro/shared/guards';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
+import type { FolderType } from '@dungeonmaster/shared/contracts';
+import { isKeyOfGuard } from '@dungeonmaster/shared/guards';
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 

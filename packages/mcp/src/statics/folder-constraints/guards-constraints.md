@@ -32,7 +32,7 @@ Guards MUST be pure functions:
 
 **OPTIONAL PARAMETERS PATTERN:**
 
-All parameters MUST be optional (enforced by `@questmaestro/enforce-optional-guard-params`):
+All parameters MUST be optional (enforced by `@dungeonmaster/enforce-optional-guard-params`):
 
 ```typescript
 export const hasPermissionGuard = ({user, permission}: {

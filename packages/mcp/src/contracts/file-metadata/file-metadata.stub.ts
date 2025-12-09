@@ -1,6 +1,6 @@
 import { fileMetadataContract } from './file-metadata-contract';
 import type { FileMetadata } from './file-metadata-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const FileMetadataStub = ({ ...props }: StubArgument<FileMetadata> = {}): FileMetadata =>
   fileMetadataContract.parse({

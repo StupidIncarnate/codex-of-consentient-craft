@@ -12,7 +12,7 @@ import { isSessionStartHookDataContract } from '../contracts/is-session-start-ho
 import { debugDebugAdapter } from '../adapters/debug/debug/debug-debug-adapter';
 import type { SessionStartHookData } from '../contracts/session-start-hook-data/session-start-hook-data-contract';
 
-const log = debugDebugAdapter({ namespace: 'questmaestro:session-start-hook' });
+const log = debugDebugAdapter({ namespace: 'dungeonmaster:session-start-hook' });
 const ERROR_CODE_INVALID_INPUT = 1;
 
 export const StartSessionStartHook = async ({

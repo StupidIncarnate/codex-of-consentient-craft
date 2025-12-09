@@ -24,7 +24,7 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
         useStubInTest:
           'Test files must not import from contracts (including types). Use {{stubPath}} instead.',
         useStubFromShared:
-          'Test files must not import contracts from @questmaestro/shared/contracts. Import stubs (ending in "Stub") from @questmaestro/shared/contracts instead.',
+          'Test files must not import contracts from @dungeonmaster/shared/contracts. Import stubs (ending in "Stub") from @dungeonmaster/shared/contracts instead.',
         contractTestMissingStub:
           'Contract test files must import the stub. Add: import { XxxStub } from "{{stubPath}}";',
         contractTestMissingContract:
@@ -64,9 +64,9 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
           return;
         }
 
-        // Check for @questmaestro/shared/contracts imports
+        // Check for @dungeonmaster/shared/contracts imports
         // Allow stub imports (files ending with "Stub"), block contract imports
-        if (importSource.startsWith('@questmaestro/shared/contracts')) {
+        if (importSource.startsWith('@dungeonmaster/shared/contracts')) {
           // Check if this is importing a stub by looking at the import specifiers
           const specifiers = node.specifiers ?? [];
 
@@ -85,8 +85,8 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
           return;
         }
 
-        // Check for direct contract imports from @questmaestro/shared
-        if (importSource === '@questmaestro/shared') {
+        // Check for direct contract imports from @dungeonmaster/shared
+        if (importSource === '@dungeonmaster/shared') {
           // Need to check if importing contract exports
           // This would require analyzing the import specifiers, which is complex
           // For now, we'll just check the path-based imports above

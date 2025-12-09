@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Checks if an import source is an npm package, returning false for relative paths, absolute paths, and @questmaestro workspace packages.
+ * PURPOSE: Checks if an import source is an npm package, returning false for relative paths, absolute paths, and @dungeonmaster workspace packages.
  *
  * USAGE:
  * isNpmPackageGuard({ importSource: 'eslint' })
- * // Returns true for npm packages (including node: built-ins and scoped packages), false for relative/absolute paths and @questmaestro packages
+ * // Returns true for npm packages (including node: built-ins and scoped packages), false for relative/absolute paths and @dungeonmaster packages
  */
 export const isNpmPackageGuard = ({ importSource }: { importSource?: string }): boolean => {
   // Handle undefined/empty
@@ -16,8 +16,8 @@ export const isNpmPackageGuard = ({ importSource }: { importSource?: string }): 
     return false;
   }
 
-  // @questmaestro workspace packages are not npm packages for mocking purposes
-  if (importSource.startsWith('@questmaestro')) {
+  // @dungeonmaster workspace packages are not npm packages for mocking purposes
+  if (importSource.startsWith('@dungeonmaster')) {
     return false;
   }
 

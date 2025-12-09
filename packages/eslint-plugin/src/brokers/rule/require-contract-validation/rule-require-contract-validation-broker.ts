@@ -12,7 +12,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { filePathContract } from '@questmaestro/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 export const ruleRequireContractValidationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -23,11 +23,11 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
       },
       messages: {
         requireNeedsContract:
-          'require() must use path contract validation or file path literals. Valid: require("./file.ts") OR require(filePathContract.parse(path)). Import contract: import { filePathContract } from "@questmaestro/shared/contracts"',
+          'require() must use path contract validation or file path literals. Valid: require("./file.ts") OR require(filePathContract.parse(path)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
         importNeedsContract:
-          'import() must use path contract validation or file path literals. Valid: import("./file.ts") OR import(filePathContract.parse(path)). Import contract: import { filePathContract } from "@questmaestro/shared/contracts"',
+          'import() must use path contract validation or file path literals. Valid: import("./file.ts") OR import(filePathContract.parse(path)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
         stringLiteralAllowed:
-          'require/import string literals must be file paths (./, ../, /), not npm modules. Invalid: require("lodash"). Valid: require("./local-file.ts") OR require(filePathContract.parse(dynamicPath)). Import contract: import { filePathContract } from "@questmaestro/shared/contracts"',
+          'require/import string literals must be file paths (./, ../, /), not npm modules. Invalid: require("lodash"). Valid: require("./local-file.ts") OR require(filePathContract.parse(dynamicPath)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
       },
       schema: [],
     },

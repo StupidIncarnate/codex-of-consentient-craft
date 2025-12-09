@@ -1,6 +1,6 @@
 import { fsAccessAdapter } from './fs-access-adapter';
 import { fsAccessAdapterProxy } from './fs-access-adapter.proxy';
-import { FilePathStub } from '@questmaestro/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 describe('fsAccessAdapter', () => {
   describe('successful access checks', () => {
@@ -14,9 +14,9 @@ describe('fsAccessAdapter', () => {
       await expect(fsAccessAdapter({ filePath, mode })).resolves.toBeUndefined();
     });
 
-    it('VALID: {filePath: "/project/.questmaestro", mode: 4} => resolves for readable config file', async () => {
+    it('VALID: {filePath: "/project/.dungeonmaster", mode: 4} => resolves for readable config file', async () => {
       const proxy = fsAccessAdapterProxy();
-      const filePath = FilePathStub({ value: '/project/.questmaestro' });
+      const filePath = FilePathStub({ value: '/project/.dungeonmaster' });
       const mode = 4;
 
       proxy.resolves();

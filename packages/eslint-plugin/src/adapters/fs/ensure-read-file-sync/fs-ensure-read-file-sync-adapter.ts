@@ -9,8 +9,8 @@
  * WHEN-NOT-TO-USE: When missing files should be handled silently - use fsReadFileSyncAdapter instead
  */
 import { existsSync, readFileSync } from 'fs';
-import { fileContentsContract } from '@questmaestro/shared/contracts';
-import type { FilePath, FileContents } from '@questmaestro/shared/contracts';
+import { fileContentsContract } from '@dungeonmaster/shared/contracts';
+import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
 
 export const fsEnsureReadFileSyncAdapter = ({
   filePath,

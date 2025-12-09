@@ -8,7 +8,7 @@ ruleTester.run('require-contract-validation', ruleRequireContractValidationBroke
     // ✅ require() with filePathContract.parse()
     {
       code: `
-        import { filePathContract } from '@questmaestro/shared/contracts';
+        import { filePathContract } from '@dungeonmaster/shared/contracts';
         const config = require(filePathContract.parse(configPath));
       `,
       filename: '/test/file.ts',
@@ -17,7 +17,7 @@ ruleTester.run('require-contract-validation', ruleRequireContractValidationBroke
     // ✅ require() with absoluteFilePathContract.parse()
     {
       code: `
-        import { absoluteFilePathContract } from '@questmaestro/shared/contracts';
+        import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
         const config = require(absoluteFilePathContract.parse(absolutePath));
       `,
       filename: '/test/file.ts',
@@ -26,7 +26,7 @@ ruleTester.run('require-contract-validation', ruleRequireContractValidationBroke
     // ✅ require() with relativeFilePathContract.parse()
     {
       code: `
-        import { relativeFilePathContract } from '@questmaestro/shared/contracts';
+        import { relativeFilePathContract } from '@dungeonmaster/shared/contracts';
         const config = require(relativeFilePathContract.parse(relativePath));
       `,
       filename: '/test/file.ts',
@@ -35,7 +35,7 @@ ruleTester.run('require-contract-validation', ruleRequireContractValidationBroke
     // ✅ import() with filePathContract.parse()
     {
       code: `
-        import { filePathContract } from '@questmaestro/shared/contracts';
+        import { filePathContract } from '@dungeonmaster/shared/contracts';
         const module = await import(filePathContract.parse(modulePath));
       `,
       filename: '/test/file.ts',
@@ -118,7 +118,7 @@ ruleTester.run('require-contract-validation', ruleRequireContractValidationBroke
     // ❌ require() with safeParse (must use parse)
     {
       code: `
-        import { filePathContract } from '@questmaestro/shared/contracts';
+        import { filePathContract } from '@dungeonmaster/shared/contracts';
         const config = require(filePathContract.safeParse(configPath));
       `,
       errors: [{ messageId: 'requireNeedsContract' }],

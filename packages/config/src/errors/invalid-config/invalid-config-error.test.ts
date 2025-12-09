@@ -49,14 +49,14 @@ describe('InvalidConfigError', () => {
       expect(error.name).toBe('InvalidConfigError');
     });
 
-    it('VALID: {message: "test", configPath: "/very/long/path/to/config/.questmaestro"} => handles long paths', () => {
+    it('VALID: {message: "test", configPath: "/very/long/path/to/config/.dungeonmaster"} => handles long paths', () => {
       const error = new InvalidConfigError({
         message: 'test',
-        configPath: '/very/long/path/to/config/.questmaestro',
+        configPath: '/very/long/path/to/config/.dungeonmaster',
       });
 
       expect(error.message).toBe(
-        'Invalid configuration in /very/long/path/to/config/.questmaestro: test',
+        'Invalid configuration in /very/long/path/to/config/.dungeonmaster: test',
       );
       expect(error.name).toBe('InvalidConfigError');
     });

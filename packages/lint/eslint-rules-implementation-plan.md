@@ -4,15 +4,15 @@
 
 ### Existing Custom Rules (Active)
 
-From `packages/eslint-plugin/src/brokers/config/questmaestro/config-questmaestro-broker.ts`:
+From `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts`:
 
-1. ✅ `@questmaestro/explicit-return-types` - **ACTIVE**
-2. ✅ `@questmaestro/enforce-folder-structure` - **ACTIVE**
+1. ✅ `@dungeonmaster/explicit-return-types` - **ACTIVE**
+2. ✅ `@dungeonmaster/enforce-folder-structure` - **ACTIVE**
 
 ### Commented Out (Planned)
 
-3. 💤 `@questmaestro/ban-primitives` - Commented
-4. 💤 `@questmaestro/require-zod-on-primitives` - Commented
+3. 💤 `@dungeonmaster/ban-primitives` - Commented
+4. 💤 `@dungeonmaster/require-zod-on-primitives` - Commented
 
 ---
 
@@ -779,9 +779,9 @@ describe('PERF: enforce-naming-conventions', () => {
 ```json
 {
   "rules": {
-    "@questmaestro/enforce-naming-conventions": "warn",
-    "@questmaestro/enforce-single-export": "warn",
-    "@questmaestro/enforce-import-dependencies": "warn"
+    "@dungeonmaster/enforce-naming-conventions": "warn",
+    "@dungeonmaster/enforce-single-export": "warn",
+    "@dungeonmaster/enforce-import-dependencies": "warn"
   }
 }
 ```
@@ -796,8 +796,8 @@ describe('PERF: enforce-naming-conventions', () => {
     {
       "files": ["src/contracts/**"],
       "rules": {
-        "@questmaestro/enforce-naming-conventions": "error",
-        "@questmaestro/enforce-contracts-specific": "error"
+        "@dungeonmaster/enforce-naming-conventions": "error",
+        "@dungeonmaster/enforce-contracts-specific": "error"
       }
     }
   ]
@@ -811,7 +811,7 @@ describe('PERF: enforce-naming-conventions', () => {
 ```json
 {
   "rules": {
-    "@questmaestro/*": "error"
+    "@dungeonmaster/*": "error"
   }
 }
 ```

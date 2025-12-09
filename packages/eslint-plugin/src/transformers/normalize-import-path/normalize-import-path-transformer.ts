@@ -8,8 +8,8 @@
  * const alsoNormalized = normalizeImportPathTransformer({ importPath: './user-widget.tsx' });
  * // Returns: './user-widget'
  */
-import { modulePathContract } from '@questmaestro/shared/contracts';
-import type { ModulePath } from '@questmaestro/shared/contracts';
+import { modulePathContract } from '@dungeonmaster/shared/contracts';
+import type { ModulePath } from '@dungeonmaster/shared/contracts';
 
 export const normalizeImportPathTransformer = ({
   importPath,

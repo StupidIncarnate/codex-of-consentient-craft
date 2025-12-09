@@ -7,7 +7,7 @@
  */
 
 import { packageJsonContract, type PackageJson } from './package-json-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const PackageJsonStub = ({ ...props }: StubArgument<PackageJson> = {}): PackageJson =>
   packageJsonContract.parse({

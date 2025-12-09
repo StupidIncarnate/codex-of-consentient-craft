@@ -1,20 +1,20 @@
-# @questmaestro/eslint-plugin
+# @dungeonmaster/eslint-plugin
 
-ESLint plugin enforcing QuestMaestro architecture standards with custom rules for Zod contracts, folder structure, and
+ESLint plugin enforcing Dungeonmaster architecture standards with custom rules for Zod contracts, folder structure, and
 type safety.
 
 ## Features
 
 - **🚫 Ban Raw Primitives**: No raw `string`/`number` types - use Zod contracts instead
 - **🏷️ Zod Branding Required**: All `z.string()` and `z.number()` must be `.brand()`ed
-- **📁 Folder Structure**: Enforces QuestMaestro project folder standards
+- **📁 Folder Structure**: Enforces Dungeonmaster project folder standards
 - **🔧 Type Safety**: Explicit return types on all exported functions
 - **📋 Complete Configuration**: One config that enforces ALL architectural standards
 
 ## Installation
 
 ```bash
-npm install --save-dev @questmaestro/eslint-plugin
+npm install --save-dev @dungeonmaster/eslint-plugin
 ```
 
 **Peer Dependencies:**
@@ -30,27 +30,27 @@ npm install --save-dev @questmaestro/eslint-plugin
 
 ```javascript
 // eslint.config.js
-import questmaestro from '@questmaestro/eslint-plugin/config';
+import dungeonmaster from '@dungeonmaster/eslint-plugin/config';
 
-export default [questmaestro];
+export default [dungeonmaster];
 ```
 
 ### Individual Rules
 
 ```javascript
 // eslint.config.js
-import questmaestroPlugin from '@questmaestro/eslint-plugin';
+import dungeonmasterPlugin from '@dungeonmaster/eslint-plugin';
 
 export default [
     {
         plugins: {
-            '@questmaestro': questmaestroPlugin
+            '@dungeonmaster': dungeonmasterPlugin
         },
         rules: {
-            '@questmaestro/ban-primitives': 'error',
-            '@questmaestro/require-zod-on-primitives': 'error',
-            '@questmaestro/explicit-return-types': 'error',
-            '@questmaestro/enforce-folder-structure': 'error'
+            '@dungeonmaster/ban-primitives': 'error',
+            '@dungeonmaster/require-zod-on-primitives': 'error',
+            '@dungeonmaster/explicit-return-types': 'error',
+            '@dungeonmaster/enforce-folder-structure': 'error'
         }
     }
 ];
@@ -61,7 +61,7 @@ export default [
 ```json
 // tsconfig.json
 {
-  "extends": "@questmaestro/eslint-plugin/tsconfig",
+  "extends": "@dungeonmaster/eslint-plugin/tsconfig",
   "compilerOptions": {
     "outDir": "./dist"
   }
@@ -70,7 +70,7 @@ export default [
 
 ## Rules
 
-### `@questmaestro/ban-primitives`
+### `@dungeonmaster/ban-primitives`
 
 Bans raw `string` and `number` types in favor of Zod contract types.
 
@@ -86,7 +86,7 @@ function getUser(id: UserId): User {
 }
 ```
 
-### `@questmaestro/require-zod-on-primitives`
+### `@dungeonmaster/require-zod-on-primitives`
 
 Requires `.brand()` chaining on all `z.string()` and `z.number()` calls.
 
@@ -98,7 +98,7 @@ export const userIdContract = z.string().uuid();
 export const userIdContract = z.string().uuid().brand<'UserId'>();
 ```
 
-### `@questmaestro/explicit-return-types`
+### `@dungeonmaster/explicit-return-types`
 
 Requires explicit return types on all exported functions using Zod contracts.
 
@@ -114,9 +114,9 @@ export const getUserBroker = (id: UserId): User => {
 };
 ```
 
-### `@questmaestro/enforce-folder-structure`
+### `@dungeonmaster/enforce-folder-structure`
 
-Enforces QuestMaestro project folder structure standards.
+Enforces Dungeonmaster project folder structure standards.
 
 **Allowed folders:**
 
@@ -168,17 +168,17 @@ The included TypeScript configuration enforces:
 ### 1. Install Dependencies
 
 ```bash
-npm install --save-dev @questmaestro/eslint-plugin eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser typescript
+npm install --save-dev @dungeonmaster/eslint-plugin eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser typescript
 ```
 
 ### 2. Configure ESLint
 
 ```javascript
 // eslint.config.js
-import questmaestro from '@questmaestro/eslint-plugin/config';
+import dungeonmaster from '@dungeonmaster/eslint-plugin/config';
 
 export default [
-    questmaestro,
+    dungeonmaster,
     {
         // Project-specific overrides
         ignores: ['dist/', 'node_modules/']
@@ -191,7 +191,7 @@ export default [
 ```json
 // tsconfig.json
 {
-  "extends": "@questmaestro/eslint-plugin/tsconfig",
+  "extends": "@dungeonmaster/eslint-plugin/tsconfig",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"
@@ -216,7 +216,7 @@ export default [
 
 ## Architecture Philosophy
 
-This plugin enforces the QuestMaestro architecture principles:
+This plugin enforces the Dungeonmaster architecture principles:
 
 1. **Type Safety**: All data must be validated through Zod contracts
 2. **Explicit Boundaries**: No raw primitives, everything must be branded
@@ -242,8 +242,8 @@ Folder "utils/" is forbidden. Use "adapters or transformers/" instead according 
 ```typescript
 import {
     ruleBanPrimitivesBroker,
-    configQuestmaestroBroker
-} from '@questmaestro/eslint-plugin';
+    configDungeonmasterBroker
+} from '@dungeonmaster/eslint-plugin';
 
 // Use individual rule brokers for custom configurations
 const customConfig = {
@@ -268,11 +268,11 @@ The plugin is designed to work alongside existing ESLint configurations:
 
 ```javascript
 // eslint.config.js
-import questmaestro from '@questmaestro/eslint-plugin/config';
+import dungeonmaster from '@dungeonmaster/eslint-plugin/config';
 import prettier from 'eslint-config-prettier';
 
 export default [
-    questmaestro,
+    dungeonmaster,
     prettier, // Disable conflicting rules
     {
         // Your custom overrides
@@ -286,5 +286,5 @@ MIT
 
 ## Contributing
 
-This plugin is part of the QuestMaestro architecture standards. Issues and contributions should align with the overall
+This plugin is part of the Dungeonmaster architecture standards. Issues and contributions should align with the overall
 architectural philosophy of type safety, explicit boundaries, and clear structure.

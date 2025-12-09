@@ -13,8 +13,8 @@ import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
-import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
-import { modulePathContract } from '@questmaestro/shared/contracts';
+import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
+import { modulePathContract } from '@dungeonmaster/shared/contracts';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
 export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {

@@ -8,7 +8,7 @@
 
 import { readFile } from 'fs/promises';
 import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
-import type { FilePath } from '@questmaestro/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 
 export const fsReadFileAdapter = async ({

@@ -1,6 +1,6 @@
 import { applyOverridesTransformer } from './apply-overrides-transformer';
 import { FrameworkPresetStub } from '../../contracts/framework-presets/framework-presets.stub';
-import { QuestmaestroConfigStub } from '../../contracts/questmaestro-config/questmaestro-config.stub';
+import { DungeonmasterConfigStub } from '../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 describe('applyOverridesTransformer', () => {
   describe('config without overrides', () => {
@@ -20,7 +20,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
       });
@@ -59,7 +59,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -102,7 +102,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'vue',
         schema: 'zod',
         architecture: {
@@ -146,7 +146,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -190,7 +190,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -234,7 +234,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -278,7 +278,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -322,7 +322,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -366,7 +366,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -410,7 +410,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -454,7 +454,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -498,7 +498,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -542,7 +542,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -586,7 +586,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -630,7 +630,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -676,7 +676,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -722,7 +722,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -778,7 +778,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -822,7 +822,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -866,7 +866,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -910,7 +910,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -954,7 +954,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
         architecture: {
@@ -1004,7 +1004,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -1049,7 +1049,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -1094,7 +1094,7 @@ describe('applyOverridesTransformer', () => {
         startup: ['*'],
       });
 
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {

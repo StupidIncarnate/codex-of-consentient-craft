@@ -1,6 +1,6 @@
 import type { ToolResponse } from './tool-response-contract';
 import { toolResponseContract } from './tool-response-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const ToolResponseStub = ({ ...props }: StubArgument<ToolResponse> = {}): ToolResponse =>
   toolResponseContract.parse({

@@ -124,7 +124,8 @@ Every agent has **multiple escape triggers** to prevent getting trapped in unpro
 #### Failure Signal Processing
 
 When agent reports escape:
-1. **Questmaestro captures full failure context**
+
+1. **Dungeonmaster captures full failure context**
 2. **Agent process terminates immediately** (no context contamination)
 3. **Fresh Pathseeker spawned** with original quest + failure analysis
 4. **Re-decomposition begins** with empirical constraints
@@ -253,7 +254,7 @@ Agents monitor for escape conditions:
 
 **Post-Escape Process**:
 1. Agent reports escape + analysis
-2. Questmaestro logs failure pattern
+2. Dungeonmaster logs failure pattern
 3. Fresh Pathseeker analyzes failure + original quest
 4. New decomposition considers empirical constraints
 5. New agent spawns with refined task definitions

@@ -1,6 +1,6 @@
 import { fsReadFileSyncAdapter } from './fs-read-file-sync-adapter';
 import { fsReadFileSyncAdapterProxy } from './fs-read-file-sync-adapter.proxy';
-import { FilePathStub, FileContentsStub } from '@questmaestro/shared/contracts';
+import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 describe('fsReadFileSyncAdapter', () => {
   it('VALID: {filePath: "/config.json"} => returns file contents', () => {

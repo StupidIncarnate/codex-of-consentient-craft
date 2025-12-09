@@ -1,10 +1,11 @@
-# Questmaestro Orchestration Flows
+# Dungeonmaster Orchestration Flows
 
-Complete visualization of all agent communication flows, failure handling, and recovery mechanisms in the Questmaestro system.
+Complete visualization of all agent communication flows, failure handling, and recovery mechanisms in the Dungeonmaster
+system.
 
 ## Core Principles
 
-1. **All communication goes through Questmaestro** - No direct agent-to-agent communication
+1. **All communication goes through Dungeonmaster** - No direct agent-to-agent communication
 2. **Fresh context for each spawn** - Agents receive only their specific task, no conversation history
 3. **JSON reports only** - Agents communicate through structured JSON reports
 4. **Escape hatches prevent death spirals** - Any agent can escape when hitting limits
@@ -15,30 +16,28 @@ The standard flow from user request to completed implementation:
 
 ```mermaid
 flowchart TD
-    User[User Request] --> QM1{Questmaestro}
+    User[User Request] --> QM1{Dungeonmaster}
     QM1 -->|Fresh Context + Request| PS[Pathseeker]
     
     PS -->|User Dialogue| User
     User -->|Clarifications| PS
-    
-    PS -->|Observable Actions + Tasks JSON| QM2{Questmaestro}
+    PS -->|Observable Actions + Tasks JSON| QM2{Dungeonmaster}
     
     QM2 -->|Task 1| CW1[Codeweaver 1]
     QM2 -->|Task 2| CW2[Codeweaver 2]
     QM2 -->|Task 3| CW3[Codeweaver 3]
-    
-    CW1 -->|Implementation JSON| QM3{Questmaestro}
+    CW1 -->|Implementation JSON| QM3{Dungeonmaster}
     CW2 -->|Implementation JSON| QM3
     CW3 -->|Implementation JSON| QM3
     
     QM3 -->|All Implementations| SM[Siegemaster]
-    SM -->|Integration Tests JSON| QM4{Questmaestro}
+    SM -->|Integration Tests JSON| QM4{Dungeonmaster}
     
     QM4 -->|Tested Code| LB[Lawbringer]
-    LB -->|Review JSON| QM5{Questmaestro}
+    LB -->|Review JSON| QM5{Dungeonmaster}
     
     QM5 -->|If Failures| SP[Spiritmender]
-    SP -->|Fixes JSON| QM6{Questmaestro}
+    SP -->|Fixes JSON| QM6{Dungeonmaster}
     
     QM6 -->|Quest Complete| User
     
@@ -66,12 +65,10 @@ flowchart TD
     
     Agent[Any Agent] --> Check{Check Limits}
     Check -->|Hitting Limit| Escape[Generate Escape Report]
-    
-    Escape -->|Escape JSON| QM{Questmaestro}
+    Escape -->|Escape JSON| QM{Dungeonmaster}
     
     QM -->|Fresh Context + Failure Analysis| PS[Fresh Pathseeker]
-    
-    PS -->|Re-decomposition| QM2{Questmaestro}
+    PS -->|Re - decomposition| QM2{Dungeonmaster}
     
     QM2 -->|New Tasks| NewAgents[New Agent Spawns]
     
@@ -118,8 +115,7 @@ flowchart TD
     SA3 -->|Analysis JSON| Collect
     
     Collect --> Synthesize[Parent Synthesizes]
-    
-    Execute -->|Result JSON| QM{Questmaestro}
+    Execute -->|Result JSON| QM{Dungeonmaster}
     Synthesize -->|Combined JSON| QM
     
     style QM fill:#4a90e2,stroke:#333,stroke-width:4px,color:#fff
@@ -138,7 +134,7 @@ Multiple Codeweavers work on independent tasks simultaneously:
 
 ```mermaid
 flowchart TD
-    QM{Questmaestro} -->|Check Dependencies| Sched[Task Scheduler]
+    QM{Dungeonmaster} -->|Check Dependencies| Sched[Task Scheduler]
     
     Sched -->|No Dependencies| Para[Parallel Execution]
     Sched -->|Has Dependencies| Seq[Sequential Execution]
@@ -146,8 +142,7 @@ flowchart TD
     Para -->|Task A: auth-service.ts| CW1[Codeweaver 1]
     Para -->|Task B: user-model.ts| CW2[Codeweaver 2]
     Para -->|Task C: validation.ts| CW3[Codeweaver 3]
-    
-    CW1 -->|Implementation JSON| QM2{Questmaestro}
+    CW1 -->|Implementation JSON| QM2{Dungeonmaster}
     CW2 -->|Implementation JSON| QM2
     CW3 -->|Implementation JSON| QM2
     
@@ -169,21 +164,19 @@ When parallel agents create conflicts:
 
 ```mermaid
 flowchart TD
-    CW1[Codeweaver 1] -->|User Interface v1| QM{Questmaestro}
+    CW1[Codeweaver 1] -->|User Interface v1| QM{Dungeonmaster}
     CW2[Codeweaver 2] -->|User Interface v2| QM
     
     QM -->|Both Implementations| LB[Lawbringer]
     
     LB -->|Detect Conflict| Conflict[Interface Mismatch]
-    
-    Conflict -->|Conflict Report| QM2{Questmaestro}
+    Conflict -->|Conflict Report| QM2{Dungeonmaster}
     
     QM2 -->|Two Options| Choice{Resolution Strategy}
     
     Choice -->|Minor Conflict| Fix[Lawbringer Fixes]
     Choice -->|Major Conflict| Escalate[Spawn Fresh Pathseeker]
-    
-    Fix -->|Standardized Code| QM3{Questmaestro}
+    Fix -->|Standardized Code| QM3{Dungeonmaster}
     
     Escalate -->|Architectural Review| PS[Fresh Pathseeker]
     PS -->|New Decomposition| QM3
@@ -199,7 +192,7 @@ How the system learns from failures and successes:
 
 ```mermaid
 flowchart TD
-    Agent[Any Agent] -->|Retro in JSON| QM{Questmaestro}
+    Agent[Any Agent] -->|Retro in JSON| QM{Dungeonmaster}
     
     QM -->|Collect Patterns| LP[Learning Processor]
     
@@ -312,8 +305,7 @@ flowchart TD
     OA1 --> Tasks[Task Decomposition]
     OA2 --> Tasks
     OA3 --> Tasks
-    
-    Tasks -->|JSON Report| QM{Questmaestro}
+    Tasks -->|JSON Report| QM{Dungeonmaster}
     
     style QM fill:#4a90e2,stroke:#333,stroke-width:4px,color:#fff
 ```

@@ -7,7 +7,7 @@
  */
 
 import { access } from 'fs/promises';
-import type { FilePath } from '@questmaestro/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsAccessAdapter = async ({
   filePath,

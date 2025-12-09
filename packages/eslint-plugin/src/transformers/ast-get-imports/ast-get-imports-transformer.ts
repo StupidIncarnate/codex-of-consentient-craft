@@ -6,7 +6,7 @@
  * // Returns Map { 'foo' => 'bar' } for import { foo } from 'bar'
  */
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-import type { Identifier, ModulePath } from '@questmaestro/shared/contracts';
+import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 
 export const astGetImportsTransformer = ({
   node,

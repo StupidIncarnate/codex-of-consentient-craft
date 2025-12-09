@@ -1,24 +1,24 @@
 /**
- * PURPOSE: Loads and validates .questmaestro config file from filesystem
+ * PURPOSE: Loads and validates .dungeonmaster config file from filesystem
  *
  * USAGE:
- * await configFileLoadBroker({configPath: FilePathStub({value: '/project/.questmaestro'})});
- * // Returns validated QuestmaestroConfig object
+ * await configFileLoadBroker({configPath: FilePathStub({value: '/project/.dungeonmaster'})});
+ * // Returns validated DungeonmasterConfig object
  */
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
-import { filePathContract, type FilePath } from '@questmaestro/shared/contracts';
+import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import {
-  questmaestroConfigContract,
-  type QuestmaestroConfig,
-} from '../../../contracts/questmaestro-config/questmaestro-config-contract';
+  dungeonmasterConfigContract,
+  type DungeonmasterConfig,
+} from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const configFileLoadBroker = async ({
   configPath,
 }: {
   configPath: FilePath;
-}): Promise<QuestmaestroConfig> => {
+}): Promise<DungeonmasterConfig> => {
   try {
     // Read the config file
     const filePath = filePathContract.parse(configPath);
@@ -28,7 +28,7 @@ export const configFileLoadBroker = async ({
     const configData: unknown = JSON.parse(fileContents);
 
     // Validate and return
-    return questmaestroConfigContract.parse(configData);
+    return dungeonmasterConfigContract.parse(configData);
   } catch (error) {
     if (error instanceof InvalidConfigError) {
       throw error;

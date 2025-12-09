@@ -1,10 +1,10 @@
-# Implementation Plan for @questmaestro/config Library
+# Implementation Plan for @dungeonmaster/config Library
 
 ## Final Package Structure
 
 ```
 packages/config/
-├── package.json                                      // NPM package definition for @questmaestro/config
+├── package.json                                      // NPM package definition for @dungeonmaster/config
 ├── index.ts                                          // Thin entry point: export * from './src/startup/start-config-library'
 ├── tsconfig.json                                     // TypeScript compiler configuration
 ├── jest.config.js                                    // Jest test runner configuration
@@ -23,9 +23,9 @@ packages/config/
     │   ├── routing-library/                          // Router library types
     │   │   ├── routing-library-contract.ts           // RoutingLibrary type (react-router-dom, vue-router, etc.)
     │   │   └── routing-library-contract.test.ts      // Tests for routing library validation
-    │   ├── questmaestro-config/                      // Main configuration type
-    │   │   ├── questmaestro-config-contract.ts       // QuestmaestroConfig type and validation schema
-    │   │   └── questmaestro-config-contract.test.ts  // Tests for config validation
+    │   ├── dungeonmaster-config/                      // Main configuration type
+    │   │   ├── dungeonmaster-config-contract.ts       // DungeonmasterConfig type and validation schema
+    │   │   └── dungeonmaster-config-contract.test.ts  // Tests for config validation
     │   └── folder-config/                            // Computed configuration types
     │       ├── folder-config-contract.ts             // AllowedExternalImports type for lint rules
     │       └── folder-config-contract.test.ts        // Tests for folder config structure
@@ -42,12 +42,12 @@ packages/config/
     │       └── merge-configs-transformer.test.ts     // Tests for merge logic
     │
     ├── brokers/                                       // Business logic for config operations
-    │   ├── config-file/                              // Operations on .questmaestro files
+    │   ├── config-file/                              // Operations on .dungeonmaster files
     │   │   ├── load/                                  // Loading config files
-    │   │   │   ├── config-file-load-broker.ts        // Load and parse .questmaestro file content
+    │   │   │   ├── config-file-load-broker.ts        // Load and parse .dungeonmaster file content
     │   │   │   └── config-file-load-broker.test.ts   // Tests for config loading
     │   │   └── find/                                  // Finding config files
-    │   │       ├── config-file-find-broker.ts        // Walk up directory tree to find .questmaestro files
+    │   │       ├── config-file-find-broker.ts        // Walk up directory tree to find .dungeonmaster files
     │   │       └── config-file-find-broker.test.ts   // Tests for config finding logic
     │   └── config/                                    // High-level config operations
     │       └── resolve/                               // Config resolution
@@ -70,7 +70,7 @@ packages/config/
     │   │   ├── invalid-config-error.ts               // Error thrown for malformed config structure
     │   │   └── invalid-config-error.test.ts          // Tests for config error
     │   └── config-not-found/                         // Missing config errors
-    │       ├── config-not-found-error.ts             // Error thrown when no .questmaestro found
+    │       ├── config-not-found-error.ts             // Error thrown when no .dungeonmaster found
     │       └── config-not-found-error.test.ts        // Tests for not found error
     │
     └── startup/                                       // Library entry point and API composition
@@ -95,7 +95,7 @@ packages/config/
 
 ### 3. File Operations (brokers/ + adapters/)
 
-- Implement .questmaestro file finding (walk up directory tree)
+- Implement .dungeonmaster file finding (walk up directory tree)
 - Implement config file loading and parsing
 - Handle monorepo config merging
 
@@ -127,7 +127,7 @@ packages/config/
 ## Key Features
 
 - Stateless library (no runtime state)
-- Reads .questmaestro files from filesystem
+- Reads .dungeonmaster files from filesystem
 - Walks up directory tree to find configs
 - Merges monorepo configs correctly
 - Returns computed config for ESLint rules to use

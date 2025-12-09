@@ -1,6 +1,6 @@
 import type { ViolationDetail } from './violation-detail-contract';
 import { violationDetailContract } from './violation-detail-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const ViolationDetailStub = ({
   ...props

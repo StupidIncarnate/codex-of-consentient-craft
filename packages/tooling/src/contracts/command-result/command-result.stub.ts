@@ -1,6 +1,6 @@
 import { commandResultContract } from './command-result-contract';
 import type { CommandResult } from './command-result-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { ExitCodeStub } from '../exit-code/exit-code.stub';
 import { ProcessOutputStub } from '../process-output/process-output.stub';
 

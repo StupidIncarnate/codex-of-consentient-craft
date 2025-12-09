@@ -6,7 +6,7 @@
  * const content = folderConstraintsState.get({ folderType: FolderTypeStub({ value: 'brokers' }) });
  * // Returns ContentText or undefined
  */
-import type { FolderType } from '@questmaestro/shared/contracts';
+import type { FolderType } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 const constraintsMap = new Map<FolderType, ContentText>();

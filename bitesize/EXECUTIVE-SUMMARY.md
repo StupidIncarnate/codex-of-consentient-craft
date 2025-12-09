@@ -36,10 +36,10 @@ training data patterns.
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  NPM Packages (Framework)                                │
-│  ├── @questmaestro/standards     Documentation + tools   │
-│  ├── @questmaestro/testing       Test patterns          │
-│  ├── @questmaestro/eslint-plugin Enforcement            │
-│  └── @questmaestro/hooks         Automation             │
+│  ├── @dungeonmaster/standards     Documentation + tools   │
+│  ├── @dungeonmaster/testing       Test patterns          │
+│  ├── @dungeonmaster/eslint-plugin Enforcement            │
+│  └── @dungeonmaster/hooks         Automation             │
 │                                                          │
 │  ▼ npm install (auto-setup via post-install script)     │
 │                                                          │
@@ -79,8 +79,8 @@ training data patterns.
 
 **4. Auto-Sync Documentation**
 
-- Symlinks from `.claude/_framework/` → `node_modules/@questmaestro/*/docs/`
-- `npm update @questmaestro/standards` → docs auto-update via symlinks
+- Symlinks from `.claude/_framework/` → `node_modules/@dungeonmaster/*/docs/`
+- `npm update @dungeonmaster/standards` → docs auto-update via symlinks
 - Zero manual copying or migration
 
 **5. Lint-Driven Learning**
@@ -192,16 +192,16 @@ training data patterns.
 ### Phase 1: MVP (Weeks 1-2)
 
 - Extract docs into chunks
-- Create `@questmaestro/standards` package
+- Create `@dungeonmaster/standards` package
 - Implement init script with symlinks
 - Test cross-platform
 - **Deliverable:** Working beta version
 
 ### Phase 2: Integration (Weeks 3-6)
 
-- Add `@questmaestro/testing` package
+- Add `@dungeonmaster/testing` package
 - Enhance ESLint with pedagogical errors
-- Create `@questmaestro/hooks` package
+- Create `@dungeonmaster/hooks` package
 - **Deliverable:** Complete ecosystem
 
 ### Phase 3: Beta Testing (Weeks 7-10)

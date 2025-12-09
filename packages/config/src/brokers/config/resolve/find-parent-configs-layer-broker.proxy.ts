@@ -1,21 +1,21 @@
 import { configFileFindBrokerProxy } from '../../config-file/find/config-file-find-broker.proxy';
 import { configFileLoadBrokerProxy } from '../../config-file/load/config-file-load-broker.proxy';
 import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
-import type { QuestmaestroConfig } from '../../../contracts/questmaestro-config/questmaestro-config-contract';
+import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const findParentConfigsLayerBrokerProxy = (): {
   setupSameConfigFound: (params: { currentPath: string; originalConfigPath: string }) => void;
   setupMonorepoRootFound: (params: {
     currentPath: string;
     parentConfigPath: string;
-    parentConfig: QuestmaestroConfig;
+    parentConfig: DungeonmasterConfig;
   }) => void;
   setupNoParentFound: (params: { currentPath: string }) => void;
   setupPackageWithParent: (params: {
     currentPath: string;
     originalConfigPath: string;
     parentConfigPath: string;
-    parentConfig: QuestmaestroConfig;
+    parentConfig: DungeonmasterConfig;
     grandparentPath: string;
   }) => void;
 } => {
@@ -44,7 +44,7 @@ export const findParentConfigsLayerBrokerProxy = (): {
     }: {
       currentPath: string;
       parentConfigPath: string;
-      parentConfig: QuestmaestroConfig;
+      parentConfig: DungeonmasterConfig;
     }) => {
       configFileFindProxy.setupConfigFound({
         startPath: currentPath,
@@ -67,7 +67,7 @@ export const findParentConfigsLayerBrokerProxy = (): {
       currentPath: string;
       originalConfigPath: string;
       parentConfigPath: string;
-      parentConfig: QuestmaestroConfig;
+      parentConfig: DungeonmasterConfig;
       grandparentPath: string;
     }) => {
       // First call finds parent

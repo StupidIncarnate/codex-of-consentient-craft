@@ -1,6 +1,6 @@
 import { literalOccurrenceContract } from './literal-occurrence-contract';
 import type { LiteralOccurrence } from './literal-occurrence-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { AbsoluteFilePathStub } from '../absolute-file-path/absolute-file-path.stub';
 
 export const LiteralOccurrenceStub = ({

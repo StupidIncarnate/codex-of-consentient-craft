@@ -1,4 +1,4 @@
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { frameworkPresetsContract } from './framework-presets-contract';
 import type { FrameworkPreset } from './framework-presets-contract';
 

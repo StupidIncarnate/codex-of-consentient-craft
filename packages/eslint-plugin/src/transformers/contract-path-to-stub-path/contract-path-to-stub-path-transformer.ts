@@ -9,8 +9,8 @@
  *
  * WHEN-TO-USE: When suggesting stub imports instead of contract imports in test files
  */
-import { modulePathContract } from '@questmaestro/shared/contracts';
-import type { ModulePath } from '@questmaestro/shared/contracts';
+import { modulePathContract } from '@dungeonmaster/shared/contracts';
+import type { ModulePath } from '@dungeonmaster/shared/contracts';
 
 export const contractPathToStubPathTransformer = ({
   contractPath,

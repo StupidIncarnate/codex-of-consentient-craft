@@ -116,8 +116,8 @@ This structure forces deterministic organization by:
 
 **Search first using MCP discover:**
 \`\`\`typescript
-mcp__questmaestro__discover({type: "files", fileType: "broker", search: "user"})
-mcp__questmaestro__discover({type: "files", path: "packages/*/src/bindings"})
+mcp__dungeonmaster__discover({type: "files", fileType: "broker", search: "user"})
+mcp__dungeonmaster__discover({type: "files", path: "packages/*/src/bindings"})
 \`\`\`
 
 **If domain exists → MUST extend, not create new**
@@ -342,8 +342,8 @@ import {validateInputLayerBroker} ` +
 - Tests verify layer's focused responsibility independently
 
 **Lint Enforcement:**
-- \`@questmaestro/enforce-project-structure\` - validates folder allows layers
-- \`@questmaestro/enforce-implementation-colocation\` - validates layer has parent in same directory
+- \`@dungeonmaster/enforce-project-structure\` - validates folder allows layers
+- \`@dungeonmaster/enforce-implementation-colocation\` - validates layer has parent in same directory
 - File suffix rules - validates \`-layer-\` appears before folder suffix`;
 
   // Build @types folder section

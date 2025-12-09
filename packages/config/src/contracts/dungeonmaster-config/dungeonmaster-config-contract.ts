@@ -1,10 +1,10 @@
 /**
- * PURPOSE: Validates questmaestro configuration structure for projects
+ * PURPOSE: Validates dungeonmaster configuration structure for projects
  *
  * USAGE:
- * import {questmaestroConfigContract} from './questmaestro-config-contract';
- * const config = questmaestroConfigContract.parse({framework: 'react', schema: 'zod'});
- * // Returns validated QuestmaestroConfig type
+ * import {dungeonmasterConfigContract} from './dungeonmaster-config-contract';
+ * const config = dungeonmasterConfigContract.parse({framework: 'react', schema: 'zod'});
+ * // Returns validated DungeonmasterConfig type
  */
 
 import { z } from 'zod';
@@ -12,7 +12,7 @@ import { frameworkStatics } from '../../statics/framework/framework-statics';
 import { routingLibraryStatics } from '../../statics/routing-library/routing-library-statics';
 import { schemaLibraryStatics } from '../../statics/schema-library/schema-library-statics';
 
-export const questmaestroConfigContract = z.object({
+export const dungeonmasterConfigContract = z.object({
   framework: z.enum(frameworkStatics.frameworks.all),
   routing: z.enum(routingLibraryStatics.libraries.all).optional(),
   schema: z.union([
@@ -33,4 +33,4 @@ export const questmaestroConfigContract = z.object({
     .optional(),
 });
 
-export type QuestmaestroConfig = z.infer<typeof questmaestroConfigContract>;
+export type DungeonmasterConfig = z.infer<typeof dungeonmasterConfigContract>;

@@ -6,7 +6,7 @@
  * // Returns 'User' for const user: User = { id: '1' }
  */
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-import { identifierContract, type Identifier } from '@questmaestro/shared/contracts';
+import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const typeNameFromAnnotationTransformer = ({
   typeAnnotation,

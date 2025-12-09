@@ -1,4 +1,4 @@
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { rawEslintConfigContract } from './raw-eslint-config-contract';
 import type { RawEslintConfig } from './raw-eslint-config-contract';
 

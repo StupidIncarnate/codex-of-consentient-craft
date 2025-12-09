@@ -493,7 +493,7 @@ export class QuestStateBuilder {
 
     // No tracker updates needed - using file-based system
 
-    this.addActivity('Quest completed', 'questmaestro', {
+    this.addActivity('Quest completed', 'dungeonmaster', {
       duration: this.quest.activity.length * 5, // Simulated minutes
     });
 
@@ -511,7 +511,7 @@ export class QuestStateBuilder {
 
     // No tracker updates needed - using file-based system
 
-    this.addActivity('Quest abandoned', 'questmaestro', { reason });
+    this.addActivity('Quest abandoned', 'dungeonmaster', { reason });
 
     return this;
   }
@@ -525,7 +525,7 @@ export class QuestStateBuilder {
     }
 
     // Create directory structure
-    const questDir = path.join(this.projectDir, 'questmaestro');
+    const questDir = path.join(this.projectDir, 'dungeonmaster');
     await fs.mkdir(path.join(questDir, 'active'), { recursive: true });
     await fs.mkdir(path.join(questDir, 'completed'), { recursive: true });
     await fs.mkdir(path.join(questDir, 'abandoned'), { recursive: true });

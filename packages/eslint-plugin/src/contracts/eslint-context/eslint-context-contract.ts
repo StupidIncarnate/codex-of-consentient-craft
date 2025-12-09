@@ -12,7 +12,7 @@
  * // Returns validated context data; use EslintContext type for full context with methods
  */
 import { z } from 'zod';
-import type { Identifier } from '@questmaestro/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 import type { Tsestree } from '../tsestree/tsestree-contract';
 
 export const eslintContextContract = z.object({

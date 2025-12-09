@@ -6,7 +6,7 @@
  * // Returns markdown text with MUST/MUST NOT constraints
  */
 
-import type { FolderType, FolderConfig } from '@questmaestro/shared/contracts';
+import type { FolderType, FolderConfig } from '@dungeonmaster/shared/contracts';
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 

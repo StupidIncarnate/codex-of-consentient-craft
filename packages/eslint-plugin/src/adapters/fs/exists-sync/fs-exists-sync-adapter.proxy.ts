@@ -1,6 +1,6 @@
 import { existsSync } from 'fs';
 import type { PathLike } from 'fs';
-import type { FilePath } from '@questmaestro/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 // ✅ Mock declared in proxy - automatically hoisted when proxy is imported
 jest.mock('fs');

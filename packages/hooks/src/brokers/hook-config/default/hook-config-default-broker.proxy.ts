@@ -1,7 +1,7 @@
-import { questmaestroEslintPluginGetPreEditRulesAdapterProxy } from '../../../adapters/questmaestro-eslint-plugin/get-pre-edit-rules/questmaestro-eslint-plugin-get-pre-edit-rules-adapter.proxy';
+import { dungeonmasterEslintPluginGetPreEditRulesAdapterProxy } from '../../../adapters/dungeonmaster-eslint-plugin/get-pre-edit-rules/dungeonmaster-eslint-plugin-get-pre-edit-rules-adapter.proxy';
 
 export const hookConfigDefaultBrokerProxy = (): Record<PropertyKey, never> => {
-  questmaestroEslintPluginGetPreEditRulesAdapterProxy();
+  dungeonmasterEslintPluginGetPreEditRulesAdapterProxy();
 
   return {};
 };

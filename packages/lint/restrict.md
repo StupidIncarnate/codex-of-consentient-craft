@@ -439,7 +439,7 @@ export const createPostPublic = (overrides: Partial<Post> = {}): PostPublic => {
 };
 
 // File system factories
-export const createFilePath = (path = '/mock/project/.questmaestro.js'): FilePath => {
+export const createFilePath = (path = '/mock/project/.dungeonmaster.js'): FilePath => {
     return filePathContract.parse(path);
 };
 
@@ -815,7 +815,7 @@ const mockFsReadFile = fsReadFile as jest.MockedFunction<typeof fsReadFile>;
 
 describe('configFileLoadBroker', () => {
     it('loads JS config file', async () => {
-        const configPath = createFilePath('/project/.questmaestro.js');
+        const configPath = createFilePath('/project/.dungeonmaster.js');
         const configContent = createJsModuleContent({framework: 'react', schema: 'zod'});
 
         // ✅ Both path and content are validated types

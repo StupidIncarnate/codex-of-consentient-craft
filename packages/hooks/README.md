@@ -19,7 +19,7 @@ Write, Edit, and MultiEdit operations to ensure code quality standards are maint
 
 **Key Features:**
 
-- ✅ **Configurable Rules** - Specify which ESLint rules to enforce via `.questmaestro-hooks.config.js`
+- ✅ **Configurable Rules** - Specify which ESLint rules to enforce via `.dungeonmaster-hooks.config.js`
 - ✅ **New Violations Only** - Only blocks new violations, allows fixing existing ones
 - ✅ **Multi-Tool Support** - Works with Write, Edit, and MultiEdit operations
 - ✅ **Performance Optimized** - Config caching and fallback strategies
@@ -32,7 +32,7 @@ Write, Edit, and MultiEdit operations to ensure code quality standards are maint
 - `eslint-comments/no-use` - Prevents `eslint-disable` comments
 
 **Configuration:**
-Create `.questmaestro-hooks.config.js` in your project root:
+Create `.dungeonmaster-hooks.config.js` in your project root:
 
 ```javascript
 module.exports = {

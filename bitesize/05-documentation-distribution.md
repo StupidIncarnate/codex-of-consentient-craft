@@ -2,7 +2,7 @@
 
 ## The Challenge
 
-Documentation lives in `node_modules/@questmaestro/*/docs/` but:
+Documentation lives in `node_modules/@dungeonmaster/*/docs/` but:
 
 - Paths are verbose and change with package versions
 - Claude needs clean, predictable paths
@@ -16,16 +16,16 @@ On `npm install`, automatically create:
 ```
 .claude/
 ├── _framework/              ← Auto-generated, gitignored
-│   ├── standards/           → node_modules/@questmaestro/standards/docs/
-│   ├── testing/             → node_modules/@questmaestro/testing/docs/
-│   └── lint/                → node_modules/@questmaestro/eslint-plugin/docs/
+│   ├── standards/           → node_modules/@dungeonmaster/standards/docs/
+│   ├── testing/             → node_modules/@dungeonmaster/testing/docs/
+│   └── lint/                → node_modules/@dungeonmaster/eslint-plugin/docs/
 └── custom/                  ← Committed to git
     └── README.md
 ```
 
 ## Implementation: Post-Install Script
 
-**File:** `@questmaestro/standards/bin/init-claude-docs.js`
+**File:** `@dungeonmaster/standards/bin/init-claude-docs.js`
 
 ```javascript
 #!/usr/bin/env node
@@ -89,40 +89,40 @@ async function initClaudeDocs() {
 
   console.log('📁 Setting up framework documentation links...\n');
 
-  // Link @questmaestro/standards docs
+  // Link @dungeonmaster/standards docs
   try {
-    const standardsPath = require.resolve('@questmaestro/standards/package.json');
+    const standardsPath = require.resolve('@dungeonmaster/standards/package.json');
     const standardsRoot = path.dirname(standardsPath);
     createSymlinkSafe(
       path.join(standardsRoot, 'docs'),
       path.join(frameworkDir, 'standards')
     );
   } catch (error) {
-    console.warn('⚠ @questmaestro/standards not found, skipping...');
+    console.warn('⚠ @dungeonmaster/standards not found, skipping...');
   }
 
-  // Link @questmaestro/testing docs
+  // Link @dungeonmaster/testing docs
   try {
-    const testingPath = require.resolve('@questmaestro/testing/package.json');
+    const testingPath = require.resolve('@dungeonmaster/testing/package.json');
     const testingRoot = path.dirname(testingPath);
     createSymlinkSafe(
       path.join(testingRoot, 'docs'),
       path.join(frameworkDir, 'testing')
     );
   } catch (error) {
-    console.warn('⚠ @questmaestro/testing not found, skipping...');
+    console.warn('⚠ @dungeonmaster/testing not found, skipping...');
   }
 
-  // Link @questmaestro/eslint-plugin docs
+  // Link @dungeonmaster/eslint-plugin docs
   try {
-    const eslintPath = require.resolve('@questmaestro/eslint-plugin/package.json');
+    const eslintPath = require.resolve('@dungeonmaster/eslint-plugin/package.json');
     const eslintRoot = path.dirname(eslintPath);
     createSymlinkSafe(
       path.join(eslintRoot, 'docs'),
       path.join(frameworkDir, 'lint')
     );
   } catch (error) {
-    console.warn('⚠ @questmaestro/eslint-plugin not found, skipping...');
+    console.warn('⚠ @dungeonmaster/eslint-plugin not found, skipping...');
   }
 
   // Generate .claude/.gitignore
@@ -130,7 +130,7 @@ async function initClaudeDocs() {
   fs.writeFileSync(
     path.join(claudeDir, '.gitignore'),
     `# Auto-generated framework docs (symlinked from node_modules)
-# These update automatically when you update @questmaestro packages
+# These update automatically when you update @dungeonmaster packages
 _framework/
 
 # Keep custom docs (commit these)
@@ -212,7 +212,7 @@ function createSymlinkSafe(target, linkPath) {
 
 ```gitignore
 # Auto-generated framework docs (symlinked from node_modules)
-# These update automatically when you update @questmaestro packages
+# These update automatically when you update @dungeonmaster packages
 _framework/
 
 # Keep custom docs (commit these)
@@ -231,31 +231,31 @@ _framework/
 ### Initial Install
 
 ```bash
-npm install @questmaestro/standards@1.0.0
+npm install @dungeonmaster/standards@1.0.0
 ```
 
 **Creates:**
 
 ```
-node_modules/@questmaestro/standards@1.0.0/
+node_modules/@dungeonmaster/standards@1.0.0/
 └── docs/
     ├── core-rules.md
     └── [etc...]
 
-.claude/_framework/standards/  → symlink to node_modules/@questmaestro/standards/docs/
+.claude/_framework/standards/  → symlink to node_modules/@dungeonmaster/standards/docs/
 ```
 
 ### Framework Update
 
 ```bash
-npm update @questmaestro/standards
-# @questmaestro/standards  1.0.0 → 1.2.0
+npm update @dungeonmaster/standards
+# @dungeonmaster/standards  1.0.0 → 1.2.0
 ```
 
 **Automatic propagation:**
 
 ```
-node_modules/@questmaestro/standards@1.2.0/
+node_modules/@dungeonmaster/standards@1.2.0/
 └── docs/
     ├── core-rules.md              (updated content)
     ├── folders/
@@ -263,7 +263,7 @@ node_modules/@questmaestro/standards@1.2.0/
     └── decisions/
         └── state-management.md    (new guide!)
 
-.claude/_framework/standards/  → still points to node_modules/@questmaestro/standards/docs/
+.claude/_framework/standards/  → still points to node_modules/@dungeonmaster/standards/docs/
                                → now contains v1.2.0 content automatically
 ```
 
@@ -278,9 +278,9 @@ Next time Claude reads `.claude/_framework/standards/core-rules.md`, it gets v1.
 ### ❌ Without Symlinks (verbose paths)
 
 ```
-Load: node_modules/@questmaestro/standards/docs/core-rules.md
-Load: node_modules/@questmaestro/standards/docs/folders/brokers-guide.md
-Load: node_modules/@questmaestro/testing/docs/testing-standards.md
+Load: node_modules/@dungeonmaster/standards/docs/core-rules.md
+Load: node_modules/@dungeonmaster/standards/docs/folders/brokers-guide.md
+Load: node_modules/@dungeonmaster/testing/docs/testing-standards.md
 ```
 
 **Problems:**
@@ -368,10 +368,10 @@ Your training data will mislead you. Read:
 
 ## Framework Versions
 
-- @questmaestro/standards: v{{ VERSION }}
-- @questmaestro/testing: v{{ VERSION }}
+- @dungeonmaster/standards: v{{ VERSION }}
+- @dungeonmaster/testing: v{{ VERSION }}
 
-**To update:** `npm update @questmaestro/standards` (auto-syncs via symlinks)
+**To update:** `npm update @dungeonmaster/standards` (auto-syncs via symlinks)
 ```
 
 ## Verification Commands
@@ -385,9 +385,9 @@ ls -la .claude/_framework/
 **Output:**
 
 ```
-standards -> ../node_modules/@questmaestro/standards/docs
-testing -> ../node_modules/@questmaestro/testing/docs
-lint -> ../node_modules/@questmaestro/eslint-plugin/docs
+standards -> ../node_modules/@dungeonmaster/standards/docs
+testing -> ../node_modules/@dungeonmaster/testing/docs
+lint -> ../node_modules/@dungeonmaster/eslint-plugin/docs
 ```
 
 **Check what Claude will read:**
@@ -433,14 +433,14 @@ npm run init-claude-docs  # Re-run init script
 
 ```
 ⚠️ WARNING: Version mismatch detected!
-  @questmaestro/standards:     1.2.0
-  @questmaestro/eslint-plugin: 1.0.0
+  @dungeonmaster/standards:     1.2.0
+  @dungeonmaster/eslint-plugin: 1.0.0
 ```
 
 **Solution:**
 
 ```bash
-npm update @questmaestro/standards @questmaestro/testing @questmaestro/eslint-plugin
+npm update @dungeonmaster/standards @dungeonmaster/testing @dungeonmaster/eslint-plugin
 ```
 
 ## Key Takeaways

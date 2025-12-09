@@ -1,8 +1,9 @@
 # UNDER CONSTRUCTION FOR CLI PIVOT
 
-# Questmaestro: Keeper of the Codex of Consentient Craft 🗡️
+# DungeonMaster: Keeper of the Codex of Consentient Craft 🗡️
 
-Turn your Claude into a quest-driven development powerhouse! Questmaestro adds fun, medieval-themed orchestration commands that help AI agents work together efficiently on your coding quests.
+Turn your Claude into a quest-driven development powerhouse! DungeonMaster adds fun, medieval-themed orchestration
+commands that help AI agents work together efficiently on your coding quests.
 
 ## Preamble
 Based on learnings and findings from repeated claude amnesia and hallucination sessions, as well as some really good information from https://github.com/davidkimai/Context-Engineering.
@@ -14,10 +15,13 @@ Based on learnings and findings from repeated claude amnesia and hallucination s
 
 ### CLAUDE.md Optimization
 
-For optimal questmaestro performance, prepare your CLAUDE.md files by stripping out:
+For optimal dungeonmaster performance, prepare your CLAUDE.md files by stripping out:
 - any role or identity instructions
 
-They should contain **only** information about your project and coding standards and working methodologies. Questmaestro agents have their own specialized identities and adding conflicting roles can degrade performance. If you still need certain personality layers on Claude, consider making a slash command for it: https://docs.anthropic.com/en/docs/claude-code/slash-commands
+They should contain **only** information about your project and coding standards and working methodologies.
+Dungeonmaster agents have their own specialized identities and adding conflicting roles can degrade performance. If you
+still need certain personality layers on Claude, consider making a slash command for
+it: https://docs.anthropic.com/en/docs/claude-code/slash-commands
 
 **Make sure you have nested CLAUDE.md files if code standards change between folders.** Each agent automatically inherits context from the directory it's working in, enabling seamless monorepo support without complex configuration.
 
@@ -48,21 +52,22 @@ For more information on CLAUDE.md structure, take a look at this write-up:
 ## Quick Start
 
 ```bash
-npx questmaestro
+npx dungeonmaster
 ```
 
 That's it! This will:
 - ✅ Install quest commands to your `.claude/commands/` directory  
-- ✅ Create a `questmaestro/` folder for tracking your development adventures
-- ✅ Set up `.questmaestro` config for your project
+- ✅ Create a `dungeonmaster/` folder for tracking your development adventures
+- ✅ Set up `.dungeonmaster` config for your project
 
-## What is Questmaestro?
+## What is Dungeonmaster?
 
-Questmaestro is an orchestration system that helps Claude manage complex development tasks by breaking them into quests and delegating to specialized AI agents. Think of it as a party system for your AI coding assistant!
+Dungeonmaster is an orchestration system that helps Claude manage complex development tasks by breaking them into quests
+and delegating to specialized AI agents. Think of it as a party system for your AI coding assistant!
 
 ### The Fellowship
 
-- **🎯 Questmaestro** - The party leader who orchestrates your quests
+- **🎯 Dungeonmaster** - The party leader who orchestrates your quests
 - **🗺️ Pathseeker** - Maps dependencies and discovers the optimal implementation path
 - **🧵️ Codeweaver** - Weaves elegant implementations and tests
 - **⚖️ Lawbringer** - Ensures code quality and standards compliance
@@ -73,19 +78,19 @@ Questmaestro is an orchestration system that helps Claude manage complex develop
 
 ### Start Your Next Quest
 ```
-/questmaestro
+/dungeonmaster
 ```
 Works through your quest backlog automatically.
 
 ### Check Quest Status  
 ```
-/questmaestro list
+/dungeonmaster list
 ```
 See all your quests and progress.
 
 ### Create or Start Specific Quest
 ```
-/questmaestro fix user login timeout
+/dungeonmaster fix user login timeout
 ```
 Creates a new quest or continues existing one.
 
@@ -98,12 +103,12 @@ Creates a new quest or continues existing one.
 
 ## Configuration
 
-Edit `.questmaestro` to customize for your project:
+Edit `.dungeonmaster` to customize for your project:
 
 ```json
 {
   "paths": {
-    "questFolder": "./questmaestro"
+    "questFolder": "./dungeonmaster"
   },
   "commands": {
     "ward": "npm run lint -- $FILE",
@@ -114,7 +119,7 @@ Edit `.questmaestro` to customize for your project:
 
 ### Ward Commands
 
-`ward` is Questmaestro's protection spell against bugs and late-night AI-inflicted madness sessions:
+`ward` is Dungeonmaster's protection spell against bugs and late-night AI-inflicted madness sessions:
 - `ward` - Checks a single file for errors
 - `ward:all` - Protects the entire codebase
 
@@ -125,7 +130,7 @@ Configure these to match your project's lint/validation commands.
 After installation, your quests are organized in:
 
 ```
-questmaestro/
+dungeonmaster/
 ├── active/               # Currently active quests (alphabetical order)
 │   └── [quest-name]-[YYYYMMDD].json
 ├── completed/            # Finished quests (local only)
@@ -150,13 +155,14 @@ questmaestro/
 
 ### Fix a Bug
 ```
-/questmaestro fix TypeError in user service
+/dungeonmaster fix TypeError in user service
 ```
-Questmaestro will create a bug fix quest and orchestrate the fix.
+
+Dungeonmaster will create a bug fix quest and orchestrate the fix.
 
 ### Add a Feature
 ```
-/questmaestro add user avatar upload
+/dungeonmaster add user avatar upload
 ```
 Creates a feature quest with proper discovery and implementation phases.
 

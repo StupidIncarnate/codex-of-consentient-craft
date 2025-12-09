@@ -15,13 +15,13 @@ src/contracts/tsestree/tsestree-contract.ts
 ```
 
 This contract provides a recursive Zod schema covering all AST node properties (type, callee, object, property, name,
-params, body, etc.). The `@questmaestro/ban-adhoc-types` rule enforces this - ad-hoc interfaces in rule brokers will
+params, body, etc.). The `@dungeonmaster/ban-adhoc-types` rule enforces this - ad-hoc interfaces in rule brokers will
 fail lint.
 
 ### When Writing Rules
 
 ```typescript
-// ❌ FORBIDDEN - Will fail @questmaestro/ban-adhoc-types
+// ❌ FORBIDDEN - Will fail @dungeonmaster/ban-adhoc-types
 interface NodeWithCallee {
   callee?: { type?: string };
 }

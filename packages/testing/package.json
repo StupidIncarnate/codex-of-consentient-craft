@@ -1,7 +1,7 @@
 {
-  "name": "@questmaestro/testing",
+  "name": "@dungeonmaster/testing",
   "version": "0.1.0",
-  "description": "Testing utilities and helpers for QuestMaestro projects",
+  "description": "Testing utilities and helpers for Dungeonmaster projects",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

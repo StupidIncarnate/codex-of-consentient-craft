@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Main entry point for the @questmaestro/eslint-plugin package exporting rules, configs, and contracts
+ * PURPOSE: Main entry point for the @dungeonmaster/eslint-plugin package exporting rules, configs, and contracts
  *
  * USAGE:
- * import plugin from '@questmaestro/eslint-plugin';
+ * import plugin from '@dungeonmaster/eslint-plugin';
  * // Returns ESLint plugin with all rules and configurations
  */
 export { StartEslintPlugin } from './startup/start-eslint-plugin';
@@ -20,11 +20,11 @@ export { ruleEnforceContractUsageInTestsBroker } from './brokers/rule/enforce-co
 export { ruleRequireZodOnPrimitivesBroker } from './brokers/rule/require-zod-on-primitives/rule-require-zod-on-primitives-broker';
 export { ruleExplicitReturnTypesBroker } from './brokers/rule/explicit-return-types/rule-explicit-return-types-broker';
 export { ruleRequireContractValidationBroker } from './brokers/rule/require-contract-validation/rule-require-contract-validation-broker';
-export { configQuestmaestroBroker } from './brokers/config/questmaestro/config-questmaestro-broker';
+export { configDungeonmasterBroker } from './brokers/config/dungeonmaster/config-dungeonmaster-broker';
 export {
-  questmaestroRuleEnforceOnStatics,
+  dungeonmasterRuleEnforceOnStatics,
   folderConfigStatics,
-} from '@questmaestro/shared/statics';
+} from '@dungeonmaster/shared/statics';
 export { configTsconfigBroker } from './brokers/config/tsconfig/config-tsconfig-broker';
 
 // Export transformers for advanced usage

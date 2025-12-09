@@ -7,7 +7,7 @@
  */
 
 import type { FrameworkPreset } from '../../contracts/framework-presets/framework-presets-contract';
-import type { QuestmaestroConfig } from '../../contracts/questmaestro-config/questmaestro-config-contract';
+import type { DungeonmasterConfig } from '../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import { isFrameworkPresetKeyGuard } from '../../guards/is-framework-preset-key/is-framework-preset-key-guard';
 
 export const applyOverridesTransformer = ({
@@ -15,7 +15,7 @@ export const applyOverridesTransformer = ({
   config,
 }: {
   preset: FrameworkPreset;
-  config: QuestmaestroConfig;
+  config: DungeonmasterConfig;
 }): FrameworkPreset => {
   if (!config.architecture?.overrides) {
     return preset;

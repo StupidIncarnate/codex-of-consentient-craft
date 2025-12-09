@@ -388,7 +388,7 @@ export const httpAdapterProxy = () => {
 
 // ❌ WRONG - Manual setup outside proxy
 beforeEach(() => {
-  jest.clearAllMocks(); // Don't do this - @questmaestro/testing handles it
+  jest.clearAllMocks(); // Don't do this - @dungeonmaster/testing handles it
 });
 \`\`\`
 

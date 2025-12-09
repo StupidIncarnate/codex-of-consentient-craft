@@ -1,7 +1,7 @@
 {
-  "name": "@questmaestro/config",
+  "name": "@dungeonmaster/config",
   "version": "0.1.0",
-  "description": "Configuration parser and resolver for QuestMaestro architecture lint rules",
+  "description": "Configuration parser and resolver for Dungeonmaster architecture lint rules",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -16,16 +16,16 @@
     "ward": "bash -c 'FILES=$(fd --glob \"$1\" src); FILE_PATTERN=$(echo \"$FILES\" | tr \" \" \"|\" | sed \"s/|$//\"); echo \"=== LINT: $1 ===\"  && (npx eslint $FILES --fix 2>&1 | grep -A 999999 -E \"$FILE_PATTERN\" || echo \"No lint issues\"); echo \"\" && echo \"=== TYPECHECK: $1 ===\" && npx tsc --noEmit 2>&1 | grep -E \"$FILE_PATTERN\" || echo \"No type errors\"' --"
   },
   "keywords": [
-    "questmaestro",
+    "dungeonmaster",
     "config",
     "lint",
     "architecture"
   ],
   "dependencies": {
-    "@questmaestro/shared": "*"
+    "@dungeonmaster/shared": "*"
   },
   "devDependencies": {
-    "@questmaestro/testing": "*"
+    "@dungeonmaster/testing": "*"
   },
   "peerDependencies": {},
   "publishConfig": {

@@ -1,5 +1,5 @@
 import { mergeConfigsTransformer } from './merge-configs-transformer';
-import { QuestmaestroConfigStub } from '../../contracts/questmaestro-config/questmaestro-config.stub';
+import { DungeonmasterConfigStub } from '../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 describe('mergeConfigsTransformer', () => {
   describe('empty configs array', () => {
@@ -12,7 +12,7 @@ describe('mergeConfigsTransformer', () => {
 
   describe('single config', () => {
     it('VALID: {configs: [singleConfig]} => returns same config', () => {
-      const config = QuestmaestroConfigStub({
+      const config = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
@@ -33,7 +33,7 @@ describe('mergeConfigsTransformer', () => {
 
   describe('two configs merging', () => {
     it('VALID: monorepo + package config => framework from package wins', () => {
-      const monorepoConfig = QuestmaestroConfigStub({
+      const monorepoConfig = DungeonmasterConfigStub({
         framework: 'monorepo',
         schema: 'zod',
         architecture: {
@@ -45,7 +45,7 @@ describe('mergeConfigsTransformer', () => {
         },
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
@@ -55,7 +55,7 @@ describe('mergeConfigsTransformer', () => {
         configs: [monorepoConfig, packageConfig],
       });
 
-      const expectedConfig = QuestmaestroConfigStub({
+      const expectedConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
@@ -72,13 +72,13 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: base + override config => package routing wins when present', () => {
-      const baseConfig = QuestmaestroConfigStub({
+      const baseConfig = DungeonmasterConfigStub({
         framework: 'vue',
         schema: 'zod',
         routing: 'vue-router',
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'vue',
         schema: 'zod',
         routing: 'vue-router',
@@ -96,13 +96,13 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: base + package without routing => base routing preserved', () => {
-      const baseConfig = QuestmaestroConfigStub({
+      const baseConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
       });
@@ -119,13 +119,13 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: base + package without schema => base schema preserved', () => {
-      const baseConfig = QuestmaestroConfigStub({
+      const baseConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: ['zod'],
       });
@@ -144,12 +144,12 @@ describe('mergeConfigsTransformer', () => {
 
   describe('architecture merging', () => {
     it('VALID: base without architecture + package with architecture => package architecture added', () => {
-      const baseConfig = QuestmaestroConfigStub({
+      const baseConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -169,7 +169,7 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: base with architecture + package without architecture => base architecture preserved', () => {
-      const baseConfig = QuestmaestroConfigStub({
+      const baseConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -181,7 +181,7 @@ describe('mergeConfigsTransformer', () => {
         },
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
       });
@@ -194,7 +194,7 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: both configs with architecture => package settings win, overrides merge', () => {
-      const baseConfig = QuestmaestroConfigStub({
+      const baseConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -207,7 +207,7 @@ describe('mergeConfigsTransformer', () => {
         },
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -224,7 +224,7 @@ describe('mergeConfigsTransformer', () => {
         configs: [baseConfig, packageConfig],
       });
 
-      const expectedConfig = QuestmaestroConfigStub({
+      const expectedConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -242,7 +242,7 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: base with overrides + package without overrides => base overrides preserved', () => {
-      const baseConfig = QuestmaestroConfigStub({
+      const baseConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -252,7 +252,7 @@ describe('mergeConfigsTransformer', () => {
         },
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -264,7 +264,7 @@ describe('mergeConfigsTransformer', () => {
         configs: [baseConfig, packageConfig],
       });
 
-      const expectedConfig = QuestmaestroConfigStub({
+      const expectedConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -279,7 +279,7 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: base without overrides + package with overrides => package overrides added', () => {
-      const baseConfig = QuestmaestroConfigStub({
+      const baseConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -287,7 +287,7 @@ describe('mergeConfigsTransformer', () => {
         },
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -301,7 +301,7 @@ describe('mergeConfigsTransformer', () => {
         configs: [baseConfig, packageConfig],
       });
 
-      const expectedConfig = QuestmaestroConfigStub({
+      const expectedConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -318,7 +318,7 @@ describe('mergeConfigsTransformer', () => {
 
   describe('three configs merging', () => {
     it('VALID: monorepo + workspace + package => final package settings win', () => {
-      const monorepoConfig = QuestmaestroConfigStub({
+      const monorepoConfig = DungeonmasterConfigStub({
         framework: 'monorepo',
         schema: 'zod',
         architecture: {
@@ -327,7 +327,7 @@ describe('mergeConfigsTransformer', () => {
         },
       });
 
-      const workspaceConfig = QuestmaestroConfigStub({
+      const workspaceConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
@@ -340,7 +340,7 @@ describe('mergeConfigsTransformer', () => {
         },
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -355,7 +355,7 @@ describe('mergeConfigsTransformer', () => {
         configs: [monorepoConfig, workspaceConfig, packageConfig],
       });
 
-      const expectedConfig = QuestmaestroConfigStub({
+      const expectedConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         routing: 'react-router-dom',
@@ -373,7 +373,7 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: multiple configs with partial overrides => all overrides accumulate correctly', () => {
-      const config1 = QuestmaestroConfigStub({
+      const config1 = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -384,7 +384,7 @@ describe('mergeConfigsTransformer', () => {
         },
       });
 
-      const config2 = QuestmaestroConfigStub({
+      const config2 = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -395,7 +395,7 @@ describe('mergeConfigsTransformer', () => {
         },
       });
 
-      const config3 = QuestmaestroConfigStub({
+      const config3 = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -410,7 +410,7 @@ describe('mergeConfigsTransformer', () => {
         configs: [config1, config2, config3],
       });
 
-      const expectedConfig = QuestmaestroConfigStub({
+      const expectedConfig = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
         architecture: {
@@ -429,12 +429,12 @@ describe('mergeConfigsTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: multiple configs with undefined schema => last undefined preserved', () => {
-      const config1 = QuestmaestroConfigStub({
+      const config1 = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
       });
 
-      const config2 = QuestmaestroConfigStub({
+      const config2 = DungeonmasterConfigStub({
         framework: 'react',
         schema: ['zod'],
       });
@@ -450,7 +450,7 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('EDGE: architecture with empty overrides object => preserves empty object', () => {
-      const baseConfig = QuestmaestroConfigStub({
+      const baseConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -458,7 +458,7 @@ describe('mergeConfigsTransformer', () => {
         },
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
         architecture: {
@@ -476,12 +476,12 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('EDGE: package config overwrites undefined routing with undefined => undefined preserved', () => {
-      const baseConfig = QuestmaestroConfigStub({
+      const baseConfig = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
       });
 
-      const packageConfig = QuestmaestroConfigStub({
+      const packageConfig = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
       });

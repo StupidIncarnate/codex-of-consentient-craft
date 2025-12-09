@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { eslintContextContract } from './eslint-context-contract';
 import type { EslintContext, EslintScope, EslintSourceCode } from './eslint-context-contract';
-import type { StubArgument } from '@questmaestro/shared/@types';
-import { identifierContract } from '@questmaestro/shared/contracts';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 const filenameContract = z.string().brand<'Filename'>();
 const sourceTextContract = z.string().brand<'SourceText'>();

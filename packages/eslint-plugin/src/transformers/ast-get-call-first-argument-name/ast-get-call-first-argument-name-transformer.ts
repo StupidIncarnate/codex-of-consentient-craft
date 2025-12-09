@@ -6,7 +6,7 @@
  * // Returns 'Date' for jest.spyOn(Date, 'now'), 'axios' for jest.spyOn(axios, 'get'), or null if not an Identifier
  */
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-import type { Identifier } from '@questmaestro/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const astGetCallFirstArgumentNameTransformer = ({
   node,

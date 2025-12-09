@@ -1,4 +1,4 @@
-import type { StubArgument } from '@questmaestro/shared/@types';
+import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { execResultContract, type ExecResult } from './exec-result-contract';
 
 export const ExecResultStub = ({ ...props }: StubArgument<ExecResult> = {}): ExecResult =>
