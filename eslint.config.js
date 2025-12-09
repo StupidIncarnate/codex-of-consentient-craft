@@ -160,10 +160,10 @@ module.exports = [
   {
     files: ['**/@types/*', '**/@types/**'],
     rules: {
-      '@dungeonmaster/ban-primitives': 'off'
-    }
-  }
-   // {
+      '@dungeonmaster/ban-primitives': 'off',
+    },
+  },
+  // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {
   //     'eslint-comments/no-use': 'off',
