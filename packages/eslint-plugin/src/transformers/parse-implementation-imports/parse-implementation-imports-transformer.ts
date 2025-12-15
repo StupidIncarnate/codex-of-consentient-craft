@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Parses file content to extract relative imports that require proxy patterns (from folders like brokers/, adapters/, etc.)
+ * PURPOSE: Parses file content to extract imports that require proxy patterns (from folders like brokers/, adapters/, etc.)
  *
  * USAGE:
  * const imports = parseImplementationImportsTransformer({
@@ -8,6 +8,7 @@
  * });
  * // Returns: Map { 'userBroker' => '../user/user-broker' }
  * // Note: Excludes contracts, statics, and other non-proxy imports
+ * // Also handles scoped package imports with folder type subpaths (e.g., '@scope/pkg/brokers')
  */
 import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 import { identifierContract, modulePathContract } from '@dungeonmaster/shared/contracts';
@@ -32,11 +33,48 @@ export const parseImplementationImportsTransformer = ({
   // Matches: import { name } from 'path' or import name from 'path'
   const importRegex = /import\s+(?:type\s+)?(?:\{([^}]+)\}|(\w+))\s+from\s+['"]([^'"]+)['"]/gu;
 
+  // Get folder types that require proxies
+  const folderTypes = Object.keys(folderConfigStatics);
+
   let match = importRegex.exec(contentWithoutComments);
   while (match !== null) {
     const [, namedImports, defaultImport, importPath] = match;
 
-    // Early exit conditions
+    // Handle scoped package imports with folder type subpath (e.g., '@scope/pkg/brokers')
+    // Pattern: @scope/package/folderType where folderType is a known folder type
+    const scopedPackageMatch = importPath?.match(/^@[\w-]+\/[\w-]+\/(\w+)$/u);
+    if (scopedPackageMatch !== null && scopedPackageMatch !== undefined) {
+      const [, folderType] = scopedPackageMatch;
+      // Check if the subpath is a known folder type that requires proxies
+      if (folderType !== undefined && folderTypes.includes(folderType)) {
+        const folderConfigValue: unknown = Reflect.get(folderConfigStatics, folderType);
+
+        const requireProxyValue: unknown =
+          folderConfigValue !== null &&
+          folderConfigValue !== undefined &&
+          typeof folderConfigValue === 'object' &&
+          'requireProxy' in folderConfigValue
+            ? Reflect.get(folderConfigValue, 'requireProxy')
+            : undefined;
+
+        if (requireProxyValue === true && namedImports !== undefined) {
+          const names = namedImports
+            .split(',')
+            .map((n) => {
+              const [trimmed] = n.trim().split(/\s+as\s+/u);
+              return trimmed;
+            })
+            .filter((n): n is Exclude<typeof n, undefined> => Boolean(n));
+          for (const name of names) {
+            imports.set(identifierContract.parse(name), modulePathContract.parse(importPath ?? ''));
+          }
+        }
+      }
+      match = importRegex.exec(contentWithoutComments);
+      continue;
+    }
+
+    // Early exit conditions for relative imports
     const shouldSkip =
       importPath === undefined ||
       !importPath.startsWith('.') ||
@@ -53,7 +91,6 @@ export const parseImplementationImportsTransformer = ({
       if (isValidFile) {
         // Extract folder type from import path
         const pathParts = importPath.split('/');
-        const folderTypes = Object.keys(folderConfigStatics);
         let folderTypeFromPath = null;
 
         // Try to find folder type in the relative path itself

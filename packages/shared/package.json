@@ -32,6 +32,16 @@
       "import": "./dist/brokers.js",
       "require": "./dist/brokers.js",
       "types": "./dist/brokers.d.ts"
+    },
+    "./adapters": {
+      "import": "./dist/adapters.js",
+      "require": "./dist/adapters.js",
+      "types": "./dist/adapters.d.ts"
+    },
+    "./errors": {
+      "import": "./dist/errors.js",
+      "require": "./dist/errors.js",
+      "types": "./dist/errors.d.ts"
     }
   },
   "files": [

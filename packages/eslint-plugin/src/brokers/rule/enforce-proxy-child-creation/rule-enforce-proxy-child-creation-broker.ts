@@ -85,13 +85,21 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
         const source = node.source?.value;
         if (typeof source !== 'string') return;
 
-        // Only track .proxy imports
-        if (!source.endsWith('.proxy')) {
+        // Track .proxy imports (relative paths)
+        // Also track scoped package imports (@scope/pkg/folderType) that contain Proxy exports
+        const isProxyImport = source.endsWith('.proxy');
+        const isScopedPackageImport = source.startsWith('@');
+
+        if (!isProxyImport && !isScopedPackageImport) {
           return;
         }
 
         const imports = astGetImportsTransformer({ node });
         for (const [name, importPath] of imports) {
+          // For scoped packages, only track imports ending with 'Proxy'
+          if (isScopedPackageImport && !name.endsWith('Proxy')) {
+            continue;
+          }
           proxyImports.set(name, importPath);
         }
       },
@@ -155,9 +163,15 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
           // Derive expected proxy name and path
           const expectedProxyNameString = `${importedName}Proxy`;
           const expectedProxyName = identifierContract.parse(expectedProxyNameString);
-          const expectedProxyPath = importPath.endsWith('.ts')
-            ? importPath.replace('.ts', '.proxy')
-            : `${importPath}.proxy`;
+
+          // For scoped package imports (@scope/pkg/folderType), proxy is exported from same path
+          // For relative imports, proxy is at path.proxy
+          const isScopedPackageImport = importPath.startsWith('@');
+          const expectedProxyPath = isScopedPackageImport
+            ? importPath
+            : importPath.endsWith('.ts')
+              ? importPath.replace('.ts', '.proxy')
+              : `${importPath}.proxy`;
 
           // Check if proxy imports the corresponding proxy
           const hasProxyImport = Array.from(proxyImports.keys()).some(

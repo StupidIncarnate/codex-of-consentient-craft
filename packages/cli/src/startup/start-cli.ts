@@ -11,7 +11,8 @@
 import { questListBroker } from '../brokers/quest/list/quest-list-broker';
 import { questToListItemTransformer } from '../transformers/quest-to-list-item/quest-to-list-item-transformer';
 import { cliStatics } from '../statics/cli/cli-statics';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { agentSpawnBroker } from '../brokers/agent/spawn/agent-spawn-broker';
+import { filePathContract, userInputContract } from '@dungeonmaster/shared/contracts';
 
 const COMMAND_LINE_ARG_START_INDEX = 2;
 
@@ -65,6 +66,20 @@ export const StartCli = async (): Promise<void> => {
     return;
   }
 
+  // If not a known command, treat as quest request and spawn agent
+  const userInput = args.join(' ');
+  if (userInput.trim()) {
+    try {
+      await agentSpawnBroker({ userInput: userInputContract.parse(userInput) });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      process.stderr.write(`Error spawning agent: ${errorMessage}\n`);
+      process.exit(1);
+    }
+    return;
+  }
+
+  // If empty input, show help
   process.stdout.write(`${cliStatics.meta.name}\n`);
   process.stdout.write(`${cliStatics.meta.description}\n`);
   process.stdout.write(`\n`);

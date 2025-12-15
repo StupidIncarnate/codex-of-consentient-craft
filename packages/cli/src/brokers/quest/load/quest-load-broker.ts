@@ -7,9 +7,8 @@
  */
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { questContract } from '../../../contracts/quest/quest-contract';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import type { Quest } from '../../../contracts/quest/quest-contract';
+import { questContract } from '@dungeonmaster/shared/contracts';
+import type { FilePath, Quest } from '@dungeonmaster/shared/contracts';
 
 export const questLoadBroker = async ({
   questFilePath,

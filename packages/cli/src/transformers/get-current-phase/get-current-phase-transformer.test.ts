@@ -1,5 +1,6 @@
+import { QuestPhasesStub } from '@dungeonmaster/shared/contracts';
+
 import { getCurrentPhaseTransformer } from './get-current-phase-transformer';
-import { QuestPhasesStub } from '../../contracts/quest-phases/quest-phases.stub';
 
 describe('getCurrentPhaseTransformer', () => {
   describe('in_progress phases', () => {

@@ -6,9 +6,8 @@
  * // Returns QuestListItem with id, title, status, currentPhase, taskProgress
  */
 
-import type { Quest } from '../../contracts/quest/quest-contract';
-import { questListItemContract } from '../../contracts/quest-list-item/quest-list-item-contract';
-import type { QuestListItem } from '../../contracts/quest-list-item/quest-list-item-contract';
+import type { Quest, QuestListItem } from '@dungeonmaster/shared/contracts';
+import { questListItemContract } from '@dungeonmaster/shared/contracts';
 import { calculateTaskProgressTransformer } from '../calculate-task-progress/calculate-task-progress-transformer';
 import { getCurrentPhaseTransformer } from '../get-current-phase/get-current-phase-transformer';
 

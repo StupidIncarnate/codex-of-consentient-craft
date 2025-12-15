@@ -214,6 +214,92 @@ beforeEach(() => {
         });
       }
 
+      // Broker that imports from scoped package with folder type subpath
+      if (filePath.includes('brokers/scoped-import/scoped-broker.ts')) {
+        return FileContentsStub({
+          value: `
+        import { projectRootFindBroker } from '@dungeonmaster/shared/brokers';
+        import { httpAdapter } from '../../adapters/http/http-adapter';
+
+        export const scopedBroker = () => {
+          const root = projectRootFindBroker();
+          return { root };
+        };
+      `,
+        });
+      }
+
+      // Broker that imports only from scoped package (no relative imports)
+      if (filePath.includes('brokers/scoped-only/scoped-only-broker.ts')) {
+        return FileContentsStub({
+          value: `
+        import { projectRootFindBroker } from '@dungeonmaster/shared/brokers';
+
+        export const scopedOnlyBroker = () => {
+          const root = projectRootFindBroker();
+          return { root };
+        };
+      `,
+        });
+      }
+
+      // Broker that imports from scoped package with non-proxy folder type
+      if (filePath.includes('brokers/scoped-contracts/scoped-contracts-broker.ts')) {
+        return FileContentsStub({
+          value: `
+        import { userContract } from '@dungeonmaster/shared/contracts';
+        import { httpAdapter } from '../../adapters/http/http-adapter';
+
+        export const scopedContractsBroker = () => {
+          return { data: 'test' };
+        };
+      `,
+        });
+      }
+
+      // Broker that imports from different scoped package (@acme/core)
+      if (filePath.includes('brokers/acme-import/acme-broker.ts')) {
+        return FileContentsStub({
+          value: `
+        import { userBroker } from '@acme/core/brokers';
+        import { httpAdapter } from '../../adapters/http/http-adapter';
+
+        export const acmeBroker = () => {
+          const user = userBroker();
+          return { user };
+        };
+      `,
+        });
+      }
+
+      // Broker that imports from different scoped package (@myorg/utils)
+      if (filePath.includes('brokers/myorg-import/myorg-broker.ts')) {
+        return FileContentsStub({
+          value: `
+        import { logAdapter } from '@myorg/utils/adapters';
+
+        export const myorgBroker = () => {
+          const log = logAdapter();
+          return { log };
+        };
+      `,
+        });
+      }
+
+      // Broker that imports from different scoped package with non-proxy folder type
+      if (filePath.includes('brokers/acme-contracts/acme-contracts-broker.ts')) {
+        return FileContentsStub({
+          value: `
+        import { userContract } from '@acme/core/contracts';
+        import { httpAdapter } from '../../adapters/http/http-adapter';
+
+        export const acmeContractsBroker = () => {
+          return { data: 'test' };
+        };
+      `,
+        });
+      }
+
       // Default empty implementation
       return FileContentsStub({ value: `export const placeholder = () => {};` });
     },
@@ -417,6 +503,102 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       filename:
         '/project/src/brokers/user-orchestration/orchestrate/user-orchestration-orchestrate-broker.proxy.ts',
     },
+    // ✅ CORRECT - Proxy imports from scoped package and creates proxy
+    {
+      code: `
+        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/brokers';
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const scopedBrokerProxy = () => {
+          const projectRootProxy = projectRootFindBrokerProxy();
+          const httpProxy = httpAdapterProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/scoped-import/scoped-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Proxy imports only from scoped package
+    {
+      code: `
+        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/brokers';
+
+        export const scopedOnlyBrokerProxy = () => {
+          const projectRootProxy = projectRootFindBrokerProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/scoped-only/scoped-only-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Implementation imports from scoped package with non-proxy folder type (contracts)
+    {
+      code: `
+        import { userContract } from '@dungeonmaster/shared/contracts';
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const scopedContractsBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/scoped-contracts/scoped-contracts-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Proxy imports from different scoped package (@acme/core) and creates proxy
+    {
+      code: `
+        import { userBrokerProxy } from '@acme/core/brokers';
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const acmeBrokerProxy = () => {
+          const userProxy = userBrokerProxy();
+          const httpProxy = httpAdapterProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/acme-import/acme-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Proxy imports only from different scoped package (@myorg/utils)
+    {
+      code: `
+        import { logAdapterProxy } from '@myorg/utils/adapters';
+
+        export const myorgBrokerProxy = () => {
+          const logProxy = logAdapterProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/myorg-import/myorg-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Implementation imports from different scoped package with non-proxy folder type
+    {
+      code: `
+        import { userContract } from '@acme/core/contracts';
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const acmeContractsBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/acme-contracts/acme-contracts-broker.proxy.ts',
+    },
   ],
   invalid: [
     // ❌ WRONG - Missing proxy import
@@ -595,6 +777,141 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
             proxyName: 'dbAdapterProxy',
             implementationFile: 'empty-broker.ts',
             implementationName: 'dbAdapter',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Missing scoped package proxy import
+    {
+      code: `
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const scopedBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/scoped-import/scoped-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'missingProxyImport',
+          data: {
+            implementationName: 'projectRootFindBroker',
+            proxyPath: '@dungeonmaster/shared/brokers',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Scoped package proxy imported but not created
+    {
+      code: `
+        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/brokers';
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const scopedBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/scoped-import/scoped-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'missingProxyCreation',
+          data: {
+            implementationName: 'projectRootFindBroker',
+            proxyName: 'projectRootFindBrokerProxy',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Missing scoped package proxy (implementation imports only scoped package)
+    {
+      code: `
+        export const scopedOnlyBrokerProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/scoped-only/scoped-only-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'missingProxyImport',
+          data: {
+            implementationName: 'projectRootFindBroker',
+            proxyPath: '@dungeonmaster/shared/brokers',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Missing proxy import from different scoped package (@acme/core)
+    {
+      code: `
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const acmeBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/acme-import/acme-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'missingProxyImport',
+          data: {
+            implementationName: 'userBroker',
+            proxyPath: '@acme/core/brokers',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Scoped package proxy from @myorg/utils imported but not created
+    {
+      code: `
+        import { logAdapterProxy } from '@myorg/utils/adapters';
+
+        export const myorgBrokerProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/myorg-import/myorg-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'missingProxyCreation',
+          data: {
+            implementationName: 'logAdapter',
+            proxyName: 'logAdapterProxy',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Missing scoped package proxy from @acme/core (implementation imports only @acme/core)
+    {
+      code: `
+        export const myorgBrokerProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/myorg-import/myorg-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'missingProxyImport',
+          data: {
+            implementationName: 'logAdapter',
+            proxyPath: '@myorg/utils/adapters',
           },
         },
       ],

@@ -1,5 +1,6 @@
+import { QuestStub } from '@dungeonmaster/shared/contracts';
+
 import { questToListItemTransformer } from './quest-to-list-item-transformer';
-import { QuestStub } from '../../contracts/quest/quest.stub';
 
 describe('questToListItemTransformer', () => {
   describe('valid transformations', () => {

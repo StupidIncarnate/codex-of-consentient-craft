@@ -14,14 +14,21 @@ import {
   ListToolsRequestSchema,
   type CallToolRequest,
 } from '@modelcontextprotocol/sdk/types';
+import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
 import { architectureFolderDetailBroker } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker.js';
 import { architectureSyntaxRulesBroker } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker.js';
 import { architectureTestingPatternsBroker } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.js';
 import { mcpDiscoverBroker } from '../brokers/mcp/discover/mcp-discover-broker.js';
-import { mcpToolSchemaStatics } from '../statics/mcp-tool-schema/mcp-tool-schema-statics.js';
 import { folderConstraintsInitBroker } from '../brokers/folder-constraints/init/folder-constraints-init-broker.js';
 import { folderConstraintsState } from '../state/folder-constraints/folder-constraints-state.js';
+import { questAddBroker } from '../brokers/quest/add/quest-add-broker.js';
+import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract.js';
+import { discoverInputContract } from '../contracts/discover-input/discover-input-contract.js';
+import { folderDetailInputContract } from '../contracts/folder-detail-input/folder-detail-input-contract.js';
+
+const emptyInputSchema = z.object({});
 
 const JSON_INDENT_SPACES = 2;
 
@@ -47,11 +54,37 @@ export const StartMcpServer = async (): Promise<void> => {
   // List available tools
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: [
-      mcpToolSchemaStatics.discover,
-      mcpToolSchemaStatics['get-architecture'],
-      mcpToolSchemaStatics['get-folder-detail'],
-      mcpToolSchemaStatics['get-syntax-rules'],
-      mcpToolSchemaStatics['get-testing-patterns'],
+      {
+        name: 'discover',
+        description: 'Discover utilities, brokers, and files across the codebase',
+        inputSchema: zodToJsonSchema(discoverInputContract, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'get-architecture',
+        description: 'Returns complete architecture overview',
+        inputSchema: zodToJsonSchema(emptyInputSchema, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'get-folder-detail',
+        description: 'Returns detailed information about a specific folder type',
+        inputSchema: zodToJsonSchema(folderDetailInputContract, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'get-syntax-rules',
+        description: 'Returns universal syntax rules',
+        inputSchema: zodToJsonSchema(emptyInputSchema, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'get-testing-patterns',
+        description: 'Returns testing patterns and philosophy for writing tests and proxies',
+        inputSchema: zodToJsonSchema(emptyInputSchema, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'add-quest',
+        description:
+          'Creates a new quest with tasks and saves it to the .dungeonmaster-quests folder',
+        inputSchema: zodToJsonSchema(addQuestInputContract, { $refStrategy: 'none' }),
+      },
     ],
   }));
 
@@ -128,6 +161,16 @@ export const StartMcpServer = async (): Promise<void> => {
             text: result,
           },
         ],
+      };
+    }
+
+    if (request.params.name === 'add-quest') {
+      const result = await questAddBroker({
+        input: request.params.arguments as never,
+      });
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, JSON_INDENT_SPACES) }],
       };
     }
 

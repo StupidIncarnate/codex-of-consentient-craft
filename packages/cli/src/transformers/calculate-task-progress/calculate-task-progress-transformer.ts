@@ -6,9 +6,8 @@
  * // Returns '2/5' showing completed tasks out of total
  */
 
-import { taskProgressContract } from '../../contracts/task-progress/task-progress-contract';
-import type { TaskProgress } from '../../contracts/task-progress/task-progress-contract';
-import type { QuestTask } from '../../contracts/quest-task/quest-task-contract';
+import { taskProgressContract } from '@dungeonmaster/shared/contracts';
+import type { TaskProgress, QuestTask } from '@dungeonmaster/shared/contracts';
 
 export const calculateTaskProgressTransformer = ({
   tasks,

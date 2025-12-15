@@ -6,8 +6,7 @@
  * // Returns 'implementation' or undefined if all complete
  */
 
-import type { PhaseType } from '../../contracts/phase-type/phase-type-contract';
-import type { QuestPhases } from '../../contracts/quest-phases/quest-phases-contract';
+import type { PhaseType, QuestPhases } from '@dungeonmaster/shared/contracts';
 import { questStatics } from '../../statics/quest/quest-statics';
 
 export const getCurrentPhaseTransformer = ({

@@ -1,5 +1,6 @@
+import { QuestTaskStub } from '@dungeonmaster/shared/contracts';
+
 import { calculateTaskProgressTransformer } from './calculate-task-progress-transformer';
-import { QuestTaskStub } from '../../contracts/quest-task/quest-task.stub';
 
 describe('calculateTaskProgressTransformer', () => {
   describe('valid progress', () => {

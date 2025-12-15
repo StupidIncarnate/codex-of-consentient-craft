@@ -6,7 +6,7 @@
  * // Returns true if filename ends with .json
  */
 
-import { questsFolderStatics } from '../../statics/quests-folder/quests-folder-statics';
+import { questsFolderStatics } from '@dungeonmaster/shared/statics';
 
 export const isQuestFileGuard = ({ filename }: { filename?: string }): boolean => {
   if (!filename) {

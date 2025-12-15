@@ -11,15 +11,19 @@ import { z } from 'zod';
 
 export const discoverInputContract = z.discriminatedUnion('type', [
   z.object({
-    type: z.literal('files'),
-    path: z.string().brand<'FilePath'>().optional(),
-    fileType: z.string().brand<'FileType'>().optional(),
-    search: z.string().brand<'SearchQuery'>().optional(),
-    name: z.string().brand<'FileName'>().optional(),
+    type: z.literal('files').describe('Type of discovery'),
+    path: z.string().describe('Path to search').brand<'FilePath'>().optional(),
+    fileType: z
+      .string()
+      .describe('File type to filter (broker, widget, guard, etc.)')
+      .brand<'FileType'>()
+      .optional(),
+    search: z.string().describe('Search query').brand<'SearchQuery'>().optional(),
+    name: z.string().describe('Specific file name').brand<'FileName'>().optional(),
   }),
   z.object({
-    type: z.literal('standards'),
-    section: z.string().brand<'SectionPath'>().optional(),
+    type: z.literal('standards').describe('Type of discovery'),
+    section: z.string().describe('Section path to filter').brand<'SectionPath'>().optional(),
   }),
 ]);
 

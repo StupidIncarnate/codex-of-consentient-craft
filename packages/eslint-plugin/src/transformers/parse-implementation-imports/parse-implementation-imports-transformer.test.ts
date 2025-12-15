@@ -183,4 +183,132 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(0);
   });
+
+  it('should parse scoped package imports with folder type subpath requiring proxies', () => {
+    const content = `
+      import { userBroker } from '@dungeonmaster/shared/brokers';
+      import { httpAdapter } from '@dungeonmaster/shared/adapters';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(2);
+    expect(result.get(IdentifierStub({ value: 'userBroker' }))).toStrictEqual(
+      ModulePathStub({ value: '@dungeonmaster/shared/brokers' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '@dungeonmaster/shared/adapters' }),
+    );
+  });
+
+  it('should skip scoped package imports with folder type subpath not requiring proxies', () => {
+    const content = `
+      import { userContract } from '@dungeonmaster/shared/contracts';
+      import { userStatics } from '@dungeonmaster/shared/statics';
+      import { httpAdapter } from '@dungeonmaster/shared/adapters';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(1);
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '@dungeonmaster/shared/adapters' }),
+    );
+  });
+
+  it('should skip scoped package imports without folder type subpath', () => {
+    const content = `
+      import { something } from '@dungeonmaster/shared';
+      import { httpAdapter } from '../../adapters/http/http-adapter';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(1);
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
+  });
+
+  it('should handle multiple imports from scoped package with folder type subpath', () => {
+    const content = `
+      import { userBroker, authBroker } from '@dungeonmaster/shared/brokers';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(2);
+    expect(result.get(IdentifierStub({ value: 'userBroker' }))).toStrictEqual(
+      ModulePathStub({ value: '@dungeonmaster/shared/brokers' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'authBroker' }))).toStrictEqual(
+      ModulePathStub({ value: '@dungeonmaster/shared/brokers' }),
+    );
+  });
+
+  it('should skip default imports from scoped packages with folder type subpath', () => {
+    const content = `
+      import defaultExport from '@dungeonmaster/shared/brokers';
+      import { httpAdapter } from '../../adapters/http/http-adapter';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(1);
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
+  });
+
+  it('should parse scoped package imports with different package names requiring proxies', () => {
+    const content = `
+      import { userBroker } from '@acme/core/brokers';
+      import { httpAdapter } from '@myorg/utils/adapters';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(2);
+    expect(result.get(IdentifierStub({ value: 'userBroker' }))).toStrictEqual(
+      ModulePathStub({ value: '@acme/core/brokers' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '@myorg/utils/adapters' }),
+    );
+  });
+
+  it('should skip scoped package imports with different package names not requiring proxies', () => {
+    const content = `
+      import { userContract } from '@acme/core/contracts';
+      import { userStatics } from '@myorg/utils/statics';
+      import { httpAdapter } from '@acme/core/adapters';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(1);
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '@acme/core/adapters' }),
+    );
+  });
+
+  it('should handle multiple imports from different scoped packages with folder type subpath', () => {
+    const content = `
+      import { userBroker, authBroker } from '@acme/core/brokers';
+      import { logAdapter } from '@myorg/utils/adapters';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(3);
+    expect(result.get(IdentifierStub({ value: 'userBroker' }))).toStrictEqual(
+      ModulePathStub({ value: '@acme/core/brokers' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'authBroker' }))).toStrictEqual(
+      ModulePathStub({ value: '@acme/core/brokers' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'logAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '@myorg/utils/adapters' }),
+    );
+  });
 });
