@@ -42,6 +42,11 @@
       "import": "./dist/errors.js",
       "require": "./dist/errors.js",
       "types": "./dist/errors.d.ts"
+    },
+    "./testing": {
+      "import": "./dist/testing.js",
+      "require": "./dist/testing.js",
+      "types": "./dist/testing.d.ts"
     }
   },
   "files": [

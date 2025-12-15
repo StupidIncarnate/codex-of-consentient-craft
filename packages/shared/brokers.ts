@@ -9,12 +9,9 @@
 
 // Architecture Overview
 export * from './src/brokers/architecture/overview/architecture-overview-broker';
-export * from './src/brokers/architecture/overview/architecture-overview-broker.proxy';
 
 // Project Root
 export * from './src/brokers/project-root/find/project-root-find-broker';
-export * from './src/brokers/project-root/find/project-root-find-broker.proxy';
 
 // Quests Folder
 export * from './src/brokers/quests-folder/find/quests-folder-find-broker';
-export * from './src/brokers/quests-folder/find/quests-folder-find-broker.proxy';

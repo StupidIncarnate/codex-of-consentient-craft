@@ -5,7 +5,7 @@ import type { JsonRpcRequestStub } from '../contracts/json-rpc-request/json-rpc-
 import type { RpcIdStub } from '../contracts/rpc-id/rpc-id.stub';
 import type { McpServerClientStub } from '../contracts/mcp-server-client/mcp-server-client.stub';
 import { mcpServerStatics } from '../statics/mcp-server/mcp-server-statics';
-import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/brokers';
+import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/testing';
 import { architectureFolderDetailBrokerProxy } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
 import { architectureSyntaxRulesBrokerProxy } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker.proxy';
 import { architectureTestingPatternsBrokerProxy } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';

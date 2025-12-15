@@ -164,14 +164,22 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
           const expectedProxyNameString = `${importedName}Proxy`;
           const expectedProxyName = identifierContract.parse(expectedProxyNameString);
 
-          // For scoped package imports (@scope/pkg/folderType), proxy is exported from same path
+          // For scoped package imports (@scope/pkg/folderType), proxy is exported from @scope/pkg/testing
           // For relative imports, proxy is at path.proxy
           const isScopedPackageImport = importPath.startsWith('@');
-          const expectedProxyPath = isScopedPackageImport
-            ? importPath
-            : importPath.endsWith('.ts')
-              ? importPath.replace('.ts', '.proxy')
-              : `${importPath}.proxy`;
+          const expectedProxyPath = ((): ModulePath => {
+            if (isScopedPackageImport) {
+              const lastSlashIndex = importPath.lastIndexOf('/');
+              const basePath =
+                lastSlashIndex > 0 ? importPath.substring(0, lastSlashIndex) : importPath;
+              return `${basePath}/testing` as ModulePath;
+            }
+            return (
+              importPath.endsWith('.ts')
+                ? importPath.replace('.ts', '.proxy')
+                : `${importPath}.proxy`
+            ) as ModulePath;
+          })();
 
           // Check if proxy imports the corresponding proxy
           const hasProxyImport = Array.from(proxyImports.keys()).some(

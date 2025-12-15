@@ -1,4 +1,4 @@
-import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/brokers';
+import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/testing';
 import { sessionIsNewBrokerProxy } from '../../../brokers/session/is-new/session-is-new-broker.proxy';
 
 export const HookSessionStartResponderProxy = (): {

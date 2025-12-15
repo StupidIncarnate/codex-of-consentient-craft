@@ -506,7 +506,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ✅ CORRECT - Proxy imports from scoped package and creates proxy
     {
       code: `
-        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/brokers';
+        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
         import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
 
         export const scopedBrokerProxy = () => {
@@ -523,7 +523,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ✅ CORRECT - Proxy imports only from scoped package
     {
       code: `
-        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/brokers';
+        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
 
         export const scopedOnlyBrokerProxy = () => {
           const projectRootProxy = projectRootFindBrokerProxy();
@@ -554,7 +554,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ✅ CORRECT - Proxy imports from different scoped package (@acme/core) and creates proxy
     {
       code: `
-        import { userBrokerProxy } from '@acme/core/brokers';
+        import { userBrokerProxy } from '@acme/core/testing';
         import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
 
         export const acmeBrokerProxy = () => {
@@ -571,7 +571,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ✅ CORRECT - Proxy imports only from different scoped package (@myorg/utils)
     {
       code: `
-        import { logAdapterProxy } from '@myorg/utils/adapters';
+        import { logAdapterProxy } from '@myorg/utils/testing';
 
         export const myorgBrokerProxy = () => {
           const logProxy = logAdapterProxy();
@@ -800,7 +800,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'projectRootFindBroker',
-            proxyPath: '@dungeonmaster/shared/brokers',
+            proxyPath: '@dungeonmaster/shared/testing',
           },
         },
       ],
@@ -808,7 +808,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ❌ WRONG - Scoped package proxy imported but not created
     {
       code: `
-        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/brokers';
+        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
         import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
 
         export const scopedBrokerProxy = () => {
@@ -845,7 +845,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'projectRootFindBroker',
-            proxyPath: '@dungeonmaster/shared/brokers',
+            proxyPath: '@dungeonmaster/shared/testing',
           },
         },
       ],
@@ -869,7 +869,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'userBroker',
-            proxyPath: '@acme/core/brokers',
+            proxyPath: '@acme/core/testing',
           },
         },
       ],
@@ -877,7 +877,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ❌ WRONG - Scoped package proxy from @myorg/utils imported but not created
     {
       code: `
-        import { logAdapterProxy } from '@myorg/utils/adapters';
+        import { logAdapterProxy } from '@myorg/utils/testing';
 
         export const myorgBrokerProxy = () => {
           return {
@@ -911,7 +911,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'logAdapter',
-            proxyPath: '@myorg/utils/adapters',
+            proxyPath: '@myorg/utils/testing',
           },
         },
       ],
