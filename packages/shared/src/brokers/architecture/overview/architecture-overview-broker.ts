@@ -15,6 +15,7 @@ import {
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { folderDependencyTreeTransformer } from '../../../transformers/folder-dependency-tree/folder-dependency-tree-transformer';
+import { isKeyOfGuard } from '../../../guards/is-key-of/is-key-of-guard';
 
 export const architectureOverviewBroker = (): ContentText => {
   const { hierarchy } = folderDependencyTreeTransformer({
@@ -22,29 +23,32 @@ export const architectureOverviewBroker = (): ContentText => {
   });
 
   // Build folder types table using entries sorted by depth
-  type FolderEntry = [
-    keyof typeof folderConfigStatics,
-    (typeof folderConfigStatics)[keyof typeof folderConfigStatics],
-  ];
+  type FolderKey = keyof typeof folderConfigStatics;
+  const unsortedEntries: { key: FolderKey; config: FolderConfig }[] = [];
 
-  const folderEntries = (Object.entries(folderConfigStatics) as FolderEntry[]).sort(
-    ([_nameA, configA], [_nameB, configB]) => {
-      const depthDiff = configA.folderDepth - configB.folderDepth;
-      if (depthDiff !== 0) {
-        return depthDiff;
-      }
-      return _nameA.localeCompare(_nameB);
-    },
-  );
+  for (const key in folderConfigStatics) {
+    if (Object.hasOwn(folderConfigStatics, key) && isKeyOfGuard(key, folderConfigStatics)) {
+      unsortedEntries.push({
+        key,
+        config: folderConfigContract.parse(folderConfigStatics[key]),
+      });
+    }
+  }
+
+  const folderEntries = unsortedEntries.sort((a, b) => {
+    const depthDiff = a.config.folderDepth - b.config.folderDepth;
+    if (depthDiff !== 0) {
+      return depthDiff;
+    }
+    return a.key.localeCompare(b.key);
+  });
 
   const tableHeader = contentTextContract.parse(
     '| Folder | Purpose | Depth | When to Use |\n|--------|---------|-------|-------------|',
   );
   const tableRows: ContentText[] = [tableHeader];
 
-  for (const [folderName, rawConfig] of folderEntries) {
-    const config: FolderConfig = folderConfigContract.parse(rawConfig);
-
+  for (const { key: folderName, config } of folderEntries) {
     tableRows.push(
       contentTextContract.parse(
         `| ${folderName}/ | ${config.meta.purpose} | ${config.folderDepth} | ${config.meta.whenToUse} |`,
@@ -63,9 +67,7 @@ ${hierarchy}
   const decisionTreeLines: ContentText[] = [];
   let decisionIndex = 1;
 
-  for (const [folderName, rawConfig] of folderEntries) {
-    const config: FolderConfig = folderConfigContract.parse(rawConfig);
-
+  for (const { key: folderName, config } of folderEntries) {
     // Skip assets and migrations from decision tree (not code folders)
     if (folderName === 'assets' || folderName === 'migrations') {
       continue;
@@ -253,9 +255,9 @@ import {avatarLayerWidget} ` +
 **Layer files** (\`-layer-\` in filename) are internal implementation details - they can ONLY be imported within their own domain folder, never across domains.`;
 
   // Build layer files section - dynamically generate allowed folders
-  const allowsLayerFolders = (Object.entries(folderConfigStatics) as FolderEntry[])
-    .filter(([_name, config]) => config.allowsLayerFiles)
-    .map(([name]) => `\`${name}/\``)
+  const allowsLayerFolders = folderEntries
+    .filter(({ config }) => config.allowsLayerFiles)
+    .map(({ key }) => `\`${key}/\``)
     .join(', ');
 
   const layerFiles =

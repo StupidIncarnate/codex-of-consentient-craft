@@ -43,6 +43,7 @@ module.exports = [
       '**/*.d.ts',
       '*.md',
       '**/*.md',
+      '**/ts-jest/**',
     ],
   },
   // Configuration for TypeScript files

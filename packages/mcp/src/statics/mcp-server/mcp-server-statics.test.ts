@@ -5,7 +5,7 @@ describe('mcpServerStatics', () => {
     expect(mcpServerStatics.timeouts.startupMs).toBe(500);
   });
 
-  it('VALID: timeouts.requestMs => returns 5000', () => {
-    expect(mcpServerStatics.timeouts.requestMs).toBe(5000);
+  it('VALID: timeouts.requestMs => returns 10000', () => {
+    expect(mcpServerStatics.timeouts.requestMs).toBe(10000);
   });
 });

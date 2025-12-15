@@ -9,6 +9,7 @@
 
 // Architecture Overview
 export * from './src/brokers/architecture/overview/architecture-overview-broker';
+export * from './src/brokers/architecture/overview/architecture-overview-broker.proxy';
 
 // Project Root
 export * from './src/brokers/project-root/find/project-root-find-broker';

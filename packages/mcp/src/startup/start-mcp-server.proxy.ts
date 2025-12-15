@@ -5,6 +5,14 @@ import type { JsonRpcRequestStub } from '../contracts/json-rpc-request/json-rpc-
 import type { RpcIdStub } from '../contracts/rpc-id/rpc-id.stub';
 import type { McpServerClientStub } from '../contracts/mcp-server-client/mcp-server-client.stub';
 import { mcpServerStatics } from '../statics/mcp-server/mcp-server-statics';
+import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/brokers';
+import { architectureFolderDetailBrokerProxy } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
+import { architectureSyntaxRulesBrokerProxy } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker.proxy';
+import { architectureTestingPatternsBrokerProxy } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';
+import { mcpDiscoverBrokerProxy } from '../brokers/mcp/discover/mcp-discover-broker.proxy';
+import { folderConstraintsInitBrokerProxy } from '../brokers/folder-constraints/init/folder-constraints-init-broker.proxy';
+import { questAddBrokerProxy } from '../brokers/quest/add/quest-add-broker.proxy';
+import { folderConstraintsStateProxy } from '../state/folder-constraints/folder-constraints-state.proxy';
 
 type JsonRpcResponse = ReturnType<typeof JsonRpcResponseStub>;
 type JsonRpcRequest = ReturnType<typeof JsonRpcRequestStub>;
@@ -14,6 +22,15 @@ type McpServerClient = ReturnType<typeof McpServerClientStub>;
 export const StartMcpServerProxy = (): {
   createClient: () => Promise<McpServerClient>;
 } => {
+  // Create child proxies (required by proxy pattern even though this is subprocess-based)
+  architectureOverviewBrokerProxy();
+  architectureFolderDetailBrokerProxy();
+  architectureSyntaxRulesBrokerProxy();
+  architectureTestingPatternsBrokerProxy();
+  mcpDiscoverBrokerProxy();
+  folderConstraintsInitBrokerProxy();
+  questAddBrokerProxy();
+  folderConstraintsStateProxy();
   const createClient = async (): Promise<McpServerClient> => {
     const serverEntryPoint = path.join(__dirname, '../index.ts');
 

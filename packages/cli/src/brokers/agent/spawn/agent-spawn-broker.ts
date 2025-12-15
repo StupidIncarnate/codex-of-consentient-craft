@@ -8,7 +8,12 @@
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { projectRootFindBroker } from '@dungeonmaster/shared/brokers';
-import { filePathContract, type ExitCode, type UserInput } from '@dungeonmaster/shared/contracts';
+import {
+  exitCodeContract,
+  filePathContract,
+  type ExitCode,
+  type UserInput,
+} from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnAdapter } from '../../../adapters/child-process/spawn/child-process-spawn-adapter';
 import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/pathseeker-prompt-statics';
@@ -44,7 +49,9 @@ export const agentSpawnBroker = async ({
   // Return promise that resolves when process exits
   return new Promise((resolve, reject) => {
     child.on('exit', (code) => {
-      resolve({ exitCode: code as ExitCode | null });
+      // Validate exit code if present, otherwise pass null
+      const exitCode = code === null ? null : exitCodeContract.parse(code);
+      resolve({ exitCode });
     });
 
     child.on('error', (error) => {

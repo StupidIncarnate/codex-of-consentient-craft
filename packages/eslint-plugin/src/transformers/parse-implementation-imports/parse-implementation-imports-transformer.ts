@@ -83,10 +83,14 @@ export const parseImplementationImportsTransformer = ({
       importPath.endsWith('-statics');
 
     if (!shouldSkip) {
-      // Skip multi-dot files except .proxy
+      // Skip multi-dot files except .proxy, .ts, .js extensions
       const filename = importPath.split('/').pop() ?? '';
       const dotCount = (filename.match(/\./gu) ?? []).length;
-      const isValidFile = dotCount === 0 || importPath.endsWith('.proxy');
+      const isValidFile =
+        dotCount === 0 ||
+        importPath.endsWith('.proxy') ||
+        importPath.endsWith('.ts') ||
+        importPath.endsWith('.js');
 
       if (isValidFile) {
         // Extract folder type from import path
