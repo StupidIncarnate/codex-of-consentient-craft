@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Extracts import paths to .proxy files from TypeScript AST
+ * PURPOSE: Extracts import/export paths to .proxy files from TypeScript AST
  *
  * USAGE:
  * const proxyImports = typescriptAstToProxyImportsAdapter({sourceFile});
- * // Returns array of import paths that include '.proxy'
+ * // Returns array of import paths that include '.proxy' or are proxy barrels
  */
 
 import * as ts from 'typescript';
@@ -27,13 +27,17 @@ export const typescriptAstToProxyImportsAdapter = ({
       continue;
     }
 
-    if (ts.isImportDeclaration(node)) {
-      const { moduleSpecifier } = node;
-      if (ts.isStringLiteral(moduleSpecifier)) {
-        const importPath = moduleSpecifier.text;
-        if (isProxyImportGuard({ importPath })) {
-          proxyImports.push(importPathContract.parse(importPath));
-        }
+    // Handle import/export declarations with module specifiers
+    const moduleSpecifier = ts.isImportDeclaration(node)
+      ? node.moduleSpecifier
+      : ts.isExportDeclaration(node)
+        ? node.moduleSpecifier
+        : undefined;
+
+    if (moduleSpecifier && ts.isStringLiteral(moduleSpecifier)) {
+      const importPath = moduleSpecifier.text;
+      if (isProxyImportGuard({ importPath })) {
+        proxyImports.push(importPathContract.parse(importPath));
       }
     }
 

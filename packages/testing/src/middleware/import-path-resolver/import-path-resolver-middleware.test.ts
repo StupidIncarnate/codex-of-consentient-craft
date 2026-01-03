@@ -48,6 +48,19 @@ describe('importPathResolverMiddleware', () => {
     });
   });
 
+  describe('package barrel imports', () => {
+    it('VALID: {@dungeonmaster/shared/testing} => returns testing.ts barrel path', () => {
+      importPathResolverMiddlewareProxy();
+      const sourceFilePath = FilePathStub({ value: __filename });
+      const importPath = ImportPathStub({ value: '@dungeonmaster/shared/testing' });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).not.toBeNull();
+      expect(String(result)).toMatch(/packages\/shared\/testing\.ts$/u);
+    });
+  });
+
   describe('file not found', () => {
     it('VALID: {file does not exist} => returns null', () => {
       importPathResolverMiddlewareProxy();

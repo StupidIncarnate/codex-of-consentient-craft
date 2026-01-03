@@ -26,6 +26,26 @@ describe('typescriptSourceFileGetterAdapter', () => {
   });
 
   describe('file not in program', () => {
+    it('FALLBACK: {program without file, file exists on disk} => parses directly', () => {
+      typescriptSourceFileGetterAdapterProxy();
+
+      // Create an empty program that doesn't include any files
+      const tsProgram = ts.createProgram({
+        rootNames: [],
+        options: {},
+      });
+      const program = TypescriptProgramStub({ value: tsProgram });
+
+      // Use this actual test file which exists on disk but is not in the program
+      const filePath = FilePathStub({ value: __filename });
+
+      const result = typescriptSourceFileGetterAdapter({ program, filePath });
+
+      // Should parse the file directly since it exists on disk
+      expect(result).toBeDefined();
+      expect(result?.fileName).toBe(filePath);
+    });
+
     it('INVALID: {program, nonexistent filePath} => returns undefined', () => {
       typescriptSourceFileGetterAdapterProxy();
 

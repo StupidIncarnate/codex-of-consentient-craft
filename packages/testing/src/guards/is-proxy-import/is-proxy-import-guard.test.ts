@@ -25,6 +25,12 @@ describe('isProxyImportGuard', () => {
 
       expect(result).toBe(true);
     });
+
+    it('VALID: {importPath: "@dungeonmaster/shared/testing"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/shared/testing' });
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('non-proxy imports', () => {

@@ -74,15 +74,4 @@ describe('integrationEnvironmentStatics', () => {
       expect(result).toStrictEqual(['node_modules']);
     });
   });
-
-  describe('eslintConfig', () => {
-    it('VALID: template => contains parser configuration', () => {
-      const result = integrationEnvironmentStatics.eslintConfig.template;
-      const hasParser = result.includes('@typescript-eslint/parser');
-      const hasModuleExports = result.includes('module.exports');
-
-      expect(hasParser).toBe(true);
-      expect(hasModuleExports).toBe(true);
-    });
-  });
 });

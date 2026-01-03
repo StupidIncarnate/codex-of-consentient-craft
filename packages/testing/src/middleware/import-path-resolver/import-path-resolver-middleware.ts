@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Resolves a relative import path to an absolute file path using adapters
+ * PURPOSE: Resolves an import path to an absolute file path using adapters
  *
  * USAGE:
  * const filePath = importPathResolverMiddleware({
@@ -23,6 +23,24 @@ export const importPathResolverMiddleware = ({
   sourceFilePath: FilePath;
   importPath: ImportPath;
 }): FilePath | null => {
+  // Handle @dungeonmaster/shared/testing barrel
+  if (importPath === '@dungeonmaster/shared/testing') {
+    try {
+      // Use require.resolve to find the actual file path
+      const resolved = require.resolve('@dungeonmaster/shared/testing');
+      // Convert from .js to .ts (require.resolve returns dist path)
+      const tsPath = resolved.replace('/dist/', '/').replace('.js', '.ts');
+      const filePath = filePathContract.parse(tsPath);
+      if (fsExistsSyncAdapter({ filePath })) {
+        return filePath;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
+  // Handle relative imports
   if (!importPath.startsWith('.')) {
     return null;
   }

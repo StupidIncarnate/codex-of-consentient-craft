@@ -33,8 +33,7 @@ export const typescriptSourceFileWithPrependedStatementsAdapter = ({
     ...tsSourceFile.statements,
   ]);
 
-  return tsNodeFactory.updateSourceFile(
-    tsSourceFile,
-    allStatements,
-  ) as unknown as TypescriptSourceFile;
+  const updatedSourceFile = tsNodeFactory.updateSourceFile(tsSourceFile, allStatements);
+
+  return updatedSourceFile as unknown as TypescriptSourceFile;
 };

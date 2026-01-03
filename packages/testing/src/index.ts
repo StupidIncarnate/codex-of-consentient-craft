@@ -14,6 +14,10 @@ export { integrationEnvironmentListBroker } from './brokers/integration-environm
 export type { TestProject } from './contracts/test-project/test-project-contract';
 export type { DungeonmasterConfig } from './contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
+// Install testbed utilities
+export { installTestbedCreateBroker } from './brokers/install-testbed/create/install-testbed-create-broker';
+export type { InstallTestbed } from './contracts/install-testbed/install-testbed-contract';
+
 // TypeScript transformer - use @dungeonmaster/testing/ts-jest/proxy-mock-transformer in jest.config.js
 
 // Contract stubs
@@ -21,6 +25,8 @@ export { MockSpawnResultStub } from './contracts/mock-spawn-result/mock-spawn-re
 export { MockProcessBehaviorStub } from './contracts/mock-process-behavior/mock-process-behavior.stub';
 export { TestProjectStub } from './contracts/test-project/test-project.stub';
 export { DungeonmasterConfigStub } from './contracts/dungeonmaster-config/dungeonmaster-config.stub';
+export { InstallTestbedStub } from './contracts/install-testbed/install-testbed.stub';
 export { BaseNameStub } from './contracts/base-name/base-name.stub';
 export { FileNameStub } from './contracts/file-name/file-name.stub';
 export { FileContentStub } from './contracts/file-content/file-content.stub';
+export { RelativePathStub } from './contracts/relative-path/relative-path.stub';
