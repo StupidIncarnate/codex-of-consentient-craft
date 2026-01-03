@@ -15,3 +15,6 @@ export * from './src/brokers/project-root/find/project-root-find-broker';
 
 // Quests Folder
 export * from './src/brokers/quests-folder/find/quests-folder-find-broker';
+
+// Install
+export * from './src/brokers/install/check/install-check-broker';

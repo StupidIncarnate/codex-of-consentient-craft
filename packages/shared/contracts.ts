@@ -105,3 +105,19 @@ export * from './src/contracts/quest-list-item/quest-list-item.stub';
 
 export * from './src/contracts/quest/quest-contract';
 export * from './src/contracts/quest/quest.stub';
+
+// Install Contracts
+export * from './src/contracts/package-name/package-name-contract';
+export * from './src/contracts/package-name/package-name.stub';
+
+export * from './src/contracts/install-message/install-message-contract';
+export * from './src/contracts/install-message/install-message.stub';
+
+export * from './src/contracts/install-action/install-action-contract';
+export * from './src/contracts/install-action/install-action.stub';
+
+export * from './src/contracts/install-result/install-result-contract';
+export * from './src/contracts/install-result/install-result.stub';
+
+export * from './src/contracts/install-context/install-context-contract';
+export * from './src/contracts/install-context/install-context.stub';
