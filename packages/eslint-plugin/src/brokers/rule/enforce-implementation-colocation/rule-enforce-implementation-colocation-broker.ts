@@ -21,6 +21,7 @@ import { hasFolderTypeSuffixGuard } from '../../../guards/has-folder-type-suffix
 import { extractFirstSegmentTransformer } from '../../../transformers/extract-first-segment/extract-first-segment-transformer';
 import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
 import { getFileExtensionTransformer } from '../../../transformers/get-file-extension/get-file-extension-transformer';
+import { testFilePatternStatics } from '../../../statics/test-file-pattern/test-file-pattern-statics';
 
 export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -43,6 +44,10 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           'Contract file must have a colocated stub file. Create {{stubFileName}} in the same directory.',
         invalidProxyFilename:
           'Proxy file must follow naming pattern [baseName]-[folderType].proxy.ts. Expected: {{expectedFileName}}, but found: {{actualFileName}}',
+        missingIntegrationTestFile:
+          'Startup file must have a colocated integration test file. Create {{testFileName}} in the same directory. Startup files require integration tests, not unit tests.',
+        forbiddenUnitTestFile:
+          'Startup file must not have a unit test file. Found {{testFileName}}. Startup files require integration tests (.integration.test.ts), not unit tests (.test.ts).',
       },
       schema: [],
     },
@@ -96,6 +101,9 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           suffix: 'statics',
         });
 
+        // Determine if this is a startup file (requires integration tests, forbids unit tests)
+        const isStartup = filename.includes('/startup/');
+
         // Get all possible test file paths for this source file
         const testFilePaths = testFilePathVariantsTransformer({ sourceFilePath: filename });
 
@@ -105,8 +113,50 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           return fsExistsSyncAdapter({ filePath: parsedPath });
         });
 
-        // Check for test file (skip statics)
-        if (!isStatics && !hasTestFile) {
+        // Handle startup files specially - require integration tests, forbid unit tests
+        if (isStartup) {
+          const extension = getFileExtensionTransformer({ filename });
+          const baseFilePath = filename.slice(0, -extension.length);
+
+          // Check for integration test files
+          const integrationTestPaths = testFilePatternStatics.integration.suffixes.map(
+            (suffix) => `${baseFilePath}${suffix}${extension}`,
+          );
+          const hasIntegrationTest = integrationTestPaths.some((testFilePath) => {
+            const parsedPath = filePathContract.parse(testFilePath);
+            return fsExistsSyncAdapter({ filePath: parsedPath });
+          });
+
+          // Check for forbidden unit test files
+          const unitTestPaths = testFilePatternStatics.unit.suffixes.map(
+            (suffix) => `${baseFilePath}${suffix}${extension}`,
+          );
+          const existingUnitTestPath = unitTestPaths.find((testFilePath) => {
+            const parsedPath = filePathContract.parse(testFilePath);
+            return fsExistsSyncAdapter({ filePath: parsedPath });
+          });
+
+          if (existingUnitTestPath) {
+            ctx.report({
+              node,
+              messageId: 'forbiddenUnitTestFile',
+              data: {
+                testFileName: existingUnitTestPath.split('/').pop() ?? existingUnitTestPath,
+              },
+            });
+          } else if (!hasIntegrationTest) {
+            const primaryIntegrationTestFileName = integrationTestPaths[0] ?? filename;
+            ctx.report({
+              node,
+              messageId: 'missingIntegrationTestFile',
+              data: {
+                testFileName:
+                  primaryIntegrationTestFileName.split('/').pop() ?? primaryIntegrationTestFileName,
+              },
+            });
+          }
+        } else if (!isStatics && !hasTestFile) {
+          // Check for test file (skip statics and startup - handled above)
           const primaryTestFileName = testFilePaths[0] ?? filename;
           const allowsLayerFiles =
             folderConfig && 'allowsLayerFiles' in folderConfig

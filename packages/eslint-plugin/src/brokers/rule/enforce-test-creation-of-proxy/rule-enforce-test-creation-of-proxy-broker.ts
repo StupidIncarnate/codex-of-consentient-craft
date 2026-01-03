@@ -4,6 +4,8 @@
  * USAGE:
  * const rule = ruleEnforceTestCreationOfProxyBroker();
  * // Returns EslintRule that validates proxy instances are created fresh in each it/test block
+ * // For unit tests: requires proxy creation before implementation calls
+ * // For integration/e2e tests: errors if any proxy is imported (integration tests use real code)
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce test isolation by preventing shared proxy instances
  */
@@ -12,6 +14,10 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
+import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
+import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
@@ -32,6 +38,8 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
           'Do not export proxy instances from test files. Create proxies fresh in each test instead.',
         proxyNotCreated:
           'Implementation {{implementationName}} called without creating {{proxyName}} first. Create the proxy before calling the implementation: const proxy = {{proxyName}}(); proxy.setup(...); {{implementationName}}();',
+        noProxyInIntegrationTest:
+          'Integration and e2e tests must not import proxy files. Integration tests run real code without mocking. Remove the proxy import: {{importSource}}',
       },
       schema: [],
     },
@@ -45,6 +53,35 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
       return {};
     }
 
+    // Check if this is an integration or e2e test file
+    const filePath = filePathContract.parse(filename);
+    const isIntegrationOrE2eTest =
+      isIntegrationTestFileGuard({ filePath }) || isE2eTestFileGuard({ filePath });
+
+    // For integration/e2e tests: only check for proxy imports (should error)
+    if (isIntegrationOrE2eTest) {
+      return {
+        ImportDeclaration: (node: Tsestree): void => {
+          const { source } = node;
+          if (!source) return;
+
+          const importSource = source.value;
+          if (typeof importSource !== 'string') return;
+
+          if (isProxyImportGuard({ importSource })) {
+            ctx.report({
+              node,
+              messageId: 'noProxyInIntegrationTest',
+              data: {
+                importSource,
+              },
+            });
+          }
+        },
+      };
+    }
+
+    // For unit tests: require proxy creation before implementation calls
     // Track if we're inside a test block (it/test only, NOT beforeEach/etc)
     let testBlockDepth = 0;
 

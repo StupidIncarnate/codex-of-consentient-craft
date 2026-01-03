@@ -34,9 +34,19 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
   }),
   create: (context: EslintContext) => {
     const ctx = context;
+    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+
+    // Allow raw import() in @dungeonmaster/shared's dynamic-import adapter - it IS the foundation wrapper
+    const isSharedDynamicImportAdapter =
+      (filename.includes('@dungeonmaster/shared') || filename.includes('packages/shared')) &&
+      filename.includes('/adapters/runtime/dynamic-import/');
+
     return {
       // Handle require() calls
       'CallExpression[callee.name="require"]': (node: Tsestree): void => {
+        if (isSharedDynamicImportAdapter) {
+          return;
+        }
         const arg = node.arguments?.[0];
 
         if (!arg) {
@@ -88,6 +98,9 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
 
       // Handle dynamic import() calls
       ImportExpression: (node: Tsestree): void => {
+        if (isSharedDynamicImportAdapter) {
+          return;
+        }
         const { source } = node;
 
         if (!source) {

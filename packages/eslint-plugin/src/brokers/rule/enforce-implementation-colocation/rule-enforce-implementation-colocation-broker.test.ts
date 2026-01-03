@@ -34,6 +34,9 @@ beforeEach(() => {
       '/project/src/errors/validation/validation-error.test.ts',
       '/project/src/flows/user/user-flow.integration.test.tsx',
       '/project/src/startup/start-server.integration.test.ts',
+      '/project/src/startup/start-database.integration.test.ts',
+      // Startup with forbidden unit test (for invalid case)
+      '/project/src/startup/start-bad-unit.test.ts',
       // Layer files
       '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.test.ts',
       '/project/src/widgets/user-card/avatar-layer-widget.test.tsx',
@@ -204,6 +207,11 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const StartServer = () => {};',
       filename: '/project/src/startup/start-server.ts',
     },
+    // Startup with integration test - valid
+    {
+      code: 'export const StartDatabase = () => {};',
+      filename: '/project/src/startup/start-database.ts',
+    },
 
     // Layer files with colocated tests and proxies
     {
@@ -298,6 +306,18 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
         { messageId: 'missingTestFileWithLayer' },
         { messageId: 'missingProxyFileWithLayer' },
       ],
+    },
+
+    // Startup files - require integration tests, forbid unit tests
+    {
+      code: 'export const StartCache = () => {};',
+      filename: '/project/src/startup/start-cache.ts',
+      errors: [{ messageId: 'missingIntegrationTestFile' }],
+    },
+    {
+      code: 'export const StartBadUnit = () => {};',
+      filename: '/project/src/startup/start-bad-unit.ts',
+      errors: [{ messageId: 'forbiddenUnitTestFile' }],
     },
   ],
 });

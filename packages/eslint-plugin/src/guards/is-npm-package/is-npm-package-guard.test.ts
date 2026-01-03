@@ -45,6 +45,12 @@ describe('isNpmPackageGuard', () => {
     });
   });
 
+  describe('valid - shared adapters exception', () => {
+    it('VALID: {importSource: "@dungeonmaster/shared/adapters"} => returns true', () => {
+      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/shared/adapters' })).toBe(true);
+    });
+  });
+
   describe('invalid - relative paths', () => {
     it('INVALID: {importSource: "./foo"} => returns false', () => {
       expect(isNpmPackageGuard({ importSource: './foo' })).toBe(false);

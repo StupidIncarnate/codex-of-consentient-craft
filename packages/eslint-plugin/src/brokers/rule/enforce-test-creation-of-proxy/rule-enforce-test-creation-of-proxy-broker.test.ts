@@ -112,15 +112,27 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       filename: '/project/src/widgets/user-card/user-card-widget.test.tsx',
     },
 
-    // Integration test files
+    // Integration test files - no proxy imports, runs real code
     {
       code: `
+        import { installTestbedCreateBroker } from '@dungeonmaster/testing';
+
         it('should complete user flow', () => {
-          const userBrokerProxy = userBrokerProxy();
-          userBrokerProxy.setupUser({ userId, user });
+          const testbed = installTestbedCreateBroker({ baseName: 'test' });
+          // Real implementation runs
         });
       `,
       filename: '/project/src/brokers/user/user-broker.integration.test.ts',
+    },
+
+    // E2E test files - no proxy imports, runs real code
+    {
+      code: `
+        it('should complete end-to-end flow', () => {
+          // Real implementation runs
+        });
+      `,
+      filename: '/project/src/tests/login.e2e.test.ts',
     },
 
     // Proxy called without assignment (empty proxy, no setup needed)
@@ -299,20 +311,56 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       ],
     },
 
-    // Module-level proxy in integration test file
+    // Integration test importing proxy file - FORBIDDEN
     {
       code: `
-        const userBrokerProxy = userBrokerProxy();
+        import { userBrokerProxy } from './user-broker.proxy';
 
         it('should complete flow', () => {
-          userBrokerProxy.setupUser({ userId, user });
+          userBrokerProxy();
         });
       `,
       filename: '/project/src/brokers/user/user-broker.integration.test.ts',
       errors: [
         {
-          messageId: 'proxyMustBeInTest',
-          data: { name: 'userBrokerProxy', proxyFunction: 'userBrokerProxy' },
+          messageId: 'noProxyInIntegrationTest',
+          data: { importSource: './user-broker.proxy' },
+        },
+      ],
+    },
+
+    // E2E test importing proxy file - FORBIDDEN
+    {
+      code: `
+        import { loginProxy } from './login.proxy';
+
+        it('should complete flow', () => {
+          loginProxy();
+        });
+      `,
+      filename: '/project/src/tests/login.e2e.test.ts',
+      errors: [
+        {
+          messageId: 'noProxyInIntegrationTest',
+          data: { importSource: './login.proxy' },
+        },
+      ],
+    },
+
+    // Integration test with proxy import using .proxy.ts extension - FORBIDDEN
+    {
+      code: `
+        import { StartInstallProxy } from './start-install.proxy';
+
+        it('should complete flow', () => {
+          StartInstallProxy();
+        });
+      `,
+      filename: '/project/src/startup/start-install.integration.test.ts',
+      errors: [
+        {
+          messageId: 'noProxyInIntegrationTest',
+          data: { importSource: './start-install.proxy' },
         },
       ],
     },

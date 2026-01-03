@@ -17,8 +17,9 @@ export const isNpmPackageGuard = ({ importSource }: { importSource?: string }): 
   }
 
   // @dungeonmaster workspace packages are not npm packages for mocking purposes
+  // EXCEPTION: @dungeonmaster/shared/adapters exports can be mocked (for language primitives like import())
   if (importSource.startsWith('@dungeonmaster')) {
-    return false;
+    return importSource === '@dungeonmaster/shared/adapters';
   }
 
   // Everything else is an npm package (including node:, scoped packages, etc.)
