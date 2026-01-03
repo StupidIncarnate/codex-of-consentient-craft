@@ -1600,6 +1600,24 @@ application. They use `.integration.test.ts` extension and are co-located with s
 **All other code** (brokers, flows, guards, transformers, widgets, etc.) uses **unit tests** (`.test.ts`) with colocated
 proxies.
 
+### No Proxies in Integration Tests
+
+**CRITICAL:** Integration tests (`.integration.test.ts`, `.e2e.test.ts`) must **NOT** import proxy files. This is
+enforced by lint rules.
+
+```typescript
+// ❌ FORBIDDEN in integration tests - importing any proxy files
+import {StartInstallProxy} from './start-install.proxy';
+import {userBrokerProxy} from '../brokers/user/user-broker.proxy';
+
+// ✅ CORRECT in integration tests - run real code only
+import {StartInstall} from './start-install';
+import {installTestbedCreateBroker} from '@dungeonmaster/testing';
+```
+
+**Why:** Integration tests validate real system behavior. Proxies contain `jest.mock()` calls that mock dependencies,
+defeating the purpose of integration testing. Integration tests run the full stack with real implementations.
+
 **File Location:**
 
 ```typescript
