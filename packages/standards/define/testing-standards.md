@@ -1597,6 +1597,11 @@ tests/
 Integration tests are **ONLY for startup files**. They validate that startup files correctly wire up the entire
 application. They use `.integration.test.ts` extension and are co-located with startup files.
 
+**ESLint Enforced:** The `@dungeonmaster/enforce-implementation-colocation` rule:
+
+- **Requires** `.integration.test.ts` for startup files (will error if missing)
+- **Forbids** `.test.ts` for startup files (will error if present)
+
 **All other code** (brokers, flows, guards, transformers, widgets, etc.) uses **unit tests** (`.test.ts`) with colocated
 proxies.
 

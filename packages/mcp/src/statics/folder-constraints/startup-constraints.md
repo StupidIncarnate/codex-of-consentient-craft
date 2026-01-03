@@ -21,9 +21,14 @@ startup/
 - **Environment loading** - Load .env and configure environment here
 - **Queue/scheduler registration** - Wire up responders to queues/cron jobs
 
-**TESTING:**
+**TESTING (ESLint Enforced):**
 
-Startup files use `.integration.test.ts` (NOT `.test.ts`):
+Startup files use `.integration.test.ts` (NOT `.test.ts`).
+
+**ESLint rule `@dungeonmaster/enforce-implementation-colocation`:**
+
+- Requires `.integration.test.ts` for startup files
+- Forbids `.test.ts` (unit tests) for startup files - will cause lint error
 
 ```typescript
 // startup/start-server.integration.test.ts  ✅ CORRECT

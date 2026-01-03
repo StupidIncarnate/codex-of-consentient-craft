@@ -24,6 +24,8 @@ startup/
 - **Filename:** kebab-case starting with `start-` (e.g., `start-server.ts`, `start-app.tsx`, `start-cli.ts`)
 - **Export:** PascalCase starting with `Start` (e.g., `StartServer`, `StartApp`, `StartCli`)
 - **Tests:** kebab-case ending with `.integration.test.ts` (NOT `.test.ts` - these are integration tests)
+  - **ESLint enforced:** `@dungeonmaster/enforce-implementation-colocation` requires `.integration.test.ts` and forbids
+    `.test.ts` for startup files
 - **Proxies:** kebab-case ending with `.proxy.ts` (e.g., `start-server.proxy.ts`, export `StartServerProxy` in
   PascalCase)
 - **Pattern:** startup/start-[name].ts
