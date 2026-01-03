@@ -1,3 +1,12 @@
+/**
+ * PURPOSE: Proxy for fs-rm-adapter
+ *
+ * USAGE:
+ * const proxy = fsRmAdapterProxy();
+ * proxy.throws({ filePath: '/path', error: new Error('fail') });
+ * // Works in ts-jest context, gracefully degrades when imported from dist
+ */
+
 import { rmSync } from 'fs';
 
 jest.mock('fs');

@@ -1,3 +1,12 @@
+/**
+ * PURPOSE: Proxy for fs-read-file-adapter
+ *
+ * USAGE:
+ * const proxy = fsReadFileAdapterProxy();
+ * proxy.returns({ filePath: '/path', content: FileContentStub({ value: 'test' }) });
+ * // Works in ts-jest context, gracefully degrades when imported from dist
+ */
+
 import { readFileSync } from 'fs';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 

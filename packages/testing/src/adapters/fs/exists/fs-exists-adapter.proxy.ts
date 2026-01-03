@@ -1,3 +1,12 @@
+/**
+ * PURPOSE: Proxy for fs-exists-adapter
+ *
+ * USAGE:
+ * const proxy = fsExistsAdapterProxy();
+ * proxy.returns({ filePath: '/path', exists: true });
+ * // Works in ts-jest context, gracefully degrades when imported from dist
+ */
+
 import { existsSync } from 'fs';
 
 jest.mock('fs');

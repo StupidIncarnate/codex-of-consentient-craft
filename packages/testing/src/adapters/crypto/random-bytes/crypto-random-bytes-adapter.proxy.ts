@@ -1,3 +1,12 @@
+/**
+ * PURPOSE: Proxy for crypto-random-bytes-adapter
+ *
+ * USAGE:
+ * const proxy = cryptoRandomBytesAdapterProxy();
+ * proxy.returns({ length: 16, bytes: Buffer.from('test') });
+ * // Works in ts-jest context, gracefully degrades when imported from dist
+ */
+
 import { randomBytes } from 'crypto';
 
 jest.mock('crypto');

@@ -1,3 +1,12 @@
+/**
+ * PURPOSE: Proxy for child-process-exec-sync-adapter
+ *
+ * USAGE:
+ * const proxy = childProcessExecSyncAdapterProxy();
+ * proxy.returns({ command: 'ls', output: Buffer.from('file.txt') });
+ * // Works in ts-jest context, gracefully degrades when imported from dist
+ */
+
 import { execSync } from 'child_process';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 

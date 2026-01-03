@@ -1,3 +1,12 @@
+/**
+ * PURPOSE: Proxy for fs-mkdir-adapter
+ *
+ * USAGE:
+ * const proxy = fsMkdirAdapterProxy();
+ * proxy.throws({ dirPath: '/path', error: new Error('fail') });
+ * // Works in ts-jest context, gracefully degrades when imported from dist
+ */
+
 import { mkdirSync } from 'fs';
 
 jest.mock('fs');
