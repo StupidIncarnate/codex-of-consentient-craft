@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "echo 'No build needed for docs package'",
+    "build:clean": "echo 'No build needed for docs package'",
     "test": "echo 'No tests for docs package'",
     "test:unit": "echo 'No tests for docs package'",
     "lint": "echo 'No linting for docs package'",
