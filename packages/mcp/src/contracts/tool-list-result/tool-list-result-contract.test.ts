@@ -10,28 +10,28 @@ describe('toolListResultContract', () => {
     });
   });
 
-  it('VALID: {tools: [{name: "discover", description: "Test", inputSchema: {}}]} => parses successfully', () => {
+  it('VALID: {tools: [{name, description, inputSchema: {type: "object"}}]} => parses successfully', () => {
     const result = ToolListResultStub({
-      tools: [{ name: 'discover', description: 'Test', inputSchema: {} }],
+      tools: [{ name: 'discover', description: 'Test', inputSchema: { type: 'object' } }],
     });
 
     expect(result).toStrictEqual({
-      tools: [{ name: 'discover', description: 'Test', inputSchema: {} }],
+      tools: [{ name: 'discover', description: 'Test', inputSchema: { type: 'object' } }],
     });
   });
 
   it('VALID: {tools: [{...}, {...}]} => parses successfully with multiple tools', () => {
     const result = ToolListResultStub({
       tools: [
-        { name: 'discover', description: 'First tool', inputSchema: {} },
-        { name: 'search', description: 'Second tool', inputSchema: {} },
+        { name: 'discover', description: 'First tool', inputSchema: { type: 'object' } },
+        { name: 'search', description: 'Second tool', inputSchema: { type: 'object' } },
       ],
     });
 
     expect(result).toStrictEqual({
       tools: [
-        { name: 'discover', description: 'First tool', inputSchema: {} },
-        { name: 'search', description: 'Second tool', inputSchema: {} },
+        { name: 'discover', description: 'First tool', inputSchema: { type: 'object' } },
+        { name: 'search', description: 'Second tool', inputSchema: { type: 'object' } },
       ],
     });
   });

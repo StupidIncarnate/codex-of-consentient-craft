@@ -9,22 +9,28 @@
  */
 import { z } from 'zod';
 
-export const discoverInputContract = z.discriminatedUnion('type', [
-  z.object({
-    type: z.literal('files').describe('Type of discovery'),
-    path: z.string().describe('Path to search').brand<'FilePath'>().optional(),
-    fileType: z
-      .string()
-      .describe('File type to filter (broker, widget, guard, etc.)')
-      .brand<'FileType'>()
-      .optional(),
-    search: z.string().describe('Search query').brand<'SearchQuery'>().optional(),
-    name: z.string().describe('Specific file name').brand<'FileName'>().optional(),
-  }),
-  z.object({
-    type: z.literal('standards').describe('Type of discovery'),
-    section: z.string().describe('Section path to filter').brand<'SectionPath'>().optional(),
-  }),
-]);
+// NOTE: MCP requires inputSchema to have type: "object" at root level.
+// z.discriminatedUnion produces "anyOf" which breaks MCP tool loading.
+// Using single object with optional fields for MCP compatibility.
+export const discoverInputContract = z.object({
+  type: z
+    .enum(['files', 'standards'])
+    .describe('Type of discovery - "files" to search code, "standards" to search documentation'),
+  // Fields for 'files' type
+  path: z.string().brand<'FilePath'>().describe('Path to search (for files type)').optional(),
+  fileType: z
+    .string()
+    .brand<'FileType'>()
+    .describe('File type to filter: broker, widget, guard, transformer, adapter, contract, etc.')
+    .optional(),
+  search: z.string().brand<'SearchQuery'>().describe('Search query to filter results').optional(),
+  name: z.string().brand<'FileName'>().describe('Specific file name to find').optional(),
+  // Fields for 'standards' type
+  section: z
+    .string()
+    .brand<'SectionPath'>()
+    .describe('Section path to filter (for standards type)')
+    .optional(),
+});
 
 export type DiscoverInput = z.infer<typeof discoverInputContract>;

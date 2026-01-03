@@ -66,6 +66,29 @@ describe('StartMcpServer', () => {
       expect(discoverTool).toBeDefined();
       expect(architectureTool).toBeDefined();
     });
+
+    it('VALID: All tool inputSchemas have type: "object" at root (required by Claude Code)', async () => {
+      const proxy = StartMcpServerProxy();
+      const client = await proxy.createClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 100 }),
+        method: RpcMethodStub({ value: 'tools/list' }),
+        params: {},
+      });
+
+      const response = await client.sendRequest(request);
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolListResultStub(response.result as never);
+
+      await client.close();
+
+      const toolsWithBadSchema = result.tools.filter((tool) => tool.inputSchema.type !== 'object');
+
+      expect(toolsWithBadSchema).toStrictEqual([]);
+    });
   });
 
   describe('tools/call with get-architecture', () => {

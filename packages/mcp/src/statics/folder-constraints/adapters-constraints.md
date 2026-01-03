@@ -201,6 +201,85 @@ export const eslintRuleTesterAdapterProxy = (): Record<PropertyKey, never> => ({
 
 **Why empty:** DSL/query adapters run real in tests to validate your query/selector logic against the actual system.
 
+**Language Primitive Adapters (import, eval, etc.):**
+
+For adapters that wrap language primitives (not npm packages), the proxy mocks the adapter itself.
+This is the ONLY exception to the "mock npm package, not adapter" rule.
+
+**Why use this instead of normal `import`?**
+
+Dynamic `import()` is a language primitive - there's no npm package to mock. When code needs to
+dynamically load modules at runtime (config files, plugins, user-specified paths), tests can't
+control what gets imported. By wrapping `import()` in an adapter, tests can mock the adapter
+itself to control what module gets "loaded".
+
+```typescript
+// Usage from @dungeonmaster/shared/adapters
+import {runtimeDynamicImportAdapter} from '@dungeonmaster/shared/adapters';
+
+const module = await runtimeDynamicImportAdapter<{ SomeExport: string }>({
+  path: '/path/to/module.ts',
+});
+// module = { SomeExport: '...' }
+```
+
+**The Adapter's Own Proxy (constructor-based pattern):**
+
+The adapter proxy takes the mock module in the constructor and sets up the mock immediately.
+This is simpler than method-based proxies because there's only one operation to mock.
+
+```typescript
+// adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy.ts
+import {runtimeDynamicImportAdapter} from '@dungeonmaster/shared/adapters';
+
+jest.mock('@dungeonmaster/shared/adapters', () => ({
+  ...jest.requireActual('@dungeonmaster/shared/adapters'),
+  runtimeDynamicImportAdapter: jest.fn(),
+}));
+
+export const runtimeDynamicImportAdapterProxy = ({
+                                                   module,
+                                                 }: {
+  module: unknown;
+}): Record<PropertyKey, never> => {
+  const mock = jest.mocked(runtimeDynamicImportAdapter<unknown>);
+  if (module instanceof Error) {
+    mock.mockRejectedValue(module);
+  } else {
+    mock.mockResolvedValue(module);
+  }
+  return {};
+};
+```
+
+**Broker Proxy Pattern (when a broker uses this adapter):**
+
+When a broker uses `runtimeDynamicImportAdapter`, its proxy imports and calls the adapter proxy
+from `@dungeonmaster/shared/testing`. The adapter proxy already has the `jest.mock()` declaration
+which gets hoisted when imported - broker proxies don't repeat it.
+
+```typescript
+// brokers/config/load/config-load-broker.proxy.ts
+import {runtimeDynamicImportAdapterProxy} from '@dungeonmaster/shared/testing';
+
+export const configLoadBrokerProxy = () => {
+  return {
+    // Semantic method wrapping adapter proxy
+    loadsConfig: ({config}: { config: unknown }) => {
+      runtimeDynamicImportAdapterProxy({module: config});
+    },
+    // Semantic method for module not found
+    configNotFound: () => {
+      runtimeDynamicImportAdapterProxy({module: new Error('Cannot find module')});
+    },
+  };
+};
+```
+
+**Why mock adapter:** Language primitives like `import()` aren't npm packages - there's nothing to mock.
+The adapter proxy mocks the barrel export (`@dungeonmaster/shared/adapters`), and broker proxies
+import the adapter proxy from `@dungeonmaster/shared/testing` to reuse that mock setup.
+
 **TEST EXAMPLE:**
 
 ```typescript
