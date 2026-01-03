@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:clean": "rm -rf dist && npm run build",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
     "typecheck": "tsc --noEmit",

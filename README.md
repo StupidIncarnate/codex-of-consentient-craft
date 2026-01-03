@@ -191,6 +191,42 @@ These are observations of how Claude Code works and how the system balances out 
 
 Found a bug or have a feature idea? Open an issue or PR!
 
+## Local Development: Testing with npm link
+
+To test the package locally in another project before publishing:
+
+### Step 1: Link all packages globally (from monorepo root)
+
+```bash
+cd /path/to/codex-of-consentient-craft
+npm link --workspaces
+```
+
+This registers `dungeonmaster` and all `@dungeonmaster/*` packages globally.
+
+### Step 2: Link packages in your test project
+
+```bash
+cd /path/to/your-test-project
+npm link dungeonmaster @dungeonmaster/cli @dungeonmaster/config @dungeonmaster/eslint-plugin @dungeonmaster/hooks @dungeonmaster/mcp @dungeonmaster/shared @dungeonmaster/standards @dungeonmaster/testing @dungeonmaster/tooling
+```
+
+### Step 3: Verify the links
+
+```bash
+ls -la node_modules/@dungeonmaster/
+ls -la node_modules/dungeonmaster
+```
+
+You should see symlinks pointing back to the monorepo.
+
+### Notes
+
+- **Why link all packages?** npm workspaces only affect local development. `npm link` on the root alone doesn't make
+  workspace sub-packages available - they must be linked individually.
+- **After running `npm install`** in your test project, the links may be removed. Re-run the link command from Step 2.
+- **To unlink**, run `npm unlink <package-name>` or delete the symlinks from `node_modules/`.
+
 ## License
 
 MIT

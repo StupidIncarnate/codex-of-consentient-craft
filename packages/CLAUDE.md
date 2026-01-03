@@ -94,6 +94,24 @@ Standard scripts for consistency across packages:
 
 **Note:** ESLint automatically discovers files based on root `eslint.config.js` - no arguments needed.
 
+### 5. Register in Root package.json
+
+**REQUIRED:** Add your new package to the root `package.json` dependencies so it gets installed when users install
+`dungeonmaster`:
+
+```json
+{
+   "dependencies": {
+      "@dungeonmaster/your-new-package": "*",
+      ...existing
+      packages...
+   }
+}
+```
+
+**Why:** The `workspaces` field only affects local development (symlinking). When users `npm install dungeonmaster`,
+they only get packages listed in `dependencies`. Without this step, your package won't be installed for end users.
+
 ## Type Definitions
 
 **Root `@types/` folder:** Type definitions for packages without `@types` npm packages should be placed in the root

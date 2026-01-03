@@ -1,7 +1,6 @@
 {
-  "name": "dungeonmaster-monorepo",
+  "name": "dungeonmaster",
   "version": "0.1.0-beta.1",
-  "private": true,
   "description": "A fun, quest-driven AI orchestration system for Claude that makes context windows work better",
   "workspaces": [
     "packages/*"
@@ -38,6 +37,15 @@
     "node": ">=14.0.0"
   },
   "dependencies": {
+    "@dungeonmaster/cli": "*",
+    "@dungeonmaster/config": "*",
+    "@dungeonmaster/eslint-plugin": "*",
+    "@dungeonmaster/hooks": "*",
+    "@dungeonmaster/mcp": "*",
+    "@dungeonmaster/shared": "*",
+    "@dungeonmaster/standards": "*",
+    "@dungeonmaster/testing": "*",
+    "@dungeonmaster/tooling": "*",
     "@anthropic-ai/claude-code": "^1.0.0",
     "@types/ioredis": "^4.28.10",
     "ioredis": "^5.7.0",
