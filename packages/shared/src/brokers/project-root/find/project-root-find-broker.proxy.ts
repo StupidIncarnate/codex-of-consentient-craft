@@ -10,6 +10,11 @@ export const projectRootFindBrokerProxy = (): {
     parentPath: string;
     projectRootPath: string;
   }) => void;
+  setupProjectRootFoundInDirectory: (params: { directoryPath: string }) => void;
+  setupProjectRootFoundInDirectoryParent: (params: {
+    directoryPath: string;
+    projectRootPath: string;
+  }) => void;
 } => {
   const fsAccessProxy = fsAccessAdapterProxy();
   const pathDirnameProxy = pathDirnameAdapterProxy();
@@ -18,32 +23,38 @@ export const projectRootFindBrokerProxy = (): {
   return {
     setupProjectRootFound: ({
       startPath,
-      projectRootPath: _projectRootPath,
+      projectRootPath,
     }: {
       startPath: string;
       projectRootPath: string;
     }) => {
-      const lastSlashIndex = startPath.lastIndexOf('/');
-      const directory = lastSlashIndex === 0 ? '/' : startPath.substring(0, lastSlashIndex);
-      pathDirnameProxy.returns({ result: directory as never });
-      pathJoinProxy.returns({ result: `${directory}/package.json` as never });
+      // First check: startPath itself (for directory paths) - reject since it's a file path
+      pathJoinProxy.returns({ result: `${startPath}/package.json` as never });
+      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      // Second check: parent directory (project root)
+      pathDirnameProxy.returns({ result: projectRootPath as never });
+      pathJoinProxy.returns({ result: `${projectRootPath}/package.json` as never });
       fsAccessProxy.resolves();
     },
 
     setupProjectRootNotFound: ({ startPath }: { startPath: string }) => {
       const lastSlashIndex = startPath.lastIndexOf('/');
       const directory = lastSlashIndex === 0 ? '/' : startPath.substring(0, lastSlashIndex);
+      // First check: startPath itself - reject
+      pathJoinProxy.returns({ result: `${startPath}/package.json` as never });
+      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      // Second check: parent directory - reject
       pathDirnameProxy.returns({ result: directory as never });
       pathJoinProxy.returns({ result: `${directory}/package.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT: no such file or directory') });
+      fsAccessProxy.rejects({ error: new Error('ENOENT') });
       // Simulate reaching root
       pathDirnameProxy.returns({ result: directory as never });
     },
 
     setupProjectRootFoundInParent: ({
       startPath,
-      parentPath,
-      projectRootPath: _projectRootPath,
+      parentPath: _parentPath,
+      projectRootPath,
     }: {
       startPath: string;
       parentPath: string;
@@ -51,13 +62,38 @@ export const projectRootFindBrokerProxy = (): {
     }) => {
       const lastSlashIndex = startPath.lastIndexOf('/');
       const directory = lastSlashIndex === 0 ? '/' : startPath.substring(0, lastSlashIndex);
-      // First attempt in current directory
+      // First check: startPath itself - reject
+      pathJoinProxy.returns({ result: `${startPath}/package.json` as never });
+      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      // Second check: parent of startPath - reject
       pathDirnameProxy.returns({ result: directory as never });
       pathJoinProxy.returns({ result: `${directory}/package.json` as never });
       fsAccessProxy.rejects({ error: new Error('ENOENT') });
-      // Move to parent
-      pathDirnameProxy.returns({ result: parentPath as never });
-      pathJoinProxy.returns({ result: `${parentPath}/package.json` as never });
+      // Third check: move to parent where package.json exists
+      pathDirnameProxy.returns({ result: projectRootPath as never });
+      pathJoinProxy.returns({ result: `${projectRootPath}/package.json` as never });
+      fsAccessProxy.resolves();
+    },
+
+    setupProjectRootFoundInDirectory: ({ directoryPath }: { directoryPath: string }) => {
+      // When startPath is a directory, check the directory itself first
+      pathJoinProxy.returns({ result: `${directoryPath}/package.json` as never });
+      fsAccessProxy.resolves();
+    },
+
+    setupProjectRootFoundInDirectoryParent: ({
+      directoryPath,
+      projectRootPath,
+    }: {
+      directoryPath: string;
+      projectRootPath: string;
+    }) => {
+      // First check: startPath directory itself - no package.json
+      pathJoinProxy.returns({ result: `${directoryPath}/package.json` as never });
+      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      // Then check parent directory
+      pathDirnameProxy.returns({ result: projectRootPath as never });
+      pathJoinProxy.returns({ result: `${projectRootPath}/package.json` as never });
       fsAccessProxy.resolves();
     },
   };

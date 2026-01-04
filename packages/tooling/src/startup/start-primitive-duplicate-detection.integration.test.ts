@@ -4,7 +4,6 @@ import { integrationEnvironmentCreateBroker } from '@dungeonmaster/testing';
 import { BaseNameStub } from '@dungeonmaster/testing/dist/contracts/base-name/base-name.stub';
 import { FileNameStub } from '@dungeonmaster/testing/dist/contracts/file-name/file-name.stub';
 import { FileContentStub } from '@dungeonmaster/testing/dist/contracts/file-content/file-content.stub';
-import { StartPrimitiveDuplicateDetectionProxy } from './start-primitive-duplicate-detection.proxy';
 import { CommandResultStub } from '../contracts/command-result/command-result.stub';
 import { ExitCodeStub } from '../contracts/exit-code/exit-code.stub';
 import { ProcessOutputStub } from '../contracts/process-output/process-output.stub';
@@ -62,7 +61,6 @@ const runStartup = ({ args }: { args: readonly string[] }) => {
 describe('StartPrimitiveDuplicateDetection', () => {
   describe('with no duplicates', () => {
     it('VALID: {pattern: "**/*.ts", files: unique strings} => returns exit code 0 with success message', () => {
-      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'no-duplicates' }),
         options: {
@@ -93,7 +91,6 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with duplicates', () => {
     it('VALID: {pattern: "**/*.ts", files: 3 occurrences of same string} => reports duplicate with locations', () => {
-      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'basic-duplicates' }),
         options: {
@@ -132,7 +129,6 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with custom threshold', () => {
     it('VALID: {threshold: 2, files: 2 occurrences} => reports duplicate', () => {
-      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'threshold-2' }),
         options: {
@@ -163,7 +159,6 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('edge cases', () => {
     it('EDGE: {files: empty directory} => returns no duplicates message', () => {
-      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'empty-dir' }),
         options: {
@@ -180,7 +175,6 @@ describe('StartPrimitiveDuplicateDetection', () => {
     });
 
     it('EDGE: {files: very long string duplicated} => reports duplicate with full value', () => {
-      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'long-string' }),
         options: {
@@ -217,7 +211,6 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
   describe('with regex literals', () => {
     it('VALID: {files: duplicate regex patterns} => reports as REGEX type', () => {
-      StartPrimitiveDuplicateDetectionProxy();
       const env = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'regex-duplicates' }),
         options: {

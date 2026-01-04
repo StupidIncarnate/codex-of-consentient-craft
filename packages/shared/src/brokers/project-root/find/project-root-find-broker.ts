@@ -3,6 +3,8 @@
  *
  * USAGE:
  * await projectRootFindBroker({startPath: FilePathStub({value: '/project/src/file.ts'})});
+ * // or with directory path:
+ * await projectRootFindBroker({startPath: FilePathStub({value: '/project'})});
  * // Returns FilePath to directory containing package.json
  */
 
@@ -22,7 +24,9 @@ export const projectRootFindBroker = async ({
   startPath: FilePath;
   currentPath?: FilePath;
 }): Promise<FilePath> => {
-  const searchPath = currentPath ?? pathDirnameAdapter({ path: startPath });
+  // On first call, check startPath itself first (handles directory paths like process.cwd())
+  // Then fall back to parent directory search (handles file paths like /project/src/file.ts)
+  const searchPath = currentPath ?? startPath;
 
   const packageJsonPath = pathJoinAdapter({
     paths: [searchPath, questsFolderStatics.files.packageJson],

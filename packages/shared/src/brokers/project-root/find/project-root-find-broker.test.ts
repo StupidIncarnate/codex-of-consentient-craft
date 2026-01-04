@@ -85,6 +85,35 @@ describe('projectRootFindBroker', () => {
     });
   });
 
+  describe('directory path cases', () => {
+    it('VALID: {startPath: "/project"} => finds package.json when startPath is a directory containing it', async () => {
+      const proxy = projectRootFindBrokerProxy();
+      const startPath = FilePathStub({ value: '/project' });
+
+      proxy.setupProjectRootFoundInDirectory({
+        directoryPath: '/project',
+      });
+
+      const result = await projectRootFindBroker({ startPath });
+
+      expect(result).toBe('/project');
+    });
+
+    it('VALID: {startPath: "/project/subdir"} => finds package.json in parent when startPath is a directory', async () => {
+      const proxy = projectRootFindBrokerProxy();
+      const startPath = FilePathStub({ value: '/project/subdir' });
+
+      proxy.setupProjectRootFoundInDirectoryParent({
+        directoryPath: '/project/subdir',
+        projectRootPath: '/project',
+      });
+
+      const result = await projectRootFindBroker({ startPath });
+
+      expect(result).toBe('/project');
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: {startPath: "/file.ts"} => finds package.json at root or throws error', async () => {
       const proxy = projectRootFindBrokerProxy();
