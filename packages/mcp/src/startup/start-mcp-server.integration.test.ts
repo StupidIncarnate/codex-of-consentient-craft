@@ -276,6 +276,70 @@ describe('StartMcpServer', () => {
       expect(typeof data.results).toBe('string');
       expect(data.count).toBeGreaterThan(0);
     });
+
+    it('VALID: {type: files, fileType: adapter} => returns adapters from @dungeonmaster/shared', async () => {
+      const client = await createMcpClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 5 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'discover',
+          arguments: {
+            type: 'files',
+            fileType: 'adapter',
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolCallResultStub(response.result as never);
+      const [firstContent] = result.content;
+
+      expect(firstContent).toBeDefined();
+
+      const parsedData: unknown = JSON.parse(String(firstContent!.text));
+      const data = DiscoverTreeResultStub(parsedData as never);
+
+      expect(data.results).toMatch(/@dungeonmaster\/\n\s+shared\//u);
+    });
+
+    it('VALID: {type: files, fileType: adapter} => shared package includes fs-access-adapter', async () => {
+      const client = await createMcpClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 6 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'discover',
+          arguments: {
+            type: 'files',
+            fileType: 'adapter',
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolCallResultStub(response.result as never);
+      const [firstContent] = result.content;
+
+      expect(firstContent).toBeDefined();
+
+      const parsedData: unknown = JSON.parse(String(firstContent!.text));
+      const data = DiscoverTreeResultStub(parsedData as never);
+
+      expect(data.results).toMatch(/fs-access-adapter \(adapter\)/u);
+    });
   });
 
   describe('invalid tool calls', () => {

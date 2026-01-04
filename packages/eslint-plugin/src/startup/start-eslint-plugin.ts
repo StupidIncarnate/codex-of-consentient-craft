@@ -80,6 +80,11 @@ export const StartEslintPlugin = (): {
       readonly test: EslintConfig;
       readonly fileOverrides: readonly EslintConfig[];
     };
+    readonly dungeonmasterTest: {
+      readonly typescript: EslintConfig;
+      readonly test: EslintConfig;
+      readonly fileOverrides: readonly EslintConfig[];
+    };
   };
 } =>
   ({
@@ -116,5 +121,6 @@ export const StartEslintPlugin = (): {
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),
+      dungeonmasterTest: configDungeonmasterBroker({ forTesting: true }),
     },
   }) as const;

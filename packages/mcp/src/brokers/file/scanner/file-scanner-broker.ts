@@ -8,6 +8,7 @@
 
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
 import { metadataExtractorTransformer } from '../../../transformers/metadata-extractor/metadata-extractor-transformer';
 import { signatureExtractorTransformer } from '../../../transformers/signature-extractor/signature-extractor-transformer';
 import { fileTypeDetectorTransformer } from '../../../transformers/file-type-detector/file-type-detector-transformer';
@@ -19,10 +20,15 @@ import { hasExportedFunctionGuard } from '../../../guards/has-exported-function/
 import { isMultiDotFileGuard } from '../../../guards/is-multi-dot-file/is-multi-dot-file-guard';
 import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
+import { fileWithSourceContract } from '../../../contracts/file-with-source/file-with-source-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { FileType } from '../../../contracts/file-type/file-type-contract';
 import type { FileMetadata } from '../../../contracts/file-metadata/file-metadata-contract';
+import type { FileWithSource } from '../../../contracts/file-with-source/file-with-source-contract';
+
+type FileSource = 'project' | 'shared';
 
 export const fileScannerBroker = async ({
   path,
@@ -35,24 +41,54 @@ export const fileScannerBroker = async ({
   search?: string;
   name?: string;
 }): Promise<readonly FileMetadata[]> => {
-  // 1. Find files
-  const pattern = path
-    ? globPatternContract.parse(`${path}/**/*.{ts,tsx}`)
-    : globPatternContract.parse('**/*.{ts,tsx}');
-
+  // 1. Get scan roots: project + shared package (if available)
   const cwdPath = filePathContract.parse(process.cwd());
-  const files = await globFindAdapter({ pattern, cwd: cwdPath });
+  const sharedPath = sharedPackageResolveAdapter();
 
-  // 2. Filter by file type if provided
+  // Build list of roots to scan with their source type
+  const scanRoots: { root: FilePath; source: FileSource }[] = [
+    { root: cwdPath, source: 'project' },
+  ];
+
+  if (sharedPath !== null) {
+    scanRoots.push({
+      root: filePathContract.parse(sharedPath),
+      source: 'shared',
+    });
+  }
+
+  // 2. Scan all roots in parallel and collect files with their source
+  const scanPromises = scanRoots.map(async ({ root, source }) => {
+    // For shared package, only scan the src directory structure
+    // For project, respect the path parameter
+    const scanPath =
+      source === 'shared' ? root : path ? filePathContract.parse(`${root}/${path}`) : root;
+
+    const pattern = globPatternContract.parse(`${scanPath}/**/*.{ts,tsx}`);
+    const files = await globFindAdapter({ pattern, cwd: root });
+
+    return files.map((filepath) =>
+      fileWithSourceContract.parse({
+        filepath,
+        source,
+        basePath: absoluteFilePathContract.parse(root),
+      }),
+    );
+  });
+
+  const scanResults = await Promise.all(scanPromises);
+  const allFilesWithSource: FileWithSource[] = scanResults.flat();
+
+  // 3. Filter by file type if provided
   const filteredFiles = fileType
-    ? files.filter((f) => {
-        const detectedType = fileTypeDetectorTransformer({ filepath: f });
+    ? allFilesWithSource.filter(({ filepath }) => {
+        const detectedType = fileTypeDetectorTransformer({ filepath });
         return detectedType === fileType;
       })
-    : files;
+    : allFilesWithSource;
 
-  // 3. Extract metadata from each file (parallel for performance)
-  const metadataPromises = filteredFiles.map(async (filepath) => {
+  // 4. Extract metadata from each file (parallel for performance)
+  const metadataPromises = filteredFiles.map(async ({ filepath, source, basePath }) => {
     // Read file
     const contents = await fsReadFileAdapter({ filepath });
 
@@ -82,22 +118,29 @@ export const fileScannerBroker = async ({
     // Detect file type
     const detectedFileType = fileTypeDetectorTransformer({ filepath });
 
+    // For shared package files, transform absolute path to @dungeonmaster/shared/...
+    const displayPath =
+      source === 'shared'
+        ? absoluteFilePathContract.parse(filepath.replace(basePath, '@dungeonmaster/shared'))
+        : filepath;
+
     return fileMetadataContract.parse({
       name: functionName,
-      path: filepath,
+      path: displayPath,
       fileType: detectedFileType,
       purpose: metadata?.purpose,
       signature: signature ?? undefined,
       usage: metadata?.usage,
       metadata: metadata?.metadata,
       relatedFiles: [],
+      source,
     });
   });
 
   const allResults = await Promise.all(metadataPromises);
   const filesWithMetadata = allResults.filter((r): r is FileMetadata => r !== null);
 
-  // 4. Separate implementation files from multi-dot files (.test.ts, .proxy.ts, etc.)
+  // 5. Separate implementation files from multi-dot files (.test.ts, .proxy.ts, etc.)
   const implementationFiles = filesWithMetadata.filter(
     (file) => !isMultiDotFileGuard({ filepath: file.path }),
   );
@@ -105,7 +148,7 @@ export const fileScannerBroker = async ({
     isMultiDotFileGuard({ filepath: file.path }),
   );
 
-  // 5. Build a map of base paths to multi-dot files for quick lookup
+  // 6. Build a map of base paths to multi-dot files for quick lookup
   const multiDotFilesByBase = new Map<FileMetadata['path'], FileMetadata['path'][]>();
   for (const file of multiDotFiles) {
     const basePath = fileBasePathTransformer({ filepath: file.path });
@@ -113,13 +156,16 @@ export const fileScannerBroker = async ({
     multiDotFilesByBase.set(basePath, [...existing, file.path]);
   }
 
-  // 6. Add related files to implementation files and make paths relative
+  // 7. Add related files to implementation files and make paths relative
   const results = implementationFiles.map((file) => {
     const basePath = fileBasePathTransformer({ filepath: file.path });
     const related = multiDotFilesByBase.get(basePath) ?? [];
 
-    // Convert paths: main path to relative, related files to basename only
-    const relativePath = pathToRelativeTransformer({ filepath: file.path });
+    // For project files, convert to relative paths
+    // For shared files, keep @dungeonmaster/shared/... format
+    const relativePath =
+      file.source === 'shared' ? file.path : pathToRelativeTransformer({ filepath: file.path });
+
     const relatedFilenames = related
       .map((relatedPath) => pathToBasenameTransformer({ filepath: relatedPath }))
       .sort(); // Sort alphabetically for consistent output
@@ -131,12 +177,12 @@ export const fileScannerBroker = async ({
     });
   });
 
-  // 7. Filter by name if provided
+  // 8. Filter by name if provided
   if (name) {
     return results.filter((r) => r.name === name);
   }
 
-  // 8. Filter by search if provided
+  // 9. Filter by search if provided
   const finalResults = search
     ? results.filter((r) => {
         const lowerSearch = search.toLowerCase();
@@ -147,6 +193,6 @@ export const fileScannerBroker = async ({
       })
     : results;
 
-  // 9. Sort alphabetically by name for consistent output
+  // 10. Sort alphabetically by name for consistent output
   return finalResults.sort((a, b) => a.name.localeCompare(b.name));
 };

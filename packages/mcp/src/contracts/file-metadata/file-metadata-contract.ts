@@ -27,6 +27,7 @@ export const fileMetadataContract = z.object({
   usage: z.string().brand<'UsageExample'>().optional(),
   metadata: z.record(z.string().brand<'MetadataValue'>()).optional(),
   relatedFiles: z.array(z.string().brand<'AbsoluteFilePath'>()),
+  source: z.enum(['project', 'shared']).brand<'FileSource'>(),
 });
 
 export type FileMetadata = z.infer<typeof fileMetadataContract>;

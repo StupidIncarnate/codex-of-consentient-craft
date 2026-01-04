@@ -28,6 +28,7 @@ describe('fileMetadataContract', () => {
       },
       usage: 'testBroker();',
       relatedFiles: [],
+      source: 'project',
     });
   });
 
@@ -67,6 +68,7 @@ describe('fileMetadataContract', () => {
       },
       usage: 'await userFetchBroker({userId});',
       relatedFiles: [],
+      source: 'project',
     });
   });
 
@@ -114,6 +116,7 @@ describe('fileMetadataContract', () => {
       },
       usage: 'await userSearchBroker({query, limit: 10});',
       relatedFiles: [],
+      source: 'project',
     });
   });
 
@@ -159,6 +162,7 @@ describe('fileMetadataContract', () => {
       },
       usage: 'configBroker({options: {debug: "true"}});',
       relatedFiles: [],
+      source: 'project',
     });
   });
 
@@ -188,6 +192,7 @@ describe('fileMetadataContract', () => {
       },
       usage: 'if (simpleGuard()) { ... }',
       relatedFiles: [],
+      source: 'project',
     });
   });
 
@@ -225,6 +230,7 @@ describe('fileMetadataContract', () => {
         whenNotToUse: 'Do not use when Y',
       },
       relatedFiles: [],
+      source: 'project',
     });
   });
 });

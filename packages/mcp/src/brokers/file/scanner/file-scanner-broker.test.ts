@@ -506,4 +506,84 @@ const privateHelper = (): boolean => true;`,
       expect(results).toStrictEqual([]);
     });
   });
+
+  describe('source field', () => {
+    it('VALID: project files => source is "project"', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const filepath = FilePathStub({ value: '/project/src/guards/my-guard.ts' });
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const contents = FileContentsStub({
+        value: `/**
+ * PURPOSE: My guard
+ * USAGE: myGuard()
+ */
+export const myGuard = (): boolean => true;`,
+      });
+
+      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.source).toBe('project');
+    });
+
+    it('VALID: shared package not found => only project files returned', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const filepath = FilePathStub({ value: '/project/src/guards/my-guard.ts' });
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const contents = FileContentsStub({
+        value: `/**
+ * PURPOSE: My guard
+ * USAGE: myGuard()
+ */
+export const myGuard = (): boolean => true;`,
+      });
+
+      proxy.setupSharedPackageNotFound();
+      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.source).toBe('project');
+    });
+  });
+
+  describe('shared package scanning', () => {
+    it('VALID: shared package files with mocked glob => source is "shared" and path transformed', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+
+      // Shared package file - note the path format after transformation
+      const sharedFilepath = FilePathStub({
+        value: '/node_modules/@dungeonmaster/shared/src/guards/is-key-of/is-key-of-guard.ts',
+      });
+      const sharedContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Type guard for key-of check
+ * USAGE: isKeyOfGuard({ obj, key })
+ */
+export const isKeyOfGuard = <T extends object>({ obj, key }: { obj: T; key: PropertyKey }): key is keyof T => key in obj;`,
+      });
+
+      // When shared package is available, two glob calls happen (project + shared)
+      // First call returns empty (project), second returns shared files
+      proxy.setupSharedPackageAvailable();
+      proxy.setupSharedPackageFiles({
+        pattern,
+        files: [{ filepath: sharedFilepath, contents: sharedContents }],
+      });
+
+      const results = await fileScannerBroker({});
+
+      // Should find the shared file
+      const sharedFiles = results.filter((r) => r.source === 'shared');
+
+      expect(sharedFiles.length).toBeGreaterThan(0);
+
+      // First shared file should have transformed path
+      expect(sharedFiles[0]?.path).toMatch(/@dungeonmaster\/shared\//u);
+    });
+  });
 });

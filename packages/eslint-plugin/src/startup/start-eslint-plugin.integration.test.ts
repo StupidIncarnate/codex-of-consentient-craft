@@ -95,10 +95,10 @@ describe('StartEslintPlugin', () => {
   });
 
   describe('with config initialization', () => {
-    it('VALID: {} => returns config with dungeonmaster namespace', () => {
+    it('VALID: {} => returns config with dungeonmaster and dungeonmasterTest namespaces', () => {
       const plugin = StartEslintPlugin();
 
-      expect(Object.keys(plugin.configs)).toStrictEqual(['dungeonmaster']);
+      expect(Object.keys(plugin.configs)).toStrictEqual(['dungeonmaster', 'dungeonmasterTest']);
     });
 
     it('VALID: {} => returns dungeonmaster config with typescript, test, fileOverrides, and ruleEnforceOn', () => {
