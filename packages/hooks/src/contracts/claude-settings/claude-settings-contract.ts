@@ -38,9 +38,17 @@ const hooksConfigContract = z.object({
   SessionStart: z.array(sessionStartHookContract).optional(),
 });
 
+const permissionStringContract = z.string().brand<'PermissionString'>();
+
+const permissionsConfigContract = z.object({
+  allow: z.array(permissionStringContract).optional(),
+  deny: z.array(permissionStringContract).optional(),
+});
+
 export const claudeSettingsContract = z
   .object({
     hooks: hooksConfigContract.optional(),
+    permissions: permissionsConfigContract.optional(),
   })
   .passthrough();
 
@@ -52,3 +60,5 @@ export type HookEntry = z.infer<typeof hookEntryContract>;
 export type HookType = z.infer<typeof hookTypeContract>;
 export type HookCommand = z.infer<typeof hookCommandContract>;
 export type HookMatcher = z.infer<typeof hookMatcherContract>;
+export type PermissionsConfig = z.infer<typeof permissionsConfigContract>;
+export type PermissionString = z.infer<typeof permissionStringContract>;

@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Install MCP package by creating/updating .mcp.json config in target project
+ * PURPOSE: Install MCP package by creating/updating .mcp.json config and adding permissions to .claude/settings.json
  *
  * USAGE:
  * const result = await StartInstall({ context });
- * // Creates .mcp.json with dungeonmaster config or merges into existing, skips if already configured
+ * // Creates .mcp.json with dungeonmaster config, adds MCP permissions to .claude/settings.json
  */
 
 import {
@@ -18,6 +18,8 @@ import { fsReadFileAdapter } from '../adapters/fs/read-file/fs-read-file-adapter
 import { fsWriteFileAdapter } from '../adapters/fs/write-file/fs-write-file-adapter';
 import type { McpConfig } from '../contracts/mcp-config/mcp-config-contract';
 import { dungeonmasterConfigCreatorTransformer } from '../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
+import { settingsPermissionsAddBroker } from '../brokers/settings/permissions-add/settings-permissions-add-broker';
+import { filePathContract } from '../contracts/file-path/file-path-contract';
 
 const CONFIG_FILENAME = '.mcp.json';
 const PACKAGE_NAME = '@dungeonmaster/mcp';
@@ -41,13 +43,17 @@ export const StartInstall = async ({
     // File doesn't exist or is invalid JSON - will create new config
   }
 
+  // Add MCP permissions to .claude/settings.json (always, regardless of MCP config state)
+  const targetProjectRoot = filePathContract.parse(context.targetProjectRoot);
+  await settingsPermissionsAddBroker({ targetProjectRoot });
+
   // Check if dungeonmaster is already configured
   if (existingConfig?.mcpServers && 'dungeonmaster' in existingConfig.mcpServers) {
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse('MCP config already exists'),
+      message: installMessageContract.parse('MCP config already exists, added permissions'),
     };
   }
 
@@ -71,7 +77,9 @@ export const StartInstall = async ({
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: true,
       action: 'merged',
-      message: installMessageContract.parse('Merged dungeonmaster into existing .mcp.json'),
+      message: installMessageContract.parse(
+        'Merged dungeonmaster into existing .mcp.json and added permissions',
+      ),
     };
   }
 
@@ -88,6 +96,8 @@ export const StartInstall = async ({
     packageName: packageNameContract.parse(PACKAGE_NAME),
     success: true,
     action: 'created',
-    message: installMessageContract.parse('Created .mcp.json with dungeonmaster config'),
+    message: installMessageContract.parse(
+      'Created .mcp.json with dungeonmaster config and added permissions',
+    ),
   };
 };

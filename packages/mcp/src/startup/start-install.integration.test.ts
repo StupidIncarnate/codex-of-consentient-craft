@@ -25,11 +25,15 @@ describe('start-install integration', () => {
         packageName: '@dungeonmaster/mcp',
         success: true,
         action: 'created',
-        message: 'Created .mcp.json with dungeonmaster config',
+        message: 'Created .mcp.json with dungeonmaster config and added permissions',
       });
 
       const configContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.mcp.json' }),
+      });
+
+      const settingsContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
       });
 
       testbed.cleanup();
@@ -37,9 +41,10 @@ describe('start-install integration', () => {
       expect(configContent).toMatch(/"dungeonmaster"/u);
       expect(configContent).toMatch(/"type": "stdio"/u);
       expect(configContent).toMatch(/@dungeonmaster\/mcp/u);
+      expect(settingsContent).toMatch(/mcp__dungeonmaster__get-architecture/u);
     });
 
-    it('VALID: {context: config exists with dungeonmaster} => skips installation', async () => {
+    it('VALID: {context: config exists with dungeonmaster} => skips mcp.json but still adds permissions', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'skip-mcp-config' }),
       });
@@ -66,14 +71,20 @@ describe('start-install integration', () => {
         },
       });
 
-      testbed.cleanup();
-
       expect(result).toStrictEqual({
         packageName: '@dungeonmaster/mcp',
         success: true,
         action: 'skipped',
-        message: 'MCP config already exists',
+        message: 'MCP config already exists, added permissions',
       });
+
+      const settingsContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+      });
+
+      testbed.cleanup();
+
+      expect(settingsContent).toMatch(/mcp__dungeonmaster__get-architecture/u);
     });
 
     it('VALID: {context: config exists without dungeonmaster} => merges dungeonmaster config', async () => {
@@ -107,17 +118,22 @@ describe('start-install integration', () => {
         packageName: '@dungeonmaster/mcp',
         success: true,
         action: 'merged',
-        message: 'Merged dungeonmaster into existing .mcp.json',
+        message: 'Merged dungeonmaster into existing .mcp.json and added permissions',
       });
 
       const configContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.mcp.json' }),
       });
 
+      const settingsContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+      });
+
       testbed.cleanup();
 
       expect(configContent).toMatch(/"other"/u);
       expect(configContent).toMatch(/"dungeonmaster"/u);
+      expect(settingsContent).toMatch(/mcp__dungeonmaster__get-architecture/u);
     });
 
     it('VALID: {context: config exists with invalid JSON} => creates new config', async () => {
@@ -143,16 +159,21 @@ describe('start-install integration', () => {
         packageName: '@dungeonmaster/mcp',
         success: true,
         action: 'created',
-        message: 'Created .mcp.json with dungeonmaster config',
+        message: 'Created .mcp.json with dungeonmaster config and added permissions',
       });
 
       const configContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.mcp.json' }),
       });
 
+      const settingsContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+      });
+
       testbed.cleanup();
 
       expect(configContent).toMatch(/"dungeonmaster"/u);
+      expect(settingsContent).toMatch(/mcp__dungeonmaster__get-architecture/u);
     });
   });
 });
