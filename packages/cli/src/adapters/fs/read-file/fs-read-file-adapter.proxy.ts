@@ -1,6 +1,8 @@
 import { readFile } from 'fs/promises';
 
-jest.mock('fs/promises');
+jest.mock('fs/promises', () => ({
+  readFile: jest.fn(),
+}));
 
 export const fsReadFileAdapterProxy = (): {
   resolves: (params: { content: string }) => void;
@@ -11,11 +13,11 @@ export const fsReadFileAdapterProxy = (): {
   mock.mockResolvedValue('');
 
   return {
-    resolves: ({ content }: { content: string }) => {
+    resolves: ({ content }: { content: string }): void => {
       mock.mockResolvedValueOnce(content);
     },
 
-    rejects: ({ error }: { error: Error }) => {
+    rejects: ({ error }: { error: Error }): void => {
       mock.mockRejectedValueOnce(error);
     },
   };
