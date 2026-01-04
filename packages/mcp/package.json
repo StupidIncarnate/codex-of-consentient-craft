@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
