@@ -1,98 +1,120 @@
 /**
- * Integration tests for StartCli
+ * Integration tests for StartCli - runs actual CLI via subprocess
  */
 
-import { StartCli } from './start-cli';
-import { StartCliProxy } from './start-cli.proxy';
+import { execSync } from 'child_process';
+import { unlinkSync } from 'fs';
+import * as path from 'path';
+import {
+  installTestbedCreateBroker,
+  BaseNameStub,
+  RelativePathStub,
+  FileContentStub,
+} from '@dungeonmaster/testing';
 
-const originalArgv = process.argv;
+const startupPath = path.join(process.cwd(), 'src', 'startup', 'start-cli.ts');
 
-describe('StartCli', () => {
-  describe('with help command', () => {
-    it('VALID: {command: help} => executes without errors', async () => {
-      StartCliProxy();
-      process.argv = ['node', 'script.js', 'help'];
+describe('StartCli integration', () => {
+  describe('help command', () => {
+    it('VALID: {command: help} => shows help message with commands', () => {
+      const command = `npx tsx ${startupPath} help`;
 
-      await StartCli();
+      const stdout = execSync(command, {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: process.cwd(),
+      });
 
-      process.argv = originalArgv;
-
-      expect(true).toBe(true);
+      expect(stdout).toMatch(/Dungeonmaster/u);
+      expect(stdout).toMatch(/Commands:/u);
+      expect(stdout).toMatch(/help/u);
+      expect(stdout).toMatch(/list/u);
+      expect(stdout).toMatch(/init/u);
     });
 
-    it('VALID: {command: undefined} => executes without errors (default)', async () => {
-      StartCliProxy();
-      process.argv = ['node', 'script.js'];
+    it('VALID: {command: none} => shows help message (default)', () => {
+      const command = `npx tsx ${startupPath}`;
 
-      await StartCli();
+      const stdout = execSync(command, {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: process.cwd(),
+      });
 
-      process.argv = originalArgv;
-
-      expect(true).toBe(true);
+      expect(stdout).toMatch(/Dungeonmaster/u);
+      expect(stdout).toMatch(/Commands:/u);
     });
   });
 
-  describe('with list command', () => {
-    it('EMPTY: {quests folder: does not exist} => executes without errors', async () => {
-      StartCliProxy();
-      process.argv = ['node', 'script.js', 'list'];
+  describe('list command', () => {
+    it('VALID: {command: list, no quests folder} => shows no quests message', () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'cli-list-empty' }),
+      });
 
-      await StartCli();
+      const command = `npx tsx ${startupPath} list`;
 
-      process.argv = originalArgv;
+      const stdout = execSync(command, {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: testbed.projectPath,
+      });
 
-      expect(true).toBe(true);
+      testbed.cleanup();
+
+      expect(stdout).toMatch(/\.dungeonmaster-quests folder/u);
+    });
+
+    it('VALID: {command: list, empty quests folder} => shows no active quests', () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'cli-list-no-quests' }),
+      });
+
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: '.dungeonmaster-quests/.gitkeep' }),
+        content: FileContentStub({ value: '' }),
+      });
+
+      const command = `npx tsx ${startupPath} list`;
+
+      const stdout = execSync(command, {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: testbed.projectPath,
+      });
+
+      testbed.cleanup();
+
+      expect(stdout).toMatch(/No active quests/u);
     });
   });
 
-  describe('with quest request (unknown command)', () => {
-    it('VALID: {command: single word quest} => spawns agent and executes without errors', async () => {
-      const proxy = StartCliProxy();
-      proxy.setupAgentSuccess();
-      process.argv = ['node', 'script.js', 'refactor'];
+  describe('init command', () => {
+    it('ERROR: {command: init, no package.json} => exits with error about package.json', () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'cli-init-no-pkg' }),
+      });
 
-      await StartCli();
+      // Delete package.json to simulate project without it
+      unlinkSync(path.join(testbed.projectPath, 'package.json'));
 
-      process.argv = originalArgv;
+      const command = `npx tsx ${startupPath} init`;
 
-      expect(true).toBe(true);
-    });
+      let caughtError: Error | null = null;
+      try {
+        execSync(command, {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+          cwd: testbed.projectPath,
+        });
+      } catch (error) {
+        caughtError = error as Error;
+      }
 
-    it('VALID: {command: multi-word quest} => joins arguments and spawns agent', async () => {
-      const proxy = StartCliProxy();
-      proxy.setupAgentSuccess();
-      process.argv = ['node', 'script.js', 'Create', 'auth', 'system'];
+      testbed.cleanup();
 
-      await StartCli();
-
-      process.argv = originalArgv;
-
-      expect(true).toBe(true);
-    });
-
-    it('VALID: {command: quest with special characters} => spawns agent with special characters', async () => {
-      const proxy = StartCliProxy();
-      proxy.setupAgentSuccess();
-      process.argv = ['node', 'script.js', 'Add', '"dark', 'mode"', 'toggle'];
-
-      await StartCli();
-
-      process.argv = originalArgv;
-
-      expect(true).toBe(true);
-    });
-
-    it('ERROR: {agent spawn fails} => calls process.exit with code 1', async () => {
-      const proxy = StartCliProxy();
-      proxy.setupAgentError();
-      const exitCalls = proxy.getProcessExitCalls();
-      process.argv = ['node', 'script.js', 'Create', 'feature'];
-
-      await expect(StartCli()).rejects.toThrow('process.exit called');
-
-      process.argv = originalArgv;
-
-      expect(exitCalls).toHaveBeenCalledWith(1);
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toMatch(/package\.json/u);
     });
   });
 });

@@ -1,5 +1,4 @@
-import { pathJoinAdapterProxy } from '../../../../../shared/src/adapters/path/join/path-join-adapter.proxy';
-import { projectRootFindBrokerProxy } from '../../../../../shared/src/brokers/project-root/find/project-root-find-broker.proxy';
+import { pathJoinAdapterProxy, projectRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import type { ExitCode, FilePath } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnAdapterProxy } from '../../../adapters/child-process/spawn/child-process-spawn-adapter.proxy';

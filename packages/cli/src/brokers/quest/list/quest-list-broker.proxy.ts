@@ -1,5 +1,4 @@
-import { pathJoinAdapterProxy } from '../../../../../shared/src/adapters/path/join/path-join-adapter.proxy';
-import { questsFolderFindBrokerProxy } from '../../../../../shared/src/brokers/quests-folder/find/quests-folder-find-broker.proxy';
+import { pathJoinAdapterProxy, questsFolderFindBrokerProxy } from '@dungeonmaster/shared/testing';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';

@@ -12,7 +12,15 @@ import { questListBroker } from '../brokers/quest/list/quest-list-broker';
 import { questToListItemTransformer } from '../transformers/quest-to-list-item/quest-to-list-item-transformer';
 import { cliStatics } from '../statics/cli/cli-statics';
 import { agentSpawnBroker } from '../brokers/agent/spawn/agent-spawn-broker';
-import { filePathContract, userInputContract } from '@dungeonmaster/shared/contracts';
+import {
+  filePathContract,
+  userInputContract,
+  installContextContract,
+} from '@dungeonmaster/shared/contracts';
+import { installCheckBroker } from '@dungeonmaster/shared/brokers';
+import { packageDiscoverBroker } from '../brokers/package/discover/package-discover-broker';
+import { installOrchestrateBroker } from '../brokers/install/orchestrate/install-orchestrate-broker';
+import { pathDirnameAdapter } from '@dungeonmaster/shared/adapters';
 
 const COMMAND_LINE_ARG_START_INDEX = 2;
 
@@ -27,6 +35,63 @@ export const StartCli = async (): Promise<void> => {
     process.stdout.write(`Commands:\n`);
     process.stdout.write(`  help   Show this help message\n`);
     process.stdout.write(`  list   List all active quests\n`);
+    process.stdout.write(`  init   Initialize dungeonmaster in project\n`);
+    return;
+  }
+
+  if (command === cliStatics.commands.init) {
+    try {
+      const projectRoot = filePathContract.parse(process.cwd());
+
+      const validationResult = installCheckBroker({ projectRoot });
+      if (!validationResult.valid) {
+        process.stderr.write(`Error: ${validationResult.error}\n`);
+        process.exit(1);
+      }
+
+      // From dist/startup/ go up 4 levels to reach monorepo root:
+      // dist/startup → dist → cli → packages → monorepo-root
+      const dungeonmasterRoot = pathDirnameAdapter({
+        path: pathDirnameAdapter({
+          path: pathDirnameAdapter({
+            path: pathDirnameAdapter({ path: filePathContract.parse(__dirname) }),
+          }),
+        }),
+      });
+
+      process.stdout.write(`Discovering packages...\n`);
+      const packages = packageDiscoverBroker({ dungeonmasterRoot });
+
+      if (packages.length === 0) {
+        process.stdout.write(`No packages with install scripts found.\n`);
+        return;
+      }
+
+      process.stdout.write(`Found ${packages.length} package(s) to install.\n`);
+
+      const context = installContextContract.parse({
+        targetProjectRoot: projectRoot,
+        dungeonmasterRoot,
+      });
+
+      const results = await installOrchestrateBroker({ packages, context });
+
+      process.stdout.write(`\nInstallation Results:\n`);
+      for (const result of results) {
+        const status = result.success ? '\u2713' : '\u2717';
+        process.stdout.write(`  ${status} ${result.packageName} - ${result.action}\n`);
+        if (result.message) {
+          process.stdout.write(`    ${result.message}\n`);
+        }
+        if (result.error) {
+          process.stdout.write(`    Error: ${result.error}\n`);
+        }
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      process.stderr.write(`Error during init: ${errorMessage}\n`);
+      process.exit(1);
+    }
     return;
   }
 
@@ -86,6 +151,7 @@ export const StartCli = async (): Promise<void> => {
   process.stdout.write(`Commands:\n`);
   process.stdout.write(`  help   Show this help message\n`);
   process.stdout.write(`  list   List all active quests\n`);
+  process.stdout.write(`  init   Initialize dungeonmaster in project\n`);
 };
 
 if (require.main === module) {

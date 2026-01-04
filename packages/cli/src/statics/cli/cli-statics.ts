@@ -10,6 +10,7 @@ export const cliStatics = {
   commands: {
     help: 'help',
     list: 'list',
+    init: 'init',
   },
   meta: {
     name: 'dungeonmaster',
