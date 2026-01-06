@@ -379,7 +379,7 @@ User Input
     Implementation Ready
 ```
 
-**Guard: isQuestReadyForPathseekerGuard:**
+**Guard: isQuestReadyForPathseekerGuard (simplified for Phase 5):**
 
 ```typescript
 // Returns true when:
@@ -388,6 +388,9 @@ User Input
 // 3. tasks[].length > 0
 // 4. Each task has at least one observableId
 ```
+
+**Note:** This is a data-presence check only. Full state machine with reflow handling is Phase 6+ (see "Future: State
+Machine Orchestration" section).
 
 ---
 
@@ -442,6 +445,55 @@ User Input
 | cli     | statics/pathseeker-prompt/pathseeker-prompt-statics.ts | Narrow to file mapping only                                   |
 | cli     | brokers/agent/spawn/agent-spawn-broker.ts              | May need to reference orchestrator                            |
 | root    | package.json                                           | Add outcome-playwright, outcome-redis as workspace packages   |
+
+---
+
+## Future: State Machine Orchestration (Not in Scope)
+
+The current plan covers ChaosWhisperer + PathSeeker only. Full agent orchestration requires a state machine.
+
+**Full Agent Pipeline:**
+
+```
+ChaosWhisperer → PathSeeker → CodeWeaver → SiegeBreaker → LawBringer
+       ↑              ↑            │              │
+       │              │            ↓              │
+       │              └─── Spiritmender ←─────────┘
+       │                    (lint/test fix)
+       │
+       └──────────── Any agent can trigger reflow
+```
+
+**Agents (full set):**
+| Agent | Role |
+|-------|------|
+| ChaosWhisperer | BDD architect - user dialogue, observables, contracts |
+| PathSeeker | File mapping - repo analysis, dependency steps |
+| CodeWeaver | Implementation - code + tests |
+| SiegeBreaker | Edge case hunter - tries to break implementation |
+| LawBringer | Quality enforcer - code review, standards |
+| Spiritmender | Fixer - runs between stages to fix lint/test failures |
+
+**Exit conditions (future):**
+
+```typescript
+type AgentExitStatus =
+    | { status: 'success' }                           // Move to next agent
+    | { status: 'needs-replanning', reason: string }  // → PathSeeker
+    | { status: 'needs-clarification', reason: string } // → ChaosWhisperer
+    | { status: 'blocked', reason: string }           // → Human intervention
+    | { status: 'lint-fail' | 'test-fail' }           // → Spiritmender
+```
+
+**State machine requirements (future):**
+
+- Track current agent and quest state
+- Handle reflows (agent exits early → route to appropriate earlier agent)
+- Spiritmender intercepts between CodeWeaver and SiegeBreaker
+- Persist state for recovery after crashes
+- Max retry limits to prevent infinite loops
+
+**This is Phase 6+ work** - requires the data model and basic agents to be in place first.
 
 ---
 
