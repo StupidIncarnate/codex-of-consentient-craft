@@ -8,10 +8,14 @@
 
 import { z } from 'zod';
 
+import { contextContract } from '../context/context-contract';
+import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { executionLogEntryContract } from '../execution-log-entry/execution-log-entry-contract';
+import { observableContract } from '../observable/observable-contract';
 import { questPhaseContract } from '../quest-phase/quest-phase-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { questTaskContract } from '../quest-task/quest-task-contract';
+import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 
 export const questContract = z.object({
   id: z.string().min(1).brand<'QuestId'>(),
@@ -29,6 +33,10 @@ export const questContract = z.object({
   }),
   executionLog: z.array(executionLogEntryContract),
   tasks: z.array(questTaskContract),
+  contexts: z.array(contextContract),
+  observables: z.array(observableContract),
+  steps: z.array(dependencyStepContract),
+  toolingRequirements: z.array(toolingRequirementContract),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
 });

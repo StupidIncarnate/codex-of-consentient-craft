@@ -2,7 +2,7 @@ import { mcpPermissionsCreatorTransformer } from './mcp-permissions-creator-tran
 
 describe('mcpPermissionsCreatorTransformer', () => {
   describe('permission generation', () => {
-    it('VALID: {} => returns all 6 MCP permission strings with correct format', () => {
+    it('VALID: {} => returns all 8 MCP permission strings with correct format', () => {
       const result = mcpPermissionsCreatorTransformer();
 
       expect(result).toStrictEqual([
@@ -12,6 +12,8 @@ describe('mcpPermissionsCreatorTransformer', () => {
         'mcp__dungeonmaster__get-syntax-rules',
         'mcp__dungeonmaster__get-testing-patterns',
         'mcp__dungeonmaster__add-quest',
+        'mcp__dungeonmaster__get-quest',
+        'mcp__dungeonmaster__modify-quest',
       ]);
     });
   });

@@ -42,6 +42,10 @@ describe('questListBroker', () => {
           },
           executionLog: [],
           tasks: [],
+          contexts: [],
+          observables: [],
+          steps: [],
+          toolingRequirements: [],
         }),
       });
       pathJoinProxy.returns({
@@ -63,6 +67,10 @@ describe('questListBroker', () => {
           },
           executionLog: [],
           tasks: [],
+          contexts: [],
+          observables: [],
+          steps: [],
+          toolingRequirements: [],
         }),
       });
 
@@ -149,6 +157,10 @@ describe('questListBroker', () => {
           },
           executionLog: [],
           tasks: [],
+          contexts: [],
+          observables: [],
+          steps: [],
+          toolingRequirements: [],
         }),
       });
 

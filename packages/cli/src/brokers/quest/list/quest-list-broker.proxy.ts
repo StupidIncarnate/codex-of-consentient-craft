@@ -1,3 +1,7 @@
+// Required for questsFolderFindBrokerProxy which uses fsAccessAdapter from shared package
+// Must be before imports for Jest hoisting to work correctly
+jest.mock('fs/promises');
+
 import { pathJoinAdapterProxy, questsFolderFindBrokerProxy } from '@dungeonmaster/shared/testing';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';

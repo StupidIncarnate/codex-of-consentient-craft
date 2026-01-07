@@ -15,11 +15,12 @@
     "mcp:dev": "npx @modelcontextprotocol/inspector ./start-server.sh"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
     "@dungeonmaster/eslint-plugin": "*",
     "@dungeonmaster/shared": "*",
-    "typescript": "^5.0.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "glob": "^10.0.0",
+    "lowdb": "^7.0.1",
+    "typescript": "^5.0.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {

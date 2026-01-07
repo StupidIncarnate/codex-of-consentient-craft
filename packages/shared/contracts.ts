@@ -121,3 +121,41 @@ export * from './src/contracts/install-result/install-result.stub';
 
 export * from './src/contracts/install-context/install-context-contract';
 export * from './src/contracts/install-context/install-context.stub';
+
+// ID Contracts (Wave 1)
+export * from './src/contracts/quest-id/quest-id-contract';
+export * from './src/contracts/quest-id/quest-id.stub';
+
+export * from './src/contracts/context-id/context-id-contract';
+export * from './src/contracts/context-id/context-id.stub';
+
+export * from './src/contracts/observable-id/observable-id-contract';
+export * from './src/contracts/observable-id/observable-id.stub';
+
+export * from './src/contracts/step-id/step-id-contract';
+export * from './src/contracts/step-id/step-id.stub';
+
+export * from './src/contracts/task-id/task-id-contract';
+export * from './src/contracts/task-id/task-id.stub';
+
+export * from './src/contracts/tooling-requirement-id/tooling-requirement-id-contract';
+export * from './src/contracts/tooling-requirement-id/tooling-requirement-id.stub';
+
+// Context & Observable Contracts (Wave 1)
+export * from './src/contracts/context-locator/context-locator-contract';
+export * from './src/contracts/context-locator/context-locator.stub';
+
+export * from './src/contracts/outcome-type/outcome-type-contract';
+export * from './src/contracts/outcome-type/outcome-type.stub';
+
+export * from './src/contracts/context/context-contract';
+export * from './src/contracts/context/context.stub';
+
+export * from './src/contracts/observable/observable-contract';
+export * from './src/contracts/observable/observable.stub';
+
+export * from './src/contracts/tooling-requirement/tooling-requirement-contract';
+export * from './src/contracts/tooling-requirement/tooling-requirement.stub';
+
+export * from './src/contracts/dependency-step/dependency-step-contract';
+export * from './src/contracts/dependency-step/dependency-step.stub';

@@ -24,9 +24,14 @@ import { mcpDiscoverBroker } from '../brokers/mcp/discover/mcp-discover-broker.j
 import { folderConstraintsInitBroker } from '../brokers/folder-constraints/init/folder-constraints-init-broker.js';
 import { folderConstraintsState } from '../state/folder-constraints/folder-constraints-state.js';
 import { questAddBroker } from '../brokers/quest/add/quest-add-broker.js';
+import { questGetBroker } from '../brokers/quest/get/quest-get-broker.js';
+import { questModifyBroker } from '../brokers/quest/modify/quest-modify-broker.js';
 import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract.js';
 import { discoverInputContract } from '../contracts/discover-input/discover-input-contract.js';
 import { folderDetailInputContract } from '../contracts/folder-detail-input/folder-detail-input-contract.js';
+import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract.js';
+import { modifyQuestInputContract } from '../contracts/modify-quest-input/modify-quest-input-contract.js';
+import { pathJoinAdapter } from '../adapters/path/join/path-join-adapter.js';
 
 const emptyInputSchema = z.object({});
 
@@ -84,6 +89,16 @@ export const StartMcpServer = async (): Promise<void> => {
         description:
           'Creates a new quest with tasks and saves it to the .dungeonmaster-quests folder',
         inputSchema: zodToJsonSchema(addQuestInputContract, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'get-quest',
+        description: 'Retrieves a quest by its ID',
+        inputSchema: zodToJsonSchema(getQuestInputContract, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'modify-quest',
+        description: 'Modifies an existing quest using upsert semantics',
+        inputSchema: zodToJsonSchema(modifyQuestInputContract, { $refStrategy: 'none' }),
       },
     ],
   }));
@@ -167,6 +182,34 @@ export const StartMcpServer = async (): Promise<void> => {
     if (request.params.name === 'add-quest') {
       const result = await questAddBroker({
         input: request.params.arguments as never,
+      });
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, JSON_INDENT_SPACES) }],
+      };
+    }
+
+    if (request.params.name === 'get-quest') {
+      const dbPath = pathJoinAdapter({
+        paths: [process.cwd(), '.dungeonmaster-quests', 'db.json'],
+      });
+      const result = await questGetBroker({
+        input: request.params.arguments as never,
+        dbPath,
+      });
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, JSON_INDENT_SPACES) }],
+      };
+    }
+
+    if (request.params.name === 'modify-quest') {
+      const dbPath = pathJoinAdapter({
+        paths: [process.cwd(), '.dungeonmaster-quests', 'db.json'],
+      });
+      const result = await questModifyBroker({
+        input: request.params.arguments as never,
+        dbPath,
       });
 
       return {

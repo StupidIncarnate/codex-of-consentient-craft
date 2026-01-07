@@ -21,6 +21,8 @@ export const mcpToolsStatics = {
       'get-syntax-rules',
       'get-testing-patterns',
       'add-quest',
+      'get-quest',
+      'modify-quest',
     ] as const,
   },
 } as const;

@@ -23,9 +23,8 @@ describe('questsFolderFindBroker', () => {
       const { projectRootProxy, pathJoinProxy } = questsFolderFindBrokerProxy();
       const startPath = FilePathStub({ value: '/deep/nested/project/file.ts' });
 
-      projectRootProxy.setupProjectRootFoundInParent({
+      projectRootProxy.setupProjectRootFound({
         startPath: '/deep/nested/project/file.ts',
-        parentPath: '/deep/nested',
         projectRootPath: '/deep/nested/project',
       });
       pathJoinProxy.returns({

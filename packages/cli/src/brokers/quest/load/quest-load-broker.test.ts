@@ -21,6 +21,10 @@ describe('questLoadBroker', () => {
         },
         executionLog: [],
         tasks: [],
+        contexts: [],
+        observables: [],
+        steps: [],
+        toolingRequirements: [],
       });
 
       fsReadFileProxy.resolves({ content: questJson });
@@ -52,6 +56,10 @@ describe('questLoadBroker', () => {
         executionLog: [],
         tasks: [],
         userRequest: 'Fix the login bug',
+        contexts: [],
+        observables: [],
+        steps: [],
+        toolingRequirements: [],
       });
 
       fsReadFileProxy.resolves({ content: questJson });
@@ -121,6 +129,10 @@ describe('questLoadBroker', () => {
         },
         executionLog: [],
         tasks: [],
+        contexts: [],
+        observables: [],
+        steps: [],
+        toolingRequirements: [],
       });
 
       fsReadFileProxy.resolves({ content: questJson });

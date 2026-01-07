@@ -9,5 +9,6 @@ export const QuestTaskStub = ({ ...props }: StubArgument<QuestTask> = {}): Quest
     name: 'Create service',
     type: 'implementation',
     status: 'pending',
+    observableIds: [],
     ...props,
   });

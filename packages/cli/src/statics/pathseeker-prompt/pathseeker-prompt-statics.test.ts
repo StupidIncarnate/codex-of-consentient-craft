@@ -6,58 +6,90 @@ import { pathseekerPromptStatics } from './pathseeker-prompt-statics';
 
 describe('pathseekerPromptStatics', () => {
   describe('prompt', () => {
-    it('has template property', () => {
-      expect(pathseekerPromptStatics.prompt.template).toBeDefined();
+    it('VALID: {prompt.template} => has template property as string', () => {
       expect(typeof pathseekerPromptStatics.prompt.template).toBe('string');
     });
 
-    it('template includes $ARGUMENTS placeholder', () => {
-      const hasPlaceholder = pathseekerPromptStatics.prompt.template.includes('$ARGUMENTS');
-
-      expect(hasPlaceholder).toBe(true);
+    it('VALID: {prompt.template} => includes $ARGUMENTS placeholder', () => {
+      expect(pathseekerPromptStatics.prompt.template).toMatch(/\$ARGUMENTS/u);
     });
 
-    it('has placeholders property', () => {
-      expect(pathseekerPromptStatics.prompt.placeholders).toBeDefined();
+    it('VALID: {prompt.placeholders} => has arguments placeholder defined', () => {
       expect(pathseekerPromptStatics.prompt.placeholders.arguments).toBe('$ARGUMENTS');
     });
 
-    it('template includes quest creation mode instructions', () => {
-      const hasQuestCreation = pathseekerPromptStatics.prompt.template.includes('Quest Creation');
-      const hasObservableActions =
-        pathseekerPromptStatics.prompt.template.includes('Observable Actions');
+    describe('file mapping focus', () => {
+      it('VALID: {prompt.template} => identifies PathSeeker as file mapping agent', () => {
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/File Mapping Agent/u);
+      });
 
-      expect(hasQuestCreation).toBe(true);
-      expect(hasObservableActions).toBe(true);
+      it('VALID: {prompt.template} => mentions reading quest from ChaosWhisperer', () => {
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/ChaosWhisperer/u);
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/contexts/u);
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/observables/u);
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/tasks/u);
+      });
+
+      it('VALID: {prompt.template} => mentions MCP discover tools for repo analysis', () => {
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/discover/u);
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/MCP/u);
+      });
+
+      it('VALID: {prompt.template} => explains dependency step structure', () => {
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/taskLinks/u);
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/observablesSatisfied/u);
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/dependsOn/u);
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/filesToCreate/u);
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/filesToModify/u);
+      });
+
+      it('VALID: {prompt.template} => mentions modify-quest MCP tool', () => {
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/modify-quest/u);
+      });
     });
 
-    it('template includes MCP add-quest tool instructions', () => {
-      const hasAddQuest = pathseekerPromptStatics.prompt.template.includes('add-quest');
-      const hasOutputInstructions =
-        pathseekerPromptStatics.prompt.template.includes('Output Instructions');
+    describe('responsibilities not included', () => {
+      it('VALID: {prompt.template} => does NOT include user dialogue instructions', () => {
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/Socratic/u);
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/User Dialogue/iu);
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/Interactive Q&A Process/u);
+      });
 
-      expect(hasAddQuest).toBe(true);
-      expect(hasOutputInstructions).toBe(true);
+      it('VALID: {prompt.template} => does NOT include context definition', () => {
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/Context Definition/u);
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(
+          /Define reusable environments/u,
+        );
+      });
+
+      it('VALID: {prompt.template} => does NOT include observable creation', () => {
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/Observable.*Creation/iu);
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/GIVEN.*WHEN.*THEN/u);
+      });
+
+      it('VALID: {prompt.template} => does NOT include task creation', () => {
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/Task Definition/u);
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/Task Types:/u);
+      });
+
+      it('VALID: {prompt.template} => does NOT include tooling requirements identification', () => {
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/Tooling Assessment/u);
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/toolingRequirements/u);
+      });
+
+      it('VALID: {prompt.template} => does NOT mention add-quest tool', () => {
+        expect(pathseekerPromptStatics.prompt.template).not.toMatch(/add-quest/u);
+      });
     });
 
-    it('template includes task definition criteria', () => {
-      const hasTaskTypes = pathseekerPromptStatics.prompt.template.includes('Task Types');
-      const hasImplementation = pathseekerPromptStatics.prompt.template.includes('implementation');
-      const hasTesting = pathseekerPromptStatics.prompt.template.includes('testing');
+    describe('step examples', () => {
+      it('VALID: {prompt.template} => includes example of step with taskLinks array', () => {
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/taskLinks.*\[/u);
+      });
 
-      expect(hasTaskTypes).toBe(true);
-      expect(hasImplementation).toBe(true);
-      expect(hasTesting).toBe(true);
-    });
-
-    it('template includes exploration guidelines', () => {
-      const hasExplorationGuidelines =
-        pathseekerPromptStatics.prompt.template.includes('Exploration Guidelines');
-      const hasIntegrationAnalysis =
-        pathseekerPromptStatics.prompt.template.includes('Integration Analysis');
-
-      expect(hasExplorationGuidelines).toBe(true);
-      expect(hasIntegrationAnalysis).toBe(true);
+      it('VALID: {prompt.template} => includes example of step with observablesSatisfied array', () => {
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/observablesSatisfied.*\[/u);
+      });
     });
   });
 });

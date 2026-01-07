@@ -20,6 +20,7 @@ import type { TypescriptProgram } from '../../contracts/typescript-program/types
 import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
 import type { TypescriptNodeFactory } from '../../contracts/typescript-node-factory/typescript-node-factory-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
+import type { ModuleName } from '../../contracts/module-name/module-name-contract';
 
 export const typescriptProxyMockTransformerMiddleware = ({
   sourceFile,
@@ -53,8 +54,20 @@ export const typescriptProxyMockTransformerMiddleware = ({
     return sourceFile;
   }
 
+  // Deduplicate mocks by module name, keeping only the first occurrence for each module.
+  // The first occurrence is preferred because it's typically the simple auto-mock,
+  // while later occurrences might be factory mocks that are too specific for cross-file use.
+  const seenModules = new Set<ModuleName>();
+  const deduplicatedMocks = mockCalls.filter((mock) => {
+    if (seenModules.has(mock.moduleName)) {
+      return false;
+    }
+    seenModules.add(mock.moduleName);
+    return true;
+  });
+
   const mockStatements = typescriptMockCallsToStatementsAdapter({
-    mockCalls,
+    mockCalls: deduplicatedMocks,
     nodeFactory,
   });
 

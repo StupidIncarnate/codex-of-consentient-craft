@@ -8,7 +8,7 @@ describe('mcpToolsStatics', () => {
   });
 
   describe('tools', () => {
-    it('VALID: {tools.names} => returns all 6 MCP tool names in order', () => {
+    it('VALID: {tools.names} => returns all 8 MCP tool names in order', () => {
       expect(mcpToolsStatics.tools.names).toStrictEqual([
         'discover',
         'get-architecture',
@@ -16,6 +16,8 @@ describe('mcpToolsStatics', () => {
         'get-syntax-rules',
         'get-testing-patterns',
         'add-quest',
+        'get-quest',
+        'modify-quest',
       ]);
     });
   });

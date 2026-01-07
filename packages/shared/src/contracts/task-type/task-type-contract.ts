@@ -9,10 +9,13 @@
 import { z } from 'zod';
 
 export const taskTypeContract = z.enum([
+  'discovery',
   'implementation',
   'testing',
+  'review',
   'documentation',
-  'refactoring',
+  'configuration',
+  'migration',
 ]);
 
 export type TaskType = z.infer<typeof taskTypeContract>;

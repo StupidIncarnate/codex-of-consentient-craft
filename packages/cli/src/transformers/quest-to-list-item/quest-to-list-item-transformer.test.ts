@@ -28,12 +28,14 @@ describe('questToListItemTransformer', () => {
             name: 'Task 1',
             type: 'implementation',
             status: 'complete',
+            observableIds: [],
           },
           {
             id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             name: 'Task 2',
             type: 'implementation',
             status: 'in_progress',
+            observableIds: [],
           },
         ],
       });

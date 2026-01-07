@@ -3,6 +3,14 @@ import { TaskTypeStub } from './task-type.stub';
 
 describe('taskTypeContract', () => {
   describe('valid types', () => {
+    it('VALID: discovery => parses successfully', () => {
+      const taskType = TaskTypeStub({ value: 'discovery' });
+
+      const result = taskTypeContract.parse(taskType);
+
+      expect(result).toBe('discovery');
+    });
+
     it('VALID: implementation => parses successfully', () => {
       const taskType = TaskTypeStub({ value: 'implementation' });
 
@@ -19,6 +27,14 @@ describe('taskTypeContract', () => {
       expect(result).toBe('testing');
     });
 
+    it('VALID: review => parses successfully', () => {
+      const taskType = TaskTypeStub({ value: 'review' });
+
+      const result = taskTypeContract.parse(taskType);
+
+      expect(result).toBe('review');
+    });
+
     it('VALID: documentation => parses successfully', () => {
       const taskType = TaskTypeStub({ value: 'documentation' });
 
@@ -27,12 +43,20 @@ describe('taskTypeContract', () => {
       expect(result).toBe('documentation');
     });
 
-    it('VALID: refactoring => parses successfully', () => {
-      const taskType = TaskTypeStub({ value: 'refactoring' });
+    it('VALID: configuration => parses successfully', () => {
+      const taskType = TaskTypeStub({ value: 'configuration' });
 
       const result = taskTypeContract.parse(taskType);
 
-      expect(result).toBe('refactoring');
+      expect(result).toBe('configuration');
+    });
+
+    it('VALID: migration => parses successfully', () => {
+      const taskType = TaskTypeStub({ value: 'migration' });
+
+      const result = taskTypeContract.parse(taskType);
+
+      expect(result).toBe('migration');
     });
   });
 

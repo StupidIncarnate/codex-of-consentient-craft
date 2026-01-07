@@ -13,6 +13,7 @@ describe('questTaskContract', () => {
         name: 'Create service',
         type: 'implementation',
         status: 'pending',
+        observableIds: [],
       });
     });
 
@@ -29,6 +30,7 @@ describe('questTaskContract', () => {
         completedBy: '002-codeweaver-report.json',
         startedAt: '2024-01-15T10:00:00.000Z',
         completedAt: '2024-01-15T12:00:00.000Z',
+        observableIds: ['b2c3d4e5-f6a7-8901-bcde-f12345678901'],
       });
 
       const result = questTaskContract.parse(task);
@@ -36,6 +38,23 @@ describe('questTaskContract', () => {
       expect(result.name).toBe('Write tests');
       expect(result.type).toBe('testing');
       expect(result.status).toBe('complete');
+      expect(result.observableIds).toStrictEqual(['b2c3d4e5-f6a7-8901-bcde-f12345678901']);
+    });
+
+    it('VALID: task with multiple observableIds => parses successfully', () => {
+      const task = QuestTaskStub({
+        observableIds: [
+          'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+          'c3d4e5f6-a7b8-9012-cdef-123456789012',
+        ],
+      });
+
+      const result = questTaskContract.parse(task);
+
+      expect(result.observableIds).toStrictEqual([
+        'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+        'c3d4e5f6-a7b8-9012-cdef-123456789012',
+      ]);
     });
 
     it('VALID: failed task with error => parses successfully', () => {
@@ -76,8 +95,21 @@ describe('questTaskContract', () => {
           name: '',
           type: 'implementation',
           status: 'pending',
+          observableIds: [],
         });
       }).toThrow(/String must contain at least 1 character/u);
+    });
+
+    it('INVALID: observableIds with invalid uuid => throws validation error', () => {
+      expect(() => {
+        questTaskContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'Task',
+          type: 'implementation',
+          status: 'pending',
+          observableIds: ['not-a-uuid'],
+        });
+      }).toThrow(/Invalid uuid/u);
     });
   });
 });

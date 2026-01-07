@@ -1,3 +1,7 @@
+import { ContextStub } from '../context/context.stub';
+import { DependencyStepStub } from '../dependency-step/dependency-step.stub';
+import { ObservableStub } from '../observable/observable.stub';
+import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
 import { questContract } from './quest-contract';
 import { QuestStub } from './quest.stub';
 
@@ -8,10 +12,25 @@ describe('questContract', () => {
 
       const result = questContract.parse(quest);
 
-      expect(result.id).toBe('add-auth');
-      expect(result.folder).toBe('001-add-auth');
-      expect(result.title).toBe('Add Authentication');
-      expect(result.status).toBe('in_progress');
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        phases: {
+          discovery: { status: 'complete' },
+          implementation: { status: 'in_progress' },
+          testing: { status: 'pending' },
+          review: { status: 'pending' },
+        },
+        executionLog: [],
+        tasks: [],
+        contexts: [],
+        observables: [],
+        steps: [],
+        toolingRequirements: [],
+      });
     });
 
     it('VALID: quest with tasks => parses successfully', () => {
@@ -22,18 +41,22 @@ describe('questContract', () => {
             name: 'Create service',
             type: 'implementation',
             status: 'complete',
+            observableIds: [],
           },
         ],
       });
 
       const result = questContract.parse(quest);
 
-      expect(result.tasks).toHaveLength(1);
-
-      const [firstTask] = result.tasks;
-
-      expect(firstTask).toBeDefined();
-      expect(firstTask?.name).toBe('Create service');
+      expect(result.tasks).toStrictEqual([
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'Create service',
+          type: 'implementation',
+          status: 'complete',
+          observableIds: [],
+        },
+      ]);
     });
 
     it('VALID: completed quest => parses successfully', () => {
@@ -64,6 +87,50 @@ describe('questContract', () => {
 
       expect(result.status).toBe('abandoned');
       expect(result.abandonReason).toBe('Requirements changed');
+    });
+
+    it('VALID: quest with contexts => parses successfully', () => {
+      const context = ContextStub();
+      const quest = QuestStub({
+        contexts: [context],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.contexts).toStrictEqual([context]);
+    });
+
+    it('VALID: quest with observables => parses successfully', () => {
+      const observable = ObservableStub();
+      const quest = QuestStub({
+        observables: [observable],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.observables).toStrictEqual([observable]);
+    });
+
+    it('VALID: quest with steps => parses successfully', () => {
+      const step = DependencyStepStub();
+      const quest = QuestStub({
+        steps: [step],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.steps).toStrictEqual([step]);
+    });
+
+    it('VALID: quest with toolingRequirements => parses successfully', () => {
+      const toolingRequirement = ToolingRequirementStub();
+      const quest = QuestStub({
+        toolingRequirements: [toolingRequirement],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.toolingRequirements).toStrictEqual([toolingRequirement]);
     });
   });
 

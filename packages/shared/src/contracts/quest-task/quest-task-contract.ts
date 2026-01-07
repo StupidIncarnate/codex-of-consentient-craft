@@ -8,6 +8,7 @@
 
 import { z } from 'zod';
 
+import { observableIdContract } from '../observable-id/observable-id-contract';
 import { taskStatusContract } from '../task-status/task-status-contract';
 import { taskTypeContract } from '../task-type/task-type-contract';
 
@@ -24,6 +25,7 @@ export const questTaskContract = z.object({
   startedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   errorMessage: z.string().brand<'ErrorMessage'>().optional(),
+  observableIds: z.array(observableIdContract),
 });
 
 export type QuestTask = z.infer<typeof questTaskContract>;
