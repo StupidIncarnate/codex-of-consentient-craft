@@ -1,8 +1,6 @@
-import { readFile } from 'fs/promises';
+jest.mock('fs/promises');
 
-jest.mock('fs/promises', () => ({
-  readFile: jest.fn(),
-}));
+import { readFile } from 'fs/promises';
 
 export const fsReadFileAdapterProxy = (): {
   resolves: (params: { content: string }) => void;

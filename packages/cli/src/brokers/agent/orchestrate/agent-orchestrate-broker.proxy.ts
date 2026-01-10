@@ -19,32 +19,20 @@ export const agentOrchestrateBrokerProxy = (): {
   const pathseekerProxy = pathseekerSpawnBrokerProxy();
 
   return {
-    setupChaoswhispererSuccess: ({ exitCode }: { exitCode: ExitCode }) => {
-      chaoswhispererProxy.setupSuccess({
-        projectRoot: '/project' as never,
-        exitCode,
-      });
+    setupChaoswhispererSuccess: ({ exitCode }: { exitCode: ExitCode }): void => {
+      chaoswhispererProxy.setupSuccess({ exitCode });
     },
 
-    setupChaoswhispererError: ({ error }: { error: Error }) => {
-      chaoswhispererProxy.setupError({
-        projectRoot: '/project' as never,
-        error,
-      });
+    setupChaoswhispererError: ({ error }: { error: Error }): void => {
+      chaoswhispererProxy.setupError({ error });
     },
 
-    setupPathseekerSuccess: ({ exitCode }: { exitCode: ExitCode }) => {
-      pathseekerProxy.setupSuccess({
-        projectRoot: '/project' as never,
-        exitCode,
-      });
+    setupPathseekerSuccess: ({ exitCode }: { exitCode: ExitCode }): void => {
+      pathseekerProxy.setupSuccess({ exitCode });
     },
 
-    setupPathseekerError: ({ error }: { error: Error }) => {
-      pathseekerProxy.setupError({
-        projectRoot: '/project' as never,
-        error,
-      });
+    setupPathseekerError: ({ error }: { error: Error }): void => {
+      pathseekerProxy.setupError({ error });
     },
 
     createQuestReady: (): Quest => {

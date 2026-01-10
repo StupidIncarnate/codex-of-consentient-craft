@@ -23,6 +23,7 @@ export const mcpToolsStatics = {
       'add-quest',
       'get-quest',
       'modify-quest',
+      'signal-cli-return',
     ] as const,
   },
 } as const;

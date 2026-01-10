@@ -7,20 +7,26 @@ jest.mock('child_process');
 export const childProcessSpawnAdapterProxy = (): {
   setupSuccess: (params: { exitCode: ExitCode }) => ChildProcess;
   setupError: (params: { error: Error }) => ChildProcess;
+  getSpawnedCommand: () => unknown;
+  getSpawnedArgs: () => unknown;
 } => {
   // Mock the npm package, not the adapter
   const mock = jest.mocked(spawn);
 
-  // Default mock behavior - return mock child process
-  mock.mockImplementation(() => {
+  // Helper to create mock child process with kill method
+  const createMockChildProcess = (): ChildProcess => {
     const mockChildProcess = new EventEmitter() as ChildProcess;
+    mockChildProcess.kill = jest.fn().mockReturnValue(true);
     return mockChildProcess;
-  });
+  };
+
+  // Default mock behavior - return mock child process
+  mock.mockImplementation(() => createMockChildProcess());
 
   return {
     // Semantic method for setting successful spawn with exit code
     setupSuccess: ({ exitCode }: { exitCode: ExitCode }): ChildProcess => {
-      const mockChildProcess = new EventEmitter() as ChildProcess;
+      const mockChildProcess = createMockChildProcess();
       mock.mockReturnValueOnce(mockChildProcess);
       // Emit exit event asynchronously
       setImmediate(() => {
@@ -31,13 +37,29 @@ export const childProcessSpawnAdapterProxy = (): {
 
     // Semantic method for setting spawn error
     setupError: ({ error }: { error: Error }): ChildProcess => {
-      const mockChildProcess = new EventEmitter() as ChildProcess;
+      const mockChildProcess = createMockChildProcess();
       mock.mockReturnValueOnce(mockChildProcess);
       // Emit error event asynchronously
       setImmediate(() => {
         mockChildProcess.emit('error', error);
       });
       return mockChildProcess;
+    },
+
+    // Get the command that was passed to spawn (returns unknown since from external mock)
+    getSpawnedCommand: (): unknown => {
+      const { calls } = mock.mock;
+      const lastCall = calls[calls.length - 1];
+      if (!lastCall) return undefined;
+      return lastCall[0];
+    },
+
+    // Get the args that were passed to spawn (returns unknown since from external mock)
+    getSpawnedArgs: (): unknown => {
+      const { calls } = mock.mock;
+      const lastCall = calls[calls.length - 1];
+      if (!lastCall) return undefined;
+      return lastCall[1];
     },
   };
 };

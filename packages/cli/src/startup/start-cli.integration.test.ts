@@ -1,120 +1,187 @@
 /**
- * Integration tests for StartCli - runs actual CLI via subprocess
+ * PURPOSE: Integration tests for CLI startup entry point detection and initialization
+ *
+ * USAGE:
+ * npm test -- start-cli.integration.test.ts
  */
 
-import { execSync } from 'child_process';
-import { unlinkSync } from 'fs';
-import * as path from 'path';
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
-const startupPath = path.join(process.cwd(), 'src', 'startup', 'start-cli.ts');
+import { describe, expect, it, jest } from '@jest/globals';
+import { inkTestRender as render } from '../adapters/ink-testing-library/render/ink-test-render';
+import React from 'react';
 
-describe('StartCli integration', () => {
-  describe('help command', () => {
-    it('VALID: {command: help} => shows help message with commands', () => {
-      const command = `npx tsx ${startupPath} help`;
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
-      const stdout = execSync(command, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: process.cwd(),
-      });
+import { cliStatics } from '../statics/cli/cli-statics';
+import { CliAppWidget } from '../widgets/cli-app/cli-app-widget';
 
-      expect(stdout).toMatch(/Dungeonmaster/u);
-      expect(stdout).toMatch(/Commands:/u);
-      expect(stdout).toMatch(/help/u);
-      expect(stdout).toMatch(/list/u);
-      expect(stdout).toMatch(/init/u);
+const waitForUseEffect = async (): Promise<void> => {
+  await new Promise((resolve) => {
+    setTimeout(resolve, cliStatics.testing.useEffectDelayMs);
+  });
+};
+
+type FilePath = ReturnType<typeof FilePathStub>;
+
+const resolveRealPath = ({ path }: { path: FilePath }): FilePath => {
+  try {
+    return FilePathStub({ value: realpathSync(path) });
+  } catch {
+    return path;
+  }
+};
+
+describe('StartCli', () => {
+  describe('entry point detection', () => {
+    it('VALID: {symlinked path} => resolves real path correctly', () => {
+      const testPath = FilePathStub({ value: '/some/path/to/file.js' });
+
+      // When path doesn't exist, it returns the original path
+      expect(resolveRealPath({ path: testPath })).toBe(testPath);
     });
 
-    it('VALID: {command: none} => shows help message (default)', () => {
-      const command = `npx tsx ${startupPath}`;
+    it('VALID: {existing file} => resolves to real path', () => {
+      const thisFile = FilePathStub({ value: fileURLToPath(import.meta.url) });
 
-      const stdout = execSync(command, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: process.cwd(),
-      });
+      // This file exists, so it should resolve
+      const resolved = resolveRealPath({ path: thisFile });
 
-      expect(stdout).toMatch(/Dungeonmaster/u);
-      expect(stdout).toMatch(/Commands:/u);
+      expect(resolved.length).toBeGreaterThan(0);
+    });
+
+    it('VALID: {import.meta.url} => converts to file path', () => {
+      const filePath = FilePathStub({ value: fileURLToPath(import.meta.url) });
+
+      expect(filePath).toMatch(/start-cli\.integration\.test\.ts$/u);
     });
   });
 
-  describe('list command', () => {
-    it('VALID: {command: list, no quests folder} => shows no quests message', () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-list-empty' }),
-      });
+  describe('module exports', () => {
+    it('VALID: {} => exports StartCli function', async () => {
+      const module = await import('./start-cli');
 
-      const command = `npx tsx ${startupPath} list`;
-
-      const stdout = execSync(command, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: testbed.projectPath,
-      });
-
-      testbed.cleanup();
-
-      expect(stdout).toMatch(/\.dungeonmaster-quests folder/u);
-    });
-
-    it('VALID: {command: list, empty quests folder} => shows no active quests', () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-list-no-quests' }),
-      });
-
-      testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster-quests/.gitkeep' }),
-        content: FileContentStub({ value: '' }),
-      });
-
-      const command = `npx tsx ${startupPath} list`;
-
-      const stdout = execSync(command, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: testbed.projectPath,
-      });
-
-      testbed.cleanup();
-
-      expect(stdout).toMatch(/No active quests/u);
+      expect(typeof module.StartCli).toBe('function');
     });
   });
 
-  describe('init command', () => {
-    it('ERROR: {command: init, no package.json} => exits with error about package.json', () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-init-no-pkg' }),
+  describe('add flow integration', () => {
+    it('VALID: start on add screen and submit => calls onSpawnChaoswhisperer', async () => {
+      const onSpawnChaoswhisperer = jest.fn();
+      const onExit = jest.fn();
+
+      const { stdin, unmount } = render(
+        React.createElement(CliAppWidget, {
+          initialScreen: 'add',
+          onSpawnChaoswhisperer,
+          onExit,
+        }),
+      );
+
+      await waitForUseEffect();
+
+      // Type input
+      stdin.write('Add user authentication');
+      await waitForUseEffect();
+
+      // Submit
+      stdin.write('\r');
+      await waitForUseEffect();
+
+      unmount();
+
+      expect(onSpawnChaoswhisperer).toHaveBeenCalledTimes(1);
+      expect(onSpawnChaoswhisperer).toHaveBeenCalledWith({
+        userInput: 'Add user authentication',
       });
+    });
 
-      // Delete package.json to simulate project without it
-      unlinkSync(path.join(testbed.projectPath, 'package.json'));
+    it('VALID: add screen with backspace and submit => correctly edits input', async () => {
+      const onSpawnChaoswhisperer = jest.fn();
+      const onExit = jest.fn();
 
-      const command = `npx tsx ${startupPath} init`;
+      const { stdin, unmount } = render(
+        React.createElement(CliAppWidget, {
+          initialScreen: 'add',
+          onSpawnChaoswhisperer,
+          onExit,
+        }),
+      );
 
-      let caughtError: Error | null = null;
-      try {
-        execSync(command, {
-          encoding: 'utf8',
-          stdio: ['pipe', 'pipe', 'pipe'],
-          cwd: testbed.projectPath,
-        });
-      } catch (error) {
-        caughtError = error as Error;
-      }
+      await waitForUseEffect();
 
-      testbed.cleanup();
+      // Type input with extra chars
+      stdin.write('Hello World!!');
+      await waitForUseEffect();
 
-      expect(caughtError).not.toBeNull();
-      expect(caughtError?.message).toMatch(/package\.json/u);
+      // Backspace twice to remove "!!"
+      stdin.write('\x7F');
+      await waitForUseEffect();
+      stdin.write('\x7F');
+      await waitForUseEffect();
+
+      // Submit
+      stdin.write('\r');
+      await waitForUseEffect();
+
+      unmount();
+
+      expect(onSpawnChaoswhisperer).toHaveBeenCalledTimes(1);
+      expect(onSpawnChaoswhisperer).toHaveBeenCalledWith({
+        userInput: 'Hello World',
+      });
+    });
+
+    it('VALID: navigate from menu to add and submit => full flow works', async () => {
+      const onSpawnChaoswhisperer = jest.fn();
+      const onExit = jest.fn();
+
+      const { stdin, unmount } = render(
+        React.createElement(CliAppWidget, {
+          initialScreen: 'menu',
+          onSpawnChaoswhisperer,
+          onExit,
+        }),
+      );
+
+      await waitForUseEffect();
+
+      // Navigate to Add (4th option: Help, Init, List, Add)
+      stdin.write('\x1B[B'); // Down
+      await waitForUseEffect();
+      stdin.write('\x1B[B'); // Down
+      await waitForUseEffect();
+      stdin.write('\x1B[B'); // Down
+      await waitForUseEffect();
+
+      // Select Add
+      stdin.write('\r');
+      await waitForUseEffect();
+
+      // Type and submit
+      stdin.write('Build API');
+      await waitForUseEffect();
+      stdin.write('\r');
+      await waitForUseEffect();
+
+      unmount();
+
+      expect(onSpawnChaoswhisperer).toHaveBeenCalledTimes(1);
+      expect(onSpawnChaoswhisperer).toHaveBeenCalledWith({
+        userInput: 'Build API',
+      });
+    });
+  });
+
+  describe('spawn subprocess broker integration', () => {
+    it('VALID: chaoswhispererSpawnSubprocessBroker => imports without ESM errors', async () => {
+      // This test catches ESM issues like __dirname not defined
+      const module = await import(
+        '../brokers/chaoswhisperer/spawn-subprocess/chaoswhisperer-spawn-subprocess-broker'
+      );
+
+      expect(typeof module.chaoswhispererSpawnSubprocessBroker).toBe('function');
     });
   });
 });

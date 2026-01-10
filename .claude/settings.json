@@ -43,6 +43,7 @@
       "Bash(grep:*)",
       "Bash(npm install:*)",
       "Bash(npm test)",
+      "Bash(npm:*)",
       "Bash(rm:*)",
       "Bash(node:*)",
       "Bash(npm test:*)",

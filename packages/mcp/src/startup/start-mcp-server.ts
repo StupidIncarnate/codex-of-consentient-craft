@@ -26,11 +26,13 @@ import { folderConstraintsState } from '../state/folder-constraints/folder-const
 import { questAddBroker } from '../brokers/quest/add/quest-add-broker.js';
 import { questGetBroker } from '../brokers/quest/get/quest-get-broker.js';
 import { questModifyBroker } from '../brokers/quest/modify/quest-modify-broker.js';
+import { signalCliReturnBroker } from '../brokers/signal/cli-return/signal-cli-return-broker.js';
 import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract.js';
 import { discoverInputContract } from '../contracts/discover-input/discover-input-contract.js';
 import { folderDetailInputContract } from '../contracts/folder-detail-input/folder-detail-input-contract.js';
 import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract.js';
 import { modifyQuestInputContract } from '../contracts/modify-quest-input/modify-quest-input-contract.js';
+import { signalCliReturnInputContract } from '../contracts/signal-cli-return-input/signal-cli-return-input-contract.js';
 import { pathJoinAdapter } from '../adapters/path/join/path-join-adapter.js';
 
 const emptyInputSchema = z.object({});
@@ -99,6 +101,11 @@ export const StartMcpServer = async (): Promise<void> => {
         name: 'modify-quest',
         description: 'Modifies an existing quest using upsert semantics',
         inputSchema: zodToJsonSchema(modifyQuestInputContract, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'signal-cli-return',
+        description: 'Signals the CLI to return control by writing a signal file',
+        inputSchema: zodToJsonSchema(signalCliReturnInputContract, { $refStrategy: 'none' }),
       },
     ],
   }));
@@ -210,6 +217,18 @@ export const StartMcpServer = async (): Promise<void> => {
       const result = await questModifyBroker({
         input: request.params.arguments as never,
         dbPath,
+      });
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, JSON_INDENT_SPACES) }],
+      };
+    }
+
+    if (request.params.name === 'signal-cli-return') {
+      const args = request.params.arguments as never;
+      const screen = Reflect.get(args, 'screen') as 'menu' | 'list' | undefined;
+      const result = await signalCliReturnBroker({
+        ...(screen && { screen }),
       });
 
       return {

@@ -6,31 +6,20 @@
  * // Spawns claude subprocess with prompt, returns exit code
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { projectRootFindBroker } from '@dungeonmaster/shared/brokers';
-import { exitCodeContract, filePathContract, type ExitCode } from '@dungeonmaster/shared/contracts';
+import { exitCodeContract, type ExitCode } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnAdapter } from '../../../adapters/child-process/spawn/child-process-spawn-adapter';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
+import { cliStatics } from '../../../statics/cli/cli-statics';
 
 export const claudeSpawnBroker = async ({
   prompt,
 }: {
   prompt: PromptText;
 }): Promise<{ exitCode: ExitCode | null }> => {
-  // Find project root to locate node_modules
-  const projectRoot = await projectRootFindBroker({
-    startPath: filePathContract.parse(__dirname),
-  });
-
-  // Locate claude CLI binary in node_modules/.bin
-  const claudePath = pathJoinAdapter({
-    paths: [projectRoot, 'node_modules', '.bin', 'claude'],
-  });
-
-  // Spawn subprocess with inherited stdio for interactive mode
+  // Spawn claude CLI from system PATH with inherited stdio for interactive mode
   const child = childProcessSpawnAdapter({
-    command: claudePath,
+    command: cliStatics.commands.claude,
     args: [prompt],
     options: { stdio: 'inherit' },
   });

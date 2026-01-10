@@ -5,17 +5,19 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "dungeonmaster": "./dist/startup/start-cli.js"
+    "dungeonmaster": "./dist/bin/dungeonmaster.mjs"
   },
   "files": [
     "dist/**/*"
   ],
   "scripts": {
-    "build": "tsc",
-    "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
+    "build": "tsc && npm run bundle",
+    "bundle": "npx esbuild dist/startup/start-cli.js --bundle --platform=node --format=esm --outfile=dist/bin/dungeonmaster.mjs --external:ink --external:react --external:@dungeonmaster/* --external:zod",
+    "postbuild": "chmod +x dist/bin/*.mjs dist/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
+    "pretest": "rm -rf dist",
     "test": "jest",
-    "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
+    "test:unit": "jest --testPathIgnorePatterns='(\\.integration\\.|\\.e2e\\.)'",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "ward": "bash -c 'FILES=$(fd --glob \"$1\" src); FILE_PATTERN=$(echo \"$FILES\" | tr \" \" \"|\" | sed \"s/|$//\"); echo \"=== LINT: $1 ===\"  && (npx eslint $FILES --fix 2>&1 | grep -A 999999 -E \"$FILE_PATTERN\" || echo \"No lint issues\"); echo \"\" && echo \"=== TYPECHECK: $1 ===\" && npx tsc --noEmit 2>&1 | grep -E \"$FILE_PATTERN\" || echo \"No type errors\"' --"
@@ -29,7 +31,7 @@
   "dependencies": {
     "@anthropic-ai/claude-code": "latest",
     "@dungeonmaster/shared": "*",
-    "ink": "^4.4.1",
+    "ink": "^3.2.0",
     "react": "^18.2.0",
     "zod": "^3.22.4"
   },
@@ -38,10 +40,11 @@
     "@types/jest": "^29.5.11",
     "@types/node": "^20.11.0",
     "@types/react": "^18.2.48",
-    "ink-testing-library": "^3.0.0",
     "jest": "^29.7.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.3.3"
   },
+  "type": "module",
   "publishConfig": {
     "access": "public"
   }

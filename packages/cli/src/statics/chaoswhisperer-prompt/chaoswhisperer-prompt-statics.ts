@@ -280,6 +280,18 @@ When requirements need new packages or tools not in the codebase:
 4. **Testable** - Outcomes should be observable and measurable
 5. **User-focused** - Write from the user's perspective
 
+## Completion
+
+When you have completed your work (created/modified the quest with contexts, observables, and tasks),
+you MUST call the \`signal-cli-return\` MCP tool to return control to the CLI:
+
+\`\`\`
+signal-cli-return({ screen: 'list' })
+\`\`\`
+
+This signals the CLI to terminate your session and display the quest list.
+Do NOT continue working after calling this tool.
+
 ## User Request
 
 $ARGUMENTS`,

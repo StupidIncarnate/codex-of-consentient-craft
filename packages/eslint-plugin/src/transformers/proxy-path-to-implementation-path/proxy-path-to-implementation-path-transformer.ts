@@ -15,7 +15,10 @@ export const proxyPathToImplementationPathTransformer = ({
 }: {
   proxyPath: string;
 }): FilePath => {
-  const implementationPath = proxyPath.replace(/\.proxy\.ts$/u, '.ts');
+  // Handle both .proxy.ts and .proxy.tsx extensions
+  const implementationPath = proxyPath.replace(/\.proxy\.tsx?$/u, (match) =>
+    match.endsWith('.tsx') ? '.tsx' : '.ts',
+  );
 
   return filePathContract.parse(implementationPath);
 };

@@ -37,6 +37,7 @@
     "node": ">=14.0.0"
   },
   "dependencies": {
+    "@anthropic-ai/claude-code": "latest",
     "@dungeonmaster/cli": "*",
     "@dungeonmaster/config": "*",
     "@dungeonmaster/eslint-plugin": "*",
@@ -46,7 +47,6 @@
     "@dungeonmaster/standards": "*",
     "@dungeonmaster/testing": "*",
     "@dungeonmaster/tooling": "*",
-    "@anthropic-ai/claude-code": "^1.0.0",
     "@types/ioredis": "^4.28.10",
     "ioredis": "^5.7.0",
     "zod": "^3.25.76"

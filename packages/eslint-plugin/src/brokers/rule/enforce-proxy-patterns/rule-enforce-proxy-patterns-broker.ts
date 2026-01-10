@@ -18,6 +18,7 @@ import { validateAdapterMockSetupLayerBroker } from './validate-adapter-mock-set
 import { validateProxyConstructorSideEffectsLayerBroker } from './validate-proxy-constructor-side-effects-layer-broker';
 import { proxyPatternsStatics } from '../../../statics/proxy-patterns/proxy-patterns-statics';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
+import { tsToTsxPathTransformer } from '../../../transformers/ts-to-tsx-path/ts-to-tsx-path-transformer';
 
 export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -83,17 +84,23 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
 
         // Extract implementation file path by removing .proxy.ts and adding .ts
         // Example: foo-adapter.proxy.ts -> foo-adapter.ts
-        const implementationPath = filePathContract.parse(
+        const implementationPathTs = filePathContract.parse(
           proxyPathToImplementationPathTransformer({ proxyPath: proxyFilePath }),
         );
 
-        // Check if implementation file exists
-        if (!fsExistsSyncAdapter({ filePath: implementationPath })) {
+        // Also check for .tsx extension (React components)
+        const implementationPathTsx = tsToTsxPathTransformer({ tsPath: implementationPathTs });
+
+        // Check if implementation file exists (either .ts or .tsx)
+        const tsExists = fsExistsSyncAdapter({ filePath: implementationPathTs });
+        const tsxExists = fsExistsSyncAdapter({ filePath: implementationPathTsx });
+
+        if (!tsExists && !tsxExists) {
           ctx.report({
             node,
             messageId: 'proxyNotColocated',
             data: {
-              expectedPath: implementationPath,
+              expectedPath: implementationPathTs,
             },
           });
         }

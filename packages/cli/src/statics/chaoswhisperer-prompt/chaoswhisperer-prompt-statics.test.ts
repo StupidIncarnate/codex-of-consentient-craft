@@ -107,5 +107,20 @@ describe('chaoswhispererPromptStatics', () => {
         expect(chaoswhispererPromptStatics.prompt.template).toMatch(/PathSeeker/u);
       });
     });
+
+    describe('completion instructions', () => {
+      it('VALID: {prompt.template} => instructs to call signal-cli-return MCP tool when done', () => {
+        expect(chaoswhispererPromptStatics.prompt.template).toMatch(/signal-cli-return/u);
+      });
+
+      it('VALID: {prompt.template} => signal-cli-return instruction appears before $ARGUMENTS', () => {
+        const { template } = chaoswhispererPromptStatics.prompt;
+        const signalIndex = template.indexOf('signal-cli-return');
+        const argumentsIndex = template.indexOf('$ARGUMENTS');
+
+        expect(signalIndex).toBeGreaterThan(-1);
+        expect(signalIndex).toBeLessThan(argumentsIndex);
+      });
+    });
   });
 });

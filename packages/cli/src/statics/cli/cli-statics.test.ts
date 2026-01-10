@@ -9,6 +9,18 @@ describe('cliStatics', () => {
     it('VALID: list command => returns list', () => {
       expect(cliStatics.commands.list).toBe('list');
     });
+
+    it('VALID: init command => returns init', () => {
+      expect(cliStatics.commands.init).toBe('init');
+    });
+
+    it('VALID: add command => returns add', () => {
+      expect(cliStatics.commands.add).toBe('add');
+    });
+
+    it('VALID: claude command => returns claude', () => {
+      expect(cliStatics.commands.claude).toBe('claude');
+    });
   });
 
   describe('meta', () => {
@@ -38,6 +50,26 @@ describe('cliStatics', () => {
 
     it('VALID: loading => returns message', () => {
       expect(cliStatics.messages.loading).toBe('Loading quests...');
+    });
+
+    it('VALID: addPrompt => returns prompt message', () => {
+      expect(cliStatics.messages.addPrompt).toBe('What would you like to build?');
+    });
+  });
+
+  describe('menu', () => {
+    it('VALID: options => returns array of menu options', () => {
+      expect(cliStatics.menu.options).toStrictEqual([
+        { id: 'add', label: 'Add', description: 'Add a new quest' },
+        { id: 'list', label: 'List', description: 'List all active quests' },
+        { id: 'init', label: 'Init', description: 'Initialize dungeonmaster in project' },
+      ]);
+    });
+  });
+
+  describe('testing', () => {
+    it('VALID: useEffectDelayMs => returns delay value', () => {
+      expect(cliStatics.testing.useEffectDelayMs).toBe(10);
     });
   });
 });
