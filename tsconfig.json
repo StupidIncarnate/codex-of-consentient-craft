@@ -38,9 +38,6 @@
     "exploratories/**/*",
     "tests/tmp/**/*",
     "jest.*.js",
-    ".test-tmp/**/*",
     "v1/**/*"
-    //    "**/*.test.ts",
-    //    "**/*.spec.ts"
   ]
 }
