@@ -226,6 +226,24 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
       code: 'export const AvatarLayerWidgetProxy = () => {};',
       filename: '/project/src/widgets/user-card/avatar-layer-widget.proxy.ts',
     },
+
+    // ========== PROXY FILES WITH .tsx EXTENSION (for widgets/flows that use JSX) ==========
+    {
+      code: 'export const ButtonWidgetProxy = () => {};',
+      filename: '/project/src/widgets/button/button-widget.proxy.tsx',
+    },
+    {
+      code: 'export const CliAppWidgetProxy = () => {};',
+      filename: '/project/src/widgets/cli-app/cli-app-widget.proxy.tsx',
+    },
+    {
+      code: 'export const AvatarLayerWidgetProxy = () => {};',
+      filename: '/project/src/widgets/user-card/avatar-layer-widget.proxy.tsx',
+    },
+    {
+      code: 'export const LoginFlowProxy = () => {};',
+      filename: '/project/src/flows/login/login-flow.proxy.tsx',
+    },
   ],
 
   invalid: [

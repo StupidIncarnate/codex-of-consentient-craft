@@ -21,7 +21,7 @@ export const ruleBanPrimitivesBroker = (): EslintRule => ({
       },
       messages: {
         banPrimitive:
-          'Raw {{typeName}} type is not allowed. Use Zod contract types like {{suggestion}} instead.',
+          'Raw {{typeName}} type is not allowed. Use mcp__dungeonmaster__discover to search for existing contracts (e.g., {{suggestion}}). If none fits, create a new contract.',
       },
       schema: [
         {

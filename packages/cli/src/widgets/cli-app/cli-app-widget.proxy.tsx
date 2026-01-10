@@ -12,9 +12,11 @@
  * This proxy exists for API compatibility. With real ink-testing-library,
  * use stdin.write() for key simulation instead of proxy trigger methods.
  */
-import { inkBoxAdapterProxy } from '../../adapters/ink/box/ink-box-adapter.proxy';
-import { inkTextAdapterProxy } from '../../adapters/ink/text/ink-text-adapter.proxy';
-import { inkUseInputAdapterProxy } from '../../adapters/ink/use-input/ink-use-input-adapter.proxy';
+import { AddScreenLayerWidgetProxy } from './add-screen-layer-widget.proxy';
+import { HelpScreenLayerWidgetProxy } from './help-screen-layer-widget.proxy';
+import { InitScreenLayerWidgetProxy } from './init-screen-layer-widget.proxy';
+import { ListScreenLayerWidgetProxy } from './list-screen-layer-widget.proxy';
+import { MenuScreenLayerWidgetProxy } from './menu-screen-layer-widget.proxy';
 
 type CliAppScreen = 'menu' | 'add' | 'help' | 'list' | 'init';
 
@@ -34,10 +36,12 @@ export const CliAppWidgetProxy = (): {
   triggerTextInputCancel: () => void;
   getSetState: () => jest.Mock;
 } => {
-  // Initialize child proxies for dependencies (now no-ops with real ink)
-  inkBoxAdapterProxy();
-  inkTextAdapterProxy();
-  inkUseInputAdapterProxy();
+  // Initialize child proxies for layer widgets
+  AddScreenLayerWidgetProxy();
+  HelpScreenLayerWidgetProxy();
+  InitScreenLayerWidgetProxy();
+  ListScreenLayerWidgetProxy();
+  MenuScreenLayerWidgetProxy();
 
   const setState = jest.fn();
   const screenState = { current: 'menu' as CliAppScreen };

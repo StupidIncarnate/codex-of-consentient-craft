@@ -6,11 +6,20 @@
  */
 
 import { spawn } from 'node:child_process';
-import { existsSync, statSync } from 'node:fs';
+import { accessSync, constants, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const BIN_PATH = resolve(__dirname, '../dist/bin/dungeonmaster.mjs');
+const BIN_PATH = resolve(__dirname, '../dist/bin/dungeonmaster.js');
 const TIMEOUT_MS = 5000;
+
+const isExecutable = ({ filePath }: { filePath: string }): boolean => {
+  try {
+    accessSync(filePath, constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 describe('dungeonmaster binary', () => {
   describe('file structure', () => {
@@ -19,11 +28,7 @@ describe('dungeonmaster binary', () => {
     });
 
     it('VALID: {} => bin file is executable', () => {
-      const stats = statSync(BIN_PATH);
-      // Check if user execute bit is set (0o100)
-      const isExecutable = (stats.mode & 0o100) !== 0;
-
-      expect(isExecutable).toBe(true);
+      expect(isExecutable({ filePath: BIN_PATH })).toBe(true);
     });
 
     it('VALID: {} => bin file has shebang', async () => {
@@ -37,29 +42,35 @@ describe('dungeonmaster binary', () => {
   describe('process execution', () => {
     it(
       'VALID: {non-TTY} => exits with raw mode error in non-TTY environment',
-      (done) => {
-        const child = spawn('node', [BIN_PATH], {
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: { ...process.env, FORCE_COLOR: '0' },
+      async () => {
+        const result = await new Promise((promiseResolve, promiseReject) => {
+          const child = spawn('node', [BIN_PATH], {
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, FORCE_COLOR: '0' },
+          });
+
+          let stderrOutput = '';
+
+          child.stderr.on('data', (data: Buffer) => {
+            stderrOutput += data.toString();
+          });
+
+          child.on('exit', (exitCode) => {
+            promiseResolve({ code: exitCode, stderr: stderrOutput });
+          });
+
+          child.on('error', (err) => {
+            promiseReject(err);
+          });
         });
 
-        let stderr = '';
+        // Extract properties from result using Reflect.get for type safety
+        const code = Reflect.get(result as object, 'code');
+        const stderr = Reflect.get(result as object, 'stderr');
 
-        child.stderr.on('data', (data: Buffer) => {
-          stderr += data.toString();
-        });
-
-        child.on('exit', (code) => {
-          // In non-TTY environment, ink exits with raw mode error - this is expected
-          expect(code).toBe(1);
-          expect(stderr).toMatch(/Raw mode is not supported/u);
-
-          done();
-        });
-
-        child.on('error', (err) => {
-          done(err);
-        });
+        // In non-TTY environment, ink exits with raw mode error - this is expected
+        expect(code).toBe(1);
+        expect(stderr).toMatch(/Raw mode is not supported/u);
       },
       TIMEOUT_MS,
     );

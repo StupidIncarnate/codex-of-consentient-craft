@@ -5,19 +5,19 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "dungeonmaster": "./dist/bin/dungeonmaster.mjs"
+    "dungeonmaster": "./dist/bin/dungeonmaster.js"
   },
   "files": [
     "dist/**/*"
   ],
   "scripts": {
-    "build": "tsc && npm run bundle",
-    "bundle": "npx esbuild dist/startup/start-cli.js --bundle --platform=node --format=esm --outfile=dist/bin/dungeonmaster.mjs --external:ink --external:react --external:@dungeonmaster/* --external:zod",
-    "postbuild": "chmod +x dist/bin/*.mjs dist/startup/*.js 2>/dev/null || true",
+    "build": "tsc -p tsconfig.build.json && npm run bundle",
+    "bundle": "npx esbuild dist/src/startup/start-cli.js --bundle --platform=node --format=cjs --outfile=dist/bin/dungeonmaster.js --external:ink --external:react --external:@dungeonmaster/* --external:zod",
+    "postbuild": "chmod +x dist/bin/*.js dist/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
-    "pretest": "rm -rf dist",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='(\\.integration\\.|\\.e2e\\.)'",
+    "test:e2e": "npm run build && jest --testMatch='**/*.e2e.test.ts'",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "ward": "bash -c 'FILES=$(fd --glob \"$1\" src); FILE_PATTERN=$(echo \"$FILES\" | tr \" \" \"|\" | sed \"s/|$//\"); echo \"=== LINT: $1 ===\"  && (npx eslint $FILES --fix 2>&1 | grep -A 999999 -E \"$FILE_PATTERN\" || echo \"No lint issues\"); echo \"\" && echo \"=== TYPECHECK: $1 ===\" && npx tsc --noEmit 2>&1 | grep -E \"$FILE_PATTERN\" || echo \"No type errors\"' --"
@@ -45,7 +45,6 @@
     "tsx": "^4.20.6",
     "typescript": "^5.3.3"
   },
-  "type": "module",
   "publishConfig": {
     "access": "public"
   }

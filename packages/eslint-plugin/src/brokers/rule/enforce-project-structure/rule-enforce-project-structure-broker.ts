@@ -185,9 +185,12 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           }
 
           // LEVEL 3: Filename Suffix + Kebab-Case + Domain Match
-          // Special handling for proxy files: use .proxy.ts suffix and Proxy export suffix
+          // Special handling for proxy files: use .proxy.ts or .proxy.tsx suffix and Proxy export suffix
           const isProxy = hasFileSuffixGuard({ filename, suffix: 'proxy' });
-          const fileSuffix = isProxy ? '.proxy.ts' : folderConfig.fileSuffix;
+          // Detect if file uses .tsx extension and use appropriate proxy suffix
+          const fileExtension = getFileExtensionTransformer({ filename, includesDot: true });
+          const proxySuffix = fileExtension === '.tsx' ? '.proxy.tsx' : '.proxy.ts';
+          const fileSuffix = isProxy ? proxySuffix : folderConfig.fileSuffix;
           const exportSuffix = isProxy ? 'Proxy' : folderConfig.exportSuffix;
           // exportCase stays the same (camelCase or PascalCase from folder config)
           const { exportCase } = folderConfig;

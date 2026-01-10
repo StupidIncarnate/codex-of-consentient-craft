@@ -58,11 +58,8 @@ describe('signalContentContract', () => {
 
       const result = signalContentContract.parse(signal);
 
-      expect(result).toMatchObject({
-        action: 'return',
-        screen: 'list',
-      });
-      expect(result).toHaveProperty('timestamp');
+      // Compare against input signal which contains the same timestamp
+      expect(result).toStrictEqual(signal);
     });
 
     it('VALID: {action: "return", screen: "menu"} => parses return signal with menu', () => {
@@ -70,10 +67,8 @@ describe('signalContentContract', () => {
 
       const result = signalContentContract.parse(signal);
 
-      expect(result).toMatchObject({
-        action: 'return',
-        screen: 'menu',
-      });
+      // Compare against input signal which contains the same timestamp
+      expect(result).toStrictEqual(signal);
     });
   });
 
@@ -83,13 +78,13 @@ describe('signalContentContract', () => {
         signalContentContract.parse({
           type: 'unknown-type',
         });
-      }).toThrow();
+      }).toThrow('Invalid input');
     });
 
     it('INVALID_TYPE: empty object => throws validation error', () => {
       expect(() => {
         signalContentContract.parse({});
-      }).toThrow();
+      }).toThrow('Invalid input');
     });
 
     it('INVALID_TYPE: {action: "invalid"} => throws validation error for invalid action', () => {
@@ -99,7 +94,7 @@ describe('signalContentContract', () => {
           screen: 'list',
           timestamp: new Date().toISOString(),
         });
-      }).toThrow();
+      }).toThrow('Invalid input');
     });
   });
 });

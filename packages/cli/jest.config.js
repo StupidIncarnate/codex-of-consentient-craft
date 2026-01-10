@@ -1,12 +1,7 @@
-import { createRequire } from 'module';
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
-import baseConfig from '../../jest.config.base.js';
+const { resolve } = require('path');
+const baseConfig = require('../../jest.config.base.js');
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
-
-export default {
+module.exports = {
   ...baseConfig,
   preset: undefined, // Override ts-jest preset to use our custom transform
   roots: ['<rootDir>/src', '<rootDir>/bin'],

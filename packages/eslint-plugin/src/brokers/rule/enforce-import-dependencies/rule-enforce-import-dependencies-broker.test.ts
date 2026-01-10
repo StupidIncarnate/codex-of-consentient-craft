@@ -881,22 +881,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       ],
     },
 
-    // Widgets cannot import from adapters, flows, or responders
-    {
-      code: 'import { axiosGetAdapter } from "../../adapters/axios/axios-get-adapter";',
-      filename: '/project/src/widgets/user-list/user-list-widget.tsx',
-      errors: [
-        {
-          messageId: 'forbiddenImport',
-          data: {
-            folderType: 'widgets',
-            importedFolder: 'adapters',
-            allowed:
-              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/',
-          },
-        },
-      ],
-    },
+    // Widgets cannot import from flows or responders
     {
       code: 'import { UserFlow } from "../../flows/user/user-flow";',
       filename: '/project/src/widgets/router/router-widget.tsx',
@@ -907,7 +892,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'widgets',
             importedFolder: 'flows',
             allowed:
-              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/',
+              'adapters/, bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, react',
           },
         },
       ],
@@ -922,7 +907,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'widgets',
             importedFolder: 'responders',
             allowed:
-              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/',
+              'adapters/, bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, react',
           },
         },
       ],

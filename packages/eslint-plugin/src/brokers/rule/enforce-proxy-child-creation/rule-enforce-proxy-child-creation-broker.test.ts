@@ -300,6 +300,19 @@ beforeEach(() => {
         });
       }
 
+      // Widget implementation that imports layer widgets (tsx)
+      if (filePath.includes('widgets/button/button-widget.tsx')) {
+        return FileContentsStub({
+          value: `
+        import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter';
+
+        export const ButtonWidget = () => {
+          return inkBoxAdapter();
+        };
+      `,
+        });
+      }
+
       // Default empty implementation
       return FileContentsStub({ value: `export const placeholder = () => {};` });
     },
@@ -598,6 +611,21 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         };
       `,
       filename: '/project/src/brokers/acme-contracts/acme-contracts-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Widget proxy with .tsx extension
+    {
+      code: `
+        import { inkBoxAdapterProxy } from '../../adapters/ink/box/ink-box-adapter.proxy';
+
+        export const ButtonWidgetProxy = () => {
+          const boxProxy = inkBoxAdapterProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/widgets/button/button-widget.proxy.tsx',
     },
   ],
   invalid: [
@@ -912,6 +940,26 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           data: {
             implementationName: 'logAdapter',
             proxyPath: '@myorg/utils/testing',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Widget proxy with .tsx extension missing proxy import
+    {
+      code: `
+        export const ButtonWidgetProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/widgets/button/button-widget.proxy.tsx',
+      errors: [
+        {
+          messageId: 'missingProxyImport',
+          data: {
+            implementationName: 'inkBoxAdapter',
+            proxyPath: '../../adapters/ink/box/ink-box-adapter.proxy',
           },
         },
       ],

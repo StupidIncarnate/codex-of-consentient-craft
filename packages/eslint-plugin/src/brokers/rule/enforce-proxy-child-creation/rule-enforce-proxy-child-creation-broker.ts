@@ -16,6 +16,7 @@ import { parseImplementationImportsTransformer } from '../../../transformers/par
 import type { FileContents, Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 import { identifierContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
+import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -27,9 +28,9 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
       },
       messages: {
         missingProxyImport:
-          'Proxy imports {{implementationName}} but does not import its corresponding proxy from {{proxyPath}}.',
+          'Implementation imports {{implementationName}} but proxy does not import its corresponding proxy from {{proxyPath}}.',
         missingProxyCreation:
-          'Proxy imports {{implementationName}} but does not create {{proxyName}} in constructor.',
+          'Implementation imports {{implementationName}} but proxy does not create {{proxyName}} in constructor.',
         phantomProxyCreation:
           'Proxy creates {{proxyName}} but {{implementationFile}} does not import {{implementationName}}. Remove the phantom proxy creation or add the import to the implementation.',
       },
@@ -47,8 +48,10 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
       return {};
     }
 
-    // Derive implementation file path
-    const implementationPath = filename ? filename.replace('.proxy.ts', '.ts') : '';
+    // Derive implementation file path (handles both .proxy.ts and .proxy.tsx)
+    const implementationPath = filename
+      ? proxyPathToImplementationPathTransformer({ proxyPath: filename })
+      : '';
 
     // Read implementation file (checks existence and reads in one operation)
     const implementationFileResult = ((): FileContents | null => {

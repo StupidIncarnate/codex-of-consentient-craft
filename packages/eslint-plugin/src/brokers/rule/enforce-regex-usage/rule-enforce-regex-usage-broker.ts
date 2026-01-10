@@ -29,7 +29,7 @@ export const ruleEnforceRegexUsageBroker = (): EslintRule => ({
       },
       messages: {
         forbiddenRegex:
-          'Regex literals are not allowed in {{folderType}}/ folder. Only allowed in: {{allowedFolders}}. Make sure you explore what exists in case a more generic version exists.',
+          'Regex literals are not allowed in {{folderType}}/ folder. Only allowed in: {{allowedFolders}}. Use mcp__dungeonmaster__discover to search for existing code that does what you need. If none exists, create one in an allowed folder.',
       },
       schema: [],
     },

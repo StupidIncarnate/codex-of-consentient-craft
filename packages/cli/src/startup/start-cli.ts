@@ -8,14 +8,14 @@
  * // Renders interactive menu, spawns ChaosWhisperer on 'add', returns to list after signal
  */
 
-import { realpathSync } from 'node:fs';
-
 import { render } from 'ink';
 import React from 'react';
 
 import { questsFolderFindBroker } from '@dungeonmaster/shared/brokers';
 import type { UserInput } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+
+import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
 
 import { chaoswhispererSpawnSubprocessBroker } from '../brokers/chaoswhisperer/spawn-subprocess/chaoswhisperer-spawn-subprocess-broker';
 import { signalCleanupBroker } from '../brokers/signal/cleanup/signal-cleanup-broker';
@@ -71,7 +71,7 @@ export const StartCli = async ({
   await signalCleanupBroker({ questsFolderPath });
 
   // Spawn ChaosWhisperer subprocess (returns handle for later kill)
-  const subprocess = await chaoswhispererSpawnSubprocessBroker({
+  const subprocess = chaoswhispererSpawnSubprocessBroker({
     userInput: state.pendingChaoswhisperer,
   });
 
@@ -94,16 +94,10 @@ export const StartCli = async ({
   return StartCli({ initialScreen: nextScreen });
 };
 
-const resolveRealPath = (path: string): string => {
-  try {
-    return realpathSync(path);
-  } catch {
-    return path;
-  }
-};
-
 const isMain =
-  process.argv[1] !== undefined && resolveRealPath(process.argv[1]) === resolveRealPath(__filename);
+  process.argv[1] !== undefined &&
+  fsRealpathAdapter({ filePath: absoluteFilePathContract.parse(process.argv[1]) }) ===
+    fsRealpathAdapter({ filePath: absoluteFilePathContract.parse(__filename) });
 
 if (isMain) {
   StartCli().catch((error: unknown) => {
