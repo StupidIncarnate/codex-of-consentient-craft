@@ -7,13 +7,12 @@
  * expect(lastFrame()).toMatch(/expected text/u);
  */
 import type { ReactElement } from 'react';
+import { render } from 'ink-testing-library';
 
-import { inkTestRender, type InkTestRenderResult } from './ink-test-render';
-
-export type InkRenderResult = InkTestRenderResult;
+export type InkRenderResult = ReturnType<typeof render>;
 
 export const inkTestingLibraryRenderAdapter = ({
   element,
 }: {
   element: ReactElement;
-}): InkRenderResult => inkTestRender(element);
+}): InkRenderResult => render(element);

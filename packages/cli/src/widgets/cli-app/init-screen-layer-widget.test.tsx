@@ -1,9 +1,14 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import React from 'react';
 
-import { inkTestRender as render } from '../../adapters/ink-testing-library/render/ink-test-render';
+import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
 import { InitScreenLayerWidget } from './init-screen-layer-widget';
+import { InitScreenLayerWidgetProxy } from './init-screen-layer-widget.proxy';
+
+// Simple no-op callback for tests that only check rendering
+const noopCallback = (): void => {
+  // No-op
+};
 
 describe('InitScreenLayerWidget', () => {
   let unmountFn: (() => void) | null = null;
@@ -17,27 +22,33 @@ describe('InitScreenLayerWidget', () => {
 
   describe('rendering init content', () => {
     it('VALID: {} => displays Initialize Dungeonmaster title', () => {
-      const onBack = jest.fn();
+      InitScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(<InitScreenLayerWidget onBack={onBack} />);
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <InitScreenLayerWidget onBack={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/Initialize Dungeonmaster/u);
     });
 
     it('VALID: {} => displays setup message', () => {
-      const onBack = jest.fn();
+      InitScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(<InitScreenLayerWidget onBack={onBack} />);
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <InitScreenLayerWidget onBack={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/set up dungeonmaster/u);
     });
 
     it('VALID: {} => displays back instruction', () => {
-      const onBack = jest.fn();
+      InitScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(<InitScreenLayerWidget onBack={onBack} />);
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <InitScreenLayerWidget onBack={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/Press Escape or 'q' to go back/u);
@@ -46,9 +57,14 @@ describe('InitScreenLayerWidget', () => {
 
   describe('widget structure', () => {
     it('VALID: {onBack callback} => accepts onBack prop for navigation', () => {
-      const onBack = jest.fn();
+      InitScreenLayerWidgetProxy();
+      const onBack = (): void => {
+        // Callback exists
+      };
 
-      const { unmount } = render(<InitScreenLayerWidget onBack={onBack} />);
+      const { unmount } = inkTestingLibraryRenderAdapter({
+        element: <InitScreenLayerWidget onBack={onBack} />,
+      });
       unmountFn = unmount;
 
       expect(onBack).toBeDefined();

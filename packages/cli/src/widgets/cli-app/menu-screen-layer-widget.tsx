@@ -8,12 +8,11 @@
  * />
  * // Renders menu with arrow key navigation
  */
-import React from 'react';
+import React, { useState } from 'react';
 
 import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter';
 import { inkTextAdapter } from '../../adapters/ink/text/ink-text-adapter';
 import { inkUseInputAdapter } from '../../adapters/ink/use-input/ink-use-input-adapter';
-import { reactUseStateAdapter } from '../../adapters/react/use-state/react-use-state-adapter';
 import { menuIndexContract } from '../../contracts/menu-index/menu-index-contract';
 import type { MenuIndex } from '../../contracts/menu-index/menu-index-contract';
 import { cliStatics } from '../../statics/cli/cli-statics';
@@ -30,9 +29,7 @@ export const MenuScreenLayerWidget = ({
   const Box = inkBoxAdapter();
   const Text = inkTextAdapter();
 
-  const [selectedIndex, setSelectedIndex] = reactUseStateAdapter<MenuIndex>({
-    initialValue: menuIndexContract.parse(0),
-  });
+  const [selectedIndex, setSelectedIndex] = useState<MenuIndex>(menuIndexContract.parse(0));
 
   const { options } = cliStatics.menu;
 

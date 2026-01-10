@@ -9,11 +9,9 @@
  * />
  * // Renders the appropriate screen based on state and handles navigation
  */
-import React from 'react';
+import React, { useState } from 'react';
 
 import type { UserInput } from '@dungeonmaster/shared/contracts';
-
-import { reactUseStateAdapter } from '../../adapters/react/use-state/react-use-state-adapter';
 import { HelpScreenLayerWidget } from './help-screen-layer-widget';
 import { InitScreenLayerWidget } from './init-screen-layer-widget';
 import { ListScreenLayerWidget } from './list-screen-layer-widget';
@@ -33,9 +31,7 @@ export const CliAppWidget = ({
   onSpawnChaoswhisperer,
   onExit,
 }: CliAppWidgetProps): React.JSX.Element => {
-  const [screen, setScreen] = reactUseStateAdapter<CliAppScreen>({
-    initialValue: initialScreen,
-  });
+  const [screen, setScreen] = useState<CliAppScreen>(initialScreen);
 
   if (screen === 'help') {
     return (

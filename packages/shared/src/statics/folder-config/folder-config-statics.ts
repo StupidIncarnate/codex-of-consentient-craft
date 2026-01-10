@@ -250,6 +250,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'widgets/[name]/[name]-widget.tsx',
     allowedImports: [
+      'adapters/',
       'bindings/',
       'brokers/',
       'state/',
@@ -258,6 +259,7 @@ export const folderConfigStatics = {
       'guards/',
       'statics/',
       'errors/',
+      'react',
     ],
     disallowAdhocTypes: false,
     requireProxy: true,

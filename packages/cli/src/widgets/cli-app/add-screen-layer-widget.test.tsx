@@ -1,15 +1,33 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import React from 'react';
 
-import { inkTestRender as render } from '../../adapters/ink-testing-library/render/ink-test-render';
+import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
 import { cliStatics } from '../../statics/cli/cli-statics';
 import { AddScreenLayerWidget } from './add-screen-layer-widget';
+import { AddScreenLayerWidgetProxy } from './add-screen-layer-widget.proxy';
 
 const waitForUseEffect = async (): Promise<void> => {
   await new Promise((resolve) => {
     setTimeout(resolve, cliStatics.testing.useEffectDelayMs);
   });
+};
+
+// Helper to create trackable callback functions for testing
+const createTrackableCallback = (): {
+  fn: (...args: unknown[]) => void;
+  calls: unknown[][];
+  wasCalled: () => boolean;
+  lastCallArgs: () => unknown[] | undefined;
+} => {
+  const calls: unknown[][] = [];
+  return {
+    fn: (...args: unknown[]): void => {
+      calls.push(args);
+    },
+    calls,
+    wasCalled: (): boolean => calls.length > 0,
+    lastCallArgs: (): unknown[] | undefined => calls[calls.length - 1],
+  };
 };
 
 describe('AddScreenLayerWidget', () => {
@@ -24,48 +42,52 @@ describe('AddScreenLayerWidget', () => {
 
   describe('rendering add content', () => {
     it('VALID: {} => displays add prompt from statics', () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { lastFrame, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/What would you like to build/u);
     });
 
     it('VALID: {} => displays input cursor', () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { lastFrame, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/>/u);
     });
 
     it('VALID: {} => displays submit/cancel instructions', () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { lastFrame, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/Press Enter to submit, Escape to cancel/u);
     });
 
     it('VALID: {} => displays text cursor indicator', () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { lastFrame, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/_/u);
@@ -74,25 +96,29 @@ describe('AddScreenLayerWidget', () => {
 
   describe('widget structure', () => {
     it('VALID: {onSubmit, onCancel callbacks} => accepts callbacks for interaction', () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { unmount } = render(<AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />);
+      const { unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
-      expect(onSubmit).toBeDefined();
-      expect(onCancel).toBeDefined();
+      expect(onSubmit.fn).toBeDefined();
+      expect(onCancel.fn).toBeDefined();
     });
   });
 
   describe('keyboard input handling', () => {
     it('VALID: typing characters => displays typed text', async () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { lastFrame, stdin, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { lastFrame, stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       await waitForUseEffect();
@@ -102,12 +128,13 @@ describe('AddScreenLayerWidget', () => {
     });
 
     it('VALID: backspace (ctrl+H) => removes last character', async () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { lastFrame, stdin, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { lastFrame, stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       await waitForUseEffect();
@@ -121,12 +148,13 @@ describe('AddScreenLayerWidget', () => {
     });
 
     it('VALID: delete key (DEL) => removes last character', async () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { lastFrame, stdin, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { lastFrame, stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       await waitForUseEffect();
@@ -140,12 +168,13 @@ describe('AddScreenLayerWidget', () => {
     });
 
     it('VALID: enter with text => calls onSubmit with userInput', async () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { stdin, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       await waitForUseEffect();
@@ -154,47 +183,50 @@ describe('AddScreenLayerWidget', () => {
       stdin.write('\r');
       await waitForUseEffect();
 
-      expect(onSubmit).toHaveBeenCalledTimes(1);
-      expect(onSubmit).toHaveBeenCalledWith({ userInput: 'Build a REST API' });
+      expect(onSubmit.calls.length).toBe(1);
+      expect(onSubmit.lastCallArgs()).toStrictEqual([{ userInput: 'Build a REST API' }]);
     });
 
     it('VALID: escape => calls onCancel', async () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { stdin, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       await waitForUseEffect();
       stdin.write('\x1B');
 
-      expect(onCancel).toHaveBeenCalledTimes(1);
+      expect(onCancel.calls.length).toBe(1);
     });
 
     it('INVALID: enter with empty input => does not call onSubmit', async () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { stdin, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       await waitForUseEffect();
       stdin.write('\r');
 
-      expect(onSubmit).not.toHaveBeenCalled();
+      expect(onSubmit.wasCalled()).toBe(false);
     });
 
     it('INVALID: enter with only whitespace => does not call onSubmit', async () => {
-      const onSubmit = jest.fn();
-      const onCancel = jest.fn();
+      AddScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
 
-      const { stdin, unmount } = render(
-        <AddScreenLayerWidget onSubmit={onSubmit} onCancel={onCancel} />,
-      );
+      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: <AddScreenLayerWidget onSubmit={onSubmit.fn} onCancel={onCancel.fn} />,
+      });
       unmountFn = unmount;
 
       await waitForUseEffect();
@@ -203,7 +235,7 @@ describe('AddScreenLayerWidget', () => {
       stdin.write('\r');
       await waitForUseEffect();
 
-      expect(onSubmit).not.toHaveBeenCalled();
+      expect(onSubmit.wasCalled()).toBe(false);
     });
   });
 });

@@ -1,9 +1,14 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import React from 'react';
 
-import { inkTestRender as render } from '../../adapters/ink-testing-library/render/ink-test-render';
+import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
 import { MenuScreenLayerWidget } from './menu-screen-layer-widget';
+import { MenuScreenLayerWidgetProxy } from './menu-screen-layer-widget.proxy';
+
+// Simple no-op callback for tests that only check rendering
+const noopCallback = (): void => {
+  // No-op
+};
 
 describe('MenuScreenLayerWidget', () => {
   let unmountFn: (() => void) | null = null;
@@ -17,24 +22,22 @@ describe('MenuScreenLayerWidget', () => {
 
   describe('rendering menu content', () => {
     it('VALID: {} => displays CLI name from statics', () => {
-      const onSelect = jest.fn();
-      const onExit = jest.fn();
+      MenuScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(
-        <MenuScreenLayerWidget onSelect={onSelect} onExit={onExit} />,
-      );
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <MenuScreenLayerWidget onSelect={noopCallback} onExit={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/dungeonmaster/u);
     });
 
     it('VALID: {} => displays menu options', () => {
-      const onSelect = jest.fn();
-      const onExit = jest.fn();
+      MenuScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(
-        <MenuScreenLayerWidget onSelect={onSelect} onExit={onExit} />,
-      );
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <MenuScreenLayerWidget onSelect={noopCallback} onExit={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/Init/u);
@@ -43,24 +46,22 @@ describe('MenuScreenLayerWidget', () => {
     });
 
     it('VALID: {} => displays navigation instructions', () => {
-      const onSelect = jest.fn();
-      const onExit = jest.fn();
+      MenuScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(
-        <MenuScreenLayerWidget onSelect={onSelect} onExit={onExit} />,
-      );
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <MenuScreenLayerWidget onSelect={noopCallback} onExit={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/arrow keys/u);
     });
 
     it('VALID: {} => displays first option as selected by default', () => {
-      const onSelect = jest.fn();
-      const onExit = jest.fn();
+      MenuScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(
-        <MenuScreenLayerWidget onSelect={onSelect} onExit={onExit} />,
-      );
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <MenuScreenLayerWidget onSelect={noopCallback} onExit={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/> Add/u);
@@ -69,10 +70,17 @@ describe('MenuScreenLayerWidget', () => {
 
   describe('widget structure', () => {
     it('VALID: {onSelect, onExit callbacks} => accepts callbacks for interaction', () => {
-      const onSelect = jest.fn();
-      const onExit = jest.fn();
+      MenuScreenLayerWidgetProxy();
+      const onSelect = (): void => {
+        // Callback exists
+      };
+      const onExit = (): void => {
+        // Callback exists
+      };
 
-      const { unmount } = render(<MenuScreenLayerWidget onSelect={onSelect} onExit={onExit} />);
+      const { unmount } = inkTestingLibraryRenderAdapter({
+        element: <MenuScreenLayerWidget onSelect={onSelect} onExit={onExit} />,
+      });
       unmountFn = unmount;
 
       expect(onSelect).toBeDefined();

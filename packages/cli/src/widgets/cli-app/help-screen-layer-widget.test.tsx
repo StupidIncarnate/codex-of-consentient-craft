@@ -1,9 +1,14 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import React from 'react';
 
-import { inkTestRender as render } from '../../adapters/ink-testing-library/render/ink-test-render';
+import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
 import { HelpScreenLayerWidget } from './help-screen-layer-widget';
+import { HelpScreenLayerWidgetProxy } from './help-screen-layer-widget.proxy';
+
+// Simple no-op callback for tests that only check rendering
+const noopCallback = (): void => {
+  // No-op
+};
 
 describe('HelpScreenLayerWidget', () => {
   let unmountFn: (() => void) | null = null;
@@ -17,27 +22,33 @@ describe('HelpScreenLayerWidget', () => {
 
   describe('rendering help content', () => {
     it('VALID: {} => displays CLI name from statics', () => {
-      const onBack = jest.fn();
+      HelpScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(<HelpScreenLayerWidget onBack={onBack} />);
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <HelpScreenLayerWidget onBack={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/dungeonmaster/u);
     });
 
     it('VALID: {} => displays CLI description from statics', () => {
-      const onBack = jest.fn();
+      HelpScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(<HelpScreenLayerWidget onBack={onBack} />);
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <HelpScreenLayerWidget onBack={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/Dungeonmaster Quest CLI/u);
     });
 
     it('VALID: {} => displays available commands', () => {
-      const onBack = jest.fn();
+      HelpScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(<HelpScreenLayerWidget onBack={onBack} />);
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <HelpScreenLayerWidget onBack={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/list/iu);
@@ -46,9 +57,11 @@ describe('HelpScreenLayerWidget', () => {
     });
 
     it('VALID: {} => displays back instruction', () => {
-      const onBack = jest.fn();
+      HelpScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(<HelpScreenLayerWidget onBack={onBack} />);
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <HelpScreenLayerWidget onBack={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/Press Escape or 'q' to go back/u);
@@ -57,9 +70,14 @@ describe('HelpScreenLayerWidget', () => {
 
   describe('widget structure', () => {
     it('VALID: {onBack callback} => accepts onBack prop for navigation', () => {
-      const onBack = jest.fn();
+      HelpScreenLayerWidgetProxy();
+      const onBack = (): void => {
+        // Callback exists
+      };
 
-      const { unmount } = render(<HelpScreenLayerWidget onBack={onBack} />);
+      const { unmount } = inkTestingLibraryRenderAdapter({
+        element: <HelpScreenLayerWidget onBack={onBack} />,
+      });
       unmountFn = unmount;
 
       // Verify the widget rendered without error when given the callback

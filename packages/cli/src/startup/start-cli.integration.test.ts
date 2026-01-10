@@ -6,15 +6,14 @@
  */
 
 import { realpathSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 
-import { describe, expect, it, jest } from '@jest/globals';
-import { inkTestRender as render } from '../adapters/ink-testing-library/render/ink-test-render';
+import { inkTestingLibraryRenderAdapter } from '../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 import React from 'react';
 
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { cliStatics } from '../statics/cli/cli-statics';
+import { StartCli } from '../startup/start-cli';
 import { CliAppWidget } from '../widgets/cli-app/cli-app-widget';
 
 const waitForUseEffect = async (): Promise<void> => {
@@ -43,7 +42,7 @@ describe('StartCli', () => {
     });
 
     it('VALID: {existing file} => resolves to real path', () => {
-      const thisFile = FilePathStub({ value: fileURLToPath(import.meta.url) });
+      const thisFile = FilePathStub({ value: __filename });
 
       // This file exists, so it should resolve
       const resolved = resolveRealPath({ path: thisFile });
@@ -51,18 +50,16 @@ describe('StartCli', () => {
       expect(resolved.length).toBeGreaterThan(0);
     });
 
-    it('VALID: {import.meta.url} => converts to file path', () => {
-      const filePath = FilePathStub({ value: fileURLToPath(import.meta.url) });
+    it('VALID: {__filename} => converts to file path', () => {
+      const filePath = FilePathStub({ value: __filename });
 
       expect(filePath).toMatch(/start-cli\.integration\.test\.ts$/u);
     });
   });
 
   describe('module exports', () => {
-    it('VALID: {} => exports StartCli function', async () => {
-      const module = await import('./start-cli');
-
-      expect(typeof module.StartCli).toBe('function');
+    it('VALID: {} => exports StartCli function', () => {
+      expect(typeof StartCli).toBe('function');
     });
   });
 
@@ -71,13 +68,13 @@ describe('StartCli', () => {
       const onSpawnChaoswhisperer = jest.fn();
       const onExit = jest.fn();
 
-      const { stdin, unmount } = render(
-        React.createElement(CliAppWidget, {
+      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: React.createElement(CliAppWidget, {
           initialScreen: 'add',
           onSpawnChaoswhisperer,
           onExit,
         }),
-      );
+      });
 
       await waitForUseEffect();
 
@@ -101,13 +98,13 @@ describe('StartCli', () => {
       const onSpawnChaoswhisperer = jest.fn();
       const onExit = jest.fn();
 
-      const { stdin, unmount } = render(
-        React.createElement(CliAppWidget, {
+      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: React.createElement(CliAppWidget, {
           initialScreen: 'add',
           onSpawnChaoswhisperer,
           onExit,
         }),
-      );
+      });
 
       await waitForUseEffect();
 
@@ -137,13 +134,13 @@ describe('StartCli', () => {
       const onSpawnChaoswhisperer = jest.fn();
       const onExit = jest.fn();
 
-      const { stdin, unmount } = render(
-        React.createElement(CliAppWidget, {
+      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: React.createElement(CliAppWidget, {
           initialScreen: 'menu',
           onSpawnChaoswhisperer,
           onExit,
         }),
-      );
+      });
 
       await waitForUseEffect();
 

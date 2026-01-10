@@ -7,10 +7,8 @@
 
 import { spawn } from 'node:child_process';
 import { existsSync, statSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const BIN_PATH = resolve(__dirname, '../dist/bin/dungeonmaster.mjs');
 const TIMEOUT_MS = 5000;
 

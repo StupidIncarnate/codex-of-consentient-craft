@@ -9,7 +9,6 @@
  */
 
 import { realpathSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 
 import { render } from 'ink';
 import React from 'react';
@@ -104,8 +103,7 @@ const resolveRealPath = (path: string): string => {
 };
 
 const isMain =
-  process.argv[1] !== undefined &&
-  resolveRealPath(process.argv[1]) === resolveRealPath(fileURLToPath(import.meta.url));
+  process.argv[1] !== undefined && resolveRealPath(process.argv[1]) === resolveRealPath(__filename);
 
 if (isMain) {
   StartCli().catch((error: unknown) => {

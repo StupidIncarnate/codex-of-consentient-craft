@@ -1,9 +1,14 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import React from 'react';
 
-import { inkTestRender as render } from '../../adapters/ink-testing-library/render/ink-test-render';
+import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
 import { ListScreenLayerWidget } from './list-screen-layer-widget';
+import { ListScreenLayerWidgetProxy } from './list-screen-layer-widget.proxy';
+
+// Simple no-op callback for tests that only check rendering
+const noopCallback = (): void => {
+  // No-op
+};
 
 describe('ListScreenLayerWidget', () => {
   let unmountFn: (() => void) | null = null;
@@ -17,27 +22,33 @@ describe('ListScreenLayerWidget', () => {
 
   describe('rendering list content', () => {
     it('VALID: {} => displays Active Quests title', () => {
-      const onBack = jest.fn();
+      ListScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(<ListScreenLayerWidget onBack={onBack} />);
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <ListScreenLayerWidget onBack={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/Active Quests/u);
     });
 
     it('VALID: {} => displays no quests message', () => {
-      const onBack = jest.fn();
+      ListScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(<ListScreenLayerWidget onBack={onBack} />);
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <ListScreenLayerWidget onBack={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/No active quests found/u);
     });
 
     it('VALID: {} => displays back instruction', () => {
-      const onBack = jest.fn();
+      ListScreenLayerWidgetProxy();
 
-      const { lastFrame, unmount } = render(<ListScreenLayerWidget onBack={onBack} />);
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <ListScreenLayerWidget onBack={noopCallback} />,
+      });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/Press Escape or 'q' to go back/u);
@@ -46,9 +57,14 @@ describe('ListScreenLayerWidget', () => {
 
   describe('widget structure', () => {
     it('VALID: {onBack callback} => accepts onBack prop for navigation', () => {
-      const onBack = jest.fn();
+      ListScreenLayerWidgetProxy();
+      const onBack = (): void => {
+        // Callback exists
+      };
 
-      const { unmount } = render(<ListScreenLayerWidget onBack={onBack} />);
+      const { unmount } = inkTestingLibraryRenderAdapter({
+        element: <ListScreenLayerWidget onBack={onBack} />,
+      });
       unmountFn = unmount;
 
       expect(onBack).toBeDefined();

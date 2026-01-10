@@ -8,7 +8,7 @@
  * />
  * // Renders text input for quest description
  */
-import React from 'react';
+import React, { useState } from 'react';
 
 import type { UserInput } from '@dungeonmaster/shared/contracts';
 import { userInputContract } from '@dungeonmaster/shared/contracts';
@@ -16,7 +16,6 @@ import { userInputContract } from '@dungeonmaster/shared/contracts';
 import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter';
 import { inkTextAdapter } from '../../adapters/ink/text/ink-text-adapter';
 import { inkUseInputAdapter } from '../../adapters/ink/use-input/ink-use-input-adapter';
-import { reactUseStateAdapter } from '../../adapters/react/use-state/react-use-state-adapter';
 import { cliStatics } from '../../statics/cli/cli-statics';
 
 export interface AddScreenLayerWidgetProps {
@@ -31,9 +30,7 @@ export const AddScreenLayerWidget = ({
   const Box = inkBoxAdapter();
   const Text = inkTextAdapter();
 
-  const [inputValue, setInputValue] = reactUseStateAdapter<UserInput>({
-    initialValue: userInputContract.parse(''),
-  });
+  const [inputValue, setInputValue] = useState<UserInput>(userInputContract.parse(''));
 
   inkUseInputAdapter({
     handler: ({ input, key }) => {

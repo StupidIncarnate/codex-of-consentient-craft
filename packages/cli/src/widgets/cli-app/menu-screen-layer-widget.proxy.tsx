@@ -10,11 +10,9 @@
  * This proxy exists for API compatibility. With real ink-testing-library,
  * use stdin.write() for key simulation instead of proxy trigger methods.
  */
-
 import { inkBoxAdapterProxy } from '../../adapters/ink/box/ink-box-adapter.proxy';
 import { inkTextAdapterProxy } from '../../adapters/ink/text/ink-text-adapter.proxy';
 import { inkUseInputAdapterProxy } from '../../adapters/ink/use-input/ink-use-input-adapter.proxy';
-import { reactUseStateAdapterProxy } from '../../adapters/react/use-state/react-use-state-adapter.proxy';
 
 export const MenuScreenLayerWidgetProxy = (): {
   triggerUpArrow: () => void;
@@ -27,7 +25,6 @@ export const MenuScreenLayerWidgetProxy = (): {
   inkBoxAdapterProxy();
   inkTextAdapterProxy();
   inkUseInputAdapterProxy();
-  reactUseStateAdapterProxy();
 
   const setState = jest.fn();
 
