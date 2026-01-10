@@ -1,6 +1,6 @@
 # Ink Adapters
 
-Widgets never import ink directly. Create adapters to wrap ink components and hooks.
+Widgets use adapters to wrap ink components and hooks. React is imported directly (whitelisted in folder-config).
 
 ## Box Adapter
 
@@ -60,49 +60,9 @@ export const inkUseInputAdapter = ({handler}: { handler: InkInputHandler }): voi
 };
 ```
 
-## React Module Adapter
-
-Re-exports React for JSX namespace access in widgets:
-
-```typescript
-// src/adapters/react/module/react-module-adapter.ts
-/**
- * PURPOSE: Re-exports React for use in widgets that need JSX support
- *
- * USAGE:
- * import { reactModuleAdapter } from '../../adapters/react/module/react-module-adapter';
- * const React = reactModuleAdapter();
- * // Use in component for JSX namespace: React.JSX.Element
- */
-import React from 'react';
-
-export const reactModuleAdapter = (): typeof React => React;
-```
-
-## React useState Adapter
-
-```typescript
-// src/adapters/react/use-state/react-use-state-adapter.ts
-/**
- * PURPOSE: Wraps React's useState hook for mockability in tests
- *
- * USAGE:
- * const [value, setValue] = reactUseStateAdapter({initialValue: 'initial'});
- * // Returns tuple of [state, setState] just like React.useState
- */
-import type React from 'react';
-import {useState} from 'react';
-
-export const reactUseStateAdapter = <T>({
-                                            initialValue,
-                                        }: {
-    initialValue: T | (() => T);
-}): [T, React.Dispatch<React.SetStateAction<T>>] => useState<T>(initialValue);
-```
-
 ## Ink Testing Library Render Adapter
 
-Wraps the local `ink-test-render` utility:
+Wraps `ink-testing-library`'s render function:
 
 ```typescript
 // src/adapters/ink-testing-library/render/ink-testing-library-render-adapter.ts
@@ -115,17 +75,33 @@ Wraps the local `ink-test-render` utility:
  * expect(lastFrame()).toMatch(/expected text/u);
  */
 import type {ReactElement} from 'react';
+import {render} from 'ink-testing-library';
 
-import {inkTestRender, type InkTestRenderResult} from './ink-test-render';
-
-export type InkRenderResult = InkTestRenderResult;
+export type InkRenderResult = ReturnType<typeof render>;
 
 export const inkTestingLibraryRenderAdapter = ({
                                                    element,
                                                }: {
     element: ReactElement;
-}): InkRenderResult => inkTestRender(element);
+}): InkRenderResult => render(element);
 ```
+
+## React Imports
+
+Widgets import React directly - it's whitelisted in `folder-config-statics.ts`:
+
+```typescript
+// In widgets - React is whitelisted, no adapter needed
+import React, {useState} from 'react';
+
+export const MyWidget = (): React.JSX.Element => {
+    const [value, setValue] = useState('initial');
+    // ...
+};
+```
+
+**Note:** Previous versions used `reactUseStateAdapter` and `reactModuleAdapter`. These have been removed - widgets now
+import React directly.
 
 ## Adapter Proxies
 
@@ -140,14 +116,31 @@ Ink adapter proxies are **no-ops** because real ink components are used in tests
  * inkBoxAdapterProxy(); // Sets up nothing - real Box component is used
  */
 
-// Real ink components are used for testing via ink-test-render
+// Real ink components are used for testing via ink-testing-library
 // No mocking needed - this proxy exists for API compatibility
 export const inkBoxAdapterProxy = (): Record<PropertyKey, never> => ({});
 ```
 
-## Why Adapters?
+## Why Adapters for Ink?
 
-1. **Testability**: Can mock adapters in tests (though ink adapters use real components)
-2. **Architecture compliance**: Widgets don't directly import npm packages
-3. **Consistency**: Same pattern as other I/O adapters (fs, axios, etc.)
-4. **Metadata**: Each adapter has PURPOSE/USAGE comments for discoverability
+1. **Architecture compliance**: Widgets don't directly import npm packages (except whitelisted ones like React)
+2. **Consistency**: Same pattern as other I/O adapters (fs, axios, etc.)
+3. **Metadata**: Each adapter has PURPOSE/USAGE comments for discoverability
+4. **Testability**: Pattern allows mocking if needed (though ink uses real components)
+
+## Why React is Direct Import?
+
+React is whitelisted in `folder-config-statics.ts` for the `widgets/` folder:
+
+```typescript
+widgets: {
+    allowedImports: [
+        'adapters/',
+        'bindings/',
+        // ...
+        'react',  // Whitelisted - direct import allowed
+    ],
+}
+```
+
+This allows widgets to use `useState`, `useEffect`, etc. directly without adapter wrappers.
