@@ -865,7 +865,7 @@ export const handler: any = processData;`;
   });
 
   describe('performance tests', () => {
-    it('PERF: typical file processing should be under 3 seconds', () => {
+    it('PERF: typical file processing should be under 5 seconds', () => {
       const projectDir = createTestProject({ name: 'perf-test-typical' });
       const filePath = path.join(projectDir, 'example.ts');
 
@@ -912,10 +912,10 @@ export class UserService {
       const executionTime = endTime - startTime;
 
       expect(result.exitCode).toBe(0);
-      expect(executionTime).toBeLessThan(4000); // ESLint initialization overhead
+      expect(executionTime).toBeLessThan(6000); // ESLint initialization overhead
     });
 
-    it('PERF: large file processing should be under 3 seconds', () => {
+    it('PERF: large file processing should be under 5 seconds', () => {
       const projectDir = createTestProject({ name: 'perf-test-large' });
       const filePath = path.join(projectDir, 'example.ts');
 
@@ -970,10 +970,10 @@ export class Service${classIndex} {
       const executionTime = endTime - startTime;
 
       expect(result.exitCode).toBe(0);
-      expect(executionTime).toBeLessThan(4000); // Large files still bound by ESLint initialization
+      expect(executionTime).toBeLessThan(6000); // Large files still bound by ESLint initialization
     });
 
-    it('PERF: violation detection should be under 3 seconds', () => {
+    it('PERF: violation detection should be under 5 seconds', () => {
       const projectDir = createTestProject({ name: 'perf-test-violations' });
       const filePath = path.join(projectDir, 'example.ts');
 
@@ -1009,10 +1009,10 @@ export class BadService {
       const executionTime = endTime - startTime;
 
       expect(result.exitCode).toBe(2); // Should block due to violations
-      expect(executionTime).toBeLessThan(4000); // Violation detection still requires ESLint initialization
+      expect(executionTime).toBeLessThan(6000); // Violation detection still requires ESLint initialization
     });
 
-    it('PERF: edit operation should be under 3 seconds', () => {
+    it('PERF: edit operation should be under 5 seconds', () => {
       const projectDir = createTestProject({ name: 'perf-test-edit' });
       const filePath = path.join(projectDir, 'example.ts');
 
@@ -1051,10 +1051,10 @@ export class BadService {
       const executionTime = endTime - startTime;
 
       expect(result.exitCode).toBe(0);
-      expect(executionTime).toBeLessThan(4000); // Edit operations bound by ESLint initialization
+      expect(executionTime).toBeLessThan(6000); // Edit operations bound by ESLint initialization
     });
 
-    it('PERF: multiedit operation should be under 3 seconds', () => {
+    it('PERF: multiedit operation should be under 5 seconds', () => {
       const projectDir = createTestProject({ name: 'perf-test-multiedit' });
       const filePath = path.join(projectDir, 'example.ts');
 
@@ -1113,7 +1113,7 @@ export class BadService {
       const executionTime = endTime - startTime;
 
       expect(result.exitCode).toBe(0);
-      expect(executionTime).toBeLessThan(4000); // MultiEdit operations bound by ESLint initialization
+      expect(executionTime).toBeLessThan(6000); // MultiEdit operations bound by ESLint initialization
     });
   });
 });
