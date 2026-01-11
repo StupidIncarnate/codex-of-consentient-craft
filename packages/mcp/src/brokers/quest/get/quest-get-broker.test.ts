@@ -3,16 +3,18 @@ import { QuestStub } from '@dungeonmaster/shared/contracts';
 import { questGetBroker } from './quest-get-broker';
 import { questGetBrokerProxy } from './quest-get-broker.proxy';
 import { GetQuestInputStub } from '../../../contracts/get-quest-input/get-quest-input.stub';
-import { QuestDatabaseStub } from '../../../contracts/quest-database/quest-database.stub';
 
 describe('questGetBroker', () => {
   describe('successful retrieval', () => {
     it('VALID: {questId exists} => returns quest', async () => {
       const proxy = questGetBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', title: 'Add Authentication' });
-      const database = QuestDatabaseStub({ quests: [quest] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+      });
 
-      proxy.setupQuestFound({ database });
+      proxy.setupQuestFound({ quest });
 
       const input = GetQuestInputStub({ questId: 'add-auth' });
       const result = await questGetBroker({ input });
@@ -22,13 +24,11 @@ describe('questGetBroker', () => {
       expect(result.quest?.title).toBe('Add Authentication');
     });
 
-    it('VALID: {questId in multiple quests} => returns correct quest', async () => {
+    it('VALID: {questId with different folder} => returns quest', async () => {
       const proxy = questGetBrokerProxy();
-      const quest1 = QuestStub({ id: 'add-auth', title: 'Add Authentication' });
-      const quest2 = QuestStub({ id: 'fix-bug', title: 'Fix Bug' });
-      const database = QuestDatabaseStub({ quests: [quest1, quest2] });
+      const quest = QuestStub({ id: 'fix-bug', folder: '002-fix-bug', title: 'Fix Bug' });
 
-      proxy.setupQuestFound({ database });
+      proxy.setupQuestFound({ quest });
 
       const input = GetQuestInputStub({ questId: 'fix-bug' });
       const result = await questGetBroker({ input });
@@ -42,10 +42,9 @@ describe('questGetBroker', () => {
   describe('quest not found', () => {
     it('ERROR: {questId not exists} => returns not found error', async () => {
       const proxy = questGetBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth' });
-      const database = QuestDatabaseStub({ quests: [quest] });
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
 
-      proxy.setupQuestFound({ database });
+      proxy.setupQuestFound({ quest });
 
       const input = GetQuestInputStub({ questId: 'nonexistent' });
       const result = await questGetBroker({ input });
@@ -54,10 +53,10 @@ describe('questGetBroker', () => {
       expect(result.error).toBe('Quest not found: nonexistent');
     });
 
-    it('ERROR: {empty database} => returns not found error', async () => {
+    it('ERROR: {empty folder} => returns not found error', async () => {
       const proxy = questGetBrokerProxy();
 
-      proxy.setupEmptyDatabase();
+      proxy.setupEmptyFolder();
 
       const input = GetQuestInputStub({ questId: 'any-quest' });
       const result = await questGetBroker({ input });
@@ -72,8 +71,8 @@ describe('questGetBroker', () => {
       const proxy = questGetBrokerProxy();
 
       // With questsFolderEnsureBroker, folder is created automatically
-      // Then database is empty, so quest not found
-      proxy.setupEmptyDatabase();
+      // Then folder is empty, so quest not found
+      proxy.setupEmptyFolder();
 
       const input = GetQuestInputStub({ questId: 'any-quest' });
       const result = await questGetBroker({ input });

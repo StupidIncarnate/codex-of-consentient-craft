@@ -6,35 +6,23 @@ import { questsFolderEnsureBroker } from './quests-folder-ensure-broker';
 import { questsFolderEnsureBrokerProxy } from './quests-folder-ensure-broker.proxy';
 
 describe('questsFolderEnsureBroker', () => {
-  describe('folder and database creation', () => {
-    it('VALID: {folder and db exist} => returns paths without creating', async () => {
+  describe('folder creation', () => {
+    it('VALID: {folder exists} => returns path', async () => {
       const proxy = questsFolderEnsureBrokerProxy();
-      proxy.setupFolderAndDbExist();
+      proxy.setupFolderExists();
 
       const result = await questsFolderEnsureBroker();
 
       expect(result.questsBasePath).toMatch(/\.dungeonmaster-quests$/u);
-      expect(result.dbPath).toMatch(/db\.json$/u);
     });
 
-    it('VALID: {folder exists, db does not} => creates db.json with empty quests', async () => {
+    it('VALID: {folder does not exist} => creates folder and returns path', async () => {
       const proxy = questsFolderEnsureBrokerProxy();
-      proxy.setupFolderExistsDbDoesNot();
+      proxy.setupFolderExists();
 
       const result = await questsFolderEnsureBroker();
 
       expect(result.questsBasePath).toMatch(/\.dungeonmaster-quests$/u);
-      expect(result.dbPath).toMatch(/db\.json$/u);
-    });
-
-    it('VALID: {nothing exists} => creates folder and db.json', async () => {
-      const proxy = questsFolderEnsureBrokerProxy();
-      proxy.setupFolderExistsDbDoesNot();
-
-      const result = await questsFolderEnsureBroker();
-
-      expect(result.questsBasePath).toBeDefined();
-      expect(result.dbPath).toBeDefined();
     });
   });
 });

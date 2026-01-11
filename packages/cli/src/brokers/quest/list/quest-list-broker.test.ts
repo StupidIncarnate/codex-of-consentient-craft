@@ -5,27 +5,31 @@ import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 describe('questListBroker', () => {
   describe('listing quests', () => {
-    it('VALID: {startPath: "/project/src/file.ts"} => returns array of all quests', async () => {
+    it('VALID: {startPath: "/project/src/file.ts"} => returns array of all quests from folders', async () => {
       const { questsFolderProxy, fsReaddirProxy, pathJoinProxy, questLoadProxy } =
         questListBrokerProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      questsFolderProxy.projectRootProxy.setupProjectRootFound({
+      questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
       });
-      questsFolderProxy.pathJoinProxy.returns({
+      questsFolderProxy.findProxy.pathJoinProxy.returns({
         result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      });
+      questsFolderProxy.mkdirProxy.succeeds({
+        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
       fsReaddirProxy.returns({
         files: [
-          FileNameStub({ value: 'quest-1.json' }),
-          FileNameStub({ value: 'quest-2.json' }),
+          FileNameStub({ value: '001-quest-1' }),
+          FileNameStub({ value: '002-quest-2' }),
           FileNameStub({ value: 'README.md' }), // Should be filtered out
+          FileNameStub({ value: 'closed' }), // Should be filtered out
         ],
       });
       pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/quest-1.json' }),
+        result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-quest-1/quest.json' }),
       });
       questLoadProxy.fsReadFileProxy.resolves({
         content: JSON.stringify({
@@ -49,7 +53,7 @@ describe('questListBroker', () => {
         }),
       });
       pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/quest-2.json' }),
+        result: FilePathStub({ value: '/project/.dungeonmaster-quests/002-quest-2/quest.json' }),
       });
       questLoadProxy.fsReadFileProxy.resolves({
         content: JSON.stringify({
@@ -81,21 +85,24 @@ describe('questListBroker', () => {
       expect(result[1]?.id).toBe('quest-2');
     });
 
-    it('VALID: {startPath: "/project/file.ts"} => returns empty array when no quest files exist', async () => {
+    it('VALID: {startPath: "/project/file.ts"} => returns empty array when no quest folders exist', async () => {
       const { questsFolderProxy, fsReaddirProxy } = questListBrokerProxy();
       const startPath = FilePathStub({ value: '/project/file.ts' });
 
-      questsFolderProxy.projectRootProxy.setupProjectRootFound({
+      questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
         startPath: '/project/file.ts',
         projectRootPath: '/project',
       });
-      questsFolderProxy.pathJoinProxy.returns({
+      questsFolderProxy.findProxy.pathJoinProxy.returns({
         result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      });
+      questsFolderProxy.mkdirProxy.succeeds({
+        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
       fsReaddirProxy.returns({
         files: [
           FileNameStub({ value: 'README.md' }),
-          FileNameStub({ value: 'closed' }), // Folder, not a JSON file
+          FileNameStub({ value: 'closed' }), // Reserved folder, not a quest
         ],
       });
 
@@ -108,12 +115,15 @@ describe('questListBroker', () => {
       const { questsFolderProxy, fsReaddirProxy } = questListBrokerProxy();
       const startPath = FilePathStub({ value: '/project/file.ts' });
 
-      questsFolderProxy.projectRootProxy.setupProjectRootFound({
+      questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
         startPath: '/project/file.ts',
         projectRootPath: '/project',
       });
-      questsFolderProxy.pathJoinProxy.returns({
+      questsFolderProxy.findProxy.pathJoinProxy.returns({
         result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      });
+      questsFolderProxy.mkdirProxy.succeeds({
+        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
       fsReaddirProxy.returns({ files: [] });
 
@@ -129,23 +139,28 @@ describe('questListBroker', () => {
         questListBrokerProxy();
       const startPath = FilePathStub({ value: '/project/.hidden' });
 
-      questsFolderProxy.projectRootProxy.setupProjectRootFound({
+      questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
         startPath: '/project/.hidden',
         projectRootPath: '/project',
       });
-      questsFolderProxy.pathJoinProxy.returns({
+      questsFolderProxy.findProxy.pathJoinProxy.returns({
         result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
+      questsFolderProxy.mkdirProxy.succeeds({
+        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      });
       fsReaddirProxy.returns({
-        files: [FileNameStub({ value: '.hidden-quest.json' })],
+        files: [FileNameStub({ value: '001-hidden-quest' })],
       });
       pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/.hidden-quest.json' }),
+        result: FilePathStub({
+          value: '/project/.dungeonmaster-quests/001-hidden-quest/quest.json',
+        }),
       });
       questLoadProxy.fsReadFileProxy.resolves({
         content: JSON.stringify({
           id: 'hidden-quest',
-          folder: '001-hidden',
+          folder: '001-hidden-quest',
           title: 'Hidden Quest',
           status: 'in_progress',
           createdAt: '2024-01-01T00:00:00Z',

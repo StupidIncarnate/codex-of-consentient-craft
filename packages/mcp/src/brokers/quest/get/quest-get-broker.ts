@@ -1,17 +1,17 @@
 /**
- * PURPOSE: Retrieves a quest by ID from the database
+ * PURPOSE: Retrieves a quest by ID from the quest.json files in .dungeonmaster-quests folders
  *
  * USAGE:
  * const result = await questGetBroker({ input: GetQuestInputStub({ questId: 'add-auth' }) });
  * // Returns: { success: true, quest: {...} } or { success: false, error: 'Quest not found' }
  */
 
-import { lowdbDatabaseAdapter } from '../../../adapters/lowdb/database/lowdb-database-adapter';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { GetQuestInput } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import { getQuestResultContract } from '../../../contracts/get-quest-result/get-quest-result-contract';
 import type { GetQuestResult } from '../../../contracts/get-quest-result/get-quest-result-contract';
 import { questsFolderEnsureBroker } from '../../quests-folder/ensure/quests-folder-ensure-broker';
+import { questFolderFindBroker } from '../folder-find/quest-folder-find-broker';
 
 export const questGetBroker = async ({
   input,
@@ -21,15 +21,15 @@ export const questGetBroker = async ({
   try {
     const validated = getQuestInputContract.parse(input);
 
-    // Ensure folder and db.json exist before reading
-    const { dbPath } = await questsFolderEnsureBroker();
+    // Ensure folder exists before searching
+    const { questsBasePath } = await questsFolderEnsureBroker();
 
-    const db = lowdbDatabaseAdapter({ dbPath });
-    const database = await db.read();
+    const findResult = await questFolderFindBroker({
+      questId: validated.questId,
+      questsPath: questsBasePath,
+    });
 
-    const quest = database.quests.find((q) => q.id === validated.questId);
-
-    if (!quest) {
+    if (!findResult.found) {
       return getQuestResultContract.parse({
         success: false,
         error: `Quest not found: ${validated.questId}`,
@@ -38,7 +38,7 @@ export const questGetBroker = async ({
 
     return getQuestResultContract.parse({
       success: true,
-      quest,
+      quest: findResult.quest,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

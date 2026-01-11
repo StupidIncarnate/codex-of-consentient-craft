@@ -11,13 +11,19 @@
  * - Items in quest but not in input => unchanged (no deletions)
  */
 
-import { lowdbDatabaseAdapter } from '../../../adapters/lowdb/database/lowdb-database-adapter';
+import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { modifyQuestResultContract } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
 import type { ModifyQuestResult } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
 import { questsFolderEnsureBroker } from '../../quests-folder/ensure/quests-folder-ensure-broker';
+import { questFolderFindBroker } from '../folder-find/quest-folder-find-broker';
+
+const QUEST_FILE_NAME = 'quest.json';
+const JSON_INDENT_SPACES = 2;
 
 export const questModifyBroker = async ({
   input,
@@ -27,29 +33,23 @@ export const questModifyBroker = async ({
   try {
     const validated = modifyQuestInputContract.parse(input);
 
-    // Ensure folder and db.json exist before reading
-    const { dbPath } = await questsFolderEnsureBroker();
+    // Ensure folder exists before searching
+    const { questsBasePath } = await questsFolderEnsureBroker();
 
-    const db = lowdbDatabaseAdapter({ dbPath });
-    const database = await db.read();
+    const findResult = await questFolderFindBroker({
+      questId: validated.questId,
+      questsPath: questsBasePath,
+    });
 
-    const questIndex = database.quests.findIndex((q) => q.id === validated.questId);
-
-    if (questIndex < 0) {
+    if (!findResult.found) {
       return modifyQuestResultContract.parse({
         success: false,
         error: `Quest not found: ${validated.questId}`,
       });
     }
 
-    const quest = database.quests[questIndex];
-
-    if (!quest) {
-      return modifyQuestResultContract.parse({
-        success: false,
-        error: `Quest not found: ${validated.questId}`,
-      });
-    }
+    const quest = { ...findResult.quest };
+    const { folderPath } = findResult;
 
     if (validated.contexts) {
       quest.contexts = questArrayUpsertTransformer({
@@ -88,8 +88,10 @@ export const questModifyBroker = async ({
 
     quest.updatedAt = new Date().toISOString() as typeof quest.updatedAt;
 
-    database.quests[questIndex] = quest;
-    await db.write({ database });
+    // Write updated quest back to quest.json
+    const questFilePath = pathJoinAdapter({ paths: [folderPath, QUEST_FILE_NAME] });
+    const questJson = fileContentsContract.parse(JSON.stringify(quest, null, JSON_INDENT_SPACES));
+    await fsWriteFileAdapter({ filepath: questFilePath, contents: questJson });
 
     return modifyQuestResultContract.parse({
       success: true,

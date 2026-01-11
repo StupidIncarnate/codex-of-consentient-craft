@@ -48,6 +48,7 @@ export const CliAppWidget = ({
   if (screen === 'list') {
     return (
       <ListScreenLayerWidget
+        startPath={installContext.targetProjectRoot}
         onBack={() => {
           setScreen('menu');
         }}

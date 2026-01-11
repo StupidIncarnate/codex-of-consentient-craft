@@ -12,7 +12,7 @@ import { resolve } from 'path';
 import { render } from 'ink';
 import React from 'react';
 
-import { questsFolderFindBroker } from '@dungeonmaster/shared/brokers';
+import { questsFolderEnsureBroker } from '@dungeonmaster/shared/brokers';
 import type { UserInput, InstallContext } from '@dungeonmaster/shared/contracts';
 import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
@@ -70,8 +70,8 @@ export const StartCli = async ({
   }
 
   // Handle ChaosWhisperer spawn
-  // Find quests folder path
-  const questsFolderPath = await questsFolderFindBroker({
+  // Ensure quests folder exists and get path
+  const { questsBasePath: questsFolderPath } = await questsFolderEnsureBroker({
     startPath: filePathContract.parse(process.cwd()),
   });
 

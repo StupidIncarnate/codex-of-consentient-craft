@@ -1,19 +1,21 @@
-// Required for questsFolderFindBrokerProxy which uses fsAccessAdapter from shared package
-// Must be before imports for Jest hoisting to work correctly
+// Required for shared package proxies - must be before imports for Jest hoisting to work correctly
+// fs/promises: for fsMkdirAdapter, fsAccessAdapter
+// path: for pathDirnameAdapter, pathJoinAdapter (used by projectRootFindBroker)
 jest.mock('fs/promises');
+jest.mock('path');
 
-import { pathJoinAdapterProxy, questsFolderFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { pathJoinAdapterProxy, questsFolderEnsureBrokerProxy } from '@dungeonmaster/shared/testing';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 
 export const questListBrokerProxy = (): {
-  questsFolderProxy: ReturnType<typeof questsFolderFindBrokerProxy>;
+  questsFolderProxy: ReturnType<typeof questsFolderEnsureBrokerProxy>;
   fsReaddirProxy: ReturnType<typeof fsReaddirAdapterProxy>;
   pathJoinProxy: ReturnType<typeof pathJoinAdapterProxy>;
   questLoadProxy: ReturnType<typeof questLoadBrokerProxy>;
 } => {
-  const questsFolderProxy = questsFolderFindBrokerProxy();
+  const questsFolderProxy = questsFolderEnsureBrokerProxy();
   const fsReaddirProxy = fsReaddirAdapterProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const questLoadProxy = questLoadBrokerProxy();

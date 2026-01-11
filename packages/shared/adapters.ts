@@ -10,6 +10,7 @@
 // File System Adapters
 export * from './src/adapters/fs/access/fs-access-adapter';
 export * from './src/adapters/fs/exists-sync/fs-exists-sync-adapter';
+export * from './src/adapters/fs/mkdir/fs-mkdir-adapter';
 
 // Path Adapters
 export * from './src/adapters/path/dirname/path-dirname-adapter';
