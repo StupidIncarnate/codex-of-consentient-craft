@@ -18,8 +18,8 @@ import { modulePathContract } from '@dungeonmaster/shared/contracts';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
 export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
-  // Track jest.mock() calls and imported module names
-  const jestMockedModules = new Set<ModulePath>();
+  // Track jest.mock() calls (module path -> node for reporting) and imported module names
+  const jestMockedModules = new Map<ModulePath, Tsestree>();
   const importedModuleNames = new Map<Identifier, ModulePath>(); // local name -> module source
   const variablesWithJestMocked = new Set<Identifier>();
 
@@ -37,6 +37,8 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
             'jest.spyOn() should only be used for global objects (Date, crypto, console, Math). Use jest.mock() + jest.mocked() for module imports instead.',
           nonAdapterNoJestMocked:
             'Non-adapter proxies cannot use jest.mocked(). Only adapters (I/O boundaries) and state proxies (for external systems) should be mocked. Brokers, widgets, and responders must run real code.',
+          mockWithoutImport:
+            "jest.mock('{{modulePath}}') has no corresponding import. Either import something from '{{modulePath}}' to use with jest.mocked(), or remove this jest.mock() call and delegate to child adapter proxies.",
         },
         schema: [],
       },
@@ -71,7 +73,7 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
               if (firstArg && firstArg.type === 'Literal' && typeof firstArg.value === 'string') {
                 const parseResult = modulePathContract.safeParse(firstArg.value);
                 if (parseResult.success) {
-                  jestMockedModules.add(parseResult.data);
+                  jestMockedModules.set(parseResult.data, node);
                 }
               }
             }
@@ -156,16 +158,19 @@ export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
           }
         },
 
-        // At the end of the file, check if all jest.mock() calls have corresponding jest.mocked() usage
+        // At the end of the file, check if all jest.mock() calls have corresponding imports
         'Program:exit': (): void => {
-          // For each imported module that has jest.mock() called on it,
-          // verify it's accessed via jest.mocked()
-          for (const [localName, source] of importedModuleNames) {
-            if (jestMockedModules.has(source) && !variablesWithJestMocked.has(localName)) {
-              // This module was mocked but not accessed via jest.mocked()
-              // We need to report this, but we don't have a specific node here
-              // This validation is better done at the point of usage
-              // So we'll skip this check for now as it's covered by the test cases
+          // Get all imported module paths as a Set for O(1) lookup
+          const importedModulePaths = new Set(importedModuleNames.values());
+
+          // Check each jest.mock() has a corresponding import
+          for (const [modulePath, mockNode] of jestMockedModules) {
+            if (!importedModulePaths.has(modulePath)) {
+              ctx.report({
+                node: mockNode,
+                messageId: 'mockWithoutImport',
+                data: { modulePath },
+              });
             }
           }
         },

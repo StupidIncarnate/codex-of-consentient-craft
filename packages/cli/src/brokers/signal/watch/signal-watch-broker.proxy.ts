@@ -1,6 +1,3 @@
-jest.mock('fs/promises');
-jest.mock('fs');
-
 import { fsWatchAdapterProxy } from '../../../adapters/fs/watch/fs-watch-adapter.proxy';
 import { signalReadBrokerProxy } from '../read/signal-read-broker.proxy';
 

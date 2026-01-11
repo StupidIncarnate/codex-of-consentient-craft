@@ -303,6 +303,7 @@ ruleTester.run('enforce-jest-mocked-usage', ruleEnforceJestMockedUsageBroker(), 
     },
     {
       code: `
+        import axios from 'axios';
         // This is wrong - don't do this:
         // const mockAxios = axios as jest.Mocked<typeof axios>
         jest.mock('axios');
@@ -601,6 +602,59 @@ ruleTester.run('enforce-jest-mocked-usage', ruleEnforceJestMockedUsageBroker(), 
       errors: [
         {
           messageId: 'nonAdapterNoJestMocked',
+        },
+      ],
+    },
+
+    // ❌ WRONG: jest.mock() without corresponding import (orphaned mock)
+    {
+      code: `
+        jest.mock('fs/promises');
+
+        import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
+
+        export const signalCleanupBrokerProxy = () => {
+          const fsUnlinkProxy = fsUnlinkAdapterProxy();
+          return { fsUnlinkProxy };
+        };
+      `,
+      filename: '/project/src/brokers/signal/cleanup/signal-cleanup-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'mockWithoutImport',
+          data: {
+            modulePath: 'fs/promises',
+          },
+        },
+      ],
+    },
+
+    // ❌ WRONG: Multiple orphaned jest.mock() calls
+    {
+      code: `
+        jest.mock('axios');
+        jest.mock('fs/promises');
+
+        import { httpAdapterProxy } from '../../../adapters/http/http-adapter.proxy';
+
+        export const userFetchBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+          return { httpProxy };
+        };
+      `,
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'mockWithoutImport',
+          data: {
+            modulePath: 'axios',
+          },
+        },
+        {
+          messageId: 'mockWithoutImport',
+          data: {
+            modulePath: 'fs/promises',
+          },
         },
       ],
     },
