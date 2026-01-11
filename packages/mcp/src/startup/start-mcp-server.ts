@@ -33,7 +33,6 @@ import { folderDetailInputContract } from '../contracts/folder-detail-input/fold
 import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract.js';
 import { modifyQuestInputContract } from '../contracts/modify-quest-input/modify-quest-input-contract.js';
 import { signalCliReturnInputContract } from '../contracts/signal-cli-return-input/signal-cli-return-input-contract.js';
-import { pathJoinAdapter } from '../adapters/path/join/path-join-adapter.js';
 
 const emptyInputSchema = z.object({});
 
@@ -197,12 +196,8 @@ export const StartMcpServer = async (): Promise<void> => {
     }
 
     if (request.params.name === 'get-quest') {
-      const dbPath = pathJoinAdapter({
-        paths: [process.cwd(), '.dungeonmaster-quests', 'db.json'],
-      });
       const result = await questGetBroker({
         input: request.params.arguments as never,
-        dbPath,
       });
 
       return {
@@ -211,12 +206,8 @@ export const StartMcpServer = async (): Promise<void> => {
     }
 
     if (request.params.name === 'modify-quest') {
-      const dbPath = pathJoinAdapter({
-        paths: [process.cwd(), '.dungeonmaster-quests', 'db.json'],
-      });
       const result = await questModifyBroker({
         input: request.params.arguments as never,
-        dbPath,
       });
 
       return {

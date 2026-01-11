@@ -9,10 +9,11 @@ import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 describe('packageDiscoverBroker', () => {
   describe('discovering packages', () => {
-    it('VALID: {dungeonmasterRoot: "/home/user/dungeonmaster"} => returns packages with start-install.ts files', () => {
+    it('VALID: {dungeonmasterRoot: "/home/user/dungeonmaster"} => returns packages with start-install.js files', () => {
       const { fsReaddirProxy, pathJoinProxy, fsExistsSyncProxy } = packageDiscoverBrokerProxy();
       const dungeonmasterRoot = FilePathStub({ value: '/home/user/dungeonmaster' });
 
+      // Setup packagesDir
       pathJoinProxy.returns({
         result: FilePathStub({ value: '/home/user/dungeonmaster/packages' }),
       });
@@ -25,26 +26,35 @@ describe('packageDiscoverBroker', () => {
         ],
       });
 
+      // For cli: standardPath then alternatePath
       pathJoinProxy.returns({
         result: FilePathStub({
-          value: '/home/user/dungeonmaster/packages/cli/src/startup/start-install.ts',
+          value: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
         }),
       });
-      fsExistsSyncProxy.returns({ result: true });
+      fsExistsSyncProxy.returns({ result: true }); // Found in standard path
 
+      // For shared: standardPath (not found) then alternatePath (not found)
       pathJoinProxy.returns({
         result: FilePathStub({
-          value: '/home/user/dungeonmaster/packages/shared/src/startup/start-install.ts',
+          value: '/home/user/dungeonmaster/packages/shared/dist/startup/start-install.js',
         }),
       });
-      fsExistsSyncProxy.returns({ result: false });
+      fsExistsSyncProxy.returns({ result: false }); // Not in standard path
+      pathJoinProxy.returns({
+        result: FilePathStub({
+          value: '/home/user/dungeonmaster/packages/shared/dist/src/startup/start-install.js',
+        }),
+      });
+      fsExistsSyncProxy.returns({ result: false }); // Not in alternate path
 
+      // For hooks: standardPath then alternatePath
       pathJoinProxy.returns({
         result: FilePathStub({
-          value: '/home/user/dungeonmaster/packages/hooks/src/startup/start-install.ts',
+          value: '/home/user/dungeonmaster/packages/hooks/dist/startup/start-install.js',
         }),
       });
-      fsExistsSyncProxy.returns({ result: true });
+      fsExistsSyncProxy.returns({ result: true }); // Found in standard path
 
       const result = packageDiscoverBroker({ dungeonmasterRoot });
 
@@ -52,13 +62,13 @@ describe('packageDiscoverBroker', () => {
         {
           packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
           installPath: FilePathStub({
-            value: '/home/user/dungeonmaster/packages/cli/src/startup/start-install.ts',
+            value: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
           }),
         },
         {
           packageName: PackageNameStub({ value: '@dungeonmaster/hooks' }),
           installPath: FilePathStub({
-            value: '/home/user/dungeonmaster/packages/hooks/src/startup/start-install.ts',
+            value: '/home/user/dungeonmaster/packages/hooks/dist/startup/start-install.js',
           }),
         },
       ]);
@@ -76,13 +86,23 @@ describe('packageDiscoverBroker', () => {
         files: [FileNameStub({ value: 'cli' }), FileNameStub({ value: 'shared' })],
       });
 
+      // For cli: standardPath (not found) then alternatePath (not found)
       pathJoinProxy.returns({
-        result: FilePathStub({ value: '/dm/packages/cli/src/startup/start-install.ts' }),
+        result: FilePathStub({ value: '/dm/packages/cli/dist/startup/start-install.js' }),
+      });
+      fsExistsSyncProxy.returns({ result: false });
+      pathJoinProxy.returns({
+        result: FilePathStub({ value: '/dm/packages/cli/dist/src/startup/start-install.js' }),
       });
       fsExistsSyncProxy.returns({ result: false });
 
+      // For shared: standardPath (not found) then alternatePath (not found)
       pathJoinProxy.returns({
-        result: FilePathStub({ value: '/dm/packages/shared/src/startup/start-install.ts' }),
+        result: FilePathStub({ value: '/dm/packages/shared/dist/startup/start-install.js' }),
+      });
+      fsExistsSyncProxy.returns({ result: false });
+      pathJoinProxy.returns({
+        result: FilePathStub({ value: '/dm/packages/shared/dist/src/startup/start-install.js' }),
       });
       fsExistsSyncProxy.returns({ result: false });
 
@@ -120,12 +140,13 @@ describe('packageDiscoverBroker', () => {
         files: [FileNameStub({ value: 'cli' })],
       });
 
+      // For cli: standardPath
       pathJoinProxy.returns({
         result: FilePathStub({
-          value: '/path/with spaces/packages/cli/src/startup/start-install.ts',
+          value: '/path/with spaces/packages/cli/dist/startup/start-install.js',
         }),
       });
-      fsExistsSyncProxy.returns({ result: true });
+      fsExistsSyncProxy.returns({ result: true }); // Found in standard path
 
       const result = packageDiscoverBroker({ dungeonmasterRoot });
 

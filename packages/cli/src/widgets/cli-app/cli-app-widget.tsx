@@ -11,7 +11,7 @@
  */
 import React, { useState } from 'react';
 
-import type { UserInput } from '@dungeonmaster/shared/contracts';
+import type { UserInput, InstallContext } from '@dungeonmaster/shared/contracts';
 import { HelpScreenLayerWidget } from './help-screen-layer-widget';
 import { InitScreenLayerWidget } from './init-screen-layer-widget';
 import { ListScreenLayerWidget } from './list-screen-layer-widget';
@@ -24,12 +24,14 @@ export interface CliAppWidgetProps {
   initialScreen: CliAppScreen;
   onSpawnChaoswhisperer: ({ userInput }: { userInput: UserInput }) => void;
   onExit: () => void;
+  installContext: InstallContext;
 }
 
 export const CliAppWidget = ({
   initialScreen,
   onSpawnChaoswhisperer,
   onExit,
+  installContext,
 }: CliAppWidgetProps): React.JSX.Element => {
   const [screen, setScreen] = useState<CliAppScreen>(initialScreen);
 
@@ -59,6 +61,7 @@ export const CliAppWidget = ({
         onBack={() => {
           setScreen('menu');
         }}
+        installContext={installContext}
       />
     );
   }

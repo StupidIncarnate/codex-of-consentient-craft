@@ -183,6 +183,7 @@ export const folderConfigStatics = {
     folderDepth: 1,
     folderPattern: 'bindings/[name]/[name]-binding.ts',
     allowedImports: [
+      'adapters/',
       'brokers/',
       'state/',
       'contracts/',
@@ -190,6 +191,7 @@ export const folderConfigStatics = {
       'errors/',
       'guards/',
       'transformers/',
+      'react',
     ],
     disallowAdhocTypes: true,
     requireProxy: true,
@@ -223,6 +225,7 @@ export const folderConfigStatics = {
     folderDepth: 2,
     folderPattern: 'responders/[domain]/[action]/[domain]-[action]-responder.ts',
     allowedImports: [
+      'adapters/',
       'widgets/',
       'brokers/',
       'bindings/',

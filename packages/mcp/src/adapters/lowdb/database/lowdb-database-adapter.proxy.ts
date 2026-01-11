@@ -15,6 +15,7 @@ jest.mock('lowdb/node', () => ({
 export const lowdbDatabaseAdapterProxy = (): {
   readsDatabase: (params: { dbPath: FilePath; database: QuestDatabase }) => void;
   readsEmptyDatabase: (params: { dbPath: FilePath }) => void;
+  throwsOnRead: (params: { error: Error }) => void;
   writesDatabase: (params: { dbPath: FilePath }) => void;
   getCapturedDatabase: () => QuestDatabase | undefined;
 } => {
@@ -55,6 +56,9 @@ export const lowdbDatabaseAdapterProxy = (): {
       mockDbInstance.read.mockImplementation(async () => {
         await setDataAndResolve({ quests: [] } as QuestDatabase);
       });
+    },
+    throwsOnRead: ({ error }: { error: Error }): void => {
+      mockDbInstance.read.mockRejectedValue(error);
     },
     writesDatabase: (): void => {
       mockDbInstance.write.mockImplementation(async () => {

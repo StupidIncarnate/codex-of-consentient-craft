@@ -2,7 +2,6 @@ import { QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { questModifyBroker } from './quest-modify-broker';
 import { questModifyBrokerProxy } from './quest-modify-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
 import { QuestDatabaseStub } from '../../../contracts/quest-database/quest-database.stub';
 
@@ -10,11 +9,10 @@ describe('questModifyBroker', () => {
   describe('successful modification', () => {
     it('VALID: {questId, contexts: [new]} => adds new context', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
       const quest = QuestStub({ id: 'add-auth', contexts: [] });
       const database = QuestDatabaseStub({ quests: [quest] });
 
-      proxy.setupQuestFound({ dbPath, database });
+      proxy.setupQuestFound({ database });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -28,7 +26,7 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
 
@@ -40,7 +38,6 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, contexts: [existing]} => updates existing context', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
       const quest = QuestStub({
         id: 'add-auth',
         contexts: [
@@ -54,7 +51,7 @@ describe('questModifyBroker', () => {
       });
       const database = QuestDatabaseStub({ quests: [quest] });
 
-      proxy.setupQuestFound({ dbPath, database });
+      proxy.setupQuestFound({ database });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -68,7 +65,7 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
 
@@ -81,11 +78,10 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, tasks: [new]} => adds new task', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
       const quest = QuestStub({ id: 'add-auth', tasks: [] });
       const database = QuestDatabaseStub({ quests: [quest] });
 
-      proxy.setupQuestFound({ dbPath, database });
+      proxy.setupQuestFound({ database });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -100,7 +96,7 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
 
@@ -112,11 +108,10 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, observables: [new]} => adds new observable', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
       const quest = QuestStub({ id: 'add-auth', observables: [] });
       const database = QuestDatabaseStub({ quests: [quest] });
 
-      proxy.setupQuestFound({ dbPath, database });
+      proxy.setupQuestFound({ database });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -131,7 +126,7 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
 
@@ -143,11 +138,10 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, steps: [new]} => adds new step', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
       const quest = QuestStub({ id: 'add-auth', steps: [] });
       const database = QuestDatabaseStub({ quests: [quest] });
 
-      proxy.setupQuestFound({ dbPath, database });
+      proxy.setupQuestFound({ database });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -165,7 +159,7 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
 
@@ -177,11 +171,10 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, toolingRequirements: [new]} => adds new requirement', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
       const quest = QuestStub({ id: 'add-auth', toolingRequirements: [] });
       const database = QuestDatabaseStub({ quests: [quest] });
 
-      proxy.setupQuestFound({ dbPath, database });
+      proxy.setupQuestFound({ database });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -196,7 +189,7 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
 
@@ -208,7 +201,6 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId only} => updates updatedAt without changing arrays', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
       const quest = QuestStub({
         id: 'add-auth',
         contexts: [
@@ -222,11 +214,11 @@ describe('questModifyBroker', () => {
       });
       const database = QuestDatabaseStub({ quests: [quest] });
 
-      proxy.setupQuestFound({ dbPath, database });
+      proxy.setupQuestFound({ database });
 
       const input = ModifyQuestInputStub({ questId: 'add-auth' });
 
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
 
@@ -241,14 +233,13 @@ describe('questModifyBroker', () => {
   describe('quest not found', () => {
     it('ERROR: {questId not exists} => returns not found error', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
       const quest = QuestStub({ id: 'add-auth' });
       const database = QuestDatabaseStub({ quests: [quest] });
 
-      proxy.setupQuestFound({ dbPath, database });
+      proxy.setupQuestFound({ database });
 
       const input = ModifyQuestInputStub({ questId: 'nonexistent' });
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Quest not found: nonexistent');
@@ -256,12 +247,11 @@ describe('questModifyBroker', () => {
 
     it('ERROR: {empty database} => returns not found error', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
 
-      proxy.setupEmptyDatabase({ dbPath });
+      proxy.setupEmptyDatabase();
 
       const input = ModifyQuestInputStub({ questId: 'any-quest' });
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Quest not found: any-quest');
@@ -271,7 +261,6 @@ describe('questModifyBroker', () => {
   describe('upsert semantics', () => {
     it('VALID: {mixed new and existing items} => updates existing, adds new', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
       const quest = QuestStub({
         id: 'add-auth',
         contexts: [
@@ -285,7 +274,7 @@ describe('questModifyBroker', () => {
       });
       const database = QuestDatabaseStub({ quests: [quest] });
 
-      proxy.setupQuestFound({ dbPath, database });
+      proxy.setupQuestFound({ database });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -305,7 +294,7 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
 
@@ -318,7 +307,6 @@ describe('questModifyBroker', () => {
 
     it('VALID: {existing items not in input} => remain unchanged', async () => {
       const proxy = questModifyBrokerProxy();
-      const dbPath = FilePathStub({ value: '/path/to/db.json' });
       const quest = QuestStub({
         id: 'add-auth',
         contexts: [
@@ -338,7 +326,7 @@ describe('questModifyBroker', () => {
       });
       const database = QuestDatabaseStub({ quests: [quest] });
 
-      proxy.setupQuestFound({ dbPath, database });
+      proxy.setupQuestFound({ database });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -352,7 +340,7 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, dbPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
 
@@ -361,6 +349,22 @@ describe('questModifyBroker', () => {
       expect(captured?.quests[0]?.contexts).toHaveLength(2);
       expect(captured?.quests[0]?.contexts[0]?.name).toBe('Keep Me');
       expect(captured?.quests[0]?.contexts[1]?.name).toBe('Updated');
+    });
+  });
+
+  describe('graceful folder handling', () => {
+    it('VALID: {folder does not exist} => creates folder and returns quest not found', async () => {
+      const proxy = questModifyBrokerProxy();
+
+      // With questsFolderEnsureBroker, folder is created automatically
+      // Then database is empty, so quest not found
+      proxy.setupEmptyDatabase();
+
+      const input = ModifyQuestInputStub({ questId: 'any-quest' });
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Quest not found: any-quest');
     });
   });
 });

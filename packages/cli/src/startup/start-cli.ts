@@ -8,11 +8,12 @@
  * // Renders interactive menu, spawns ChaosWhisperer on 'add', returns to list after signal
  */
 
+import { resolve } from 'path';
 import { render } from 'ink';
 import React from 'react';
 
 import { questsFolderFindBroker } from '@dungeonmaster/shared/brokers';
-import type { UserInput } from '@dungeonmaster/shared/contracts';
+import type { UserInput, InstallContext } from '@dungeonmaster/shared/contracts';
 import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
@@ -34,10 +35,17 @@ export const StartCli = async ({
     shouldExit: false,
   };
 
+  // Compute install context for init flow
+  // dungeonmasterRoot is 4 levels up from startup/ (startup -> src -> cli -> packages -> root)
+  const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, '../../../..'));
+  const targetProjectRoot = filePathContract.parse(process.cwd());
+  const installContext: InstallContext = { dungeonmasterRoot, targetProjectRoot };
+
   // Render the Ink app
   const { unmount, waitUntilExit } = render(
     React.createElement(CliAppWidget, {
       initialScreen,
+      installContext,
       onSpawnChaoswhisperer: ({ userInput }: { userInput: UserInput }) => {
         state.pendingChaoswhisperer = userInput;
         unmount();

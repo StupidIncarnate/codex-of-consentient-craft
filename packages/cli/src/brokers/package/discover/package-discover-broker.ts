@@ -25,11 +25,23 @@ export const packageDiscoverBroker = ({
   const packagesWithInstallers: { packageName: PackageName; installPath: FilePath }[] = [];
 
   for (const dir of packageDirs) {
-    const installPath = pathJoinAdapter({
+    // Check standard path: dist/startup/start-install.js
+    const standardPath = pathJoinAdapter({
       paths: [packagesDir, dir, 'dist', 'startup', 'start-install.js'],
     });
 
-    if (fsExistsSyncAdapter({ filePath: installPath })) {
+    // Check alternate path: dist/src/startup/start-install.js (for packages with rootDir: ".")
+    const alternatePath = pathJoinAdapter({
+      paths: [packagesDir, dir, 'dist', 'src', 'startup', 'start-install.js'],
+    });
+
+    const installPath = fsExistsSyncAdapter({ filePath: standardPath })
+      ? standardPath
+      : fsExistsSyncAdapter({ filePath: alternatePath })
+        ? alternatePath
+        : null;
+
+    if (installPath) {
       const packageName = packageNameContract.parse(`@dungeonmaster/${dir}`);
       packagesWithInstallers.push({
         packageName,

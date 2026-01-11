@@ -1,29 +1,27 @@
 import { lowdbDatabaseAdapterProxy } from '../../../adapters/lowdb/database/lowdb-database-adapter.proxy';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import { questsFolderEnsureBrokerProxy } from '../../quests-folder/ensure/quests-folder-ensure-broker.proxy';
 import type { QuestDatabase } from '../../../contracts/quest-database/quest-database-contract';
 
 export const questModifyBrokerProxy = (): {
-  setupQuestFound: (params: { dbPath: FilePath; database: QuestDatabase }) => void;
-  setupEmptyDatabase: (params: { dbPath: FilePath }) => void;
+  setupQuestFound: (params: { database: QuestDatabase }) => void;
+  setupEmptyDatabase: () => void;
   getCapturedDatabase: () => QuestDatabase | undefined;
 } => {
+  const folderProxy = questsFolderEnsureBrokerProxy();
   const dbProxy = lowdbDatabaseAdapterProxy();
 
+  // Ensure folder setup is called
+  folderProxy.setupFolderAndDbExist();
+
   return {
-    setupQuestFound: ({
-      dbPath,
-      database,
-    }: {
-      dbPath: FilePath;
-      database: QuestDatabase;
-    }): void => {
-      dbProxy.readsDatabase({ dbPath, database });
-      dbProxy.writesDatabase({ dbPath });
+    setupQuestFound: ({ database }: { database: QuestDatabase }): void => {
+      dbProxy.readsDatabase({ dbPath: '' as never, database });
+      dbProxy.writesDatabase({ dbPath: '' as never });
     },
 
-    setupEmptyDatabase: ({ dbPath }: { dbPath: FilePath }): void => {
-      dbProxy.readsEmptyDatabase({ dbPath });
-      dbProxy.writesDatabase({ dbPath });
+    setupEmptyDatabase: (): void => {
+      dbProxy.readsEmptyDatabase({ dbPath: '' as never });
+      dbProxy.writesDatabase({ dbPath: '' as never });
     },
 
     getCapturedDatabase: (): QuestDatabase | undefined => dbProxy.getCapturedDatabase(),

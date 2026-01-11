@@ -2,7 +2,7 @@
  * PURPOSE: Upserts data into an existing quest (contexts, observables, tasks, steps, toolingRequirements)
  *
  * USAGE:
- * const result = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', contexts: [...] }), dbPath: FilePathStub() });
+ * const result = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', contexts: [...] }) });
  * // Returns: { success: true } or { success: false, error: 'Quest not found' }
  *
  * UPSERT SEMANTICS:
@@ -12,22 +12,23 @@
  */
 
 import { lowdbDatabaseAdapter } from '../../../adapters/lowdb/database/lowdb-database-adapter';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { modifyQuestResultContract } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
 import type { ModifyQuestResult } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
+import { questsFolderEnsureBroker } from '../../quests-folder/ensure/quests-folder-ensure-broker';
 
 export const questModifyBroker = async ({
   input,
-  dbPath,
 }: {
   input: ModifyQuestInput;
-  dbPath: FilePath;
 }): Promise<ModifyQuestResult> => {
   try {
     const validated = modifyQuestInputContract.parse(input);
+
+    // Ensure folder and db.json exist before reading
+    const { dbPath } = await questsFolderEnsureBroker();
 
     const db = lowdbDatabaseAdapter({ dbPath });
     const database = await db.read();

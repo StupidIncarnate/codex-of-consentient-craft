@@ -3,6 +3,19 @@
 **Critical:** DO NOT run anything in /tmp if you're trying to test eslint effects. That folder is outside the repo and
 thus won't trigger eslint at all.
 
+## What This Repo Is
+
+This is a **published npm package** (`dungeonmaster`). When users install it in their projects and run
+`dungeonmaster init`, the CLI:
+
+1. Discovers all packages in `packages/*/dist/startup/start-install.js`
+2. Dynamically imports and executes each package's `StartInstall` function
+3. Each package's install script sets up its own config (e.g., MCP creates `.mcp.json`, CLI adds devDependencies, etc.)
+
+**Important:** Each package has a `startup/start-install.ts` that gets dynamically imported at runtime. Keep install
+logic directly in these startup files - don't move it to brokers (the CLI orchestration layer handles
+discovery/execution).
+
 ## MCP Architecture Tools - MANDATORY WORKFLOW
 
 **🚨 CRITICAL: Use MCP tools FIRST for EVERY task. No exceptions. 🚨**

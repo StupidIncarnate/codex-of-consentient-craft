@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { InstallContextStub } from '@dungeonmaster/shared/contracts';
+
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
 import { CliAppWidget } from './cli-app-widget';
@@ -9,6 +11,15 @@ import { CliAppWidgetProxy } from './cli-app-widget.proxy';
 const noopCallback = (): void => {
   // No-op
 };
+
+// Mock install context for tests
+const createMockInstallContext = (): ReturnType<typeof InstallContextStub> =>
+  InstallContextStub({
+    value: {
+      targetProjectRoot: __dirname,
+      dungeonmasterRoot: __dirname,
+    },
+  });
 
 describe('CliAppWidget', () => {
   let unmountFn: (() => void) | null = null;
@@ -30,6 +41,7 @@ describe('CliAppWidget', () => {
             initialScreen="menu"
             onSpawnChaoswhisperer={noopCallback}
             onExit={noopCallback}
+            installContext={createMockInstallContext()}
           />
         ),
       });
@@ -48,6 +60,7 @@ describe('CliAppWidget', () => {
             initialScreen="help"
             onSpawnChaoswhisperer={noopCallback}
             onExit={noopCallback}
+            installContext={createMockInstallContext()}
           />
         ),
       });
@@ -65,6 +78,7 @@ describe('CliAppWidget', () => {
             initialScreen="list"
             onSpawnChaoswhisperer={noopCallback}
             onExit={noopCallback}
+            installContext={createMockInstallContext()}
           />
         ),
       });
@@ -82,6 +96,7 @@ describe('CliAppWidget', () => {
             initialScreen="init"
             onSpawnChaoswhisperer={noopCallback}
             onExit={noopCallback}
+            installContext={createMockInstallContext()}
           />
         ),
       });
@@ -99,6 +114,7 @@ describe('CliAppWidget', () => {
             initialScreen="add"
             onSpawnChaoswhisperer={noopCallback}
             onExit={noopCallback}
+            installContext={createMockInstallContext()}
           />
         ),
       });
@@ -124,6 +140,7 @@ describe('CliAppWidget', () => {
             initialScreen="menu"
             onSpawnChaoswhisperer={onSpawnChaoswhisperer}
             onExit={onExit}
+            installContext={createMockInstallContext()}
           />
         ),
       });

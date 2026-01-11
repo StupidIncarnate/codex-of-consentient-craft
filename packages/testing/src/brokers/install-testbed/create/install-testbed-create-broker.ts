@@ -68,8 +68,8 @@ export const installTestbedCreateBroker = ({
     fsMkdirAdapter({ dirPath: claudeDir, recursive: true });
   }
 
-  // Get path to dungeonmaster packages (this repo)
-  const dungeonmasterPath = pathResolveAdapter({ paths: [__dirname, '../../../../..'] });
+  // Get path to dungeonmaster repo root (6 levels up from create/ folder)
+  const dungeonmasterPath = pathResolveAdapter({ paths: [__dirname, '../../../../../..'] });
 
   const testbed: InstallTestbed = {
     projectPath: installTestbedContract.shape.projectPath.parse(projectPath),

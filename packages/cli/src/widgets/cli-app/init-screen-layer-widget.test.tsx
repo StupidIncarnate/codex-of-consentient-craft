@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { InstallContextStub } from '@dungeonmaster/shared/contracts';
+
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
 import { InitScreenLayerWidget } from './init-screen-layer-widget';
@@ -9,6 +11,15 @@ import { InitScreenLayerWidgetProxy } from './init-screen-layer-widget.proxy';
 const noopCallback = (): void => {
   // No-op
 };
+
+// Mock install context for tests (actual value doesn't matter since useInstallBinding is mocked)
+const createMockInstallContext = (): ReturnType<typeof InstallContextStub> =>
+  InstallContextStub({
+    value: {
+      targetProjectRoot: __dirname,
+      dungeonmasterRoot: __dirname,
+    },
+  });
 
 describe('InitScreenLayerWidget', () => {
   let unmountFn: (() => void) | null = null;
@@ -25,29 +36,44 @@ describe('InitScreenLayerWidget', () => {
       InitScreenLayerWidgetProxy();
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
-        element: <InitScreenLayerWidget onBack={noopCallback} />,
+        element: (
+          <InitScreenLayerWidget
+            onBack={noopCallback}
+            installContext={createMockInstallContext()}
+          />
+        ),
       });
       unmountFn = unmount;
 
       expect(lastFrame()).toMatch(/Initialize Dungeonmaster/u);
     });
 
-    it('VALID: {} => displays setup message', () => {
+    it('VALID: {} => displays installing message when loading', () => {
       InitScreenLayerWidgetProxy();
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
-        element: <InitScreenLayerWidget onBack={noopCallback} />,
+        element: (
+          <InitScreenLayerWidget
+            onBack={noopCallback}
+            installContext={createMockInstallContext()}
+          />
+        ),
       });
       unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/set up dungeonmaster/u);
+      expect(lastFrame()).toMatch(/Installing/u);
     });
 
     it('VALID: {} => displays back instruction', () => {
       InitScreenLayerWidgetProxy();
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
-        element: <InitScreenLayerWidget onBack={noopCallback} />,
+        element: (
+          <InitScreenLayerWidget
+            onBack={noopCallback}
+            installContext={createMockInstallContext()}
+          />
+        ),
       });
       unmountFn = unmount;
 
@@ -63,7 +89,9 @@ describe('InitScreenLayerWidget', () => {
       };
 
       const { unmount } = inkTestingLibraryRenderAdapter({
-        element: <InitScreenLayerWidget onBack={onBack} />,
+        element: (
+          <InitScreenLayerWidget onBack={onBack} installContext={createMockInstallContext()} />
+        ),
       });
       unmountFn = unmount;
 
