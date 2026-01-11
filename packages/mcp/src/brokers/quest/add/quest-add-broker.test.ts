@@ -12,12 +12,14 @@ describe('questAddBroker', () => {
     const questFilePath = FilePathStub({
       value: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
     });
+    const dbPath = FilePathStub({ value: '/project/.dungeonmaster-quests/db.json' });
 
     brokerProxy.setupQuestCreation({
       questsPath,
       existingFolders: [],
       questFolderPath,
       questFilePath,
+      dbPath,
     });
 
     const input = AddQuestInputStub({
@@ -43,6 +45,7 @@ describe('questAddBroker', () => {
     const questFilePath = FilePathStub({
       value: '/project/.dungeonmaster-quests/003-fix-bug/quest.json',
     });
+    const dbPath = FilePathStub({ value: '/project/.dungeonmaster-quests/db.json' });
 
     brokerProxy.setupQuestCreation({
       questsPath,
@@ -52,6 +55,7 @@ describe('questAddBroker', () => {
       ],
       questFolderPath,
       questFilePath,
+      dbPath,
     });
 
     const input = AddQuestInputStub({
@@ -76,12 +80,14 @@ describe('questAddBroker', () => {
     const questFilePath = FilePathStub({
       value: '/project/.dungeonmaster-quests/001-add-user-profile/quest.json',
     });
+    const dbPath = FilePathStub({ value: '/project/.dungeonmaster-quests/db.json' });
 
     brokerProxy.setupQuestCreation({
       questsPath,
       existingFolders: [],
       questFolderPath,
       questFilePath,
+      dbPath,
     });
 
     const input = AddQuestInputStub({
@@ -104,12 +110,14 @@ describe('questAddBroker', () => {
     const questFilePath = FilePathStub({
       value: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
     });
+    const dbPath = FilePathStub({ value: '/project/.dungeonmaster-quests/db.json' });
 
     brokerProxy.setupQuestCreation({
       questsPath,
       existingFolders: [],
       questFolderPath,
       questFilePath,
+      dbPath,
     });
 
     const input = AddQuestInputStub({

@@ -5,6 +5,7 @@
 
 import { spawn } from 'child_process';
 import * as path from 'path';
+import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import { JsonRpcRequestStub } from '../contracts/json-rpc-request/json-rpc-request.stub';
 import { JsonRpcResponseStub } from '../contracts/json-rpc-response/json-rpc-response.stub';
 import { RpcIdStub } from '../contracts/rpc-id/rpc-id.stub';
@@ -12,6 +13,10 @@ import { RpcMethodStub } from '../contracts/rpc-method/rpc-method.stub';
 import { ToolListResultStub } from '../contracts/tool-list-result/tool-list-result.stub';
 import { ToolCallResultStub } from '../contracts/tool-call-result/tool-call-result.stub';
 import { DiscoverTreeResultStub } from '../contracts/discover-tree-result/discover-tree-result.stub';
+import { AddQuestResultStub } from '../contracts/add-quest-result/add-quest-result.stub';
+import { GetQuestResultStub } from '../contracts/get-quest-result/get-quest-result.stub';
+import { ModifyQuestResultStub } from '../contracts/modify-quest-result/modify-quest-result.stub';
+import { SignalCliReturnResultStub } from '../contracts/signal-cli-return-result/signal-cli-return-result.stub';
 import { mcpServerStatics } from '../statics/mcp-server/mcp-server-statics';
 import type { McpServerClientStub } from '../contracts/mcp-server-client/mcp-server-client.stub';
 import { BufferStateStub } from '../contracts/buffer-state/buffer-state.stub';
@@ -24,9 +29,14 @@ type McpServerClient = ReturnType<typeof McpServerClientStub>;
 const createMcpClient = async (): Promise<McpServerClient> => {
   const serverEntryPoint = path.join(__dirname, '../index.ts');
 
+  // Create isolated temp directory using testbed
+  const testbed = installTestbedCreateBroker({
+    baseName: BaseNameStub({ value: 'mcp-server' }),
+  });
+
   const serverProcess = spawn('npx', ['tsx', serverEntryPoint], {
     stdio: ['pipe', 'pipe', 'pipe'],
-    cwd: path.join(__dirname, '../..'),
+    cwd: testbed.projectPath,
   });
 
   const pendingResponses = new Map<RpcId, (response: JsonRpcResponse) => void>();
@@ -104,6 +114,10 @@ const createMcpClient = async (): Promise<McpServerClient> => {
           serverProcess.stdout.removeAllListeners();
           serverProcess.stderr.removeAllListeners();
           serverProcess.stdin.removeAllListeners();
+
+          // Clean up temp directory
+          testbed.cleanup();
+
           resolve();
         });
 
@@ -361,6 +375,340 @@ describe('StartMcpServer', () => {
 
       expect(response.error).toBeDefined();
       expect(response.error?.message).toMatch(/^.*Unknown tool.*$/u);
+    });
+  });
+
+  describe('quest tools storage consistency', () => {
+    it('VALID: add-quest => creates quest successfully', async () => {
+      const client = await createMcpClient();
+
+      const addQuestRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 1001 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'add-quest',
+          arguments: {
+            title: 'Integration Test Quest',
+            userRequest: 'Testing add-quest creates quest',
+            tasks: [
+              {
+                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                name: 'Test task',
+                type: 'testing',
+              },
+            ],
+          },
+        },
+      });
+
+      const addResponse = await client.sendRequest(addQuestRequest);
+
+      await client.close();
+
+      const addResult = ToolCallResultStub(addResponse.result as never);
+      const [addContent] = addResult.content;
+      const addParsedData: unknown = JSON.parse(String(addContent!.text));
+      const addResultData = AddQuestResultStub(addParsedData as never);
+
+      expect(addResponse.error).toBeUndefined();
+      expect(addResultData.success).toBe(true);
+      expect(addResultData.questId).toBe('integration-test-quest');
+    });
+
+    it('VALID: add-quest then get-quest => retrieves the created quest', async () => {
+      const client = await createMcpClient();
+
+      const addQuestRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 1003 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'add-quest',
+          arguments: {
+            title: 'Storage Test Quest',
+            userRequest: 'Testing storage consistency',
+            tasks: [],
+          },
+        },
+      });
+
+      const addResponse = await client.sendRequest(addQuestRequest);
+      const addResult = ToolCallResultStub(addResponse.result as never);
+      const [addContent] = addResult.content;
+      const addParsedData: unknown = JSON.parse(String(addContent!.text));
+      const addResultData = AddQuestResultStub(addParsedData as never);
+
+      const getQuestRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 1004 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'get-quest',
+          arguments: {
+            questId: addResultData.questId,
+          },
+        },
+      });
+
+      const getResponse = await client.sendRequest(getQuestRequest);
+
+      await client.close();
+
+      const getResult = ToolCallResultStub(getResponse.result as never);
+      const [getContent] = getResult.content;
+      const getParsedData: unknown = JSON.parse(String(getContent!.text));
+      const getResultData = GetQuestResultStub(getParsedData as never);
+
+      expect(getResponse.error).toBeUndefined();
+      expect(getResultData.success).toBe(true);
+      expect(getResultData.quest!.id).toBe(addResultData.questId);
+    });
+
+    it('VALID: add-quest => modify-quest => get-quest => retrieves modified quest with new context', async () => {
+      const client = await createMcpClient();
+
+      const addQuestRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 2001 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'add-quest',
+          arguments: {
+            title: 'Modify Flow Quest',
+            userRequest: 'Testing modify flow',
+            tasks: [
+              {
+                id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                name: 'Initial task',
+                type: 'implementation',
+              },
+            ],
+          },
+        },
+      });
+
+      const addResponse = await client.sendRequest(addQuestRequest);
+      const addResult = ToolCallResultStub(addResponse.result as never);
+      const [addContent] = addResult.content;
+      const addParsedData: unknown = JSON.parse(String(addContent!.text));
+      const addResultData = AddQuestResultStub(addParsedData as never);
+
+      const modifyQuestRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 2002 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'modify-quest',
+          arguments: {
+            questId: addResultData.questId,
+            contexts: [
+              {
+                id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+                name: 'Test Context',
+                description: 'Added via modify-quest',
+                locator: { section: 'testing', page: 'integration' },
+              },
+            ],
+          },
+        },
+      });
+
+      const modifyResponse = await client.sendRequest(modifyQuestRequest);
+      const modifyResult = ToolCallResultStub(modifyResponse.result as never);
+      const [modifyContent] = modifyResult.content;
+      const modifyParsedData: unknown = JSON.parse(String(modifyContent!.text));
+      const modifyResultData = ModifyQuestResultStub(modifyParsedData as never);
+
+      const getQuestRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 2003 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'get-quest',
+          arguments: {
+            questId: addResultData.questId,
+          },
+        },
+      });
+
+      const getResponse = await client.sendRequest(getQuestRequest);
+
+      await client.close();
+
+      const getResult = ToolCallResultStub(getResponse.result as never);
+      const [getContent] = getResult.content;
+      const getParsedData: unknown = JSON.parse(String(getContent!.text));
+      const getResultData = GetQuestResultStub(getParsedData as never);
+
+      expect(modifyResponse.error).toBeUndefined();
+      expect(modifyResultData.success).toBe(true);
+      expect(getResponse.error).toBeUndefined();
+      expect(getResultData.success).toBe(true);
+      expect(getResultData.quest!.contexts).toStrictEqual([
+        {
+          id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+          name: 'Test Context',
+          description: 'Added via modify-quest',
+          locator: { section: 'testing', page: 'integration' },
+        },
+      ]);
+    });
+
+    it('ERROR: get-quest with non-existent questId => returns error', async () => {
+      const client = await createMcpClient();
+
+      const getQuestRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 3001 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'get-quest',
+          arguments: {
+            questId: 'non-existent-quest-id',
+          },
+        },
+      });
+
+      const getResponse = await client.sendRequest(getQuestRequest);
+
+      await client.close();
+
+      const getResult = ToolCallResultStub(getResponse.result as never);
+      const [getContent] = getResult.content;
+      const getParsedData: unknown = JSON.parse(String(getContent!.text));
+      const getResultData = GetQuestResultStub(getParsedData as never);
+
+      expect(getResponse.error).toBeUndefined();
+      expect(getResultData.success).toBe(false);
+      expect(getResultData.error).toMatch(/not found/iu);
+    });
+  });
+
+  describe('tools/call with get-folder-detail', () => {
+    it('VALID: {folderType: brokers} => returns brokers folder documentation', async () => {
+      const client = await createMcpClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 4001 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'get-folder-detail',
+          arguments: {
+            folderType: 'brokers',
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(result.content[0]?.type).toBe('text');
+      expect(result.content[0]?.text).toMatch(/^.*brokers.*$/su);
+    });
+  });
+
+  describe('tools/call with get-syntax-rules', () => {
+    it('VALID: {} => returns syntax rules markdown', async () => {
+      const client = await createMcpClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 5001 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'get-syntax-rules',
+          arguments: {},
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(result.content[0]?.type).toBe('text');
+      expect(result.content[0]?.text).toMatch(/^.*# Universal Syntax.*$/su);
+    });
+  });
+
+  describe('tools/call with signal-cli-return', () => {
+    it('VALID: add-quest first then signal-cli-return => creates signal file successfully', async () => {
+      const client = await createMcpClient();
+
+      const addQuestRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 6000 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'add-quest',
+          arguments: {
+            title: 'Signal Test Quest',
+            userRequest: 'Creating quest to ensure folder exists',
+            tasks: [],
+          },
+        },
+      });
+
+      await client.sendRequest(addQuestRequest);
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 6001 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'signal-cli-return',
+          arguments: {
+            screen: 'list',
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolCallResultStub(response.result as never);
+      const [content] = result.content;
+      const parsedData: unknown = JSON.parse(String(content!.text));
+      const resultData = SignalCliReturnResultStub(parsedData as never);
+
+      expect(resultData.success).toBe(true);
+      expect(resultData.signalPath).toMatch(/\.cli-signal$/u);
+    });
+  });
+
+  describe('tools/call with discover standards', () => {
+    it('VALID: {type: standards} => returns JSON response with results array', async () => {
+      const client = await createMcpClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 7001 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'discover',
+          arguments: {
+            type: 'standards',
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(result.content[0]?.type).toBe('text');
+
+      const parsedData: unknown = JSON.parse(String(result.content[0]?.text));
+
+      expect(parsedData).toStrictEqual({
+        results: [],
+        count: 0,
+      });
     });
   });
 });

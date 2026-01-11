@@ -78,6 +78,19 @@ When existing code violates architecture:
 
 **Testing**: Jest mocks auto-reset via `@dungeonmaster/testing` - no manual cleanup needed
 
+**Integration Tests with File System**: Use `installTestbedCreateBroker` from `@dungeonmaster/testing` for isolated temp
+directories. Never write test files directly to the repo.
+
+```typescript
+import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+
+const testbed = installTestbedCreateBroker({
+  baseName: BaseNameStub({ value: 'my-test' }),
+});
+// testbed.projectPath - isolated temp directory in /tmp
+// testbed.cleanup() - removes temp directory
+```
+
 **Shared Package**: `@dungeonmaster/shared` for code used by multiple packages
 
 - After modifying: `npm run build --workspace=@dungeonmaster/shared`

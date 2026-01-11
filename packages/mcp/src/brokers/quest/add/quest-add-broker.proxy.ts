@@ -1,19 +1,24 @@
 /**
- * PURPOSE: Proxy for quest-add-broker that mocks filesystem and path operations
+ * PURPOSE: Proxy for quest-add-broker that mocks filesystem, path, and lowdb operations
  *
  * USAGE:
  * const brokerProxy = questAddBrokerProxy();
- * brokerProxy.setupQuestCreation({ questsPath, existingFolders, questFilePath });
- * // Sets up mocks for quest creation
+ * brokerProxy.setupQuestCreation({ questsPath, existingFolders, questFilePath, dbPath });
+ * // Sets up mocks for quest creation including database write
  */
 
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import type { FolderName } from '../../../contracts/folder-name/folder-name-contract';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
+import { lowdbDatabaseAdapterProxy } from '../../../adapters/lowdb/database/lowdb-database-adapter.proxy';
+import type { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import type { FolderNameStub } from '../../../contracts/folder-name/folder-name.stub';
+import type { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+
+type FilePath = ReturnType<typeof FilePathStub>;
+type FolderName = ReturnType<typeof FolderNameStub>;
+type FileContents = ReturnType<typeof FileContentsStub>;
 
 export const questAddBrokerProxy = (): {
   setupQuestCreation: (params: {
@@ -21,6 +26,7 @@ export const questAddBrokerProxy = (): {
     existingFolders: FolderName[];
     questFolderPath: FilePath;
     questFilePath: FilePath;
+    dbPath: FilePath;
   }) => void;
   setupQuestCreationFailure: (params: { questsPath: FilePath; error: Error }) => void;
 } => {
@@ -28,6 +34,7 @@ export const questAddBrokerProxy = (): {
   const readdirProxy = fsReaddirAdapterProxy();
   const writeFileProxy = fsWriteFileAdapterProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
+  const dbProxy = lowdbDatabaseAdapterProxy();
 
   return {
     setupQuestCreation: ({
@@ -35,16 +42,19 @@ export const questAddBrokerProxy = (): {
       existingFolders,
       questFolderPath,
       questFilePath,
+      dbPath,
     }: {
       questsPath: FilePath;
       existingFolders: FolderName[];
       questFolderPath: FilePath;
       questFilePath: FilePath;
+      dbPath: FilePath;
     }): void => {
-      // Mock path joins
+      // Mock path joins (4 calls: questsPath, questFolderPath, questFilePath, dbPath)
       pathJoinProxy.returns({ paths: [], result: questsPath });
       pathJoinProxy.returns({ paths: [], result: questFolderPath });
       pathJoinProxy.returns({ paths: [], result: questFilePath });
+      pathJoinProxy.returns({ paths: [], result: dbPath });
 
       // Mock directory operations
       mkdirProxy.succeeds({ filepath: questsPath });
@@ -53,6 +63,10 @@ export const questAddBrokerProxy = (): {
 
       // Mock file write
       writeFileProxy.succeeds({ filepath: questFilePath, contents: '' as FileContents });
+
+      // Mock database operations
+      dbProxy.readsEmptyDatabase({ dbPath });
+      dbProxy.writesDatabase({ dbPath });
     },
 
     setupQuestCreationFailure: ({

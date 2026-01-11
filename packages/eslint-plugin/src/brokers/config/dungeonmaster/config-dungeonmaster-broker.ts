@@ -184,9 +184,17 @@ export const configDungeonmasterBroker = ({
     },
   });
 
+  const integrationOverrides: EslintConfig = eslintConfigContract.parse({
+    files: ['**/*.integration.test.ts', '**/*.integration.test.tsx'],
+    rules: {
+      'jest/max-expects': 'off', // int tests need more flow asserts
+    },
+  });
+
   const e2eOverrides: EslintConfig = eslintConfigContract.parse({
     files: ['**/*.e2e.test.ts', '**/*.e2e.test.tsx'],
     rules: {
+      'jest/max-expects': 'off',
       '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
       '@dungeonmaster/enforce-test-colocation': 'off',
       '@dungeonmaster/require-contract-validation': 'off',
@@ -203,7 +211,13 @@ export const configDungeonmasterBroker = ({
   return {
     typescript: typescriptConfig,
     test: testConfig,
-    fileOverrides: [proxyOverrides, stubOverride, e2eOverrides, startupTestOverrides],
+    fileOverrides: [
+      proxyOverrides,
+      stubOverride,
+      integrationOverrides,
+      e2eOverrides,
+      startupTestOverrides,
+    ],
     ruleEnforceOn: dungeonmasterRuleEnforceOnStatics,
   };
 };
