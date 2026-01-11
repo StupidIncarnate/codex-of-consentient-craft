@@ -61,6 +61,44 @@ describe('importPathResolverMiddleware', () => {
     });
   });
 
+  describe('tsx extension', () => {
+    it('VALID: {relative import to .tsx proxy file} => returns FilePath with .tsx', () => {
+      importPathResolverMiddlewareProxy();
+
+      // Use CLI widget proxy which is a .tsx file
+      const cliWidgetsDir =
+        '/home/brutus-home/projects/codex-of-consentient-craft/packages/cli/src/widgets/cli-app';
+      const sourceFilePath = FilePathStub({
+        value: `${cliWidgetsDir}/list-screen-layer-widget.test.tsx`,
+      });
+      const importPath = ImportPathStub({ value: './list-screen-layer-widget.proxy' });
+      const expectedPath = FilePathStub({
+        value: `${cliWidgetsDir}/list-screen-layer-widget.proxy.tsx`,
+      });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toStrictEqual(expectedPath);
+    });
+  });
+
+  describe('jsx extension', () => {
+    it('VALID: {relative import to .jsx file} => returns FilePath with .jsx', () => {
+      importPathResolverMiddlewareProxy();
+
+      // Use the stub jsx file in this directory
+      const sourceFilePath = FilePathStub({ value: __filename });
+      const importPath = ImportPathStub({ value: './jsx-extension-test-stub' });
+      const expectedPath = FilePathStub({
+        value: `${__dirname}/jsx-extension-test-stub.jsx`,
+      });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toStrictEqual(expectedPath);
+    });
+  });
+
   describe('file not found', () => {
     it('VALID: {file does not exist} => returns null', () => {
       importPathResolverMiddlewareProxy();

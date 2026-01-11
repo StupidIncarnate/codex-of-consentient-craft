@@ -7,11 +7,6 @@
  * const { lastFrame, stdin } = render(<ListScreenLayerWidget startPath={startPath} onBack={onBack} />);
  */
 
-// Required for shared package proxies - must be before imports for Jest hoisting
-jest.mock('fs/promises');
-jest.mock('path');
-jest.mock('fs');
-
 import { inkBoxAdapterProxy } from '../../adapters/ink/box/ink-box-adapter.proxy';
 import { inkTextAdapterProxy } from '../../adapters/ink/text/ink-text-adapter.proxy';
 import { inkUseInputAdapterProxy } from '../../adapters/ink/use-input/ink-use-input-adapter.proxy';

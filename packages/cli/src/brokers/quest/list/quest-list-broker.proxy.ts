@@ -1,9 +1,3 @@
-// Required for shared package proxies - must be before imports for Jest hoisting to work correctly
-// fs/promises: for fsMkdirAdapter, fsAccessAdapter
-// path: for pathDirnameAdapter, pathJoinAdapter (used by projectRootFindBroker)
-jest.mock('fs/promises');
-jest.mock('path');
-
 import { pathJoinAdapterProxy, questsFolderEnsureBrokerProxy } from '@dungeonmaster/shared/testing';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';

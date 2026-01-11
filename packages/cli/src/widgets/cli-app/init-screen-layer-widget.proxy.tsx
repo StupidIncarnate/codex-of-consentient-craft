@@ -11,9 +11,6 @@
  * use stdin.write() for key simulation instead of proxy trigger methods.
  */
 
-// Must declare jest.mock here for proper hoisting (shared package mocks don't hoist across packages)
-jest.mock('fs');
-
 import { inkBoxAdapterProxy } from '../../adapters/ink/box/ink-box-adapter.proxy';
 import { inkTextAdapterProxy } from '../../adapters/ink/text/ink-text-adapter.proxy';
 import { inkUseInputAdapterProxy } from '../../adapters/ink/use-input/ink-use-input-adapter.proxy';

@@ -13,6 +13,7 @@ import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-ada
 import { pathResolveAdapter } from '../../adapters/path/resolve/path-resolve-adapter';
 import { fsExistsSyncAdapter } from '../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '../../contracts/file-path/file-path-contract';
+import { importExtensionsStatics } from '../../statics/import-extensions/import-extensions-statics';
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
@@ -48,13 +49,15 @@ export const importPathResolverMiddleware = ({
   const sourceDir = pathDirnameAdapter({ filePath: sourceFilePath });
   const resolved = pathResolveAdapter({ paths: [sourceDir, importPath] });
 
-  // Try with .ts extension
-  const withExtension = filePathContract.parse(`${resolved}.ts`);
-  if (fsExistsSyncAdapter({ filePath: withExtension })) {
-    return withExtension;
+  // Try extensions in order of likelihood for this codebase
+  for (const ext of importExtensionsStatics.all) {
+    const withExt = filePathContract.parse(`${resolved}${ext}`);
+    if (fsExistsSyncAdapter({ filePath: withExt })) {
+      return withExt;
+    }
   }
 
-  // Try without extension (already has .ts)
+  // Try without extension (already has extension)
   const asIs = filePathContract.parse(resolved);
   if (fsExistsSyncAdapter({ filePath: asIs })) {
     return asIs;
