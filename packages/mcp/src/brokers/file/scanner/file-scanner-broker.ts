@@ -9,6 +9,7 @@
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
+import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
 import { metadataExtractorTransformer } from '../../../transformers/metadata-extractor/metadata-extractor-transformer';
 import { signatureExtractorTransformer } from '../../../transformers/signature-extractor/signature-extractor-transformer';
 import { fileTypeDetectorTransformer } from '../../../transformers/file-type-detector/file-type-detector-transformer';
@@ -64,7 +65,7 @@ export const fileScannerBroker = async ({
     const scanPath =
       source === 'shared' ? root : path ? filePathContract.parse(`${root}/${path}`) : root;
 
-    const pattern = globPatternContract.parse(`${scanPath}/**/*.{ts,tsx}`);
+    const pattern = globPatternContract.parse(`${scanPath}/**/${fileExtensionsStatics.globs.all}`);
     const files = await globFindAdapter({ pattern, cwd: root });
 
     return files.map((filepath) =>

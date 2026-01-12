@@ -22,6 +22,11 @@ ruleTester.run('enforce-contract-usage-in-tests', ruleEnforceContractUsageInTest
       code: 'import { configContract } from "./config-contract";\nimport { ConfigStub } from "./config.stub";',
       filename: '/project/src/contracts/config/config-contract.test.ts',
     },
+    // Contract test files with .tsx extension should also work
+    {
+      code: 'import { componentContract } from "./component-contract";\nimport { ComponentStub } from "./component.stub";',
+      filename: '/project/src/contracts/component/component-contract.test.tsx',
+    },
 
     // Stub imports are allowed in test files
     {

@@ -17,6 +17,7 @@ import type { FileContents, Identifier, ModulePath } from '@dungeonmaster/shared
 import { identifierContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
+import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -177,10 +178,14 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
                 lastSlashIndex > 0 ? importPath.substring(0, lastSlashIndex) : importPath;
               return `${basePath}/testing` as ModulePath;
             }
+            // Check for any TypeScript extension (.ts, .tsx) and replace with .proxy
+            const tsExtension = fileExtensionsStatics.source.typescript.find((ext) =>
+              importPath.endsWith(ext),
+            );
             return (
-              importPath.endsWith('.ts')
-                ? importPath.replace('.ts', '.proxy')
-                : `${importPath}.proxy`
+              tsExtension === undefined
+                ? `${importPath}.proxy`
+                : importPath.replace(tsExtension, '.proxy')
             ) as ModulePath;
           })();
 

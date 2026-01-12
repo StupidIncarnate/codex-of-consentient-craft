@@ -9,11 +9,12 @@
  * // Returns FilePath or null if file doesn't exist
  */
 
+import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
+
 import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';
 import { pathResolveAdapter } from '../../adapters/path/resolve/path-resolve-adapter';
 import { fsExistsSyncAdapter } from '../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '../../contracts/file-path/file-path-contract';
-import { importExtensionsStatics } from '../../statics/import-extensions/import-extensions-statics';
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
@@ -50,7 +51,7 @@ export const importPathResolverMiddleware = ({
   const resolved = pathResolveAdapter({ paths: [sourceDir, importPath] });
 
   // Try extensions in order of likelihood for this codebase
-  for (const ext of importExtensionsStatics.all) {
+  for (const ext of fileExtensionsStatics.source.all) {
     const withExt = filePathContract.parse(`${resolved}${ext}`);
     if (fsExistsSyncAdapter({ filePath: withExt })) {
       return withExt;

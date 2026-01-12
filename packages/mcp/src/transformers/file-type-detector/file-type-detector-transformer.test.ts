@@ -45,4 +45,40 @@ describe('fileTypeDetectorTransformer', () => {
 
     expect(result).toBe('unknown');
   });
+
+  describe('javascript extensions', () => {
+    it('VALID: {.js filepath with -broker suffix} => extracts type from suffix', () => {
+      const result = fileTypeDetectorTransformer({
+        filepath: FilePathStub({ value: '/packages/something/random-broker.js' }),
+      });
+
+      expect(result).toBe('broker');
+    });
+
+    it('VALID: {.jsx filepath with -widget suffix} => extracts type from suffix', () => {
+      const result = fileTypeDetectorTransformer({
+        filepath: FilePathStub({
+          value: '/packages/something/random-widget.jsx',
+        }),
+      });
+
+      expect(result).toBe('widget');
+    });
+
+    it('EDGE: {.js filepath with -file suffix} => extracts type from suffix', () => {
+      const result = fileTypeDetectorTransformer({
+        filepath: FilePathStub({ value: '/packages/something/random-file.js' }),
+      });
+
+      expect(result).toBe('file');
+    });
+
+    it('EDGE: {.jsx filepath with no suffix} => returns "unknown"', () => {
+      const result = fileTypeDetectorTransformer({
+        filepath: FilePathStub({ value: '/packages/something/randomfile.jsx' }),
+      });
+
+      expect(result).toBe('unknown');
+    });
+  });
 });

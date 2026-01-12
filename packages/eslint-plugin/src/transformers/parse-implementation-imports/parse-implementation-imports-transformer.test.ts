@@ -115,6 +115,32 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
+  it('should include imports with .tsx extension', () => {
+    const content = `
+      import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter.tsx';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(1);
+    expect(result.get(IdentifierStub({ value: 'inkBoxAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/ink/box/ink-box-adapter.tsx' }),
+    );
+  });
+
+  it('should include imports with .jsx extension', () => {
+    const content = `
+      import { reactAdapter } from '../../adapters/react/react-adapter.jsx';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(1);
+    expect(result.get(IdentifierStub({ value: 'reactAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/react/react-adapter.jsx' }),
+    );
+  });
+
   it('should skip imports from folders that do not require proxies', () => {
     const content = `
       import { formatDateTransformer } from '../../transformers/format-date/format-date-transformer';

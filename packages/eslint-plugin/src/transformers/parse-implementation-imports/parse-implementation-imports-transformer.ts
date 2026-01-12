@@ -12,7 +12,7 @@
  */
 import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 import { identifierContract, modulePathContract } from '@dungeonmaster/shared/contracts';
-import { folderConfigStatics } from '@dungeonmaster/shared/statics';
+import { fileExtensionsStatics, folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 export const parseImplementationImportsTransformer = ({
   content,
@@ -83,14 +83,14 @@ export const parseImplementationImportsTransformer = ({
       importPath.endsWith('-statics');
 
     if (!shouldSkip) {
-      // Skip multi-dot files except .proxy, .ts, .js extensions
+      // Skip multi-dot files except .proxy and valid source extensions (.ts, .tsx, .js, .jsx)
       const filename = importPath.split('/').pop() ?? '';
       const dotCount = (filename.match(/\./gu) ?? []).length;
+      const hasValidSourceExtension = fileExtensionsStatics.source.all.some((ext) =>
+        importPath.endsWith(ext),
+      );
       const isValidFile =
-        dotCount === 0 ||
-        importPath.endsWith('.proxy') ||
-        importPath.endsWith('.ts') ||
-        importPath.endsWith('.js');
+        dotCount === 0 || importPath.endsWith('.proxy') || hasValidSourceExtension;
 
       if (isValidFile) {
         // Extract folder type from import path

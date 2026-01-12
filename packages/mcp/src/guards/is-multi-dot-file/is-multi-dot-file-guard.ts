@@ -6,7 +6,7 @@
  * // Returns: true (file has multiple dots before extension)
  */
 
-const MULTI_DOT_PATTERN = /\.[a-z]+\.(ts|tsx)$/u;
+const MULTI_DOT_PATTERN = /\.[a-z]+\.(ts|tsx|js|jsx)$/u;
 
 export const isMultiDotFileGuard = ({ filepath }: { filepath?: string }): boolean => {
   if (!filepath) {

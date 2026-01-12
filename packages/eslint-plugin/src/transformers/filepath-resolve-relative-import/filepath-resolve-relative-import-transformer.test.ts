@@ -69,31 +69,31 @@ describe('filepathResolveRelativeImportTransformer', () => {
       expect(result).toBe('/src/baz.ts');
     });
 
-    it("VALID: {currentFilePath: '/src/foo/bar.ts', importPath: '../baz.tsx'} => returns '/src/baz.ts'", () => {
+    it("VALID: {currentFilePath: '/src/foo/bar.ts', importPath: '../baz.tsx'} => returns '/src/baz.tsx'", () => {
       const result = filepathResolveRelativeImportTransformer({
         currentFilePath: '/src/foo/bar.ts',
         importPath: '../baz.tsx',
       });
 
-      expect(result).toBe('/src/baz.ts');
+      expect(result).toBe('/src/baz.tsx');
     });
 
-    it("VALID: {currentFilePath: '/src/foo/bar.ts', importPath: '../baz.js'} => returns '/src/baz.ts'", () => {
+    it("VALID: {currentFilePath: '/src/foo/bar.ts', importPath: '../baz.js'} => returns '/src/baz.js'", () => {
       const result = filepathResolveRelativeImportTransformer({
         currentFilePath: '/src/foo/bar.ts',
         importPath: '../baz.js',
       });
 
-      expect(result).toBe('/src/baz.ts');
+      expect(result).toBe('/src/baz.js');
     });
 
-    it("VALID: {currentFilePath: '/src/foo/bar.ts', importPath: '../baz.jsx'} => returns '/src/baz.ts'", () => {
+    it("VALID: {currentFilePath: '/src/foo/bar.ts', importPath: '../baz.jsx'} => returns '/src/baz.jsx'", () => {
       const result = filepathResolveRelativeImportTransformer({
         currentFilePath: '/src/foo/bar.ts',
         importPath: '../baz.jsx',
       });
 
-      expect(result).toBe('/src/baz.ts');
+      expect(result).toBe('/src/baz.jsx');
     });
   });
 

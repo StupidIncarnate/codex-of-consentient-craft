@@ -220,4 +220,70 @@ describe('functionNameExtractorTransformer', () => {
       expect(result).toStrictEqual(FunctionNameStub({ value: '.tst' }));
     });
   });
+
+  describe('javascript extensions', () => {
+    it('VALID: {filepath: "/path/to/user-fetch-broker.js"} => returns "user-fetch-broker"', () => {
+      const result = functionNameExtractorTransformer({
+        filepath: FilePathStub({ value: '/path/to/user-fetch-broker.js' }),
+      });
+
+      expect(result).toStrictEqual(FunctionNameStub({ value: 'user-fetch-broker' }));
+    });
+
+    it('VALID: {filepath: "/components/user-widget.jsx"} => returns "user-widget"', () => {
+      const result = functionNameExtractorTransformer({
+        filepath: FilePathStub({ value: '/components/user-widget.jsx' }),
+      });
+
+      expect(result).toStrictEqual(FunctionNameStub({ value: 'user-widget' }));
+    });
+
+    it('VALID: {filepath: "simple-file.js"} => returns "simple-file"', () => {
+      const result = functionNameExtractorTransformer({
+        filepath: FilePathStub({ value: 'simple-file.js' }),
+      });
+
+      expect(result).toStrictEqual(FunctionNameStub({ value: 'simple-file' }));
+    });
+
+    it('VALID: {filepath: "component.jsx"} => returns "component"', () => {
+      const result = functionNameExtractorTransformer({
+        filepath: FilePathStub({ value: 'component.jsx' }),
+      });
+
+      expect(result).toStrictEqual(FunctionNameStub({ value: 'component' }));
+    });
+
+    it('EDGE: {filepath: "/path/file.test.js"} => returns "file.test"', () => {
+      const result = functionNameExtractorTransformer({
+        filepath: FilePathStub({ value: '/path/file.test.js' }),
+      });
+
+      expect(result).toStrictEqual(FunctionNameStub({ value: 'file.test' }));
+    });
+
+    it('EDGE: {filepath: "/path/file.proxy.jsx"} => returns "file.proxy"', () => {
+      const result = functionNameExtractorTransformer({
+        filepath: FilePathStub({ value: '/path/file.proxy.jsx' }),
+      });
+
+      expect(result).toStrictEqual(FunctionNameStub({ value: 'file.proxy' }));
+    });
+
+    it('EDGE: {filepath: ".js"} => returns ""', () => {
+      const result = functionNameExtractorTransformer({
+        filepath: FilePathStub({ value: '.js' }),
+      });
+
+      expect(result).toStrictEqual(FunctionNameStub({ value: '' }));
+    });
+
+    it('EDGE: {filepath: ".jsx"} => returns ""', () => {
+      const result = functionNameExtractorTransformer({
+        filepath: FilePathStub({ value: '.jsx' }),
+      });
+
+      expect(result).toStrictEqual(FunctionNameStub({ value: '' }));
+    });
+  });
 });

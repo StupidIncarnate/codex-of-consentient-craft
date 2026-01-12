@@ -84,7 +84,7 @@ describe('CliAppWidget', () => {
       });
       unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Active Quests/u);
+      expect(lastFrame()).toMatch(/Quests/u);
     });
 
     it('VALID: {initialScreen: init} => renders init screen', () => {

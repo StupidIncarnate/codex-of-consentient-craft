@@ -73,4 +73,46 @@ describe('isMultiDotFileGuard', () => {
 
     expect(result).toBe(false);
   });
+
+  describe('javascript extensions', () => {
+    it('VALID: returns true for .test.js files', () => {
+      const filepath = FilePathStub({ value: '/test/user-broker.test.js' });
+
+      const result = isMultiDotFileGuard({ filepath });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: returns true for .proxy.js files', () => {
+      const filepath = FilePathStub({ value: '/test/user-broker.proxy.js' });
+
+      const result = isMultiDotFileGuard({ filepath });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: returns true for .test.jsx files', () => {
+      const filepath = FilePathStub({ value: '/test/component.test.jsx' });
+
+      const result = isMultiDotFileGuard({ filepath });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: returns false for regular .js files', () => {
+      const filepath = FilePathStub({ value: '/test/user-broker.js' });
+
+      const result = isMultiDotFileGuard({ filepath });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: returns false for regular .jsx files', () => {
+      const filepath = FilePathStub({ value: '/test/component.jsx' });
+
+      const result = isMultiDotFileGuard({ filepath });
+
+      expect(result).toBe(false);
+    });
+  });
 });

@@ -11,6 +11,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
+import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
 
 export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -44,9 +45,11 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
       stubImportNode: null as Tsestree | null,
     };
 
-    // Check if this is a contract test file
+    // Check if this is a contract test file (supports both .ts and .tsx)
     const filename = ctx.filename ?? '';
-    const isContractTestFile = filename.endsWith('-contract.test.ts');
+    const isContractTestFile = fileExtensionsStatics.source.typescript.some((ext) =>
+      filename.endsWith(`-contract.test${ext}`),
+    );
 
     return {
       ImportDeclaration: (node: Tsestree): void => {

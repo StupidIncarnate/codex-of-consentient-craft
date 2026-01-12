@@ -17,6 +17,6 @@ export const functionNameExtractorTransformer = ({
   filepath: FilePath;
 }): FunctionName => {
   const filename = filepath.split('/').pop() ?? '';
-  const nameWithoutExtension = filename.replace(/\.tsx?$/u, '');
+  const nameWithoutExtension = filename.replace(/\.(ts|tsx|js|jsx)$/u, '');
   return functionNameContract.parse(nameWithoutExtension);
 };

@@ -19,7 +19,7 @@ import {
 } from '@dungeonmaster/testing';
 
 import { cliStatics } from '../statics/cli/cli-statics';
-import { StartCli } from '../startup/start-cli';
+import { StartCli } from './start-cli';
 import { CliAppWidget } from '../widgets/cli-app/cli-app-widget';
 
 const waitForUseEffect = async (): Promise<void> => {

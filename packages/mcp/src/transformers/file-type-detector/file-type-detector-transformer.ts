@@ -32,7 +32,7 @@ export const fileTypeDetectorTransformer = ({ filepath }: { filepath: FilePath }
 
   // Fallback: extract from file suffix pattern (name-TYPE.ts)
   const fileName = pathParts[pathParts.length - 1] ?? '';
-  const suffixMatch = /-(\w+)\.(ts|tsx)$/u.exec(fileName);
+  const suffixMatch = /-(\w+)\.(ts|tsx|js|jsx)$/u.exec(fileName);
   if (suffixMatch) {
     return fileTypeContract.parse(suffixMatch[1]);
   }

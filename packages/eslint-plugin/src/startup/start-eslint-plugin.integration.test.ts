@@ -130,11 +130,11 @@ describe('StartEslintPlugin', () => {
       expect(typeof test.rules).toBe('object');
     });
 
-    it('VALID: {} => returns fileOverrides with 4 override configs', () => {
+    it('VALID: {} => returns fileOverrides with 5 override configs', () => {
       const plugin = StartEslintPlugin();
       const { fileOverrides } = plugin.configs.dungeonmaster;
 
-      expect(fileOverrides).toHaveLength(4);
+      expect(fileOverrides).toHaveLength(5);
     });
 
     it('VALID: {} => returns fileOverrides with proxy files override', () => {
@@ -163,14 +163,28 @@ describe('StartEslintPlugin', () => {
       });
     });
 
+    it('VALID: {} => returns fileOverrides with integration test override', () => {
+      const plugin = StartEslintPlugin();
+      const { fileOverrides } = plugin.configs.dungeonmaster;
+      const [, , integrationOverride] = fileOverrides;
+
+      expect(integrationOverride).toStrictEqual({
+        files: ['**/*.integration.test.ts', '**/*.integration.test.tsx'],
+        rules: {
+          'jest/max-expects': 'off',
+        },
+      });
+    });
+
     it('VALID: {} => returns fileOverrides with e2e test override', () => {
       const plugin = StartEslintPlugin();
       const { fileOverrides } = plugin.configs.dungeonmaster;
-      const [, , e2eOverride] = fileOverrides;
+      const [, , , e2eOverride] = fileOverrides;
 
       expect(e2eOverride).toStrictEqual({
         files: ['**/*.e2e.test.ts', '**/*.e2e.test.tsx'],
         rules: {
+          'jest/max-expects': 'off',
           '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
           '@dungeonmaster/enforce-test-colocation': 'off',
           '@dungeonmaster/require-contract-validation': 'off',
@@ -181,7 +195,7 @@ describe('StartEslintPlugin', () => {
     it('VALID: {} => returns fileOverrides with startup integration test override', () => {
       const plugin = StartEslintPlugin();
       const { fileOverrides } = plugin.configs.dungeonmaster;
-      const [, , , startupOverride] = fileOverrides;
+      const [, , , , startupOverride] = fileOverrides;
 
       expect(startupOverride).toStrictEqual({
         files: ['**/startup/*.e2e.test.ts', '**/startup/*.integration.test.ts'],

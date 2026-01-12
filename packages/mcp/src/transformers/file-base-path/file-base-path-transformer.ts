@@ -8,7 +8,7 @@
 import { absoluteFilePathContract } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { FileMetadata } from '../../contracts/file-metadata/file-metadata-contract';
 
-const EXTENSION_PATTERN = /(\.[a-z]+)*\.(ts|tsx)$/u;
+const EXTENSION_PATTERN = /(\.[a-z]+)*\.(ts|tsx|js|jsx)$/u;
 
 export const fileBasePathTransformer = ({
   filepath,

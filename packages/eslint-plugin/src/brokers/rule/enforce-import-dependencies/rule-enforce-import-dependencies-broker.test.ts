@@ -796,7 +796,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'responders',
             importedFolder: 'responders',
             allowed:
-              'widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/',
+              'adapters/, widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/',
           },
         },
       ],
@@ -849,22 +849,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       ],
     },
 
-    // Responders cannot import from adapters or flows
-    {
-      code: 'import { axiosGetAdapter } from "../../../adapters/axios/axios-get-adapter";',
-      filename: '/project/src/responders/user/get/user-get-responder.ts',
-      errors: [
-        {
-          messageId: 'forbiddenImport',
-          data: {
-            folderType: 'responders',
-            importedFolder: 'adapters',
-            allowed:
-              'widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/',
-          },
-        },
-      ],
-    },
+    // Responders cannot import from flows
     {
       code: 'import { UserFlow } from "../../../flows/user/user-flow";',
       filename: '/project/src/responders/user/profile/user-profile-responder.ts',
@@ -875,7 +860,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'responders',
             importedFolder: 'flows',
             allowed:
-              'widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/',
+              'adapters/, widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/',
           },
         },
       ],
@@ -926,21 +911,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       ],
     },
 
-    // Bindings cannot import from adapters, flows, responders, widgets
-    {
-      code: 'import { axiosGetAdapter } from "../../adapters/axios/axios-get-adapter";',
-      filename: '/project/src/bindings/use-api/use-api-binding.ts',
-      errors: [
-        {
-          messageId: 'forbiddenImport',
-          data: {
-            folderType: 'bindings',
-            importedFolder: 'adapters',
-            allowed: 'brokers/, state/, contracts/, statics/, errors/, guards/, transformers/',
-          },
-        },
-      ],
-    },
+    // Bindings cannot import from flows, responders, widgets, or external packages
     {
       code: 'import express from "express";',
       filename: '/project/src/bindings/use-server/use-server-binding.ts',

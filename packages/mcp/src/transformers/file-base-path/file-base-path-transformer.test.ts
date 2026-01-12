@@ -77,4 +77,48 @@ describe('fileBasePathTransformer', () => {
 
     expect(result).toBe('/test/brokers/user/fetch/user-fetch-broker');
   });
+
+  describe('javascript extensions', () => {
+    it('VALID: removes .js extension', () => {
+      const filepath = AbsoluteFilePathStub({ value: '/test/user-broker.js' });
+
+      const result = fileBasePathTransformer({ filepath });
+
+      expect(result).toBe('/test/user-broker');
+    });
+
+    it('VALID: removes .jsx extension', () => {
+      const filepath = AbsoluteFilePathStub({ value: '/test/component.jsx' });
+
+      const result = fileBasePathTransformer({ filepath });
+
+      expect(result).toBe('/test/component');
+    });
+
+    it('VALID: removes .test.js extension', () => {
+      const filepath = AbsoluteFilePathStub({ value: '/test/user-broker.test.js' });
+
+      const result = fileBasePathTransformer({ filepath });
+
+      expect(result).toBe('/test/user-broker');
+    });
+
+    it('VALID: removes .proxy.jsx extension', () => {
+      const filepath = AbsoluteFilePathStub({ value: '/test/component.proxy.jsx' });
+
+      const result = fileBasePathTransformer({ filepath });
+
+      expect(result).toBe('/test/component');
+    });
+
+    it('VALID: removes .integration.test.js extension', () => {
+      const filepath = AbsoluteFilePathStub({
+        value: '/test/user-broker.integration.test.js',
+      });
+
+      const result = fileBasePathTransformer({ filepath });
+
+      expect(result).toBe('/test/user-broker');
+    });
+  });
 });

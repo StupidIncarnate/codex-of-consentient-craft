@@ -4,6 +4,7 @@ import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
 import { FileTypeStub } from '../../../contracts/file-type/file-type.stub';
+import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
 
 describe('fileScannerBroker', () => {
   describe('with valid metadata', () => {
@@ -584,6 +585,60 @@ export const isKeyOfGuard = <T extends object>({ obj, key }: { obj: T; key: Prop
 
       // First shared file should have transformed path
       expect(sharedFiles[0]?.path).toMatch(/@dungeonmaster\/shared\//u);
+    });
+  });
+
+  describe('javascript file scanning', () => {
+    it('VALID: scans .js files => returns js files with metadata', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.js' });
+      const pattern = GlobPatternStub({ value: `**/${fileExtensionsStatics.globs.all}` });
+      const contents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Validates that user has permission to edit resource
+ *
+ * USAGE:
+ * if (hasPermissionGuard({ user, resource })) {
+ *   // User can edit
+ * }
+ */
+export const hasPermissionGuard = ({ user, resource }) => {
+  return user?.permissions.includes(resource?.requiredPermission);
+};`,
+      });
+
+      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.name).toBe('has-permission-guard');
+      expect(results[0]?.purpose).toBe('Validates that user has permission to edit resource');
+    });
+
+    it('VALID: scans .jsx files => returns jsx files with metadata', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const filepath = FilePathStub({ value: '/project/src/widgets/user-widget.jsx' });
+      const pattern = GlobPatternStub({ value: `**/${fileExtensionsStatics.globs.all}` });
+      const contents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Displays user profile information
+ *
+ * USAGE:
+ * <UserWidget user={user} />
+ */
+export const UserWidget = ({ user }) => {
+  return <div>{user.name}</div>;
+};`,
+      });
+
+      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toHaveLength(1);
+      expect(results[0]?.name).toBe('user-widget');
+      expect(results[0]?.fileType).toBe('widget');
     });
   });
 });

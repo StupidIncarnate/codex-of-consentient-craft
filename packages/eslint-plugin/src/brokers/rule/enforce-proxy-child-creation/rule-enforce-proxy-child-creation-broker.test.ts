@@ -313,6 +313,19 @@ beforeEach(() => {
         });
       }
 
+      // Broker that imports with .tsx extension in import path
+      if (filePath.includes('brokers/tsx-import/tsx-import-broker.ts')) {
+        return FileContentsStub({
+          value: `
+        import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter.tsx';
+
+        export const tsxImportBroker = () => {
+          return inkBoxAdapter();
+        };
+      `,
+        });
+      }
+
       // Default empty implementation
       return FileContentsStub({ value: `export const placeholder = () => {};` });
     },
@@ -954,6 +967,26 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         };
       `,
       filename: '/project/src/widgets/button/button-widget.proxy.tsx',
+      errors: [
+        {
+          messageId: 'missingProxyImport',
+          data: {
+            implementationName: 'inkBoxAdapter',
+            proxyPath: '../../adapters/ink/box/ink-box-adapter.proxy',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Proxy missing import when implementation has .tsx in import path
+    {
+      code: `
+        export const tsxImportBrokerProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/tsx-import/tsx-import-broker.proxy.ts',
       errors: [
         {
           messageId: 'missingProxyImport',
