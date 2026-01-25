@@ -57,26 +57,6 @@ describe('modifyQuestInputContract', () => {
       expect(result.observables).toHaveLength(1);
     });
 
-    it('VALID: {questId, tasks} => parses with tasks array', () => {
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        tasks: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Create auth service',
-            type: 'implementation',
-            status: 'pending',
-            observableIds: [],
-          },
-        ],
-      });
-
-      const result = modifyQuestInputContract.parse(input);
-
-      expect(result.questId).toBe('add-auth');
-      expect(result.tasks).toHaveLength(1);
-    });
-
     it('VALID: {questId, steps} => parses with steps array', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -85,11 +65,11 @@ describe('modifyQuestInputContract', () => {
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
             name: 'Create API',
             description: 'Create authentication API',
-            taskLinks: [],
             observablesSatisfied: [],
             dependsOn: [],
             filesToCreate: [],
             filesToModify: [],
+            status: 'pending',
           },
         ],
       });

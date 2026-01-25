@@ -11,7 +11,6 @@ import {
   contextContract,
   dependencyStepContract,
   observableContract,
-  questTaskContract,
   toolingRequirementContract,
 } from '@dungeonmaster/shared/contracts';
 
@@ -25,10 +24,6 @@ export const modifyQuestInputContract = z
     observables: z
       .array(observableContract)
       .describe('Observables to upsert (existing ID updates, new ID adds)')
-      .optional(),
-    tasks: z
-      .array(questTaskContract)
-      .describe('Tasks to upsert (existing ID updates, new ID adds)')
       .optional(),
     steps: z
       .array(dependencyStepContract)

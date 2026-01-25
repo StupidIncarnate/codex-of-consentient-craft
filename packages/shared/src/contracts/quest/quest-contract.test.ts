@@ -18,14 +18,7 @@ describe('questContract', () => {
         title: 'Add Authentication',
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
-        phases: {
-          discovery: { status: 'complete' },
-          implementation: { status: 'in_progress' },
-          testing: { status: 'pending' },
-          review: { status: 'pending' },
-        },
         executionLog: [],
-        tasks: [],
         contexts: [],
         observables: [],
         steps: [],
@@ -33,42 +26,10 @@ describe('questContract', () => {
       });
     });
 
-    it('VALID: quest with tasks => parses successfully', () => {
-      const quest = QuestStub({
-        tasks: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Create service',
-            type: 'implementation',
-            status: 'complete',
-            observableIds: [],
-          },
-        ],
-      });
-
-      const result = questContract.parse(quest);
-
-      expect(result.tasks).toStrictEqual([
-        {
-          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          name: 'Create service',
-          type: 'implementation',
-          status: 'complete',
-          observableIds: [],
-        },
-      ]);
-    });
-
     it('VALID: completed quest => parses successfully', () => {
       const quest = QuestStub({
         status: 'complete',
         completedAt: '2024-01-16T10:00:00.000Z',
-        phases: {
-          discovery: { status: 'complete' },
-          implementation: { status: 'complete' },
-          testing: { status: 'complete' },
-          review: { status: 'complete' },
-        },
       });
 
       const result = questContract.parse(quest);

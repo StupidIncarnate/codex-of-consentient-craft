@@ -5,7 +5,7 @@ import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { FolderNameStub } from '../../../contracts/folder-name/folder-name.stub';
 
 describe('questAddBroker', () => {
-  it('VALID: {input: {title, userRequest, tasks: []}} => creates quest with sequence 001', async () => {
+  it('VALID: {input: {title, userRequest}} => creates quest with sequence 001', async () => {
     const brokerProxy = questAddBrokerProxy();
     const questsPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
     const questFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests/001-add-auth' });
@@ -23,7 +23,6 @@ describe('questAddBroker', () => {
     const input = AddQuestInputStub({
       title: 'Add Auth',
       userRequest: 'User wants authentication',
-      tasks: [],
     });
 
     const result = await questAddBroker({ input });
@@ -57,7 +56,6 @@ describe('questAddBroker', () => {
     const input = AddQuestInputStub({
       title: 'Fix Bug',
       userRequest: 'User wants bug fixed',
-      tasks: [],
     });
 
     const result = await questAddBroker({ input });
@@ -87,7 +85,6 @@ describe('questAddBroker', () => {
     const input = AddQuestInputStub({
       title: 'Add User Profile',
       userRequest: 'User wants profile',
-      tasks: [],
     });
 
     const result = await questAddBroker({ input });
@@ -95,41 +92,6 @@ describe('questAddBroker', () => {
     expect(result.success).toBe(true);
     expect(result.questId).toBe('add-user-profile');
     expect(result.questFolder).toBe('001-add-user-profile');
-  });
-
-  it('VALID: {input: {tasks: [task]}} => creates quest with tasks', async () => {
-    const brokerProxy = questAddBrokerProxy();
-    const questsPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
-    const questFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests/001-add-auth' });
-    const questFilePath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
-    });
-
-    brokerProxy.setupQuestCreation({
-      questsPath,
-      existingFolders: [],
-      questFolderPath,
-      questFilePath,
-    });
-
-    const input = AddQuestInputStub({
-      title: 'Add Auth',
-      userRequest: 'User wants auth',
-      tasks: [
-        {
-          id: '123e4567-e89b-12d3-a456-426614174000',
-          name: 'Create auth service',
-          type: 'implementation',
-          description: 'Implement authentication',
-          dependencies: [],
-          filesToCreate: ['src/auth.ts'],
-        },
-      ],
-    });
-
-    const result = await questAddBroker({ input });
-
-    expect(result.success).toBe(true);
   });
 
   it('ERROR: mkdir fails => returns error result', async () => {
@@ -144,7 +106,6 @@ describe('questAddBroker', () => {
     const input = AddQuestInputStub({
       title: 'Add Auth',
       userRequest: 'User wants auth',
-      tasks: [],
     });
 
     const result = await questAddBroker({ input });

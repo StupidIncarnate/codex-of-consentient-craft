@@ -2,7 +2,7 @@
  * PURPOSE: Creates a new quest JSON file in the .dungeonmaster-quests folder
  *
  * USAGE:
- * const result = await questAddBroker({ input: AddQuestInputStub({ title: 'Add Auth', userRequest: 'User wants...', tasks: [...] }) });
+ * const result = await questAddBroker({ input: AddQuestInputStub({ title: 'Add Auth', userRequest: 'User wants...' }) });
  * // Returns: { success: true, questId: 'add-auth', questFolder: '001-add-auth', filePath: '/path/to/quest.json' }
  */
 
@@ -58,13 +58,6 @@ export const questAddBroker = async ({
     const sequenceNumber = questFolderSequenceTransformer({ folders: existingFolders });
     const questFolder = `${sequenceNumber}-${questId}`;
 
-    // Map input tasks to Quest tasks with status and required observableIds
-    const questTasks = validated.tasks.map((task) => ({
-      ...task,
-      status: 'pending' as const,
-      observableIds: [],
-    }));
-
     // Create Quest object with all required fields
     const quest = questContract.parse({
       id: questId,
@@ -72,14 +65,7 @@ export const questAddBroker = async ({
       title: validated.title,
       status: 'in_progress' as const,
       createdAt: new Date().toISOString(),
-      phases: {
-        discovery: { status: 'pending' as const },
-        implementation: { status: 'pending' as const },
-        testing: { status: 'pending' as const },
-        review: { status: 'pending' as const },
-      },
       executionLog: [],
-      tasks: questTasks,
       contexts: [],
       observables: [],
       steps: [],

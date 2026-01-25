@@ -70,35 +70,14 @@ export * from './src/contracts/exit-code/exit-code.stub';
 export * from './src/contracts/quest-status/quest-status-contract';
 export * from './src/contracts/quest-status/quest-status.stub';
 
-export * from './src/contracts/phase-status/phase-status-contract';
-export * from './src/contracts/phase-status/phase-status.stub';
-
-export * from './src/contracts/phase-type/phase-type-contract';
-export * from './src/contracts/phase-type/phase-type.stub';
-
-export * from './src/contracts/task-status/task-status-contract';
-export * from './src/contracts/task-status/task-status.stub';
-
-export * from './src/contracts/task-type/task-type-contract';
-export * from './src/contracts/task-type/task-type.stub';
-
-export * from './src/contracts/task-progress/task-progress-contract';
-export * from './src/contracts/task-progress/task-progress.stub';
+export * from './src/contracts/step-status/step-status-contract';
+export * from './src/contracts/step-status/step-status.stub';
 
 export * from './src/contracts/file-name/file-name-contract';
 export * from './src/contracts/file-name/file-name.stub';
 
 export * from './src/contracts/execution-log-entry/execution-log-entry-contract';
 export * from './src/contracts/execution-log-entry/execution-log-entry.stub';
-
-export * from './src/contracts/quest-phase/quest-phase-contract';
-export * from './src/contracts/quest-phase/quest-phase.stub';
-
-export * from './src/contracts/quest-task/quest-task-contract';
-export * from './src/contracts/quest-task/quest-task.stub';
-
-export * from './src/contracts/quest-phases/quest-phases-contract';
-export * from './src/contracts/quest-phases/quest-phases.stub';
 
 export * from './src/contracts/quest-list-item/quest-list-item-contract';
 export * from './src/contracts/quest-list-item/quest-list-item.stub';
@@ -134,9 +113,6 @@ export * from './src/contracts/observable-id/observable-id.stub';
 
 export * from './src/contracts/step-id/step-id-contract';
 export * from './src/contracts/step-id/step-id.stub';
-
-export * from './src/contracts/task-id/task-id-contract';
-export * from './src/contracts/task-id/task-id.stub';
 
 export * from './src/contracts/tooling-requirement-id/tooling-requirement-id-contract';
 export * from './src/contracts/tooling-requirement-id/tooling-requirement-id.stub';

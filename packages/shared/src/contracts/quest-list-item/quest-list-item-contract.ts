@@ -8,7 +8,6 @@
 
 import { z } from 'zod';
 
-import { phaseTypeContract } from '../phase-type/phase-type-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 
 export const questListItemContract = z.object({
@@ -17,8 +16,7 @@ export const questListItemContract = z.object({
   title: z.string().min(1).brand<'QuestTitle'>(),
   status: questStatusContract,
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
-  currentPhase: phaseTypeContract.optional(),
-  taskProgress: z.string().brand<'TaskProgress'>().optional(),
+  stepProgress: z.string().brand<'StepProgress'>().optional(),
 });
 
 export type QuestListItem = z.infer<typeof questListItemContract>;

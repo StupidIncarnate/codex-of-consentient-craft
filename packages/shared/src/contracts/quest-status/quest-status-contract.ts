@@ -8,6 +8,12 @@
 
 import { z } from 'zod';
 
-export const questStatusContract = z.enum(['in_progress', 'blocked', 'complete', 'abandoned']);
+export const questStatusContract = z.enum([
+  'pending',
+  'in_progress',
+  'blocked',
+  'complete',
+  'abandoned',
+]);
 
 export type QuestStatus = z.infer<typeof questStatusContract>;

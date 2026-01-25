@@ -8,9 +8,9 @@ and routes based on their signals.
 ### Parallel Task Execution (Slot Model)
 
 - CLI maintains N slots (default 3) for concurrent agent execution
-- Each slot runs one agent working on one task
-- When a slot's agent completes, CLI assigns next available task to that slot
-- Tasks have dependencies - CLI only assigns tasks whose dependencies are met
+- Each slot runs one agent working on one step
+- When a slot's agent completes, CLI assigns next available step to that slot
+- Steps have dependencies - CLI only assigns steps whose dependencies are met
 
 ### Signal-Based IPC
 
@@ -19,7 +19,7 @@ and routes based on their signals.
 - CLI watches for MCP signals from agents
 - When CLI receives signal, it updates the quest file and routes accordingly; Based on non-complete signals, it will
   have to kill agent session to query user or launch something else.
-- Quest file is the source of truth for all state (task status, session IDs, history, etc.)
+- Quest file is the source of truth for all state (step status, session IDs, history, etc.)
 
 ### Session Resumption
 
@@ -45,7 +45,7 @@ Four universal signals that all agents use:
 
 | Signal                | Description                             | CLI Action                                       |
 |-----------------------|-----------------------------------------|--------------------------------------------------|
-| `complete`            | Task finished successfully              | Move to next phase                               |
+| `complete`            | Step finished successfully              | Move to next phase                               |
 | `partially-complete`  | Ran out of context window               | Spawn same agent type to continue where left off |
 | `needs-user-input`    | Blocked in a way only human can resolve | Prompt user, resume session with answer          |
 | `needs-role-followup` | Needs different role to act first       | Spawn specified role, then resume                |
@@ -57,7 +57,7 @@ Four universal signals that all agents use:
 ```typescript
 {
     signal: 'complete',
-        taskId
+        stepId
 :
     string,
         summary
@@ -71,7 +71,7 @@ Four universal signals that all agents use:
 ```typescript
 {
     signal: 'partially-complete',
-        taskId
+        stepId
 :
     string,
         progress
@@ -88,7 +88,7 @@ Four universal signals that all agents use:
 ```typescript
 {
     signal: 'needs-user-input',
-        taskId
+        stepId
 :
     string,
         question
@@ -106,7 +106,7 @@ Four universal signals that all agents use:
 ```typescript
 {
     signal: 'needs-role-followup',
-        taskId
+        stepId
 :
     string,
         targetRole
@@ -141,10 +141,10 @@ The `resume` flag creates dependency chains:
 - **Rarely revisited** - requirements are locked down upfront
 - **Can signal:** `complete`, `needs-user-input`
 
-### PathSeeker - File Mapper / Task Generator
+### PathSeeker - File Mapper / Step Generator
 
-- **Owns:** File mapping, task breakdown
-- **Spawns after:** ChaosWhisperer completes OR when other agents need task restructuring
+- **Owns:** File mapping, step breakdown
+- **Spawns after:** ChaosWhisperer completes OR when other agents need step restructuring
 - **Primary routing target** - most things route back here, not ChaosWhisperer
 - **Can signal:** `complete`, `partially-complete`, `needs-user-input`, `needs-role-followup`
 
@@ -154,7 +154,7 @@ The `resume` flag creates dependency chains:
 - **Spawns after:** PathSeeker completes
 - **Has minion capabilities** for minor fixes or exploratories
 - **Can signal:** `complete`, `partially-complete`, `needs-user-input`, `needs-role-followup`
-- **Common followups:** PathSeeker (task split), Spiritmender (lint errors)
+- **Common followups:** PathSeeker (step split), Spiritmender (lint errors)
 
 ### Siegemaster - Edge Case Testing
 
@@ -189,10 +189,10 @@ Agents can spawn minions for small tasks without signaling CLI:
 
 Only signal CLI when:
 
-- Task is complete
+- Step is complete
 - Context is exhausted
 - Need user input
-- Need a full role change (not just a quick minion task)
+- Need a full role change (not just a quick minion step)
 
 ---
 
@@ -203,10 +203,10 @@ User Request
     ↓
 ChaosWhisperer (lock BDD requirements)
     ↓
-PathSeeker (map files → tasks)
+PathSeeker (map files → steps)
     ↓
 ┌─────────────────────────────────────┐
-│  Per-Task Loop (parallel slots)     │
+│  Per-Step Loop (parallel slots)     │
 │                                     │
 │  Codeweaver → Ward → Siegemaster    │
 │       ↓              ↓              │
@@ -216,7 +216,7 @@ PathSeeker (map files → tasks)
 │       ↓                             │
 │  (on larger issues)                 │
 │       ↓                             │
-│  PathSeeker (re-split tasks)        │
+│  PathSeeker (re-split steps)        │
 └─────────────────────────────────────┘
     ↓
 Lawbringer (final review)

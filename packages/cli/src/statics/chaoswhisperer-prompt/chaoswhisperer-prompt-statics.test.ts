@@ -74,18 +74,6 @@ describe('chaoswhispererPromptStatics', () => {
       });
     });
 
-    describe('task creation', () => {
-      it('VALID: {prompt.template} => explains task creation with observable links', () => {
-        expect(chaoswhispererPromptStatics.prompt.template).toMatch(/task/iu);
-        expect(chaoswhispererPromptStatics.prompt.template).toMatch(/observableIds/u);
-      });
-
-      it('VALID: {prompt.template} => mentions task types', () => {
-        expect(chaoswhispererPromptStatics.prompt.template).toMatch(/discovery/u);
-        expect(chaoswhispererPromptStatics.prompt.template).toMatch(/implementation/u);
-      });
-    });
-
     describe('tooling requirements', () => {
       it('VALID: {prompt.template} => explains tooling requirement identification', () => {
         expect(chaoswhispererPromptStatics.prompt.template).toMatch(/tooling/iu);

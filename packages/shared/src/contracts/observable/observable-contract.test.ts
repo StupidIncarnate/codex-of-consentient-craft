@@ -85,6 +85,36 @@ describe('observableContract', () => {
     });
   });
 
+  it('VALID: {with verification fields} => parses verification status', () => {
+    const observable = ObservableStub({
+      verificationStatus: 'verified',
+      verifiedAt: '2024-01-15T12:00:00.000Z',
+      verificationNotes: 'Manually verified against production',
+    });
+
+    expect(observable.verificationStatus).toBe('verified');
+    expect(observable.verifiedAt).toBe('2024-01-15T12:00:00.000Z');
+    expect(observable.verificationNotes).toBe('Manually verified against production');
+  });
+
+  it('VALID: {verificationStatus pending} => parses pending status', () => {
+    const observable = ObservableStub({
+      verificationStatus: 'pending',
+    });
+
+    expect(observable.verificationStatus).toBe('pending');
+  });
+
+  it('VALID: {verificationStatus failed} => parses failed status', () => {
+    const observable = ObservableStub({
+      verificationStatus: 'failed',
+      verificationNotes: 'API endpoint returns 404',
+    });
+
+    expect(observable.verificationStatus).toBe('failed');
+    expect(observable.verificationNotes).toBe('API endpoint returns 404');
+  });
+
   it('INVALID_ID: {id: "bad"} => throws validation error', () => {
     const parseInvalidId = (): unknown =>
       observableContract.parse({

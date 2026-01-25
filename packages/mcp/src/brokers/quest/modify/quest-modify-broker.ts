@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Upserts data into an existing quest (contexts, observables, tasks, steps, toolingRequirements)
+ * PURPOSE: Upserts data into an existing quest (contexts, observables, steps, toolingRequirements)
  *
  * USAGE:
  * const result = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', contexts: [...] }) });
@@ -62,13 +62,6 @@ export const questModifyBroker = async ({
       quest.observables = questArrayUpsertTransformer({
         existing: quest.observables,
         updates: validated.observables,
-      });
-    }
-
-    if (validated.tasks) {
-      quest.tasks = questArrayUpsertTransformer({
-        existing: quest.tasks,
-        updates: validated.tasks,
       });
     }
 

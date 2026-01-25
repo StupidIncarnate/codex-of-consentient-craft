@@ -12,9 +12,7 @@ import { contextContract } from '../context/context-contract';
 import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { executionLogEntryContract } from '../execution-log-entry/execution-log-entry-contract';
 import { observableContract } from '../observable/observable-contract';
-import { questPhaseContract } from '../quest-phase/quest-phase-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
-import { questTaskContract } from '../quest-task/quest-task-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 
 export const questContract = z.object({
@@ -25,14 +23,7 @@ export const questContract = z.object({
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
   updatedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
-  phases: z.object({
-    discovery: questPhaseContract,
-    implementation: questPhaseContract,
-    testing: questPhaseContract,
-    review: questPhaseContract,
-  }),
   executionLog: z.array(executionLogEntryContract),
-  tasks: z.array(questTaskContract),
   contexts: z.array(contextContract),
   observables: z.array(observableContract),
   steps: z.array(dependencyStepContract),

@@ -3,17 +3,16 @@
  *
  * USAGE:
  * questToListItemTransformer({quest});
- * // Returns QuestListItem with id, title, status, currentPhase, taskProgress
+ * // Returns QuestListItem with id, title, status, stepProgress
  */
 
 import type { Quest, QuestListItem } from '@dungeonmaster/shared/contracts';
 import { questListItemContract } from '@dungeonmaster/shared/contracts';
-import { calculateTaskProgressTransformer } from '../calculate-task-progress/calculate-task-progress-transformer';
-import { getCurrentPhaseTransformer } from '../get-current-phase/get-current-phase-transformer';
 
 export const questToListItemTransformer = ({ quest }: { quest: Quest }): QuestListItem => {
-  const currentPhase = getCurrentPhaseTransformer({ phases: quest.phases });
-  const taskProgress = calculateTaskProgressTransformer({ tasks: quest.tasks });
+  const completedSteps = quest.steps.filter((step) => step.status === 'complete').length;
+  const totalSteps = quest.steps.length;
+  const stepProgress = totalSteps > 0 ? `${completedSteps}/${totalSteps}` : undefined;
 
   return questListItemContract.parse({
     id: quest.id,
@@ -21,7 +20,6 @@ export const questToListItemTransformer = ({ quest }: { quest: Quest }): QuestLi
     title: quest.title,
     status: quest.status,
     createdAt: quest.createdAt,
-    currentPhase,
-    taskProgress,
+    stepProgress,
   });
 };

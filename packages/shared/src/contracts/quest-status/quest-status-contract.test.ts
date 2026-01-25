@@ -3,6 +3,14 @@ import { QuestStatusStub } from './quest-status.stub';
 
 describe('questStatusContract', () => {
   describe('valid statuses', () => {
+    it('VALID: pending => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'pending' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('pending');
+    });
+
     it('VALID: in_progress => parses successfully', () => {
       const status = QuestStatusStub({ value: 'in_progress' });
 

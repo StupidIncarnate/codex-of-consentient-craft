@@ -10,7 +10,6 @@ export const QuestListItemStub = ({ ...props }: StubArgument<QuestListItem> = {}
     title: 'Add Authentication',
     status: 'in_progress',
     createdAt: '2024-01-15T10:00:00.000Z',
-    currentPhase: 'implementation',
-    taskProgress: '2/5',
+    stepProgress: '2/5',
     ...props,
   });

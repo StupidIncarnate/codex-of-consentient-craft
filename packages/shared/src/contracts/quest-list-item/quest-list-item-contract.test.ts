@@ -14,32 +14,30 @@ describe('questListItemContract', () => {
         title: 'Add Authentication',
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
-        currentPhase: 'implementation',
-        taskProgress: '2/5',
+        stepProgress: '2/5',
       });
     });
 
-    it('VALID: completed item without current phase => parses successfully', () => {
+    it('VALID: completed item => parses successfully', () => {
       const item = QuestListItemStub({
         status: 'complete',
-        currentPhase: undefined,
-        taskProgress: '5/5',
+        stepProgress: '5/5',
       });
 
       const result = questListItemContract.parse(item);
 
       expect(result.status).toBe('complete');
-      expect(result.currentPhase).toBeUndefined();
+      expect(result.stepProgress).toBe('5/5');
     });
 
-    it('VALID: item without task progress => parses successfully', () => {
+    it('VALID: item without step progress => parses successfully', () => {
       const item = QuestListItemStub({
-        taskProgress: undefined,
+        stepProgress: undefined,
       });
 
       const result = questListItemContract.parse(item);
 
-      expect(result.taskProgress).toBeUndefined();
+      expect(result.stepProgress).toBeUndefined();
     });
   });
 
@@ -57,17 +55,6 @@ describe('questListItemContract', () => {
         questListItemContract.parse({
           ...baseItem,
           status: 'invalid',
-        });
-      }).toThrow(/Invalid enum value/u);
-    });
-
-    it('INVALID: invalid phase type => throws validation error', () => {
-      const baseItem = QuestListItemStub();
-
-      expect(() => {
-        questListItemContract.parse({
-          ...baseItem,
-          currentPhase: 'invalid_phase',
         });
       }).toThrow(/Invalid enum value/u);
     });

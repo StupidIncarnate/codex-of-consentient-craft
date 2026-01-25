@@ -7,28 +7,27 @@ describe('dependencyStepContract', () => {
       id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
       name: 'Create user API endpoint',
       description: 'Implement the REST endpoint for user creation',
-      taskLinks: ['f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c'],
       observablesSatisfied: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'],
       dependsOn: [],
       filesToCreate: ['src/routes/users.ts'],
       filesToModify: ['src/routes/index.ts'],
+      status: 'in_progress',
     });
 
     expect(step).toStrictEqual({
       id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
       name: 'Create user API endpoint',
       description: 'Implement the REST endpoint for user creation',
-      taskLinks: ['f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c'],
       observablesSatisfied: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'],
       dependsOn: [],
       filesToCreate: ['src/routes/users.ts'],
       filesToModify: ['src/routes/index.ts'],
+      status: 'in_progress',
     });
   });
 
   it('VALID: {empty arrays} => parses with empty arrays', () => {
     const step = DependencyStepStub({
-      taskLinks: [],
       observablesSatisfied: [],
       dependsOn: [],
       filesToCreate: [],
@@ -39,28 +38,11 @@ describe('dependencyStepContract', () => {
       id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
       name: 'Test Step',
       description: 'A test dependency step',
-      taskLinks: [],
       observablesSatisfied: [],
       dependsOn: [],
       filesToCreate: [],
       filesToModify: [],
-    });
-  });
-
-  it('VALID: {multiple taskLinks} => parses many-to-many task relationship', () => {
-    const step = DependencyStepStub({
-      taskLinks: ['f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c', 'a7b8c9d0-e1f2-4a3b-c4d5-6e7f8a9b0c1d'],
-    });
-
-    expect(step).toStrictEqual({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
-      name: 'Test Step',
-      description: 'A test dependency step',
-      taskLinks: ['f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c', 'a7b8c9d0-e1f2-4a3b-c4d5-6e7f8a9b0c1d'],
-      observablesSatisfied: [],
-      dependsOn: [],
-      filesToCreate: [],
-      filesToModify: [],
+      status: 'pending',
     });
   });
 
@@ -73,11 +55,11 @@ describe('dependencyStepContract', () => {
       id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
       name: 'Test Step',
       description: 'A test dependency step',
-      taskLinks: [],
       observablesSatisfied: [],
       dependsOn: ['b8c9d0e1-f2a3-4b4c-d5e6-7f8a9b0c1d2e', 'c9d0e1f2-a3b4-4c5d-e6f7-8a9b0c1d2e3f'],
       filesToCreate: [],
       filesToModify: [],
+      status: 'pending',
     });
   });
 
@@ -91,11 +73,11 @@ describe('dependencyStepContract', () => {
       id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
       name: 'Test Step',
       description: 'A test dependency step',
-      taskLinks: [],
       observablesSatisfied: [],
       dependsOn: [],
       filesToCreate: ['src/controllers/user-controller.ts', 'src/models/user-model.ts'],
       filesToModify: ['src/app.ts', 'src/routes/index.ts'],
+      status: 'pending',
     });
   });
 
@@ -106,11 +88,42 @@ describe('dependencyStepContract', () => {
       id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
       name: 'Test Step',
       description: 'A test dependency step',
-      taskLinks: [],
       observablesSatisfied: [],
       dependsOn: [],
       filesToCreate: [],
       filesToModify: [],
+      status: 'pending',
+    });
+  });
+
+  it('VALID: {with new status fields} => parses status tracking fields', () => {
+    const step = DependencyStepStub({
+      status: 'blocked',
+      startedAt: '2024-01-15T10:00:00.000Z',
+      blockingReason: 'Waiting for user input',
+      blockingType: 'needs_user_input',
+    });
+
+    expect(step.status).toBe('blocked');
+    expect(step.startedAt).toBe('2024-01-15T10:00:00.000Z');
+    expect(step.blockingReason).toBe('Waiting for user input');
+    expect(step.blockingType).toBe('needs_user_input');
+  });
+
+  it('VALID: {with currentSession} => parses session tracking', () => {
+    const step = DependencyStepStub({
+      status: 'in_progress',
+      currentSession: {
+        sessionId: 'session-123',
+        agentRole: 'codeweaver',
+        startedAt: '2024-01-15T10:00:00.000Z',
+      },
+    });
+
+    expect(step.currentSession).toStrictEqual({
+      sessionId: 'session-123',
+      agentRole: 'codeweaver',
+      startedAt: '2024-01-15T10:00:00.000Z',
     });
   });
 
@@ -120,11 +133,11 @@ describe('dependencyStepContract', () => {
         id: 'bad',
         name: 'Test',
         description: 'Test',
-        taskLinks: [],
         observablesSatisfied: [],
         dependsOn: [],
         filesToCreate: [],
         filesToModify: [],
+        status: 'pending',
       });
 
     expect(parseInvalidId).toThrow(/Invalid uuid/u);
@@ -136,30 +149,14 @@ describe('dependencyStepContract', () => {
         id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
         name: '',
         description: 'Test',
-        taskLinks: [],
         observablesSatisfied: [],
         dependsOn: [],
         filesToCreate: [],
         filesToModify: [],
+        status: 'pending',
       });
 
     expect(parseEmptyName).toThrow(/String must contain at least 1 character/u);
-  });
-
-  it('INVALID_TASK_LINKS: {taskLinks: ["bad"]} => throws validation error', () => {
-    const parseInvalidTaskLinks = (): unknown =>
-      dependencyStepContract.parse({
-        id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
-        name: 'Test',
-        description: 'Test',
-        taskLinks: ['bad'],
-        observablesSatisfied: [],
-        dependsOn: [],
-        filesToCreate: [],
-        filesToModify: [],
-      });
-
-    expect(parseInvalidTaskLinks).toThrow(/Invalid uuid/u);
   });
 
   it('INVALID_OBSERVABLES: {observablesSatisfied: ["bad"]} => throws validation error', () => {
@@ -168,11 +165,11 @@ describe('dependencyStepContract', () => {
         id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
         name: 'Test',
         description: 'Test',
-        taskLinks: [],
         observablesSatisfied: ['bad'],
         dependsOn: [],
         filesToCreate: [],
         filesToModify: [],
+        status: 'pending',
       });
 
     expect(parseInvalidObservables).toThrow(/Invalid uuid/u);
@@ -184,13 +181,29 @@ describe('dependencyStepContract', () => {
         id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
         name: 'Test',
         description: 'Test',
-        taskLinks: [],
         observablesSatisfied: [],
         dependsOn: ['bad'],
         filesToCreate: [],
         filesToModify: [],
+        status: 'pending',
       });
 
     expect(parseInvalidDependsOn).toThrow(/Invalid uuid/u);
+  });
+
+  it('INVALID_STATUS: {status: "invalid"} => throws validation error', () => {
+    const parseInvalidStatus = (): unknown =>
+      dependencyStepContract.parse({
+        id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+        name: 'Test',
+        description: 'Test',
+        observablesSatisfied: [],
+        dependsOn: [],
+        filesToCreate: [],
+        filesToModify: [],
+        status: 'invalid',
+      });
+
+    expect(parseInvalidStatus).toThrow(/Invalid enum value/u);
   });
 });

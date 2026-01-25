@@ -24,6 +24,9 @@ export const observableContract = z.object({
   trigger: z.string().min(1).brand<'TriggerDescription'>(),
   dependsOn: z.array(observableIdContract),
   outcomes: z.array(outcomeRefContract),
+  verificationStatus: z.enum(['pending', 'verified', 'failed']).optional(),
+  verifiedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
+  verificationNotes: z.string().brand<'VerificationNotes'>().optional(),
 });
 
 export type Observable = z.infer<typeof observableContract>;

@@ -6,6 +6,5 @@ export const AddQuestInputStub = ({ ...props }: StubArgument<AddQuestInput> = {}
   addQuestInputContract.parse({
     title: 'Test Quest',
     userRequest: 'User wants to test the quest system',
-    tasks: [],
     ...props,
   });

@@ -27,7 +27,6 @@ describe('pathseekerPromptStatics', () => {
         expect(pathseekerPromptStatics.prompt.template).toMatch(/ChaosWhisperer/u);
         expect(pathseekerPromptStatics.prompt.template).toMatch(/contexts/u);
         expect(pathseekerPromptStatics.prompt.template).toMatch(/observables/u);
-        expect(pathseekerPromptStatics.prompt.template).toMatch(/tasks/u);
       });
 
       it('VALID: {prompt.template} => mentions MCP discover tools for repo analysis', () => {
@@ -36,7 +35,6 @@ describe('pathseekerPromptStatics', () => {
       });
 
       it('VALID: {prompt.template} => explains dependency step structure', () => {
-        expect(pathseekerPromptStatics.prompt.template).toMatch(/taskLinks/u);
         expect(pathseekerPromptStatics.prompt.template).toMatch(/observablesSatisfied/u);
         expect(pathseekerPromptStatics.prompt.template).toMatch(/dependsOn/u);
         expect(pathseekerPromptStatics.prompt.template).toMatch(/filesToCreate/u);
@@ -83,12 +81,12 @@ describe('pathseekerPromptStatics', () => {
     });
 
     describe('step examples', () => {
-      it('VALID: {prompt.template} => includes example of step with taskLinks array', () => {
-        expect(pathseekerPromptStatics.prompt.template).toMatch(/taskLinks.*\[/u);
-      });
-
       it('VALID: {prompt.template} => includes example of step with observablesSatisfied array', () => {
         expect(pathseekerPromptStatics.prompt.template).toMatch(/observablesSatisfied.*\[/u);
+      });
+
+      it('VALID: {prompt.template} => includes example of step with status field', () => {
+        expect(pathseekerPromptStatics.prompt.template).toMatch(/status.*pending/u);
       });
     });
   });

@@ -63,30 +63,6 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
-    it('VALID: {questId, tasks: [new]} => adds new task', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', tasks: [] });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        tasks: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Create auth service',
-            type: 'implementation',
-            status: 'pending',
-            observableIds: [],
-          },
-        ],
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-    });
-
     it('VALID: {questId, observables: [new]} => adds new observable', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', observables: [] });
@@ -124,11 +100,11 @@ describe('questModifyBroker', () => {
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
             name: 'Create API',
             description: 'Create authentication API',
-            taskLinks: [],
             observablesSatisfied: [],
             dependsOn: [],
             filesToCreate: [],
             filesToModify: [],
+            status: 'pending',
           },
         ],
       });

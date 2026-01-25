@@ -15,11 +15,10 @@ import type {
   Context,
   DependencyStep,
   Observable,
-  QuestTask,
   ToolingRequirement,
 } from '@dungeonmaster/shared/contracts';
 
-type QuestArrayItem = Context | Observable | QuestTask | DependencyStep | ToolingRequirement;
+type QuestArrayItem = Context | Observable | DependencyStep | ToolingRequirement;
 
 export const questArrayUpsertTransformer = <T extends QuestArrayItem>({
   existing,
