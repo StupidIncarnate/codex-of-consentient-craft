@@ -6,6 +6,7 @@ jest.mock('child_process');
 
 export const childProcessSpawnAdapterProxy = (): {
   setupSuccess: (params: { exitCode: ExitCode }) => ChildProcess;
+  setupSuccessWithNullExitCode: () => ChildProcess;
   setupError: (params: { error: Error }) => ChildProcess;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
@@ -31,6 +32,17 @@ export const childProcessSpawnAdapterProxy = (): {
       // Emit exit event asynchronously
       setImmediate(() => {
         mockChildProcess.emit('exit', exitCode);
+      });
+      return mockChildProcess;
+    },
+
+    // Semantic method for setting successful spawn with null exit code (process killed by signal)
+    setupSuccessWithNullExitCode: (): ChildProcess => {
+      const mockChildProcess = createMockChildProcess();
+      mock.mockReturnValueOnce(mockChildProcess);
+      // Emit exit event with null exit code (process killed by signal)
+      setImmediate(() => {
+        mockChildProcess.emit('exit', null);
       });
       return mockChildProcess;
     },

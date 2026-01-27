@@ -114,6 +114,9 @@ export * from './src/contracts/observable-id/observable-id.stub';
 export * from './src/contracts/step-id/step-id-contract';
 export * from './src/contracts/step-id/step-id.stub';
 
+export * from './src/contracts/session-id/session-id-contract';
+export * from './src/contracts/session-id/session-id.stub';
+
 export * from './src/contracts/tooling-requirement-id/tooling-requirement-id-contract';
 export * from './src/contracts/tooling-requirement-id/tooling-requirement-id.stub';
 

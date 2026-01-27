@@ -247,4 +247,135 @@ describe('dungeonmaster-config-contract', () => {
       expect(result).toBeDefined();
     });
   });
+
+  describe('orchestration configurations', () => {
+    it('VALID: config without orchestration => parses successfully', () => {
+      const config = DungeonmasterConfigStub({
+        framework: 'react',
+      });
+
+      expect(config.orchestration).toBeUndefined();
+    });
+
+    it('VALID: config with orchestration slotCount and timeoutMs => parses successfully', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        orchestration: {
+          slotCount: 5,
+          timeoutMs: 120000,
+        },
+      });
+
+      expect(parsed.orchestration?.slotCount).toBe(5);
+      expect(parsed.orchestration?.timeoutMs).toBe(120000);
+    });
+
+    it('VALID: config with orchestration defaults => applies default values', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        orchestration: {},
+      });
+
+      expect(parsed.orchestration?.slotCount).toBe(3);
+      expect(parsed.orchestration?.timeoutMs).toBe(900000);
+    });
+
+    it('VALID: config with minimum slotCount => parses successfully', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        orchestration: {
+          slotCount: 1,
+        },
+      });
+
+      expect(parsed.orchestration?.slotCount).toBe(1);
+    });
+
+    it('VALID: config with maximum slotCount => parses successfully', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        orchestration: {
+          slotCount: 10,
+        },
+      });
+
+      expect(parsed.orchestration?.slotCount).toBe(10);
+    });
+
+    it('VALID: config with minimum timeoutMs => parses successfully', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        orchestration: {
+          timeoutMs: 60000,
+        },
+      });
+
+      expect(parsed.orchestration?.timeoutMs).toBe(60000);
+    });
+
+    it('INVALID: slotCount below minimum => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          orchestration: {
+            slotCount: 0,
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: slotCount above maximum => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          orchestration: {
+            slotCount: 11,
+          },
+        });
+      }).toThrow(/too_big/u);
+    });
+
+    it('INVALID: timeoutMs below minimum => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          orchestration: {
+            timeoutMs: 59999,
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: non-integer slotCount => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          orchestration: {
+            slotCount: 2.5,
+          },
+        });
+      }).toThrow(/invalid_type/u);
+    });
+
+    it('INVALID: non-integer timeoutMs => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          orchestration: {
+            timeoutMs: 100000.5,
+          },
+        });
+      }).toThrow(/invalid_type/u);
+    });
+  });
 });

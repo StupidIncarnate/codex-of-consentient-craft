@@ -8,6 +8,7 @@
  */
 
 import { z } from 'zod';
+import { configDefaultsStatics } from '../../statics/config-defaults/config-defaults-statics';
 import { frameworkStatics } from '../../statics/framework/framework-statics';
 import { routingLibraryStatics } from '../../statics/routing-library/routing-library-statics';
 import { schemaLibraryStatics } from '../../statics/schema-library/schema-library-statics';
@@ -29,6 +30,23 @@ export const dungeonmasterConfigContract = z.object({
         .optional(),
       allowedRootFiles: z.array(z.string().brand<'FileName'>()).optional(),
       booleanFunctionPrefixes: z.array(z.string().brand<'FunctionPrefix'>()).optional(),
+    })
+    .optional(),
+  orchestration: z
+    .object({
+      slotCount: z
+        .number()
+        .int()
+        .min(configDefaultsStatics.orchestration.slotCount.min)
+        .max(configDefaultsStatics.orchestration.slotCount.max)
+        .default(configDefaultsStatics.orchestration.slotCount.default)
+        .brand<'SlotCount'>(),
+      timeoutMs: z
+        .number()
+        .int()
+        .min(configDefaultsStatics.orchestration.timeoutMs.min)
+        .default(configDefaultsStatics.orchestration.timeoutMs.default)
+        .brand<'TimeoutMs'>(),
     })
     .optional(),
 });

@@ -10,7 +10,13 @@ import { realpathSync } from 'node:fs';
 import { inkTestingLibraryRenderAdapter } from '../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 import React from 'react';
 
-import { FilePathStub, InstallContextStub } from '@dungeonmaster/shared/contracts';
+import {
+  DependencyStepStub,
+  FilePathStub,
+  InstallContextStub,
+  QuestStub,
+  StepIdStub,
+} from '@dungeonmaster/shared/contracts';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -21,6 +27,9 @@ import {
 import { cliStatics } from '../statics/cli/cli-statics';
 import { StartCli } from './start-cli';
 import { CliAppWidget } from '../widgets/cli-app/cli-app-widget';
+import { questLoadBroker } from '../brokers/quest/load/quest-load-broker';
+import { questUpdateStepBroker } from '../brokers/quest/update-step/quest-update-step-broker';
+import { questListBroker } from '../brokers/quest/list/quest-list-broker';
 
 const waitForUseEffect = async (): Promise<void> => {
   await new Promise((resolve) => {
@@ -432,6 +441,168 @@ describe('StartCli', () => {
 
       expect(frame).toMatch(/Initialize Dungeonmaster/u);
       expect(packageJsonContent).toMatch(/"devDependencies"/u);
+    });
+  });
+
+  describe('quest file operations integration', () => {
+    it('VALID: {quest file exists} => questLoadBroker loads and parses quest from real file system', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'quest-load' }),
+      });
+
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const step = DependencyStepStub({ id: stepId, status: 'pending', dependsOn: [] });
+      const quest = QuestStub({ id: 'test-quest', steps: [step] });
+
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: '.dungeonmaster-quests/test-quest.json' }),
+        content: FileContentStub({ value: JSON.stringify(quest, null, 2) }),
+      });
+
+      const questFilePath = FilePathStub({
+        value: `${testbed.projectPath}/.dungeonmaster-quests/test-quest.json`,
+      });
+
+      const loadedQuest = await questLoadBroker({ questFilePath });
+      const [firstStep] = loadedQuest.steps;
+
+      testbed.cleanup();
+
+      expect(loadedQuest.id).toBe('test-quest');
+      expect(firstStep).toBeDefined();
+      expect(firstStep?.id).toBe(stepId);
+      expect(firstStep?.status).toBe('pending');
+    });
+
+    it('VALID: {quest with pending step} => questUpdateStepBroker updates step status on real file system', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'quest-update' }),
+      });
+
+      const stepId = StepIdStub({ value: 'b2c3d4e5-f6a7-5b8c-9d0e-1f2a3b4c5d6e' });
+      const step = DependencyStepStub({ id: stepId, status: 'pending', dependsOn: [] });
+      const quest = QuestStub({ id: 'update-test', steps: [step] });
+
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: '.dungeonmaster-quests/update-test.json' }),
+        content: FileContentStub({ value: JSON.stringify(quest, null, 2) }),
+      });
+
+      const questFilePath = FilePathStub({
+        value: `${testbed.projectPath}/.dungeonmaster-quests/update-test.json`,
+      });
+
+      await questUpdateStepBroker({
+        questFilePath,
+        stepId,
+        updates: { status: 'in_progress' },
+      });
+
+      const updatedQuest = await questLoadBroker({ questFilePath });
+      const [firstStep] = updatedQuest.steps;
+
+      testbed.cleanup();
+
+      expect(firstStep?.status).toBe('in_progress');
+    });
+
+    it('VALID: {multiple quest folders} => questListBroker lists quests from real directory', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'quest-list' }),
+      });
+
+      const quest1 = QuestStub({ id: 'quest-1', title: 'First Quest', folder: '001-first-quest' });
+      const quest2 = QuestStub({
+        id: 'quest-2',
+        title: 'Second Quest',
+        folder: '002-second-quest',
+      });
+
+      testbed.writeFile({
+        relativePath: RelativePathStub({
+          value: '.dungeonmaster-quests/001-first-quest/quest.json',
+        }),
+        content: FileContentStub({ value: JSON.stringify(quest1, null, 2) }),
+      });
+
+      testbed.writeFile({
+        relativePath: RelativePathStub({
+          value: '.dungeonmaster-quests/002-second-quest/quest.json',
+        }),
+        content: FileContentStub({ value: JSON.stringify(quest2, null, 2) }),
+      });
+
+      const startPath = FilePathStub({
+        value: testbed.projectPath,
+      });
+
+      const questList = await questListBroker({ startPath });
+      const sortedTitles = questList.map((q) => q.title).sort();
+
+      testbed.cleanup();
+
+      expect(sortedTitles).toStrictEqual(['First Quest', 'Second Quest']);
+    });
+
+    it('VALID: {step with dependencies} => questUpdateStepBroker preserves other step data', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'quest-preserve' }),
+      });
+
+      const stepId1 = StepIdStub({ value: 'c3d4e5f6-a7b8-6c9d-0e1f-2a3b4c5d6e7f' });
+      const stepId2 = StepIdStub({ value: 'd4e5f6a7-b8c9-7d0e-1f2a-3b4c5d6e7f8a' });
+      const step1 = DependencyStepStub({
+        id: stepId1,
+        name: 'Step One',
+        status: 'complete',
+        dependsOn: [],
+      });
+      const step2 = DependencyStepStub({
+        id: stepId2,
+        name: 'Step Two',
+        status: 'pending',
+        dependsOn: [stepId1],
+      });
+      const quest = QuestStub({ id: 'deps-test', steps: [step1, step2] });
+
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: '.dungeonmaster-quests/deps-test.json' }),
+        content: FileContentStub({ value: JSON.stringify(quest, null, 2) }),
+      });
+
+      const questFilePath = FilePathStub({
+        value: `${testbed.projectPath}/.dungeonmaster-quests/deps-test.json`,
+      });
+
+      await questUpdateStepBroker({
+        questFilePath,
+        stepId: stepId2,
+        updates: { status: 'in_progress' },
+      });
+
+      const updatedQuest = await questLoadBroker({ questFilePath });
+      const [firstStep, secondStep] = updatedQuest.steps;
+
+      testbed.cleanup();
+
+      expect(firstStep?.status).toBe('complete');
+      expect(secondStep?.status).toBe('in_progress');
+      expect(secondStep?.name).toBe('Step Two');
+      expect(secondStep?.dependsOn).toStrictEqual([stepId1]);
+    });
+
+    it('ERROR: {nonexistent quest file} => questLoadBroker throws error', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'quest-error' }),
+      });
+
+      const questFilePath = FilePathStub({
+        value: `${testbed.projectPath}/.dungeonmaster-quests/nonexistent.json`,
+      });
+
+      testbed.cleanup();
+
+      await expect(questLoadBroker({ questFilePath })).rejects.toThrow(/Failed to read file/u);
     });
   });
 });

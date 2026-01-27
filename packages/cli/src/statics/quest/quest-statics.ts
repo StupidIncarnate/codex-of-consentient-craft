@@ -10,4 +10,7 @@ export const questStatics = {
   phases: {
     order: ['discovery', 'implementation', 'testing', 'review'] as const,
   },
+  json: {
+    indentSpaces: 2,
+  },
 } as const;
