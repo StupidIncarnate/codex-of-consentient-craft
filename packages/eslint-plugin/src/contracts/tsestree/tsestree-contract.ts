@@ -73,6 +73,7 @@ interface RecursiveNodeOutput {
   kind?: 'const' | 'let' | 'var' | undefined;
   // Property properties
   key?: RecursiveNodeOutput | null | undefined;
+  shorthand?: boolean | undefined;
   // TSTypeReference properties
   typeName?: RecursiveNodeOutput | null | undefined;
   // TSPropertySignature properties
@@ -134,6 +135,7 @@ interface RecursiveNodeInput {
   kind?: 'const' | 'let' | 'var' | undefined;
   // Property properties
   key?: RecursiveNodeInput | null | undefined;
+  shorthand?: boolean | undefined;
   // TSTypeReference properties
   typeName?: RecursiveNodeInput | null | undefined;
   // TSPropertySignature properties
@@ -245,6 +247,7 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .lazy(() => recursiveBase)
     .nullable()
     .optional(),
+  shorthand: z.boolean().optional(),
   // TSTypeReference properties
   typeName: z
     .lazy(() => recursiveBase)
@@ -317,6 +320,7 @@ export const tsestreeContract = z.object({
   kind: z.enum(['const', 'let', 'var']).optional(),
   // Property properties
   key: recursiveBase.nullable().optional(),
+  shorthand: z.boolean().optional(),
   // TSTypeReference properties
   typeName: recursiveBase.nullable().optional(),
   // TSPropertySignature properties

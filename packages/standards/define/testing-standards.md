@@ -639,6 +639,70 @@ mock setup.
 `beforeEach`, no `bootstrap()` method, no manual setup. See "Create-Per-Test Pattern" section below for detailed
 examples.
 
+### Proxy Encapsulation Rule
+
+**CRITICAL:** Proxies must expose semantic methods, NOT child proxies. Tests should never chain through multiple proxy
+levels.
+
+```typescript
+// ❌ WRONG - Exposing child proxies forces tests to know internal structure
+export const questExecuteBrokerProxy = () => {
+    const pathseekerProxy = pathseekerPhaseBrokerProxy();
+    const codeweaverProxy = codeweaverPhaseBrokerProxy();
+
+    return {
+        pathseekerProxy,  // ❌ Exposes child
+        codeweaverProxy,  // ❌ Exposes child
+    };
+};
+
+// Test must navigate internal structure:
+pathseekerProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({...});
+// ↑ This is BAD - test knows 5+ levels of internal proxy structure
+
+// ✅ CORRECT - Expose semantic methods that delegate internally
+export const questExecuteBrokerProxy = () => {
+    const pathseekerProxy = pathseekerPhaseBrokerProxy();
+    const codeweaverProxy = codeweaverPhaseBrokerProxy();
+    const siegemasterProxy = siegemasterPhaseBrokerProxy();
+    const lawbringerProxy = lawbringerPhaseBrokerProxy();
+
+    return {
+        // Semantic method handles all internal delegation
+        setupQuestFile: ({questJson}: {questJson: string}): void => {
+            // Proxy knows which children need this setup
+            pathseekerProxy.setupQuestFile({questJson});
+            codeweaverProxy.setupQuestFile({questJson});
+            siegemasterProxy.setupQuestFile({questJson});
+            lawbringerProxy.setupQuestFile({questJson});
+        },
+
+        setupStepComplete: ({stepId}: {stepId: StepId}): void => {
+            // Semantic method for another common scenario
+            pathseekerProxy.setupStepComplete({stepId});
+            // ...delegate to other children as needed
+        },
+    };
+};
+
+// Test uses semantic method - no knowledge of internal structure:
+proxy.setupQuestFile({questJson});  // ✅ Clean, semantic
+```
+
+**Why this matters:**
+
+1. **Encapsulation**: Each test only knows its direct proxy (from REALISTIC-FLOW-EXAMPLE summary)
+2. **Maintainability**: Internal restructuring doesn't break tests
+3. **Readability**: Tests describe WHAT scenario, not HOW to navigate proxy internals
+4. **Single source of truth**: Proxy owns knowledge of its dependencies
+
+**The pattern:**
+
+- Child proxies are created internally (assigned to variables if methods are used)
+- Return object exposes semantic methods that delegate to children
+- Tests call semantic methods without knowing child proxy structure
+- If 4 children need the same setup, the parent proxy handles that in one semantic method
+
 ### What Gets Mocked vs What Runs Real
 
 ```

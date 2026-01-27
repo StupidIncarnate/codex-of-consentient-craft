@@ -330,6 +330,45 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
       `,
       filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
     },
+    // ✅ CORRECT - Semantic method that delegates to child proxy (not exposed)
+    {
+      code: `
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const userBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+
+          return {
+            setupUserFetch: ({ userId, user }) => {
+              httpProxy.returns({ data: user });
+            }
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Child proxy used inside method but not exposed directly
+    {
+      code: `
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { dbAdapterProxy } from '../../adapters/db/db-adapter.proxy';
+
+        export const userBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+          const dbProxy = dbAdapterProxy();
+
+          return {
+            setupUserFetch: () => {
+              httpProxy.returns({ data: {} });
+            },
+            setupDbQuery: () => {
+              dbProxy.returns({ rows: [] });
+            }
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+    },
   ],
   invalid: [
     // ❌ WRONG - Proxy returns void
@@ -1065,6 +1104,76 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
         {
           messageId: 'proxyNotColocated',
           data: { expectedPath: '/project/src/transformers/missing/missing-transformer.ts' },
+        },
+      ],
+    },
+    // ❌ WRONG - Exposed child proxy via shorthand
+    {
+      code: `
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const userBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+
+          return {
+            httpProxy
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'exposedChildProxy',
+          data: { proxyName: 'httpProxy' },
+        },
+      ],
+    },
+    // ❌ WRONG - Exposed child proxy via explicit assignment
+    {
+      code: `
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const userBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+
+          return {
+            http: httpProxy
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'exposedChildProxy',
+          data: { proxyName: 'httpProxy' },
+        },
+      ],
+    },
+    // ❌ WRONG - Multiple exposed child proxies
+    {
+      code: `
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { dbAdapterProxy } from '../../adapters/db/db-adapter.proxy';
+
+        export const userBrokerProxy = () => {
+          const httpProxy = httpAdapterProxy();
+          const dbProxy = dbAdapterProxy();
+
+          return {
+            httpProxy,
+            db: dbProxy
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'exposedChildProxy',
+          data: { proxyName: 'httpProxy' },
+        },
+        {
+          messageId: 'exposedChildProxy',
+          data: { proxyName: 'dbProxy' },
         },
       ],
     },

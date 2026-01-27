@@ -98,6 +98,129 @@ Widget renders
 
 ---
 
+## Proxy Encapsulation Rule
+
+**CRITICAL:** Proxies must expose semantic methods, NOT child proxies. Tests should never chain through multiple proxy
+levels.
+
+### The Problem
+
+```typescript
+// ❌ WRONG - Proxy exposes child proxies
+export const questExecuteBrokerProxy = () => {
+    const pathseekerProxy = pathseekerPhaseBrokerProxy();
+    const codeweaverProxy = codeweaverPhaseBrokerProxy();
+
+    return {
+        pathseekerProxy,  // ❌ Exposes child
+        codeweaverProxy,  // ❌ Exposes child
+    };
+};
+
+// Test must navigate internal structure (5+ levels deep!):
+pathseekerProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
+    content: questJson,
+});
+
+// Same setup repeated for each phase:
+codeweaverProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({...});
+siegemasterProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({...});
+lawbringerProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({...});
+```
+
+**Why this is bad:**
+
+- Tests need knowledge of 5+ levels of internal proxy structure
+- If any layer restructures, ALL tests break
+- Same nested path repeated multiple times
+- Test author must understand entire proxy hierarchy
+
+### The Solution
+
+```typescript
+// ✅ CORRECT - Expose semantic methods that delegate internally
+export const questExecuteBrokerProxy = () => {
+    const pathseekerProxy = pathseekerPhaseBrokerProxy();
+    const codeweaverProxy = codeweaverPhaseBrokerProxy();
+    const siegemasterProxy = siegemasterPhaseBrokerProxy();
+    const lawbringerProxy = lawbringerPhaseBrokerProxy();
+
+    return {
+        // Semantic method handles all internal delegation
+        setupQuestFile: ({questJson}: {questJson: string}): void => {
+            // Parent proxy knows which children need this setup
+            pathseekerProxy.setupQuestFile({questJson});
+            codeweaverProxy.setupQuestFile({questJson});
+            siegemasterProxy.setupQuestFile({questJson});
+            lawbringerProxy.setupQuestFile({questJson});
+        },
+
+        setupStepComplete: ({stepId}: {stepId: StepId}): void => {
+            pathseekerProxy.setupStepComplete({stepId});
+            codeweaverProxy.setupStepComplete({stepId});
+            // ...delegate to others as needed
+        },
+    };
+};
+
+// Test uses semantic method - no knowledge of internal structure:
+const proxy = questExecuteBrokerProxy();
+proxy.setupQuestFile({questJson});  // ✅ Clean, semantic
+```
+
+### Key Principles
+
+1. **Encapsulation**: "Each test only knows its direct proxy" - tests don't navigate into child proxies
+2. **Hide internals**: "Parent triggers child via proxy (hides internals)" - child proxy structure is an implementation
+   detail
+3. **Semantic methods**: Proxy exposes WHAT scenarios to set up, not HOW the setup flows through children
+4. **Single delegation point**: If 4 children need the same setup, one semantic method handles all 4
+
+### When Multiple Children Need Same Setup
+
+```typescript
+// ✅ CORRECT - Parent proxy consolidates common setup
+export const orchestratorProxy = () => {
+    const workerAProxy = workerABrokerProxy();
+    const workerBProxy = workerBBrokerProxy();
+    const workerCProxy = workerCBrokerProxy();
+
+    return {
+        // All workers need same config - one semantic method
+        setupConfig: ({config}: {config: Config}): void => {
+            workerAProxy.setupConfig({config});
+            workerBProxy.setupConfig({config});
+            workerCProxy.setupConfig({config});
+        },
+
+        // Worker-specific setup when needed
+        setupWorkerAError: ({error}: {error: Error}): void => {
+            workerAProxy.setupError({error});
+        },
+    };
+};
+```
+
+### The Pattern
+
+```
+Test calls semantic method:
+  proxy.setupQuestFile({questJson})
+    ↓ delegates to
+  pathseekerProxy.setupQuestFile({questJson})
+    ↓ delegates to
+  slotManagerProxy.setupQuestFile({questJson})
+    ↓ delegates to
+  ...eventually reaches adapter proxy
+    ↓ sets up
+  fsReadFileProxy.resolves({content: questJson})
+
+Each layer only knows its direct child.
+Tests only know their direct proxy.
+```
+
+---
+
 ## Insight: Why Guards Need Proxy Helper Functions
 
 ### The Pattern

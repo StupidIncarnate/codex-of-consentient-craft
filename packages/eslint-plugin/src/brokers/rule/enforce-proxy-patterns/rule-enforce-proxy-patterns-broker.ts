@@ -16,6 +16,7 @@ import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suf
 import { validateProxyFunctionReturnLayerBroker } from './validate-proxy-function-return-layer-broker';
 import { validateAdapterMockSetupLayerBroker } from './validate-adapter-mock-setup-layer-broker';
 import { validateProxyConstructorSideEffectsLayerBroker } from './validate-proxy-constructor-side-effects-layer-broker';
+import { validateNoExposedChildProxiesLayerBroker } from './validate-no-exposed-child-proxies-layer-broker';
 import { proxyPatternsStatics } from '../../../statics/proxy-patterns/proxy-patterns-statics';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
 import { tsToTsxPathTransformer } from '../../../transformers/ts-to-tsx-path/ts-to-tsx-path-transformer';
@@ -50,6 +51,8 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
           'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead. Allowed: const childProxy = create...(), jest.mocked(...), jest.spyOn(...)',
         proxyNotColocated:
           'Proxy file must be colocated with its implementation file. Expected implementation file "{{expectedPath}}" not found in the same directory.',
+        exposedChildProxy:
+          'Proxy must not expose child proxy "{{proxyName}}" in return object. Create semantic methods that delegate to child proxies instead. Example: setupQuestFile: ({questJson}) => { {{proxyName}}.setupQuestFile({questJson}); }',
       },
       schema: [],
     },
@@ -72,6 +75,10 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
       isInsideProxyFunction: boolean;
       isBeforeReturn: boolean;
     }[] = [];
+
+    // Track proxy variable assignments: const foo = barProxy()
+    // Maps variable name -> callee name (both as Identifiers)
+    const proxyVariableAssignments = new Map<Identifier, Identifier>();
 
     let currentProxyFunction: Tsestree | null = null;
     let foundReturnStatement = false;
@@ -233,10 +240,41 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
           foundReturnStatement = false;
         },
 
-      // Track return statements
-      ReturnStatement: (): void => {
+      // Track return statements and validate exposed child proxies
+      ReturnStatement: (node: Tsestree): void => {
         if (currentProxyFunction !== null) {
           foundReturnStatement = true;
+
+          // Check if return has an ObjectExpression argument
+          const { argument } = node;
+          if (argument?.type === 'ObjectExpression') {
+            // Validate that no child proxies are exposed in the return object
+            validateNoExposedChildProxiesLayerBroker({
+              objectNode: argument,
+              proxyVariables: proxyVariableAssignments,
+              context: ctx,
+            });
+          }
+        }
+      },
+
+      // Track proxy variable assignments: const foo = barProxy()
+      VariableDeclarator: (node: Tsestree): void => {
+        // Only track inside proxy functions and before return
+        if (!currentProxyFunction || foundReturnStatement) return;
+
+        const { id, init } = node;
+        if (!id?.name || !init) return;
+
+        // Check if init is a CallExpression with callee ending in 'Proxy'
+        if (init.type === 'CallExpression' && init.callee?.type === 'Identifier') {
+          const calleeName = init.callee.name;
+          if (calleeName?.endsWith('Proxy')) {
+            proxyVariableAssignments.set(
+              identifierContract.parse(id.name),
+              identifierContract.parse(calleeName),
+            );
+          }
         }
       },
 
