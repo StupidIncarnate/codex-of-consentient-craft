@@ -12,14 +12,14 @@ import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp
 describe('questUpdateStepBroker', () => {
   describe('successful updates', () => {
     it('VALID: {update status to complete} => updates step status in quest file', async () => {
-      const { fsReadFileProxy, fsWriteFileProxy } = questUpdateStepBrokerProxy();
+      const proxy = questUpdateStepBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'pending' });
       const quest = QuestStub({ steps: [step] });
       const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
 
-      fsReadFileProxy.resolves({ content: JSON.stringify(quest) });
-      fsWriteFileProxy.succeeds();
+      proxy.setupQuestRead({ questJson: JSON.stringify(quest) });
+      proxy.setupQuestWriteSuccess();
 
       await questUpdateStepBroker({
         questFilePath,
@@ -27,8 +27,8 @@ describe('questUpdateStepBroker', () => {
         updates: { status: 'complete' },
       });
 
-      const writtenPath = fsWriteFileProxy.getWrittenPath();
-      const writtenContent = fsWriteFileProxy.getWrittenContent();
+      const writtenPath = proxy.getQuestWrittenPath();
+      const writtenContent = proxy.getQuestWrittenContent();
       const writtenQuest: unknown = JSON.parse(writtenContent as never);
 
       expect(writtenPath).toBe(questFilePath);
@@ -39,14 +39,14 @@ describe('questUpdateStepBroker', () => {
     });
 
     it('VALID: {update status and completedAt} => updates multiple fields', async () => {
-      const { fsReadFileProxy, fsWriteFileProxy } = questUpdateStepBrokerProxy();
+      const proxy = questUpdateStepBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'in_progress' });
       const quest = QuestStub({ steps: [step] });
       const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
 
-      fsReadFileProxy.resolves({ content: JSON.stringify(quest) });
-      fsWriteFileProxy.succeeds();
+      proxy.setupQuestRead({ questJson: JSON.stringify(quest) });
+      proxy.setupQuestWriteSuccess();
 
       const completedAt = IsoTimestampStub({ value: '2024-01-15T12:00:00.000Z' });
 
@@ -56,7 +56,7 @@ describe('questUpdateStepBroker', () => {
         updates: { status: 'complete', completedAt },
       });
 
-      const writtenContent = fsWriteFileProxy.getWrittenContent();
+      const writtenContent = proxy.getQuestWrittenContent();
       const writtenQuest: unknown = JSON.parse(writtenContent as never);
 
       expect(writtenQuest).toStrictEqual({
@@ -66,7 +66,7 @@ describe('questUpdateStepBroker', () => {
     });
 
     it('VALID: {update step in quest with multiple steps} => only updates specified step', async () => {
-      const { fsReadFileProxy, fsWriteFileProxy } = questUpdateStepBrokerProxy();
+      const proxy = questUpdateStepBrokerProxy();
       const stepId1 = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const stepId2 = StepIdStub({ value: 'b2c3d4e5-f6a7-5b8c-9d0e-1f2a3b4c5d6e' });
       const step1 = DependencyStepStub({ id: stepId1, status: 'pending', name: 'Step 1' });
@@ -74,8 +74,8 @@ describe('questUpdateStepBroker', () => {
       const quest = QuestStub({ steps: [step1, step2] });
       const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
 
-      fsReadFileProxy.resolves({ content: JSON.stringify(quest) });
-      fsWriteFileProxy.succeeds();
+      proxy.setupQuestRead({ questJson: JSON.stringify(quest) });
+      proxy.setupQuestWriteSuccess();
 
       await questUpdateStepBroker({
         questFilePath,
@@ -83,7 +83,7 @@ describe('questUpdateStepBroker', () => {
         updates: { status: 'complete' },
       });
 
-      const writtenContent = fsWriteFileProxy.getWrittenContent();
+      const writtenContent = proxy.getQuestWrittenContent();
       const writtenQuest: unknown = JSON.parse(writtenContent as never);
 
       expect(writtenQuest).toStrictEqual({
@@ -93,15 +93,15 @@ describe('questUpdateStepBroker', () => {
     });
 
     it('VALID: {updates contain id field} => preserves original step id', async () => {
-      const { fsReadFileProxy, fsWriteFileProxy } = questUpdateStepBrokerProxy();
+      const proxy = questUpdateStepBrokerProxy();
       const originalStepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const attemptedNewId = StepIdStub({ value: 'ffffffff-ffff-ffff-ffff-ffffffffffff' });
       const step = DependencyStepStub({ id: originalStepId, status: 'pending' });
       const quest = QuestStub({ steps: [step] });
       const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
 
-      fsReadFileProxy.resolves({ content: JSON.stringify(quest) });
-      fsWriteFileProxy.succeeds();
+      proxy.setupQuestRead({ questJson: JSON.stringify(quest) });
+      proxy.setupQuestWriteSuccess();
 
       await questUpdateStepBroker({
         questFilePath,
@@ -109,7 +109,7 @@ describe('questUpdateStepBroker', () => {
         updates: { status: 'complete', id: attemptedNewId } as never,
       });
 
-      const writtenContent = fsWriteFileProxy.getWrittenContent();
+      const writtenContent = proxy.getQuestWrittenContent();
       const writtenQuest: unknown = JSON.parse(writtenContent as never);
 
       expect(writtenQuest).toStrictEqual({
@@ -121,14 +121,14 @@ describe('questUpdateStepBroker', () => {
 
   describe('error cases', () => {
     it('ERROR: {step not found} => throws error', async () => {
-      const { fsReadFileProxy } = questUpdateStepBrokerProxy();
+      const proxy = questUpdateStepBrokerProxy();
       const existingStepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const nonExistentStepId = StepIdStub({ value: 'b2c3d4e5-f6a7-5b8c-9d0e-1f2a3b4c5d6e' });
       const step = DependencyStepStub({ id: existingStepId, status: 'pending' });
       const quest = QuestStub({ steps: [step] });
       const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
 
-      fsReadFileProxy.resolves({ content: JSON.stringify(quest) });
+      proxy.setupQuestRead({ questJson: JSON.stringify(quest) });
 
       await expect(
         questUpdateStepBroker({
@@ -140,11 +140,11 @@ describe('questUpdateStepBroker', () => {
     });
 
     it('ERROR: {file read fails} => throws error', async () => {
-      const { fsReadFileProxy } = questUpdateStepBrokerProxy();
+      const proxy = questUpdateStepBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const questFilePath = FilePathStub({ value: '/quests/nonexistent.json' });
 
-      fsReadFileProxy.rejects({ error: new Error('ENOENT: no such file or directory') });
+      proxy.setupQuestReadError({ error: new Error('ENOENT: no such file or directory') });
 
       await expect(
         questUpdateStepBroker({
@@ -156,11 +156,11 @@ describe('questUpdateStepBroker', () => {
     });
 
     it('ERROR: {invalid quest JSON} => throws parse error', async () => {
-      const { fsReadFileProxy } = questUpdateStepBrokerProxy();
+      const proxy = questUpdateStepBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const questFilePath = FilePathStub({ value: '/quests/invalid.json' });
 
-      fsReadFileProxy.resolves({ content: '{ invalid json }' });
+      proxy.setupQuestRead({ questJson: '{ invalid json }' });
 
       await expect(
         questUpdateStepBroker({
@@ -172,14 +172,14 @@ describe('questUpdateStepBroker', () => {
     });
 
     it('ERROR: {file write fails} => throws error', async () => {
-      const { fsReadFileProxy, fsWriteFileProxy } = questUpdateStepBrokerProxy();
+      const proxy = questUpdateStepBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'pending' });
       const quest = QuestStub({ steps: [step] });
       const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
 
-      fsReadFileProxy.resolves({ content: JSON.stringify(quest) });
-      fsWriteFileProxy.throws({ error: new Error('EACCES: permission denied') });
+      proxy.setupQuestRead({ questJson: JSON.stringify(quest) });
+      proxy.setupQuestWriteError({ error: new Error('EACCES: permission denied') });
 
       await expect(
         questUpdateStepBroker({

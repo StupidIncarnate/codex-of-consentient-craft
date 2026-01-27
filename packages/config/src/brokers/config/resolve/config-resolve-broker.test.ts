@@ -7,7 +7,6 @@ describe('configResolveBroker', () => {
   describe('single config resolution', () => {
     it('VALID: {filePath: "/project/src/file.ts"} => resolves single package config with no parent', async () => {
       const proxy = configResolveBrokerProxy();
-      const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/project/src/file.ts' });
       const packageConfig = DungeonmasterConfigStub({
@@ -15,13 +14,13 @@ describe('configResolveBroker', () => {
         schema: 'zod',
       });
 
-      findProxy.setupConfigFound({
+      proxy.setupConfigFound({
         startPath: filePath,
         configPath: '/project/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: packageConfig });
-      dirnameProxy.returns({ result: '/project' as never });
-      findProxy.setupConfigNotFound({ startPath: '/project' });
+      proxy.setupValidConfig({ config: packageConfig });
+      proxy.setupDirname({ result: '/project' as never });
+      proxy.setupConfigNotFound({ startPath: '/project' });
 
       const result = await configResolveBroker({ filePath });
 
@@ -30,7 +29,6 @@ describe('configResolveBroker', () => {
 
     it('VALID: {filePath: "/monorepo/src/index.ts"} => resolves monorepo root config only', async () => {
       const proxy = configResolveBrokerProxy();
-      const { findProxy, loadProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/monorepo/src/index.ts' });
       const monorepoConfig = DungeonmasterConfigStub({
@@ -38,11 +36,11 @@ describe('configResolveBroker', () => {
         schema: 'zod',
       });
 
-      findProxy.setupConfigFound({
+      proxy.setupConfigFound({
         startPath: filePath,
         configPath: '/monorepo/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: monorepoConfig });
+      proxy.setupValidConfig({ config: monorepoConfig });
 
       const result = await configResolveBroker({ filePath });
 
@@ -53,7 +51,6 @@ describe('configResolveBroker', () => {
   describe('monorepo config resolution', () => {
     it('VALID: {filePath: "/monorepo/packages/web/src/app.tsx"} => merges root and package configs', async () => {
       const proxy = configResolveBrokerProxy();
-      const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/monorepo/packages/web/src/app.tsx' });
       const packageConfig = DungeonmasterConfigStub({
@@ -69,17 +66,17 @@ describe('configResolveBroker', () => {
         },
       });
 
-      findProxy.setupConfigFound({
+      proxy.setupConfigFound({
         startPath: filePath,
         configPath: '/monorepo/packages/web/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: packageConfig });
-      dirnameProxy.returns({ result: '/monorepo/packages/web' as never });
-      findProxy.setupConfigFound({
+      proxy.setupValidConfig({ config: packageConfig });
+      proxy.setupDirname({ result: '/monorepo/packages/web' as never });
+      proxy.setupConfigFound({
         startPath: '/monorepo/packages/web',
         configPath: '/monorepo/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: rootConfig });
+      proxy.setupValidConfig({ config: rootConfig });
 
       const result = await configResolveBroker({ filePath });
 
@@ -95,7 +92,6 @@ describe('configResolveBroker', () => {
 
     it('VALID: {filePath: "/deep/monorepo/workspace/packages/api/src/server.ts"} => finds multiple parent configs', async () => {
       const proxy = configResolveBrokerProxy();
-      const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({
         value: '/deep/monorepo/workspace/packages/api/src/server.ts',
@@ -116,23 +112,23 @@ describe('configResolveBroker', () => {
         },
       });
 
-      findProxy.setupConfigFound({
+      proxy.setupConfigFound({
         startPath: filePath,
         configPath: '/deep/monorepo/workspace/packages/api/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: packageConfig });
-      dirnameProxy.returns({ result: '/deep/monorepo/workspace/packages/api' as never });
-      findProxy.setupConfigFound({
+      proxy.setupValidConfig({ config: packageConfig });
+      proxy.setupDirname({ result: '/deep/monorepo/workspace/packages/api' as never });
+      proxy.setupConfigFound({
         startPath: '/deep/monorepo/workspace/packages/api',
         configPath: '/deep/monorepo/workspace/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: workspaceConfig });
-      dirnameProxy.returns({ result: '/deep/monorepo/workspace' as never });
-      findProxy.setupConfigFound({
+      proxy.setupValidConfig({ config: workspaceConfig });
+      proxy.setupDirname({ result: '/deep/monorepo/workspace' as never });
+      proxy.setupConfigFound({
         startPath: '/deep/monorepo/workspace',
         configPath: '/deep/monorepo/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: rootConfig });
+      proxy.setupValidConfig({ config: rootConfig });
 
       const result = await configResolveBroker({ filePath });
 
@@ -147,7 +143,6 @@ describe('configResolveBroker', () => {
 
     it('VALID: {filePath: "/monorepo/packages/shared/utils.ts"} => stops at monorepo root', async () => {
       const proxy = configResolveBrokerProxy();
-      const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/monorepo/packages/shared/utils.ts' });
       const packageConfig = DungeonmasterConfigStub({
@@ -159,17 +154,17 @@ describe('configResolveBroker', () => {
         schema: 'zod',
       });
 
-      findProxy.setupConfigFound({
+      proxy.setupConfigFound({
         startPath: filePath,
         configPath: '/monorepo/packages/shared/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: packageConfig });
-      dirnameProxy.returns({ result: '/monorepo/packages/shared' as never });
-      findProxy.setupConfigFound({
+      proxy.setupValidConfig({ config: packageConfig });
+      proxy.setupDirname({ result: '/monorepo/packages/shared' as never });
+      proxy.setupConfigFound({
         startPath: '/monorepo/packages/shared',
         configPath: '/monorepo/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: rootConfig });
+      proxy.setupValidConfig({ config: rootConfig });
 
       const result = await configResolveBroker({ filePath });
 
@@ -183,7 +178,6 @@ describe('configResolveBroker', () => {
   describe('edge cases', () => {
     it('EDGE: {filePath: "/project/deeply/nested/file.ts"} => handles same config found twice (no parent)', async () => {
       const proxy = configResolveBrokerProxy();
-      const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/project/deeply/nested/file.ts' });
       const packageConfig = DungeonmasterConfigStub({
@@ -191,13 +185,13 @@ describe('configResolveBroker', () => {
         schema: 'zod',
       });
 
-      findProxy.setupConfigFound({
+      proxy.setupConfigFound({
         startPath: filePath,
         configPath: '/project/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: packageConfig });
-      dirnameProxy.returns({ result: '/project' as never });
-      findProxy.setupConfigFound({
+      proxy.setupValidConfig({ config: packageConfig });
+      proxy.setupDirname({ result: '/project' as never });
+      proxy.setupConfigFound({
         startPath: '/project',
         configPath: '/project/.dungeonmaster',
       });
@@ -209,7 +203,6 @@ describe('configResolveBroker', () => {
 
     it('EDGE: {filePath: "/isolated/project/src/file.ts"} => handles no parent configs found', async () => {
       const proxy = configResolveBrokerProxy();
-      const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/isolated/project/src/file.ts' });
       const packageConfig = DungeonmasterConfigStub({
@@ -217,13 +210,13 @@ describe('configResolveBroker', () => {
         schema: 'zod',
       });
 
-      findProxy.setupConfigFound({
+      proxy.setupConfigFound({
         startPath: filePath,
         configPath: '/isolated/project/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: packageConfig });
-      dirnameProxy.returns({ result: '/isolated/project' as never });
-      findProxy.setupConfigNotFound({ startPath: '/isolated/project' });
+      proxy.setupValidConfig({ config: packageConfig });
+      proxy.setupDirname({ result: '/isolated/project' as never });
+      proxy.setupConfigNotFound({ startPath: '/isolated/project' });
 
       const result = await configResolveBroker({ filePath });
 
@@ -232,7 +225,6 @@ describe('configResolveBroker', () => {
 
     it('EDGE: {filePath: "/project/src/file.ts"} => handles parent config load error', async () => {
       const proxy = configResolveBrokerProxy();
-      const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/project/src/file.ts' });
       const packageConfig = DungeonmasterConfigStub({
@@ -240,17 +232,17 @@ describe('configResolveBroker', () => {
         schema: 'zod',
       });
 
-      findProxy.setupConfigFound({
+      proxy.setupConfigFound({
         startPath: filePath,
         configPath: '/project/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: packageConfig });
-      dirnameProxy.returns({ result: '/project' as never });
-      findProxy.setupConfigFound({
+      proxy.setupValidConfig({ config: packageConfig });
+      proxy.setupDirname({ result: '/project' as never });
+      proxy.setupConfigFound({
         startPath: '/project',
         configPath: '/root/.dungeonmaster',
       });
-      loadProxy.setupFileNotFound();
+      proxy.setupFileNotFound();
 
       const result = await configResolveBroker({ filePath });
 
@@ -259,7 +251,6 @@ describe('configResolveBroker', () => {
 
     it('EDGE: {filePath: "/minimal/file.js"} => handles minimal path resolution', async () => {
       const proxy = configResolveBrokerProxy();
-      const { findProxy, loadProxy, dirnameProxy } = proxy;
 
       const filePath = FilePathStub({ value: '/minimal/file.js' });
       const packageConfig = DungeonmasterConfigStub({
@@ -267,13 +258,13 @@ describe('configResolveBroker', () => {
         schema: 'zod',
       });
 
-      findProxy.setupConfigFound({
+      proxy.setupConfigFound({
         startPath: filePath,
         configPath: '/minimal/.dungeonmaster',
       });
-      loadProxy.setupValidConfig({ config: packageConfig });
-      dirnameProxy.returns({ result: '/minimal' as never });
-      findProxy.setupConfigNotFound({ startPath: '/minimal' });
+      proxy.setupValidConfig({ config: packageConfig });
+      proxy.setupDirname({ result: '/minimal' as never });
+      proxy.setupConfigNotFound({ startPath: '/minimal' });
 
       const result = await configResolveBroker({ filePath });
 

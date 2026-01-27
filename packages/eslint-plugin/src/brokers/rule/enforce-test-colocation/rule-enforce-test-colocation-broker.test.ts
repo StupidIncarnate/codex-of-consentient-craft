@@ -5,9 +5,9 @@ import { ruleEnforceTestColocationBrokerProxy } from './rule-enforce-test-coloca
 const ruleTester = eslintRuleTesterAdapter();
 
 beforeEach(() => {
-  const { fsExistsSync: adapterProxy } = ruleEnforceTestColocationBrokerProxy();
+  const proxy = ruleEnforceTestColocationBrokerProxy();
 
-  adapterProxy.setupFileSystem((filePath) => {
+  proxy.setupFileSystem((filePath) => {
     const path = String(filePath);
 
     // Implementation files that exist

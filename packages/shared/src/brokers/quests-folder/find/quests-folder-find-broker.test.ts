@@ -5,14 +5,14 @@ import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 describe('questsFolderFindBroker', () => {
   describe('quests folder found cases', () => {
     it('VALID: {startPath: "/project/src/file.ts"} => returns path to .dungeonmaster-quests folder', async () => {
-      const { projectRootProxy, pathJoinProxy } = questsFolderFindBrokerProxy();
+      const proxy = questsFolderFindBrokerProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      pathJoinProxy.returns({ result: FilePathStub({ value: '/project/.dungeonmaster-quests' }) });
 
       const result = await questsFolderFindBroker({ startPath });
 
@@ -20,15 +20,13 @@ describe('questsFolderFindBroker', () => {
     });
 
     it('VALID: {startPath: "/deep/nested/project/file.ts"} => finds quests folder at project root', async () => {
-      const { projectRootProxy, pathJoinProxy } = questsFolderFindBrokerProxy();
+      const proxy = questsFolderFindBrokerProxy();
       const startPath = FilePathStub({ value: '/deep/nested/project/file.ts' });
 
-      projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/deep/nested/project/file.ts',
         projectRootPath: '/deep/nested/project',
-      });
-      pathJoinProxy.returns({
-        result: FilePathStub({ value: '/deep/nested/project/.dungeonmaster-quests' }),
+        questsFolderPath: FilePathStub({ value: '/deep/nested/project/.dungeonmaster-quests' }),
       });
 
       const result = await questsFolderFindBroker({ startPath });
@@ -39,14 +37,14 @@ describe('questsFolderFindBroker', () => {
 
   describe('edge cases', () => {
     it('EDGE: {startPath: "/project/.hidden"} => handles hidden files as start path', async () => {
-      const { projectRootProxy, pathJoinProxy } = questsFolderFindBrokerProxy();
+      const proxy = questsFolderFindBrokerProxy();
       const startPath = FilePathStub({ value: '/project/.hidden' });
 
-      projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/.hidden',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      pathJoinProxy.returns({ result: FilePathStub({ value: '/project/.dungeonmaster-quests' }) });
 
       const result = await questsFolderFindBroker({ startPath });
 
@@ -54,15 +52,13 @@ describe('questsFolderFindBroker', () => {
     });
 
     it('EDGE: {startPath: "/path with spaces/file.ts"} => handles paths with spaces', async () => {
-      const { projectRootProxy, pathJoinProxy } = questsFolderFindBrokerProxy();
+      const proxy = questsFolderFindBrokerProxy();
       const startPath = FilePathStub({ value: '/path with spaces/file.ts' });
 
-      projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/path with spaces/file.ts',
         projectRootPath: '/path with spaces',
-      });
-      pathJoinProxy.returns({
-        result: FilePathStub({ value: '/path with spaces/.dungeonmaster-quests' }),
+        questsFolderPath: FilePathStub({ value: '/path with spaces/.dungeonmaster-quests' }),
       });
 
       const result = await questsFolderFindBroker({ startPath });

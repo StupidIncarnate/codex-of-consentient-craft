@@ -5,7 +5,7 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 describe('questLoadBroker', () => {
   describe('valid quest loading', () => {
     it('VALID: {questFilePath: "/quests/quest-1.json"} => parses and returns Quest object', async () => {
-      const { fsReadFileProxy } = questLoadBrokerProxy();
+      const proxy = questLoadBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
       const questJson = JSON.stringify({
         id: 'add-auth',
@@ -27,7 +27,7 @@ describe('questLoadBroker', () => {
         toolingRequirements: [],
       });
 
-      fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestFile({ questJson });
 
       const result = await questLoadBroker({ questFilePath });
 
@@ -37,7 +37,7 @@ describe('questLoadBroker', () => {
     });
 
     it('VALID: {questFilePath: "/quests/quest-2.json"} => handles quest with all optional fields', async () => {
-      const { fsReadFileProxy } = questLoadBrokerProxy();
+      const proxy = questLoadBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/quest-2.json' });
       const questJson = JSON.stringify({
         id: 'fix-bug',
@@ -62,7 +62,7 @@ describe('questLoadBroker', () => {
         toolingRequirements: [],
       });
 
-      fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestFile({ questJson });
 
       const result = await questLoadBroker({ questFilePath });
 
@@ -74,10 +74,10 @@ describe('questLoadBroker', () => {
 
   describe('invalid quest loading', () => {
     it('ERROR: {questFilePath: "/quests/invalid.json"} => throws error for invalid JSON', async () => {
-      const { fsReadFileProxy } = questLoadBrokerProxy();
+      const proxy = questLoadBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/invalid.json' });
 
-      fsReadFileProxy.resolves({ content: '{ invalid json }' });
+      proxy.setupQuestFile({ questJson: '{ invalid json }' });
 
       await expect(questLoadBroker({ questFilePath })).rejects.toThrow(
         'Failed to parse quest file at /quests/invalid.json',
@@ -85,14 +85,14 @@ describe('questLoadBroker', () => {
     });
 
     it('ERROR: {questFilePath: "/quests/missing-fields.json"} => throws error for quest missing required fields', async () => {
-      const { fsReadFileProxy } = questLoadBrokerProxy();
+      const proxy = questLoadBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/missing-fields.json' });
       const questJson = JSON.stringify({
         id: 'incomplete',
         // Missing required fields
       });
 
-      fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestFile({ questJson });
 
       await expect(questLoadBroker({ questFilePath })).rejects.toThrow(
         'Failed to parse quest file at /quests/missing-fields.json',
@@ -100,10 +100,10 @@ describe('questLoadBroker', () => {
     });
 
     it('ERROR: {questFilePath: "/missing.json"} => throws error when file does not exist', async () => {
-      const { fsReadFileProxy } = questLoadBrokerProxy();
+      const proxy = questLoadBrokerProxy();
       const questFilePath = FilePathStub({ value: '/missing.json' });
 
-      fsReadFileProxy.rejects({ error: new Error('ENOENT: no such file or directory') });
+      proxy.setupQuestFileReadError({ error: new Error('ENOENT: no such file or directory') });
 
       await expect(questLoadBroker({ questFilePath })).rejects.toThrow(
         'Failed to read file at /missing.json',
@@ -113,7 +113,7 @@ describe('questLoadBroker', () => {
 
   describe('edge cases', () => {
     it('EDGE: {questFilePath: "/quests/.hidden.json"} => handles hidden files', async () => {
-      const { fsReadFileProxy } = questLoadBrokerProxy();
+      const proxy = questLoadBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/.hidden.json' });
       const questJson = JSON.stringify({
         id: 'hidden-quest',
@@ -135,7 +135,7 @@ describe('questLoadBroker', () => {
         toolingRequirements: [],
       });
 
-      fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestFile({ questJson });
 
       const result = await questLoadBroker({ questFilePath });
 

@@ -5,16 +5,14 @@ import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 describe('questsFolderEnsureBroker', () => {
   describe('successful ensure', () => {
     it('VALID: {startPath: "/project/src/file.ts"} => creates folder and returns path', async () => {
-      const { findProxy, mkdirProxy } = questsFolderEnsureBrokerProxy();
+      const proxy = questsFolderEnsureBrokerProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
-      const questsPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
 
-      findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderEnsureSuccess({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      findProxy.pathJoinProxy.returns({ result: questsPath });
-      mkdirProxy.succeeds({ filepath: questsPath });
 
       const result = await questsFolderEnsureBroker({ startPath });
 
@@ -22,16 +20,14 @@ describe('questsFolderEnsureBroker', () => {
     });
 
     it('VALID: {startPath: "/deep/nested/project/file.ts"} => finds and ensures quests folder at project root', async () => {
-      const { findProxy, mkdirProxy } = questsFolderEnsureBrokerProxy();
+      const proxy = questsFolderEnsureBrokerProxy();
       const startPath = FilePathStub({ value: '/deep/nested/project/file.ts' });
-      const questsPath = FilePathStub({ value: '/deep/nested/project/.dungeonmaster-quests' });
 
-      findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderEnsureSuccess({
         startPath: '/deep/nested/project/file.ts',
         projectRootPath: '/deep/nested/project',
+        questsFolderPath: FilePathStub({ value: '/deep/nested/project/.dungeonmaster-quests' }),
       });
-      findProxy.pathJoinProxy.returns({ result: questsPath });
-      mkdirProxy.succeeds({ filepath: questsPath });
 
       const result = await questsFolderEnsureBroker({ startPath });
 
@@ -43,16 +39,15 @@ describe('questsFolderEnsureBroker', () => {
 
   describe('error cases', () => {
     it('ERROR: {mkdir fails} => throws permission error', async () => {
-      const { findProxy, mkdirProxy } = questsFolderEnsureBrokerProxy();
+      const proxy = questsFolderEnsureBrokerProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
-      const questsPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
 
-      findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderMkdirFails({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+        error: new Error('Permission denied'),
       });
-      findProxy.pathJoinProxy.returns({ result: questsPath });
-      mkdirProxy.throws({ filepath: questsPath, error: new Error('Permission denied') });
 
       await expect(questsFolderEnsureBroker({ startPath })).rejects.toThrow('Permission denied');
     });

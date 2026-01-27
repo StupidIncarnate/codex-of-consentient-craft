@@ -4,8 +4,8 @@ import { hookConfigDefaultBrokerProxy } from '../default/hook-config-default-bro
 import { hookConfigMergeBrokerProxy } from '../merge/hook-config-merge-broker.proxy';
 
 export const hookConfigLoadBrokerProxy = (): {
-  pathProxy: ReturnType<typeof pathResolveAdapterProxy>;
-  fsProxy: ReturnType<typeof fsExistsSyncAdapterProxy>;
+  setupConfigPath: (params: { path: string }) => void;
+  setupConfigExists: (params: { exists: boolean }) => void;
 } => {
   const pathProxy = pathResolveAdapterProxy();
   const fsProxy = fsExistsSyncAdapterProxy();
@@ -13,7 +13,11 @@ export const hookConfigLoadBrokerProxy = (): {
   hookConfigMergeBrokerProxy();
 
   return {
-    pathProxy,
-    fsProxy,
+    setupConfigPath: ({ path }: { path: string }): void => {
+      pathProxy.returns({ path });
+    },
+    setupConfigExists: ({ exists }: { exists: boolean }): void => {
+      fsProxy.returns({ exists });
+    },
   };
 };
