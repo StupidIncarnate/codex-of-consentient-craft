@@ -16,7 +16,6 @@ import { DiscoverTreeResultStub } from '../contracts/discover-tree-result/discov
 import { AddQuestResultStub } from '../contracts/add-quest-result/add-quest-result.stub';
 import { GetQuestResultStub } from '../contracts/get-quest-result/get-quest-result.stub';
 import { ModifyQuestResultStub } from '../contracts/modify-quest-result/modify-quest-result.stub';
-import { SignalCliReturnResultStub } from '../contracts/signal-cli-return-result/signal-cli-return-result.stub';
 import { mcpServerStatics } from '../statics/mcp-server/mcp-server-statics';
 import type { McpServerClientStub } from '../contracts/mcp-server-client/mcp-server-client.stub';
 import { BufferStateStub } from '../contracts/buffer-state/buffer-state.stub';
@@ -629,52 +628,6 @@ describe('StartMcpServer', () => {
 
       expect(result.content[0]?.type).toBe('text');
       expect(result.content[0]?.text).toMatch(/^.*# Universal Syntax.*$/su);
-    });
-  });
-
-  describe('tools/call with signal-cli-return', () => {
-    it('VALID: add-quest first then signal-cli-return => creates signal file successfully', async () => {
-      const client = await createMcpClient();
-
-      const addQuestRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 6000 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'add-quest',
-          arguments: {
-            title: 'Signal Test Quest',
-            userRequest: 'Creating quest to ensure folder exists',
-            tasks: [],
-          },
-        },
-      });
-
-      await client.sendRequest(addQuestRequest);
-
-      const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 6001 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'signal-cli-return',
-          arguments: {
-            screen: 'list',
-          },
-        },
-      });
-
-      const response = await client.sendRequest(request);
-
-      await client.close();
-
-      expect(response.error).toBeUndefined();
-
-      const result = ToolCallResultStub(response.result as never);
-      const [content] = result.content;
-      const parsedData: unknown = JSON.parse(String(content!.text));
-      const resultData = SignalCliReturnResultStub(parsedData as never);
-
-      expect(resultData.success).toBe(true);
-      expect(resultData.signalPath).toMatch(/\.cli-signal$/u);
     });
   });
 

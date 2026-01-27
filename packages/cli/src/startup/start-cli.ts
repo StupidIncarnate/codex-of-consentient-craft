@@ -1,28 +1,43 @@
 #!/usr/bin/env node
 
 /**
- * PURPOSE: CLI entry point with interactive Ink menu and ChaosWhisperer spawning loop
+ * PURPOSE: CLI entry point with interactive Ink menu, ChaosWhisperer spawning, and quest execution
  *
  * USAGE:
  * await StartCli();
- * // Renders interactive menu, spawns ChaosWhisperer on 'add', returns to list after signal
+ * // Renders interactive menu, spawns ChaosWhisperer on 'add', executes quests on 'run'
  */
 
 import { resolve } from 'path';
 import { render } from 'ink';
 import React from 'react';
 
+import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { questsFolderEnsureBroker } from '@dungeonmaster/shared/brokers';
-import type { UserInput, InstallContext } from '@dungeonmaster/shared/contracts';
+import type { UserInput, InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
 
-import { chaoswhispererSpawnSubprocessBroker } from '../brokers/chaoswhisperer/spawn-subprocess/chaoswhisperer-spawn-subprocess-broker';
-import { signalCleanupBroker } from '../brokers/signal/cleanup/signal-cleanup-broker';
-import { signalWatchBroker } from '../brokers/signal/watch/signal-watch-broker';
+import { chaoswhispererSpawnStreamingBroker } from '../brokers/chaoswhisperer/spawn-streaming/chaoswhisperer-spawn-streaming-broker';
+import { questExecuteBroker } from '../brokers/quest/execute/quest-execute-broker';
+import { maxIterationsContract } from '../contracts/max-iterations/max-iterations-contract';
+import { slotCountContract } from '../contracts/slot-count/slot-count-contract';
+import { slotOperationsContract } from '../contracts/slot-operations/slot-operations-contract';
+import type { SlotIndex } from '../contracts/slot-index/slot-index-contract';
+import { slotIndexContract } from '../contracts/slot-index/slot-index-contract';
+import type { AgentSlot } from '../contracts/agent-slot/agent-slot-contract';
+import { timeoutMsContract } from '../contracts/timeout-ms/timeout-ms-contract';
 import type { CliAppScreen } from '../widgets/cli-app/cli-app-widget';
 import { CliAppWidget } from '../widgets/cli-app/cli-app-widget';
+
+type QuestFolder = Quest['folder'];
+
+// Default orchestration configuration
+const DEFAULT_SLOT_COUNT = 3;
+const DEFAULT_TIMEOUT_MS = 300000; // 5 minutes
+const DEFAULT_MAX_SPIRIT_LOOP_ITERATIONS = 10;
+const QUEST_FILE_NAME = 'quest.json';
 
 export const StartCli = async ({
   initialScreen = 'menu' as CliAppScreen,
@@ -30,8 +45,13 @@ export const StartCli = async ({
   initialScreen?: CliAppScreen;
 } = {}): Promise<void> => {
   // State object to capture results from Ink callbacks (object reference stays constant)
-  const state: { pendingChaoswhisperer: UserInput | null; shouldExit: boolean } = {
+  const state: {
+    pendingChaoswhisperer: UserInput | null;
+    pendingQuestExecution: { questId: QuestId; questFolder: QuestFolder } | null;
+    shouldExit: boolean;
+  } = {
     pendingChaoswhisperer: null,
+    pendingQuestExecution: null,
     shouldExit: false,
   };
 
@@ -50,6 +70,10 @@ export const StartCli = async ({
         state.pendingChaoswhisperer = userInput;
         unmount();
       },
+      onRunQuest: ({ questId, questFolder }: { questId: QuestId; questFolder: QuestFolder }) => {
+        state.pendingQuestExecution = { questId, questFolder };
+        unmount();
+      },
       onExit: () => {
         state.shouldExit = true;
         unmount();
@@ -64,39 +88,70 @@ export const StartCli = async ({
     return;
   }
 
+  // Handle quest execution if pending
+  if (state.pendingQuestExecution !== null) {
+    const { questFolder } = state.pendingQuestExecution;
+
+    // Ensure quests folder exists and get path
+    const { questsBasePath } = await questsFolderEnsureBroker({
+      startPath: filePathContract.parse(process.cwd()),
+    });
+
+    // Construct the quest file path
+    const questFilePath = pathJoinAdapter({
+      paths: [questsBasePath, questFolder, QUEST_FILE_NAME],
+    });
+
+    // Create slot operations for state management
+    const slots = new Map<SlotIndex, AgentSlot>();
+    const slotOperations = slotOperationsContract.parse({
+      getAvailableSlot: ({ slotCount }: { slotCount: number }) => {
+        for (let i = 0; i < slotCount; i++) {
+          const index = slotIndexContract.parse(i);
+          if (!slots.has(index)) {
+            return index;
+          }
+        }
+        return undefined;
+      },
+      assignSlot: ({ slotIndex, agentSlot }: { slotIndex: SlotIndex; agentSlot: AgentSlot }) => {
+        slots.set(slotIndex, agentSlot);
+      },
+      releaseSlot: ({ slotIndex }: { slotIndex: SlotIndex }) => slots.delete(slotIndex),
+      getActiveSlots: () =>
+        Array.from(slots.entries()).map(([slotIndex, agentSlot]) => ({
+          slotIndex,
+          agentSlot,
+        })),
+    });
+
+    // Execute the quest pipeline
+    const result = await questExecuteBroker({
+      projectPath: absoluteFilePathContract.parse(process.cwd()),
+      questFilePath,
+      slotCount: slotCountContract.parse(DEFAULT_SLOT_COUNT),
+      timeoutMs: timeoutMsContract.parse(DEFAULT_TIMEOUT_MS),
+      slotOperations,
+      maxSpiritLoopIterations: maxIterationsContract.parse(DEFAULT_MAX_SPIRIT_LOOP_ITERATIONS),
+    });
+
+    // Determine next screen based on result
+    const nextScreen: CliAppScreen = result.completed ? 'list' : 'menu';
+    return StartCli({ initialScreen: nextScreen });
+  }
+
   // No ChaosWhisperer pending, restart at menu
   if (state.pendingChaoswhisperer === null) {
     return StartCli({ initialScreen: 'menu' });
   }
 
-  // Handle ChaosWhisperer spawn
-  // Ensure quests folder exists and get path
-  const { questsBasePath: questsFolderPath } = await questsFolderEnsureBroker({
-    startPath: filePathContract.parse(process.cwd()),
-  });
-
-  // Clean up any existing signal file
-  await signalCleanupBroker({ questsFolderPath });
-
-  // Spawn ChaosWhisperer subprocess (returns handle for later kill)
-  const subprocess = chaoswhispererSpawnSubprocessBroker({
+  // Handle ChaosWhisperer spawn using streaming broker
+  const result = await chaoswhispererSpawnStreamingBroker({
     userInput: state.pendingChaoswhisperer,
   });
 
-  // Watch for signal file (MCP tool writes this when ChaosWhisperer is done)
-  const signal = await signalWatchBroker({ questsFolderPath });
-
-  // Kill subprocess when signal received and wait for full exit before rendering Ink
-  subprocess.kill();
-  await subprocess.waitForExit();
-
-  // Clear terminal and scrollback before rendering Ink to remove subprocess output
-  process.stdout.write('\x1B[2J\x1B[3J\x1B[H');
-
-  // Determine next screen based on signal type and recurse
-  // Return signals have 'action' and 'screen', quest signals have 'type'
-  const nextScreen: CliAppScreen =
-    'action' in signal ? signal.screen : signal.type === 'agent-ready' ? 'menu' : 'list';
+  // Determine next screen based on signal
+  const nextScreen: CliAppScreen = result.signal?.signal === 'complete' ? 'list' : 'menu';
 
   // Continue application loop with next screen
   return StartCli({ initialScreen: nextScreen });

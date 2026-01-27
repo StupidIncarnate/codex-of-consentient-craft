@@ -1,32 +1,29 @@
 /**
- * PURPOSE: Spawns an agent for a specific step with optional session resume
+ * PURPOSE: Spawns an agent for a specific work unit with optional session resume
  *
  * USAGE:
- * const result = await spawnAgentLayerBroker({prompt, stepId, timeoutMs});
+ * const result = await spawnAgentLayerBroker({workUnit, timeoutMs});
  * // Returns AgentSpawnStreamingResult from the spawned agent
  */
 
-import type { SessionId, StepId } from '@dungeonmaster/shared/contracts';
+import type { SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { AgentSpawnStreamingResult } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
-import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
-import { agentSpawnStreamingBroker } from '../../agent/spawn-streaming/agent-spawn-streaming-broker';
+import type { WorkUnit } from '../../../contracts/work-unit/work-unit-contract';
+import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 
 export const spawnAgentLayerBroker = async ({
-  prompt,
-  stepId,
+  workUnit,
   resumeSessionId,
   timeoutMs,
 }: {
-  prompt: PromptText;
-  stepId: StepId;
+  workUnit: WorkUnit;
   resumeSessionId?: SessionId;
   timeoutMs: TimeoutMs;
 }): Promise<AgentSpawnStreamingResult> =>
-  agentSpawnStreamingBroker({
-    prompt,
-    stepId,
+  agentSpawnByRoleBroker({
+    workUnit,
     timeoutMs,
     ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
   });

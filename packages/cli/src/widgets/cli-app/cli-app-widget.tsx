@@ -5,24 +5,29 @@
  * <CliAppWidget
  *   initialScreen="menu"
  *   onSpawnChaoswhisperer={({userInput}) => spawnAgent(userInput)}
+ *   onRunQuest={({questId, questFolder}) => executeQuest(questId, questFolder)}
  *   onExit={() => process.exit(0)}
  * />
  * // Renders the appropriate screen based on state and handles navigation
  */
 import React, { useState } from 'react';
 
-import type { UserInput, InstallContext } from '@dungeonmaster/shared/contracts';
+import type { UserInput, InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { HelpScreenLayerWidget } from './help-screen-layer-widget';
 import { InitScreenLayerWidget } from './init-screen-layer-widget';
 import { ListScreenLayerWidget } from './list-screen-layer-widget';
 import { AddScreenLayerWidget } from './add-screen-layer-widget';
 import { MenuScreenLayerWidget } from './menu-screen-layer-widget';
+import { RunScreenLayerWidget } from './run-screen-layer-widget';
 
-export type CliAppScreen = 'menu' | 'add' | 'help' | 'list' | 'init';
+type QuestFolder = Quest['folder'];
+
+export type CliAppScreen = 'menu' | 'add' | 'help' | 'list' | 'init' | 'run';
 
 export interface CliAppWidgetProps {
   initialScreen: CliAppScreen;
   onSpawnChaoswhisperer: ({ userInput }: { userInput: UserInput }) => void;
+  onRunQuest: ({ questId, questFolder }: { questId: QuestId; questFolder: QuestFolder }) => void;
   onExit: () => void;
   installContext: InstallContext;
 }
@@ -30,6 +35,7 @@ export interface CliAppWidgetProps {
 export const CliAppWidget = ({
   initialScreen,
   onSpawnChaoswhisperer,
+  onRunQuest,
   onExit,
   installContext,
 }: CliAppWidgetProps): React.JSX.Element => {
@@ -74,6 +80,20 @@ export const CliAppWidget = ({
           onSpawnChaoswhisperer({ userInput });
         }}
         onCancel={() => {
+          setScreen('menu');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'run') {
+    return (
+      <RunScreenLayerWidget
+        startPath={installContext.targetProjectRoot}
+        onRunQuest={({ questId, questFolder }) => {
+          onRunQuest({ questId, questFolder });
+        }}
+        onBack={() => {
           setScreen('menu');
         }}
       />

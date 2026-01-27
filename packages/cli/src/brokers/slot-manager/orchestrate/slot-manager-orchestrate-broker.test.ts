@@ -8,6 +8,7 @@ import {
 
 import { slotManagerOrchestrateBroker } from './slot-manager-orchestrate-broker';
 import { slotManagerOrchestrateBrokerProxy } from './slot-manager-orchestrate-broker.proxy';
+import { AgentRoleStub } from '../../../contracts/agent-role/agent-role.stub';
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
@@ -35,6 +36,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
       expect(result).toStrictEqual({ completed: true });
@@ -65,6 +67,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
       expect(result).toStrictEqual({ completed: true });
@@ -93,6 +96,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
       expect(result).toStrictEqual({ completed: true });
@@ -127,6 +131,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
       expect(result).toStrictEqual({ completed: true });
@@ -176,16 +181,19 @@ describe('slotManagerOrchestrateBroker', () => {
           content: JSON.stringify(quest),
         },
       );
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessWithSignal({
-        exitCode,
-        lines: [signalLine],
-      });
+      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccessWithSignal(
+        {
+          exitCode,
+          lines: [signalLine],
+        },
+      );
 
       const result = await slotManagerOrchestrateBroker({
         questFilePath,
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
       expect(result).toStrictEqual({
@@ -252,16 +260,19 @@ describe('slotManagerOrchestrateBroker', () => {
       runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
         content: JSON.stringify(completedQuest),
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessWithSignal({
-        exitCode,
-        lines: [signalLine],
-      });
+      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccessWithSignal(
+        {
+          exitCode,
+          lines: [signalLine],
+        },
+      );
 
       const result = await slotManagerOrchestrateBroker({
         questFilePath,
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
       expect(result).toStrictEqual({ completed: true });
@@ -348,11 +359,13 @@ describe('slotManagerOrchestrateBroker', () => {
       runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
         content: JSON.stringify(completedQuest),
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessWithSignal({
-        exitCode,
-        lines: [signalLine],
-      });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccessWithSignal(
+        {
+          exitCode,
+          lines: [signalLine],
+        },
+      );
+      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode,
       });
 
@@ -361,6 +374,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
       expect(result).toStrictEqual({ completed: true });
@@ -431,11 +445,13 @@ describe('slotManagerOrchestrateBroker', () => {
       runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
         content: JSON.stringify(completedQuest),
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessWithSignal({
-        exitCode,
-        lines: [signalLine],
-      });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccessWithSignal(
+        {
+          exitCode,
+          lines: [signalLine],
+        },
+      );
+      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode,
       });
 
@@ -444,6 +460,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
       expect(result).toStrictEqual({ completed: true });
@@ -506,10 +523,10 @@ describe('slotManagerOrchestrateBroker', () => {
       runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
         content: JSON.stringify(completedQuest),
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupCrash({
+      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverCrash({
         exitCode: crashExitCode,
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode: successExitCode,
       });
 
@@ -518,6 +535,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
       expect(result).toStrictEqual({ completed: true });
@@ -579,7 +597,7 @@ describe('slotManagerOrchestrateBroker', () => {
       runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
         content: JSON.stringify(completedQuest),
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode: successExitCode,
       });
 
@@ -591,6 +609,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
       expect(result).toStrictEqual({ completed: true });

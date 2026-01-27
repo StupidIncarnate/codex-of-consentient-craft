@@ -343,10 +343,10 @@ When requirements need new packages or tools not in the codebase:
 ## Completion
 
 When you have completed your work (created/modified the quest with contexts and observables),
-you MUST call the \`signal-cli-return\` MCP tool to return control to the CLI:
+you MUST call the \`signal-back\` MCP tool to return control to the CLI:
 
 \`\`\`
-signal-cli-return({ screen: 'list' })
+signal-back({ signal: 'complete', stepId: '$SESSION_ID', summary: 'Quest created successfully' })
 \`\`\`
 
 This signals the CLI to terminate your session and display the quest list.
@@ -357,6 +357,7 @@ Do NOT continue working after calling this tool.
 $ARGUMENTS`,
     placeholders: {
       arguments: '$ARGUMENTS',
+      sessionId: '$SESSION_ID',
     },
   },
 } as const;

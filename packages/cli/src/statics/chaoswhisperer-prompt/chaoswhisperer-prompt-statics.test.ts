@@ -97,17 +97,25 @@ describe('chaoswhispererPromptStatics', () => {
     });
 
     describe('completion instructions', () => {
-      it('VALID: {prompt.template} => instructs to call signal-cli-return MCP tool when done', () => {
-        expect(chaoswhispererPromptStatics.prompt.template).toMatch(/signal-cli-return/u);
+      it('VALID: {prompt.template} => instructs to call signal-back MCP tool when done', () => {
+        expect(chaoswhispererPromptStatics.prompt.template).toMatch(/signal-back/u);
       });
 
-      it('VALID: {prompt.template} => signal-cli-return instruction appears before $ARGUMENTS', () => {
+      it('VALID: {prompt.template} => signal-back instruction appears before $ARGUMENTS', () => {
         const { template } = chaoswhispererPromptStatics.prompt;
-        const signalIndex = template.indexOf('signal-cli-return');
+        const signalIndex = template.indexOf('signal-back');
         const argumentsIndex = template.indexOf('$ARGUMENTS');
 
         expect(signalIndex).toBeGreaterThan(-1);
         expect(signalIndex).toBeLessThan(argumentsIndex);
+      });
+
+      it('VALID: {prompt.template} => includes $SESSION_ID placeholder', () => {
+        expect(chaoswhispererPromptStatics.prompt.template).toMatch(/\$SESSION_ID/u);
+      });
+
+      it('VALID: {prompt.placeholders} => has sessionId placeholder defined', () => {
+        expect(chaoswhispererPromptStatics.prompt.placeholders.sessionId).toBe('$SESSION_ID');
       });
     });
   });

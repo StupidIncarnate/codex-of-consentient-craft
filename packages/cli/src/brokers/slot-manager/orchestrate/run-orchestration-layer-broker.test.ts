@@ -7,6 +7,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { ActiveAgentStub } from '../../../contracts/active-agent/active-agent.stub';
+import { AgentRoleStub } from '../../../contracts/agent-role/agent-role.stub';
 import { AgentSpawnStreamingResultStub } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result.stub';
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
@@ -47,6 +48,7 @@ describe('runOrchestrationLayerBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
         activeAgents: [],
       });
 
@@ -144,7 +146,7 @@ describe('runOrchestrationLayerBroker', () => {
         content: questWithCompleteStep,
       });
 
-      proxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -153,6 +155,7 @@ describe('runOrchestrationLayerBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
         activeAgents: [],
       });
 
@@ -380,7 +383,7 @@ describe('runOrchestrationLayerBroker', () => {
       proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questIter1 });
       proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questIter1 });
       proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
@@ -392,7 +395,7 @@ describe('runOrchestrationLayerBroker', () => {
       proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questIter2 });
       proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questIter2 });
       proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
@@ -404,7 +407,7 @@ describe('runOrchestrationLayerBroker', () => {
       proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questIter3 });
       proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questIter3 });
       proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
@@ -420,6 +423,7 @@ describe('runOrchestrationLayerBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
         activeAgents: [],
       });
 
@@ -581,7 +585,7 @@ describe('runOrchestrationLayerBroker', () => {
       proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questIter2 });
       proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questIter2 });
       proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       // After agent completes, update step2 to complete
@@ -598,6 +602,7 @@ describe('runOrchestrationLayerBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
         activeAgents: [activeAgentStep1],
       });
 
@@ -727,7 +732,7 @@ describe('runOrchestrationLayerBroker', () => {
       });
 
       // Respawned agent completes successfully
-      proxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       // After agent completes, update step to complete
@@ -744,6 +749,7 @@ describe('runOrchestrationLayerBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
         activeAgents: [activeAgent],
       });
 
@@ -838,7 +844,7 @@ describe('runOrchestrationLayerBroker', () => {
       proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questInProgress });
 
       // Respawned agent completes successfully
-      proxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       // After agent completes, update step to complete
@@ -853,6 +859,7 @@ describe('runOrchestrationLayerBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
         activeAgents: [activeAgent],
       });
 
@@ -944,7 +951,7 @@ describe('runOrchestrationLayerBroker', () => {
       proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questInProgress });
 
       // Respawned agent completes successfully
-      proxy.loopProxy.spawnAgentProxy.agentSpawnProxy.setupSuccessNoSignal({
+      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       // After agent completes, update step to complete
@@ -959,6 +966,7 @@ describe('runOrchestrationLayerBroker', () => {
         slotCount,
         timeoutMs,
         slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
         activeAgents: [activeAgent],
       });
 

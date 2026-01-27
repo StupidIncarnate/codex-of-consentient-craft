@@ -2,13 +2,14 @@
  * PURPOSE: Recursively runs the orchestration loop until completion or user input needed
  *
  * USAGE:
- * const result = await runOrchestrationLayerBroker({questFilePath, slotCount, timeoutMs, slotOperations, activeAgents});
+ * const result = await runOrchestrationLayerBroker({questFilePath, slotCount, timeoutMs, slotOperations, role, activeAgents});
  * // Returns SlotManagerResult when orchestration completes or needs user input
  */
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
+import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
@@ -20,12 +21,14 @@ export const runOrchestrationLayerBroker = async ({
   slotCount,
   timeoutMs,
   slotOperations,
+  role,
   activeAgents,
 }: {
   questFilePath: FilePath;
   slotCount: SlotCount;
   timeoutMs: TimeoutMs;
   slotOperations: SlotOperations;
+  role: AgentRole;
   activeAgents: ActiveAgent[];
 }): Promise<SlotManagerResult> => {
   const loopResult = await orchestrationLoopLayerBroker({
@@ -33,6 +36,7 @@ export const runOrchestrationLayerBroker = async ({
     slotCount,
     timeoutMs,
     slotOperations,
+    role,
     activeAgents,
   });
 
@@ -45,6 +49,7 @@ export const runOrchestrationLayerBroker = async ({
     slotCount,
     timeoutMs,
     slotOperations,
+    role,
     activeAgents: loopResult.activeAgents,
   });
 };

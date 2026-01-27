@@ -18,6 +18,10 @@ describe('cliStatics', () => {
       expect(cliStatics.commands.add).toBe('add');
     });
 
+    it('VALID: run command => returns run', () => {
+      expect(cliStatics.commands.run).toBe('run');
+    });
+
     it('VALID: claude command => returns claude', () => {
       expect(cliStatics.commands.claude).toBe('claude');
     });
@@ -61,6 +65,7 @@ describe('cliStatics', () => {
     it('VALID: options => returns array of menu options', () => {
       expect(cliStatics.menu.options).toStrictEqual([
         { id: 'add', label: 'Add', description: 'Add a new quest' },
+        { id: 'run', label: 'Run', description: 'Run an existing quest' },
         { id: 'list', label: 'List', description: 'List all active quests' },
         { id: 'init', label: 'Init', description: 'Initialize dungeonmaster in project' },
       ]);

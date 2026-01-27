@@ -17,8 +17,9 @@ import { HelpScreenLayerWidgetProxy } from './help-screen-layer-widget.proxy';
 import { InitScreenLayerWidgetProxy } from './init-screen-layer-widget.proxy';
 import { ListScreenLayerWidgetProxy } from './list-screen-layer-widget.proxy';
 import { MenuScreenLayerWidgetProxy } from './menu-screen-layer-widget.proxy';
+import { RunScreenLayerWidgetProxy } from './run-screen-layer-widget.proxy';
 
-type CliAppScreen = 'menu' | 'add' | 'help' | 'list' | 'init';
+type CliAppScreen = 'menu' | 'add' | 'help' | 'list' | 'init' | 'run';
 
 export const CliAppWidgetProxy = (): {
   setupMenuScreen: () => void;
@@ -42,6 +43,7 @@ export const CliAppWidgetProxy = (): {
   InitScreenLayerWidgetProxy();
   ListScreenLayerWidgetProxy();
   MenuScreenLayerWidgetProxy();
+  RunScreenLayerWidgetProxy();
 
   const setState = jest.fn();
   const screenState = { current: 'menu' as CliAppScreen };

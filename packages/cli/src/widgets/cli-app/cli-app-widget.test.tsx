@@ -22,15 +22,6 @@ const createMockInstallContext = (): ReturnType<typeof InstallContextStub> =>
   });
 
 describe('CliAppWidget', () => {
-  let unmountFn: (() => void) | null = null;
-
-  afterEach(() => {
-    if (unmountFn) {
-      unmountFn();
-      unmountFn = null;
-    }
-  });
-
   describe('screen routing', () => {
     it('VALID: {initialScreen: menu} => renders menu screen', () => {
       CliAppWidgetProxy();
@@ -40,15 +31,18 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="menu"
             onSpawnChaoswhisperer={noopCallback}
+            onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
           />
         ),
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/dungeonmaster/u);
-      expect(lastFrame()).toMatch(/> Add/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/dungeonmaster/u);
+      expect(frame).toMatch(/> Add/u);
     });
 
     it('VALID: {initialScreen: help} => renders help screen', () => {
@@ -59,14 +53,17 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="help"
             onSpawnChaoswhisperer={noopCallback}
+            onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
           />
         ),
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Available Commands/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Available Commands/u);
     });
 
     it('VALID: {initialScreen: list} => renders list screen', () => {
@@ -77,14 +74,17 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="list"
             onSpawnChaoswhisperer={noopCallback}
+            onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
           />
         ),
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Quests/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Quests/u);
     });
 
     it('VALID: {initialScreen: init} => renders init screen', () => {
@@ -95,14 +95,17 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="init"
             onSpawnChaoswhisperer={noopCallback}
+            onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
           />
         ),
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Initialize Dungeonmaster/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Initialize Dungeonmaster/u);
     });
 
     it('VALID: {initialScreen: add} => renders add screen with text input', () => {
@@ -113,41 +116,62 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="add"
             onSpawnChaoswhisperer={noopCallback}
+            onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
           />
         ),
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/What would you like to build/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/What would you like to build/u);
     });
-  });
 
-  describe('widget structure', () => {
-    it('VALID: {onSpawnChaoswhisperer, onExit callbacks} => accepts callbacks', () => {
+    it('VALID: {initialScreen: run} => renders run screen with quest selection', () => {
       CliAppWidgetProxy();
-      const onSpawnChaoswhisperer = (): void => {
-        // Callback exists
-      };
-      const onExit = (): void => {
-        // Callback exists
-      };
 
-      const { unmount } = inkTestingLibraryRenderAdapter({
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
           <CliAppWidget
-            initialScreen="menu"
-            onSpawnChaoswhisperer={onSpawnChaoswhisperer}
-            onExit={onExit}
+            initialScreen="run"
+            onSpawnChaoswhisperer={noopCallback}
+            onRunQuest={noopCallback}
+            onExit={noopCallback}
             installContext={createMockInstallContext()}
           />
         ),
       });
-      unmountFn = unmount;
 
-      expect(onSpawnChaoswhisperer).toBeDefined();
-      expect(onExit).toBeDefined();
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Run Quest/u);
+    });
+  });
+
+  describe('widget structure', () => {
+    it('VALID: {menu screen} => renders with all callback props without error', () => {
+      CliAppWidgetProxy();
+
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: (
+          <CliAppWidget
+            initialScreen="menu"
+            onSpawnChaoswhisperer={noopCallback}
+            onRunQuest={noopCallback}
+            onExit={noopCallback}
+            installContext={createMockInstallContext()}
+          />
+        ),
+      });
+
+      const frame = lastFrame();
+      unmount();
+
+      // Widget renders successfully with all props
+      expect(frame).toMatch(/dungeonmaster/u);
     });
   });
 });

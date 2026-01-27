@@ -12,6 +12,7 @@ export const cliStatics = {
     list: 'list',
     init: 'init',
     add: 'add',
+    run: 'run',
     claude: 'claude',
   },
   meta: {
@@ -28,6 +29,7 @@ export const cliStatics = {
   menu: {
     options: [
       { id: 'add', label: 'Add', description: 'Add a new quest' },
+      { id: 'run', label: 'Run', description: 'Run an existing quest' },
       { id: 'list', label: 'List', description: 'List all active quests' },
       { id: 'init', label: 'Init', description: 'Initialize dungeonmaster in project' },
     ],

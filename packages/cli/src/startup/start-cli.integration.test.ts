@@ -90,12 +90,14 @@ describe('StartCli', () => {
   describe('add flow integration', () => {
     it('VALID: start on add screen and submit => calls onSpawnChaoswhisperer', async () => {
       const onSpawnChaoswhisperer = jest.fn();
+      const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { stdin, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'add',
           onSpawnChaoswhisperer,
+          onRunQuest,
           onExit,
           installContext: createDummyInstallContext(),
         }),
@@ -121,12 +123,14 @@ describe('StartCli', () => {
 
     it('VALID: add screen with backspace and submit => correctly edits input', async () => {
       const onSpawnChaoswhisperer = jest.fn();
+      const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { stdin, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'add',
           onSpawnChaoswhisperer,
+          onRunQuest,
           onExit,
           installContext: createDummyInstallContext(),
         }),
@@ -158,12 +162,14 @@ describe('StartCli', () => {
 
     it('VALID: navigate from menu to add and submit => full flow works', async () => {
       const onSpawnChaoswhisperer = jest.fn();
+      const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { stdin, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'menu',
           onSpawnChaoswhisperer,
+          onRunQuest,
           onExit,
           installContext: createDummyInstallContext(),
         }),
@@ -171,14 +177,7 @@ describe('StartCli', () => {
 
       await waitForUseEffect();
 
-      // Navigate to Add (4th option: Help, Init, List, Add)
-      stdin.write('\x1B[B'); // Down
-      await waitForUseEffect();
-      stdin.write('\x1B[B'); // Down
-      await waitForUseEffect();
-      stdin.write('\x1B[B'); // Down
-      await waitForUseEffect();
-
+      // Add is the first option (index 0), already selected by default
       // Select Add
       stdin.write('\r');
       await waitForUseEffect();
@@ -198,17 +197,6 @@ describe('StartCli', () => {
     });
   });
 
-  describe('spawn subprocess broker integration', () => {
-    it('VALID: chaoswhispererSpawnSubprocessBroker => imports without ESM errors', async () => {
-      // This test catches ESM issues like __dirname not defined
-      const module = await import(
-        '../brokers/chaoswhisperer/spawn-subprocess/chaoswhisperer-spawn-subprocess-broker'
-      );
-
-      expect(typeof module.chaoswhispererSpawnSubprocessBroker).toBe('function');
-    });
-  });
-
   describe('init flow integration', () => {
     it('VALID: {initialScreen: init, no explicit installContext} => resolves dungeonmasterRoot automatically', async () => {
       // This test verifies the fix for the bug where init failed with
@@ -218,6 +206,7 @@ describe('StartCli', () => {
       });
 
       const onSpawnChaoswhisperer = jest.fn();
+      const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       // Pass installContext with only targetProjectRoot - dungeonmasterRoot should be resolved internally
@@ -225,6 +214,7 @@ describe('StartCli', () => {
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
           onSpawnChaoswhisperer,
+          onRunQuest,
           onExit,
           installContext: {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
@@ -255,12 +245,14 @@ describe('StartCli', () => {
       });
 
       const onSpawnChaoswhisperer = jest.fn();
+      const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
           onSpawnChaoswhisperer,
+          onRunQuest,
           onExit,
           installContext: {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
@@ -331,12 +323,14 @@ describe('StartCli', () => {
       });
 
       const onSpawnChaoswhisperer = jest.fn();
+      const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
           onSpawnChaoswhisperer,
+          onRunQuest,
           onExit,
           installContext: {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
@@ -363,12 +357,14 @@ describe('StartCli', () => {
       });
 
       const onSpawnChaoswhisperer = jest.fn();
+      const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { stdin, lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
           onSpawnChaoswhisperer,
+          onRunQuest,
           onExit,
           installContext: {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
@@ -402,12 +398,14 @@ describe('StartCli', () => {
       });
 
       const onSpawnChaoswhisperer = jest.fn();
+      const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { stdin, lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'menu',
           onSpawnChaoswhisperer,
+          onRunQuest,
           onExit,
           installContext: {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
@@ -418,7 +416,9 @@ describe('StartCli', () => {
 
       await waitForUseEffect();
 
-      // Navigate to Init (index 2: down twice from add at index 0)
+      // Navigate to Init (index 3: Add=0, Run=1, List=2, Init=3)
+      stdin.write('\x1B[B'); // Down to run
+      await waitForUseEffect();
       stdin.write('\x1B[B'); // Down to list
       await waitForUseEffect();
       stdin.write('\x1B[B'); // Down to init

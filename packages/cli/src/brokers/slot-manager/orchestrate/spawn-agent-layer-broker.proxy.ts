@@ -1,11 +1,11 @@
-import { agentSpawnStreamingBrokerProxy } from '../../agent/spawn-streaming/agent-spawn-streaming-broker.proxy';
+import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
 
 export const spawnAgentLayerBrokerProxy = (): {
-  agentSpawnProxy: ReturnType<typeof agentSpawnStreamingBrokerProxy>;
+  agentSpawnByRoleProxy: ReturnType<typeof agentSpawnByRoleBrokerProxy>;
 } => {
-  const agentSpawnProxy = agentSpawnStreamingBrokerProxy();
+  const agentSpawnByRoleProxy = agentSpawnByRoleBrokerProxy();
 
   return {
-    agentSpawnProxy,
+    agentSpawnByRoleProxy,
   };
 };
