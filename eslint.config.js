@@ -39,6 +39,7 @@ module.exports = [
       '**/*.min.css',
       '.git/**',
       'v1/**',
+      'e2e/**',
       '**/test/**',
       '**/*.d.ts',
       '*.md',
