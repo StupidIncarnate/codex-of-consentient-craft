@@ -11,7 +11,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { execSync } from 'child_process';
+import * as pty from 'node-pty';
 
 const E2E_TEMP_BASE = '/tmp/dungeonmaster-e2e';
 const QUESTS_FOLDER = '.dungeonmaster-quests';
@@ -35,7 +35,7 @@ export interface E2ETestbed {
   questExists(titlePattern: string): boolean;
   getQuestByFolder(folder: string): Quest | null;
   listQuestFolders(): string[];
-  runDungeonmasterInit(): void;
+  runDungeonmasterInit(): Promise<void>;
   cleanup(): void;
 }
 
@@ -91,11 +91,65 @@ export const createE2ETestbed = ({ baseName }: { baseName: string }): E2ETestbed
     });
   };
 
-  const runDungeonmasterInit = (): void => {
-    execSync('npx dungeonmaster init', {
-      cwd: projectPath,
-      stdio: 'pipe',
-      encoding: 'utf-8',
+  const runDungeonmasterInit = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const initProcess = pty.spawn('npx', ['dungeonmaster'], {
+        name: 'xterm-color',
+        cols: 120,
+        rows: 30,
+        cwd: projectPath,
+        env: { ...process.env, FORCE_COLOR: '1' },
+      });
+
+      let output = '';
+      let menuFound = false;
+      let initStarted = false;
+
+      const timeout = setTimeout(() => {
+        initProcess.kill();
+        reject(new Error(`dungeonmaster init timed out. Output:\n${output}`));
+      }, 60000); // 1 minute timeout
+
+      initProcess.onData((data: string) => {
+        output += data;
+
+        // Wait for menu to appear, then navigate to Init option
+        if (!menuFound && output.includes('Add - Add a new quest')) {
+          menuFound = true;
+          // Init is 4th option, press down 3 times then enter
+          setTimeout(() => {
+            initProcess.write('\x1b[B'); // down
+            setTimeout(() => {
+              initProcess.write('\x1b[B'); // down
+              setTimeout(() => {
+                initProcess.write('\x1b[B'); // down
+                setTimeout(() => {
+                  initProcess.write('\r'); // enter
+                  initStarted = true;
+                }, 100);
+              }, 100);
+            }, 100);
+          }, 500);
+        }
+
+        // Check if init completed (shows success message)
+        if (initStarted && output.includes('Installation complete!')) {
+          clearTimeout(timeout);
+          setTimeout(() => {
+            initProcess.write('q'); // quit
+          }, 500);
+        }
+      });
+
+      initProcess.onExit(({ exitCode }) => {
+        clearTimeout(timeout);
+        // Exit code 0 or process killed after init is fine
+        if (exitCode === 0 || initStarted) {
+          resolve();
+        } else {
+          reject(new Error(`dungeonmaster init failed with code ${exitCode}. Output:\n${output}`));
+        }
+      });
     });
   };
 

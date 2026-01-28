@@ -12,15 +12,15 @@ describe('Quest creation flow', () => {
   let testbed: E2ETestbed;
   let client: PtyClient;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     testbed = createE2ETestbed({ baseName: 'quest-create' });
-    testbed.runDungeonmasterInit();
+    await testbed.runDungeonmasterInit();
     client = createPtyClient();
   });
 
   afterEach(() => {
-    client.kill();
-    testbed.cleanup();
+    client?.kill();
+    testbed?.cleanup();
   });
 
   it('creates quest and navigates to list view with clean screen', async () => {
@@ -61,9 +61,10 @@ describe('Quest creation flow', () => {
     // File system assertion
     const folders = testbed.listQuestFolders();
     expect(folders.length).toBe(1);
-    expect(folders[0]).toMatch(/danger-fun/);
+    const folderName = folders[0]!;
+    expect(folderName).toMatch(/danger-fun/);
 
-    const quest = testbed.getQuestByFolder(folders[0]);
+    const quest = testbed.getQuestByFolder(folderName);
     expect(quest).not.toBeNull();
     expect(quest?.title).toMatch(/DangerFun/i);
   });

@@ -12,15 +12,15 @@ describe('Ask user question flow', () => {
   let testbed: E2ETestbed;
   let client: PtyClient;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     testbed = createE2ETestbed({ baseName: 'ask-question' });
-    testbed.runDungeonmasterInit();
+    await testbed.runDungeonmasterInit();
     client = createPtyClient();
   });
 
   afterEach(() => {
-    client.kill();
-    testbed.cleanup();
+    client?.kill();
+    testbed?.cleanup();
   });
 
   it('shows answer screen when Claude asks a question via MCP', async () => {
