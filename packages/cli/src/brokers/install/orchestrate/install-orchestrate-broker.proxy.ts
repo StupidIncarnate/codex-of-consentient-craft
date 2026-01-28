@@ -1,11 +1,13 @@
 import { installExecuteBrokerProxy } from '../execute/install-execute-broker.proxy';
 
 export const installOrchestrateBrokerProxy = (): {
-  installExecuteProxy: ReturnType<typeof installExecuteBrokerProxy>;
+  setupImport: (params: { module: unknown }) => void;
 } => {
   const installExecuteProxy = installExecuteBrokerProxy();
 
   return {
-    installExecuteProxy,
+    setupImport: ({ module }: { module: unknown }): void => {
+      installExecuteProxy.setupImport({ module });
+    },
   };
 };

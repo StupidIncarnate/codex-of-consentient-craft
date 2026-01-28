@@ -6,7 +6,6 @@ import {
   StepIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { ExecResultStub } from '../../../contracts/exec-result/exec-result.stub';
 import { MaxIterationsStub } from '../../../contracts/max-iterations/max-iterations.stub';
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
@@ -17,13 +16,7 @@ import { agentOrchestrateBrokerProxy } from './agent-orchestrate-broker.proxy';
 describe('agentOrchestrateBroker', () => {
   describe('delegation to questExecuteBroker', () => {
     it('VALID: {all phases complete} => returns completed true', async () => {
-      const {
-        pathseekerProxy,
-        codeweaverProxy,
-        siegemasterProxy,
-        lawbringerProxy,
-        spiritmenderLoopProxy,
-      } = agentOrchestrateBrokerProxy();
+      const proxy = agentOrchestrateBrokerProxy();
 
       const projectPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
@@ -37,43 +30,12 @@ describe('agentOrchestrateBroker', () => {
       const quest = QuestStub({ steps: [step] });
       const questJson = JSON.stringify(quest);
 
-      pathseekerProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves(
-        {
-          content: questJson,
-        },
-      );
-
-      codeweaverProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves(
-        {
-          content: questJson,
-        },
-      );
-
-      siegemasterProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves(
-        {
-          content: questJson,
-        },
-      );
-
-      lawbringerProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves(
-        {
-          content: questJson,
-        },
-      );
-
-      spiritmenderLoopProxy.wardRunProxy.execProxy.resolves({
-        result: ExecResultStub({
-          stdout: '',
-          stderr: '',
-          exitCode: 0,
-        }),
-      });
-
-      spiritmenderLoopProxy.spiritmenderPhaseProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves(
-        {
-          content: questJson,
-        },
-      );
+      proxy.setupPathseekerQuestFile({ questJson });
+      proxy.setupCodeweaverQuestFile({ questJson });
+      proxy.setupSiegemasterQuestFile({ questJson });
+      proxy.setupLawbringerQuestFile({ questJson });
+      proxy.setupSpiritWardPasses({ output: '' });
+      proxy.setupSpiritQuestFile({ questJson });
 
       const result = await agentOrchestrateBroker({
         projectPath,
@@ -90,7 +52,7 @@ describe('agentOrchestrateBroker', () => {
 
   describe('error propagation', () => {
     it('ERROR: {quest file read fails} => rejects with error', async () => {
-      const { pathseekerProxy } = agentOrchestrateBrokerProxy();
+      const proxy = agentOrchestrateBrokerProxy();
 
       const projectPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
@@ -99,11 +61,9 @@ describe('agentOrchestrateBroker', () => {
       const slotOperations = SlotOperationsStub();
       const maxSpiritLoopIterations = MaxIterationsStub({ value: 3 });
 
-      pathseekerProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.rejects(
-        {
-          error: new Error('Quest file not found'),
-        },
-      );
+      proxy.setupPathseekerQuestFileError({
+        error: new Error('Quest file not found'),
+      });
 
       await expect(
         agentOrchestrateBroker({

@@ -6,21 +6,15 @@ import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 describe('questListBroker', () => {
   describe('listing quests', () => {
     it('VALID: {startPath: "/project/src/file.ts"} => returns array of all quests from folders', async () => {
-      const { questsFolderProxy, fsReaddirProxy, pathJoinProxy, questLoadProxy } =
-        questListBrokerProxy();
+      const proxy = questListBrokerProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      fsReaddirProxy.returns({
+      proxy.setupQuestDirectories({
         files: [
           FileNameStub({ value: '001-quest-1' }),
           FileNameStub({ value: '002-quest-2' }),
@@ -28,11 +22,11 @@ describe('questListBroker', () => {
           FileNameStub({ value: 'closed' }), // Should be filtered out
         ],
       });
-      pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-quest-1/quest.json' }),
       });
-      questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestFile({
+        questJson: JSON.stringify({
           id: 'quest-1',
           folder: '001-quest-1',
           title: 'Quest 1',
@@ -52,11 +46,11 @@ describe('questListBroker', () => {
           toolingRequirements: [],
         }),
       });
-      pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({ value: '/project/.dungeonmaster-quests/002-quest-2/quest.json' }),
       });
-      questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestFile({
+        questJson: JSON.stringify({
           id: 'quest-2',
           folder: '002-quest-2',
           title: 'Quest 2',
@@ -86,20 +80,15 @@ describe('questListBroker', () => {
     });
 
     it('VALID: {startPath: "/project/file.ts"} => returns empty array when no quest folders exist', async () => {
-      const { questsFolderProxy, fsReaddirProxy } = questListBrokerProxy();
+      const proxy = questListBrokerProxy();
       const startPath = FilePathStub({ value: '/project/file.ts' });
 
-      questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      fsReaddirProxy.returns({
+      proxy.setupQuestDirectories({
         files: [
           FileNameStub({ value: 'README.md' }),
           FileNameStub({ value: 'closed' }), // Reserved folder, not a quest
@@ -112,20 +101,15 @@ describe('questListBroker', () => {
     });
 
     it('VALID: {startPath: "/project/file.ts"} => returns empty array when quests folder is empty', async () => {
-      const { questsFolderProxy, fsReaddirProxy } = questListBrokerProxy();
+      const proxy = questListBrokerProxy();
       const startPath = FilePathStub({ value: '/project/file.ts' });
 
-      questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      fsReaddirProxy.returns({ files: [] });
+      proxy.setupQuestDirectories({ files: [] });
 
       const result = await questListBroker({ startPath });
 
@@ -135,30 +119,24 @@ describe('questListBroker', () => {
 
   describe('edge cases', () => {
     it('EDGE: {startPath: "/project/.hidden"} => handles hidden files as start path', async () => {
-      const { questsFolderProxy, fsReaddirProxy, pathJoinProxy, questLoadProxy } =
-        questListBrokerProxy();
+      const proxy = questListBrokerProxy();
       const startPath = FilePathStub({ value: '/project/.hidden' });
 
-      questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/.hidden',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      fsReaddirProxy.returns({
+      proxy.setupQuestDirectories({
         files: [FileNameStub({ value: '001-hidden-quest' })],
       });
-      pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({
           value: '/project/.dungeonmaster-quests/001-hidden-quest/quest.json',
         }),
       });
-      questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestFile({
+        questJson: JSON.stringify({
           id: 'hidden-quest',
           folder: '001-hidden-quest',
           title: 'Hidden Quest',

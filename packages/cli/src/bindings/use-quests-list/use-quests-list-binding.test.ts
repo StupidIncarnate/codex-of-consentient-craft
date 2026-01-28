@@ -38,20 +38,15 @@ const TestHookWrapper = ({ startPath }: { startPath: FilePath }): React.ReactEle
 describe('useQuestsListBinding', () => {
   describe('loading state', () => {
     it('VALID: {startPath} => returns loading true initially', () => {
-      const { brokerProxy } = useQuestsListBindingProxy();
+      const proxy = useQuestsListBindingProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      brokerProxy.fsReaddirProxy.returns({ files: [] });
+      proxy.setupQuestDirectories({ files: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(TestHookWrapper, { startPath }),
@@ -66,28 +61,23 @@ describe('useQuestsListBinding', () => {
 
   describe('successful fetch', () => {
     it('VALID: {startPath} => returns quests sorted by newest first', async () => {
-      const { brokerProxy } = useQuestsListBindingProxy();
+      const proxy = useQuestsListBindingProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      brokerProxy.fsReaddirProxy.returns({
+      proxy.setupQuestDirectories({
         files: [FileNameStub({ value: '001-old-quest' }), FileNameStub({ value: '002-new-quest' })],
       });
       // Old quest (created first)
-      brokerProxy.pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-old-quest/quest.json' }),
       });
-      brokerProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(
           QuestStub({
             id: 'old-quest',
             folder: '001-old-quest',
@@ -97,11 +87,11 @@ describe('useQuestsListBinding', () => {
         ),
       });
       // New quest (created second)
-      brokerProxy.pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({ value: '/project/.dungeonmaster-quests/002-new-quest/quest.json' }),
       });
-      brokerProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(
           QuestStub({
             id: 'new-quest',
             folder: '002-new-quest',
@@ -132,20 +122,15 @@ describe('useQuestsListBinding', () => {
 
   describe('empty state', () => {
     it('EMPTY: {no quests} => returns empty array', async () => {
-      const { brokerProxy } = useQuestsListBindingProxy();
+      const proxy = useQuestsListBindingProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      brokerProxy.fsReaddirProxy.returns({ files: [] });
+      proxy.setupQuestDirectories({ files: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(TestHookWrapper, { startPath }),

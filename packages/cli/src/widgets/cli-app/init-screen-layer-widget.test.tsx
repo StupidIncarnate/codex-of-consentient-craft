@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { InstallContextStub } from '@dungeonmaster/shared/contracts';
+import { InstallContextStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
@@ -33,7 +33,10 @@ describe('InitScreenLayerWidget', () => {
 
   describe('rendering init content', () => {
     it('VALID: {} => displays Initialize Dungeonmaster title', () => {
-      InitScreenLayerWidgetProxy();
+      const proxy = InitScreenLayerWidgetProxy();
+      proxy.setupEmptyPackagesDirectory({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
+      });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
@@ -49,7 +52,10 @@ describe('InitScreenLayerWidget', () => {
     });
 
     it('VALID: {} => displays installing message when loading', () => {
-      InitScreenLayerWidgetProxy();
+      const proxy = InitScreenLayerWidgetProxy();
+      proxy.setupEmptyPackagesDirectory({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
+      });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
@@ -65,7 +71,10 @@ describe('InitScreenLayerWidget', () => {
     });
 
     it('VALID: {} => displays back instruction', () => {
-      InitScreenLayerWidgetProxy();
+      const proxy = InitScreenLayerWidgetProxy();
+      proxy.setupEmptyPackagesDirectory({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
+      });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
@@ -83,7 +92,10 @@ describe('InitScreenLayerWidget', () => {
 
   describe('widget structure', () => {
     it('VALID: {onBack callback} => accepts onBack prop for navigation', () => {
-      InitScreenLayerWidgetProxy();
+      const proxy = InitScreenLayerWidgetProxy();
+      proxy.setupEmptyPackagesDirectory({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
+      });
       const onBack = (): void => {
         // Callback exists
       };

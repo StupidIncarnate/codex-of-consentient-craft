@@ -14,7 +14,7 @@ import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
 describe('codeweaverPhaseLayerBroker', () => {
   describe('successful execution', () => {
     it('VALID: {all steps complete} => returns completed true', async () => {
-      const { slotManagerProxy } = codeweaverPhaseLayerBrokerProxy();
+      const { setupQuestFile } = codeweaverPhaseLayerBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
       const quest = QuestStub({ steps: [step] });
@@ -23,9 +23,7 @@ describe('codeweaverPhaseLayerBroker', () => {
       const timeoutMs = TimeoutMsStub({ value: 60000 });
       const slotOperations = SlotOperationsStub();
 
-      slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
-      });
+      setupQuestFile({ questJson: JSON.stringify(quest) });
 
       const result = await codeweaverPhaseLayerBroker({
         questFilePath,
@@ -40,7 +38,7 @@ describe('codeweaverPhaseLayerBroker', () => {
 
   describe('multiple steps', () => {
     it('VALID: {multiple steps all complete} => returns completed true', async () => {
-      const { slotManagerProxy } = codeweaverPhaseLayerBrokerProxy();
+      const { setupQuestFile } = codeweaverPhaseLayerBrokerProxy();
       const stepId1 = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const stepId2 = StepIdStub({ value: 'b2c3d4e5-f6a7-5b8c-9d0e-1f2a3b4c5d6e' });
       const step1 = DependencyStepStub({ id: stepId1, status: 'complete', dependsOn: [] });
@@ -51,9 +49,7 @@ describe('codeweaverPhaseLayerBroker', () => {
       const timeoutMs = TimeoutMsStub({ value: 60000 });
       const slotOperations = SlotOperationsStub();
 
-      slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
-      });
+      setupQuestFile({ questJson: JSON.stringify(quest) });
 
       const result = await codeweaverPhaseLayerBroker({
         questFilePath,

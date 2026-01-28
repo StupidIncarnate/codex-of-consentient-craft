@@ -14,7 +14,7 @@ import {
 describe('installOrchestrateBroker', () => {
   describe('orchestrating installs', () => {
     it('VALID: {packages, context} => returns results for all packages', async () => {
-      const { installExecuteProxy } = installOrchestrateBrokerProxy();
+      const proxy = installOrchestrateBrokerProxy();
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -44,7 +44,7 @@ describe('installOrchestrateBroker', () => {
       const module: Record<PropertyKey, unknown> = Object.create(null);
       module.StartInstall = mockFn;
 
-      installExecuteProxy.setupImport({ module });
+      proxy.setupImport({ module });
 
       const results = await installOrchestrateBroker({ packages, context });
 
@@ -69,7 +69,7 @@ describe('installOrchestrateBroker', () => {
     });
 
     it('ERROR: {packages, context} => continues on failure and returns all results', async () => {
-      const { installExecuteProxy } = installOrchestrateBrokerProxy();
+      const proxy = installOrchestrateBrokerProxy();
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -103,7 +103,7 @@ describe('installOrchestrateBroker', () => {
       const module: Record<PropertyKey, unknown> = Object.create(null);
       module.StartInstall = mockFn;
 
-      installExecuteProxy.setupImport({ module });
+      proxy.setupImport({ module });
 
       const results = await installOrchestrateBroker({ packages, context });
 

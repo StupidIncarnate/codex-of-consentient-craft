@@ -28,8 +28,8 @@ describe('runOrchestrationLayerBroker', () => {
       const timeoutMs = TimeoutMsStub({ value: 60000 });
       const slotOperations = SlotOperationsStub();
 
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -133,20 +133,12 @@ describe('runOrchestrationLayerBroker', () => {
         toolingRequirements: [],
       });
 
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: questWithPendingStep,
-      });
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questWithPendingStep,
-      });
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questWithInProgressStep,
-      });
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: questWithCompleteStep,
-      });
+      proxy.setupQuestLoad({ questJson: questWithPendingStep });
+      proxy.setupQuestUpdateRead({ questJson: questWithPendingStep });
+      proxy.setupQuestUpdateRead({ questJson: questWithInProgressStep });
+      proxy.setupQuestLoad({ questJson: questWithCompleteStep });
 
-      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -380,43 +372,37 @@ describe('runOrchestrationLayerBroker', () => {
       });
 
       // Iteration 1: load quest, update step1 to in_progress, spawn agent, agent completes, update step1 to complete
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questIter1 });
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questIter1 });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupQuestLoad({ questJson: questIter1 });
+      proxy.setupQuestUpdateRead({ questJson: questIter1 });
+      proxy.setupQuestUpdateWrite();
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questIter1InProgress,
-      });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson: questIter1InProgress });
+      proxy.setupQuestUpdateWrite();
 
       // Iteration 2: load quest (step1 complete), update step2 to in_progress, spawn agent, agent completes, update step2 to complete
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questIter2 });
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questIter2 });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupQuestLoad({ questJson: questIter2 });
+      proxy.setupQuestUpdateRead({ questJson: questIter2 });
+      proxy.setupQuestUpdateWrite();
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questIter2InProgress,
-      });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson: questIter2InProgress });
+      proxy.setupQuestUpdateWrite();
 
       // Iteration 3: load quest (step1/step2 complete), update step3 to in_progress, spawn agent, agent completes, update step3 to complete
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questIter3 });
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questIter3 });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupQuestLoad({ questJson: questIter3 });
+      proxy.setupQuestUpdateRead({ questJson: questIter3 });
+      proxy.setupQuestUpdateWrite();
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questIter3InProgress,
-      });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson: questIter3InProgress });
+      proxy.setupQuestUpdateWrite();
 
       // Final iteration: load quest (all complete), return completed
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questFinal });
+      proxy.setupQuestLoad({ questJson: questFinal });
 
       const result = await runOrchestrationLayerBroker({
         questFilePath,
@@ -573,29 +559,24 @@ describe('runOrchestrationLayerBroker', () => {
       });
 
       // Iteration 1: load quest (step1 in_progress), agent completes with signal
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questIter1InProgress });
+      proxy.setupQuestLoad({ questJson: questIter1InProgress });
 
       // handleSignal updates step to complete
-      proxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questIter1InProgress,
-      });
-      proxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupSignalQuestUpdate({ questJson: questIter1InProgress });
 
       // Iteration 2: load quest (step1 complete), spawn step2, agent completes with no signal
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questIter2 });
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questIter2 });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupQuestLoad({ questJson: questIter2 });
+      proxy.setupQuestUpdateRead({ questJson: questIter2 });
+      proxy.setupQuestUpdateWrite();
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       // After agent completes, update step2 to complete
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questIter2InProgress,
-      });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson: questIter2InProgress });
+      proxy.setupQuestUpdateWrite();
 
       // Final iteration: all complete
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questFinal });
+      proxy.setupQuestLoad({ questJson: questFinal });
 
       const result = await runOrchestrationLayerBroker({
         questFilePath,
@@ -716,33 +697,24 @@ describe('runOrchestrationLayerBroker', () => {
       });
 
       // Iteration 1: load quest (in_progress), agent sends partially-complete
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questInProgress });
-      proxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questInProgress,
-      });
-      proxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestLoad({ questJson: questInProgress });
+      proxy.setupSignalQuestUpdate({ questJson: questInProgress });
       // Load quest again to find step for respawn
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: questPartiallyComplete,
-      });
+      proxy.setupQuestLoad({ questJson: questPartiallyComplete });
 
       // Iteration 2: respawned agent runs, no new steps to spawn
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: questPartiallyComplete,
-      });
+      proxy.setupQuestLoad({ questJson: questPartiallyComplete });
 
       // Respawned agent completes successfully
-      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       // After agent completes, update step to complete
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questPartiallyComplete,
-      });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson: questPartiallyComplete });
+      proxy.setupQuestUpdateWrite();
 
       // Final iteration: all complete
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questComplete });
+      proxy.setupQuestLoad({ questJson: questComplete });
 
       const result = await runOrchestrationLayerBroker({
         questFilePath,
@@ -836,23 +808,23 @@ describe('runOrchestrationLayerBroker', () => {
       });
 
       // Iteration 1: load quest (in_progress), agent crashes
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questInProgress });
+      proxy.setupQuestLoad({ questJson: questInProgress });
       // Load quest again to find step for respawn
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questInProgress });
+      proxy.setupQuestLoad({ questJson: questInProgress });
 
       // Iteration 2: respawned agent runs, no new steps to spawn
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questInProgress });
+      proxy.setupQuestLoad({ questJson: questInProgress });
 
       // Respawned agent completes successfully
-      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       // After agent completes, update step to complete
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questInProgress });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson: questInProgress });
+      proxy.setupQuestUpdateWrite();
 
       // Final iteration: all complete
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questComplete });
+      proxy.setupQuestLoad({ questJson: questComplete });
 
       const result = await runOrchestrationLayerBroker({
         questFilePath,
@@ -943,23 +915,23 @@ describe('runOrchestrationLayerBroker', () => {
       });
 
       // Iteration 1: load quest (in_progress), agent times out
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questInProgress });
+      proxy.setupQuestLoad({ questJson: questInProgress });
       // Load quest again to find step for respawn
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questInProgress });
+      proxy.setupQuestLoad({ questJson: questInProgress });
 
       // Iteration 2: respawned agent runs, no new steps to spawn
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questInProgress });
+      proxy.setupQuestLoad({ questJson: questInProgress });
 
       // Respawned agent completes successfully
-      proxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
       // After agent completes, update step to complete
-      proxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questInProgress });
-      proxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson: questInProgress });
+      proxy.setupQuestUpdateWrite();
 
       // Final iteration: all complete
-      proxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({ content: questComplete });
+      proxy.setupQuestLoad({ questJson: questComplete });
 
       const result = await runOrchestrationLayerBroker({
         questFilePath,

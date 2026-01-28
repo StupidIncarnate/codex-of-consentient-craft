@@ -9,6 +9,10 @@ import { spiritmenderSpawnStreamingBrokerProxy } from '../../spiritmender/spawn-
 
 export const agentSpawnByRoleBrokerProxy = (): {
   setupPathseekerSuccess: (params: { exitCode: ExitCode }) => void;
+  setupPathseekerSuccessWithSignal: (params: {
+    exitCode: ExitCode;
+    lines: readonly StreamJsonLine[];
+  }) => void;
   setupPathseekerCrash: (params: { exitCode: ExitCode }) => void;
   setupCodeweaverSuccess: (params: { exitCode: ExitCode }) => void;
   setupCodeweaverSuccessWithSignal: (params: {
@@ -18,9 +22,21 @@ export const agentSpawnByRoleBrokerProxy = (): {
   setupCodeweaverTimeout: () => void;
   setupCodeweaverCrash: (params: { exitCode: ExitCode }) => void;
   setupSpiritmenderSuccess: (params: { exitCode: ExitCode }) => void;
+  setupSpiritmenderSuccessWithSignal: (params: {
+    exitCode: ExitCode;
+    lines: readonly StreamJsonLine[];
+  }) => void;
   setupSpiritmenderError: (params: { error: Error }) => void;
   setupLawbringerSuccess: (params: { exitCode: ExitCode }) => void;
+  setupLawbringerSuccessWithSignal: (params: {
+    exitCode: ExitCode;
+    lines: readonly StreamJsonLine[];
+  }) => void;
   setupSiegemasterSuccess: (params: { exitCode: ExitCode }) => void;
+  setupSiegemasterSuccessWithSignal: (params: {
+    exitCode: ExitCode;
+    lines: readonly StreamJsonLine[];
+  }) => void;
 } => {
   // Note: All spawn-streaming brokers delegate to agentSpawnStreamingBroker,
   // so the last proxy created will have its mocks take effect.
@@ -35,6 +51,16 @@ export const agentSpawnByRoleBrokerProxy = (): {
   return {
     setupPathseekerSuccess: ({ exitCode }: { exitCode: ExitCode }): void => {
       sharedProxy.setupSuccessNoSignal({ exitCode });
+    },
+
+    setupPathseekerSuccessWithSignal: ({
+      exitCode,
+      lines,
+    }: {
+      exitCode: ExitCode;
+      lines: readonly StreamJsonLine[];
+    }): void => {
+      sharedProxy.setupSuccessWithSignal({ exitCode, lines });
     },
 
     setupPathseekerCrash: ({ exitCode }: { exitCode: ExitCode }): void => {
@@ -67,6 +93,16 @@ export const agentSpawnByRoleBrokerProxy = (): {
       sharedProxy.setupSuccessNoSignal({ exitCode });
     },
 
+    setupSpiritmenderSuccessWithSignal: ({
+      exitCode,
+      lines,
+    }: {
+      exitCode: ExitCode;
+      lines: readonly StreamJsonLine[];
+    }): void => {
+      sharedProxy.setupSuccessWithSignal({ exitCode, lines });
+    },
+
     setupSpiritmenderError: ({ error }: { error: Error }): void => {
       sharedProxy.setupError({ error });
     },
@@ -75,8 +111,28 @@ export const agentSpawnByRoleBrokerProxy = (): {
       sharedProxy.setupSuccessNoSignal({ exitCode });
     },
 
+    setupLawbringerSuccessWithSignal: ({
+      exitCode,
+      lines,
+    }: {
+      exitCode: ExitCode;
+      lines: readonly StreamJsonLine[];
+    }): void => {
+      sharedProxy.setupSuccessWithSignal({ exitCode, lines });
+    },
+
     setupSiegemasterSuccess: ({ exitCode }: { exitCode: ExitCode }): void => {
       sharedProxy.setupSuccessNoSignal({ exitCode });
+    },
+
+    setupSiegemasterSuccessWithSignal: ({
+      exitCode,
+      lines,
+    }: {
+      exitCode: ExitCode;
+      lines: readonly StreamJsonLine[];
+    }): void => {
+      sharedProxy.setupSuccessWithSignal({ exitCode, lines });
     },
   };
 };

@@ -3,7 +3,11 @@
  */
 import React from 'react';
 
-import { InstallContextStub, InstallResultStub } from '@dungeonmaster/shared/contracts';
+import {
+  InstallContextStub,
+  InstallResultStub,
+  FilePathStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { FileNameStub } from '../../contracts/file-name/file-name.stub';
 
@@ -43,7 +47,7 @@ const TestHookWrapper = ({ context }: { context: InstallContext }): React.ReactE
 describe('useInstallBinding', () => {
   describe('loading state', () => {
     it('VALID: {context} => returns loading true initially', () => {
-      const { installRunProxy } = useInstallBindingProxy();
+      const proxy = useInstallBindingProxy();
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -52,8 +56,8 @@ describe('useInstallBinding', () => {
       });
 
       // Setup to return empty (no packages found)
-      installRunProxy.packageDiscoverProxy.fsReaddirProxy.returns({
-        files: [],
+      proxy.setupEmptyPackagesDirectory({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
       });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
@@ -69,7 +73,7 @@ describe('useInstallBinding', () => {
 
   describe('successful install', () => {
     it('VALID: {context with packages} => returns results after loading', async () => {
-      const { installRunProxy } = useInstallBindingProxy();
+      const proxy = useInstallBindingProxy();
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -78,10 +82,16 @@ describe('useInstallBinding', () => {
       });
 
       // Setup package discover to return packages
-      installRunProxy.packageDiscoverProxy.fsReaddirProxy.returns({
-        files: [FileNameStub({ value: 'mcp' })],
+      proxy.setupPackageDiscovery({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
+        packages: [
+          {
+            name: FileNameStub({ value: 'mcp' }),
+            standardPath: FilePathStub({ value: '/dm/packages/mcp/dist/startup/start-install.js' }),
+            installerLocation: 'standard',
+          },
+        ],
       });
-      installRunProxy.packageDiscoverProxy.fsExistsSyncProxy.returns({ result: true });
 
       // Setup install execute to return success
       const successResult = InstallResultStub({
@@ -99,7 +109,7 @@ describe('useInstallBinding', () => {
       >;
       module.StartInstall = mockFn;
 
-      installRunProxy.installOrchestratProxy.installExecuteProxy.setupImport({ module });
+      proxy.setupImport({ module });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(TestHookWrapper, { context }),
@@ -120,7 +130,7 @@ describe('useInstallBinding', () => {
 
   describe('empty results', () => {
     it('VALID: {context with no packages} => returns empty array', async () => {
-      const { installRunProxy } = useInstallBindingProxy();
+      const proxy = useInstallBindingProxy();
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -129,8 +139,8 @@ describe('useInstallBinding', () => {
       });
 
       // Setup package discover to return no packages
-      installRunProxy.packageDiscoverProxy.fsReaddirProxy.returns({
-        files: [],
+      proxy.setupEmptyPackagesDirectory({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
       });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({

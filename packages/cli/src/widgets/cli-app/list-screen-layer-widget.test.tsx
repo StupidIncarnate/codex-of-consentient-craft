@@ -17,20 +17,15 @@ const ASYNC_WAIT_MS = 100;
 describe('ListScreenLayerWidget', () => {
   describe('rendering list content', () => {
     it('VALID: {empty quests} => displays Quests title and no quests message', async () => {
-      const { bindingProxy } = ListScreenLayerWidgetProxy();
+      const proxy = ListScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.fsReaddirProxy.returns({ files: [] });
+      proxy.setupQuestDirectories({ files: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <ListScreenLayerWidget startPath={startPath} onBack={noopCallback} />,
@@ -48,27 +43,22 @@ describe('ListScreenLayerWidget', () => {
     });
 
     it('VALID: {with quests} => displays quest list sorted by newest first', async () => {
-      const { bindingProxy } = ListScreenLayerWidgetProxy();
+      const proxy = ListScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.fsReaddirProxy.returns({
+      proxy.setupQuestDirectories({
         files: [FileNameStub({ value: '001-old-quest' }), FileNameStub({ value: '002-new-quest' })],
       });
-      bindingProxy.brokerProxy.pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-old-quest/quest.json' }),
       });
-      bindingProxy.brokerProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(
           QuestStub({
             id: 'old-quest',
             folder: '001-old-quest',
@@ -78,11 +68,11 @@ describe('ListScreenLayerWidget', () => {
           }),
         ),
       });
-      bindingProxy.brokerProxy.pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({ value: '/project/.dungeonmaster-quests/002-new-quest/quest.json' }),
       });
-      bindingProxy.brokerProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(
           QuestStub({
             id: 'new-quest',
             folder: '002-new-quest',
@@ -111,20 +101,15 @@ describe('ListScreenLayerWidget', () => {
     });
 
     it('VALID: {} => displays back instruction', async () => {
-      const { bindingProxy } = ListScreenLayerWidgetProxy();
+      const proxy = ListScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.fsReaddirProxy.returns({ files: [] });
+      proxy.setupQuestDirectories({ files: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <ListScreenLayerWidget startPath={startPath} onBack={noopCallback} />,

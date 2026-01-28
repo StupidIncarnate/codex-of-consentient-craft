@@ -28,8 +28,8 @@ describe('orchestrationLoopLayerBroker', () => {
       const timeoutMs = TimeoutMsStub({ value: 60000 });
       const slotOperations = SlotOperationsStub();
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -69,8 +69,8 @@ describe('orchestrationLoopLayerBroker', () => {
       const stepId1 = StepIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
       const stepId2 = StepIdStub({ value: 'ffffffff-1111-2222-3333-444444444444' });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -109,8 +109,8 @@ describe('orchestrationLoopLayerBroker', () => {
       const stepId1 = StepIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
       const stepId2 = StepIdStub({ value: 'ffffffff-1111-2222-3333-444444444444' });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -155,8 +155,8 @@ describe('orchestrationLoopLayerBroker', () => {
         getAvailableSlot: () => slotIndex,
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -173,8 +173,8 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -190,9 +190,9 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateWrite();
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -208,9 +208,9 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateWrite();
 
-      proxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -271,8 +271,8 @@ describe('orchestrationLoopLayerBroker', () => {
         signal: null,
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -286,8 +286,8 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -300,7 +300,7 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateWrite();
 
       const activeAgents: ActiveAgent[] = [
         ActiveAgentStub({
@@ -371,18 +371,18 @@ describe('orchestrationLoopLayerBroker', () => {
         ],
         toolingRequirements: [],
       });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestLoad({ questJson });
+      proxy.setupQuestLoad({ questJson });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson });
+      proxy.setupQuestUpdateWrite();
+      proxy.setupQuestUpdateRead({ questJson });
+      proxy.setupQuestUpdateWrite();
 
-      proxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
-      proxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -462,18 +462,18 @@ describe('orchestrationLoopLayerBroker', () => {
         ],
         toolingRequirements: [],
       });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestLoad({ questJson });
+      proxy.setupQuestLoad({ questJson });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson });
+      proxy.setupQuestUpdateWrite();
+      proxy.setupQuestUpdateRead({ questJson });
+      proxy.setupQuestUpdateWrite();
 
-      proxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
-      proxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -548,8 +548,8 @@ describe('orchestrationLoopLayerBroker', () => {
         ],
         toolingRequirements: [],
       });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestLoad({ questJson });
+      proxy.setupQuestLoad({ questJson });
 
       const activeAgents: ActiveAgent[] = [
         ActiveAgentStub({
@@ -606,8 +606,8 @@ describe('orchestrationLoopLayerBroker', () => {
         steps: [DependencyStepStub({ id: otherStepId, status: 'in_progress' })],
         toolingRequirements: [],
       });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestLoad({ questJson });
+      proxy.setupQuestLoad({ questJson });
 
       const activeAgents: ActiveAgent[] = [
         ActiveAgentStub({
@@ -654,8 +654,8 @@ describe('orchestrationLoopLayerBroker', () => {
         signal,
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -669,8 +669,8 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupSignalQuestUpdate({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -683,7 +683,6 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const activeAgents: ActiveAgent[] = [
         ActiveAgentStub({
@@ -735,8 +734,8 @@ describe('orchestrationLoopLayerBroker', () => {
         signal,
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -750,8 +749,8 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupSignalQuestUpdate({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -764,7 +763,6 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const activeAgents: ActiveAgent[] = [
         ActiveAgentStub({
@@ -850,16 +848,15 @@ describe('orchestrationLoopLayerBroker', () => {
         ],
         toolingRequirements: [],
       });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestLoad({ questJson });
+      proxy.setupQuestLoad({ questJson });
 
-      proxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupSignalQuestUpdate({ questJson });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson });
+      proxy.setupQuestUpdateWrite();
 
-      proxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -944,16 +941,15 @@ describe('orchestrationLoopLayerBroker', () => {
         ],
         toolingRequirements: [],
       });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestLoad({ questJson });
+      proxy.setupQuestLoad({ questJson });
 
-      proxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupSignalQuestUpdate({ questJson });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateRead({ questJson });
+      proxy.setupQuestUpdateWrite();
 
-      proxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -1034,13 +1030,10 @@ describe('orchestrationLoopLayerBroker', () => {
         toolingRequirements: [],
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestLoad({ questJson });
+      proxy.setupQuestLoad({ questJson });
 
-      proxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questJson,
-      });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupSignalQuestUpdate({ questJson });
 
       const activeAgents: ActiveAgent[] = [
         ActiveAgentStub({
@@ -1123,12 +1116,9 @@ describe('orchestrationLoopLayerBroker', () => {
         toolingRequirements: [],
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJsonWithStep });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questJsonWithStep,
-      });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJsonWithoutStep });
+      proxy.setupQuestLoad({ questJson: questJsonWithStep });
+      proxy.setupSignalQuestUpdate({ questJson: questJsonWithStep });
+      proxy.setupQuestLoad({ questJson: questJsonWithoutStep });
 
       const activeAgents: ActiveAgent[] = [
         ActiveAgentStub({
@@ -1201,15 +1191,12 @@ describe('orchestrationLoopLayerBroker', () => {
         toolingRequirements: [],
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
-      proxy.questLoadProxy.fsReadFileProxy.resolves({ content: questJson });
+      proxy.setupQuestLoad({ questJson });
+      proxy.setupQuestLoad({ questJson });
 
-      proxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: questJson,
-      });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupSignalQuestUpdate({ questJson });
 
-      proxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -1279,8 +1266,8 @@ describe('orchestrationLoopLayerBroker', () => {
         signal,
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1294,8 +1281,8 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupSignalQuestUpdate({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1308,11 +1295,10 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       // Second quest load for spawn_role case
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1326,7 +1312,7 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -1392,8 +1378,8 @@ describe('orchestrationLoopLayerBroker', () => {
         signal,
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1407,8 +1393,8 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupSignalQuestUpdate({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1421,11 +1407,10 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       // Second quest load for spawn_role case
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1439,7 +1424,7 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -1500,8 +1485,8 @@ describe('orchestrationLoopLayerBroker', () => {
         signal,
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1515,8 +1500,8 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupSignalQuestUpdate({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1529,11 +1514,10 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       // Second quest load for spawn_role case
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1592,8 +1576,8 @@ describe('orchestrationLoopLayerBroker', () => {
         signal: null,
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1610,8 +1594,8 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1627,7 +1611,7 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateWrite();
 
       const activeAgents: ActiveAgent[] = [
         ActiveAgentStub({
@@ -1675,8 +1659,8 @@ describe('orchestrationLoopLayerBroker', () => {
         signal: null,
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1693,8 +1677,8 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1710,7 +1694,7 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateWrite();
 
       // This test exercises the defensive check at line 100.
       // The implementation compares slotIndex values using findIndex after
@@ -1794,8 +1778,8 @@ describe('orchestrationLoopLayerBroker', () => {
         signal: null,
       });
 
-      proxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1812,8 +1796,8 @@ describe('orchestrationLoopLayerBroker', () => {
         }),
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -1829,7 +1813,7 @@ describe('orchestrationLoopLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
+      proxy.setupQuestUpdateWrite();
 
       const activeAgents: ActiveAgent[] = [
         ActiveAgentStub({

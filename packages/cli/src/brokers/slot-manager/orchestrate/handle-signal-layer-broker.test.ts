@@ -12,8 +12,8 @@ describe('handleSignalLayerBroker', () => {
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
       const signal = StreamSignalStub({ signal: 'complete', stepId });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateSuccess({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -37,7 +37,6 @@ describe('handleSignalLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
 
@@ -56,8 +55,8 @@ describe('handleSignalLayerBroker', () => {
         continuationPoint: 'Continue from step 2' as never,
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateSuccess({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -81,7 +80,6 @@ describe('handleSignalLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
 
@@ -100,8 +98,8 @@ describe('handleSignalLayerBroker', () => {
         stepId,
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateSuccess({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -125,7 +123,6 @@ describe('handleSignalLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
 
@@ -147,8 +144,8 @@ describe('handleSignalLayerBroker', () => {
         context: 'Some context here' as never,
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateSuccess({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -172,7 +169,6 @@ describe('handleSignalLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
 
@@ -198,8 +194,8 @@ describe('handleSignalLayerBroker', () => {
         stepId,
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateSuccess({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -223,7 +219,6 @@ describe('handleSignalLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
 
@@ -254,8 +249,8 @@ describe('handleSignalLayerBroker', () => {
         context: 'Review context' as never,
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateSuccess({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -279,7 +274,6 @@ describe('handleSignalLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
 
@@ -300,8 +294,8 @@ describe('handleSignalLayerBroker', () => {
         stepId,
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateSuccess({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -325,7 +319,6 @@ describe('handleSignalLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
 
@@ -346,8 +339,8 @@ describe('handleSignalLayerBroker', () => {
         reason: 'Need code review' as never,
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateSuccess({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -371,7 +364,6 @@ describe('handleSignalLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
 
@@ -393,8 +385,8 @@ describe('handleSignalLayerBroker', () => {
         context: 'Review context' as never,
       });
 
-      proxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify({
+      proxy.setupQuestUpdateSuccess({
+        questJson: JSON.stringify({
           id: 'test-quest',
           folder: '001-test',
           title: 'Test Quest',
@@ -418,7 +410,6 @@ describe('handleSignalLayerBroker', () => {
           toolingRequirements: [],
         }),
       });
-      proxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
 
       const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
 

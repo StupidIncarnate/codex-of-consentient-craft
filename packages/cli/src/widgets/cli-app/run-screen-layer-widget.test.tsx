@@ -17,20 +17,15 @@ const ASYNC_WAIT_MS = 100;
 describe('RunScreenLayerWidget', () => {
   describe('rendering run screen content', () => {
     it('VALID: {empty quests} => displays Run Quest title and no quests message', async () => {
-      const { bindingProxy } = RunScreenLayerWidgetProxy();
+      const proxy = RunScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.fsReaddirProxy.returns({ files: [] });
+      proxy.setupQuestDirectories({ files: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
@@ -54,29 +49,24 @@ describe('RunScreenLayerWidget', () => {
     });
 
     it('VALID: {only complete quests} => displays no incomplete quests message', async () => {
-      const { bindingProxy } = RunScreenLayerWidgetProxy();
+      const proxy = RunScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.fsReaddirProxy.returns({
+      proxy.setupQuestDirectories({
         files: [FileNameStub({ value: '001-complete-quest' })],
       });
-      bindingProxy.brokerProxy.pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({
           value: '/project/.dungeonmaster-quests/001-complete-quest/quest.json',
         }),
       });
-      bindingProxy.brokerProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(
           QuestStub({
             id: 'complete-quest',
             folder: '001-complete-quest',
@@ -108,32 +98,27 @@ describe('RunScreenLayerWidget', () => {
     });
 
     it('VALID: {with incomplete quests} => displays incomplete quest list', async () => {
-      const { bindingProxy } = RunScreenLayerWidgetProxy();
+      const proxy = RunScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.fsReaddirProxy.returns({
+      proxy.setupQuestDirectories({
         files: [
           FileNameStub({ value: '001-in-progress-quest' }),
           FileNameStub({ value: '002-complete-quest' }),
         ],
       });
-      bindingProxy.brokerProxy.pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({
           value: '/project/.dungeonmaster-quests/001-in-progress-quest/quest.json',
         }),
       });
-      bindingProxy.brokerProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(
           QuestStub({
             id: 'in-progress-quest',
             folder: '001-in-progress-quest',
@@ -143,13 +128,13 @@ describe('RunScreenLayerWidget', () => {
           }),
         ),
       });
-      bindingProxy.brokerProxy.pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({
           value: '/project/.dungeonmaster-quests/002-complete-quest/quest.json',
         }),
       });
-      bindingProxy.brokerProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(
           QuestStub({
             id: 'complete-quest',
             folder: '002-complete-quest',
@@ -183,20 +168,15 @@ describe('RunScreenLayerWidget', () => {
     });
 
     it('VALID: {} => displays navigation instructions', async () => {
-      const { bindingProxy } = RunScreenLayerWidgetProxy();
+      const proxy = RunScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.fsReaddirProxy.returns({ files: [] });
+      proxy.setupQuestDirectories({ files: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
@@ -221,29 +201,24 @@ describe('RunScreenLayerWidget', () => {
     });
 
     it('VALID: {first quest} => displays first quest as selected by default', async () => {
-      const { bindingProxy } = RunScreenLayerWidgetProxy();
+      const proxy = RunScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.projectRootProxy.setupProjectRootFound({
+      proxy.setupQuestsFolderFound({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
+        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
-      bindingProxy.brokerProxy.questsFolderProxy.findProxy.pathJoinProxy.returns({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.questsFolderProxy.mkdirProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      bindingProxy.brokerProxy.fsReaddirProxy.returns({
+      proxy.setupQuestDirectories({
         files: [FileNameStub({ value: '001-first-quest' })],
       });
-      bindingProxy.brokerProxy.pathJoinProxy.returns({
+      proxy.setupQuestFilePath({
         result: FilePathStub({
           value: '/project/.dungeonmaster-quests/001-first-quest/quest.json',
         }),
       });
-      bindingProxy.brokerProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(
+      proxy.setupQuestFile({
+        questJson: JSON.stringify(
           QuestStub({
             id: 'first-quest',
             folder: '001-first-quest',

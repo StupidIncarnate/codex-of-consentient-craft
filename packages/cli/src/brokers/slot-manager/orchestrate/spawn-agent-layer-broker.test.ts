@@ -15,7 +15,7 @@ describe('spawnAgentLayerBroker', () => {
       const timeoutMs = TimeoutMsStub({ value: 60000 });
       const exitCode = ExitCodeStub({ value: 0 });
 
-      proxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({ exitCode });
+      proxy.setupCodeweaverSuccess({ exitCode });
 
       const result = await spawnAgentLayerBroker({
         workUnit,
@@ -43,7 +43,7 @@ describe('spawnAgentLayerBroker', () => {
       const exitCode = ExitCodeStub({ value: 0 });
       const resumeSessionId = SessionIdStub({ value: 'resume-session-456' });
 
-      proxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({ exitCode });
+      proxy.setupCodeweaverSuccess({ exitCode });
 
       const result = await spawnAgentLayerBroker({
         workUnit,

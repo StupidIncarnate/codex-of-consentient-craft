@@ -4,14 +4,18 @@
 
 import { installRunBroker } from './install-run-broker';
 import { installRunBrokerProxy } from './install-run-broker.proxy';
-import { InstallContextStub, InstallResultStub } from '@dungeonmaster/shared/contracts';
+import {
+  InstallContextStub,
+  InstallResultStub,
+  FilePathStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 describe('installRunBroker', () => {
   describe('running installation', () => {
     it('VALID: {context with packages} => discovers and installs packages', async () => {
-      const { packageDiscoverProxy, installOrchestratProxy } = installRunBrokerProxy();
+      const proxy = installRunBrokerProxy();
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -20,12 +24,23 @@ describe('installRunBroker', () => {
       });
 
       // Setup package discover to return packages
-      packageDiscoverProxy.fsReaddirProxy.returns({
-        files: [FileNameStub({ value: 'cli' }), FileNameStub({ value: 'hooks' })],
+      proxy.setupPackageDiscovery({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
+        packages: [
+          {
+            name: FileNameStub({ value: 'cli' }),
+            standardPath: FilePathStub({ value: '/dm/packages/cli/dist/startup/start-install.js' }),
+            installerLocation: 'standard',
+          },
+          {
+            name: FileNameStub({ value: 'hooks' }),
+            standardPath: FilePathStub({
+              value: '/dm/packages/hooks/dist/startup/start-install.js',
+            }),
+            installerLocation: 'standard',
+          },
+        ],
       });
-      // Return true for both cli and hooks standard path checks
-      packageDiscoverProxy.fsExistsSyncProxy.returns({ result: true });
-      packageDiscoverProxy.fsExistsSyncProxy.returns({ result: true });
 
       // Setup install execute to return success
       const successResult = InstallResultStub({
@@ -40,7 +55,7 @@ describe('installRunBroker', () => {
       const module: Record<PropertyKey, unknown> = Object.create(null);
       module.StartInstall = mockFn;
 
-      installOrchestratProxy.installExecuteProxy.setupImport({ module });
+      proxy.setupImport({ module });
 
       const results = await installRunBroker({ context });
 
@@ -49,7 +64,7 @@ describe('installRunBroker', () => {
     });
 
     it('VALID: {context with no packages} => returns empty array', async () => {
-      const { packageDiscoverProxy } = installRunBrokerProxy();
+      const proxy = installRunBrokerProxy();
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -58,8 +73,8 @@ describe('installRunBroker', () => {
       });
 
       // Setup package discover to return no packages
-      packageDiscoverProxy.fsReaddirProxy.returns({
-        files: [],
+      proxy.setupEmptyPackagesDirectory({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
       });
 
       const results = await installRunBroker({ context });

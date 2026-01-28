@@ -18,7 +18,7 @@ import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
 describe('slotManagerOrchestrateBroker', () => {
   describe('all steps complete', () => {
     it('VALID: {all steps complete} => returns completed true', async () => {
-      const { runOrchestrationProxy } = slotManagerOrchestrateBrokerProxy();
+      const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
       const quest = QuestStub({ steps: [step] });
@@ -27,8 +27,8 @@ describe('slotManagerOrchestrateBroker', () => {
       const timeoutMs = TimeoutMsStub({ value: 60000 });
       const slotOperations = SlotOperationsStub();
 
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
       });
 
       const result = await slotManagerOrchestrateBroker({
@@ -43,7 +43,7 @@ describe('slotManagerOrchestrateBroker', () => {
     });
 
     it('VALID: {multiple steps all complete} => returns completed true', async () => {
-      const { runOrchestrationProxy } = slotManagerOrchestrateBrokerProxy();
+      const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId1 = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const stepId2 = StepIdStub({ value: 'b2c3d4e5-f6a7-5b8c-9d0e-1f2a3b4c5d6e' });
       const step1 = DependencyStepStub({ id: stepId1, status: 'complete', dependsOn: [] });
@@ -58,8 +58,8 @@ describe('slotManagerOrchestrateBroker', () => {
       const timeoutMs = TimeoutMsStub({ value: 60000 });
       const slotOperations = SlotOperationsStub();
 
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
       });
 
       const result = await slotManagerOrchestrateBroker({
@@ -76,7 +76,7 @@ describe('slotManagerOrchestrateBroker', () => {
 
   describe('blocked scenarios', () => {
     it('VALID: {no available slots and no active agents} => returns completed true', async () => {
-      const { runOrchestrationProxy } = slotManagerOrchestrateBrokerProxy();
+      const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'pending', dependsOn: [] });
       const quest = QuestStub({ steps: [step] });
@@ -87,8 +87,8 @@ describe('slotManagerOrchestrateBroker', () => {
         getAvailableSlot: () => undefined,
       });
 
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
       });
 
       const result = await slotManagerOrchestrateBroker({
@@ -103,7 +103,7 @@ describe('slotManagerOrchestrateBroker', () => {
     });
 
     it('VALID: {pending step with incomplete dependency} => returns completed true when no agents active', async () => {
-      const { runOrchestrationProxy } = slotManagerOrchestrateBrokerProxy();
+      const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId1 = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const stepId2 = StepIdStub({ value: 'b2c3d4e5-f6a7-5b8c-9d0e-1f2a3b4c5d6e' });
       const step1 = DependencyStepStub({
@@ -122,8 +122,8 @@ describe('slotManagerOrchestrateBroker', () => {
       const timeoutMs = TimeoutMsStub({ value: 60000 });
       const slotOperations = SlotOperationsStub();
 
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
       });
 
       const result = await slotManagerOrchestrateBroker({
@@ -138,7 +138,7 @@ describe('slotManagerOrchestrateBroker', () => {
     });
 
     it('VALID: {agent signals needs-user-input} => returns completed false with userInputNeeded', async () => {
-      const { runOrchestrationProxy } = slotManagerOrchestrateBrokerProxy();
+      const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'pending', dependsOn: [] });
       const quest = QuestStub({ steps: [step] });
@@ -170,23 +170,19 @@ describe('slotManagerOrchestrateBroker', () => {
         }),
       });
 
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves(
-        {
-          content: JSON.stringify(quest),
-        },
-      );
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccessWithSignal(
-        {
-          exitCode,
-          lines: [signalLine],
-        },
-      );
+      proxy.setupSignalQuestUpdate({
+        questJson: JSON.stringify(quest),
+      });
+      proxy.setupCodeweaverSpawnWithSignal({
+        exitCode,
+        lines: [signalLine],
+      });
 
       const result = await slotManagerOrchestrateBroker({
         questFilePath,
@@ -209,7 +205,7 @@ describe('slotManagerOrchestrateBroker', () => {
 
   describe('signal handling - complete', () => {
     it('VALID: {agent signals complete} => continues orchestration and returns completed true', async () => {
-      const { runOrchestrationProxy } = slotManagerOrchestrateBrokerProxy();
+      const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'pending', dependsOn: [] });
       const quest = QuestStub({ steps: [step] });
@@ -244,28 +240,23 @@ describe('slotManagerOrchestrateBroker', () => {
         steps: [DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] })],
       });
 
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      runOrchestrationProxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves(
-        {
-          content: JSON.stringify(quest),
-        },
-      );
-      runOrchestrationProxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(completedQuest),
+      proxy.setupQuestUpdateWrite();
+      proxy.setupSignalQuestUpdate({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccessWithSignal(
-        {
-          exitCode,
-          lines: [signalLine],
-        },
-      );
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(completedQuest),
+      });
+      proxy.setupCodeweaverSpawnWithSignal({
+        exitCode,
+        lines: [signalLine],
+      });
 
       const result = await slotManagerOrchestrateBroker({
         questFilePath,
@@ -281,7 +272,7 @@ describe('slotManagerOrchestrateBroker', () => {
 
   describe('signal handling - partially-complete', () => {
     it('VALID: {agent signals partially-complete} => respawns agent and continues', async () => {
-      const { runOrchestrationProxy } = slotManagerOrchestrateBrokerProxy();
+      const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({
         id: stepId,
@@ -340,32 +331,27 @@ describe('slotManagerOrchestrateBroker', () => {
         steps: [DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] })],
       });
 
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      runOrchestrationProxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves(
-        {
-          content: JSON.stringify(inProgressQuest),
-        },
-      );
-      runOrchestrationProxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(inProgressQuest),
+      proxy.setupQuestUpdateWrite();
+      proxy.setupSignalQuestUpdate({
+        questJson: JSON.stringify(inProgressQuest),
       });
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(completedQuest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(inProgressQuest),
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccessWithSignal(
-        {
-          exitCode,
-          lines: [signalLine],
-        },
-      );
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(completedQuest),
+      });
+      proxy.setupCodeweaverSpawnWithSignal({
+        exitCode,
+        lines: [signalLine],
+      });
+      proxy.setupCodeweaverSpawn({
         exitCode,
       });
 
@@ -383,7 +369,7 @@ describe('slotManagerOrchestrateBroker', () => {
 
   describe('signal handling - needs-role-followup', () => {
     it('VALID: {agent signals needs-role-followup} => spawns role agent and continues', async () => {
-      const { runOrchestrationProxy } = slotManagerOrchestrateBrokerProxy();
+      const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'pending', dependsOn: [] });
       const quest = QuestStub({ steps: [step] });
@@ -429,29 +415,24 @@ describe('slotManagerOrchestrateBroker', () => {
         steps: [DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] })],
       });
 
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      runOrchestrationProxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsReadFileProxy.resolves(
-        {
-          content: JSON.stringify(inProgressQuest),
-        },
-      );
-      runOrchestrationProxy.loopProxy.handleSignalProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(completedQuest),
+      proxy.setupQuestUpdateWrite();
+      proxy.setupSignalQuestUpdate({
+        questJson: JSON.stringify(inProgressQuest),
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccessWithSignal(
-        {
-          exitCode,
-          lines: [signalLine],
-        },
-      );
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(completedQuest),
+      });
+      proxy.setupCodeweaverSpawnWithSignal({
+        exitCode,
+        lines: [signalLine],
+      });
+      proxy.setupCodeweaverSpawn({
         exitCode,
       });
 
@@ -469,7 +450,7 @@ describe('slotManagerOrchestrateBroker', () => {
 
   describe('agent crash scenarios', () => {
     it('VALID: {agent crashes with non-zero exit code} => respawns agent and continues', async () => {
-      const { runOrchestrationProxy } = slotManagerOrchestrateBrokerProxy();
+      const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({
         id: stepId,
@@ -510,23 +491,23 @@ describe('slotManagerOrchestrateBroker', () => {
         steps: [DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] })],
       });
 
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(inProgressQuest),
+      proxy.setupQuestUpdateWrite();
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(inProgressQuest),
       });
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(completedQuest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(completedQuest),
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverCrash({
+      proxy.setupCodeweaverCrash({
         exitCode: crashExitCode,
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: successExitCode,
       });
 
@@ -544,7 +525,7 @@ describe('slotManagerOrchestrateBroker', () => {
 
   describe('agent timeout scenarios', () => {
     it('VALID: {agent times out} => respawns agent and continues', async () => {
-      const { runOrchestrationProxy } = slotManagerOrchestrateBrokerProxy();
+      const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({
         id: stepId,
@@ -584,20 +565,20 @@ describe('slotManagerOrchestrateBroker', () => {
         steps: [DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] })],
       });
 
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
+      proxy.setupQuestUpdateRead({
+        questJson: JSON.stringify(quest),
       });
-      runOrchestrationProxy.loopProxy.questUpdateStepProxy.fsWriteFileProxy.succeeds();
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(inProgressQuest),
+      proxy.setupQuestUpdateWrite();
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(inProgressQuest),
       });
-      runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(completedQuest),
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(completedQuest),
       });
-      runOrchestrationProxy.loopProxy.spawnAgentProxy.agentSpawnByRoleProxy.setupCodeweaverSuccess({
+      proxy.setupCodeweaverSpawn({
         exitCode: successExitCode,
       });
 

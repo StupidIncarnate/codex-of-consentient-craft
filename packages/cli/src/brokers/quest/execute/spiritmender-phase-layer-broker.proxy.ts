@@ -1,11 +1,13 @@
 import { slotManagerOrchestrateBrokerProxy } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker.proxy';
 
 export const spiritmenderPhaseLayerBrokerProxy = (): {
-  slotManagerProxy: ReturnType<typeof slotManagerOrchestrateBrokerProxy>;
+  setupQuestFile: (params: { questJson: string }) => void;
 } => {
   const slotManagerProxy = slotManagerOrchestrateBrokerProxy();
 
   return {
-    slotManagerProxy,
+    setupQuestFile: ({ questJson }: { questJson: string }): void => {
+      slotManagerProxy.setupQuestLoad({ questJson });
+    },
   };
 };

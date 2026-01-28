@@ -14,7 +14,7 @@ import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
 describe('siegemasterPhaseLayerBroker', () => {
   describe('successful execution', () => {
     it('VALID: {all steps complete} => returns completed true', async () => {
-      const { slotManagerProxy } = siegemasterPhaseLayerBrokerProxy();
+      const { setupQuestFile } = siegemasterPhaseLayerBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
       const quest = QuestStub({ steps: [step] });
@@ -23,9 +23,7 @@ describe('siegemasterPhaseLayerBroker', () => {
       const timeoutMs = TimeoutMsStub({ value: 60000 });
       const slotOperations = SlotOperationsStub();
 
-      slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
-      });
+      setupQuestFile({ questJson: JSON.stringify(quest) });
 
       const result = await siegemasterPhaseLayerBroker({
         questFilePath,
@@ -40,7 +38,7 @@ describe('siegemasterPhaseLayerBroker', () => {
 
   describe('user input needed', () => {
     it('VALID: {agent needs user input} => returns completed false with userInputNeeded', async () => {
-      const { slotManagerProxy } = siegemasterPhaseLayerBrokerProxy();
+      const { setupQuestFile } = siegemasterPhaseLayerBrokerProxy();
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'blocked', dependsOn: [] });
       const quest = QuestStub({ steps: [step] });
@@ -49,9 +47,7 @@ describe('siegemasterPhaseLayerBroker', () => {
       const timeoutMs = TimeoutMsStub({ value: 60000 });
       const slotOperations = SlotOperationsStub();
 
-      slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({
-        content: JSON.stringify(quest),
-      });
+      setupQuestFile({ questJson: JSON.stringify(quest) });
 
       const result = await siegemasterPhaseLayerBroker({
         questFilePath,
