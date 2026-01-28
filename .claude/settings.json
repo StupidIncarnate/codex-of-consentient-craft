@@ -1,38 +1,4 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-start-hook.ts"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-pre-edit-hook.ts"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-post-edit-hook.ts"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
@@ -80,8 +46,50 @@
       "Bash(npm show:*)",
       "WebFetch(domain:registry.npmjs.org)"
     ],
-    "deny": ["Bash(cat:*)", "Bash(sed:*)"]
+    "deny": [
+      "Bash(cat:*)",
+      "Bash(sed:*)"
+    ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["dungeonmaster"]
+  "enabledMcpjsonServers": [
+    "dungeonmaster"
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-start-hook.ts"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-pre-edit-hook.ts"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-post-edit-hook.ts"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  }
 }
