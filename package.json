@@ -17,7 +17,8 @@
     "version-packages": "changeset version",
     "release": "npm run build && changeset publish",
     "claude": "claude",
-    "claude:version": "claude --version"
+    "claude:version": "claude --version",
+    "test:e2e": "jest --config e2e/jest.config.js"
   },
   "repository": {
     "type": "git",
@@ -70,6 +71,7 @@
     "jest": "^30.0.4",
     "node-pty": "^1.1.0",
     "prettier": "^3.6.2",
+    "strip-ansi": "^7.1.2",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
