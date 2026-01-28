@@ -12,7 +12,7 @@
     "test:unit": "npm run test:unit --workspaces",
     "lint": "npm run lint --workspaces",
     "typecheck": "npm run typecheck --workspaces",
-    "ward:all": "npm run lint && npm run typecheck && npm run test",
+    "ward:all": "npm run lint && npm run typecheck && npm run test:unit",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "npm run build && changeset publish",
