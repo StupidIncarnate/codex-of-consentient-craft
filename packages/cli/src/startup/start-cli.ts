@@ -14,8 +14,16 @@ import React from 'react';
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { questsFolderEnsureBroker } from '@dungeonmaster/shared/brokers';
-import type { UserInput, InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type {
+  UserInput,
+  InstallContext,
+  Quest,
+  QuestId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+
+import type { PendingQuestion } from '../widgets/cli-app/cli-app-widget';
 
 import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
 
@@ -39,18 +47,28 @@ const DEFAULT_TIMEOUT_MS = 300000; // 5 minutes
 const DEFAULT_MAX_SPIRIT_LOOP_ITERATIONS = 10;
 const QUEST_FILE_NAME = 'quest.json';
 
+// ANSI escape sequence to clear screen and move cursor to top-left
+const CLEAR_SCREEN = '\x1b[2J\x1b[H';
+
 export const StartCli = async ({
   initialScreen = 'menu' as CliAppScreen,
+  pendingQuestion,
 }: {
   initialScreen?: CliAppScreen;
+  pendingQuestion?: PendingQuestion;
 } = {}): Promise<void> => {
+  // Clear screen before rendering ink UI
+  process.stdout.write(CLEAR_SCREEN);
+
   // State object to capture results from Ink callbacks (object reference stays constant)
   const state: {
     pendingChaoswhisperer: UserInput | null;
+    pendingChaoswhispererResume: { answer: UserInput; sessionId: SessionId } | null;
     pendingQuestExecution: { questId: QuestId; questFolder: QuestFolder } | null;
     shouldExit: boolean;
   } = {
     pendingChaoswhisperer: null,
+    pendingChaoswhispererResume: null,
     pendingQuestExecution: null,
     shouldExit: false,
   };
@@ -61,13 +79,27 @@ export const StartCli = async ({
   const targetProjectRoot = filePathContract.parse(process.cwd());
   const installContext: InstallContext = { dungeonmasterRoot, targetProjectRoot };
 
+  // Conditionally build pendingQuestion prop to satisfy exactOptionalPropertyTypes
+  const pendingQuestionProp = pendingQuestion === undefined ? {} : { pendingQuestion };
+
   // Render the Ink app
   const { unmount, waitUntilExit } = render(
     React.createElement(CliAppWidget, {
       initialScreen,
       installContext,
+      ...pendingQuestionProp,
       onSpawnChaoswhisperer: ({ userInput }: { userInput: UserInput }) => {
         state.pendingChaoswhisperer = userInput;
+        unmount();
+      },
+      onResumeChaoswhisperer: ({
+        answer,
+        sessionId,
+      }: {
+        answer: UserInput;
+        sessionId: SessionId;
+      }) => {
+        state.pendingChaoswhispererResume = { answer, sessionId };
         unmount();
       },
       onRunQuest: ({ questId, questFolder }: { questId: QuestId; questFolder: QuestFolder }) => {
@@ -140,6 +172,34 @@ export const StartCli = async ({
     return StartCli({ initialScreen: nextScreen });
   }
 
+  // Handle ChaosWhisperer resume if user answered a question
+  if (state.pendingChaoswhispererResume !== null) {
+    const { answer, sessionId } = state.pendingChaoswhispererResume;
+
+    const result = await chaoswhispererSpawnStreamingBroker({
+      userInput: answer,
+      resumeSessionId: sessionId,
+    });
+
+    // Handle signal from resumed session
+    if (
+      result.signal?.signal === 'needs-user-input' &&
+      result.sessionId !== null &&
+      result.signal.question !== undefined &&
+      result.signal.context !== undefined
+    ) {
+      const newPendingQuestion: PendingQuestion = {
+        question: result.signal.question,
+        context: result.signal.context,
+        sessionId: result.sessionId,
+      };
+      return StartCli({ initialScreen: 'answer', pendingQuestion: newPendingQuestion });
+    }
+
+    const nextScreen: CliAppScreen = result.signal?.signal === 'complete' ? 'list' : 'menu';
+    return StartCli({ initialScreen: nextScreen });
+  }
+
   // No ChaosWhisperer pending, restart at menu
   if (state.pendingChaoswhisperer === null) {
     return StartCli({ initialScreen: 'menu' });
@@ -149,6 +209,21 @@ export const StartCli = async ({
   const result = await chaoswhispererSpawnStreamingBroker({
     userInput: state.pendingChaoswhisperer,
   });
+
+  // Handle needs-user-input signal
+  if (
+    result.signal?.signal === 'needs-user-input' &&
+    result.sessionId !== null &&
+    result.signal.question !== undefined &&
+    result.signal.context !== undefined
+  ) {
+    const newPendingQuestion: PendingQuestion = {
+      question: result.signal.question,
+      context: result.signal.context,
+      sessionId: result.sessionId,
+    };
+    return StartCli({ initialScreen: 'answer', pendingQuestion: newPendingQuestion });
+  }
 
   // Determine next screen based on signal
   const nextScreen: CliAppScreen = result.signal?.signal === 'complete' ? 'list' : 'menu';

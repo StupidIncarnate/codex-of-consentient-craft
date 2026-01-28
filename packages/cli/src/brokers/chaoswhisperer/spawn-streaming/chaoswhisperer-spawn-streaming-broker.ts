@@ -15,7 +15,7 @@
  * 5. Returns result when Claude signals completion
  */
 
-import type { UserInput, StepId } from '@dungeonmaster/shared/contracts';
+import type { UserInput, StepId, SessionId } from '@dungeonmaster/shared/contracts';
 import { stepIdContract } from '@dungeonmaster/shared/contracts';
 
 import { cryptoRandomUuidAdapter } from '../../../adapters/crypto/random-uuid/crypto-random-uuid-adapter';
@@ -32,8 +32,10 @@ const SESSION_ID_PLACEHOLDER = '$SESSION_ID';
 
 export const chaoswhispererSpawnStreamingBroker = async ({
   userInput,
+  resumeSessionId,
 }: {
   userInput: UserInput;
+  resumeSessionId?: SessionId;
 }): Promise<ChaoswhispererStreamingResult> => {
   // Generate a stepId for this session
   const uuid = cryptoRandomUuidAdapter();
@@ -50,7 +52,8 @@ export const chaoswhispererSpawnStreamingBroker = async ({
   const prompt = promptTextContract.parse(promptWithSessionId);
 
   // Spawn claude with stream-json output
-  const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter({ prompt });
+  const spawnArgs = resumeSessionId === undefined ? { prompt } : { prompt, resumeSessionId };
+  const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter(spawnArgs);
 
   // Wrap ChildProcess to match EventEmittingProcess interface
   const eventEmittingProcess = {

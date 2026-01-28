@@ -15,6 +15,7 @@ import { readlineCreateInterfaceAdapter } from '../../../adapters/readline/creat
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
 import { signalFromStreamTransformer } from '../../../transformers/signal-from-stream/signal-from-stream-transformer';
 import { streamJsonToTextTransformer } from '../../../transformers/stream-json-to-text/stream-json-to-text-transformer';
+import { streamJsonToToolUseTransformer } from '../../../transformers/stream-json-to-tool-use/stream-json-to-tool-use-transformer';
 import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import type { EventEmittingProcess } from '../../../contracts/event-emitting-process/event-emitting-process-contract';
 import {
@@ -64,6 +65,12 @@ export const teeOutputLayerBroker = async ({
     const text = streamJsonToTextTransformer({ line });
     if (text !== null) {
       process.stdout.write(text);
+    }
+
+    // Tee: Extract tool_use and display to user
+    const toolUse = streamJsonToToolUseTransformer({ line });
+    if (toolUse !== null) {
+      process.stdout.write(toolUse);
     }
   });
 

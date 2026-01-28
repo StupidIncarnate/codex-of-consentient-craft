@@ -13,13 +13,14 @@
  * use stdin.write() for key simulation instead of proxy trigger methods.
  */
 import { AddScreenLayerWidgetProxy } from './add-screen-layer-widget.proxy';
+import { AnswerScreenLayerWidgetProxy } from './answer-screen-layer-widget.proxy';
 import { HelpScreenLayerWidgetProxy } from './help-screen-layer-widget.proxy';
 import { InitScreenLayerWidgetProxy } from './init-screen-layer-widget.proxy';
 import { ListScreenLayerWidgetProxy } from './list-screen-layer-widget.proxy';
 import { MenuScreenLayerWidgetProxy } from './menu-screen-layer-widget.proxy';
 import { RunScreenLayerWidgetProxy } from './run-screen-layer-widget.proxy';
 
-type CliAppScreen = 'menu' | 'add' | 'help' | 'list' | 'init' | 'run';
+type CliAppScreen = 'menu' | 'add' | 'help' | 'list' | 'init' | 'run' | 'answer';
 
 export const CliAppWidgetProxy = (): {
   setupMenuScreen: () => void;
@@ -27,6 +28,7 @@ export const CliAppWidgetProxy = (): {
   setupListScreen: () => void;
   setupInitScreen: () => void;
   setupAddScreen: () => void;
+  setupAnswerScreen: () => void;
   getRenderedScreen: () => CliAppScreen;
   triggerMenuSelect: ({ option }: { option: string }) => void;
   triggerMenuExit: () => void;
@@ -35,10 +37,13 @@ export const CliAppWidgetProxy = (): {
   triggerInitBack: () => void;
   triggerTextInputSubmit: ({ userInput }: { userInput: string }) => void;
   triggerTextInputCancel: () => void;
+  triggerAnswerSubmit: ({ answer }: { answer: string }) => void;
+  triggerAnswerCancel: () => void;
   getSetState: () => jest.Mock;
 } => {
   // Initialize child proxies for layer widgets
   AddScreenLayerWidgetProxy();
+  AnswerScreenLayerWidgetProxy();
   HelpScreenLayerWidgetProxy();
   InitScreenLayerWidgetProxy();
   ListScreenLayerWidgetProxy();
@@ -66,6 +71,9 @@ export const CliAppWidgetProxy = (): {
     setupAddScreen: (): void => {
       screenState.current = 'add';
     },
+    setupAnswerScreen: (): void => {
+      screenState.current = 'answer';
+    },
     getRenderedScreen: (): CliAppScreen => screenState.current,
     triggerMenuSelect: ({ option }: { option: string }): void => {
       screenState.current = option as CliAppScreen;
@@ -86,6 +94,12 @@ export const CliAppWidgetProxy = (): {
       // Use stdin.write(text) then stdin.write('\r') instead
     },
     triggerTextInputCancel: (): void => {
+      screenState.current = 'menu';
+    },
+    triggerAnswerSubmit: ({ answer: _answer }: { answer: string }): void => {
+      // Use stdin.write(text) then stdin.write('\r') instead
+    },
+    triggerAnswerCancel: (): void => {
       screenState.current = 'menu';
     },
     getSetState: (): jest.Mock => setState,

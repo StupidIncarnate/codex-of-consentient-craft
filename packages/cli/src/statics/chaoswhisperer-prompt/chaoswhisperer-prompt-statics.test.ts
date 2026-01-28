@@ -96,7 +96,7 @@ describe('chaoswhispererPromptStatics', () => {
       });
     });
 
-    describe('completion instructions', () => {
+    describe('signaling instructions', () => {
       it('VALID: {prompt.template} => instructs to call signal-back MCP tool when done', () => {
         expect(chaoswhispererPromptStatics.prompt.template).toMatch(/signal-back/u);
       });
@@ -116,6 +116,16 @@ describe('chaoswhispererPromptStatics', () => {
 
       it('VALID: {prompt.placeholders} => has sessionId placeholder defined', () => {
         expect(chaoswhispererPromptStatics.prompt.placeholders.sessionId).toBe('$SESSION_ID');
+      });
+
+      it('VALID: {prompt.template} => documents needs-user-input signal', () => {
+        expect(chaoswhispererPromptStatics.prompt.template).toMatch(/needs-user-input/u);
+      });
+
+      it('VALID: {prompt.template} => instructs to not use AskUserQuestion tool', () => {
+        expect(chaoswhispererPromptStatics.prompt.template).toMatch(
+          /Do NOT use Claude's native AskUserQuestion tool/u,
+        );
       });
     });
   });

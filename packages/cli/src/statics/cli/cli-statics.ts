@@ -14,6 +14,7 @@ export const cliStatics = {
     add: 'add',
     run: 'run',
     claude: 'claude',
+    debug: 'debug',
   },
   meta: {
     name: 'dungeonmaster',

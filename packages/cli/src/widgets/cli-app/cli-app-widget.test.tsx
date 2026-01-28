@@ -1,8 +1,10 @@
 import React from 'react';
 
-import { InstallContextStub } from '@dungeonmaster/shared/contracts';
+import { InstallContextStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
+import { SignalQuestionStub } from '../../contracts/signal-question/signal-question.stub';
+import { SignalContextStub } from '../../contracts/signal-context/signal-context.stub';
 
 import { CliAppWidget } from './cli-app-widget';
 import { CliAppWidgetProxy } from './cli-app-widget.proxy';
@@ -21,6 +23,17 @@ const createMockInstallContext = (): ReturnType<typeof InstallContextStub> =>
     },
   });
 
+// Mock pending question for answer screen tests
+const createMockPendingQuestion = (): {
+  question: ReturnType<typeof SignalQuestionStub>;
+  context: ReturnType<typeof SignalContextStub>;
+  sessionId: ReturnType<typeof SessionIdStub>;
+} => ({
+  question: SignalQuestionStub({ value: 'What port number?' }),
+  context: SignalContextStub({ value: 'Setting up server' }),
+  sessionId: SessionIdStub({ value: 'test-session-123' }),
+});
+
 describe('CliAppWidget', () => {
   describe('screen routing', () => {
     it('VALID: {initialScreen: menu} => renders menu screen', () => {
@@ -31,6 +44,7 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="menu"
             onSpawnChaoswhisperer={noopCallback}
+            onResumeChaoswhisperer={noopCallback}
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
@@ -53,6 +67,7 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="help"
             onSpawnChaoswhisperer={noopCallback}
+            onResumeChaoswhisperer={noopCallback}
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
@@ -74,6 +89,7 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="list"
             onSpawnChaoswhisperer={noopCallback}
+            onResumeChaoswhisperer={noopCallback}
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
@@ -95,6 +111,7 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="init"
             onSpawnChaoswhisperer={noopCallback}
+            onResumeChaoswhisperer={noopCallback}
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
@@ -116,6 +133,7 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="add"
             onSpawnChaoswhisperer={noopCallback}
+            onResumeChaoswhisperer={noopCallback}
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
@@ -137,6 +155,7 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="run"
             onSpawnChaoswhisperer={noopCallback}
+            onResumeChaoswhisperer={noopCallback}
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
@@ -149,6 +168,30 @@ describe('CliAppWidget', () => {
 
       expect(frame).toMatch(/Run Quest/u);
     });
+
+    it('VALID: {initialScreen: answer, pendingQuestion} => renders answer screen', () => {
+      CliAppWidgetProxy();
+
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: (
+          <CliAppWidget
+            initialScreen="answer"
+            onSpawnChaoswhisperer={noopCallback}
+            onResumeChaoswhisperer={noopCallback}
+            onRunQuest={noopCallback}
+            onExit={noopCallback}
+            installContext={createMockInstallContext()}
+            pendingQuestion={createMockPendingQuestion()}
+          />
+        ),
+      });
+
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/What port number\?/u);
+      expect(frame).toMatch(/Setting up server/u);
+    });
   });
 
   describe('widget structure', () => {
@@ -160,6 +203,7 @@ describe('CliAppWidget', () => {
           <CliAppWidget
             initialScreen="menu"
             onSpawnChaoswhisperer={noopCallback}
+            onResumeChaoswhisperer={noopCallback}
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}

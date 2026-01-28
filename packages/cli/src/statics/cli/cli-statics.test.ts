@@ -25,6 +25,10 @@ describe('cliStatics', () => {
     it('VALID: claude command => returns claude', () => {
       expect(cliStatics.commands.claude).toBe('claude');
     });
+
+    it('VALID: debug command => returns debug', () => {
+      expect(cliStatics.commands.debug).toBe('debug');
+    });
   });
 
   describe('meta', () => {

@@ -97,6 +97,7 @@ describe('StartCli', () => {
         element: React.createElement(CliAppWidget, {
           initialScreen: 'add',
           onSpawnChaoswhisperer,
+          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: createDummyInstallContext(),
@@ -130,6 +131,7 @@ describe('StartCli', () => {
         element: React.createElement(CliAppWidget, {
           initialScreen: 'add',
           onSpawnChaoswhisperer,
+          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: createDummyInstallContext(),
@@ -169,6 +171,7 @@ describe('StartCli', () => {
         element: React.createElement(CliAppWidget, {
           initialScreen: 'menu',
           onSpawnChaoswhisperer,
+          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: createDummyInstallContext(),
@@ -214,6 +217,7 @@ describe('StartCli', () => {
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
           onSpawnChaoswhisperer,
+          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: {
@@ -252,6 +256,7 @@ describe('StartCli', () => {
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
           onSpawnChaoswhisperer,
+          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: {
@@ -330,6 +335,7 @@ describe('StartCli', () => {
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
           onSpawnChaoswhisperer,
+          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: {
@@ -364,6 +370,7 @@ describe('StartCli', () => {
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
           onSpawnChaoswhisperer,
+          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: {
@@ -405,6 +412,7 @@ describe('StartCli', () => {
         element: React.createElement(CliAppWidget, {
           initialScreen: 'menu',
           onSpawnChaoswhisperer,
+          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: {

@@ -340,17 +340,22 @@ When requirements need new packages or tools not in the codebase:
 4. **Testable** - Outcomes should be observable and measurable
 5. **User-focused** - Write from the user's perspective
 
-## Completion
+## Signaling Completion or Blocking
 
-When you have completed your work (created/modified the quest with contexts and observables),
-you MUST call the \`signal-back\` MCP tool to return control to the CLI:
+When you need to signal the CLI, use the \`signal-back\` MCP tool:
 
+**When work is complete:**
 \`\`\`
 signal-back({ signal: 'complete', stepId: '$SESSION_ID', summary: 'Quest created successfully' })
 \`\`\`
 
-This signals the CLI to terminate your session and display the quest list.
-Do NOT continue working after calling this tool.
+**When you need information from the user:**
+\`\`\`
+signal-back({ signal: 'needs-user-input', stepId: '$SESSION_ID', context: 'What you were working on', question: 'Specific question for the user' })
+\`\`\`
+
+This pauses your session. When the user answers, you will be resumed with their response.
+Do NOT use Claude's native AskUserQuestion tool - always use signal-back instead.
 
 ## User Request
 

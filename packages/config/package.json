@@ -29,7 +29,6 @@
   "devDependencies": {
     "@dungeonmaster/testing": "*"
   },
-  "peerDependencies": {},
   "publishConfig": {
     "access": "public"
   }

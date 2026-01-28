@@ -241,6 +241,53 @@ describe('teeOutputLayerBroker()', () => {
 
       expect(proxy.getWrittenOutput()).toBe('');
     });
+
+    it('VALID: {stream with tool_use content} => writes tool name to stdout', async () => {
+      const proxy = teeOutputLayerBrokerProxy();
+      const toolUseLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'tool_use', name: 'Task', input: {} }],
+          },
+        }),
+      });
+      proxy.setupStreamWithLines({ lines: [toolUseLine] });
+
+      const processStub = proxy.returnsProcessWithExit({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await teeOutputLayerBroker({
+        stdout: jest.fn() as never,
+        process: processStub,
+      });
+
+      expect(proxy.getWrittenOutput()).toBe('[Task]\n');
+    });
+
+    it('VALID: {stream with text and tool_use} => writes both to stdout', async () => {
+      const proxy = teeOutputLayerBrokerProxy();
+      const mixedLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [
+              { type: 'text', text: 'Let me explore.' },
+              { type: 'tool_use', name: 'Glob', input: {} },
+            ],
+          },
+        }),
+      });
+      proxy.setupStreamWithLines({ lines: [mixedLine] });
+
+      const processStub = proxy.returnsProcessWithExit({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await teeOutputLayerBroker({
+        stdout: jest.fn() as never,
+        process: processStub,
+      });
+
+      expect(proxy.getWrittenOutput()).toBe('Let me explore.[Glob]\n');
+    });
   });
 
   describe('process exit', () => {

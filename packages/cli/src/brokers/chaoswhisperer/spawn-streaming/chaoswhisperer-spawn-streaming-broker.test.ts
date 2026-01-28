@@ -1,7 +1,12 @@
 import { chaoswhispererSpawnStreamingBroker } from './chaoswhisperer-spawn-streaming-broker';
 import { chaoswhispererSpawnStreamingBrokerProxy } from './chaoswhisperer-spawn-streaming-broker.proxy';
 import { StreamJsonLineStub } from '../../../contracts/stream-json-line/stream-json-line.stub';
-import { UserInputStub, ExitCodeStub, StepIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  UserInputStub,
+  ExitCodeStub,
+  StepIdStub,
+  SessionIdStub,
+} from '@dungeonmaster/shared/contracts';
 import { UuidStub } from '../../../contracts/uuid/uuid.stub';
 
 describe('chaoswhispererSpawnStreamingBroker()', () => {
@@ -93,6 +98,44 @@ describe('chaoswhispererSpawnStreamingBroker()', () => {
           userInput: UserInputStub({ value: 'test' }),
         }),
       ).rejects.toThrow(/Spawn failed/u);
+    });
+  });
+
+  describe('resume session', () => {
+    it('VALID: {userInput, resumeSessionId} => passes --resume flag to spawn', async () => {
+      const proxy = chaoswhispererSpawnStreamingBrokerProxy();
+      const uuid = UuidStub();
+      proxy.setupUuid({ uuid });
+      proxy.setupSuccessNoSignal({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      const resumeSessionId = SessionIdStub({ value: 'previous-session-123' });
+
+      await chaoswhispererSpawnStreamingBroker({
+        userInput: UserInputStub({ value: 'Continue with auth' }),
+        resumeSessionId,
+      });
+
+      const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
+      const resumeFlagIndex = spawnedArgs.indexOf('--resume');
+
+      expect(resumeFlagIndex).toBeGreaterThan(-1);
+      expect(spawnedArgs[resumeFlagIndex + 1]).toStrictEqual(resumeSessionId);
+    });
+
+    it('VALID: {userInput, no resumeSessionId} => does not include --resume flag', async () => {
+      const proxy = chaoswhispererSpawnStreamingBrokerProxy();
+      const uuid = UuidStub();
+      proxy.setupUuid({ uuid });
+      proxy.setupSuccessNoSignal({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await chaoswhispererSpawnStreamingBroker({
+        userInput: UserInputStub({ value: 'New quest' }),
+      });
+
+      const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
+      const resumeFlagIndex = spawnedArgs.indexOf('--resume');
+
+      expect(resumeFlagIndex).toBe(-1);
     });
   });
 });
