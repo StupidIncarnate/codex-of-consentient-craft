@@ -5,9 +5,36 @@
 
 ## Research Questions Resolved
 
-### 1. How to Test Orchestration Layer (Not Just Widgets)
+### 1. How to Setup MCP and Hooks in Test Environment
 
-**Decision**: Create `start-e2e.ts` entry point that runs full CLI with subprocess control
+**Decision**: Use existing `testbed.runInitCommand()` which runs `dungeonmaster init`
+
+**Rationale**: The CLI has a built-in init command that properly configures:
+- `.mcp.json` - MCP server configuration
+- `.claude/settings.json` - Hooks configuration
+- `.dungeonmaster` - CLI config file
+- `eslint.config.js` - ESLint setup
+
+Manual .mcp.json copying would miss hooks setup and other init logic.
+
+**Existing code** (from `install-testbed-create-broker.ts:144-183`):
+```typescript
+runInitCommand: (): ReturnType<InstallTestbed['runInitCommand']> => {
+  const result = childProcessExecSyncAdapter({
+    command: 'dungeonmaster init',
+    options: { cwd: projectPath, encoding: 'utf-8', stdio: 'pipe' },
+  });
+  return { exitCode, stdout, stderr };
+}
+```
+
+**Alternatives Considered**:
+- Copy .mcp.json manually → Rejected: Misses hooks setup per user feedback
+- Start MCP server separately → Rejected: Claude CLI manages MCP lifecycle
+
+### 2. How to Test Orchestration Layer (Not Just Widgets)
+
+**Decision**: Spawn full CLI as subprocess and control via stdin/stdout
 
 **Rationale**: The existing `start-debug.ts` only renders `CliAppWidget` and tracks callback invocations. It does NOT execute the orchestration logic in `start-cli.ts` that:
 - Calls `chaoswhispererSpawnStreamingBroker` after `onSpawnChaoswhisperer` fires
@@ -15,187 +42,188 @@
 - Decides next screen based on signal (e.g., `needs-user-input` → answer screen)
 - Writes quest files via MCP tools
 
-For true E2E testing, we must spawn the full CLI as a subprocess and control it via stdin/stdout.
+For true E2E testing, we must spawn the CLI subprocess.
 
 **Alternatives Considered**:
-- Mock the orchestration layer → Rejected: Defeats purpose of E2E testing
 - Extend debug mode to call brokers → Rejected: Would couple test infrastructure to production code paths
-- Use process.stdout interception → Rejected: Ink uses raw terminal mode, difficult to intercept cleanly
+- Mock the orchestration layer → Rejected: Defeats purpose of E2E testing
 
-### 2. How to Integrate Real MCP Server
+### 3. Where Do E2E Tests Live?
 
-**Decision**: Configure `.mcp.json` in test project directory and let Claude CLI discover it
+**Decision**: Co-located with `start-cli.ts` as `.integration.test.ts`
 
-**Rationale**: The MCP server is started by Claude CLI based on `.mcp.json` configuration. The harness will:
-1. Create isolated test project directory
-2. Copy/link `.mcp.json` from repo root
-3. Run MCP server path relative to test project
-4. Claude CLI automatically connects to configured MCP
+**Analysis of Options**:
 
-**Implementation**:
+| Option | Pros | Cons |
+|--------|------|------|
+| `packages/cli/.../start-cli.integration.test.ts` | Follows testing patterns strictly; co-located with entry point; precedent from `start-debug.integration.test.ts`; clear ownership | Tests involve multiple packages; semantically tests "the system" |
+| `tests/e2e/` at repo root | Clearly signals system tests; separates E2E from integration; easy glob pattern | Violates testing patterns; non-co-located; adds directory structure to maintain |
+
+**Rationale**:
+1. **Testing patterns are explicit**: Per `get-testing-patterns()`: "Integration tests are ONLY for startup files." E2E tests for CLI flows ARE testing `start-cli.ts` - that's the entry point.
+2. **Testbed creates full isolation**: The `e2eTestbedCreateBroker` creates a fully runnable folder environment with MCP + hooks. From CLI's perspective, it's just running in a different project directory.
+3. **Precedent exists**: `start-debug.integration.test.ts` already tests CLI subprocess behavior from the same location.
+4. **YAGNI**: A `tests/e2e/` directory adds structure we don't need now. If we later have E2E tests for other entry points (MCP server), they'd go with THOSE startup files.
+5. **Semantic clarity via describe blocks**: `describe('start-cli E2E flows', ...)` makes intent clear within the file.
+
+**Location**: `packages/cli/src/startup/start-cli.integration.test.ts`
+
+**Alternatives Considered**:
+- `tests/e2e/` at repo root → Rejected: Violates testing patterns; adds unnecessary directory structure
+- In `packages/testing/` → Rejected: Tests should be near code they test
+
+### 4. Contract Standards for This Feature
+
+**Decision**: Follow full contract standards with branded Zod types and stubs
+
+**Rationale**: Per `get-folder-detail({ folderType: "contracts" })`:
+- ALL contracts MUST use `.brand<'TypeName'>()` on primitives
+- Stubs use `StubArgument<Type>` pattern with spread operator
+- Tests import from `.stub.ts` files, NOT from `-contract.ts` files
+
+**Contracts needed**:
 ```typescript
-// In test setup
-testbed.writeFile({
-  relativePath: '.mcp.json',
-  content: JSON.stringify({
-    mcpServers: {
-      dungeonmaster: {
-        type: 'stdio',
-        command: 'npx',
-        args: ['tsx', `${repoRoot}/packages/mcp/src/index.ts`]
-      }
-    }
-  })
+// cli-screen-name-contract.ts
+export const cliScreenNameContract = z.enum([
+  'menu', 'add', 'list', 'help', 'run', 'answer', 'init'
+]).brand<'CliScreenName'>();
+export type CliScreenName = z.infer<typeof cliScreenNameContract>;
+
+// screen-frame-contract.ts
+export const screenFrameContract = z.string().brand<'ScreenFrame'>();
+export type ScreenFrame = z.infer<typeof screenFrameContract>;
+
+// e2e-testbed-contract.ts
+export const e2eTestbedContract = installTestbedContract.extend({
+  startCli: z.function(),
+  sendInput: z.function(),
+  // ... E2E methods
 });
 ```
 
-**Alternatives Considered**:
-- Start MCP server separately → Rejected: Claude CLI expects to manage MCP lifecycle
-- Mock MCP responses → Rejected: Defeats purpose of E2E testing real MCP integration
+### 5. Extending vs Creating New Testbed
 
-### 3. How to Detect Screen Transitions
+**Decision**: Create new `e2eTestbedCreateBroker` that composes `installTestbedCreateBroker`
 
-**Decision**: Parse CLI stdout for screen indicators using regex patterns
+**Rationale**: Per "Extension Over Creation Philosophy":
+> If a domain file exists, EXTEND it with options - never create variant files.
 
-**Rationale**: The CLI renders different prompts/content for each screen:
-- Menu: Contains "Add", "Run", "List", "Help", "Exit"
-- Add: Contains "What would you like to build"
-- List: Contains quest names
-- Answer: Contains question text from `signal-back`
+However, E2E testbed is a different domain (new action) from install testbed:
+- Install testbed: Tests installation system
+- E2E testbed: Tests CLI user flows
 
-The harness will provide `waitForScreen(name, options)` that polls stdout until pattern matches.
+This is a case of "New action (user-delete when only user-fetch exists)".
 
-**Screen Detection Patterns**:
+**Pattern**:
 ```typescript
-const screenPatterns = {
-  menu: /Add.*Run.*List/s,
-  add: /What would you like to build/,
-  list: /dungeonmaster-quests/,  // or specific quest names
-  answer: /\?.*$/, // Question ends with ?
+export const e2eTestbedCreateBroker = ({ baseName }: { baseName: BaseName }): E2ETestbed => {
+  const testbed = installTestbedCreateBroker({ baseName });
+  testbed.runInitCommand();  // Setup MCP + hooks
+
+  return {
+    ...testbed,  // Include all install testbed methods
+    // Add E2E-specific methods
+    startCli: () => { /* spawn subprocess */ },
+    waitForScreen: ({ screen, contains }) => { /* poll stdout */ },
+    // ...
+  };
 };
 ```
 
-**Alternatives Considered**:
-- Use debug mode getScreen → Rejected: Debug mode doesn't run orchestration
-- Parse ANSI codes → Rejected: Complex and brittle
-- Add explicit markers to CLI output → Considered: Would require CLI changes, but cleaner
+### 6. Screen Detection Strategy
 
-### 4. How to Send Input to Running CLI
+**Decision**: Poll stdout for screen-specific patterns
 
-**Decision**: Use subprocess stdin.write() with appropriate escape sequences
-
-**Rationale**: The CLI uses Ink which reads from stdin. We can:
-1. Spawn CLI with `stdio: ['pipe', 'pipe', 'pipe']`
-2. Write text via `process.stdin.write(text)`
-3. Send Enter via `process.stdin.write('\r')`
-4. Send escape keys via `process.stdin.write('\x1B')`, arrows via `process.stdin.write('\x1B[A')`
-
-**Key escape codes** (from `debug-keys-statics.ts`):
-```typescript
-{
-  enter: '\r',
-  escape: '\x1B',
-  up: '\x1B[A',
-  down: '\x1B[B',
-  backspace: '\x7F',
-  tab: '\t'
-}
-```
-
-**Alternatives Considered**:
-- Use PTY library (node-pty) → Considered: More realistic but adds complexity
-- Extend debug mode → Rejected: Debug mode can't test orchestration
-
-### 5. How to Handle Claude CLI Timeouts
-
-**Decision**: Configure per-operation timeout with default 60s, allow override
-
-**Rationale**: Claude operations can take varying time:
-- Simple quest creation: 10-30s
-- Complex reasoning: 30-60s
-- MCP tool calls: Variable
-
-The harness will:
-1. Default timeout: 60s per Claude operation
-2. Per-test override: `{ timeout: 90000 }`
-3. Clear error message on timeout with last known state
-
-**Alternatives Considered**:
-- Fixed timeout → Rejected: Too inflexible
-- No timeout → Rejected: Tests would hang on failures
-
-### 6. How to Verify Quest File Creation
-
-**Decision**: Use file system assertions with polling
-
-**Rationale**: After Claude creates a quest via `add-quest` MCP tool, a file appears in `.dungeonmaster-quests/`. The harness will:
-1. Poll for file existence (quest folder may take time to create)
-2. Parse JSON content
-3. Provide assertion helpers: `expect(questFile).toHaveTitle('DangerFun')`
-
-**Quest file structure** (from research):
-```typescript
-{
-  id: string,
-  folder: string,  // "001-danger-fun"
-  title: string,   // "DangerFun"
-  status: string,  // "in_progress"
-  createdAt: string,
-  // ... other fields
-}
-```
-
-**Alternatives Considered**:
-- Mock file system → Rejected: Defeats E2E purpose
-- Check via MCP get-quest → Considered: Valid alternative, but file check is more direct
-
-### 7. How to Assert Screen Content Exclusions
-
-**Decision**: Provide negative assertion helper: `expect(screen).not.toContain(prompt)`
-
-**Rationale**: One test requirement is verifying the user prompt is NOT visible after submission. The harness will capture the current screen frame and support both positive and negative assertions:
-- `expect(screen).toContain('DangerFun')` - Must be present
-- `expect(screen).not.toContain('Testing cli workflow')` - Must NOT be present
+**Rationale**: Each CLI screen has characteristic content:
+- Menu: Contains "Add", "Run", "List"
+- Add: Contains "What would you like to build"
+- List: Contains quest names or ".dungeonmaster-quests"
+- Answer: Contains question text ending with "?"
 
 **Implementation**:
 ```typescript
-const screen = await harness.getScreen();
-expect(screen.frame).not.toMatch(/Testing cli workflow/);
+waitForScreen: async ({ screen, contains, timeout = e2eTimeoutsStatics.defaultWait }) => {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const frame = await getLatestFrame();
+    if (matchesScreen(frame, screen) && (!contains || frame.includes(contains))) {
+      return { name: screen, frame, capturedAt: Date.now() };
+    }
+    await sleep(e2eTimeoutsStatics.pollInterval);
+  }
+  throw new E2ETimeoutError(screen, timeout, lastFrame);
+}
+```
+
+### 7. Timeout Configuration
+
+**Decision**: Use statics for timeout values, allow per-call override
+
+**Rationale**: Per architecture, magic numbers go in `statics/`. Claude operations have variable timing.
+
+**Statics** (`e2e-timeouts-statics.ts`):
+```typescript
+export const e2eTimeoutsStatics = {
+  defaultWait: 30000,       // 30s for screen transitions
+  claudeOperation: 90000,   // 90s for Claude to respond
+  pollInterval: 100,        // 100ms between polls
+  processStartup: 5000,     // 5s for CLI to start
+} as const;
+```
+
+### 8. Proxy Pattern for E2E Broker
+
+**Decision**: Empty proxy since E2E broker has no mock-able dependencies
+
+**Rationale**: Per `get-testing-patterns()`:
+> Mock only at I/O boundaries. Everything else runs REAL.
+
+The E2E testbed broker:
+- Uses real file system (via testbed)
+- Spawns real CLI subprocess
+- No npm packages to mock at adapter level
+
+**Proxy**:
+```typescript
+export const e2eTestbedCreateBrokerProxy = (): Record<PropertyKey, never> => ({});
 ```
 
 ## Existing Code to Leverage
 
+### From `packages/testing/src/brokers/install-testbed/create/`
+
+- `installTestbedCreateBroker` - Creates isolated temp directories with:
+  - `projectPath` - Unique temp directory
+  - `writeFile()`, `readFile()` - File operations
+  - `runInitCommand()` - Runs `dungeonmaster init`
+  - `getClaudeSettings()`, `getMcpConfig()` - Read configs
+  - `cleanup()` - Remove temp directory
+
 ### From `packages/cli/src/startup/start-debug.integration.test.ts`
 
-The `createDebugClient()` pattern provides a working example of subprocess communication:
-- Spawns process with stdio pipes
-- Line-delimited JSON protocol
-- Resolver queue for async responses
-- Timeout handling
+- `createDebugClient()` pattern - Subprocess communication:
+  - Spawns process with stdio pipes
+  - Line-delimited JSON protocol
+  - Resolver queue for async responses
 
-### From `@dungeonmaster/testing`
+### From `packages/testing/src/statics/integration-environment/`
 
-- `installTestbedCreateBroker` - Creates isolated temp directories
-- `BaseNameStub` - Generates unique test names
-- Jest mock auto-reset - No manual cleanup needed
-
-### From `packages/cli/src/statics/debug-keys/debug-keys-statics.ts`
-
-- Key escape codes for terminal input simulation
+- `integrationEnvironmentStatics` - Base paths and constants for test isolation
 
 ## Dependencies Required
 
-No new npm dependencies needed. Uses:
+No new npm dependencies. Uses existing:
 - `child_process.spawn` (Node.js built-in)
 - `jest` (existing)
 - `@dungeonmaster/testing` (existing)
+- `zod` (existing)
 
 ## Risk Assessment
 
 | Risk | Mitigation |
 |------|------------|
-| Claude API rate limits | Run E2E tests sparingly (not on every commit) |
-| Flaky tests due to timing | Use polling with sensible timeouts, not fixed delays |
-| MCP server startup time | Warm up MCP in beforeAll, reuse across tests |
-| Test isolation failures | Each test gets fresh temp directory |
+| Claude API rate limits | Run E2E tests sparingly (not on every commit), use `jest --testPathPattern` |
+| Flaky tests due to timing | Use polling with configurable timeouts via statics |
+| MCP server startup time | Init command handles this; testbed.runInitCommand() blocks until complete |
+| Test isolation failures | Each test gets fresh temp directory via existing testbed pattern |
 | Claude response variability | Use explicit instructions ("Call it DangerFun", "Ask me the question") |

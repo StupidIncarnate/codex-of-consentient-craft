@@ -5,86 +5,200 @@
 
 ## Entities
 
-### E2ETestContext
+### CliScreenName (Branded Enum)
 
-Represents the isolated test environment for a single E2E test.
+Represents valid CLI screen identifiers.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| projectPath | string | Absolute path to isolated temp directory |
-| cliProcess | ChildProcess \| null | Reference to spawned CLI subprocess |
-| mcpConfigPath | string | Path to .mcp.json in test project |
-| questsPath | string | Path to .dungeonmaster-quests/ |
-| startTime | number | Timestamp when context was created |
-| timeout | number | Default timeout in ms (default: 60000) |
+**Contract** (`cli-screen-name-contract.ts`):
+```typescript
+import { z } from 'zod';
 
-**Validation Rules**:
-- `projectPath` must be absolute path
-- `projectPath` must exist on file system
-- `timeout` must be positive integer
+export const cliScreenNameContract = z.enum([
+  'menu',
+  'add',
+  'list',
+  'help',
+  'run',
+  'answer',
+  'init',
+]).brand<'CliScreenName'>();
 
-**State Transitions**:
-- Created → CLI Started → CLI Running → CLI Stopped → Cleaned Up
+export type CliScreenName = z.infer<typeof cliScreenNameContract>;
+```
 
-### E2EScreenState[data-model.md](data-model.md)
+**Stub** (`cli-screen-name.stub.ts`):
+```typescript
+import { cliScreenNameContract } from './cli-screen-name-contract';
+import type { CliScreenName } from './cli-screen-name-contract';
+
+export const CliScreenNameStub = (
+  { value }: { value: string } = { value: 'menu' }
+): CliScreenName => cliScreenNameContract.parse(value);
+```
+
+---
+
+### ScreenFrame (Branded String)
+
+Represents raw terminal output captured from CLI.
+
+**Contract** (`screen-frame-contract.ts`):
+```typescript
+import { z } from 'zod';
+
+export const screenFrameContract = z.string().brand<'ScreenFrame'>();
+
+export type ScreenFrame = z.infer<typeof screenFrameContract>;
+```
+
+**Stub** (`screen-frame.stub.ts`):
+```typescript
+import { screenFrameContract } from './screen-frame-contract';
+import type { ScreenFrame } from './screen-frame-contract';
+
+export const ScreenFrameStub = (
+  { value }: { value: string } = { value: '┌──────────┐\n│  Menu    │\n└──────────┘' }
+): ScreenFrame => screenFrameContract.parse(value);
+```
+
+---
+
+### E2EScreenState
 
 Represents a captured snapshot of CLI screen output.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| name | string | Screen identifier (menu, add, list, answer, etc.) |
-| frame | string | Raw terminal output as string |
-| capturedAt | number | Timestamp of capture |
+**Contract** (`e2e-screen-state-contract.ts`):
+```typescript
+import { z } from 'zod';
+import { cliScreenNameContract } from '../cli-screen-name/cli-screen-name-contract';
+import { screenFrameContract } from '../screen-frame/screen-frame-contract';
 
-**Validation Rules**:
-- `name` must be one of: 'menu' \| 'add' \| 'list' \| 'help' \| 'run' \| 'answer' \| 'init'
-- `frame` may contain ANSI escape codes
+export const e2eScreenStateContract = z.object({
+  name: cliScreenNameContract,
+  frame: screenFrameContract,
+  capturedAt: z.number().int().positive().brand<'Timestamp'>(),
+});
 
-### E2EAssertion
+export type E2EScreenState = z.infer<typeof e2eScreenStateContract>;
+```
 
-Represents an assertion to be verified against test state.
+**Stub** (`e2e-screen-state.stub.ts`):
+```typescript
+import type { StubArgument } from '@dungeonmaster/shared/@types';
+import { e2eScreenStateContract } from './e2e-screen-state-contract';
+import type { E2EScreenState } from './e2e-screen-state-contract';
 
-| Field | Type | Description |
-|-------|------|-------------|
-| type | string | 'screen-contains' \| 'screen-excludes' \| 'file-exists' \| 'file-contains' |
-| target | string | What to check (screen frame, file path) |
-| expected | string \| RegExp | Expected value or pattern |
-| actual | string \| null | Actual value found |
-| passed | boolean | Whether assertion passed |
+export const E2EScreenStateStub = (
+  { ...props }: StubArgument<E2EScreenState> = {}
+): E2EScreenState => e2eScreenStateContract.parse({
+  name: 'menu',
+  frame: '┌──────────┐\n│  Menu    │\n└──────────┘',
+  capturedAt: 1704067200000,
+  ...props,
+});
+```
 
-### QuestFile
+---
 
-Represents a quest file created by the CLI.
+### E2ETestbed
 
-| Field | Type | Description |
-|-------|------|-------------|
-| id | string | Quest identifier (kebab-case) |
-| folder | string | Quest folder name (e.g., "001-danger-fun") |
-| title | string | Human-readable quest title |
-| status | string | Quest status (in_progress, complete, etc.) |
-| userRequest | string | Original user prompt |
-| createdAt | string | ISO timestamp |
-| contexts | array | Quest contexts |
-| observables | array | Observable outcomes |
-| steps | array | Execution steps |
-| toolingRequirements | array | Required tools |
-| executionLog | array | Execution history |
+Represents the E2E test environment, extending InstallTestbed.
 
-**Validation Rules**:
-- `id` must match `/^[a-z0-9-]+$/`
-- `folder` must match `/^\d{3}-[a-z0-9-]+$/`
-- `status` must be valid quest status
+**Contract** (`e2e-testbed-contract.ts`):
+```typescript
+import { z } from 'zod';
+import { installTestbedContract } from '../install-testbed/install-testbed-contract';
+import { cliScreenNameContract } from '../cli-screen-name/cli-screen-name-contract';
+import { screenFrameContract } from '../screen-frame/screen-frame-contract';
+
+// E2E testbed extends install testbed with CLI control methods
+export const e2eTestbedContract = installTestbedContract.extend({
+  // CLI subprocess reference (non-serializable, excluded from parse)
+});
+
+// Full runtime type includes functions
+export interface E2ETestbed extends z.infer<typeof e2eTestbedContract> {
+  // Inherited from InstallTestbed
+  projectPath: string & z.BRAND<'ProjectPath'>;
+  dungeonmasterPath: string & z.BRAND<'DungeonmasterPath'>;
+  cleanup: () => void;
+  writeFile: (args: { relativePath: string; content: string }) => void;
+  readFile: (args: { relativePath: string }) => string | null;
+  getClaudeSettings: () => unknown;
+  getMcpConfig: () => unknown;
+  getDungeonmasterConfig: () => unknown;
+  getEslintConfig: () => string | null;
+  runInitCommand: () => { exitCode: number; stdout: string; stderr: string };
+
+  // E2E-specific methods
+  startCli: () => Promise<void>;
+  stopCli: () => void;
+  sendInput: (args: { text: string }) => Promise<void>;
+  sendKeypress: (args: { key: KeyName }) => Promise<void>;
+  getScreen: () => Promise<E2EScreenState>;
+  waitForScreen: (args: {
+    screen: CliScreenName;
+    contains?: string;
+    excludes?: string;
+    timeout?: number;
+  }) => Promise<E2EScreenState>;
+  getQuestFiles: () => string[];
+  readQuestFile: (args: { folder: string }) => QuestFile;
+}
+
+type KeyName = 'enter' | 'escape' | 'up' | 'down' | 'backspace' | 'tab';
+type CliScreenName = z.infer<typeof cliScreenNameContract>;
+type E2EScreenState = { name: CliScreenName; frame: string; capturedAt: number };
+type QuestFile = Record<string, unknown>;  // Quest structure from existing contracts
+```
+
+**Note**: Stub not needed for testbed - it's a service object created by broker, not test data.
+
+---
+
+### E2ETimeouts (Statics)
+
+Immutable timeout configuration values.
+
+**Statics** (`e2e-timeouts-statics.ts`):
+```typescript
+export const e2eTimeoutsStatics = {
+  /** Default wait for screen transitions (30 seconds) */
+  defaultWait: 30000,
+
+  /** Timeout for Claude operations (90 seconds) */
+  claudeOperation: 90000,
+
+  /** Interval between screen polls (100ms) */
+  pollInterval: 100,
+
+  /** CLI process startup time (5 seconds) */
+  processStartup: 5000,
+} as const;
+```
+
+---
 
 ## Relationships
 
 ```
-E2ETestContext
+E2ETestbed
     │
-    ├── 1:1 ── cliProcess (spawned CLI subprocess)
+    ├── extends ── InstallTestbed (composition)
+    │                 ├── projectPath
+    │                 ├── writeFile()
+    │                 ├── readFile()
+    │                 ├── runInitCommand()
+    │                 └── cleanup()
     │
-    ├── 1:N ── E2EScreenState (captured screens over time)
+    ├── 1:1 ── CLI subprocess (ChildProcess)
     │
-    └── 1:N ── QuestFile (quests created during test)
+    ├── 1:N ── E2EScreenState (captured over time)
+    │              ├── name: CliScreenName
+    │              ├── frame: ScreenFrame
+    │              └── capturedAt: Timestamp
+    │
+    └── 1:N ── QuestFile (created during test)
 ```
 
 ## Data Flow
@@ -93,37 +207,55 @@ E2ETestContext
 Test Start
     │
     ▼
-Create E2ETestContext (temp dir, config files)
+e2eTestbedCreateBroker({ baseName })
+    │
+    ├── installTestbedCreateBroker() (creates temp dir)
+    │
+    ├── testbed.runInitCommand() (runs dungeonmaster init)
+    │       └── Sets up: .mcp.json, .claude/settings.json, hooks
+    │
+    └── Returns E2ETestbed
     │
     ▼
-Spawn CLI Process (subprocess)
+testbed.startCli()
+    │
+    └── spawn('npx', ['tsx', 'start-cli.ts'], { cwd: projectPath })
     │
     ▼
-Send Input ────────────────────┐
-    │                          │
-    ▼                          ▼
-Capture E2EScreenState    Wait for MCP operations
-    │                          │
-    ▼                          ▼
-Run E2EAssertion         Read QuestFile from disk
-    │                          │
-    └──────────────────────────┘
+testbed.sendInput({ text }) / testbed.sendKeypress({ key })
+    │
+    └── process.stdin.write(text + '\r') / process.stdin.write(escapeCode)
     │
     ▼
-Test Complete
+testbed.waitForScreen({ screen, contains })
+    │
+    ├── Poll stdout every 100ms
+    ├── Check screen pattern matches
+    └── Return E2EScreenState or throw timeout
     │
     ▼
-Cleanup (kill process, remove temp dir)
+testbed.getQuestFiles() / testbed.readQuestFile({ folder })
+    │
+    └── List/read from .dungeonmaster-quests/
+    │
+    ▼
+testbed.stopCli() / testbed.cleanup()
+    │
+    ├── Kill CLI subprocess
+    └── Remove temp directory
 ```
 
-## File Structure After Test
+## File Structure After Init
 
 ```
-/tmp/e2e-test-xyz123/
-├── .mcp.json                      # MCP configuration (copied/generated)
-├── .dungeonmaster-quests/         # Quest storage
-│   └── 001-danger-fun/
-│       └── quest.json             # Created quest file
-├── package.json                   # Minimal package config
-└── .dungeonmaster/                # CLI state (if any)
+/tmp/dm-e2e-test-abc123/
+├── package.json                   # Created by installTestbedCreateBroker
+├── .claude/
+│   └── settings.json              # Created by dungeonmaster init (hooks)
+├── .mcp.json                      # Created by dungeonmaster init (MCP server)
+├── .dungeonmaster                 # Created by dungeonmaster init (CLI config)
+├── eslint.config.js               # Created by dungeonmaster init
+└── .dungeonmaster-quests/         # Created when quest added
+    └── 001-danger-fun/
+        └── quest.json
 ```

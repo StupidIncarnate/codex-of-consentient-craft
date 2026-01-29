@@ -21,8 +21,13 @@ Keeps it very high-level
 
 ### plan
 - It uses the consistution to validate the plan.... Oh constitutions is for spec gates.
+- It writes to root claude for memory. 
+- It made a wrong assumption about copying the mcp.json instead of using the cli init call.
+- Really like the focus on contracts it makes. But it did bad assumptions that will mess with agents doing these.
+- It adding actual code means that the sub agents generating will be more likely to just copy/paste which means if the syntax is bad, theyll write it bad.
 
 ![plan-output.png](specs/plan-output.png)
+![plan-clarifications.png](specs/plan-clarifications.png)
 
 #### Assets
 - [data-model.md](specs/001-e2e-testing/data-model.md)
@@ -35,3 +40,6 @@ Keeps it very high-level
 - [e2e-screen-state.contract.md](specs/001-e2e-testing/contracts/e2e-screen-state.contract.md)
 - [e2e-test-context.contract.md](specs/001-e2e-testing/contracts/e2e-test-context.contract.md)
 
+
+I asked it to consider a point of view and did so and notated as history for plan.
+![plan-consideration.png](specs/plan-consideration.png)

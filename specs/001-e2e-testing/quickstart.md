@@ -5,71 +5,85 @@
 
 ## Overview
 
-The E2E testing harness enables full integration testing of CLI user flows with real MCP server integration and Claude headless mode.
+The E2E testing harness enables full integration testing of CLI user flows with real MCP server integration and Claude headless mode. It extends the existing `installTestbedCreateBroker` and uses `dungeonmaster init` for proper environment setup.
 
 ## Writing Your First E2E Test
 
-### 1. Create Test File
+### 1. Create Integration Test File
 
-Create a new file in `tests/e2e/`:
+E2E tests are integration tests that go with the startup file they test:
 
 ```typescript
-// tests/e2e/my-feature.e2e.test.ts
-import { e2eHarnessBroker } from '@dungeonmaster/testing';
-import type { E2ETestContext } from '@dungeonmaster/testing';
+// packages/cli/src/startup/start-cli.integration.test.ts
+import { e2eTestbedCreateBroker } from '@dungeonmaster/testing';
+import { BaseNameStub } from '@dungeonmaster/testing/contracts';
+import { CliScreenNameStub } from '@dungeonmaster/testing/contracts';
 
-describe('My Feature E2E', () => {
-  let context: E2ETestContext;
+type E2ETestbed = ReturnType<typeof e2eTestbedCreateBroker>;
 
-  beforeEach(async () => {
-    context = await e2eHarnessBroker.createContext({
-      baseName: 'my-feature-test',
-    });
-    await e2eHarnessBroker.startCli({ context });
-  }, 30000); // Increase timeout for setup
-
-  afterEach(async () => {
-    await e2eHarnessBroker.cleanup({ context });
-  });
-
+describe('start-cli E2E', () => {
   // Tests go here
 });
 ```
 
-### 2. Write BDD-Style Test
+### 2. Write BDD-Style Test (Inline Setup/Teardown)
+
+Per testing patterns, NO beforeEach/afterEach hooks. All setup is inline:
 
 ```typescript
-it('should create a quest from the Add screen', async () => {
-  // GIVEN: CLI is on menu screen
-  const menuScreen = await e2eHarnessBroker.getScreen({ context });
-  expect(menuScreen.name).toBe('menu');
+describe('quest creation', () => {
+  it('VALID: {prompt without followup} => creates quest and shows list', async () => {
+    // SETUP - inline per test
+    const testbed = e2eTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'quest-creation' }),
+    });
 
-  // WHEN: User navigates to Add and enters a quest description
-  await e2eHarnessBroker.sendKeypress({ context, key: 'enter' }); // Select "Add"
-  await e2eHarnessBroker.sendInput({ context, text: 'Build a REST API' });
-  await e2eHarnessBroker.sendKeypress({ context, key: 'enter' }); // Submit
+    // GIVEN: CLI is started on menu screen
+    await testbed.startCli();
+    const menuScreen = await testbed.getScreen();
+    expect(menuScreen.name).toBe('menu');
 
-  // THEN: CLI shows list screen with new quest
-  const listScreen = await e2eHarnessBroker.waitForScreen({
-    context,
-    screen: 'list',
-    timeout: 90000,
-  });
-  expect(listScreen.frame).toContain('REST API');
-}, 120000); // 2 minute timeout for Claude operations
+    // WHEN: User navigates to Add and enters quest description
+    await testbed.sendKeypress({ key: 'enter' }); // Select "Add"
+    await testbed.sendInput({
+      text: 'Testing cli workflow, make me a quest without any followup questions. Call it DangerFun',
+    });
+    await testbed.sendKeypress({ key: 'enter' }); // Submit
+
+    // THEN: CLI shows list screen with new quest
+    const listScreen = await testbed.waitForScreen({
+      screen: CliScreenNameStub({ value: 'list' }),
+      contains: 'DangerFun',
+      timeout: 90000,
+    });
+
+    // AND: Quest file was created
+    const quests = testbed.getQuestFiles();
+    expect(quests.length).toBe(1);
+    const quest = testbed.readQuestFile({ folder: quests[0] });
+    expect(quest.title).toContain('DangerFun');
+
+    // AND: Prompt is NOT visible on screen (known bug - should fail)
+    expect(listScreen.frame).not.toContain('Testing cli workflow');
+
+    // CLEANUP - inline per test
+    testbed.stopCli();
+    testbed.cleanup();
+  }, 120000); // 2 minute timeout
+});
 ```
 
 ### 3. Run the Test
 
 ```bash
-# Run all E2E tests
-npm test -- tests/e2e/
-
-# Run specific E2E test
-npm test -- tests/e2e/my-feature.e2e.test.ts
+# Run E2E integration test
+npm test -- packages/cli/src/startup/start-cli.integration.test.ts
 
 # Run with verbose output
-npm test -- tests/e2e/ --verbose
+npm test -- packages/cli/src/startup/start-cli.integration.test.ts --verbose
+
+# Run specific test by name
+npm test -- packages/cli/src/startup/start-cli.integration.test.ts -t "DangerFun"
 ```
 
 ## Common Patterns
@@ -78,27 +92,26 @@ npm test -- tests/e2e/ --verbose
 
 ```typescript
 // Select "Add" (first item, just press enter)
-await e2eHarnessBroker.sendKeypress({ context, key: 'enter' });
+await testbed.sendKeypress({ key: 'enter' });
 
 // Select "Run" (second item)
-await e2eHarnessBroker.sendKeypress({ context, key: 'down' });
-await e2eHarnessBroker.sendKeypress({ context, key: 'enter' });
+await testbed.sendKeypress({ key: 'down' });
+await testbed.sendKeypress({ key: 'enter' });
 
 // Select "List" (third item)
-await e2eHarnessBroker.sendKeypress({ context, key: 'down' });
-await e2eHarnessBroker.sendKeypress({ context, key: 'down' });
-await e2eHarnessBroker.sendKeypress({ context, key: 'enter' });
+await testbed.sendKeypress({ key: 'down' });
+await testbed.sendKeypress({ key: 'down' });
+await testbed.sendKeypress({ key: 'enter' });
 ```
 
 ### Waiting for Claude Operations
 
 ```typescript
-// Wait for screen with extended timeout
-const screen = await e2eHarnessBroker.waitForScreen({
-  context,
-  screen: 'list',
-  contains: 'MyQuestName',  // Wait until this text appears
-  timeout: 90000,            // 90 seconds for Claude
+// Wait for screen with extended timeout for Claude
+const screen = await testbed.waitForScreen({
+  screen: CliScreenNameStub({ value: 'list' }),
+  contains: 'MyQuestName',
+  timeout: 90000, // 90s for Claude response
 });
 ```
 
@@ -106,66 +119,92 @@ const screen = await e2eHarnessBroker.waitForScreen({
 
 ```typescript
 // Get all quest folders
-const quests = await e2eHarnessBroker.getQuestFiles({ context });
+const quests = testbed.getQuestFiles();
 expect(quests).toHaveLength(1);
 
-// Read specific quest
-const quest = await e2eHarnessBroker.readQuestFile({
-  context,
-  folder: quests[0],
-});
+// Read and verify quest content
+const quest = testbed.readQuestFile({ folder: quests[0] });
 expect(quest.title).toContain('Expected Title');
 expect(quest.status).toBe('in_progress');
 ```
 
-### Testing MCP Signal Flow
+### Testing MCP Signal Flow (User Questions)
 
 ```typescript
-// Ask Claude to trigger needs-user-input signal
-await e2eHarnessBroker.sendInput({
-  context,
-  text: 'Ask me a clarifying question using the signal-back MCP tool',
-});
-await e2eHarnessBroker.sendKeypress({ context, key: 'enter' });
+it('VALID: {prompt requesting question} => shows answer screen', async () => {
+  const testbed = e2eTestbedCreateBroker({
+    baseName: BaseNameStub({ value: 'signal-flow' }),
+  });
+  await testbed.startCli();
 
-// Wait for answer screen
-const answerScreen = await e2eHarnessBroker.waitForScreen({
-  context,
-  screen: 'answer',
-  timeout: 60000,
-});
+  // Navigate to Add
+  await testbed.sendKeypress({ key: 'enter' });
 
-// Verify question is displayed
-expect(answerScreen.frame).toMatch(/\?/);  // Contains a question
+  // Ask Claude to trigger needs-user-input signal
+  await testbed.sendInput({
+    text: "Testing cli workflow. I want to do a simple hello world. Ask me the following question using the mcp workflow 'Why hello world?'",
+  });
+  await testbed.sendKeypress({ key: 'enter' });
+
+  // Wait for answer screen with the question
+  const answerScreen = await testbed.waitForScreen({
+    screen: CliScreenNameStub({ value: 'answer' }),
+    contains: 'Why hello world?',
+    timeout: 90000,
+  });
+
+  expect(answerScreen.frame).toContain('Why hello world?');
+
+  testbed.stopCli();
+  testbed.cleanup();
+}, 120000);
 ```
 
 ### Negative Assertions (Content Should NOT Appear)
 
 ```typescript
-const screen = await e2eHarnessBroker.getScreen({ context });
-
 // Verify something is NOT on screen
 expect(screen.frame).not.toContain('Error');
 expect(screen.frame).not.toMatch(/unauthorized/i);
+
+// Use waitForScreen with excludes
+const screen = await testbed.waitForScreen({
+  screen: CliScreenNameStub({ value: 'list' }),
+  excludes: 'Testing cli workflow', // Must NOT contain this
+});
 ```
 
-## Jest Configuration
+## Environment Setup
 
-For E2E tests, increase timeouts in jest.config.js:
-
-```javascript
-module.exports = {
-  // ... other config
-  testTimeout: 120000,  // 2 minutes default for E2E
-  testMatch: ['**/tests/e2e/**/*.e2e.test.ts'],
-};
-```
-
-Or use per-file configuration:
+The harness automatically handles setup via `dungeonmaster init`:
 
 ```typescript
-// At top of test file
-jest.setTimeout(120000);
+const testbed = e2eTestbedCreateBroker({ baseName });
+// ↓ Internally runs:
+// 1. installTestbedCreateBroker() - creates temp dir, package.json, .claude/
+// 2. testbed.runInitCommand() - runs 'dungeonmaster init'
+//    - Creates .mcp.json (MCP server config)
+//    - Creates .claude/settings.json (hooks)
+//    - Creates .dungeonmaster (CLI config)
+```
+
+## Timeout Configuration
+
+Timeouts are in `e2e-timeouts-statics.ts`:
+
+| Timeout | Value | Use |
+|---------|-------|-----|
+| `defaultWait` | 30s | Screen transitions |
+| `claudeOperation` | 90s | Claude API calls |
+| `pollInterval` | 100ms | Screen polling |
+| `processStartup` | 5s | CLI startup |
+
+Override per-call:
+```typescript
+await testbed.waitForScreen({
+  screen: CliScreenNameStub({ value: 'list' }),
+  timeout: 120000, // 2 minutes
+});
 ```
 
 ## Troubleshooting
@@ -173,18 +212,30 @@ jest.setTimeout(120000);
 ### Test Timeout
 
 If tests timeout, check:
-1. Claude CLI is available in PATH
-2. MCP server starts correctly
+1. Claude CLI is available in PATH: `which claude`
+2. MCP server path is correct in `.mcp.json`
 3. Network connectivity for Claude API
 
-### Screen Detection Failures
-
-If `waitForScreen` fails:
+Debug by capturing last frame:
 ```typescript
-// Debug: Print current screen
-const screen = await e2eHarnessBroker.getScreen({ context });
-console.log('Current screen:', screen.name);
-console.log('Frame:', screen.frame);
+try {
+  await testbed.waitForScreen({ screen: 'list', timeout: 30000 });
+} catch (error) {
+  if (error instanceof E2ETimeoutError) {
+    console.log('Last frame:', error.lastFrame);
+  }
+  throw error;
+}
+```
+
+### Init Command Failures
+
+Check init output:
+```typescript
+const testbed = e2eTestbedCreateBroker({ baseName });
+const initResult = testbed.runInitCommand();
+console.log('Init stdout:', initResult.stdout);
+console.log('Init stderr:', initResult.stderr);
 ```
 
 ### Process Cleanup Issues
@@ -193,9 +244,8 @@ If tests leave orphan processes:
 ```bash
 # Find and kill orphan CLI processes
 pkill -f "start-cli"
-pkill -f "start-e2e"
 ```
 
 ## API Reference
 
-See [contracts/e2e-harness-api.contract.md](./contracts/e2e-harness-api.contract.md) for complete API documentation.
+See [data-model.md](./data-model.md) for E2ETestbed interface and contract definitions.
