@@ -18,6 +18,13 @@ export type { DungeonmasterConfig } from './contracts/dungeonmaster-config/dunge
 export { installTestbedCreateBroker } from './brokers/install-testbed/create/install-testbed-create-broker';
 export type { InstallTestbed } from './contracts/install-testbed/install-testbed-contract';
 
+// E2E testbed utilities
+export { e2eTestbedCreateBroker } from './brokers/e2e-testbed/create/e2e-testbed-create-broker';
+export type { E2ETestbed, KeyName } from './contracts/e2e-testbed/e2e-testbed-contract';
+export type { CliScreenName } from './contracts/cli-screen-name/cli-screen-name-contract';
+export type { ScreenFrame } from './contracts/screen-frame/screen-frame-contract';
+export type { E2EScreenState } from './contracts/e2e-screen-state/e2e-screen-state-contract';
+
 // TypeScript transformer - use @dungeonmaster/testing/ts-jest/proxy-mock-transformer in jest.config.js
 
 // Contract stubs
@@ -30,3 +37,7 @@ export { BaseNameStub } from './contracts/base-name/base-name.stub';
 export { FileNameStub } from './contracts/file-name/file-name.stub';
 export { FileContentStub } from './contracts/file-content/file-content.stub';
 export { RelativePathStub } from './contracts/relative-path/relative-path.stub';
+export { CliScreenNameStub } from './contracts/cli-screen-name/cli-screen-name.stub';
+export { ScreenFrameStub } from './contracts/screen-frame/screen-frame.stub';
+export { E2EScreenStateStub } from './contracts/e2e-screen-state/e2e-screen-state.stub';
+export { E2ETestbedStub } from './contracts/e2e-testbed/e2e-testbed.stub';

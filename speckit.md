@@ -46,3 +46,8 @@ I asked it to consider a point of view and did so and notated as history for pla
 
 ### tasks
 - Create pretty granular tasks and figured out dependancy ordering. It does say commit for each task so itll be interesting.
+
+### execution
+- Didn't write test files before implementation for contracts. 
+- Opted to do all the work itself instead of sub agents
+- It keeps track of task progress with the tasks.md

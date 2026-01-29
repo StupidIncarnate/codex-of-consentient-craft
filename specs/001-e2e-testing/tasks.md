@@ -25,9 +25,9 @@
 
 **Purpose**: Project initialization and structure verification
 
-- [ ] T001 Verify existing `packages/testing/` structure supports new contracts/brokers
-- [ ] T002 [P] Verify `installTestbedCreateBroker` exists at `packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts`
-- [ ] T003 [P] Verify `@dungeonmaster/shared/@types` has `StubArgument` type for stub patterns
+- [X] T001 Verify existing `packages/testing/` structure supports new contracts/brokers
+- [X] T002 [P] Verify `installTestbedCreateBroker` exists at `packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts`
+- [X] T003 [P] Verify `@dungeonmaster/shared/@types` has `StubArgument` type for stub patterns
 
 ---
 
@@ -43,27 +43,27 @@
 
 ### Contracts (Depth 1)
 
-- [ ] T004 [P] [US3] Create `CliScreenName` branded enum contract in `packages/testing/src/contracts/cli-screen-name/cli-screen-name-contract.ts`
-- [ ] T005 [P] [US3] Create `CliScreenName` stub in `packages/testing/src/contracts/cli-screen-name/cli-screen-name.stub.ts`
-- [ ] T006 [P] [US3] Create `ScreenFrame` branded string contract in `packages/testing/src/contracts/screen-frame/screen-frame-contract.ts`
-- [ ] T007 [P] [US3] Create `ScreenFrame` stub in `packages/testing/src/contracts/screen-frame/screen-frame.stub.ts`
-- [ ] T008 [P] [US3] Create `E2EScreenState` composite contract in `packages/testing/src/contracts/e2e-screen-state/e2e-screen-state-contract.ts`
-- [ ] T009 [P] [US3] Create `E2EScreenState` stub in `packages/testing/src/contracts/e2e-screen-state/e2e-screen-state.stub.ts`
-- [ ] T010 [P] [US3] Create `E2ETestbed` interface contract in `packages/testing/src/contracts/e2e-testbed/e2e-testbed-contract.ts`
+- [X] T004 [P] [US3] Create `CliScreenName` branded enum contract in `packages/testing/src/contracts/cli-screen-name/cli-screen-name-contract.ts`
+- [X] T005 [P] [US3] Create `CliScreenName` stub in `packages/testing/src/contracts/cli-screen-name/cli-screen-name.stub.ts`
+- [X] T006 [P] [US3] Create `ScreenFrame` branded string contract in `packages/testing/src/contracts/screen-frame/screen-frame-contract.ts`
+- [X] T007 [P] [US3] Create `ScreenFrame` stub in `packages/testing/src/contracts/screen-frame/screen-frame.stub.ts`
+- [X] T008 [P] [US3] Create `E2EScreenState` composite contract in `packages/testing/src/contracts/e2e-screen-state/e2e-screen-state-contract.ts`
+- [X] T009 [P] [US3] Create `E2EScreenState` stub in `packages/testing/src/contracts/e2e-screen-state/e2e-screen-state.stub.ts`
+- [X] T010 [P] [US3] Create `E2ETestbed` interface contract in `packages/testing/src/contracts/e2e-testbed/e2e-testbed-contract.ts`
 
 ### Statics (Depth 1)
 
-- [ ] T011 [P] [US3] Create `e2eTimeoutsStatics` in `packages/testing/src/statics/e2e-timeouts/e2e-timeouts-statics.ts`
+- [X] T011 [P] [US3] Create `e2eTimeoutsStatics` in `packages/testing/src/statics/e2e-timeouts/e2e-timeouts-statics.ts`
 
 ### Broker (Depth 2)
 
-- [ ] T012 [US3] Create `e2eTestbedCreateBroker` in `packages/testing/src/brokers/e2e-testbed/create/e2e-testbed-create-broker.ts` (depends on T004-T011)
-- [ ] T013 [US3] Create empty proxy in `packages/testing/src/brokers/e2e-testbed/create/e2e-testbed-create-broker.proxy.ts`
-- [ ] T014 [US3] Create broker unit test in `packages/testing/src/brokers/e2e-testbed/create/e2e-testbed-create-broker.test.ts`
+- [X] T012 [US3] Create `e2eTestbedCreateBroker` in `packages/testing/src/brokers/e2e-testbed/create/e2e-testbed-create-broker.ts` (depends on T004-T011)
+- [X] T013 [US3] Create empty proxy in `packages/testing/src/brokers/e2e-testbed/create/e2e-testbed-create-broker.proxy.ts`
+- [X] T014 [US3] Create broker unit test in `packages/testing/src/brokers/e2e-testbed/create/e2e-testbed-create-broker.test.ts`
 
 ### Exports
 
-- [ ] T015 [US3] Export E2E testbed from `packages/testing/src/index.ts` (re-export broker and contracts)
+- [X] T015 [US3] Export E2E testbed from `packages/testing/src/index.ts` (re-export broker and contracts)
 
 **Checkpoint**: E2E testbed infrastructure complete - test scenarios can now be implemented
 
