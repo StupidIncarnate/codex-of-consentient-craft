@@ -8,6 +8,9 @@
 ## Pros
 - Has configurable templates for plan/spec/tasks and agent files which is nice
 
+## Cons
+- Doesnt seem to auto commit at various task stages. You gotta manually tell it to.
+
 ## Modes
 
 ### specify

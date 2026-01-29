@@ -56,4 +56,36 @@ describe('detectCliScreenTransformer', () => {
 
     expect(result).toBe('answer');
   });
+
+  it('VALID: {menu with "quests" text but no path} => returns menu not list', () => {
+    const result = detectCliScreenTransformer({
+      frame: 'Add a quest\nRun a quest\nList - List all active quests',
+    });
+
+    expect(result).toBe('menu');
+  });
+
+  it('VALID: {menu with Init option} => returns menu not init', () => {
+    const result = detectCliScreenTransformer({
+      frame: 'Add\nRun\nList\nInit - Initialize dungeonmaster in project',
+    });
+
+    expect(result).toBe('menu');
+  });
+
+  it('VALID: {actual init screen} => returns init', () => {
+    const result = detectCliScreenTransformer({
+      frame: 'Initializing dungeonmaster...',
+    });
+
+    expect(result).toBe('init');
+  });
+
+  it('VALID: {add screen with question mark} => returns add not answer', () => {
+    const result = detectCliScreenTransformer({
+      frame: 'What would you like to build?\n> _\nPress Enter to submit',
+    });
+
+    expect(result).toBe('add');
+  });
 });

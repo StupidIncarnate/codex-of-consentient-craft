@@ -9,11 +9,13 @@
  */
 
 import type { z } from 'zod';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { installTestbedContract } from '../install-testbed/install-testbed-contract';
 import type { InstallTestbed } from '../install-testbed/install-testbed-contract';
 import type { CliScreenName } from '../cli-screen-name/cli-screen-name-contract';
 import type { E2EScreenState } from '../e2e-screen-state/e2e-screen-state-contract';
-import type { FileName } from '../file-name/file-name-contract';
+import type { ScreenFrame } from '../screen-frame/screen-frame-contract';
+import type { SubdirName } from '../subdir-name/subdir-name-contract';
 
 export type KeyName = 'enter' | 'escape' | 'up' | 'down' | 'backspace' | 'tab';
 
@@ -29,7 +31,7 @@ export interface E2ETestbed extends InstallTestbed {
   stopCli: () => void;
 
   /** Sends text input to CLI stdin */
-  sendInput: (args: { text: FileName }) => Promise<void>;
+  sendInput: (args: { text: ScreenFrame }) => Promise<void>;
 
   /** Sends a keypress (escape sequence) to CLI stdin */
   sendKeypress: (args: { key: KeyName }) => Promise<void>;
@@ -40,14 +42,17 @@ export interface E2ETestbed extends InstallTestbed {
   /** Waits for a specific screen state with optional content matching */
   waitForScreen: (args: {
     screen: CliScreenName;
-    contains?: FileName;
-    excludes?: FileName;
+    contains?: ScreenFrame;
+    excludes?: ScreenFrame;
     timeout?: number;
   }) => Promise<E2EScreenState>;
 
   /** Lists quest folders in .dungeonmaster-quests/ */
-  getQuestFiles: () => FileName[];
+  getQuestFiles: () => SubdirName[];
 
   /** Reads and parses a quest file from a folder */
-  readQuestFile: (args: { folder: FileName }) => Record<FileName, unknown>;
+  readQuestFile: (args: { folder: SubdirName }) => Quest;
+
+  /** Reads the first quest file, throws if none exist */
+  getFirstQuest: () => Quest;
 }

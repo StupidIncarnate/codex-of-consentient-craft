@@ -19,9 +19,12 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import {
   installTestbedCreateBroker,
+  e2eTestbedCreateBroker,
   BaseNameStub,
   RelativePathStub,
   FileContentStub,
+  CliScreenNameStub,
+  ScreenFrameStub,
 } from '@dungeonmaster/testing';
 
 import { cliStatics } from '../statics/cli/cli-statics';
@@ -611,6 +614,116 @@ describe('StartCli', () => {
       testbed.cleanup();
 
       await expect(questLoadBroker({ questFilePath })).rejects.toThrow(/Failed to read file/u);
+    });
+  });
+
+  describe('E2E flows with Claude headless mode', () => {
+    describe('User Story 1 - Quest creation without followup', () => {
+      it('VALID: {prompt without followup} => creates quest and shows list with DangerFun', async () => {
+        const testbed = e2eTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'e2e-quest-creation' }),
+        });
+
+        await testbed.startCli();
+
+        expect(testbed.getScreen().name).toBe('menu');
+
+        await testbed.sendKeypress({ key: 'enter' });
+        await testbed.waitForScreen({
+          screen: CliScreenNameStub({ value: 'add' }),
+          timeout: 10000,
+        });
+        await testbed.sendInput({
+          text: ScreenFrameStub({
+            value:
+              'Testing cli workflow, make me a quest without any followup questions. Call it DangerFun',
+          }),
+        });
+        await testbed.sendKeypress({ key: 'enter' });
+
+        const listScreen = await testbed.waitForScreen({
+          screen: CliScreenNameStub({ value: 'list' }),
+          contains: ScreenFrameStub({ value: 'DangerFun' }),
+          timeout: 90000,
+        });
+
+        const quests = testbed.getQuestFiles();
+
+        expect(quests.length).toBeGreaterThanOrEqual(1);
+
+        const questData = testbed.getFirstQuest();
+
+        expect(typeof questData.id).toBe('string');
+        expect(typeof questData.title).toBe('string');
+
+        testbed.stopCli();
+        testbed.cleanup();
+
+        expect(listScreen.frame).not.toMatch(/Testing cli workflow/u);
+      }, 120000);
+    });
+
+    describe('User Story 2 - Quest creation with user question flow', () => {
+      it('VALID: {prompt requesting question} => shows answer screen with question', async () => {
+        const testbed = e2eTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'e2e-question-flow' }),
+        });
+
+        await testbed.startCli();
+
+        expect(testbed.getScreen().name).toBe('menu');
+
+        await testbed.sendKeypress({ key: 'enter' });
+        await testbed.waitForScreen({
+          screen: CliScreenNameStub({ value: 'add' }),
+          timeout: 10000,
+        });
+        await testbed.sendInput({
+          text: ScreenFrameStub({
+            value:
+              "Testing cli workflow. I want to do a simple hello world. Ask me the following question using the mcp workflow 'Why hello world?'",
+          }),
+        });
+        await testbed.sendKeypress({ key: 'enter' });
+
+        const answerScreen = await testbed.waitForScreen({
+          screen: CliScreenNameStub({ value: 'answer' }),
+          contains: ScreenFrameStub({ value: 'Why hello world?' }),
+          timeout: 90000,
+        });
+
+        testbed.stopCli();
+        testbed.cleanup();
+
+        expect(answerScreen.frame).toMatch(/Why hello world\?/u);
+      }, 120000);
+    });
+
+    describe('Edge cases', () => {
+      it('VALID: {empty prompt submission} => stays on add screen or returns to menu', async () => {
+        const testbed = e2eTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'e2e-empty-prompt' }),
+        });
+
+        await testbed.startCli();
+        await testbed.sendKeypress({ key: 'enter' });
+        await testbed.waitForScreen({
+          screen: CliScreenNameStub({ value: 'add' }),
+          timeout: 10000,
+        });
+        await testbed.sendKeypress({ key: 'enter' });
+
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1000);
+        });
+
+        const screen = testbed.getScreen();
+
+        testbed.stopCli();
+        testbed.cleanup();
+
+        expect(screen.name).toMatch(/^(add|menu)$/u);
+      }, 30000);
     });
   });
 });

@@ -24,6 +24,7 @@ export type { E2ETestbed, KeyName } from './contracts/e2e-testbed/e2e-testbed-co
 export type { CliScreenName } from './contracts/cli-screen-name/cli-screen-name-contract';
 export type { ScreenFrame } from './contracts/screen-frame/screen-frame-contract';
 export type { E2EScreenState } from './contracts/e2e-screen-state/e2e-screen-state-contract';
+export type { SubdirName } from './contracts/subdir-name/subdir-name-contract';
 
 // TypeScript transformer - use @dungeonmaster/testing/ts-jest/proxy-mock-transformer in jest.config.js
 
@@ -41,3 +42,4 @@ export { CliScreenNameStub } from './contracts/cli-screen-name/cli-screen-name.s
 export { ScreenFrameStub } from './contracts/screen-frame/screen-frame.stub';
 export { E2EScreenStateStub } from './contracts/e2e-screen-state/e2e-screen-state.stub';
 export { E2ETestbedStub } from './contracts/e2e-testbed/e2e-testbed.stub';
+export { SubdirNameStub } from './contracts/subdir-name/subdir-name.stub';

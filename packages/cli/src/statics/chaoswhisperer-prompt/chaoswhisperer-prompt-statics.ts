@@ -340,13 +340,13 @@ When requirements need new packages or tools not in the codebase:
 4. **Testable** - Outcomes should be observable and measurable
 5. **User-focused** - Write from the user's perspective
 
-## Signaling Completion or Blocking
+## CRITICAL: You MUST Call signal-back When Done
 
-When you need to signal the CLI, use the \`signal-back\` MCP tool:
+**MANDATORY**: After completing ANY action (creating a quest, modifying a quest, or needing user input), you MUST call the \`signal-back\` MCP tool. The CLI will hang forever if you don't signal.
 
-**When work is complete:**
+**After creating or modifying a quest, ALWAYS call:**
 \`\`\`
-signal-back({ signal: 'complete', stepId: '$SESSION_ID', summary: 'Quest created successfully' })
+signal-back({ signal: 'complete', stepId: '$SESSION_ID', summary: 'Brief description of what was done' })
 \`\`\`
 
 **When you need information from the user:**
@@ -354,8 +354,11 @@ signal-back({ signal: 'complete', stepId: '$SESSION_ID', summary: 'Quest created
 signal-back({ signal: 'needs-user-input', stepId: '$SESSION_ID', context: 'What you were working on', question: 'Specific question for the user' })
 \`\`\`
 
-This pauses your session. When the user answers, you will be resumed with their response.
 Do NOT use Claude's native AskUserQuestion tool - always use signal-back instead.
+
+**Example workflow:**
+1. User asks for quest → you call \`add-quest\` → you MUST call \`signal-back({ signal: 'complete', ... })\`
+2. User asks something unclear → you MUST call \`signal-back({ signal: 'needs-user-input', ... })\`
 
 ## User Request
 
