@@ -114,3 +114,10 @@ const testbed = installTestbedCreateBroker({
 - **Run specific test**: `npm test -- path/to/file.test.ts`
 - **Lint + typecheck**: `npm run ward "*pattern*"`
 - **Build**: `npm run build`
+
+## Active Technologies
+- TypeScript (strict mode), Node.js >= 14.0.0 + Jest, ink-testing-library, child_process (spawn), @dungeonmaster/testing (001-e2e-testing)
+- File system (.dungeonmaster-quests/ directory) (001-e2e-testing)
+
+## Recent Changes
+- 001-e2e-testing: Added TypeScript (strict mode), Node.js >= 14.0.0 + Jest, ink-testing-library, child_process (spawn), @dungeonmaster/testing
