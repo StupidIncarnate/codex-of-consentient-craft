@@ -43,3 +43,6 @@ Keeps it very high-level
 
 I asked it to consider a point of view and did so and notated as history for plan.
 ![plan-consideration.png](specs/plan-consideration.png)
+
+### tasks
+- Create pretty granular tasks and figured out dependancy ordering. It does say commit for each task so itll be interesting.
