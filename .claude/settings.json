@@ -2,6 +2,15 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-pre-edit-hook.ts"
+          }
+        ]
+      },
+      {
         "matcher": "^(Write|Edit|MultiEdit)$",
         "hooks": [
           {
@@ -36,6 +45,15 @@
       }
     ],
     "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-post-edit-hook.ts"
+          }
+        ]
+      },
       {
         "matcher": "^(Write|Edit|MultiEdit)$",
         "hooks": [
@@ -85,6 +103,10 @@
     "SessionStart": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-start-hook.ts"
+          },
           {
             "type": "command",
             "command": "npx @claude-flow/cli@latest daemon start --quiet 2>/dev/null || true",
@@ -142,6 +164,8 @@
     "commit": "Co-Authored-By: claude-flow <ruv@ruv.net>",
     "pr": "🤖 Generated with [claude-flow](https://github.com/ruvnet/claude-flow)"
   },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["dungeonmaster"],
   "claudeFlow": {
     "version": "3.0.0",
     "enabled": true,

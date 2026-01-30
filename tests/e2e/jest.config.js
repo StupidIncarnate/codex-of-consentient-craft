@@ -85,4 +85,8 @@ module.exports = {
     E2E_TIMEOUT: 120000,
     E2E_CLAUDE_MODEL: 'sonnet',
   },
+
+  // Force exit after all tests complete
+  // E2E tests spawn real processes (node-pty) which may leave handles open
+  forceExit: true,
 };

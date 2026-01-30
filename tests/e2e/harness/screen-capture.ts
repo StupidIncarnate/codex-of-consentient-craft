@@ -82,8 +82,25 @@ const SCREEN_PATTERNS: Record<ScreenType, RegExp[]> = {
  * Creates a screen capture instance from a terminal frame
  */
 export const createScreenCapture = (frame: string): ScreenCapture => {
-  const raw = frame;
-  const text = stripAnsiCodes(frame);
+  // Extract only the last rendered screen by finding the last clear screen command
+  // Clear screen command is: \x1b[2J\x1b[H (or similar variations)
+  // This is important because the terminal buffer is cumulative - old content remains
+  // unless explicitly cleared with ANSI codes
+  const clearScreenPattern = /\x1b\[2J\x1b\[H/g;
+  const clearMatches = Array.from(frame.matchAll(clearScreenPattern));
+
+  let lastClearedPos = 0;
+  if (clearMatches.length > 0) {
+    // Get position after the last clear screen command
+    const lastMatch = clearMatches[clearMatches.length - 1];
+    if (lastMatch?.index !== undefined) {
+      lastClearedPos = lastMatch.index + lastMatch[0].length;
+    }
+  }
+
+  // Use only the content after the last clear screen
+  const raw = frame.substring(lastClearedPos);
+  const text = stripAnsiCodes(raw);
   const lines = Object.freeze(text.split('\n').map((line) => line.trimEnd()));
 
   const contains = (searchText: string, options?: { caseSensitive?: boolean }): boolean => {

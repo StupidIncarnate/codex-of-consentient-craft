@@ -15,8 +15,11 @@ const QUESTS_FOLDER_NAME = '.dungeonmaster-quests';
 export const questsFolderEnsureBroker = async (): Promise<{
   questsBasePath: FilePath;
 }> => {
+  // Get project directory from environment variable or fall back to cwd
+  const projectDir = process.env.DUNGEONMASTER_PROJECT_DIR ?? process.cwd();
+
   // Build path
-  const questsBasePath = pathJoinAdapter({ paths: [process.cwd(), QUESTS_FOLDER_NAME] });
+  const questsBasePath = pathJoinAdapter({ paths: [projectDir, QUESTS_FOLDER_NAME] });
 
   // Ensure quests folder exists (recursive: true handles parent dirs)
   await fsMkdirAdapter({ filepath: questsBasePath });

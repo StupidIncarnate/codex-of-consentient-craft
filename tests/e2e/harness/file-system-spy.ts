@@ -40,13 +40,18 @@ export interface QuestFile {
 
 /**
  * Quest JSON structure (basic fields)
+ * Based on questContract from @dungeonmaster/shared
  */
 export interface QuestData {
   id?: string;
+  /** Quest title (from questContract - this is the primary name field) */
+  title?: string;
+  /** @deprecated Quest contract uses 'title', not 'name' */
   name?: string;
-  description?: string;
+  folder?: string;
   status?: string;
-  created?: string;
+  createdAt?: string;
+  userRequest?: string;
   [key: string]: unknown;
 }
 
@@ -166,7 +171,7 @@ export const createFileSystemSpy = (projectPath: string): FileSystemSpy => {
 
     // Check for created and modified files
     currentSnapshot.files.forEach((mtime, path) => {
-      const baseMtime = baseSnapshot.files.get(path);
+      const baseMtime = baseSnapshot!.files.get(path);
       const relativePath = path.replace(projectPath + '/', '');
 
       if (baseMtime === undefined) {
@@ -230,8 +235,8 @@ export const createFileSystemSpy = (projectPath: string): FileSystemSpy => {
     return {
       folderPath,
       folderName,
-      number: match[1],
-      nameSlug: match[2],
+      number: match[1]!,
+      nameSlug: match[2]!,
       questJsonPath,
       hasQuestJson,
       questData,
@@ -317,9 +322,10 @@ export const createFileSystemSpy = (projectPath: string): FileSystemSpy => {
           const quest = parseQuestFolder(join(questDir, entry.name));
           if (quest === null) continue;
 
-          // Match by slug or quest data name
+          // Match by slug, quest data title, or quest data name (deprecated)
           if (
             quest.nameSlug.toLowerCase().includes(pattern) ||
+            quest.questData?.title?.toLowerCase().includes(pattern) ||
             quest.questData?.name?.toLowerCase().includes(pattern)
           ) {
             quests.push(quest);

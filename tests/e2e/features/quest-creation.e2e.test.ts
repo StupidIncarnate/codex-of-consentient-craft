@@ -197,58 +197,92 @@ describe('Quest Creation Flow - Full CLI E2E', () => {
         driver.pressKey('enter');
 
         // =====================================================================
-        // THEN: Wait for Claude to process the request
+        // THEN: Poll file system for quest creation
         // =====================================================================
-        // Claude may trigger signal-back with 'needs-user-input' before creating
-        // the quest. We need to handle this case by responding to the agent.
+        // Instead of waiting for UI text to disappear (which is fragile),
+        // we directly poll the file system for quest file creation.
+        // This tests what we actually care about - that the quest gets created.
 
         if (process.env['DEBUG_E2E'] === 'true') {
           // eslint-disable-next-line no-console
-          console.log('\n=== Waiting for Claude to process (up to 2 minutes)... ===');
+          console.log('\n=== Enter pressed - polling for quest file creation (up to 90s)... ===');
         }
 
-        // Wait for either:
-        // 1. "Agent needs your input" screen (signal-back triggered)
-        // 2. List screen (quest created directly)
-        // 3. "dangerfun" appearing (quest in list)
-        const firstResponse = await driver.waitForPattern(
-          /agent needs your input|quests?|list|dangerfun/i,
-          {
-            timeout: CLAUDE_PROCESSING_TIMEOUT_MS,
-          },
-        );
+        let questCreated = false;
+        const pollStart = Date.now();
+        const pollTimeout = 90000; // 90 seconds for Claude to process
 
-        // Check if we got the "Agent needs your input" screen
-        if (firstResponse.contains('Agent needs your input')) {
-          if (process.env['DEBUG_E2E'] === 'true') {
-            // eslint-disable-next-line no-console
-            console.log('\n=== Agent asked a question - responding... ===');
-            firstResponse.debug();
+        while (Date.now() - pollStart < pollTimeout && !questCreated) {
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // Check every 2 seconds
+
+          // Check if quest file was created
+          const questsDir = path.join(testProject.rootDir, '.dungeonmaster-quests');
+          if (fs.existsSync(questsDir)) {
+            const entries = fs.readdirSync(questsDir);
+            const dangerfunQuest = entries.find((e) =>
+              e.toLowerCase().includes('dangerfun'),
+            );
+            if (dangerfunQuest) {
+              questCreated = true;
+              if (process.env['DEBUG_E2E'] === 'true') {
+                // eslint-disable-next-line no-console
+                console.log(`\n=== Quest created after ${Date.now() - pollStart}ms: ${dangerfunQuest} ===`);
+              }
+            }
           }
 
-          // Wait a moment for the input to be ready
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          // Also check screen for agent questions - handle if needed
+          if (!questCreated) {
+            const currentScreen = driver.getScreen();
+            if (currentScreen.contains('Agent needs your input')) {
+              if (process.env['DEBUG_E2E'] === 'true') {
+                // eslint-disable-next-line no-console
+                console.log('\n=== Agent asked a question - responding... ===');
+                currentScreen.debug();
+              }
 
-          // Type a response to the agent (or just press Enter to submit empty response)
-          driver.type('Proceed with the quest creation');
-          await new Promise((resolve) => setTimeout(resolve, 500));
+              // Wait a moment for the input to be ready
+              await new Promise((resolve) => setTimeout(resolve, 500));
 
-          // Press Enter to submit the response
+              // Type a response to the agent
+              driver.type('Proceed with the quest creation');
+              await new Promise((resolve) => setTimeout(resolve, 500));
+
+              // Press Enter to submit the response
+              driver.pressKey('enter');
+
+              if (process.env['DEBUG_E2E'] === 'true') {
+                // eslint-disable-next-line no-console
+                console.log('\n=== Response submitted - continuing to poll... ===');
+              }
+            }
+          }
+        }
+
+        expect(questCreated).toBe(true);
+
+        // After quest is created, the CLI may be at the menu screen
+        // (if Claude asked a question and the test hit escape to cancel it)
+        // Navigate to the list screen to verify the quest appears
+        // Wait for menu to stabilize first
+        await driver.waitForStable({ timeout: 10000, stableFor: 2000 });
+
+        // Check if we're on the menu screen, and if so, navigate to list
+        let currentScreen = driver.getScreen();
+        if (currentScreen.contains('Add') && currentScreen.contains('Run')) {
+          // We're on the menu screen - navigate down to "List" option and press enter
+          // The menu typically has: Add (default), Run, List
+          // Press down twice to get to List
+          driver.pressKey('down');
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          driver.pressKey('down');
+          await new Promise((resolve) => setTimeout(resolve, 500));
           driver.pressKey('enter');
 
-          if (process.env['DEBUG_E2E'] === 'true') {
-            // eslint-disable-next-line no-console
-            console.log('\n=== Response submitted - waiting for quest creation... ===');
-          }
-
-          // Now wait for the quest to be created and list screen to appear
-          await driver.waitForPattern(/quests?|list|dangerfun/i, {
-            timeout: CLAUDE_PROCESSING_TIMEOUT_MS,
-          });
+          // Wait for list screen to appear
+          await driver.waitForText('quest', { timeout: UI_NAVIGATION_TIMEOUT_MS });
+          await driver.waitForStable({ timeout: 10000, stableFor: 2000 });
         }
-
-        // Wait for screen to stabilize
-        await driver.waitForStable({ timeout: 10000, stableFor: 2000 });
 
         const finalScreen = driver.getScreen();
 
@@ -282,8 +316,10 @@ describe('Quest Creation Flow - Full CLI E2E', () => {
         expect(quest?.hasQuestJson).toBe(true);
 
         if (quest?.questData) {
-          // Quest name should contain "DangerFun" (case-insensitive)
-          expect(quest.questData.name?.toLowerCase()).toContain('dangerfun');
+          // Quest title should contain "DangerFun" (case-insensitive)
+          // Note: The quest contract uses 'title' field, not 'name'
+          const questTitle = (quest.questData as { title?: string }).title;
+          expect(questTitle?.toLowerCase()).toContain('dangerfun');
         }
 
         // =====================================================================

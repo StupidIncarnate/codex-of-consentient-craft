@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Provides a high-level driver for E2E CLI testing with debug mode and full CLI support
+ * PURPOSE: Provides a high-level driver for E2E CLI testing in DEBUG MODE
  *
  * USAGE:
  * const driver = createCliTestDriver({ mode: 'debug', cwd: testProject.rootDir });
@@ -10,9 +10,10 @@
  * expect(screen.contains('quest created')).toBe(true);
  * await driver.stop();
  *
+ * For FULL CLI MODE (with node-pty), see: ./full-cli-driver.ts
+ *
  * Supports:
  * - Debug mode: For widget testing via JSON protocol
- * - Full CLI mode: For complete flow testing via ClaudeE2ERunner
  */
 
 import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';

@@ -21,8 +21,9 @@
 import { mkdirSync, existsSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import * as crypto from 'crypto';
+import { writeMcpConfig, writeClaudeSettings } from './mcp-test-helpers';
 
-// CLI Test Driver
+// CLI Test Driver (debug mode - for widget testing via JSON protocol)
 export {
   createCliTestDriver,
   KEY_CODES,
@@ -65,6 +66,26 @@ export {
   type QuestFile,
   type QuestData,
 } from './file-system-spy';
+
+// Full CLI Driver (node-pty based - for real terminal E2E testing)
+export {
+  createFullCliDriver,
+  createE2ECliDriver,
+  FULL_CLI_KEY_CODES,
+  type FullCliDriver,
+  type FullCliDriverConfig,
+  type FullCliKeyName,
+  type WaitForConfig as FullCliWaitForConfig,
+} from './full-cli-driver';
+
+// MCP Test Helpers
+export {
+  writeMcpConfig,
+  writeClaudeSettings,
+  getDefaultMcpConfig,
+  type McpConfig,
+  type McpServerConfig,
+} from './mcp-test-helpers';
 
 /**
  * Simple test project for E2E tests
@@ -110,6 +131,12 @@ export const createE2ETestProject = (baseName: string): E2ETestProject => {
 
   // Create .claude directory for dungeonmaster
   mkdirSync(join(rootDir, '.claude', 'commands'), { recursive: true });
+
+  // Create .mcp.json for MCP tool access during E2E tests
+  writeMcpConfig(rootDir);
+
+  // Create .claude/settings.json with MCP permissions
+  writeClaudeSettings(rootDir);
 
   return {
     name,
