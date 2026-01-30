@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-01-30T03:32:39.270Z",
+  "projectRoot": "/home/brutus-home/projects/SDD/claude-flow",
+  "structure": {
+    "hasPackageJson": true,
+    "hasTsConfig": true,
+    "hasClaudeConfig": true,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1769743959270
+}
