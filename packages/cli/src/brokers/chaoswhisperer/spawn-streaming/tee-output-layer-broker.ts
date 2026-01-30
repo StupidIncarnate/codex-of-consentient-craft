@@ -75,10 +75,13 @@ export const teeOutputLayerBroker = async ({
   });
 
   return new Promise((resolve, reject) => {
-    childProcess.on('exit', (code: number | null) => {
-      rl.close();
+    let resolved = false;
+    let exitCode: ExitCode | null = null;
 
-      const exitCode: ExitCode | null = code === null ? null : exitCodeContract.parse(code);
+    const resolveOnce = (): void => {
+      if (resolved) return;
+      resolved = true;
+      rl.close();
 
       resolve(
         teeOutputResultContract.parse({
@@ -87,9 +90,23 @@ export const teeOutputLayerBroker = async ({
           exitCode,
         }),
       );
+    };
+
+    // Primary: Process exit event
+    childProcess.on('exit', (code: number | null) => {
+      exitCode = code === null ? null : exitCodeContract.parse(code);
+      resolveOnce();
+    });
+
+    // Fallback: Readline close event (fires when stdout stream ends)
+    // This handles nested PTY contexts where process exit events don't propagate
+    rl.on('close', () => {
+      resolveOnce();
     });
 
     childProcess.on('error', (error: Error) => {
+      if (resolved) return;
+      resolved = true;
       rl.close();
       reject(error);
     });

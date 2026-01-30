@@ -10,7 +10,9 @@ describe('readlineCreateInterfaceAdapter', () => {
       const input = new Readable({ read(): void {} });
       readlineCreateInterfaceAdapter({ input });
 
-      expect(proxy.getCreateInterfaceCalls()).toStrictEqual([[{ input, crlfDelay: Infinity }]]);
+      expect(proxy.getCreateInterfaceCalls()).toStrictEqual([
+        [{ input, crlfDelay: Infinity, terminal: false }],
+      ]);
     });
   });
 });

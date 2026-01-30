@@ -14,4 +14,7 @@ export const readlineCreateInterfaceAdapter = ({ input }: { input: Readable }): 
   createInterface({
     input,
     crlfDelay: Infinity,
+    // Explicitly disable terminal mode for piped streams
+    // This ensures proper line-ending detection and buffering
+    terminal: false,
   });

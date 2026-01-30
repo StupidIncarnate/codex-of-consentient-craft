@@ -32,12 +32,22 @@ export const childProcessSpawnStreamJsonAdapter = ({
   }
 
   const childProcess = spawn('claude', args, {
+    // stdin: inherit (Claude CLI requires this - hangs with 'ignore' per GitHub #771)
+    // stdout: pipe (we read Claude's streaming output)
+    // stderr: inherit (show errors directly to user's terminal)
     stdio: ['inherit', 'pipe', 'inherit'],
   });
 
+  // Handle spawn errors (e.g., command not found)
+  childProcess.on('error', (error: Error) => {
+    process.stderr.write(`Claude spawn error: ${error.message}\n`);
+  });
+
   // stdout is guaranteed to exist when stdio[1] is 'pipe'
-  // Using non-null assertion as TypeScript doesn't narrow based on stdio config
   const { stdout } = childProcess;
+  if (stdout === null) {
+    throw new Error('Failed to create stdout pipe for Claude process');
+  }
 
   return {
     process: childProcess,
