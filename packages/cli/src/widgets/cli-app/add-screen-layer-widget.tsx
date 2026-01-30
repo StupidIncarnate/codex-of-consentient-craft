@@ -40,6 +40,9 @@ export const AddScreenLayerWidget = ({
         const trimmed = inputValue.trim();
         if (trimmed.length > 0) {
           onSubmit({ userInput: userInputContract.parse(trimmed) });
+          // Clear input after submission to prevent stale text from showing
+          // (important for debug mode where widget stays mounted after callback)
+          setInputValue(userInputContract.parse(''));
         }
       } else if (key.backspace || key.delete) {
         // Handle both backspace (\b/ctrl+H) and delete (\x7f) since terminals vary

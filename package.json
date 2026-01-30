@@ -10,6 +10,7 @@
     "build:clean": "npm run build:clean --workspaces",
     "test": "npm run test --workspaces",
     "test:unit": "npm run test:unit --workspaces",
+    "test:e2e": "jest --config tests/e2e/jest.config.js --runInBand",
     "lint": "npm run lint --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "ward:all": "npm run lint && npm run typecheck && npm run test",
