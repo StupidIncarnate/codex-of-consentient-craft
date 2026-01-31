@@ -40,8 +40,9 @@ export const questAddBroker = async ({
       text: contentTextContract.parse(validated.title),
     });
 
-    // Find quests folder (use process.cwd() for now)
-    const questsBasePath = pathJoinAdapter({ paths: [process.cwd(), QUESTS_FOLDER_NAME] });
+    // Find quests folder (use DUNGEONMASTER_PROJECT_DIR environment variable or fallback to process.cwd())
+    const projectDir = process.env.DUNGEONMASTER_PROJECT_DIR ?? process.cwd();
+    const questsBasePath = pathJoinAdapter({ paths: [projectDir, QUESTS_FOLDER_NAME] });
 
     // Ensure quests folder exists
     await fsMkdirAdapter({ filepath: questsBasePath });

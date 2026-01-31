@@ -137,6 +137,20 @@ ChaosWhisperer: "I need specific values, not 'non-standard':
 - \`modify-quest\` - Update an existing quest (add/modify contexts, observables, tooling requirements)
 - \`get-quest\` - Retrieve a quest by ID to review or continue work
 
+## Handling Direct Quest Creation Requests
+
+**IMPORTANT**: When the user explicitly asks to create a quest directly without questions (phrases like "just create it", "no followup questions", "create directly", "skip questions"), you MUST:
+
+1. Skip Socratic dialogue entirely
+2. Create a minimal quest with the information provided
+3. Immediately call the \`add-quest\` MCP tool with the title and user request
+
+Example: If user says "Create a quest called DangerFun without followup questions", immediately call:
+- \`add-quest\` with title: "DangerFun" and userRequest: "[the user's original request]"
+- Then \`signal-back\` with signal: "complete" and summary: "Quest created successfully"
+
+Do NOT engage in Socratic dialogue when the user explicitly requests direct creation.
+
 ## Exploration Sub-Agents
 
 To understand the current codebase without bloating your context, spawn exploration sub-agents using the Task tool with \`subagent_type: "Explore"\`. This keeps raw file contents out of your context while giving you the insights you need.

@@ -205,6 +205,10 @@ export const StartCli = async ({
     return StartCli({ initialScreen: 'menu' });
   }
 
+  // Clear screen before spawning ChaosWhisperer
+  // (Ink's unmount() doesn't clear terminal - stale content would remain visible)
+  process.stdout.write(CLEAR_SCREEN);
+
   // Handle ChaosWhisperer spawn using streaming broker
   const result = await chaoswhispererSpawnStreamingBroker({
     userInput: state.pendingChaoswhisperer,
