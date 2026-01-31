@@ -12,10 +12,14 @@ import { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
 const tempRoot = path.join(process.cwd(), 'src', '.test-tmp', 'post-edit-tests');
 const hookPath = path.join(process.cwd(), 'src', 'startup', 'start-post-edit-hook.ts');
 
+// Track directories created in each test for proper cleanup (prevents parallel test interference)
+const testDirectories: (typeof tempRoot)[] = [];
+
 const createTestProject = ({ name }: { name: typeof tempRoot }) => {
   const testId = crypto.randomBytes(4).toString('hex');
   const projectDir = path.join(tempRoot, `${name}-${testId}`);
   fs.mkdirSync(projectDir, { recursive: true });
+  testDirectories.push(projectDir);
   return projectDir;
 };
 
@@ -40,10 +44,23 @@ describe('post-edit-hook', () => {
   beforeEach(() => {
     // Ensure temp directory exists
     fs.mkdirSync(tempRoot, { recursive: true });
+    // Clear test directories tracker for this test
+    testDirectories.length = 0;
   });
 
   afterEach(() => {
-    // Clean up temp directory
+    // Clean up only directories created by this specific test
+    // This prevents race conditions when tests run in parallel
+    for (const dir of testDirectories) {
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    }
+    testDirectories.length = 0;
+  });
+
+  afterAll(() => {
+    // Clean up entire temp root after all tests complete
     if (fs.existsSync(tempRoot)) {
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
