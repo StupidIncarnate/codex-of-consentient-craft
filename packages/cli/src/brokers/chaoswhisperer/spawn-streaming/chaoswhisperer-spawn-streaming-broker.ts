@@ -6,6 +6,7 @@
  *   userInput: UserInputStub({ value: 'I need authentication' }),
  * });
  * // Returns { sessionId, signal, exitCode } after user finishes interaction
+ * // For needs-user-input signal: returns early with { kill } function to terminate process
  *
  * The broker:
  * 1. Generates a stepId UUID for the session
@@ -13,6 +14,7 @@
  * 3. Spawns Claude with stream-json output
  * 4. Tees output: displays text to user AND captures for signal extraction
  * 5. Returns result when Claude signals completion
+ * 6. For needs-user-input: returns early with kill function for cleanup
  */
 
 import type { UserInput, StepId, SessionId } from '@dungeonmaster/shared/contracts';
@@ -28,6 +30,10 @@ import {
 } from '../../../contracts/chaoswhisperer-streaming-result/chaoswhisperer-streaming-result-contract';
 import { teeOutputLayerBroker } from './tee-output-layer-broker';
 
+export type ChaoswhispererStreamingResultWithKill = ChaoswhispererStreamingResult & {
+  kill?: () => boolean;
+};
+
 const SESSION_ID_PLACEHOLDER = '$SESSION_ID';
 
 export const chaoswhispererSpawnStreamingBroker = async ({
@@ -36,20 +42,22 @@ export const chaoswhispererSpawnStreamingBroker = async ({
 }: {
   userInput: UserInput;
   resumeSessionId?: SessionId;
-}): Promise<ChaoswhispererStreamingResult> => {
+}): Promise<ChaoswhispererStreamingResultWithKill> => {
   // Generate a stepId for this session
   const uuid = cryptoRandomUuidAdapter();
   const stepId: StepId = stepIdContract.parse(uuid);
 
-  // Build prompt from template, replacing both placeholders
-  const promptWithArgs = chaoswhispererPromptStatics.prompt.template.replace(
-    chaoswhispererPromptStatics.prompt.placeholders.arguments,
-    userInput,
-  );
-
-  const promptWithSessionId = promptWithArgs.replace(SESSION_ID_PLACEHOLDER, stepId);
-
-  const prompt = promptTextContract.parse(promptWithSessionId);
+  // Build prompt based on whether this is a new session or resume
+  // - New session: Full template with user request substituted
+  // - Resume: Just the user's answer (Claude already has the conversation context via --resume)
+  const prompt =
+    resumeSessionId === undefined
+      ? promptTextContract.parse(
+          chaoswhispererPromptStatics.prompt.template
+            .replace(chaoswhispererPromptStatics.prompt.placeholders.arguments, userInput)
+            .replace(SESSION_ID_PLACEHOLDER, stepId),
+        )
+      : promptTextContract.parse(userInput);
 
   // Spawn claude with stream-json output
   const spawnArgs = resumeSessionId === undefined ? { prompt } : { prompt, resumeSessionId };
@@ -68,9 +76,21 @@ export const chaoswhispererSpawnStreamingBroker = async ({
     process: eventEmittingProcess,
   });
 
-  return chaoswhispererStreamingResultContract.parse({
+  // Warn user when agent exits without signaling (forgot or crashed without calling signal-back)
+  // Only warn on successful exit (code 0) - non-zero exit means error already occurred
+  if (monitorResult.signal === null && monitorResult.exitCode === 0) {
+    process.stderr.write('Warning: Agent ended without signaling completion\n');
+  }
+
+  // Build result with validated fields
+  const baseResult = chaoswhispererStreamingResultContract.parse({
     sessionId: monitorResult.sessionId,
     signal: monitorResult.signal,
     exitCode: monitorResult.exitCode,
   });
+
+  // Include kill function if provided (for needs-user-input signal)
+  return monitorResult.kill === undefined
+    ? baseResult
+    : { ...baseResult, kill: monitorResult.kill };
 };

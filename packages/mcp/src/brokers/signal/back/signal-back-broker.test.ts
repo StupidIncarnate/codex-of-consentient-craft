@@ -75,6 +75,50 @@ describe('signalBackBroker', () => {
         },
       });
     });
+
+    it('INVALID: {signal: "needs-user-input"} without question => throws error', () => {
+      signalBackBrokerProxy();
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+
+      expect(() =>
+        signalBackBroker({
+          input: {
+            signal: 'needs-user-input',
+            stepId,
+            context: 'Setting up persistence',
+          },
+        }),
+      ).toThrow('needs-user-input signal requires question field');
+    });
+
+    it('INVALID: {signal: "needs-user-input"} without context => throws error', () => {
+      signalBackBrokerProxy();
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+
+      expect(() =>
+        signalBackBroker({
+          input: {
+            signal: 'needs-user-input',
+            stepId,
+            question: 'Which database?',
+          },
+        }),
+      ).toThrow('needs-user-input signal requires context field');
+    });
+
+    it('INVALID: {signal: "needs-user-input"} without both => throws error for question first', () => {
+      signalBackBrokerProxy();
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+
+      expect(() =>
+        signalBackBroker({
+          input: {
+            signal: 'needs-user-input',
+            stepId,
+          },
+        }),
+      ).toThrow('needs-user-input signal requires question field');
+    });
   });
 
   describe('needs-role-followup signal', () => {

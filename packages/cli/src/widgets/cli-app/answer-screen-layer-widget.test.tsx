@@ -130,6 +130,55 @@ describe('AnswerScreenLayerWidget', () => {
 
       expect(lastFrame()).toMatch(/Press Enter to submit, Escape to cancel/u);
     });
+
+    it('VALID: {question with newlines} => displays each line separately', () => {
+      AnswerScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
+      const question = SignalQuestionStub({
+        value: '1. What port?\n2. Need OAuth?\n3. Session duration?',
+      });
+      const context = SignalContextStub({ value: 'Setting up auth' });
+
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: (
+          <AnswerScreenLayerWidget
+            question={question}
+            context={context}
+            onSubmit={onSubmit.fn}
+            onCancel={onCancel.fn}
+          />
+        ),
+      });
+      unmountFn = unmount;
+
+      const frame = lastFrame();
+      expect(frame).toMatch(/1\. What port\?/u);
+      expect(frame).toMatch(/2\. Need OAuth\?/u);
+      expect(frame).toMatch(/3\. Session duration\?/u);
+    });
+
+    it('VALID: {question with single line} => displays single line', () => {
+      AnswerScreenLayerWidgetProxy();
+      const onSubmit = createTrackableCallback();
+      const onCancel = createTrackableCallback();
+      const question = SignalQuestionStub({ value: 'Single question here' });
+      const context = SignalContextStub();
+
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: (
+          <AnswerScreenLayerWidget
+            question={question}
+            context={context}
+            onSubmit={onSubmit.fn}
+            onCancel={onCancel.fn}
+          />
+        ),
+      });
+      unmountFn = unmount;
+
+      expect(lastFrame()).toMatch(/Single question here/u);
+    });
   });
 
   describe('keyboard input handling', () => {

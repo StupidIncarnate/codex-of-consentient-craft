@@ -371,6 +371,29 @@ signal-back({ signal: 'needs-user-input', stepId: '$SESSION_ID', context: 'What 
 This pauses your session. When the user answers, you will be resumed with their response.
 Do NOT use Claude's native AskUserQuestion tool - always use signal-back instead.
 
+### Asking Multiple Questions at Once
+
+The terminal UI has a single text input, so to ask multiple questions, format them as a numbered list in the \`question\` field with newlines between each question. The UI will render newlines properly for readability.
+
+**Example - Multiple questions:**
+\`\`\`
+signal-back({
+  signal: 'needs-user-input',
+  stepId: '$SESSION_ID',
+  context: 'Setting up authentication system',
+  question: '1. What port should the API run on?\\n2. Do you need OAuth integration?\\n3. What session duration (in hours)?'
+})
+\`\`\`
+
+**User responds:**
+\`\`\`
+1. 4000
+2. Yes, Google OAuth
+3. 24
+\`\`\`
+
+When you are resumed, parse the numbered response to extract each answer. Users may also respond in freeform text - use your judgment to extract the relevant information.
+
 ## User Request
 
 $ARGUMENTS`,

@@ -41,7 +41,9 @@ export const teeOutputLayerBrokerProxy = (): {
   returnsProcessWithExit: (params: { exitCode: ExitCode }) => EventEmittingProcess;
   returnsProcessWithNullExit: () => EventEmittingProcess;
   returnsProcessWithError: (params: { error: Error }) => EventEmittingProcess;
+  returnsProcessThatNeverExits: () => EventEmittingProcess;
   getWrittenOutput: () => StreamText;
+  wasProcessKilled: () => boolean;
 } => {
   const rlProxy = readlineCreateInterfaceAdapterProxy();
 
@@ -51,6 +53,9 @@ export const teeOutputLayerBrokerProxy = (): {
     writtenChunks.push(chunk);
     return true;
   });
+
+  // Track whether kill was called using an object wrapper to avoid mutable let
+  const killState = { killed: false };
 
   return {
     setupStreamWithLines: ({ lines }: { lines: readonly StreamJsonLine[] }): void => {
@@ -118,9 +123,39 @@ export const teeOutputLayerBrokerProxy = (): {
       return mockProcess;
     },
 
+    returnsProcessThatNeverExits: (): EventEmittingProcess => {
+      const listeners: Listeners = {};
+      // Process that never emits exit or error - simulates a long-running process
+      return {
+        kill: () => {
+          killState.killed = true;
+          // Trigger exit listeners when killed
+          setImmediate(() => {
+            const exitListeners = listeners.exit;
+            if (exitListeners) {
+              for (const listener of exitListeners) {
+                listener(null);
+              }
+            }
+          });
+          return true;
+        },
+        on: (...args: unknown[]): unknown => {
+          const [event, listener] = args as [PropertyKey, (...args: unknown[]) => void];
+          if (!listeners[event]) {
+            listeners[event] = [];
+          }
+          listeners[event].push(listener);
+          return undefined;
+        },
+      };
+    },
+
     getWrittenOutput: (): StreamText => {
       const combined = writtenChunks.map((c) => String(c)).join('');
       return StreamTextStub({ value: combined });
     },
+
+    wasProcessKilled: (): boolean => killState.killed,
   };
 };

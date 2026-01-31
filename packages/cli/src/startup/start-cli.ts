@@ -36,6 +36,7 @@ import type { SlotIndex } from '../contracts/slot-index/slot-index-contract';
 import { slotIndexContract } from '../contracts/slot-index/slot-index-contract';
 import type { AgentSlot } from '../contracts/agent-slot/agent-slot-contract';
 import { timeoutMsContract } from '../contracts/timeout-ms/timeout-ms-contract';
+import { formatMalformedSignalWarningTransformer } from '../transformers/format-malformed-signal-warning/format-malformed-signal-warning-transformer';
 import type { CliAppScreen } from '../widgets/cli-app/cli-app-widget';
 import { CliAppWidget } from '../widgets/cli-app/cli-app-widget';
 
@@ -188,12 +189,27 @@ export const StartCli = async ({
       result.signal.question !== undefined &&
       result.signal.context !== undefined
     ) {
-      const newPendingQuestion: PendingQuestion = {
-        question: result.signal.question,
-        context: result.signal.context,
-        sessionId: result.sessionId,
-      };
+      // Build pendingQuestion with optional kill function
+      const newPendingQuestion: PendingQuestion =
+        result.kill === undefined
+          ? {
+              question: result.signal.question,
+              context: result.signal.context,
+              sessionId: result.sessionId,
+            }
+          : {
+              question: result.signal.question,
+              context: result.signal.context,
+              sessionId: result.sessionId,
+              kill: result.kill,
+            };
       return StartCli({ initialScreen: 'answer', pendingQuestion: newPendingQuestion });
+    }
+
+    // Log warning if needs-user-input signal is malformed (missing question or context)
+    const malformedWarning = formatMalformedSignalWarningTransformer({ signal: result.signal });
+    if (malformedWarning !== null) {
+      process.stderr.write(`${malformedWarning}\n`);
     }
 
     const nextScreen: CliAppScreen = result.signal?.signal === 'complete' ? 'list' : 'menu';
@@ -221,12 +237,27 @@ export const StartCli = async ({
     result.signal.question !== undefined &&
     result.signal.context !== undefined
   ) {
-    const newPendingQuestion: PendingQuestion = {
-      question: result.signal.question,
-      context: result.signal.context,
-      sessionId: result.sessionId,
-    };
+    // Build pendingQuestion with optional kill function
+    const newPendingQuestion: PendingQuestion =
+      result.kill === undefined
+        ? {
+            question: result.signal.question,
+            context: result.signal.context,
+            sessionId: result.sessionId,
+          }
+        : {
+            question: result.signal.question,
+            context: result.signal.context,
+            sessionId: result.sessionId,
+            kill: result.kill,
+          };
     return StartCli({ initialScreen: 'answer', pendingQuestion: newPendingQuestion });
+  }
+
+  // Log warning if needs-user-input signal is malformed (missing question or context)
+  const malformedWarning = formatMalformedSignalWarningTransformer({ signal: result.signal });
+  if (malformedWarning !== null) {
+    process.stderr.write(`${malformedWarning}\n`);
   }
 
   // Determine next screen based on signal

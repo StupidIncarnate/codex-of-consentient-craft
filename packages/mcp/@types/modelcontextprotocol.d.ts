@@ -12,18 +12,37 @@ declare module '@modelcontextprotocol/sdk/server' {
     instructions?: string;
   }
 
-  export class Server {
-    constructor(serverInfo: { name: string; version: string }, options?: ServerOptions);
+  export interface ServerInfo {
+    name: string;
+    version: string;
+  }
+
+  export interface McpServer {
     setRequestHandler<T>(
       schema: unknown,
       handler: (request: T) => Promise<unknown> | unknown,
     ): void;
-    connect(transport: unknown): Promise<void>;
+    connect(transport: McpTransport): Promise<void>;
+  }
+
+  export interface McpTransport {
+    // Transport interface marker
+  }
+
+  export class Server implements McpServer {
+    constructor(serverInfo: ServerInfo, options?: ServerOptions);
+    setRequestHandler<T>(
+      schema: unknown,
+      handler: (request: T) => Promise<unknown> | unknown,
+    ): void;
+    connect(transport: McpTransport): Promise<void>;
   }
 }
 
 declare module '@modelcontextprotocol/sdk/server/stdio' {
-  export class StdioServerTransport {
+  import type { McpTransport } from '@modelcontextprotocol/sdk/server';
+
+  export class StdioServerTransport implements McpTransport {
     constructor();
   }
 }

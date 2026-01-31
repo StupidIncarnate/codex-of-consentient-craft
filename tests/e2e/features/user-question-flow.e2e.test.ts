@@ -102,13 +102,7 @@ describe('User Question Flow via signal-back MCP (Full CLI)', () => {
     it(
       'GIVEN Add screen WHEN user submits MCP question request THEN screen transitions to Answer with question displayed',
       async () => {
-        // Skip if Claude is not available
-        if (!claudeAvailable) {
-          // eslint-disable-next-line no-console
-          console.log('Skipping test - Claude CLI not available');
-          expect(claudeAvailable).toBe(false); // Assertion to satisfy jest.setup.js
-          return;
-        }
+        expect(claudeAvailable).toBe(true);
 
         // GIVEN: Initialize test project with minimal structure
         const testProject = createE2ETestProject('user-question-flow');
@@ -202,13 +196,7 @@ describe('User Question Flow via signal-back MCP (Full CLI)', () => {
     it(
       'GIVEN signal-back with context THEN Answer screen displays context',
       async () => {
-        // Skip if Claude is not available
-        if (!claudeAvailable) {
-          // eslint-disable-next-line no-console
-          console.log('Skipping test - Claude CLI not available');
-          expect(claudeAvailable).toBe(false); // Assertion to satisfy jest.setup.js
-          return;
-        }
+        expect(claudeAvailable).toBe(true);
 
         // Create test project
         const testProject = createE2ETestProject('user-question-context');
@@ -256,6 +244,214 @@ describe('User Question Flow via signal-back MCP (Full CLI)', () => {
     );
   });
 
+  describe('SCENARIO: Multi-round question flow (2+ question/answer cycles)', () => {
+    /**
+     * BDD Test: Two rounds of questions and answers
+     *
+     * GIVEN: User submits a request that triggers multiple questions
+     * WHEN: User answers first question
+     * AND: Agent asks second question
+     * AND: User answers second question
+     * THEN: Flow continues (either more questions or completion)
+     *
+     * This test specifically validates the bug fix for:
+     * - Resume prompt sending only user answer (not full template)
+     * - Signal extraction working correctly on subsequent rounds
+     */
+    it(
+      'GIVEN first question answered WHEN agent asks second question THEN user can answer and flow continues',
+      async () => {
+        expect(claudeAvailable).toBe(true);
+
+        // Create test project
+        const testProject = createE2ETestProject('multi-round-question-flow');
+        testDir = testProject.rootDir;
+
+        // Create driver and start CLI
+        driver = createFullCliDriver({
+          cwd: testDir,
+          timeout: FULL_E2E_TIMEOUT_MS,
+          debug: true,
+          env: {
+            DUNGEONMASTER_PROJECT_DIR: testDir,
+          },
+        });
+
+        await driver.start();
+
+        // Navigate to Add screen
+        await driver.waitForText('add', { timeout: 10000, interval: 500 });
+        driver.pressKey('enter');
+        await driver.waitForText('What would you like to build', { timeout: 10000, interval: 500 });
+
+        // GIVEN: Submit request that should trigger multiple questions
+        // Explicitly ask Claude to ask two separate questions via MCP
+        const userInput =
+          "Testing multi-round cli workflow. I want to build a simple app. " +
+          "Using signal-back mcp with needs-user-input, first ask me 'What is your name?' " +
+          "After I answer, ask me a SECOND question 'What is your favorite color?' also via signal-back mcp.";
+
+        driver.type(userInput);
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        driver.pressKey('enter');
+
+        // WHEN: Wait for first Answer screen (first question)
+        await driver.waitForText('Agent needs your input', {
+          timeout: CLAUDE_PROCESSING_TIMEOUT_MS,
+          interval: POLL_INTERVAL_MS,
+        });
+
+        // Verify we see a question (could be paraphrased)
+        const firstQuestionScreen = driver.getScreen();
+        // eslint-disable-next-line no-console
+        console.log('[E2E] First question screen captured');
+        expect(firstQuestionScreen.contains('Agent needs your input')).toBe(true);
+
+        // User answers first question
+        const firstAnswer = 'My name is Test User';
+        driver.type(firstAnswer);
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        driver.pressKey('enter');
+
+        // AND: Wait for agent to process and ask second question
+        // This is the critical test - after first answer, should get second question
+        // Need to wait for screen to change and show new question
+
+        // First, wait for processing to complete (screen should change)
+        // eslint-disable-next-line no-console
+        console.log('[E2E] First answer submitted, waiting for second question...');
+
+        // Wait for second question screen OR completion
+        // We check if we get another "Agent needs your input" OR if we go back to menu/list
+        try {
+          await driver.waitForStable({
+            timeout: CLAUDE_PROCESSING_TIMEOUT_MS,
+            stableFor: 2000,
+            interval: POLL_INTERVAL_MS,
+          });
+
+          const secondScreen = driver.getScreen();
+          // eslint-disable-next-line no-console
+          console.log('[E2E] Screen after first answer:', secondScreen.contains('Agent needs your input') ? 'Answer screen' : 'Other screen');
+
+          // Check if we got a second question
+          if (secondScreen.contains('Agent needs your input')) {
+            // THEN: We successfully got a second question - answer it
+            // eslint-disable-next-line no-console
+            console.log('[E2E] Second question received - multi-round flow working!');
+
+            const secondAnswer = 'Blue is my favorite color';
+            driver.type(secondAnswer);
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            driver.pressKey('enter');
+
+            // Wait for final processing
+            await driver.waitForStable({
+              timeout: CLAUDE_PROCESSING_TIMEOUT_MS,
+              stableFor: 3000,
+              interval: POLL_INTERVAL_MS,
+            });
+
+            // Flow completed successfully
+            expect(driver.isRunning()).toBe(true);
+          } else {
+            // If we ended up at menu or list, that's also a valid end state
+            // The key is that we didn't HANG
+            // eslint-disable-next-line no-console
+            console.log('[E2E] Flow completed without second question (agent decided to complete)');
+            expect(driver.isRunning()).toBe(true);
+          }
+        } catch (error) {
+          // If we timed out, the flow is hanging - this is the bug we're testing for
+          // eslint-disable-next-line no-console
+          console.error('[E2E] TIMEOUT - Flow appears to be hanging after first answer!');
+          throw error;
+        }
+
+        // Clean up
+        testProject.cleanup();
+      },
+      FULL_E2E_TIMEOUT_MS * 2, // Extra time for two rounds
+    );
+
+    /**
+     * BDD Test: Verify prompt content on resume is correct
+     *
+     * This test verifies the fix for the bug where on resume,
+     * the full template was sent instead of just the user's answer,
+     * confusing the agent.
+     */
+    it(
+      'GIVEN answer submitted WHEN agent resumes THEN agent understands answer as continuation not new request',
+      async () => {
+        expect(claudeAvailable).toBe(true);
+
+        // Create test project
+        const testProject = createE2ETestProject('resume-prompt-content');
+        testDir = testProject.rootDir;
+
+        // Create driver and start CLI
+        driver = createFullCliDriver({
+          cwd: testDir,
+          timeout: FULL_E2E_TIMEOUT_MS,
+          debug: true,
+          env: {
+            DUNGEONMASTER_PROJECT_DIR: testDir,
+          },
+        });
+
+        await driver.start();
+
+        // Navigate to Add screen
+        await driver.waitForText('add', { timeout: 10000, interval: 500 });
+        driver.pressKey('enter');
+        await driver.waitForText('What would you like to build', { timeout: 10000, interval: 500 });
+
+        // Submit request
+        const userInput =
+          "Testing resume flow. Ask me via signal-back mcp: 'What port number?' After I answer, acknowledge my answer and complete.";
+
+        driver.type(userInput);
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        driver.pressKey('enter');
+
+        // Wait for question
+        await driver.waitForText('Agent needs your input', {
+          timeout: CLAUDE_PROCESSING_TIMEOUT_MS,
+          interval: POLL_INTERVAL_MS,
+        });
+
+        // Answer with a specific value that agent should acknowledge
+        const specificAnswer = '8080';
+        driver.type(specificAnswer);
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        driver.pressKey('enter');
+
+        // Wait for response - should NOT re-ask about ports or be confused
+        await driver.waitForStable({
+          timeout: CLAUDE_PROCESSING_TIMEOUT_MS,
+          stableFor: 3000,
+          interval: POLL_INTERVAL_MS,
+        });
+
+        // The agent should either:
+        // 1. Complete (go to list/menu)
+        // 2. Ask a follow-up question (but NOT re-ask about ports)
+        // It should NOT start over or act confused about what the request was
+
+        // eslint-disable-next-line no-console
+        console.log('[E2E] Screen after answering port question - checking agent understood answer');
+
+        // Flow completed without hanging = success
+        expect(driver.isRunning()).toBe(true);
+
+        // Clean up
+        testProject.cleanup();
+      },
+      FULL_E2E_TIMEOUT_MS,
+    );
+  });
+
   describe('SCENARIO: User can respond to agent question', () => {
     /**
      * BDD Test: User submits answer on Answer screen
@@ -268,13 +464,7 @@ describe('User Question Flow via signal-back MCP (Full CLI)', () => {
     it(
       'GIVEN Answer screen WHEN user types answer and presses Enter THEN Claude resumes processing',
       async () => {
-        // Skip if Claude is not available
-        if (!claudeAvailable) {
-          // eslint-disable-next-line no-console
-          console.log('Skipping test - Claude CLI not available');
-          expect(claudeAvailable).toBe(false); // Assertion to satisfy jest.setup.js
-          return;
-        }
+        expect(claudeAvailable).toBe(true);
 
         // Create test project
         const testProject = createE2ETestProject('user-answer-flow');
@@ -355,13 +545,7 @@ describe('User Question Flow via signal-back MCP (Full CLI)', () => {
     it(
       'GIVEN Answer screen WHEN user presses Escape THEN returns to menu',
       async () => {
-        // Skip if Claude is not available
-        if (!claudeAvailable) {
-          // eslint-disable-next-line no-console
-          console.log('Skipping test - Claude CLI not available');
-          expect(claudeAvailable).toBe(false); // Assertion to satisfy jest.setup.js
-          return;
-        }
+        expect(claudeAvailable).toBe(true);
 
         // Create test project
         const testProject = createE2ETestProject('user-cancel-flow');

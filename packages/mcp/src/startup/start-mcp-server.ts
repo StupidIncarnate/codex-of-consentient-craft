@@ -104,7 +104,7 @@ export const StartMcpServer = async (): Promise<void> => {
       {
         name: 'signal-back',
         description:
-          'Signals the CLI with step completion status, progress, or blocking conditions',
+          'Signals the CLI with step completion status, progress, or blocking conditions. For needs-user-input, use newlines in the question field to ask multiple questions (e.g., "1. First?\\n2. Second?")',
         inputSchema: zodToJsonSchema(signalBackInputContract, { $refStrategy: 'none' }),
       },
     ],

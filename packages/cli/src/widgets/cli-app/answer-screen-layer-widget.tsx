@@ -56,6 +56,9 @@ export const AnswerScreenLayerWidget = ({
     },
   });
 
+  // Split question by newlines to render each line separately
+  const questionLines = question.split('\n');
+
   return (
     <Box flexDirection="column">
       <Text bold color="yellow">
@@ -64,7 +67,11 @@ export const AnswerScreenLayerWidget = ({
       <Text> </Text>
       <Text dimColor>Context: {context}</Text>
       <Text> </Text>
-      <Text bold>{question}</Text>
+      {questionLines.map((line, index) => (
+        <Text key={index} bold>
+          {line}
+        </Text>
+      ))}
       <Text> </Text>
       <Box>
         <Text color="cyan">&gt; </Text>

@@ -37,6 +37,7 @@ export interface PendingQuestion {
   question: SignalQuestion;
   context: SignalContext;
   sessionId: SessionId;
+  kill?: () => boolean;
 }
 
 export interface CliAppWidgetProps {
@@ -75,6 +76,8 @@ export const CliAppWidget = ({
           onResumeChaoswhisperer({ answer, sessionId: pendingQuestion.sessionId });
         }}
         onCancel={() => {
+          // Kill the running process if available (for needs-user-input signal)
+          pendingQuestion.kill?.();
           setScreen('menu');
         }}
       />

@@ -5,9 +5,16 @@ import { InstallContextStub, SessionIdStub } from '@dungeonmaster/shared/contrac
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 import { SignalQuestionStub } from '../../contracts/signal-question/signal-question.stub';
 import { SignalContextStub } from '../../contracts/signal-context/signal-context.stub';
+import { cliStatics } from '../../statics/cli/cli-statics';
 
 import { CliAppWidget } from './cli-app-widget';
 import { CliAppWidgetProxy } from './cli-app-widget.proxy';
+
+const waitForUseEffect = async (): Promise<void> => {
+  await new Promise((resolve) => {
+    setTimeout(resolve, cliStatics.testing.useEffectDelayMs);
+  });
+};
 
 // Simple no-op callback for tests that only check rendering
 const noopCallback = (): void => {
@@ -32,6 +39,19 @@ const createMockPendingQuestion = (): {
   question: SignalQuestionStub({ value: 'What port number?' }),
   context: SignalContextStub({ value: 'Setting up server' }),
   sessionId: SessionIdStub({ value: 'test-session-123' }),
+});
+
+// Mock pending question with kill function for process cleanup tests
+const createMockPendingQuestionWithKill = (): {
+  question: ReturnType<typeof SignalQuestionStub>;
+  context: ReturnType<typeof SignalContextStub>;
+  sessionId: ReturnType<typeof SessionIdStub>;
+  kill: jest.Mock;
+} => ({
+  question: SignalQuestionStub({ value: 'What port number?' }),
+  context: SignalContextStub({ value: 'Setting up server' }),
+  sessionId: SessionIdStub({ value: 'test-session-123' }),
+  kill: jest.fn().mockReturnValue(true),
 });
 
 describe('CliAppWidget', () => {
@@ -215,6 +235,62 @@ describe('CliAppWidget', () => {
       unmount();
 
       // Widget renders successfully with all props
+      expect(frame).toMatch(/dungeonmaster/u);
+    });
+  });
+
+  describe('process cleanup on cancel', () => {
+    it('VALID: {answer screen with kill + escape} => calls kill function', async () => {
+      CliAppWidgetProxy();
+      const pendingQuestion = createMockPendingQuestionWithKill();
+
+      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
+        element: (
+          <CliAppWidget
+            initialScreen="answer"
+            onSpawnChaoswhisperer={noopCallback}
+            onResumeChaoswhisperer={noopCallback}
+            onRunQuest={noopCallback}
+            onExit={noopCallback}
+            installContext={createMockInstallContext()}
+            pendingQuestion={pendingQuestion}
+          />
+        ),
+      });
+
+      await waitForUseEffect();
+      stdin.write('\x1B'); // Escape key
+      await waitForUseEffect();
+      unmount();
+
+      expect(pendingQuestion.kill).toHaveBeenCalledTimes(1);
+    });
+
+    it('VALID: {answer screen without kill + escape} => navigates to menu', async () => {
+      CliAppWidgetProxy();
+
+      const { stdin, lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: (
+          <CliAppWidget
+            initialScreen="answer"
+            onSpawnChaoswhisperer={noopCallback}
+            onResumeChaoswhisperer={noopCallback}
+            onRunQuest={noopCallback}
+            onExit={noopCallback}
+            installContext={createMockInstallContext()}
+            pendingQuestion={createMockPendingQuestion()}
+          />
+        ),
+      });
+
+      await waitForUseEffect();
+      stdin.write('\x1B'); // Escape key
+      await waitForUseEffect();
+
+      const frame = lastFrame();
+      unmount();
+
+      // After escape, should show menu screen
       expect(frame).toMatch(/dungeonmaster/u);
     });
   });

@@ -42,7 +42,9 @@ export const signalBackInputContract = z.object({
     .string()
     .min(1)
     .brand<'SignalQuestion'>()
-    .describe('Question for the user (for needs-user-input signal)')
+    .describe(
+      'Question for the user (for needs-user-input signal). For multiple questions, use newlines between each numbered question (e.g., "1. First question?\\n2. Second question?")',
+    )
     .optional(),
   // Fields for 'needs-user-input' and 'needs-role-followup' signals
   context: z

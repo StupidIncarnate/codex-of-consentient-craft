@@ -531,4 +531,135 @@ describe('teeOutputLayerBroker()', () => {
       });
     });
   });
+
+  describe('early resolution on needs-user-input signal', () => {
+    it('VALID: {needs-user-input signal} => resolves immediately with signal and kill function', async () => {
+      const proxy = teeOutputLayerBrokerProxy();
+      const stepId = StepIdStub();
+      const sessionId = SessionIdStub();
+      const signalLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [
+              {
+                type: 'tool_use',
+                name: 'mcp__dungeonmaster__signal-back',
+                input: {
+                  signal: 'needs-user-input',
+                  stepId,
+                  question: 'What port number?',
+                  context: 'Setting up server',
+                },
+              },
+            ],
+          },
+        }),
+      });
+      const sessionLine = StreamJsonLineStub({
+        value: JSON.stringify({ type: 'system', session_id: sessionId }),
+      });
+      proxy.setupStreamWithLines({ lines: [sessionLine, signalLine] });
+
+      const processStub = proxy.returnsProcessThatNeverExits();
+
+      const result = await teeOutputLayerBroker({
+        stdout: jest.fn() as never,
+        process: processStub,
+      });
+
+      expect(result).toStrictEqual({
+        sessionId,
+        exitCode: null,
+        signal: {
+          signal: 'needs-user-input',
+          stepId,
+          question: 'What port number?',
+          context: 'Setting up server',
+        },
+        kill: expect.any(Function),
+      });
+    });
+
+    it('VALID: {needs-user-input signal + kill called} => process is killed', async () => {
+      const proxy = teeOutputLayerBrokerProxy();
+      const stepId = StepIdStub();
+      const signalLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [
+              {
+                type: 'tool_use',
+                name: 'mcp__dungeonmaster__signal-back',
+                input: {
+                  signal: 'needs-user-input',
+                  stepId,
+                  question: 'What port?',
+                  context: 'Server setup',
+                },
+              },
+            ],
+          },
+        }),
+      });
+      proxy.setupStreamWithLines({ lines: [signalLine] });
+
+      const processStub = proxy.returnsProcessThatNeverExits();
+
+      const result = await teeOutputLayerBroker({
+        stdout: jest.fn() as never,
+        process: processStub,
+      });
+
+      // Use non-null assertion since test verifies kill exists for needs-user-input signal
+      const kill = result.kill as () => boolean;
+      const killResult = kill();
+
+      expect(killResult).toBe(true);
+      expect(proxy.wasProcessKilled()).toBe(true);
+    });
+
+    it('VALID: {complete signal} => waits for exit, no kill function', async () => {
+      const proxy = teeOutputLayerBrokerProxy();
+      const stepId = StepIdStub();
+      const signalLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [
+              {
+                type: 'tool_use',
+                name: 'mcp__dungeonmaster__signal-back',
+                input: {
+                  signal: 'complete',
+                  stepId,
+                  summary: 'Task completed',
+                },
+              },
+            ],
+          },
+        }),
+      });
+      proxy.setupStreamWithLines({ lines: [signalLine] });
+
+      const processStub = proxy.returnsProcessWithExit({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      const result = await teeOutputLayerBroker({
+        stdout: jest.fn() as never,
+        process: processStub,
+      });
+
+      expect(result).toStrictEqual({
+        sessionId: null,
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: {
+          signal: 'complete',
+          stepId,
+          summary: 'Task completed',
+        },
+      });
+      expect(result.kill).toBeUndefined();
+    });
+  });
 });
