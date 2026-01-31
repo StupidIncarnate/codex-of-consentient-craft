@@ -56,6 +56,17 @@ describe('MenuScreenLayerWidget', () => {
       expect(lastFrame()).toMatch(/arrow keys/u);
     });
 
+    it('VALID: {} => displays build timestamp', () => {
+      MenuScreenLayerWidgetProxy();
+
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: <MenuScreenLayerWidget onSelect={noopCallback} onExit={noopCallback} />,
+      });
+      unmountFn = unmount;
+
+      expect(lastFrame()).toMatch(/Built:/u);
+    });
+
     it('VALID: {} => displays first option as selected by default', () => {
       MenuScreenLayerWidgetProxy();
 

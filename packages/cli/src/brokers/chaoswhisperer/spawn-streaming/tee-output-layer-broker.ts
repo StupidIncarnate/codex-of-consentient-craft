@@ -34,6 +34,7 @@ export const teeOutputLayerBroker = async ({
   const state: TeeOutputState = {
     sessionId: null,
     signal: null,
+    lastOutputEndedWithNewline: true,
   };
 
   const rl = readlineCreateInterfaceAdapter({ input: stdout });
@@ -65,12 +66,18 @@ export const teeOutputLayerBroker = async ({
     const text = streamJsonToTextTransformer({ line });
     if (text !== null) {
       process.stdout.write(text);
+      state.lastOutputEndedWithNewline = text.endsWith('\n');
     }
 
     // Tee: Extract tool_use and display to user
     const toolUse = streamJsonToToolUseTransformer({ line });
     if (toolUse !== null) {
+      // Prepend newline if previous output didn't end with one
+      if (!state.lastOutputEndedWithNewline) {
+        process.stdout.write('\n');
+      }
       process.stdout.write(toolUse);
+      state.lastOutputEndedWithNewline = true;
     }
   });
 

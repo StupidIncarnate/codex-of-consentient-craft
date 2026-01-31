@@ -13,6 +13,7 @@ import { streamSignalContract } from '../stream-signal/stream-signal-contract';
 export const teeOutputStateContract = z.object({
   sessionId: sessionIdContract.nullable(),
   signal: streamSignalContract.nullable(),
+  lastOutputEndedWithNewline: z.boolean(),
 });
 
 export type TeeOutputState = z.infer<typeof teeOutputStateContract>;

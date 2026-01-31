@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && npm run bundle",
-    "bundle": "npx esbuild dist/src/startup/start-cli.js --bundle --platform=node --format=cjs --outfile=dist/bin/dungeonmaster.js --external:ink --external:react --external:@dungeonmaster/* --external:zod",
+    "bundle": "npx esbuild dist/src/startup/start-cli.js --bundle --platform=node --format=cjs --outfile=dist/bin/dungeonmaster.js --external:ink --external:react --external:@dungeonmaster/* --external:zod --define:__BUILD_TIMESTAMP__=\"\\\"$(date +'%b %d %I:%M %p')\\\"\"",
     "postbuild": "chmod +x dist/bin/*.js dist/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
     "test": "jest",

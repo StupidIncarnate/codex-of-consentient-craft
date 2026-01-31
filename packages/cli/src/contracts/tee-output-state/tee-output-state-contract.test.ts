@@ -5,7 +5,7 @@ import { StreamSignalStub } from '../stream-signal/stream-signal.stub';
 
 describe('teeOutputStateContract', () => {
   describe('valid states', () => {
-    it('VALID: {sessionId, signal} => parses successfully', () => {
+    it('VALID: {sessionId, signal, lastOutputEndedWithNewline} => parses successfully', () => {
       const sessionId = SessionIdStub();
       const stepId = StepIdStub();
       const signal = StreamSignalStub({ stepId });
@@ -13,11 +13,13 @@ describe('teeOutputStateContract', () => {
       const result = teeOutputStateContract.parse({
         sessionId,
         signal,
+        lastOutputEndedWithNewline: true,
       });
 
       expect(result).toStrictEqual({
         sessionId,
         signal,
+        lastOutputEndedWithNewline: true,
       });
     });
 
@@ -26,17 +28,20 @@ describe('teeOutputStateContract', () => {
 
       expect(result.sessionId).not.toBeNull();
       expect(result.signal).not.toBeNull();
+      expect(result.lastOutputEndedWithNewline).toBe(true);
     });
 
-    it('VALID: {all null values} => parses successfully', () => {
+    it('VALID: {all null values except boolean} => parses successfully', () => {
       const result = teeOutputStateContract.parse({
         sessionId: null,
         signal: null,
+        lastOutputEndedWithNewline: false,
       });
 
       expect(result).toStrictEqual({
         sessionId: null,
         signal: null,
+        lastOutputEndedWithNewline: false,
       });
     });
 
@@ -52,6 +57,7 @@ describe('teeOutputStateContract', () => {
       expect(result).toStrictEqual({
         sessionId: null,
         signal,
+        lastOutputEndedWithNewline: true,
       });
     });
 
@@ -66,7 +72,16 @@ describe('teeOutputStateContract', () => {
       expect(result).toStrictEqual({
         sessionId,
         signal: null,
+        lastOutputEndedWithNewline: true,
       });
+    });
+
+    it('VALID: {lastOutputEndedWithNewline false} => parses successfully', () => {
+      const result = TeeOutputStateStub({
+        lastOutputEndedWithNewline: false,
+      });
+
+      expect(result.lastOutputEndedWithNewline).toBe(false);
     });
   });
 
@@ -76,6 +91,7 @@ describe('teeOutputStateContract', () => {
         teeOutputStateContract.parse({
           sessionId: '',
           signal: null,
+          lastOutputEndedWithNewline: true,
         });
       }).toThrow(/String must contain at least 1 character/u);
     });
@@ -85,6 +101,7 @@ describe('teeOutputStateContract', () => {
         teeOutputStateContract.parse({
           sessionId: null,
           signal: { signal: 'invalid-signal', stepId: StepIdStub() },
+          lastOutputEndedWithNewline: true,
         });
       }).toThrow(/Invalid enum value/u);
     });
@@ -93,6 +110,16 @@ describe('teeOutputStateContract', () => {
       expect(() => {
         teeOutputStateContract.parse({});
       }).toThrow(/Required/u);
+    });
+
+    it('INVALID_NEWLINE: {lastOutputEndedWithNewline: non-boolean} => throws validation error', () => {
+      expect(() => {
+        teeOutputStateContract.parse({
+          sessionId: null,
+          signal: null,
+          lastOutputEndedWithNewline: 'yes' as never,
+        });
+      }).toThrow(/Expected boolean/u);
     });
   });
 });

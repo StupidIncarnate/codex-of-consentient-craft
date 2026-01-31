@@ -39,15 +39,6 @@
   },
   "dependencies": {
     "@anthropic-ai/claude-code": "latest",
-    "@dungeonmaster/cli": "*",
-    "@dungeonmaster/config": "*",
-    "@dungeonmaster/eslint-plugin": "*",
-    "@dungeonmaster/hooks": "*",
-    "@dungeonmaster/mcp": "*",
-    "@dungeonmaster/shared": "*",
-    "@dungeonmaster/standards": "*",
-    "@dungeonmaster/testing": "*",
-    "@dungeonmaster/tooling": "*",
     "@types/ioredis": "^4.28.10",
     "ioredis": "^5.7.0",
     "zod": "^3.25.76"

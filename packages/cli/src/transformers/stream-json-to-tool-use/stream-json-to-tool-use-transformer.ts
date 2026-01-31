@@ -2,8 +2,8 @@
  * PURPOSE: Extracts tool_use content from a Claude stream-json output line and formats for display
  *
  * USAGE:
- * streamJsonToToolUseTransformer({ line: StreamJsonLineStub({ value: '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Task","input":{}}]}}' }) });
- * // Returns ToolUseDisplay if tool_use found, null otherwise
+ * streamJsonToToolUseTransformer({ line: StreamJsonLineStub({ value: '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Task","input":{"pattern":"*.ts"}}]}}' }) });
+ * // Returns '[Task] pattern="*.ts"\n' as ToolUseDisplay if tool_use found, null otherwise
  */
 
 import type { StreamJsonLine } from '../../contracts/stream-json-line/stream-json-line-contract';
@@ -11,6 +11,7 @@ import {
   toolUseDisplayContract,
   type ToolUseDisplay,
 } from '../../contracts/tool-use-display/tool-use-display-contract';
+import { toolInputToDisplayTransformer } from '../tool-input-to-display/tool-input-to-display-transformer';
 
 export const streamJsonToToolUseTransformer = ({
   line,
@@ -41,7 +42,7 @@ export const streamJsonToToolUseTransformer = ({
       return null;
     }
 
-    // Collect tool_use names using reduce to build display string directly
+    // Collect tool_use names and inputs using reduce to build display string directly
     const result = content.reduce<ToolUseDisplay | null>((acc, item) => {
       if (
         typeof item === 'object' &&
@@ -52,7 +53,18 @@ export const streamJsonToToolUseTransformer = ({
       ) {
         const name: unknown = Reflect.get(item, 'name');
         if (typeof name === 'string') {
-          const formatted = `[${name}]`;
+          // Extract input object if present and convert to record
+          const inputRaw: unknown = 'input' in item ? Reflect.get(item, 'input') : null;
+          const input =
+            typeof inputRaw === 'object' && inputRaw !== null && !Array.isArray(inputRaw)
+              ? Object.fromEntries(Object.entries(inputRaw))
+              : {};
+
+          // Format input parameters
+          const inputDisplay = toolInputToDisplayTransformer({ input });
+          const formattedInput = inputDisplay.length > 0 ? ` ${inputDisplay}` : '';
+
+          const formatted = `[${name}]${formattedInput}`;
           const current = acc === null ? '' : `${acc.replace(/\n$/u, '')} `;
           return toolUseDisplayContract.parse(`${current}${formatted}\n`);
         }

@@ -264,7 +264,7 @@ describe('teeOutputLayerBroker()', () => {
       expect(proxy.getWrittenOutput()).toBe('[Task]\n');
     });
 
-    it('VALID: {stream with text and tool_use} => writes both to stdout', async () => {
+    it('VALID: {stream with text and tool_use in same message} => writes both with newline between', async () => {
       const proxy = teeOutputLayerBrokerProxy();
       const mixedLine = StreamJsonLineStub({
         value: JSON.stringify({
@@ -286,7 +286,152 @@ describe('teeOutputLayerBroker()', () => {
         process: processStub,
       });
 
-      expect(proxy.getWrittenOutput()).toBe('Let me explore.[Glob]\n');
+      // Text doesn't end with newline, so newline is prepended before tool
+      expect(proxy.getWrittenOutput()).toBe('Let me explore.\n[Glob]\n');
+    });
+  });
+
+  describe('newline handling', () => {
+    it('VALID: {text ending with newline + tool} => no extra newline added', async () => {
+      const proxy = teeOutputLayerBrokerProxy();
+      const textLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'text', text: 'Some text\n' }],
+          },
+        }),
+      });
+      const toolLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'tool_use', name: 'Read', input: {} }],
+          },
+        }),
+      });
+      proxy.setupStreamWithLines({ lines: [textLine, toolLine] });
+
+      const processStub = proxy.returnsProcessWithExit({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await teeOutputLayerBroker({
+        stdout: jest.fn() as never,
+        process: processStub,
+      });
+
+      expect(proxy.getWrittenOutput()).toBe('Some text\n[Read]\n');
+    });
+
+    it('VALID: {text NOT ending with newline + tool} => adds newline first', async () => {
+      const proxy = teeOutputLayerBrokerProxy();
+      const textLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'text', text: 'Some text without newline' }],
+          },
+        }),
+      });
+      const toolLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'tool_use', name: 'Read', input: {} }],
+          },
+        }),
+      });
+      proxy.setupStreamWithLines({ lines: [textLine, toolLine] });
+
+      const processStub = proxy.returnsProcessWithExit({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await teeOutputLayerBroker({
+        stdout: jest.fn() as never,
+        process: processStub,
+      });
+
+      expect(proxy.getWrittenOutput()).toBe('Some text without newline\n[Read]\n');
+    });
+
+    it('VALID: {tool after tool} => no extra newline (tools always end with newline)', async () => {
+      const proxy = teeOutputLayerBrokerProxy();
+      const firstToolLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'tool_use', name: 'Glob', input: {} }],
+          },
+        }),
+      });
+      const secondToolLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'tool_use', name: 'Read', input: {} }],
+          },
+        }),
+      });
+      proxy.setupStreamWithLines({ lines: [firstToolLine, secondToolLine] });
+
+      const processStub = proxy.returnsProcessWithExit({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await teeOutputLayerBroker({
+        stdout: jest.fn() as never,
+        process: processStub,
+      });
+
+      expect(proxy.getWrittenOutput()).toBe('[Glob]\n[Read]\n');
+    });
+
+    it('VALID: {first output is tool} => no extra newline needed', async () => {
+      const proxy = teeOutputLayerBrokerProxy();
+      const toolLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'tool_use', name: 'Task', input: {} }],
+          },
+        }),
+      });
+      proxy.setupStreamWithLines({ lines: [toolLine] });
+
+      const processStub = proxy.returnsProcessWithExit({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await teeOutputLayerBroker({
+        stdout: jest.fn() as never,
+        process: processStub,
+      });
+
+      expect(proxy.getWrittenOutput()).toBe('[Task]\n');
+    });
+
+    it('VALID: {tool with input params after text} => shows tool with params on new line', async () => {
+      const proxy = teeOutputLayerBrokerProxy();
+      const textLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'text', text: 'Let me search' }],
+          },
+        }),
+      });
+      const toolLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'tool_use', name: 'Glob', input: { pattern: '*.ts' } }],
+          },
+        }),
+      });
+      proxy.setupStreamWithLines({ lines: [textLine, toolLine] });
+
+      const processStub = proxy.returnsProcessWithExit({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await teeOutputLayerBroker({
+        stdout: jest.fn() as never,
+        process: processStub,
+      });
+
+      expect(proxy.getWrittenOutput()).toBe('Let me search\n[Glob] pattern="*.ts"\n');
     });
   });
 

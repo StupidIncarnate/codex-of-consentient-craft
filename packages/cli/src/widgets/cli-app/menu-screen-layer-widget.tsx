@@ -16,6 +16,7 @@ import { inkUseInputAdapter } from '../../adapters/ink/use-input/ink-use-input-a
 import { menuIndexContract } from '../../contracts/menu-index/menu-index-contract';
 import type { MenuIndex } from '../../contracts/menu-index/menu-index-contract';
 import { cliStatics } from '../../statics/cli/cli-statics';
+import { getBuildTimestampTransformer } from '../../transformers/get-build-timestamp/get-build-timestamp-transformer';
 
 export interface MenuScreenLayerWidgetProps {
   onSelect: ({ option }: { option: string }) => void;
@@ -58,6 +59,7 @@ export const MenuScreenLayerWidget = ({
     <Box flexDirection="column">
       <Text bold>{cliStatics.meta.name}</Text>
       <Text>{cliStatics.meta.description}</Text>
+      <Text dimColor>Built: {getBuildTimestampTransformer()}</Text>
       <Text> </Text>
       {options.map((option, index) =>
         index === selectedIndex ? (
