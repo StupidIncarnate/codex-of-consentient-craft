@@ -12,7 +12,6 @@ import { StartDebug } from './start-debug';
 import { CliAppScreenStub } from '../contracts/cli-app-screen/cli-app-screen.stub';
 import { KeyNameStub } from '../contracts/key-name/key-name.stub';
 import { DebugResponseStub } from '../contracts/debug-response/debug-response.stub';
-import { CallbackKeyStub } from '../contracts/callback-key/callback-key.stub';
 
 type DebugResponse = ReturnType<typeof DebugResponseStub>;
 
@@ -101,10 +100,10 @@ describe('StartDebug', () => {
         expect(typeof response.screen?.frame).toBe('string');
       });
 
-      it('VALID: {action: start, screen: add} => returns success with add screen frame', async () => {
+      it('VALID: {action: start, screen: run} => returns success with run screen frame', async () => {
         const client = createDebugClient();
 
-        const screen = CliAppScreenStub({ value: 'add' });
+        const screen = CliAppScreenStub({ value: 'run' });
         const response = await client.sendCommand({
           action: 'start',
           screen,
@@ -113,31 +112,7 @@ describe('StartDebug', () => {
         client.close();
 
         expect(response.success).toBe(true);
-        expect(response.screen?.name).toBe('add');
-      });
-    });
-
-    describe('input command', () => {
-      it('VALID: {action: input, text: "hello"} => returns success with updated frame', async () => {
-        const client = createDebugClient();
-
-        // First start with add screen (has text input)
-        const screen = CliAppScreenStub({ value: 'add' });
-        await client.sendCommand({
-          action: 'start',
-          screen,
-        });
-
-        // Then send input
-        const inputResponse = await client.sendCommand({
-          action: 'input',
-          text: 'hello',
-        });
-
-        client.close();
-
-        expect(inputResponse.success).toBe(true);
-        expect(inputResponse.screen?.frame).toMatch(/hello/u);
+        expect(response.screen?.name).toBe('run');
       });
     });
 
@@ -308,7 +283,7 @@ describe('StartDebug', () => {
     });
 
     describe('screen navigation', () => {
-      it('VALID: {menu => enter} => navigates to add screen and frame shows input prompt', async () => {
+      it('VALID: {menu => enter} => navigates to run screen and frame shows run content', async () => {
         const client = createDebugClient();
 
         const screen = CliAppScreenStub({ value: 'menu' });
@@ -317,7 +292,7 @@ describe('StartDebug', () => {
           screen,
         });
 
-        // Press enter on first item (Add)
+        // Press enter on first item (Run)
         const key = KeyNameStub({ value: 'enter' });
         const response = await client.sendCommand({
           action: 'keypress',
@@ -327,14 +302,14 @@ describe('StartDebug', () => {
         client.close();
 
         expect(response.success).toBe(true);
-        // Frame should show the add screen content (input prompt)
-        expect(response.screen?.frame).toMatch(/What would you like to build/u);
+        // Frame should show the run screen content
+        expect(response.screen?.frame).toMatch(/Run Quest/u);
       });
 
-      it('VALID: {add => escape} => returns to menu and frame shows menu items', async () => {
+      it('VALID: {run => escape} => returns to menu and frame shows menu items', async () => {
         const client = createDebugClient();
 
-        const screen = CliAppScreenStub({ value: 'add' });
+        const screen = CliAppScreenStub({ value: 'run' });
         await client.sendCommand({
           action: 'start',
           screen,
@@ -351,45 +326,8 @@ describe('StartDebug', () => {
 
         expect(response.success).toBe(true);
         // Frame should show menu items after going back
-        expect(response.screen?.frame).toMatch(/Add/u);
         expect(response.screen?.frame).toMatch(/Run/u);
         expect(response.screen?.frame).toMatch(/List/u);
-      });
-    });
-
-    describe('callbacks tracking', () => {
-      it('VALID: {add screen submit} => tracks onSpawnChaoswhisperer callback', async () => {
-        const client = createDebugClient();
-
-        const screen = CliAppScreenStub({ value: 'add' });
-        await client.sendCommand({
-          action: 'start',
-          screen,
-        });
-
-        // Type input
-        await client.sendCommand({
-          action: 'input',
-          text: 'Build a new feature',
-        });
-
-        // Press enter to submit
-        const enterKey = KeyNameStub({ value: 'enter' });
-        const submitResponse = await client.sendCommand({
-          action: 'keypress',
-          key: enterKey,
-        });
-
-        client.close();
-
-        expect(submitResponse.success).toBe(true);
-        expect(submitResponse.callbacks).toBeDefined();
-
-        const callbackKey = CallbackKeyStub({ value: 'onSpawnChaoswhisperer' });
-        const onSpawnCallbacks = submitResponse.callbacks?.[callbackKey];
-
-        expect(onSpawnCallbacks).toBeDefined();
-        expect(onSpawnCallbacks).toHaveLength(1);
       });
     });
   });

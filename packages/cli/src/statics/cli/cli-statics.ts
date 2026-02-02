@@ -11,7 +11,6 @@ export const cliStatics = {
     help: 'help',
     list: 'list',
     init: 'init',
-    add: 'add',
     run: 'run',
     claude: 'claude',
     debug: 'debug',
@@ -25,11 +24,9 @@ export const cliStatics = {
     noQuests: 'No active quests found.',
     noQuestsFolder: 'No .dungeonmaster-quests folder found in project.',
     loading: 'Loading quests...',
-    addPrompt: 'What would you like to build?',
   },
   menu: {
     options: [
-      { id: 'add', label: 'Add', description: 'Add a new quest' },
       { id: 'run', label: 'Run', description: 'Run an existing quest' },
       { id: 'list', label: 'List', description: 'List all active quests' },
       { id: 'init', label: 'Init', description: 'Initialize dungeonmaster in project' },

@@ -1,11 +1,8 @@
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
 
 import type { StreamJsonLine } from '../../../contracts/stream-json-line/stream-json-line-contract';
-import { codeweaverSpawnStreamingBrokerProxy } from '../../codeweaver/spawn-streaming/codeweaver-spawn-streaming-broker.proxy';
-import { lawbringerSpawnStreamingBrokerProxy } from '../../lawbringer/spawn-streaming/lawbringer-spawn-streaming-broker.proxy';
 import { pathseekerSpawnStreamingBrokerProxy } from '../../pathseeker/spawn-streaming/pathseeker-spawn-streaming-broker.proxy';
-import { siegemasterSpawnStreamingBrokerProxy } from '../../siegemaster/spawn-streaming/siegemaster-spawn-streaming-broker.proxy';
-import { spiritmenderSpawnStreamingBrokerProxy } from '../../spiritmender/spawn-streaming/spiritmender-spawn-streaming-broker.proxy';
+import { agentSpawnStreamingBrokerProxy } from '../spawn-streaming/agent-spawn-streaming-broker.proxy';
 
 export const agentSpawnByRoleBrokerProxy = (): {
   setupPathseekerSuccess: (params: { exitCode: ExitCode }) => void;
@@ -38,15 +35,9 @@ export const agentSpawnByRoleBrokerProxy = (): {
     lines: readonly StreamJsonLine[];
   }) => void;
 } => {
-  // Note: All spawn-streaming brokers delegate to agentSpawnStreamingBroker,
-  // so the last proxy created will have its mocks take effect.
-  // We create all proxies to satisfy the lint rule, but only the setup
-  // methods that are called will configure the mocks correctly.
+  // Pathseeker still uses its own broker, other roles now go directly through agentSpawnStreamingBroker
   pathseekerSpawnStreamingBrokerProxy();
-  codeweaverSpawnStreamingBrokerProxy();
-  spiritmenderSpawnStreamingBrokerProxy();
-  lawbringerSpawnStreamingBrokerProxy();
-  const sharedProxy = siegemasterSpawnStreamingBrokerProxy();
+  const sharedProxy = agentSpawnStreamingBrokerProxy();
 
   return {
     setupPathseekerSuccess: ({ exitCode }: { exitCode: ExitCode }): void => {

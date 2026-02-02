@@ -18,7 +18,7 @@
 /**
  * Screen type identifiers based on screen content patterns
  */
-export type ScreenType = 'menu' | 'add' | 'list' | 'run' | 'help' | 'answer' | 'init' | 'unknown';
+export type ScreenType = 'menu' | 'list' | 'run' | 'help' | 'init' | 'unknown';
 
 /**
  * Screen capture with assertion utilities
@@ -68,12 +68,10 @@ export const stripAnsiCodes = (input: string): string => {
  * Screen content patterns for detection
  */
 const SCREEN_PATTERNS: Record<ScreenType, RegExp[]> = {
-  menu: [/add.*run.*list/i, /welcome to.*dungeonmaster/i, /select.*option/i],
-  add: [/what would you like to build/i, /describe.*feature/i, /enter.*quest/i],
+  menu: [/run.*list/i, /welcome to.*dungeonmaster/i, /select.*option/i],
   list: [/quests/i, /available.*quests/i, /quest.*list/i],
   run: [/running.*quest/i, /executing/i, /quest.*progress/i],
   help: [/help/i, /usage/i, /commands/i],
-  answer: [/answer.*question/i, /provide.*response/i, /waiting.*input/i],
   init: [/initializing/i, /setup/i, /configure/i],
   unknown: [],
 };

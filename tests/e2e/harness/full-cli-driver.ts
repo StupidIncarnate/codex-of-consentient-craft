@@ -21,10 +21,8 @@
  * - Down: '\x1b[B'
  *
  * Screen detection patterns:
- * - menu: Contains "Add", "Run", "List" options
- * - add: Contains "What would you like to build"
+ * - menu: Contains "Run", "List" options
  * - list: Contains quest list items or "No quests"
- * - answer: Contains question from Claude
  */
 
 import * as pty from 'node-pty';
@@ -129,12 +127,10 @@ export const FULL_CLI_KEY_CODES: Record<FullCliKeyName, string> = {
  * Screen patterns for detection
  */
 const SCREEN_PATTERNS: Record<ScreenType, RegExp[]> = {
-  menu: [/add.*run.*list/i, /welcome.*dungeonmaster/i, /select.*option/i],
-  add: [/what would you like to build/i, /describe.*feature/i, /enter.*quest/i],
+  menu: [/run.*list/i, /welcome.*dungeonmaster/i, /select.*option/i],
   list: [/quests/i, /available.*quests/i, /quest.*list/i, /no\s*quests/i],
   run: [/running.*quest/i, /executing/i, /quest.*progress/i],
   help: [/help/i, /usage/i, /commands/i],
-  answer: [/agent needs your input/i, /provide.*response/i, /waiting.*input/i],
   init: [/initializing/i, /setup/i, /configure/i],
   unknown: [],
 };

@@ -19,28 +19,24 @@ describe('debugSessionBroker', () => {
           isExited: false,
         },
         invocations: {
-          onSpawnChaoswhisperer: [],
-          onResumeChaoswhisperer: [],
           onRunQuest: [],
           onExit: [],
         },
       });
     });
 
-    it('VALID: {initialScreen: add} => returns state with add screen', () => {
+    it('VALID: {initialScreen: run} => returns state with run screen', () => {
       debugSessionBrokerProxy();
-      const initialScreen = CliAppScreenStub({ value: 'add' });
+      const initialScreen = CliAppScreenStub({ value: 'run' });
 
       const result = debugSessionBroker({ initialScreen });
 
       expect(result).toStrictEqual({
         state: {
-          currentScreen: 'add' as CliAppScreen,
+          currentScreen: 'run' as CliAppScreen,
           isExited: false,
         },
         invocations: {
-          onSpawnChaoswhisperer: [],
-          onResumeChaoswhisperer: [],
           onRunQuest: [],
           onExit: [],
         },

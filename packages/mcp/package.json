@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@dungeonmaster/eslint-plugin": "*",
+    "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/shared": "*",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "glob": "^10.0.0",

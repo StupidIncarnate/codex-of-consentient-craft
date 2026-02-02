@@ -3,28 +3,20 @@
  *
  * USAGE:
  * const proxy = RunScreenLayerWidgetProxy();
- * proxy.setupQuestsFolderFound({ startPath, projectRootPath, questsFolderPath });
- * proxy.setupQuestDirectories({ files });
+ * proxy.setupQuests({ quests });
  * const { lastFrame, stdin } = render(<RunScreenLayerWidget startPath={startPath} onRunQuest={onRunQuest} onBack={onBack} />);
  */
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { QuestListItem } from '@dungeonmaster/shared/contracts';
 
 import { inkBoxAdapterProxy } from '../../adapters/ink/box/ink-box-adapter.proxy';
 import { inkTextAdapterProxy } from '../../adapters/ink/text/ink-text-adapter.proxy';
 import { inkUseInputAdapterProxy } from '../../adapters/ink/use-input/ink-use-input-adapter.proxy';
 import { useQuestsListBindingProxy } from '../../bindings/use-quests-list/use-quests-list-binding.proxy';
-import type { FileName } from '../../contracts/file-name/file-name-contract';
 
 export const RunScreenLayerWidgetProxy = (): {
-  setupQuestsFolderFound: (params: {
-    startPath: string;
-    projectRootPath: string;
-    questsFolderPath: FilePath;
-  }) => void;
-  setupQuestDirectories: (params: { files: FileName[] }) => void;
-  setupQuestFilePath: (params: { result: FilePath }) => void;
-  setupQuestFile: (params: { questJson: string }) => void;
+  setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupError: (params: { error: Error }) => void;
 } => {
   // Initialize child proxies for dependencies
   inkBoxAdapterProxy();
@@ -34,25 +26,11 @@ export const RunScreenLayerWidgetProxy = (): {
   const bindingProxy = useQuestsListBindingProxy();
 
   return {
-    setupQuestsFolderFound: ({
-      startPath,
-      projectRootPath,
-      questsFolderPath,
-    }: {
-      startPath: string;
-      projectRootPath: string;
-      questsFolderPath: FilePath;
-    }): void => {
-      bindingProxy.setupQuestsFolderFound({ startPath, projectRootPath, questsFolderPath });
+    setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
+      bindingProxy.setupQuests({ quests });
     },
-    setupQuestDirectories: ({ files }: { files: FileName[] }): void => {
-      bindingProxy.setupQuestDirectories({ files });
-    },
-    setupQuestFilePath: ({ result }: { result: FilePath }): void => {
-      bindingProxy.setupQuestFilePath({ result });
-    },
-    setupQuestFile: ({ questJson }: { questJson: string }): void => {
-      bindingProxy.setupQuestFile({ questJson });
+    setupError: ({ error }: { error: Error }): void => {
+      bindingProxy.setupError({ error });
     },
   };
 };

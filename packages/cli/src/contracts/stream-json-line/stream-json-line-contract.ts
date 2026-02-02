@@ -1,13 +1,16 @@
 /**
- * PURPOSE: Defines a branded string type for newline-delimited JSON lines from Claude stream output
+ * PURPOSE: Provides stream-json-line contract from orchestrator
  *
  * USAGE:
  * streamJsonLineContract.parse('{"type":"init","session_id":"abc-123"}');
  * // Returns: StreamJsonLine branded string
  */
 
-import { z } from 'zod';
+import {
+  streamJsonLineContract as orcStreamJsonLineContract,
+  type StreamJsonLine as OrcStreamJsonLine,
+} from '@dungeonmaster/orchestrator';
 
-export const streamJsonLineContract = z.string().min(1).brand<'StreamJsonLine'>();
+export const streamJsonLineContract = orcStreamJsonLineContract;
 
-export type StreamJsonLine = z.infer<typeof streamJsonLineContract>;
+export type StreamJsonLine = OrcStreamJsonLine;

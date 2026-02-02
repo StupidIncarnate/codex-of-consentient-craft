@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { FilePathStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
-import { FileNameStub } from '../../contracts/file-name/file-name.stub';
 
 import { ListScreenLayerWidget } from './list-screen-layer-widget';
 import { ListScreenLayerWidgetProxy } from './list-screen-layer-widget.proxy';
@@ -20,12 +19,7 @@ describe('ListScreenLayerWidget', () => {
       const proxy = ListScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      proxy.setupQuestsFolderFound({
-        startPath: '/project/src/file.ts',
-        projectRootPath: '/project',
-        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      proxy.setupQuestDirectories({ files: [] });
+      proxy.setupQuests({ quests: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <ListScreenLayerWidget startPath={startPath} onBack={noopCallback} />,
@@ -46,41 +40,23 @@ describe('ListScreenLayerWidget', () => {
       const proxy = ListScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      proxy.setupQuestsFolderFound({
-        startPath: '/project/src/file.ts',
-        projectRootPath: '/project',
-        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      proxy.setupQuestDirectories({
-        files: [FileNameStub({ value: '001-old-quest' }), FileNameStub({ value: '002-new-quest' })],
-      });
-      proxy.setupQuestFilePath({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-old-quest/quest.json' }),
-      });
-      proxy.setupQuestFile({
-        questJson: JSON.stringify(
-          QuestStub({
+      proxy.setupQuests({
+        quests: [
+          QuestListItemStub({
             id: 'old-quest',
             folder: '001-old-quest',
             title: 'Old Quest',
             status: 'complete',
             createdAt: '2024-01-01T00:00:00Z',
           }),
-        ),
-      });
-      proxy.setupQuestFilePath({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/002-new-quest/quest.json' }),
-      });
-      proxy.setupQuestFile({
-        questJson: JSON.stringify(
-          QuestStub({
+          QuestListItemStub({
             id: 'new-quest',
             folder: '002-new-quest',
             title: 'New Quest',
             status: 'in_progress',
             createdAt: '2024-01-02T00:00:00Z',
           }),
-        ),
+        ],
       });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
@@ -104,12 +80,7 @@ describe('ListScreenLayerWidget', () => {
       const proxy = ListScreenLayerWidgetProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      proxy.setupQuestsFolderFound({
-        startPath: '/project/src/file.ts',
-        projectRootPath: '/project',
-        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      proxy.setupQuestDirectories({ files: [] });
+      proxy.setupQuests({ quests: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <ListScreenLayerWidget startPath={startPath} onBack={noopCallback} />,

@@ -1,13 +1,16 @@
 /**
- * PURPOSE: Defines a branded ISO timestamp string type
+ * PURPOSE: Provides iso-timestamp contract from orchestrator
  *
  * USAGE:
- * const timestamp: IsoTimestamp = isoTimestampContract.parse('2024-01-15T10:00:00.000Z');
- * // Returns a branded IsoTimestamp string
+ * isoTimestampContract.parse('2024-01-15T10:00:00.000Z');
+ * // Returns: IsoTimestamp branded string
  */
 
-import { z } from 'zod';
+import {
+  isoTimestampContract as orcIsoTimestampContract,
+  type IsoTimestamp as OrcIsoTimestamp,
+} from '@dungeonmaster/orchestrator';
 
-export const isoTimestampContract = z.string().datetime().brand<'IsoTimestamp'>();
+export const isoTimestampContract = orcIsoTimestampContract;
 
-export type IsoTimestamp = z.infer<typeof isoTimestampContract>;
+export type IsoTimestamp = OrcIsoTimestamp;

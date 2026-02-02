@@ -16,7 +16,7 @@ import { agentSpawnStreamingBroker } from '../../agent/spawn-streaming/agent-spa
 import type { AgentSpawnStreamingResult } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
 import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
-import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/pathseeker-prompt-statics';
+import { pathseekerPromptStatics } from '@dungeonmaster/orchestrator';
 
 export const pathseekerSpawnStreamingBroker = async ({
   questId,

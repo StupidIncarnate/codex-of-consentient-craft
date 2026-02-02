@@ -4,7 +4,7 @@
  * USAGE:
  * CliAppWidgetProxy();
  * const { lastFrame, stdin } = render(
- *   <CliAppWidget initialScreen="menu" onSpawnChaoswhisperer={fn} onExit={fn} />
+ *   <CliAppWidget initialScreen="menu" onExit={fn} />
  * );
  * stdin.write('\x1B[B'); // Down arrow
  * stdin.write('\r'); // Enter
@@ -12,38 +12,28 @@
  * This proxy exists for API compatibility. With real ink-testing-library,
  * use stdin.write() for key simulation instead of proxy trigger methods.
  */
-import { AddScreenLayerWidgetProxy } from './add-screen-layer-widget.proxy';
-import { AnswerScreenLayerWidgetProxy } from './answer-screen-layer-widget.proxy';
 import { HelpScreenLayerWidgetProxy } from './help-screen-layer-widget.proxy';
 import { InitScreenLayerWidgetProxy } from './init-screen-layer-widget.proxy';
 import { ListScreenLayerWidgetProxy } from './list-screen-layer-widget.proxy';
 import { MenuScreenLayerWidgetProxy } from './menu-screen-layer-widget.proxy';
 import { RunScreenLayerWidgetProxy } from './run-screen-layer-widget.proxy';
 
-type CliAppScreen = 'menu' | 'add' | 'help' | 'list' | 'init' | 'run' | 'answer';
+type CliAppScreen = 'menu' | 'help' | 'list' | 'init' | 'run';
 
 export const CliAppWidgetProxy = (): {
   setupMenuScreen: () => void;
   setupHelpScreen: () => void;
   setupListScreen: () => void;
   setupInitScreen: () => void;
-  setupAddScreen: () => void;
-  setupAnswerScreen: () => void;
   getRenderedScreen: () => CliAppScreen;
   triggerMenuSelect: ({ option }: { option: string }) => void;
   triggerMenuExit: () => void;
   triggerHelpBack: () => void;
   triggerListBack: () => void;
   triggerInitBack: () => void;
-  triggerTextInputSubmit: ({ userInput }: { userInput: string }) => void;
-  triggerTextInputCancel: () => void;
-  triggerAnswerSubmit: ({ answer }: { answer: string }) => void;
-  triggerAnswerCancel: () => void;
   getSetState: () => jest.Mock;
 } => {
   // Initialize child proxies for layer widgets
-  AddScreenLayerWidgetProxy();
-  AnswerScreenLayerWidgetProxy();
   HelpScreenLayerWidgetProxy();
   InitScreenLayerWidgetProxy();
   ListScreenLayerWidgetProxy();
@@ -68,12 +58,6 @@ export const CliAppWidgetProxy = (): {
     setupInitScreen: (): void => {
       screenState.current = 'init';
     },
-    setupAddScreen: (): void => {
-      screenState.current = 'add';
-    },
-    setupAnswerScreen: (): void => {
-      screenState.current = 'answer';
-    },
     getRenderedScreen: (): CliAppScreen => screenState.current,
     triggerMenuSelect: ({ option }: { option: string }): void => {
       screenState.current = option as CliAppScreen;
@@ -88,18 +72,6 @@ export const CliAppWidgetProxy = (): {
       screenState.current = 'menu';
     },
     triggerInitBack: (): void => {
-      screenState.current = 'menu';
-    },
-    triggerTextInputSubmit: ({ userInput: _userInput }: { userInput: string }): void => {
-      // Use stdin.write(text) then stdin.write('\r') instead
-    },
-    triggerTextInputCancel: (): void => {
-      screenState.current = 'menu';
-    },
-    triggerAnswerSubmit: ({ answer: _answer }: { answer: string }): void => {
-      // Use stdin.write(text) then stdin.write('\r') instead
-    },
-    triggerAnswerCancel: (): void => {
       screenState.current = 'menu';
     },
     getSetState: (): jest.Mock => setState,

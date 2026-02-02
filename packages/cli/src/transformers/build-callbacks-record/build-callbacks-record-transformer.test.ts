@@ -1,4 +1,4 @@
-import { UserInputStub, QuestIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { CallbackKeyStub } from '../../contracts/callback-key/callback-key.stub';
 import { DebugSessionCallbackInvocationsStub } from '../../contracts/debug-session-callback-invocations/debug-session-callback-invocations.stub';
@@ -21,16 +21,17 @@ describe('buildCallbacksRecordTransformer', () => {
   });
 
   describe('with invocations', () => {
-    it('VALID: {onSpawnChaoswhisperer invocation} => returns record with onSpawnChaoswhisperer', () => {
-      const userInput = UserInputStub({ value: 'test input' });
+    it('VALID: {onRunQuest invocation} => returns record with onRunQuest', () => {
+      const questId = QuestIdStub({ value: 'quest-123' });
+      const questFolder = 'folder' as QuestFolder;
       const invocations = DebugSessionCallbackInvocationsStub({
-        onSpawnChaoswhisperer: [{ userInput }],
+        onRunQuest: [{ questId, questFolder }],
       });
 
       const result = buildCallbacksRecordTransformer({ invocations });
 
       expect(result).toStrictEqual({
-        [CallbackKeyStub({ value: 'onSpawnChaoswhisperer' })]: [{ userInput }],
+        [CallbackKeyStub({ value: 'onRunQuest' })]: [{ questId, questFolder }],
       } as Record<CallbackKey, unknown[]>);
     });
 
@@ -47,33 +48,18 @@ describe('buildCallbacksRecordTransformer', () => {
     });
 
     it('VALID: {multiple invocation types} => returns record with all', () => {
-      const userInput = UserInputStub({ value: 'test input' });
       const questId = QuestIdStub({ value: 'quest-123' });
       const questFolder = 'folder' as QuestFolder;
       const invocations = DebugSessionCallbackInvocationsStub({
-        onSpawnChaoswhisperer: [{ userInput }],
         onRunQuest: [{ questId, questFolder }],
+        onExit: [{}],
       });
 
       const result = buildCallbacksRecordTransformer({ invocations });
 
       expect(result).toStrictEqual({
-        [CallbackKeyStub({ value: 'onSpawnChaoswhisperer' })]: [{ userInput }],
         [CallbackKeyStub({ value: 'onRunQuest' })]: [{ questId, questFolder }],
-      } as Record<CallbackKey, unknown[]>);
-    });
-
-    it('VALID: {onResumeChaoswhisperer invocation} => returns record with onResumeChaoswhisperer', () => {
-      const answer = UserInputStub({ value: 'user answer' });
-      const sessionId = SessionIdStub({ value: 'session-456' });
-      const invocations = DebugSessionCallbackInvocationsStub({
-        onResumeChaoswhisperer: [{ answer, sessionId }],
-      });
-
-      const result = buildCallbacksRecordTransformer({ invocations });
-
-      expect(result).toStrictEqual({
-        [CallbackKeyStub({ value: 'onResumeChaoswhisperer' })]: [{ answer, sessionId }],
+        [CallbackKeyStub({ value: 'onExit' })]: [{}],
       } as Record<CallbackKey, unknown[]>);
     });
   });

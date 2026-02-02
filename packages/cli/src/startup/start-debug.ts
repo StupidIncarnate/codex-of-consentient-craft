@@ -13,13 +13,7 @@ import { resolve } from 'path';
 import React from 'react';
 
 import { filePathContract, errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type {
-  InstallContext,
-  UserInput,
-  SessionId,
-  Quest,
-  QuestId,
-} from '@dungeonmaster/shared/contracts';
+import type { InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { inkTestingLibraryRenderAdapter } from '../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
@@ -86,8 +80,6 @@ export const StartDebug = async (): Promise<void> => {
     if (command.action === 'start') {
       context.state.currentScreen = command.screen;
       context.invocations = {
-        onSpawnChaoswhisperer: [],
-        onResumeChaoswhisperer: [],
         onRunQuest: [],
         onExit: [],
       };
@@ -96,18 +88,6 @@ export const StartDebug = async (): Promise<void> => {
         element: React.createElement(CliAppWidget, {
           initialScreen: command.screen,
           installContext,
-          onSpawnChaoswhisperer: ({ userInput }: { userInput: UserInput }) => {
-            context.invocations.onSpawnChaoswhisperer.push({ userInput });
-          },
-          onResumeChaoswhisperer: ({
-            answer,
-            sessionId,
-          }: {
-            answer: UserInput;
-            sessionId: SessionId;
-          }) => {
-            context.invocations.onResumeChaoswhisperer.push({ answer, sessionId });
-          },
           onRunQuest: ({
             questId,
             questFolder,

@@ -17,6 +17,14 @@ import {
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
+import {
+  filePathContract,
+  questIdContract,
+  processIdContract,
+} from '@dungeonmaster/shared/contracts';
+import { orchestratorStartQuestAdapter } from '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
+import { orchestratorGetQuestStatusAdapter } from '../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
+import { orchestratorListQuestsAdapter } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { architectureFolderDetailBroker } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker';
 import { architectureSyntaxRulesBroker } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
 import { architectureTestingPatternsBroker } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
@@ -33,6 +41,9 @@ import { folderDetailInputContract } from '../contracts/folder-detail-input/fold
 import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract';
 import { modifyQuestInputContract } from '../contracts/modify-quest-input/modify-quest-input-contract';
 import { signalBackInputContract } from '../contracts/signal-back-input/signal-back-input-contract';
+import { startQuestInputContract } from '../contracts/start-quest-input/start-quest-input-contract';
+import { getQuestStatusInputContract } from '../contracts/get-quest-status-input/get-quest-status-input-contract';
+import { listQuestsInputContract } from '../contracts/list-quests-input/list-quests-input-contract';
 
 const emptyInputSchema = z.object({});
 
@@ -106,6 +117,22 @@ export const StartMcpServer = async (): Promise<void> => {
         description:
           'Signals the CLI with step completion status, progress, or blocking conditions. For needs-user-input, use newlines in the question field to ask multiple questions (e.g., "1. First?\\n2. Second?")',
         inputSchema: zodToJsonSchema(signalBackInputContract, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'start-quest',
+        description:
+          'Starts orchestration for a quest by its ID. Returns a process ID for tracking.',
+        inputSchema: zodToJsonSchema(startQuestInputContract, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'get-quest-status',
+        description: 'Gets the current status of an orchestration process by its process ID.',
+        inputSchema: zodToJsonSchema(getQuestStatusInputContract, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'list-quests',
+        description: 'Lists all quests in the .dungeonmaster-quests folder.',
+        inputSchema: zodToJsonSchema(listQuestsInputContract, { $refStrategy: 'none' }),
       },
     ],
   }));
@@ -224,6 +251,104 @@ export const StartMcpServer = async (): Promise<void> => {
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, JSON_INDENT_SPACES) }],
       };
+    }
+
+    if (request.params.name === 'start-quest') {
+      const args = request.params.arguments as never;
+      const questIdRaw: unknown = Reflect.get(args, 'questId');
+      const startPathRaw: unknown = Reflect.get(args, 'startPath');
+      const questId = questIdContract.parse(questIdRaw);
+      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
+
+      try {
+        const processId = await orchestratorStartQuestAdapter({ questId, startPath });
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ success: true, processId }, null, JSON_INDENT_SPACES),
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
+    }
+
+    if (request.params.name === 'get-quest-status') {
+      const args = request.params.arguments as never;
+      const processIdRaw: unknown = Reflect.get(args, 'processId');
+      const processId = processIdContract.parse(processIdRaw);
+
+      try {
+        const status = await orchestratorGetQuestStatusAdapter({ processId });
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ success: true, status }, null, JSON_INDENT_SPACES),
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
+    }
+
+    if (request.params.name === 'list-quests') {
+      const args = request.params.arguments as never;
+      const startPathRaw: unknown = Reflect.get(args, 'startPath');
+      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
+
+      try {
+        const quests = await orchestratorListQuestsAdapter({ startPath });
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ success: true, quests }, null, JSON_INDENT_SPACES),
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
     }
 
     throw new Error(`Unknown tool: ${request.params.name}`);

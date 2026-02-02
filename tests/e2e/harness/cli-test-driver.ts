@@ -29,7 +29,7 @@ export type KeyName = 'enter' | 'escape' | 'up' | 'down' | 'backspace' | 'tab';
 /**
  * Screen names supported by the CLI
  */
-export type CliScreen = 'menu' | 'add' | 'help' | 'list' | 'init' | 'run' | 'answer';
+export type CliScreen = 'menu' | 'help' | 'list' | 'init' | 'run';
 
 /**
  * Mode of operation for the test driver
@@ -61,8 +61,6 @@ export interface DebugResponse {
     elements: unknown[];
   };
   callbacks?: {
-    onSpawnChaoswhisperer?: Array<{ userInput: string }>;
-    onResumeChaoswhisperer?: Array<{ answer: string; sessionId: string }>;
     onRunQuest?: Array<{ questId: string; questFolder: string }>;
     onExit?: Array<Record<PropertyKey, never>>;
   };

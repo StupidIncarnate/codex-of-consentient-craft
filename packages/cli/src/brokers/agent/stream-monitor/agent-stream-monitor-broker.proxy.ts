@@ -1,3 +1,5 @@
+import { orchestratorSessionIdExtractorAdapterProxy } from '../../../adapters/orchestrator/session-id-extractor/orchestrator-session-id-extractor-adapter.proxy';
+import { orchestratorSignalFromStreamAdapterProxy } from '../../../adapters/orchestrator/signal-from-stream/orchestrator-signal-from-stream-adapter.proxy';
 import { readlineCreateInterfaceAdapterProxy } from '../../../adapters/readline/create-interface/readline-create-interface-adapter.proxy';
 import { timerClearTimeoutAdapterProxy } from '../../../adapters/timer/clear-timeout/timer-clear-timeout-adapter.proxy';
 import { scheduleTimeoutLayerBrokerProxy } from './schedule-timeout-layer-broker.proxy';
@@ -44,6 +46,8 @@ export const agentStreamMonitorBrokerProxy = (): {
   returnsProcessWithNullExit: () => EventEmittingProcess;
   returnsProcessWithError: (params: { error: Error }) => EventEmittingProcess;
 } => {
+  orchestratorSessionIdExtractorAdapterProxy();
+  orchestratorSignalFromStreamAdapterProxy();
   const rlProxy = readlineCreateInterfaceAdapterProxy();
   timerClearTimeoutAdapterProxy();
   const timeoutProxy = scheduleTimeoutLayerBrokerProxy();

@@ -11,10 +11,10 @@
  */
 
 import { exitCodeContract, type ExitCode } from '@dungeonmaster/shared/contracts';
+import { orchestratorSessionIdExtractorAdapter } from '../../../adapters/orchestrator/session-id-extractor/orchestrator-session-id-extractor-adapter';
+import { orchestratorSignalFromStreamAdapter } from '../../../adapters/orchestrator/signal-from-stream/orchestrator-signal-from-stream-adapter';
 import { readlineCreateInterfaceAdapter } from '../../../adapters/readline/create-interface/readline-create-interface-adapter';
 import { timerClearTimeoutAdapter } from '../../../adapters/timer/clear-timeout/timer-clear-timeout-adapter';
-import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
-import { signalFromStreamTransformer } from '../../../transformers/signal-from-stream/signal-from-stream-transformer';
 import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import {
   streamMonitorResultContract,
@@ -66,14 +66,14 @@ export const agentStreamMonitorBroker = async ({
     const line = lineResult.data;
 
     if (!state.sessionId) {
-      const extractedSessionId = sessionIdExtractorTransformer({ line });
+      const extractedSessionId = orchestratorSessionIdExtractorAdapter({ line });
       if (extractedSessionId) {
         state.sessionId = extractedSessionId;
       }
     }
 
     if (!state.signal) {
-      const extractedSignal = signalFromStreamTransformer({ line });
+      const extractedSignal = orchestratorSignalFromStreamAdapter({ line });
       if (extractedSignal) {
         state.signal = extractedSignal;
       }

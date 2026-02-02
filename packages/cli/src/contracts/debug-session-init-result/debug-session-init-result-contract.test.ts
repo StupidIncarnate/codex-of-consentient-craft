@@ -14,8 +14,6 @@ describe('debugSessionInitResultContract', () => {
           isExited: false,
         },
         invocations: {
-          onSpawnChaoswhisperer: [],
-          onResumeChaoswhisperer: [],
           onRunQuest: [],
           onExit: [],
         },
@@ -25,7 +23,7 @@ describe('debugSessionInitResultContract', () => {
     it('VALID: {with custom state} => parses with overridden state', () => {
       const input = DebugSessionInitResultStub({
         state: {
-          currentScreen: 'add',
+          currentScreen: 'run',
           isExited: true,
         },
       });
@@ -34,12 +32,10 @@ describe('debugSessionInitResultContract', () => {
 
       expect(result).toStrictEqual({
         state: {
-          currentScreen: 'add',
+          currentScreen: 'run',
           isExited: true,
         },
         invocations: {
-          onSpawnChaoswhisperer: [],
-          onResumeChaoswhisperer: [],
           onRunQuest: [],
           onExit: [],
         },

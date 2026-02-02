@@ -3,9 +3,8 @@
  */
 import React from 'react';
 
-import { FilePathStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
-import { FileNameStub } from '../../contracts/file-name/file-name.stub';
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 import { inkTextAdapter } from '../../adapters/ink/text/ink-text-adapter';
 
@@ -41,12 +40,7 @@ describe('useQuestsListBinding', () => {
       const proxy = useQuestsListBindingProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      proxy.setupQuestsFolderFound({
-        startPath: '/project/src/file.ts',
-        projectRootPath: '/project',
-        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      proxy.setupQuestDirectories({ files: [] });
+      proxy.setupQuests({ quests: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(TestHookWrapper, { startPath }),
@@ -64,41 +58,23 @@ describe('useQuestsListBinding', () => {
       const proxy = useQuestsListBindingProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      proxy.setupQuestsFolderFound({
-        startPath: '/project/src/file.ts',
-        projectRootPath: '/project',
-        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      proxy.setupQuestDirectories({
-        files: [FileNameStub({ value: '001-old-quest' }), FileNameStub({ value: '002-new-quest' })],
-      });
-      // Old quest (created first)
-      proxy.setupQuestFilePath({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-old-quest/quest.json' }),
-      });
-      proxy.setupQuestFile({
-        questJson: JSON.stringify(
-          QuestStub({
+      proxy.setupQuests({
+        quests: [
+          QuestListItemStub({
             id: 'old-quest',
             folder: '001-old-quest',
             title: 'Old Quest',
+            status: 'pending',
             createdAt: '2024-01-01T00:00:00Z',
           }),
-        ),
-      });
-      // New quest (created second)
-      proxy.setupQuestFilePath({
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/002-new-quest/quest.json' }),
-      });
-      proxy.setupQuestFile({
-        questJson: JSON.stringify(
-          QuestStub({
+          QuestListItemStub({
             id: 'new-quest',
             folder: '002-new-quest',
             title: 'New Quest',
+            status: 'pending',
             createdAt: '2024-01-02T00:00:00Z',
           }),
-        ),
+        ],
       });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
@@ -125,12 +101,7 @@ describe('useQuestsListBinding', () => {
       const proxy = useQuestsListBindingProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
-      proxy.setupQuestsFolderFound({
-        startPath: '/project/src/file.ts',
-        projectRootPath: '/project',
-        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-      });
-      proxy.setupQuestDirectories({ files: [] });
+      proxy.setupQuests({ quests: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(TestHookWrapper, { startPath }),
@@ -147,6 +118,30 @@ describe('useQuestsListBinding', () => {
       expect(frame).toMatch(/loading:false/u);
       expect(frame).toMatch(/dataLength:0/u);
       expect(frame).toMatch(/error:null/u);
+    });
+  });
+
+  describe('error state', () => {
+    it('ERROR: {orchestrator error} => returns error', async () => {
+      const proxy = useQuestsListBindingProxy();
+      const startPath = FilePathStub({ value: '/project/src/file.ts' });
+
+      proxy.setupError({ error: new Error('Failed to list quests') });
+
+      const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
+        element: React.createElement(TestHookWrapper, { startPath }),
+      });
+
+      // Wait for async to complete
+      await new Promise((resolve) => {
+        setTimeout(resolve, ASYNC_WAIT_MS);
+      });
+
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/loading:false/u);
+      expect(frame).toMatch(/error:Failed to list quests/u);
     });
   });
 });

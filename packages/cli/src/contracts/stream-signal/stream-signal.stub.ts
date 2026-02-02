@@ -1,6 +1,7 @@
+import { StepIdStub } from '@dungeonmaster/shared/contracts';
+
 import { streamSignalContract } from './stream-signal-contract';
 import type { StreamSignal } from './stream-signal-contract';
-import { StepIdStub } from '@dungeonmaster/shared/contracts';
 
 type StubArgument<T> = {
   [K in keyof T]?: T[K];

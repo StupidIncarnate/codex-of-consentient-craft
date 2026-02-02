@@ -1,19 +1,16 @@
 /**
- * PURPOSE: Defines valid agent role values for orchestration
+ * PURPOSE: Provides agent-role contract from orchestrator
  *
  * USAGE:
  * agentRoleContract.parse('pathseeker');
- * // Returns: 'pathseeker' as AgentRole
+ * // Returns: AgentRole
  */
 
-import { z } from 'zod';
+import {
+  agentRoleContract as orcAgentRoleContract,
+  type AgentRole as OrcAgentRole,
+} from '@dungeonmaster/orchestrator';
 
-export const agentRoleContract = z.enum([
-  'pathseeker',
-  'codeweaver',
-  'spiritmender',
-  'lawbringer',
-  'siegemaster',
-]);
+export const agentRoleContract = orcAgentRoleContract;
 
-export type AgentRole = z.infer<typeof agentRoleContract>;
+export type AgentRole = OrcAgentRole;

@@ -1,13 +1,16 @@
 /**
- * PURPOSE: Defines a branded number type for timeout duration in milliseconds
+ * PURPOSE: Provides timeout-ms contract from orchestrator
  *
  * USAGE:
  * timeoutMsContract.parse(60000);
  * // Returns: TimeoutMs branded number
  */
 
-import { z } from 'zod';
+import {
+  timeoutMsContract as orcTimeoutMsContract,
+  type TimeoutMs as OrcTimeoutMs,
+} from '@dungeonmaster/orchestrator';
 
-export const timeoutMsContract = z.number().int().min(0).brand<'TimeoutMs'>();
+export const timeoutMsContract = orcTimeoutMsContract;
 
-export type TimeoutMs = z.infer<typeof timeoutMsContract>;
+export type TimeoutMs = OrcTimeoutMs;

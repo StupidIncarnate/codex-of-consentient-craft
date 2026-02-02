@@ -11,14 +11,19 @@
 
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 
-import { codeweaverSpawnStreamingBroker } from '../../codeweaver/spawn-streaming/codeweaver-spawn-streaming-broker';
-import { lawbringerSpawnStreamingBroker } from '../../lawbringer/spawn-streaming/lawbringer-spawn-streaming-broker';
 import { pathseekerSpawnStreamingBroker } from '../../pathseeker/spawn-streaming/pathseeker-spawn-streaming-broker';
-import { siegemasterSpawnStreamingBroker } from '../../siegemaster/spawn-streaming/siegemaster-spawn-streaming-broker';
-import { spiritmenderSpawnStreamingBroker } from '../../spiritmender/spawn-streaming/spiritmender-spawn-streaming-broker';
+import { agentSpawnStreamingBroker } from '../spawn-streaming/agent-spawn-streaming-broker';
 import type { AgentSpawnStreamingResult } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
+import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkUnit } from '../../../contracts/work-unit/work-unit-contract';
+import {
+  codeweaverPromptStatics,
+  lawbringerPromptStatics,
+  siegemasterPromptStatics,
+  spiritmenderPromptStatics,
+} from '@dungeonmaster/orchestrator';
+import { questStatics } from '../../../statics/quest/quest-statics';
 
 export const agentSpawnByRoleBroker = async ({
   workUnit,
@@ -38,31 +43,58 @@ export const agentSpawnByRoleBroker = async ({
     }
 
     case 'codeweaver': {
+      // Format step context as JSON for the prompt
+      const stepContext = JSON.stringify(workUnit.step, null, questStatics.json.indentSpaces);
+      const promptText = codeweaverPromptStatics.prompt.template.replace(
+        codeweaverPromptStatics.prompt.placeholders.arguments,
+        stepContext,
+      );
+      const prompt = promptTextContract.parse(promptText);
       const spawnArgs = resumeSessionId
-        ? { step: workUnit.step, resumeSessionId, timeoutMs }
-        : { step: workUnit.step, timeoutMs };
-      return codeweaverSpawnStreamingBroker(spawnArgs);
+        ? { prompt, stepId: workUnit.step.id, resumeSessionId, timeoutMs }
+        : { prompt, stepId: workUnit.step.id, timeoutMs };
+      return agentSpawnStreamingBroker(spawnArgs);
     }
 
     case 'spiritmender': {
+      // Format the work unit as error context
+      const errorContext = `File: ${workUnit.file.filePath}\nErrors:\n${workUnit.file.errors.map((e) => `- ${e}`).join('\n')}`;
+      const promptText = spiritmenderPromptStatics.prompt.template.replace(
+        spiritmenderPromptStatics.prompt.placeholders.arguments,
+        errorContext,
+      );
+      const prompt = promptTextContract.parse(promptText);
       const spawnArgs = resumeSessionId
-        ? { workUnit: workUnit.file, stepId: workUnit.stepId, resumeSessionId, timeoutMs }
-        : { workUnit: workUnit.file, stepId: workUnit.stepId, timeoutMs };
-      return spiritmenderSpawnStreamingBroker(spawnArgs);
+        ? { prompt, stepId: workUnit.stepId, resumeSessionId, timeoutMs }
+        : { prompt, stepId: workUnit.stepId, timeoutMs };
+      return agentSpawnStreamingBroker(spawnArgs);
     }
 
     case 'lawbringer': {
+      // Build review context from file pair
+      const reviewContext = `Implementation file: ${workUnit.filePair.implPath}\nTest file: ${workUnit.filePair.testPath}`;
+      const promptText = lawbringerPromptStatics.prompt.template.replace(
+        lawbringerPromptStatics.prompt.placeholders.arguments,
+        reviewContext,
+      );
+      const prompt = promptTextContract.parse(promptText);
       const spawnArgs = resumeSessionId
-        ? { workUnit: workUnit.filePair, stepId: workUnit.stepId, resumeSessionId, timeoutMs }
-        : { workUnit: workUnit.filePair, stepId: workUnit.stepId, timeoutMs };
-      return lawbringerSpawnStreamingBroker(spawnArgs);
+        ? { prompt, stepId: workUnit.stepId, resumeSessionId, timeoutMs }
+        : { prompt, stepId: workUnit.stepId, timeoutMs };
+      return agentSpawnStreamingBroker(spawnArgs);
     }
 
     case 'siegemaster': {
+      // Replace placeholder with quest ID
+      const promptText = siegemasterPromptStatics.prompt.template.replace(
+        siegemasterPromptStatics.prompt.placeholders.arguments,
+        `Quest ID: ${workUnit.questId}`,
+      );
+      const prompt = promptTextContract.parse(promptText);
       const spawnArgs = resumeSessionId
-        ? { questId: workUnit.questId, stepId: workUnit.stepId, resumeSessionId, timeoutMs }
-        : { questId: workUnit.questId, stepId: workUnit.stepId, timeoutMs };
-      return siegemasterSpawnStreamingBroker(spawnArgs);
+        ? { prompt, stepId: workUnit.stepId, resumeSessionId, timeoutMs }
+        : { prompt, stepId: workUnit.stepId, timeoutMs };
+      return agentSpawnStreamingBroker(spawnArgs);
     }
 
     default: {

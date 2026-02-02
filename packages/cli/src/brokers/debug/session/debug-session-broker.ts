@@ -18,8 +18,6 @@ export const debugSessionBroker = ({
     isExited: false,
   },
   invocations: {
-    onSpawnChaoswhisperer: [],
-    onResumeChaoswhisperer: [],
     onRunQuest: [],
     onExit: [],
   },
