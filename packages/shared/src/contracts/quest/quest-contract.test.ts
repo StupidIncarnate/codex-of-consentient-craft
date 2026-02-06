@@ -19,6 +19,8 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         executionLog: [],
+        requirements: [],
+        designDecisions: [],
         contexts: [],
         observables: [],
         steps: [],

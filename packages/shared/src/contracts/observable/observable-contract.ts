@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { contextIdContract } from '../context-id/context-id-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
+import { requirementIdContract } from '../requirement-id/requirement-id-contract';
 
 const outcomeRefContract = z.object({
   type: outcomeTypeContract,
@@ -21,6 +22,7 @@ const outcomeRefContract = z.object({
 export const observableContract = z.object({
   id: observableIdContract,
   contextId: contextIdContract,
+  requirementId: requirementIdContract.optional(),
   trigger: z.string().min(1).brand<'TriggerDescription'>(),
   dependsOn: z.array(observableIdContract),
   outcomes: z.array(outcomeRefContract),

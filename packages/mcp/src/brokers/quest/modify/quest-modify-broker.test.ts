@@ -138,6 +138,53 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
+    it('VALID: {questId, requirements: [new]} => adds new requirement', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', requirements: [] });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        requirements: [
+          {
+            id: 'b12ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'CLI Interactive Mode',
+            description: 'Support interactive CLI prompts',
+            scope: 'packages/cli',
+            status: 'proposed',
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {questId, designDecisions: [new]} => adds new design decision', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', designDecisions: [] });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        designDecisions: [
+          {
+            id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+            title: 'Use JWT for auth',
+            rationale: 'Stateless authentication',
+            relatedRequirements: [],
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
     it('VALID: {questId only} => updates updatedAt', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({

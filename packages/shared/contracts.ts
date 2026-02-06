@@ -120,6 +120,12 @@ export * from './src/contracts/session-id/session-id.stub';
 export * from './src/contracts/tooling-requirement-id/tooling-requirement-id-contract';
 export * from './src/contracts/tooling-requirement-id/tooling-requirement-id.stub';
 
+export * from './src/contracts/requirement-id/requirement-id-contract';
+export * from './src/contracts/requirement-id/requirement-id.stub';
+
+export * from './src/contracts/design-decision-id/design-decision-id-contract';
+export * from './src/contracts/design-decision-id/design-decision-id.stub';
+
 // Context & Observable Contracts (Wave 1)
 export * from './src/contracts/context-locator/context-locator-contract';
 export * from './src/contracts/context-locator/context-locator.stub';
@@ -132,6 +138,12 @@ export * from './src/contracts/context/context.stub';
 
 export * from './src/contracts/observable/observable-contract';
 export * from './src/contracts/observable/observable.stub';
+
+export * from './src/contracts/requirement/requirement-contract';
+export * from './src/contracts/requirement/requirement.stub';
+
+export * from './src/contracts/design-decision/design-decision-contract';
+export * from './src/contracts/design-decision/design-decision.stub';
 
 export * from './src/contracts/tooling-requirement/tooling-requirement-contract';
 export * from './src/contracts/tooling-requirement/tooling-requirement.stub';

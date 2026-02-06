@@ -51,6 +51,20 @@ export const questModifyBroker = async ({
     const quest = { ...findResult.quest };
     const { folderPath } = findResult;
 
+    if (validated.requirements) {
+      quest.requirements = questArrayUpsertTransformer({
+        existing: quest.requirements,
+        updates: validated.requirements,
+      });
+    }
+
+    if (validated.designDecisions) {
+      quest.designDecisions = questArrayUpsertTransformer({
+        existing: quest.designDecisions,
+        updates: validated.designDecisions,
+      });
+    }
+
     if (validated.contexts) {
       quest.contexts = questArrayUpsertTransformer({
         existing: quest.contexts,

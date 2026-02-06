@@ -67,6 +67,8 @@ export const questAddBroker = async ({
       status: 'in_progress' as const,
       createdAt: new Date().toISOString(),
       executionLog: [],
+      requirements: [],
+      designDecisions: [],
       contexts: [],
       observables: [],
       steps: [],

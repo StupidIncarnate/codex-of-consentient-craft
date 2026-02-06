@@ -99,6 +99,45 @@ describe('modifyQuestInputContract', () => {
       expect(result.questId).toBe('add-auth');
       expect(result.toolingRequirements).toHaveLength(1);
     });
+
+    it('VALID: {questId, requirements} => parses with requirements array', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        requirements: [
+          {
+            id: 'b12ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'CLI Interactive Mode',
+            description: 'Support interactive CLI prompts',
+            scope: 'packages/cli',
+            status: 'proposed',
+          },
+        ],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.questId).toBe('add-auth');
+      expect(result.requirements).toHaveLength(1);
+    });
+
+    it('VALID: {questId, designDecisions} => parses with design decisions array', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        designDecisions: [
+          {
+            id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+            title: 'Use JWT for auth',
+            rationale: 'Stateless authentication',
+            relatedRequirements: [],
+          },
+        ],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.questId).toBe('add-auth');
+      expect(result.designDecisions).toHaveLength(1);
+    });
   });
 
   describe('invalid inputs', () => {

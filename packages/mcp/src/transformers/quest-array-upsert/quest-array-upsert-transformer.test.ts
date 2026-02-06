@@ -1,11 +1,28 @@
-import { ContextStub } from '@dungeonmaster/shared/contracts';
+import { ContextStub, RequirementStub } from '@dungeonmaster/shared/contracts';
 
 import { questArrayUpsertTransformer } from './quest-array-upsert-transformer';
 
 type Context = ReturnType<typeof ContextStub>;
+type Requirement = ReturnType<typeof RequirementStub>;
 
 describe('questArrayUpsertTransformer', () => {
   describe('adding new items', () => {
+    it('VALID: {requirement items} => upserts requirement types', () => {
+      const existing: Requirement[] = [];
+      const newRequirement = RequirementStub({
+        id: 'b12ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'CLI Interactive Mode',
+        description: 'Support interactive CLI prompts',
+        scope: 'packages/cli',
+      });
+      const updates = [newRequirement];
+
+      const result = questArrayUpsertTransformer({ existing, updates });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.name).toBe('CLI Interactive Mode');
+    });
+
     it('VALID: {existing: [], updates: [item]} => adds new item', () => {
       const existing: Context[] = [];
       const newContext = ContextStub({
