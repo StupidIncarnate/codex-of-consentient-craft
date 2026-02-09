@@ -30,12 +30,15 @@ import { questGetBroker } from '../brokers/quest/get/quest-get-broker';
 import { questListBroker } from '../brokers/quest/list/quest-list-broker';
 import { questLoadBroker } from '../brokers/quest/load/quest-load-broker';
 import { questModifyBroker } from '../brokers/quest/modify/quest-modify-broker';
+import { questVerifyBroker } from '../brokers/quest/verify/quest-verify-broker';
 import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract';
 import type { AddQuestResult } from '../contracts/add-quest-result/add-quest-result-contract';
 import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract';
 import type { GetQuestResult } from '../contracts/get-quest-result/get-quest-result-contract';
 import type { ModifyQuestInput } from '../contracts/modify-quest-input/modify-quest-input-contract';
 import type { ModifyQuestResult } from '../contracts/modify-quest-result/modify-quest-result-contract';
+import { verifyQuestInputContract } from '../contracts/verify-quest-input/verify-quest-input-contract';
+import type { VerifyQuestResult } from '../contracts/verify-quest-result/verify-quest-result-contract';
 import { completedCountContract } from '../contracts/completed-count/completed-count-contract';
 import { isoTimestampContract } from '../contracts/iso-timestamp/iso-timestamp-contract';
 import type { KillableProcess } from '../contracts/killable-process/killable-process-contract';
@@ -156,13 +159,26 @@ export const StartOrchestrator = {
 
   getQuest: async ({
     questId,
+    sections,
+    startPath,
+  }: {
+    questId: string;
+    sections?: string[];
+    startPath: FilePath;
+  }): Promise<GetQuestResult> => {
+    const input = getQuestInputContract.parse({ questId, ...(sections && { sections }) });
+    return questGetBroker({ input, startPath });
+  },
+
+  verifyQuest: async ({
+    questId,
     startPath,
   }: {
     questId: string;
     startPath: FilePath;
-  }): Promise<GetQuestResult> => {
-    const input = getQuestInputContract.parse({ questId });
-    return questGetBroker({ input, startPath });
+  }): Promise<VerifyQuestResult> => {
+    const input = verifyQuestInputContract.parse({ questId });
+    return questVerifyBroker({ input, startPath });
   },
 
   modifyQuest: async ({

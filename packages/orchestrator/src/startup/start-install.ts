@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Install orchestrator package by generating slash command files in .claude/commands/
+ * PURPOSE: Install orchestrator package by generating slash command and agent files
  *
  * USAGE:
  * const result = await StartInstall({ context });
- * // Creates .claude/commands/ directory and writes quest.md and quest:start.md
+ * // Creates .claude/commands/ with quest.md and quest:start.md, and .claude/agents/ with agent files
  */
 
 import {
@@ -18,12 +18,19 @@ import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
 import { fsWriteFileAdapter } from '../adapters/fs/write-file/fs-write-file-adapter';
 import { chaoswhispererPromptStatics } from '../statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
 import { questStartPromptStatics } from '../statics/quest-start-prompt/quest-start-prompt-statics';
+import { finalizerAgentPromptStatics } from '../statics/finalizer-agent-prompt/finalizer-agent-prompt-statics';
+import { pathseekerPromptStatics } from '../statics/pathseeker-prompt/pathseeker-prompt-statics';
+import { gapReviewerAgentPromptStatics } from '../statics/gap-reviewer-agent-prompt/gap-reviewer-agent-prompt-statics';
 
 const CLAUDE_DIR = '.claude';
 const COMMANDS_DIR = 'commands';
+const AGENTS_DIR = 'agents';
 const PACKAGE_NAME = '@dungeonmaster/orchestrator';
 const QUEST_FILENAME = 'quest.md';
 const QUEST_START_FILENAME = 'quest:start.md';
+const QUEST_FINALIZER_FILENAME = 'quest-finalizer.md';
+const QUEST_PATH_SEEKER_FILENAME = 'quest-path-seeker.md';
+const QUEST_GAP_REVIEWER_FILENAME = 'quest-gap-reviewer.md';
 
 export const StartInstall = async ({
   context,
@@ -50,12 +57,49 @@ export const StartInstall = async ({
   await fsWriteFileAdapter({ filePath: questFilePath, contents: questContent });
   await fsWriteFileAdapter({ filePath: questStartFilePath, contents: questStartContent });
 
+  const agentsDir = pathJoinAdapter({
+    paths: [context.targetProjectRoot, CLAUDE_DIR, AGENTS_DIR],
+  });
+
+  await fsMkdirAdapter({ filepath: agentsDir });
+
+  const questFinalizerFilePath = pathJoinAdapter({
+    paths: [agentsDir, QUEST_FINALIZER_FILENAME],
+  });
+
+  const questPathSeekerFilePath = pathJoinAdapter({
+    paths: [agentsDir, QUEST_PATH_SEEKER_FILENAME],
+  });
+
+  const questGapReviewerFilePath = pathJoinAdapter({
+    paths: [agentsDir, QUEST_GAP_REVIEWER_FILENAME],
+  });
+
+  const questFinalizerContent = fileContentsContract.parse(
+    finalizerAgentPromptStatics.prompt.template,
+  );
+
+  const questPathSeekerContent = fileContentsContract.parse(
+    pathseekerPromptStatics.prompt.template,
+  );
+
+  const questGapReviewerContent = fileContentsContract.parse(
+    gapReviewerAgentPromptStatics.prompt.template,
+  );
+
+  await fsWriteFileAdapter({ filePath: questFinalizerFilePath, contents: questFinalizerContent });
+  await fsWriteFileAdapter({ filePath: questPathSeekerFilePath, contents: questPathSeekerContent });
+  await fsWriteFileAdapter({
+    filePath: questGapReviewerFilePath,
+    contents: questGapReviewerContent,
+  });
+
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),
     success: true,
     action: 'created',
     message: installMessageContract.parse(
-      'Created .claude/commands/ with quest.md and quest:start.md',
+      'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with quest-finalizer.md, quest-path-seeker.md, and quest-gap-reviewer.md',
     ),
   };
 };

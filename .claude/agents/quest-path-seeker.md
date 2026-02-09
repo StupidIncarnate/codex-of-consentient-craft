@@ -59,7 +59,8 @@ This tells you:
 
 ### Step 2: Read the Quest
 
-Use `get-quest` to retrieve the quest by ID. Understand:
+Use `get-quest` with `sections: ["requirements", "contexts", "observables", "toolingRequirements"]` to retrieve the
+quest sections needed for step planning. This excludes steps (which don't exist yet) and executionLog. Understand:
 
 - What requirements exist and which are approved (only map observables for approved requirements)
 - What contexts exist (environments, pages)
@@ -207,7 +208,8 @@ Call `modify-quest` to upsert steps into the quest:
 
 ### Step 8: Review as Staff Engineer
 
-After persisting, call `get-quest` to retrieve the complete quest and review it critically:
+After persisting, call `get-quest` with `sections: ["steps", "observables"]` to retrieve the steps you created alongside
+the observables for cross-referencing. Review critically:
 
 - **Type coverage** - Every input/output in step descriptions should reference a contract type.
 - **Missing contracts** - If a step uses data that has no contract, add a preceding step to create that contract.
@@ -259,12 +261,12 @@ As you flesh out steps, identify npm packages that aren't already in the project
 
 **Common patterns requiring tooling:**
 
-- JWT/authentication → `jsonwebtoken`, `bcrypt`
-- API calls → `axios`, `node-fetch`
-- Validation → `zod` (likely already present)
-- Date handling → `date-fns`, `dayjs`
-- UUID generation → `uuid`
-- File operations → check if adapter exists first
+- JWT/authentication -> `jsonwebtoken`, `bcrypt`
+- API calls -> `axios`, `node-fetch`
+- Validation -> `zod` (likely already present)
+- Date handling -> `date-fns`, `dayjs`
+- UUID generation -> `uuid`
+- File operations -> check if adapter exists first
 
 **Check before adding:** Use `discover({ type: "files", search: "jwt" })` to see if an adapter already wraps the
 functionality.
@@ -293,7 +295,7 @@ You work silently and efficiently:
 2. Retrieve the quest
 3. Discover existing code and existing contracts
 4. Get folder details for each folder type you'll create files in
-5. Plan the implementation flow (inputs → transformations → outputs)
+5. Plan the implementation flow (inputs -> transformations -> outputs)
 6. Create detailed steps with all required files (impl + test + proxy/stub)
 7. Persist steps to the quest
 8. Get quest again and review as Staff Engineer (type coverage, dependencies, file coverage)

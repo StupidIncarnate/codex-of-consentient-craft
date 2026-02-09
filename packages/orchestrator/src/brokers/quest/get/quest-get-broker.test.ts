@@ -41,6 +41,89 @@ describe('questGetBroker', () => {
     });
   });
 
+  describe('section filtering', () => {
+    it('VALID: {sections: ["requirements"]} => returns quest with only requirements populated', async () => {
+      const proxy = questGetBrokerProxy();
+      const startPath = FilePathStub({ value: '/project/src' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        requirements: [
+          {
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'Auth',
+            description: 'User auth',
+            scope: 'packages/api',
+            status: 'approved',
+          },
+        ],
+        observables: [
+          {
+            id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
+            contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
+            trigger: 'User submits login form',
+            dependsOn: [],
+            outcomes: [],
+          },
+        ],
+      });
+
+      proxy.setupQuestFound({ quest, startPath });
+
+      const input = GetQuestInputStub({ questId: 'add-auth', sections: ['requirements'] });
+      const result = await questGetBroker({ input, startPath });
+
+      expect(result.success).toBe(true);
+      expect(result.quest?.requirements).toStrictEqual([
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'Auth',
+          description: 'User auth',
+          scope: 'packages/api',
+          status: 'approved',
+        },
+      ]);
+      expect(result.quest?.observables).toStrictEqual([]);
+      expect(result.quest?.steps).toStrictEqual([]);
+    });
+
+    it('VALID: {sections undefined} => returns full quest unchanged', async () => {
+      const proxy = questGetBrokerProxy();
+      const startPath = FilePathStub({ value: '/project/src' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        requirements: [
+          {
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'Auth',
+            description: 'User auth',
+            scope: 'packages/api',
+            status: 'approved',
+          },
+        ],
+      });
+
+      proxy.setupQuestFound({ quest, startPath });
+
+      const input = GetQuestInputStub({ questId: 'add-auth' });
+      const result = await questGetBroker({ input, startPath });
+
+      expect(result.success).toBe(true);
+      expect(result.quest?.requirements).toStrictEqual([
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'Auth',
+          description: 'User auth',
+          scope: 'packages/api',
+          status: 'approved',
+        },
+      ]);
+    });
+  });
+
   describe('quest not found', () => {
     it('ERROR: {questId not exists} => returns not found error', async () => {
       const proxy = questGetBrokerProxy();

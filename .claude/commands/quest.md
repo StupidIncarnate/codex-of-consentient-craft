@@ -86,24 +86,44 @@ and translate them into well-defined implementation quests.
     ```
 17. **Address gaps** - Review the agent's findings, determine if the findings are accurate and update the quest
     accordingly. If any unknowns are uncovered that need user feedback, use the AskUserQuestion to get user input.
-18. **Final user review** - Present the refined quest for final approval
+18. **Refresh quest state** - After gap review may have added observables, fetch updated sections:
+    ```json
+    {"questId": "quest-uuid", "sections": ["contexts", "observables", "toolingRequirements", "designDecisions"]}
+    ```
 
-### Phase 6: File Mapping
+### Phase 6: Observables Approval Gate
 
-19. **Spawn path-seeker agent** - Use Task tool with `subagent_type: "path-seeker"`:
+19. **Present observables to user** - Show the full Phase 4 display (contexts, observables by requirement, design
+    decisions, tooling) incorporating any additions from gap review
+20. **Get approval** - User must approve the observables before file mapping begins. They may request changes,
+    additions,
+    or removals.
+21. **Update quest** - Use `modify-quest` to apply any changes from user feedback
+
+**CRITICAL: Do NOT proceed to Phase 7 until user explicitly approves the observables.**
+
+### Phase 7: File Mapping
+
+22. **Spawn path-seeker agent** - Use Task tool with `subagent_type: "quest-path-seeker"`:
     ```
     prompt: "Map quest [questId] observables to file operations"
     ```
-20. **Review PathSeeker output** - Use `get-quest` to retrieve the updated quest with steps
-21. **Address mismatches** - If PathSeeker's mapping reveals issues:
-    - Clarify requirements with user if needed
-    - Update quest contexts/observables via `modify-quest`
-    - Re-run PathSeeker if significant changes
+23. **Spawn quest finalizer** - After PathSeeker completes, spawn `quest-finalizer` to run deterministic integrity
+    checks (via verify-quest) and perform semantic review of step descriptions, codebase assumptions, and narrative
+    traceability:
+    ```
+    prompt: "Finalize and review quest [questId]"
+    subagent_type: "quest-finalizer"
+    ```
+24. **Address issues** - If finalizer reports failures:
+    - Fix issues via `modify-quest` if they're simple (missing observablesSatisfied links, etc.)
+    - Re-run PathSeeker if structural issues require regenerating steps
+    - Re-run finalizer after fixes to confirm
 
-### Phase 7: Completion
+### Phase 8: Handoff
 
-22. **Final review with user** - Present complete quest with steps
-23. **User accepts** - Quest is fully defined and ready for implementation
+25. **Final review with user** - Present a summary of the quest definition (step count, observable coverage)
+26. **User accepts** - Quest definition is locked and ready for implementation
 
 ---
 
@@ -137,13 +157,22 @@ Update an existing quest. Use upsert semantics - existing IDs update, new IDs ad
 
 ### `get-quest`
 
-Retrieve a quest by ID to review or continue work.
+Retrieve a quest by ID to review or continue work. Use the `sections` parameter to fetch only the sections you need -
+this keeps responses small and avoids token limit issues on large quests.
 
 ```json
 {
-  "questId": "quest-uuid"
+  "questId": "quest-uuid",
+  "sections": ["requirements", "observables"]
 }
 ```
+
+**Section values:** `requirements`, `designDecisions`, `contexts`, `observables`, `steps`, `toolingRequirements`,
+`executionLog`
+
+- Omit `sections` entirely to get the full quest (only safe for small/new quests)
+- Excluded sections return as empty arrays (quest shape stays valid)
+- Metadata fields (id, title, status, etc.) are always included
 
 ---
 
@@ -241,22 +270,59 @@ After each major phase, summarize the quest state for the user:
 **After Phase 2 (Requirements Capture):**
 
 ```
-| # | Requirement | Scope | Status |
-|---|------------|-------|--------|
-| 1 | CLI Interactive Mode | packages/cli | proposed |
-| 2 | Headless Orchestrator | packages/orchestrator | proposed |
+| # | Requirement | Description | Scope | Status |
+|---|-------------|-------------|-------|--------|
+| 1 | CLI Interactive Mode | Support interactive CLI prompts for user input | packages/cli | proposed |
+| 2 | Headless Orchestrator | Orchestrator runs without user interaction | packages/orchestrator | proposed |
 
-Design Decisions: 2 recorded
+| # | Design Decision | Rationale | Related Reqs |
+|---|-----------------|-----------|--------------|
+| 1 | Use MCP for tool communication | Standardized protocol, already in use | Req 1, Req 2 |
 ```
 
-**After Phase 4 (BDD Deep-Dive):**
+**After Phase 3 (Requirements Approval):**
 
 ```
-Requirements: 3 approved, 1 deferred
-Contexts: 5 defined
-Observables: 12 created (all linked to requirements)
-Design Decisions: 4 recorded
-Tooling: 2 new packages needed
+| # | Requirement | Description | Scope | Status |
+|---|-------------|-------------|-------|--------|
+| 1 | CLI Interactive Mode | Support interactive CLI prompts for user input | packages/cli | approved |
+| 2 | Headless Orchestrator | Orchestrator runs without user interaction | packages/orchestrator | approved |
+| 3 | Plugin System | Allow third-party extensions | packages/shared | deferred |
+```
+
+**After Phase 4 (BDD Deep-Dive) / Phase 6 (Observables Approval):**
+
+```
+Requirements: 2 approved, 1 deferred
+
+| # | Context | Description | Locator |
+|---|---------|-------------|---------|
+| 1 | CLITerminal | Terminal session running dungeonmaster CLI | page: terminal, section: main |
+| 2 | OrchestratorProcess | Background orchestrator process | page: process, section: runtime |
+
+Observables by Requirement:
+
+**Req 1: CLI Interactive Mode** (4 observables)
+| # | GIVEN (Context) | WHEN (Trigger) | THEN (Outcomes) |
+|---|-----------------|----------------|-----------------|
+| 1 | CLITerminal | User runs `quest` command | Prompt displays quest title input |
+| 2 | CLITerminal | User submits quest title | Quest is created via add-quest MCP call |
+| ... | ... | ... | ... |
+
+**Req 2: Headless Orchestrator** (3 observables)
+| # | GIVEN (Context) | WHEN (Trigger) | THEN (Outcomes) |
+|---|-----------------|----------------|-----------------|
+| 1 | OrchestratorProcess | start-quest is called with quest ID | Orchestrator begins step execution |
+| ... | ... | ... | ... |
+
+| # | Design Decision | Rationale | Related Reqs |
+|---|-----------------|-----------|--------------|
+| 1 | Use MCP for tool communication | Standardized protocol, already in use | Req 1, Req 2 |
+| 2 | Sonnet model for sub-agents | Cost-effective for structured tasks | Req 2 |
+
+| # | Tooling Requirement | Package | Reason | Used By |
+|---|---------------------|---------|--------|---------|
+| 1 | JSON Schema Generator | zod-to-json-schema | Generate MCP tool schemas from Zod contracts | Obs 1.2, Obs 2.1 |
 ```
 
 ---
@@ -289,11 +355,19 @@ Use Task tool with `subagent_type: "quest-gap-reviewer"` after creating the ques
 
 ### path-seeker Agent
 
-Use Task tool with `subagent_type: "path-seeker"` after quest validation.
+Use Task tool with `subagent_type: "quest-path-seeker"` after quest validation.
 
-**When to spawn:** After Phase 5 (Validation), when quest is gap-reviewed and user-approved.
+**When to spawn:** After Phase 6 (Observables Approval), when quest is gap-reviewed and user-approved.
 
 **After it completes:** Use `get-quest` to retrieve the quest with the steps it created, then review for correctness.
+
+### quest-finalizer Agent
+
+Use Task tool with `subagent_type: "quest-finalizer"` after PathSeeker completes.
+
+**When to spawn:** After Phase 7 (File Mapping), after PathSeeker has created all steps.
+
+**After it completes:** Review the finalization report for critical issues, warnings, and info items.
 
 ---
 

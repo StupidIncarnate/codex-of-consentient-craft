@@ -28,6 +28,7 @@ import { orchestratorGetQuestStatusAdapter } from '../adapters/orchestrator/get-
 import { orchestratorListQuestsAdapter } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorModifyQuestAdapter } from '../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
 import { orchestratorStartQuestAdapter } from '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
+import { orchestratorVerifyQuestAdapter } from '../adapters/orchestrator/verify-quest/orchestrator-verify-quest-adapter';
 import { architectureFolderDetailBroker } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker';
 import { architectureSyntaxRulesBroker } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
 import { architectureTestingPatternsBroker } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
@@ -44,6 +45,7 @@ import { signalBackInputContract } from '../contracts/signal-back-input/signal-b
 import { startQuestInputContract } from '../contracts/start-quest-input/start-quest-input-contract';
 import { getQuestStatusInputContract } from '../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { listQuestsInputContract } from '../contracts/list-quests-input/list-quests-input-contract';
+import { verifyQuestInputContract } from '../contracts/verify-quest-input/verify-quest-input-contract';
 
 const emptyInputSchema = z.object({});
 
@@ -133,6 +135,12 @@ export const StartMcpServer = async (): Promise<void> => {
         name: 'list-quests',
         description: 'Lists all quests in the .dungeonmaster-quests folder.',
         inputSchema: zodToJsonSchema(listQuestsInputContract, { $refStrategy: 'none' }),
+      },
+      {
+        name: 'verify-quest',
+        description:
+          'Validates quest structure integrity (dependency graph, observable coverage, file companions, etc.)',
+        inputSchema: zodToJsonSchema(verifyQuestInputContract, { $refStrategy: 'none' }),
       },
     ],
   }));
@@ -253,11 +261,17 @@ export const StartMcpServer = async (): Promise<void> => {
       const args = request.params.arguments as never;
       const questIdRaw: unknown = Reflect.get(args, 'questId');
       const startPathRaw: unknown = Reflect.get(args, 'startPath');
+      const sectionsRaw: unknown = Reflect.get(args, 'sections');
       const questId = String(questIdRaw);
       const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
+      const sections = Array.isArray(sectionsRaw) ? sectionsRaw.map(String) : undefined;
 
       try {
-        const result = await orchestratorGetQuestAdapter({ questId, startPath });
+        const result = await orchestratorGetQuestAdapter({
+          questId,
+          ...(sections && { sections }),
+          startPath,
+        });
         return {
           content: [
             {
@@ -371,12 +385,46 @@ export const StartMcpServer = async (): Promise<void> => {
       const processId = processIdContract.parse(processIdRaw);
 
       try {
-        const status = await orchestratorGetQuestStatusAdapter({ processId });
+        const status = orchestratorGetQuestStatusAdapter({ processId });
         return {
           content: [
             {
               type: 'text',
               text: JSON.stringify({ success: true, status }, null, JSON_INDENT_SPACES),
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
+    }
+
+    if (request.params.name === 'verify-quest') {
+      const args = request.params.arguments as never;
+      const questIdRaw: unknown = Reflect.get(args, 'questId');
+      const startPathRaw: unknown = Reflect.get(args, 'startPath');
+      const questId = String(questIdRaw);
+      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
+
+      try {
+        const result = await orchestratorVerifyQuestAdapter({ questId, startPath });
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, JSON_INDENT_SPACES),
             },
           ],
         };

@@ -95,9 +95,10 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, requirements: [new]} => adds new requirement', async () => {
       const proxy = questModifyBrokerProxy();
+      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', requirements: [] });
 
-      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest, startPath });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -112,16 +113,17 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input });
+      const result = await questModifyBroker({ input, startPath });
 
       expect(result.success).toBe(true);
     });
 
     it('VALID: {questId, designDecisions: [new]} => adds new design decision', async () => {
       const proxy = questModifyBrokerProxy();
+      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', designDecisions: [] });
 
-      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest, startPath });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -135,7 +137,7 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input });
+      const result = await questModifyBroker({ input, startPath });
 
       expect(result.success).toBe(true);
     });

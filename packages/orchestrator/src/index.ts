@@ -9,6 +9,7 @@ export { questListBroker } from './brokers/quest/list/quest-list-broker';
 export { questLoadBroker } from './brokers/quest/load/quest-load-broker';
 export { questModifyBroker } from './brokers/quest/modify/quest-modify-broker';
 export { questUpdateStepBroker } from './brokers/quest/update-step/quest-update-step-broker';
+export { questVerifyBroker } from './brokers/quest/verify/quest-verify-broker';
 
 // Quest contracts - exported for use by other packages
 export { addQuestInputContract } from './contracts/add-quest-input/add-quest-input-contract';
@@ -23,6 +24,14 @@ export { modifyQuestInputContract } from './contracts/modify-quest-input/modify-
 export type { ModifyQuestInput } from './contracts/modify-quest-input/modify-quest-input-contract';
 export { modifyQuestResultContract } from './contracts/modify-quest-result/modify-quest-result-contract';
 export type { ModifyQuestResult } from './contracts/modify-quest-result/modify-quest-result-contract';
+export { questSectionContract } from './contracts/quest-section/quest-section-contract';
+export type { QuestSection } from './contracts/quest-section/quest-section-contract';
+export { verifyQuestInputContract } from './contracts/verify-quest-input/verify-quest-input-contract';
+export type { VerifyQuestInput } from './contracts/verify-quest-input/verify-quest-input-contract';
+export { verifyQuestCheckContract } from './contracts/verify-quest-check/verify-quest-check-contract';
+export type { VerifyQuestCheck } from './contracts/verify-quest-check/verify-quest-check-contract';
+export { verifyQuestResultContract } from './contracts/verify-quest-result/verify-quest-result-contract';
+export type { VerifyQuestResult } from './contracts/verify-quest-result/verify-quest-result-contract';
 
 // Prompt statics - re-exported for CLI package
 export { chaoswhispererPromptStatics } from './statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';

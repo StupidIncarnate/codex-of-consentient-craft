@@ -5,7 +5,7 @@ import { orchestratorGetQuestStatusAdapterProxy } from './orchestrator-get-quest
 
 describe('orchestratorGetQuestStatusAdapter', () => {
   describe('successful status retrieval', () => {
-    it('VALID: {processId} => returns orchestration status', async () => {
+    it('VALID: {processId} => returns orchestration status', () => {
       const proxy = orchestratorGetQuestStatusAdapterProxy();
       const processId = ProcessIdStub({ value: 'proc-123' });
       const status = OrchestrationStatusStub({
@@ -16,22 +16,20 @@ describe('orchestratorGetQuestStatusAdapter', () => {
 
       proxy.returns({ status });
 
-      const result = await orchestratorGetQuestStatusAdapter({ processId });
+      const result = orchestratorGetQuestStatusAdapter({ processId });
 
       expect(result).toStrictEqual(status);
     });
   });
 
   describe('error cases', () => {
-    it('ERROR: {orchestrator throws} => throws error', async () => {
+    it('ERROR: {orchestrator throws} => throws error', () => {
       const proxy = orchestratorGetQuestStatusAdapterProxy();
       const processId = ProcessIdStub({ value: 'proc-123' });
 
       proxy.throws({ error: new Error('Not implemented') });
 
-      await expect(orchestratorGetQuestStatusAdapter({ processId })).rejects.toThrow(
-        /Not implemented/u,
-      );
+      expect(() => orchestratorGetQuestStatusAdapter({ processId })).toThrow(/Not implemented/u);
     });
   });
 });

@@ -23,7 +23,9 @@ describe('orchestrator', () => {
       'questListBroker',
       'questLoadBroker',
       'questModifyBroker',
+      'questSectionContract',
       'questUpdateStepBroker',
+      'questVerifyBroker',
       'sessionIdExtractorTransformer',
       'siegemasterPromptStatics',
       'signalFromStreamTransformer',
@@ -40,6 +42,9 @@ describe('orchestrator', () => {
       'timeoutMsContract',
       'toolDisplayConfigStatics',
       'toolInputToDisplayTransformer',
+      'verifyQuestCheckContract',
+      'verifyQuestInputContract',
+      'verifyQuestResultContract',
     ]);
   });
 });
