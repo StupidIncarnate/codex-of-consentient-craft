@@ -118,6 +118,37 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
+    it('VALID: {questId, contracts: [new]} => adds new contract', async () => {
+      const proxy = questModifyBrokerProxy();
+      const startPath = FilePathStub({ value: '/project/src' });
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', contracts: [] });
+
+      proxy.setupQuestFound({ quest, startPath });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        contracts: [
+          {
+            id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'LoginCredentials',
+            kind: 'data',
+            status: 'new',
+            properties: [
+              {
+                name: 'email',
+                type: 'EmailAddress',
+                description: 'User email for authentication',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input, startPath });
+
+      expect(result.success).toBe(true);
+    });
+
     it('VALID: {questId, designDecisions: [new]} => adds new design decision', async () => {
       const proxy = questModifyBrokerProxy();
       const startPath = FilePathStub({ value: '/project/src' });

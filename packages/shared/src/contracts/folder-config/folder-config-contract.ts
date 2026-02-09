@@ -22,6 +22,7 @@ export const folderConfigContract = z.object({
   requireProxy: z.boolean(),
   allowsLayerFiles: z.boolean(),
   allowRegex: z.boolean(),
+  requireContractDeclarations: z.boolean(),
   meta: z.object({
     purpose: z.string().brand<'FolderPurpose'>(),
     whenToUse: z.string().brand<'FolderWhenToUse'>(),

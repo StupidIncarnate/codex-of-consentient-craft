@@ -160,3 +160,19 @@ export * from './src/contracts/orchestration-slot/orchestration-slot.stub';
 
 export * from './src/contracts/orchestration-status/orchestration-status-contract';
 export * from './src/contracts/orchestration-status/orchestration-status.stub';
+
+// Contract Metadata Contracts
+export * from './src/contracts/contract-name/contract-name-contract';
+export * from './src/contracts/contract-name/contract-name.stub';
+
+export * from './src/contracts/quest-contract-kind/quest-contract-kind-contract';
+export * from './src/contracts/quest-contract-kind/quest-contract-kind.stub';
+
+export * from './src/contracts/quest-contract-status/quest-contract-status-contract';
+export * from './src/contracts/quest-contract-status/quest-contract-status.stub';
+
+export * from './src/contracts/quest-contract-property/quest-contract-property-contract';
+export * from './src/contracts/quest-contract-property/quest-contract-property.stub';
+
+export * from './src/contracts/quest-contract-entry/quest-contract-entry-contract';
+export * from './src/contracts/quest-contract-entry/quest-contract-entry.stub';

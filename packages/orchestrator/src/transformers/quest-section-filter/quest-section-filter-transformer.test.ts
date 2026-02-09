@@ -66,6 +66,7 @@ describe('questSectionFilterTransformer', () => {
           },
         ],
         designDecisions: [],
+        contracts: [],
         contexts: [],
         observables: [],
         steps: [],
@@ -109,6 +110,7 @@ describe('questSectionFilterTransformer', () => {
         executionLog: [],
         requirements: [],
         designDecisions: [],
+        contracts: [],
         contexts: [],
         observables: [
           {
@@ -178,6 +180,7 @@ describe('questSectionFilterTransformer', () => {
           },
         ],
         designDecisions: [],
+        contracts: [],
         contexts: [],
         observables: [
           {
@@ -222,6 +225,7 @@ describe('questSectionFilterTransformer', () => {
         executionLog: [],
         requirements: [],
         designDecisions: [],
+        contracts: [],
         contexts: [],
         observables: [],
         steps: [],
@@ -258,6 +262,7 @@ describe('questSectionFilterTransformer', () => {
         executionLog: [],
         requirements: [],
         designDecisions: [],
+        contracts: [],
         contexts: [],
         observables: [],
         steps: [],

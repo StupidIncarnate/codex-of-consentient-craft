@@ -6,16 +6,21 @@
  * // Returns array of { name, passed, details } check results
  */
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 import type { VerifyQuestCheck } from '../../contracts/verify-quest-check/verify-quest-check-contract';
 import { verifyQuestCheckContract } from '../../contracts/verify-quest-check/verify-quest-check-contract';
-import { questHasObservableCoverageGuard } from '../../guards/quest-has-observable-coverage/quest-has-observable-coverage-guard';
+import { questContractHasNoRawPrimitivesGuard } from '../../guards/quest-contract-has-no-raw-primitives/quest-contract-has-no-raw-primitives-guard';
 import { questHasDependencyIntegrityGuard } from '../../guards/quest-has-dependency-integrity/quest-has-dependency-integrity-guard';
+import { questHasFileCompanionsGuard } from '../../guards/quest-has-file-companions/quest-has-file-companions-guard';
 import { questHasNoCircularDepsGuard } from '../../guards/quest-has-no-circular-deps/quest-has-no-circular-deps-guard';
 import { questHasNoOrphanStepsGuard } from '../../guards/quest-has-no-orphan-steps/quest-has-no-orphan-steps-guard';
+import { questHasObservableCoverageGuard } from '../../guards/quest-has-observable-coverage/quest-has-observable-coverage-guard';
 import { questHasValidContextRefsGuard } from '../../guards/quest-has-valid-context-refs/quest-has-valid-context-refs-guard';
 import { questHasValidRequirementRefsGuard } from '../../guards/quest-has-valid-requirement-refs/quest-has-valid-requirement-refs-guard';
-import { questHasFileCompanionsGuard } from '../../guards/quest-has-file-companions/quest-has-file-companions-guard';
+import { questStepHasContractRefsGuard } from '../../guards/quest-step-has-contract-refs/quest-step-has-contract-refs-guard';
+import { questStepHasExportNameGuard } from '../../guards/quest-step-has-export-name/quest-step-has-export-name-guard';
+import { questStepHasValidContractRefsGuard } from '../../guards/quest-step-has-valid-contract-refs/quest-step-has-valid-contract-refs-guard';
 
 type Quest = ReturnType<typeof QuestStub>;
 
@@ -105,6 +110,61 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
       details: fileCompanions
         ? 'All implementation files have required companion files (test, proxy, stub)'
         : 'Some implementation files are missing required companion files',
+    }),
+  );
+
+  const noRawPrimitives = questContractHasNoRawPrimitivesGuard({
+    contracts: quest.contracts,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: 'No Raw Primitives in Contracts',
+      passed: noRawPrimitives,
+      details: noRawPrimitives
+        ? 'All contract properties use branded or non-primitive types'
+        : 'Some contract properties use raw primitive types (string, number, any, object, unknown)',
+    }),
+  );
+
+  const stepContractRefs = questStepHasContractRefsGuard({
+    steps: quest.steps,
+    contracts: quest.contracts,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: 'Step Contract Declarations',
+      passed: stepContractRefs,
+      details: stepContractRefs
+        ? 'All steps in contract-requiring folders have outputContracts declared'
+        : 'Some steps are missing required contract declarations in outputContracts',
+    }),
+  );
+
+  const validContractRefs = questStepHasValidContractRefsGuard({
+    steps: quest.steps,
+    contracts: quest.contracts,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: 'Valid Contract References',
+      passed: validContractRefs,
+      details: validContractRefs
+        ? 'All step inputContracts and outputContracts reference existing contracts'
+        : 'Some steps reference non-existent contract names in inputContracts or outputContracts',
+    }),
+  );
+
+  const stepExportNames = questStepHasExportNameGuard({
+    steps: quest.steps,
+    folderConfigs: folderConfigStatics,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: 'Step Export Names',
+      passed: stepExportNames,
+      details: stepExportNames
+        ? 'All steps creating entry files have exportName set'
+        : 'Some steps with entry files are missing required exportName',
     }),
   );
 

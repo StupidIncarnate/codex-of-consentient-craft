@@ -93,51 +93,52 @@ and translate them into well-defined implementation quests.
 13. **Create observables** - Write BDD acceptance criteria with GIVEN/WHEN/THEN structure, linking each to its parent
     requirement via \`requirementId\`
 14. **Identify tooling needs** - Note any new packages required
-15. **Persist to quest** - Use \`modify-quest\` to add contexts, observables, and tooling requirements
+15. **Declare contracts** - Structure the tangible data types, API endpoints, and event schemas as quest-level contract entries (see Declaring Contracts section)
+16. **Persist to quest** - Use \`modify-quest\` to add contexts, observables, tooling requirements, and contracts
 
 ### Phase 5: Validation
 
-16. **Spawn quest-gap-reviewer agent** - Use Task tool with \`subagent_type: "quest-gap-reviewer"\`:
+17. **Spawn quest-gap-reviewer agent** - Use Task tool with \`subagent_type: "quest-gap-reviewer"\`:
     \`\`\`
     prompt: "Review quest [questId] for gaps and issues"
     \`\`\`
-17. **Address gaps** - Review the agent's findings, determine if the findings are accurate and update the quest
+18. **Address gaps** - Review the agent's findings, determine if the findings are accurate and update the quest
     accordingly. If any unknowns are uncovered that need user feedback, use the AskUserQuestion to get user input.
-18. **Refresh quest state** - After gap review may have added observables, fetch updated sections:
+19. **Refresh quest state** - After gap review may have added observables, fetch updated sections:
     \`\`\`json
-    {"questId": "quest-uuid", "sections": ["contexts", "observables", "toolingRequirements", "designDecisions"]}
+    {"questId": "quest-uuid", "sections": ["contexts", "observables", "toolingRequirements", "contracts", "designDecisions"]}
     \`\`\`
 
 ### Phase 6: Observables Approval Gate
 
-19. **Present observables to user** - Show the full Phase 4 display (contexts, observables by requirement, design
-    decisions, tooling) incorporating any additions from gap review
-20. **Get approval** - User must approve the observables before file mapping begins. They may request changes, additions,
-    or removals.
-21. **Update quest** - Use \`modify-quest\` to apply any changes from user feedback
+20. **Present observables to user** - Show the full Phase 4 display (contexts, observables by requirement, contracts,
+    design decisions, tooling) incorporating any additions from gap review
+21. **Get approval** - User must approve the observables and contracts before file mapping begins. They may request
+    changes, additions, or removals.
+22. **Update quest** - Use \`modify-quest\` to apply any changes from user feedback
 
-**CRITICAL: Do NOT proceed to Phase 7 until user explicitly approves the observables.**
+**CRITICAL: Do NOT proceed to Phase 7 until user explicitly approves the observables and contracts.**
 
 ### Phase 7: File Mapping
 
-22. **Spawn path-seeker agent** - Use Task tool with \`subagent_type: "quest-path-seeker"\`:
+23. **Spawn path-seeker agent** - Use Task tool with \`subagent_type: "quest-path-seeker"\`:
     \`\`\`
     prompt: "Map quest [questId] observables to file operations"
     \`\`\`
-23. **Spawn quest finalizer** - After PathSeeker completes, spawn \`quest-finalizer\` to run deterministic integrity checks (via verify-quest) and perform semantic review of step descriptions, codebase assumptions, and narrative traceability:
+24. **Spawn quest finalizer** - After PathSeeker completes, spawn \`quest-finalizer\` to run deterministic integrity checks (via verify-quest) and perform semantic review of step descriptions, codebase assumptions, and narrative traceability:
     \`\`\`
     prompt: "Finalize and review quest [questId]"
     subagent_type: "quest-finalizer"
     \`\`\`
-24. **Address issues** - If finalizer reports failures:
+25. **Address issues** - If finalizer reports failures:
     - Fix issues via \`modify-quest\` if they're simple (missing observablesSatisfied links, etc.)
     - Re-run PathSeeker if structural issues require regenerating steps
     - Re-run finalizer after fixes to confirm
 
 ### Phase 8: Handoff
 
-25. **Final review with user** - Present a summary of the quest definition (step count, observable coverage)
-26. **User accepts** - Quest definition is locked and ready for implementation
+26. **Final review with user** - Present a summary of the quest definition (step count, observable coverage)
+27. **User accepts** - Quest definition is locked and ready for implementation
 
 ---
 
@@ -165,7 +166,8 @@ Update an existing quest. Use upsert semantics - existing IDs update, new IDs ad
   "designDecisions": [...],
   "contexts": [...],
   "observables": [...],
-  "toolingRequirements": [...]
+  "toolingRequirements": [...],
+  "contracts": [...]
 }
 \`\`\`
 
@@ -182,7 +184,7 @@ this keeps responses small and avoids token limit issues on large quests.
 \`\`\`
 
 **Section values:** \`requirements\`, \`designDecisions\`, \`contexts\`, \`observables\`, \`steps\`, \`toolingRequirements\`,
-\`executionLog\`
+\`contracts\`, \`executionLog\`
 
 - Omit \`sections\` entirely to get the full quest (only safe for small/new quests)
 - Excluded sections return as empty arrays (quest shape stays valid)
@@ -337,6 +339,11 @@ Observables by Requirement:
 | # | Tooling Requirement | Package | Reason | Used By |
 |---|---------------------|---------|--------|---------|
 | 1 | JSON Schema Generator | zod-to-json-schema | Generate MCP tool schemas from Zod contracts | Obs 1.2, Obs 2.1 |
+
+| # | Contract | Kind | Status | Properties |
+|---|----------|------|--------|------------|
+| 1 | LoginCredentials | data | new | email: EmailAddress, password: Password |
+| 2 | AuthLoginEndpoint | endpoint | new | POST /api/auth/login |
 \`\`\`
 
 ---
@@ -496,6 +503,82 @@ When requirements need new packages not in the codebase:
   "requiredByObservables": ["observable-uuid-1"]
 }
 \`\`\`
+
+---
+
+## Declaring Contracts
+
+Contracts define the shared type dictionary for the quest. Every data type, API endpoint, and event schema that steps
+will reference gets declared here. Implementing agents receive this section regardless of which step they work on,
+giving them the full type context.
+
+### Contract Entry Structure
+
+\`\`\`json
+{
+  "id": "uuid",
+  "name": "LoginCredentials",
+  "kind": "data",
+  "status": "new",
+  "source": "src/contracts/login-credentials/login-credentials-contract.ts",
+  "properties": [
+    {"name": "email", "type": "EmailAddress", "description": "RFC 5322 validated email"},
+    {"name": "password", "type": "Password", "description": "Min 8 chars, at least one number"}
+  ]
+}
+\`\`\`
+
+| Field      | Type    | Description                                                                                                        |
+|------------|---------|--------------------------------------------------------------------------------------------------------------------|
+| id         | uuid    | Unique identifier                                                                                                  |
+| name       | string  | Contract name that steps reference in inputContracts/outputContracts                                               |
+| kind       | enum    | \\\`data\\\` (Zod schema types), \\\`endpoint\\\` (API boundaries with method/path/request/response), \\\`event\\\` (EventEmitter/WebSocket schemas) |
+| status     | enum    | \\\`new\\\` (created by this quest), \\\`existing\\\` (already in codebase, listed for context), \\\`modified\\\` (existing contract being changed - properties show FINAL state) |
+| source     | string? | File path where this contract lives or will be created                                                             |
+| properties | array   | The fields that make up this contract. Supports nesting for complex objects                                        |
+
+### Property Structure
+
+| Field      | Type     | Description                                                                                   |
+|------------|----------|-----------------------------------------------------------------------------------------------|
+| name       | string   | Property name (e.g., "email", "method")                                                       |
+| type       | string?  | Branded type reference (e.g., "EmailAddress", "UserId"). Must NOT be raw primitives like "string" or "number" |
+| value      | string?  | Literal value (e.g., "POST", "/api/auth/login"). Use for endpoint methods, paths, fixed values |
+| description | string? | Human-readable context for AI                                                                 |
+| optional   | boolean? | Whether this property is optional                                                             |
+| properties | array?   | Nested sub-properties for complex objects                                                     |
+
+### Contract Kinds
+
+- **\\\`data\\\`** - Zod schema types like LoginCredentials, User, AuthResult. These become \\\`.ts\\\` files with Zod contracts.
+- **\\\`endpoint\\\`** - API boundaries. Include method, path, requestBody, responseBody, and errorBody as properties. The requestBody and responseBody types reference other contracts.
+- **\\\`event\\\`** - EventEmitter/WebSocket event schemas. The event name goes as a property name, the payload type as the type reference.
+
+### Endpoint Example
+
+\`\`\`json
+{
+  "id": "uuid",
+  "name": "AuthLoginEndpoint",
+  "kind": "endpoint",
+  "status": "new",
+  "properties": [
+    {"name": "method", "value": "POST"},
+    {"name": "path", "value": "/api/auth/login"},
+    {"name": "requestBody", "type": "LoginCredentials"},
+    {"name": "responseBody", "type": "AuthResult"},
+    {"name": "errorBody", "type": "AuthError", "description": "401 on invalid credentials"}
+  ]
+}
+\`\`\`
+
+### Key Rules
+
+- Type references must be branded types (EmailAddress, UserId), NEVER raw primitives (string, number)
+- Use \\\`value\\\` for literal/fixed values (HTTP methods, paths), \\\`type\\\` for branded type references
+- For \\\`existing\\\` contracts, use discover/exploration agents to find the actual shape in the codebase
+- Properties support nesting for complex objects (e.g., a UserProfile with nested settings.notifications)
+- Every data type that appears in observable outcomes should have a corresponding contract
 
 ---
 

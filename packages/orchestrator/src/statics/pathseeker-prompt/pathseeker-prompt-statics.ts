@@ -31,6 +31,7 @@ through each change to arrive at the intended outcomes.
 
 You receive quests already defined by ChaosWhisperer containing:
 
+- **contracts[]** - Shared type dictionary defining all data types, API endpoints, and event schemas
 - **contexts[]** - WHERE things happen (pages, sections, environments)
 - **observables[]** - BDD acceptance criteria with triggers and outcomes
 
@@ -76,9 +77,10 @@ This tells you:
 
 ### Step 2: Read the Quest
 
-Use \`get-quest\` with \`sections: ["requirements", "contexts", "observables", "toolingRequirements"]\` to retrieve the quest sections needed for step planning. This excludes steps (which don't exist yet) and executionLog. Understand:
+Use \`get-quest\` with \`sections: ["requirements", "contracts", "contexts", "observables", "toolingRequirements"]\` to retrieve the quest sections needed for step planning. This excludes steps (which don't exist yet) and executionLog. Understand:
 
 - What requirements exist and which are approved (only map observables for approved requirements)
+- What contracts are declared (the shared type dictionary - data types, endpoints, events that steps will reference)
 - What contexts exist (environments, pages)
 - What observables need to be satisfied (each should have a \`requirementId\` linking to its parent requirement)
 - What tooling requirements were identified
@@ -121,6 +123,9 @@ For each observable, determine:
 - Which files need to be created or modified
 - **What each file must implement** - not just "create broker" but what logic, what it accepts, what it returns
 - **How state flows between steps** - what does step N produce that step N+1 needs?
+- **Contract references** - Which quest-level contracts does each step consume (inputContracts) and produce (outputContracts)?
+- **Export names** - What will the primary export be named? (e.g., \`authLoginBroker\`, \`loginCredentialsContract\`)
+- **Missing contracts** - If a step needs a type not declared in the quest's contracts, add it via \`modify-quest\` before creating the step
 - File naming based on project conventions (from folder details)
 - All required companion files
 - **What npm packages are needed** - JWT libraries, validation libraries, adapters for external services, etc.
@@ -133,6 +138,12 @@ should specify:
 - **What to build** - the specific functionality
 - **Inputs** - what data/types this step receives (from previous steps or external)
 - **Outputs** - what this step produces that later steps depend on
+
+Each step also requires these fields for contract tracing:
+
+- \`exportName\` - The exact export name for this step's primary file (e.g., "authLoginBroker", "loginCredentialsContract"). Forces naming commitment before implementation.
+- \`inputContracts\` - Array of contract names this step consumes. References quest-level contracts by name. Can be empty for steps with no inputs.
+- \`outputContracts\` - Array of contract names this step produces. References quest-level contracts by name. Must be non-empty for steps creating implementation files (brokers, guards, transformers, adapters, etc.). Can be empty for contract steps themselves and statics.
 
 **CRITICAL: Describe logic in plain English only.**
 
@@ -161,7 +172,10 @@ password: string, min 8 chars"). This keeps type definitions consistent when ref
 {
   "id": "step-auth-contract",
   "name": "CreateAuthContracts",
-  "description": "Create LoginCredentials contract with email (string, validated email format) and password (string, min 8 chars). Create AuthResult contract with token (JWT string) and user (User type). Create AuthError contract with message (string). These types define the inputs and outputs for the auth flow.",
+  "exportName": "loginCredentialsContract",
+  "inputContracts": [],
+  "outputContracts": ["LoginCredentials", "AuthResult", "AuthError"],
+  "description": "Create LoginCredentials contract with email (EmailAddress) and password (Password). Create AuthResult contract with token (JwtToken) and user (User). Create AuthError contract with message (ErrorMessage). These types define the inputs and outputs for the auth flow.",
   "observablesSatisfied": [],
   "dependsOn": [],
   "filesToCreate": [
@@ -183,6 +197,9 @@ password: string, min 8 chars"). This keeps type definitions consistent when ref
 {
   "id": "step-login-broker",
   "name": "CreateAuthLoginBroker",
+  "exportName": "authLoginBroker",
+  "inputContracts": ["LoginCredentials"],
+  "outputContracts": ["AuthResult"],
   "description": "Create login broker that accepts LoginCredentials (from step-auth-contract), validates against user store via userFetchAdapter, and returns AuthResult containing JWT token signed with env.AUTH_SECRET (7-day expiration) and user profile. On invalid credentials, throw AuthError with message 'Invalid email or password'.",
   "observablesSatisfied": [
     "obs-login-success",
@@ -227,7 +244,9 @@ Call \`modify-quest\` to upsert steps into the quest:
 After persisting, call \`get-quest\` with \`sections: ["steps", "observables"]\` to retrieve the steps you created alongside the observables for cross-referencing. Review critically:
 
 - **Type coverage** - Every input/output in step descriptions should reference a contract type.
-- **Missing contracts** - If a step uses data that has no contract, add a preceding step to create that contract.
+- **Contract references** - Do all steps in implementation folders have \`outputContracts\` set? Do all contract name references point to contracts that exist in the quest?
+- **Export names** - Do all steps creating entry files have \`exportName\` set?
+- **Missing contracts** - Are there types mentioned in step descriptions that aren't in the quest's contracts dictionary? If so, add them via \`modify-quest\` before finalizing.
 - **Dependency completeness** - Can each step actually execute with only the outputs from its dependencies?
 - **File coverage** - Are all required companion files listed (test, proxy, stub)?
 - **Observable satisfaction** - Is every observable satisfied by at least one step?
@@ -240,11 +259,15 @@ If issues are found, call \`modify-quest\` again to fix them before reporting co
 
 **All inputs and outputs in step descriptions must reference contract types, never raw primitives.**
 
+The quest's contracts section is the source of truth for type names. When referencing types in step descriptions, use
+the exact names from the contracts dictionary. If you reference a type that isn't declared, add it to the quest's
+contracts first via \`modify-quest\` before creating the step that uses it.
+
 When planning steps:
 
-1. **Search for existing contracts** - Use \`discover({ type: "files", fileType: "contract" })\`
+1. **Search for existing contracts** - Use \`discover({ type: "files", fileType: "contract" })\` and check the quest's contracts section
 2. **If type exists** - Reference it by name (e.g., "accepts UserId from user-id contract")
-3. **If type doesn't exist** - Add a contract step BEFORE the step that needs it
+3. **If type doesn't exist** - Add it to the quest's contracts dictionary AND add a contract step BEFORE the step that needs it
 
 **Bad**: "accepts email string and password string"
 **Good**: "accepts LoginCredentials (email: EmailAddress, password: Password) from login-credentials contract"

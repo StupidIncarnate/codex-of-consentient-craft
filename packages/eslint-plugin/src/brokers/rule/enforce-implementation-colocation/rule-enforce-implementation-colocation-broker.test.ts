@@ -164,11 +164,7 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const useUserDataBinding = () => {};',
       filename: '/project/src/bindings/use-user-data/use-user-data-binding.ts',
     },
-    // Statics don't need tests (just data)
-    {
-      code: 'export const userStatics = {};',
-      filename: '/project/src/statics/user/user-statics.ts',
-    },
+    // Statics don't need tests (just data) - no test file exists = valid
     {
       code: 'export const configStatics = {};',
       filename: '/project/src/statics/config/config-statics.ts',
@@ -306,6 +302,13 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
         { messageId: 'missingTestFileWithLayer' },
         { messageId: 'missingProxyFileWithLayer' },
       ],
+    },
+
+    // Statics files should not have tests (just immutable data)
+    {
+      code: 'export const userStatics = {};',
+      filename: '/project/src/statics/user/user-statics.ts',
+      errors: [{ messageId: 'forbiddenStaticsTestFile' }],
     },
 
     // Startup files - require integration tests, forbid unit tests

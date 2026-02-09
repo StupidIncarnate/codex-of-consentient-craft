@@ -53,6 +53,7 @@ describe('questVerifyBroker', () => {
             ],
             filesToModify: [],
             status: 'pending',
+            exportName: 'hasAuthGuard',
           },
         ],
       });
@@ -63,7 +64,7 @@ describe('questVerifyBroker', () => {
       const result = await questVerifyBroker({ input, startPath });
 
       expect(result.success).toBe(true);
-      expect(result.checks).toHaveLength(7);
+      expect(result.checks).toHaveLength(11);
       expect(result.checks.every((check) => check.passed)).toBe(true);
     });
 
@@ -103,7 +104,7 @@ describe('questVerifyBroker', () => {
       const result = await questVerifyBroker({ input, startPath });
 
       expect(result.success).toBe(false);
-      expect(result.checks).toHaveLength(7);
+      expect(result.checks).toHaveLength(11);
       expect(result.checks.some((check) => !check.passed)).toBe(true);
     });
   });

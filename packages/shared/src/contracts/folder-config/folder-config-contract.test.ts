@@ -38,5 +38,17 @@ describe('folderConfigContract', () => {
 
       expect(config.allowsLayerFiles).toBe(true);
     });
+
+    it('VALID: {requireContractDeclarations: true} => parses successfully', () => {
+      const config = FolderConfigStub({ requireContractDeclarations: true });
+
+      expect(config.requireContractDeclarations).toBe(true);
+    });
+
+    it('VALID: {requireContractDeclarations: false} => parses successfully', () => {
+      const config = FolderConfigStub({ requireContractDeclarations: false });
+
+      expect(config.requireContractDeclarations).toBe(false);
+    });
   });
 });

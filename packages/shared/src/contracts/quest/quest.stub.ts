@@ -17,5 +17,6 @@ export const QuestStub = ({ ...props }: StubArgument<Quest> = {}): Quest =>
     observables: [],
     steps: [],
     toolingRequirements: [],
+    contracts: [],
     ...props,
   });

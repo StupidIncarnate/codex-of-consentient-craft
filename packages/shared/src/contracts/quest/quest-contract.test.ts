@@ -1,6 +1,7 @@
 import { ContextStub } from '../context/context.stub';
 import { DependencyStepStub } from '../dependency-step/dependency-step.stub';
 import { ObservableStub } from '../observable/observable.stub';
+import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
 import { questContract } from './quest-contract';
 import { QuestStub } from './quest.stub';
@@ -25,6 +26,7 @@ describe('questContract', () => {
         observables: [],
         steps: [],
         toolingRequirements: [],
+        contracts: [],
       });
     });
 
@@ -94,6 +96,34 @@ describe('questContract', () => {
       const result = questContract.parse(quest);
 
       expect(result.toolingRequirements).toStrictEqual([toolingRequirement]);
+    });
+
+    it('VALID: quest with contracts array => parses successfully', () => {
+      const contractEntry = QuestContractEntryStub();
+      const quest = QuestStub({
+        contracts: [contractEntry],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.contracts).toStrictEqual([contractEntry]);
+    });
+
+    it('VALID: quest without contracts field => backward compat defaults to empty array', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        executionLog: [],
+        contexts: [],
+        observables: [],
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.contracts).toStrictEqual([]);
     });
   });
 

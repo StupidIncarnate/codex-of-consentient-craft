@@ -57,6 +57,46 @@ describe('modifyQuestInputContract', () => {
       expect(result.observables).toHaveLength(1);
     });
 
+    it('VALID: {questId, contracts} => parses with contracts array', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        contracts: [
+          {
+            id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'LoginCredentials',
+            kind: 'data',
+            status: 'new',
+            properties: [
+              {
+                name: 'email',
+                type: 'EmailAddress',
+                description: 'User email for authentication',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.questId).toBe('add-auth');
+      expect(result.contracts).toStrictEqual([
+        {
+          id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'LoginCredentials',
+          kind: 'data',
+          status: 'new',
+          properties: [
+            {
+              name: 'email',
+              type: 'EmailAddress',
+              description: 'User email for authentication',
+            },
+          ],
+        },
+      ]);
+    });
+
     it('VALID: {questId, steps} => parses with steps array', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',

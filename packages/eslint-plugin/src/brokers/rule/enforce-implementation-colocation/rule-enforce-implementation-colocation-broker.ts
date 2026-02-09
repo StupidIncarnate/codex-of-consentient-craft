@@ -48,6 +48,8 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           'Startup file must have a colocated integration test file. Create {{testFileName}} in the same directory. Startup files require integration tests, not unit tests.',
         forbiddenUnitTestFile:
           'Startup file must not have a unit test file. Found {{testFileName}}. Startup files require integration tests (.integration.test.ts), not unit tests (.test.ts).',
+        forbiddenStaticsTestFile:
+          'Statics file must not have a test file. Found {{testFileName}}. Statics files contain immutable data and should not have tests.',
       },
       schema: [],
     },
@@ -155,6 +157,20 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
               },
             });
           }
+        } else if (isStatics && hasTestFile) {
+          // Statics files should NOT have test files - they contain immutable data
+          const existingTestFileName = testFilePaths.find((testFilePath) => {
+            const parsedPath = filePathContract.parse(testFilePath);
+            return fsExistsSyncAdapter({ filePath: parsedPath });
+          });
+          const testFileName = existingTestFileName?.split('/').pop() ?? '';
+          ctx.report({
+            node,
+            messageId: 'forbiddenStaticsTestFile',
+            data: {
+              testFileName,
+            },
+          });
         } else if (!isStatics && !hasTestFile) {
           // Check for test file (skip statics and startup - handled above)
           const primaryTestFileName = testFilePaths[0] ?? filename;

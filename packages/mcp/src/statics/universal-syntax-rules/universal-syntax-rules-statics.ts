@@ -189,6 +189,20 @@ export const universalSyntaxRulesStatics = {
         'export const goodFunction = ({userId, name}: {userId: UserId; name: UserName}): Result => { /* implementation */ };',
       ],
     },
+    crossDomainBranding: {
+      rule: 'When passing branded values between domains, parse through the target contract to re-brand',
+      rationale:
+        'Branded types enforce domain boundaries. StepId and DagNodeId are both branded strings but NOT assignable to each other.',
+      llmTrainingViolation:
+        'LLM training instinct: Use type assertion (as unknown as TargetType) to bypass brand mismatch. This defeats the purpose of branding.',
+      examples: [
+        'const dagNodeId = dagNodeIdContract.parse(stepId); // Re-brands via contract validation',
+      ],
+      violations: [
+        'const dagNodeId = stepId as unknown as DagNodeId; // Type assertion bypasses brand safety',
+        'const dagNodeId: DagNodeId = stepId; // Type error - brands are incompatible',
+      ],
+    },
   },
 
   promiseHandling: {

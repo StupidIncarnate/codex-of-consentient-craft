@@ -16,6 +16,7 @@ import type {
   DependencyStep,
   DesignDecision,
   Observable,
+  QuestContractEntry,
   Requirement,
   ToolingRequirement,
 } from '@dungeonmaster/shared/contracts';
@@ -26,7 +27,8 @@ type QuestArrayItem =
   | DependencyStep
   | ToolingRequirement
   | Requirement
-  | DesignDecision;
+  | DesignDecision
+  | QuestContractEntry;
 
 export const questArrayUpsertTransformer = <T extends QuestArrayItem>({
   existing,

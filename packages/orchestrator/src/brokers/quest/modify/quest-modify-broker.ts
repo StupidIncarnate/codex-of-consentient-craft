@@ -97,6 +97,13 @@ export const questModifyBroker = async ({
       });
     }
 
+    if (validated.contracts) {
+      quest.contracts = questArrayUpsertTransformer({
+        existing: quest.contracts,
+        updates: validated.contracts,
+      });
+    }
+
     quest.updatedAt = new Date().toISOString() as typeof quest.updatedAt;
 
     // Write updated quest back to quest.json

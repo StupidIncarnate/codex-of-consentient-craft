@@ -8,22 +8,32 @@ import {
   RequirementStub,
   RequirementIdStub,
   StepIdStub,
+  QuestContractEntryStub,
+  QuestContractPropertyStub,
+  ContractNameStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questVerifyTransformer } from './quest-verify-transformer';
 
 describe('questVerifyTransformer', () => {
   describe('all checks pass', () => {
-    it('VALID: {well-formed quest} => all checks pass', () => {
+    it('VALID: {well-formed quest with contracts and refs} => all checks pass', () => {
       const ctxId = ContextIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const reqId = RequirementIdStub({ value: 'a47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const stepId = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
+      const contractName = ContractNameStub({ value: 'IsValid' });
 
       const quest = QuestStub({
         contexts: [ContextStub({ id: ctxId })],
         requirements: [RequirementStub({ id: reqId })],
         observables: [ObservableStub({ id: obsId, contextId: ctxId, requirementId: reqId })],
+        contracts: [
+          QuestContractEntryStub({
+            name: contractName,
+            properties: [QuestContractPropertyStub({ name: 'email', type: 'EmailAddress' })],
+          }),
+        ],
         steps: [
           DependencyStepStub({
             id: stepId,
@@ -34,6 +44,8 @@ describe('questVerifyTransformer', () => {
               'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
             ],
             filesToModify: [],
+            outputContracts: [contractName],
+            exportName: 'isValidGuard',
           }),
         ],
       });
@@ -75,6 +87,26 @@ describe('questVerifyTransformer', () => {
           name: 'File Companion Completeness',
           passed: true,
           details: 'All implementation files have required companion files (test, proxy, stub)',
+        },
+        {
+          name: 'No Raw Primitives in Contracts',
+          passed: true,
+          details: 'All contract properties use branded or non-primitive types',
+        },
+        {
+          name: 'Step Contract Declarations',
+          passed: true,
+          details: 'All steps in contract-requiring folders have outputContracts declared',
+        },
+        {
+          name: 'Valid Contract References',
+          passed: true,
+          details: 'All step inputContracts and outputContracts reference existing contracts',
+        },
+        {
+          name: 'Step Export Names',
+          passed: true,
+          details: 'All steps creating entry files have exportName set',
         },
       ]);
     });
@@ -186,6 +218,97 @@ describe('questVerifyTransformer', () => {
         name: 'File Companion Completeness',
         passed: false,
         details: 'Some implementation files are missing required companion files',
+      });
+    });
+  });
+
+  describe('raw primitives in contracts', () => {
+    it('INVALID_PRIMITIVES: {contract with string type property} => raw primitives check fails', () => {
+      const quest = QuestStub({
+        contracts: [
+          QuestContractEntryStub({
+            properties: [QuestContractPropertyStub({ name: 'name', type: 'string' })],
+          }),
+        ],
+      });
+
+      const [, , , , , , , primitivesCheck] = questVerifyTransformer({ quest });
+
+      expect(primitivesCheck).toStrictEqual({
+        name: 'No Raw Primitives in Contracts',
+        passed: false,
+        details:
+          'Some contract properties use raw primitive types (string, number, any, object, unknown)',
+      });
+    });
+  });
+
+  describe('steps missing contract declarations', () => {
+    it('INVALID_CONTRACTS: {step creating broker file but outputContracts empty} => step contract declarations fails', () => {
+      const quest = QuestStub({
+        contracts: [QuestContractEntryStub()],
+        steps: [
+          DependencyStepStub({
+            filesToCreate: ['packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts'],
+            filesToModify: [],
+            outputContracts: [],
+          }),
+        ],
+      });
+
+      const [, , , , , , , , contractRefsCheck] = questVerifyTransformer({ quest });
+
+      expect(contractRefsCheck).toStrictEqual({
+        name: 'Step Contract Declarations',
+        passed: false,
+        details: 'Some steps are missing required contract declarations in outputContracts',
+      });
+    });
+  });
+
+  describe('steps referencing non-existent contracts', () => {
+    it('INVALID_CONTRACTS: {step with outputContracts referencing non-existent contract} => valid contract references fails', () => {
+      const existingName = ContractNameStub({ value: 'LoginCredentials' });
+      const nonExistentName = ContractNameStub({ value: 'NonExistentContract' });
+
+      const quest = QuestStub({
+        contracts: [QuestContractEntryStub({ name: existingName })],
+        steps: [
+          DependencyStepStub({
+            inputContracts: [],
+            outputContracts: [nonExistentName],
+          }),
+        ],
+      });
+
+      const [, , , , , , , , , validContractRefsCheck] = questVerifyTransformer({ quest });
+
+      expect(validContractRefsCheck).toStrictEqual({
+        name: 'Valid Contract References',
+        passed: false,
+        details:
+          'Some steps reference non-existent contract names in inputContracts or outputContracts',
+      });
+    });
+  });
+
+  describe('steps missing export names', () => {
+    it('INVALID_EXPORT: {step with entry file but no exportName} => step export names fails', () => {
+      const quest = QuestStub({
+        steps: [
+          DependencyStepStub({
+            filesToCreate: ['packages/orchestrator/src/guards/is-valid/is-valid-guard.ts'],
+            filesToModify: [],
+          }),
+        ],
+      });
+
+      const [, , , , , , , , , , exportNameCheck] = questVerifyTransformer({ quest });
+
+      expect(exportNameCheck).toStrictEqual({
+        name: 'Step Export Names',
+        passed: false,
+        details: 'Some steps with entry files are missing required exportName',
       });
     });
   });

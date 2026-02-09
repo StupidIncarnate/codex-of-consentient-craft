@@ -23,6 +23,8 @@ describe('dependencyStepContract', () => {
       filesToCreate: ['src/routes/users.ts'],
       filesToModify: ['src/routes/index.ts'],
       status: 'in_progress',
+      inputContracts: [],
+      outputContracts: [],
     });
   });
 
@@ -43,6 +45,8 @@ describe('dependencyStepContract', () => {
       filesToCreate: [],
       filesToModify: [],
       status: 'pending',
+      inputContracts: [],
+      outputContracts: [],
     });
   });
 
@@ -60,6 +64,8 @@ describe('dependencyStepContract', () => {
       filesToCreate: [],
       filesToModify: [],
       status: 'pending',
+      inputContracts: [],
+      outputContracts: [],
     });
   });
 
@@ -78,6 +84,8 @@ describe('dependencyStepContract', () => {
       filesToCreate: ['src/controllers/user-controller.ts', 'src/models/user-model.ts'],
       filesToModify: ['src/app.ts', 'src/routes/index.ts'],
       status: 'pending',
+      inputContracts: [],
+      outputContracts: [],
     });
   });
 
@@ -93,6 +101,8 @@ describe('dependencyStepContract', () => {
       filesToCreate: [],
       filesToModify: [],
       status: 'pending',
+      inputContracts: [],
+      outputContracts: [],
     });
   });
 
@@ -124,6 +134,80 @@ describe('dependencyStepContract', () => {
       sessionId: 'session-123',
       agentRole: 'codeweaver',
       startedAt: '2024-01-15T10:00:00.000Z',
+    });
+  });
+
+  it('VALID: {with exportName} => parses step with export name', () => {
+    const step = DependencyStepStub({
+      exportName: 'questExecuteBroker',
+    });
+
+    expect(step.exportName).toBe('questExecuteBroker');
+  });
+
+  it('VALID: {with inputContracts and outputContracts} => parses contract references', () => {
+    const step = DependencyStepStub({
+      inputContracts: ['LoginCredentials', 'AuthToken'],
+      outputContracts: ['UserSession'],
+    });
+
+    expect(step).toStrictEqual({
+      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      name: 'Test Step',
+      description: 'A test dependency step',
+      observablesSatisfied: [],
+      dependsOn: [],
+      filesToCreate: [],
+      filesToModify: [],
+      status: 'pending',
+      inputContracts: ['LoginCredentials', 'AuthToken'],
+      outputContracts: ['UserSession'],
+    });
+  });
+
+  it('VALID: {without new fields} => backward compat defaults to empty arrays and no exportName', () => {
+    const step = dependencyStepContract.parse({
+      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      name: 'Legacy Step',
+      description: 'A step without new fields',
+      observablesSatisfied: [],
+      dependsOn: [],
+      filesToCreate: [],
+      filesToModify: [],
+      status: 'pending',
+    });
+
+    expect(step).toStrictEqual({
+      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      name: 'Legacy Step',
+      description: 'A step without new fields',
+      observablesSatisfied: [],
+      dependsOn: [],
+      filesToCreate: [],
+      filesToModify: [],
+      status: 'pending',
+      inputContracts: [],
+      outputContracts: [],
+    });
+  });
+
+  it('EDGE: {empty inputContracts, non-empty outputContracts} => parses mixed contract arrays', () => {
+    const step = DependencyStepStub({
+      inputContracts: [],
+      outputContracts: ['LoginCredentials'],
+    });
+
+    expect(step).toStrictEqual({
+      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      name: 'Test Step',
+      description: 'A test dependency step',
+      observablesSatisfied: [],
+      dependsOn: [],
+      filesToCreate: [],
+      filesToModify: [],
+      status: 'pending',
+      inputContracts: [],
+      outputContracts: ['LoginCredentials'],
     });
   });
 

@@ -42,7 +42,7 @@ You excel at:
 
 ### Step 1: Retrieve the Quest
 
-Use the \`get-quest\` MCP tool with the provided quest ID and \`sections: ["requirements", "designDecisions", "contexts", "observables", "toolingRequirements"]\` to load the quest sections needed for review. This excludes \`steps\` and \`executionLog\` which are not relevant for gap analysis. If no quest ID is provided, ask the user for it.
+Use the \`get-quest\` MCP tool with the provided quest ID and \`sections: ["requirements", "designDecisions", "contexts", "observables", "toolingRequirements", "contracts"]\` to load the quest sections needed for review. This excludes \`steps\` and \`executionLog\` which are not relevant for gap analysis. If no quest ID is provided, ask the user for it.
 
 ### Step 2: Review Requirements
 
@@ -124,7 +124,18 @@ Verify ALL concrete values are specified (this is a subset list):
 - Is the reason for each package clear?
 - Are links to observables correct in \`requiredByObservables\`?
 
-### Step 8: Check for Logic Gaps
+### Step 8: Review Contracts
+
+For each contract, scrutinize from a semantic perspective (structural validation like valid UUIDs and non-empty fields is handled by \`verify-quest\`):
+
+- **Coverage**: Are all data types referenced in observable outcomes captured as contract entries? If an observable says "User is redirected with auth token", there should be a contract for the auth token type. Walk through every observable outcome and check for implied data shapes that lack a corresponding contract.
+- **Endpoint alignment**: Do endpoint contracts match what observables describe? If an observable says "POST /api/auth/login returns user profile", is there an endpoint contract with that method, path, and response type? Check that request/response shapes align with what the observable criteria expect.
+- **Event alignment**: If observables mention events being emitted or received (e.g., "system emits user-registered event"), are those captured as event contracts with the correct payload shape?
+- **Existing contract verification**: For contracts marked as \`existing\`, has an exploration agent confirmed they actually exist in the codebase with the declared shape? If no exploration evidence exists, flag it.
+- **Type completeness**: Do contract properties fully describe the data shape, or are there properties an implementer would have to guess? A "User" contract with just "id" and "name" might be missing "email", "createdAt", etc. Consider what fields the observables imply and whether the contract accounts for them.
+- **Cross-references**: If contract A references contract B in its properties (e.g., a request body type references LoginCredentials), does contract B exist in the quest? Flag any dangling type references that point to contracts not declared in the quest.
+
+### Step 9: Check for Logic Gaps
 
 - **Happy path**: Is the success flow fully specified?
 - **Error paths**: What happens when things fail?
@@ -133,7 +144,7 @@ Verify ALL concrete values are specified (this is a subset list):
 - **Concurrent access**: What if multiple users/requests happen at once?
 - **Recovery**: What happens after errors - can user retry?
 
-### Step 9: Spot Bad Assumptions
+### Step 10: Spot Bad Assumptions
 
 Look for assumptions that might not hold:
 
@@ -143,7 +154,7 @@ Look for assumptions that might not hold:
 - Implicit ordering - "After X, Y happens" - is this enforced or assumed?
 - External dependencies - APIs, databases, services - are they reliable?
 
-### Step 10: Validate Testability
+### Step 11: Validate Testability
 
 For each observable outcome:
 
@@ -164,6 +175,7 @@ Structure your review as:
 - Total requirements: [count]
 - Approved: [count] | Deferred: [count] | Still proposed: [count]
 - Observable coverage: [count] linked / [count] total observables
+- Contracts: [count] declared ([count] data, [count] endpoint, [count] event)
 - Design decisions: [count] recorded
 
 ### Critical Issues (Must Fix)

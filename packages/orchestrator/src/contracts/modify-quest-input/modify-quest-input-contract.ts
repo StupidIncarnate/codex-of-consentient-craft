@@ -12,6 +12,7 @@ import {
   dependencyStepContract,
   designDecisionContract,
   observableContract,
+  questContractEntryContract,
   requirementContract,
   toolingRequirementContract,
 } from '@dungeonmaster/shared/contracts';
@@ -42,6 +43,10 @@ export const modifyQuestInputContract = z
     toolingRequirements: z
       .array(toolingRequirementContract)
       .describe('Tooling requirements to upsert (existing ID updates, new ID adds)')
+      .optional(),
+    contracts: z
+      .array(questContractEntryContract)
+      .describe('Contracts to upsert (existing ID updates, new ID adds)')
       .optional(),
   })
   .brand<'ModifyQuestInput'>();

@@ -31,7 +31,7 @@ a quest after PathSeeker has created its steps. You work autonomously and produc
 
 ### Step 1: Run Deterministic Checks
 
-Call \`verify-quest\` with the provided quest ID. This runs 7 integrity checks:
+Call \`verify-quest\` with the provided quest ID. This runs 11 integrity checks:
 - Observable Coverage
 - Dependency Integrity
 - No Circular Dependencies
@@ -39,6 +39,10 @@ Call \`verify-quest\` with the provided quest ID. This runs 7 integrity checks:
 - Valid Context References
 - Valid Requirement References
 - File Companion Completeness
+- No Raw Primitives in Contracts
+- Step Contract Declarations
+- Valid Contract References
+- Step Export Names
 
 If any checks fail, report them immediately in the Critical Issues section. These are structural problems that MUST be
 fixed before implementation.
@@ -47,9 +51,10 @@ fixed before implementation.
 
 Fetch the quest in stages to manage context size:
 
-**Fetch 1:** \`get-quest\` with \`sections: ["requirements", "designDecisions"]\`
+**Fetch 1:** \`get-quest\` with \`sections: ["requirements", "designDecisions", "contracts"]\`
 - Record all requirement IDs, names, and scopes
 - Record all design decisions
+- Record all contract entries (names, kinds, properties)
 
 **Fetch 2:** \`get-quest\` with \`sections: ["contexts", "observables"]\`
 - Record all context IDs and locators
@@ -66,6 +71,7 @@ Verify the logical flow from user intent to implementation:
 2. **Requirements -> Observables**: Does every requirement have observables? Are there orphaned observables?
 3. **Observables -> Steps**: Does every observable get satisfied by at least one step?
 4. **Steps -> Files**: Do the files listed in steps make sense for what the step claims to do?
+5. **Contracts -> Steps**: Do step inputContracts/outputContracts reference contracts that make sense for what the step does? Does a step claiming to "validate credentials" actually list LoginCredentials in its inputContracts?
 
 ### Step 4: Check Step Descriptions for Implementer Clarity
 
@@ -74,6 +80,8 @@ For each step, evaluate:
 - Are there ambiguous terms like "handle", "process", "manage" without specifics?
 - Are concrete values specified (ports, routes, error messages) or left vague?
 - Are the filesToCreate and filesToModify lists complete for the described work?
+- Do the inputContracts and outputContracts match what the step description says it accepts and produces?
+- Does the exportName follow project naming conventions (camelCase, matching the file name)?
 
 ### Step 5: Search Codebase for Assumption Verification
 
@@ -108,6 +116,10 @@ Identify anything an implementer would have to guess at:
 | Valid Context Refs | PASS/FAIL | [details] |
 | Valid Requirement Refs | PASS/FAIL | [details] |
 | File Companions | PASS/FAIL | [details] |
+| No Raw Primitives | PASS/FAIL | [details] |
+| Step Contract Decl | PASS/FAIL | [details] |
+| Valid Contract Refs | PASS/FAIL | [details] |
+| Step Export Names | PASS/FAIL | [details] |
 
 ### Critical Issues (Must Fix)
 

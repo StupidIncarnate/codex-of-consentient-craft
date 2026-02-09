@@ -13,6 +13,7 @@ import { dependencyStepContract } from '../dependency-step/dependency-step-contr
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { executionLogEntryContract } from '../execution-log-entry/execution-log-entry-contract';
 import { observableContract } from '../observable/observable-contract';
+import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { requirementContract } from '../requirement/requirement-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
@@ -32,6 +33,12 @@ export const questContract = z.object({
   observables: z.array(observableContract),
   steps: z.array(dependencyStepContract),
   toolingRequirements: z.array(toolingRequirementContract),
+  contracts: z
+    .array(questContractEntryContract)
+    .default([])
+    .describe(
+      'Shared type dictionary for the quest. Defines all data types, API endpoints, and event schemas that steps reference. Agents receive this section regardless of which step they work on',
+    ),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
 });
