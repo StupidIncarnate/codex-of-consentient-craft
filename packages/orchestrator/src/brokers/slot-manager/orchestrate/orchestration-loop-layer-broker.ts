@@ -151,10 +151,6 @@ export const orchestrationLoopLayerBroker = async ({
       return { done: false, activeAgents };
     }
 
-    case 'return': {
-      return { done: true, result: signalResult.result };
-    }
-
     case 'respawn': {
       const quest3 = await questLoadBroker({ questFilePath });
       const step = quest3.steps.find((s) => s.id === completedAgent.stepId);

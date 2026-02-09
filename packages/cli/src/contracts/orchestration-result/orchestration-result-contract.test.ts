@@ -15,20 +15,6 @@ describe('orchestrationResultContract', () => {
       expect(result).toStrictEqual({ type: 'all_blocked' });
     });
 
-    it('VALID: {type: needs_user_input} => parses with required fields', () => {
-      const result = orchestrationResultContract.parse({
-        type: 'needs_user_input',
-        stepId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-        question: 'What is the API endpoint?',
-      });
-
-      expect(result).toStrictEqual({
-        type: 'needs_user_input',
-        stepId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-        question: 'What is the API endpoint?',
-      });
-    });
-
     it('VALID: {type: needs_role_followup} => parses with required fields', () => {
       const result = orchestrationResultContract.parse({
         type: 'needs_role_followup',
@@ -63,32 +49,14 @@ describe('orchestrationResultContract', () => {
       );
     });
 
-    it('INVALID_NEEDS_USER_INPUT: {missing stepId} => throws error', () => {
-      expect(() =>
-        orchestrationResultContract.parse({
-          type: 'needs_user_input',
-          question: 'What is the API endpoint?',
-        }),
-      ).toThrow(/Required/u);
-    });
-
-    it('INVALID_NEEDS_USER_INPUT: {invalid stepId uuid} => throws error', () => {
-      expect(() =>
-        orchestrationResultContract.parse({
-          type: 'needs_user_input',
-          stepId: 'not-a-uuid',
-          question: 'What is the API endpoint?',
-        }),
-      ).toThrow(/Invalid uuid/u);
-    });
-
-    it('INVALID_NEEDS_USER_INPUT: {missing question} => throws error', () => {
+    it('INVALID_TYPE: {type: needs_user_input} => throws error (removed signal)', () => {
       expect(() =>
         orchestrationResultContract.parse({
           type: 'needs_user_input',
           stepId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+          question: 'What is the API endpoint?',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/Invalid discriminator value/u);
     });
 
     it('INVALID_NEEDS_ROLE_FOLLOWUP: {missing stepId} => throws error', () => {
@@ -139,20 +107,6 @@ describe('orchestrationResultContract', () => {
       const result = OrchestrationResultStub({ type: 'all_blocked' });
 
       expect(result).toStrictEqual({ type: 'all_blocked' });
-    });
-
-    it('VALID: {type: needs_user_input} => creates needs_user_input result', () => {
-      const result = OrchestrationResultStub({
-        type: 'needs_user_input',
-        stepId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-        question: 'What is the API endpoint?',
-      });
-
-      expect(result).toStrictEqual({
-        type: 'needs_user_input',
-        stepId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-        question: 'What is the API endpoint?',
-      });
     });
 
     it('VALID: {type: needs_role_followup} => creates needs_role_followup result', () => {

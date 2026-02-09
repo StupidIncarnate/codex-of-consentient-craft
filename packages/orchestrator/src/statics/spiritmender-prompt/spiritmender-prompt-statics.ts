@@ -127,17 +127,6 @@ signal-back({
 })
 \`\`\`
 
-**If you need user clarification:**
-
-\`\`\`
-signal-back({
-  signal: 'needs-user-input',
-  stepId: '[your-step-id]',
-  context: 'Error context',
-  question: 'Specific question about intended behavior'
-})
-\`\`\`
-
 ## Error Context
 
 $ARGUMENTS`,

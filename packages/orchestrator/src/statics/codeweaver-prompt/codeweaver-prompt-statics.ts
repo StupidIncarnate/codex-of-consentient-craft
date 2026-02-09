@@ -169,15 +169,6 @@ signal-back({
 
 \`\`\`
 signal-back({
-  signal: 'needs-user-input',
-  stepId: '[your-step-id]',
-  context: 'What you were trying to do',
-  question: 'Specific question for the user'
-})
-\`\`\`
-
-\`\`\`
-signal-back({
   signal: 'needs-role-followup',
   stepId: '[your-step-id]',
   context: 'What you discovered',

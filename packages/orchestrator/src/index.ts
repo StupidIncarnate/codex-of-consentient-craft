@@ -2,9 +2,27 @@
 export { StartOrchestrator } from './startup/start-orchestrator';
 
 // Quest brokers - exported for CLI package to use directly
+export { questAddBroker } from './brokers/quest/add/quest-add-broker';
+export { questGetBroker } from './brokers/quest/get/quest-get-broker';
+export { questFolderFindBroker } from './brokers/quest/folder-find/quest-folder-find-broker';
 export { questListBroker } from './brokers/quest/list/quest-list-broker';
 export { questLoadBroker } from './brokers/quest/load/quest-load-broker';
+export { questModifyBroker } from './brokers/quest/modify/quest-modify-broker';
 export { questUpdateStepBroker } from './brokers/quest/update-step/quest-update-step-broker';
+
+// Quest contracts - exported for use by other packages
+export { addQuestInputContract } from './contracts/add-quest-input/add-quest-input-contract';
+export type { AddQuestInput } from './contracts/add-quest-input/add-quest-input-contract';
+export { addQuestResultContract } from './contracts/add-quest-result/add-quest-result-contract';
+export type { AddQuestResult } from './contracts/add-quest-result/add-quest-result-contract';
+export { getQuestInputContract } from './contracts/get-quest-input/get-quest-input-contract';
+export type { GetQuestInput } from './contracts/get-quest-input/get-quest-input-contract';
+export { getQuestResultContract } from './contracts/get-quest-result/get-quest-result-contract';
+export type { GetQuestResult } from './contracts/get-quest-result/get-quest-result-contract';
+export { modifyQuestInputContract } from './contracts/modify-quest-input/modify-quest-input-contract';
+export type { ModifyQuestInput } from './contracts/modify-quest-input/modify-quest-input-contract';
+export { modifyQuestResultContract } from './contracts/modify-quest-result/modify-quest-result-contract';
+export type { ModifyQuestResult } from './contracts/modify-quest-result/modify-quest-result-contract';
 
 // Prompt statics - re-exported for CLI package
 export { chaoswhispererPromptStatics } from './statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';

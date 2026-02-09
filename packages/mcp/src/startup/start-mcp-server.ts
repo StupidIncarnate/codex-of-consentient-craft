@@ -22,18 +22,18 @@ import {
   questIdContract,
   processIdContract,
 } from '@dungeonmaster/shared/contracts';
-import { orchestratorStartQuestAdapter } from '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
+import { orchestratorAddQuestAdapter } from '../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter';
+import { orchestratorGetQuestAdapter } from '../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorGetQuestStatusAdapter } from '../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
 import { orchestratorListQuestsAdapter } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
+import { orchestratorModifyQuestAdapter } from '../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
+import { orchestratorStartQuestAdapter } from '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
 import { architectureFolderDetailBroker } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker';
 import { architectureSyntaxRulesBroker } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
 import { architectureTestingPatternsBroker } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
 import { mcpDiscoverBroker } from '../brokers/mcp/discover/mcp-discover-broker';
 import { folderConstraintsInitBroker } from '../brokers/folder-constraints/init/folder-constraints-init-broker';
 import { folderConstraintsState } from '../state/folder-constraints/folder-constraints-state';
-import { questAddBroker } from '../brokers/quest/add/quest-add-broker';
-import { questGetBroker } from '../brokers/quest/get/quest-get-broker';
-import { questModifyBroker } from '../brokers/quest/modify/quest-modify-broker';
 import { signalBackBroker } from '../brokers/signal/back/signal-back-broker';
 import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract';
 import { discoverInputContract } from '../contracts/discover-input/discover-input-contract';
@@ -115,7 +115,7 @@ export const StartMcpServer = async (): Promise<void> => {
       {
         name: 'signal-back',
         description:
-          'Signals the CLI with step completion status, progress, or blocking conditions. For needs-user-input, use newlines in the question field to ask multiple questions (e.g., "1. First?\\n2. Second?")',
+          'Signals the CLI with step completion status, progress, or blocking conditions',
         inputSchema: zodToJsonSchema(signalBackInputContract, { $refStrategy: 'none' }),
       },
       {
@@ -214,33 +214,111 @@ export const StartMcpServer = async (): Promise<void> => {
     }
 
     if (request.params.name === 'add-quest') {
-      const result = await questAddBroker({
-        input: request.params.arguments as never,
-      });
+      const args = request.params.arguments as never;
+      const titleRaw: unknown = Reflect.get(args, 'title');
+      const userRequestRaw: unknown = Reflect.get(args, 'userRequest');
+      const startPathRaw: unknown = Reflect.get(args, 'startPath');
+      const title = String(titleRaw);
+      const userRequest = String(userRequestRaw);
+      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
 
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, JSON_INDENT_SPACES) }],
-      };
+      try {
+        const result = await orchestratorAddQuestAdapter({ title, userRequest, startPath });
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, JSON_INDENT_SPACES),
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
     }
 
     if (request.params.name === 'get-quest') {
-      const result = await questGetBroker({
-        input: request.params.arguments as never,
-      });
+      const args = request.params.arguments as never;
+      const questIdRaw: unknown = Reflect.get(args, 'questId');
+      const startPathRaw: unknown = Reflect.get(args, 'startPath');
+      const questId = String(questIdRaw);
+      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
 
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, JSON_INDENT_SPACES) }],
-      };
+      try {
+        const result = await orchestratorGetQuestAdapter({ questId, startPath });
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, JSON_INDENT_SPACES),
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
     }
 
     if (request.params.name === 'modify-quest') {
-      const result = await questModifyBroker({
-        input: request.params.arguments as never,
-      });
+      const args = request.params.arguments as never;
+      const questIdRaw: unknown = Reflect.get(args, 'questId');
+      const startPathRaw: unknown = Reflect.get(args, 'startPath');
+      const questId = String(questIdRaw);
+      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
 
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, JSON_INDENT_SPACES) }],
-      };
+      try {
+        const result = await orchestratorModifyQuestAdapter({
+          questId,
+          input: args,
+          startPath,
+        });
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, JSON_INDENT_SPACES),
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
     }
 
     if (request.params.name === 'signal-back') {

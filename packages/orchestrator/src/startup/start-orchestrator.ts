@@ -5,6 +5,9 @@
  * import { StartOrchestrator } from '@dungeonmaster/orchestrator';
  * const quests = await StartOrchestrator.listQuests({startPath: '/my/project'});
  * const quest = await StartOrchestrator.loadQuest({questId: 'add-auth', startPath: '/my/project'});
+ * const added = await StartOrchestrator.addQuest({title: 'Add Auth', userRequest: 'User wants...', startPath: '/my/project'});
+ * const got = await StartOrchestrator.getQuest({questId: 'add-auth', startPath: '/my/project'});
+ * const modified = await StartOrchestrator.modifyQuest({questId: 'add-auth', input: {...}, startPath: '/my/project'});
  */
 
 import { randomUUID } from 'crypto';
@@ -22,8 +25,17 @@ import type {
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapter } from '../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
+import { questAddBroker } from '../brokers/quest/add/quest-add-broker';
+import { questGetBroker } from '../brokers/quest/get/quest-get-broker';
 import { questListBroker } from '../brokers/quest/list/quest-list-broker';
 import { questLoadBroker } from '../brokers/quest/load/quest-load-broker';
+import { questModifyBroker } from '../brokers/quest/modify/quest-modify-broker';
+import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract';
+import type { AddQuestResult } from '../contracts/add-quest-result/add-quest-result-contract';
+import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract';
+import type { GetQuestResult } from '../contracts/get-quest-result/get-quest-result-contract';
+import type { ModifyQuestInput } from '../contracts/modify-quest-input/modify-quest-input-contract';
+import type { ModifyQuestResult } from '../contracts/modify-quest-result/modify-quest-result-contract';
 import { completedCountContract } from '../contracts/completed-count/completed-count-contract';
 import { isoTimestampContract } from '../contracts/iso-timestamp/iso-timestamp-contract';
 import type { KillableProcess } from '../contracts/killable-process/killable-process-contract';
@@ -128,4 +140,39 @@ export const StartOrchestrator = {
 
     return status;
   },
+
+  addQuest: async ({
+    title,
+    userRequest,
+    startPath,
+  }: {
+    title: string;
+    userRequest: string;
+    startPath: FilePath;
+  }): Promise<AddQuestResult> => {
+    const input = addQuestInputContract.parse({ title, userRequest });
+    return questAddBroker({ input, startPath });
+  },
+
+  getQuest: async ({
+    questId,
+    startPath,
+  }: {
+    questId: string;
+    startPath: FilePath;
+  }): Promise<GetQuestResult> => {
+    const input = getQuestInputContract.parse({ questId });
+    return questGetBroker({ input, startPath });
+  },
+
+  modifyQuest: async ({
+    questId,
+    input,
+    startPath,
+  }: {
+    questId: string;
+    input: ModifyQuestInput;
+    startPath: FilePath;
+  }): Promise<ModifyQuestResult> =>
+    questModifyBroker({ input: { ...input, questId } as ModifyQuestInput, startPath }),
 };

@@ -10,7 +10,6 @@ import type { FilePath, StepId } from '@dungeonmaster/shared/contracts';
 
 import { blockingReasonContract } from '../../../contracts/blocking-reason/blocking-reason-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import { streamSignalContract } from '../../../contracts/stream-signal/stream-signal-contract';
 import { questUpdateStepBroker } from '../../quest/update-step/quest-update-step-broker';
@@ -22,7 +21,6 @@ type SignalContext = NonNullable<StreamSignal['context']>;
 
 type HandleSignalResult =
   | { action: 'continue' }
-  | { action: 'return'; result: SlotManagerResult }
   | { action: 'respawn'; continuationPoint?: SignalContinuationPoint }
   | {
       action: 'spawn_role';
@@ -68,37 +66,6 @@ export const handleSignalLayerBroker = async ({
         ...(signal.continuationPoint === undefined
           ? {}
           : { continuationPoint: signal.continuationPoint }),
-      };
-    }
-
-    case 'needs-user-input': {
-      await questUpdateStepBroker({
-        questFilePath,
-        stepId,
-        updates: {
-          status: 'blocked',
-          blockingType: 'needs_user_input',
-          blockingReason: blockingReasonContract.parse(signal.question ?? 'User input needed'),
-        },
-      });
-
-      const defaultQuestion = streamSignalContract.shape.question
-        .unwrap()
-        .parse('Unknown question');
-      const defaultContext = streamSignalContract.shape.context
-        .unwrap()
-        .parse('No context provided');
-
-      return {
-        action: 'return',
-        result: {
-          completed: false,
-          userInputNeeded: {
-            stepId,
-            question: signal.question ?? defaultQuestion,
-            context: signal.context ?? defaultContext,
-          },
-        },
       };
     }
 

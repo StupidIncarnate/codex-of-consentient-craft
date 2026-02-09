@@ -38,23 +38,6 @@ describe('streamSignalContract', () => {
       });
     });
 
-    it('VALID: {signal: "needs-user-input"} => parses needs-user-input signal', () => {
-      const stepId = StepIdStub();
-      const result = streamSignalContract.parse({
-        signal: 'needs-user-input',
-        stepId,
-        question: 'What color?',
-        context: 'Choosing theme',
-      });
-
-      expect(result).toStrictEqual({
-        signal: 'needs-user-input',
-        stepId,
-        question: 'What color?',
-        context: 'Choosing theme',
-      });
-    });
-
     it('VALID: {signal: "needs-role-followup"} => parses needs-role-followup signal', () => {
       const stepId = StepIdStub();
       const result = streamSignalContract.parse({
@@ -134,19 +117,6 @@ describe('streamSignalContract', () => {
       });
     });
 
-    it('VALID: {signal: "needs-user-input"} => parses minimal without optional fields', () => {
-      const stepId = StepIdStub();
-      const result = streamSignalContract.parse({
-        signal: 'needs-user-input',
-        stepId,
-      });
-
-      expect(result).toStrictEqual({
-        signal: 'needs-user-input',
-        stepId,
-      });
-    });
-
     it('VALID: {signal: "needs-role-followup"} => parses minimal without optional fields', () => {
       const stepId = StepIdStub();
       const result = streamSignalContract.parse({
@@ -216,20 +186,10 @@ describe('streamSignalContract', () => {
       ).toThrow(/too_small/u);
     });
 
-    it('INVALID_QUESTION: {question: ""} => throws for empty question', () => {
-      expect(() =>
-        streamSignalContract.parse({
-          signal: 'needs-user-input',
-          stepId: StepIdStub(),
-          question: '',
-        }),
-      ).toThrow(/too_small/u);
-    });
-
     it('INVALID_CONTEXT: {context: ""} => throws for empty context', () => {
       expect(() =>
         streamSignalContract.parse({
-          signal: 'needs-user-input',
+          signal: 'needs-role-followup',
           stepId: StepIdStub(),
           context: '',
         }),

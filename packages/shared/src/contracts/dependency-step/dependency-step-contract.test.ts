@@ -100,14 +100,14 @@ describe('dependencyStepContract', () => {
     const step = DependencyStepStub({
       status: 'blocked',
       startedAt: '2024-01-15T10:00:00.000Z',
-      blockingReason: 'Waiting for user input',
-      blockingType: 'needs_user_input',
+      blockingReason: 'Waiting for role followup',
+      blockingType: 'needs_role_followup',
     });
 
     expect(step.status).toBe('blocked');
     expect(step.startedAt).toBe('2024-01-15T10:00:00.000Z');
-    expect(step.blockingReason).toBe('Waiting for user input');
-    expect(step.blockingType).toBe('needs_user_input');
+    expect(step.blockingReason).toBe('Waiting for role followup');
+    expect(step.blockingType).toBe('needs_role_followup');
   });
 
   it('VALID: {with currentSession} => parses session tracking', () => {

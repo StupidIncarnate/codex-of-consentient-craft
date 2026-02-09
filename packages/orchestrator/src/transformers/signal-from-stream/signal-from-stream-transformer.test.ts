@@ -97,38 +97,6 @@ describe('signalFromStreamTransformer', () => {
       });
     });
 
-    it('VALID: {needs-user-input signal} => returns StreamSignal with question', () => {
-      const stepId = StepIdStub();
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__signal-back',
-                input: {
-                  signal: 'needs-user-input',
-                  stepId,
-                  question: 'What is the API key?',
-                  context: 'Setting up authentication',
-                },
-              },
-            ],
-          },
-        }),
-      });
-
-      const result = signalFromStreamTransformer({ line });
-
-      expect(result).toStrictEqual({
-        signal: 'needs-user-input',
-        stepId,
-        question: 'What is the API key?',
-        context: 'Setting up authentication',
-      });
-    });
-
     it('VALID: {needs-role-followup signal} => returns StreamSignal with targetRole', () => {
       const stepId = StepIdStub();
       const line = StreamJsonLineStub({

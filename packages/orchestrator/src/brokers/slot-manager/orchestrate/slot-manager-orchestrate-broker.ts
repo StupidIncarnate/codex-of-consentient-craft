@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await slotManagerOrchestrateBroker({questFilePath, slotCount, timeoutMs, slotOperations, role});
- * // Returns { completed: true } when all steps done, or { completed: false, userInputNeeded } when blocked
+ * // Returns { completed: true } when all steps done
  */
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';

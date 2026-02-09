@@ -1,8 +1,6 @@
-import { writeFile } from 'fs/promises';
+jest.mock('fs/promises');
 
-jest.mock('fs/promises', () => ({
-  writeFile: jest.fn(),
-}));
+import { writeFile } from 'fs/promises';
 
 export const fsWriteFileAdapterProxy = (): {
   succeeds: () => void;

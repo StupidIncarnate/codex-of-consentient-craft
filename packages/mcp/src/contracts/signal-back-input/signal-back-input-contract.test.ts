@@ -38,24 +38,6 @@ describe('signalBackInputContract', () => {
       });
     });
 
-    it('VALID: {signal: "needs-user-input"} => parses needs-user-input signal', () => {
-      const input = SignalBackInputStub({
-        signal: 'needs-user-input',
-        stepId: StepIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
-        question: 'Which DB?',
-        context: 'Setting up persistence',
-      });
-
-      const result = signalBackInputContract.parse(input);
-
-      expect(result).toStrictEqual({
-        signal: 'needs-user-input',
-        stepId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        question: 'Which DB?',
-        context: 'Setting up persistence',
-      });
-    });
-
     it('VALID: {signal: "needs-role-followup", resume: false} => parses needs-role-followup signal', () => {
       const input = SignalBackInputStub({
         signal: 'needs-role-followup',
@@ -165,20 +147,10 @@ describe('signalBackInputContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_QUESTION: {question: ""} => throws validation error for empty string', () => {
-      expect(() => {
-        signalBackInputContract.parse({
-          signal: 'needs-user-input',
-          stepId: StepIdStub(),
-          question: '',
-        });
-      }).toThrow(/too_small/u);
-    });
-
     it('INVALID_CONTEXT: {context: ""} => throws validation error for empty string', () => {
       expect(() => {
         signalBackInputContract.parse({
-          signal: 'needs-user-input',
+          signal: 'needs-role-followup',
           stepId: StepIdStub(),
           context: '',
         });
