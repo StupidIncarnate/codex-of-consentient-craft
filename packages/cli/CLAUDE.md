@@ -136,27 +136,13 @@ expect(response.callbacks?.onSpawnChaoswhisperer).toEqual([
 
 ### Debugging Orchestration Bugs
 
-If the bug is in `start-cli.ts` (e.g., "ChaosWhisperer asks questions but CLI returns to menu instead of showing answer
-screen"), debug mode **cannot help**. That logic is in the orchestration layer:
-
-```typescript
-// start-cli.ts lines 214-226 - This is NOT testable via debug mode
-if (
-    result.signal?.signal === 'needs-user-input' &&
-    result.sessionId !== null &&
-    result.signal.question !== undefined &&
-    result.signal.context !== undefined
-) {
-    return StartCli({initialScreen: 'answer', pendingQuestion: ...});
-}
-// Falls through to menu if any condition is false
-```
+If the bug is in `start-cli.ts` (e.g., "signal handling returns unexpected results"), debug mode **cannot help**. That
+logic is in the orchestration layer.
 
 For orchestration bugs:
 
 1. Add logging to `start-cli.ts` to inspect `result.signal` values
-2. Check if `question` or `context` is undefined (common cause)
-3. Test the broker directly to see what it returns
+2. Test the broker directly to see what it returns
 
 ### Key Files
 

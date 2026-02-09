@@ -14,16 +14,16 @@ describe('debugSessionStateContract', () => {
       });
     });
 
-    it('VALID: {currentScreen: add, isExited: true} => parses with different values', () => {
+    it('VALID: {currentScreen: run, isExited: true} => parses with different values', () => {
       const input = DebugSessionStateStub({
-        currentScreen: 'add',
+        currentScreen: 'run',
         isExited: true,
       });
 
       const result = debugSessionStateContract.parse(input);
 
       expect(result).toStrictEqual({
-        currentScreen: 'add',
+        currentScreen: 'run',
         isExited: true,
       });
     });

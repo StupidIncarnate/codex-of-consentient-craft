@@ -31,7 +31,7 @@ export const dependencyStepContract = z.object({
     })
     .optional(),
   blockingReason: z.string().brand<'BlockingReason'>().optional(),
-  blockingType: z.enum(['needs_user_input', 'needs_role_followup']).optional(),
+  blockingType: z.enum(['needs_role_followup']).optional(),
   errorMessage: z.string().brand<'ErrorMessage'>().optional(),
 });
 

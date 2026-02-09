@@ -11,12 +11,6 @@ describe('cliAppScreenContract', () => {
       expect(result).toBe('menu');
     });
 
-    it('VALID: {value: "add"} => parses add screen', () => {
-      const result = cliAppScreenContract.parse('add');
-
-      expect(result).toBe('add');
-    });
-
     it('VALID: {value: "help"} => parses help screen', () => {
       const result = cliAppScreenContract.parse('help');
 
@@ -39,12 +33,6 @@ describe('cliAppScreenContract', () => {
       const result = cliAppScreenContract.parse('run');
 
       expect(result).toBe('run');
-    });
-
-    it('VALID: {value: "answer"} => parses answer screen', () => {
-      const result = cliAppScreenContract.parse('answer');
-
-      expect(result).toBe('answer');
     });
 
     it('VALID: stub default => returns menu screen', () => {

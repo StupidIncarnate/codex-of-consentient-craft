@@ -1,0 +1,45 @@
+describe('orchestrator', () => {
+  it('exports module', async () => {
+    const orchestrator = await import('./index');
+
+    expect(Object.keys(orchestrator).sort()).toStrictEqual([
+      'StartOrchestrator',
+      'addQuestInputContract',
+      'addQuestResultContract',
+      'agentRoleContract',
+      'agentSlotContract',
+      'chaoswhispererPromptStatics',
+      'codeweaverPromptStatics',
+      'getQuestInputContract',
+      'getQuestResultContract',
+      'isoTimestampContract',
+      'lawbringerPromptStatics',
+      'modifyQuestInputContract',
+      'modifyQuestResultContract',
+      'pathseekerPromptStatics',
+      'questAddBroker',
+      'questFolderFindBroker',
+      'questGetBroker',
+      'questListBroker',
+      'questLoadBroker',
+      'questModifyBroker',
+      'questUpdateStepBroker',
+      'sessionIdExtractorTransformer',
+      'siegemasterPromptStatics',
+      'signalFromStreamTransformer',
+      'slotCountContract',
+      'slotDataContract',
+      'slotIndexContract',
+      'slotManagerResultContract',
+      'slotOperationsContract',
+      'spiritmenderPromptStatics',
+      'streamJsonLineContract',
+      'streamJsonToTextTransformer',
+      'streamJsonToToolUseTransformer',
+      'streamSignalContract',
+      'timeoutMsContract',
+      'toolDisplayConfigStatics',
+      'toolInputToDisplayTransformer',
+    ]);
+  });
+});

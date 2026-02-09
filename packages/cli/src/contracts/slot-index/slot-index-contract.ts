@@ -1,13 +1,16 @@
 /**
- * PURPOSE: Defines a branded non-negative integer type for agent slot indices
+ * PURPOSE: Provides slot-index contract from orchestrator
  *
  * USAGE:
  * slotIndexContract.parse(0);
  * // Returns: SlotIndex branded number
  */
 
-import { z } from 'zod';
+import {
+  slotIndexContract as orcSlotIndexContract,
+  type SlotIndex as OrcSlotIndex,
+} from '@dungeonmaster/orchestrator';
 
-export const slotIndexContract = z.number().int().nonnegative().brand<'SlotIndex'>();
+export const slotIndexContract = orcSlotIndexContract;
 
-export type SlotIndex = z.infer<typeof slotIndexContract>;
+export type SlotIndex = OrcSlotIndex;

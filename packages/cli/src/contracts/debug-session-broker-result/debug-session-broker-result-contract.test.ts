@@ -15,8 +15,6 @@ describe('debugSessionBrokerResultContract', () => {
           isExited: false,
         },
         invocations: {
-          onSpawnChaoswhisperer: [],
-          onResumeChaoswhisperer: [],
           onRunQuest: [],
           onExit: [],
         },
@@ -40,8 +38,6 @@ describe('debugSessionBrokerResultContract', () => {
           isExited: true,
         },
         invocations: {
-          onSpawnChaoswhisperer: [],
-          onResumeChaoswhisperer: [],
           onRunQuest: [],
           onExit: [],
         },

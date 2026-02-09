@@ -3,31 +3,31 @@
  *
  * USAGE:
  * const {data, loading, error} = useQuestsListBinding({startPath});
- * // Returns {data: Quest[], loading: boolean, error: Error | null}
+ * // Returns {data: QuestListItem[], loading: boolean, error: Error | null}
  */
 import React from 'react';
 
-import type { FilePath, Quest } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestListItem } from '@dungeonmaster/shared/contracts';
 
-import { questListBroker } from '../../brokers/quest/list/quest-list-broker';
+import { orchestratorListQuestsAdapter } from '../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 
 export const useQuestsListBinding = ({
   startPath,
 }: {
   startPath: FilePath;
 }): {
-  data: Quest[];
+  data: QuestListItem[];
   loading: boolean;
   error: Error | null;
 } => {
-  const [data, setData] = React.useState<Quest[]>([]);
+  const [data, setData] = React.useState<QuestListItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<Error | null>(null);
 
   React.useEffect(() => {
     let isMounted = true;
 
-    questListBroker({ startPath })
+    orchestratorListQuestsAdapter({ startPath })
       .then((quests) => {
         if (isMounted) {
           // Sort by createdAt descending (newest first)

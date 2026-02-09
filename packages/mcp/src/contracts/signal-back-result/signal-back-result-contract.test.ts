@@ -45,29 +45,6 @@ describe('signalBackResultContract', () => {
       });
     });
 
-    it('VALID: {success: true, signal: needs-user-input} => parses with question and context', () => {
-      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const signal = SignalBackInputStub({
-        signal: 'needs-user-input',
-        stepId,
-        question: 'Which DB?',
-        context: 'Setup',
-      });
-      const input = SignalBackResultStub({ success: true, signal });
-
-      const result = signalBackResultContract.parse(input);
-
-      expect(result).toStrictEqual({
-        success: true,
-        signal: {
-          signal: 'needs-user-input',
-          stepId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          question: 'Which DB?',
-          context: 'Setup',
-        },
-      });
-    });
-
     it('VALID: {success: true, signal: needs-role-followup} => parses with targetRole, reason, context, and resume', () => {
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const signal = SignalBackInputStub({

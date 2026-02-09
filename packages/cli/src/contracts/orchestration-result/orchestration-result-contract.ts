@@ -3,7 +3,6 @@
  *
  * USAGE:
  * orchestrationResultContract.parse({type: 'all_complete'});
- * orchestrationResultContract.parse({type: 'needs_user_input', stepId: '...', question: '...'});
  * // Returns validated OrchestrationResult object
  */
 
@@ -15,11 +14,6 @@ export const orchestrationResultContract = z.discriminatedUnion('type', [
   }),
   z.object({
     type: z.literal('all_blocked'),
-  }),
-  z.object({
-    type: z.literal('needs_user_input'),
-    stepId: z.string().uuid().brand<'StepId'>(),
-    question: z.string().brand<'UserQuestion'>(),
   }),
   z.object({
     type: z.literal('needs_role_followup'),

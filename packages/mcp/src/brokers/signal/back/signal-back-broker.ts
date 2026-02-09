@@ -13,16 +13,6 @@ import type { SignalBackResult } from '../../../contracts/signal-back-result/sig
 export const signalBackBroker = ({ input }: { input: unknown }): SignalBackResult => {
   const validatedSignal = signalBackInputContract.parse(input);
 
-  // Enforce required fields for needs-user-input signal
-  if (validatedSignal.signal === 'needs-user-input') {
-    if (validatedSignal.question === undefined) {
-      throw new Error('needs-user-input signal requires question field');
-    }
-    if (validatedSignal.context === undefined) {
-      throw new Error('needs-user-input signal requires context field');
-    }
-  }
-
   return signalBackResultContract.parse({
     success: true,
     signal: validatedSignal,

@@ -1,0 +1,38 @@
+{
+  "name": "@dungeonmaster/orchestrator",
+  "version": "0.1.0",
+  "description": "Agent orchestration for Dungeonmaster quest execution",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.js",
+      "types": "./dist/src/index.d.ts"
+    },
+    "./testing": {
+      "import": "./dist/testing.js",
+      "require": "./dist/testing.js",
+      "types": "./dist/testing.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
+    "build:clean": "rm -rf dist && npm run build",
+    "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dungeonmaster/shared": "*",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@dungeonmaster/testing": "*"
+  }
+}

@@ -1,9 +1,4 @@
-import {
-  UserInputStub,
-  SessionIdStub,
-  QuestIdStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { debugSessionCallbackInvocationsContract } from './debug-session-callback-invocations-contract';
 import { DebugSessionCallbackInvocationsStub } from './debug-session-callback-invocations.stub';
@@ -18,41 +13,6 @@ describe('debugSessionCallbackInvocationsContract', () => {
       const result = debugSessionCallbackInvocationsContract.parse(input);
 
       expect(result).toStrictEqual({
-        onSpawnChaoswhisperer: [],
-        onResumeChaoswhisperer: [],
-        onRunQuest: [],
-        onExit: [],
-      } satisfies DebugSessionCallbackInvocations);
-    });
-
-    it('VALID: {with onSpawnChaoswhisperer invocation} => parses with data', () => {
-      const userInput = UserInputStub({ value: 'test input' });
-      const input = DebugSessionCallbackInvocationsStub({
-        onSpawnChaoswhisperer: [{ userInput }],
-      });
-
-      const result = debugSessionCallbackInvocationsContract.parse(input);
-
-      expect(result).toStrictEqual({
-        onSpawnChaoswhisperer: [{ userInput }],
-        onResumeChaoswhisperer: [],
-        onRunQuest: [],
-        onExit: [],
-      } satisfies DebugSessionCallbackInvocations);
-    });
-
-    it('VALID: {with onResumeChaoswhisperer invocation} => parses with data', () => {
-      const answer = UserInputStub({ value: 'answer text' });
-      const sessionId = SessionIdStub({ value: 'abc123' });
-      const input = DebugSessionCallbackInvocationsStub({
-        onResumeChaoswhisperer: [{ answer, sessionId }],
-      });
-
-      const result = debugSessionCallbackInvocationsContract.parse(input);
-
-      expect(result).toStrictEqual({
-        onSpawnChaoswhisperer: [],
-        onResumeChaoswhisperer: [{ answer, sessionId }],
         onRunQuest: [],
         onExit: [],
       } satisfies DebugSessionCallbackInvocations);
@@ -68,8 +28,6 @@ describe('debugSessionCallbackInvocationsContract', () => {
       const result = debugSessionCallbackInvocationsContract.parse(input);
 
       expect(result).toStrictEqual({
-        onSpawnChaoswhisperer: [],
-        onResumeChaoswhisperer: [],
         onRunQuest: [{ questId, questFolder }],
         onExit: [],
       } satisfies DebugSessionCallbackInvocations);
@@ -83,8 +41,6 @@ describe('debugSessionCallbackInvocationsContract', () => {
       const result = debugSessionCallbackInvocationsContract.parse(input);
 
       expect(result).toStrictEqual({
-        onSpawnChaoswhisperer: [],
-        onResumeChaoswhisperer: [],
         onRunQuest: [],
         onExit: [{}],
       } satisfies DebugSessionCallbackInvocations);

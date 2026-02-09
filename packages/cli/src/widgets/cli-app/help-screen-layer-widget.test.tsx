@@ -51,9 +51,9 @@ describe('HelpScreenLayerWidget', () => {
       });
       unmountFn = unmount;
 
+      expect(lastFrame()).toMatch(/run/iu);
       expect(lastFrame()).toMatch(/list/iu);
       expect(lastFrame()).toMatch(/init/iu);
-      expect(lastFrame()).toMatch(/add/iu);
     });
 
     it('VALID: {} => displays back instruction', () => {

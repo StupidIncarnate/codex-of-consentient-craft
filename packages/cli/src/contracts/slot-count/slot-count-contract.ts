@@ -1,13 +1,16 @@
 /**
- * PURPOSE: Defines a branded non-negative integer type for slot counts
+ * PURPOSE: Provides slot-count contract from orchestrator
  *
  * USAGE:
- * const count: SlotCount = slotCountContract.parse(5);
- * // Returns a branded SlotCount integer (0 or positive)
+ * slotCountContract.parse(3);
+ * // Returns: SlotCount branded number
  */
 
-import { z } from 'zod';
+import {
+  slotCountContract as orcSlotCountContract,
+  type SlotCount as OrcSlotCount,
+} from '@dungeonmaster/orchestrator';
 
-export const slotCountContract = z.number().int().nonnegative().brand<'SlotCount'>();
+export const slotCountContract = orcSlotCountContract;
 
-export type SlotCount = z.infer<typeof slotCountContract>;
+export type SlotCount = OrcSlotCount;

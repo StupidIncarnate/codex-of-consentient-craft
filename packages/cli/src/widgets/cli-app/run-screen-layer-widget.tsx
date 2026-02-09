@@ -11,7 +11,7 @@
  */
 import React, { useState } from 'react';
 
-import type { FilePath, Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, QuestListItem } from '@dungeonmaster/shared/contracts';
 
 import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter';
 import { inkTextAdapter } from '../../adapters/ink/text/ink-text-adapter';
@@ -20,7 +20,7 @@ import { useQuestsListBinding } from '../../bindings/use-quests-list/use-quests-
 import { questSelectionIndexContract } from '../../contracts/quest-selection-index/quest-selection-index-contract';
 import type { QuestSelectionIndex } from '../../contracts/quest-selection-index/quest-selection-index-contract';
 
-type QuestFolder = Quest['folder'];
+type QuestFolder = QuestListItem['folder'];
 
 export interface RunScreenLayerWidgetProps {
   startPath: FilePath;

@@ -29,15 +29,6 @@ export const SignalBackInputStub = ({
     });
   }
 
-  if (signal === 'needs-user-input') {
-    return signalBackInputContract.parse({
-      ...baseProps,
-      question: 'What database should be used?',
-      context: 'Setting up data persistence layer',
-      ...props,
-    });
-  }
-
   return signalBackInputContract.parse({
     ...baseProps,
     targetRole: 'test-writer',

@@ -1,33 +1,16 @@
 /**
- * PURPOSE: Defines the result type for slot manager orchestration
+ * PURPOSE: Provides slot-manager-result contract from orchestrator
  *
  * USAGE:
  * slotManagerResultContract.parse({completed: true});
- * slotManagerResultContract.parse({completed: false, userInputNeeded: {stepId, question, context}});
- * // Returns validated SlotManagerResult
+ * // Returns: SlotManagerResult object
  */
 
-import { z } from 'zod';
+import {
+  slotManagerResultContract as orcSlotManagerResultContract,
+  type SlotManagerResult as OrcSlotManagerResult,
+} from '@dungeonmaster/orchestrator';
 
-import { stepIdContract } from '@dungeonmaster/shared/contracts';
+export const slotManagerResultContract = orcSlotManagerResultContract;
 
-import { streamSignalContract } from '../stream-signal/stream-signal-contract';
-
-const signalQuestionSchema = streamSignalContract.shape.question.unwrap();
-const signalContextSchema = streamSignalContract.shape.context.unwrap();
-
-export const slotManagerResultContract = z.discriminatedUnion('completed', [
-  z.object({
-    completed: z.literal(true),
-  }),
-  z.object({
-    completed: z.literal(false),
-    userInputNeeded: z.object({
-      stepId: stepIdContract,
-      question: signalQuestionSchema,
-      context: signalContextSchema,
-    }),
-  }),
-]);
-
-export type SlotManagerResult = z.infer<typeof slotManagerResultContract>;
+export type SlotManagerResult = OrcSlotManagerResult;

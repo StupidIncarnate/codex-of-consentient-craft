@@ -150,3 +150,13 @@ export * from './src/contracts/tooling-requirement/tooling-requirement.stub';
 
 export * from './src/contracts/dependency-step/dependency-step-contract';
 export * from './src/contracts/dependency-step/dependency-step.stub';
+
+// Process & Orchestration Contracts
+export * from './src/contracts/process-id/process-id-contract';
+export * from './src/contracts/process-id/process-id.stub';
+
+export * from './src/contracts/orchestration-slot/orchestration-slot-contract';
+export * from './src/contracts/orchestration-slot/orchestration-slot.stub';
+
+export * from './src/contracts/orchestration-status/orchestration-status-contract';
+export * from './src/contracts/orchestration-status/orchestration-status.stub';

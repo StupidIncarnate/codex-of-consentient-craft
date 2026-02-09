@@ -13,7 +13,6 @@ import React from 'react';
 import {
   DependencyStepStub,
   FilePathStub,
-  InstallContextStub,
   QuestStub,
   StepIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -24,27 +23,21 @@ import {
   FileContentStub,
 } from '@dungeonmaster/testing';
 
+import {
+  questListBroker,
+  questLoadBroker,
+  questUpdateStepBroker,
+} from '@dungeonmaster/orchestrator';
+
 import { cliStatics } from '../statics/cli/cli-statics';
 import { StartCli } from './start-cli';
 import { CliAppWidget } from '../widgets/cli-app/cli-app-widget';
-import { questLoadBroker } from '../brokers/quest/load/quest-load-broker';
-import { questUpdateStepBroker } from '../brokers/quest/update-step/quest-update-step-broker';
-import { questListBroker } from '../brokers/quest/list/quest-list-broker';
 
 const waitForUseEffect = async (): Promise<void> => {
   await new Promise((resolve) => {
     setTimeout(resolve, cliStatics.testing.useEffectDelayMs);
   });
 };
-
-// Dummy install context for tests that don't use the init flow
-const createDummyInstallContext = (): ReturnType<typeof InstallContextStub> =>
-  InstallContextStub({
-    value: {
-      targetProjectRoot: __dirname,
-      dungeonmasterRoot: __dirname,
-    },
-  });
 
 type FilePath = ReturnType<typeof FilePathStub>;
 
@@ -87,119 +80,6 @@ describe('StartCli', () => {
     });
   });
 
-  describe('add flow integration', () => {
-    it('VALID: start on add screen and submit => calls onSpawnChaoswhisperer', async () => {
-      const onSpawnChaoswhisperer = jest.fn();
-      const onRunQuest = jest.fn();
-      const onExit = jest.fn();
-
-      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
-        element: React.createElement(CliAppWidget, {
-          initialScreen: 'add',
-          onSpawnChaoswhisperer,
-          onResumeChaoswhisperer: jest.fn(),
-          onRunQuest,
-          onExit,
-          installContext: createDummyInstallContext(),
-        }),
-      });
-
-      await waitForUseEffect();
-
-      // Type input
-      stdin.write('Add user authentication');
-      await waitForUseEffect();
-
-      // Submit
-      stdin.write('\r');
-      await waitForUseEffect();
-
-      unmount();
-
-      expect(onSpawnChaoswhisperer).toHaveBeenCalledTimes(1);
-      expect(onSpawnChaoswhisperer).toHaveBeenCalledWith({
-        userInput: 'Add user authentication',
-      });
-    });
-
-    it('VALID: add screen with backspace and submit => correctly edits input', async () => {
-      const onSpawnChaoswhisperer = jest.fn();
-      const onRunQuest = jest.fn();
-      const onExit = jest.fn();
-
-      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
-        element: React.createElement(CliAppWidget, {
-          initialScreen: 'add',
-          onSpawnChaoswhisperer,
-          onResumeChaoswhisperer: jest.fn(),
-          onRunQuest,
-          onExit,
-          installContext: createDummyInstallContext(),
-        }),
-      });
-
-      await waitForUseEffect();
-
-      // Type input with extra chars
-      stdin.write('Hello World!!');
-      await waitForUseEffect();
-
-      // Backspace twice to remove "!!"
-      stdin.write('\x7F');
-      await waitForUseEffect();
-      stdin.write('\x7F');
-      await waitForUseEffect();
-
-      // Submit
-      stdin.write('\r');
-      await waitForUseEffect();
-
-      unmount();
-
-      expect(onSpawnChaoswhisperer).toHaveBeenCalledTimes(1);
-      expect(onSpawnChaoswhisperer).toHaveBeenCalledWith({
-        userInput: 'Hello World',
-      });
-    });
-
-    it('VALID: navigate from menu to add and submit => full flow works', async () => {
-      const onSpawnChaoswhisperer = jest.fn();
-      const onRunQuest = jest.fn();
-      const onExit = jest.fn();
-
-      const { stdin, unmount } = inkTestingLibraryRenderAdapter({
-        element: React.createElement(CliAppWidget, {
-          initialScreen: 'menu',
-          onSpawnChaoswhisperer,
-          onResumeChaoswhisperer: jest.fn(),
-          onRunQuest,
-          onExit,
-          installContext: createDummyInstallContext(),
-        }),
-      });
-
-      await waitForUseEffect();
-
-      // Add is the first option (index 0), already selected by default
-      // Select Add
-      stdin.write('\r');
-      await waitForUseEffect();
-
-      // Type and submit
-      stdin.write('Build API');
-      await waitForUseEffect();
-      stdin.write('\r');
-      await waitForUseEffect();
-
-      unmount();
-
-      expect(onSpawnChaoswhisperer).toHaveBeenCalledTimes(1);
-      expect(onSpawnChaoswhisperer).toHaveBeenCalledWith({
-        userInput: 'Build API',
-      });
-    });
-  });
-
   describe('init flow integration', () => {
     it('VALID: {initialScreen: init, no explicit installContext} => resolves dungeonmasterRoot automatically', async () => {
       // This test verifies the fix for the bug where init failed with
@@ -208,7 +88,6 @@ describe('StartCli', () => {
         baseName: BaseNameStub({ value: 'init-auto-resolve' }),
       });
 
-      const onSpawnChaoswhisperer = jest.fn();
       const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
@@ -216,8 +95,6 @@ describe('StartCli', () => {
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
-          onSpawnChaoswhisperer,
-          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: {
@@ -248,15 +125,12 @@ describe('StartCli', () => {
         baseName: BaseNameStub({ value: 'init-flow' }),
       });
 
-      const onSpawnChaoswhisperer = jest.fn();
       const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
-          onSpawnChaoswhisperer,
-          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: {
@@ -327,15 +201,12 @@ describe('StartCli', () => {
         }),
       });
 
-      const onSpawnChaoswhisperer = jest.fn();
       const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
-          onSpawnChaoswhisperer,
-          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: {
@@ -362,15 +233,12 @@ describe('StartCli', () => {
         baseName: BaseNameStub({ value: 'init-escape' }),
       });
 
-      const onSpawnChaoswhisperer = jest.fn();
       const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { stdin, lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'init',
-          onSpawnChaoswhisperer,
-          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: {
@@ -394,7 +262,7 @@ describe('StartCli', () => {
       testbed.cleanup();
 
       // Should be back at menu (check for menu elements on separate lines)
-      expect(frame).toMatch(/Add/u);
+      expect(frame).toMatch(/Run/u);
       expect(frame).toMatch(/List/u);
       expect(frame).toMatch(/Init/u);
     });
@@ -404,15 +272,12 @@ describe('StartCli', () => {
         baseName: BaseNameStub({ value: 'init-navigate' }),
       });
 
-      const onSpawnChaoswhisperer = jest.fn();
       const onRunQuest = jest.fn();
       const onExit = jest.fn();
 
       const { stdin, lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: React.createElement(CliAppWidget, {
           initialScreen: 'menu',
-          onSpawnChaoswhisperer,
-          onResumeChaoswhisperer: jest.fn(),
           onRunQuest,
           onExit,
           installContext: {
@@ -424,9 +289,7 @@ describe('StartCli', () => {
 
       await waitForUseEffect();
 
-      // Navigate to Init (index 3: Add=0, Run=1, List=2, Init=3)
-      stdin.write('\x1B[B'); // Down to run
-      await waitForUseEffect();
+      // Navigate to Init (index 2: Run=0, List=1, Init=2)
       stdin.write('\x1B[B'); // Down to list
       await waitForUseEffect();
       stdin.write('\x1B[B'); // Down to init

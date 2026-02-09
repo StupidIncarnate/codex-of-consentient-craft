@@ -9,7 +9,7 @@
 import { z } from 'zod';
 
 export const cliAppScreenContract = z
-  .enum(['menu', 'add', 'help', 'list', 'init', 'run', 'answer'] as const)
+  .enum(['menu', 'help', 'list', 'init', 'run'] as const)
   .brand<'CliAppScreen'>();
 
 export type CliAppScreen = z.infer<typeof cliAppScreenContract>;

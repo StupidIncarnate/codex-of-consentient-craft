@@ -12,9 +12,10 @@ import { stepIdContract } from '@dungeonmaster/shared/contracts';
 // z.discriminatedUnion produces "anyOf" which breaks MCP tool loading.
 // Using single object with optional fields for MCP compatibility.
 // Validation of required fields per signal type is done in the broker.
+// NOTE: 'needs-user-input' signal was removed - agents should make autonomous decisions
 export const signalBackInputContract = z.object({
   signal: z
-    .enum(['complete', 'partially-complete', 'needs-user-input', 'needs-role-followup'])
+    .enum(['complete', 'partially-complete', 'needs-role-followup'])
     .describe('Signal type indicating step status'),
   stepId: stepIdContract.describe('The ID of the step being signaled'),
   // Fields for 'complete' signal
@@ -37,25 +38,13 @@ export const signalBackInputContract = z.object({
     .brand<'SignalContinuationPoint'>()
     .describe('Where to resume work (for partially-complete signal)')
     .optional(),
-  // Fields for 'needs-user-input' signal
-  question: z
-    .string()
-    .min(1)
-    .brand<'SignalQuestion'>()
-    .describe(
-      'Question for the user (for needs-user-input signal). For multiple questions, use newlines between each numbered question (e.g., "1. First question?\\n2. Second question?")',
-    )
-    .optional(),
-  // Fields for 'needs-user-input' and 'needs-role-followup' signals
+  // Fields for 'needs-role-followup' signal
   context: z
     .string()
     .min(1)
     .brand<'SignalContext'>()
-    .describe(
-      'Context for the question or followup (for needs-user-input and needs-role-followup signals)',
-    )
+    .describe('Context for the followup (for needs-role-followup signal)')
     .optional(),
-  // Fields for 'needs-role-followup' signal
   targetRole: z
     .string()
     .min(1)

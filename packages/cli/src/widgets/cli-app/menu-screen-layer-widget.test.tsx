@@ -40,9 +40,9 @@ describe('MenuScreenLayerWidget', () => {
       });
       unmountFn = unmount;
 
+      expect(lastFrame()).toMatch(/Run/u);
       expect(lastFrame()).toMatch(/Init/u);
       expect(lastFrame()).toMatch(/List/u);
-      expect(lastFrame()).toMatch(/Add/u);
     });
 
     it('VALID: {} => displays navigation instructions', () => {
@@ -75,7 +75,7 @@ describe('MenuScreenLayerWidget', () => {
       });
       unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/> Add/u);
+      expect(lastFrame()).toMatch(/> Run/u);
     });
   });
 

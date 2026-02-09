@@ -7,8 +7,6 @@ export const DebugSessionCallbackInvocationsStub = ({
   ...props
 }: StubArgument<DebugSessionCallbackInvocations> = {}): DebugSessionCallbackInvocations =>
   debugSessionCallbackInvocationsContract.parse({
-    onSpawnChaoswhisperer: [],
-    onResumeChaoswhisperer: [],
     onRunQuest: [],
     onExit: [],
     ...props,

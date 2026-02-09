@@ -23,6 +23,10 @@ export const mcpToolsStatics = {
       'add-quest',
       'get-quest',
       'modify-quest',
+      'signal-back',
+      'start-quest',
+      'get-quest-status',
+      'list-quests',
     ] as const,
   },
 } as const;

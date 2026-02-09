@@ -1,47 +1,26 @@
 /**
- * PURPOSE: Proxy for useQuestsListBinding that delegates to broker proxy
+ * PURPOSE: Proxy for useQuestsListBinding that delegates to orchestrator adapter proxy
  *
  * USAGE:
  * const proxy = useQuestsListBindingProxy();
  * proxy.setupQuests({ quests });
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { QuestListItem } from '@dungeonmaster/shared/contracts';
 
-import { questListBrokerProxy } from '../../brokers/quest/list/quest-list-broker.proxy';
-import type { FileName } from '../../contracts/file-name/file-name-contract';
+import { orchestratorListQuestsAdapterProxy } from '../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
 
 export const useQuestsListBindingProxy = (): {
-  setupQuestsFolderFound: (params: {
-    startPath: string;
-    projectRootPath: string;
-    questsFolderPath: FilePath;
-  }) => void;
-  setupQuestDirectories: (params: { files: FileName[] }) => void;
-  setupQuestFilePath: (params: { result: FilePath }) => void;
-  setupQuestFile: (params: { questJson: string }) => void;
+  setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupError: (params: { error: Error }) => void;
 } => {
-  const brokerProxy = questListBrokerProxy();
+  const adapterProxy = orchestratorListQuestsAdapterProxy();
 
   return {
-    setupQuestsFolderFound: ({
-      startPath,
-      projectRootPath,
-      questsFolderPath,
-    }: {
-      startPath: string;
-      projectRootPath: string;
-      questsFolderPath: FilePath;
-    }): void => {
-      brokerProxy.setupQuestsFolderFound({ startPath, projectRootPath, questsFolderPath });
+    setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
+      adapterProxy.returns({ quests });
     },
-    setupQuestDirectories: ({ files }: { files: FileName[] }): void => {
-      brokerProxy.setupQuestDirectories({ files });
-    },
-    setupQuestFilePath: ({ result }: { result: FilePath }): void => {
-      brokerProxy.setupQuestFilePath({ result });
-    },
-    setupQuestFile: ({ questJson }: { questJson: string }): void => {
-      brokerProxy.setupQuestFile({ questJson });
+    setupError: ({ error }: { error: Error }): void => {
+      adapterProxy.throws({ error });
     },
   };
 };

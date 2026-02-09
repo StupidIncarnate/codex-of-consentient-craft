@@ -16,14 +16,6 @@ export const buildCallbacksRecordTransformer = ({
 }): Record<CallbackKey, unknown[]> | undefined => {
   const callbacks: Record<CallbackKey, unknown[]> = {} as Record<CallbackKey, unknown[]>;
 
-  if (invocations.onSpawnChaoswhisperer.length > 0) {
-    callbacks[callbackKeyContract.parse('onSpawnChaoswhisperer')] =
-      invocations.onSpawnChaoswhisperer;
-  }
-  if (invocations.onResumeChaoswhisperer.length > 0) {
-    callbacks[callbackKeyContract.parse('onResumeChaoswhisperer')] =
-      invocations.onResumeChaoswhisperer;
-  }
   if (invocations.onRunQuest.length > 0) {
     callbacks[callbackKeyContract.parse('onRunQuest')] = invocations.onRunQuest;
   }

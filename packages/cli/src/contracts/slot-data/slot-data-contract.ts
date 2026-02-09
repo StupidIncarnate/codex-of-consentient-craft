@@ -1,20 +1,16 @@
 /**
- * PURPOSE: Defines the structure of data stored in an agent slot
+ * PURPOSE: Provides slot-data contract from orchestrator
  *
  * USAGE:
- * slotDataContract.parse({stepId: 'uuid', sessionId: 'session-1', startedAt: '2024-01-01T00:00:00Z'});
+ * slotDataContract.parse({stepId, sessionId, startedAt});
  * // Returns: SlotData object
  */
 
-import { sessionIdContract, stepIdContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import {
+  slotDataContract as orcSlotDataContract,
+  type SlotData as OrcSlotData,
+} from '@dungeonmaster/orchestrator';
 
-import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
+export const slotDataContract = orcSlotDataContract;
 
-export const slotDataContract = z.object({
-  stepId: stepIdContract,
-  sessionId: sessionIdContract,
-  startedAt: isoTimestampContract,
-});
-
-export type SlotData = z.infer<typeof slotDataContract>;
+export type SlotData = OrcSlotData;
