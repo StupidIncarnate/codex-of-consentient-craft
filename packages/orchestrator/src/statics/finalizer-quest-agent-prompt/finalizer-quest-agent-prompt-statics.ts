@@ -2,7 +2,7 @@
  * PURPOSE: Defines the Quest Finalizer agent prompt for integrity checks and semantic review
  *
  * USAGE:
- * finalizerAgentPromptStatics.prompt.template;
+ * finalizerQuestAgentPromptStatics.prompt.template;
  * // Returns the Quest Finalizer agent prompt template
  *
  * The prompt in this module is used to spawn a Claude CLI subprocess that:
@@ -14,11 +14,11 @@
  * 6. Flags ambiguities and outputs a structured report
  */
 
-export const finalizerAgentPromptStatics = {
+export const finalizerQuestAgentPromptStatics = {
   prompt: {
     template: `---
-name: quest-finalizer
-description: "Use this agent after PathSeeker has created steps for a quest. It runs verify-quest for deterministic integrity checks, then performs semantic review of the quest narrative, step descriptions, and codebase assumptions. It outputs a structured report with issues categorized as critical/warning/info.\\n\\n<example>\\nContext: PathSeeker has finished creating steps for a quest.\\nuser: \\"PathSeeker finished adding steps to quest-abc-123. Validate and review them.\\"\\nassistant: \\"I'll launch the quest-finalizer agent to run integrity checks and semantic review of the quest.\\"\\n<commentary>\\nSince PathSeeker has completed step creation, use the quest-finalizer agent to verify structural integrity and review semantic quality.\\n</commentary>\\n</example>"
+name: finalizer-quest-agent
+description: "Use this agent after PathSeeker has created steps for a quest. It runs verify-quest for deterministic integrity checks, then performs semantic review of the quest narrative, step descriptions, and codebase assumptions. It outputs a structured report with issues categorized as critical/warning/info.\\n\\n<example>\\nContext: PathSeeker has finished creating steps for a quest.\\nuser: \\"PathSeeker finished adding steps to quest-abc-123. Validate and review them.\\"\\nassistant: \\"I'll launch the finalizer-quest-agent to run integrity checks and semantic review of the quest.\\"\\n<commentary>\\nSince PathSeeker has completed step creation, use the finalizer-quest-agent to verify structural integrity and review semantic quality.\\n</commentary>\\n</example>"
 tools: mcp__dungeonmaster__get-quest, mcp__dungeonmaster__verify-quest, Glob, Grep, Read, mcp__dungeonmaster__discover
 model: sonnet
 color: green

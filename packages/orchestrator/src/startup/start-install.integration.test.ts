@@ -25,7 +25,7 @@ describe('start-install integration', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with quest-finalizer.md, quest-path-seeker.md, and quest-gap-reviewer.md',
+          'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md, quest-path-seeker.md, and quest-gap-reviewer.md',
       });
 
       const questContent = testbed.readFile({
@@ -37,7 +37,7 @@ describe('start-install integration', () => {
       });
 
       const questFinalizerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/agents/quest-finalizer.md' }),
+        relativePath: RelativePathStub({ value: '.claude/agents/finalizer-quest-agent.md' }),
       });
 
       const questPathSeekerContent = testbed.readFile({
@@ -81,7 +81,7 @@ describe('start-install integration', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with quest-finalizer.md, quest-path-seeker.md, and quest-gap-reviewer.md',
+          'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md, quest-path-seeker.md, and quest-gap-reviewer.md',
       });
 
       const questContent = testbed.readFile({
@@ -141,9 +141,9 @@ describe('start-install integration', () => {
       expect(questStartContent).toMatch(/codeweaver/iu);
     });
 
-    it('VALID: {context: quest-finalizer.md content} => contains finalizer agent prompt template', async () => {
+    it('VALID: {context: finalizer-quest-agent.md content} => contains finalizer agent prompt template', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'quest-finalizer-content' }),
+        baseName: BaseNameStub({ value: 'finalizer-quest-agent-content' }),
       });
 
       await StartInstall({
@@ -154,7 +154,7 @@ describe('start-install integration', () => {
       });
 
       const questFinalizerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/agents/quest-finalizer.md' }),
+        relativePath: RelativePathStub({ value: '.claude/agents/finalizer-quest-agent.md' }),
       });
 
       testbed.cleanup();

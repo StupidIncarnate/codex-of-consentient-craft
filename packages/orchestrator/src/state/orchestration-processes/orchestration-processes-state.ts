@@ -38,6 +38,19 @@ export const orchestrationProcessesState = {
     return orchestrationProcess?.process;
   },
 
+  updateProcess: ({
+    processId,
+    process,
+  }: {
+    processId: ProcessId;
+    process: KillableProcess;
+  }): void => {
+    const orchestrationProcess = state.processes.get(processId);
+    if (orchestrationProcess) {
+      orchestrationProcess.process = process;
+    }
+  },
+
   updatePhase: ({
     processId,
     phase,

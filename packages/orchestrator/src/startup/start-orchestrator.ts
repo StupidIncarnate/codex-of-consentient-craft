@@ -31,6 +31,7 @@ import { questListBroker } from '../brokers/quest/list/quest-list-broker';
 import { questLoadBroker } from '../brokers/quest/load/quest-load-broker';
 import { questModifyBroker } from '../brokers/quest/modify/quest-modify-broker';
 import { questVerifyBroker } from '../brokers/quest/verify/quest-verify-broker';
+import { pathseekerPipelineBroker } from '../brokers/pathseeker/pipeline/pathseeker-pipeline-broker';
 import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract';
 import type { AddQuestResult } from '../contracts/add-quest-result/add-quest-result-contract';
 import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract';
@@ -42,6 +43,7 @@ import type { VerifyQuestResult } from '../contracts/verify-quest-result/verify-
 import { completedCountContract } from '../contracts/completed-count/completed-count-contract';
 import { isoTimestampContract } from '../contracts/iso-timestamp/iso-timestamp-contract';
 import type { KillableProcess } from '../contracts/killable-process/killable-process-contract';
+import { orchestrationPhaseContract } from '../contracts/orchestration-phase/orchestration-phase-contract';
 import { orchestrationProcessContract } from '../contracts/orchestration-process/orchestration-process-contract';
 import { promptTextContract } from '../contracts/prompt-text/prompt-text-contract';
 import { totalCountContract } from '../contracts/total-count/total-count-contract';
@@ -130,6 +132,28 @@ export const StartOrchestrator = {
     });
 
     orchestrationProcessesState.register({ orchestrationProcess });
+
+    pathseekerPipelineBroker({
+      processId,
+      questId,
+      startPath,
+      killableProcess,
+      attempt: 0,
+      onVerifySuccess: () => {
+        orchestrationProcessesState.updatePhase({
+          processId,
+          phase: orchestrationPhaseContract.parse('idle'),
+        });
+      },
+      onProcessUpdate: ({ process }) => {
+        orchestrationProcessesState.updateProcess({ processId, process });
+      },
+    }).catch(() => {
+      orchestrationProcessesState.updatePhase({
+        processId,
+        phase: orchestrationPhaseContract.parse('idle'),
+      });
+    });
 
     return processId;
   },

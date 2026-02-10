@@ -18,7 +18,7 @@ import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
 import { fsWriteFileAdapter } from '../adapters/fs/write-file/fs-write-file-adapter';
 import { chaoswhispererPromptStatics } from '../statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
 import { questStartPromptStatics } from '../statics/quest-start-prompt/quest-start-prompt-statics';
-import { finalizerAgentPromptStatics } from '../statics/finalizer-agent-prompt/finalizer-agent-prompt-statics';
+import { finalizerQuestAgentPromptStatics } from '../statics/finalizer-quest-agent-prompt/finalizer-quest-agent-prompt-statics';
 import { pathseekerPromptStatics } from '../statics/pathseeker-prompt/pathseeker-prompt-statics';
 import { gapReviewerAgentPromptStatics } from '../statics/gap-reviewer-agent-prompt/gap-reviewer-agent-prompt-statics';
 
@@ -28,7 +28,7 @@ const AGENTS_DIR = 'agents';
 const PACKAGE_NAME = '@dungeonmaster/orchestrator';
 const QUEST_FILENAME = 'quest.md';
 const QUEST_START_FILENAME = 'quest:start.md';
-const QUEST_FINALIZER_FILENAME = 'quest-finalizer.md';
+const QUEST_FINALIZER_FILENAME = 'finalizer-quest-agent.md';
 const QUEST_PATH_SEEKER_FILENAME = 'quest-path-seeker.md';
 const QUEST_GAP_REVIEWER_FILENAME = 'quest-gap-reviewer.md';
 
@@ -76,7 +76,7 @@ export const StartInstall = async ({
   });
 
   const questFinalizerContent = fileContentsContract.parse(
-    finalizerAgentPromptStatics.prompt.template,
+    finalizerQuestAgentPromptStatics.prompt.template,
   );
 
   const questPathSeekerContent = fileContentsContract.parse(
@@ -99,7 +99,7 @@ export const StartInstall = async ({
     success: true,
     action: 'created',
     message: installMessageContract.parse(
-      'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with quest-finalizer.md, quest-path-seeker.md, and quest-gap-reviewer.md',
+      'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md, quest-path-seeker.md, and quest-gap-reviewer.md',
     ),
   };
 };

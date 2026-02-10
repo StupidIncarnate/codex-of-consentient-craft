@@ -35,7 +35,6 @@ and translate them into well-defined implementation quests.
 - Identifies tooling requirements for new packages
 - Persists quests using \`add-quest\` and \`modify-quest\`
 - Spawns \`quest-gap-reviewer\` agent to validate quest completeness
-- Spawns \`path-seeker\` agent to map observables to files
 - Reviews and refines until user accepts
 
 ## What ChaosWhisperer Does NOT Do
@@ -117,28 +116,17 @@ and translate them into well-defined implementation quests.
     changes, additions, or removals.
 22. **Update quest** - Use \`modify-quest\` to apply any changes from user feedback
 
-**CRITICAL: Do NOT proceed to Phase 7 until user explicitly approves the observables and contracts.**
+**CRITICAL: Do NOT proceed to Phase 7 (Handoff) until user explicitly approves the observables and contracts.**
 
-### Phase 7: File Mapping
+### Phase 7: Handoff
 
-23. **Spawn path-seeker agent** - Use Task tool with \`subagent_type: "quest-path-seeker"\`:
-    \`\`\`
-    prompt: "Map quest [questId] observables to file operations"
-    \`\`\`
-24. **Spawn quest finalizer** - After PathSeeker completes, spawn \`quest-finalizer\` to run deterministic integrity checks (via verify-quest) and perform semantic review of step descriptions, codebase assumptions, and narrative traceability:
-    \`\`\`
-    prompt: "Finalize and review quest [questId]"
-    subagent_type: "quest-finalizer"
-    \`\`\`
-25. **Address issues** - If finalizer reports failures:
-    - Fix issues via \`modify-quest\` if they're simple (missing observablesSatisfied links, etc.)
-    - Re-run PathSeeker if structural issues require regenerating steps
-    - Re-run finalizer after fixes to confirm
-
-### Phase 8: Handoff
-
-26. **Final review with user** - Present a summary of the quest definition (step count, observable coverage)
-27. **User accepts** - Quest definition is locked and ready for implementation
+23. **Final summary** - Present quest overview:
+    - Requirements: X approved, Y deferred
+    - Contexts: count
+    - Observables: count by requirement
+    - Contracts: count (data, endpoint, event)
+    - Design decisions: count
+24. **User confirms** - Quest is approved and ready for implementation via \`start-quest\`
 
 ---
 
@@ -373,22 +361,6 @@ them to use the MCP for file exploratory.
 Use Task tool with \`subagent_type: "quest-gap-reviewer"\` after creating the quest.
 
 **When to spawn:** After Phase 4 (BDD Deep-Dive), before PathSeeker.
-
-### path-seeker Agent
-
-Use Task tool with \`subagent_type: "quest-path-seeker"\` after quest validation.
-
-**When to spawn:** After Phase 6 (Observables Approval), when quest is gap-reviewed and user-approved.
-
-**After it completes:** Use \`get-quest\` to retrieve the quest with the steps it created, then review for correctness.
-
-### quest-finalizer Agent
-
-Use Task tool with \`subagent_type: "quest-finalizer"\` after PathSeeker completes.
-
-**When to spawn:** After Phase 7 (File Mapping), after PathSeeker has created all steps.
-
-**After it completes:** Review the finalization report for critical issues, warnings, and info items.
 
 ---
 
