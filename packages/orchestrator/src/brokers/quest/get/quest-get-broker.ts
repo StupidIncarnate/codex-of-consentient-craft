@@ -5,8 +5,8 @@
  * const result = await questGetBroker({ input: GetQuestInputStub({ questId: 'add-auth' }), startPath: FilePathStub({ value: '/project/src' }) });
  * // Returns: { success: true, quest: {...} } or { success: false, error: 'Quest not found' }
  *
- * const filtered = await questGetBroker({ input: GetQuestInputStub({ questId: 'add-auth', sections: ['requirements'] }), startPath: FilePathStub({ value: '/project/src' }) });
- * // Returns: { success: true, quest: {...} } with only requirements populated; other sections are empty arrays
+ * const filtered = await questGetBroker({ input: GetQuestInputStub({ questId: 'add-auth', stage: 'spec' }), startPath: FilePathStub({ value: '/project/src' }) });
+ * // Returns: { success: true, quest: {...} } with only spec-stage sections populated; other sections are empty arrays
  */
 
 import { questsFolderEnsureBroker } from '@dungeonmaster/shared/brokers';
@@ -17,6 +17,7 @@ import type { GetQuestInput } from '../../../contracts/get-quest-input/get-quest
 import { getQuestResultContract } from '../../../contracts/get-quest-result/get-quest-result-contract';
 import type { GetQuestResult } from '../../../contracts/get-quest-result/get-quest-result-contract';
 import { questSectionFilterTransformer } from '../../../transformers/quest-section-filter/quest-section-filter-transformer';
+import { questStageToSectionsTransformer } from '../../../transformers/quest-stage-to-sections/quest-stage-to-sections-transformer';
 import { questFolderFindBroker } from '../folder-find/quest-folder-find-broker';
 
 export const questGetBroker = async ({
@@ -28,6 +29,11 @@ export const questGetBroker = async ({
 }): Promise<GetQuestResult> => {
   try {
     const validated = getQuestInputContract.parse(input);
+
+    const sections =
+      validated.stage === undefined
+        ? undefined
+        : questStageToSectionsTransformer({ stage: validated.stage });
 
     // Ensure folder exists before searching
     const { questsBasePath } = await questsFolderEnsureBroker({ startPath });
@@ -46,7 +52,7 @@ export const questGetBroker = async ({
 
     const quest = questSectionFilterTransformer({
       quest: findResult.quest,
-      ...(validated.sections !== undefined && { sections: validated.sections }),
+      ...(sections !== undefined && { sections }),
     });
 
     return getQuestResultContract.parse({

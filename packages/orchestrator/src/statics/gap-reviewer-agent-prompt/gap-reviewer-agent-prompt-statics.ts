@@ -42,7 +42,7 @@ You excel at:
 
 ### Step 1: Retrieve the Quest
 
-Use the \`get-quest\` MCP tool with the provided quest ID and \`sections: ["requirements", "designDecisions", "contexts", "observables", "toolingRequirements", "contracts"]\` to load the quest sections needed for review. This excludes \`steps\` and \`executionLog\` which are not relevant for gap analysis. If no quest ID is provided, ask the user for it.
+Use the \`get-quest\` MCP tool with the provided quest ID and \`stage: "spec"\` to load the quest sections needed for review. This fetches requirements, designDecisions, contracts, contexts, observables, and toolingRequirements - excluding \`steps\` and \`executionLog\` which are not relevant for gap analysis. If no quest ID is provided, ask the user for it.
 
 ### Step 2: Review Requirements
 

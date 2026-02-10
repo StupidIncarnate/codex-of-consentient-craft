@@ -261,15 +261,15 @@ export const StartMcpServer = async (): Promise<void> => {
       const args = request.params.arguments as never;
       const questIdRaw: unknown = Reflect.get(args, 'questId');
       const startPathRaw: unknown = Reflect.get(args, 'startPath');
-      const sectionsRaw: unknown = Reflect.get(args, 'sections');
+      const stageRaw: unknown = Reflect.get(args, 'stage');
       const questId = String(questIdRaw);
       const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
-      const sections = Array.isArray(sectionsRaw) ? sectionsRaw.map(String) : undefined;
+      const stage = typeof stageRaw === 'string' ? stageRaw : undefined;
 
       try {
         const result = await orchestratorGetQuestAdapter({
           questId,
-          ...(sections && { sections }),
+          ...(stage && { stage }),
           startPath,
         });
         return {

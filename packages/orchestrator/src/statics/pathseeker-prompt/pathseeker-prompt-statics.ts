@@ -70,7 +70,7 @@ This tells you:
 
 ### Step 2: Read the Quest
 
-Use \`get-quest\` with \`sections: ["requirements", "contracts", "contexts", "observables", "toolingRequirements"]\` to retrieve the quest sections needed for step planning. This excludes steps (which don't exist yet) and executionLog. Understand:
+Use \`get-quest\` with \`stage: "spec"\` to retrieve the quest specification. Understand:
 
 - What requirements exist and which are approved (only map observables for approved requirements)
 - What contracts are declared (the shared type dictionary - data types, endpoints, events that steps will reference)
@@ -251,7 +251,7 @@ Call \`modify-quest\` to upsert steps into the quest:
 
 ### Step 8: Review as Staff Engineer
 
-After persisting, call \`get-quest\` with \`sections: ["steps", "observables"]\` to retrieve the steps you created alongside the observables for cross-referencing. Review critically:
+After persisting, call \`get-quest\` without a stage filter to retrieve the full quest for cross-referencing. Review critically:
 
 - **Type coverage** - Every input/output in step descriptions should reference a contract type.
 - **Contract references** - Do all steps in implementation folders have \`outputContracts\` set? Do all contract name references point to contracts that exist in the quest?

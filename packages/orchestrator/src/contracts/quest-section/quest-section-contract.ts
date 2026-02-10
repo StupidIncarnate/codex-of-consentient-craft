@@ -10,6 +10,7 @@ import { z } from 'zod';
 export const questSectionContract = z.enum([
   'requirements',
   'designDecisions',
+  'contracts',
   'contexts',
   'observables',
   'steps',

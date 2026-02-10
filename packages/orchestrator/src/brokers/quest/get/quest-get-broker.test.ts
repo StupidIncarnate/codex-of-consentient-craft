@@ -41,8 +41,8 @@ describe('questGetBroker', () => {
     });
   });
 
-  describe('section filtering', () => {
-    it('VALID: {sections: ["requirements"]} => returns quest with only requirements populated', async () => {
+  describe('stage filtering', () => {
+    it('VALID: {stage: "spec"} => returns quest with only spec sections populated', async () => {
       const proxy = questGetBrokerProxy();
       const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({
@@ -67,11 +67,23 @@ describe('questGetBroker', () => {
             outcomes: [],
           },
         ],
+        steps: [
+          {
+            id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'CreateLoginBroker',
+            description: 'Create login broker',
+            observablesSatisfied: [],
+            dependsOn: [],
+            filesToCreate: [],
+            filesToModify: [],
+            status: 'pending',
+          },
+        ],
       });
 
       proxy.setupQuestFound({ quest, startPath });
 
-      const input = GetQuestInputStub({ questId: 'add-auth', sections: ['requirements'] });
+      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'spec' });
       const result = await questGetBroker({ input, startPath });
 
       expect(result.success).toBe(true);
@@ -84,11 +96,73 @@ describe('questGetBroker', () => {
           status: 'approved',
         },
       ]);
-      expect(result.quest?.observables).toStrictEqual([]);
+      expect(result.quest?.observables).toStrictEqual([
+        {
+          id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
+          contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
+          trigger: 'User submits login form',
+          dependsOn: [],
+          outcomes: [],
+        },
+      ]);
       expect(result.quest?.steps).toStrictEqual([]);
+      expect(result.quest?.executionLog).toStrictEqual([]);
     });
 
-    it('VALID: {sections undefined} => returns full quest unchanged', async () => {
+    it('VALID: {stage: "implementation"} => returns quest with only steps and contracts', async () => {
+      const proxy = questGetBrokerProxy();
+      const startPath = FilePathStub({ value: '/project/src' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        requirements: [
+          {
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'Auth',
+            description: 'User auth',
+            scope: 'packages/api',
+            status: 'approved',
+          },
+        ],
+        steps: [
+          {
+            id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'CreateLoginBroker',
+            description: 'Create login broker',
+            observablesSatisfied: [],
+            dependsOn: [],
+            filesToCreate: [],
+            filesToModify: [],
+            status: 'pending',
+          },
+        ],
+      });
+
+      proxy.setupQuestFound({ quest, startPath });
+
+      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'implementation' });
+      const result = await questGetBroker({ input, startPath });
+
+      expect(result.success).toBe(true);
+      expect(result.quest?.requirements).toStrictEqual([]);
+      expect(result.quest?.steps).toStrictEqual([
+        {
+          id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'CreateLoginBroker',
+          description: 'Create login broker',
+          observablesSatisfied: [],
+          dependsOn: [],
+          filesToCreate: [],
+          filesToModify: [],
+          inputContracts: [],
+          outputContracts: [],
+          status: 'pending',
+        },
+      ]);
+    });
+
+    it('VALID: {stage undefined} => returns full quest unchanged', async () => {
       const proxy = questGetBrokerProxy();
       const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({

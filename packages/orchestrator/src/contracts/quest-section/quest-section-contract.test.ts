@@ -15,6 +15,12 @@ describe('questSectionContract', () => {
       expect(result).toBe('designDecisions');
     });
 
+    it('VALID: {value: "contracts"} => parses successfully', () => {
+      const result = questSectionContract.parse(QuestSectionStub({ value: 'contracts' }));
+
+      expect(result).toBe('contracts');
+    });
+
     it('VALID: {value: "contexts"} => parses successfully', () => {
       const result = questSectionContract.parse(QuestSectionStub({ value: 'contexts' }));
 

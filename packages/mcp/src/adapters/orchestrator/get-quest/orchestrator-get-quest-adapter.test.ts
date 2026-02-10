@@ -22,7 +22,7 @@ describe('orchestratorGetQuestAdapter', () => {
       expect(result).toStrictEqual(expectedResult);
     });
 
-    it('VALID: {questId, sections, startPath} => returns GetQuestResult with sections', async () => {
+    it('VALID: {questId, stage, startPath} => returns GetQuestResult with stage', async () => {
       const proxy = orchestratorGetQuestAdapterProxy();
       const startPath = FilePathStub({ value: '/my/project' });
       const expectedResult = GetQuestResultStub();
@@ -31,7 +31,7 @@ describe('orchestratorGetQuestAdapter', () => {
 
       const result = await orchestratorGetQuestAdapter({
         questId: 'add-auth',
-        sections: ['requirements', 'observables'],
+        stage: 'spec',
         startPath,
       });
 

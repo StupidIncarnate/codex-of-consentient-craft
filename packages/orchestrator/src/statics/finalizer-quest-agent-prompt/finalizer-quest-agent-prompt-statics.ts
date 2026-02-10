@@ -51,17 +51,20 @@ fixed before implementation.
 
 Fetch the quest in stages to manage context size:
 
-**Fetch 1:** \`get-quest\` with \`sections: ["requirements", "designDecisions", "contracts"]\`
+**Fetch 1:** \`get-quest\` with \`stage: "spec-decisions"\`
 - Record all requirement IDs, names, and scopes
 - Record all design decisions
 - Record all contract entries (names, kinds, properties)
+- Record all tooling requirements
 
-**Fetch 2:** \`get-quest\` with \`sections: ["contexts", "observables"]\`
+**Fetch 2:** \`get-quest\` with \`stage: "spec-bdd"\`
 - Record all context IDs and locators
 - Record all observables with their triggers, outcomes, and requirement links
+- Contracts are included again for cross-referencing
 
-**Fetch 3:** \`get-quest\` with \`sections: ["steps"]\`
+**Fetch 3:** \`get-quest\` with \`stage: "implementation"\`
 - Record all steps with their descriptions, file operations, and dependencies
+- Contracts are included again for contract reference validation
 
 ### Step 3: Trace the Narrative
 
@@ -85,7 +88,7 @@ For each step, evaluate:
 
 ### Step 5: Search Codebase for Assumption Verification
 
-Use Grep, Glob, and discover to verify assumptions in the quest:
+Use discover to verify assumptions in the quest:
 
 - **File existence**: Do files listed in \`filesToModify\` actually exist?
 - **Import targets**: If steps reference existing modules, do those modules export what's expected?

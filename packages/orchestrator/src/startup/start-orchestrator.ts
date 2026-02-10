@@ -183,14 +183,14 @@ export const StartOrchestrator = {
 
   getQuest: async ({
     questId,
-    sections,
+    stage,
     startPath,
   }: {
     questId: string;
-    sections?: string[];
+    stage?: string;
     startPath: FilePath;
   }): Promise<GetQuestResult> => {
-    const input = getQuestInputContract.parse({ questId, ...(sections && { sections }) });
+    const input = getQuestInputContract.parse({ questId, ...(stage && { stage }) });
     return questGetBroker({ input, startPath });
   },
 

@@ -26,6 +26,8 @@ export { modifyQuestResultContract } from './contracts/modify-quest-result/modif
 export type { ModifyQuestResult } from './contracts/modify-quest-result/modify-quest-result-contract';
 export { questSectionContract } from './contracts/quest-section/quest-section-contract';
 export type { QuestSection } from './contracts/quest-section/quest-section-contract';
+export { questStageContract } from './contracts/quest-stage/quest-stage-contract';
+export type { QuestStage } from './contracts/quest-stage/quest-stage-contract';
 export { verifyQuestInputContract } from './contracts/verify-quest-input/verify-quest-input-contract';
 export type { VerifyQuestInput } from './contracts/verify-quest-input/verify-quest-input-contract';
 export { verifyQuestCheckContract } from './contracts/verify-quest-check/verify-quest-check-contract';

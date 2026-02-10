@@ -19,65 +19,45 @@ describe('getQuestInputContract', () => {
       expect(result).toStrictEqual({ questId: 'test-quest' });
     });
 
-    it('VALID: {questId with sections} => parses with sections array', () => {
+    it('VALID: {questId with stage} => parses with stage value', () => {
       const input = GetQuestInputStub({
         questId: 'add-auth',
-        sections: ['requirements', 'observables'],
+        stage: 'spec',
       });
 
       const result = getQuestInputContract.parse(input);
 
       expect(result).toStrictEqual({
         questId: 'add-auth',
-        sections: ['requirements', 'observables'],
+        stage: 'spec',
       });
     });
 
-    it('VALID: {questId with all sections} => parses all section values', () => {
-      const input = GetQuestInputStub({
-        questId: 'add-auth',
-        sections: [
-          'requirements',
-          'designDecisions',
-          'contexts',
-          'observables',
-          'steps',
-          'toolingRequirements',
-          'executionLog',
-        ],
-      });
+    it('VALID: {questId with spec-decisions stage} => parses successfully', () => {
+      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'spec-decisions' });
 
       const result = getQuestInputContract.parse(input);
 
-      expect(result).toStrictEqual({
-        questId: 'add-auth',
-        sections: [
-          'requirements',
-          'designDecisions',
-          'contexts',
-          'observables',
-          'steps',
-          'toolingRequirements',
-          'executionLog',
-        ],
-      });
+      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-decisions' });
     });
 
-    it('VALID: {questId with empty sections array} => parses successfully', () => {
-      const input = GetQuestInputStub({
-        questId: 'add-auth',
-        sections: [],
-      });
+    it('VALID: {questId with spec-bdd stage} => parses successfully', () => {
+      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'spec-bdd' });
 
       const result = getQuestInputContract.parse(input);
 
-      expect(result).toStrictEqual({
-        questId: 'add-auth',
-        sections: [],
-      });
+      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-bdd' });
     });
 
-    it('VALID: {questId without sections} => sections omitted from result', () => {
+    it('VALID: {questId with implementation stage} => parses successfully', () => {
+      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'implementation' });
+
+      const result = getQuestInputContract.parse(input);
+
+      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'implementation' });
+    });
+
+    it('VALID: {questId without stage} => stage omitted from result', () => {
       const input = GetQuestInputStub({ questId: 'add-auth' });
 
       const result = getQuestInputContract.parse(input);
@@ -99,9 +79,9 @@ describe('getQuestInputContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_SECTION: {sections with invalid value} => throws validation error', () => {
+    it('INVALID_STAGE: {stage with invalid value} => throws validation error', () => {
       expect(() => {
-        return getQuestInputContract.parse({ questId: 'add-auth', sections: ['invalid'] });
+        return getQuestInputContract.parse({ questId: 'add-auth', stage: 'invalid' });
       }).toThrow(/Invalid enum value/u);
     });
   });

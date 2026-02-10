@@ -5,8 +5,8 @@
  * const result = await orchestratorGetQuestAdapter({ questId, startPath });
  * // Returns: GetQuestResult or throws error
  *
- * const filtered = await orchestratorGetQuestAdapter({ questId, sections: ['requirements'], startPath });
- * // Returns: GetQuestResult with only the specified sections populated
+ * const filtered = await orchestratorGetQuestAdapter({ questId, stage: 'spec', startPath });
+ * // Returns: GetQuestResult with only the spec-stage sections populated
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -15,11 +15,11 @@ import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorGetQuestAdapter = async ({
   questId,
-  sections,
+  stage,
   startPath,
 }: {
   questId: string;
-  sections?: string[];
+  stage?: string;
   startPath: FilePath;
 }): Promise<GetQuestResult> =>
-  StartOrchestrator.getQuest({ questId, ...(sections && { sections }), startPath });
+  StartOrchestrator.getQuest({ questId, ...(stage && { stage }), startPath });

@@ -105,7 +105,7 @@ and translate them into well-defined implementation quests.
     accordingly. If any unknowns are uncovered that need user feedback, use the AskUserQuestion to get user input.
 19. **Refresh quest state** - After gap review may have added observables, fetch updated sections:
     \`\`\`json
-    {"questId": "quest-uuid", "sections": ["contexts", "observables", "toolingRequirements", "contracts", "designDecisions"]}
+    {"questId": "quest-uuid", "stage": "spec"}
     \`\`\`
 
 ### Phase 6: Observables Approval Gate
@@ -161,22 +161,26 @@ Update an existing quest. Use upsert semantics - existing IDs update, new IDs ad
 
 ### \`get-quest\`
 
-Retrieve a quest by ID to review or continue work. Use the \`sections\` parameter to fetch only the sections you need -
-this keeps responses small and avoids token limit issues on large quests.
+Retrieve a quest by ID to review or continue work. Use the \`stage\` parameter to fetch only the sections relevant to
+your pipeline stage - this keeps responses small and avoids token limit issues on large quests.
 
 \`\`\`json
 {
   "questId": "quest-uuid",
-  "sections": ["requirements", "observables"]
+  "stage": "spec"
 }
 \`\`\`
 
-**Section values:** \`requirements\`, \`designDecisions\`, \`contexts\`, \`observables\`, \`steps\`, \`toolingRequirements\`,
-\`contracts\`, \`executionLog\`
+**Stage values:**
+- \`spec\` - requirements, designDecisions, contracts, contexts, observables, toolingRequirements (full spec for PathSeeker/GapReviewer)
+- \`spec-decisions\` - requirements, designDecisions, contracts, toolingRequirements (foundation chunk)
+- \`spec-bdd\` - contexts, observables, contracts (behavior chunk)
+- \`implementation\` - steps, contracts (what PathSeeker adds)
 
-- Omit \`sections\` entirely to get the full quest (only safe for small/new quests)
+- Omit \`stage\` entirely to get the full quest (only safe for small/new quests)
 - Excluded sections return as empty arrays (quest shape stays valid)
 - Metadata fields (id, title, status, etc.) are always included
+- \`contracts\` is included in every stage as the shared type dictionary
 
 ---
 
