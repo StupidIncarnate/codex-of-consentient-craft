@@ -17,7 +17,15 @@ export const getQuestInputContract = z
     questId: z.string().min(1).describe('The ID of the quest to retrieve').brand<'QuestId'>(),
     stage: questStageContract
       .describe(
-        'Optional pipeline stage to filter sections. Omit to return all sections. Excluded sections return as empty arrays.',
+        [
+          'Optional pipeline stage to filter sections. Omit to return all sections. Excluded sections return as empty arrays.',
+          'Stage values:',
+          '- "spec": requirements, designDecisions, contracts, contexts, observables, toolingRequirements',
+          '- "spec-decisions": requirements, designDecisions, contracts, toolingRequirements',
+          '- "spec-bdd": contexts, observables, contracts',
+          '- "implementation": steps, contracts',
+          'Contracts are included in every stage as the shared type dictionary.',
+        ].join(' '),
       )
       .optional(),
   })

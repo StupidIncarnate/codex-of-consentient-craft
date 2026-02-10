@@ -26,18 +26,44 @@ export const questContract = z.object({
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
   updatedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
-  executionLog: z.array(executionLogEntryContract),
-  requirements: z.array(requirementContract).default([]),
-  designDecisions: z.array(designDecisionContract).default([]),
-  contexts: z.array(contextContract),
-  observables: z.array(observableContract),
-  steps: z.array(dependencyStepContract),
-  toolingRequirements: z.array(toolingRequirementContract),
+  executionLog: z
+    .array(executionLogEntryContract)
+    .describe(
+      'Operational log of quest execution events. Not included in any stage filter - only available via full quest retrieval',
+    ),
+  requirements: z
+    .array(requirementContract)
+    .default([])
+    .describe(
+      'High-level feature descriptions with approval status. Each decomposes into 2-10 observables',
+    ),
+  designDecisions: z
+    .array(designDecisionContract)
+    .default([])
+    .describe('Architectural choices and rationale that emerged during requirements capture'),
+  contexts: z
+    .array(contextContract)
+    .describe(
+      'Reusable environments WHERE things happen - pages, sections, environments. Referenced by observables via contextId',
+    ),
+  observables: z
+    .array(observableContract)
+    .describe(
+      'BDD acceptance criteria structured as GIVEN (contextId) / WHEN (trigger) / THEN (outcomes). Each links to a requirement via requirementId',
+    ),
+  steps: z
+    .array(dependencyStepContract)
+    .describe(
+      'Dependency-ordered execution plan created by PathSeeker. Each step maps observables to concrete files',
+    ),
+  toolingRequirements: z
+    .array(toolingRequirementContract)
+    .describe('NPM packages needed for implementation that are not already in the project'),
   contracts: z
     .array(questContractEntryContract)
     .default([])
     .describe(
-      'Shared type dictionary for the quest. Defines all data types, API endpoints, and event schemas that steps reference. Agents receive this section regardless of which step they work on',
+      'Shared type dictionary defining all data types, API endpoints, and event schemas. Included in every stage filter as the common reference for all agents',
     ),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),

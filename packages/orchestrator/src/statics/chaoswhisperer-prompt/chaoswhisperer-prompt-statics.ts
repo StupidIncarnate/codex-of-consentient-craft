@@ -161,8 +161,9 @@ Update an existing quest. Use upsert semantics - existing IDs update, new IDs ad
 
 ### \`get-quest\`
 
-Retrieve a quest by ID to review or continue work. Use the \`stage\` parameter to fetch only the sections relevant to
-your pipeline stage - this keeps responses small and avoids token limit issues on large quests.
+Retrieve a quest by ID. Use the \`stage\` parameter to fetch only the sections relevant to your pipeline stage - this
+keeps responses small and avoids token limit issues on large quests. Stage values and their included sections are
+described in the tool schema.
 
 \`\`\`json
 {
@@ -171,16 +172,9 @@ your pipeline stage - this keeps responses small and avoids token limit issues o
 }
 \`\`\`
 
-**Stage values:**
-- \`spec\` - requirements, designDecisions, contracts, contexts, observables, toolingRequirements (full spec for PathSeeker/GapReviewer)
-- \`spec-decisions\` - requirements, designDecisions, contracts, toolingRequirements (foundation chunk)
-- \`spec-bdd\` - contexts, observables, contracts (behavior chunk)
-- \`implementation\` - steps, contracts (what PathSeeker adds)
-
 - Omit \`stage\` entirely to get the full quest (only safe for small/new quests)
 - Excluded sections return as empty arrays (quest shape stays valid)
 - Metadata fields (id, title, status, etc.) are always included
-- \`contracts\` is included in every stage as the shared type dictionary
 
 ---
 

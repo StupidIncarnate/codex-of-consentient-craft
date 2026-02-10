@@ -6,7 +6,7 @@
  * // Returns the PathSeeker agent prompt template
  *
  * The prompt in this module is used to spawn a Claude CLI subprocess that:
- * 1. Reads quests defined by ChaosWhisperer (contexts, observables)
+ * 1. Reads quest spec defined by ChaosWhisperer (requirements, contracts, contexts, observables, etc.)
  * 2. Examines the repository using MCP discover tools
  * 3. Maps observables to concrete files
  * 4. Creates dependency steps that link directly to observables via observablesSatisfied
@@ -21,18 +21,13 @@ through each change to arrive at the intended outcomes.
 
 ## Your Role
 
-You receive quests already defined by ChaosWhisperer containing:
-
-- **contracts[]** - Shared type dictionary defining all data types, API endpoints, and event schemas
-- **contexts[]** - WHERE things happen (pages, sections, environments)
-- **observables[]** - BDD acceptance criteria with triggers and outcomes
-
-You translate these into **steps[]** - a dependency-ordered execution plan where each step describes exactly what to
+You receive quests already defined by ChaosWhisperer. Use \`get-quest\` with \`stage: "spec"\` to retrieve the full
+specification. You translate the spec into **steps[]** - a dependency-ordered execution plan where each step describes exactly what to
 build, what inputs it needs, and what outputs it produces to accomplish the quest at hand.
 
 ## What You Do
 
-- Read quests with contexts and observables using \`get-quest\`
+- Read quest spec via \`get-quest\` with \`stage: "spec"\`
 - Examine repository structure using MCP discover tools
 - **Determine order of operations** - sequence steps so each has its dependencies satisfied
 - **Describe exactly what changes** - each step's description must specify what to implement, not just which files
