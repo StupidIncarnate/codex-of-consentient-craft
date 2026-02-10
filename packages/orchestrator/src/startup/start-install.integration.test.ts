@@ -25,7 +25,7 @@ describe('start-install integration', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md, quest-path-seeker.md, and quest-gap-reviewer.md',
+          'Created .claude/commands/ with quest.md, quest:start.md, and quest-path-seeker.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
       });
 
       const questContent = testbed.readFile({
@@ -41,7 +41,7 @@ describe('start-install integration', () => {
       });
 
       const questPathSeekerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/agents/quest-path-seeker.md' }),
+        relativePath: RelativePathStub({ value: '.claude/commands/quest-path-seeker.md' }),
       });
 
       const questGapReviewerContent = testbed.readFile({
@@ -81,7 +81,7 @@ describe('start-install integration', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md, quest-path-seeker.md, and quest-gap-reviewer.md',
+          'Created .claude/commands/ with quest.md, quest:start.md, and quest-path-seeker.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
       });
 
       const questContent = testbed.readFile({
@@ -178,7 +178,7 @@ describe('start-install integration', () => {
       });
 
       const questPathSeekerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/agents/quest-path-seeker.md' }),
+        relativePath: RelativePathStub({ value: '.claude/commands/quest-path-seeker.md' }),
       });
 
       testbed.cleanup();

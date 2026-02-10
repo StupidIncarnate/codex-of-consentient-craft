@@ -68,7 +68,7 @@ export const StartInstall = async ({
   });
 
   const questPathSeekerFilePath = pathJoinAdapter({
-    paths: [agentsDir, QUEST_PATH_SEEKER_FILENAME],
+    paths: [commandsDir, QUEST_PATH_SEEKER_FILENAME],
   });
 
   const questGapReviewerFilePath = pathJoinAdapter({
@@ -99,7 +99,7 @@ export const StartInstall = async ({
     success: true,
     action: 'created',
     message: installMessageContract.parse(
-      'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md, quest-path-seeker.md, and quest-gap-reviewer.md',
+      'Created .claude/commands/ with quest.md, quest:start.md, and quest-path-seeker.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
     ),
   };
 };

@@ -78,10 +78,23 @@
       "Bash(npm link)",
       "Bash(npm view:*)",
       "Bash(npm show:*)",
-      "WebFetch(domain:registry.npmjs.org)"
+      "WebFetch(domain:registry.npmjs.org)",
+      "mcp__dungeonmaster__add-quest",
+      "mcp__dungeonmaster__get-quest",
+      "mcp__dungeonmaster__modify-quest",
+      "mcp__dungeonmaster__signal-back",
+      "mcp__dungeonmaster__start-quest",
+      "mcp__dungeonmaster__get-quest-status",
+      "mcp__dungeonmaster__list-quests",
+      "mcp__dungeonmaster__verify-quest"
     ],
-    "deny": ["Bash(cat:*)", "Bash(sed:*)"]
+    "deny": [
+      "Bash(cat:*)",
+      "Bash(sed:*)"
+    ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["dungeonmaster"]
+  "enabledMcpjsonServers": [
+    "dungeonmaster"
+  ]
 }
