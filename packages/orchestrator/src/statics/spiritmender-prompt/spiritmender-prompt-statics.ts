@@ -110,7 +110,6 @@ When all errors are fixed, use \`signal-back\`:
 \`\`\`
 signal-back({
   signal: 'complete',
-  stepId: '[your-step-id]',
   summary: 'Fixed [N] errors: [brief description]'
 })
 \`\`\`
@@ -120,7 +119,6 @@ signal-back({
 \`\`\`
 signal-back({
   signal: 'needs-role-followup',
-  stepId: '[your-step-id]',
   context: 'Architectural issue discovered',
   reason: 'Errors reveal fundamental design problems that need replanning',
   targetRole: 'pathseeker'

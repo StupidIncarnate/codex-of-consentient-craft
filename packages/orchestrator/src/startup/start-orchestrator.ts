@@ -32,6 +32,7 @@ import { questLoadBroker } from '../brokers/quest/load/quest-load-broker';
 import { questModifyBroker } from '../brokers/quest/modify/quest-modify-broker';
 import { questVerifyBroker } from '../brokers/quest/verify/quest-verify-broker';
 import { pathseekerPipelineBroker } from '../brokers/pathseeker/pipeline/pathseeker-pipeline-broker';
+import { questPipelineBroker } from '../brokers/quest/pipeline/quest-pipeline-broker';
 import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract';
 import type { AddQuestResult } from '../contracts/add-quest-result/add-quest-result-contract';
 import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract';
@@ -97,6 +98,12 @@ export const StartOrchestrator = {
       throw new Error(`Quest not found: ${questId}`);
     }
 
+    const { questsBasePath } = await questsFolderEnsureBroker({ startPath });
+
+    const questFilePath = pathJoinAdapter({
+      paths: [questsBasePath, quest.folder, QUEST_FILE_NAME],
+    });
+
     const totalSteps = totalCountContract.parse(quest.steps.length);
 
     const promptText = pathseekerPromptStatics.prompt.template.replace(
@@ -140,9 +147,19 @@ export const StartOrchestrator = {
       killableProcess,
       attempt: 0,
       onVerifySuccess: () => {
-        orchestrationProcessesState.updatePhase({
+        questPipelineBroker({
           processId,
-          phase: orchestrationPhaseContract.parse('idle'),
+          questId,
+          questFilePath,
+          startPath,
+          onPhaseChange: ({ phase }) => {
+            orchestrationProcessesState.updatePhase({ processId, phase });
+          },
+        }).catch(() => {
+          orchestrationProcessesState.updatePhase({
+            processId,
+            phase: orchestrationPhaseContract.parse('failed'),
+          });
         });
       },
       onProcessUpdate: ({ process }) => {
@@ -151,7 +168,7 @@ export const StartOrchestrator = {
     }).catch(() => {
       orchestrationProcessesState.updatePhase({
         processId,
-        phase: orchestrationPhaseContract.parse('idle'),
+        phase: orchestrationPhaseContract.parse('failed'),
       });
     });
 

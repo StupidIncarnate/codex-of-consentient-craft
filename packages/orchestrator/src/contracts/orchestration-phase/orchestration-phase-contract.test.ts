@@ -26,6 +26,54 @@ describe('orchestrationPhaseContract', () => {
 
       expect(result).toBe('complete');
     });
+
+    it('VALID: {ward} => parses successfully', () => {
+      const phase = OrchestrationPhaseStub({ value: 'ward' });
+
+      const result = orchestrationPhaseContract.parse(phase);
+
+      expect(result).toBe('ward');
+    });
+
+    it('VALID: {failed} => parses successfully', () => {
+      const phase = OrchestrationPhaseStub({ value: 'failed' });
+
+      const result = orchestrationPhaseContract.parse(phase);
+
+      expect(result).toBe('failed');
+    });
+
+    it('VALID: {siegemaster} => parses successfully', () => {
+      const phase = OrchestrationPhaseStub({ value: 'siegemaster' });
+
+      const result = orchestrationPhaseContract.parse(phase);
+
+      expect(result).toBe('siegemaster');
+    });
+
+    it('VALID: {spiritmender} => parses successfully', () => {
+      const phase = OrchestrationPhaseStub({ value: 'spiritmender' });
+
+      const result = orchestrationPhaseContract.parse(phase);
+
+      expect(result).toBe('spiritmender');
+    });
+
+    it('VALID: {lawbringer} => parses successfully', () => {
+      const phase = OrchestrationPhaseStub({ value: 'lawbringer' });
+
+      const result = orchestrationPhaseContract.parse(phase);
+
+      expect(result).toBe('lawbringer');
+    });
+
+    it('VALID: {idle} => parses successfully', () => {
+      const phase = OrchestrationPhaseStub({ value: 'idle' });
+
+      const result = orchestrationPhaseContract.parse(phase);
+
+      expect(result).toBe('idle');
+    });
   });
 
   describe('invalid phases', () => {

@@ -387,7 +387,6 @@ When all steps are persisted and verified, use \`signal-back\`:
 \`\`\`
 signal-back({
   signal: 'complete',
-  stepId: '[your-step-id]',
   summary: 'Created [N] steps covering [N] observables. Execution flow: [brief data flow summary]'
 })
 \`\`\`
@@ -397,7 +396,6 @@ signal-back({
 \`\`\`
 signal-back({
   signal: 'needs-role-followup',
-  stepId: '[your-step-id]',
   context: 'What you discovered',
   reason: 'Why another role is needed',
   targetRole: 'chaoswhisperer'

@@ -139,7 +139,6 @@ Based on review, either:
 \`\`\`
 signal-back({
   signal: 'complete',
-  stepId: '[your-step-id]',
   summary: 'Code review passed: [brief notes on quality]'
 })
 \`\`\`
@@ -149,7 +148,6 @@ signal-back({
 \`\`\`
 signal-back({
   signal: 'needs-role-followup',
-  stepId: '[your-step-id]',
   context: 'Code review findings',
   reason: 'Issues found: [list specific issues that need fixing]',
   targetRole: 'codeweaver',
@@ -162,7 +160,6 @@ signal-back({
 \`\`\`
 signal-back({
   signal: 'needs-role-followup',
-  stepId: '[your-step-id]',
   context: 'Build failures detected',
   reason: '[N] lint/type errors need fixing',
   targetRole: 'spiritmender',

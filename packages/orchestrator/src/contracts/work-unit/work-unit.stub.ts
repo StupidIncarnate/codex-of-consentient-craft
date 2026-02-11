@@ -1,10 +1,16 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { DependencyStepStub, QuestIdStub, StepIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  AbsoluteFilePathStub,
+  ContextStub,
+  DependencyStepStub,
+  ObservableStub,
+  QuestContractEntryStub,
+  QuestIdStub,
+  RequirementStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { workUnitContract } from './work-unit-contract';
 import type { WorkUnit } from './work-unit-contract';
-import { FilePairWorkUnitStub } from '../file-pair-work-unit/file-pair-work-unit.stub';
-import { FileWorkUnitStub } from '../file-work-unit/file-work-unit.stub';
 
 export const PathseekerWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}): WorkUnit =>
   workUnitContract.parse({
@@ -17,22 +23,24 @@ export const CodeweaverWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}
   workUnitContract.parse({
     role: 'codeweaver',
     step: DependencyStepStub(),
+    questId: QuestIdStub({ value: 'add-auth' }),
+    relatedContracts: [QuestContractEntryStub()],
+    relatedObservables: [ObservableStub()],
+    relatedRequirements: [RequirementStub()],
     ...props,
   });
 
 export const SpiritmenderWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}): WorkUnit =>
   workUnitContract.parse({
     role: 'spiritmender',
-    file: FileWorkUnitStub(),
-    stepId: StepIdStub(),
+    filePaths: [AbsoluteFilePathStub({ value: '/src/file.ts' })],
     ...props,
   });
 
 export const LawbringerWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}): WorkUnit =>
   workUnitContract.parse({
     role: 'lawbringer',
-    filePair: FilePairWorkUnitStub(),
-    stepId: StepIdStub(),
+    filePaths: [AbsoluteFilePathStub({ value: '/src/broker.ts' })],
     ...props,
   });
 
@@ -40,7 +48,8 @@ export const SiegemasterWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {
   workUnitContract.parse({
     role: 'siegemaster',
     questId: QuestIdStub({ value: 'add-auth' }),
-    stepId: StepIdStub(),
+    observables: [ObservableStub()],
+    contexts: [ContextStub()],
     ...props,
   });
 

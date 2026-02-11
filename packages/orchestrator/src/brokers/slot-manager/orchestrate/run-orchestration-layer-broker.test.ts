@@ -74,4 +74,42 @@ describe('runOrchestrationLayerBroker', () => {
       expect(result).toStrictEqual({ completed: true });
     });
   });
+
+  describe('stuck state', () => {
+    it('VALID: {failed step, no agents, no ready steps} => returns completed false with incompleteSteps', async () => {
+      const proxy = runOrchestrationLayerBrokerProxy();
+      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+      const slotCount = SlotCountStub({ value: 2 });
+      const timeoutMs = TimeoutMsStub({ value: 60000 });
+      const slotOperations = SlotOperationsStub();
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const failedStep = DependencyStepStub({
+        id: stepId,
+        status: 'failed',
+        dependsOn: [],
+      });
+
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(
+          QuestStub({
+            steps: [failedStep],
+          }),
+        ),
+      });
+
+      const result = await runOrchestrationLayerBroker({
+        questFilePath,
+        slotCount,
+        timeoutMs,
+        slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
+        activeAgents: [],
+      });
+
+      expect(result).toStrictEqual({
+        completed: false,
+        incompleteSteps: [failedStep],
+      });
+    });
+  });
 });

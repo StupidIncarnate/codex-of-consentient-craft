@@ -8,13 +8,15 @@
 
 import { z } from 'zod';
 import {
+  absoluteFilePathContract,
+  contextContract,
   dependencyStepContract,
+  errorMessageContract,
+  observableContract,
+  questContractEntryContract,
   questIdContract,
-  stepIdContract,
+  requirementContract,
 } from '@dungeonmaster/shared/contracts';
-
-import { filePairWorkUnitContract } from '../file-pair-work-unit/file-pair-work-unit-contract';
-import { fileWorkUnitContract } from '../file-work-unit/file-work-unit-contract';
 
 const pathseekerWorkUnitContract = z.object({
   role: z.literal('pathseeker'),
@@ -24,24 +26,28 @@ const pathseekerWorkUnitContract = z.object({
 const codeweaverWorkUnitContract = z.object({
   role: z.literal('codeweaver'),
   step: dependencyStepContract,
+  questId: questIdContract,
+  relatedContracts: z.array(questContractEntryContract),
+  relatedObservables: z.array(observableContract),
+  relatedRequirements: z.array(requirementContract),
 });
 
 const spiritmenderWorkUnitContract = z.object({
   role: z.literal('spiritmender'),
-  file: fileWorkUnitContract,
-  stepId: stepIdContract,
-});
-
-const lawbringerWorkUnitContract = z.object({
-  role: z.literal('lawbringer'),
-  filePair: filePairWorkUnitContract,
-  stepId: stepIdContract,
+  filePaths: z.array(absoluteFilePathContract),
+  errors: z.array(errorMessageContract).optional(),
 });
 
 const siegemasterWorkUnitContract = z.object({
   role: z.literal('siegemaster'),
   questId: questIdContract,
-  stepId: stepIdContract,
+  observables: z.array(observableContract),
+  contexts: z.array(contextContract),
+});
+
+const lawbringerWorkUnitContract = z.object({
+  role: z.literal('lawbringer'),
+  filePaths: z.array(absoluteFilePathContract),
 });
 
 export const workUnitContract = z.discriminatedUnion('role', [

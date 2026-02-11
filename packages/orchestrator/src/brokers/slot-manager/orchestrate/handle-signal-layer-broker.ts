@@ -35,32 +35,36 @@ export const handleSignalLayerBroker = async ({
   questFilePath,
 }: {
   signal: StreamSignal;
-  stepId: StepId;
+  stepId?: StepId;
   questFilePath: FilePath;
 }): Promise<HandleSignalResult> => {
   const now = isoTimestampContract.parse(new Date().toISOString());
 
   switch (signal.signal) {
     case 'complete': {
-      await questUpdateStepBroker({
-        questFilePath,
-        stepId,
-        updates: {
-          status: 'complete',
-          completedAt: now,
-        },
-      });
+      if (stepId) {
+        await questUpdateStepBroker({
+          questFilePath,
+          stepId,
+          updates: {
+            status: 'complete',
+            completedAt: now,
+          },
+        });
+      }
       return { action: 'continue' };
     }
 
     case 'partially-complete': {
-      await questUpdateStepBroker({
-        questFilePath,
-        stepId,
-        updates: {
-          status: 'partially_complete',
-        },
-      });
+      if (stepId) {
+        await questUpdateStepBroker({
+          questFilePath,
+          stepId,
+          updates: {
+            status: 'partially_complete',
+          },
+        });
+      }
       return {
         action: 'respawn',
         ...(signal.continuationPoint === undefined
@@ -70,15 +74,17 @@ export const handleSignalLayerBroker = async ({
     }
 
     case 'needs-role-followup': {
-      await questUpdateStepBroker({
-        questFilePath,
-        stepId,
-        updates: {
-          status: 'blocked',
-          blockingType: 'needs_role_followup',
-          blockingReason: blockingReasonContract.parse(signal.reason ?? 'Role followup needed'),
-        },
-      });
+      if (stepId) {
+        await questUpdateStepBroker({
+          questFilePath,
+          stepId,
+          updates: {
+            status: 'blocked',
+            blockingType: 'needs_role_followup',
+            blockingReason: blockingReasonContract.parse(signal.reason ?? 'Role followup needed'),
+          },
+        });
+      }
 
       const defaultTargetRole = streamSignalContract.shape.targetRole.unwrap().parse('default');
 

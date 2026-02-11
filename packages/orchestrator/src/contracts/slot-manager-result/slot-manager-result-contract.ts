@@ -7,9 +7,20 @@
  */
 
 import { z } from 'zod';
+import { dependencyStepContract } from '@dungeonmaster/shared/contracts';
 
-export const slotManagerResultContract = z.object({
+const slotManagerResultCompletedContract = z.object({
   completed: z.literal(true),
 });
+
+const slotManagerResultIncompleteContract = z.object({
+  completed: z.literal(false),
+  incompleteSteps: z.array(dependencyStepContract),
+});
+
+export const slotManagerResultContract = z.discriminatedUnion('completed', [
+  slotManagerResultCompletedContract,
+  slotManagerResultIncompleteContract,
+]);
 
 export type SlotManagerResult = z.infer<typeof slotManagerResultContract>;

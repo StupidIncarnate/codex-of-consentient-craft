@@ -503,7 +503,8 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'contracts',
             importedFolder: 'brokers',
-            allowed: 'statics/, errors/, contracts/, zod, @dungeonmaster/shared/@types',
+            allowed:
+              'statics/, errors/, contracts/, zod, @dungeonmaster/shared/@types, @dungeonmaster/orchestrator',
           },
         },
       ],
@@ -519,7 +520,8 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'contracts',
             importedFolder: 'guards',
-            allowed: 'statics/, errors/, contracts/, zod, @dungeonmaster/shared/@types',
+            allowed:
+              'statics/, errors/, contracts/, zod, @dungeonmaster/shared/@types, @dungeonmaster/orchestrator',
           },
         },
       ],
@@ -652,7 +654,8 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'brokers',
             importedFolder: 'widgets',
-            allowed: 'brokers/, adapters/, contracts/, statics/, errors/, guards/, transformers/',
+            allowed:
+              'brokers/, adapters/, contracts/, statics/, errors/, guards/, transformers/, @dungeonmaster/orchestrator',
           },
         },
       ],
@@ -668,7 +671,8 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'brokers',
             importedFolder: 'responders',
-            allowed: 'brokers/, adapters/, contracts/, statics/, errors/, guards/, transformers/',
+            allowed:
+              'brokers/, adapters/, contracts/, statics/, errors/, guards/, transformers/, @dungeonmaster/orchestrator',
           },
         },
       ],

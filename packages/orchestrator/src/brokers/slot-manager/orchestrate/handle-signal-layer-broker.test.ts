@@ -6,7 +6,7 @@ import { handleSignalLayerBrokerProxy } from './handle-signal-layer-broker.proxy
 
 describe('handleSignalLayerBroker', () => {
   describe('complete signal', () => {
-    it('VALID: {signal: complete} => updates step to complete and returns continue action', async () => {
+    it('VALID: {signal: complete, stepId} => updates step to complete and returns continue action', async () => {
       const proxy = handleSignalLayerBrokerProxy();
       const stepId = StepIdStub();
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
@@ -42,10 +42,20 @@ describe('handleSignalLayerBroker', () => {
 
       expect(result).toStrictEqual({ action: 'continue' });
     });
+
+    it('VALID: {signal: complete, no stepId} => skips quest update and returns continue action', async () => {
+      handleSignalLayerBrokerProxy();
+      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+      const signal = StreamSignalStub({ signal: 'complete' });
+
+      const result = await handleSignalLayerBroker({ signal, questFilePath });
+
+      expect(result).toStrictEqual({ action: 'continue' });
+    });
   });
 
   describe('partially-complete signal', () => {
-    it('VALID: {signal: partially-complete, continuationPoint: defined} => returns respawn action with continuationPoint', async () => {
+    it('VALID: {signal: partially-complete, stepId, continuationPoint: defined} => returns respawn action with continuationPoint', async () => {
       const proxy = handleSignalLayerBrokerProxy();
       const stepId = StepIdStub();
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
@@ -88,10 +98,26 @@ describe('handleSignalLayerBroker', () => {
         continuationPoint: 'Continue from step 2',
       });
     });
+
+    it('VALID: {signal: partially-complete, no stepId} => skips quest update and returns respawn action', async () => {
+      handleSignalLayerBrokerProxy();
+      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+      const signal = StreamSignalStub({
+        signal: 'partially-complete',
+        continuationPoint: 'Continue from step 2' as never,
+      });
+
+      const result = await handleSignalLayerBroker({ signal, questFilePath });
+
+      expect(result).toStrictEqual({
+        action: 'respawn',
+        continuationPoint: 'Continue from step 2',
+      });
+    });
   });
 
   describe('needs-role-followup signal', () => {
-    it('VALID: {signal: needs-role-followup, all fields defined} => returns spawn_role action with all fields', async () => {
+    it('VALID: {signal: needs-role-followup, stepId, all fields defined} => returns spawn_role action with all fields', async () => {
       const proxy = handleSignalLayerBrokerProxy();
       const stepId = StepIdStub();
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
@@ -130,6 +156,26 @@ describe('handleSignalLayerBroker', () => {
       });
 
       const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
+
+      expect(result).toStrictEqual({
+        action: 'spawn_role',
+        targetRole: 'reviewer',
+        reason: 'Need code review',
+        context: 'Review context',
+      });
+    });
+
+    it('VALID: {signal: needs-role-followup, no stepId} => skips quest update and returns spawn_role action', async () => {
+      handleSignalLayerBrokerProxy();
+      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+      const signal = StreamSignalStub({
+        signal: 'needs-role-followup',
+        targetRole: 'reviewer' as never,
+        reason: 'Need code review' as never,
+        context: 'Review context' as never,
+      });
+
+      const result = await handleSignalLayerBroker({ signal, questFilePath });
 
       expect(result).toStrictEqual({
         action: 'spawn_role',

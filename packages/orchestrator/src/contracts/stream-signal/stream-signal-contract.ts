@@ -14,7 +14,7 @@ import { stepIdContract } from '@dungeonmaster/shared/contracts';
 // NOTE: 'needs-user-input' signal was removed - agents should make autonomous decisions
 export const streamSignalContract = z.object({
   signal: z.enum(['complete', 'partially-complete', 'needs-role-followup']),
-  stepId: stepIdContract,
+  stepId: stepIdContract.optional(),
   // Fields for 'complete' signal
   summary: z.string().min(1).brand<'SignalSummary'>().optional(),
   // Fields for 'partially-complete' signal

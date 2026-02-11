@@ -1,5 +1,7 @@
+import { DependencyStepStub } from '@dungeonmaster/shared/contracts';
+
 import { slotManagerResultContract } from './slot-manager-result-contract';
-import { SlotManagerResultStub } from './slot-manager-result.stub';
+import { SlotManagerResultIncompleteStub, SlotManagerResultStub } from './slot-manager-result.stub';
 
 describe('slotManagerResultContract', () => {
   describe('completed: true', () => {
@@ -22,25 +24,61 @@ describe('slotManagerResultContract', () => {
     });
   });
 
+  describe('completed: false', () => {
+    it('VALID: {completed: false, incompleteSteps: [step]} => parses successfully', () => {
+      const step = DependencyStepStub({ status: 'failed' });
+      const result = slotManagerResultContract.parse({
+        completed: false,
+        incompleteSteps: [step],
+      });
+
+      expect(result).toStrictEqual({
+        completed: false,
+        incompleteSteps: [step],
+      });
+    });
+
+    it('VALID: {completed: false, incompleteSteps: []} => parses with empty array', () => {
+      const result = slotManagerResultContract.parse({
+        completed: false,
+        incompleteSteps: [],
+      });
+
+      expect(result).toStrictEqual({
+        completed: false,
+        incompleteSteps: [],
+      });
+    });
+
+    it('VALID: {SlotManagerResultIncompleteStub()} => creates incomplete result', () => {
+      const result = SlotManagerResultIncompleteStub();
+
+      expect(result).toStrictEqual({
+        completed: false,
+        incompleteSteps: [DependencyStepStub()],
+      });
+    });
+  });
+
   describe('invalid cases', () => {
-    it('INVALID_COMPLETED: {missing completed} => throws invalid literal', () => {
-      expect(() => slotManagerResultContract.parse({})).toThrow(/Invalid literal value/u);
+    it('INVALID_COMPLETED: {missing completed} => throws discriminator error', () => {
+      expect(() => slotManagerResultContract.parse({})).toThrow(/Invalid discriminator value/u);
     });
 
-    it('INVALID_COMPLETED: {completed: false} => throws invalid literal', () => {
-      expect(() =>
-        slotManagerResultContract.parse({
-          completed: false,
-        }),
-      ).toThrow(/Invalid literal value/u);
-    });
-
-    it('INVALID_COMPLETED: {completed: "invalid"} => throws invalid literal', () => {
+    it('INVALID_COMPLETED: {completed: "invalid"} => throws discriminator error', () => {
       expect(() =>
         slotManagerResultContract.parse({
           completed: 'invalid' as never,
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid discriminator value/u);
+    });
+
+    it('INVALID_INCOMPLETE_STEPS: {completed: false, missing incompleteSteps} => throws required error', () => {
+      expect(() =>
+        slotManagerResultContract.parse({
+          completed: false,
+        }),
+      ).toThrow(/Required/u);
     });
   });
 });

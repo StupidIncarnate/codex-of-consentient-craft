@@ -14,8 +14,10 @@ export const orchestrationPhaseContract = z.enum([
   'siegemaster',
   'lawbringer',
   'spiritmender',
+  'ward',
   'idle',
   'complete',
+  'failed',
 ]);
 
 export type OrchestrationPhase = z.infer<typeof orchestrationPhaseContract>;

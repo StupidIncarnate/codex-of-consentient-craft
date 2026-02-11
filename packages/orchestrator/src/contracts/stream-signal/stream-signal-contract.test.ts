@@ -129,6 +129,60 @@ describe('streamSignalContract', () => {
         stepId,
       });
     });
+
+    it('EDGE: {signal only, no stepId} => parses without stepId', () => {
+      const result = streamSignalContract.parse({
+        signal: 'complete',
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'complete',
+      });
+    });
+
+    it('VALID: {signal: "complete", no stepId, with summary} => parses complete signal without stepId', () => {
+      const result = streamSignalContract.parse({
+        signal: 'complete',
+        summary: 'Done',
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'complete',
+        summary: 'Done',
+      });
+    });
+
+    it('VALID: {signal: "partially-complete", no stepId} => parses without stepId', () => {
+      const result = streamSignalContract.parse({
+        signal: 'partially-complete',
+        progress: 'Half done',
+        continuationPoint: 'Step 3',
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'partially-complete',
+        progress: 'Half done',
+        continuationPoint: 'Step 3',
+      });
+    });
+
+    it('VALID: {signal: "needs-role-followup", no stepId} => parses without stepId', () => {
+      const result = streamSignalContract.parse({
+        signal: 'needs-role-followup',
+        targetRole: 'PathSeeker',
+        reason: 'Need file mapping',
+        context: 'Quest setup',
+        resume: true,
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'needs-role-followup',
+        targetRole: 'PathSeeker',
+        reason: 'Need file mapping',
+        context: 'Quest setup',
+        resume: true,
+      });
+    });
   });
 
   describe('invalid signals', () => {
@@ -145,14 +199,6 @@ describe('streamSignalContract', () => {
       expect(() =>
         streamSignalContract.parse({
           stepId: StepIdStub(),
-        }),
-      ).toThrow(/Required/u);
-    });
-
-    it('INVALID_STEP_ID: {stepId: missing} => throws for missing stepId', () => {
-      expect(() =>
-        streamSignalContract.parse({
-          signal: 'complete',
         }),
       ).toThrow(/Required/u);
     });

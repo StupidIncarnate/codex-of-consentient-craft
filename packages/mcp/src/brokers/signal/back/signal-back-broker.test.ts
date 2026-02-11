@@ -93,14 +93,91 @@ describe('signalBackBroker', () => {
       ).toThrow(/Invalid enum value/u);
     });
 
-    it('ERROR: {missing stepId} => throws validation error', () => {
+    it('VALID: {missing stepId} => succeeds because stepId is optional', () => {
       signalBackBrokerProxy();
 
-      expect(() =>
-        signalBackBroker({
-          input: { signal: 'complete', summary: 'Test' } as never,
-        }),
-      ).toThrow(/Required/u);
+      const result = signalBackBroker({
+        input: { signal: 'complete', summary: 'Test' } as never,
+      });
+
+      expect(result).toStrictEqual({
+        success: true,
+        signal: {
+          signal: 'complete',
+          summary: 'Test',
+        },
+      });
+    });
+
+    it('VALID: {partially-complete signal, no stepId} => succeeds', () => {
+      signalBackBrokerProxy();
+
+      const result = signalBackBroker({
+        input: {
+          signal: 'partially-complete',
+          progress: 'Made progress',
+          continuationPoint: 'Step 3',
+        } as never,
+      });
+
+      expect(result).toStrictEqual({
+        success: true,
+        signal: {
+          signal: 'partially-complete',
+          progress: 'Made progress',
+          continuationPoint: 'Step 3',
+        },
+      });
+    });
+
+    it('VALID: {needs-role-followup signal, no stepId} => succeeds', () => {
+      signalBackBrokerProxy();
+
+      const result = signalBackBroker({
+        input: {
+          signal: 'needs-role-followup',
+          targetRole: 'spiritmender',
+          reason: 'Lint errors',
+          context: 'file.ts',
+          resume: true,
+        } as never,
+      });
+
+      expect(result).toStrictEqual({
+        success: true,
+        signal: {
+          signal: 'needs-role-followup',
+          targetRole: 'spiritmender',
+          reason: 'Lint errors',
+          context: 'file.ts',
+          resume: true,
+        },
+      });
+    });
+
+    it('VALID: {needs-role-followup, resume: false, no stepId} => succeeds', () => {
+      signalBackBrokerProxy();
+
+      const result = signalBackBroker({
+        input: {
+          signal: 'needs-role-followup',
+          targetRole: 'spiritmender',
+          reason: 'Lint errors',
+          context: 'file.ts',
+          resume: false,
+        } as never,
+      });
+
+      expect(result).toStrictEqual({
+        success: true,
+        signal: {
+          signal: 'needs-role-followup',
+          targetRole: 'spiritmender',
+          reason: 'Lint errors',
+          context: 'file.ts',
+          resume: false,
+        },
+      });
     });
 
     it('ERROR: {invalid stepId format} => throws validation error', () => {

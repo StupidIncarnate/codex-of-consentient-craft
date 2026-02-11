@@ -17,7 +17,7 @@ export const signalBackInputContract = z.object({
   signal: z
     .enum(['complete', 'partially-complete', 'needs-role-followup'])
     .describe('Signal type indicating step status'),
-  stepId: stepIdContract.describe('The ID of the step being signaled'),
+  stepId: stepIdContract.describe('The ID of the step being signaled').optional(),
   // Fields for 'complete' signal
   summary: z
     .string()

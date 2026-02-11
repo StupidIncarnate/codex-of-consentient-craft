@@ -151,7 +151,6 @@ When integration tests are complete, use \`signal-back\`:
 \`\`\`
 signal-back({
   signal: 'complete',
-  stepId: '[your-step-id]',
   summary: 'Created [N] integration tests covering [observables]'
 })
 \`\`\`
@@ -161,7 +160,6 @@ signal-back({
 \`\`\`
 signal-back({
   signal: 'needs-role-followup',
-  stepId: '[your-step-id]',
   context: 'Integration test discovery',
   reason: 'Required components not yet implemented: [list]',
   targetRole: 'codeweaver'
@@ -173,7 +171,6 @@ signal-back({
 \`\`\`
 signal-back({
   signal: 'needs-role-followup',
-  stepId: '[your-step-id]',
   context: 'Observable gaps discovered',
   reason: 'User flow requires behaviors not defined in observables',
   targetRole: 'chaoswhisperer'
@@ -185,7 +182,6 @@ signal-back({
 \`\`\`
 signal-back({
   signal: 'needs-role-followup',
-  stepId: '[your-step-id]',
   context: 'Integration test failures',
   reason: 'Tests reveal bugs in implementation: [details]',
   targetRole: 'spiritmender',

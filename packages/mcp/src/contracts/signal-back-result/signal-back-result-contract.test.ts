@@ -91,8 +91,24 @@ describe('signalBackResultContract', () => {
       });
     });
 
-    it('VALID: {default stub values} => parses with defaults', () => {
+    it('VALID: {default stub values} => parses with defaults (no stepId)', () => {
       const input = SignalBackResultStub();
+
+      const result = signalBackResultContract.parse(input);
+
+      expect(result).toStrictEqual({
+        success: true,
+        signal: {
+          signal: 'complete',
+          summary: 'Step completed successfully',
+        },
+      });
+    });
+
+    it('VALID: {default stub values with stepId} => parses with stepId included', () => {
+      const stepId = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
+      const signal = SignalBackInputStub({ stepId });
+      const input = SignalBackResultStub({ signal });
 
       const result = signalBackResultContract.parse(input);
 

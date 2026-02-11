@@ -5,12 +5,12 @@ import {
   StepIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { slotManagerOrchestrateBroker } from './slot-manager-orchestrate-broker';
-import { slotManagerOrchestrateBrokerProxy } from './slot-manager-orchestrate-broker.proxy';
 import { AgentRoleStub } from '../../../contracts/agent-role/agent-role.stub';
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
+import { slotManagerOrchestrateBroker } from './slot-manager-orchestrate-broker';
+import { slotManagerOrchestrateBrokerProxy } from './slot-manager-orchestrate-broker.proxy';
 
 describe('slotManagerOrchestrateBroker', () => {
   describe('all steps complete', () => {
@@ -99,7 +99,7 @@ describe('slotManagerOrchestrateBroker', () => {
       expect(result).toStrictEqual({ completed: true });
     });
 
-    it('VALID: {pending step with incomplete dependency} => returns completed true when no agents active', async () => {
+    it('VALID: {pending step with incomplete dependency, no agents} => returns completed false with incompleteSteps', async () => {
       const proxy = slotManagerOrchestrateBrokerProxy();
       const stepId1 = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const stepId2 = StepIdStub({ value: 'b2c3d4e5-f6a7-5b8c-9d0e-1f2a3b4c5d6e' });
@@ -131,7 +131,42 @@ describe('slotManagerOrchestrateBroker', () => {
         role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
-      expect(result).toStrictEqual({ completed: true });
+      expect(result).toStrictEqual({
+        completed: false,
+        incompleteSteps: [step1, step2],
+      });
+    });
+
+    it('VALID: {failed step, no agents, no ready steps} => returns completed false with incompleteSteps', async () => {
+      const proxy = slotManagerOrchestrateBrokerProxy();
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const failedStep = DependencyStepStub({
+        id: stepId,
+        status: 'failed',
+        dependsOn: [],
+      });
+      const quest = QuestStub({ steps: [failedStep] });
+      const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
+      const slotCount = SlotCountStub({ value: 3 });
+      const timeoutMs = TimeoutMsStub({ value: 60000 });
+      const slotOperations = SlotOperationsStub();
+
+      proxy.setupQuestLoad({
+        questJson: JSON.stringify(quest),
+      });
+
+      const result = await slotManagerOrchestrateBroker({
+        questFilePath,
+        slotCount,
+        timeoutMs,
+        slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
+      });
+
+      expect(result).toStrictEqual({
+        completed: false,
+        incompleteSteps: [failedStep],
+      });
     });
   });
 

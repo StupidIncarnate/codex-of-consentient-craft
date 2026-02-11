@@ -11,6 +11,7 @@ import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
 import { agentRoleContract } from '../../../contracts/agent-role/agent-role-contract';
+import { continuationContextContract } from '../../../contracts/continuation-context/continuation-context-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
@@ -68,7 +69,11 @@ export const orchestrationLoopLayerBroker = async ({
         },
       });
 
-      const workUnit = buildWorkUnitForRoleTransformer({ role, step: stepToRun });
+      const workUnit = buildWorkUnitForRoleTransformer({
+        role,
+        step: stepToRun,
+        quest,
+      });
 
       const agentPromise = spawnAgentLayerBroker({
         workUnit,
@@ -82,6 +87,11 @@ export const orchestrationLoopLayerBroker = async ({
         promise: agentPromise,
       });
     }
+  }
+
+  if (activeAgents.length === 0 && readySteps.length === 0) {
+    const incompleteSteps = quest.steps.filter((s) => s.status !== 'complete');
+    return { done: true, result: { completed: false, incompleteSteps } };
   }
 
   if (activeAgents.length === 0) {
@@ -106,7 +116,11 @@ export const orchestrationLoopLayerBroker = async ({
     const quest2 = await questLoadBroker({ questFilePath });
     const step = quest2.steps.find((s) => s.id === completedAgent.stepId);
     if (step) {
-      const workUnit = buildWorkUnitForRoleTransformer({ role, step });
+      const workUnit = buildWorkUnitForRoleTransformer({
+        role,
+        step,
+        quest: quest2,
+      });
 
       const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
       if (newSlotIndex !== undefined) {
@@ -128,13 +142,11 @@ export const orchestrationLoopLayerBroker = async ({
   }
 
   if (result.signal === null) {
-    const now = isoTimestampContract.parse(new Date().toISOString());
     await questUpdateStepBroker({
       questFilePath,
       stepId: completedAgent.stepId,
       updates: {
-        status: 'complete',
-        completedAt: now,
+        status: 'partially_complete',
       },
     });
     return { done: false, activeAgents };
@@ -155,7 +167,11 @@ export const orchestrationLoopLayerBroker = async ({
       const quest3 = await questLoadBroker({ questFilePath });
       const step = quest3.steps.find((s) => s.id === completedAgent.stepId);
       if (step) {
-        const workUnit = buildWorkUnitForRoleTransformer({ role, step });
+        const workUnit = buildWorkUnitForRoleTransformer({
+          role,
+          step,
+          quest: quest3,
+        });
 
         const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
         if (newSlotIndex !== undefined) {
@@ -163,6 +179,13 @@ export const orchestrationLoopLayerBroker = async ({
             workUnit,
             timeoutMs,
             ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
+            ...(signalResult.continuationPoint === undefined
+              ? {}
+              : {
+                  continuationContext: continuationContextContract.parse(
+                    signalResult.continuationPoint,
+                  ),
+                }),
           });
 
           activeAgents.push({
@@ -181,7 +204,11 @@ export const orchestrationLoopLayerBroker = async ({
       const step = quest4.steps.find((s) => s.id === completedAgent.stepId);
       if (step) {
         const targetRole = agentRoleContract.parse(signalResult.targetRole);
-        const workUnit = buildWorkUnitForRoleTransformer({ role: targetRole, step });
+        const workUnit = buildWorkUnitForRoleTransformer({
+          role: targetRole,
+          step,
+          quest: quest4,
+        });
 
         const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
         if (newSlotIndex !== undefined) {

@@ -18,6 +18,8 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
   setupSuccess: (params: { exitCode: ExitCode; stdoutData?: readonly StreamJsonLine[] }) => void;
   setupExitOnKill: (params: { exitCode: ExitCode | null }) => void;
   setupError: (params: { error: Error }) => void;
+  setupSpawnThrow: (params: { error: Error }) => void;
+  setupSpawnThrowOnce: (params: { error: Error }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
 } => {
@@ -91,6 +93,18 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
     setupError: ({ error }: { error: Error }): void => {
       config.error = error;
       config.exitCode = null;
+    },
+
+    setupSpawnThrow: ({ error }: { error: Error }): void => {
+      mock.mockImplementation(() => {
+        throw error;
+      });
+    },
+
+    setupSpawnThrowOnce: ({ error }: { error: Error }): void => {
+      mock.mockImplementationOnce(() => {
+        throw error;
+      });
     },
 
     getSpawnedCommand: (): unknown => {

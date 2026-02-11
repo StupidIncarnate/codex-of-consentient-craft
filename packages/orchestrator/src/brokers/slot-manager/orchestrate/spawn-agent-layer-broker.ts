@@ -9,6 +9,7 @@
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { AgentSpawnStreamingResult } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
+import type { ContinuationContext } from '../../../contracts/continuation-context/continuation-context-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkUnit } from '../../../contracts/work-unit/work-unit-contract';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
@@ -16,16 +17,19 @@ import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by
 export const spawnAgentLayerBroker = async ({
   workUnit,
   resumeSessionId,
+  continuationContext,
   timeoutMs,
 }: {
   workUnit: WorkUnit;
   resumeSessionId?: SessionId;
+  continuationContext?: ContinuationContext;
   timeoutMs: TimeoutMs;
 }): Promise<AgentSpawnStreamingResult> => {
   const result = await agentSpawnByRoleBroker({
     workUnit,
     timeoutMs,
     ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
+    ...(continuationContext === undefined ? {} : { continuationContext }),
   });
   return result;
 };

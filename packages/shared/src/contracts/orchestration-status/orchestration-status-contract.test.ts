@@ -33,19 +33,40 @@ describe('orchestrationStatusContract', () => {
     it('VALID: {phase: "pathseeker"} => parses pathseeker phase', () => {
       const result = OrchestrationStatusStub({ phase: 'pathseeker' });
 
-      expect(result.phase).toBe('pathseeker');
+      expect(orchestrationStatusContract.parse(result)).toStrictEqual({
+        processId: 'proc-12345',
+        questId: 'add-auth',
+        phase: 'pathseeker',
+        completed: 0,
+        total: 5,
+        slots: [],
+      });
     });
 
     it('VALID: {phase: "codeweaver"} => parses codeweaver phase', () => {
       const result = OrchestrationStatusStub({ phase: 'codeweaver' });
 
-      expect(result.phase).toBe('codeweaver');
+      expect(orchestrationStatusContract.parse(result)).toStrictEqual({
+        processId: 'proc-12345',
+        questId: 'add-auth',
+        phase: 'codeweaver',
+        completed: 0,
+        total: 5,
+        slots: [],
+      });
     });
 
     it('VALID: {phase: "siegemaster"} => parses siegemaster phase', () => {
       const result = OrchestrationStatusStub({ phase: 'siegemaster' });
 
-      expect(result.phase).toBe('siegemaster');
+      expect(orchestrationStatusContract.parse(result)).toStrictEqual({
+        processId: 'proc-12345',
+        questId: 'add-auth',
+        phase: 'siegemaster',
+        completed: 0,
+        total: 5,
+        slots: [],
+      });
     });
 
     it('VALID: {phase: "lawbringer"} => parses lawbringer phase', () => {
@@ -64,6 +85,18 @@ describe('orchestrationStatusContract', () => {
       const result = OrchestrationStatusStub({ phase: 'complete' });
 
       expect(result.phase).toBe('complete');
+    });
+
+    it('VALID: {phase: "ward"} => parses ward phase', () => {
+      const result = OrchestrationStatusStub({ phase: 'ward' });
+
+      expect(result.phase).toBe('ward');
+    });
+
+    it('VALID: {phase: "failed"} => parses failed phase', () => {
+      const result = OrchestrationStatusStub({ phase: 'failed' });
+
+      expect(result.phase).toBe('failed');
     });
   });
 
@@ -94,6 +127,19 @@ describe('orchestrationStatusContract', () => {
       }).toThrow(/Number must be greater than or equal to 0/u);
     });
 
+    it('INVALID_COMPLETED: {completed: 1.5} => throws validation error', () => {
+      expect(() => {
+        orchestrationStatusContract.parse({
+          processId: 'proc-123',
+          questId: 'add-auth',
+          phase: 'idle',
+          completed: 1.5,
+          total: 5,
+          slots: [],
+        });
+      }).toThrow(/Expected integer, received float/u);
+    });
+
     it('INVALID_TOTAL: {total: -1} => throws validation error', () => {
       expect(() => {
         orchestrationStatusContract.parse({
@@ -105,6 +151,19 @@ describe('orchestrationStatusContract', () => {
           slots: [],
         });
       }).toThrow(/Number must be greater than or equal to 0/u);
+    });
+
+    it('INVALID_TOTAL: {total: 2.7} => throws validation error', () => {
+      expect(() => {
+        orchestrationStatusContract.parse({
+          processId: 'proc-123',
+          questId: 'add-auth',
+          phase: 'idle',
+          completed: 0,
+          total: 2.7,
+          slots: [],
+        });
+      }).toThrow(/Expected integer, received float/u);
     });
 
     it('INVALID_MISSING_PROCESS_ID: {} => throws validation error', () => {

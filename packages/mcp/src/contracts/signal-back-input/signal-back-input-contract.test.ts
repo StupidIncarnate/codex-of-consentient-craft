@@ -82,7 +82,7 @@ describe('signalBackInputContract', () => {
       });
     });
 
-    it('EDGE: {only required fields} => parses minimal input', () => {
+    it('EDGE: {only required fields with stepId} => parses minimal input', () => {
       const stepId = StepIdStub({ value: 'c3d4e5f6-a7b8-9012-cdef-123456789012' });
 
       const result = signalBackInputContract.parse({
@@ -93,6 +93,60 @@ describe('signalBackInputContract', () => {
       expect(result).toStrictEqual({
         signal: 'complete',
         stepId: 'c3d4e5f6-a7b8-9012-cdef-123456789012',
+      });
+    });
+
+    it('EDGE: {signal only, no stepId} => parses without stepId', () => {
+      const result = signalBackInputContract.parse({
+        signal: 'complete',
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'complete',
+      });
+    });
+
+    it('VALID: {signal: "complete", no stepId, with summary} => parses complete signal without stepId', () => {
+      const result = signalBackInputContract.parse({
+        signal: 'complete',
+        summary: 'Task done',
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'complete',
+        summary: 'Task done',
+      });
+    });
+
+    it('VALID: {signal: "partially-complete", no stepId} => parses partially-complete signal without stepId', () => {
+      const result = signalBackInputContract.parse({
+        signal: 'partially-complete',
+        progress: '50% done',
+        continuationPoint: 'Resume at step 3',
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'partially-complete',
+        progress: '50% done',
+        continuationPoint: 'Resume at step 3',
+      });
+    });
+
+    it('VALID: {signal: "needs-role-followup", no stepId} => parses needs-role-followup signal without stepId', () => {
+      const result = signalBackInputContract.parse({
+        signal: 'needs-role-followup',
+        targetRole: 'reviewer',
+        reason: 'Need review',
+        context: 'Code ready',
+        resume: false,
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'needs-role-followup',
+        targetRole: 'reviewer',
+        reason: 'Need review',
+        context: 'Code ready',
+        resume: false,
       });
     });
   });
@@ -177,7 +231,7 @@ describe('signalBackInputContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_MULTIPLE: {missing signal and stepId} => throws validation error', () => {
+    it('INVALID_MULTIPLE: {missing signal} => throws validation error', () => {
       expect(() => {
         signalBackInputContract.parse({});
       }).toThrow(/Required/u);
