@@ -19,7 +19,6 @@ import { fsWriteFileAdapter } from '../adapters/fs/write-file/fs-write-file-adap
 import { chaoswhispererPromptStatics } from '../statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
 import { questStartPromptStatics } from '../statics/quest-start-prompt/quest-start-prompt-statics';
 import { finalizerQuestAgentPromptStatics } from '../statics/finalizer-quest-agent-prompt/finalizer-quest-agent-prompt-statics';
-import { pathseekerPromptStatics } from '../statics/pathseeker-prompt/pathseeker-prompt-statics';
 import { gapReviewerAgentPromptStatics } from '../statics/gap-reviewer-agent-prompt/gap-reviewer-agent-prompt-statics';
 
 const CLAUDE_DIR = '.claude';
@@ -29,7 +28,6 @@ const PACKAGE_NAME = '@dungeonmaster/orchestrator';
 const QUEST_FILENAME = 'quest.md';
 const QUEST_START_FILENAME = 'quest:start.md';
 const QUEST_FINALIZER_FILENAME = 'finalizer-quest-agent.md';
-const QUEST_PATH_SEEKER_FILENAME = 'quest-path-seeker.md';
 const QUEST_GAP_REVIEWER_FILENAME = 'quest-gap-reviewer.md';
 
 export const StartInstall = async ({
@@ -67,10 +65,6 @@ export const StartInstall = async ({
     paths: [agentsDir, QUEST_FINALIZER_FILENAME],
   });
 
-  const questPathSeekerFilePath = pathJoinAdapter({
-    paths: [commandsDir, QUEST_PATH_SEEKER_FILENAME],
-  });
-
   const questGapReviewerFilePath = pathJoinAdapter({
     paths: [agentsDir, QUEST_GAP_REVIEWER_FILENAME],
   });
@@ -79,16 +73,11 @@ export const StartInstall = async ({
     finalizerQuestAgentPromptStatics.prompt.template,
   );
 
-  const questPathSeekerContent = fileContentsContract.parse(
-    pathseekerPromptStatics.prompt.template,
-  );
-
   const questGapReviewerContent = fileContentsContract.parse(
     gapReviewerAgentPromptStatics.prompt.template,
   );
 
   await fsWriteFileAdapter({ filePath: questFinalizerFilePath, contents: questFinalizerContent });
-  await fsWriteFileAdapter({ filePath: questPathSeekerFilePath, contents: questPathSeekerContent });
   await fsWriteFileAdapter({
     filePath: questGapReviewerFilePath,
     contents: questGapReviewerContent,
