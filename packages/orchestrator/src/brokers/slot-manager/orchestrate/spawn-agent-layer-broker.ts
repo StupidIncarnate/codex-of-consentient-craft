@@ -19,17 +19,20 @@ export const spawnAgentLayerBroker = async ({
   resumeSessionId,
   continuationContext,
   timeoutMs,
+  onLine,
 }: {
   workUnit: WorkUnit;
   resumeSessionId?: SessionId;
   continuationContext?: ContinuationContext;
   timeoutMs: TimeoutMs;
+  onLine?: (params: { line: string }) => void;
 }): Promise<AgentSpawnStreamingResult> => {
   const result = await agentSpawnByRoleBroker({
     workUnit,
     timeoutMs,
     ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
     ...(continuationContext === undefined ? {} : { continuationContext }),
+    ...(onLine === undefined ? {} : { onLine }),
   });
   return result;
 };

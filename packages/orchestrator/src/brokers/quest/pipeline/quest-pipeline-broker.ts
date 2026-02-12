@@ -14,6 +14,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
+import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import { codeweaverPhaseLayerBroker } from './codeweaver-phase-layer-broker';
 import { lawbringerPhaseLayerBroker } from './lawbringer-phase-layer-broker';
 import { siegemasterPhaseLayerBroker } from './siegemaster-phase-layer-broker';
@@ -25,15 +26,22 @@ export const questPipelineBroker = async ({
   questFilePath,
   startPath,
   onPhaseChange,
+  onAgentLine,
 }: {
   processId: ProcessId;
   questId: QuestId;
   questFilePath: FilePath;
   startPath: FilePath;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
+  onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
 }): Promise<void> => {
   try {
-    await codeweaverPhaseLayerBroker({ questId, questFilePath, onPhaseChange });
+    await codeweaverPhaseLayerBroker({
+      questId,
+      questFilePath,
+      onPhaseChange,
+      ...(onAgentLine === undefined ? {} : { onAgentLine }),
+    });
     const absoluteStartPath = absoluteFilePathContract.parse(startPath);
     await wardPhaseLayerBroker({ questFilePath, startPath: absoluteStartPath, onPhaseChange });
     await siegemasterPhaseLayerBroker({ questId, questFilePath, onPhaseChange });

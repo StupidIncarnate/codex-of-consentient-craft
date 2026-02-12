@@ -15,5 +15,6 @@ export const AgentSpawnStreamingResultStub = ({
     signal: null,
     crashed: false,
     timedOut: false,
+    capturedOutput: [],
     ...props,
   });

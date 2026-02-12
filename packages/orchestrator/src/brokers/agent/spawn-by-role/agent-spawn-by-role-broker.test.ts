@@ -41,6 +41,7 @@ describe('agentSpawnByRoleBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
 
@@ -62,6 +63,7 @@ describe('agentSpawnByRoleBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
 
@@ -83,6 +85,7 @@ describe('agentSpawnByRoleBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
 
@@ -104,6 +107,7 @@ describe('agentSpawnByRoleBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
 
@@ -125,6 +129,7 @@ describe('agentSpawnByRoleBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -154,6 +159,7 @@ describe('agentSpawnByRoleBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -183,6 +189,7 @@ describe('agentSpawnByRoleBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -201,6 +208,7 @@ describe('agentSpawnByRoleBroker', () => {
       expect(result).toStrictEqual({
         crashed: true,
         timedOut: false,
+        capturedOutput: [],
         signal: null,
         sessionId: null,
         exitCode: null,

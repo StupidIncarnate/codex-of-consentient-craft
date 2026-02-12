@@ -25,7 +25,7 @@ describe('start-install integration', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/ with quest.md, quest:start.md, and quest-path-seeker.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
+          'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
       });
 
       const questContent = testbed.readFile({
@@ -40,10 +40,6 @@ describe('start-install integration', () => {
         relativePath: RelativePathStub({ value: '.claude/agents/finalizer-quest-agent.md' }),
       });
 
-      const questPathSeekerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/quest-path-seeker.md' }),
-      });
-
       const questGapReviewerContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.claude/agents/quest-gap-reviewer.md' }),
       });
@@ -53,11 +49,9 @@ describe('start-install integration', () => {
       expect(questContent).toMatch(/ChaosWhisperer/u);
       expect(questContent).toMatch(/BDD/u);
       expect(questStartContent).toMatch(/monitoring quest execution/u);
-      expect(questStartContent).toMatch(/start-quest/u);
+      expect(questStartContent).toMatch(/api\/quests/u);
       expect(questFinalizerContent).toMatch(/Quest Finalizer/u);
       expect(questFinalizerContent).toMatch(/verify-quest/u);
-      expect(questPathSeekerContent).toMatch(/PathSeeker/u);
-      expect(questPathSeekerContent).toMatch(/observablesSatisfied/u);
       expect(questGapReviewerContent).toMatch(/Staff Engineer/u);
       expect(questGapReviewerContent).toMatch(/gap analysis/u);
     });
@@ -81,7 +75,7 @@ describe('start-install integration', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/ with quest.md, quest:start.md, and quest-path-seeker.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
+          'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
       });
 
       const questContent = testbed.readFile({
@@ -112,7 +106,7 @@ describe('start-install integration', () => {
       testbed.cleanup();
 
       expect(questContent).toMatch(/Socratic dialogue/u);
-      expect(questContent).toMatch(/add-quest/u);
+      expect(questContent).toMatch(/api\/quests/u);
       expect(questContent).toMatch(/modify-quest/u);
       expect(questContent).toMatch(/AskUserQuestion/u);
     });
@@ -135,8 +129,8 @@ describe('start-install integration', () => {
 
       testbed.cleanup();
 
-      expect(questStartContent).toMatch(/list-quests/u);
-      expect(questStartContent).toMatch(/get-quest-status/u);
+      expect(questStartContent).toMatch(/api\/quests/u);
+      expect(questStartContent).toMatch(/api\/process/u);
       expect(questStartContent).toMatch(/pathseeker/iu);
       expect(questStartContent).toMatch(/codeweaver/iu);
     });
@@ -163,30 +157,6 @@ describe('start-install integration', () => {
       expect(questFinalizerContent).toMatch(/verify-quest/u);
       expect(questFinalizerContent).toMatch(/Deterministic Checks/u);
       expect(questFinalizerContent).toMatch(/Trace the Narrative/u);
-    });
-
-    it('VALID: {context: quest-path-seeker.md content} => contains pathseeker agent prompt template', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'quest-path-seeker-content' }),
-      });
-
-      await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
-      });
-
-      const questPathSeekerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/quest-path-seeker.md' }),
-      });
-
-      testbed.cleanup();
-
-      expect(questPathSeekerContent).toMatch(/PathSeeker/u);
-      expect(questPathSeekerContent).toMatch(/modify-quest/u);
-      expect(questPathSeekerContent).toMatch(/observablesSatisfied/u);
-      expect(questPathSeekerContent).toMatch(/Step Dependency Rules/u);
     });
 
     it('VALID: {context: quest-gap-reviewer.md content} => contains gap reviewer agent prompt template', async () => {

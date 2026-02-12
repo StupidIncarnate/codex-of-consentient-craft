@@ -30,6 +30,7 @@ describe('spawnAgentLayerBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -59,6 +60,7 @@ describe('spawnAgentLayerBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -88,6 +90,7 @@ describe('spawnAgentLayerBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -112,6 +115,7 @@ describe('spawnAgentLayerBroker', () => {
         signal: null,
         sessionId: null,
         exitCode: null,
+        capturedOutput: [],
       });
     });
   });

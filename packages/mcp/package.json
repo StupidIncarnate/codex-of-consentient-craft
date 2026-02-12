@@ -3,6 +3,18 @@
   "version": "0.1.0",
   "description": "MCP server for discovering utilities, brokers, and standards across the codebase",
   "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./brokers": {
+      "import": "./dist/brokers.js",
+      "require": "./dist/brokers.js",
+      "types": "./dist/brokers.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",

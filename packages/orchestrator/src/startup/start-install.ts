@@ -88,7 +88,7 @@ export const StartInstall = async ({
     success: true,
     action: 'created',
     message: installMessageContract.parse(
-      'Created .claude/commands/ with quest.md, quest:start.md, and quest-path-seeker.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
+      'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
     ),
   };
 };

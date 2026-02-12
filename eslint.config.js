@@ -62,7 +62,8 @@ module.exports = [
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
-        project: './tsconfig.json',
+        project: true,
+        tsconfigRootDir: __dirname,
       },
     },
     plugins: {
@@ -85,13 +86,14 @@ module.exports = [
   ...dungeonmasterConfigs.fileOverrides,
   // Test files can be more relaxed
   {
-    files: ['**/*.test.ts', '**/tests/**/*.ts'],
+    files: ['**/*.test.ts', '**/*.test.tsx', '**/tests/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
-        project: './tsconfig.json',
+        project: true,
+        tsconfigRootDir: __dirname,
       },
       globals: {
         ...jestPlugin.environments.globals.globals,
@@ -163,6 +165,12 @@ module.exports = [
     files: ['**/@types/*', '**/@types/**'],
     rules: {
       '@dungeonmaster/ban-primitives': 'off',
+    },
+  },
+  {
+    files: ['packages/shared/@types.ts'],
+    rules: {
+      '@dungeonmaster/forbid-type-reexport': 'off',
     },
   },
   /**

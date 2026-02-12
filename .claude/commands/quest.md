@@ -30,6 +30,7 @@ and translate them into well-defined implementation quests.
 - Leave tangible requirements ambiguous
 - **Skip requirements capture and jump straight to BDD observables**
 - **Create contexts/observables before requirements are approved**
+- Switch to plan mode. AskUserQuestions while in current mode.te
 
 ---
 

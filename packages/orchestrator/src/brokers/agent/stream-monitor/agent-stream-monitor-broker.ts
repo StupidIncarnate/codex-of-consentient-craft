@@ -20,31 +20,43 @@ import {
 import type { MonitorableProcess } from '../../../contracts/monitorable-process/monitorable-process-contract';
 import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
+import type { StreamText } from '../../../contracts/stream-text/stream-text-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
 import { signalFromStreamTransformer } from '../../../transformers/signal-from-stream/signal-from-stream-transformer';
+import { streamJsonToTextTransformer } from '../../../transformers/stream-json-to-text/stream-json-to-text-transformer';
 
 export const agentStreamMonitorBroker = async ({
   stdout,
   process: childProcess,
   timeoutMs,
+  onLine,
 }: {
   stdout: Parameters<typeof readlineCreateInterfaceAdapter>[0]['input'];
   process: MonitorableProcess;
   timeoutMs: TimeoutMs;
+  onLine?: (params: { line: string }) => void;
 }): Promise<AgentSpawnStreamingResult> => {
   let lastSignal: StreamSignal | null = null;
   let trackedSessionId: SessionId | null = null;
   let timedOut = false;
+  const outputLines: StreamText[] = [];
 
   const rl = readlineCreateInterfaceAdapter({ input: stdout });
 
   rl.onLine(({ line }) => {
+    onLine?.({ line });
+
     const parseResult = streamJsonLineContract.safeParse(line);
     if (!parseResult.success) {
       return;
     }
     const parsedLine = parseResult.data;
+
+    const text = streamJsonToTextTransformer({ line: parsedLine });
+    if (text !== null) {
+      outputLines.push(text);
+    }
 
     const signal = signalFromStreamTransformer({ line: parsedLine });
     if (signal !== null) {
@@ -79,6 +91,7 @@ export const agentStreamMonitorBroker = async ({
           signal: lastSignal,
           crashed,
           timedOut,
+          capturedOutput: outputLines,
         }),
       );
     });

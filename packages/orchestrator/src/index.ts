@@ -51,6 +51,9 @@ export { streamJsonToTextTransformer } from './transformers/stream-json-to-text/
 export { streamJsonToToolUseTransformer } from './transformers/stream-json-to-tool-use/stream-json-to-tool-use-transformer';
 export { toolInputToDisplayTransformer } from './transformers/tool-input-to-display/tool-input-to-display-transformer';
 
+// State - event bus for orchestration lifecycle events
+export { orchestrationEventsState } from './state/orchestration-events/orchestration-events-state';
+
 // Contracts - exported for use by CLI and other packages
 export { agentRoleContract } from './contracts/agent-role/agent-role-contract';
 export type { AgentRole } from './contracts/agent-role/agent-role-contract';

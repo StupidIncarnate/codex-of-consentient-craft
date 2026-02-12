@@ -1,0 +1,1448 @@
+{
+  "id": "cli-new-quest-creation-flow",
+  "folder": "003-cli-new-quest-creation-flow",
+  "title": "CLI New Quest Creation Flow",
+  "status": "in_progress",
+  "createdAt": "2026-02-11T05:00:00.319Z",
+  "updatedAt": "2026-02-11T06:07:56.999Z",
+  "executionLog": [],
+  "requirements": [
+    {
+      "id": "a1b2c3d4-1111-4000-a000-000000000001",
+      "name": "Quest Input Screen",
+      "description": "New menu option 'New Quest' in the main CLI menu. Selecting it navigates to an input screen that displays the prompt 'What do you seek on this quest?' with a multiline text editor. Shift+Enter adds newlines, Enter submits. Submission triggers ChaosWhisperer spawn.",
+      "scope": "packages/cli",
+      "status": "approved"
+    },
+    {
+      "id": "a1b2c3d4-2222-4000-a000-000000000002",
+      "name": "Streaming Output Screen",
+      "description": "After submitting quest input, show a screen with 'Creating Quest...' header and a scrollable output area displaying ChaosWhisperer's streaming text output in real-time. Output scrolls automatically when it exceeds terminal height.",
+      "scope": "packages/cli",
+      "status": "approved"
+    },
+    {
+      "id": "a1b2c3d4-3333-4000-a000-000000000003",
+      "name": "Q&A Interaction Screen",
+      "description": "When ChaosWhisperer signals it needs user answers, the CLI switches to a Q&A screen displaying the questions with options. User answers all questions and submits, then returns to the streaming output screen while ChaosWhisperer resumes. Can cycle multiple rounds.",
+      "scope": "packages/cli",
+      "status": "approved"
+    },
+    {
+      "id": "a1b2c3d4-4444-4000-a000-000000000004",
+      "name": "Requirements Approval Screen",
+      "description": "When ChaosWhisperer signals requirements are ready, CLI fetches quest via get-quest and renders a structured requirements table (name, description, scope, status). User chooses Approve or Modify. Modify opens a textarea for feedback. Can cycle multiple times until approved.",
+      "scope": "packages/cli",
+      "status": "approved"
+    },
+    {
+      "id": "a1b2c3d4-5555-4000-a000-000000000005",
+      "name": "BDD Spec Approval Screen",
+      "description": "When ChaosWhisperer signals observables are ready, CLI fetches quest and renders the full BDD spec: contexts table, observables grouped by requirement (GIVEN/WHEN/THEN), contracts table, design decisions, and tooling requirements. Approve or Modify with textarea. Can cycle.",
+      "scope": "packages/cli",
+      "status": "approved"
+    },
+    {
+      "id": "a1b2c3d4-6666-4000-a000-000000000006",
+      "name": "Final Quest Approval Screen",
+      "description": "When ChaosWhisperer signals final review, CLI renders the complete quest (requirements + BDD spec combined). Approve or Modify with textarea. After final approval, navigates to the quest list screen.",
+      "scope": "packages/cli",
+      "status": "approved"
+    },
+    {
+      "id": "a1b2c3d4-7777-4000-a000-000000000007",
+      "name": "ChaosWhisperer Headless Protocol",
+      "description": "Infrastructure for running ChaosWhisperer in headless mode with stream-json output. Includes: new signal-back types for phase transitions (needs-user-answers, needs-requirements-approval, needs-observables-approval, needs-quest-approval), kill-and-resume session management where ChaosWhisperer exits after signaling and CLI resumes with --resume and continuation context containing user responses.",
+      "scope": "packages/cli, packages/orchestrator, packages/mcp, packages/shared",
+      "status": "approved"
+    }
+  ],
+  "designDecisions": [
+    {
+      "id": "b1b2c3d4-1111-4000-b000-000000000001",
+      "title": "New signal-back types for ChaosWhisperer phase transitions",
+      "rationale": "Extending signal-back with dedicated signal types (needs-user-answers, needs-requirements-approval, etc.) gives ChaosWhisperer explicit control over when to hand off to the CLI, rather than intercepting existing tool calls from stream-json. Cleaner separation of concerns.",
+      "relatedRequirements": ["a1b2c3d4-7777-4000-a000-000000000007"]
+    },
+    {
+      "id": "b1b2c3d4-2222-4000-b000-000000000002",
+      "title": "Kill and resume session management for user interactions",
+      "rationale": "ChaosWhisperer exits after signaling a phase transition. CLI collects user input, then resumes the session with --resume flag and injects answers as continuation context. Avoids complexity of maintaining live stdin/stdout pipes to a running process.",
+      "relatedRequirements": [
+        "a1b2c3d4-7777-4000-a000-000000000007",
+        "a1b2c3d4-3333-4000-a000-000000000003"
+      ]
+    },
+    {
+      "id": "b1b2c3d4-3333-4000-b000-000000000003",
+      "title": "Use ink-text-input package for multiline text editing",
+      "rationale": "ink-text-input provides proven single-line input handling for Ink. Wrapping it or extending it for multiline support (shift+enter for newlines) is less work than building keyboard handling from scratch while maintaining compatibility with the Ink rendering model.",
+      "relatedRequirements": ["a1b2c3d4-1111-4000-a000-000000000001"]
+    },
+    {
+      "id": "b1b2c3d4-4444-4000-b000-000000000004",
+      "title": "CLI renders quest data from MCP instead of LLM output",
+      "rationale": "For approval screens (requirements, observables, final), CLI fetches structured quest data via get-quest MCP tool and renders it with consistent formatting. This saves ChaosWhisperer from spending tokens on table formatting and ensures reliable, structured display.",
+      "relatedRequirements": [
+        "a1b2c3d4-4444-4000-a000-000000000004",
+        "a1b2c3d4-5555-4000-a000-000000000005",
+        "a1b2c3d4-6666-4000-a000-000000000006"
+      ]
+    },
+    {
+      "id": "b1b2c3d4-5555-4000-b000-000000000005",
+      "title": "No escape or cancel once ChaosWhisperer flow begins",
+      "rationale": "Once ChaosWhisperer starts, user must complete the flow. Only error/crash provides exit back to menu. The input screen (before spawn) still allows Escape. This simplifies state management and avoids partial quest cleanup.",
+      "relatedRequirements": [
+        "a1b2c3d4-2222-4000-a000-000000000002",
+        "a1b2c3d4-3333-4000-a000-000000000003",
+        "a1b2c3d4-4444-4000-a000-000000000004",
+        "a1b2c3d4-5555-4000-a000-000000000005",
+        "a1b2c3d4-6666-4000-a000-000000000006"
+      ]
+    },
+    {
+      "id": "b1b2c3d4-6666-4000-b000-000000000006",
+      "title": "No timeout for ChaosWhisperer phases",
+      "rationale": "ChaosWhisperer spawns sub-agents (exploration, gap-reviewer) that may take significant time. Rely on crash detection only. No artificial timeout that could interrupt valid long-running work.",
+      "relatedRequirements": ["a1b2c3d4-7777-4000-a000-000000000007"]
+    },
+    {
+      "id": "b1b2c3d4-7777-4000-b000-000000000007",
+      "title": "Scrollable view for approval screens with long content",
+      "rationale": "BDD spec and final quest approval screens can have extensive content (multiple tables). Arrow keys scroll through content with Approve/Modify buttons visible at bottom. Simpler than pagination or collapsible sections.",
+      "relatedRequirements": [
+        "a1b2c3d4-5555-4000-a000-000000000005",
+        "a1b2c3d4-6666-4000-a000-000000000006"
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "id": "c1000001-0001-4000-a000-000000000001",
+      "name": "MainMenu",
+      "description": "The main CLI menu screen with navigation options",
+      "locator": {
+        "page": "cli",
+        "section": "menu"
+      }
+    },
+    {
+      "id": "c1000002-0002-4000-a000-000000000002",
+      "name": "QuestInputScreen",
+      "description": "Screen with multiline text editor for entering quest description",
+      "locator": {
+        "page": "cli",
+        "section": "add"
+      }
+    },
+    {
+      "id": "c1000003-0003-4000-a000-000000000003",
+      "name": "StreamingOutputScreen",
+      "description": "Screen displaying ChaosWhisperer's streaming text output with phase-specific headers",
+      "locator": {
+        "page": "cli",
+        "section": "streaming"
+      }
+    },
+    {
+      "id": "c1000004-0004-4000-a000-000000000004",
+      "name": "QAScreen",
+      "description": "Screen displaying ChaosWhisperer's questions with selectable options for user to answer",
+      "locator": {
+        "page": "cli",
+        "section": "qa"
+      }
+    },
+    {
+      "id": "c1000005-0005-4000-a000-000000000005",
+      "name": "RequirementsApprovalScreen",
+      "description": "Screen rendering quest requirements table from MCP data with Approve/Modify options",
+      "locator": {
+        "page": "cli",
+        "section": "requirements-approval"
+      }
+    },
+    {
+      "id": "c1000006-0006-4000-a000-000000000006",
+      "name": "BDDSpecApprovalScreen",
+      "description": "Screen rendering full BDD spec (contexts, observables, contracts, decisions, tooling) from MCP data with Approve/Modify options",
+      "locator": {
+        "page": "cli",
+        "section": "bdd-approval"
+      }
+    },
+    {
+      "id": "c1000007-0007-4000-a000-000000000007",
+      "name": "FinalQuestApprovalScreen",
+      "description": "Screen rendering complete quest for final review with Approve/Modify options",
+      "locator": {
+        "page": "cli",
+        "section": "final-approval"
+      }
+    },
+    {
+      "id": "c1000008-0008-4000-a000-000000000008",
+      "name": "CliOrchestrationLayer",
+      "description": "The start-cli.ts orchestration logic that manages the ChaosWhisperer lifecycle: unmounts Ink on callbacks, spawns/resumes ChaosWhisperer, monitors streams for signals, and re-mounts Ink with the appropriate screen and data based on signal type.",
+      "locator": {
+        "page": "cli",
+        "section": "orchestration"
+      }
+    }
+  ],
+  "observables": [
+    {
+      "id": "01000001-0001-4000-a000-000000000001",
+      "contextId": "c1000001-0001-4000-a000-000000000001",
+      "requirementId": "a1b2c3d4-1111-4000-a000-000000000001",
+      "trigger": "User views the main menu",
+      "dependsOn": [],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Menu displays 'New Quest' option with description 'Create a new quest'",
+          "criteria": {
+            "menuOption": "New Quest",
+            "description": "Create a new quest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "01000002-0002-4000-a000-000000000002",
+      "contextId": "c1000001-0001-4000-a000-000000000001",
+      "requirementId": "a1b2c3d4-1111-4000-a000-000000000001",
+      "trigger": "User selects 'New Quest' menu option",
+      "dependsOn": ["01000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Screen navigates to QuestInputScreen",
+          "criteria": {
+            "screen": "add"
+          }
+        }
+      ]
+    },
+    {
+      "id": "01000003-0003-4000-a000-000000000003",
+      "contextId": "c1000002-0002-4000-a000-000000000002",
+      "requirementId": "a1b2c3d4-1111-4000-a000-000000000001",
+      "trigger": "QuestInputScreen renders",
+      "dependsOn": ["01000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Prompt text 'What do you seek on this quest?' is displayed above a multiline text editor",
+          "criteria": {
+            "promptText": "What do you seek on this quest?",
+            "hasTextEditor": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "01000004-0004-4000-a000-000000000004",
+      "contextId": "c1000002-0002-4000-a000-000000000002",
+      "requirementId": "a1b2c3d4-1111-4000-a000-000000000001",
+      "trigger": "User presses Shift+Enter while typing in the text editor",
+      "dependsOn": ["01000003-0003-4000-a000-000000000003"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "A new line is inserted at cursor position in the text editor",
+          "criteria": {
+            "newLineInserted": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "01000005-0005-4000-a000-000000000005",
+      "contextId": "c1000002-0002-4000-a000-000000000002",
+      "requirementId": "a1b2c3d4-1111-4000-a000-000000000001",
+      "trigger": "User presses Enter with non-empty text in the editor",
+      "dependsOn": ["01000003-0003-4000-a000-000000000003"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "onSpawnChaoswhisperer callback fires with the user's text as userInput",
+          "criteria": {
+            "callbackName": "onSpawnChaoswhisperer",
+            "payloadField": "userInput"
+          }
+        }
+      ]
+    },
+    {
+      "id": "01000006-0006-4000-a000-000000000006",
+      "contextId": "c1000002-0002-4000-a000-000000000002",
+      "requirementId": "a1b2c3d4-1111-4000-a000-000000000001",
+      "trigger": "User presses Escape on QuestInputScreen",
+      "dependsOn": ["01000003-0003-4000-a000-000000000003"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Screen navigates back to MainMenu",
+          "criteria": {
+            "screen": "menu"
+          }
+        }
+      ]
+    },
+    {
+      "id": "02000001-0001-4000-a000-000000000001",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-2222-4000-a000-000000000002",
+      "trigger": "StreamingOutputScreen renders for the first time (initial ChaosWhisperer spawn)",
+      "dependsOn": ["01000005-0005-4000-a000-000000000005"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Header displays 'Creating Quest...'",
+          "criteria": {
+            "headerText": "Creating Quest..."
+          }
+        }
+      ]
+    },
+    {
+      "id": "02000002-0002-4000-a000-000000000002",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-2222-4000-a000-000000000002",
+      "trigger": "ChaosWhisperer emits text via stream-json output",
+      "dependsOn": ["02000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Emitted text appears in the scrollable output area below the header",
+          "criteria": {
+            "outputAreaContainsText": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "02000003-0003-4000-a000-000000000003",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-2222-4000-a000-000000000002",
+      "trigger": "Output text exceeds the terminal height",
+      "dependsOn": ["02000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Output area auto-scrolls to show the most recent content at the bottom",
+          "criteria": {
+            "autoScrollEnabled": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "02000004-0004-4000-a000-000000000004",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-2222-4000-a000-000000000002",
+      "trigger": "ChaosWhisperer resumes after requirements approval",
+      "dependsOn": [],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Header changes to 'Building BDD Spec...'",
+          "criteria": {
+            "headerText": "Building BDD Spec..."
+          }
+        }
+      ]
+    },
+    {
+      "id": "02000005-0005-4000-a000-000000000005",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-2222-4000-a000-000000000002",
+      "trigger": "ChaosWhisperer resumes after observables approval",
+      "dependsOn": [],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Header changes to 'Finalizing Quest...'",
+          "criteria": {
+            "headerText": "Finalizing Quest..."
+          }
+        }
+      ]
+    },
+    {
+      "id": "03000001-0001-4000-a000-000000000001",
+      "contextId": "c1000004-0004-4000-a000-000000000004",
+      "requirementId": "a1b2c3d4-3333-4000-a000-000000000003",
+      "trigger": "ChaosWhisperer signals 'needs-user-answers' with questions payload",
+      "dependsOn": [],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "CLI switches to QAScreen displaying each question with its header and selectable options",
+          "criteria": {
+            "screen": "qa",
+            "questionsRendered": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "03000002-0002-4000-a000-000000000002",
+      "contextId": "c1000004-0004-4000-a000-000000000004",
+      "requirementId": "a1b2c3d4-3333-4000-a000-000000000003",
+      "trigger": "User navigates options with arrow keys and presses Enter to select",
+      "dependsOn": ["03000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Selected option is visually highlighted for that question",
+          "criteria": {
+            "optionHighlighted": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "03000003-0003-4000-a000-000000000003",
+      "contextId": "c1000004-0004-4000-a000-000000000004",
+      "requirementId": "a1b2c3d4-3333-4000-a000-000000000003",
+      "trigger": "User selects 'Other' option for a question",
+      "dependsOn": ["03000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Text input appears for that question allowing free-form answer",
+          "criteria": {
+            "customTextInputVisible": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "03000004-0004-4000-a000-000000000004",
+      "contextId": "c1000004-0004-4000-a000-000000000004",
+      "requirementId": "a1b2c3d4-3333-4000-a000-000000000003",
+      "trigger": "User answers all questions and presses Enter to submit",
+      "dependsOn": ["03000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "onResumeChaoswhisperer callback fires with formatted answers and sessionId, screen returns to StreamingOutputScreen",
+          "criteria": {
+            "callbackName": "onResumeChaoswhisperer",
+            "returnsToScreen": "streaming"
+          }
+        }
+      ]
+    },
+    {
+      "id": "04000001-0001-4000-a000-000000000001",
+      "contextId": "c1000005-0005-4000-a000-000000000005",
+      "requirementId": "a1b2c3d4-4444-4000-a000-000000000004",
+      "trigger": "ChaosWhisperer signals 'needs-requirements-approval' with questId",
+      "dependsOn": [],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "CLI fetches quest via get-quest and switches to RequirementsApprovalScreen",
+          "criteria": {
+            "screen": "requirements-approval",
+            "questFetched": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "04000002-0002-4000-a000-000000000002",
+      "contextId": "c1000005-0005-4000-a000-000000000005",
+      "requirementId": "a1b2c3d4-4444-4000-a000-000000000004",
+      "trigger": "RequirementsApprovalScreen renders",
+      "dependsOn": ["04000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Requirements table displays columns: Name, Description, Scope for each requirement",
+          "criteria": {
+            "tableColumns": ["Name", "Description", "Scope"],
+            "rowsFromQuestData": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "04000003-0003-4000-a000-000000000003",
+      "contextId": "c1000005-0005-4000-a000-000000000005",
+      "requirementId": "a1b2c3d4-4444-4000-a000-000000000004",
+      "trigger": "User selects 'Approve' on RequirementsApprovalScreen",
+      "dependsOn": ["04000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "onResumeChaoswhisperer callback fires with approval confirmation and sessionId",
+          "criteria": {
+            "callbackName": "onResumeChaoswhisperer",
+            "responseType": "approved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "04000004-0004-4000-a000-000000000004",
+      "contextId": "c1000005-0005-4000-a000-000000000005",
+      "requirementId": "a1b2c3d4-4444-4000-a000-000000000004",
+      "trigger": "User selects 'Modify' on RequirementsApprovalScreen",
+      "dependsOn": ["04000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Multiline textarea appears below the requirements table, requirements remain visible above",
+          "criteria": {
+            "textareaVisible": true,
+            "requirementsStillVisible": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "04000005-0005-4000-a000-000000000005",
+      "contextId": "c1000005-0005-4000-a000-000000000005",
+      "requirementId": "a1b2c3d4-4444-4000-a000-000000000004",
+      "trigger": "User submits modification text on RequirementsApprovalScreen",
+      "dependsOn": ["04000004-0004-4000-a000-000000000004"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "onResumeChaoswhisperer callback fires with modification feedback text and sessionId",
+          "criteria": {
+            "callbackName": "onResumeChaoswhisperer",
+            "responseType": "modification"
+          }
+        }
+      ]
+    },
+    {
+      "id": "05000001-0001-4000-a000-000000000001",
+      "contextId": "c1000006-0006-4000-a000-000000000006",
+      "requirementId": "a1b2c3d4-5555-4000-a000-000000000005",
+      "trigger": "ChaosWhisperer signals 'needs-observables-approval' with questId",
+      "dependsOn": [],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "CLI fetches quest via get-quest and switches to BDDSpecApprovalScreen",
+          "criteria": {
+            "screen": "bdd-approval",
+            "questFetched": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "05000002-0002-4000-a000-000000000002",
+      "contextId": "c1000006-0006-4000-a000-000000000006",
+      "requirementId": "a1b2c3d4-5555-4000-a000-000000000005",
+      "trigger": "BDDSpecApprovalScreen renders",
+      "dependsOn": ["05000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Contexts table displays Name, Description, Locator for each context",
+          "criteria": {
+            "contextsTableVisible": true,
+            "columns": ["Name", "Description", "Locator"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "05000003-0003-4000-a000-000000000003",
+      "contextId": "c1000006-0006-4000-a000-000000000006",
+      "requirementId": "a1b2c3d4-5555-4000-a000-000000000005",
+      "trigger": "BDDSpecApprovalScreen renders",
+      "dependsOn": ["05000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Observables grouped by requirement, each showing GIVEN (context name), WHEN (trigger), THEN (outcomes summary)",
+          "criteria": {
+            "observablesGroupedByRequirement": true,
+            "columns": ["GIVEN", "WHEN", "THEN"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "05000004-0004-4000-a000-000000000004",
+      "contextId": "c1000006-0006-4000-a000-000000000006",
+      "requirementId": "a1b2c3d4-5555-4000-a000-000000000005",
+      "trigger": "BDDSpecApprovalScreen renders",
+      "dependsOn": ["05000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Contracts table shows Name, Kind, Status, and properties summary for each contract",
+          "criteria": {
+            "contractsTableVisible": true,
+            "columns": ["Name", "Kind", "Status", "Properties"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "05000005-0005-4000-a000-000000000005",
+      "contextId": "c1000006-0006-4000-a000-000000000006",
+      "requirementId": "a1b2c3d4-5555-4000-a000-000000000005",
+      "trigger": "BDDSpecApprovalScreen renders",
+      "dependsOn": ["05000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Design decisions table shows Title and Rationale; Tooling requirements table shows Name, Package, and Reason",
+          "criteria": {
+            "designDecisionsVisible": true,
+            "toolingVisible": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "05000006-0006-4000-a000-000000000006",
+      "contextId": "c1000006-0006-4000-a000-000000000006",
+      "requirementId": "a1b2c3d4-5555-4000-a000-000000000005",
+      "trigger": "User selects 'Approve' on BDDSpecApprovalScreen",
+      "dependsOn": ["05000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "onResumeChaoswhisperer callback fires with approval confirmation and sessionId",
+          "criteria": {
+            "callbackName": "onResumeChaoswhisperer",
+            "responseType": "approved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "05000007-0007-4000-a000-000000000007",
+      "contextId": "c1000006-0006-4000-a000-000000000006",
+      "requirementId": "a1b2c3d4-5555-4000-a000-000000000005",
+      "trigger": "User selects 'Modify' on BDDSpecApprovalScreen",
+      "dependsOn": ["05000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Multiline textarea appears below the BDD spec display, spec data remains visible above",
+          "criteria": {
+            "textareaVisible": true,
+            "specStillVisible": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "06000001-0001-4000-a000-000000000001",
+      "contextId": "c1000007-0007-4000-a000-000000000007",
+      "requirementId": "a1b2c3d4-6666-4000-a000-000000000006",
+      "trigger": "ChaosWhisperer signals 'needs-quest-approval' with questId",
+      "dependsOn": [],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "CLI fetches quest via get-quest and switches to FinalQuestApprovalScreen",
+          "criteria": {
+            "screen": "final-approval",
+            "questFetched": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "06000002-0002-4000-a000-000000000002",
+      "contextId": "c1000007-0007-4000-a000-000000000007",
+      "requirementId": "a1b2c3d4-6666-4000-a000-000000000006",
+      "trigger": "FinalQuestApprovalScreen renders",
+      "dependsOn": ["06000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Complete quest displayed: requirements table, contexts table, observables by requirement, contracts table, design decisions, and tooling requirements",
+          "criteria": {
+            "fullQuestRendered": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "06000003-0003-4000-a000-000000000003",
+      "contextId": "c1000007-0007-4000-a000-000000000007",
+      "requirementId": "a1b2c3d4-6666-4000-a000-000000000006",
+      "trigger": "User selects 'Approve' on FinalQuestApprovalScreen",
+      "dependsOn": ["06000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Screen navigates to quest list screen",
+          "criteria": {
+            "screen": "list"
+          }
+        }
+      ]
+    },
+    {
+      "id": "06000004-0004-4000-a000-000000000004",
+      "contextId": "c1000007-0007-4000-a000-000000000007",
+      "requirementId": "a1b2c3d4-6666-4000-a000-000000000006",
+      "trigger": "User selects 'Modify' on FinalQuestApprovalScreen",
+      "dependsOn": ["06000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Multiline textarea appears below the quest display, quest data remains visible above",
+          "criteria": {
+            "textareaVisible": true,
+            "questStillVisible": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "06000005-0005-4000-a000-000000000005",
+      "contextId": "c1000007-0007-4000-a000-000000000007",
+      "requirementId": "a1b2c3d4-6666-4000-a000-000000000006",
+      "trigger": "User submits modification text on FinalQuestApprovalScreen",
+      "dependsOn": ["06000004-0004-4000-a000-000000000004"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "onResumeChaoswhisperer callback fires with modification feedback and sessionId, returns to StreamingOutputScreen",
+          "criteria": {
+            "callbackName": "onResumeChaoswhisperer",
+            "responseType": "modification",
+            "returnsToScreen": "streaming"
+          }
+        }
+      ]
+    },
+    {
+      "id": "07000001-0001-4000-a000-000000000001",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "Quest input is submitted by the user",
+      "dependsOn": ["01000005-0005-4000-a000-000000000005"],
+      "outcomes": [
+        {
+          "type": "process-state",
+          "description": "ChaosWhisperer is spawned as headless child process with stream-json output format, user's text injected as $ARGUMENTS in prompt template",
+          "criteria": {
+            "processSpawned": true,
+            "outputFormat": "stream-json",
+            "argumentsInjected": true
+          }
+        },
+        {
+          "type": "custom",
+          "description": "Session ID is extracted from the stream-json output by the existing session-id-extractor adapter and stored for later resume",
+          "criteria": {
+            "sessionIdExtracted": true,
+            "sessionIdStored": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "07000002-0002-4000-a000-000000000002",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "ChaosWhisperer needs user answers during discovery",
+      "dependsOn": ["07000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "ChaosWhisperer calls signal-back MCP tool with signal 'needs-user-answers', questId, and questions array, then exits process",
+          "criteria": {
+            "signalType": "needs-user-answers",
+            "includesQuestId": true,
+            "includesQuestions": true,
+            "processExits": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "07000003-0003-4000-a000-000000000003",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "ChaosWhisperer completes requirements capture and needs approval",
+      "dependsOn": ["07000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "ChaosWhisperer calls signal-back with signal 'needs-requirements-approval' and questId, then exits process",
+          "criteria": {
+            "signalType": "needs-requirements-approval",
+            "includesQuestId": true,
+            "processExits": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "07000004-0004-4000-a000-000000000004",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "ChaosWhisperer completes BDD deep-dive and needs observables approval",
+      "dependsOn": ["07000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "ChaosWhisperer calls signal-back with signal 'needs-observables-approval' and questId, then exits process",
+          "criteria": {
+            "signalType": "needs-observables-approval",
+            "includesQuestId": true,
+            "processExits": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "07000005-0005-4000-a000-000000000005",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "ChaosWhisperer completes final review and needs quest approval",
+      "dependsOn": ["07000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "ChaosWhisperer calls signal-back with signal 'needs-quest-approval' and questId, then exits process",
+          "criteria": {
+            "signalType": "needs-quest-approval",
+            "includesQuestId": true,
+            "processExits": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "07000006-0006-4000-a000-000000000006",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "User completes an interaction (answers questions, approves, or submits modification)",
+      "dependsOn": [],
+      "outcomes": [
+        {
+          "type": "process-state",
+          "description": "ChaosWhisperer session is resumed with --resume flag using the previous sessionId, and continuation context containing the user's formatted response is appended to the prompt",
+          "criteria": {
+            "resumeFlag": true,
+            "continuationContextIncluded": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "07000007-0007-4000-a000-000000000007",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "ChaosWhisperer process crashes or times out",
+      "dependsOn": ["07000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "CLI displays error message with options to retry or go back to main menu",
+          "criteria": {
+            "errorMessageVisible": true,
+            "retryOptionAvailable": true,
+            "backToMenuAvailable": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "07000008-0008-4000-a000-000000000008",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "ChaosWhisperer calls add-quest MCP tool during its Phase 2 (requirements capture)",
+      "dependsOn": ["07000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "custom",
+          "description": "Quest is created in .dungeonmaster-quests folder. ChaosWhisperer receives questId from the add-quest response and includes it in all subsequent signal-back calls.",
+          "criteria": {
+            "questCreatedViaMcp": true,
+            "questIdCapturedByChaoswhisperer": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "03000005-0005-4000-a000-000000000005",
+      "contextId": "c1000004-0004-4000-a000-000000000004",
+      "requirementId": "a1b2c3d4-3333-4000-a000-000000000003",
+      "trigger": "User is on a multi-select question and presses Space on an option",
+      "dependsOn": ["03000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Option is toggled (selected/deselected) with visual indicator. User presses Enter to confirm all selections for that question.",
+          "criteria": {
+            "optionToggled": true,
+            "enterConfirmsSelections": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "03000006-0006-4000-a000-000000000006",
+      "contextId": "c1000004-0004-4000-a000-000000000004",
+      "requirementId": "a1b2c3d4-3333-4000-a000-000000000003",
+      "trigger": "User selects 'Other' and types custom text, then presses Enter",
+      "dependsOn": ["03000003-0003-4000-a000-000000000003"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Custom text is captured as the answer for that question, replacing the 'Other' placeholder. User can proceed to next question or submit.",
+          "criteria": {
+            "customTextCaptured": true,
+            "replacesOtherOption": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "04000006-0006-4000-a000-000000000006",
+      "contextId": "c1000005-0005-4000-a000-000000000005",
+      "requirementId": "a1b2c3d4-4444-4000-a000-000000000004",
+      "trigger": "User submits empty modification text (enters Modify mode but submits without typing)",
+      "dependsOn": ["04000004-0004-4000-a000-000000000004"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Empty submission is rejected. Error message 'Please enter your modification feedback' displayed. Textarea remains active for input.",
+          "criteria": {
+            "emptyRejected": true,
+            "errorMessage": "Please enter your modification feedback"
+          }
+        }
+      ]
+    },
+    {
+      "id": "07000009-0009-4000-a000-000000000009",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "CLI receives malformed or unrecognized signal from ChaosWhisperer stream-json output",
+      "dependsOn": ["07000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "CLI displays error message describing the signal parsing failure with options to retry (respawn ChaosWhisperer) or go back to main menu",
+          "criteria": {
+            "errorMessageVisible": true,
+            "retryOptionAvailable": true,
+            "backToMenuAvailable": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "07000010-0010-4000-a000-000000000010",
+      "contextId": "c1000003-0003-4000-a000-000000000003",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "CLI attempts to resume ChaosWhisperer session but the resume fails (spawn error, session not found)",
+      "dependsOn": ["07000006-0006-4000-a000-000000000006"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "CLI displays error message about resume failure with options to retry resume or go back to main menu",
+          "criteria": {
+            "errorMessageVisible": true,
+            "retryOptionAvailable": true,
+            "backToMenuAvailable": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "05000008-0008-4000-a000-000000000008",
+      "contextId": "c1000006-0006-4000-a000-000000000006",
+      "requirementId": "a1b2c3d4-5555-4000-a000-000000000005",
+      "trigger": "BDD spec content exceeds terminal height",
+      "dependsOn": ["05000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Content is scrollable with up/down arrow keys. Approve/Modify buttons remain visible at the bottom of the viewport.",
+          "criteria": {
+            "scrollableWithArrowKeys": true,
+            "buttonsVisibleAtBottom": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "06000006-0006-4000-a000-000000000006",
+      "contextId": "c1000007-0007-4000-a000-000000000007",
+      "requirementId": "a1b2c3d4-6666-4000-a000-000000000006",
+      "trigger": "Final quest content exceeds terminal height",
+      "dependsOn": ["06000002-0002-4000-a000-000000000002"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Content is scrollable with up/down arrow keys. Approve/Modify buttons remain visible at the bottom of the viewport.",
+          "criteria": {
+            "scrollableWithArrowKeys": true,
+            "buttonsVisibleAtBottom": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000001-0001-4000-a000-000000000001",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "onSpawnChaoswhisperer callback fires with userInput (from QuestInputScreen submit)",
+      "dependsOn": ["01000005-0005-4000-a000-000000000005"],
+      "outcomes": [
+        {
+          "type": "process-state",
+          "description": "Ink unmounts. start-cli.ts spawns ChaosWhisperer in headless mode with stream-json, injecting userInput as $ARGUMENTS. Monitors stdout stream for text and signals. Re-mounts Ink with StreamingOutputScreen, piping text output to the display.",
+          "criteria": {
+            "inkUnmounts": true,
+            "chaoswhispererSpawned": true,
+            "streamingScreenMounted": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000002-0002-4000-a000-000000000002",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "Signal 'needs-user-answers' detected in ChaosWhisperer stream (process exits)",
+      "dependsOn": ["08000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Ink unmounts streaming screen. Extracts questId, questions array, and sessionId from signal. Re-mounts Ink with QAScreen, passing questions as props.",
+          "criteria": {
+            "streamingUnmounted": true,
+            "qaScreenMounted": true,
+            "questionsPassedAsProps": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000003-0003-4000-a000-000000000003",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "Signal 'needs-requirements-approval' detected in ChaosWhisperer stream (process exits)",
+      "dependsOn": ["08000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Ink unmounts streaming screen. Extracts questId and sessionId from signal. Fetches quest data via orchestrator loadQuest. Re-mounts Ink with RequirementsApprovalScreen, passing quest data as props.",
+          "criteria": {
+            "streamingUnmounted": true,
+            "questFetchedViaLoadQuest": true,
+            "reqApprovalMounted": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000004-0004-4000-a000-000000000004",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "Signal 'needs-observables-approval' detected in ChaosWhisperer stream (process exits)",
+      "dependsOn": ["08000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Ink unmounts streaming screen. Extracts questId and sessionId from signal. Fetches quest data via orchestrator loadQuest. Re-mounts Ink with BDDSpecApprovalScreen, passing quest data as props.",
+          "criteria": {
+            "streamingUnmounted": true,
+            "questFetchedViaLoadQuest": true,
+            "bddApprovalMounted": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000005-0005-4000-a000-000000000005",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-7777-4000-a000-000000000007",
+      "trigger": "Signal 'needs-quest-approval' detected in ChaosWhisperer stream (process exits)",
+      "dependsOn": ["08000001-0001-4000-a000-000000000001"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Ink unmounts streaming screen. Extracts questId and sessionId from signal. Fetches quest data via orchestrator loadQuest. Re-mounts Ink with FinalQuestApprovalScreen, passing quest data as props.",
+          "criteria": {
+            "streamingUnmounted": true,
+            "questFetchedViaLoadQuest": true,
+            "finalApprovalMounted": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000006-0006-4000-a000-000000000006",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-3333-4000-a000-000000000003",
+      "trigger": "onResumeChaoswhisperer callback fires with answers from QAScreen",
+      "dependsOn": ["03000004-0004-4000-a000-000000000004"],
+      "outcomes": [
+        {
+          "type": "process-state",
+          "description": "Ink unmounts QAScreen. Formats answers as continuation context text. Resumes ChaosWhisperer with --resume sessionId and continuation context. Re-mounts Ink with StreamingOutputScreen showing phase-appropriate header.",
+          "criteria": {
+            "qaUnmounted": true,
+            "answersFormattedAsContext": true,
+            "chaoswhispererResumed": true,
+            "streamingScreenMounted": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000007-0007-4000-a000-000000000007",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-4444-4000-a000-000000000004",
+      "trigger": "onResumeChaoswhisperer callback fires with 'approved' from RequirementsApprovalScreen",
+      "dependsOn": ["04000003-0003-4000-a000-000000000003"],
+      "outcomes": [
+        {
+          "type": "process-state",
+          "description": "Ink unmounts RequirementsApprovalScreen. Formats approval as continuation context: 'The user reviewed the requirements and approved them all.' Resumes ChaosWhisperer. Re-mounts Ink with StreamingOutputScreen showing 'Building BDD Spec...' header.",
+          "criteria": {
+            "reqApprovalUnmounted": true,
+            "chaoswhispererResumed": true,
+            "streamingHeaderText": "Building BDD Spec..."
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000008-0008-4000-a000-000000000008",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-4444-4000-a000-000000000004",
+      "trigger": "onResumeChaoswhisperer callback fires with modification feedback from RequirementsApprovalScreen",
+      "dependsOn": ["04000005-0005-4000-a000-000000000005"],
+      "outcomes": [
+        {
+          "type": "process-state",
+          "description": "Ink unmounts. Formats modification as continuation context: 'The user reviewed the requirements and requested modifications: [feedback text]'. Resumes ChaosWhisperer. Re-mounts streaming. ChaosWhisperer may signal needs-requirements-approval again (cycling).",
+          "criteria": {
+            "chaoswhispererResumed": true,
+            "modificationInContext": true,
+            "streamingScreenMounted": true,
+            "canCycleBack": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000009-0009-4000-a000-000000000009",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-5555-4000-a000-000000000005",
+      "trigger": "onResumeChaoswhisperer callback fires with 'approved' from BDDSpecApprovalScreen",
+      "dependsOn": ["05000006-0006-4000-a000-000000000006"],
+      "outcomes": [
+        {
+          "type": "process-state",
+          "description": "Ink unmounts BDDSpecApprovalScreen. Formats approval as continuation context. Resumes ChaosWhisperer. Re-mounts Ink with StreamingOutputScreen showing 'Finalizing Quest...' header.",
+          "criteria": {
+            "bddApprovalUnmounted": true,
+            "chaoswhispererResumed": true,
+            "streamingHeaderText": "Finalizing Quest..."
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000010-0010-4000-a000-000000000010",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-5555-4000-a000-000000000005",
+      "trigger": "onResumeChaoswhisperer callback fires with modification feedback from BDDSpecApprovalScreen",
+      "dependsOn": ["05000007-0007-4000-a000-000000000007"],
+      "outcomes": [
+        {
+          "type": "process-state",
+          "description": "Ink unmounts. Formats modification as continuation context. Resumes ChaosWhisperer. Re-mounts streaming. ChaosWhisperer may signal needs-observables-approval again (cycling).",
+          "criteria": {
+            "chaoswhispererResumed": true,
+            "modificationInContext": true,
+            "canCycleBack": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000011-0011-4000-a000-000000000011",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-6666-4000-a000-000000000006",
+      "trigger": "User selects 'Approve' on FinalQuestApprovalScreen (onApproveQuest callback fires)",
+      "dependsOn": ["06000003-0003-4000-a000-000000000003"],
+      "outcomes": [
+        {
+          "type": "ui-state",
+          "description": "Ink unmounts FinalQuestApprovalScreen. start-cli.ts calls StartCli recursively with initialScreen 'list', completing the quest creation flow.",
+          "criteria": {
+            "finalApprovalUnmounted": true,
+            "restartsWithListScreen": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "08000012-0012-4000-a000-000000000012",
+      "contextId": "c1000008-0008-4000-a000-000000000008",
+      "requirementId": "a1b2c3d4-6666-4000-a000-000000000006",
+      "trigger": "onResumeChaoswhisperer callback fires with modification feedback from FinalQuestApprovalScreen",
+      "dependsOn": ["06000005-0005-4000-a000-000000000005"],
+      "outcomes": [
+        {
+          "type": "process-state",
+          "description": "Ink unmounts. Formats modification as continuation context. Resumes ChaosWhisperer. Re-mounts streaming. ChaosWhisperer may signal needs-quest-approval again (cycling).",
+          "criteria": {
+            "chaoswhispererResumed": true,
+            "modificationInContext": true,
+            "canCycleBack": true
+          }
+        }
+      ]
+    }
+  ],
+  "steps": [],
+  "toolingRequirements": [
+    {
+      "id": "e1000001-0001-4000-a000-000000000001",
+      "name": "Ink Text Input",
+      "packageName": "ink-text-input",
+      "reason": "Provides text input component for Ink CLI framework. Used as foundation for multiline quest description editor on the QuestInputScreen and modification textareas on approval screens.",
+      "requiredByObservables": [
+        "01000003-0003-4000-a000-000000000003",
+        "01000004-0004-4000-a000-000000000004",
+        "04000004-0004-4000-a000-000000000004",
+        "05000007-0007-4000-a000-000000000007",
+        "06000004-0004-4000-a000-000000000004"
+      ]
+    }
+  ],
+  "contracts": [
+    {
+      "id": "d1000001-0001-4000-a000-000000000001",
+      "name": "ChaoswhispererPhaseSignal",
+      "kind": "data",
+      "status": "new",
+      "properties": [
+        {
+          "name": "signal",
+          "type": "PhaseSignalType",
+          "description": "One of: needs-user-answers, needs-requirements-approval, needs-observables-approval, needs-quest-approval"
+        },
+        {
+          "name": "questId",
+          "type": "QuestId",
+          "description": "The quest ID that the signal relates to"
+        },
+        {
+          "name": "questions",
+          "type": "ChaoswhispererQuestion",
+          "description": "Array of questions for the user (only present when signal is needs-user-answers)",
+          "optional": true
+        },
+        {
+          "name": "sessionId",
+          "type": "SessionId",
+          "description": "The Claude session ID for resuming after user interaction"
+        }
+      ]
+    },
+    {
+      "id": "d1000002-0002-4000-a000-000000000002",
+      "name": "ChaoswhispererQuestion",
+      "kind": "data",
+      "status": "new",
+      "properties": [
+        {
+          "name": "question",
+          "type": "QuestionText",
+          "description": "The full question text to display"
+        },
+        {
+          "name": "header",
+          "type": "QuestionHeaderText",
+          "description": "Short label (max 12 chars) displayed as tag"
+        },
+        {
+          "name": "options",
+          "description": "Array of selectable options",
+          "properties": [
+            {
+              "name": "label",
+              "type": "OptionLabel",
+              "description": "Display text, 1-5 words"
+            },
+            {
+              "name": "description",
+              "type": "OptionDescription",
+              "description": "Explanation of the option"
+            }
+          ]
+        },
+        {
+          "name": "multiSelect",
+          "type": "IsMultiSelect",
+          "description": "Whether user can select multiple options"
+        }
+      ]
+    },
+    {
+      "id": "d1000003-0003-4000-a000-000000000003",
+      "name": "CliAppScreen",
+      "kind": "data",
+      "status": "modified",
+      "source": "packages/cli/src/contracts/cli-app-screen/cli-app-screen-contract.ts",
+      "properties": [
+        {
+          "name": "value",
+          "type": "CliAppScreenType",
+          "description": "Extended enum: menu | help | list | init | run | add | streaming | qa | req-approval | bdd-approval | final-approval"
+        }
+      ]
+    },
+    {
+      "id": "d1000004-0004-4000-a000-000000000004",
+      "name": "StreamSignal",
+      "kind": "data",
+      "status": "modified",
+      "source": "packages/cli/src/contracts/stream-signal/stream-signal-contract.ts",
+      "properties": [
+        {
+          "name": "signal",
+          "type": "SignalType",
+          "description": "Extended to include: complete | partially-complete | needs-role-followup | needs-user-answers | needs-requirements-approval | needs-observables-approval | needs-quest-approval"
+        },
+        {
+          "name": "questId",
+          "type": "QuestId",
+          "description": "Quest ID for phase signals",
+          "optional": true
+        },
+        {
+          "name": "questions",
+          "description": "Questions array for needs-user-answers signal",
+          "optional": true
+        },
+        {
+          "name": "sessionId",
+          "type": "SessionId",
+          "description": "Session ID for resumption",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "d1000005-0005-4000-a000-000000000005",
+      "name": "SignalBackInput",
+      "kind": "data",
+      "status": "modified",
+      "source": "packages/mcp/src/contracts/signal-back-input/signal-back-input-contract.ts",
+      "properties": [
+        {
+          "name": "signal",
+          "type": "SignalType",
+          "description": "Extended enum adding: needs-user-answers, needs-requirements-approval, needs-observables-approval, needs-quest-approval"
+        },
+        {
+          "name": "questId",
+          "type": "QuestId",
+          "description": "Quest ID for phase transition signals",
+          "optional": true
+        },
+        {
+          "name": "questions",
+          "description": "Array of ChaoswhispererQuestion for needs-user-answers signal",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "d1000006-0006-4000-a000-000000000006",
+      "name": "SessionId",
+      "kind": "data",
+      "status": "existing",
+      "source": "packages/shared/src/contracts/session-id/session-id-contract.ts",
+      "properties": [
+        {
+          "name": "value",
+          "type": "SessionId",
+          "description": "Branded string representing a Claude CLI session ID, extracted from stream-json output"
+        }
+      ]
+    },
+    {
+      "id": "d1000007-0007-4000-a000-000000000007",
+      "name": "QuestId",
+      "kind": "data",
+      "status": "existing",
+      "source": "packages/shared/src/contracts/quest-id/quest-id-contract.ts",
+      "properties": [
+        {
+          "name": "value",
+          "type": "QuestId",
+          "description": "Branded UUID string identifying a quest"
+        }
+      ]
+    },
+    {
+      "id": "d1000008-0008-4000-a000-000000000008",
+      "name": "Quest",
+      "kind": "data",
+      "status": "existing",
+      "source": "packages/shared/src/contracts/quest/quest-contract.ts",
+      "properties": [
+        {
+          "name": "id",
+          "type": "QuestId"
+        },
+        {
+          "name": "title",
+          "type": "QuestTitle"
+        },
+        {
+          "name": "status",
+          "type": "QuestStatus"
+        },
+        {
+          "name": "requirements",
+          "description": "Array of Requirement objects"
+        },
+        {
+          "name": "designDecisions",
+          "description": "Array of DesignDecision objects"
+        },
+        {
+          "name": "contexts",
+          "description": "Array of Context objects"
+        },
+        {
+          "name": "observables",
+          "description": "Array of Observable objects"
+        },
+        {
+          "name": "contracts",
+          "description": "Array of QuestContractEntry objects"
+        },
+        {
+          "name": "toolingRequirements",
+          "description": "Array of ToolingRequirement objects"
+        }
+      ]
+    }
+  ],
+  "userRequest": "Add a New Quest screen to the CLI. On clicking it asks \"What do you seek on this quest?\" with a multiline textarea (shift+enter for newlines, enter to submit). Hitting enter shows \"Creating Quest...\" header with scrolling output from a headless ChaosWhisperer. The ChaosWhisperer signals the CLI for phase transitions (questions, requirements approval, observables approval, final approval). For each phase, the CLI renders quest data directly from MCP (not LLM output) and lets the user Approve or Modify. Modifications are sent back via session resume. After final approval, navigates to quest list."
+}

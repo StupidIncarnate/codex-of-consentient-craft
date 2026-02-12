@@ -41,10 +41,10 @@ describe('dungeonmaster binary', () => {
 
   describe('process execution', () => {
     it(
-      'VALID: {non-TTY} => exits with raw mode error in non-TTY environment',
+      'VALID: {non-TTY, init} => exits with raw mode error in non-TTY environment',
       async () => {
         const result = await new Promise((promiseResolve, promiseReject) => {
-          const child = spawn('node', [BIN_PATH], {
+          const child = spawn('node', [BIN_PATH, 'init'], {
             stdio: ['pipe', 'pipe', 'pipe'],
             env: { ...process.env, FORCE_COLOR: '0' },
           });

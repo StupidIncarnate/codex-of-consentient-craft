@@ -9,6 +9,7 @@
 import { z } from 'zod';
 import { exitCodeContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
 import { streamSignalContract } from '../stream-signal/stream-signal-contract';
+import { streamTextContract } from '../stream-text/stream-text-contract';
 
 export const agentSpawnStreamingResultContract = z.object({
   sessionId: sessionIdContract.nullable(),
@@ -16,6 +17,7 @@ export const agentSpawnStreamingResultContract = z.object({
   signal: streamSignalContract.nullable(),
   crashed: z.boolean().brand<'CrashedFlag'>(),
   timedOut: z.boolean().brand<'TimedOutFlag'>(),
+  capturedOutput: z.array(streamTextContract).default([]),
 });
 
 export type AgentSpawnStreamingResult = z.infer<typeof agentSpawnStreamingResultContract>;

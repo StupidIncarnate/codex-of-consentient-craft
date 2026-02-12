@@ -1,21 +1,24 @@
 #!/usr/bin/env node
 
 /**
- * PURPOSE: CLI entry point with interactive Ink menu
+ * PURPOSE: CLI entry point with interactive Ink menu and server launcher
  *
  * USAGE:
  * await StartCli();
  * // Renders interactive menu
  */
 
+import { exec } from 'child_process';
 import { resolve } from 'path';
 import { render } from 'ink';
 import React from 'react';
 
 import type { InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
 
 import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
+import { cliStatics } from '../statics/cli/cli-statics';
 
 import type { CliAppScreen } from '../widgets/cli-app/cli-app-widget';
 import { CliAppWidget } from '../widgets/cli-app/cli-app-widget';
@@ -86,9 +89,34 @@ const isMain =
     fsRealpathAdapter({ filePath: absoluteFilePathContract.parse(__filename) });
 
 if (isMain) {
-  StartCli().catch((error: unknown) => {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`Error: ${errorMessage}\n`);
-    process.exit(1);
-  });
+  const [command] = process.argv.slice(cliStatics.argv.commandLineArgStartIndex);
+
+  if (command === cliStatics.commands.init) {
+    StartCli({ initialScreen: 'init' }).catch((error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      process.stderr.write(`Error: ${errorMessage}\n`);
+      process.exit(1);
+    });
+  } else {
+    // Default: launch HTTP server and open browser
+    const serverPath = filePathContract.parse(require.resolve(cliStatics.server.moduleName));
+    runtimeDynamicImportAdapter<{ StartServer: () => void }>({ path: serverPath })
+      .then((serverModule) => {
+        serverModule.StartServer();
+        process.stdout.write(`Dungeonmaster server running at ${cliStatics.server.url}\n`);
+        const { url } = cliStatics.server;
+        const cmd =
+          process.platform === 'darwin'
+            ? `open ${url}`
+            : process.platform === 'win32'
+              ? `start ${url}`
+              : `xdg-open ${url}`;
+        exec(cmd);
+      })
+      .catch((error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        process.stderr.write(`Failed to start server: ${errorMessage}\n`);
+        process.exit(1);
+      });
+  }
 }

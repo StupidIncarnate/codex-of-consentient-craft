@@ -7,6 +7,9 @@
  */
 
 export const cliStatics = {
+  argv: {
+    commandLineArgStartIndex: 2,
+  },
   commands: {
     help: 'help',
     list: 'list',
@@ -14,6 +17,11 @@ export const cliStatics = {
     run: 'run',
     claude: 'claude',
     debug: 'debug',
+    serve: 'serve',
+  },
+  server: {
+    url: 'http://localhost:3737',
+    moduleName: '@dungeonmaster/server',
   },
   meta: {
     name: 'dungeonmaster',

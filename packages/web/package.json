@@ -1,0 +1,43 @@
+{
+  "name": "@dungeonmaster/web",
+  "version": "0.1.0",
+  "description": "Web UI for Dungeonmaster quest management",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:clean": "rm -rf dist && npm run build",
+    "preview": "vite preview",
+    "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint",
+    "ward": "bash -c 'FILES=$(fd --glob \"$1\" src); FILE_PATTERN=$(echo \"$FILES\" | tr \" \" \"|\" | sed \"s/|$//\"); echo \"=== LINT: $1 ===\"  && (npx eslint $FILES --fix 2>&1 | grep -A 999999 -E \"$FILE_PATTERN\" || echo \"No lint issues\"); echo \"\" && echo \"=== TYPECHECK: $1 ===\" && npx tsc --noEmit 2>&1 | grep -E \"$FILE_PATTERN\" || echo \"No type errors\"' --"
+  },
+  "dependencies": {
+    "@dungeonmaster/shared": "*",
+    "@mantine/core": "^8.0.0",
+    "@mantine/hooks": "^8.0.0",
+    "@mantine/notifications": "^8.0.0",
+    "ansi-to-react": "^6.2.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@dungeonmaster/testing": "*",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.0.0",
+    "jest": "^30.0.0",
+    "jest-environment-jsdom": "^30.0.0",
+    "postcss": "^8.0.0",
+    "postcss-preset-mantine": "^1.0.0",
+    "typescript": "^5.3.0",
+    "vite": "^6.0.0"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "@dungeonmaster/server",
+  "version": "0.1.0",
+  "description": "HTTP and WebSocket server for Dungeonmaster web UI",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
+    "build:clean": "rm -rf dist && npm run build",
+    "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint",
+    "ward": "bash -c 'FILES=$(fd --glob \"$1\" src); FILE_PATTERN=$(echo \"$FILES\" | tr \" \" \"|\" | sed \"s/|$//\"); echo \"=== LINT: $1 ===\"  && (npx eslint $FILES --fix 2>&1 | grep -A 999999 -E \"$FILE_PATTERN\" || echo \"No lint issues\"); echo \"\" && echo \"=== TYPECHECK: $1 ===\" && npx tsc --noEmit 2>&1 | grep -E \"$FILE_PATTERN\" || echo \"No type errors\"' --"
+  },
+  "dependencies": {
+    "@dungeonmaster/mcp": "*",
+    "@dungeonmaster/orchestrator": "*",
+    "@dungeonmaster/shared": "*",
+    "hono": "^4.0.0",
+    "@hono/node-server": "^1.0.0",
+    "@hono/node-ws": "^1.0.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@dungeonmaster/testing": "*",
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0",
+    "typescript": "^5.3.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

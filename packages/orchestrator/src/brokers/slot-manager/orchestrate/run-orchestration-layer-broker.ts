@@ -11,6 +11,7 @@ import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
+import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
@@ -23,6 +24,7 @@ export const runOrchestrationLayerBroker = async ({
   slotOperations,
   role,
   activeAgents,
+  onAgentLine,
 }: {
   questFilePath: FilePath;
   slotCount: SlotCount;
@@ -30,6 +32,7 @@ export const runOrchestrationLayerBroker = async ({
   slotOperations: SlotOperations;
   role: AgentRole;
   activeAgents: ActiveAgent[];
+  onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
 }): Promise<SlotManagerResult> => {
   const loopResult = await orchestrationLoopLayerBroker({
     questFilePath,
@@ -38,6 +41,7 @@ export const runOrchestrationLayerBroker = async ({
     slotOperations,
     role,
     activeAgents,
+    ...(onAgentLine === undefined ? {} : { onAgentLine }),
   });
 
   if (loopResult.done) {
@@ -51,5 +55,6 @@ export const runOrchestrationLayerBroker = async ({
     slotOperations,
     role,
     activeAgents: loopResult.activeAgents,
+    ...(onAgentLine === undefined ? {} : { onAgentLine }),
   });
 };

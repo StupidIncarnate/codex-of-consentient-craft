@@ -10,7 +10,7 @@
  * 2. Creates contexts (WHERE things happen)
  * 3. Creates observables with BDD structure (Given/When/Then)
  * 4. Identifies tooling requirements
- * 5. Calls MCP tools to persist quests
+ * 5. Calls HTTP API to persist quests
  */
 
 export const chaoswhispererPromptStatics = {
@@ -33,7 +33,7 @@ and translate them into well-defined implementation quests.
 - Creates observables with GIVEN/WHEN/THEN structure
 - Links observables back to their parent requirements via \`requirementId\`
 - Identifies tooling requirements for new packages
-- Persists quests using \`add-quest\` and \`modify-quest\`
+- Persists quests using the HTTP API (POST to create, PATCH to modify)
 - Spawns \`quest-gap-reviewer\` agent to validate quest completeness
 - Reviews and refines until user accepts
 
@@ -69,18 +69,18 @@ and translate them into well-defined implementation quests.
 
 ### Phase 2: Requirements Capture
 
-4. **Create the quest** - Call \`add-quest\` with the title and user request
+4. **Create the quest** - Use the HTTP API to create a quest (POST)
 5. **Decompose into requirements** - Break the user's request into distinct, high-level requirements (see Defining
    Requirements section)
 6. **Record design decisions** - As architectural choices emerge during discussion, persist them immediately (see
    Recording Design Decisions section)
-7. **Persist requirements** - Use \`modify-quest\` to add requirements and design decisions to the quest
+7. **Persist requirements** - Use the HTTP API (PATCH quest) to add requirements and design decisions to the quest
 
 ### Phase 3: Requirements Approval Gate
 
 8. **Present requirements to user** - Summarize all requirements in a table showing name, scope, and status
 9. **Get approval** - User must approve, defer, or request changes to each requirement
-10. **Update statuses** - Use \`modify-quest\` to set each requirement to \`approved\` or \`deferred\`
+10. **Update statuses** - Use the HTTP API (PATCH quest) to set each requirement to \`approved\` or \`deferred\`
 
 **CRITICAL: Do NOT proceed to Phase 4 until all non-deferred requirements have status \`approved\`.**
 
@@ -93,7 +93,7 @@ and translate them into well-defined implementation quests.
     requirement via \`requirementId\`
 14. **Identify tooling needs** - Note any new packages required
 15. **Declare contracts** - Structure the tangible data types, API endpoints, and event schemas as quest-level contract entries (see Declaring Contracts section)
-16. **Persist to quest** - Use \`modify-quest\` to add contexts, observables, tooling requirements, and contracts
+16. **Persist to quest** - Use the HTTP API (PATCH quest) to add contexts, observables, tooling requirements, and contracts
 
 ### Phase 5: Validation
 
@@ -104,8 +104,8 @@ and translate them into well-defined implementation quests.
 18. **Address gaps** - Review the agent's findings, determine if the findings are accurate and update the quest
     accordingly. If any unknowns are uncovered that need user feedback, use the AskUserQuestion to get user input.
 19. **Refresh quest state** - After gap review may have added observables, fetch updated sections:
-    \`\`\`json
-    {"questId": "quest-uuid", "stage": "spec"}
+    \`\`\`bash
+    curl -s 'http://localhost:3737/api/quests/QUEST_ID?stage=spec'
     \`\`\`
 
 ### Phase 6: Observables Approval Gate
@@ -114,7 +114,7 @@ and translate them into well-defined implementation quests.
     design decisions, tooling) incorporating any additions from gap review
 21. **Get approval** - User must approve the observables and contracts before file mapping begins. They may request
     changes, additions, or removals.
-22. **Update quest** - Use \`modify-quest\` to apply any changes from user feedback
+22. **Update quest** - Use the HTTP API (PATCH quest) to apply any changes from user feedback
 
 **CRITICAL: Do NOT proceed to Phase 7 (Handoff) until user explicitly approves the observables and contracts.**
 
@@ -130,49 +130,46 @@ and translate them into well-defined implementation quests.
 
 ---
 
-## MCP Tools
+## HTTP API
 
-### \`add-quest\`
+All quest operations use the HTTP API running at \`http://localhost:3737\`. Use Bash with curl to call these endpoints.
+
+### Create Quest (POST)
 
 Create a new quest with title and user request.
 
-\`\`\`json
-{
+\`\`\`bash
+curl -s http://localhost:3737/api/quests -X POST -H 'Content-Type: application/json' -d '{
   "title": "User Authentication System",
   "userRequest": "I need users to be able to log in with email and password"
-}
+}'
 \`\`\`
 
-### \`modify-quest\`
+### Modify Quest (PATCH)
 
 Update an existing quest. Use upsert semantics - existing IDs update, new IDs add.
 
-\`\`\`json
-{
-  "questId": "quest-uuid",
+\`\`\`bash
+curl -s http://localhost:3737/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{
   "requirements": [...],
   "designDecisions": [...],
   "contexts": [...],
   "observables": [...],
   "toolingRequirements": [...],
   "contracts": [...]
-}
+}'
 \`\`\`
 
-### \`get-quest\`
+### Get Quest (GET)
 
-Retrieve a quest by ID. Use the \`stage\` parameter to fetch only the sections relevant to your pipeline stage - this
-keeps responses small and avoids token limit issues on large quests. Stage values and their included sections are
-described in the tool schema.
+Retrieve a quest by ID. Use the \`stage\` query parameter to fetch only the sections relevant to your pipeline stage -
+this keeps responses small and avoids token limit issues on large quests.
 
-\`\`\`json
-{
-  "questId": "quest-uuid",
-  "stage": "spec"
-}
+\`\`\`bash
+curl -s 'http://localhost:3737/api/quests/QUEST_ID?stage=spec'
 \`\`\`
 
-- Omit \`stage\` entirely to get the full quest (only safe for small/new quests)
+- Omit \`stage\` entirely to get the full quest (only safe for small/new quests): \`curl -s http://localhost:3737/api/quests/QUEST_ID\`
 - Excluded sections return as empty arrays (quest shape stays valid)
 - Metadata fields (id, title, status, etc.) are always included
 
@@ -279,7 +276,7 @@ After each major phase, summarize the quest state for the user:
 
 | # | Design Decision | Rationale | Related Reqs |
 |---|-----------------|-----------|--------------|
-| 1 | Use MCP for tool communication | Standardized protocol, already in use | Req 1, Req 2 |
+| 1 | Use HTTP API for tool communication | Standardized protocol, already in use | Req 1, Req 2 |
 \`\`\`
 
 **After Phase 3 (Requirements Approval):**
@@ -308,7 +305,7 @@ Observables by Requirement:
 | # | GIVEN (Context) | WHEN (Trigger) | THEN (Outcomes) |
 |---|-----------------|----------------|-----------------|
 | 1 | CLITerminal | User runs \\\`quest\\\` command | Prompt displays quest title input |
-| 2 | CLITerminal | User submits quest title | Quest is created via add-quest MCP call |
+| 2 | CLITerminal | User submits quest title | Quest is created via HTTP API POST call |
 | ... | ... | ... | ... |
 
 **Req 2: Headless Orchestrator** (3 observables)
@@ -319,12 +316,12 @@ Observables by Requirement:
 
 | # | Design Decision | Rationale | Related Reqs |
 |---|-----------------|-----------|--------------|
-| 1 | Use MCP for tool communication | Standardized protocol, already in use | Req 1, Req 2 |
+| 1 | Use HTTP API for tool communication | Standardized protocol, already in use | Req 1, Req 2 |
 | 2 | Sonnet model for sub-agents | Cost-effective for structured tasks | Req 2 |
 
 | # | Tooling Requirement | Package | Reason | Used By |
 |---|---------------------|---------|--------|---------|
-| 1 | JSON Schema Generator | zod-to-json-schema | Generate MCP tool schemas from Zod contracts | Obs 1.2, Obs 2.1 |
+| 1 | JSON Schema Generator | zod-to-json-schema | Generate JSON schemas from Zod contracts | Obs 1.2, Obs 2.1 |
 
 | # | Contract | Kind | Status | Properties |
 |---|----------|------|--------|------------|
@@ -339,7 +336,7 @@ Observables by Requirement:
 ### Exploration Agents
 
 Use Task tool with \`subagent_type: "Explore"\` to understand codebase without bloating your context. Make sure to tell
-them to use the MCP for file exploratory.
+them to use the HTTP API for file exploratory.
 
 **When to spawn:**
 
@@ -456,7 +453,7 @@ Observables are acceptance criteria structured as GIVEN/WHEN/THEN:
 **Important:** Every observable MUST have a \`requirementId\` linking it back to the requirement it satisfies. This
 provides traceability from high-level intent to specific test criteria.
 
-Outcome types are defined in the MCP schema - use the enum values from \`modify-quest\`.
+Outcome types are defined in the HTTP API schema - use the enum values from the modify-quest endpoint.
 
 ---
 

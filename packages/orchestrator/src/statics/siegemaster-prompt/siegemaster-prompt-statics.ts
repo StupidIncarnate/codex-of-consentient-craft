@@ -9,7 +9,7 @@
  * 1. Creates integration tests for observable behaviors
  * 2. Verifies end-to-end user workflows
  * 3. Tests real user scenarios across components
- * 4. Signals completion via MCP tools
+ * 4. Signals completion via stdout signals
  */
 
 export const siegemasterPromptStatics = {
@@ -32,19 +32,21 @@ You are an integration test agent that:
 - Tests complete user workflows end-to-end
 - Verifies real user scenarios across components
 - Ensures graceful error handling
-- Signals completion or blocking conditions via MCP tools
+- Signals completion or blocking conditions via signal-back
 
 **IMPORTANT: You implement integration tests for specific observables. You receive observable context and must create comprehensive tests that verify the behavior works.**
 
-## MCP Tools You Use
+## HTTP API Endpoints You Use
 
-- \`get-architecture\` - Understand folder structure and import rules
-- \`get-folder-detail\` - Get patterns for specific folder types
-- \`get-syntax-rules\` - Get syntax conventions
-- \`get-testing-patterns\` - Get testing philosophy and integration patterns
-- \`discover\` - Find existing test patterns and code
-- \`signal-back\` - Signal completion or blocking conditions
-- \`modify-quest\` - Update step status
+Call these via Bash using curl:
+
+- **Architecture** - \\\`curl -s http://localhost:3737/api/docs/architecture\\\`
+- **Folder detail** - \\\`curl -s http://localhost:3737/api/docs/folder-detail/FOLDER_TYPE\\\` (e.g. guards, brokers, transformers)
+- **Syntax rules** - \\\`curl -s http://localhost:3737/api/docs/syntax-rules\\\`
+- **Testing patterns** - \\\`curl -s http://localhost:3737/api/docs/testing-patterns\\\`
+- **Discover** - \\\`curl -s http://localhost:3737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/X/src/guards"}'\\\`
+- **Update quest** - \\\`curl -s http://localhost:3737/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{...}'\\\`
+- \`signal-back\` - Signal completion or blocking conditions (called directly, not via HTTP)
 
 ## Integration Test Focus
 

@@ -25,6 +25,7 @@ import type {
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapter } from '../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
+import { readlineCreateInterfaceAdapter } from '../adapters/readline/create-interface/readline-create-interface-adapter';
 import { questAddBroker } from '../brokers/quest/add/quest-add-broker';
 import { questGetBroker } from '../brokers/quest/get/quest-get-broker';
 import { questListBroker } from '../brokers/quest/list/quest-list-broker';
@@ -47,7 +48,9 @@ import type { KillableProcess } from '../contracts/killable-process/killable-pro
 import { orchestrationPhaseContract } from '../contracts/orchestration-phase/orchestration-phase-contract';
 import { orchestrationProcessContract } from '../contracts/orchestration-process/orchestration-process-contract';
 import { promptTextContract } from '../contracts/prompt-text/prompt-text-contract';
+import { slotIndexContract } from '../contracts/slot-index/slot-index-contract';
 import { totalCountContract } from '../contracts/total-count/total-count-contract';
+import { orchestrationEventsState } from '../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../state/orchestration-processes/orchestration-processes-state';
 import { pathseekerPromptStatics } from '../statics/pathseeker-prompt/pathseeker-prompt-statics';
 import { questToListItemTransformer } from '../transformers/quest-to-list-item/quest-to-list-item-transformer';
@@ -113,15 +116,26 @@ export const StartOrchestrator = {
 
     const prompt = promptTextContract.parse(promptText);
 
-    const { process: childProcess } = childProcessSpawnStreamJsonAdapter({ prompt });
+    const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter({ prompt });
 
     const processId = processIdContract.parse(`proc-${randomUUID()}`);
+
+    const pathseekerSlotIndex = slotIndexContract.parse(0);
+    const pathseekerRl = readlineCreateInterfaceAdapter({ input: stdout });
+    pathseekerRl.onLine(({ line }) => {
+      orchestrationEventsState.emit({
+        type: 'agent-output',
+        processId,
+        payload: { slotIndex: pathseekerSlotIndex, line },
+      });
+    });
 
     const killableProcess: KillableProcess = {
       kill: () => childProcess.kill(),
       waitForExit: async () =>
         new Promise<void>((resolve) => {
           childProcess.on('exit', () => {
+            pathseekerRl.close();
             resolve();
           });
         }),
@@ -154,11 +168,26 @@ export const StartOrchestrator = {
           startPath,
           onPhaseChange: ({ phase }) => {
             orchestrationProcessesState.updatePhase({ processId, phase });
+            orchestrationEventsState.emit({
+              type: 'phase-change',
+              processId,
+              payload: { phase },
+            });
+          },
+          onAgentLine: ({ slotIndex, line }) => {
+            orchestrationEventsState.emit({
+              type: 'agent-output',
+              processId,
+              payload: { slotIndex, line },
+            });
           },
         }).catch(() => {
-          orchestrationProcessesState.updatePhase({
+          const phase = orchestrationPhaseContract.parse('failed');
+          orchestrationProcessesState.updatePhase({ processId, phase });
+          orchestrationEventsState.emit({
+            type: 'phase-change',
             processId,
-            phase: orchestrationPhaseContract.parse('failed'),
+            payload: { phase },
           });
         });
       },
@@ -166,9 +195,12 @@ export const StartOrchestrator = {
         orchestrationProcessesState.updateProcess({ processId, process });
       },
     }).catch(() => {
-      orchestrationProcessesState.updatePhase({
+      const phase = orchestrationPhaseContract.parse('failed');
+      orchestrationProcessesState.updatePhase({ processId, phase });
+      orchestrationEventsState.emit({
+        type: 'phase-change',
         processId,
-        phase: orchestrationPhaseContract.parse('failed'),
+        payload: { phase },
       });
     });
 

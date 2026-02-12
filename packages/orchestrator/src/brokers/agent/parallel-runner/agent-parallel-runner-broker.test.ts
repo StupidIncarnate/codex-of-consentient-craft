@@ -45,6 +45,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
       ]);
     });
@@ -69,6 +70,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: null,
+          capturedOutput: [],
         },
       ]);
     });
@@ -95,6 +97,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
         {
           crashed: false,
@@ -102,6 +105,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
       ]);
     });
@@ -128,6 +132,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
         {
           crashed: false,
@@ -135,6 +140,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
         {
           crashed: false,
@@ -142,6 +148,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
         {
           crashed: false,
@@ -149,6 +156,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
         {
           crashed: false,
@@ -156,6 +164,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
       ]);
     });
@@ -182,6 +191,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: null,
+          capturedOutput: [],
         },
         {
           crashed: false,
@@ -189,6 +199,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
         {
           crashed: false,
@@ -196,6 +207,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
       ]);
     });
@@ -221,6 +233,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: null,
+          capturedOutput: [],
         },
         {
           crashed: true,
@@ -228,6 +241,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: null,
+          capturedOutput: [],
         },
         {
           crashed: true,
@@ -235,6 +249,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: null,
+          capturedOutput: [],
         },
       ]);
     });
@@ -261,6 +276,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
         {
           crashed: false,
@@ -268,6 +284,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
         {
           crashed: false,
@@ -275,6 +292,7 @@ describe('agentParallelRunnerBroker', () => {
           signal: null,
           sessionId: null,
           exitCode: 0,
+          capturedOutput: [],
         },
       ]);
     });

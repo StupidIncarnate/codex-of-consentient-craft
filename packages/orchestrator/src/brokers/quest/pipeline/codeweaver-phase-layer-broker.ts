@@ -10,6 +10,7 @@ import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
 import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
+import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
@@ -21,10 +22,12 @@ export const codeweaverPhaseLayerBroker = async ({
   questId: _questId,
   questFilePath,
   onPhaseChange,
+  onAgentLine,
 }: {
   questId: QuestId;
   questFilePath: FilePath;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
+  onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
 }): Promise<void> => {
   onPhaseChange({ phase: 'codeweaver' });
 
@@ -38,6 +41,7 @@ export const codeweaverPhaseLayerBroker = async ({
     timeoutMs,
     slotOperations,
     role: 'codeweaver',
+    ...(onAgentLine === undefined ? {} : { onAgentLine }),
   });
 
   if (!result.completed) {

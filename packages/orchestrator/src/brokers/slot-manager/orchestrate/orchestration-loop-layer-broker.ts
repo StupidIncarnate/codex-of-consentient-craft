@@ -11,13 +11,14 @@ import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
 import { agentRoleContract } from '../../../contracts/agent-role/agent-role-contract';
-import { continuationContextContract } from '../../../contracts/continuation-context/continuation-context-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
+import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import { isStepReadyGuard } from '../../../guards/is-step-ready/is-step-ready-guard';
+import { buildContinuationContextTransformer } from '../../../transformers/build-continuation-context/build-continuation-context-transformer';
 import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';
 import { questLoadBroker } from '../../quest/load/quest-load-broker';
 import { questUpdateStepBroker } from '../../quest/update-step/quest-update-step-broker';
@@ -35,6 +36,7 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations,
   role,
   activeAgents,
+  onAgentLine,
 }: {
   questFilePath: FilePath;
   slotCount: SlotCount;
@@ -42,6 +44,7 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations: SlotOperations;
   role: AgentRole;
   activeAgents: ActiveAgent[];
+  onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
 }): Promise<LoopResult> => {
   const quest = await questLoadBroker({ questFilePath });
 
@@ -78,6 +81,13 @@ export const orchestrationLoopLayerBroker = async ({
       const agentPromise = spawnAgentLayerBroker({
         workUnit,
         timeoutMs,
+        ...(onAgentLine === undefined
+          ? {}
+          : {
+              onLine: ({ line }: { line: string }) => {
+                onAgentLine({ slotIndex: availableSlotIndex, line });
+              },
+            }),
       });
 
       activeAgents.push({
@@ -128,6 +138,13 @@ export const orchestrationLoopLayerBroker = async ({
           workUnit,
           timeoutMs,
           ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
+          ...(onAgentLine === undefined
+            ? {}
+            : {
+                onLine: ({ line }: { line: string }) => {
+                  onAgentLine({ slotIndex: newSlotIndex, line });
+                },
+              }),
         });
 
         activeAgents.push({
@@ -175,16 +192,24 @@ export const orchestrationLoopLayerBroker = async ({
 
         const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
         if (newSlotIndex !== undefined) {
+          const continuationContext = buildContinuationContextTransformer({
+            ...(signalResult.continuationPoint === undefined
+              ? {}
+              : { continuationPoint: signalResult.continuationPoint }),
+            capturedOutput: result.capturedOutput,
+          });
+
           const agentPromise = spawnAgentLayerBroker({
             workUnit,
             timeoutMs,
             ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
-            ...(signalResult.continuationPoint === undefined
+            ...(continuationContext === null ? {} : { continuationContext }),
+            ...(onAgentLine === undefined
               ? {}
               : {
-                  continuationContext: continuationContextContract.parse(
-                    signalResult.continuationPoint,
-                  ),
+                  onLine: ({ line }: { line: string }) => {
+                    onAgentLine({ slotIndex: newSlotIndex, line });
+                  },
                 }),
           });
 
@@ -215,6 +240,13 @@ export const orchestrationLoopLayerBroker = async ({
           const agentPromise = spawnAgentLayerBroker({
             workUnit,
             timeoutMs,
+            ...(onAgentLine === undefined
+              ? {}
+              : {
+                  onLine: ({ line }: { line: string }) => {
+                    onAgentLine({ slotIndex: newSlotIndex, line });
+                  },
+                }),
           });
 
           activeAgents.push({

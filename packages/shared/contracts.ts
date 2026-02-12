@@ -176,3 +176,11 @@ export * from './src/contracts/quest-contract-property/quest-contract-property.s
 
 export * from './src/contracts/quest-contract-entry/quest-contract-entry-contract';
 export * from './src/contracts/quest-contract-entry/quest-contract-entry.stub';
+
+// Orchestration Event Contracts
+export * from './src/contracts/orchestration-event-type/orchestration-event-type-contract';
+export * from './src/contracts/orchestration-event-type/orchestration-event-type.stub';
+
+// WebSocket Message Contracts
+export * from './src/contracts/ws-message/ws-message-contract';
+export * from './src/contracts/ws-message/ws-message.stub';

@@ -43,6 +43,14 @@ const makeSessionIdLine = ({
   sessionId: typeof SESSION_ID | typeof ALT_SESSION_ID;
 }) => JSON.stringify({ session_id: sessionId });
 
+const makeTextLine = ({ text }: { text: string }) =>
+  JSON.stringify({
+    type: 'assistant',
+    message: {
+      content: [{ type: 'text', text }],
+    },
+  });
+
 describe('agentStreamMonitorBroker', () => {
   describe('signal extraction', () => {
     it('VALID: {stream with signal} => returns extracted signal', async () => {
@@ -69,6 +77,7 @@ describe('agentStreamMonitorBroker', () => {
         signal: { signal: SIGNAL_COMPLETE, stepId: STEP_ID, summary: SUMMARY_DONE },
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -94,6 +103,7 @@ describe('agentStreamMonitorBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
 
@@ -118,6 +128,7 @@ describe('agentStreamMonitorBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -148,6 +159,7 @@ describe('agentStreamMonitorBroker', () => {
         signal: null,
         crashed: false,
         timedOut: true,
+        capturedOutput: [],
       });
       expect(mockProcess.kill).toHaveBeenCalledTimes(1);
     });
@@ -173,6 +185,7 @@ describe('agentStreamMonitorBroker', () => {
         signal: null,
         crashed: true,
         timedOut: false,
+        capturedOutput: [],
       });
     });
 
@@ -195,6 +208,7 @@ describe('agentStreamMonitorBroker', () => {
         signal: null,
         crashed: true,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -219,6 +233,7 @@ describe('agentStreamMonitorBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -243,6 +258,7 @@ describe('agentStreamMonitorBroker', () => {
         signal: null,
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
       });
     });
   });
@@ -277,6 +293,86 @@ describe('agentStreamMonitorBroker', () => {
         signal: { signal: SIGNAL_COMPLETE, stepId: STEP_ID, summary: SUMMARY_FINAL },
         crashed: false,
         timedOut: false,
+        capturedOutput: [],
+      });
+    });
+  });
+
+  describe('output capture', () => {
+    it('VALID: {stream with text content} => captures text in capturedOutput', async () => {
+      const proxy = agentStreamMonitorBrokerProxy();
+      const textLine1 = makeTextLine({ text: 'Creating file utils.ts' });
+      const textLine2 = makeTextLine({ text: 'Writing test cases' });
+      const { mockProcess } = proxy.setupStreamAndExit({
+        lines: [textLine1, textLine2],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const result = await agentStreamMonitorBroker({
+        stdout: undefined as never,
+        process: mockProcess as never,
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+      });
+
+      expect(result).toStrictEqual({
+        sessionId: null,
+        exitCode: 0,
+        signal: null,
+        crashed: false,
+        timedOut: false,
+        capturedOutput: ['Creating file utils.ts', 'Writing test cases'],
+      });
+    });
+
+    it('VALID: {stream with mixed text and signal lines} => captures only text content', async () => {
+      const proxy = agentStreamMonitorBrokerProxy();
+      const textLine = makeTextLine({ text: 'Processing step' });
+      const signalLine = makeSignalLine({
+        signal: SIGNAL_COMPLETE,
+        stepId: STEP_ID,
+        summary: SUMMARY_DONE,
+      });
+      const { mockProcess } = proxy.setupStreamAndExit({
+        lines: [textLine, signalLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const result = await agentStreamMonitorBroker({
+        stdout: undefined as never,
+        process: mockProcess as never,
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+      });
+
+      expect(result).toStrictEqual({
+        sessionId: null,
+        exitCode: 0,
+        signal: { signal: SIGNAL_COMPLETE, stepId: STEP_ID, summary: SUMMARY_DONE },
+        crashed: false,
+        timedOut: false,
+        capturedOutput: ['Processing step'],
+      });
+    });
+
+    it('EMPTY: {no text lines in stream} => returns empty capturedOutput', async () => {
+      const proxy = agentStreamMonitorBrokerProxy();
+      const { mockProcess } = proxy.setupStreamAndExit({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const result = await agentStreamMonitorBroker({
+        stdout: undefined as never,
+        process: mockProcess as never,
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+      });
+
+      expect(result).toStrictEqual({
+        sessionId: null,
+        exitCode: 0,
+        signal: null,
+        crashed: false,
+        timedOut: false,
+        capturedOutput: [],
       });
     });
   });

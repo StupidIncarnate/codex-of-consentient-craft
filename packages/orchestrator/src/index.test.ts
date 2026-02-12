@@ -16,6 +16,7 @@ describe('orchestrator', () => {
       'lawbringerPromptStatics',
       'modifyQuestInputContract',
       'modifyQuestResultContract',
+      'orchestrationEventsState',
       'pathseekerPromptStatics',
       'questAddBroker',
       'questFolderFindBroker',

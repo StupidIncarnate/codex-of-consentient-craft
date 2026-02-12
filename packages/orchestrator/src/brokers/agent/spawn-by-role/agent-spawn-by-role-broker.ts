@@ -29,11 +29,13 @@ export const agentSpawnByRoleBroker = async ({
   timeoutMs,
   resumeSessionId,
   continuationContext,
+  onLine,
 }: {
   workUnit: WorkUnit;
   timeoutMs: TimeoutMs;
   resumeSessionId?: SessionId;
   continuationContext?: ContinuationContext;
+  onLine?: (params: { line: string }) => void;
 }): Promise<AgentSpawnStreamingResult> => {
   const template = roleToPromptTemplateTransformer({ role: workUnit.role });
   const args = workUnitToArgumentsTransformer({ workUnit });
@@ -55,6 +57,7 @@ export const agentSpawnByRoleBroker = async ({
       stdout,
       process: childProcess,
       timeoutMs,
+      ...(onLine === undefined ? {} : { onLine }),
     });
   } catch {
     return agentSpawnStreamingResultContract.parse({
