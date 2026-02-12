@@ -41,4 +41,14 @@ describe('questListBroker', () => {
       await expect(questListBroker()).rejects.toThrow('Network failure');
     });
   });
+
+  describe('zod validation', () => {
+    it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
+      const proxy = questListBrokerProxy();
+
+      proxy.setupInvalidResponse({ data: [{ bad: 'data' }] });
+
+      await expect(questListBroker()).rejects.toThrow(/invalid_type/u);
+    });
+  });
 });

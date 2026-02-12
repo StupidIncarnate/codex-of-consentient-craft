@@ -11,15 +11,6 @@ const noopCallback = (): void => {
 };
 
 describe('HelpScreenLayerWidget', () => {
-  let unmountFn: (() => void) | null = null;
-
-  afterEach(() => {
-    if (unmountFn) {
-      unmountFn();
-      unmountFn = null;
-    }
-  });
-
   describe('rendering help content', () => {
     it('VALID: {} => displays CLI name from statics', () => {
       HelpScreenLayerWidgetProxy();
@@ -27,9 +18,11 @@ describe('HelpScreenLayerWidget', () => {
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <HelpScreenLayerWidget onBack={noopCallback} />,
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/dungeonmaster/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/dungeonmaster/u);
     });
 
     it('VALID: {} => displays CLI description from statics', () => {
@@ -38,9 +31,11 @@ describe('HelpScreenLayerWidget', () => {
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <HelpScreenLayerWidget onBack={noopCallback} />,
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Dungeonmaster Quest CLI/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Dungeonmaster Quest CLI/u);
     });
 
     it('VALID: {} => displays available commands', () => {
@@ -49,11 +44,13 @@ describe('HelpScreenLayerWidget', () => {
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <HelpScreenLayerWidget onBack={noopCallback} />,
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/run/iu);
-      expect(lastFrame()).toMatch(/list/iu);
-      expect(lastFrame()).toMatch(/init/iu);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/run/iu);
+      expect(frame).toMatch(/list/iu);
+      expect(frame).toMatch(/init/iu);
     });
 
     it('VALID: {} => displays back instruction', () => {
@@ -62,9 +59,11 @@ describe('HelpScreenLayerWidget', () => {
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <HelpScreenLayerWidget onBack={noopCallback} />,
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Press Escape or 'q' to go back/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Press Escape or 'q' to go back/u);
     });
   });
 
@@ -78,7 +77,8 @@ describe('HelpScreenLayerWidget', () => {
       const { unmount } = inkTestingLibraryRenderAdapter({
         element: <HelpScreenLayerWidget onBack={onBack} />,
       });
-      unmountFn = unmount;
+
+      unmount();
 
       // Verify the widget rendered without error when given the callback
       // The actual callback invocation is handled by useInput which requires

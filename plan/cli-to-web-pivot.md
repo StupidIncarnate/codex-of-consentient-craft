@@ -4,13 +4,13 @@
 
 ## Progress Tracker
 
-| Phase                                 | Status      | Notes                                                |
-|---------------------------------------|-------------|------------------------------------------------------|
-| Phase 1: Foundation (MVP)             | COMPLETE    |                                                      |
-| Phase 2: Agent Output Streaming       | COMPLETE    | All 5 tasks done                                     |
-| Phase 3: Agent Migration (MCP → HTTP) | IN PROGRESS | Tasks 3.1-3.5 complete, 3.6 verification in progress |
-| Phase 4: Verification + Cleanup       | NOT STARTED | Requires manual verification before deletions        |
-| Phase 5: Pixel Art Game Foundation    | NOT STARTED |                                                      |
+| Phase                                 | Status      | Notes                          |
+|---------------------------------------|-------------|--------------------------------|
+| Phase 1: Foundation (MVP)             | COMPLETE    |                                |
+| Phase 2: Agent Output Streaming       | COMPLETE    | All 5 tasks done               |
+| Phase 3: Agent Migration (MCP → HTTP) | COMPLETE    | All 6 tasks done               |
+| Phase 4: Verification + Cleanup       | IN PROGRESS | 4.1 endpoint verification next |
+| Phase 5: Pixel Art Game Foundation    | NOT STARTED |                                |
 
 ### Phase 1 Detailed Progress
 
@@ -40,14 +40,14 @@
 
 ### Phase 3 Detailed Progress
 
-| Task                                             | Status      | Notes                                                                                                                                                                                                                      |
-|--------------------------------------------------|-------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 3.1 Agent-facing HTTP endpoints (discover, docs) | DONE        | All 501 placeholders replaced with real broker calls (architectureOverviewBroker, architectureFolderDetailBroker, architectureSyntaxRulesBroker, architectureTestingPatternsBroker, mcpDiscoverBroker)                     |
-| 3.2 Move agent prompts into orchestrator         | DONE        | All 9 prompts in packages/orchestrator/src/statics/ (chaoswhisperer, pathseeker, codeweaver, lawbringer, siegemaster, spiritmender, quest-start, finalizer, gap-reviewer). roleToPromptTemplateTransformer routes by role. |
-| 3.3 Update prompts: MCP → HTTP (curl/Bash)       | DONE        | All prompts use curl http://localhost:3737/api/* calls. Zero references to mcp__dungeonmaster__* in orchestrator prompts.                                                                                                  |
-| 3.4 Quest creation form in web UI                | DONE        | TextInput + Textarea in quest-list-widget, calls POST /api/quests                                                                                                                                                          |
-| 3.5 Quest modification + verification UI         | DONE        | Quest detail tabs with verification support                                                                                                                                                                                |
-| 3.6 Phase 3 verification                         | IN PROGRESS |                                                                                                                                                                                                                            |
+| Task                                             | Status | Notes                                                                                                                                                                                                                      |
+|--------------------------------------------------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 3.1 Agent-facing HTTP endpoints (discover, docs) | DONE   | All 501 placeholders replaced with real broker calls (architectureOverviewBroker, architectureFolderDetailBroker, architectureSyntaxRulesBroker, architectureTestingPatternsBroker, mcpDiscoverBroker)                     |
+| 3.2 Move agent prompts into orchestrator         | DONE   | All 9 prompts in packages/orchestrator/src/statics/ (chaoswhisperer, pathseeker, codeweaver, lawbringer, siegemaster, spiritmender, quest-start, finalizer, gap-reviewer). roleToPromptTemplateTransformer routes by role. |
+| 3.3 Update prompts: MCP → HTTP (curl/Bash)       | DONE   | All prompts use curl http://localhost:3737/api/* calls. Zero references to mcp__dungeonmaster__* in orchestrator prompts.                                                                                                  |
+| 3.4 Quest creation form in web UI                | DONE   | TextInput + Textarea in quest-list-widget, calls POST /api/quests                                                                                                                                                          |
+| 3.5 Quest modification + verification UI         | DONE   | Quest detail tabs with verification support                                                                                                                                                                                |
+| 3.6 Phase 3 verification                         | DONE   |                                                                                                                                                                                                                            |
 
 ### Phase 4 Detailed Progress
 

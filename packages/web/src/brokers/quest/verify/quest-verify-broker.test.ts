@@ -54,4 +54,15 @@ describe('questVerifyBroker', () => {
       await expect(questVerifyBroker({ questId })).rejects.toThrow('Verification failed');
     });
   });
+
+  describe('zod validation', () => {
+    it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
+      const proxy = questVerifyBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      proxy.setupInvalidResponse({ data: { bad: 'data' } });
+
+      await expect(questVerifyBroker({ questId })).rejects.toThrow(/invalid_type/u);
+    });
+  });
 });

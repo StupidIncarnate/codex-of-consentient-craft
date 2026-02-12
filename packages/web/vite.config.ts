@@ -12,7 +12,13 @@ export default defineConfig({
       },
     },
   },
+  optimizeDeps: {
+    include: ['@dungeonmaster/shared/contracts'],
+  },
   build: {
     outDir: 'dist',
+    commonjsOptions: {
+      include: [/shared/u, /node_modules/u],
+    },
   },
 });

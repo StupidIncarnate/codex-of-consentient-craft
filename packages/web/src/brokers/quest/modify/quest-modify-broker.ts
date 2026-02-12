@@ -5,6 +5,7 @@
  * const updated = await questModifyBroker({questId, modifications: {title: 'New Title'}});
  * // Returns updated Quest object
  */
+import { questContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { fetchPatchAdapter } from '../../../adapters/fetch/patch/fetch-patch-adapter';
@@ -16,8 +17,11 @@ export const questModifyBroker = async ({
 }: {
   questId: QuestId;
   modifications: Record<string, unknown>;
-}): Promise<Quest> =>
-  fetchPatchAdapter<Quest>({
+}): Promise<Quest> => {
+  const response = await fetchPatchAdapter<unknown>({
     url: webConfigStatics.api.routes.questById.replace(':questId', questId),
     body: modifications,
   });
+
+  return questContract.parse(response);
+};

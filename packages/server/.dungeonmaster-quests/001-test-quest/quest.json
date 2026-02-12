@@ -1,0 +1,16 @@
+{
+  "id": "test-quest",
+  "folder": "001-test-quest",
+  "title": "test quest",
+  "status": "in_progress",
+  "createdAt": "2026-02-12T05:10:38.951Z",
+  "executionLog": [],
+  "requirements": [],
+  "designDecisions": [],
+  "contexts": [],
+  "observables": [],
+  "steps": [],
+  "toolingRequirements": [],
+  "contracts": [],
+  "userRequest": "I want a test quest"
+}

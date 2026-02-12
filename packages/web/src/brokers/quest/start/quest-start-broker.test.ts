@@ -28,4 +28,15 @@ describe('questStartBroker', () => {
       await expect(questStartBroker({ questId })).rejects.toThrow('Server error');
     });
   });
+
+  describe('zod validation', () => {
+    it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
+      const proxy = questStartBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      proxy.setupInvalidResponse({ data: { processId: '' } });
+
+      await expect(questStartBroker({ questId })).rejects.toThrow(/too_small/u);
+    });
+  });
 });

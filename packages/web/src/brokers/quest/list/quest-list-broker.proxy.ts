@@ -5,6 +5,7 @@ import type { QuestListItem } from '@dungeonmaster/shared/contracts';
 export const questListBrokerProxy = (): {
   setupQuests: (params: { quests: QuestListItem[] }) => void;
   setupError: (params: { error: Error }) => void;
+  setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
   const fetchProxy = fetchGetAdapterProxy();
 
@@ -14,6 +15,9 @@ export const questListBrokerProxy = (): {
     },
     setupError: ({ error }: { error: Error }): void => {
       fetchProxy.rejects({ error });
+    },
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      fetchProxy.resolves({ data });
     },
   };
 };

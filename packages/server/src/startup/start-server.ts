@@ -7,16 +7,14 @@
  */
 
 import { Hono } from 'hono';
-import { serve } from '@hono/node-server';
-import { createNodeWebSocket } from '@hono/node-ws';
 import type { WSContext } from 'hono/ws';
 import {
   filePathContract,
   questIdContract,
   processIdContract,
   orchestrationEventTypeContract,
+  wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
 import {
   architectureFolderDetailBroker,
@@ -25,105 +23,38 @@ import {
   mcpDiscoverBroker,
 } from '@dungeonmaster/mcp/brokers';
 import {
-  StartOrchestrator,
   isoTimestampContract,
   orchestrationEventsState,
   slotIndexContract,
 } from '@dungeonmaster/orchestrator';
 import type { SlotIndex } from '@dungeonmaster/orchestrator';
 
+import { orchestratorListQuestsAdapter } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
+import { orchestratorGetQuestAdapter } from '../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
+import { orchestratorAddQuestAdapter } from '../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter';
+import { orchestratorModifyQuestAdapter } from '../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
+import { orchestratorVerifyQuestAdapter } from '../adapters/orchestrator/verify-quest/orchestrator-verify-quest-adapter';
+import { orchestratorStartQuestAdapter } from '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
+import { orchestratorGetQuestStatusAdapter } from '../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
+import { honoServeAdapter } from '../adapters/hono/serve/hono-serve-adapter';
+import { honoCreateNodeWebSocketAdapter } from '../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
 import { serverConfigStatics } from '../statics/server-config/server-config-statics';
 import { apiRoutesStatics } from '../statics/api-routes/api-routes-statics';
 import { httpStatusStatics } from '../statics/http-status/http-status-statics';
 import { agentOutputLineContract } from '../contracts/agent-output-line/agent-output-line-contract';
 import type { AgentOutputLine } from '../contracts/agent-output-line/agent-output-line-contract';
-import { bufferCursorIndexContract } from '../contracts/buffer-cursor-index/buffer-cursor-index-contract';
-import type { BufferCursorIndex } from '../contracts/buffer-cursor-index/buffer-cursor-index-contract';
+import { agentOutputBufferState } from '../state/agent-output-buffer/agent-output-buffer-state';
+import { wsEventRelayBroadcastBroker } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
+import type { WsClient } from '../contracts/ws-client/ws-client-contract';
 
-const MAX_LINES_PER_SLOT = 500;
 const FLUSH_INTERVAL_MS = 100;
-
-// Ring buffer: stores last MAX_LINES_PER_SLOT agent output lines per process per slot
-const buffers = new Map<ProcessId, Map<SlotIndex, AgentOutputLine[]>>();
-
-// Tracks which slots have new lines since last flush (value is the start index of unsent lines)
-const pendingFlush = new Map<ProcessId, Map<SlotIndex, BufferCursorIndex>>();
-
-const agentOutputBufferState = {
-  addLine: ({
-    processId,
-    slotIndex,
-    line,
-  }: {
-    processId: ProcessId;
-    slotIndex: SlotIndex;
-    line: AgentOutputLine;
-  }): void => {
-    let processBuffers = buffers.get(processId);
-    if (!processBuffers) {
-      processBuffers = new Map();
-      buffers.set(processId, processBuffers);
-    }
-
-    let slotBuffer = processBuffers.get(slotIndex);
-    if (!slotBuffer) {
-      slotBuffer = [];
-      processBuffers.set(slotIndex, slotBuffer);
-    }
-
-    slotBuffer.push(line);
-    if (slotBuffer.length > MAX_LINES_PER_SLOT) {
-      slotBuffer.shift();
-    }
-
-    // Mark slot as dirty for batched sending
-    let processPending = pendingFlush.get(processId);
-    if (!processPending) {
-      processPending = new Map();
-      pendingFlush.set(processId, processPending);
-    }
-    if (!processPending.has(slotIndex)) {
-      processPending.set(slotIndex, bufferCursorIndexContract.parse(slotBuffer.length - 1));
-    }
-  },
-
-  flush: (): Map<ProcessId, Map<SlotIndex, AgentOutputLine[]>> => {
-    const result = new Map<ProcessId, Map<SlotIndex, AgentOutputLine[]>>();
-
-    for (const [processId, slots] of pendingFlush) {
-      for (const [slotIndex, startIdx] of slots) {
-        const buffer = buffers.get(processId)?.get(slotIndex);
-        if (!buffer) continue;
-
-        const newLines = buffer.slice(startIdx);
-        if (newLines.length === 0) continue;
-
-        let processResult = result.get(processId);
-        if (!processResult) {
-          processResult = new Map();
-          result.set(processId, processResult);
-        }
-        processResult.set(slotIndex, newLines);
-      }
-    }
-
-    pendingFlush.clear();
-    return result;
-  },
-
-  getProcessOutput: ({
-    processId,
-  }: {
-    processId: ProcessId;
-  }): Map<SlotIndex, AgentOutputLine[]> | undefined => buffers.get(processId),
-} as const;
 
 export const StartServer = (): void => {
   const app = new Hono();
 
-  const nodeWebSocket = createNodeWebSocket({ app });
+  const nodeWebSocket = honoCreateNodeWebSocketAdapter({ app });
   const { upgradeWebSocket } = nodeWebSocket;
-  const clients = new Set<WSContext>();
+  const clients = new Set<WsClient & WSContext>();
 
   // WebSocket upgrade route for real-time orchestration events
   app.get(
@@ -150,7 +81,7 @@ export const StartServer = (): void => {
   app.get(apiRoutesStatics.quests.list, async (c) => {
     try {
       const startPath = filePathContract.parse(process.cwd());
-      const quests = await StartOrchestrator.listQuests({ startPath });
+      const quests = await orchestratorListQuestsAdapter({ startPath });
       return c.json(quests);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to list quests';
@@ -164,7 +95,7 @@ export const StartServer = (): void => {
       const questId = c.req.param('questId');
       const stage = c.req.query('stage');
       const startPath = filePathContract.parse(process.cwd());
-      const quest = await StartOrchestrator.getQuest({
+      const quest = await orchestratorGetQuestAdapter({
         questId,
         startPath,
         ...(stage && { stage }),
@@ -199,7 +130,7 @@ export const StartServer = (): void => {
       }
 
       const startPath = filePathContract.parse(process.cwd());
-      const result = await StartOrchestrator.addQuest({ title, userRequest, startPath });
+      const result = await orchestratorAddQuestAdapter({ title, userRequest, startPath });
       return c.json(result, httpStatusStatics.success.created);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to add quest';
@@ -221,7 +152,7 @@ export const StartServer = (): void => {
       }
 
       const startPath = filePathContract.parse(process.cwd());
-      const result = await StartOrchestrator.modifyQuest({
+      const result = await orchestratorModifyQuestAdapter({
         questId,
         input: body as never,
         startPath,
@@ -238,7 +169,7 @@ export const StartServer = (): void => {
     try {
       const questId = c.req.param('questId');
       const startPath = filePathContract.parse(process.cwd());
-      const result = await StartOrchestrator.verifyQuest({ questId, startPath });
+      const result = await orchestratorVerifyQuestAdapter({ questId, startPath });
       return c.json(result);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to verify quest';
@@ -252,7 +183,7 @@ export const StartServer = (): void => {
       const questIdRaw = c.req.param('questId');
       const questId = questIdContract.parse(questIdRaw);
       const startPath = filePathContract.parse(process.cwd());
-      const processId = await StartOrchestrator.startQuest({ questId, startPath });
+      const processId = await orchestratorStartQuestAdapter({ questId, startPath });
       return c.json({ processId });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to start quest';
@@ -265,7 +196,7 @@ export const StartServer = (): void => {
     try {
       const processIdRaw = c.req.param('processId');
       const processId = processIdContract.parse(processIdRaw);
-      const status = StartOrchestrator.getQuestStatus({ processId });
+      const status = orchestratorGetQuestStatusAdapter({ processId });
       return c.json(status);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to get process status';
@@ -352,19 +283,20 @@ export const StartServer = (): void => {
     }
   });
 
+  // Redirect root to web SPA dev server
+  app.get('/', (c) => c.redirect('http://localhost:5173'));
+
   // Start the server and inject WebSocket support
-  const server = serve(
-    {
-      fetch: app.fetch,
-      port: serverConfigStatics.network.port,
-      hostname: serverConfigStatics.network.host,
-    },
-    (info) => {
+  const server = honoServeAdapter({
+    fetch: app.fetch,
+    port: serverConfigStatics.network.port,
+    hostname: serverConfigStatics.network.host,
+    onListen: (info) => {
       process.stdout.write(
         `Server listening on http://${serverConfigStatics.network.host}:${info.port}\n`,
       );
     },
-  );
+  });
   nodeWebSocket.injectWebSocket(server);
 
   // Subscribe to non-agent-output events and broadcast immediately to WebSocket clients
@@ -375,18 +307,14 @@ export const StartServer = (): void => {
     orchestrationEventsState.on({
       type,
       handler: ({ processId, payload }) => {
-        const message = JSON.stringify({
-          type,
-          payload: { ...payload, processId },
-          timestamp: isoTimestampContract.parse(new Date().toISOString()),
+        wsEventRelayBroadcastBroker({
+          clients,
+          message: wsMessageContract.parse({
+            type,
+            payload: { ...payload, processId },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          }),
         });
-        for (const client of clients) {
-          try {
-            client.send(message);
-          } catch {
-            clients.delete(client);
-          }
-        }
       },
     });
   }
@@ -409,20 +337,19 @@ export const StartServer = (): void => {
 
     for (const [processId, slots] of pending) {
       for (const [slotIndex, lines] of slots) {
-        const message = JSON.stringify({
-          type: 'agent-output',
-          payload: { processId, slotIndex, lines },
-          timestamp: isoTimestampContract.parse(new Date().toISOString()),
+        wsEventRelayBroadcastBroker({
+          clients,
+          message: wsMessageContract.parse({
+            type: 'agent-output',
+            payload: { processId, slotIndex, lines },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          }),
         });
-
-        for (const client of clients) {
-          try {
-            client.send(message);
-          } catch {
-            clients.delete(client);
-          }
-        }
       }
     }
   }, FLUSH_INTERVAL_MS);
 };
+
+if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
+  StartServer();
+}

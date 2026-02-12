@@ -5,6 +5,7 @@ import { fetchPostAdapterProxy } from '../../../adapters/fetch/post/fetch-post-a
 export const questCreateBrokerProxy = (): {
   setupCreate: (params: { id: QuestId }) => void;
   setupError: (params: { error: Error }) => void;
+  setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
   const fetchProxy = fetchPostAdapterProxy();
 
@@ -14,6 +15,9 @@ export const questCreateBrokerProxy = (): {
     },
     setupError: ({ error }: { error: Error }): void => {
       fetchProxy.rejects({ error });
+    },
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      fetchProxy.resolves({ data });
     },
   };
 };

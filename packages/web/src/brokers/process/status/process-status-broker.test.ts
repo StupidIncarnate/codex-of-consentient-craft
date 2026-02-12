@@ -28,4 +28,15 @@ describe('processStatusBroker', () => {
       await expect(processStatusBroker({ processId })).rejects.toThrow('Process not found');
     });
   });
+
+  describe('zod validation', () => {
+    it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
+      const proxy = processStatusBrokerProxy();
+      const processId = ProcessIdStub({ value: 'proc-12345' });
+
+      proxy.setupInvalidResponse({ data: { bad: 'data' } });
+
+      await expect(processStatusBroker({ processId })).rejects.toThrow(/invalid_type/u);
+    });
+  });
 });

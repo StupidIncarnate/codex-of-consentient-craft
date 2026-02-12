@@ -147,5 +147,148 @@ describe('useQuestsBinding', () => {
         refresh: expect.any(Function),
       });
     });
+
+    it('VALID: {refresh after error} => clears error and retries', async () => {
+      const proxy = useQuestsBindingProxy();
+      proxy.setupError({ error: new Error('Initial failure') });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestsBinding(),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(result.current.loading).toBe(false);
+        },
+      });
+
+      proxy.setupQuests({
+        quests: [QuestListItemStub({ id: 'quest-1', title: 'Recovered' })],
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.refresh().catch(() => undefined);
+        },
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(result.current.data).toHaveLength(1);
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        data: [QuestListItemStub({ id: 'quest-1', title: 'Recovered' })],
+        loading: false,
+        error: null,
+        refresh: expect.any(Function),
+      });
+    });
+
+    it('ERROR: {refresh fails} => sets error, preserves previous data', async () => {
+      const proxy = useQuestsBindingProxy();
+      proxy.setupQuests({
+        quests: [QuestListItemStub({ id: 'quest-1', title: 'Original' })],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestsBinding(),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(result.current.loading).toBe(false);
+        },
+      });
+
+      proxy.setupError({ error: new Error('Refresh failed') });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.refresh().catch(() => undefined);
+        },
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(result.current.error).not.toBeNull();
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        data: [QuestListItemStub({ id: 'quest-1', title: 'Original' })],
+        loading: false,
+        error: new Error('Refresh failed'),
+        refresh: expect.any(Function),
+      });
+    });
+  });
+
+  describe('malformed API responses', () => {
+    it('ERROR: {broker resolves with non-array value} => sets ZodError', async () => {
+      const proxy = useQuestsBindingProxy();
+      proxy.setupQuests({ quests: { notAnArray: true } as never });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestsBinding(),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(result.current.loading).toBe(false);
+        },
+      });
+
+      expect(result.current.data).toStrictEqual([]);
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error?.name).toBe('ZodError');
+    });
+
+    it('ERROR: {broker resolves with undefined} => does not crash', async () => {
+      const proxy = useQuestsBindingProxy();
+      proxy.setupQuests({ quests: undefined as never });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestsBinding(),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(result.current.loading).toBe(false);
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        data: [],
+        loading: false,
+        error: new SyntaxError('"undefined" is not valid JSON'),
+        refresh: expect.any(Function),
+      });
+    });
+  });
+
+  describe('non-Error thrown values', () => {
+    it('ERROR: {broker throws non-Error value} => wraps in Error via String()', async () => {
+      const proxy = useQuestsBindingProxy();
+      proxy.setupError({ error: 'string rejection' as never });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestsBinding(),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(result.current.loading).toBe(false);
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        data: [],
+        loading: false,
+        error: new Error('string rejection'),
+        refresh: expect.any(Function),
+      });
+    });
   });
 });

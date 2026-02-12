@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ErrorMessageStub, QuestIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
@@ -137,6 +137,296 @@ describe('QuestListWidget', () => {
       });
 
       expect(screen.getByText('Quests')).toBeInTheDocument();
+    });
+  });
+
+  describe('create quest modal', () => {
+    it('VALID: {click New Quest} => opens create quest modal', async () => {
+      QuestListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={[]}
+            loading={false}
+            error={null}
+            onRefresh={jest.fn()}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByText('New Quest'));
+      await screen.findByText('Create New Quest');
+
+      expect(screen.getByText('Create New Quest')).toBeInTheDocument();
+    });
+
+    it('VALID: {fill title and request, click Create} => calls questCreateBroker', async () => {
+      const proxy = QuestListWidgetProxy();
+      proxy.setupCreateSuccess();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={[]}
+            loading={false}
+            error={null}
+            onRefresh={jest.fn()}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByText('New Quest'));
+      await screen.findByText('Create New Quest');
+      await userEvent.type(screen.getByPlaceholderText('Quest title'), 'My Quest');
+      await userEvent.type(
+        screen.getByPlaceholderText('Describe what you want to accomplish'),
+        'Build something',
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+      await waitFor(() => {
+        expect(globalThis.fetch).toHaveBeenCalledWith('/api/quests', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({ title: 'My Quest', userRequest: 'Build something' }),
+        });
+      });
+
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/quests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ title: 'My Quest', userRequest: 'Build something' }),
+      });
+    });
+
+    it('VALID: {successful create} => closes modal, resets form, calls onRefresh', async () => {
+      const proxy = QuestListWidgetProxy();
+      proxy.setupCreateSuccess();
+      const onRefresh = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={[]}
+            loading={false}
+            error={null}
+            onRefresh={onRefresh}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByText('New Quest'));
+      await screen.findByText('Create New Quest');
+      await userEvent.type(screen.getByPlaceholderText('Quest title'), 'My Quest');
+      await userEvent.type(
+        screen.getByPlaceholderText('Describe what you want to accomplish'),
+        'Build something',
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+      await waitFor(() => {
+        expect(onRefresh).toHaveBeenCalledWith();
+      });
+
+      expect(onRefresh).toHaveBeenCalledWith();
+    });
+
+    it('EDGE: {empty title, click Create} => does not call questCreateBroker', async () => {
+      QuestListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={[]}
+            loading={false}
+            error={null}
+            onRefresh={jest.fn()}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByText('New Quest'));
+      await screen.findByText('Create New Quest');
+      await userEvent.type(
+        screen.getByPlaceholderText('Describe what you want to accomplish'),
+        'Build something',
+      );
+
+      expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
+    });
+
+    it('VALID: {click Cancel} => closes modal without creating', async () => {
+      QuestListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={[]}
+            loading={false}
+            error={null}
+            onRefresh={jest.fn()}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByText('New Quest'));
+      await screen.findByText('Create New Quest');
+
+      await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+      await waitFor(() => {
+        expect(screen.queryByText('Create New Quest')).not.toBeInTheDocument();
+      });
+
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('branch coverage', () => {
+    it('VALID: {loading: true, quests: [quest]} => renders quest table, NOT loader', () => {
+      QuestListWidgetProxy();
+      const quests = [
+        QuestListItemStub({ id: 'quest-1', title: 'First Quest', status: 'in_progress' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={quests}
+            loading={true}
+            error={null}
+            onRefresh={jest.fn()}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('First Quest')).toBeInTheDocument();
+      expect(screen.queryByRole('presentation')).not.toBeInTheDocument();
+    });
+
+    it('VALID: {loading: true, quests: []} => renders loader spinner', () => {
+      QuestListWidgetProxy();
+
+      const { container } = mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={[]}
+            loading={true}
+            error={null}
+            onRefresh={jest.fn()}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      expect(container.querySelector('.mantine-Loader-root')).toBeInTheDocument();
+      expect(
+        screen.queryByText('No quests found. Create a quest to get started.'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('EDGE: {quest with no stepProgress field} => renders "-" in progress column', () => {
+      QuestListWidgetProxy();
+      const quests = [
+        QuestListItemStub({
+          id: 'quest-no-progress',
+          title: 'No Progress Quest',
+          stepProgress: undefined,
+        }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={quests}
+            loading={false}
+            error={null}
+            onRefresh={jest.fn()}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('No Progress Quest')).toBeInTheDocument();
+      expect(screen.getByText('-')).toBeInTheDocument();
+    });
+
+    it('VALID: {click Refresh} => fires onRefresh callback', async () => {
+      QuestListWidgetProxy();
+      const onRefresh = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={[]}
+            loading={false}
+            error={null}
+            onRefresh={onRefresh}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByText('Refresh'));
+
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('ERROR: {error message, quests: [quest]} => shows error alert AND quest table', () => {
+      QuestListWidgetProxy();
+      const quests = [
+        QuestListItemStub({ id: 'quest-1', title: 'First Quest', status: 'complete' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={quests}
+            loading={false}
+            error={ErrorMessageStub({ value: 'Fetch failed' })}
+            onRefresh={jest.fn()}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('Fetch failed')).toBeInTheDocument();
+      expect(screen.getByText('First Quest')).toBeInTheDocument();
+    });
+
+    it('EDGE: {quest with status not in color map} => renders badge with gray fallback', () => {
+      QuestListWidgetProxy();
+      const quests = [
+        QuestListItemStub({ id: 'quest-abandoned', title: 'Abandoned Quest', status: 'abandoned' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestListWidget
+            quests={quests}
+            loading={false}
+            error={null}
+            onRefresh={jest.fn()}
+            onSelectQuest={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('abandoned')).toBeInTheDocument();
+      expect(screen.getByText('Abandoned Quest')).toBeInTheDocument();
     });
   });
 });

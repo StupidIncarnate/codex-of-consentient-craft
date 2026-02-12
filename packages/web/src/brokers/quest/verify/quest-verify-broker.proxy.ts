@@ -4,6 +4,7 @@ import type { QuestVerifyResult } from '../../../contracts/quest-verify-result/q
 export const questVerifyBrokerProxy = (): {
   setupVerify: (params: { result: QuestVerifyResult }) => void;
   setupError: (params: { error: Error }) => void;
+  setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
   const fetchProxy = fetchPostAdapterProxy();
 
@@ -13,6 +14,9 @@ export const questVerifyBrokerProxy = (): {
     },
     setupError: ({ error }: { error: Error }): void => {
       fetchProxy.rejects({ error });
+    },
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      fetchProxy.resolves({ data });
     },
   };
 };

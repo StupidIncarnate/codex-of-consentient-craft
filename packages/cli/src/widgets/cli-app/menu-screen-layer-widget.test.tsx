@@ -11,15 +11,6 @@ const noopCallback = (): void => {
 };
 
 describe('MenuScreenLayerWidget', () => {
-  let unmountFn: (() => void) | null = null;
-
-  afterEach(() => {
-    if (unmountFn) {
-      unmountFn();
-      unmountFn = null;
-    }
-  });
-
   describe('rendering menu content', () => {
     it('VALID: {} => displays CLI name from statics', () => {
       MenuScreenLayerWidgetProxy();
@@ -27,9 +18,11 @@ describe('MenuScreenLayerWidget', () => {
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <MenuScreenLayerWidget onSelect={noopCallback} onExit={noopCallback} />,
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/dungeonmaster/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/dungeonmaster/u);
     });
 
     it('VALID: {} => displays menu options', () => {
@@ -38,11 +31,13 @@ describe('MenuScreenLayerWidget', () => {
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <MenuScreenLayerWidget onSelect={noopCallback} onExit={noopCallback} />,
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Run/u);
-      expect(lastFrame()).toMatch(/Init/u);
-      expect(lastFrame()).toMatch(/List/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Run/u);
+      expect(frame).toMatch(/Init/u);
+      expect(frame).toMatch(/List/u);
     });
 
     it('VALID: {} => displays navigation instructions', () => {
@@ -51,9 +46,11 @@ describe('MenuScreenLayerWidget', () => {
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <MenuScreenLayerWidget onSelect={noopCallback} onExit={noopCallback} />,
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/arrow keys/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/arrow keys/u);
     });
 
     it('VALID: {} => displays build timestamp', () => {
@@ -62,9 +59,11 @@ describe('MenuScreenLayerWidget', () => {
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <MenuScreenLayerWidget onSelect={noopCallback} onExit={noopCallback} />,
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Built:/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Built:/u);
     });
 
     it('VALID: {} => displays first option as selected by default', () => {
@@ -73,9 +72,11 @@ describe('MenuScreenLayerWidget', () => {
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: <MenuScreenLayerWidget onSelect={noopCallback} onExit={noopCallback} />,
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/> Run/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/> Run/u);
     });
   });
 
@@ -92,7 +93,8 @@ describe('MenuScreenLayerWidget', () => {
       const { unmount } = inkTestingLibraryRenderAdapter({
         element: <MenuScreenLayerWidget onSelect={onSelect} onExit={onExit} />,
       });
-      unmountFn = unmount;
+
+      unmount();
 
       expect(onSelect).toBeDefined();
       expect(onExit).toBeDefined();

@@ -36,4 +36,20 @@ describe('questModifyBroker', () => {
       ).rejects.toThrow('Failed to modify quest');
     });
   });
+
+  describe('zod validation', () => {
+    it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
+      const proxy = questModifyBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      proxy.setupInvalidResponse({ data: { bad: 'data' } });
+
+      await expect(
+        questModifyBroker({
+          questId,
+          modifications: { title: 'Updated Title' },
+        }),
+      ).rejects.toThrow(/invalid_type/u);
+    });
+  });
 });

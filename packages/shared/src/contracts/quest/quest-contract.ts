@@ -28,6 +28,7 @@ export const questContract = z.object({
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   executionLog: z
     .array(executionLogEntryContract)
+    .default([])
     .describe(
       'Operational log of quest execution events. Not included in any stage filter - only available via full quest retrieval',
     ),
@@ -43,21 +44,25 @@ export const questContract = z.object({
     .describe('Architectural choices and rationale that emerged during requirements capture'),
   contexts: z
     .array(contextContract)
+    .default([])
     .describe(
       'Reusable environments WHERE things happen - pages, sections, environments. Referenced by observables via contextId',
     ),
   observables: z
     .array(observableContract)
+    .default([])
     .describe(
       'BDD acceptance criteria structured as GIVEN (contextId) / WHEN (trigger) / THEN (outcomes). Each links to a requirement via requirementId',
     ),
   steps: z
     .array(dependencyStepContract)
+    .default([])
     .describe(
       'Dependency-ordered execution plan created by PathSeeker. Each step maps observables to concrete files',
     ),
   toolingRequirements: z
     .array(toolingRequirementContract)
+    .default([])
     .describe('NPM packages needed for implementation that are not already in the project'),
   contracts: z
     .array(questContractEntryContract)

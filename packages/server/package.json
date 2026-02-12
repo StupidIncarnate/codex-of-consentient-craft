@@ -5,6 +5,7 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
+    "dev": "tsx watch --clear-screen=false src/startup/start-server.ts",
     "build": "tsc",
     "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",

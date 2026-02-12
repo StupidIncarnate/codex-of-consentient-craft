@@ -22,15 +22,6 @@ const createMockInstallContext = (): ReturnType<typeof InstallContextStub> =>
   });
 
 describe('InitScreenLayerWidget', () => {
-  let unmountFn: (() => void) | null = null;
-
-  afterEach(() => {
-    if (unmountFn) {
-      unmountFn();
-      unmountFn = null;
-    }
-  });
-
   describe('rendering init content', () => {
     it('VALID: {} => displays Initialize Dungeonmaster title', () => {
       const proxy = InitScreenLayerWidgetProxy();
@@ -46,9 +37,11 @@ describe('InitScreenLayerWidget', () => {
           />
         ),
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Initialize Dungeonmaster/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Initialize Dungeonmaster/u);
     });
 
     it('VALID: {} => displays installing message when loading', () => {
@@ -65,9 +58,11 @@ describe('InitScreenLayerWidget', () => {
           />
         ),
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Installing/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Installing/u);
     });
 
     it('VALID: {} => displays back instruction', () => {
@@ -84,9 +79,11 @@ describe('InitScreenLayerWidget', () => {
           />
         ),
       });
-      unmountFn = unmount;
 
-      expect(lastFrame()).toMatch(/Press Escape or 'q' to go back/u);
+      const frame = lastFrame();
+      unmount();
+
+      expect(frame).toMatch(/Press Escape or 'q' to go back/u);
     });
   });
 
@@ -105,7 +102,8 @@ describe('InitScreenLayerWidget', () => {
           <InitScreenLayerWidget onBack={onBack} installContext={createMockInstallContext()} />
         ),
       });
-      unmountFn = unmount;
+
+      unmount();
 
       expect(onBack).toBeDefined();
     });

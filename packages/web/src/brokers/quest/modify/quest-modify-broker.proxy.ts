@@ -5,6 +5,7 @@ import { fetchPatchAdapterProxy } from '../../../adapters/fetch/patch/fetch-patc
 export const questModifyBrokerProxy = (): {
   setupModify: (params: { quest: Quest }) => void;
   setupError: (params: { error: Error }) => void;
+  setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
   const fetchProxy = fetchPatchAdapterProxy();
 
@@ -14,6 +15,9 @@ export const questModifyBrokerProxy = (): {
     },
     setupError: ({ error }: { error: Error }): void => {
       fetchProxy.rejects({ error });
+    },
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      fetchProxy.resolves({ data });
     },
   };
 };

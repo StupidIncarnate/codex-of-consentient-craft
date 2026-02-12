@@ -28,4 +28,15 @@ describe('questDetailBroker', () => {
       await expect(questDetailBroker({ questId })).rejects.toThrow('Quest not found');
     });
   });
+
+  describe('zod validation', () => {
+    it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
+      const proxy = questDetailBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      proxy.setupInvalidResponse({ data: { bad: 'data' } });
+
+      await expect(questDetailBroker({ questId })).rejects.toThrow(/invalid_type/u);
+    });
+  });
 });

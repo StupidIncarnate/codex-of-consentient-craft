@@ -34,4 +34,19 @@ describe('questCreateBroker', () => {
       ).rejects.toThrow('Failed to create quest');
     });
   });
+
+  describe('zod validation', () => {
+    it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
+      const proxy = questCreateBrokerProxy();
+
+      proxy.setupInvalidResponse({ data: { id: '' } });
+
+      await expect(
+        questCreateBroker({
+          title: 'Add Auth',
+          userRequest: 'Implement authentication',
+        }),
+      ).rejects.toThrow(/too_small/u);
+    });
+  });
 });
