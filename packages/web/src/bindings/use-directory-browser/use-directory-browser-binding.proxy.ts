@@ -6,7 +6,7 @@ type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 
 export const useDirectoryBrowserBindingProxy = (): {
   setupEntries: (params: { entries: DirectoryEntry[] }) => void;
-  setupError: (params: { error: Error }) => void;
+  setupError: () => void;
 } => {
   const brokerProxy = directoryBrowseBrokerProxy();
 
@@ -14,8 +14,8 @@ export const useDirectoryBrowserBindingProxy = (): {
     setupEntries: ({ entries }: { entries: DirectoryEntry[] }): void => {
       brokerProxy.setupEntries({ entries });
     },
-    setupError: ({ error }: { error: Error }): void => {
-      brokerProxy.setupError({ error });
+    setupError: (): void => {
+      brokerProxy.setupError();
     },
   };
 };

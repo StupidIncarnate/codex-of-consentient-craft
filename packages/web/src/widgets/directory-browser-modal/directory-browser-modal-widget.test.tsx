@@ -1,4 +1,6 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
+
+import { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
@@ -98,6 +100,10 @@ describe('DirectoryBrowserModalWidget', () => {
       const proxy = DirectoryBrowserModalWidgetProxy();
       const onSelect = jest.fn();
 
+      proxy.setupEntries({
+        entries: [DirectoryEntryStub({ name: 'projects', path: '/home/user/projects' })],
+      });
+
       await testingLibraryActAsyncAdapter({
         callback: async () => {
           mantineRenderAdapter({
@@ -107,6 +113,10 @@ describe('DirectoryBrowserModalWidget', () => {
           });
           await Promise.resolve();
         },
+      });
+
+      await waitFor(() => {
+        expect(proxy.getCurrentPath()).not.toBe('/');
       });
 
       await proxy.clickSelect();

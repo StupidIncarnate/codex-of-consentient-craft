@@ -573,6 +573,39 @@ export const UserProfileWidget = ({userId}) => {
 };
 ```
 
+### Frontend HTTP Standardization
+
+**All frontend packages use the browser `fetch` API** (via fetch adapter wrappers) for HTTP communication. No
+third-party HTTP clients (axios, ky, got, etc.) are used on the frontend.
+
+**Why `fetch` everywhere on frontend:**
+
+1. **`StartEndpointMock` works consistently** — MSW intercepts `fetch` natively. Using a single HTTP mechanism means
+   one mocking strategy for all frontend HTTP tests.
+2. **No third-party HTTP clients needed** — The browser `fetch` API covers all frontend HTTP needs. Fetch adapters
+   add JSON parsing, error handling, and type safety on top.
+3. **Fetch adapters wrap `fetch` with JSON parsing and error handling** — `fetchGetAdapter`, `fetchPostAdapter`,
+   `fetchPatchAdapter`, `fetchDeleteAdapter` each wrap a single HTTP method with consistent JSON
+   serialization/deserialization and error translation.
+
+**The fetch adapter pattern:**
+
+```
+Widget → Binding → Broker → fetchGetAdapter() → fetch (browser API) → Server
+                                                    ↑
+                                          MSW intercepts here in tests
+```
+
+Each fetch adapter is a thin wrapper in `adapters/fetch/{method}/`:
+
+- `fetchGetAdapter` — GET requests, returns parsed JSON
+- `fetchPostAdapter` — POST requests with JSON body, returns parsed JSON
+- `fetchPatchAdapter` — PATCH requests with JSON body, returns parsed JSON
+- `fetchDeleteAdapter` — DELETE requests, returns parsed JSON
+
+Brokers call these adapters directly. Tests mock HTTP responses at the MSW level via `StartEndpointMock` in broker
+proxies — the fetch adapter code runs real, just like any other adapter.
+
 ## Backend-Specific Rules
 
 

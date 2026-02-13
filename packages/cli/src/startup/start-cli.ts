@@ -14,7 +14,11 @@ import { render } from 'ink';
 import React from 'react';
 
 import type { InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contracts';
-import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  filePathContract,
+  projectIdContract,
+} from '@dungeonmaster/shared/contracts';
 import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
 
 import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
@@ -51,11 +55,15 @@ export const StartCli = async ({
   const targetProjectRoot = filePathContract.parse(process.cwd());
   const installContext: InstallContext = { dungeonmasterRoot, targetProjectRoot };
 
+  // Placeholder projectId until project registry integration is wired up
+  const projectId = projectIdContract.parse('00000000-0000-0000-0000-000000000000');
+
   // Render the Ink app
   const { unmount, waitUntilExit } = render(
     React.createElement(CliAppWidget, {
       initialScreen,
       installContext,
+      projectId,
       onRunQuest: ({ questId, questFolder }: { questId: QuestId; questFolder: QuestFolder }) => {
         state.pendingQuestExecution = { questId, questFolder };
         unmount();

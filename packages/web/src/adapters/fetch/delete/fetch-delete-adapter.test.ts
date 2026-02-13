@@ -1,40 +1,30 @@
+import { StartEndpointMock } from '@dungeonmaster/testing';
+
 import { fetchDeleteAdapter } from './fetch-delete-adapter';
-import { fetchDeleteAdapterProxy } from './fetch-delete-adapter.proxy';
 
 describe('fetchDeleteAdapter', () => {
-  describe('successful DELETE', () => {
-    it('VALID: {url: "/api/projects/proj-1"} => returns parsed JSON response', async () => {
-      const proxy = fetchDeleteAdapterProxy();
+  it('VALID: returns parsed JSON on success', async () => {
+    const endpoint = StartEndpointMock.listen({ method: 'delete', url: '/test/endpoint' });
+    endpoint.resolves({ data: { key: 'value' } });
 
-      proxy.resolves({ data: 'delete-response' });
+    const result = await fetchDeleteAdapter({ url: '/test/endpoint' });
 
-      const result = await fetchDeleteAdapter({ url: '/api/projects/proj-1' });
-
-      expect(result).toBe('delete-response');
-    });
+    expect(result).toStrictEqual({ key: 'value' });
   });
 
-  describe('network error', () => {
-    it('ERROR: {url: "/api/projects/proj-1"} => throws when fetch rejects', async () => {
-      const proxy = fetchDeleteAdapterProxy();
+  it('ERROR: rejects on network error', async () => {
+    const endpoint = StartEndpointMock.listen({ method: 'delete', url: '/test/endpoint' });
+    endpoint.networkError();
 
-      proxy.rejects({ error: new Error('Network error') });
-
-      await expect(fetchDeleteAdapter({ url: '/api/projects/proj-1' })).rejects.toThrow(
-        /^Network error$/u,
-      );
-    });
+    await expect(fetchDeleteAdapter({ url: '/test/endpoint' })).rejects.toThrow(/fetch/iu);
   });
 
-  describe('non-ok response', () => {
-    it('ERROR: {url: "/api/projects/proj-1", status: 404} => throws when response status is not ok', async () => {
-      const proxy = fetchDeleteAdapterProxy();
+  it('ERROR: rejects on non-ok status', async () => {
+    const endpoint = StartEndpointMock.listen({ method: 'delete', url: '/test/endpoint' });
+    endpoint.responds({ status: 404 });
 
-      proxy.resolvesWithStatus({ status: 404, body: 'Not Found' });
-
-      await expect(fetchDeleteAdapter({ url: '/api/projects/proj-1' })).rejects.toThrow(
-        /^DELETE \/api\/projects\/proj-1 failed with status 404$/u,
-      );
-    });
+    await expect(fetchDeleteAdapter({ url: '/test/endpoint' })).rejects.toThrow(
+      /failed with status 404/u,
+    );
   });
 });

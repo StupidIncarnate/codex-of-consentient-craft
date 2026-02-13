@@ -2,19 +2,19 @@
  * PURPOSE: React hook that fetches all quests and manages loading/error states
  *
  * USAGE:
- * const {data, loading, error} = useQuestsListBinding({startPath});
+ * const {data, loading, error} = useQuestsListBinding({projectId});
  * // Returns {data: QuestListItem[], loading: boolean, error: Error | null}
  */
 import React from 'react';
 
-import type { FilePath, QuestListItem } from '@dungeonmaster/shared/contracts';
+import type { ProjectId, QuestListItem } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorListQuestsAdapter } from '../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 
 export const useQuestsListBinding = ({
-  startPath,
+  projectId,
 }: {
-  startPath: FilePath;
+  projectId: ProjectId;
 }): {
   data: QuestListItem[];
   loading: boolean;
@@ -27,7 +27,7 @@ export const useQuestsListBinding = ({
   React.useEffect(() => {
     let isMounted = true;
 
-    orchestratorListQuestsAdapter({ startPath })
+    orchestratorListQuestsAdapter({ projectId })
       .then((quests) => {
         if (isMounted) {
           // Sort by createdAt descending (newest first)
@@ -53,7 +53,7 @@ export const useQuestsListBinding = ({
     return () => {
       isMounted = false;
     };
-  }, [startPath]);
+  }, [projectId]);
 
   return { data, loading, error };
 };

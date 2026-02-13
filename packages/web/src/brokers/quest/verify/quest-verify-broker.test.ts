@@ -49,9 +49,9 @@ describe('questVerifyBroker', () => {
       const proxy = questVerifyBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
 
-      proxy.setupError({ error: new Error('Verification failed') });
+      proxy.setupError();
 
-      await expect(questVerifyBroker({ questId })).rejects.toThrow('Verification failed');
+      await expect(questVerifyBroker({ questId })).rejects.toThrow(/fetch/iu);
     });
   });
 

@@ -47,11 +47,9 @@ describe('directoryBrowseBroker', () => {
     it('ERROR: {network failure} => throws error', async () => {
       const proxy = directoryBrowseBrokerProxy();
 
-      proxy.setupError({ error: new Error('Network failure') });
+      proxy.setupError();
 
-      await expect(directoryBrowseBroker({ path: '/home/user' })).rejects.toThrow(
-        'Network failure',
-      );
+      await expect(directoryBrowseBroker({ path: '/home/user' })).rejects.toThrow(/fetch/iu);
     });
   });
 

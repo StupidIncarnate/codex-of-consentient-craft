@@ -110,6 +110,16 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
 
         if (!callee) return;
 
+        // Check for StartEndpointMock.listen() - treats as proxy-equivalent mock setup
+        if (
+          callee.type === 'MemberExpression' &&
+          callee.object?.name === 'StartEndpointMock' &&
+          callee.property?.name === 'listen' &&
+          testBlockDepth > 0
+        ) {
+          hasCreatedProxyInTest = true;
+        }
+
         if (callee.type === 'Identifier') {
           const { name } = callee;
           if (name === 'it' || name === 'test') {

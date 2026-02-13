@@ -23,9 +23,9 @@ describe('questDetailBroker', () => {
       const proxy = questDetailBrokerProxy();
       const questId = QuestIdStub({ value: 'nonexistent' });
 
-      proxy.setupError({ error: new Error('Quest not found') });
+      proxy.setupError();
 
-      await expect(questDetailBroker({ questId })).rejects.toThrow('Quest not found');
+      await expect(questDetailBroker({ questId })).rejects.toThrow(/fetch/iu);
     });
   });
 

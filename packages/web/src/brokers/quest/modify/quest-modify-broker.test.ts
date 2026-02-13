@@ -26,14 +26,14 @@ describe('questModifyBroker', () => {
       const proxy = questModifyBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
 
-      proxy.setupError({ error: new Error('Failed to modify quest') });
+      proxy.setupError();
 
       await expect(
         questModifyBroker({
           questId,
           modifications: { title: 'Updated Title' },
         }),
-      ).rejects.toThrow('Failed to modify quest');
+      ).rejects.toThrow(/fetch/iu);
     });
   });
 

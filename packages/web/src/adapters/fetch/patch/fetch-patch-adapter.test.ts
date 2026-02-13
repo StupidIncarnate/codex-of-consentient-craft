@@ -1,40 +1,32 @@
+import { StartEndpointMock } from '@dungeonmaster/testing';
+
 import { fetchPatchAdapter } from './fetch-patch-adapter';
-import { fetchPatchAdapterProxy } from './fetch-patch-adapter.proxy';
 
 describe('fetchPatchAdapter', () => {
-  describe('successful PATCH', () => {
-    it('VALID: {url: "/api/quests/q-1", body: "update-payload"} => returns parsed JSON response', async () => {
-      const proxy = fetchPatchAdapterProxy();
+  it('VALID: returns parsed JSON on success', async () => {
+    const endpoint = StartEndpointMock.listen({ method: 'patch', url: '/test/endpoint' });
+    endpoint.resolves({ data: { key: 'value' } });
 
-      proxy.resolves({ data: 'patch-response' });
+    const result = await fetchPatchAdapter({ url: '/test/endpoint', body: { payload: 'data' } });
 
-      const result = await fetchPatchAdapter({ url: '/api/quests/q-1', body: 'update-payload' });
-
-      expect(result).toBe('patch-response');
-    });
+    expect(result).toStrictEqual({ key: 'value' });
   });
 
-  describe('network error', () => {
-    it('ERROR: {url: "/api/quests/q-1"} => throws when fetch rejects', async () => {
-      const proxy = fetchPatchAdapterProxy();
+  it('ERROR: rejects on network error', async () => {
+    const endpoint = StartEndpointMock.listen({ method: 'patch', url: '/test/endpoint' });
+    endpoint.networkError();
 
-      proxy.rejects({ error: new Error('Network error') });
-
-      await expect(fetchPatchAdapter({ url: '/api/quests/q-1', body: 'payload' })).rejects.toThrow(
-        /^Network error$/u,
-      );
-    });
+    await expect(
+      fetchPatchAdapter({ url: '/test/endpoint', body: { payload: 'data' } }),
+    ).rejects.toThrow(/fetch/iu);
   });
 
-  describe('non-ok response', () => {
-    it('ERROR: {url: "/api/quests/q-1", status: 422} => throws when response status is not ok', async () => {
-      const proxy = fetchPatchAdapterProxy();
+  it('ERROR: rejects on non-ok status', async () => {
+    const endpoint = StartEndpointMock.listen({ method: 'patch', url: '/test/endpoint' });
+    endpoint.responds({ status: 422 });
 
-      proxy.resolvesWithStatus({ status: 422, body: 'Unprocessable Entity' });
-
-      await expect(fetchPatchAdapter({ url: '/api/quests/q-1', body: 'payload' })).rejects.toThrow(
-        /^PATCH \/api\/quests\/q-1 failed with status 422$/u,
-      );
-    });
+    await expect(
+      fetchPatchAdapter({ url: '/test/endpoint', body: { payload: 'data' } }),
+    ).rejects.toThrow(/failed with status 422/u);
   });
 });

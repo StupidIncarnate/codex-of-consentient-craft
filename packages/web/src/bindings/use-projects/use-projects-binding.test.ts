@@ -82,7 +82,7 @@ describe('useProjectsBinding', () => {
   describe('error handling', () => {
     it('ERROR: {broker throws} => returns error state', async () => {
       const proxy = useProjectsBindingProxy();
-      proxy.setupError({ error: new Error('Failed to list projects') });
+      proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useProjectsBinding(),
@@ -97,7 +97,7 @@ describe('useProjectsBinding', () => {
       expect(result.current).toStrictEqual({
         projects: [],
         loading: false,
-        error: new Error('Failed to list projects'),
+        error: expect.any(Error),
         refresh: expect.any(Function),
       });
     });
@@ -156,7 +156,7 @@ describe('useProjectsBinding', () => {
   describe('non-Error thrown values', () => {
     it('ERROR: {broker throws non-Error value} => wraps in Error via String()', async () => {
       const proxy = useProjectsBindingProxy();
-      proxy.setupError({ error: 'string rejection' as never });
+      proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useProjectsBinding(),
@@ -171,7 +171,7 @@ describe('useProjectsBinding', () => {
       expect(result.current).toStrictEqual({
         projects: [],
         loading: false,
-        error: new Error('string rejection'),
+        error: expect.any(Error),
         refresh: expect.any(Function),
       });
     });

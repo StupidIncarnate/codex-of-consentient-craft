@@ -183,6 +183,39 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       filename:
         '/project/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.test.ts',
     },
+
+    // StartEndpointMock.listen() used as proxy-equivalent mock setup for adapters
+    {
+      code: `
+        it('should fetch data', () => {
+          const endpoint = StartEndpointMock.listen({method: 'get', url: '/test/endpoint'});
+          endpoint.resolves({data: {key: 'value'}});
+
+          const result = fetchGetAdapter({url: '/test/endpoint'});
+        });
+      `,
+      filename: '/project/src/adapters/fetch/get/fetch-get-adapter.test.ts',
+    },
+
+    // StartEndpointMock.listen() with multiple tests
+    {
+      code: `
+        it('test 1', () => {
+          const endpoint = StartEndpointMock.listen({method: 'post', url: '/test/endpoint'});
+          endpoint.resolves({data: {key: 'value'}});
+
+          const result = fetchPostAdapter({url: '/test/endpoint', body: {}});
+        });
+
+        it('test 2', () => {
+          const endpoint = StartEndpointMock.listen({method: 'post', url: '/test/endpoint'});
+          endpoint.networkError();
+
+          fetchPostAdapter({url: '/test/endpoint', body: {}});
+        });
+      `,
+      filename: '/project/src/adapters/fetch/post/fetch-post-adapter.test.ts',
+    },
   ],
   invalid: [
     // Module-level proxy creation in test file

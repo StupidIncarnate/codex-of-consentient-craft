@@ -23,7 +23,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   'jest/no-conditional-in-test': 'pre-edit',
   'jest/require-to-throw-message': 'pre-edit',
 
-  // @dungeonmaster - PRE-EDIT (25 rules)
+  // @dungeonmaster - PRE-EDIT (26 rules)
   '@dungeonmaster/ban-adhoc-types': 'pre-edit',
   '@dungeonmaster/enforce-contract-usage-in-tests': 'pre-edit',
   '@dungeonmaster/ban-jest-mock-in-tests': 'pre-edit',
@@ -49,6 +49,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/jest-mocked-must-import': 'pre-edit',
   '@dungeonmaster/no-multiple-property-assertions': 'pre-edit',
   '@dungeonmaster/no-mutable-state-in-proxy-factory': 'pre-edit',
+  '@dungeonmaster/ban-fetch-in-proxies': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

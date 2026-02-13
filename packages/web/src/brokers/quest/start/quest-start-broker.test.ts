@@ -23,9 +23,9 @@ describe('questStartBroker', () => {
       const proxy = questStartBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
 
-      proxy.setupError({ error: new Error('Server error') });
+      proxy.setupError();
 
-      await expect(questStartBroker({ questId })).rejects.toThrow('Server error');
+      await expect(questStartBroker({ questId })).rejects.toThrow(/fetch/iu);
     });
   });
 

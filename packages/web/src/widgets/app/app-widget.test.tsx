@@ -46,6 +46,8 @@ describe('AppWidget', () => {
       await waitFor(() => {
         expect(proxy.isWelcomeVisible()).toBe(true);
       });
+
+      expect(proxy.isWelcomeVisible()).toBe(true);
     });
   });
 
@@ -93,6 +95,8 @@ describe('AppWidget', () => {
       await waitFor(() => {
         expect(screen.getByTestId('ADD_PROJECT_BUTTON')).toBeInTheDocument();
       });
+
+      expect(screen.getByTestId('ADD_PROJECT_BUTTON')).toBeInTheDocument();
     });
   });
 
@@ -180,6 +184,8 @@ describe('AppWidget', () => {
       await waitFor(() => {
         expect(screen.getByText('Back to list')).toBeInTheDocument();
       });
+
+      expect(screen.getByText('Back to list')).toBeInTheDocument();
     });
 
     it('VALID: {in detail view, click back} => returns to list view', async () => {
@@ -259,7 +265,7 @@ describe('AppWidget', () => {
         expect(screen.getByText('My Project')).toBeInTheDocument();
       });
 
-      proxy.setupQuestsError({ error: new Error('Network failure') });
+      proxy.setupQuestsError();
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -269,8 +275,10 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Network failure')).toBeInTheDocument();
+        expect(screen.getByText(/fetch/iu)).toBeInTheDocument();
       });
+
+      expect(screen.getByText(/fetch/iu)).toBeInTheDocument();
     });
   });
 

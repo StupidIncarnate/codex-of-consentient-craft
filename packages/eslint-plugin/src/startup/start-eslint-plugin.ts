@@ -38,6 +38,7 @@ import { ruleNoMultiplePropertyAssertionsBroker } from '../brokers/rule/no-multi
 import { ruleForbidTodoSkipBroker } from '../brokers/rule/forbid-todo-skip/rule-forbid-todo-skip-broker';
 import { ruleEnforceRegexUsageBroker } from '../brokers/rule/enforce-regex-usage/rule-enforce-regex-usage-broker';
 import { ruleEnforceFileMetadataBroker } from '../brokers/rule/enforce-file-metadata/rule-enforce-file-metadata-broker';
+import { ruleBanFetchInProxiesBroker } from '../brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker';
 import { configDungeonmasterBroker } from '../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
 import type { EslintRule } from '../contracts/eslint-rule/eslint-rule-contract';
@@ -73,6 +74,7 @@ export const StartEslintPlugin = (): {
     readonly 'forbid-todo-skip': EslintRule;
     readonly 'enforce-regex-usage': EslintRule;
     readonly 'enforce-file-metadata': EslintRule;
+    readonly 'ban-fetch-in-proxies': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: {
@@ -118,6 +120,7 @@ export const StartEslintPlugin = (): {
       'forbid-todo-skip': ruleForbidTodoSkipBroker(),
       'enforce-regex-usage': ruleEnforceRegexUsageBroker(),
       'enforce-file-metadata': ruleEnforceFileMetadataBroker(),
+      'ban-fetch-in-proxies': ruleBanFetchInProxiesBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

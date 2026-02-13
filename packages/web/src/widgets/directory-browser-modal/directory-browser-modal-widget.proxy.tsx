@@ -9,7 +9,7 @@ type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 
 export const DirectoryBrowserModalWidgetProxy = (): {
   setupEntries: (params: { entries: DirectoryEntry[] }) => void;
-  setupError: (params: { error: Error }) => void;
+  setupError: () => void;
   clickGoUp: () => Promise<void>;
   clickSelect: () => Promise<void>;
   clickCancel: () => Promise<void>;
@@ -23,8 +23,8 @@ export const DirectoryBrowserModalWidgetProxy = (): {
     setupEntries: ({ entries }: { entries: DirectoryEntry[] }): void => {
       browserProxy.setupEntries({ entries });
     },
-    setupError: ({ error }: { error: Error }): void => {
-      browserProxy.setupError({ error });
+    setupError: (): void => {
+      browserProxy.setupError();
     },
     clickGoUp: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('GO_UP_BUTTON'));

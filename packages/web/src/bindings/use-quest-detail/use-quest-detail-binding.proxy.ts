@@ -6,7 +6,7 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const useQuestDetailBindingProxy = (): {
   setupQuest: (params: { quest: Quest }) => void;
-  setupError: (params: { error: Error }) => void;
+  setupError: () => void;
 } => {
   const brokerProxy = questDetailBrokerProxy();
 
@@ -14,8 +14,8 @@ export const useQuestDetailBindingProxy = (): {
     setupQuest: ({ quest }: { quest: Quest }): void => {
       brokerProxy.setupQuest({ quest });
     },
-    setupError: ({ error }: { error: Error }): void => {
-      brokerProxy.setupError({ error });
+    setupError: (): void => {
+      brokerProxy.setupError();
     },
   };
 };

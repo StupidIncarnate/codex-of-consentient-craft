@@ -1,23 +1,33 @@
+// PURPOSE: Proxy for quest-create-broker providing test control over HTTP responses
+// USAGE: Create proxy in test, use setup methods to configure endpoint behavior
+
 import type { QuestId } from '@dungeonmaster/shared/contracts';
+import { StartEndpointMock } from '@dungeonmaster/testing';
 
 import { fetchPostAdapterProxy } from '../../../adapters/fetch/post/fetch-post-adapter.proxy';
+import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questCreateBrokerProxy = (): {
   setupCreate: (params: { id: QuestId }) => void;
-  setupError: (params: { error: Error }) => void;
+  setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
-  const fetchProxy = fetchPostAdapterProxy();
+  fetchPostAdapterProxy();
+
+  const endpoint = StartEndpointMock.listen({
+    method: 'post',
+    url: webConfigStatics.api.routes.quests,
+  });
 
   return {
-    setupCreate: ({ id }: { id: QuestId }): void => {
-      fetchProxy.resolves({ data: { id } });
+    setupCreate: ({ id }) => {
+      endpoint.resolves({ data: { id } });
     },
-    setupError: ({ error }: { error: Error }): void => {
-      fetchProxy.rejects({ error });
+    setupError: () => {
+      endpoint.networkError();
     },
-    setupInvalidResponse: ({ data }: { data: unknown }): void => {
-      fetchProxy.resolves({ data });
+    setupInvalidResponse: ({ data }) => {
+      endpoint.resolves({ data });
     },
   };
 };

@@ -1,38 +1,39 @@
+import { StartEndpointMock } from '@dungeonmaster/testing';
+
 import { fetchGetAdapter } from './fetch-get-adapter';
-import { fetchGetAdapterProxy } from './fetch-get-adapter.proxy';
 
 describe('fetchGetAdapter', () => {
-  describe('successful GET', () => {
-    it('VALID: {url: "/api/quests"} => returns parsed JSON response', async () => {
-      const proxy = fetchGetAdapterProxy();
-
-      proxy.resolves({ data: 'quest-list-response' });
-
-      const result = await fetchGetAdapter({ url: '/api/quests' });
-
-      expect(result).toBe('quest-list-response');
+  it('VALID: returns parsed JSON on success', async () => {
+    const endpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: '/test/endpoint',
     });
+    endpoint.resolves({ data: { key: 'value' } });
+
+    const result = await fetchGetAdapter({ url: '/test/endpoint' });
+
+    expect(result).toStrictEqual({ key: 'value' });
   });
 
-  describe('network error', () => {
-    it('ERROR: {url: "/api/quests"} => throws when fetch rejects', async () => {
-      const proxy = fetchGetAdapterProxy();
-
-      proxy.rejects({ error: new Error('Network error') });
-
-      await expect(fetchGetAdapter({ url: '/api/quests' })).rejects.toThrow(/^Network error$/u);
+  it('ERROR: rejects on network error', async () => {
+    const endpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: '/test/endpoint',
     });
+    endpoint.networkError();
+
+    await expect(fetchGetAdapter({ url: '/test/endpoint' })).rejects.toThrow(/fetch/iu);
   });
 
-  describe('non-ok response', () => {
-    it('ERROR: {url: "/api/quests", status: 404} => throws when response status is not ok', async () => {
-      const proxy = fetchGetAdapterProxy();
-
-      proxy.resolvesWithStatus({ status: 404, body: 'Not Found' });
-
-      await expect(fetchGetAdapter({ url: '/api/quests' })).rejects.toThrow(
-        /^GET \/api\/quests failed with status 404$/u,
-      );
+  it('ERROR: rejects on non-ok status', async () => {
+    const endpoint = StartEndpointMock.listen({
+      method: 'get',
+      url: '/test/endpoint',
     });
+    endpoint.responds({ status: 404 });
+
+    await expect(fetchGetAdapter({ url: '/test/endpoint' })).rejects.toThrow(
+      /failed with status 404/u,
+    );
   });
 });

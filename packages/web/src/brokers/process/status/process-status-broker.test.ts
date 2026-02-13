@@ -23,9 +23,9 @@ describe('processStatusBroker', () => {
       const proxy = processStatusBrokerProxy();
       const processId = ProcessIdStub({ value: 'nonexistent' });
 
-      proxy.setupError({ error: new Error('Process not found') });
+      proxy.setupError();
 
-      await expect(processStatusBroker({ processId })).rejects.toThrow('Process not found');
+      await expect(processStatusBroker({ processId })).rejects.toThrow(/fetch/iu);
     });
   });
 

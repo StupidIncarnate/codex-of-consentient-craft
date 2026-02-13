@@ -2,14 +2,14 @@
  * PURPOSE: Wraps StartOrchestrator.listQuests to provide I/O boundary for quest listing
  *
  * USAGE:
- * const quests = await orchestratorListQuestsAdapter({startPath});
+ * const quests = await orchestratorListQuestsAdapter({projectId});
  * // Returns QuestListItem[] from orchestrator
  */
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { FilePath, QuestListItem } from '@dungeonmaster/shared/contracts';
+import type { ProjectId, QuestListItem } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorListQuestsAdapter = async ({
-  startPath,
+  projectId,
 }: {
-  startPath: FilePath;
-}): Promise<QuestListItem[]> => StartOrchestrator.listQuests({ startPath });
+  projectId: ProjectId;
+}): Promise<QuestListItem[]> => StartOrchestrator.listQuests({ projectId });

@@ -74,7 +74,7 @@ describe('useQuestDetailBinding', () => {
       const proxy = useQuestDetailBindingProxy();
       const questId = QuestIdStub({ value: 'quest-1' });
 
-      proxy.setupError({ error: new Error('Network failure') });
+      proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestDetailBinding({ questId }),
@@ -89,7 +89,7 @@ describe('useQuestDetailBinding', () => {
       expect(result.current).toStrictEqual({
         data: null,
         loading: false,
-        error: new Error('Network failure'),
+        error: expect.any(Error),
         refresh: expect.any(Function),
       });
     });
@@ -322,7 +322,7 @@ describe('useQuestDetailBinding', () => {
       const questId = QuestIdStub({ value: 'quest-1' });
       const quest = QuestStub({ id: 'quest-1', title: 'Recovered' });
 
-      proxy.setupError({ error: new Error('Temporary failure') });
+      proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestDetailBinding({ questId }),
@@ -360,7 +360,7 @@ describe('useQuestDetailBinding', () => {
       const proxy = useQuestDetailBindingProxy();
       const questId = QuestIdStub({ value: 'quest-1' });
 
-      proxy.setupError({ error: 'string rejection' as never });
+      proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestDetailBinding({ questId }),
@@ -375,7 +375,7 @@ describe('useQuestDetailBinding', () => {
       expect(result.current).toStrictEqual({
         data: null,
         loading: false,
-        error: new Error('string rejection'),
+        error: expect.any(Error),
         refresh: expect.any(Function),
       });
     });

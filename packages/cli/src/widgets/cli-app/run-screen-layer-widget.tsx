@@ -3,7 +3,7 @@
  *
  * USAGE:
  * <RunScreenLayerWidget
- *   startPath={targetProjectRoot}
+ *   projectId={projectId}
  *   onRunQuest={({questId, questFolder}) => executeQuest(questId, questFolder)}
  *   onBack={() => setScreen('menu')}
  * />
@@ -11,7 +11,7 @@
  */
 import React, { useState } from 'react';
 
-import type { FilePath, QuestId, QuestListItem } from '@dungeonmaster/shared/contracts';
+import type { ProjectId, QuestId, QuestListItem } from '@dungeonmaster/shared/contracts';
 
 import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter';
 import { inkTextAdapter } from '../../adapters/ink/text/ink-text-adapter';
@@ -23,19 +23,19 @@ import type { QuestSelectionIndex } from '../../contracts/quest-selection-index/
 type QuestFolder = QuestListItem['folder'];
 
 export interface RunScreenLayerWidgetProps {
-  startPath: FilePath;
+  projectId: ProjectId;
   onRunQuest: ({ questId, questFolder }: { questId: QuestId; questFolder: QuestFolder }) => void;
   onBack: () => void;
 }
 
 export const RunScreenLayerWidget = ({
-  startPath,
+  projectId,
   onRunQuest,
   onBack,
 }: RunScreenLayerWidgetProps): React.JSX.Element => {
   const Box = inkBoxAdapter();
   const Text = inkTextAdapter();
-  const { data: quests, loading, error } = useQuestsListBinding({ startPath });
+  const { data: quests, loading, error } = useQuestsListBinding({ projectId });
 
   const [selectedIndex, setSelectedIndex] = useState<QuestSelectionIndex>(
     questSelectionIndexContract.parse(0),

@@ -24,14 +24,14 @@ describe('projectCreateBroker', () => {
     it('ERROR: {server error} => throws error', async () => {
       const proxy = projectCreateBrokerProxy();
 
-      proxy.setupError({ error: new Error('Failed to create project') });
+      proxy.setupError();
 
       await expect(
         projectCreateBroker({
           name: 'My Project',
           path: '/home/user/my-project',
         }),
-      ).rejects.toThrow('Failed to create project');
+      ).rejects.toThrow(/fetch/iu);
     });
   });
 

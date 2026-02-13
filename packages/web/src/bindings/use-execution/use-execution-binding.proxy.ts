@@ -11,8 +11,9 @@ type ProcessId = ReturnType<typeof ProcessIdStub>;
 export const useExecutionBindingProxy = (): {
   setupStart: (params: { processId: ProcessId }) => void;
   setupStatus: (params: { status: OrchestrationStatus }) => void;
-  setupStartError: (params: { error: Error }) => void;
-  setupStatusError: (params: { error: Error }) => void;
+  setupStartError: () => void;
+  setupStatusError: () => void;
+  setupInvalidStartResponse: () => void;
   receiveWsMessage: (params: { data: string }) => void;
 } => {
   const startProxy = questStartBrokerProxy();
@@ -29,11 +30,14 @@ export const useExecutionBindingProxy = (): {
     setupStatus: ({ status }: { status: OrchestrationStatus }): void => {
       statusProxy.setupStatus({ status });
     },
-    setupStartError: ({ error }: { error: Error }): void => {
-      startProxy.setupError({ error });
+    setupStartError: (): void => {
+      startProxy.setupError();
     },
-    setupStatusError: ({ error }: { error: Error }): void => {
-      statusProxy.setupError({ error });
+    setupStatusError: (): void => {
+      statusProxy.setupError();
+    },
+    setupInvalidStartResponse: (): void => {
+      startProxy.setupInvalidResponse({ data: {} });
     },
     receiveWsMessage: ({ data }: { data: string }): void => {
       wsProxy.receiveMessage({ data });

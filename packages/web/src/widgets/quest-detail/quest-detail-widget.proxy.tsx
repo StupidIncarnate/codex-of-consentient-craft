@@ -16,7 +16,7 @@ export const QuestDetailWidgetProxy = (): {
       });
     },
     setupVerifyError: (): void => {
-      verifyProxy.setupError({ error: new Error('Verification failed') });
+      verifyProxy.setupError();
     },
   };
 };

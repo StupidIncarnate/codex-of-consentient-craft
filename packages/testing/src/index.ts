@@ -18,6 +18,13 @@ export type { DungeonmasterConfig } from './contracts/dungeonmaster-config/dunge
 export { installTestbedCreateBroker } from './brokers/install-testbed/create/install-testbed-create-broker';
 export type { InstallTestbed } from './contracts/install-testbed/install-testbed-contract';
 
+// HTTP endpoint mocking
+export { StartEndpointMock } from './startup/start-endpoint-mock';
+export type {
+  EndpointControl,
+  HttpMethod,
+} from './contracts/endpoint-control/endpoint-control-contract';
+
 // TypeScript transformer - use @dungeonmaster/testing/ts-jest/proxy-mock-transformer in jest.config.js
 
 // Contract stubs

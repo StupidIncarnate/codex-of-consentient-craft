@@ -6,7 +6,7 @@ type ProjectListItem = ReturnType<typeof ProjectListItemStub>;
 
 export const useProjectsBindingProxy = (): {
   setupProjects: (params: { projects: ProjectListItem[] }) => void;
-  setupError: (params: { error: Error }) => void;
+  setupError: () => void;
 } => {
   const brokerProxy = projectListBrokerProxy();
 
@@ -14,8 +14,8 @@ export const useProjectsBindingProxy = (): {
     setupProjects: ({ projects }: { projects: ProjectListItem[] }): void => {
       brokerProxy.setupProjects({ projects });
     },
-    setupError: ({ error }: { error: Error }): void => {
-      brokerProxy.setupError({ error });
+    setupError: (): void => {
+      brokerProxy.setupError();
     },
   };
 };

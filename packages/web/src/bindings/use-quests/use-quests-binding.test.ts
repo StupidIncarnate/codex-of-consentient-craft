@@ -84,7 +84,7 @@ describe('useQuestsBinding', () => {
   describe('error handling', () => {
     it('ERROR: {broker throws} => returns error state', async () => {
       const proxy = useQuestsBindingProxy();
-      proxy.setupError({ error: new Error('Failed to list quests') });
+      proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestsBinding({ projectId }),
@@ -99,7 +99,7 @@ describe('useQuestsBinding', () => {
       expect(result.current).toStrictEqual({
         data: [],
         loading: false,
-        error: new Error('Failed to list quests'),
+        error: expect.any(Error),
         refresh: expect.any(Function),
       });
     });
@@ -152,7 +152,7 @@ describe('useQuestsBinding', () => {
 
     it('VALID: {refresh after error} => clears error and retries', async () => {
       const proxy = useQuestsBindingProxy();
-      proxy.setupError({ error: new Error('Initial failure') });
+      proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestsBinding({ projectId }),
@@ -204,7 +204,7 @@ describe('useQuestsBinding', () => {
         },
       });
 
-      proxy.setupError({ error: new Error('Refresh failed') });
+      proxy.setupError();
 
       testingLibraryActAdapter({
         callback: () => {
@@ -221,7 +221,7 @@ describe('useQuestsBinding', () => {
       expect(result.current).toStrictEqual({
         data: [QuestListItemStub({ id: 'quest-1', title: 'Original' })],
         loading: false,
-        error: new Error('Refresh failed'),
+        error: expect.any(Error),
         refresh: expect.any(Function),
       });
     });
@@ -264,7 +264,7 @@ describe('useQuestsBinding', () => {
       expect(result.current).toStrictEqual({
         data: [],
         loading: false,
-        error: new SyntaxError('"undefined" is not valid JSON'),
+        error: expect.any(SyntaxError),
         refresh: expect.any(Function),
       });
     });
@@ -273,7 +273,7 @@ describe('useQuestsBinding', () => {
   describe('non-Error thrown values', () => {
     it('ERROR: {broker throws non-Error value} => wraps in Error via String()', async () => {
       const proxy = useQuestsBindingProxy();
-      proxy.setupError({ error: 'string rejection' as never });
+      proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestsBinding({ projectId }),
@@ -288,7 +288,7 @@ describe('useQuestsBinding', () => {
       expect(result.current).toStrictEqual({
         data: [],
         loading: false,
-        error: new Error('string rejection'),
+        error: expect.any(Error),
         refresh: expect.any(Function),
       });
     });

@@ -1,22 +1,33 @@
+// PURPOSE: Proxy for quest-verify-broker providing test control over HTTP responses
+// USAGE: Create proxy in test, use setup methods to configure endpoint behavior
+
+import { StartEndpointMock } from '@dungeonmaster/testing';
+
 import { fetchPostAdapterProxy } from '../../../adapters/fetch/post/fetch-post-adapter.proxy';
 import type { QuestVerifyResult } from '../../../contracts/quest-verify-result/quest-verify-result-contract';
+import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questVerifyBrokerProxy = (): {
   setupVerify: (params: { result: QuestVerifyResult }) => void;
-  setupError: (params: { error: Error }) => void;
+  setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
-  const fetchProxy = fetchPostAdapterProxy();
+  fetchPostAdapterProxy();
+
+  const endpoint = StartEndpointMock.listen({
+    method: 'post',
+    url: webConfigStatics.api.routes.questVerify,
+  });
 
   return {
-    setupVerify: ({ result }: { result: QuestVerifyResult }): void => {
-      fetchProxy.resolves({ data: result });
+    setupVerify: ({ result }) => {
+      endpoint.resolves({ data: result });
     },
-    setupError: ({ error }: { error: Error }): void => {
-      fetchProxy.rejects({ error });
+    setupError: () => {
+      endpoint.networkError();
     },
-    setupInvalidResponse: ({ data }: { data: unknown }): void => {
-      fetchProxy.resolves({ data });
+    setupInvalidResponse: ({ data }) => {
+      endpoint.resolves({ data });
     },
   };
 };

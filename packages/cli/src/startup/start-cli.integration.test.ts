@@ -13,6 +13,7 @@ import React from 'react';
 import {
   DependencyStepStub,
   FilePathStub,
+  ProjectIdStub,
   QuestStub,
   StepIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -102,6 +103,7 @@ describe('StartCli', () => {
             // Note: we're using testbed.dungeonmasterPath but in real CLI it should auto-resolve
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
+          projectId: ProjectIdStub(),
         }),
       });
 
@@ -137,6 +139,7 @@ describe('StartCli', () => {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
+          projectId: ProjectIdStub(),
         }),
       });
 
@@ -213,6 +216,7 @@ describe('StartCli', () => {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
+          projectId: ProjectIdStub(),
         }),
       });
 
@@ -245,6 +249,7 @@ describe('StartCli', () => {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
+          projectId: ProjectIdStub(),
         }),
       });
 
@@ -284,6 +289,7 @@ describe('StartCli', () => {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
+          projectId: ProjectIdStub(),
         }),
       });
 
@@ -403,11 +409,9 @@ describe('StartCli', () => {
         content: FileContentStub({ value: JSON.stringify(quest2, null, 2) }),
       });
 
-      const startPath = FilePathStub({
-        value: testbed.projectPath,
-      });
+      const projectId = ProjectIdStub();
 
-      const questList = await questListBroker({ startPath });
+      const questList = await questListBroker({ projectId });
       const sortedTitles = questList.map((q) => q.title).sort();
 
       testbed.cleanup();

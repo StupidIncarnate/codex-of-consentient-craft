@@ -36,9 +36,9 @@ describe('projectListBroker', () => {
     it('ERROR: {network failure} => throws error', async () => {
       const proxy = projectListBrokerProxy();
 
-      proxy.setupError({ error: new Error('Network failure') });
+      proxy.setupError();
 
-      await expect(projectListBroker()).rejects.toThrow('Network failure');
+      await expect(projectListBroker()).rejects.toThrow(/fetch/iu);
     });
   });
 

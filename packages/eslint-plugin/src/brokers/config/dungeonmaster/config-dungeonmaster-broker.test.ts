@@ -74,6 +74,7 @@ describe('configDungeonmasterBroker', () => {
       expect(ruleEnforceOn['@dungeonmaster/enforce-object-destructuring-params']).toBe('pre-edit');
       expect(ruleEnforceOn['@typescript-eslint/no-explicit-any']).toBe('pre-edit');
       expect(ruleEnforceOn['eslint-comments/no-use']).toBe('pre-edit');
+      expect(ruleEnforceOn['@dungeonmaster/ban-fetch-in-proxies']).toBe('pre-edit');
     });
 
     it('VALID: {} => ruleEnforceOn contains post-edit rules', () => {

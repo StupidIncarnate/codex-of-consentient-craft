@@ -6,7 +6,7 @@ type QuestListItem = ReturnType<typeof QuestListItemStub>;
 
 export const useQuestsBindingProxy = (): {
   setupQuests: (params: { quests: QuestListItem[] }) => void;
-  setupError: (params: { error: Error }) => void;
+  setupError: () => void;
 } => {
   const brokerProxy = questListBrokerProxy();
 
@@ -14,8 +14,8 @@ export const useQuestsBindingProxy = (): {
     setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
       brokerProxy.setupQuests({ quests });
     },
-    setupError: ({ error }: { error: Error }): void => {
-      brokerProxy.setupError({ error });
+    setupError: (): void => {
+      brokerProxy.setupError();
     },
   };
 };

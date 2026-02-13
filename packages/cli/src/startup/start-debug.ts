@@ -12,9 +12,13 @@ import { createInterface } from 'readline';
 import { resolve } from 'path';
 import React from 'react';
 
-import { filePathContract, errorMessageContract } from '@dungeonmaster/shared/contracts';
+import {
+  filePathContract,
+  errorMessageContract,
+  absoluteFilePathContract,
+  projectIdContract,
+} from '@dungeonmaster/shared/contracts';
 import type { InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contracts';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { inkTestingLibraryRenderAdapter } from '../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
 import { debugCommandContract } from '../contracts/debug-command/debug-command-contract';
@@ -37,6 +41,7 @@ export const StartDebug = async (): Promise<void> => {
   const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, '../../../..'));
   const targetProjectRoot = filePathContract.parse(process.cwd());
   const installContext: InstallContext = { dungeonmasterRoot, targetProjectRoot };
+  const projectId = projectIdContract.parse('00000000-0000-0000-0000-000000000000');
 
   const { state, invocations } = debugSessionBroker({
     initialScreen: cliAppScreenContract.parse('menu'),
@@ -88,6 +93,7 @@ export const StartDebug = async (): Promise<void> => {
         element: React.createElement(CliAppWidget, {
           initialScreen: command.screen,
           installContext,
+          projectId,
           onRunQuest: ({
             questId,
             questFolder,

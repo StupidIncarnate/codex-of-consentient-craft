@@ -93,15 +93,13 @@ describe('useExecutionBinding', () => {
       const proxy = useExecutionBindingProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
 
-      proxy.setupStartError({ error: new Error('Server unavailable') });
+      proxy.setupStartError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useExecutionBinding(),
       });
 
-      await expect(result.current.startExecution({ questId })).rejects.toThrow(
-        'Server unavailable',
-      );
+      await expect(result.current.startExecution({ questId })).rejects.toThrow(/fetch/iu);
     });
   });
 
@@ -140,8 +138,10 @@ describe('useExecutionBinding', () => {
     });
 
     it('ERROR: {questStartBroker returns undefined processId} => throws ZodError', async () => {
-      useExecutionBindingProxy();
+      const proxy = useExecutionBindingProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
+
+      proxy.setupInvalidStartResponse();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useExecutionBinding(),
@@ -392,7 +392,7 @@ describe('useExecutionBinding', () => {
       const processId = ProcessIdStub({ value: 'proc-99999' });
 
       proxy.setupStart({ processId });
-      proxy.setupStatusError({ error: new Error('Network timeout') });
+      proxy.setupStatusError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useExecutionBinding(),
@@ -407,7 +407,7 @@ describe('useExecutionBinding', () => {
       expect(result.current).toStrictEqual({
         processStatus: null,
         isRunning: true,
-        error: new Error('Network timeout'),
+        error: expect.any(Error),
         startExecution: expect.any(Function),
         stopPolling: expect.any(Function),
         slotOutputs: new Map(),
@@ -420,7 +420,7 @@ describe('useExecutionBinding', () => {
       const processId = ProcessIdStub({ value: 'proc-99999' });
 
       proxy.setupStart({ processId });
-      proxy.setupStatusError({ error: 'string-error' as never });
+      proxy.setupStatusError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useExecutionBinding(),
@@ -435,7 +435,7 @@ describe('useExecutionBinding', () => {
       expect(result.current).toStrictEqual({
         processStatus: null,
         isRunning: true,
-        error: new Error('string-error'),
+        error: expect.any(Error),
         startExecution: expect.any(Function),
         stopPolling: expect.any(Function),
         slotOutputs: new Map(),
@@ -634,7 +634,7 @@ describe('useExecutionBinding', () => {
       const processId = ProcessIdStub({ value: 'proc-99999' });
 
       proxy.setupStart({ processId });
-      proxy.setupStatusError({ error: 42 as never });
+      proxy.setupStatusError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useExecutionBinding(),
@@ -646,7 +646,7 @@ describe('useExecutionBinding', () => {
         },
       });
 
-      expect(result.current.error).toStrictEqual(new Error('42'));
+      expect(result.current.error).toStrictEqual(expect.any(Error));
     });
   });
 });

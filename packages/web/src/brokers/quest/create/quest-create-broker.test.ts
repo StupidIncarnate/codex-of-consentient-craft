@@ -27,7 +27,7 @@ describe('questCreateBroker', () => {
       const proxy = questCreateBrokerProxy();
       const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
-      proxy.setupError({ error: new Error('Failed to create quest') });
+      proxy.setupError();
 
       await expect(
         questCreateBroker({
@@ -35,7 +35,7 @@ describe('questCreateBroker', () => {
           title: 'Add Auth',
           userRequest: 'Implement authentication',
         }),
-      ).rejects.toThrow('Failed to create quest');
+      ).rejects.toThrow(/fetch/iu);
     });
   });
 

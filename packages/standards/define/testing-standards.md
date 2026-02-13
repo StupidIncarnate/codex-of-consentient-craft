@@ -1855,6 +1855,140 @@ it('VALID: {value: "test"} => parses successfully', () => {
 - Assert stub returns expected branded type
 - Do NOT test invalid inputs (stubs only create valid instances)
 
+## EndpointMock (HTTP Mocking for Frontend Tests)
+
+### When to Use `StartEndpointMock`
+
+Use `StartEndpointMock` for **any test that needs to mock HTTP responses** — broker tests, widget integration tests, or
+any layer that ultimately calls a fetch adapter.
+
+**Always use via the broker proxy layer** — never call `StartEndpointMock` directly in test files. The broker proxy owns
+knowledge of which endpoints its broker calls, so it calls `StartEndpointMock.listen()` with the specific method + URL.
+
+### When NOT to Use `StartEndpointMock`
+
+- **Server-side tests** — The server package tests mock Hono's `serve()`, not fetch. Server code handles incoming
+  requests; it does not make outgoing HTTP calls via fetch adapters.
+- **Non-HTTP I/O** — Filesystem operations, child process spawning, and similar I/O use existing adapter proxies
+  (`jest.mock('fs/promises')`, etc.), not endpoint mocking.
+
+### JSON vs Non-JSON Responses
+
+**JSON payloads (common case):**
+
+- `resolves({ data })` — Shorthand for 200 OK with JSON body. Use when the broker expects a successful JSON response.
+- `responds({ status, body })` — JSON response with explicit status code. Use for error responses (4xx, 5xx) or when
+  you need a non-200 success status (201, 204).
+
+```typescript
+// Broker proxy using JSON helpers
+export const projectFetchBrokerProxy = () => {
+    const endpoint = StartEndpointMock.listen({method: 'get', url: '/api/projects'});
+
+    return {
+        setupProjects: ({projects}: { projects: readonly Project[] }): void => {
+            endpoint.resolves({data: projects});
+        },
+
+        setupNotFound: (): void => {
+            endpoint.responds({status: 404, body: {error: 'Not found'}});
+        },
+    };
+};
+```
+
+**Non-JSON payloads (escape hatch):**
+
+- `respondRaw({ status, body, headers })` — For binary, text, HTML, or any non-JSON payload. You control the full
+  response including headers.
+
+```typescript
+// Broker proxy for a binary download endpoint
+export const fileDownloadBrokerProxy = () => {
+    const endpoint = StartEndpointMock.listen({method: 'get', url: '/api/files/download'});
+
+    return {
+        setupBinaryFile: ({content}: { content: ArrayBuffer }): void => {
+            endpoint.respondRaw({
+                status: 200,
+                body: content,
+                headers: {'content-type': 'application/octet-stream'},
+            });
+        },
+    };
+};
+```
+
+**Network errors:**
+
+- `networkError()` — Simulates a network failure (connection refused, DNS failure). Use when testing error handling for
+  unreachable servers.
+
+### The Full Proxy Chain
+
+```
+Test → Widget Proxy → Binding Proxy → Broker Proxy → StartEndpointMock.listen() → MSW
+```
+
+Each layer delegates setup to the layer below. The broker proxy is the only layer that knows about
+`StartEndpointMock` — it creates endpoints for the specific HTTP calls its broker makes. Higher-layer proxies
+(binding, widget) expose semantic methods that delegate to the broker proxy.
+
+```typescript
+// Broker proxy — owns endpoint knowledge
+export const userFetchBrokerProxy = () => {
+    const endpoint = StartEndpointMock.listen({method: 'get', url: '/api/users/123'});
+
+    return {
+        setupUser: ({user}: { user: User }): void => {
+            endpoint.resolves({data: user});
+        },
+    };
+};
+
+// Binding proxy — delegates to broker proxy
+export const useUserDataBindingProxy = () => {
+    const brokerProxy = userFetchBrokerProxy();
+
+    return {
+        setupUser: ({user}: { user: User }): void => {
+            brokerProxy.setupUser({user});
+        },
+    };
+};
+
+// Widget proxy — delegates to binding proxy
+export const userCardWidgetProxy = () => {
+    const bindingProxy = useUserDataBindingProxy();
+
+    return {
+        setupUser: ({user}: { user: User }): void => {
+            bindingProxy.setupUser({user});
+        },
+    };
+};
+```
+
+### MSW Lifecycle
+
+`StartEndpointMockSetup` manages the MSW server lifecycle automatically via `jest.config.js`:
+
+- `beforeAll` — Starts the MSW server (unhandled requests are bypassed)
+- `afterEach` — Resets all handlers between tests
+- `afterAll` — Closes the server
+
+To enable EndpointMock in a package, add the setup file to `jest.config.js`:
+
+```javascript
+module.exports = {
+    ...baseConfig,
+    setupFilesAfterEnv: [
+        '<rootDir>/../../packages/testing/src/jest.setup.js',
+        '<rootDir>/../../packages/testing/src/startup/start-endpoint-mock-setup.ts',
+    ],
+};
+```
+
 ## Framework-Specific Patterns
 
 ### React Testing

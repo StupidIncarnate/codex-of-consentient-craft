@@ -100,13 +100,13 @@ export const StartServerProxy = (): {
 
   StartServer();
 
-  const fetch = serveProxy.getCapturedFetch();
+  const capturedFetch = serveProxy.getCapturedFetch();
 
   return {
     request: async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       const url = typeof input === 'string' ? `http://localhost${input}` : input;
       const request = new Request(url, init);
-      return fetch(request);
+      return capturedFetch(request);
     },
     setupListProjects: ({ projects }: { projects: ProjectListItem[] }): void => {
       listProjectsProxy.returns({ projects });

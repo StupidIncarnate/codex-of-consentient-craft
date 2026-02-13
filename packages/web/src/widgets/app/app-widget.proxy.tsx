@@ -28,16 +28,16 @@ type ProjectId = ReturnType<typeof ProjectIdStub>;
 
 export const AppWidgetProxy = (): {
   setupProjects: (params: { projects: ProjectListItem[] }) => void;
-  setupProjectsError: (params: { error: Error }) => void;
+  setupProjectsError: () => void;
   setupCreateProject: (params: { id: ProjectId }) => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
-  setupQuestsError: (params: { error: Error }) => void;
+  setupQuestsError: () => void;
   setupQuestDetail: (params: { quest: Quest }) => void;
-  setupQuestDetailError: (params: { error: Error }) => void;
+  setupQuestDetailError: () => void;
   setupExecutionStart: (params: { processId: ProcessId }) => void;
-  setupExecutionStartError: (params: { error: Error }) => void;
+  setupExecutionStartError: () => void;
   setupExecutionStatus: (params: { status: OrchestrationStatus }) => void;
-  setupExecutionStatusError: (params: { error: Error }) => void;
+  setupExecutionStatusError: () => void;
   clickAddProject: () => Promise<void>;
   clickProject: (params: { name: string }) => Promise<void>;
   isProjectVisible: (params: { name: string }) => boolean;
@@ -66,8 +66,8 @@ export const AppWidgetProxy = (): {
     setupProjects: ({ projects }: { projects: ProjectListItem[] }): void => {
       projectsProxy.setupProjects({ projects });
     },
-    setupProjectsError: ({ error }: { error: Error }): void => {
-      projectsProxy.setupError({ error });
+    setupProjectsError: (): void => {
+      projectsProxy.setupError();
     },
     setupCreateProject: ({ id }: { id: ProjectId }): void => {
       createProjectProxy.setupCreate({ id });
@@ -75,26 +75,26 @@ export const AppWidgetProxy = (): {
     setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
       questsProxy.setupQuests({ quests });
     },
-    setupQuestsError: ({ error }: { error: Error }): void => {
-      questsProxy.setupError({ error });
+    setupQuestsError: (): void => {
+      questsProxy.setupError();
     },
     setupQuestDetail: ({ quest }: { quest: Quest }): void => {
       questDetailProxy.setupQuest({ quest });
     },
-    setupQuestDetailError: ({ error }: { error: Error }): void => {
-      questDetailProxy.setupError({ error });
+    setupQuestDetailError: (): void => {
+      questDetailProxy.setupError();
     },
     setupExecutionStart: ({ processId }: { processId: ProcessId }): void => {
       executionProxy.setupStart({ processId });
     },
-    setupExecutionStartError: ({ error }: { error: Error }): void => {
-      executionProxy.setupStartError({ error });
+    setupExecutionStartError: (): void => {
+      executionProxy.setupStartError();
     },
     setupExecutionStatus: ({ status }: { status: OrchestrationStatus }): void => {
       executionProxy.setupStatus({ status });
     },
-    setupExecutionStatusError: ({ error }: { error: Error }): void => {
-      executionProxy.setupStatusError({ error });
+    setupExecutionStatusError: (): void => {
+      executionProxy.setupStatusError();
     },
     clickAddProject: async (): Promise<void> => {
       await sidebar.clickAddProject();

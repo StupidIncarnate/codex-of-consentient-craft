@@ -26,14 +26,14 @@ describe('projectUpdateBroker', () => {
       const proxy = projectUpdateBrokerProxy();
       const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
-      proxy.setupError({ error: new Error('Failed to update project') });
+      proxy.setupError();
 
       await expect(
         projectUpdateBroker({
           projectId,
           modifications: { name: 'Updated Name' },
         }),
-      ).rejects.toThrow('Failed to update project');
+      ).rejects.toThrow(/fetch/iu);
     });
   });
 

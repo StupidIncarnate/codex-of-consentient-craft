@@ -169,7 +169,7 @@ describe('useDirectoryBrowserBinding', () => {
   describe('error handling', () => {
     it('ERROR: {broker throws} => sets entries to empty array', async () => {
       const proxy = useDirectoryBrowserBindingProxy();
-      proxy.setupError({ error: new Error('Failed to browse') });
+      proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useDirectoryBrowserBinding(),

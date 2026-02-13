@@ -17,11 +17,7 @@ export const websocketConnectAdapterProxy = (): {
 } => {
   const state: { socket: MockSocket | null } = { socket: null };
 
-  jest
-    .spyOn(globalThis, 'setTimeout')
-    .mockImplementation(
-      (): ReturnType<typeof setTimeout> => 0 as unknown as ReturnType<typeof setTimeout>,
-    );
+  jest.spyOn(globalThis, 'setTimeout');
 
   jest.spyOn(globalThis as never, 'WebSocket').mockImplementation((() => {
     const socket = createMockSocket();

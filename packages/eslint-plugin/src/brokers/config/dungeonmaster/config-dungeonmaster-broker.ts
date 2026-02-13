@@ -107,6 +107,7 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/no-mutable-state-in-proxy-factory': 'error',
     '@dungeonmaster/require-contract-validation': 'error',
     '@dungeonmaster/require-zod-on-primitives': 'error',
+    '@dungeonmaster/ban-fetch-in-proxies': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

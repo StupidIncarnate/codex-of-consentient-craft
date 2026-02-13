@@ -1,40 +1,32 @@
+import { StartEndpointMock } from '@dungeonmaster/testing';
+
 import { fetchPostAdapter } from './fetch-post-adapter';
-import { fetchPostAdapterProxy } from './fetch-post-adapter.proxy';
 
 describe('fetchPostAdapter', () => {
-  describe('successful POST', () => {
-    it('VALID: {url: "/api/quests/start", body: "request-payload"} => returns parsed JSON response', async () => {
-      const proxy = fetchPostAdapterProxy();
+  it('VALID: returns parsed JSON on success', async () => {
+    const endpoint = StartEndpointMock.listen({ method: 'post', url: '/test/endpoint' });
+    endpoint.resolves({ data: { key: 'value' } });
 
-      proxy.resolves({ data: 'start-response' });
+    const result = await fetchPostAdapter({ url: '/test/endpoint', body: { payload: 'data' } });
 
-      const result = await fetchPostAdapter({ url: '/api/quests/start', body: 'request-payload' });
-
-      expect(result).toBe('start-response');
-    });
+    expect(result).toStrictEqual({ key: 'value' });
   });
 
-  describe('network error', () => {
-    it('ERROR: {url: "/api/quests/start"} => throws when fetch rejects', async () => {
-      const proxy = fetchPostAdapterProxy();
+  it('ERROR: rejects on network error', async () => {
+    const endpoint = StartEndpointMock.listen({ method: 'post', url: '/test/endpoint' });
+    endpoint.networkError();
 
-      proxy.rejects({ error: new Error('Network error') });
-
-      await expect(fetchPostAdapter({ url: '/api/quests/start', body: 'payload' })).rejects.toThrow(
-        /^Network error$/u,
-      );
-    });
+    await expect(
+      fetchPostAdapter({ url: '/test/endpoint', body: { payload: 'data' } }),
+    ).rejects.toThrow(/fetch/iu);
   });
 
-  describe('non-ok response', () => {
-    it('ERROR: {url: "/api/quests/start", status: 500} => throws when response status is not ok', async () => {
-      const proxy = fetchPostAdapterProxy();
+  it('ERROR: rejects on non-ok status', async () => {
+    const endpoint = StartEndpointMock.listen({ method: 'post', url: '/test/endpoint' });
+    endpoint.responds({ status: 500 });
 
-      proxy.resolvesWithStatus({ status: 500, body: 'Internal Server Error' });
-
-      await expect(fetchPostAdapter({ url: '/api/quests/start', body: 'payload' })).rejects.toThrow(
-        /^POST \/api\/quests\/start failed with status 500$/u,
-      );
-    });
+    await expect(
+      fetchPostAdapter({ url: '/test/endpoint', body: { payload: 'data' } }),
+    ).rejects.toThrow(/failed with status 500/u);
   });
 });
