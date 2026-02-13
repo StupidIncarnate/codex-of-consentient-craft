@@ -37,8 +37,13 @@ export const ProjectAddModalWidgetProxy = (): {
       return button.hasAttribute('disabled') || button.getAttribute('data-disabled') === 'true';
     },
     getPathDisplay: (): HTMLElement['textContent'] => {
-      const element = screen.queryByTestId('PROJECT_PATH_DISPLAY');
-      return element?.textContent ?? null;
+      const wrapper = screen.queryByTestId('PROJECT_PATH_DISPLAY');
+
+      if (!wrapper) return null;
+
+      const input = wrapper.querySelector('input');
+
+      return input?.value ?? '';
     },
     clickDirectoryBrowserSelect: async (): Promise<void> => {
       await directoryBrowserProxy.clickSelect();

@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 
-import { Button, Group, Modal, Stack, Text, TextInput } from '@mantine/core';
+import { Button, Group, Modal, Stack, TextInput } from '@mantine/core';
 
 import type { ProjectName, ProjectPath } from '@dungeonmaster/shared/contracts';
 import { projectNameContract, projectPathContract } from '@dungeonmaster/shared/contracts';
@@ -52,31 +52,29 @@ export const ProjectAddModalWidget = ({
             }}
             data-testid="PROJECT_NAME_INPUT"
           />
-          <Stack gap="xs">
-            <Text size="sm" fw={500}>
-              Project Path
-            </Text>
-            <Group gap="sm">
-              <Text
-                size="sm"
-                {...(!path && { c: 'dimmed' })}
-                style={{ flex: 1 }}
-                data-testid="PROJECT_PATH_DISPLAY"
-              >
-                {path || 'No path selected'}
-              </Text>
-              <Button
-                variant="light"
-                size="sm"
-                onClick={() => {
-                  setBrowserOpened(true);
-                }}
-                data-testid="BROWSE_BUTTON"
-              >
-                Browse
-              </Button>
-            </Group>
-          </Stack>
+          <Group gap="sm" align="flex-end">
+            <TextInput
+              label="Project Path"
+              placeholder="/path/to/project"
+              required
+              value={path}
+              onChange={(e) => {
+                setPath(e.currentTarget.value);
+              }}
+              style={{ flex: 1 }}
+              data-testid="PROJECT_PATH_DISPLAY"
+            />
+            <Button
+              variant="light"
+              size="sm"
+              onClick={() => {
+                setBrowserOpened(true);
+              }}
+              data-testid="BROWSE_BUTTON"
+            >
+              Browse
+            </Button>
+          </Group>
           <Group justify="flex-end">
             <Button
               variant="light"

@@ -26,7 +26,10 @@ module.exports = {
     '^react-dom/(.*)$': resolve(__dirname, 'node_modules/react-dom/$1'),
     '^react/(.*)$': resolve(__dirname, 'node_modules/react/$1'),
   },
-  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant|undici)/)'],
+  transformIgnorePatterns: [
+    '/dist/',
+    '/node_modules/(?!(msw|@mswjs|until-async|outvariant|undici)/)',
+  ],
   transform: {
     '^.+\\.m?[jt]sx?$': [
       'ts-jest',

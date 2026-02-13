@@ -36,14 +36,14 @@ describe('ProjectAddModalWidget', () => {
       expect(screen.getByTestId('BROWSE_BUTTON')).toBeInTheDocument();
     });
 
-    it('VALID: {opened: true} => renders path display with default text', () => {
+    it('VALID: {opened: true} => renders path input with empty value', () => {
       const proxy = ProjectAddModalWidgetProxy();
 
       mantineRenderAdapter({
         ui: <ProjectAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
       });
 
-      expect(proxy.getPathDisplay()).toBe('No path selected');
+      expect(proxy.getPathDisplay()).toBe('');
     });
 
     it('VALID: {opened: true} => renders Create button disabled initially', () => {
