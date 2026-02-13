@@ -4,13 +4,13 @@
 
 ## Progress Tracker
 
-| Phase                                 | Status      | Notes                          |
-|---------------------------------------|-------------|--------------------------------|
-| Phase 1: Foundation (MVP)             | COMPLETE    |                                |
-| Phase 2: Agent Output Streaming       | COMPLETE    | All 5 tasks done               |
-| Phase 3: Agent Migration (MCP → HTTP) | COMPLETE    | All 6 tasks done               |
-| Phase 4: Verification + Cleanup       | IN PROGRESS | 4.1 endpoint verification next |
-| Phase 5: Pixel Art Game Foundation    | NOT STARTED |                                |
+| Phase                                 | Status      | Notes                                                                        |
+|---------------------------------------|-------------|------------------------------------------------------------------------------|
+| Phase 1: Foundation (MVP)             | COMPLETE    |                                                                              |
+| Phase 2: Agent Output Streaming       | COMPLETE    | All 5 tasks done                                                             |
+| Phase 3: Agent Migration (MCP → HTTP) | COMPLETE    | All 6 tasks done                                                             |
+| Phase 4: Verification + Cleanup       | IN PROGRESS | Endpoints verified, manual UI verified, awaiting user approval for deletions |
+| Phase 5: Pixel Art Game Foundation    | NOT STARTED |                                                                              |
 
 ### Phase 1 Detailed Progress
 
@@ -44,20 +44,23 @@
 |--------------------------------------------------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 3.1 Agent-facing HTTP endpoints (discover, docs) | DONE   | All 501 placeholders replaced with real broker calls (architectureOverviewBroker, architectureFolderDetailBroker, architectureSyntaxRulesBroker, architectureTestingPatternsBroker, mcpDiscoverBroker)                     |
 | 3.2 Move agent prompts into orchestrator         | DONE   | All 9 prompts in packages/orchestrator/src/statics/ (chaoswhisperer, pathseeker, codeweaver, lawbringer, siegemaster, spiritmender, quest-start, finalizer, gap-reviewer). roleToPromptTemplateTransformer routes by role. |
-| 3.3 Update prompts: MCP → HTTP (curl/Bash)       | DONE   | All prompts use curl http://localhost:3737/api/* calls. Zero references to mcp__dungeonmaster__* in orchestrator prompts.                                                                                                  |
+| 3.3 Update prompts: MCP → HTTP (curl/Bash)       | DONE   | 8/9 prompts fully migrated. gap-reviewer has stale mcp__dungeonmaster__signal-back in tools frontmatter (prompt body uses HTTP). Fixed in Phase 4.                                                                         |
 | 3.4 Quest creation form in web UI                | DONE   | TextInput + Textarea in quest-list-widget, calls POST /api/quests                                                                                                                                                          |
 | 3.5 Quest modification + verification UI         | DONE   | Quest detail tabs with verification support                                                                                                                                                                                |
 | 3.6 Phase 3 verification                         | DONE   |                                                                                                                                                                                                                            |
 
 ### Phase 4 Detailed Progress
 
-| Task                                                 | Status      | Notes                              |
-|------------------------------------------------------|-------------|------------------------------------|
-| 4.1 Full end-to-end pipeline test (HTTP-only agents) | NOT STARTED |                                    |
-| 4.2 **MANUAL VERIFICATION CHECKPOINT**               | NOT STARTED | User must approve before deletions |
-| 4.3 Delete `packages/mcp`                            | NOT STARTED | Only after manual approval         |
-| 4.4 Remove `.claude/commands/` install from init     | NOT STARTED | Only after manual approval         |
-| 4.5 Remove CLI quest screens                         | NOT STARTED | Only after manual approval         |
+| Task                                                 | Status      | Notes                                                                                                                   |
+|------------------------------------------------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
+| 4.0 Manual UI bug fixes                              | DONE        | 6 bugs found, 5 already fixed, 1 fixed (project path input). All 290 web tests pass. Chrome manual verification passed. |
+| 4.0a Endpoint verification                           | DONE        | All 21 endpoints verified implemented (0 placeholders). Server 24 test suites, web 50 test suites, 100% file coverage.  |
+| 4.0b Gap-reviewer prompt cleanup                     | DONE        | Removed stale mcp__dungeonmaster__signal-back from tools frontmatter                                                    |
+| 4.1 Full end-to-end pipeline test (HTTP-only agents) | NOT STARTED | All infrastructure verified; needs automated E2E test or live quest execution test                                      |
+| 4.2 **MANUAL VERIFICATION CHECKPOINT**               | NOT STARTED | User must approve before deletions                                                                                      |
+| 4.3 Delete `packages/mcp`                            | NOT STARTED | Only after manual approval                                                                                              |
+| 4.4 Remove `.claude/commands/` install from init     | NOT STARTED | Only after manual approval                                                                                              |
+| 4.5 Remove CLI quest screens                         | NOT STARTED | Only after manual approval                                                                                              |
 
 ### Phase 5 Detailed Progress
 
