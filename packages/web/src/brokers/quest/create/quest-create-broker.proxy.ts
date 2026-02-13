@@ -8,7 +8,7 @@ import { fetchPostAdapterProxy } from '../../../adapters/fetch/post/fetch-post-a
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questCreateBrokerProxy = (): {
-  setupCreate: (params: { id: QuestId }) => void;
+  setupCreate: (params: { questId: QuestId }) => void;
   setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
@@ -20,8 +20,8 @@ export const questCreateBrokerProxy = (): {
   });
 
   return {
-    setupCreate: ({ id }) => {
-      endpoint.resolves({ data: { id } });
+    setupCreate: ({ questId }) => {
+      endpoint.resolves({ data: { questId } });
     },
     setupError: () => {
       endpoint.networkError();

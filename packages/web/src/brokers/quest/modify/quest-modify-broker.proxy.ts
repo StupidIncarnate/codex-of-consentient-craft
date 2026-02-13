@@ -1,14 +1,14 @@
 // PURPOSE: Proxy for quest-modify-broker providing test control over HTTP responses
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
-import type { Quest } from '@dungeonmaster/shared/contracts';
 import { StartEndpointMock } from '@dungeonmaster/testing';
 
 import { fetchPatchAdapterProxy } from '../../../adapters/fetch/patch/fetch-patch-adapter.proxy';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questModifyBrokerProxy = (): {
-  setupModify: (params: { quest: Quest }) => void;
+  setupModify: () => void;
+  setupFailure: (params: { error: string }) => void;
   setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
@@ -20,8 +20,11 @@ export const questModifyBrokerProxy = (): {
   });
 
   return {
-    setupModify: ({ quest }) => {
-      endpoint.resolves({ data: quest });
+    setupModify: () => {
+      endpoint.resolves({ data: { success: true } });
+    },
+    setupFailure: ({ error }) => {
+      endpoint.resolves({ data: { success: false, error } });
     },
     setupError: () => {
       endpoint.networkError();

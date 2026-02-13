@@ -10,7 +10,7 @@ describe('questCreateBroker', () => {
       const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const questId = QuestIdStub({ value: 'new-quest-123' });
 
-      proxy.setupCreate({ id: questId });
+      proxy.setupCreate({ questId });
 
       const result = await questCreateBroker({
         projectId,
@@ -44,7 +44,7 @@ describe('questCreateBroker', () => {
       const proxy = questCreateBrokerProxy();
       const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
-      proxy.setupInvalidResponse({ data: { id: '' } });
+      proxy.setupInvalidResponse({ data: { questId: '' } });
 
       await expect(
         questCreateBroker({

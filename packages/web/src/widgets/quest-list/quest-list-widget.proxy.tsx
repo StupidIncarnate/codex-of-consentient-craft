@@ -9,7 +9,7 @@ export const QuestListWidgetProxy = (): {
 
   return {
     setupCreateSuccess: (): void => {
-      createProxy.setupCreate({ id: QuestIdStub({ value: 'new-quest' }) });
+      createProxy.setupCreate({ questId: QuestIdStub({ value: 'new-quest' }) });
     },
   };
 };

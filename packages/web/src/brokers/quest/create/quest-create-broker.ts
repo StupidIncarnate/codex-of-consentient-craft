@@ -20,10 +20,10 @@ export const questCreateBroker = async ({
   title: string;
   userRequest: string;
 }): Promise<{ id: QuestId }> => {
-  const response = await fetchPostAdapter<{ id: unknown }>({
+  const response = await fetchPostAdapter<{ questId: unknown }>({
     url: webConfigStatics.api.routes.quests,
     body: { projectId, title, userRequest },
   });
 
-  return { id: questIdContract.parse(response.id) };
+  return { id: questIdContract.parse(response.questId) };
 };
