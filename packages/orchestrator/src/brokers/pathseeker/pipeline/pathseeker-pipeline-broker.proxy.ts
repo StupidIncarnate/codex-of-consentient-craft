@@ -3,10 +3,9 @@
  *
  * USAGE:
  * const proxy = pathseekerPipelineBrokerProxy();
- * proxy.setupVerifySuccess({ quest, startPath });
+ * proxy.setupVerifySuccess({ quest });
  */
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
@@ -16,8 +15,8 @@ import { questVerifyBrokerProxy } from '../../quest/verify/quest-verify-broker.p
 type Quest = ReturnType<typeof QuestStub>;
 
 export const pathseekerPipelineBrokerProxy = (): {
-  setupVerifySuccess: (params: { quest: Quest; startPath: FilePath }) => void;
-  setupVerifyFailure: (params: { startPath: FilePath }) => void;
+  setupVerifySuccess: (params: { quest: Quest }) => void;
+  setupVerifyFailure: () => void;
   setupSpawnSuccess: () => void;
   onVerifySuccess: jest.Mock;
   onProcessUpdate: jest.Mock;
@@ -29,12 +28,12 @@ export const pathseekerPipelineBrokerProxy = (): {
   const onProcessUpdate = jest.fn();
 
   return {
-    setupVerifySuccess: ({ quest, startPath }: { quest: Quest; startPath: FilePath }): void => {
-      verifyProxy.setupQuestFound({ quest, startPath });
+    setupVerifySuccess: ({ quest }: { quest: Quest }): void => {
+      verifyProxy.setupQuestFound({ quest });
     },
 
-    setupVerifyFailure: ({ startPath }: { startPath: FilePath }): void => {
-      verifyProxy.setupEmptyFolder({ startPath });
+    setupVerifyFailure: (): void => {
+      verifyProxy.setupEmptyFolder();
     },
 
     setupSpawnSuccess: (): void => {

@@ -1,67 +1,88 @@
 /**
- * PURPOSE: Proxy for quest-verify-broker that mocks folder ensure and folder find operations
+ * PURPOSE: Proxy for quest-verify-broker that mocks quest find and quest load operations
  *
  * USAGE:
  * const proxy = questVerifyBrokerProxy();
- * proxy.setupQuestFound({ quest, startPath });
+ * proxy.setupQuestFound({ quest });
  */
 
-import { questsFolderEnsureBrokerProxy } from '@dungeonmaster/shared/testing';
-import { FileContentsStub, FilePathStub, type FilePath } from '@dungeonmaster/shared/contracts';
+import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import {
+  FileContentsStub,
+  FileNameStub,
+  FilePathStub,
+  ProjectIdStub,
+} from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
-import { questFolderFindBrokerProxy } from '../folder-find/quest-folder-find-broker.proxy';
+import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
+import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
 export const questVerifyBrokerProxy = (): {
-  setupQuestFound: (params: { quest: Quest; startPath: FilePath }) => void;
-  setupEmptyFolder: (params: { startPath: FilePath }) => void;
+  setupQuestFound: (params: { quest: Quest }) => void;
+  setupEmptyFolder: () => void;
 } => {
-  const questsFolderProxy = questsFolderEnsureBrokerProxy();
-  const folderFindProxy = questFolderFindBrokerProxy();
+  const findQuestPathProxy = questFindQuestPathBrokerProxy();
+  const pathJoinProxy = pathJoinAdapterProxy();
+  const loadProxy = questLoadBrokerProxy();
 
   return {
-    setupQuestFound: ({ quest, startPath }: { quest: Quest; startPath: FilePath }): void => {
-      const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
-      const folderPath = FilePathStub({
-        value: `/project/.dungeonmaster-quests/${quest.folder}`,
+    setupQuestFound: ({ quest }: { quest: Quest }): void => {
+      const projectId = ProjectIdStub();
+      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const projectsDir = FilePathStub({
+        value: '/home/testuser/.dungeonmaster/projects',
+      });
+      const questsDirPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/projects/${projectId}/quests`,
+      });
+      const questFolderPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/projects/${projectId}/quests/${quest.folder}`,
       });
       const questFilePath = FilePathStub({
-        value: `/project/.dungeonmaster-quests/${quest.folder}/quest.json`,
+        value: `/home/testuser/.dungeonmaster/projects/${projectId}/quests/${quest.folder}/quest.json`,
       });
 
-      const projectRootPath = questsFolderPath.split('/').slice(0, -1).join('/') as FilePath;
-      questsFolderProxy.setupQuestsFolderEnsureSuccess({
-        startPath,
-        projectRootPath,
-        questsFolderPath,
-      });
-
-      folderFindProxy.setupQuestFolders({
-        questFolders: [FileNameStub({ value: quest.folder })],
-        questFiles: [
+      findQuestPathProxy.setupQuestFound({
+        homeDir: '/home/testuser',
+        homePath,
+        projectsDir,
+        projects: [
           {
-            folderPath,
-            questFilePath,
-            contents: FileContentsStub({ value: JSON.stringify(quest) }),
+            dirName: FileNameStub({ value: projectId }),
+            questsDirPath,
+            questFolders: [
+              {
+                folderName: FileNameStub({ value: quest.folder }),
+                questFilePath,
+                questFolderPath,
+                contents: FileContentsStub({ value: JSON.stringify(quest) }),
+              },
+            ],
           },
         ],
       });
+
+      // pathJoin for questVerifyBroker joining questPath + quest.json
+      pathJoinProxy.returns({ result: questFilePath });
+
+      // questLoadBroker reads the quest file
+      loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
     },
 
-    setupEmptyFolder: ({ startPath }: { startPath: FilePath }): void => {
-      const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
-
-      const projectRootPath = questsFolderPath.split('/').slice(0, -1).join('/') as FilePath;
-      questsFolderProxy.setupQuestsFolderEnsureSuccess({
-        startPath,
-        projectRootPath,
-        questsFolderPath,
+    setupEmptyFolder: (): void => {
+      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const projectsDir = FilePathStub({
+        value: '/home/testuser/.dungeonmaster/projects',
       });
 
-      folderFindProxy.setupEmptyFolder();
+      findQuestPathProxy.setupNoProjects({
+        homeDir: '/home/testuser',
+        homePath,
+        projectsDir,
+      });
     },
   };
 };

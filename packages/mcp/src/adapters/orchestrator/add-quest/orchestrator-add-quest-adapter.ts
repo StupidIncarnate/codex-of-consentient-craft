@@ -2,20 +2,20 @@
  * PURPOSE: Adapter for StartOrchestrator.addQuest that wraps the orchestrator package
  *
  * USAGE:
- * const result = await orchestratorAddQuestAdapter({ title, userRequest, startPath });
+ * const result = await orchestratorAddQuestAdapter({ title, userRequest, projectId });
  * // Returns: AddQuestResult or throws error
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { AddQuestResult } from '@dungeonmaster/orchestrator';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { ProjectId } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorAddQuestAdapter = async ({
   title,
   userRequest,
-  startPath,
+  projectId,
 }: {
   title: string;
   userRequest: string;
-  startPath: FilePath;
-}): Promise<AddQuestResult> => StartOrchestrator.addQuest({ title, userRequest, startPath });
+  projectId: ProjectId;
+}): Promise<AddQuestResult> => StartOrchestrator.addQuest({ title, userRequest, projectId });

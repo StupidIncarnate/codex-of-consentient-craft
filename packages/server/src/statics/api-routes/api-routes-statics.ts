@@ -23,6 +23,13 @@ export const apiRoutesStatics = {
   discover: {
     search: '/api/discover',
   },
+  projects: {
+    list: '/api/projects',
+    byId: '/api/projects/:projectId',
+  },
+  directories: {
+    browse: '/api/directories/browse',
+  },
   docs: {
     architecture: '/api/docs/architecture',
     folderDetail: '/api/docs/folder-detail/:type',

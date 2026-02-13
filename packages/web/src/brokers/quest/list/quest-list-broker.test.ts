@@ -1,12 +1,13 @@
-import { QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import { ProjectIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
 import { questListBroker } from './quest-list-broker';
 import { questListBrokerProxy } from './quest-list-broker.proxy';
 
 describe('questListBroker', () => {
   describe('successful fetch', () => {
-    it('VALID: {} => returns quest list from API', async () => {
+    it('VALID: {projectId} => returns quest list from API', async () => {
       const proxy = questListBrokerProxy();
+      const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const quests = [
         QuestListItemStub({ id: 'quest-1', title: 'First Quest' }),
         QuestListItemStub({ id: 'quest-2', title: 'Second Quest' }),
@@ -14,19 +15,20 @@ describe('questListBroker', () => {
 
       proxy.setupQuests({ quests });
 
-      const result = await questListBroker();
+      const result = await questListBroker({ projectId });
 
       expect(result).toStrictEqual(quests);
     });
   });
 
   describe('empty list', () => {
-    it('EMPTY: {} => returns empty array', async () => {
+    it('EMPTY: {projectId} => returns empty array', async () => {
       const proxy = questListBrokerProxy();
+      const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
       proxy.setupQuests({ quests: [] });
 
-      const result = await questListBroker();
+      const result = await questListBroker({ projectId });
 
       expect(result).toStrictEqual([]);
     });
@@ -35,20 +37,22 @@ describe('questListBroker', () => {
   describe('error handling', () => {
     it('ERROR: {network failure} => throws error', async () => {
       const proxy = questListBrokerProxy();
+      const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
       proxy.setupError({ error: new Error('Network failure') });
 
-      await expect(questListBroker()).rejects.toThrow('Network failure');
+      await expect(questListBroker({ projectId })).rejects.toThrow('Network failure');
     });
   });
 
   describe('zod validation', () => {
     it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
       const proxy = questListBrokerProxy();
+      const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
       proxy.setupInvalidResponse({ data: [{ bad: 'data' }] });
 
-      await expect(questListBroker()).rejects.toThrow(/invalid_type/u);
+      await expect(questListBroker({ projectId })).rejects.toThrow(/invalid_type/u);
     });
   });
 });

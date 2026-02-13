@@ -3,28 +3,38 @@ import { ListQuestsInputStub } from './list-quests-input.stub';
 
 describe('listQuestsInputContract', () => {
   describe('valid inputs', () => {
-    it('VALID: {startPath: string} => parses successfully', () => {
-      const input = ListQuestsInputStub({ startPath: '/my/project' });
+    it('VALID: {projectId: uuid} => parses successfully', () => {
+      const input = ListQuestsInputStub({
+        projectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      });
 
       const result = listQuestsInputContract.parse(input);
 
       expect(result).toStrictEqual({
-        startPath: '/my/project',
+        projectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
       });
     });
 
-    it('VALID: {startPath: omitted} => parses successfully with undefined', () => {
-      const result = listQuestsInputContract.parse({});
+    it('VALID: default stub values => parses successfully', () => {
+      const result = ListQuestsInputStub();
 
-      expect(result).toStrictEqual({});
+      expect(result).toStrictEqual({
+        projectId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
     });
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_START_PATH: {startPath: empty string} => throws validation error', () => {
+    it('INVALID_PROJECT_ID: {projectId: "not-a-uuid"} => throws validation error', () => {
       expect(() => {
-        listQuestsInputContract.parse({ startPath: '' });
-      }).toThrow(/String must contain at least 1 character/u);
+        listQuestsInputContract.parse({ projectId: 'not-a-uuid' });
+      }).toThrow(/Invalid uuid/u);
+    });
+
+    it('INVALID_PROJECT_ID: {projectId: missing} => throws validation error', () => {
+      expect(() => {
+        listQuestsInputContract.parse({});
+      }).toThrow(/Required/u);
     });
   });
 });

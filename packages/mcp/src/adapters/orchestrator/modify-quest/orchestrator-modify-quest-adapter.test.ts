@@ -1,5 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
-
 import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
 import { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
 
@@ -8,9 +6,8 @@ import { orchestratorModifyQuestAdapterProxy } from './orchestrator-modify-quest
 
 describe('orchestratorModifyQuestAdapter', () => {
   describe('successful modify', () => {
-    it('VALID: {questId, input, startPath} => returns ModifyQuestResult', async () => {
+    it('VALID: {questId, input} => returns ModifyQuestResult', async () => {
       const proxy = orchestratorModifyQuestAdapterProxy();
-      const startPath = FilePathStub({ value: '/my/project' });
       const input = ModifyQuestInputStub({ questId: 'add-auth' });
       const expectedResult = ModifyQuestResultStub();
 
@@ -19,7 +16,6 @@ describe('orchestratorModifyQuestAdapter', () => {
       const result = await orchestratorModifyQuestAdapter({
         questId: 'add-auth',
         input,
-        startPath,
       });
 
       expect(result).toStrictEqual(expectedResult);
@@ -29,7 +25,6 @@ describe('orchestratorModifyQuestAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorModifyQuestAdapterProxy();
-      const startPath = FilePathStub({ value: '/my/project' });
       const input = ModifyQuestInputStub({ questId: 'non-existent' });
 
       proxy.throws({ error: new Error('Quest not found') });
@@ -38,7 +33,6 @@ describe('orchestratorModifyQuestAdapter', () => {
         orchestratorModifyQuestAdapter({
           questId: 'non-existent',
           input,
-          startPath,
         }),
       ).rejects.toThrow(/Quest not found/u);
     });

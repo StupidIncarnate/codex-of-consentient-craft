@@ -2,11 +2,11 @@
  * PURPOSE: Manages the PathSeeker verification pipeline with retry logic
  *
  * USAGE:
- * await pathseekerPipelineBroker({processId, questId, startPath, killableProcess, attempt: 0, onVerifySuccess: () => {}, onProcessUpdate: () => {}});
+ * await pathseekerPipelineBroker({processId, questId, killableProcess, attempt: 0, onVerifySuccess: () => {}, onProcessUpdate: () => {}});
  * // Waits for PathSeeker exit, verifies quest, re-spawns if needed
  */
 
-import type { FilePath, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import { killableProcessContract } from '../../../contracts/killable-process/killable-process-contract';
@@ -20,7 +20,6 @@ import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/path
 export const pathseekerPipelineBroker = async ({
   processId,
   questId,
-  startPath,
   killableProcess,
   attempt,
   onVerifySuccess,
@@ -28,7 +27,6 @@ export const pathseekerPipelineBroker = async ({
 }: {
   processId: ProcessId;
   questId: QuestId;
-  startPath: FilePath;
   killableProcess: KillableProcess;
   attempt: number;
   onVerifySuccess: () => void;
@@ -37,7 +35,7 @@ export const pathseekerPipelineBroker = async ({
   await killableProcess.waitForExit();
 
   const input = verifyQuestInputContract.parse({ questId });
-  const result = await questVerifyBroker({ input, startPath });
+  const result = await questVerifyBroker({ input });
 
   if (result.success) {
     onVerifySuccess();
@@ -71,7 +69,6 @@ export const pathseekerPipelineBroker = async ({
   return pathseekerPipelineBroker({
     processId,
     questId,
-    startPath,
     killableProcess: newKillableProcess,
     attempt: attempt + 1,
     onVerifySuccess,

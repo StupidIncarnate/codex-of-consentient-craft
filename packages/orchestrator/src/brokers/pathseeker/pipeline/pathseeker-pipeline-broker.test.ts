@@ -1,9 +1,4 @@
-import {
-  FilePathStub,
-  ProcessIdStub,
-  QuestIdStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub, QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { KillableProcessStub } from '../../../contracts/killable-process/killable-process.stub';
 import { pathseekerPipelineBroker } from './pathseeker-pipeline-broker';
@@ -16,7 +11,6 @@ describe('pathseekerPipelineBroker', () => {
 
       const processId = ProcessIdStub({ value: 'proc-12345' });
       const questId = QuestIdStub();
-      const startPath = FilePathStub({ value: '/project/src' });
       const killableProcess = KillableProcessStub();
 
       const quest = QuestStub({
@@ -66,12 +60,11 @@ describe('pathseekerPipelineBroker', () => {
         ],
       });
 
-      proxy.setupVerifySuccess({ quest, startPath });
+      proxy.setupVerifySuccess({ quest });
 
       await pathseekerPipelineBroker({
         processId,
         questId,
-        startPath,
         killableProcess,
         attempt: 0,
         onVerifySuccess: proxy.onVerifySuccess,
@@ -89,15 +82,13 @@ describe('pathseekerPipelineBroker', () => {
 
       const processId = ProcessIdStub({ value: 'proc-12345' });
       const questId = QuestIdStub();
-      const startPath = FilePathStub({ value: '/project' });
       const killableProcess = KillableProcessStub();
 
-      proxy.setupVerifyFailure({ startPath });
+      proxy.setupVerifyFailure();
 
       await pathseekerPipelineBroker({
         processId,
         questId,
-        startPath,
         killableProcess,
         attempt: 3,
         onVerifySuccess: proxy.onVerifySuccess,
@@ -115,17 +106,15 @@ describe('pathseekerPipelineBroker', () => {
 
       const processId = ProcessIdStub({ value: 'proc-12345' });
       const questId = QuestIdStub();
-      const startPath = FilePathStub({ value: '/project' });
       const killableProcess = KillableProcessStub();
 
-      proxy.setupVerifyFailure({ startPath });
+      proxy.setupVerifyFailure();
       proxy.setupSpawnSuccess();
-      proxy.setupVerifyFailure({ startPath });
+      proxy.setupVerifyFailure();
 
       await pathseekerPipelineBroker({
         processId,
         questId,
-        startPath,
         killableProcess,
         attempt: 2,
         onVerifySuccess: proxy.onVerifySuccess,

@@ -3,15 +3,17 @@
  *
  * USAGE:
  * StartServer();
- * // Starts HTTP server on port 3737 with quest, process, health, docs endpoints, and WebSocket event relay
+ * // Starts HTTP server on port 3737 with project, quest, process, health, docs endpoints, and WebSocket event relay
  */
 
 import { Hono } from 'hono';
 import type { WSContext } from 'hono/ws';
 import {
-  filePathContract,
   questIdContract,
   processIdContract,
+  projectIdContract,
+  projectNameContract,
+  projectPathContract,
   orchestrationEventTypeContract,
   wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
@@ -29,6 +31,12 @@ import {
 } from '@dungeonmaster/orchestrator';
 import type { SlotIndex } from '@dungeonmaster/orchestrator';
 
+import { orchestratorListProjectsAdapter } from '../adapters/orchestrator/list-projects/orchestrator-list-projects-adapter';
+import { orchestratorAddProjectAdapter } from '../adapters/orchestrator/add-project/orchestrator-add-project-adapter';
+import { orchestratorGetProjectAdapter } from '../adapters/orchestrator/get-project/orchestrator-get-project-adapter';
+import { orchestratorUpdateProjectAdapter } from '../adapters/orchestrator/update-project/orchestrator-update-project-adapter';
+import { orchestratorRemoveProjectAdapter } from '../adapters/orchestrator/remove-project/orchestrator-remove-project-adapter';
+import { orchestratorBrowseDirectoriesAdapter } from '../adapters/orchestrator/browse-directories/orchestrator-browse-directories-adapter';
 import { orchestratorListQuestsAdapter } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorGetQuestAdapter } from '../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorAddQuestAdapter } from '../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter';
@@ -77,11 +85,135 @@ export const StartServer = (): void => {
     }),
   );
 
+  // Project list
+  app.get(apiRoutesStatics.projects.list, async (c) => {
+    try {
+      const projects = await orchestratorListProjectsAdapter();
+      return c.json(projects);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to list projects';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Project add
+  app.post(apiRoutesStatics.projects.list, async (c) => {
+    try {
+      const body: unknown = await c.req.json();
+
+      if (typeof body !== 'object' || body === null) {
+        return c.json(
+          { error: 'Request body must be a JSON object' },
+          httpStatusStatics.clientError.badRequest,
+        );
+      }
+
+      const rawName: unknown = Reflect.get(body, 'name');
+      const rawPath: unknown = Reflect.get(body, 'path');
+
+      if (typeof rawName !== 'string' || typeof rawPath !== 'string') {
+        return c.json(
+          { error: 'name and path are required strings' },
+          httpStatusStatics.clientError.badRequest,
+        );
+      }
+
+      const name = projectNameContract.parse(rawName);
+      const path = projectPathContract.parse(rawPath);
+      const result = await orchestratorAddProjectAdapter({ name, path });
+      return c.json(result, httpStatusStatics.success.created);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to add project';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Project get by ID
+  app.get(apiRoutesStatics.projects.byId, async (c) => {
+    try {
+      const projectIdRaw = c.req.param('projectId');
+      const projectId = projectIdContract.parse(projectIdRaw);
+      const project = await orchestratorGetProjectAdapter({ projectId });
+      return c.json(project);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to get project';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Project update
+  app.patch(apiRoutesStatics.projects.byId, async (c) => {
+    try {
+      const projectIdRaw = c.req.param('projectId');
+      const projectId = projectIdContract.parse(projectIdRaw);
+      const body: unknown = await c.req.json();
+
+      if (typeof body !== 'object' || body === null) {
+        return c.json(
+          { error: 'Request body must be a JSON object' },
+          httpStatusStatics.clientError.badRequest,
+        );
+      }
+
+      const rawName: unknown = Reflect.get(body, 'name');
+      const rawPath: unknown = Reflect.get(body, 'path');
+
+      const project = await orchestratorUpdateProjectAdapter({
+        projectId,
+        ...(typeof rawName === 'string' && { name: projectNameContract.parse(rawName) }),
+        ...(typeof rawPath === 'string' && { path: projectPathContract.parse(rawPath) }),
+      });
+      return c.json(project);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update project';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Project remove
+  app.delete(apiRoutesStatics.projects.byId, async (c) => {
+    try {
+      const projectIdRaw = c.req.param('projectId');
+      const projectId = projectIdContract.parse(projectIdRaw);
+      await orchestratorRemoveProjectAdapter({ projectId });
+      return c.json({ success: true });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to remove project';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Directory browse
+  app.post(apiRoutesStatics.directories.browse, async (c) => {
+    try {
+      const body: unknown = await c.req.json();
+      const rawPath: unknown =
+        typeof body === 'object' && body !== null ? Reflect.get(body, 'path') : undefined;
+
+      const entries = orchestratorBrowseDirectoriesAdapter(
+        typeof rawPath === 'string' ? { path: projectPathContract.parse(rawPath) } : {},
+      );
+      return c.json(entries);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to browse directories';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
   // Quest list
   app.get(apiRoutesStatics.quests.list, async (c) => {
     try {
-      const startPath = filePathContract.parse(process.cwd());
-      const quests = await orchestratorListQuestsAdapter({ startPath });
+      const projectIdRaw = c.req.query('projectId');
+
+      if (!projectIdRaw) {
+        return c.json(
+          { error: 'projectId query parameter is required' },
+          httpStatusStatics.clientError.badRequest,
+        );
+      }
+
+      const projectId = projectIdContract.parse(projectIdRaw);
+      const quests = await orchestratorListQuestsAdapter({ projectId });
       return c.json(quests);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to list quests';
@@ -94,10 +226,8 @@ export const StartServer = (): void => {
     try {
       const questId = c.req.param('questId');
       const stage = c.req.query('stage');
-      const startPath = filePathContract.parse(process.cwd());
       const quest = await orchestratorGetQuestAdapter({
         questId,
-        startPath,
         ...(stage && { stage }),
       });
       return c.json(quest);
@@ -121,6 +251,7 @@ export const StartServer = (): void => {
 
       const title: unknown = Reflect.get(body, 'title');
       const userRequest: unknown = Reflect.get(body, 'userRequest');
+      const projectIdRaw: unknown = Reflect.get(body, 'projectId');
 
       if (typeof title !== 'string' || typeof userRequest !== 'string') {
         return c.json(
@@ -129,8 +260,12 @@ export const StartServer = (): void => {
         );
       }
 
-      const startPath = filePathContract.parse(process.cwd());
-      const result = await orchestratorAddQuestAdapter({ title, userRequest, startPath });
+      if (typeof projectIdRaw !== 'string') {
+        return c.json({ error: 'projectId is required' }, httpStatusStatics.clientError.badRequest);
+      }
+
+      const projectId = projectIdContract.parse(projectIdRaw);
+      const result = await orchestratorAddQuestAdapter({ title, userRequest, projectId });
       return c.json(result, httpStatusStatics.success.created);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to add quest';
@@ -151,11 +286,9 @@ export const StartServer = (): void => {
         );
       }
 
-      const startPath = filePathContract.parse(process.cwd());
       const result = await orchestratorModifyQuestAdapter({
         questId,
         input: body as never,
-        startPath,
       });
       return c.json(result);
     } catch (error: unknown) {
@@ -168,8 +301,7 @@ export const StartServer = (): void => {
   app.post(apiRoutesStatics.quests.verify, async (c) => {
     try {
       const questId = c.req.param('questId');
-      const startPath = filePathContract.parse(process.cwd());
-      const result = await orchestratorVerifyQuestAdapter({ questId, startPath });
+      const result = await orchestratorVerifyQuestAdapter({ questId });
       return c.json(result);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to verify quest';
@@ -182,8 +314,7 @@ export const StartServer = (): void => {
     try {
       const questIdRaw = c.req.param('questId');
       const questId = questIdContract.parse(questIdRaw);
-      const startPath = filePathContract.parse(process.cwd());
-      const processId = await orchestratorStartQuestAdapter({ questId, startPath });
+      const processId = await orchestratorStartQuestAdapter({ questId });
       return c.json({ processId });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to start quest';

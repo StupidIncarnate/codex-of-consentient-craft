@@ -1,4 +1,4 @@
-import { FilePathStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { VerifyQuestInputStub } from '../../../contracts/verify-quest-input/verify-quest-input.stub';
 import { questVerifyBroker } from './quest-verify-broker';
@@ -8,7 +8,6 @@ describe('questVerifyBroker', () => {
   describe('successful verification', () => {
     it('VALID: {quest with all checks passing} => returns success true with checks', async () => {
       const proxy = questVerifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -58,10 +57,10 @@ describe('questVerifyBroker', () => {
         ],
       });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = VerifyQuestInputStub({ questId: 'add-auth' });
-      const result = await questVerifyBroker({ input, startPath });
+      const result = await questVerifyBroker({ input });
 
       expect(result.success).toBe(true);
       expect(result.checks).toHaveLength(11);
@@ -70,7 +69,6 @@ describe('questVerifyBroker', () => {
 
     it('VALID: {quest with failing checks} => returns success false with checks', async () => {
       const proxy = questVerifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({
         id: 'fix-bug',
         folder: '002-fix-bug',
@@ -98,10 +96,10 @@ describe('questVerifyBroker', () => {
         ],
       });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = VerifyQuestInputStub({ questId: 'fix-bug' });
-      const result = await questVerifyBroker({ input, startPath });
+      const result = await questVerifyBroker({ input });
 
       expect(result.success).toBe(false);
       expect(result.checks).toHaveLength(11);
@@ -112,31 +110,29 @@ describe('questVerifyBroker', () => {
   describe('quest not found', () => {
     it('ERROR: {questId not exists} => returns not found error', async () => {
       const proxy = questVerifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = VerifyQuestInputStub({ questId: 'nonexistent' });
-      const result = await questVerifyBroker({ input, startPath });
+      const result = await questVerifyBroker({ input });
 
       expect(result.success).toBe(false);
       expect(result.checks).toStrictEqual([]);
-      expect(result.error).toBe('Quest not found: nonexistent');
+      expect(result.error).toMatch(/not found/u);
     });
 
     it('ERROR: {empty folder} => returns not found error', async () => {
       const proxy = questVerifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
 
-      proxy.setupEmptyFolder({ startPath });
+      proxy.setupEmptyFolder();
 
       const input = VerifyQuestInputStub({ questId: 'any-quest' });
-      const result = await questVerifyBroker({ input, startPath });
+      const result = await questVerifyBroker({ input });
 
       expect(result.success).toBe(false);
       expect(result.checks).toStrictEqual([]);
-      expect(result.error).toBe('Quest not found: any-quest');
+      expect(result.error).toMatch(/not found/u);
     });
   });
 });

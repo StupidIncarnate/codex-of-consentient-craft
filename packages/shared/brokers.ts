@@ -17,5 +17,9 @@ export * from './src/brokers/project-root/find/project-root-find-broker';
 export * from './src/brokers/quests-folder/find/quests-folder-find-broker';
 export * from './src/brokers/quests-folder/ensure/quests-folder-ensure-broker';
 
+// Dungeonmaster Home
+export * from './src/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker';
+export * from './src/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker';
+
 // Install
 export * from './src/brokers/install/check/install-check-broker';

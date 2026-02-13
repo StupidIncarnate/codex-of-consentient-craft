@@ -27,6 +27,7 @@ export const mcpToolsStatics = {
       'start-quest',
       'get-quest-status',
       'list-quests',
+      'list-projects',
       'verify-quest',
     ] as const,
   },

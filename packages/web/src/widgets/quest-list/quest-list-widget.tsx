@@ -24,12 +24,19 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
-import type { ErrorMessage, QuestId, QuestListItem } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract } from '@dungeonmaster/shared/contracts';
+import type {
+  ErrorMessage,
+  ProjectId,
+  QuestId,
+  QuestListItem,
+} from '@dungeonmaster/shared/contracts';
 
 import { questCreateBroker } from '../../brokers/quest/create/quest-create-broker';
 import { questStatusColorsStatics } from '../../statics/quest-status-colors/quest-status-colors-statics';
 
 export interface QuestListWidgetProps {
+  projectId: ProjectId;
   quests: QuestListItem[];
   loading: boolean;
   error: ErrorMessage | null;
@@ -38,6 +45,7 @@ export interface QuestListWidgetProps {
 }
 
 export const QuestListWidget = ({
+  projectId,
   quests,
   loading,
   error,
@@ -48,13 +56,20 @@ export const QuestListWidget = ({
   const [title, setTitle] = useState('');
   const [userRequest, setUserRequest] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [createError, setCreateError] = useState<ErrorMessage | null>(null);
 
   return (
     <Stack gap="md">
       <Group justify="space-between">
         <Title order={3}>Quests</Title>
         <Group gap="sm">
-          <Button variant="filled" onClick={open}>
+          <Button
+            variant="filled"
+            onClick={() => {
+              setCreateError(null);
+              open();
+            }}
+          >
             New Quest
           </Button>
           <Button variant="light" onClick={onRefresh} loading={loading}>
@@ -65,6 +80,11 @@ export const QuestListWidget = ({
 
       <Modal opened={opened} onClose={close} title="Create New Quest">
         <Stack gap="md">
+          {createError && (
+            <Alert color="red" title="Error">
+              {createError}
+            </Alert>
+          )}
           <TextInput
             label="Title"
             placeholder="Quest title"
@@ -92,7 +112,9 @@ export const QuestListWidget = ({
               onClick={() => {
                 if (!title.trim() || !userRequest.trim()) return;
                 setSubmitting(true);
+                setCreateError(null);
                 questCreateBroker({
+                  projectId,
                   title: title.trim(),
                   userRequest: userRequest.trim(),
                 })
@@ -102,10 +124,12 @@ export const QuestListWidget = ({
                     close();
                     onRefresh();
                   })
+                  .catch(() => {
+                    setCreateError(errorMessageContract.parse('Failed to create quest'));
+                  })
                   .finally(() => {
                     setSubmitting(false);
-                  })
-                  .catch(() => undefined);
+                  });
               }}
               loading={submitting}
               disabled={!title.trim() || !userRequest.trim()}

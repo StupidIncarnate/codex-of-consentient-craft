@@ -15,8 +15,17 @@ import type {
   ProcessIdStub,
   OrchestrationStatusStub,
   QuestListItemStub,
+  ProjectListItemStub,
+  ProjectStub,
+  DirectoryEntryStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { orchestratorListProjectsAdapterProxy } from '../adapters/orchestrator/list-projects/orchestrator-list-projects-adapter.proxy';
+import { orchestratorAddProjectAdapterProxy } from '../adapters/orchestrator/add-project/orchestrator-add-project-adapter.proxy';
+import { orchestratorGetProjectAdapterProxy } from '../adapters/orchestrator/get-project/orchestrator-get-project-adapter.proxy';
+import { orchestratorUpdateProjectAdapterProxy } from '../adapters/orchestrator/update-project/orchestrator-update-project-adapter.proxy';
+import { orchestratorRemoveProjectAdapterProxy } from '../adapters/orchestrator/remove-project/orchestrator-remove-project-adapter.proxy';
+import { orchestratorBrowseDirectoriesAdapterProxy } from '../adapters/orchestrator/browse-directories/orchestrator-browse-directories-adapter.proxy';
 import { orchestratorListQuestsAdapterProxy } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
 import { orchestratorGetQuestAdapterProxy } from '../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
 import { orchestratorAddQuestAdapterProxy } from '../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter.proxy';
@@ -33,9 +42,23 @@ import { StartServer } from './start-server';
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
+type ProjectListItem = ReturnType<typeof ProjectListItemStub>;
+type Project = ReturnType<typeof ProjectStub>;
+type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 
 export const StartServerProxy = (): {
   request: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+  setupListProjects: (params: { projects: ProjectListItem[] }) => void;
+  setupListProjectsError: (params: { error: Error }) => void;
+  setupAddProject: (params: { project: Project }) => void;
+  setupAddProjectError: (params: { error: Error }) => void;
+  setupGetProject: (params: { project: Project }) => void;
+  setupGetProjectError: (params: { error: Error }) => void;
+  setupUpdateProject: (params: { project: Project }) => void;
+  setupUpdateProjectError: (params: { error: Error }) => void;
+  setupRemoveProjectError: (params: { error: Error }) => void;
+  setupBrowseDirectories: (params: { entries: DirectoryEntry[] }) => void;
+  setupBrowseDirectoriesError: (params: { error: Error }) => void;
   setupListQuests: (params: { quests: QuestListItem[] }) => void;
   setupListQuestsError: (params: { error: Error }) => void;
   setupGetQuest: (params: { result: GetQuestResult }) => void;
@@ -61,6 +84,12 @@ export const StartServerProxy = (): {
   agentOutputBufferStateProxy();
   wsEventRelayBroadcastBrokerProxy();
 
+  const listProjectsProxy = orchestratorListProjectsAdapterProxy();
+  const addProjectProxy = orchestratorAddProjectAdapterProxy();
+  const getProjectProxy = orchestratorGetProjectAdapterProxy();
+  const updateProjectProxy = orchestratorUpdateProjectAdapterProxy();
+  const removeProjectProxy = orchestratorRemoveProjectAdapterProxy();
+  const browseDirectoriesProxy = orchestratorBrowseDirectoriesAdapterProxy();
   const listQuestsProxy = orchestratorListQuestsAdapterProxy();
   const getQuestProxy = orchestratorGetQuestAdapterProxy();
   const addQuestProxy = orchestratorAddQuestAdapterProxy();
@@ -78,6 +107,39 @@ export const StartServerProxy = (): {
       const url = typeof input === 'string' ? `http://localhost${input}` : input;
       const request = new Request(url, init);
       return fetch(request);
+    },
+    setupListProjects: ({ projects }: { projects: ProjectListItem[] }): void => {
+      listProjectsProxy.returns({ projects });
+    },
+    setupListProjectsError: ({ error }: { error: Error }): void => {
+      listProjectsProxy.throws({ error });
+    },
+    setupAddProject: ({ project }: { project: Project }): void => {
+      addProjectProxy.returns({ project });
+    },
+    setupAddProjectError: ({ error }: { error: Error }): void => {
+      addProjectProxy.throws({ error });
+    },
+    setupGetProject: ({ project }: { project: Project }): void => {
+      getProjectProxy.returns({ project });
+    },
+    setupGetProjectError: ({ error }: { error: Error }): void => {
+      getProjectProxy.throws({ error });
+    },
+    setupUpdateProject: ({ project }: { project: Project }): void => {
+      updateProjectProxy.returns({ project });
+    },
+    setupUpdateProjectError: ({ error }: { error: Error }): void => {
+      updateProjectProxy.throws({ error });
+    },
+    setupRemoveProjectError: ({ error }: { error: Error }): void => {
+      removeProjectProxy.throws({ error });
+    },
+    setupBrowseDirectories: ({ entries }: { entries: DirectoryEntry[] }): void => {
+      browseDirectoriesProxy.returns({ entries });
+    },
+    setupBrowseDirectoriesError: ({ error }: { error: Error }): void => {
+      browseDirectoriesProxy.throws({ error });
     },
     setupListQuests: ({ quests }: { quests: QuestListItem[] }): void => {
       listQuestsProxy.returns({ quests });

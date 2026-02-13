@@ -2,15 +2,15 @@
  * PURPOSE: Adapter for StartOrchestrator.listQuests that wraps the orchestrator package
  *
  * USAGE:
- * const result = await orchestratorListQuestsAdapter({ startPath });
+ * const result = await orchestratorListQuestsAdapter({ projectId });
  * // Returns: QuestListItem[] or throws error
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { FilePath, QuestListItem } from '@dungeonmaster/shared/contracts';
+import type { ProjectId, QuestListItem } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorListQuestsAdapter = async ({
-  startPath,
+  projectId,
 }: {
-  startPath: FilePath;
-}): Promise<QuestListItem[]> => StartOrchestrator.listQuests({ startPath });
+  projectId: ProjectId;
+}): Promise<QuestListItem[]> => StartOrchestrator.listQuests({ projectId });

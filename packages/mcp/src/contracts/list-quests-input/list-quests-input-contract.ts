@@ -2,19 +2,14 @@
  * PURPOSE: Defines the input schema for the MCP list-quests tool
  *
  * USAGE:
- * const input: ListQuestsInput = listQuestsInputContract.parse({ startPath: '/my/project' });
- * // Returns validated ListQuestsInput with startPath
+ * const input: ListQuestsInput = listQuestsInputContract.parse({ projectId: 'f47ac10b-...' });
+ * // Returns validated ListQuestsInput with projectId
  */
 import { z } from 'zod';
 
 export const listQuestsInputContract = z
   .object({
-    startPath: z
-      .string()
-      .min(1)
-      .describe('The path to start searching for quests from')
-      .brand<'FilePath'>()
-      .optional(),
+    projectId: z.string().uuid().describe('The project ID to list quests for').brand<'ProjectId'>(),
   })
   .brand<'ListQuestsInput'>();
 

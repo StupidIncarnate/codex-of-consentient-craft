@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { ProjectIdStub } from '@dungeonmaster/shared/contracts';
 
 import { AddQuestResultStub } from '../../../contracts/add-quest-result/add-quest-result.stub';
 
@@ -7,9 +7,9 @@ import { orchestratorAddQuestAdapterProxy } from './orchestrator-add-quest-adapt
 
 describe('orchestratorAddQuestAdapter', () => {
   describe('successful add', () => {
-    it('VALID: {title, userRequest, startPath} => returns AddQuestResult', async () => {
+    it('VALID: {title, userRequest, projectId} => returns AddQuestResult', async () => {
       const proxy = orchestratorAddQuestAdapterProxy();
-      const startPath = FilePathStub({ value: '/my/project' });
+      const projectId = ProjectIdStub();
       const expectedResult = AddQuestResultStub({
         questId: 'add-auth',
         questFolder: '001-add-auth',
@@ -21,7 +21,7 @@ describe('orchestratorAddQuestAdapter', () => {
       const result = await orchestratorAddQuestAdapter({
         title: 'Add Auth',
         userRequest: 'User wants authentication',
-        startPath,
+        projectId,
       });
 
       expect(result).toStrictEqual(expectedResult);
@@ -31,7 +31,7 @@ describe('orchestratorAddQuestAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorAddQuestAdapterProxy();
-      const startPath = FilePathStub({ value: '/my/project' });
+      const projectId = ProjectIdStub();
 
       proxy.throws({ error: new Error('Failed to add quest') });
 
@@ -39,7 +39,7 @@ describe('orchestratorAddQuestAdapter', () => {
         orchestratorAddQuestAdapter({
           title: 'Add Auth',
           userRequest: 'User wants authentication',
-          startPath,
+          projectId,
         }),
       ).rejects.toThrow(/Failed to add quest/u);
     });

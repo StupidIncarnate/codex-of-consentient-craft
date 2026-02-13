@@ -11,7 +11,7 @@ export const questDetailBrokerProxy = (): {
 
   return {
     setupQuest: ({ quest }: { quest: Quest }): void => {
-      fetchProxy.resolves({ data: quest });
+      fetchProxy.resolves({ data: { quest } });
     },
     setupError: ({ error }: { error: Error }): void => {
       fetchProxy.rejects({ error });

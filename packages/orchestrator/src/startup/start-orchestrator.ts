@@ -1,38 +1,50 @@
 /**
- * PURPOSE: Public API for the orchestrator package providing quest management and orchestration functions
+ * PURPOSE: Public API for the orchestrator package providing project management, quest management, and orchestration functions
  *
  * USAGE:
  * import { StartOrchestrator } from '@dungeonmaster/orchestrator';
- * const quests = await StartOrchestrator.listQuests({startPath: '/my/project'});
- * const quest = await StartOrchestrator.loadQuest({questId: 'add-auth', startPath: '/my/project'});
- * const added = await StartOrchestrator.addQuest({title: 'Add Auth', userRequest: 'User wants...', startPath: '/my/project'});
- * const got = await StartOrchestrator.getQuest({questId: 'add-auth', startPath: '/my/project'});
- * const modified = await StartOrchestrator.modifyQuest({questId: 'add-auth', input: {...}, startPath: '/my/project'});
+ * const projects = await StartOrchestrator.listProjects();
+ * const quests = await StartOrchestrator.listQuests({projectId});
+ * const quest = await StartOrchestrator.loadQuest({questId});
+ * const added = await StartOrchestrator.addQuest({title: 'Add Auth', userRequest: 'User wants...', projectId});
+ * const got = await StartOrchestrator.getQuest({questId: 'add-auth'});
+ * const modified = await StartOrchestrator.modifyQuest({questId: 'add-auth', input: {...}});
  */
 
 import { randomUUID } from 'crypto';
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { questsFolderEnsureBroker } from '@dungeonmaster/shared/brokers';
 import type {
-  FilePath,
+  DirectoryEntry,
   OrchestrationStatus,
   ProcessId,
+  Project,
+  ProjectId,
+  ProjectListItem,
+  ProjectName,
+  ProjectPath,
   Quest,
   QuestId,
   QuestListItem,
 } from '@dungeonmaster/shared/contracts';
-import { processIdContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapter } from '../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import { readlineCreateInterfaceAdapter } from '../adapters/readline/create-interface/readline-create-interface-adapter';
+import { directoryBrowseBroker } from '../brokers/directory/browse/directory-browse-broker';
+import { pathseekerPipelineBroker } from '../brokers/pathseeker/pipeline/pathseeker-pipeline-broker';
+import { projectAddBroker } from '../brokers/project/add/project-add-broker';
+import { projectGetBroker } from '../brokers/project/get/project-get-broker';
+import { projectListBroker } from '../brokers/project/list/project-list-broker';
+import { projectRemoveBroker } from '../brokers/project/remove/project-remove-broker';
+import { projectUpdateBroker } from '../brokers/project/update/project-update-broker';
 import { questAddBroker } from '../brokers/quest/add/quest-add-broker';
+import { questFindQuestPathBroker } from '../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../brokers/quest/get/quest-get-broker';
 import { questListBroker } from '../brokers/quest/list/quest-list-broker';
 import { questLoadBroker } from '../brokers/quest/load/quest-load-broker';
 import { questModifyBroker } from '../brokers/quest/modify/quest-modify-broker';
 import { questVerifyBroker } from '../brokers/quest/verify/quest-verify-broker';
-import { pathseekerPipelineBroker } from '../brokers/pathseeker/pipeline/pathseeker-pipeline-broker';
 import { questPipelineBroker } from '../brokers/quest/pipeline/quest-pipeline-broker';
 import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract';
 import type { AddQuestResult } from '../contracts/add-quest-result/add-quest-result-contract';
@@ -58,54 +70,68 @@ import { questToListItemTransformer } from '../transformers/quest-to-list-item/q
 const QUEST_FILE_NAME = 'quest.json';
 
 export const StartOrchestrator = {
-  listQuests: async ({ startPath }: { startPath: FilePath }): Promise<QuestListItem[]> => {
-    const quests = await questListBroker({ startPath });
+  // Project methods
+  listProjects: async (): Promise<ProjectListItem[]> => projectListBroker(),
+
+  getProject: async ({ projectId }: { projectId: ProjectId }): Promise<Project> =>
+    projectGetBroker({ projectId }),
+
+  addProject: async ({ name, path }: { name: ProjectName; path: ProjectPath }): Promise<Project> =>
+    projectAddBroker({ name, path }),
+
+  updateProject: async ({
+    projectId,
+    name,
+    path,
+  }: {
+    projectId: ProjectId;
+    name?: ProjectName;
+    path?: ProjectPath;
+  }): Promise<Project> =>
+    projectUpdateBroker({
+      projectId,
+      ...(name !== undefined && { name }),
+      ...(path !== undefined && { path }),
+    }),
+
+  removeProject: async ({ projectId }: { projectId: ProjectId }): Promise<void> =>
+    projectRemoveBroker({ projectId }),
+
+  browseDirectories: ({ path }: { path?: ProjectPath }): DirectoryEntry[] =>
+    directoryBrowseBroker(path === undefined ? {} : { path }),
+
+  // Quest methods
+  listQuests: async ({ projectId }: { projectId: ProjectId }): Promise<QuestListItem[]> => {
+    const quests = await questListBroker({ projectId });
     return quests.map((quest) => questToListItemTransformer({ quest }));
   },
 
-  loadQuest: async ({
-    questId,
-    startPath,
-  }: {
-    questId: QuestId;
-    startPath: FilePath;
-  }): Promise<Quest> => {
-    const { questsBasePath } = await questsFolderEnsureBroker({ startPath });
+  loadQuest: async ({ questId }: { questId: QuestId }): Promise<Quest> => {
+    const { questPath } = await questFindQuestPathBroker({ questId });
 
-    // Find quest folder by looking for folder starting with number and containing the quest ID
-    const quests = await questListBroker({ startPath });
-    const quest = quests.find((q) => q.id === questId);
-
-    if (!quest) {
-      throw new Error(`Quest not found: ${questId}`);
-    }
-
-    const questFilePath = pathJoinAdapter({
-      paths: [questsBasePath, quest.folder, QUEST_FILE_NAME],
-    });
+    const questFilePath = filePathContract.parse(
+      pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+    );
 
     return questLoadBroker({ questFilePath });
   },
 
-  startQuest: async ({
-    questId,
-    startPath,
-  }: {
-    questId: QuestId;
-    startPath: FilePath;
-  }): Promise<ProcessId> => {
-    const quests = await questListBroker({ startPath });
+  startQuest: async ({ questId }: { questId: QuestId }): Promise<ProcessId> => {
+    const { questPath, projectId } = await questFindQuestPathBroker({ questId });
+
+    const project = await projectGetBroker({ projectId });
+    const startPath = filePathContract.parse(project.path);
+
+    const questFilePath = filePathContract.parse(
+      pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+    );
+
+    const quests = await questListBroker({ projectId });
     const quest = quests.find((q) => q.id === questId);
 
     if (!quest) {
       throw new Error(`Quest not found: ${questId}`);
     }
-
-    const { questsBasePath } = await questsFolderEnsureBroker({ startPath });
-
-    const questFilePath = pathJoinAdapter({
-      paths: [questsBasePath, quest.folder, QUEST_FILE_NAME],
-    });
 
     const totalSteps = totalCountContract.parse(quest.steps.length);
 
@@ -157,7 +183,6 @@ export const StartOrchestrator = {
     pathseekerPipelineBroker({
       processId,
       questId,
-      startPath,
       killableProcess,
       attempt: 0,
       onVerifySuccess: () => {
@@ -220,48 +245,38 @@ export const StartOrchestrator = {
   addQuest: async ({
     title,
     userRequest,
-    startPath,
+    projectId,
   }: {
     title: string;
     userRequest: string;
-    startPath: FilePath;
+    projectId: ProjectId;
   }): Promise<AddQuestResult> => {
     const input = addQuestInputContract.parse({ title, userRequest });
-    return questAddBroker({ input, startPath });
+    return questAddBroker({ input, projectId });
   },
 
   getQuest: async ({
     questId,
     stage,
-    startPath,
   }: {
     questId: string;
     stage?: string;
-    startPath: FilePath;
   }): Promise<GetQuestResult> => {
     const input = getQuestInputContract.parse({ questId, ...(stage && { stage }) });
-    return questGetBroker({ input, startPath });
+    return questGetBroker({ input });
   },
 
-  verifyQuest: async ({
-    questId,
-    startPath,
-  }: {
-    questId: string;
-    startPath: FilePath;
-  }): Promise<VerifyQuestResult> => {
+  verifyQuest: async ({ questId }: { questId: string }): Promise<VerifyQuestResult> => {
     const input = verifyQuestInputContract.parse({ questId });
-    return questVerifyBroker({ input, startPath });
+    return questVerifyBroker({ input });
   },
 
   modifyQuest: async ({
     questId,
     input,
-    startPath,
   }: {
     questId: string;
     input: ModifyQuestInput;
-    startPath: FilePath;
   }): Promise<ModifyQuestResult> =>
-    questModifyBroker({ input: { ...input, questId } as ModifyQuestInput, startPath }),
+    questModifyBroker({ input: { ...input, questId } as ModifyQuestInput }),
 };

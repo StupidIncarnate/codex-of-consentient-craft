@@ -1,10 +1,17 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ErrorMessageStub, QuestIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import {
+  ErrorMessageStub,
+  ProjectIdStub,
+  QuestIdStub,
+  QuestListItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestListWidget } from './quest-list-widget';
 import { QuestListWidgetProxy } from './quest-list-widget.proxy';
+
+const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
 describe('QuestListWidget', () => {
   describe('with quests', () => {
@@ -20,6 +27,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={quests}
             loading={false}
             error={null}
@@ -42,6 +50,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={quests}
             loading={false}
             error={null}
@@ -63,6 +72,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={quests}
             loading={false}
             error={null}
@@ -85,6 +95,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={[]}
             loading={false}
             error={null}
@@ -107,6 +118,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={[]}
             loading={false}
             error={ErrorMessageStub({ value: 'Something went wrong' })}
@@ -127,6 +139,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={[]}
             loading={true}
             error={null}
@@ -147,6 +160,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={[]}
             loading={false}
             error={null}
@@ -169,6 +183,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={[]}
             loading={false}
             error={null}
@@ -194,7 +209,7 @@ describe('QuestListWidget', () => {
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
-          body: JSON.stringify({ title: 'My Quest', userRequest: 'Build something' }),
+          body: JSON.stringify({ projectId, title: 'My Quest', userRequest: 'Build something' }),
         });
       });
 
@@ -204,7 +219,7 @@ describe('QuestListWidget', () => {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify({ title: 'My Quest', userRequest: 'Build something' }),
+        body: JSON.stringify({ projectId, title: 'My Quest', userRequest: 'Build something' }),
       });
     });
 
@@ -216,6 +231,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={[]}
             loading={false}
             error={null}
@@ -247,6 +263,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={[]}
             loading={false}
             error={null}
@@ -272,6 +289,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={[]}
             loading={false}
             error={null}
@@ -304,6 +322,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={quests}
             loading={true}
             error={null}
@@ -323,6 +342,7 @@ describe('QuestListWidget', () => {
       const { container } = mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={[]}
             loading={true}
             error={null}
@@ -351,6 +371,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={quests}
             loading={false}
             error={null}
@@ -371,6 +392,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={[]}
             loading={false}
             error={null}
@@ -394,6 +416,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={quests}
             loading={false}
             error={ErrorMessageStub({ value: 'Fetch failed' })}
@@ -416,6 +439,7 @@ describe('QuestListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <QuestListWidget
+            projectId={projectId}
             quests={quests}
             loading={false}
             error={null}

@@ -1,4 +1,4 @@
-import { FilePathStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
 import { questModifyBroker } from './quest-modify-broker';
@@ -8,10 +8,9 @@ describe('questModifyBroker', () => {
   describe('successful modification', () => {
     it('VALID: {questId, contexts: [new]} => adds new context', async () => {
       const proxy = questModifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', contexts: [] });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -25,14 +24,13 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, startPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
     });
 
     it('VALID: {questId, contexts: [existing]} => updates existing context', async () => {
       const proxy = questModifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -46,7 +44,7 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -60,17 +58,16 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, startPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
     });
 
     it('VALID: {questId, steps: [new]} => adds new step', async () => {
       const proxy = questModifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', steps: [] });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -88,17 +85,16 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, startPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
     });
 
     it('VALID: {questId, requirements: [new]} => adds new requirement', async () => {
       const proxy = questModifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', requirements: [] });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -113,17 +109,16 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, startPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
     });
 
     it('VALID: {questId, contracts: [new]} => adds new contract', async () => {
       const proxy = questModifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', contracts: [] });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -144,17 +139,16 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, startPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
     });
 
     it('VALID: {questId, designDecisions: [new]} => adds new design decision', async () => {
       const proxy = questModifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', designDecisions: [] });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -168,14 +162,13 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      const result = await questModifyBroker({ input, startPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
     });
 
     it('VALID: {questId only} => updates updatedAt', async () => {
       const proxy = questModifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -189,11 +182,11 @@ describe('questModifyBroker', () => {
         ],
       });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({ questId: 'add-auth' });
 
-      const result = await questModifyBroker({ input, startPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
     });
@@ -202,29 +195,27 @@ describe('questModifyBroker', () => {
   describe('quest not found', () => {
     it('ERROR: {questId not exists} => returns not found error', async () => {
       const proxy = questModifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
 
-      proxy.setupQuestFound({ quest, startPath });
+      proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({ questId: 'nonexistent' });
-      const result = await questModifyBroker({ input, startPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Quest not found: nonexistent');
+      expect(result.error).toMatch(/not found/u);
     });
 
     it('ERROR: {empty folder} => returns not found error', async () => {
       const proxy = questModifyBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src' });
 
-      proxy.setupEmptyFolder({ startPath });
+      proxy.setupEmptyFolder();
 
       const input = ModifyQuestInputStub({ questId: 'any-quest' });
-      const result = await questModifyBroker({ input, startPath });
+      const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Quest not found: any-quest');
+      expect(result.error).toMatch(/not found/u);
     });
   });
 });

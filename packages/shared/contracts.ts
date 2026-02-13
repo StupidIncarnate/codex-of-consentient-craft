@@ -184,3 +184,25 @@ export * from './src/contracts/orchestration-event-type/orchestration-event-type
 // WebSocket Message Contracts
 export * from './src/contracts/ws-message/ws-message-contract';
 export * from './src/contracts/ws-message/ws-message.stub';
+
+// Project Contracts
+export * from './src/contracts/project-id/project-id-contract';
+export * from './src/contracts/project-id/project-id.stub';
+
+export * from './src/contracts/project-name/project-name-contract';
+export * from './src/contracts/project-name/project-name.stub';
+
+export * from './src/contracts/project-path/project-path-contract';
+export * from './src/contracts/project-path/project-path.stub';
+
+export * from './src/contracts/project/project-contract';
+export * from './src/contracts/project/project.stub';
+
+export * from './src/contracts/project-list-item/project-list-item-contract';
+export * from './src/contracts/project-list-item/project-list-item.stub';
+
+export * from './src/contracts/project-config/project-config-contract';
+export * from './src/contracts/project-config/project-config.stub';
+
+export * from './src/contracts/directory-entry/directory-entry-contract';
+export * from './src/contracts/directory-entry/directory-entry.stub';

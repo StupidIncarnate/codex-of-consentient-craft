@@ -12,9 +12,9 @@ import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questDetailBroker = async ({ questId }: { questId: QuestId }): Promise<Quest> => {
-  const response = await fetchGetAdapter<unknown>({
+  const response = await fetchGetAdapter<{ quest: unknown }>({
     url: webConfigStatics.api.routes.questById.replace(':questId', questId),
   });
 
-  return questContract.parse(response);
+  return questContract.parse(response.quest);
 };

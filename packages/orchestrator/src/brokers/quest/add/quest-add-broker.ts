@@ -1,19 +1,19 @@
 /**
- * PURPOSE: Creates a new quest JSON file in the .dungeonmaster-quests folder
+ * PURPOSE: Creates a new quest JSON file in the project's quests directory
  *
  * USAGE:
- * const result = await questAddBroker({ input: AddQuestInputStub({ title: 'Add Auth', userRequest: 'User wants...' }), startPath: FilePathStub({ value: '/project/src' }) });
+ * const result = await questAddBroker({ input: AddQuestInputStub({ title: 'Add Auth', userRequest: 'User wants...' }), projectId: ProjectIdStub() });
  * // Returns: { success: true, questId: 'add-auth', questFolder: '001-add-auth', filePath: '/path/to/quest.json' }
  */
 
 import { pathJoinAdapter, fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
-import { questsFolderEnsureBroker } from '@dungeonmaster/shared/brokers';
 import {
   questContract,
   fileContentsContract,
+  filePathContract,
   contentTextContract,
 } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { ProjectId } from '@dungeonmaster/shared/contracts';
 
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -23,16 +23,17 @@ import { addQuestResultContract } from '../../../contracts/add-quest-result/add-
 import type { AddQuestResult } from '../../../contracts/add-quest-result/add-quest-result-contract';
 import { textToKebabCaseTransformer } from '../../../transformers/text-to-kebab-case/text-to-kebab-case-transformer';
 import { questFolderSequenceTransformer } from '../../../transformers/quest-folder-sequence/quest-folder-sequence-transformer';
+import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
 
 const QUEST_FILE_NAME = 'quest.json';
 const JSON_INDENT_SPACES = 2;
 
 export const questAddBroker = async ({
   input,
-  startPath,
+  projectId,
 }: {
   input: AddQuestInput;
-  startPath: FilePath;
+  projectId: ProjectId;
 }): Promise<AddQuestResult> => {
   try {
     // Validate input
@@ -43,8 +44,10 @@ export const questAddBroker = async ({
       text: contentTextContract.parse(validated.title),
     });
 
-    // Find and ensure quests folder
-    const { questsBasePath } = await questsFolderEnsureBroker({ startPath });
+    // Resolve quests directory for this project and ensure it exists
+    const { questsPath } = questResolveQuestsPathBroker({ projectId });
+    const questsBasePath = filePathContract.parse(questsPath);
+    await fsMkdirAdapter({ filepath: questsBasePath });
 
     // Scan existing folders to get next sequence number
     const existingFolders = fsReaddirAdapter({ dirPath: questsBasePath });

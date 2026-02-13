@@ -6,32 +6,25 @@
  * brokerProxy.setupQuestCreation({ questsFolderPath, existingFolders, questFolderPath, questFilePath });
  */
 
-import {
-  pathJoinAdapterProxy,
-  questsFolderEnsureBrokerProxy,
-  fsMkdirAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { pathJoinAdapterProxy, fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
+import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-resolve-quests-path-broker.proxy';
 
 export const questAddBrokerProxy = (): {
   setupQuestCreation: (params: {
-    startPath: FilePath;
     questsFolderPath: FilePath;
     existingFolders: FileName[];
     questFolderPath: FilePath;
     questFilePath: FilePath;
   }) => void;
-  setupQuestCreationFailure: (params: {
-    startPath: FilePath;
-    questsFolderPath: FilePath;
-    error: Error;
-  }) => void;
+  setupQuestCreationFailure: (params: { questsFolderPath: FilePath; error: Error }) => void;
 } => {
-  const questsFolderProxy = questsFolderEnsureBrokerProxy();
+  const resolveQuestsPathProxy = questResolveQuestsPathBrokerProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
   const readdirProxy = fsReaddirAdapterProxy();
   const writeFileProxy = fsWriteFileAdapterProxy();
@@ -39,24 +32,25 @@ export const questAddBrokerProxy = (): {
 
   return {
     setupQuestCreation: ({
-      startPath,
       questsFolderPath,
       existingFolders,
       questFolderPath,
       questFilePath,
     }: {
-      startPath: FilePath;
       questsFolderPath: FilePath;
       existingFolders: FileName[];
       questFolderPath: FilePath;
       questFilePath: FilePath;
     }): void => {
-      const projectRootPath = questsFolderPath.split('/').slice(0, -1).join('/') as FilePath;
-      questsFolderProxy.setupQuestsFolderEnsureSuccess({
-        startPath,
-        projectRootPath,
-        questsFolderPath,
+      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      resolveQuestsPathProxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath,
+        questsPath: questsFolderPath,
       });
+
+      // Mock mkdir for quests base directory
+      mkdirProxy.succeeds({ filepath: questsFolderPath });
 
       // Mock readdir for existing folders
       readdirProxy.returns({ files: existingFolders });
@@ -73,21 +67,21 @@ export const questAddBrokerProxy = (): {
     },
 
     setupQuestCreationFailure: ({
-      startPath,
       questsFolderPath,
       error,
     }: {
-      startPath: FilePath;
       questsFolderPath: FilePath;
       error: Error;
     }): void => {
-      const projectRootPath = questsFolderPath.split('/').slice(0, -1).join('/') as FilePath;
-      questsFolderProxy.setupQuestsFolderMkdirFails({
-        startPath,
-        projectRootPath,
-        questsFolderPath,
-        error,
+      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      resolveQuestsPathProxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath,
+        questsPath: questsFolderPath,
       });
+
+      // Mock mkdir failure for quests base directory
+      mkdirProxy.throws({ filepath: questsFolderPath, error });
     },
   };
 };

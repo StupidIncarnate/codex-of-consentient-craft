@@ -18,13 +18,14 @@ import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
 import {
-  filePathContract,
+  projectIdContract,
   questIdContract,
   processIdContract,
 } from '@dungeonmaster/shared/contracts';
 import { orchestratorAddQuestAdapter } from '../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter';
 import { orchestratorGetQuestAdapter } from '../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorGetQuestStatusAdapter } from '../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
+import { orchestratorListProjectsAdapter } from '../adapters/orchestrator/list-projects/orchestrator-list-projects-adapter';
 import { orchestratorListQuestsAdapter } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorModifyQuestAdapter } from '../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
 import { orchestratorStartQuestAdapter } from '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
@@ -137,6 +138,12 @@ export const StartMcpServer = async (): Promise<void> => {
         inputSchema: zodToJsonSchema(listQuestsInputContract, { $refStrategy: 'none' }),
       },
       {
+        name: 'list-projects',
+        description:
+          'Lists all registered projects with their IDs, names, paths, and quest counts.',
+        inputSchema: zodToJsonSchema(emptyInputSchema, { $refStrategy: 'none' }),
+      },
+      {
         name: 'verify-quest',
         description:
           'Validates quest structure integrity (dependency graph, observable coverage, file companions, etc.)',
@@ -225,13 +232,13 @@ export const StartMcpServer = async (): Promise<void> => {
       const args = request.params.arguments as never;
       const titleRaw: unknown = Reflect.get(args, 'title');
       const userRequestRaw: unknown = Reflect.get(args, 'userRequest');
-      const startPathRaw: unknown = Reflect.get(args, 'startPath');
+      const projectIdRaw: unknown = Reflect.get(args, 'projectId');
       const title = String(titleRaw);
       const userRequest = String(userRequestRaw);
-      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
+      const projectId = projectIdContract.parse(projectIdRaw);
 
       try {
-        const result = await orchestratorAddQuestAdapter({ title, userRequest, startPath });
+        const result = await orchestratorAddQuestAdapter({ title, userRequest, projectId });
         return {
           content: [
             {
@@ -260,17 +267,14 @@ export const StartMcpServer = async (): Promise<void> => {
     if (request.params.name === 'get-quest') {
       const args = request.params.arguments as never;
       const questIdRaw: unknown = Reflect.get(args, 'questId');
-      const startPathRaw: unknown = Reflect.get(args, 'startPath');
       const stageRaw: unknown = Reflect.get(args, 'stage');
       const questId = String(questIdRaw);
-      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
       const stage = typeof stageRaw === 'string' ? stageRaw : undefined;
 
       try {
         const result = await orchestratorGetQuestAdapter({
           questId,
           ...(stage && { stage }),
-          startPath,
         });
         return {
           content: [
@@ -300,15 +304,12 @@ export const StartMcpServer = async (): Promise<void> => {
     if (request.params.name === 'modify-quest') {
       const args = request.params.arguments as never;
       const questIdRaw: unknown = Reflect.get(args, 'questId');
-      const startPathRaw: unknown = Reflect.get(args, 'startPath');
       const questId = String(questIdRaw);
-      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
 
       try {
         const result = await orchestratorModifyQuestAdapter({
           questId,
           input: args,
-          startPath,
         });
         return {
           content: [
@@ -348,12 +349,10 @@ export const StartMcpServer = async (): Promise<void> => {
     if (request.params.name === 'start-quest') {
       const args = request.params.arguments as never;
       const questIdRaw: unknown = Reflect.get(args, 'questId');
-      const startPathRaw: unknown = Reflect.get(args, 'startPath');
       const questId = questIdContract.parse(questIdRaw);
-      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
 
       try {
-        const processId = await orchestratorStartQuestAdapter({ questId, startPath });
+        const processId = await orchestratorStartQuestAdapter({ questId });
         return {
           content: [
             {
@@ -414,12 +413,10 @@ export const StartMcpServer = async (): Promise<void> => {
     if (request.params.name === 'verify-quest') {
       const args = request.params.arguments as never;
       const questIdRaw: unknown = Reflect.get(args, 'questId');
-      const startPathRaw: unknown = Reflect.get(args, 'startPath');
       const questId = String(questIdRaw);
-      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
 
       try {
-        const result = await orchestratorVerifyQuestAdapter({ questId, startPath });
+        const result = await orchestratorVerifyQuestAdapter({ questId });
         return {
           content: [
             {
@@ -447,16 +444,44 @@ export const StartMcpServer = async (): Promise<void> => {
 
     if (request.params.name === 'list-quests') {
       const args = request.params.arguments as never;
-      const startPathRaw: unknown = Reflect.get(args, 'startPath');
-      const startPath = filePathContract.parse(startPathRaw ?? process.cwd());
+      const projectIdRaw: unknown = Reflect.get(args, 'projectId');
+      const projectId = projectIdContract.parse(projectIdRaw);
 
       try {
-        const quests = await orchestratorListQuestsAdapter({ startPath });
+        const quests = await orchestratorListQuestsAdapter({ projectId });
         return {
           content: [
             {
               type: 'text',
               text: JSON.stringify({ success: true, quests }, null, JSON_INDENT_SPACES),
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
+    }
+
+    if (request.params.name === 'list-projects') {
+      try {
+        const projects = await orchestratorListProjectsAdapter();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ success: true, projects }, null, JSON_INDENT_SPACES),
             },
           ],
         };

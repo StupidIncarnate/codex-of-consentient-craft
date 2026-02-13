@@ -1,18 +1,18 @@
 import { questListBroker } from './quest-list-broker';
 import { questListBrokerProxy } from './quest-list-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, ProjectIdStub } from '@dungeonmaster/shared/contracts';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 describe('questListBroker', () => {
   describe('listing quests', () => {
-    it('VALID: {startPath: "/project/src/file.ts"} => returns array of all quests from folders', async () => {
+    it('VALID: {projectId} => returns array of all quests from folders', async () => {
       const proxy = questListBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src/file.ts' });
+      const projectId = ProjectIdStub();
 
-      proxy.setupQuestsFolderFound({
-        startPath: '/project/src/file.ts',
-        projectRootPath: '/project',
-        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
       proxy.setupQuestDirectories({
         files: [
@@ -72,21 +72,21 @@ describe('questListBroker', () => {
         }),
       });
 
-      const result = await questListBroker({ startPath });
+      const result = await questListBroker({ projectId });
 
       expect(result).toHaveLength(2);
       expect(result[0]?.id).toBe('quest-1');
       expect(result[1]?.id).toBe('quest-2');
     });
 
-    it('VALID: {startPath: "/project/file.ts"} => returns empty array when no quest folders exist', async () => {
+    it('VALID: {projectId} => returns empty array when no quest folders exist', async () => {
       const proxy = questListBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/file.ts' });
+      const projectId = ProjectIdStub();
 
-      proxy.setupQuestsFolderFound({
-        startPath: '/project/file.ts',
-        projectRootPath: '/project',
-        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
       proxy.setupQuestDirectories({
         files: [
@@ -95,37 +95,37 @@ describe('questListBroker', () => {
         ],
       });
 
-      const result = await questListBroker({ startPath });
+      const result = await questListBroker({ projectId });
 
       expect(result).toStrictEqual([]);
     });
 
-    it('VALID: {startPath: "/project/file.ts"} => returns empty array when quests folder is empty', async () => {
+    it('VALID: {projectId} => returns empty array when quests folder is empty', async () => {
       const proxy = questListBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/file.ts' });
+      const projectId = ProjectIdStub();
 
-      proxy.setupQuestsFolderFound({
-        startPath: '/project/file.ts',
-        projectRootPath: '/project',
-        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
       proxy.setupQuestDirectories({ files: [] });
 
-      const result = await questListBroker({ startPath });
+      const result = await questListBroker({ projectId });
 
       expect(result).toStrictEqual([]);
     });
   });
 
   describe('edge cases', () => {
-    it('EDGE: {startPath: "/project/.hidden"} => handles hidden files as start path', async () => {
+    it('EDGE: {projectId with hidden files} => handles hidden files in quest folder', async () => {
       const proxy = questListBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/.hidden' });
+      const projectId = ProjectIdStub();
 
-      proxy.setupQuestsFolderFound({
-        startPath: '/project/.hidden',
-        projectRootPath: '/project',
-        questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
       });
       proxy.setupQuestDirectories({
         files: [FileNameStub({ value: '001-hidden-quest' })],
@@ -157,7 +157,7 @@ describe('questListBroker', () => {
         }),
       });
 
-      const result = await questListBroker({ startPath });
+      const result = await questListBroker({ projectId });
 
       expect(result).toHaveLength(1);
       expect(result[0]?.id).toBe('hidden-quest');

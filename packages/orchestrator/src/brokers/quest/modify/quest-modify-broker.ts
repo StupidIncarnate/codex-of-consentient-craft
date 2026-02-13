@@ -2,7 +2,7 @@
  * PURPOSE: Upserts data into an existing quest (contexts, observables, steps, toolingRequirements)
  *
  * USAGE:
- * const result = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', contexts: [...] }), startPath: FilePathStub({ value: '/project/src' }) });
+ * const result = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', contexts: [...] }) });
  * // Returns: { success: true } or { success: false, error: 'Quest not found' }
  *
  * UPSERT SEMANTICS:
@@ -12,9 +12,7 @@
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { questsFolderEnsureBroker } from '@dungeonmaster/shared/brokers';
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
@@ -22,38 +20,28 @@ import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/mod
 import { modifyQuestResultContract } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
 import type { ModifyQuestResult } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
-import { questFolderFindBroker } from '../folder-find/quest-folder-find-broker';
+import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
+import { questLoadBroker } from '../load/quest-load-broker';
 
 const QUEST_FILE_NAME = 'quest.json';
 const JSON_INDENT_SPACES = 2;
 
 export const questModifyBroker = async ({
   input,
-  startPath,
 }: {
   input: ModifyQuestInput;
-  startPath: FilePath;
 }): Promise<ModifyQuestResult> => {
   try {
     const validated = modifyQuestInputContract.parse(input);
 
-    // Ensure folder exists before searching
-    const { questsBasePath } = await questsFolderEnsureBroker({ startPath });
+    const { questPath } = await questFindQuestPathBroker({ questId: validated.questId });
 
-    const findResult = await questFolderFindBroker({
-      questId: validated.questId,
-      questsPath: questsBasePath,
-    });
+    const questFilePath = filePathContract.parse(
+      pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+    );
 
-    if (!findResult.found) {
-      return modifyQuestResultContract.parse({
-        success: false,
-        error: `Quest not found: ${validated.questId}`,
-      });
-    }
-
-    const quest = { ...findResult.quest };
-    const { folderPath } = findResult;
+    const loadedQuest = await questLoadBroker({ questFilePath });
+    const quest = { ...loadedQuest };
 
     if (validated.requirements) {
       quest.requirements = questArrayUpsertTransformer({
@@ -107,7 +95,6 @@ export const questModifyBroker = async ({
     quest.updatedAt = new Date().toISOString() as typeof quest.updatedAt;
 
     // Write updated quest back to quest.json
-    const questFilePath = pathJoinAdapter({ paths: [folderPath, QUEST_FILE_NAME] });
     const questJson = fileContentsContract.parse(JSON.stringify(quest, null, JSON_INDENT_SPACES));
     await fsWriteFileAdapter({ filePath: questFilePath, contents: questJson });
 
