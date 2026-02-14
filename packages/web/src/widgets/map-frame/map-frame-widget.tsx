@@ -49,6 +49,7 @@ export const MapFrameWidget = ({
         maxWidth,
         display: 'flex',
         flexDirection: 'column' as const,
+        flex: 1,
       }}
     >
       <Text
