@@ -45,7 +45,8 @@ export const AppWidgetProxy = (): {
   clickAddGuild: () => Promise<void>;
   isNewGuildTitleVisible: () => boolean;
   typeGuildName: (params: { value: string }) => Promise<void>;
-  typeGuildPath: (params: { value: string }) => Promise<void>;
+  getGuildPathValue: () => HTMLElement['textContent'];
+  clickBrowseGuild: () => Promise<void>;
   clickCreateGuild: () => Promise<void>;
   typeProjectName: (params: { name: string }) => Promise<void>;
   clickBrowse: () => Promise<void>;
@@ -114,8 +115,9 @@ export const AppWidgetProxy = (): {
     typeGuildName: async ({ value }: { value: string }): Promise<void> => {
       await emptyState.typeGuildName({ value });
     },
-    typeGuildPath: async ({ value }: { value: string }): Promise<void> => {
-      await emptyState.typeGuildPath({ value });
+    getGuildPathValue: (): HTMLElement['textContent'] => emptyState.getGuildPathValue(),
+    clickBrowseGuild: async (): Promise<void> => {
+      await emptyState.clickBrowse();
     },
     clickCreateGuild: async (): Promise<void> => {
       await emptyState.clickCreate();

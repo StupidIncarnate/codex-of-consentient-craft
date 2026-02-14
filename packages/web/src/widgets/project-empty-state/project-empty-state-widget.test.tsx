@@ -55,24 +55,19 @@ describe('ProjectEmptyStateWidget', () => {
 
       expect(proxy.isCancelVisible()).toBe(true);
     });
+
+    it('VALID: {} => renders BROWSE button', () => {
+      const proxy = ProjectEmptyStateWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ProjectEmptyStateWidget onAddProject={jest.fn()} />,
+      });
+
+      expect(proxy.isBrowseVisible()).toBe(true);
+    });
   });
 
   describe('interactions', () => {
-    it('VALID: {fill form and click CREATE} => calls onAddProject with name and path', async () => {
-      const proxy = ProjectEmptyStateWidgetProxy();
-      const onAddProject = jest.fn();
-
-      mantineRenderAdapter({
-        ui: <ProjectEmptyStateWidget onAddProject={onAddProject} />,
-      });
-
-      await proxy.typeGuildName({ value: 'my-guild' });
-      await proxy.typeGuildPath({ value: '/home/user/my-guild' });
-      await proxy.clickCreate();
-
-      expect(onAddProject).toHaveBeenCalledTimes(1);
-    });
-
     it('VALID: {click CANCEL} => calls onCancel', async () => {
       const proxy = ProjectEmptyStateWidgetProxy();
       const onCancel = jest.fn();

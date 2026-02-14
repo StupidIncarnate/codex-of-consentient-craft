@@ -110,7 +110,7 @@ export const AppWidget = (): React.JSX.Element => {
                 }
               />
             ) : (
-              <Group align="flex-start" gap="xl" wrap="nowrap" style={{ minHeight: 200 }}>
+              <Group align="stretch" gap="xl" wrap="nowrap" style={{ minHeight: 200 }}>
                 <Box
                   style={{
                     flex: '0 0 200px',
