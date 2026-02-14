@@ -5,7 +5,7 @@ import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 describe('questListBroker', () => {
   describe('listing quests', () => {
-    it('VALID: {projectId} => returns array of all quests from folders', async () => {
+    it('VALID: {guildId} => returns array of all quests from folders', async () => {
       const proxy = questListBrokerProxy();
       const guildId = GuildIdStub();
 
@@ -79,7 +79,7 @@ describe('questListBroker', () => {
       expect(result[1]?.id).toBe('quest-2');
     });
 
-    it('VALID: {projectId} => returns empty array when no quest folders exist', async () => {
+    it('VALID: {guildId} => returns empty array when no quest folders exist', async () => {
       const proxy = questListBrokerProxy();
       const guildId = GuildIdStub();
 
@@ -100,7 +100,7 @@ describe('questListBroker', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('VALID: {projectId} => returns empty array when quests folder is empty', async () => {
+    it('VALID: {guildId} => returns empty array when quests folder is empty', async () => {
       const proxy = questListBrokerProxy();
       const guildId = GuildIdStub();
 

@@ -19,7 +19,7 @@ export const guildCreateBroker = async ({
   path: string;
 }): Promise<{ id: GuildId }> => {
   const response = await fetchPostAdapter<{ id: unknown }>({
-    url: webConfigStatics.api.routes.projects,
+    url: webConfigStatics.api.routes.guilds,
     body: { name, path },
   });
 

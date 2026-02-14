@@ -16,7 +16,7 @@ export const guildCreateBrokerProxy = (): {
 
   const endpoint = StartEndpointMock.listen({
     method: 'post',
-    url: webConfigStatics.api.routes.projects,
+    url: webConfigStatics.api.routes.guilds,
   });
 
   return {
