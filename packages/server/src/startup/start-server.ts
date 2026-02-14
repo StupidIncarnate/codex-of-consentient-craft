@@ -8,6 +8,9 @@
 
 import { Hono } from 'hono';
 import type { WSContext } from 'hono/ws';
+import { spawn } from 'child_process';
+import { createInterface } from 'readline';
+import { homedir } from 'os';
 import {
   questIdContract,
   processIdContract,
@@ -16,6 +19,8 @@ import {
   guildPathContract,
   orchestrationEventTypeContract,
   wsMessageContract,
+  sessionIdContract,
+  absoluteFilePathContract,
 } from '@dungeonmaster/shared/contracts';
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
 import {
@@ -54,6 +59,8 @@ import type { AgentOutputLine } from '../contracts/agent-output-line/agent-outpu
 import { agentOutputBufferState } from '../state/agent-output-buffer/agent-output-buffer-state';
 import { wsEventRelayBroadcastBroker } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import type { WsClient } from '../contracts/ws-client/ws-client-contract';
+import { fsReadJsonlAdapter } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
+import { claudeProjectPathEncoderTransformer } from '../transformers/claude-project-path-encoder/claude-project-path-encoder-transformer';
 
 const FLUSH_INTERVAL_MS = 100;
 
@@ -410,6 +417,112 @@ export const StartServer = (): void => {
       return c.json(result);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to discover';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Quest chat - spawn Claude CLI and stream output via WebSocket
+  app.post(apiRoutesStatics.quests.chat, async (c) => {
+    try {
+      const questIdRaw = c.req.param('questId');
+      questIdContract.parse(questIdRaw);
+      const body: unknown = await c.req.json();
+
+      if (typeof body !== 'object' || body === null) {
+        return c.json(
+          { error: 'Request body must be a JSON object' },
+          httpStatusStatics.clientError.badRequest,
+        );
+      }
+
+      const rawMessage: unknown = Reflect.get(body, 'message');
+      const rawSessionId: unknown = Reflect.get(body, 'sessionId');
+
+      if (typeof rawMessage !== 'string' || rawMessage.length === 0) {
+        return c.json({ error: 'message is required' }, httpStatusStatics.clientError.badRequest);
+      }
+
+      const chatProcessId = crypto.randomUUID();
+
+      const args =
+        typeof rawSessionId === 'string' && rawSessionId.length > 0
+          ? ['--resume', rawSessionId, '-p', rawMessage]
+          : ['-p', rawMessage];
+
+      args.push('--output-format', 'stream-json', '--verbose');
+
+      const childProcess = spawn('claude', args, {
+        stdio: ['inherit', 'pipe', 'inherit'],
+      });
+
+      const { stdout } = childProcess;
+
+      const rl = createInterface({ input: stdout as NodeJS.ReadableStream });
+
+      rl.on('line', (line) => {
+        wsEventRelayBroadcastBroker({
+          clients,
+          message: wsMessageContract.parse({
+            type: 'chat-output',
+            payload: { chatProcessId, line },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          }),
+        });
+      });
+
+      childProcess.on('exit', (code) => {
+        wsEventRelayBroadcastBroker({
+          clients,
+          message: wsMessageContract.parse({
+            type: 'chat-complete',
+            payload: { chatProcessId, exitCode: code ?? 1 },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          }),
+        });
+      });
+
+      return c.json({ chatProcessId });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to start chat';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Quest chat history - read JSONL session file
+  app.get(apiRoutesStatics.quests.chatHistory, async (c) => {
+    try {
+      const rawSessionId = c.req.query('sessionId');
+
+      if (!rawSessionId) {
+        return c.json(
+          { error: 'sessionId query parameter is required' },
+          httpStatusStatics.clientError.badRequest,
+        );
+      }
+
+      const sessionId = sessionIdContract.parse(rawSessionId);
+
+      const homeDir = absoluteFilePathContract.parse(homedir());
+      const projectPath = absoluteFilePathContract.parse(process.cwd());
+      const jsonlPath = claudeProjectPathEncoderTransformer({
+        homeDir,
+        projectPath,
+        sessionId,
+      });
+
+      const entries = await fsReadJsonlAdapter({ filePath: jsonlPath });
+
+      const filtered = entries.filter((entry: unknown) => {
+        if (typeof entry !== 'object' || entry === null) {
+          return false;
+        }
+        const type: unknown = Reflect.get(entry, 'type');
+        return type === 'user' || type === 'assistant';
+      });
+
+      return c.json(filtered);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to read chat history';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
     }
   });

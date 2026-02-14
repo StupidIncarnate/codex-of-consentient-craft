@@ -50,6 +50,7 @@ import { honoServeAdapterProxy } from '../adapters/hono/serve/hono-serve-adapter
 import { honoCreateNodeWebSocketAdapterProxy } from '../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.proxy';
 import { agentOutputBufferStateProxy } from '../state/agent-output-buffer/agent-output-buffer-state.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
+import { fsReadJsonlAdapterProxy } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
 import { StartServer } from './start-server';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
@@ -96,6 +97,7 @@ export const StartServerProxy = (): {
   mcpDiscoverBrokerProxy();
   agentOutputBufferStateProxy();
   wsEventRelayBroadcastBrokerProxy();
+  fsReadJsonlAdapterProxy();
 
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const addGuildProxy = orchestratorAddGuildAdapterProxy();

@@ -3,16 +3,10 @@ import { screen } from '@testing-library/react';
 import type {
   GuildIdStub,
   GuildListItemStub,
-  OrchestrationStatusStub,
-  ProcessIdStub,
   QuestListItemStub,
-  QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { useAgentOutputBindingProxy } from '../../bindings/use-agent-output/use-agent-output-binding.proxy';
-import { useExecutionBindingProxy } from '../../bindings/use-execution/use-execution-binding.proxy';
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
-import { useQuestDetailBindingProxy } from '../../bindings/use-quest-detail/use-quest-detail-binding.proxy';
 import { useQuestsBindingProxy } from '../../bindings/use-quests/use-quests-binding.proxy';
 import { guildCreateBrokerProxy } from '../../brokers/guild/create/guild-create-broker.proxy';
 import { GuildAddModalWidgetProxy } from '../guild-add-modal/guild-add-modal-widget.proxy';
@@ -21,12 +15,9 @@ import { GuildListWidgetProxy } from '../guild-list/guild-list-widget.proxy';
 import { GuildQuestListWidgetProxy } from '../guild-quest-list/guild-quest-list-widget.proxy';
 import { LogoWidgetProxy } from '../logo/logo-widget.proxy';
 import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
-import { QuestDetailWidgetProxy } from '../quest-detail/quest-detail-widget.proxy';
+import { QuestChatWidgetProxy } from '../quest-chat/quest-chat-widget.proxy';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
-type Quest = ReturnType<typeof QuestStub>;
-type ProcessId = ReturnType<typeof ProcessIdStub>;
-type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
 
@@ -37,12 +28,6 @@ export const AppWidgetProxy = (): {
   setupDirectoryBrowse: (params: Parameters<typeof emptyState.setupDirectoryBrowse>[0]) => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
   setupQuestsError: () => void;
-  setupQuestDetail: (params: { quest: Quest }) => void;
-  setupQuestDetailError: () => void;
-  setupExecutionStart: (params: { processId: ProcessId }) => void;
-  setupExecutionStartError: () => void;
-  setupExecutionStatus: (params: { status: OrchestrationStatus }) => void;
-  setupExecutionStatusError: () => void;
   clickGuildItem: (params: { testId: string }) => Promise<void>;
   isGuildItemVisible: (params: { testId: string }) => boolean;
   isGuildItemSelected: (params: { testId: string }) => boolean;
@@ -66,10 +51,8 @@ export const AppWidgetProxy = (): {
   clickCancelModal: () => Promise<void>;
   isCreateGuildDisabled: () => boolean;
   getPathDisplay: () => HTMLElement['textContent'];
+  isQuestChatVisible: () => boolean;
 } => {
-  const questDetailProxy = useQuestDetailBindingProxy();
-  const executionProxy = useExecutionBindingProxy();
-  useAgentOutputBindingProxy();
   const questsProxy = useQuestsBindingProxy();
   const guildsProxy = useGuildsBindingProxy();
   const createGuildProxy = guildCreateBrokerProxy();
@@ -79,7 +62,7 @@ export const AppWidgetProxy = (): {
   const questList = GuildQuestListWidgetProxy();
   const emptyState = GuildEmptyStateWidgetProxy();
   const addModal = GuildAddModalWidgetProxy();
-  QuestDetailWidgetProxy();
+  QuestChatWidgetProxy();
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
@@ -99,24 +82,6 @@ export const AppWidgetProxy = (): {
     },
     setupQuestsError: (): void => {
       questsProxy.setupError();
-    },
-    setupQuestDetail: ({ quest }: { quest: Quest }): void => {
-      questDetailProxy.setupQuest({ quest });
-    },
-    setupQuestDetailError: (): void => {
-      questDetailProxy.setupError();
-    },
-    setupExecutionStart: ({ processId }: { processId: ProcessId }): void => {
-      executionProxy.setupStart({ processId });
-    },
-    setupExecutionStartError: (): void => {
-      executionProxy.setupStartError();
-    },
-    setupExecutionStatus: ({ status }: { status: OrchestrationStatus }): void => {
-      executionProxy.setupStatus({ status });
-    },
-    setupExecutionStatusError: (): void => {
-      executionProxy.setupStatusError();
     },
     clickGuildItem: async ({ testId }: { testId: string }): Promise<void> => {
       await guildList.clickItem({ testId });
@@ -173,5 +138,6 @@ export const AppWidgetProxy = (): {
     },
     isCreateGuildDisabled: (): boolean => addModal.isCreateDisabled(),
     getPathDisplay: (): HTMLElement['textContent'] => addModal.getPathDisplay(),
+    isQuestChatVisible: (): boolean => screen.queryByTestId('QUEST_CHAT') !== null,
   };
 };

@@ -9,4 +9,5 @@
 export const mapFrameStatics = {
   defaultMinHeight: 280,
   defaultMaxWidth: 740,
+  defaultPadding: 16,
 } as const;

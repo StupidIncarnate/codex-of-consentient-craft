@@ -12,10 +12,7 @@ import { Box, Center, Group, Stack, Text } from '@mantine/core';
 
 import type { GuildId, GuildName, GuildPath, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { useAgentOutputBinding } from '../../bindings/use-agent-output/use-agent-output-binding';
-import { useExecutionBinding } from '../../bindings/use-execution/use-execution-binding';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
-import { useQuestDetailBinding } from '../../bindings/use-quest-detail/use-quest-detail-binding';
 import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
 import { guildCreateBroker } from '../../brokers/guild/create/guild-create-broker';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -25,7 +22,7 @@ import { GuildListWidget } from '../guild-list/guild-list-widget';
 import { GuildQuestListWidget } from '../guild-quest-list/guild-quest-list-widget';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
-import { QuestDetailWidget } from '../quest-detail/quest-detail-widget';
+import { QuestChatWidget } from '../quest-chat/quest-chat-widget';
 
 type View = 'main' | 'new-guild' | 'detail';
 
@@ -39,27 +36,21 @@ export const AppWidget = (): React.JSX.Element => {
 
   const { data: quests, refresh } = useQuestsBinding({ guildId: selectedGuildId });
 
-  const {
-    data: quest,
-    loading: questLoading,
-    error: questError,
-    refresh: refreshQuest,
-  } = useQuestDetailBinding({
-    questId: currentView === 'detail' ? selectedQuestId : null,
-  });
-
-  const {
-    processStatus,
-    isRunning,
-    error: executionError,
-    startExecution,
-    slotOutputs: executionSlotOutputs,
-  } = useExecutionBinding();
-
-  const { slotOutputs: agentSlotOutputs } = useAgentOutputBinding();
-
   const { colors } = emberDepthsThemeStatics;
   const hasGuilds = guilds.length > 0;
+
+  if (currentView === 'detail' && selectedQuestId) {
+    return (
+      <QuestChatWidget
+        questId={selectedQuestId}
+        onBack={() => {
+          setCurrentView('main');
+          setSelectedQuestId(null);
+          refresh().catch(() => undefined);
+        }}
+      />
+    );
+  }
 
   return (
     <div style={{ background: colors['bg-deep'], color: colors.text, minHeight: '100vh' }}>
@@ -88,27 +79,6 @@ export const AppWidget = (): React.JSX.Element => {
                   }
                 />
               </Center>
-            ) : currentView === 'detail' ? (
-              <QuestDetailWidget
-                quest={quest}
-                loading={questLoading}
-                error={questError ?? executionError}
-                onBack={() => {
-                  setCurrentView('main');
-                  setSelectedQuestId(null);
-                  refresh().catch(() => undefined);
-                }}
-                onStartQuest={({ questId }) => {
-                  startExecution({ questId })
-                    .then(async () => refreshQuest())
-                    .catch(() => undefined);
-                }}
-                isRunning={isRunning}
-                processStatus={processStatus}
-                slotOutputs={
-                  executionSlotOutputs.size > 0 ? executionSlotOutputs : agentSlotOutputs
-                }
-              />
             ) : (
               <Group align="stretch" gap="xl" wrap="nowrap" style={{ flex: 1 }}>
                 <Box

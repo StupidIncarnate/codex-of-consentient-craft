@@ -15,6 +15,8 @@ export const orchestrationEventTypeContract = z.enum([
   'agent-output',
   'process-complete',
   'process-failed',
+  'chat-output',
+  'chat-complete',
 ]);
 
 export type OrchestrationEventType = z.infer<typeof orchestrationEventTypeContract>;

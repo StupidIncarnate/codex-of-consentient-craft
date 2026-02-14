@@ -1,12 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
-import {
-  GuildIdStub,
-  GuildListItemStub,
-  OrchestrationStatusStub,
-  ProcessIdStub,
-  QuestListItemStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, GuildListItemStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
@@ -118,14 +111,11 @@ describe('AppWidget', () => {
     });
   });
 
-  describe('execution', () => {
-    it('VALID: {start quest execution} => starts execution and refreshes quest detail', async () => {
+  describe('quest chat view', () => {
+    it('VALID: {click quest} => renders QuestChatWidget full-page', async () => {
       const proxy = AppWidgetProxy();
-      const processId = ProcessIdStub({ value: 'proc-123' });
-      const status = OrchestrationStatusStub({ processId, phase: 'codeweaver' });
       const guild = GuildListItemStub({ name: 'My Guild' });
       const guilds = [guild];
-      const quest = QuestStub({ id: 'quest-1', title: 'My Quest' });
       const quests = [QuestListItemStub({ id: 'quest-1', title: 'My Quest' })];
 
       proxy.setupGuilds({ guilds });
@@ -154,31 +144,18 @@ describe('AppWidget', () => {
         expect(screen.getByText('My Quest')).toBeInTheDocument();
       });
 
-      proxy.setupQuestDetail({ quest });
-
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          screen.getByText('My Quest').click();
+          await proxy.clickQuestItem({ testId: 'QUEST_ITEM_quest-1' });
           await Promise.resolve();
         },
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Start Quest')).toBeInTheDocument();
+        expect(proxy.isQuestChatVisible()).toBe(true);
       });
 
-      proxy.setupExecutionStart({ processId });
-      proxy.setupExecutionStatus({ status });
-      proxy.setupQuestDetail({ quest });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          screen.getByText('Start Quest').click();
-          await Promise.resolve();
-        },
-      });
-
-      expect(screen.getByRole('heading', { name: 'My Quest' })).toBeInTheDocument();
+      expect(proxy.isQuestChatVisible()).toBe(true);
     });
   });
 
@@ -593,13 +570,12 @@ describe('AppWidget', () => {
   });
 
   describe('navigation between views', () => {
-    it('VALID: {main, click quest, detail, click back} => returns to main', async () => {
+    it('VALID: {main, click quest} => shows quest chat view', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
         id: 'e1f2a3b4-c5d6-7890-efab-901234567890',
         name: 'Nav Guild',
       });
-      const quest = QuestStub({ id: 'nav-q1', title: 'Nav Quest' });
       const quests = [QuestListItemStub({ id: 'nav-q1', title: 'Nav Quest' })];
 
       proxy.setupGuilds({ guilds: [guild] });
@@ -628,33 +604,18 @@ describe('AppWidget', () => {
         expect(screen.getByText('Nav Quest')).toBeInTheDocument();
       });
 
-      proxy.setupQuestDetail({ quest });
-
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          screen.getByText('Nav Quest').click();
+          await proxy.clickQuestItem({ testId: 'QUEST_ITEM_nav-q1' });
           await Promise.resolve();
         },
       });
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: 'Nav Quest' })).toBeInTheDocument();
+        expect(proxy.isQuestChatVisible()).toBe(true);
       });
 
-      proxy.setupQuests({ quests });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          screen.getByText('Back to list').click();
-          await Promise.resolve();
-        },
-      });
-
-      await waitFor(() => {
-        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
-      });
-
-      expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      expect(proxy.isQuestChatVisible()).toBe(true);
     });
 
     it('VALID: {empty state, create guild} => auto-transitions to main', async () => {
@@ -837,13 +798,12 @@ describe('AppWidget', () => {
       expect(proxy.getQuestStatusText({ testId: 'QUEST_STATUS_sq-3' })).toBe('IN PROGRESS');
     });
 
-    it('VALID: {quest detail loads} => tabs visible (Overview, Requirements, Steps, Contracts)', async () => {
+    it('VALID: {click quest} => renders quest chat instead of quest detail tabs', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
         id: 'a9b0c1d2-e3f4-5678-abcd-789abcdef012',
         name: 'Tab Guild',
       });
-      const quest = QuestStub({ id: 'tab-q1', title: 'Tab Quest' });
       const quests = [QuestListItemStub({ id: 'tab-q1', title: 'Tab Quest' })];
 
       proxy.setupGuilds({ guilds: [guild] });
@@ -872,22 +832,18 @@ describe('AppWidget', () => {
         expect(screen.getByText('Tab Quest')).toBeInTheDocument();
       });
 
-      proxy.setupQuestDetail({ quest });
-
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          screen.getByText('Tab Quest').click();
+          await proxy.clickQuestItem({ testId: 'QUEST_ITEM_tab-q1' });
           await Promise.resolve();
         },
       });
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: 'Tab Quest' })).toBeInTheDocument();
+        expect(proxy.isQuestChatVisible()).toBe(true);
       });
 
-      expect(screen.getByText('Overview')).toBeInTheDocument();
-      expect(screen.getByText('Steps (0)')).toBeInTheDocument();
-      expect(screen.getByText('Contracts (0)')).toBeInTheDocument();
+      expect(proxy.isQuestChatVisible()).toBe(true);
     });
   });
 });

@@ -17,17 +17,20 @@ import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 
 const defaultMinHeight = cssPixelsContract.parse(mapFrameStatics.defaultMinHeight);
 const defaultMaxWidth = cssPixelsContract.parse(mapFrameStatics.defaultMaxWidth);
+const defaultPadding = cssPixelsContract.parse(mapFrameStatics.defaultPadding);
 
 export interface MapFrameWidgetProps {
   children: React.ReactNode;
   minHeight?: CssPixels;
   maxWidth?: CssPixels;
+  padding?: CssPixels;
 }
 
 export const MapFrameWidget = ({
   children,
   minHeight = defaultMinHeight,
   maxWidth = defaultMaxWidth,
+  padding = defaultPadding,
 }: MapFrameWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const { border } = colors;
@@ -39,7 +42,7 @@ export const MapFrameWidget = ({
       style={{
         border: `2px solid ${border}`,
         borderRadius: 2,
-        padding: 16,
+        padding,
         position: 'relative',
         minHeight,
         width: '100%',
