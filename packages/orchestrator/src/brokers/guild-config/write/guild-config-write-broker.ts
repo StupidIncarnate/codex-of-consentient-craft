@@ -1,24 +1,24 @@
 /**
- * PURPOSE: Writes the dungeonmaster project config to ~/.dungeonmaster/config.json
+ * PURPOSE: Writes the dungeonmaster guild config to ~/.dungeonmaster/config.json
  *
  * USAGE:
- * await projectConfigWriteBroker({ config: ProjectConfigStub({ projects: [project] }) });
+ * await guildConfigWriteBroker({ config: GuildConfigStub({ guilds: [guild] }) });
  * // Writes pretty-printed JSON to ~/.dungeonmaster/config.json
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { ProjectConfig } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { questStatics } from '../../../statics/quest/quest-statics';
 
-export const projectConfigWriteBroker = async ({
+export const guildConfigWriteBroker = async ({
   config,
 }: {
-  config: ProjectConfig;
+  config: GuildConfig;
 }): Promise<void> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 

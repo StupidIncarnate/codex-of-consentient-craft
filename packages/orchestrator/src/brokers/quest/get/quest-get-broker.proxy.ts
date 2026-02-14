@@ -11,7 +11,7 @@ import {
   FileContentsStub,
   FileNameStub,
   FilePathStub,
-  ProjectIdStub,
+  GuildIdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
@@ -30,28 +30,28 @@ export const questGetBrokerProxy = (): {
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const projectsDir = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/projects',
+      const guildsDir = FilePathStub({
+        value: '/home/testuser/.dungeonmaster/guilds',
       });
       const questsDirPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/projects/${projectId}/quests`,
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       const questFolderPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/projects/${projectId}/quests/${quest.folder}`,
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`,
       });
       const questFilePath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/projects/${projectId}/quests/${quest.folder}/quest.json`,
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`,
       });
 
       findQuestPathProxy.setupQuestFound({
         homeDir: '/home/testuser',
         homePath,
-        projectsDir,
-        projects: [
+        guildsDir,
+        guilds: [
           {
-            dirName: FileNameStub({ value: projectId }),
+            dirName: FileNameStub({ value: guildId }),
             questsDirPath,
             questFolders: [
               {
@@ -74,14 +74,14 @@ export const questGetBrokerProxy = (): {
 
     setupEmptyFolder: (): void => {
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const projectsDir = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/projects',
+      const guildsDir = FilePathStub({
+        value: '/home/testuser/.dungeonmaster/guilds',
       });
 
-      findQuestPathProxy.setupNoProjects({
+      findQuestPathProxy.setupNoGuilds({
         homeDir: '/home/testuser',
         homePath,
-        projectsDir,
+        guildsDir,
       });
     },
   };

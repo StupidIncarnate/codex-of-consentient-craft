@@ -1,37 +1,37 @@
-import { FilePathStub, ProjectConfigStub, ProjectStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, GuildConfigStub, GuildStub } from '@dungeonmaster/shared/contracts';
 
-import { projectListBroker } from './project-list-broker';
-import { projectListBrokerProxy } from './project-list-broker.proxy';
+import { guildListBroker } from './guild-list-broker';
+import { guildListBrokerProxy } from './guild-list-broker.proxy';
 
-type ListProxy = ReturnType<typeof projectListBrokerProxy>;
-type SetupParams = Parameters<ListProxy['setupProjectList']>[0];
-type QuestDirEntries = SetupParams['projectEntries'][0]['questDirEntries'];
+type ListProxy = ReturnType<typeof guildListBrokerProxy>;
+type SetupParams = Parameters<ListProxy['setupGuildList']>[0];
+type QuestDirEntries = SetupParams['guildEntries'][0]['questDirEntries'];
 
 const createMockDirent = ({ isDir }: { isDir: boolean }): QuestDirEntries[0] =>
   ({
     isDirectory: jest.fn().mockReturnValue(isDir),
   }) as never;
 
-describe('projectListBroker', () => {
+describe('guildListBroker', () => {
   describe('successful list', () => {
-    it('VALID: {single project, accessible, 2 quest dirs} => returns list item with valid true and questCount 2', async () => {
-      const proxy = projectListBrokerProxy();
+    it('VALID: {single guild, accessible, 2 quest dirs} => returns list item with valid true and questCount 2', async () => {
+      const proxy = guildListBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const project = ProjectStub({
+      const guild = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'My App',
         path: '/home/user/my-app',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
       const questsDirPath = FilePathStub({
-        value: '/home/user/.dungeonmaster/projects/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
       });
 
-      proxy.setupProjectList({
-        config: ProjectConfigStub({ projects: [project] }),
+      proxy.setupGuildList({
+        config: GuildConfigStub({ guilds: [guild] }),
         homeDir: '/home/user',
         homePath,
-        projectEntries: [
+        guildEntries: [
           {
             accessible: true,
             questsDirPath,
@@ -40,7 +40,7 @@ describe('projectListBroker', () => {
         ],
       });
 
-      const result = await projectListBroker();
+      const result = await guildListBroker();
 
       expect(result).toStrictEqual([
         {
@@ -54,24 +54,24 @@ describe('projectListBroker', () => {
       ]);
     });
 
-    it('VALID: {project not accessible} => returns list item with valid false', async () => {
-      const proxy = projectListBrokerProxy();
+    it('VALID: {guild not accessible} => returns list item with valid false', async () => {
+      const proxy = guildListBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const project = ProjectStub({
+      const guild = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Missing App',
         path: '/home/user/missing-app',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
       const questsDirPath = FilePathStub({
-        value: '/home/user/.dungeonmaster/projects/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
       });
 
-      proxy.setupProjectList({
-        config: ProjectConfigStub({ projects: [project] }),
+      proxy.setupGuildList({
+        config: GuildConfigStub({ guilds: [guild] }),
         homeDir: '/home/user',
         homePath,
-        projectEntries: [
+        guildEntries: [
           {
             accessible: false,
             questsDirPath,
@@ -80,7 +80,7 @@ describe('projectListBroker', () => {
         ],
       });
 
-      const result = await projectListBroker();
+      const result = await guildListBroker();
 
       expect(result).toStrictEqual([
         {
@@ -94,33 +94,33 @@ describe('projectListBroker', () => {
       ]);
     });
 
-    it('VALID: {multiple projects} => returns list items for each project', async () => {
-      const proxy = projectListBrokerProxy();
+    it('VALID: {multiple guilds} => returns list items for each guild', async () => {
+      const proxy = guildListBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const project1 = ProjectStub({
+      const guild1 = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'First App',
         path: '/home/user/first-app',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const project2 = ProjectStub({
+      const guild2 = GuildStub({
         id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
         name: 'Second App',
         path: '/home/user/second-app',
         createdAt: '2024-02-20T12:00:00.000Z',
       });
       const questsDirPath1 = FilePathStub({
-        value: '/home/user/.dungeonmaster/projects/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
       });
       const questsDirPath2 = FilePathStub({
-        value: '/home/user/.dungeonmaster/projects/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/quests',
+        value: '/home/user/.dungeonmaster/guilds/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/quests',
       });
 
-      proxy.setupProjectList({
-        config: ProjectConfigStub({ projects: [project1, project2] }),
+      proxy.setupGuildList({
+        config: GuildConfigStub({ guilds: [guild1, guild2] }),
         homeDir: '/home/user',
         homePath,
-        projectEntries: [
+        guildEntries: [
           {
             accessible: true,
             questsDirPath: questsDirPath1,
@@ -138,7 +138,7 @@ describe('projectListBroker', () => {
         ],
       });
 
-      const result = await projectListBroker();
+      const result = await guildListBroker();
 
       expect(result).toStrictEqual([
         {
@@ -161,23 +161,23 @@ describe('projectListBroker', () => {
     });
 
     it('VALID: {entries with non-directory files} => counts only directories as quests', async () => {
-      const proxy = projectListBrokerProxy();
+      const proxy = guildListBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const project = ProjectStub({
+      const guild = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'My App',
         path: '/home/user/my-app',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
       const questsDirPath = FilePathStub({
-        value: '/home/user/.dungeonmaster/projects/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
       });
 
-      proxy.setupProjectList({
-        config: ProjectConfigStub({ projects: [project] }),
+      proxy.setupGuildList({
+        config: GuildConfigStub({ guilds: [guild] }),
         homeDir: '/home/user',
         homePath,
-        projectEntries: [
+        guildEntries: [
           {
             accessible: true,
             questsDirPath,
@@ -190,7 +190,7 @@ describe('projectListBroker', () => {
         ],
       });
 
-      const result = await projectListBroker();
+      const result = await guildListBroker();
 
       expect(result).toStrictEqual([
         {
@@ -206,13 +206,13 @@ describe('projectListBroker', () => {
   });
 
   describe('empty config', () => {
-    it('EMPTY: {no projects in config} => returns empty array', async () => {
-      const proxy = projectListBrokerProxy();
+    it('EMPTY: {no guilds in config} => returns empty array', async () => {
+      const proxy = guildListBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
 
       proxy.setupEmptyConfig({ homeDir: '/home/user', homePath });
 
-      const result = await projectListBroker();
+      const result = await guildListBroker();
 
       expect(result).toStrictEqual([]);
     });

@@ -3,24 +3,24 @@ import {
   fsMkdirAdapterProxy,
   pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
-import type { FilePath, ProjectConfig } from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
 
-import { projectConfigReadBrokerProxy } from '../../project-config/read/project-config-read-broker.proxy';
-import { projectConfigWriteBrokerProxy } from '../../project-config/write/project-config-write-broker.proxy';
+import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
+import { guildConfigWriteBrokerProxy } from '../../guild-config/write/guild-config-write-broker.proxy';
 
-export const projectAddBrokerProxy = (): {
-  setupAddProject: (params: {
-    existingConfig: ProjectConfig;
+export const guildAddBrokerProxy = (): {
+  setupAddGuild: (params: {
+    existingConfig: GuildConfig;
     homeDir: string;
     homePath: FilePath;
-    projectsPath: FilePath;
-    projectDirPath: FilePath;
+    guildsPath: FilePath;
+    guildDirPath: FilePath;
     questsDirPath: FilePath;
   }) => void;
-  setupDuplicatePath: (params: { existingConfig: ProjectConfig }) => void;
+  setupDuplicatePath: (params: { existingConfig: GuildConfig }) => void;
 } => {
-  const configReadProxy = projectConfigReadBrokerProxy();
-  const configWriteProxy = projectConfigWriteBrokerProxy();
+  const configReadProxy = guildConfigReadBrokerProxy();
+  const configWriteProxy = guildConfigWriteBrokerProxy();
   const homeEnsureProxy = dungeonmasterHomeEnsureBrokerProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
@@ -29,30 +29,30 @@ export const projectAddBrokerProxy = (): {
   jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
 
   return {
-    setupAddProject: ({
+    setupAddGuild: ({
       existingConfig,
       homeDir,
       homePath,
-      projectsPath,
-      projectDirPath,
+      guildsPath,
+      guildDirPath,
       questsDirPath,
     }: {
-      existingConfig: ProjectConfig;
+      existingConfig: GuildConfig;
       homeDir: string;
       homePath: FilePath;
-      projectsPath: FilePath;
-      projectDirPath: FilePath;
+      guildsPath: FilePath;
+      guildDirPath: FilePath;
       questsDirPath: FilePath;
     }): void => {
       configReadProxy.setupConfig({ config: existingConfig });
-      homeEnsureProxy.setupEnsureSuccess({ homeDir, homePath, projectsPath });
-      pathJoinProxy.returns({ result: projectDirPath });
+      homeEnsureProxy.setupEnsureSuccess({ homeDir, homePath, guildsPath });
+      pathJoinProxy.returns({ result: guildDirPath });
       pathJoinProxy.returns({ result: questsDirPath });
       mkdirProxy.succeeds({ filepath: questsDirPath });
       configWriteProxy.setupSuccess();
     },
 
-    setupDuplicatePath: ({ existingConfig }: { existingConfig: ProjectConfig }): void => {
+    setupDuplicatePath: ({ existingConfig }: { existingConfig: GuildConfig }): void => {
       configReadProxy.setupConfig({ config: existingConfig });
     },
   };

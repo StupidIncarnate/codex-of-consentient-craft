@@ -2,7 +2,7 @@
  * PURPOSE: Creates a new quest JSON file in the project's quests directory
  *
  * USAGE:
- * const result = await questAddBroker({ input: AddQuestInputStub({ title: 'Add Auth', userRequest: 'User wants...' }), projectId: ProjectIdStub() });
+ * const result = await questAddBroker({ input: AddQuestInputStub({ title: 'Add Auth', userRequest: 'User wants...' }), guildId: GuildIdStub() });
  * // Returns: { success: true, questId: 'add-auth', questFolder: '001-add-auth', filePath: '/path/to/quest.json' }
  */
 
@@ -13,7 +13,7 @@ import {
   filePathContract,
   contentTextContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ProjectId } from '@dungeonmaster/shared/contracts';
+import type { GuildId } from '@dungeonmaster/shared/contracts';
 
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -30,10 +30,10 @@ const JSON_INDENT_SPACES = 2;
 
 export const questAddBroker = async ({
   input,
-  projectId,
+  guildId,
 }: {
   input: AddQuestInput;
-  projectId: ProjectId;
+  guildId: GuildId;
 }): Promise<AddQuestResult> => {
   try {
     // Validate input
@@ -45,7 +45,7 @@ export const questAddBroker = async ({
     });
 
     // Resolve quests directory for this project and ensure it exists
-    const { questsPath } = questResolveQuestsPathBroker({ projectId });
+    const { questsPath } = questResolveQuestsPathBroker({ guildId });
     const questsBasePath = filePathContract.parse(questsPath);
     await fsMkdirAdapter({ filepath: questsBasePath });
 

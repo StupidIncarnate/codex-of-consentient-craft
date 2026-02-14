@@ -1,28 +1,28 @@
 /**
- * PURPOSE: Resolves the quests directory path for a given project ID within ~/.dungeonmaster/projects/{projectId}/quests/
+ * PURPOSE: Resolves the quests directory path for a given guild ID within ~/.dungeonmaster/guilds/{guildId}/quests/
  *
  * USAGE:
- * const { questsPath } = await questResolveQuestsPathBroker({ projectId: ProjectIdStub({ value: 'f47ac10b-...' }) });
- * // Returns: { questsPath: AbsoluteFilePath } pointing to ~/.dungeonmaster/projects/{projectId}/quests
+ * const { questsPath } = await questResolveQuestsPathBroker({ guildId: GuildIdStub({ value: 'f47ac10b-...' }) });
+ * // Returns: { questsPath: AbsoluteFilePath } pointing to ~/.dungeonmaster/guilds/{guildId}/quests
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import type { AbsoluteFilePath, ProjectId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, GuildId } from '@dungeonmaster/shared/contracts';
 
 export const questResolveQuestsPathBroker = ({
-  projectId,
+  guildId,
 }: {
-  projectId: ProjectId;
+  guildId: GuildId;
 }): { questsPath: AbsoluteFilePath } => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const questsPath = pathJoinAdapter({
     paths: [
       homePath,
-      dungeonmasterHomeStatics.paths.projectsDir,
-      projectId,
+      dungeonmasterHomeStatics.paths.guildsDir,
+      guildId,
       dungeonmasterHomeStatics.paths.questsDir,
     ],
   });

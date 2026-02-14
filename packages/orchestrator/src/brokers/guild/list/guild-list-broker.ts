@@ -1,33 +1,33 @@
 /**
- * PURPOSE: Lists all registered projects with runtime validity and quest count information
+ * PURPOSE: Lists all registered guilds with runtime validity and quest count information
  *
  * USAGE:
- * const items = await projectListBroker();
- * // Returns: ProjectListItem[] with valid flag and questCount for each project
+ * const items = await guildListBroker();
+ * // Returns: GuildListItem[] with valid flag and questCount for each guild
  */
 
 import { fsReaddirWithTypesAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract, projectListItemContract } from '@dungeonmaster/shared/contracts';
-import type { ProjectListItem } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, guildListItemContract } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 
 import { pathIsAccessibleBroker } from '../../path/is-accessible/path-is-accessible-broker';
-import { projectConfigReadBroker } from '../../project-config/read/project-config-read-broker';
+import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 
-export const projectListBroker = async (): Promise<ProjectListItem[]> => {
-  const config = await projectConfigReadBroker();
+export const guildListBroker = async (): Promise<GuildListItem[]> => {
+  const config = await guildConfigReadBroker();
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const items = await Promise.all(
-    config.projects.map(async (project) => {
-      const valid = await pathIsAccessibleBroker({ path: project.path });
+    config.guilds.map(async (guild) => {
+      const valid = await pathIsAccessibleBroker({ path: guild.path });
 
       const questsDirPath = pathJoinAdapter({
         paths: [
           homePath,
-          dungeonmasterHomeStatics.paths.projectsDir,
-          project.id,
+          dungeonmasterHomeStatics.paths.guildsDir,
+          guild.id,
           dungeonmasterHomeStatics.paths.questsDir,
         ],
       });
@@ -42,8 +42,8 @@ export const projectListBroker = async (): Promise<ProjectListItem[]> => {
         // Directory doesn't exist yet - default to 0
       }
 
-      return projectListItemContract.parse({
-        ...project,
+      return guildListItemContract.parse({
+        ...guild,
         valid,
         questCount,
       });

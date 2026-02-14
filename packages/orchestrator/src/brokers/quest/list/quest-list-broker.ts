@@ -1,13 +1,13 @@
 /**
- * PURPOSE: Loads all active quests from a project's quests directory
+ * PURPOSE: Loads all active quests from a guild's quests directory
  *
  * USAGE:
- * await questListBroker({projectId: ProjectIdStub()});
+ * await questListBroker({guildId: GuildIdStub()});
  * // Returns array of Quest objects from quest folders (e.g., 001-add-auth/quest.json)
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import type { ProjectId, Quest } from '@dungeonmaster/shared/contracts';
+import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { isQuestFolderGuard } from '../../../guards/is-quest-folder/is-quest-folder-guard';
@@ -16,12 +16,8 @@ import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resol
 
 const QUEST_FILE_NAME = 'quest.json';
 
-export const questListBroker = async ({
-  projectId,
-}: {
-  projectId: ProjectId;
-}): Promise<Quest[]> => {
-  const { questsPath } = questResolveQuestsPathBroker({ projectId });
+export const questListBroker = async ({ guildId }: { guildId: GuildId }): Promise<Quest[]> => {
+  const { questsPath } = questResolveQuestsPathBroker({ guildId });
 
   const entries = fsReaddirAdapter({ dirPath: questsPath });
 

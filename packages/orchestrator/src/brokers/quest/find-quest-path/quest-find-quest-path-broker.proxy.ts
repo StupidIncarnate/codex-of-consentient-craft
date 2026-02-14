@@ -24,14 +24,14 @@ const createMockDirent = ({
   return dirent;
 };
 
-const setupProjectEntries = ({
-  projects,
-  projectsDir,
+const setupGuildEntries = ({
+  guilds,
+  guildsDir,
   readdirProxy,
   pathJoinProxy,
   readFileProxy,
 }: {
-  projects: {
+  guilds: {
     dirName: FileName;
     questsDirPath: FilePath;
     questFolders: {
@@ -41,25 +41,25 @@ const setupProjectEntries = ({
       contents: FileContents;
     }[];
   }[];
-  projectsDir: FilePath;
+  guildsDir: FilePath;
   readdirProxy: ReturnType<typeof fsReaddirWithTypesAdapterProxy>;
   pathJoinProxy: ReturnType<typeof pathJoinAdapterProxy>;
   readFileProxy: ReturnType<typeof fsReadFileAdapterProxy>;
 }): void => {
-  const projectDirents = projects.map(({ dirName }) =>
-    createMockDirent({ name: dirName, parentPath: projectsDir }),
+  const guildDirents = guilds.map(({ dirName }) =>
+    createMockDirent({ name: dirName, parentPath: guildsDir }),
   );
-  readdirProxy.returns({ entries: projectDirents });
+  readdirProxy.returns({ entries: guildDirents });
 
-  for (const project of projects) {
-    pathJoinProxy.returns({ result: project.questsDirPath });
+  for (const guild of guilds) {
+    pathJoinProxy.returns({ result: guild.questsDirPath });
 
-    const questFolderDirents = project.questFolders.map(({ folderName }) =>
-      createMockDirent({ name: folderName, parentPath: project.questsDirPath }),
+    const questFolderDirents = guild.questFolders.map(({ folderName }) =>
+      createMockDirent({ name: folderName, parentPath: guild.questsDirPath }),
     );
     readdirProxy.returns({ entries: questFolderDirents });
 
-    for (const questFolder of project.questFolders) {
+    for (const questFolder of guild.questFolders) {
       pathJoinProxy.returns({ result: questFolder.questFilePath });
       pathJoinProxy.returns({ result: questFolder.questFolderPath });
       readFileProxy.resolves({ content: questFolder.contents });
@@ -71,8 +71,8 @@ export const questFindQuestPathBrokerProxy = (): {
   setupQuestFound: (params: {
     homeDir: string;
     homePath: FilePath;
-    projectsDir: FilePath;
-    projects: {
+    guildsDir: FilePath;
+    guilds: {
       dirName: FileName;
       questsDirPath: FilePath;
       questFolders: {
@@ -83,12 +83,12 @@ export const questFindQuestPathBrokerProxy = (): {
       }[];
     }[];
   }) => void;
-  setupNoProjects: (params: { homeDir: string; homePath: FilePath; projectsDir: FilePath }) => void;
+  setupNoGuilds: (params: { homeDir: string; homePath: FilePath; guildsDir: FilePath }) => void;
   setupQuestNotFound: (params: {
     homeDir: string;
     homePath: FilePath;
-    projectsDir: FilePath;
-    projects: {
+    guildsDir: FilePath;
+    guilds: {
       dirName: FileName;
       questsDirPath: FilePath;
       questFolders: {
@@ -102,8 +102,8 @@ export const questFindQuestPathBrokerProxy = (): {
   setupQuestsReadError: (params: {
     homeDir: string;
     homePath: FilePath;
-    projectsDir: FilePath;
-    projectDirName: FileName;
+    guildsDir: FilePath;
+    guildDirName: FileName;
   }) => void;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
@@ -115,13 +115,13 @@ export const questFindQuestPathBrokerProxy = (): {
     setupQuestFound: ({
       homeDir,
       homePath,
-      projectsDir,
-      projects,
+      guildsDir,
+      guilds,
     }: {
       homeDir: string;
       homePath: FilePath;
-      projectsDir: FilePath;
-      projects: {
+      guildsDir: FilePath;
+      guilds: {
         dirName: FileName;
         questsDirPath: FilePath;
         questFolders: {
@@ -133,34 +133,34 @@ export const questFindQuestPathBrokerProxy = (): {
       }[];
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: projectsDir });
-      setupProjectEntries({ projects, projectsDir, readdirProxy, pathJoinProxy, readFileProxy });
+      pathJoinProxy.returns({ result: guildsDir });
+      setupGuildEntries({ guilds, guildsDir, readdirProxy, pathJoinProxy, readFileProxy });
     },
 
-    setupNoProjects: ({
+    setupNoGuilds: ({
       homeDir,
       homePath,
-      projectsDir,
+      guildsDir,
     }: {
       homeDir: string;
       homePath: FilePath;
-      projectsDir: FilePath;
+      guildsDir: FilePath;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: projectsDir });
+      pathJoinProxy.returns({ result: guildsDir });
       readdirProxy.returns({ entries: [] });
     },
 
     setupQuestNotFound: ({
       homeDir,
       homePath,
-      projectsDir,
-      projects,
+      guildsDir,
+      guilds,
     }: {
       homeDir: string;
       homePath: FilePath;
-      projectsDir: FilePath;
-      projects: {
+      guildsDir: FilePath;
+      guilds: {
         dirName: FileName;
         questsDirPath: FilePath;
         questFolders: {
@@ -172,28 +172,28 @@ export const questFindQuestPathBrokerProxy = (): {
       }[];
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: projectsDir });
-      setupProjectEntries({ projects, projectsDir, readdirProxy, pathJoinProxy, readFileProxy });
+      pathJoinProxy.returns({ result: guildsDir });
+      setupGuildEntries({ guilds, guildsDir, readdirProxy, pathJoinProxy, readFileProxy });
     },
 
     setupQuestsReadError: ({
       homeDir,
       homePath,
-      projectsDir,
-      projectDirName,
+      guildsDir,
+      guildDirName,
     }: {
       homeDir: string;
       homePath: FilePath;
-      projectsDir: FilePath;
-      projectDirName: FileName;
+      guildsDir: FilePath;
+      guildDirName: FileName;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: projectsDir });
+      pathJoinProxy.returns({ result: guildsDir });
 
-      const projectDirents = [createMockDirent({ name: projectDirName, parentPath: projectsDir })];
-      readdirProxy.returns({ entries: projectDirents });
+      const guildDirents = [createMockDirent({ name: guildDirName, parentPath: guildsDir })];
+      readdirProxy.returns({ entries: guildDirents });
 
-      pathJoinProxy.returns({ result: projectsDir });
+      pathJoinProxy.returns({ result: guildsDir });
       readdirProxy.throws({ error: new Error('ENOENT: no such file or directory') });
     },
   };

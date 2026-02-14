@@ -1,21 +1,21 @@
-import { FilePathStub, ProjectConfigStub, ProjectStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, GuildConfigStub, GuildStub } from '@dungeonmaster/shared/contracts';
 
-import { projectConfigReadBroker } from './project-config-read-broker';
-import { projectConfigReadBrokerProxy } from './project-config-read-broker.proxy';
+import { guildConfigReadBroker } from './guild-config-read-broker';
+import { guildConfigReadBrokerProxy } from './guild-config-read-broker.proxy';
 
-describe('projectConfigReadBroker', () => {
+describe('guildConfigReadBroker', () => {
   describe('existing config', () => {
-    it('VALID: {config.json exists with projects} => returns parsed ProjectConfig', async () => {
-      const proxy = projectConfigReadBrokerProxy();
+    it('VALID: {config.json exists with guilds} => returns parsed GuildConfig', async () => {
+      const proxy = guildConfigReadBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
       const configFilePath = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
-      const project = ProjectStub({
+      const guild = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        name: 'My Project',
-        path: '/home/user/my-project',
+        name: 'My Guild',
+        path: '/home/user/my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const config = ProjectConfigStub({ projects: [project] });
+      const config = GuildConfigStub({ guilds: [guild] });
       const configJson = JSON.stringify(config);
 
       proxy.setupConfigExists({
@@ -25,25 +25,25 @@ describe('projectConfigReadBroker', () => {
         configJson,
       });
 
-      const result = await projectConfigReadBroker();
+      const result = await guildConfigReadBroker();
 
       expect(result).toStrictEqual({
-        projects: [
+        guilds: [
           {
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'My Project',
-            path: '/home/user/my-project',
+            name: 'My Guild',
+            path: '/home/user/my-guild',
             createdAt: '2024-01-15T10:00:00.000Z',
           },
         ],
       });
     });
 
-    it('VALID: {config.json exists with empty projects} => returns config with empty array', async () => {
-      const proxy = projectConfigReadBrokerProxy();
+    it('VALID: {config.json exists with empty guilds} => returns config with empty array', async () => {
+      const proxy = guildConfigReadBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
       const configFilePath = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
-      const configJson = JSON.stringify({ projects: [] });
+      const configJson = JSON.stringify({ guilds: [] });
 
       proxy.setupConfigExists({
         homeDir: '/home/user',
@@ -52,17 +52,17 @@ describe('projectConfigReadBroker', () => {
         configJson,
       });
 
-      const result = await projectConfigReadBroker();
+      const result = await guildConfigReadBroker();
 
       expect(result).toStrictEqual({
-        projects: [],
+        guilds: [],
       });
     });
   });
 
   describe('missing config', () => {
-    it('EMPTY: {config.json does not exist} => returns default config with empty projects', async () => {
-      const proxy = projectConfigReadBrokerProxy();
+    it('EMPTY: {config.json does not exist} => returns default config with empty guilds', async () => {
+      const proxy = guildConfigReadBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
       const configFilePath = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
 
@@ -72,17 +72,17 @@ describe('projectConfigReadBroker', () => {
         configFilePath,
       });
 
-      const result = await projectConfigReadBroker();
+      const result = await guildConfigReadBroker();
 
       expect(result).toStrictEqual({
-        projects: [],
+        guilds: [],
       });
     });
   });
 
   describe('read errors', () => {
     it('ERROR: {non-ENOENT read failure} => throws error', async () => {
-      const proxy = projectConfigReadBrokerProxy();
+      const proxy = guildConfigReadBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
       const configFilePath = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
 
@@ -93,7 +93,7 @@ describe('projectConfigReadBroker', () => {
         error: new Error('Permission denied'),
       });
 
-      await expect(projectConfigReadBroker()).rejects.toThrow(/Failed to read file/u);
+      await expect(guildConfigReadBroker()).rejects.toThrow(/Failed to read file/u);
     });
   });
 });

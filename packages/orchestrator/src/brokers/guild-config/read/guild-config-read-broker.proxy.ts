@@ -1,16 +1,16 @@
 /**
- * PURPOSE: Proxy for project-config-read-broker that mocks filesystem and path operations
+ * PURPOSE: Proxy for guild-config-read-broker that mocks filesystem and path operations
  *
  * USAGE:
- * const proxy = projectConfigReadBrokerProxy();
- * proxy.setupConfig({ config: ProjectConfigStub({ projects: [] }) });
+ * const proxy = guildConfigReadBrokerProxy();
+ * proxy.setupConfig({ config: GuildConfigStub({ guilds: [] }) });
  */
 
 import {
   dungeonmasterHomeFindBrokerProxy,
   pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
-import { FilePathStub, type FilePath, type ProjectConfig } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, type FilePath, type GuildConfig } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 
@@ -18,8 +18,8 @@ const DEFAULT_HOME_DIR = '/home/user';
 const DEFAULT_HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
 const DEFAULT_CONFIG_FILE_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
 
-export const projectConfigReadBrokerProxy = (): {
-  setupConfig: (params: { config: ProjectConfig }) => void;
+export const guildConfigReadBrokerProxy = (): {
+  setupConfig: (params: { config: GuildConfig }) => void;
   setupConfigExists: (params: {
     homeDir: string;
     homePath: FilePath;
@@ -43,7 +43,7 @@ export const projectConfigReadBrokerProxy = (): {
   const readFileProxy = fsReadFileAdapterProxy();
 
   return {
-    setupConfig: ({ config }: { config: ProjectConfig }): void => {
+    setupConfig: ({ config }: { config: GuildConfig }): void => {
       homeFindProxy.setupHomePath({
         homeDir: DEFAULT_HOME_DIR,
         homePath: DEFAULT_HOME_PATH,

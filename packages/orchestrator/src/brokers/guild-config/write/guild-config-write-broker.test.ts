@@ -1,21 +1,21 @@
-import { FilePathStub, ProjectConfigStub, ProjectStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, GuildConfigStub, GuildStub } from '@dungeonmaster/shared/contracts';
 
-import { projectConfigWriteBroker } from './project-config-write-broker';
-import { projectConfigWriteBrokerProxy } from './project-config-write-broker.proxy';
+import { guildConfigWriteBroker } from './guild-config-write-broker';
+import { guildConfigWriteBrokerProxy } from './guild-config-write-broker.proxy';
 
-describe('projectConfigWriteBroker', () => {
+describe('guildConfigWriteBroker', () => {
   describe('successful write', () => {
-    it('VALID: {config with projects} => writes pretty-printed JSON', async () => {
-      const proxy = projectConfigWriteBrokerProxy();
+    it('VALID: {config with guilds} => writes pretty-printed JSON', async () => {
+      const proxy = guildConfigWriteBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
       const configFilePath = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
-      const project = ProjectStub({
+      const guild = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        name: 'My Project',
-        path: '/home/user/my-project',
+        name: 'My Guild',
+        path: '/home/user/my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const config = ProjectConfigStub({ projects: [project] });
+      const config = GuildConfigStub({ guilds: [guild] });
 
       proxy.setupWriteSuccess({
         homeDir: '/home/user',
@@ -23,18 +23,18 @@ describe('projectConfigWriteBroker', () => {
         configFilePath,
       });
 
-      await projectConfigWriteBroker({ config });
+      await guildConfigWriteBroker({ config });
 
       const writtenContent = proxy.getWrittenContent();
 
       expect(writtenContent).toBe(JSON.stringify(config, null, 2));
     });
 
-    it('VALID: {config with empty projects} => writes JSON with empty array', async () => {
-      const proxy = projectConfigWriteBrokerProxy();
+    it('VALID: {config with empty guilds} => writes JSON with empty array', async () => {
+      const proxy = guildConfigWriteBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
       const configFilePath = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
-      const config = ProjectConfigStub({ projects: [] });
+      const config = GuildConfigStub({ guilds: [] });
 
       proxy.setupWriteSuccess({
         homeDir: '/home/user',
@@ -42,20 +42,20 @@ describe('projectConfigWriteBroker', () => {
         configFilePath,
       });
 
-      await projectConfigWriteBroker({ config });
+      await guildConfigWriteBroker({ config });
 
       const writtenContent = proxy.getWrittenContent();
 
-      expect(writtenContent).toBe(JSON.stringify({ projects: [] }, null, 2));
+      expect(writtenContent).toBe(JSON.stringify({ guilds: [] }, null, 2));
     });
   });
 
   describe('write errors', () => {
     it('ERROR: {write failure} => throws error', async () => {
-      const proxy = projectConfigWriteBrokerProxy();
+      const proxy = guildConfigWriteBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
       const configFilePath = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
-      const config = ProjectConfigStub({ projects: [] });
+      const config = GuildConfigStub({ guilds: [] });
 
       proxy.setupWriteFailure({
         homeDir: '/home/user',
@@ -64,7 +64,7 @@ describe('projectConfigWriteBroker', () => {
         error: new Error('EACCES: permission denied'),
       });
 
-      await expect(projectConfigWriteBroker({ config })).rejects.toThrow(
+      await expect(guildConfigWriteBroker({ config })).rejects.toThrow(
         /EACCES: permission denied/u,
       );
     });

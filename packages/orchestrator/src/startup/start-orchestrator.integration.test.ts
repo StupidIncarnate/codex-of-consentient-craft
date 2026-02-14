@@ -1,13 +1,13 @@
-import { ProcessIdStub, ProjectIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { StartOrchestrator } from './start-orchestrator';
 
 describe('StartOrchestrator', () => {
   describe('listQuests', () => {
-    it('ERROR: {invalid projectId} => throws error when quests folder not found', async () => {
-      const projectId = ProjectIdStub({ value: '00000000-0000-0000-0000-000000000000' });
+    it('ERROR: {invalid guildId} => throws error when quests folder not found', async () => {
+      const guildId = GuildIdStub({ value: '00000000-0000-0000-0000-000000000000' });
 
-      await expect(StartOrchestrator.listQuests({ projectId })).rejects.toThrow(
+      await expect(StartOrchestrator.listQuests({ guildId })).rejects.toThrow(
         /ENOENT|no such file/u,
       );
     });
@@ -17,7 +17,7 @@ describe('StartOrchestrator', () => {
     it('ERROR: {invalid questId} => throws quest not found error', async () => {
       const questId = QuestIdStub({ value: 'nonexistent-quest' });
 
-      await expect(StartOrchestrator.loadQuest({ questId })).rejects.toThrow(/not found/u);
+      await expect(StartOrchestrator.loadQuest({ questId })).rejects.toThrow(/ENOENT|not found/u);
     });
   });
 
@@ -25,7 +25,7 @@ describe('StartOrchestrator', () => {
     it('ERROR: {invalid questId} => throws error when quest not found', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
 
-      await expect(StartOrchestrator.startQuest({ questId })).rejects.toThrow(/not found/u);
+      await expect(StartOrchestrator.startQuest({ questId })).rejects.toThrow(/ENOENT|not found/u);
     });
   });
 

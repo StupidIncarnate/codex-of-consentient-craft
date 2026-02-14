@@ -1,13 +1,13 @@
 import { questListBroker } from './quest-list-broker';
 import { questListBrokerProxy } from './quest-list-broker.proxy';
-import { FilePathStub, ProjectIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 describe('questListBroker', () => {
   describe('listing quests', () => {
     it('VALID: {projectId} => returns array of all quests from folders', async () => {
       const proxy = questListBrokerProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
@@ -72,7 +72,7 @@ describe('questListBroker', () => {
         }),
       });
 
-      const result = await questListBroker({ projectId });
+      const result = await questListBroker({ guildId });
 
       expect(result).toHaveLength(2);
       expect(result[0]?.id).toBe('quest-1');
@@ -81,7 +81,7 @@ describe('questListBroker', () => {
 
     it('VALID: {projectId} => returns empty array when no quest folders exist', async () => {
       const proxy = questListBrokerProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
@@ -95,14 +95,14 @@ describe('questListBroker', () => {
         ],
       });
 
-      const result = await questListBroker({ projectId });
+      const result = await questListBroker({ guildId });
 
       expect(result).toStrictEqual([]);
     });
 
     it('VALID: {projectId} => returns empty array when quests folder is empty', async () => {
       const proxy = questListBrokerProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
@@ -111,7 +111,7 @@ describe('questListBroker', () => {
       });
       proxy.setupQuestDirectories({ files: [] });
 
-      const result = await questListBroker({ projectId });
+      const result = await questListBroker({ guildId });
 
       expect(result).toStrictEqual([]);
     });
@@ -120,7 +120,7 @@ describe('questListBroker', () => {
   describe('edge cases', () => {
     it('EDGE: {projectId with hidden files} => handles hidden files in quest folder', async () => {
       const proxy = questListBrokerProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
@@ -157,7 +157,7 @@ describe('questListBroker', () => {
         }),
       });
 
-      const result = await questListBroker({ projectId });
+      const result = await questListBroker({ guildId });
 
       expect(result).toHaveLength(1);
       expect(result[0]?.id).toBe('hidden-quest');

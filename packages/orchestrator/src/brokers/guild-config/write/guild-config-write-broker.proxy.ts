@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Proxy for project-config-write-broker that mocks filesystem and path operations
+ * PURPOSE: Proxy for guild-config-write-broker that mocks filesystem and path operations
  *
  * USAGE:
- * const proxy = projectConfigWriteBrokerProxy();
+ * const proxy = guildConfigWriteBrokerProxy();
  * proxy.setupWriteSuccess({ homeDir: '/home/user', homePath, configFilePath });
  */
 
@@ -18,7 +18,7 @@ const DEFAULT_HOME_DIR = '/home/user';
 const DEFAULT_HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
 const DEFAULT_CONFIG_FILE_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
 
-export const projectConfigWriteBrokerProxy = (): {
+export const guildConfigWriteBrokerProxy = (): {
   setupSuccess: () => void;
   setupWriteSuccess: (params: {
     homeDir: string;

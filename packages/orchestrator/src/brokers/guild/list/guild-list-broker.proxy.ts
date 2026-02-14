@@ -3,18 +3,18 @@ import {
   fsReaddirWithTypesAdapterProxy,
   pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
-import type { FilePath, ProjectConfig } from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
 import type { Dirent } from 'fs';
 
 import { pathIsAccessibleBrokerProxy } from '../../path/is-accessible/path-is-accessible-broker.proxy';
-import { projectConfigReadBrokerProxy } from '../../project-config/read/project-config-read-broker.proxy';
+import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
 
-export const projectListBrokerProxy = (): {
-  setupProjectList: (params: {
-    config: ProjectConfig;
+export const guildListBrokerProxy = (): {
+  setupGuildList: (params: {
+    config: GuildConfig;
     homeDir: string;
     homePath: FilePath;
-    projectEntries: {
+    guildEntries: {
       accessible: boolean;
       questsDirPath: FilePath;
       questDirEntries: Dirent[];
@@ -22,23 +22,23 @@ export const projectListBrokerProxy = (): {
   }) => void;
   setupEmptyConfig: (params: { homeDir: string; homePath: FilePath }) => void;
 } => {
-  const configReadProxy = projectConfigReadBrokerProxy();
+  const configReadProxy = guildConfigReadBrokerProxy();
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const readdirProxy = fsReaddirWithTypesAdapterProxy();
   const accessibleProxy = pathIsAccessibleBrokerProxy();
 
   return {
-    setupProjectList: ({
+    setupGuildList: ({
       config,
       homeDir,
       homePath,
-      projectEntries,
+      guildEntries,
     }: {
-      config: ProjectConfig;
+      config: GuildConfig;
       homeDir: string;
       homePath: FilePath;
-      projectEntries: {
+      guildEntries: {
         accessible: boolean;
         questsDirPath: FilePath;
         questDirEntries: Dirent[];
@@ -47,7 +47,7 @@ export const projectListBrokerProxy = (): {
       configReadProxy.setupConfig({ config });
       homeFindProxy.setupHomePath({ homeDir, homePath });
 
-      for (const entry of projectEntries) {
+      for (const entry of guildEntries) {
         accessibleProxy.setupResult({ result: entry.accessible });
         pathJoinProxy.returns({ result: entry.questsDirPath });
         readdirProxy.returns({ entries: entry.questDirEntries });
@@ -55,7 +55,7 @@ export const projectListBrokerProxy = (): {
     },
 
     setupEmptyConfig: ({ homeDir, homePath }: { homeDir: string; homePath: FilePath }): void => {
-      configReadProxy.setupConfig({ config: { projects: [] } });
+      configReadProxy.setupConfig({ config: { guilds: [] } });
       homeFindProxy.setupHomePath({ homeDir, homePath });
     },
   };
