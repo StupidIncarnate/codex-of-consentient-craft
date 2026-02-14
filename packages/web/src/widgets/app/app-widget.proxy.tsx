@@ -13,11 +13,13 @@ import { useProjectsBindingProxy } from '../../bindings/use-projects/use-project
 import { useQuestDetailBindingProxy } from '../../bindings/use-quest-detail/use-quest-detail-binding.proxy';
 import { useQuestsBindingProxy } from '../../bindings/use-quests/use-quests-binding.proxy';
 import { projectCreateBrokerProxy } from '../../brokers/project/create/project-create-broker.proxy';
+import { GuildListWidgetProxy } from '../guild-list/guild-list-widget.proxy';
+import { GuildQuestListWidgetProxy } from '../guild-quest-list/guild-quest-list-widget.proxy';
+import { LogoWidgetProxy } from '../logo/logo-widget.proxy';
+import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
 import { ProjectAddModalWidgetProxy } from '../project-add-modal/project-add-modal-widget.proxy';
 import { ProjectEmptyStateWidgetProxy } from '../project-empty-state/project-empty-state-widget.proxy';
-import { ProjectSidebarWidgetProxy } from '../project-sidebar/project-sidebar-widget.proxy';
 import { QuestDetailWidgetProxy } from '../quest-detail/quest-detail-widget.proxy';
-import { QuestListWidgetProxy } from '../quest-list/quest-list-widget.proxy';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
@@ -38,11 +40,13 @@ export const AppWidgetProxy = (): {
   setupExecutionStartError: () => void;
   setupExecutionStatus: (params: { status: OrchestrationStatus }) => void;
   setupExecutionStatusError: () => void;
-  clickAddProject: () => Promise<void>;
-  clickProject: (params: { name: string }) => Promise<void>;
-  isProjectVisible: (params: { name: string }) => boolean;
-  clickCreateFirstProject: () => Promise<void>;
-  isWelcomeVisible: () => boolean;
+  clickGuildItem: (params: { testId: string }) => Promise<void>;
+  isGuildItemVisible: (params: { testId: string }) => boolean;
+  clickAddGuild: () => Promise<void>;
+  isNewGuildTitleVisible: () => boolean;
+  typeGuildName: (params: { value: string }) => Promise<void>;
+  typeGuildPath: (params: { value: string }) => Promise<void>;
+  clickCreateGuild: () => Promise<void>;
   typeProjectName: (params: { name: string }) => Promise<void>;
   clickBrowse: () => Promise<void>;
   clickCreateProjectSubmit: () => Promise<void>;
@@ -56,10 +60,12 @@ export const AppWidgetProxy = (): {
   const questsProxy = useQuestsBindingProxy();
   const projectsProxy = useProjectsBindingProxy();
   const createProjectProxy = projectCreateBrokerProxy();
-  const sidebar = ProjectSidebarWidgetProxy();
+  LogoWidgetProxy();
+  MapFrameWidgetProxy();
+  const guildList = GuildListWidgetProxy();
+  GuildQuestListWidgetProxy();
   const emptyState = ProjectEmptyStateWidgetProxy();
   const addModal = ProjectAddModalWidgetProxy();
-  QuestListWidgetProxy();
   QuestDetailWidgetProxy();
 
   return {
@@ -96,17 +102,24 @@ export const AppWidgetProxy = (): {
     setupExecutionStatusError: (): void => {
       executionProxy.setupStatusError();
     },
-    clickAddProject: async (): Promise<void> => {
-      await sidebar.clickAddProject();
+    clickGuildItem: async ({ testId }: { testId: string }): Promise<void> => {
+      await guildList.clickItem({ testId });
     },
-    clickProject: async ({ name }: { name: string }): Promise<void> => {
-      await sidebar.clickProject({ name });
+    isGuildItemVisible: ({ testId }: { testId: string }): boolean =>
+      guildList.isItemVisible({ testId }),
+    clickAddGuild: async (): Promise<void> => {
+      await guildList.clickAddButton();
     },
-    isProjectVisible: ({ name }: { name: string }): boolean => sidebar.isProjectVisible({ name }),
-    clickCreateFirstProject: async (): Promise<void> => {
-      await emptyState.clickCreateFirstProject();
+    isNewGuildTitleVisible: (): boolean => emptyState.isNewGuildTitleVisible(),
+    typeGuildName: async ({ value }: { value: string }): Promise<void> => {
+      await emptyState.typeGuildName({ value });
     },
-    isWelcomeVisible: (): boolean => emptyState.isWelcomeVisible(),
+    typeGuildPath: async ({ value }: { value: string }): Promise<void> => {
+      await emptyState.typeGuildPath({ value });
+    },
+    clickCreateGuild: async (): Promise<void> => {
+      await emptyState.clickCreate();
+    },
     typeProjectName: async ({ name }: { name: string }): Promise<void> => {
       await addModal.typeName({ name });
     },

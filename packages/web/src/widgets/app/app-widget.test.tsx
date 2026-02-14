@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import {
   OrchestrationStatusStub,
   ProcessIdStub,
@@ -13,25 +13,8 @@ import { AppWidget } from './app-widget';
 import { AppWidgetProxy } from './app-widget.proxy';
 
 describe('AppWidget', () => {
-  describe('initial render', () => {
-    it('VALID: {} => renders Dungeonmaster title', async () => {
-      const proxy = AppWidgetProxy();
-
-      proxy.setupProjects({ projects: [] });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({ ui: <AppWidget /> });
-          await Promise.resolve();
-        },
-      });
-
-      expect(screen.getByText('Dungeonmaster')).toBeInTheDocument();
-    });
-  });
-
   describe('empty state', () => {
-    it('VALID: {no projects} => shows welcome empty state', async () => {
+    it('VALID: {no projects} => shows NEW GUILD form', async () => {
       const proxy = AppWidgetProxy();
 
       proxy.setupProjects({ projects: [] });
@@ -44,20 +27,18 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.isWelcomeVisible()).toBe(true);
+        expect(proxy.isNewGuildTitleVisible()).toBe(true);
       });
 
-      expect(proxy.isWelcomeVisible()).toBe(true);
+      expect(proxy.isNewGuildTitleVisible()).toBe(true);
     });
   });
 
-  describe('project sidebar', () => {
-    it('VALID: {projects loaded} => shows projects in sidebar', async () => {
+  describe('guild list view', () => {
+    it('VALID: {projects loaded} => shows guild items', async () => {
       const proxy = AppWidgetProxy();
-      const projects = [
-        ProjectListItemStub({ name: 'Project One' }),
-        ProjectListItemStub({ name: 'Project Two' }),
-      ];
+      const project = ProjectListItemStub({ name: 'Project One' });
+      const projects = [project];
 
       proxy.setupProjects({ projects });
 
@@ -69,17 +50,13 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        const nav = screen.getByRole('navigation');
-
-        expect(within(nav).getByText('Project One')).toBeInTheDocument();
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${project.id}` })).toBe(true);
       });
 
-      const nav = screen.getByRole('navigation');
-
-      expect(within(nav).getByText('Project Two')).toBeInTheDocument();
+      expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${project.id}` })).toBe(true);
     });
 
-    it('VALID: {projects loaded} => shows Add Project button in sidebar', async () => {
+    it('VALID: {no project selected} => shows select a guild message', async () => {
       const proxy = AppWidgetProxy();
       const projects = [ProjectListItemStub({ name: 'My Project' })];
 
@@ -93,17 +70,18 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId('ADD_PROJECT_BUTTON')).toBeInTheDocument();
+        expect(screen.getByText('Select a guild')).toBeInTheDocument();
       });
 
-      expect(screen.getByTestId('ADD_PROJECT_BUTTON')).toBeInTheDocument();
+      expect(screen.getByText('Select a guild')).toBeInTheDocument();
     });
   });
 
   describe('quest list view', () => {
     it('VALID: {project selected, quests loaded} => shows quest list', async () => {
       const proxy = AppWidgetProxy();
-      const projects = [ProjectListItemStub({ name: 'My Project' })];
+      const project = ProjectListItemStub({ name: 'My Project' });
+      const projects = [project];
       const quests = [
         QuestListItemStub({ id: 'quest-1', title: 'First Quest' }),
         QuestListItemStub({ id: 'quest-2', title: 'Second Quest' }),
@@ -119,14 +97,14 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('My Project')).toBeInTheDocument();
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${project.id}` })).toBe(true);
       });
 
       proxy.setupQuests({ quests });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          await proxy.clickProject({ name: 'My Project' });
+          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${project.id}` });
           await Promise.resolve();
         },
       });
@@ -139,155 +117,13 @@ describe('AppWidget', () => {
     });
   });
 
-  describe('navigation between views', () => {
-    it('VALID: {click quest row} => navigates to detail view', async () => {
-      const proxy = AppWidgetProxy();
-      const projects = [ProjectListItemStub({ name: 'My Project' })];
-      const quest = QuestStub({ id: 'quest-1', title: 'My Quest' });
-      const quests = [QuestListItemStub({ id: 'quest-1', title: 'My Quest' })];
-
-      proxy.setupProjects({ projects });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({ ui: <AppWidget /> });
-          await Promise.resolve();
-        },
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('My Project')).toBeInTheDocument();
-      });
-
-      proxy.setupQuests({ quests });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickProject({ name: 'My Project' });
-          await Promise.resolve();
-        },
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('My Quest')).toBeInTheDocument();
-      });
-
-      proxy.setupQuestDetail({ quest });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          fireEvent.click(screen.getByText('My Quest'));
-          await Promise.resolve();
-        },
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Back to list')).toBeInTheDocument();
-      });
-
-      expect(screen.getByText('Back to list')).toBeInTheDocument();
-    });
-
-    it('VALID: {in detail view, click back} => returns to list view', async () => {
-      const proxy = AppWidgetProxy();
-      const projects = [ProjectListItemStub({ name: 'My Project' })];
-      const quest = QuestStub({ id: 'quest-1', title: 'My Quest' });
-      const quests = [QuestListItemStub({ id: 'quest-1', title: 'My Quest' })];
-
-      proxy.setupProjects({ projects });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({ ui: <AppWidget /> });
-          await Promise.resolve();
-        },
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('My Project')).toBeInTheDocument();
-      });
-
-      proxy.setupQuests({ quests });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickProject({ name: 'My Project' });
-          await Promise.resolve();
-        },
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('My Quest')).toBeInTheDocument();
-      });
-
-      proxy.setupQuestDetail({ quest });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          fireEvent.click(screen.getByText('My Quest'));
-          await Promise.resolve();
-        },
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Back to list')).toBeInTheDocument();
-      });
-
-      proxy.setupQuests({ quests: [] });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          fireEvent.click(screen.getByText('Back to list'));
-          await Promise.resolve();
-        },
-      });
-
-      expect(screen.queryByText('Back to list')).not.toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: 'Quests' })).toBeInTheDocument();
-    });
-  });
-
-  describe('error states', () => {
-    it('ERROR: {quest list fetch fails} => shows error alert in list view', async () => {
-      const proxy = AppWidgetProxy();
-      const projects = [ProjectListItemStub({ name: 'My Project' })];
-
-      proxy.setupProjects({ projects });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({ ui: <AppWidget /> });
-          await Promise.resolve();
-        },
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('My Project')).toBeInTheDocument();
-      });
-
-      proxy.setupQuestsError();
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickProject({ name: 'My Project' });
-          await Promise.resolve();
-        },
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText(/fetch/iu)).toBeInTheDocument();
-      });
-
-      expect(screen.getByText(/fetch/iu)).toBeInTheDocument();
-    });
-  });
-
   describe('execution', () => {
     it('VALID: {start quest execution} => starts execution and refreshes quest detail', async () => {
       const proxy = AppWidgetProxy();
       const processId = ProcessIdStub({ value: 'proc-123' });
       const status = OrchestrationStatusStub({ processId, phase: 'codeweaver' });
-      const projects = [ProjectListItemStub({ name: 'My Project' })];
+      const project = ProjectListItemStub({ name: 'My Project' });
+      const projects = [project];
       const quest = QuestStub({ id: 'quest-1', title: 'My Quest' });
       const quests = [QuestListItemStub({ id: 'quest-1', title: 'My Quest' })];
 
@@ -301,14 +137,14 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('My Project')).toBeInTheDocument();
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${project.id}` })).toBe(true);
       });
 
       proxy.setupQuests({ quests });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          await proxy.clickProject({ name: 'My Project' });
+          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${project.id}` });
           await Promise.resolve();
         },
       });
@@ -321,7 +157,7 @@ describe('AppWidget', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          fireEvent.click(screen.getByText('My Quest'));
+          screen.getByText('My Quest').click();
           await Promise.resolve();
         },
       });
@@ -336,7 +172,7 @@ describe('AppWidget', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          fireEvent.click(screen.getByText('Start Quest'));
+          screen.getByText('Start Quest').click();
           await Promise.resolve();
         },
       });

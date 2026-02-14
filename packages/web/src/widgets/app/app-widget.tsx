@@ -1,17 +1,16 @@
 /**
- * PURPOSE: Root application layout managing project selection, quest list, and quest detail views
+ * PURPOSE: Root application layout managing guild selection, quest list, and quest detail views
  *
  * USAGE:
  * <AppWidget />
- * // Renders the full Dungeonmaster web UI with project sidebar, quest views, and project management modals
+ * // Renders the full Dungeonmaster web UI with guild list, quest views, and project management
  */
 
 import { useState } from 'react';
 
-import { AppShell, Container, NavLink, Text, Title } from '@mantine/core';
+import { Box, Center, Group, Stack, Text } from '@mantine/core';
 
 import type { ProjectId, ProjectName, ProjectPath, QuestId } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { useAgentOutputBinding } from '../../bindings/use-agent-output/use-agent-output-binding';
 import { useExecutionBinding } from '../../bindings/use-execution/use-execution-binding';
@@ -19,28 +18,26 @@ import { useProjectsBinding } from '../../bindings/use-projects/use-projects-bin
 import { useQuestDetailBinding } from '../../bindings/use-quest-detail/use-quest-detail-binding';
 import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
 import { projectCreateBroker } from '../../brokers/project/create/project-create-broker';
+import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { GuildListWidget } from '../guild-list/guild-list-widget';
+import { GuildQuestListWidget } from '../guild-quest-list/guild-quest-list-widget';
+import { LogoWidget } from '../logo/logo-widget';
+import { MapFrameWidget } from '../map-frame/map-frame-widget';
 import { ProjectAddModalWidget } from '../project-add-modal/project-add-modal-widget';
 import { ProjectEmptyStateWidget } from '../project-empty-state/project-empty-state-widget';
-import { ProjectSidebarWidget } from '../project-sidebar/project-sidebar-widget';
 import { QuestDetailWidget } from '../quest-detail/quest-detail-widget';
-import { QuestListWidget } from '../quest-list/quest-list-widget';
 
-type View = 'list' | 'detail';
+type View = 'main' | 'new-project' | 'detail';
 
 export const AppWidget = (): React.JSX.Element => {
-  const [currentView, setCurrentView] = useState<View>('list');
+  const [currentView, setCurrentView] = useState<View>('main');
   const [selectedProjectId, setSelectedProjectId] = useState<ProjectId | null>(null);
   const [selectedQuestId, setSelectedQuestId] = useState<QuestId | null>(null);
   const [addProjectModalOpened, setAddProjectModalOpened] = useState(false);
 
   const { projects, loading: projectsLoading, refresh: refreshProjects } = useProjectsBinding();
 
-  const {
-    data: quests,
-    loading: questsLoading,
-    error: questsError,
-    refresh,
-  } = useQuestsBinding({ projectId: selectedProjectId });
+  const { data: quests, refresh } = useQuestsBinding({ projectId: selectedProjectId });
 
   const {
     data: quest,
@@ -61,112 +58,103 @@ export const AppWidget = (): React.JSX.Element => {
 
   const { slotOutputs: agentSlotOutputs } = useAgentOutputBinding();
 
+  const { colors } = emberDepthsThemeStatics;
   const hasProjects = projects.length > 0;
 
   return (
-    <AppShell header={{ height: 60 }} navbar={{ width: 280, breakpoint: 'sm' }} padding="md">
-      <AppShell.Header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          paddingLeft: 16,
-        }}
-      >
-        <Title order={3}>Dungeonmaster</Title>
-      </AppShell.Header>
-
-      <AppShell.Navbar p="sm">
-        {hasProjects ? (
-          <>
-            <ProjectSidebarWidget
-              projects={projects}
-              selectedProjectId={selectedProjectId}
-              selectedQuestId={selectedQuestId}
-              onSelectProject={({ id }) => {
-                setSelectedProjectId(id);
-                setSelectedQuestId(null);
-                setCurrentView('list');
-              }}
-              onSelectQuest={({ id }) => {
-                setSelectedQuestId(id);
-                setCurrentView('detail');
-              }}
-              onAddProject={() => {
-                setAddProjectModalOpened(true);
-              }}
-            />
-            {selectedQuestId && quest && (
-              <NavLink
-                label={quest.title}
-                active={currentView === 'detail'}
-                onClick={() => {
-                  setCurrentView('detail');
-                }}
-                style={{ paddingLeft: 24 }}
-              />
-            )}
-          </>
-        ) : (
-          !projectsLoading && <NavLink label="No projects" disabled />
-        )}
-      </AppShell.Navbar>
-
-      <AppShell.Main>
-        <Container size="lg">
-          {!hasProjects && !projectsLoading ? (
-            <ProjectEmptyStateWidget
-              onAddProject={() => {
-                setAddProjectModalOpened(true);
-              }}
-            />
-          ) : (
-            <>
-              {currentView === 'list' && !selectedProjectId && (
-                <Text c="dimmed" ta="center" p="xl">
-                  Select a project from the sidebar to view its quests.
-                </Text>
-              )}
-              {currentView === 'list' && selectedProjectId && (
-                <QuestListWidget
-                  projectId={selectedProjectId}
-                  quests={quests}
-                  loading={questsLoading}
-                  error={questsError ? errorMessageContract.parse(questsError.message) : null}
-                  onRefresh={() => {
-                    refresh().catch(() => undefined);
-                  }}
-                  onSelectQuest={({ questId }) => {
-                    setSelectedQuestId(questId);
-                    setCurrentView('detail');
-                  }}
-                />
-              )}
-              {currentView === 'detail' && (
-                <QuestDetailWidget
-                  quest={quest}
-                  loading={questLoading}
-                  error={questError ?? executionError}
-                  onBack={() => {
-                    setCurrentView('list');
-                    setSelectedQuestId(null);
-                    refresh().catch(() => undefined);
-                  }}
-                  onStartQuest={({ questId }) => {
-                    startExecution({ questId })
-                      .then(async () => refreshQuest())
+    <div style={{ background: colors['bg-deep'], color: colors.text, minHeight: '100vh' }}>
+      <Center h="100vh">
+        <Stack align="center" gap="md" w="100%" maw={800} px="md">
+          <LogoWidget />
+          <MapFrameWidget>
+            {(!hasProjects && !projectsLoading) || currentView === 'new-project' ? (
+              <Center style={{ height: 250 }}>
+                <ProjectEmptyStateWidget
+                  onAddProject={({ name, path }) => {
+                    projectCreateBroker({ name: String(name), path: String(path) })
+                      .then(async ({ id }) => {
+                        await refreshProjects();
+                        setSelectedProjectId(id);
+                        setCurrentView('main');
+                      })
                       .catch(() => undefined);
                   }}
-                  isRunning={isRunning}
-                  processStatus={processStatus}
-                  slotOutputs={
-                    executionSlotOutputs.size > 0 ? executionSlotOutputs : agentSlotOutputs
+                  onCancel={
+                    hasProjects
+                      ? () => {
+                          setCurrentView('main');
+                        }
+                      : undefined
                   }
                 />
-              )}
-            </>
-          )}
-        </Container>
-      </AppShell.Main>
+              </Center>
+            ) : currentView === 'detail' ? (
+              <QuestDetailWidget
+                quest={quest}
+                loading={questLoading}
+                error={questError ?? executionError}
+                onBack={() => {
+                  setCurrentView('main');
+                  setSelectedQuestId(null);
+                  refresh().catch(() => undefined);
+                }}
+                onStartQuest={({ questId }) => {
+                  startExecution({ questId })
+                    .then(async () => refreshQuest())
+                    .catch(() => undefined);
+                }}
+                isRunning={isRunning}
+                processStatus={processStatus}
+                slotOutputs={
+                  executionSlotOutputs.size > 0 ? executionSlotOutputs : agentSlotOutputs
+                }
+              />
+            ) : (
+              <Group align="flex-start" gap="xl" wrap="nowrap" style={{ minHeight: 200 }}>
+                <Box
+                  style={{
+                    flex: '0 0 200px',
+                    borderRight: `1px solid ${colors.border}`,
+                    paddingRight: 16,
+                  }}
+                >
+                  <GuildListWidget
+                    projects={projects}
+                    selectedProjectId={selectedProjectId}
+                    onSelect={({ id }: { id: ProjectId }) => {
+                      setSelectedProjectId(id);
+                      setSelectedQuestId(null);
+                    }}
+                    onAdd={() => {
+                      setCurrentView('new-project');
+                    }}
+                  />
+                </Box>
+                <Box style={{ flex: 1 }}>
+                  {selectedProjectId ? (
+                    <GuildQuestListWidget
+                      quests={quests}
+                      onSelect={({ questId }: { questId: QuestId }) => {
+                        setSelectedQuestId(questId);
+                        setCurrentView('detail');
+                      }}
+                      onAdd={() => {
+                        refresh().catch(() => undefined);
+                      }}
+                    />
+                  ) : (
+                    <Center h={200}>
+                      <Text ff="monospace" size="sm" style={{ color: colors['text-dim'] }}>
+                        Select a guild
+                      </Text>
+                    </Center>
+                  )}
+                </Box>
+              </Group>
+            )}
+          </MapFrameWidget>
+        </Stack>
+      </Center>
 
       <ProjectAddModalWidget
         opened={addProjectModalOpened}
@@ -183,6 +171,6 @@ export const AppWidget = (): React.JSX.Element => {
             .catch(() => undefined);
         }}
       />
-    </AppShell>
+    </div>
   );
 };

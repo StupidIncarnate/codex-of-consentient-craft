@@ -12,8 +12,8 @@ export const agentOutputConfigStatics = {
     warningThreshold: 400,
   },
   terminal: {
-    backgroundColor: '#0d1117',
-    textColor: '#e6edf3',
+    backgroundColor: '#0d0907',
+    textColor: '#e0cfc0',
     fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
   },
   scrollbar: {

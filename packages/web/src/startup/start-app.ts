@@ -11,9 +11,15 @@ import '@mantine/notifications/styles.css';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
+import { emberDepthsThemeStatics } from '../statics/ember-depths-theme/ember-depths-theme-statics';
 import { AppWidget } from '../widgets/app/app-widget';
+
+const theme = createTheme({
+  fontFamily: 'monospace',
+  defaultRadius: 2,
+});
 
 export const StartApp = (): void => {
   const rootElement = document.getElementById('root');
@@ -22,6 +28,7 @@ export const StartApp = (): void => {
   }
 
   const root = ReactDOM.createRoot(rootElement);
+  const { colors } = emberDepthsThemeStatics;
 
   root.render(
     React.createElement(
@@ -29,9 +36,13 @@ export const StartApp = (): void => {
       null,
       React.createElement(
         MantineProvider,
-        null,
-        React.createElement(Notifications, null),
-        React.createElement(AppWidget, null),
+        { theme, forceColorScheme: 'dark' as const },
+        React.createElement(
+          'div',
+          { style: { backgroundColor: colors['bg-deep'], minHeight: '100vh' } },
+          React.createElement(Notifications, null),
+          React.createElement(AppWidget, null),
+        ),
       ),
     ),
   );
