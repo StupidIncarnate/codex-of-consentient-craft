@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { cleanProjects, createProject, createQuest } from './fixtures/test-helpers';
+import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 test.describe('Guild Selection & Quest Loading', () => {
   test('click guild loads its quest list', async ({ page, request }) => {
-    await cleanProjects(request);
-    const project = await createProject(request, { name: 'Guild A', path: '/tmp/guild-a' });
-    await createQuest(request, { projectId: project.id as string, title: 'Quest Alpha', userRequest: 'Test quest' });
+    await cleanGuilds(request);
+    const guild = await createGuild(request, { name: 'Guild A', path: '/tmp/guild-a' });
+    await createQuest(request, { guildId: guild.id as string, title: 'Quest Alpha', userRequest: 'Test quest' });
 
     await page.goto('/');
     await page.getByText('Guild A').click();
@@ -15,8 +15,8 @@ test.describe('Guild Selection & Quest Loading', () => {
   });
 
   test('click guild with no quests shows empty state', async ({ page, request }) => {
-    await cleanProjects(request);
-    await createProject(request, { name: 'Empty Guild', path: '/tmp/empty' });
+    await cleanGuilds(request);
+    await createGuild(request, { name: 'Empty Guild', path: '/tmp/empty' });
 
     await page.goto('/');
     await page.getByText('Empty Guild').click();
@@ -26,11 +26,11 @@ test.describe('Guild Selection & Quest Loading', () => {
   });
 
   test('switch between guilds refreshes quest list', async ({ page, request }) => {
-    await cleanProjects(request);
-    const projectA = await createProject(request, { name: 'Guild A', path: '/tmp/guild-a' });
-    const projectB = await createProject(request, { name: 'Guild B', path: '/tmp/guild-b' });
-    await createQuest(request, { projectId: projectA.id as string, title: 'Quest Alpha', userRequest: 'Test' });
-    await createQuest(request, { projectId: projectB.id as string, title: 'Quest Beta', userRequest: 'Test' });
+    await cleanGuilds(request);
+    const guildA = await createGuild(request, { name: 'Guild A', path: '/tmp/guild-a' });
+    const guildB = await createGuild(request, { name: 'Guild B', path: '/tmp/guild-b' });
+    await createQuest(request, { guildId: guildA.id as string, title: 'Quest Alpha', userRequest: 'Test' });
+    await createQuest(request, { guildId: guildB.id as string, title: 'Quest Beta', userRequest: 'Test' });
 
     await page.goto('/');
     await page.getByText('Guild A').click();

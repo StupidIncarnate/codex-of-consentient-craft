@@ -11,7 +11,7 @@ describe('installTestbedCreateBroker', () => {
       const testbed = installTestbedCreateBroker({ baseName });
       testbed.cleanup();
 
-      expect(testbed.projectPath).toMatch(/^\/tmp\/test-install-[a-f0-9]{8}$/u);
+      expect(testbed.guildPath).toMatch(/^\/tmp\/test-install-[a-f0-9]{8}$/u);
     });
   });
 

@@ -1,33 +1,33 @@
 import { integrationEnvironmentTrackingBroker } from './integration-environment-tracking-broker';
 import { integrationEnvironmentTrackingBrokerProxy } from './integration-environment-tracking-broker.proxy';
-import { TestProjectStub } from '../../../contracts/test-project/test-project.stub';
+import { TestGuildStub } from '../../../contracts/test-guild/test-guild.stub';
 
 describe('integrationEnvironmentTrackingBroker', () => {
   describe('add and getAll', () => {
     it('VALID: add project => getAll returns project', () => {
       integrationEnvironmentTrackingBroker.clear();
       integrationEnvironmentTrackingBrokerProxy();
-      const project = TestProjectStub();
+      const guild = TestGuildStub();
 
-      integrationEnvironmentTrackingBroker.add({ project });
+      integrationEnvironmentTrackingBroker.add({ guild });
 
       const result = integrationEnvironmentTrackingBroker.getAll();
 
-      expect(result).toStrictEqual([project]);
+      expect(result).toStrictEqual([guild]);
     });
 
-    it('VALID: add multiple projects => getAll returns all projects', () => {
+    it('VALID: add multiple guilds => getAll returns all guilds', () => {
       integrationEnvironmentTrackingBroker.clear();
       integrationEnvironmentTrackingBrokerProxy();
-      const project1 = TestProjectStub({ projectName: 'test-1' });
-      const project2 = TestProjectStub({ projectName: 'test-2' });
+      const guild1 = TestGuildStub({ guildName: 'test-1' });
+      const guild2 = TestGuildStub({ guildName: 'test-2' });
 
-      integrationEnvironmentTrackingBroker.add({ project: project1 });
-      integrationEnvironmentTrackingBroker.add({ project: project2 });
+      integrationEnvironmentTrackingBroker.add({ guild: guild1 });
+      integrationEnvironmentTrackingBroker.add({ guild: guild2 });
 
       const result = integrationEnvironmentTrackingBroker.getAll();
 
-      expect(result).toStrictEqual([project1, project2]);
+      expect(result).toStrictEqual([guild1, guild2]);
     });
   });
 
@@ -35,8 +35,8 @@ describe('integrationEnvironmentTrackingBroker', () => {
     it('VALID: clear after adding projects => getAll returns empty array', () => {
       integrationEnvironmentTrackingBroker.clear();
       integrationEnvironmentTrackingBrokerProxy();
-      const project = TestProjectStub();
-      integrationEnvironmentTrackingBroker.add({ project });
+      const guild = TestGuildStub();
+      integrationEnvironmentTrackingBroker.add({ guild });
 
       integrationEnvironmentTrackingBroker.clear();
 

@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { cleanProjects, createProject, createQuest } from './fixtures/test-helpers';
+import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 test.describe('Quest Detail Navigation', () => {
   test('click quest item opens detail view', async ({ page, request }) => {
-    await cleanProjects(request);
-    const project = await createProject(request, { name: 'Test Guild', path: '/tmp/test' });
+    await cleanGuilds(request);
+    const guild = await createGuild(request, { name: 'Test Guild', path: '/tmp/test' });
     const quest = await createQuest(request, {
-      projectId: project.id as string,
+      guildId: guild.id as string,
       title: 'My Quest',
       userRequest: 'Build something',
     });
@@ -26,10 +26,10 @@ test.describe('Quest Detail Navigation', () => {
   });
 
   test('quest detail tabs are navigable', async ({ page, request }) => {
-    await cleanProjects(request);
-    const project = await createProject(request, { name: 'Tab Guild', path: '/tmp/tab' });
+    await cleanGuilds(request);
+    const guild = await createGuild(request, { name: 'Tab Guild', path: '/tmp/tab' });
     const quest = await createQuest(request, {
-      projectId: project.id as string,
+      guildId: guild.id as string,
       title: 'Tab Quest',
       userRequest: 'Test tabs',
     });
@@ -55,10 +55,10 @@ test.describe('Quest Detail Navigation', () => {
   });
 
   test('back to list returns to quest list', async ({ page, request }) => {
-    await cleanProjects(request);
-    const project = await createProject(request, { name: 'Back Guild', path: '/tmp/back' });
+    await cleanGuilds(request);
+    const guild = await createGuild(request, { name: 'Back Guild', path: '/tmp/back' });
     const quest = await createQuest(request, {
-      projectId: project.id as string,
+      guildId: guild.id as string,
       title: 'Return Quest',
       userRequest: 'Test back',
     });

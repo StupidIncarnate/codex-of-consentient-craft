@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { cleanProjects, createProject } from './fixtures/test-helpers';
+import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
 test.describe('Smoke Tests', () => {
   test('health endpoint responds', async ({ request }) => {
@@ -20,7 +20,7 @@ test.describe('Smoke Tests', () => {
   });
 
   test('first-time empty state shows inline form', async ({ page, request }) => {
-    await cleanProjects(request);
+    await cleanGuilds(request);
     await page.goto('/');
 
     await expect(page.getByText('NEW GUILD')).toBeVisible();
@@ -29,20 +29,20 @@ test.describe('Smoke Tests', () => {
     await expect(page.getByText('CREATE')).toBeVisible();
   });
 
-  test('existing projects load in guild list', async ({ page, request }) => {
-    await cleanProjects(request);
-    await createProject(request, { name: 'Project Alpha', path: '/tmp/alpha' });
-    await createProject(request, { name: 'Project Beta', path: '/tmp/beta' });
+  test('existing guilds load in guild list', async ({ page, request }) => {
+    await cleanGuilds(request);
+    await createGuild(request, { name: 'Guild Alpha', path: '/tmp/alpha' });
+    await createGuild(request, { name: 'Guild Beta', path: '/tmp/beta' });
 
     await page.goto('/');
-    await expect(page.getByText('Project Alpha')).toBeVisible();
-    await expect(page.getByText('Project Beta')).toBeVisible();
+    await expect(page.getByText('Guild Alpha')).toBeVisible();
+    await expect(page.getByText('Guild Beta')).toBeVisible();
     await expect(page.locator('button:has-text("+")')).toBeVisible();
   });
 
   test('no guild selected shows guidance text', async ({ page, request }) => {
-    await cleanProjects(request);
-    await createProject(request, { name: 'Some Guild', path: '/tmp/some' });
+    await cleanGuilds(request);
+    await createGuild(request, { name: 'Some Guild', path: '/tmp/some' });
 
     await page.goto('/');
     await expect(page.getByText('Select a guild')).toBeVisible();

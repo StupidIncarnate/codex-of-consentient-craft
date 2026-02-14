@@ -33,7 +33,7 @@ import { fileContentContract } from '../../../contracts/file-content/file-conten
 import { processOutputContract } from '../../../contracts/process-output/process-output-contract';
 import { fileNameContract } from '../../../contracts/file-name/file-name-contract';
 import { execResultContract } from '../../../contracts/exec-result/exec-result-contract';
-import { testProjectContract } from '../../../contracts/test-project/test-project-contract';
+import { testGuildContract } from '../../../contracts/test-guild/test-guild-contract';
 import { integrationEnvironmentTrackingBroker } from '../tracking/integration-environment-tracking-broker';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import type { ProcessOutput } from '../../../contracts/process-output/process-output-contract';
@@ -43,7 +43,7 @@ import type { CommandName } from '../../../contracts/command-name/command-name-c
 import type { ExecResult } from '../../../contracts/exec-result/exec-result-contract';
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
-import type { TestProject } from '../../../contracts/test-project/test-project-contract';
+import type { TestGuild } from '../../../contracts/test-guild/test-guild-contract';
 import type { BaseName } from '../../../contracts/base-name/base-name-contract';
 
 export const integrationEnvironmentCreateBroker = ({
@@ -55,7 +55,7 @@ export const integrationEnvironmentCreateBroker = ({
     createPackageJson?: boolean;
     setupEslint?: boolean; // Copy tsconfig/eslint from project for type-aware linting
   };
-}): TestProject => {
+}): TestGuild => {
   const testId = cryptoRandomBytesAdapter({
     length: integrationEnvironmentStatics.constants.randomBytesLength,
   }).toString('hex');
@@ -106,10 +106,10 @@ export const integrationEnvironmentCreateBroker = ({
     });
   }
 
-  const testProject: TestProject = {
-    projectPath: testProjectContract.shape.projectPath.parse(projectPath),
-    projectName: testProjectContract.shape.projectName.parse(projectName),
-    rootDir: testProjectContract.shape.rootDir.parse(projectPath),
+  const testProject: TestGuild = {
+    guildPath: testGuildContract.shape.guildPath.parse(projectPath),
+    guildName: testGuildContract.shape.guildName.parse(projectName),
+    rootDir: testGuildContract.shape.rootDir.parse(projectPath),
 
     installDungeonmaster: (): ProcessOutput => {
       try {
@@ -254,7 +254,7 @@ export const integrationEnvironmentCreateBroker = ({
   };
 
   // Track for automatic cleanup
-  integrationEnvironmentTrackingBroker.add({ project: testProject });
+  integrationEnvironmentTrackingBroker.add({ guild: testProject });
 
   return testProject;
 };

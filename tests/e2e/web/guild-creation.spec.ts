@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { cleanProjects, createProject } from './fixtures/test-helpers';
+import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
 test.describe('Guild Creation Flow', () => {
   test('empty state inline form has correct fields', async ({ page, request }) => {
-    await cleanProjects(request);
+    await cleanGuilds(request);
     await page.goto('/');
 
     await expect(page.getByText('NEW GUILD')).toBeVisible();
@@ -16,7 +16,7 @@ test.describe('Guild Creation Flow', () => {
   });
 
   test('type name and path then CREATE succeeds', async ({ page, request }) => {
-    await cleanProjects(request);
+    await cleanGuilds(request);
     await page.goto('/');
 
     await page.getByTestId('GUILD_NAME_INPUT').fill('My Guild');
@@ -31,7 +31,7 @@ test.describe('Guild Creation Flow', () => {
   });
 
   test('browse directory flow selects path', async ({ page, request }) => {
-    await cleanProjects(request);
+    await cleanGuilds(request);
     await page.goto('/');
 
     await page.getByText('BROWSE').click();
@@ -63,8 +63,8 @@ test.describe('Guild Creation Flow', () => {
   });
 
   test('main view + button shows inline form with CANCEL', async ({ page, request }) => {
-    await cleanProjects(request);
-    await createProject(request, { name: 'Existing Guild', path: '/tmp/existing' });
+    await cleanGuilds(request);
+    await createGuild(request, { name: 'Existing Guild', path: '/tmp/existing' });
 
     await page.goto('/');
     // Click the guild to select it
@@ -83,8 +83,8 @@ test.describe('Guild Creation Flow', () => {
   });
 
   test('main view + then CREATE adds new guild', async ({ page, request }) => {
-    await cleanProjects(request);
-    await createProject(request, { name: 'Existing Guild', path: '/tmp/existing' });
+    await cleanGuilds(request);
+    await createGuild(request, { name: 'Existing Guild', path: '/tmp/existing' });
 
     await page.goto('/');
     await page.getByTestId('GUILD_LIST').locator('button:has-text("+")').click();
@@ -99,7 +99,7 @@ test.describe('Guild Creation Flow', () => {
   });
 
   test('CREATE with empty fields stays on form', async ({ page, request }) => {
-    await cleanProjects(request);
+    await cleanGuilds(request);
     await page.goto('/');
 
     // Click CREATE without filling fields

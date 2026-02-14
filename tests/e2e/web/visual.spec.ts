@@ -1,33 +1,33 @@
 import { test, expect } from '@playwright/test';
-import { cleanProjects, createProject, createQuest } from './fixtures/test-helpers';
+import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 test.describe('Status Badges & Visual', () => {
   test('selected guild has gold highlight', async ({ page, request }) => {
-    await cleanProjects(request);
-    const projectA = await createProject(request, { name: 'Guild A', path: '/tmp/a' });
-    const projectB = await createProject(request, { name: 'Guild B', path: '/tmp/b' });
+    await cleanGuilds(request);
+    const guildA = await createGuild(request, { name: 'Guild A', path: '/tmp/a' });
+    const guildB = await createGuild(request, { name: 'Guild B', path: '/tmp/b' });
 
     await page.goto('/');
-    await page.getByTestId(`GUILD_ITEM_${projectA.id}`).click();
+    await page.getByTestId(`GUILD_ITEM_${guildA.id}`).click();
 
     // Selected guild should have gold-colored styling
-    const selectedGuild = page.getByTestId(`GUILD_ITEM_${projectA.id}`);
+    const selectedGuild = page.getByTestId(`GUILD_ITEM_${guildA.id}`);
     await expect(selectedGuild).toBeVisible();
     // Check it has a distinct style (gold color on text)
     const color = await selectedGuild.evaluate((el) => getComputedStyle(el).color);
     expect(color).toBeTruthy();
 
     // Unselected guild should have different styling
-    const unselectedGuild = page.getByTestId(`GUILD_ITEM_${projectB.id}`);
+    const unselectedGuild = page.getByTestId(`GUILD_ITEM_${guildB.id}`);
     const unselectedColor = await unselectedGuild.evaluate((el) => getComputedStyle(el).color);
     expect(color).not.toBe(unselectedColor);
   });
 
   test('quest status badges show correct text', async ({ page, request }) => {
-    await cleanProjects(request);
-    const project = await createProject(request, { name: 'Status Guild', path: '/tmp/status' });
+    await cleanGuilds(request);
+    const guild = await createGuild(request, { name: 'Status Guild', path: '/tmp/status' });
     const quest = await createQuest(request, {
-      projectId: project.id as string,
+      guildId: guild.id as string,
       title: 'Status Quest',
       userRequest: 'Test status',
     });
@@ -44,10 +44,10 @@ test.describe('Status Badges & Visual', () => {
   });
 
   test('multiple guilds all visible', async ({ page, request }) => {
-    await cleanProjects(request);
-    await createProject(request, { name: 'Guild A', path: '/tmp/a' });
-    await createProject(request, { name: 'Guild B', path: '/tmp/b' });
-    await createProject(request, { name: 'Guild C', path: '/tmp/c' });
+    await cleanGuilds(request);
+    await createGuild(request, { name: 'Guild A', path: '/tmp/a' });
+    await createGuild(request, { name: 'Guild B', path: '/tmp/b' });
+    await createGuild(request, { name: 'Guild C', path: '/tmp/c' });
 
     await page.goto('/');
 

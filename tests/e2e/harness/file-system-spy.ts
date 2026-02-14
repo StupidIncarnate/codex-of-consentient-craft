@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Tracks file system changes in a project directory for E2E test assertions
+ * PURPOSE: Tracks file system changes in a software project directory for E2E test assertions
  *
  * USAGE:
  * const spy = createFileSystemSpy(projectPath);
@@ -152,9 +152,9 @@ const createSnapshot = (dirPath: string): FileSnapshot => {
 };
 
 /**
- * Creates a file system spy bound to a project directory
+ * Creates a file system spy bound to a software project directory
  *
- * @param projectPath - Absolute path to the project directory to monitor
+ * @param projectPath - Absolute path to the software project directory to monitor
  */
 export const createFileSystemSpy = (projectPath: string): FileSystemSpy => {
   let baseSnapshot: FileSnapshot | null = null;

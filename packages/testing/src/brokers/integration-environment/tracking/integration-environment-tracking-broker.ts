@@ -8,16 +8,16 @@
  * // Internal use only - manages global tracking for automatic cleanup
  */
 
-import type { TestProject } from '../../../contracts/test-project/test-project-contract';
+import type { TestGuild } from '../../../contracts/test-guild/test-guild-contract';
 
-const createdEnvironments: TestProject[] = [];
+const createdEnvironments: TestGuild[] = [];
 
 export const integrationEnvironmentTrackingBroker = {
-  add: ({ project }: { project: TestProject }): void => {
-    createdEnvironments.push(project);
+  add: ({ guild }: { guild: TestGuild }): void => {
+    createdEnvironments.push(guild);
   },
 
-  getAll: (): readonly TestProject[] => createdEnvironments,
+  getAll: (): readonly TestGuild[] => createdEnvironments,
 
   clear: (): void => {
     createdEnvironments.length = 0;

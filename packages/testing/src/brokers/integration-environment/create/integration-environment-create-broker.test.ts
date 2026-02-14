@@ -8,10 +8,10 @@ describe('integrationEnvironmentCreateBroker', () => {
       integrationEnvironmentCreateBrokerProxy();
       const baseName = BaseNameStub({ value: 'test-project' });
 
-      const project = integrationEnvironmentCreateBroker({ baseName });
-      project.cleanup();
+      const guild = integrationEnvironmentCreateBroker({ baseName });
+      guild.cleanup();
 
-      expect(project.projectName).toMatch(/^test-project-[a-f0-9]{8}$/u);
+      expect(guild.guildName).toMatch(/^test-project-[a-f0-9]{8}$/u);
     });
   });
 });

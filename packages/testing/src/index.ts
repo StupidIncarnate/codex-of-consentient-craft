@@ -11,7 +11,7 @@ export type { MockProcessBehavior } from './contracts/mock-process-behavior/mock
 export { integrationEnvironmentCreateBroker } from './brokers/integration-environment/create/integration-environment-create-broker';
 export { integrationEnvironmentCleanupAllBroker } from './brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker';
 export { integrationEnvironmentListBroker } from './brokers/integration-environment/list/integration-environment-list-broker';
-export type { TestProject } from './contracts/test-project/test-project-contract';
+export type { TestGuild } from './contracts/test-guild/test-guild-contract';
 export type { DungeonmasterConfig } from './contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 // Install testbed utilities
@@ -30,7 +30,7 @@ export type {
 // Contract stubs
 export { MockSpawnResultStub } from './contracts/mock-spawn-result/mock-spawn-result.stub';
 export { MockProcessBehaviorStub } from './contracts/mock-process-behavior/mock-process-behavior.stub';
-export { TestProjectStub } from './contracts/test-project/test-project.stub';
+export { TestGuildStub } from './contracts/test-guild/test-guild.stub';
 export { DungeonmasterConfigStub } from './contracts/dungeonmaster-config/dungeonmaster-config.stub';
 export { InstallTestbedStub } from './contracts/install-testbed/install-testbed.stub';
 export { BaseNameStub } from './contracts/base-name/base-name.stub';

@@ -21,7 +21,7 @@ export const InstallTestbedStub = ({
 
   return {
     ...installTestbedContract.parse({
-      projectPath: `/tmp/install-testbed-${Date.now()}`,
+      guildPath: `/tmp/install-testbed-${Date.now()}`,
       dungeonmasterPath: '/repo/dungeonmaster',
       ...dataProps,
     }),

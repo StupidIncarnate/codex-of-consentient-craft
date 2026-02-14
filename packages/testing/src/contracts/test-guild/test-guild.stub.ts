@@ -1,13 +1,13 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { testProjectContract } from './test-project-contract';
-import type { TestProject } from './test-project-contract';
+import { testGuildContract } from './test-guild-contract';
+import type { TestGuild } from './test-guild-contract';
 import { processOutputContract } from '../process-output/process-output-contract';
 import { fileContentContract } from '../file-content/file-content-contract';
 import { packageJsonContract } from '../package-json/package-json-contract';
 import { execResultContract } from '../exec-result/exec-result-contract';
 import type { FileName } from '../file-name/file-name-contract';
 
-export const TestProjectStub = ({ ...props }: StubArgument<TestProject> = {}): TestProject => {
+export const TestGuildStub = ({ ...props }: StubArgument<TestGuild> = {}): TestGuild => {
   const {
     installDungeonmaster,
     hasCommand,
@@ -24,28 +24,27 @@ export const TestProjectStub = ({ ...props }: StubArgument<TestProject> = {}): T
   } = props;
 
   return {
-    ...testProjectContract.parse({
-      projectPath: '/tmp/test-project-abc123',
-      projectName: 'test-project-abc123',
-      rootDir: '/tmp/test-project-abc123',
+    ...testGuildContract.parse({
+      guildPath: '/tmp/test-guild-abc123',
+      guildName: 'test-guild-abc123',
+      rootDir: '/tmp/test-guild-abc123',
       ...dataProps,
     }),
     installDungeonmaster:
       installDungeonmaster ??
-      ((): ReturnType<TestProject['installDungeonmaster']> =>
+      ((): ReturnType<TestGuild['installDungeonmaster']> =>
         processOutputContract.parse('Dungeonmaster installed')),
     hasCommand: hasCommand ?? ((): boolean => false),
     fileExists: fileExists ?? ((): boolean => false),
-    readFile:
-      readFile ?? ((): ReturnType<TestProject['readFile']> => fileContentContract.parse('')),
+    readFile: readFile ?? ((): ReturnType<TestGuild['readFile']> => fileContentContract.parse('')),
     writeFile: writeFile ?? ((): void => undefined),
     deleteFile: deleteFile ?? ((): void => undefined),
     getConfig: getConfig ?? ((): null => null),
     getPackageJson:
       getPackageJson ??
-      ((): ReturnType<TestProject['getPackageJson']> =>
+      ((): ReturnType<TestGuild['getPackageJson']> =>
         packageJsonContract.parse({
-          name: 'test-project-abc123',
+          name: 'test-guild-abc123',
           version: '1.0.0',
           scripts: {
             test: 'echo "test placeholder"',
@@ -55,7 +54,7 @@ export const TestProjectStub = ({ ...props }: StubArgument<TestProject> = {}): T
     getQuestFiles: getQuestFiles ?? ((): FileName[] => []),
     executeCommand:
       executeCommand ??
-      ((): ReturnType<TestProject['executeCommand']> =>
+      ((): ReturnType<TestGuild['executeCommand']> =>
         execResultContract.parse({
           stdout: '',
           stderr: '',

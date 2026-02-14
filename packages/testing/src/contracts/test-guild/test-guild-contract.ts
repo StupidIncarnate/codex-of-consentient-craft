@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Validates test project data properties for integration testing
+ * PURPOSE: Validates test guild data properties for integration testing
  *
  * USAGE:
- * testProjectContract.parse({projectPath: '/tmp/test-123', projectName: 'test-123', rootDir: '/tmp/test-123'});
- * // Returns validated TestProjectData with branded types
+ * testGuildContract.parse({guildPath: '/tmp/test-123', guildName: 'test-123', rootDir: '/tmp/test-123'});
+ * // Returns validated TestGuildData with branded types
  */
 
 import { z } from 'zod';
@@ -15,15 +15,15 @@ import type { DungeonmasterConfig } from '../dungeonmaster-config/dungeonmaster-
 import type { PackageJson } from '../package-json/package-json-contract';
 import type { ExecResult } from '../exec-result/exec-result-contract';
 
-export const testProjectContract = z.object({
-  projectPath: z.string().brand<'ProjectPath'>(),
-  projectName: z.string().brand<'ProjectName'>(),
+export const testGuildContract = z.object({
+  guildPath: z.string().brand<'GuildPath'>(),
+  guildName: z.string().brand<'GuildName'>(),
   rootDir: z.string().brand<'RootDir'>(),
 });
 
-export type TestProjectData = z.infer<typeof testProjectContract>;
+export type TestGuildData = z.infer<typeof testGuildContract>;
 
-export type TestProject = TestProjectData & {
+export type TestGuild = TestGuildData & {
   installDungeonmaster: () => ProcessOutput;
   hasCommand: ({ command }: { command: CommandName }) => boolean;
   fileExists: ({ fileName }: { fileName: FileName }) => boolean;
