@@ -23,7 +23,7 @@ export const createProject = async (
 export const createQuest = async (
   request: APIRequestContext,
   { projectId, title, userRequest }: { projectId: string; title: string; userRequest: string }
-): Promise<Record<string, unknown>> => {
+): Promise<{ questId: string; success: boolean }> => {
   const response = await request.post(`${API_URL}/api/quests`, {
     data: { projectId, title, userRequest },
   });

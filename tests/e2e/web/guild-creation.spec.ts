@@ -70,7 +70,7 @@ test.describe('Guild Creation Flow', () => {
     // Click the guild to select it
     await page.getByText('Existing Guild').click();
     // Click the + button
-    await page.getByTestId('ADD_PROJECT_BUTTON').click();
+    await page.getByTestId('GUILD_LIST').locator('button:has-text("+")').click();
 
     // Form should show with CANCEL
     await expect(page.getByText('NEW GUILD')).toBeVisible();
@@ -87,7 +87,7 @@ test.describe('Guild Creation Flow', () => {
     await createProject(request, { name: 'Existing Guild', path: '/tmp/existing' });
 
     await page.goto('/');
-    await page.getByTestId('ADD_PROJECT_BUTTON').click();
+    await page.getByTestId('GUILD_LIST').locator('button:has-text("+")').click();
 
     await page.getByTestId('GUILD_NAME_INPUT').fill('New Guild');
     await page.getByTestId('GUILD_PATH_INPUT').fill('/tmp/new');

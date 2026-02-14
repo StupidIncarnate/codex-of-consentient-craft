@@ -36,7 +36,7 @@ test.describe('Status Badges & Visual', () => {
     await page.getByText('Status Guild').click();
 
     // Quest should show with a status badge
-    const statusBadge = page.getByTestId(`QUEST_STATUS_${quest.id}`);
+    const statusBadge = page.getByTestId(`QUEST_STATUS_${quest.questId}`);
     await expect(statusBadge).toBeVisible();
     const statusText = await statusBadge.textContent();
     // Status should be uppercase (PENDING is default for new quests)

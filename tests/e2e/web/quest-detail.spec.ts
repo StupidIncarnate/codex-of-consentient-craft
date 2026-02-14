@@ -13,16 +13,16 @@ test.describe('Quest Detail Navigation', () => {
 
     await page.goto('/');
     await page.getByText('Test Guild').click();
-    await page.getByTestId(`QUEST_ITEM_${quest.id}`).click();
+    await page.getByTestId(`QUEST_ITEM_${quest.questId}`).click();
 
     // Quest detail view
     await expect(page.getByText('My Quest')).toBeVisible();
     await expect(page.getByText('Back to list')).toBeVisible();
     // Tabs visible
-    await expect(page.getByText('Overview')).toBeVisible();
-    await expect(page.getByText(/Requirements/)).toBeVisible();
-    await expect(page.getByText(/Steps/)).toBeVisible();
-    await expect(page.getByText(/Contracts/)).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Overview/ })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Requirements/ })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Steps/ })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Contracts/ })).toBeVisible();
   });
 
   test('quest detail tabs are navigable', async ({ page, request }) => {
@@ -36,22 +36,22 @@ test.describe('Quest Detail Navigation', () => {
 
     await page.goto('/');
     await page.getByText('Tab Guild').click();
-    await page.getByTestId(`QUEST_ITEM_${quest.id}`).click();
+    await page.getByTestId(`QUEST_ITEM_${quest.questId}`).click();
 
     // Click Requirements tab
-    await page.getByText(/Requirements/).click();
+    await page.getByRole('tab', { name: /Requirements/ }).click();
     await page.waitForTimeout(300);
 
     // Click Steps tab
-    await page.getByText(/Steps/).click();
+    await page.getByRole('tab', { name: /Steps/ }).click();
     await page.waitForTimeout(300);
 
     // Click Contracts tab
-    await page.getByText(/Contracts/).click();
+    await page.getByRole('tab', { name: /Contracts/ }).click();
     await page.waitForTimeout(300);
 
     // Click Overview tab to go back
-    await page.getByText('Overview').click();
+    await page.getByRole('tab', { name: /Overview/ }).click();
   });
 
   test('back to list returns to quest list', async ({ page, request }) => {
@@ -65,7 +65,7 @@ test.describe('Quest Detail Navigation', () => {
 
     await page.goto('/');
     await page.getByText('Back Guild').click();
-    await page.getByTestId(`QUEST_ITEM_${quest.id}`).click();
+    await page.getByTestId(`QUEST_ITEM_${quest.questId}`).click();
     await expect(page.getByText('Back to list')).toBeVisible();
 
     await page.getByText('Back to list').click();

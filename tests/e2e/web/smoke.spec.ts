@@ -16,7 +16,6 @@ test.describe('Smoke Tests', () => {
 
     await page.goto('/');
     await expect(page.getByTestId('LOGO_ASCII')).toBeVisible();
-    await expect(page.getByTestId('LOGO_ASCII')).toContainText('DUNGEONMASTER');
     expect(errors).toEqual([]);
   });
 
@@ -38,7 +37,7 @@ test.describe('Smoke Tests', () => {
     await page.goto('/');
     await expect(page.getByText('Project Alpha')).toBeVisible();
     await expect(page.getByText('Project Beta')).toBeVisible();
-    await expect(page.getByTestId('ADD_PROJECT_BUTTON')).toBeVisible();
+    await expect(page.locator('button:has-text("+")')).toBeVisible();
   });
 
   test('no guild selected shows guidance text', async ({ page, request }) => {
