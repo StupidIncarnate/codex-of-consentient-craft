@@ -1,25 +1,35 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
+
 import { DirectoryBrowserModalWidgetProxy } from '../directory-browser-modal/directory-browser-modal-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
+type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
+
 export const ProjectEmptyStateWidgetProxy = (): {
   typeGuildName: ({ value }: { value: string }) => Promise<void>;
+  typeGuildPath: ({ value }: { value: string }) => Promise<void>;
   getGuildPathValue: () => HTMLElement['textContent'];
   clickBrowse: () => Promise<void>;
   clickCreate: () => Promise<void>;
   clickCancel: () => Promise<void>;
+  setupDirectoryBrowse: (params: { entries: DirectoryEntry[] }) => void;
+  clickDirectorySelect: () => Promise<void>;
   isNewGuildTitleVisible: () => boolean;
   isCancelVisible: () => boolean;
   isBrowseVisible: () => boolean;
 } => {
   PixelBtnWidgetProxy();
-  DirectoryBrowserModalWidgetProxy();
+  const directoryBrowser = DirectoryBrowserModalWidgetProxy();
 
   return {
     typeGuildName: async ({ value }: { value: string }): Promise<void> => {
       await userEvent.type(screen.getByTestId('GUILD_NAME_INPUT'), value);
+    },
+    typeGuildPath: async ({ value }: { value: string }): Promise<void> => {
+      await userEvent.type(screen.getByTestId('GUILD_PATH_INPUT'), value);
     },
     getGuildPathValue: (): HTMLElement['textContent'] => {
       const wrapper = screen.getByTestId('GUILD_PATH_INPUT');
@@ -50,6 +60,12 @@ export const ProjectEmptyStateWidgetProxy = (): {
         throw new Error('CANCEL button not found');
       }
       await userEvent.click(cancelBtn);
+    },
+    setupDirectoryBrowse: ({ entries }: { entries: DirectoryEntry[] }): void => {
+      directoryBrowser.setupEntries({ entries });
+    },
+    clickDirectorySelect: async (): Promise<void> => {
+      await directoryBrowser.clickSelect();
     },
     isNewGuildTitleVisible: (): boolean => screen.queryByText('NEW GUILD') !== null,
     isCancelVisible: (): boolean => {

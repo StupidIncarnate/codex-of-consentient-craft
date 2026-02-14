@@ -6,5 +6,6 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^@dungeonmaster/mcp/testing$': '<rootDir>/../mcp/testing.ts',
   },
 };

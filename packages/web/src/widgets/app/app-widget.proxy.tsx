@@ -1,3 +1,5 @@
+import { screen } from '@testing-library/react';
+
 import type {
   OrchestrationStatusStub,
   ProcessIdStub,
@@ -32,6 +34,7 @@ export const AppWidgetProxy = (): {
   setupProjects: (params: { projects: ProjectListItem[] }) => void;
   setupProjectsError: () => void;
   setupCreateProject: (params: { id: ProjectId }) => void;
+  setupDirectoryBrowse: (params: Parameters<typeof emptyState.setupDirectoryBrowse>[0]) => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
   setupQuestsError: () => void;
   setupQuestDetail: (params: { quest: Quest }) => void;
@@ -42,12 +45,21 @@ export const AppWidgetProxy = (): {
   setupExecutionStatusError: () => void;
   clickGuildItem: (params: { testId: string }) => Promise<void>;
   isGuildItemVisible: (params: { testId: string }) => boolean;
+  isGuildItemSelected: (params: { testId: string }) => boolean;
   clickAddGuild: () => Promise<void>;
   isNewGuildTitleVisible: () => boolean;
+  isQuestEmptyStateVisible: () => boolean;
+  isSelectGuildMessageVisible: () => boolean;
+  getQuestStatusText: (params: { testId: string }) => HTMLElement['textContent'];
   typeGuildName: (params: { value: string }) => Promise<void>;
+  typeGuildPath: (params: { value: string }) => Promise<void>;
   getGuildPathValue: () => HTMLElement['textContent'];
   clickBrowseGuild: () => Promise<void>;
   clickCreateGuild: () => Promise<void>;
+  clickCancelGuild: () => Promise<void>;
+  clickDirectorySelect: () => Promise<void>;
+  clickQuestItem: (params: { testId: string }) => Promise<void>;
+  isQuestVisible: (params: { testId: string }) => boolean;
   typeProjectName: (params: { name: string }) => Promise<void>;
   clickBrowse: () => Promise<void>;
   clickCreateProjectSubmit: () => Promise<void>;
@@ -64,7 +76,7 @@ export const AppWidgetProxy = (): {
   LogoWidgetProxy();
   MapFrameWidgetProxy();
   const guildList = GuildListWidgetProxy();
-  GuildQuestListWidgetProxy();
+  const questList = GuildQuestListWidgetProxy();
   const emptyState = ProjectEmptyStateWidgetProxy();
   const addModal = ProjectAddModalWidgetProxy();
   QuestDetailWidgetProxy();
@@ -78,6 +90,9 @@ export const AppWidgetProxy = (): {
     },
     setupCreateProject: ({ id }: { id: ProjectId }): void => {
       createProjectProxy.setupCreate({ id });
+    },
+    setupDirectoryBrowse: (params: Parameters<typeof emptyState.setupDirectoryBrowse>[0]): void => {
+      emptyState.setupDirectoryBrowse(params);
     },
     setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
       questsProxy.setupQuests({ quests });
@@ -108,12 +123,23 @@ export const AppWidgetProxy = (): {
     },
     isGuildItemVisible: ({ testId }: { testId: string }): boolean =>
       guildList.isItemVisible({ testId }),
+    isGuildItemSelected: ({ testId }: { testId: string }): boolean =>
+      guildList.isItemSelected({ testId }),
     clickAddGuild: async (): Promise<void> => {
       await guildList.clickAddButton();
     },
     isNewGuildTitleVisible: (): boolean => emptyState.isNewGuildTitleVisible(),
+    isQuestEmptyStateVisible: (): boolean => questList.hasEmptyState(),
+    isSelectGuildMessageVisible: (): boolean => screen.queryByText('Select a guild') !== null,
+    getQuestStatusText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+      const element = screen.queryByTestId(testId);
+      return element?.textContent ?? null;
+    },
     typeGuildName: async ({ value }: { value: string }): Promise<void> => {
       await emptyState.typeGuildName({ value });
+    },
+    typeGuildPath: async ({ value }: { value: string }): Promise<void> => {
+      await emptyState.typeGuildPath({ value });
     },
     getGuildPathValue: (): HTMLElement['textContent'] => emptyState.getGuildPathValue(),
     clickBrowseGuild: async (): Promise<void> => {
@@ -122,6 +148,17 @@ export const AppWidgetProxy = (): {
     clickCreateGuild: async (): Promise<void> => {
       await emptyState.clickCreate();
     },
+    clickCancelGuild: async (): Promise<void> => {
+      await emptyState.clickCancel();
+    },
+    clickDirectorySelect: async (): Promise<void> => {
+      await emptyState.clickDirectorySelect();
+    },
+    clickQuestItem: async ({ testId }: { testId: string }): Promise<void> => {
+      await questList.clickQuest({ testId });
+    },
+    isQuestVisible: ({ testId }: { testId: string }): boolean =>
+      questList.isQuestVisible({ testId }),
     typeProjectName: async ({ name }: { name: string }): Promise<void> => {
       await addModal.typeName({ name });
     },

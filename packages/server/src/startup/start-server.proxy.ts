@@ -1,3 +1,16 @@
+import { glob as _glob } from 'glob';
+import { readFile as _readFile } from 'fs/promises';
+import { existsSync as _existsSync } from 'fs';
+
+jest.mock('glob', () => ({
+  glob: jest.fn().mockResolvedValue([]),
+}));
+jest.mock('fs/promises');
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  existsSync: jest.fn(),
+}));
+
 import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/testing';
 import {
   architectureFolderDetailBrokerProxy,

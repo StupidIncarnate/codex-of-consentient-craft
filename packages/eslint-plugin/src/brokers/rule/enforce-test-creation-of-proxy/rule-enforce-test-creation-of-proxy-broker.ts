@@ -58,10 +58,19 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
     const isIntegrationOrE2eTest =
       isIntegrationTestFileGuard({ filePath }) || isE2eTestFileGuard({ filePath });
 
+    // Startup integration tests are exempt from the proxy import ban because
+    // startup files require integration tests (not unit tests) per enforce-implementation-colocation,
+    // so they must use proxies to set up their test harness.
+    const isStartupIntegrationTest = isIntegrationOrE2eTest && filename.includes('/startup/');
+
     // For integration/e2e tests: only check for proxy imports (should error)
+    // Exception: startup integration tests are allowed to import proxies
     if (isIntegrationOrE2eTest) {
       return {
         ImportDeclaration: (node: Tsestree): void => {
+          // Skip import check for startup integration tests
+          if (isStartupIntegrationTest) return;
+
           const { source } = node;
           if (!source) return;
 

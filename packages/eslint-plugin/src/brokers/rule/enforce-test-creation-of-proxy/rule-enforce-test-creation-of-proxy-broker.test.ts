@@ -216,6 +216,20 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       `,
       filename: '/project/src/adapters/fetch/post/fetch-post-adapter.test.ts',
     },
+
+    // Startup integration test importing proxy - ALLOWED because startup files
+    // require integration tests (not unit tests) and must use proxies for test harness
+    {
+      code: `
+        import { StartServerProxy } from './start-server.proxy';
+
+        it('should complete flow', () => {
+          const proxy = StartServerProxy();
+          proxy.request('/api/health');
+        });
+      `,
+      filename: '/project/src/startup/start-server.integration.test.ts',
+    },
   ],
   invalid: [
     // Module-level proxy creation in test file
@@ -376,24 +390,6 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
         {
           messageId: 'noProxyInIntegrationTest',
           data: { importSource: './login.proxy' },
-        },
-      ],
-    },
-
-    // Integration test with proxy import using .proxy.ts extension - FORBIDDEN
-    {
-      code: `
-        import { StartInstallProxy } from './start-install.proxy';
-
-        it('should complete flow', () => {
-          StartInstallProxy();
-        });
-      `,
-      filename: '/project/src/startup/start-install.integration.test.ts',
-      errors: [
-        {
-          messageId: 'noProxyInIntegrationTest',
-          data: { importSource: './start-install.proxy' },
         },
       ],
     },

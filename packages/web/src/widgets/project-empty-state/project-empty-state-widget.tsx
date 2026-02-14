@@ -79,7 +79,9 @@ export const ProjectEmptyStateWidget = ({
             label="Path"
             placeholder="/home/user/my-guild"
             value={path}
-            readOnly
+            onChange={(e) => {
+              setPath(e.target.value);
+            }}
             w={INPUT_WIDTH}
             styles={inputStyles}
             data-testid="GUILD_PATH_INPUT"

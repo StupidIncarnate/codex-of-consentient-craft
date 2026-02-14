@@ -12,6 +12,7 @@ export * from './src/brokers/quest/list/quest-list-broker.proxy';
 export * from './src/brokers/quest/load/quest-load-broker.proxy';
 
 // Contract Stubs
+export { AddQuestResultStub } from './src/contracts/add-quest-result/add-quest-result.stub';
 export { AgentRoleStub } from './src/contracts/agent-role/agent-role.stub';
 export { AgentSlotStub } from './src/contracts/agent-slot/agent-slot.stub';
 export { IsoTimestampStub } from './src/contracts/iso-timestamp/iso-timestamp.stub';
