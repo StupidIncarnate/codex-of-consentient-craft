@@ -51,16 +51,18 @@
 
 ### Phase 4 Detailed Progress
 
-| Task                                                 | Status      | Notes                                                                                                                   |
-|------------------------------------------------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
-| 4.0 Manual UI bug fixes                              | DONE        | 6 bugs found, 5 already fixed, 1 fixed (project path input). All 290 web tests pass. Chrome manual verification passed. |
-| 4.0a Endpoint verification                           | DONE        | All 21 endpoints verified implemented (0 placeholders). Server 24 test suites, web 50 test suites, 100% file coverage.  |
-| 4.0b Gap-reviewer prompt cleanup                     | DONE        | Removed stale mcp__dungeonmaster__signal-back from tools frontmatter                                                    |
-| 4.1 Full end-to-end pipeline test (HTTP-only agents) | NOT STARTED | All infrastructure verified; needs automated E2E test or live quest execution test                                      |
-| 4.2 **MANUAL VERIFICATION CHECKPOINT**               | NOT STARTED | User must approve before deletions                                                                                      |
-| 4.3 Delete `packages/mcp`                            | NOT STARTED | Only after manual approval                                                                                              |
-| 4.4 Remove `.claude/commands/` install from init     | NOT STARTED | Only after manual approval                                                                                              |
-| 4.5 Remove CLI quest screens                         | NOT STARTED | Only after manual approval                                                                                              |
+| Task                                                 | Status      | Notes                                                                                                                                                  |
+|------------------------------------------------------|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 4.0 Manual UI bug fixes                              | DONE        | 8 bugs total found and fixed. All 291 web tests pass. Chrome manual verification passed. See plan/e2e-test-cases.md for full bug table.                |
+| 4.0a Endpoint verification                           | DONE        | All 21 endpoints verified implemented (0 placeholders). Server 24 test suites, web 50 test suites, 100% file coverage.                                 |
+| 4.0b Gap-reviewer prompt cleanup                     | DONE        | Removed stale mcp__dungeonmaster__signal-back from tools frontmatter                                                                                   |
+| 4.0c API contract fixes                              | DONE        | Bug #7: questCreateBroker extracted `response.id` instead of `response.questId`. Bug #8: questModifyBroker expected Quest, server returns `{success}`. |
+| 4.0d E2E test case plan                              | DONE        | 9 test suites, 65+ cases documented in plan/e2e-test-cases.md covering all flows, error handling, regressions.                                         |
+| 4.1 Full end-to-end pipeline test (HTTP-only agents) | NOT STARTED | All infrastructure verified; needs automated E2E test or live quest execution test                                                                     |
+| 4.2 **MANUAL VERIFICATION CHECKPOINT**               | NOT STARTED | User must approve before deletions                                                                                                                     |
+| 4.3 Delete `packages/mcp`                            | NOT STARTED | Only after manual approval                                                                                                                             |
+| 4.4 Remove `.claude/commands/` install from init     | NOT STARTED | Only after manual approval                                                                                                                             |
+| 4.5 Remove CLI quest screens                         | NOT STARTED | Only after manual approval                                                                                                                             |
 
 ### Phase 5 Detailed Progress
 
