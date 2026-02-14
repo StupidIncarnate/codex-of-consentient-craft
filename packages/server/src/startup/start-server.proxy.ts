@@ -28,16 +28,16 @@ import type {
   ProcessIdStub,
   OrchestrationStatusStub,
   QuestListItemStub,
-  ProjectListItemStub,
-  ProjectStub,
+  GuildListItemStub,
+  GuildStub,
   DirectoryEntryStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { orchestratorListProjectsAdapterProxy } from '../adapters/orchestrator/list-projects/orchestrator-list-projects-adapter.proxy';
-import { orchestratorAddProjectAdapterProxy } from '../adapters/orchestrator/add-project/orchestrator-add-project-adapter.proxy';
-import { orchestratorGetProjectAdapterProxy } from '../adapters/orchestrator/get-project/orchestrator-get-project-adapter.proxy';
-import { orchestratorUpdateProjectAdapterProxy } from '../adapters/orchestrator/update-project/orchestrator-update-project-adapter.proxy';
-import { orchestratorRemoveProjectAdapterProxy } from '../adapters/orchestrator/remove-project/orchestrator-remove-project-adapter.proxy';
+import { orchestratorListGuildsAdapterProxy } from '../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter.proxy';
+import { orchestratorAddGuildAdapterProxy } from '../adapters/orchestrator/add-guild/orchestrator-add-guild-adapter.proxy';
+import { orchestratorGetGuildAdapterProxy } from '../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter.proxy';
+import { orchestratorUpdateGuildAdapterProxy } from '../adapters/orchestrator/update-guild/orchestrator-update-guild-adapter.proxy';
+import { orchestratorRemoveGuildAdapterProxy } from '../adapters/orchestrator/remove-guild/orchestrator-remove-guild-adapter.proxy';
 import { orchestratorBrowseDirectoriesAdapterProxy } from '../adapters/orchestrator/browse-directories/orchestrator-browse-directories-adapter.proxy';
 import { orchestratorListQuestsAdapterProxy } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
 import { orchestratorGetQuestAdapterProxy } from '../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
@@ -55,21 +55,21 @@ import { StartServer } from './start-server';
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
-type ProjectListItem = ReturnType<typeof ProjectListItemStub>;
-type Project = ReturnType<typeof ProjectStub>;
+type GuildListItem = ReturnType<typeof GuildListItemStub>;
+type Guild = ReturnType<typeof GuildStub>;
 type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 
 export const StartServerProxy = (): {
   request: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-  setupListProjects: (params: { projects: ProjectListItem[] }) => void;
-  setupListProjectsError: (params: { error: Error }) => void;
-  setupAddProject: (params: { project: Project }) => void;
-  setupAddProjectError: (params: { error: Error }) => void;
-  setupGetProject: (params: { project: Project }) => void;
-  setupGetProjectError: (params: { error: Error }) => void;
-  setupUpdateProject: (params: { project: Project }) => void;
-  setupUpdateProjectError: (params: { error: Error }) => void;
-  setupRemoveProjectError: (params: { error: Error }) => void;
+  setupListGuilds: (params: { guilds: GuildListItem[] }) => void;
+  setupListGuildsError: (params: { error: Error }) => void;
+  setupAddGuild: (params: { guild: Guild }) => void;
+  setupAddGuildError: (params: { error: Error }) => void;
+  setupGetGuild: (params: { guild: Guild }) => void;
+  setupGetGuildError: (params: { error: Error }) => void;
+  setupUpdateGuild: (params: { guild: Guild }) => void;
+  setupUpdateGuildError: (params: { error: Error }) => void;
+  setupRemoveGuildError: (params: { error: Error }) => void;
   setupBrowseDirectories: (params: { entries: DirectoryEntry[] }) => void;
   setupBrowseDirectoriesError: (params: { error: Error }) => void;
   setupListQuests: (params: { quests: QuestListItem[] }) => void;
@@ -97,11 +97,11 @@ export const StartServerProxy = (): {
   agentOutputBufferStateProxy();
   wsEventRelayBroadcastBrokerProxy();
 
-  const listProjectsProxy = orchestratorListProjectsAdapterProxy();
-  const addProjectProxy = orchestratorAddProjectAdapterProxy();
-  const getProjectProxy = orchestratorGetProjectAdapterProxy();
-  const updateProjectProxy = orchestratorUpdateProjectAdapterProxy();
-  const removeProjectProxy = orchestratorRemoveProjectAdapterProxy();
+  const listGuildsProxy = orchestratorListGuildsAdapterProxy();
+  const addGuildProxy = orchestratorAddGuildAdapterProxy();
+  const getGuildProxy = orchestratorGetGuildAdapterProxy();
+  const updateGuildProxy = orchestratorUpdateGuildAdapterProxy();
+  const removeGuildProxy = orchestratorRemoveGuildAdapterProxy();
   const browseDirectoriesProxy = orchestratorBrowseDirectoriesAdapterProxy();
   const listQuestsProxy = orchestratorListQuestsAdapterProxy();
   const getQuestProxy = orchestratorGetQuestAdapterProxy();
@@ -121,32 +121,32 @@ export const StartServerProxy = (): {
       const request = new Request(url, init);
       return capturedFetch(request);
     },
-    setupListProjects: ({ projects }: { projects: ProjectListItem[] }): void => {
-      listProjectsProxy.returns({ projects });
+    setupListGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
+      listGuildsProxy.returns({ guilds });
     },
-    setupListProjectsError: ({ error }: { error: Error }): void => {
-      listProjectsProxy.throws({ error });
+    setupListGuildsError: ({ error }: { error: Error }): void => {
+      listGuildsProxy.throws({ error });
     },
-    setupAddProject: ({ project }: { project: Project }): void => {
-      addProjectProxy.returns({ project });
+    setupAddGuild: ({ guild }: { guild: Guild }): void => {
+      addGuildProxy.returns({ guild });
     },
-    setupAddProjectError: ({ error }: { error: Error }): void => {
-      addProjectProxy.throws({ error });
+    setupAddGuildError: ({ error }: { error: Error }): void => {
+      addGuildProxy.throws({ error });
     },
-    setupGetProject: ({ project }: { project: Project }): void => {
-      getProjectProxy.returns({ project });
+    setupGetGuild: ({ guild }: { guild: Guild }): void => {
+      getGuildProxy.returns({ guild });
     },
-    setupGetProjectError: ({ error }: { error: Error }): void => {
-      getProjectProxy.throws({ error });
+    setupGetGuildError: ({ error }: { error: Error }): void => {
+      getGuildProxy.throws({ error });
     },
-    setupUpdateProject: ({ project }: { project: Project }): void => {
-      updateProjectProxy.returns({ project });
+    setupUpdateGuild: ({ guild }: { guild: Guild }): void => {
+      updateGuildProxy.returns({ guild });
     },
-    setupUpdateProjectError: ({ error }: { error: Error }): void => {
-      updateProjectProxy.throws({ error });
+    setupUpdateGuildError: ({ error }: { error: Error }): void => {
+      updateGuildProxy.throws({ error });
     },
-    setupRemoveProjectError: ({ error }: { error: Error }): void => {
-      removeProjectProxy.throws({ error });
+    setupRemoveGuildError: ({ error }: { error: Error }): void => {
+      removeGuildProxy.throws({ error });
     },
     setupBrowseDirectories: ({ entries }: { entries: DirectoryEntry[] }): void => {
       browseDirectoriesProxy.returns({ entries });

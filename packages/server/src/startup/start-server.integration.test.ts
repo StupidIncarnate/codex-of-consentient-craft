@@ -1,7 +1,7 @@
 import {
-  ProjectListItemStub,
-  ProjectStub,
-  ProjectIdStub,
+  GuildListItemStub,
+  GuildStub,
+  GuildIdStub,
   DirectoryEntryStub,
   QuestListItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -23,39 +23,39 @@ describe('StartServer', () => {
     });
   });
 
-  describe('GET /api/projects', () => {
-    it('VALID: no projects => 200 empty array', async () => {
+  describe('GET /api/guilds', () => {
+    it('VALID: no guilds => 200 empty array', async () => {
       const proxy = StartServerProxy();
-      proxy.setupListProjects({ projects: [] });
+      proxy.setupListGuilds({ guilds: [] });
 
-      const response = await proxy.request('/api/projects');
+      const response = await proxy.request('/api/guilds');
       const body: unknown = await response.json();
 
       expect(response.status).toBe(200);
       expect(body).toStrictEqual([]);
     });
 
-    it('VALID: with projects => 200 array of projects', async () => {
+    it('VALID: with guilds => 200 array of guilds', async () => {
       const proxy = StartServerProxy();
-      const project1 = ProjectListItemStub();
-      const project2 = ProjectListItemStub({
+      const guild1 = GuildListItemStub();
+      const guild2 = GuildListItemStub({
         id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        name: 'Second Project',
+        name: 'Second Guild',
       });
-      proxy.setupListProjects({ projects: [project1, project2] });
+      proxy.setupListGuilds({ guilds: [guild1, guild2] });
 
-      const response = await proxy.request('/api/projects');
+      const response = await proxy.request('/api/guilds');
       const body: unknown = await response.json();
 
       expect(response.status).toBe(200);
-      expect(toPlain(body)).toStrictEqual(toPlain([project1, project2]));
+      expect(toPlain(body)).toStrictEqual(toPlain([guild1, guild2]));
     });
 
     it('INVALID: orchestrator error => 500 with error message', async () => {
       const proxy = StartServerProxy();
-      proxy.setupListProjectsError({ error: new Error('list failed') });
+      proxy.setupListGuildsError({ error: new Error('list failed') });
 
-      const response = await proxy.request('/api/projects');
+      const response = await proxy.request('/api/guilds');
       const body: unknown = await response.json();
 
       expect(response.status).toBe(500);
@@ -63,26 +63,26 @@ describe('StartServer', () => {
     });
   });
 
-  describe('POST /api/projects', () => {
-    it('VALID: name and path => 201 with project result', async () => {
+  describe('POST /api/guilds', () => {
+    it('VALID: name and path => 201 with guild result', async () => {
       const proxy = StartServerProxy();
-      const project = ProjectStub();
-      proxy.setupAddProject({ project });
+      const guild = GuildStub();
+      proxy.setupAddGuild({ guild });
 
-      const response = await proxy.request('/api/projects', {
+      const response = await proxy.request('/api/guilds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'My Project', path: '/home/user/my-project' }),
+        body: JSON.stringify({ name: 'My Guild', path: '/home/user/my-guild' }),
       });
       const body: unknown = await response.json();
 
       expect(response.status).toBe(201);
-      expect(toPlain(body)).toStrictEqual(toPlain(project));
+      expect(toPlain(body)).toStrictEqual(toPlain(guild));
     });
 
     it('INVALID: non-object body => 400 with error', async () => {
       const proxy = StartServerProxy();
-      const response = await proxy.request('/api/projects', {
+      const response = await proxy.request('/api/guilds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify('not-an-object'),
@@ -95,7 +95,7 @@ describe('StartServer', () => {
 
     it('INVALID: missing name => 400 with error', async () => {
       const proxy = StartServerProxy();
-      const response = await proxy.request('/api/projects', {
+      const response = await proxy.request('/api/guilds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: '/some/path' }),
@@ -108,10 +108,10 @@ describe('StartServer', () => {
 
     it('INVALID: missing path => 400 with error', async () => {
       const proxy = StartServerProxy();
-      const response = await proxy.request('/api/projects', {
+      const response = await proxy.request('/api/guilds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'My Project' }),
+        body: JSON.stringify({ name: 'My Guild' }),
       });
       const body: unknown = await response.json();
 
@@ -121,12 +121,12 @@ describe('StartServer', () => {
 
     it('INVALID: orchestrator error => 500 with error message', async () => {
       const proxy = StartServerProxy();
-      proxy.setupAddProjectError({ error: new Error('add failed') });
+      proxy.setupAddGuildError({ error: new Error('add failed') });
 
-      const response = await proxy.request('/api/projects', {
+      const response = await proxy.request('/api/guilds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'My Project', path: '/home/user/my-project' }),
+        body: JSON.stringify({ name: 'My Guild', path: '/home/user/my-guild' }),
       });
       const body: unknown = await response.json();
 
@@ -135,26 +135,26 @@ describe('StartServer', () => {
     });
   });
 
-  describe('GET /api/projects/:projectId', () => {
-    it('VALID: existing project => 200 with project', async () => {
+  describe('GET /api/guilds/:guildId', () => {
+    it('VALID: existing guild => 200 with guild', async () => {
       const proxy = StartServerProxy();
-      const project = ProjectStub();
-      proxy.setupGetProject({ project });
+      const guild = GuildStub();
+      proxy.setupGetGuild({ guild });
 
-      const projectId = ProjectIdStub();
-      const response = await proxy.request(`/api/projects/${projectId}`);
+      const guildId = GuildIdStub();
+      const response = await proxy.request(`/api/guilds/${guildId}`);
       const body: unknown = await response.json();
 
       expect(response.status).toBe(200);
-      expect(toPlain(body)).toStrictEqual(toPlain(project));
+      expect(toPlain(body)).toStrictEqual(toPlain(guild));
     });
 
     it('INVALID: orchestrator error => 500 with error message', async () => {
       const proxy = StartServerProxy();
-      proxy.setupGetProjectError({ error: new Error('get failed') });
+      proxy.setupGetGuildError({ error: new Error('get failed') });
 
-      const projectId = ProjectIdStub();
-      const response = await proxy.request(`/api/projects/${projectId}`);
+      const guildId = GuildIdStub();
+      const response = await proxy.request(`/api/guilds/${guildId}`);
       const body: unknown = await response.json();
 
       expect(response.status).toBe(500);
@@ -162,14 +162,14 @@ describe('StartServer', () => {
     });
   });
 
-  describe('PATCH /api/projects/:projectId', () => {
-    it('VALID: name update => 200 with updated project', async () => {
+  describe('PATCH /api/guilds/:guildId', () => {
+    it('VALID: name update => 200 with updated guild', async () => {
       const proxy = StartServerProxy();
-      const project = ProjectStub({ name: 'Updated Name' });
-      proxy.setupUpdateProject({ project });
+      const guild = GuildStub({ name: 'Updated Name' });
+      proxy.setupUpdateGuild({ guild });
 
-      const projectId = ProjectIdStub();
-      const response = await proxy.request(`/api/projects/${projectId}`, {
+      const guildId = GuildIdStub();
+      const response = await proxy.request(`/api/guilds/${guildId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Updated Name' }),
@@ -177,13 +177,13 @@ describe('StartServer', () => {
       const body: unknown = await response.json();
 
       expect(response.status).toBe(200);
-      expect(toPlain(body)).toStrictEqual(toPlain(project));
+      expect(toPlain(body)).toStrictEqual(toPlain(guild));
     });
 
     it('INVALID: non-object body => 400 with error', async () => {
       const proxy = StartServerProxy();
-      const projectId = ProjectIdStub();
-      const response = await proxy.request(`/api/projects/${projectId}`, {
+      const guildId = GuildIdStub();
+      const response = await proxy.request(`/api/guilds/${guildId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify('not-an-object'),
@@ -196,10 +196,10 @@ describe('StartServer', () => {
 
     it('INVALID: orchestrator error => 500 with error message', async () => {
       const proxy = StartServerProxy();
-      proxy.setupUpdateProjectError({ error: new Error('update failed') });
+      proxy.setupUpdateGuildError({ error: new Error('update failed') });
 
-      const projectId = ProjectIdStub();
-      const response = await proxy.request(`/api/projects/${projectId}`, {
+      const guildId = GuildIdStub();
+      const response = await proxy.request(`/api/guilds/${guildId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Updated Name' }),
@@ -211,11 +211,11 @@ describe('StartServer', () => {
     });
   });
 
-  describe('DELETE /api/projects/:projectId', () => {
-    it('VALID: existing project => 200 with success true', async () => {
+  describe('DELETE /api/guilds/:guildId', () => {
+    it('VALID: existing guild => 200 with success true', async () => {
       const proxy = StartServerProxy();
-      const projectId = ProjectIdStub();
-      const response = await proxy.request(`/api/projects/${projectId}`, {
+      const guildId = GuildIdStub();
+      const response = await proxy.request(`/api/guilds/${guildId}`, {
         method: 'DELETE',
       });
       const body: unknown = await response.json();
@@ -226,10 +226,10 @@ describe('StartServer', () => {
 
     it('INVALID: orchestrator error => 500 with error message', async () => {
       const proxy = StartServerProxy();
-      proxy.setupRemoveProjectError({ error: new Error('remove failed') });
+      proxy.setupRemoveGuildError({ error: new Error('remove failed') });
 
-      const projectId = ProjectIdStub();
-      const response = await proxy.request(`/api/projects/${projectId}`, {
+      const guildId = GuildIdStub();
+      const response = await proxy.request(`/api/guilds/${guildId}`, {
         method: 'DELETE',
       });
       const body: unknown = await response.json();
@@ -289,27 +289,27 @@ describe('StartServer', () => {
   });
 
   describe('GET /api/quests', () => {
-    it('VALID: with projectId => 200 with quests', async () => {
+    it('VALID: with guildId => 200 with quests', async () => {
       const proxy = StartServerProxy();
       const quests = [QuestListItemStub()];
       proxy.setupListQuests({ quests });
 
-      const projectId = ProjectIdStub();
-      const response = await proxy.request(`/api/quests?projectId=${projectId}`);
+      const guildId = GuildIdStub();
+      const response = await proxy.request(`/api/quests?guildId=${guildId}`);
       const body: unknown = await response.json();
 
       expect(response.status).toBe(200);
       expect(toPlain(body)).toStrictEqual(toPlain(quests));
     });
 
-    it('INVALID: missing projectId => 400 with error', async () => {
+    it('INVALID: missing guildId => 400 with error', async () => {
       const proxy = StartServerProxy();
       const response = await proxy.request('/api/quests');
       const body: unknown = await response.json();
 
       expect(response.status).toBe(400);
       expect(toPlain(body)).toStrictEqual(
-        toPlain({ error: 'projectId query parameter is required' }),
+        toPlain({ error: 'guildId query parameter is required' }),
       );
     });
 
@@ -317,8 +317,8 @@ describe('StartServer', () => {
       const proxy = StartServerProxy();
       proxy.setupListQuestsError({ error: new Error('list quests failed') });
 
-      const projectId = ProjectIdStub();
-      const response = await proxy.request(`/api/quests?projectId=${projectId}`);
+      const guildId = GuildIdStub();
+      const response = await proxy.request(`/api/quests?guildId=${guildId}`);
       const body: unknown = await response.json();
 
       expect(response.status).toBe(500);
@@ -327,19 +327,19 @@ describe('StartServer', () => {
   });
 
   describe('POST /api/quests', () => {
-    it('VALID: title, userRequest, projectId => 201 with result', async () => {
+    it('VALID: title, userRequest, guildId => 201 with result', async () => {
       const proxy = StartServerProxy();
       const result = AddQuestResultStub();
       proxy.setupAddQuest({ result });
 
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
       const response = await proxy.request('/api/quests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: 'Test Quest',
           userRequest: 'Build a feature',
-          projectId,
+          guildId,
         }),
       });
       const body: unknown = await response.json();
@@ -350,11 +350,11 @@ describe('StartServer', () => {
 
     it('INVALID: missing title => 400 with error', async () => {
       const proxy = StartServerProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
       const response = await proxy.request('/api/quests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userRequest: 'Build a feature', projectId }),
+        body: JSON.stringify({ userRequest: 'Build a feature', guildId }),
       });
       const body: unknown = await response.json();
 
@@ -364,7 +364,7 @@ describe('StartServer', () => {
       );
     });
 
-    it('INVALID: missing projectId => 400 with error', async () => {
+    it('INVALID: missing guildId => 400 with error', async () => {
       const proxy = StartServerProxy();
       const response = await proxy.request('/api/quests', {
         method: 'POST',
@@ -374,21 +374,21 @@ describe('StartServer', () => {
       const body: unknown = await response.json();
 
       expect(response.status).toBe(400);
-      expect(toPlain(body)).toStrictEqual(toPlain({ error: 'projectId is required' }));
+      expect(toPlain(body)).toStrictEqual(toPlain({ error: 'guildId is required' }));
     });
 
     it('INVALID: orchestrator error => 500 with error message', async () => {
       const proxy = StartServerProxy();
       proxy.setupAddQuestError({ error: new Error('add quest failed') });
 
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
       const response = await proxy.request('/api/quests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: 'Test Quest',
           userRequest: 'Build a feature',
-          projectId,
+          guildId,
         }),
       });
       const body: unknown = await response.json();

@@ -16,7 +16,7 @@ import {
   filePathContract,
   errorMessageContract,
   absoluteFilePathContract,
-  projectIdContract,
+  guildIdContract,
 } from '@dungeonmaster/shared/contracts';
 import type { InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { inkTestingLibraryRenderAdapter } from '../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
@@ -41,7 +41,7 @@ export const StartDebug = async (): Promise<void> => {
   const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, '../../../..'));
   const targetProjectRoot = filePathContract.parse(process.cwd());
   const installContext: InstallContext = { dungeonmasterRoot, targetProjectRoot };
-  const projectId = projectIdContract.parse('00000000-0000-0000-0000-000000000000');
+  const guildId = guildIdContract.parse('00000000-0000-0000-0000-000000000000');
 
   const { state, invocations } = debugSessionBroker({
     initialScreen: cliAppScreenContract.parse('menu'),
@@ -93,7 +93,7 @@ export const StartDebug = async (): Promise<void> => {
         element: React.createElement(CliAppWidget, {
           initialScreen: command.screen,
           installContext,
-          projectId,
+          guildId,
           onRunQuest: ({
             questId,
             questFolder,

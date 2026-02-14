@@ -13,7 +13,7 @@ import React from 'react';
 import {
   DependencyStepStub,
   FilePathStub,
-  ProjectIdStub,
+  GuildIdStub,
   QuestStub,
   StepIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -103,7 +103,7 @@ describe('StartCli', () => {
             // Note: we're using testbed.dungeonmasterPath but in real CLI it should auto-resolve
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
-          projectId: ProjectIdStub(),
+          guildId: GuildIdStub(),
         }),
       });
 
@@ -139,7 +139,7 @@ describe('StartCli', () => {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
-          projectId: ProjectIdStub(),
+          guildId: GuildIdStub(),
         }),
       });
 
@@ -216,7 +216,7 @@ describe('StartCli', () => {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
-          projectId: ProjectIdStub(),
+          guildId: GuildIdStub(),
         }),
       });
 
@@ -249,7 +249,7 @@ describe('StartCli', () => {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
-          projectId: ProjectIdStub(),
+          guildId: GuildIdStub(),
         }),
       });
 
@@ -289,7 +289,7 @@ describe('StartCli', () => {
             targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
-          projectId: ProjectIdStub(),
+          guildId: GuildIdStub(),
         }),
       });
 
@@ -409,9 +409,9 @@ describe('StartCli', () => {
         content: FileContentStub({ value: JSON.stringify(quest2, null, 2) }),
       });
 
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
-      const questList = await questListBroker({ projectId });
+      const questList = await questListBroker({ guildId });
       const sortedTitles = questList.map((q) => q.title).sort();
 
       testbed.cleanup();

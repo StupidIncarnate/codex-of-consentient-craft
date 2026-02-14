@@ -3,7 +3,7 @@
  */
 import React from 'react';
 
-import { ProjectIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 import { inkTextAdapter } from '../../adapters/ink/text/ink-text-adapter';
@@ -11,15 +11,15 @@ import { inkTextAdapter } from '../../adapters/ink/text/ink-text-adapter';
 import { useQuestsListBinding } from './use-quests-list-binding';
 import { useQuestsListBindingProxy } from './use-quests-list-binding.proxy';
 
-type ProjectId = ReturnType<typeof ProjectIdStub>;
+type GuildId = ReturnType<typeof GuildIdStub>;
 
 const ASYNC_WAIT_MS = 100;
 
 /**
  * Test wrapper component that uses the hook and renders its state
  */
-const TestHookWrapper = ({ projectId }: { projectId: ProjectId }): React.ReactElement => {
-  const { data, loading, error } = useQuestsListBinding({ projectId });
+const TestHookWrapper = ({ guildId }: { guildId: GuildId }): React.ReactElement => {
+  const { data, loading, error } = useQuestsListBinding({ guildId });
   const Text = inkTextAdapter();
 
   return React.createElement(
@@ -36,14 +36,14 @@ const TestHookWrapper = ({ projectId }: { projectId: ProjectId }): React.ReactEl
 
 describe('useQuestsListBinding', () => {
   describe('loading state', () => {
-    it('VALID: {projectId} => returns loading true initially', () => {
+    it('VALID: {guildId} => returns loading true initially', () => {
       const proxy = useQuestsListBindingProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({ quests: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
-        element: React.createElement(TestHookWrapper, { projectId }),
+        element: React.createElement(TestHookWrapper, { guildId }),
       });
 
       const frame = lastFrame();
@@ -54,9 +54,9 @@ describe('useQuestsListBinding', () => {
   });
 
   describe('successful fetch', () => {
-    it('VALID: {projectId} => returns quests sorted by newest first', async () => {
+    it('VALID: {guildId} => returns quests sorted by newest first', async () => {
       const proxy = useQuestsListBindingProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({
         quests: [
@@ -78,7 +78,7 @@ describe('useQuestsListBinding', () => {
       });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
-        element: React.createElement(TestHookWrapper, { projectId }),
+        element: React.createElement(TestHookWrapper, { guildId }),
       });
 
       // Wait for async to complete
@@ -99,12 +99,12 @@ describe('useQuestsListBinding', () => {
   describe('empty state', () => {
     it('EMPTY: {no quests} => returns empty array', async () => {
       const proxy = useQuestsListBindingProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({ quests: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
-        element: React.createElement(TestHookWrapper, { projectId }),
+        element: React.createElement(TestHookWrapper, { guildId }),
       });
 
       // Wait for async to complete
@@ -124,12 +124,12 @@ describe('useQuestsListBinding', () => {
   describe('error state', () => {
     it('ERROR: {orchestrator error} => returns error', async () => {
       const proxy = useQuestsListBindingProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupError({ error: new Error('Failed to list quests') });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
-        element: React.createElement(TestHookWrapper, { projectId }),
+        element: React.createElement(TestHookWrapper, { guildId }),
       });
 
       // Wait for async to complete

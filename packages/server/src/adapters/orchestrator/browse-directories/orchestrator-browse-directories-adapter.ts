@@ -7,10 +7,10 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { DirectoryEntry, ProjectPath } from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntry, GuildPath } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorBrowseDirectoriesAdapter = ({
   path,
 }: {
-  path?: ProjectPath;
+  path?: GuildPath;
 }): DirectoryEntry[] => StartOrchestrator.browseDirectories(path === undefined ? {} : { path });

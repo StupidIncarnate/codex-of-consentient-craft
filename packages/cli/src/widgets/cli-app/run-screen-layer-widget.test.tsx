@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ProjectIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
@@ -17,17 +17,13 @@ describe('RunScreenLayerWidget', () => {
   describe('rendering run screen content', () => {
     it('VALID: {empty quests} => displays Run Quest title and no quests message', async () => {
       const proxy = RunScreenLayerWidgetProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({ quests: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
-          <RunScreenLayerWidget
-            projectId={projectId}
-            onRunQuest={noopCallback}
-            onBack={noopCallback}
-          />
+          <RunScreenLayerWidget guildId={guildId} onRunQuest={noopCallback} onBack={noopCallback} />
         ),
       });
 
@@ -44,7 +40,7 @@ describe('RunScreenLayerWidget', () => {
 
     it('VALID: {only complete quests} => displays no incomplete quests message', async () => {
       const proxy = RunScreenLayerWidgetProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({
         quests: [
@@ -60,11 +56,7 @@ describe('RunScreenLayerWidget', () => {
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
-          <RunScreenLayerWidget
-            projectId={projectId}
-            onRunQuest={noopCallback}
-            onBack={noopCallback}
-          />
+          <RunScreenLayerWidget guildId={guildId} onRunQuest={noopCallback} onBack={noopCallback} />
         ),
       });
 
@@ -80,7 +72,7 @@ describe('RunScreenLayerWidget', () => {
 
     it('VALID: {with incomplete quests} => displays incomplete quest list', async () => {
       const proxy = RunScreenLayerWidgetProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({
         quests: [
@@ -103,11 +95,7 @@ describe('RunScreenLayerWidget', () => {
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
-          <RunScreenLayerWidget
-            projectId={projectId}
-            onRunQuest={noopCallback}
-            onBack={noopCallback}
-          />
+          <RunScreenLayerWidget guildId={guildId} onRunQuest={noopCallback} onBack={noopCallback} />
         ),
       });
 
@@ -125,17 +113,13 @@ describe('RunScreenLayerWidget', () => {
 
     it('VALID: {} => displays navigation instructions', async () => {
       const proxy = RunScreenLayerWidgetProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({ quests: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
-          <RunScreenLayerWidget
-            projectId={projectId}
-            onRunQuest={noopCallback}
-            onBack={noopCallback}
-          />
+          <RunScreenLayerWidget guildId={guildId} onRunQuest={noopCallback} onBack={noopCallback} />
         ),
       });
 
@@ -153,7 +137,7 @@ describe('RunScreenLayerWidget', () => {
 
     it('VALID: {first quest} => displays first quest as selected by default', async () => {
       const proxy = RunScreenLayerWidgetProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({
         quests: [
@@ -169,11 +153,7 @@ describe('RunScreenLayerWidget', () => {
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
         element: (
-          <RunScreenLayerWidget
-            projectId={projectId}
-            onRunQuest={noopCallback}
-            onBack={noopCallback}
-          />
+          <RunScreenLayerWidget guildId={guildId} onRunQuest={noopCallback} onBack={noopCallback} />
         ),
       });
 

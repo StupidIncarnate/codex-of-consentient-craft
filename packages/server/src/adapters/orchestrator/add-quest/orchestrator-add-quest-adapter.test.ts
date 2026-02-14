@@ -1,18 +1,18 @@
-import { ProjectIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorAddQuestAdapter } from './orchestrator-add-quest-adapter';
 import { orchestratorAddQuestAdapterProxy } from './orchestrator-add-quest-adapter.proxy';
 
 describe('orchestratorAddQuestAdapter', () => {
   describe('successful add', () => {
-    it('VALID: {title, userRequest, projectId} => returns add quest result', async () => {
+    it('VALID: {title, userRequest, guildId} => returns add quest result', async () => {
       orchestratorAddQuestAdapterProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       const result = await orchestratorAddQuestAdapter({
         title: 'Add Auth',
         userRequest: 'User wants authentication',
-        projectId,
+        guildId,
       });
 
       expect(result).toStrictEqual({
@@ -27,7 +27,7 @@ describe('orchestratorAddQuestAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorAddQuestAdapterProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.throws({ error: new Error('Failed to add quest') });
 
@@ -35,7 +35,7 @@ describe('orchestratorAddQuestAdapter', () => {
         orchestratorAddQuestAdapter({
           title: 'Add Auth',
           userRequest: 'User wants authentication',
-          projectId,
+          guildId,
         }),
       ).rejects.toThrow(/Failed to add quest/u);
     });

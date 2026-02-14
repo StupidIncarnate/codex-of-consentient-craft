@@ -2,12 +2,12 @@
  * PURPOSE: Displays a list of all quests for the CLI app, sorted by newest first
  *
  * USAGE:
- * <ListScreenLayerWidget projectId={projectId} onBack={() => setScreen('menu')} />
+ * <ListScreenLayerWidget guildId={guildId} onBack={() => setScreen('menu')} />
  * // Renders list of quests with back navigation
  */
 import React from 'react';
 
-import type { ProjectId } from '@dungeonmaster/shared/contracts';
+import type { GuildId } from '@dungeonmaster/shared/contracts';
 
 import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter';
 import { inkTextAdapter } from '../../adapters/ink/text/ink-text-adapter';
@@ -16,17 +16,17 @@ import { useQuestsListBinding } from '../../bindings/use-quests-list/use-quests-
 import { cliStatics } from '../../statics/cli/cli-statics';
 
 export interface ListScreenLayerWidgetProps {
-  projectId: ProjectId;
+  guildId: GuildId;
   onBack: () => void;
 }
 
 export const ListScreenLayerWidget = ({
-  projectId,
+  guildId,
   onBack,
 }: ListScreenLayerWidgetProps): React.JSX.Element => {
   const Box = inkBoxAdapter();
   const Text = inkTextAdapter();
-  const { data: quests, loading, error } = useQuestsListBinding({ projectId });
+  const { data: quests, loading, error } = useQuestsListBinding({ guildId });
 
   inkUseInputAdapter({
     handler: ({ input, key }) => {

@@ -11,7 +11,7 @@
  */
 import React, { useState } from 'react';
 
-import type { InstallContext, ProjectId, Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { HelpScreenLayerWidget } from './help-screen-layer-widget';
 import { InitScreenLayerWidget } from './init-screen-layer-widget';
 import { ListScreenLayerWidget } from './list-screen-layer-widget';
@@ -27,7 +27,7 @@ export interface CliAppWidgetProps {
   onRunQuest: ({ questId, questFolder }: { questId: QuestId; questFolder: QuestFolder }) => void;
   onExit: () => void;
   installContext: InstallContext;
-  projectId: ProjectId;
+  guildId: GuildId;
 }
 
 export const CliAppWidget = ({
@@ -35,7 +35,7 @@ export const CliAppWidget = ({
   onRunQuest,
   onExit,
   installContext,
-  projectId,
+  guildId,
 }: CliAppWidgetProps): React.JSX.Element => {
   const [screen, setScreen] = useState<CliAppScreen>(initialScreen);
 
@@ -52,7 +52,7 @@ export const CliAppWidget = ({
   if (screen === 'list') {
     return (
       <ListScreenLayerWidget
-        projectId={projectId}
+        guildId={guildId}
         onBack={() => {
           setScreen('menu');
         }}
@@ -74,7 +74,7 @@ export const CliAppWidget = ({
   if (screen === 'run') {
     return (
       <RunScreenLayerWidget
-        projectId={projectId}
+        guildId={guildId}
         onRunQuest={({ questId, questFolder }) => {
           onRunQuest({ questId, questFolder });
         }}

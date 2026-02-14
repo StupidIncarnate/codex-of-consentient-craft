@@ -9,8 +9,8 @@
 export const webConfigStatics = {
   api: {
     routes: {
-      projects: '/api/projects',
-      projectById: '/api/projects/:projectId',
+      guilds: '/api/guilds',
+      guildById: '/api/guilds/:guildId',
       directoriesBrowse: '/api/directories/browse',
       quests: '/api/quests',
       questById: '/api/quests/:questId',

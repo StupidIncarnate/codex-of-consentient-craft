@@ -17,7 +17,7 @@ import type { InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contr
 import {
   absoluteFilePathContract,
   filePathContract,
-  projectIdContract,
+  guildIdContract,
 } from '@dungeonmaster/shared/contracts';
 import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
 
@@ -55,15 +55,15 @@ export const StartCli = async ({
   const targetProjectRoot = filePathContract.parse(process.cwd());
   const installContext: InstallContext = { dungeonmasterRoot, targetProjectRoot };
 
-  // Placeholder projectId until project registry integration is wired up
-  const projectId = projectIdContract.parse('00000000-0000-0000-0000-000000000000');
+  // Placeholder guildId until guild registry integration is wired up
+  const guildId = guildIdContract.parse('00000000-0000-0000-0000-000000000000');
 
   // Render the Ink app
   const { unmount, waitUntilExit } = render(
     React.createElement(CliAppWidget, {
       initialScreen,
       installContext,
-      projectId,
+      guildId,
       onRunQuest: ({ questId, questFolder }: { questId: QuestId; questFolder: QuestFolder }) => {
         state.pendingQuestExecution = { questId, questFolder };
         unmount();

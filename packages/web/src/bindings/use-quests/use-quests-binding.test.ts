@@ -1,4 +1,4 @@
-import { ProjectIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
@@ -7,16 +7,16 @@ import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wai
 import { useQuestsBinding } from './use-quests-binding';
 import { useQuestsBindingProxy } from './use-quests-binding.proxy';
 
-const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
 describe('useQuestsBinding', () => {
   describe('loading state', () => {
-    it('VALID: {projectId} => starts with loading true and empty data', () => {
+    it('VALID: {guildId} => starts with loading true and empty data', () => {
       const proxy = useQuestsBindingProxy();
       proxy.setupQuests({ quests: [] });
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ projectId }),
+        renderCallback: () => useQuestsBinding({ guildId }),
       });
 
       expect(result.current).toStrictEqual({
@@ -29,7 +29,7 @@ describe('useQuestsBinding', () => {
   });
 
   describe('successful fetch', () => {
-    it('VALID: {projectId} => returns quests after loading', async () => {
+    it('VALID: {guildId} => returns quests after loading', async () => {
       const proxy = useQuestsBindingProxy();
       const quests = [
         QuestListItemStub({ id: 'quest-1', title: 'First Quest' }),
@@ -39,7 +39,7 @@ describe('useQuestsBinding', () => {
       proxy.setupQuests({ quests });
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ projectId }),
+        renderCallback: () => useQuestsBinding({ guildId }),
       });
 
       await testingLibraryWaitForAdapter({
@@ -63,7 +63,7 @@ describe('useQuestsBinding', () => {
       proxy.setupQuests({ quests: [] });
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ projectId }),
+        renderCallback: () => useQuestsBinding({ guildId }),
       });
 
       await testingLibraryWaitForAdapter({
@@ -87,7 +87,7 @@ describe('useQuestsBinding', () => {
       proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ projectId }),
+        renderCallback: () => useQuestsBinding({ guildId }),
       });
 
       await testingLibraryWaitForAdapter({
@@ -111,7 +111,7 @@ describe('useQuestsBinding', () => {
       proxy.setupQuests({ quests: [QuestListItemStub({ id: 'quest-1', title: 'First' })] });
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ projectId }),
+        renderCallback: () => useQuestsBinding({ guildId }),
       });
 
       await testingLibraryWaitForAdapter({
@@ -155,7 +155,7 @@ describe('useQuestsBinding', () => {
       proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ projectId }),
+        renderCallback: () => useQuestsBinding({ guildId }),
       });
 
       await testingLibraryWaitForAdapter({
@@ -195,7 +195,7 @@ describe('useQuestsBinding', () => {
       });
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ projectId }),
+        renderCallback: () => useQuestsBinding({ guildId }),
       });
 
       await testingLibraryWaitForAdapter({
@@ -233,7 +233,7 @@ describe('useQuestsBinding', () => {
       proxy.setupQuests({ quests: { notAnArray: true } as never });
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ projectId }),
+        renderCallback: () => useQuestsBinding({ guildId }),
       });
 
       await testingLibraryWaitForAdapter({
@@ -252,7 +252,7 @@ describe('useQuestsBinding', () => {
       proxy.setupQuests({ quests: undefined as never });
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ projectId }),
+        renderCallback: () => useQuestsBinding({ guildId }),
       });
 
       await testingLibraryWaitForAdapter({
@@ -276,7 +276,7 @@ describe('useQuestsBinding', () => {
       proxy.setupError();
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ projectId }),
+        renderCallback: () => useQuestsBinding({ guildId }),
       });
 
       await testingLibraryWaitForAdapter({

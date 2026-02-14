@@ -1,4 +1,4 @@
-import { ProjectIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts';
 
 import { AddQuestResultStub } from '../../../contracts/add-quest-result/add-quest-result.stub';
 
@@ -7,13 +7,13 @@ import { orchestratorAddQuestAdapterProxy } from './orchestrator-add-quest-adapt
 
 describe('orchestratorAddQuestAdapter', () => {
   describe('successful add', () => {
-    it('VALID: {title, userRequest, projectId} => returns AddQuestResult', async () => {
+    it('VALID: {title, userRequest, guildId} => returns AddQuestResult', async () => {
       const proxy = orchestratorAddQuestAdapterProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
       const expectedResult = AddQuestResultStub({
         questId: 'add-auth',
         questFolder: '001-add-auth',
-        filePath: '/my/project/.dungeonmaster-quests/001-add-auth/quest.json',
+        filePath: '/my/guild/.dungeonmaster-quests/001-add-auth/quest.json',
       });
 
       proxy.returns({ result: expectedResult });
@@ -21,7 +21,7 @@ describe('orchestratorAddQuestAdapter', () => {
       const result = await orchestratorAddQuestAdapter({
         title: 'Add Auth',
         userRequest: 'User wants authentication',
-        projectId,
+        guildId,
       });
 
       expect(result).toStrictEqual(expectedResult);
@@ -31,7 +31,7 @@ describe('orchestratorAddQuestAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorAddQuestAdapterProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.throws({ error: new Error('Failed to add quest') });
 
@@ -39,7 +39,7 @@ describe('orchestratorAddQuestAdapter', () => {
         orchestratorAddQuestAdapter({
           title: 'Add Auth',
           userRequest: 'User wants authentication',
-          projectId,
+          guildId,
         }),
       ).rejects.toThrow(/Failed to add quest/u);
     });
