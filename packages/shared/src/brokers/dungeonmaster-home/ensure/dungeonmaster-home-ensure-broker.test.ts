@@ -10,14 +10,14 @@ describe('dungeonmasterHomeEnsureBroker', () => {
       proxy.setupEnsureSuccess({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        projectsPath: FilePathStub({ value: '/home/user/.dungeonmaster/projects' }),
+        guildsPath: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
       });
 
       const result = await dungeonmasterHomeEnsureBroker();
 
       expect(result).toStrictEqual({
         homePath: '/home/user/.dungeonmaster',
-        projectsPath: '/home/user/.dungeonmaster/projects',
+        guildsPath: '/home/user/.dungeonmaster/guilds',
       });
     });
 
@@ -27,14 +27,14 @@ describe('dungeonmasterHomeEnsureBroker', () => {
       proxy.setupEnsureSuccess({
         homeDir: '/root',
         homePath: FilePathStub({ value: '/root/.dungeonmaster' }),
-        projectsPath: FilePathStub({ value: '/root/.dungeonmaster/projects' }),
+        guildsPath: FilePathStub({ value: '/root/.dungeonmaster/guilds' }),
       });
 
       const result = await dungeonmasterHomeEnsureBroker();
 
       expect(result).toStrictEqual({
         homePath: '/root/.dungeonmaster',
-        projectsPath: '/root/.dungeonmaster/projects',
+        guildsPath: '/root/.dungeonmaster/guilds',
       });
     });
   });
