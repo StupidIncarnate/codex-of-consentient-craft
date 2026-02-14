@@ -12,3 +12,4 @@ export * from './src/statics/folder-config/folder-config-statics';
 export * from './src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics';
 export * from './src/statics/quests-folder/quests-folder-statics';
 export * from './src/statics/dungeonmaster-home/dungeonmaster-home-statics';
+export * from './src/statics/environment/environment-statics';

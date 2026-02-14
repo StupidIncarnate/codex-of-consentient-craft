@@ -399,12 +399,12 @@ describe('StartServer', () => {
   });
 
   describe('GET /', () => {
-    it('VALID: {} => 302 redirect to localhost:5173', async () => {
+    it('VALID: {} => 302 redirect to web SPA port', async () => {
       const proxy = StartServerProxy();
       const response = await proxy.request('/');
 
       expect(response.status).toBe(302);
-      expect(response.headers.get('location')).toBe('http://localhost:5173');
+      expect(response.headers.get('location')).toBe('http://dungeonmaster.localhost:3738');
     });
   });
 

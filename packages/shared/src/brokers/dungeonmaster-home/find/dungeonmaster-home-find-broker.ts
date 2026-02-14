@@ -8,14 +8,19 @@
 
 import { osHomedirAdapter } from '../../../adapters/os/homedir/os-homedir-adapter';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
+import { environmentStatics } from '../../../statics/environment/environment-statics';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const dungeonmasterHomeFindBroker = (): { homePath: FilePath } => {
   const homeDir = osHomedirAdapter();
 
+  const dirName =
+    process.env.DUNGEONMASTER_ENV === 'dev'
+      ? environmentStatics.devDataDir
+      : environmentStatics.dataDir;
+
   const homePath = pathJoinAdapter({
-    paths: [homeDir, dungeonmasterHomeStatics.paths.configDir],
+    paths: [homeDir, dirName],
   });
 
   return { homePath };

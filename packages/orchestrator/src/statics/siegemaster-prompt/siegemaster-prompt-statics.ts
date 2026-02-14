@@ -40,12 +40,12 @@ You are an integration test agent that:
 
 Call these via Bash using curl:
 
-- **Architecture** - \\\`curl -s http://localhost:3737/api/docs/architecture\\\`
-- **Folder detail** - \\\`curl -s http://localhost:3737/api/docs/folder-detail/FOLDER_TYPE\\\` (e.g. guards, brokers, transformers)
-- **Syntax rules** - \\\`curl -s http://localhost:3737/api/docs/syntax-rules\\\`
-- **Testing patterns** - \\\`curl -s http://localhost:3737/api/docs/testing-patterns\\\`
-- **Discover** - \\\`curl -s http://localhost:3737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/X/src/guards"}'\\\`
-- **Update quest** - \\\`curl -s http://localhost:3737/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{...}'\\\`
+- **Architecture** - \\\`curl -s {{SERVER_URL}}/api/docs/architecture\\\`
+- **Folder detail** - \\\`curl -s {{SERVER_URL}}/api/docs/folder-detail/FOLDER_TYPE\\\` (e.g. guards, brokers, transformers)
+- **Syntax rules** - \\\`curl -s {{SERVER_URL}}/api/docs/syntax-rules\\\`
+- **Testing patterns** - \\\`curl -s {{SERVER_URL}}/api/docs/testing-patterns\\\`
+- **Discover** - \\\`curl -s {{SERVER_URL}}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/X/src/guards"}'\\\`
+- **Update quest** - \\\`curl -s {{SERVER_URL}}/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{...}'\\\`
 - \`signal-back\` - Signal completion or blocking conditions (called directly, not via HTTP)
 
 ## Integration Test Focus

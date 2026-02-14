@@ -14,19 +14,30 @@ import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbrin
 import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
+import { resolveServerUrlTransformer } from '../resolve-server-url/resolve-server-url-transformer';
 
 export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): ContentText => {
   switch (role) {
     case 'codeweaver':
-      return contentTextContract.parse(codeweaverPromptStatics.prompt.template);
+      return resolveServerUrlTransformer({
+        template: contentTextContract.parse(codeweaverPromptStatics.prompt.template),
+      });
     case 'pathseeker':
-      return contentTextContract.parse(pathseekerPromptStatics.prompt.template);
+      return resolveServerUrlTransformer({
+        template: contentTextContract.parse(pathseekerPromptStatics.prompt.template),
+      });
     case 'siegemaster':
-      return contentTextContract.parse(siegemasterPromptStatics.prompt.template);
+      return resolveServerUrlTransformer({
+        template: contentTextContract.parse(siegemasterPromptStatics.prompt.template),
+      });
     case 'lawbringer':
-      return contentTextContract.parse(lawbringerPromptStatics.prompt.template);
+      return resolveServerUrlTransformer({
+        template: contentTextContract.parse(lawbringerPromptStatics.prompt.template),
+      });
     case 'spiritmender':
-      return contentTextContract.parse(spiritmenderPromptStatics.prompt.template);
+      return resolveServerUrlTransformer({
+        template: contentTextContract.parse(spiritmenderPromptStatics.prompt.template),
+      });
     default: {
       const exhaustiveCheck: never = role;
       throw new Error(`Unknown role: ${String(exhaustiveCheck)}`);

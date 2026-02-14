@@ -35,7 +35,7 @@ const createMcpClient = async (): Promise<McpServerClient> => {
 
   const serverProcess = spawn('npx', ['tsx', serverEntryPoint], {
     stdio: ['pipe', 'pipe', 'pipe'],
-    cwd: testbed.projectPath,
+    cwd: testbed.guildPath,
   });
 
   const pendingResponses = new Map<RpcId, (response: JsonRpcResponse) => void>();

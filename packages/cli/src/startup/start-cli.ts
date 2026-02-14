@@ -20,6 +20,7 @@ import {
   guildIdContract,
 } from '@dungeonmaster/shared/contracts';
 import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
 import { cliStatics } from '../statics/cli/cli-statics';
@@ -111,14 +112,15 @@ if (isMain) {
     runtimeDynamicImportAdapter<{ StartServer: () => void }>({ path: serverPath })
       .then((serverModule) => {
         serverModule.StartServer();
-        process.stdout.write(`Dungeonmaster server running at ${cliStatics.server.url}\n`);
-        const { url } = cliStatics.server;
+        const port = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;
+        const serverUrl = `http://${environmentStatics.hostname}:${port}`;
+        process.stdout.write(`Dungeonmaster server running at ${serverUrl}\n`);
         const cmd =
           process.platform === 'darwin'
-            ? `open ${url}`
+            ? `open ${serverUrl}`
             : process.platform === 'win32'
-              ? `start ${url}`
-              : `xdg-open ${url}`;
+              ? `start ${serverUrl}`
+              : `xdg-open ${serverUrl}`;
         exec(cmd);
       })
       .catch((error: unknown) => {

@@ -3,7 +3,7 @@ import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
 test.describe('Smoke Tests', () => {
   test('health endpoint responds', async ({ request }) => {
-    const response = await request.get('http://localhost:3737/api/health');
+    const response = await request.get('/api/health');
     expect(response.status()).toBe(200);
     const body = await response.json();
     expect(body.status).toBe('ok');

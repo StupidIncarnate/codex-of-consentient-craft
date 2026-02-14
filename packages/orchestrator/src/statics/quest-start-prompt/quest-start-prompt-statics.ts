@@ -21,12 +21,12 @@ Monitor the orchestration of a quest and report progress to the user.
 
 ## Flow
 1. If no quest ID provided, list quests via the HTTP API and pick the most recent:
-   \\\`curl -s http://localhost:3737/api/quests\\\`
+   \\\`curl -s {{SERVER_URL}}/api/quests\\\`
 2. If a description is provided, fuzzy match against quest IDs/descriptions
 3. Start quest execution via the HTTP API:
-   \\\`curl -s http://localhost:3737/api/quests/QUEST_ID/start -X POST\\\`
+   \\\`curl -s {{SERVER_URL}}/api/quests/QUEST_ID/start -X POST\\\`
 4. Poll quest status periodically (every 5-10 seconds):
-   \\\`curl -s http://localhost:3737/api/process/PROCESS_ID\\\`
+   \\\`curl -s {{SERVER_URL}}/api/process/PROCESS_ID\\\`
 5. Report progress to the user as phases complete
 6. Report final completion when done
 

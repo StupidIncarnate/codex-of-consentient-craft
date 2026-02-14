@@ -16,7 +16,7 @@ describe('start-install integration', () => {
 
       const result = await StartInstall({
         context: {
-          targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
           dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
         },
       });
@@ -47,7 +47,7 @@ describe('start-install integration', () => {
 
       await StartInstall({
         context: {
-          targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
           dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
         },
       });
@@ -87,7 +87,7 @@ describe('start-install integration', () => {
 
       const result = await StartInstall({
         context: {
-          targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
           dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
         },
       });
@@ -153,7 +153,7 @@ describe('start-install integration', () => {
 
       const result = await StartInstall({
         context: {
-          targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
           dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
         },
       });

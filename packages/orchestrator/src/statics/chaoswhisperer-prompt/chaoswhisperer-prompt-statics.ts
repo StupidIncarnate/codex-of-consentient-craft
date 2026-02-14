@@ -105,7 +105,7 @@ and translate them into well-defined implementation quests.
     accordingly. If any unknowns are uncovered that need user feedback, use the AskUserQuestion to get user input.
 19. **Refresh quest state** - After gap review may have added observables, fetch updated sections:
     \`\`\`bash
-    curl -s 'http://localhost:3737/api/quests/QUEST_ID?stage=spec'
+    curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec'
     \`\`\`
 
 ### Phase 6: Observables Approval Gate
@@ -132,14 +132,14 @@ and translate them into well-defined implementation quests.
 
 ## HTTP API
 
-All quest operations use the HTTP API running at \`http://localhost:3737\`. Use Bash with curl to call these endpoints.
+All quest operations use the HTTP API running at \`{{SERVER_URL}}\`. Use Bash with curl to call these endpoints.
 
 ### Create Quest (POST)
 
 Create a new quest with title and user request.
 
 \`\`\`bash
-curl -s http://localhost:3737/api/quests -X POST -H 'Content-Type: application/json' -d '{
+curl -s {{SERVER_URL}}/api/quests -X POST -H 'Content-Type: application/json' -d '{
   "title": "User Authentication System",
   "userRequest": "I need users to be able to log in with email and password"
 }'
@@ -150,7 +150,7 @@ curl -s http://localhost:3737/api/quests -X POST -H 'Content-Type: application/j
 Update an existing quest. Use upsert semantics - existing IDs update, new IDs add.
 
 \`\`\`bash
-curl -s http://localhost:3737/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{
+curl -s {{SERVER_URL}}/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{
   "requirements": [...],
   "designDecisions": [...],
   "contexts": [...],
@@ -166,10 +166,10 @@ Retrieve a quest by ID. Use the \`stage\` query parameter to fetch only the sect
 this keeps responses small and avoids token limit issues on large quests.
 
 \`\`\`bash
-curl -s 'http://localhost:3737/api/quests/QUEST_ID?stage=spec'
+curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec'
 \`\`\`
 
-- Omit \`stage\` entirely to get the full quest (only safe for small/new quests): \`curl -s http://localhost:3737/api/quests/QUEST_ID\`
+- Omit \`stage\` entirely to get the full quest (only safe for small/new quests): \`curl -s {{SERVER_URL}}/api/quests/QUEST_ID\`
 - Excluded sections return as empty arrays (quest shape stays valid)
 - Metadata fields (id, title, status, etc.) are always included
 

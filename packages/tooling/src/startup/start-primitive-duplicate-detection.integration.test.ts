@@ -78,7 +78,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       });
 
       const result = runStartup({
-        args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
+        args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
       expect(result.exitCode).toBe(0);
@@ -116,7 +116,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       });
 
       const result = runStartup({
-        args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
+        args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
       expect(result.exitCode).toBe(0);
@@ -146,7 +146,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       });
 
       const result = runStartup({
-        args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`, `--threshold=2`],
+        args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`, `--threshold=2`],
       });
 
       expect(result.exitCode).toBe(0);
@@ -167,7 +167,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       });
 
       const result = runStartup({
-        args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
+        args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
       expect(result.exitCode).toBe(0);
@@ -197,7 +197,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       });
 
       const result = runStartup({
-        args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
+        args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
       expect(result.exitCode).toBe(0);
@@ -232,7 +232,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       });
 
       const result = runStartup({
-        args: [`--pattern=**/*.ts`, `--cwd=${env.projectPath}`],
+        args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
       expect(result.exitCode).toBe(0);

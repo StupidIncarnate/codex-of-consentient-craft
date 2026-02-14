@@ -10,4 +10,24 @@ module.exports = {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
+  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
+  transform: {
+    '^.+\\.[jt]s$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          allowJs: true,
+          esModuleInterop: true,
+          skipLibCheck: true,
+        },
+        astTransformers: {
+          before: [
+            {
+              path: require.resolve('../../packages/testing/ts-jest/proxy-mock-transformer.js'),
+            },
+          ],
+        },
+      },
+    ],
+  },
 };

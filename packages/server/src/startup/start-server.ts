@@ -44,9 +44,9 @@ import { orchestratorModifyQuestAdapter } from '../adapters/orchestrator/modify-
 import { orchestratorVerifyQuestAdapter } from '../adapters/orchestrator/verify-quest/orchestrator-verify-quest-adapter';
 import { orchestratorStartQuestAdapter } from '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
 import { orchestratorGetQuestStatusAdapter } from '../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { honoServeAdapter } from '../adapters/hono/serve/hono-serve-adapter';
 import { honoCreateNodeWebSocketAdapter } from '../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
-import { serverConfigStatics } from '../statics/server-config/server-config-statics';
 import { apiRoutesStatics } from '../statics/api-routes/api-routes-statics';
 import { httpStatusStatics } from '../statics/http-status/http-status-statics';
 import { agentOutputLineContract } from '../contracts/agent-output-line/agent-output-line-contract';
@@ -414,18 +414,18 @@ export const StartServer = (): void => {
     }
   });
 
-  // Redirect root to web SPA dev server
-  app.get('/', (c) => c.redirect('http://localhost:5173'));
+  // Redirect root to web SPA
+  const serverPort = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;
+  const serverHost = environmentStatics.hostname;
+  app.get('/', (c) => c.redirect(`http://${serverHost}:${serverPort + 1}`));
 
   // Start the server and inject WebSocket support
   const server = honoServeAdapter({
     fetch: app.fetch,
-    port: serverConfigStatics.network.port,
-    hostname: serverConfigStatics.network.host,
+    port: serverPort,
+    hostname: serverHost,
     onListen: (info) => {
-      process.stdout.write(
-        `Server listening on http://${serverConfigStatics.network.host}:${info.port}\n`,
-      );
+      process.stdout.write(`Server listening on http://${serverHost}:${info.port}\n`);
     },
   });
   nodeWebSocket.injectWebSocket(server);

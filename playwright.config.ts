@@ -1,6 +1,15 @@
+import * as os from 'os';
+import * as path from 'path';
 import { defineConfig, devices } from '@playwright/test';
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 const CI_RETRIES = 2;
+
+const TEST_PORT = environmentStatics.testPort;
+const TEST_HOME = path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
+
+process.env.DUNGEONMASTER_PORT = String(TEST_PORT);
+process.env.DUNGEONMASTER_HOME = TEST_HOME;
 
 export default defineConfig({
   testDir: './tests/e2e/web',
@@ -11,8 +20,11 @@ export default defineConfig({
   retries: process.env.CI ? CI_RETRIES : 0,
   reporter: 'html',
 
+  globalSetup: './tests/e2e/web/global-setup.ts',
+  globalTeardown: './tests/e2e/web/global-teardown.ts',
+
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: `http://${environmentStatics.hostname}:${TEST_PORT + 1}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -27,13 +39,21 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run dev --workspace=@dungeonmaster/server',
-      port: 3737,
-      reuseExistingServer: true,
+      port: TEST_PORT,
+      reuseExistingServer: false,
+      env: {
+        DUNGEONMASTER_PORT: String(TEST_PORT),
+        DUNGEONMASTER_HOME: TEST_HOME,
+      },
     },
     {
       command: 'npm run dev --workspace=@dungeonmaster/web',
-      port: 5173,
-      reuseExistingServer: true,
+      port: TEST_PORT + 1,
+      reuseExistingServer: false,
+      env: {
+        DUNGEONMASTER_PORT: String(TEST_PORT),
+        DUNGEONMASTER_ENV: 'test',
+      },
     },
   ],
 });

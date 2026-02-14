@@ -14,7 +14,7 @@
     "lint": "npm run lint --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "ward:all": "npm run lint --workspaces && npm run typecheck --workspaces && npm run test --workspaces",
-    "dev": "npm run dev --workspace=@dungeonmaster/server & npm run dev --workspace=@dungeonmaster/web & wait",
+    "dev": "DUNGEONMASTER_PORT=4737 DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/server & DUNGEONMASTER_PORT=4737 DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/web & wait",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "npm run build && changeset publish",

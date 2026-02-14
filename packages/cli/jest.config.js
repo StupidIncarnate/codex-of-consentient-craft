@@ -10,11 +10,19 @@ module.exports = {
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
   testMatch: ['**/src/**/*.test.ts', '**/src/**/*.test.tsx', '**/bin/**/*.test.ts'],
   testPathIgnorePatterns: ['/node_modules/'],
+  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
   transform: {
-    '^.+\\.(ts|tsx)$': [
+    '^.+\\.[jt]sx?$': [
       'ts-jest',
       {
-        tsconfig: resolve(__dirname, 'tsconfig.json'),
+        tsconfig: {
+          allowJs: true,
+          esModuleInterop: true,
+          skipLibCheck: true,
+          jsx: 'react',
+          module: 'commonjs',
+          moduleResolution: 'node',
+        },
         astTransformers: {
           before: [
             {

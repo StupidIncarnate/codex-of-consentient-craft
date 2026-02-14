@@ -34,7 +34,7 @@ a quest after PathSeeker has created its steps. You work autonomously and produc
 Call verify-quest via the HTTP API with the provided quest ID:
 
 \\\`\\\`\\\`bash
-curl -s http://localhost:3737/api/quests/QUEST_ID/verify -X POST
+curl -s {{SERVER_URL}}/api/quests/QUEST_ID/verify -X POST
 \\\`\\\`\\\`
 
 This runs 11 integrity checks:
@@ -57,18 +57,18 @@ fixed before implementation.
 
 Fetch the quest in stages via the HTTP API to manage context size:
 
-**Fetch 1:** \\\`curl -s 'http://localhost:3737/api/quests/QUEST_ID?stage=spec-decisions'\\\`
+**Fetch 1:** \\\`curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec-decisions'\\\`
 - Record all requirement IDs, names, and scopes
 - Record all design decisions
 - Record all contract entries (names, kinds, properties)
 - Record all tooling requirements
 
-**Fetch 2:** \\\`curl -s 'http://localhost:3737/api/quests/QUEST_ID?stage=spec-bdd'\\\`
+**Fetch 2:** \\\`curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec-bdd'\\\`
 - Record all context IDs and locators
 - Record all observables with their triggers, outcomes, and requirement links
 - Contracts are included again for cross-referencing
 
-**Fetch 3:** \\\`curl -s 'http://localhost:3737/api/quests/QUEST_ID?stage=implementation'\\\`
+**Fetch 3:** \\\`curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=implementation'\\\`
 - Record all steps with their descriptions, file operations, and dependencies
 - Contracts are included again for contract reference validation
 
@@ -97,7 +97,7 @@ For each step, evaluate:
 Use the HTTP API discover endpoint to verify assumptions in the quest:
 
 \\\`\\\`\\\`bash
-curl -s http://localhost:3737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type": "files", "path": "packages/X/src/guards"}'
+curl -s {{SERVER_URL}}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type": "files", "path": "packages/X/src/guards"}'
 \\\`\\\`\\\`
 
 - **File existence**: Do files listed in \`filesToModify\` actually exist?

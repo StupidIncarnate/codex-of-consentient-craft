@@ -24,11 +24,7 @@ import {
   FileContentStub,
 } from '@dungeonmaster/testing';
 
-import {
-  questListBroker,
-  questLoadBroker,
-  questUpdateStepBroker,
-} from '@dungeonmaster/orchestrator';
+import { questLoadBroker, questUpdateStepBroker } from '@dungeonmaster/orchestrator';
 
 import { cliStatics } from '../statics/cli/cli-statics';
 import { StartCli } from './start-cli';
@@ -99,7 +95,7 @@ describe('StartCli', () => {
           onRunQuest,
           onExit,
           installContext: {
-            targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
+            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
             // Note: we're using testbed.dungeonmasterPath but in real CLI it should auto-resolve
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
@@ -136,7 +132,7 @@ describe('StartCli', () => {
           onRunQuest,
           onExit,
           installContext: {
-            targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
+            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
           guildId: GuildIdStub(),
@@ -213,7 +209,7 @@ describe('StartCli', () => {
           onRunQuest,
           onExit,
           installContext: {
-            targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
+            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
           guildId: GuildIdStub(),
@@ -246,7 +242,7 @@ describe('StartCli', () => {
           onRunQuest,
           onExit,
           installContext: {
-            targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
+            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
           guildId: GuildIdStub(),
@@ -286,7 +282,7 @@ describe('StartCli', () => {
           onRunQuest,
           onExit,
           installContext: {
-            targetProjectRoot: FilePathStub({ value: testbed.projectPath }),
+            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
             dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
           },
           guildId: GuildIdStub(),
@@ -337,7 +333,7 @@ describe('StartCli', () => {
       });
 
       const questFilePath = FilePathStub({
-        value: `${testbed.projectPath}/.dungeonmaster-quests/test-quest.json`,
+        value: `${testbed.guildPath}/.dungeonmaster-quests/test-quest.json`,
       });
 
       const loadedQuest = await questLoadBroker({ questFilePath });
@@ -366,7 +362,7 @@ describe('StartCli', () => {
       });
 
       const questFilePath = FilePathStub({
-        value: `${testbed.projectPath}/.dungeonmaster-quests/update-test.json`,
+        value: `${testbed.guildPath}/.dungeonmaster-quests/update-test.json`,
       });
 
       await questUpdateStepBroker({
@@ -383,7 +379,7 @@ describe('StartCli', () => {
       expect(firstStep?.status).toBe('in_progress');
     });
 
-    it('VALID: {multiple quest folders} => questListBroker lists quests from real directory', async () => {
+    it('VALID: {multiple quest files} => questLoadBroker loads multiple quests from real directory', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'quest-list' }),
       });
@@ -409,10 +405,18 @@ describe('StartCli', () => {
         content: FileContentStub({ value: JSON.stringify(quest2, null, 2) }),
       });
 
-      const guildId = GuildIdStub();
+      const loadedQuest1 = await questLoadBroker({
+        questFilePath: FilePathStub({
+          value: `${testbed.guildPath}/.dungeonmaster-quests/001-first-quest/quest.json`,
+        }),
+      });
+      const loadedQuest2 = await questLoadBroker({
+        questFilePath: FilePathStub({
+          value: `${testbed.guildPath}/.dungeonmaster-quests/002-second-quest/quest.json`,
+        }),
+      });
 
-      const questList = await questListBroker({ guildId });
-      const sortedTitles = questList.map((q) => q.title).sort();
+      const sortedTitles = [loadedQuest1.title, loadedQuest2.title].sort();
 
       testbed.cleanup();
 
@@ -446,7 +450,7 @@ describe('StartCli', () => {
       });
 
       const questFilePath = FilePathStub({
-        value: `${testbed.projectPath}/.dungeonmaster-quests/deps-test.json`,
+        value: `${testbed.guildPath}/.dungeonmaster-quests/deps-test.json`,
       });
 
       await questUpdateStepBroker({
@@ -472,7 +476,7 @@ describe('StartCli', () => {
       });
 
       const questFilePath = FilePathStub({
-        value: `${testbed.projectPath}/.dungeonmaster-quests/nonexistent.json`,
+        value: `${testbed.guildPath}/.dungeonmaster-quests/nonexistent.json`,
       });
 
       testbed.cleanup();
