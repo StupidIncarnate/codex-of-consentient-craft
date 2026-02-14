@@ -3,29 +3,29 @@
  *
  * USAGE:
  * const {currentPath, entries, loading, navigateTo, goUp} = useDirectoryBrowserBinding();
- * // Returns {currentPath: ProjectPath | null, entries: DirectoryEntry[], loading: boolean, navigateTo, goUp}
+ * // Returns {currentPath: GuildPath | null, entries: DirectoryEntry[], loading: boolean, navigateTo, goUp}
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { DirectoryEntry, ProjectPath } from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntry, GuildPath } from '@dungeonmaster/shared/contracts';
 
 import { directoryBrowseBroker } from '../../brokers/directory/browse/directory-browse-broker';
 import { parentPathTransformer } from '../../transformers/parent-path/parent-path-transformer';
 
 export const useDirectoryBrowserBinding = (): {
-  currentPath: ProjectPath | null;
+  currentPath: GuildPath | null;
   entries: DirectoryEntry[];
   loading: boolean;
-  navigateTo: (params: { path: ProjectPath }) => void;
+  navigateTo: (params: { path: GuildPath }) => void;
   goUp: () => void;
 } => {
-  const [currentPath, setCurrentPath] = useState<ProjectPath | null>(null);
-  const [displayPath, setDisplayPath] = useState<ProjectPath | null>(null);
+  const [currentPath, setCurrentPath] = useState<GuildPath | null>(null);
+  const [displayPath, setDisplayPath] = useState<GuildPath | null>(null);
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const initialResolved = useRef(false);
 
-  const browse = useCallback(async ({ path }: { path: ProjectPath | null }): Promise<void> => {
+  const browse = useCallback(async ({ path }: { path: GuildPath | null }): Promise<void> => {
     setLoading(true);
 
     try {
@@ -49,7 +49,7 @@ export const useDirectoryBrowserBinding = (): {
     browse({ path: currentPath }).catch(() => undefined);
   }, [browse, currentPath]);
 
-  const navigateTo = useCallback(({ path }: { path: ProjectPath }): void => {
+  const navigateTo = useCallback(({ path }: { path: GuildPath }): void => {
     setCurrentPath(path);
     setDisplayPath(path);
   }, []);

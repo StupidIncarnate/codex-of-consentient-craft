@@ -20,7 +20,7 @@ export const cliStatics = {
     serve: 'serve',
   },
   server: {
-    url: 'http://localhost:3737',
+    url: '{{SERVER_URL}}',
     moduleName: '@dungeonmaster/server',
   },
   meta: {

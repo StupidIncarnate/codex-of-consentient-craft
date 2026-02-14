@@ -35,7 +35,7 @@ const createMcpClient = async (): Promise<McpServerClient> => {
 
   const serverProcess = spawn('npx', ['tsx', serverEntryPoint], {
     stdio: ['pipe', 'pipe', 'pipe'],
-    cwd: testbed.projectPath,
+    cwd: testbed.guildPath,
   });
 
   const pendingResponses = new Map<RpcId, (response: JsonRpcResponse) => void>();
@@ -389,7 +389,7 @@ describe('StartMcpServer', () => {
           arguments: {
             title: 'Integration Test Quest',
             userRequest: 'Testing add-quest creates quest',
-            projectId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
             tasks: [
               {
                 id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -426,7 +426,7 @@ describe('StartMcpServer', () => {
           arguments: {
             title: 'Storage Test Quest',
             userRequest: 'Testing storage consistency',
-            projectId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
             tasks: [],
           },
         },
@@ -474,7 +474,7 @@ describe('StartMcpServer', () => {
           arguments: {
             title: 'Modify Flow Quest',
             userRequest: 'Testing modify flow',
-            projectId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
             tasks: [
               {
                 id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',

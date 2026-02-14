@@ -72,7 +72,7 @@ export const installTestbedCreateBroker = ({
   const dungeonmasterPath = pathResolveAdapter({ paths: [__dirname, '../../../../../..'] });
 
   const testbed: InstallTestbed = {
-    projectPath: installTestbedContract.shape.projectPath.parse(projectPath),
+    guildPath: installTestbedContract.shape.guildPath.parse(projectPath),
     dungeonmasterPath: installTestbedContract.shape.dungeonmasterPath.parse(dungeonmasterPath),
 
     cleanup: (): void => {

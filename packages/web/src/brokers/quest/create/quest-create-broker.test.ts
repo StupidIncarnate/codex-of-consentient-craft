@@ -1,19 +1,19 @@
-import { ProjectIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { questCreateBroker } from './quest-create-broker';
 import { questCreateBrokerProxy } from './quest-create-broker.proxy';
 
 describe('questCreateBroker', () => {
   describe('successful creation', () => {
-    it('VALID: {projectId, title, userRequest} => returns quest id', async () => {
+    it('VALID: {guildId, title, userRequest} => returns quest id', async () => {
       const proxy = questCreateBrokerProxy();
-      const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const questId = QuestIdStub({ value: 'new-quest-123' });
 
       proxy.setupCreate({ questId });
 
       const result = await questCreateBroker({
-        projectId,
+        guildId,
         title: 'Add Auth',
         userRequest: 'Implement authentication',
       });
@@ -25,13 +25,13 @@ describe('questCreateBroker', () => {
   describe('error handling', () => {
     it('ERROR: {server error} => throws error', async () => {
       const proxy = questCreateBrokerProxy();
-      const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
       proxy.setupError();
 
       await expect(
         questCreateBroker({
-          projectId,
+          guildId,
           title: 'Add Auth',
           userRequest: 'Implement authentication',
         }),
@@ -42,13 +42,13 @@ describe('questCreateBroker', () => {
   describe('zod validation', () => {
     it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
       const proxy = questCreateBrokerProxy();
-      const projectId = ProjectIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
       proxy.setupInvalidResponse({ data: { questId: '' } });
 
       await expect(
         questCreateBroker({
-          projectId,
+          guildId,
           title: 'Add Auth',
           userRequest: 'Implement authentication',
         }),

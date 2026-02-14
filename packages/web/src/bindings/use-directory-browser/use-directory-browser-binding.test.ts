@@ -1,4 +1,4 @@
-import { DirectoryEntryStub, ProjectPathStub } from '@dungeonmaster/shared/contracts';
+import { DirectoryEntryStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
@@ -69,7 +69,7 @@ describe('useDirectoryBrowserBinding', () => {
         },
       });
 
-      const targetPath = ProjectPathStub({ value: '/home' });
+      const targetPath = GuildPathStub({ value: '/home' });
 
       proxy.setupEntries({
         entries: [DirectoryEntryStub({ name: 'user', path: '/home/user', isDirectory: true })],
@@ -109,7 +109,7 @@ describe('useDirectoryBrowserBinding', () => {
         },
       });
 
-      const targetPath = ProjectPathStub({ value: '/home/user' });
+      const targetPath = GuildPathStub({ value: '/home/user' });
 
       proxy.setupEntries({ entries: [] });
 

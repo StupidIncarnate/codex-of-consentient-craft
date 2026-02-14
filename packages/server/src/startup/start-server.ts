@@ -3,7 +3,7 @@
  *
  * USAGE:
  * StartServer();
- * // Starts HTTP server on port 3737 with project, quest, process, health, docs endpoints, and WebSocket event relay
+ * // Starts HTTP server on port 3737 with guild, quest, process, health, docs endpoints, and WebSocket event relay
  */
 
 import { Hono } from 'hono';
@@ -11,9 +11,9 @@ import type { WSContext } from 'hono/ws';
 import {
   questIdContract,
   processIdContract,
-  projectIdContract,
-  projectNameContract,
-  projectPathContract,
+  guildIdContract,
+  guildNameContract,
+  guildPathContract,
   orchestrationEventTypeContract,
   wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
@@ -31,11 +31,11 @@ import {
 } from '@dungeonmaster/orchestrator';
 import type { SlotIndex } from '@dungeonmaster/orchestrator';
 
-import { orchestratorListProjectsAdapter } from '../adapters/orchestrator/list-projects/orchestrator-list-projects-adapter';
-import { orchestratorAddProjectAdapter } from '../adapters/orchestrator/add-project/orchestrator-add-project-adapter';
-import { orchestratorGetProjectAdapter } from '../adapters/orchestrator/get-project/orchestrator-get-project-adapter';
-import { orchestratorUpdateProjectAdapter } from '../adapters/orchestrator/update-project/orchestrator-update-project-adapter';
-import { orchestratorRemoveProjectAdapter } from '../adapters/orchestrator/remove-project/orchestrator-remove-project-adapter';
+import { orchestratorListGuildsAdapter } from '../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
+import { orchestratorAddGuildAdapter } from '../adapters/orchestrator/add-guild/orchestrator-add-guild-adapter';
+import { orchestratorGetGuildAdapter } from '../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter';
+import { orchestratorUpdateGuildAdapter } from '../adapters/orchestrator/update-guild/orchestrator-update-guild-adapter';
+import { orchestratorRemoveGuildAdapter } from '../adapters/orchestrator/remove-guild/orchestrator-remove-guild-adapter';
 import { orchestratorBrowseDirectoriesAdapter } from '../adapters/orchestrator/browse-directories/orchestrator-browse-directories-adapter';
 import { orchestratorListQuestsAdapter } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorGetQuestAdapter } from '../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
@@ -44,9 +44,9 @@ import { orchestratorModifyQuestAdapter } from '../adapters/orchestrator/modify-
 import { orchestratorVerifyQuestAdapter } from '../adapters/orchestrator/verify-quest/orchestrator-verify-quest-adapter';
 import { orchestratorStartQuestAdapter } from '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
 import { orchestratorGetQuestStatusAdapter } from '../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { honoServeAdapter } from '../adapters/hono/serve/hono-serve-adapter';
 import { honoCreateNodeWebSocketAdapter } from '../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
-import { serverConfigStatics } from '../statics/server-config/server-config-statics';
 import { apiRoutesStatics } from '../statics/api-routes/api-routes-statics';
 import { httpStatusStatics } from '../statics/http-status/http-status-statics';
 import { agentOutputLineContract } from '../contracts/agent-output-line/agent-output-line-contract';
@@ -85,19 +85,19 @@ export const StartServer = (): void => {
     }),
   );
 
-  // Project list
-  app.get(apiRoutesStatics.projects.list, async (c) => {
+  // Guild list
+  app.get(apiRoutesStatics.guilds.list, async (c) => {
     try {
-      const projects = await orchestratorListProjectsAdapter();
-      return c.json(projects);
+      const guilds = await orchestratorListGuildsAdapter();
+      return c.json(guilds);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to list projects';
+      const message = error instanceof Error ? error.message : 'Failed to list guilds';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
     }
   });
 
-  // Project add
-  app.post(apiRoutesStatics.projects.list, async (c) => {
+  // Guild add
+  app.post(apiRoutesStatics.guilds.list, async (c) => {
     try {
       const body: unknown = await c.req.json();
 
@@ -118,34 +118,34 @@ export const StartServer = (): void => {
         );
       }
 
-      const name = projectNameContract.parse(rawName);
-      const path = projectPathContract.parse(rawPath);
-      const result = await orchestratorAddProjectAdapter({ name, path });
+      const name = guildNameContract.parse(rawName);
+      const path = guildPathContract.parse(rawPath);
+      const result = await orchestratorAddGuildAdapter({ name, path });
       return c.json(result, httpStatusStatics.success.created);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to add project';
+      const message = error instanceof Error ? error.message : 'Failed to add guild';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
     }
   });
 
-  // Project get by ID
-  app.get(apiRoutesStatics.projects.byId, async (c) => {
+  // Guild get by ID
+  app.get(apiRoutesStatics.guilds.byId, async (c) => {
     try {
-      const projectIdRaw = c.req.param('projectId');
-      const projectId = projectIdContract.parse(projectIdRaw);
-      const project = await orchestratorGetProjectAdapter({ projectId });
-      return c.json(project);
+      const guildIdRaw = c.req.param('guildId');
+      const guildId = guildIdContract.parse(guildIdRaw);
+      const guild = await orchestratorGetGuildAdapter({ guildId });
+      return c.json(guild);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to get project';
+      const message = error instanceof Error ? error.message : 'Failed to get guild';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
     }
   });
 
-  // Project update
-  app.patch(apiRoutesStatics.projects.byId, async (c) => {
+  // Guild update
+  app.patch(apiRoutesStatics.guilds.byId, async (c) => {
     try {
-      const projectIdRaw = c.req.param('projectId');
-      const projectId = projectIdContract.parse(projectIdRaw);
+      const guildIdRaw = c.req.param('guildId');
+      const guildId = guildIdContract.parse(guildIdRaw);
       const body: unknown = await c.req.json();
 
       if (typeof body !== 'object' || body === null) {
@@ -158,27 +158,27 @@ export const StartServer = (): void => {
       const rawName: unknown = Reflect.get(body, 'name');
       const rawPath: unknown = Reflect.get(body, 'path');
 
-      const project = await orchestratorUpdateProjectAdapter({
-        projectId,
-        ...(typeof rawName === 'string' && { name: projectNameContract.parse(rawName) }),
-        ...(typeof rawPath === 'string' && { path: projectPathContract.parse(rawPath) }),
+      const guild = await orchestratorUpdateGuildAdapter({
+        guildId,
+        ...(typeof rawName === 'string' && { name: guildNameContract.parse(rawName) }),
+        ...(typeof rawPath === 'string' && { path: guildPathContract.parse(rawPath) }),
       });
-      return c.json(project);
+      return c.json(guild);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to update project';
+      const message = error instanceof Error ? error.message : 'Failed to update guild';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
     }
   });
 
-  // Project remove
-  app.delete(apiRoutesStatics.projects.byId, async (c) => {
+  // Guild remove
+  app.delete(apiRoutesStatics.guilds.byId, async (c) => {
     try {
-      const projectIdRaw = c.req.param('projectId');
-      const projectId = projectIdContract.parse(projectIdRaw);
-      await orchestratorRemoveProjectAdapter({ projectId });
+      const guildIdRaw = c.req.param('guildId');
+      const guildId = guildIdContract.parse(guildIdRaw);
+      await orchestratorRemoveGuildAdapter({ guildId });
       return c.json({ success: true });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to remove project';
+      const message = error instanceof Error ? error.message : 'Failed to remove guild';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
     }
   });
@@ -191,7 +191,7 @@ export const StartServer = (): void => {
         typeof body === 'object' && body !== null ? Reflect.get(body, 'path') : undefined;
 
       const entries = orchestratorBrowseDirectoriesAdapter(
-        typeof rawPath === 'string' ? { path: projectPathContract.parse(rawPath) } : {},
+        typeof rawPath === 'string' ? { path: guildPathContract.parse(rawPath) } : {},
       );
       return c.json(entries);
     } catch (error: unknown) {
@@ -203,17 +203,17 @@ export const StartServer = (): void => {
   // Quest list
   app.get(apiRoutesStatics.quests.list, async (c) => {
     try {
-      const projectIdRaw = c.req.query('projectId');
+      const guildIdRaw = c.req.query('guildId');
 
-      if (!projectIdRaw) {
+      if (!guildIdRaw) {
         return c.json(
-          { error: 'projectId query parameter is required' },
+          { error: 'guildId query parameter is required' },
           httpStatusStatics.clientError.badRequest,
         );
       }
 
-      const projectId = projectIdContract.parse(projectIdRaw);
-      const quests = await orchestratorListQuestsAdapter({ projectId });
+      const guildId = guildIdContract.parse(guildIdRaw);
+      const quests = await orchestratorListQuestsAdapter({ guildId });
       return c.json(quests);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to list quests';
@@ -251,7 +251,7 @@ export const StartServer = (): void => {
 
       const title: unknown = Reflect.get(body, 'title');
       const userRequest: unknown = Reflect.get(body, 'userRequest');
-      const projectIdRaw: unknown = Reflect.get(body, 'projectId');
+      const guildIdRaw: unknown = Reflect.get(body, 'guildId');
 
       if (typeof title !== 'string' || typeof userRequest !== 'string') {
         return c.json(
@@ -260,12 +260,12 @@ export const StartServer = (): void => {
         );
       }
 
-      if (typeof projectIdRaw !== 'string') {
-        return c.json({ error: 'projectId is required' }, httpStatusStatics.clientError.badRequest);
+      if (typeof guildIdRaw !== 'string') {
+        return c.json({ error: 'guildId is required' }, httpStatusStatics.clientError.badRequest);
       }
 
-      const projectId = projectIdContract.parse(projectIdRaw);
-      const result = await orchestratorAddQuestAdapter({ title, userRequest, projectId });
+      const guildId = guildIdContract.parse(guildIdRaw);
+      const result = await orchestratorAddQuestAdapter({ title, userRequest, guildId });
       return c.json(result, httpStatusStatics.success.created);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to add quest';
@@ -414,18 +414,18 @@ export const StartServer = (): void => {
     }
   });
 
-  // Redirect root to web SPA dev server
-  app.get('/', (c) => c.redirect('http://localhost:5173'));
+  // Redirect root to web SPA
+  const serverPort = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;
+  const serverHost = environmentStatics.hostname;
+  app.get('/', (c) => c.redirect(`http://${serverHost}:${serverPort + 1}`));
 
   // Start the server and inject WebSocket support
   const server = honoServeAdapter({
     fetch: app.fetch,
-    port: serverConfigStatics.network.port,
-    hostname: serverConfigStatics.network.host,
+    port: serverPort,
+    hostname: serverHost,
     onListen: (info) => {
-      process.stdout.write(
-        `Server listening on http://${serverConfigStatics.network.host}:${info.port}\n`,
-      );
+      process.stdout.write(`Server listening on http://${serverHost}:${info.port}\n`);
     },
   });
   nodeWebSocket.injectWebSocket(server);

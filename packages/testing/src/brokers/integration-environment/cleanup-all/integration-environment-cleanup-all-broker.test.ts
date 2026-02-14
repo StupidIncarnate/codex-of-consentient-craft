@@ -1,7 +1,7 @@
 import { integrationEnvironmentCleanupAllBroker } from './integration-environment-cleanup-all-broker';
 import { integrationEnvironmentCleanupAllBrokerProxy } from './integration-environment-cleanup-all-broker.proxy';
 import { integrationEnvironmentTrackingBroker } from '../tracking/integration-environment-tracking-broker';
-import { TestProjectStub } from '../../../contracts/test-project/test-project.stub';
+import { TestGuildStub } from '../../../contracts/test-guild/test-guild.stub';
 
 describe('integrationEnvironmentCleanupAllBroker', () => {
   describe('cleanup all environments', () => {
@@ -20,8 +20,8 @@ describe('integrationEnvironmentCleanupAllBroker', () => {
       integrationEnvironmentTrackingBroker.clear();
       integrationEnvironmentCleanupAllBrokerProxy();
       const cleanupMock = jest.fn();
-      const project = TestProjectStub({ cleanup: cleanupMock });
-      integrationEnvironmentTrackingBroker.add({ project });
+      const guild = TestGuildStub({ cleanup: cleanupMock });
+      integrationEnvironmentTrackingBroker.add({ guild });
 
       integrationEnvironmentCleanupAllBroker();
 
@@ -37,10 +37,10 @@ describe('integrationEnvironmentCleanupAllBroker', () => {
       integrationEnvironmentCleanupAllBrokerProxy();
       const cleanup1Mock = jest.fn();
       const cleanup2Mock = jest.fn();
-      const project1 = TestProjectStub({ projectName: 'test-1', cleanup: cleanup1Mock });
-      const project2 = TestProjectStub({ projectName: 'test-2', cleanup: cleanup2Mock });
-      integrationEnvironmentTrackingBroker.add({ project: project1 });
-      integrationEnvironmentTrackingBroker.add({ project: project2 });
+      const guild1 = TestGuildStub({ guildName: 'test-1', cleanup: cleanup1Mock });
+      const guild2 = TestGuildStub({ guildName: 'test-2', cleanup: cleanup2Mock });
+      integrationEnvironmentTrackingBroker.add({ guild: guild1 });
+      integrationEnvironmentTrackingBroker.add({ guild: guild2 });
 
       integrationEnvironmentCleanupAllBroker();
 

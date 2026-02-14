@@ -18,7 +18,7 @@ describe('mcpPermissionsCreatorTransformer', () => {
         'mcp__dungeonmaster__start-quest',
         'mcp__dungeonmaster__get-quest-status',
         'mcp__dungeonmaster__list-quests',
-        'mcp__dungeonmaster__list-projects',
+        'mcp__dungeonmaster__list-guilds',
         'mcp__dungeonmaster__verify-quest',
       ]);
     });

@@ -7,6 +7,7 @@ describe('dungeonmasterHomeFindBroker', () => {
     it('VALID: {homeDir: "/home/user"} => returns path to ~/.dungeonmaster', () => {
       const proxy = dungeonmasterHomeFindBrokerProxy();
 
+      proxy.clearEnv();
       proxy.setupHomePath({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
@@ -20,6 +21,7 @@ describe('dungeonmasterHomeFindBroker', () => {
     it('VALID: {homeDir: "/root"} => returns path for root user', () => {
       const proxy = dungeonmasterHomeFindBrokerProxy();
 
+      proxy.clearEnv();
       proxy.setupHomePath({
         homeDir: '/root',
         homePath: FilePathStub({ value: '/root/.dungeonmaster' }),
@@ -28,6 +30,24 @@ describe('dungeonmasterHomeFindBroker', () => {
       const result = dungeonmasterHomeFindBroker();
 
       expect(result).toStrictEqual({ homePath: '/root/.dungeonmaster' });
+    });
+  });
+
+  describe('dev environment', () => {
+    it('VALID: {DUNGEONMASTER_ENV: "dev"} => returns path to ~/.dungeonmaster-dev', () => {
+      const proxy = dungeonmasterHomeFindBrokerProxy();
+
+      proxy.setEnv({ key: 'DUNGEONMASTER_ENV', value: 'dev' });
+      proxy.setupHomePath({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster-dev' }),
+      });
+
+      const result = dungeonmasterHomeFindBroker();
+
+      proxy.clearEnv();
+
+      expect(result).toStrictEqual({ homePath: '/home/user/.dungeonmaster-dev' });
     });
   });
 });

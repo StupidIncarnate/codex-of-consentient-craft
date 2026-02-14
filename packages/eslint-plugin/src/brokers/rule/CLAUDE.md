@@ -102,3 +102,43 @@ beforeEach(() => {
 ```
 
 See testing standards for unit test patterns - those apply to all other code except rule brokers.
+
+## Layer Broker Tests
+
+**Layer brokers in rule folders use standard Jest `describe/it` tests, NOT RuleTester.** They are pure functions that
+take AST nodes + context and call `context.report()`. Test them directly.
+
+The eslint config enforces this: layer test files (`*-layer-*.test.ts`) are excluded from the RuleTester exemptions and
+must follow standard broker test conventions (proxies, describe/it blocks).
+
+```typescript
+import {validateFolderLocationLayerBroker} from './validate-folder-location-layer-broker';
+import {validateFolderLocationLayerBrokerProxy} from './validate-folder-location-layer-broker.proxy';
+import {EslintContextStub} from '../../../contracts/eslint-context/eslint-context.stub';
+import {TsestreeStub, TsestreeNodeType} from '../../../contracts/tsestree/tsestree.stub';
+
+describe('validateFolderLocationLayerBroker', () => {
+    describe('forbidden folder', () => {
+        it('reports forbiddenFolder for utils/', () => {
+            validateFolderLocationLayerBrokerProxy();
+            const mockReport = jest.fn();
+            const context = EslintContextStub({report: mockReport});
+            const node = TsestreeStub({type: TsestreeNodeType.Program});
+
+            validateFolderLocationLayerBroker({node, context, firstFolder: 'utils', ...});
+
+            expect(mockReport).toHaveBeenCalledWith(
+                expect.objectContaining({messageId: 'forbiddenFolder'}),
+            );
+        });
+    });
+});
+```
+
+**Key points:**
+
+- Call the layer proxy at the start of each test
+- Use `EslintContextStub` with `jest.fn()` report
+- Use `TsestreeStub` for AST nodes
+- Assert on `context.report()` calls
+- Only the **parent** rule broker test uses RuleTester

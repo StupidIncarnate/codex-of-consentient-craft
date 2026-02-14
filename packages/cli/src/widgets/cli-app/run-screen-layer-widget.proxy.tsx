@@ -4,7 +4,7 @@
  * USAGE:
  * const proxy = RunScreenLayerWidgetProxy();
  * proxy.setupQuests({ quests });
- * const { lastFrame, stdin } = render(<RunScreenLayerWidget projectId={projectId} onRunQuest={onRunQuest} onBack={onBack} />);
+ * const { lastFrame, stdin } = render(<RunScreenLayerWidget guildId={guildId} onRunQuest={onRunQuest} onBack={onBack} />);
  */
 
 import type { QuestListItem } from '@dungeonmaster/shared/contracts';

@@ -1,4 +1,4 @@
-import { DirectoryEntryStub, ProjectPathStub } from '@dungeonmaster/shared/contracts';
+import { DirectoryEntryStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorBrowseDirectoriesAdapter } from './orchestrator-browse-directories-adapter';
 import { orchestratorBrowseDirectoriesAdapterProxy } from './orchestrator-browse-directories-adapter.proxy';
@@ -7,7 +7,7 @@ describe('orchestratorBrowseDirectoriesAdapter', () => {
   describe('successful browse', () => {
     it('VALID: {path} => returns directory entries', () => {
       const proxy = orchestratorBrowseDirectoriesAdapterProxy();
-      const path = ProjectPathStub({ value: '/home/user' });
+      const path = GuildPathStub({ value: '/home/user' });
       const entries = [DirectoryEntryStub()];
 
       proxy.returns({ entries });
@@ -29,7 +29,7 @@ describe('orchestratorBrowseDirectoriesAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => throws error', () => {
       const proxy = orchestratorBrowseDirectoriesAdapterProxy();
-      const path = ProjectPathStub({ value: '/nonexistent' });
+      const path = GuildPathStub({ value: '/nonexistent' });
 
       proxy.throws({ error: new Error('Directory not found') });
 

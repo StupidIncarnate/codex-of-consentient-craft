@@ -12,4 +12,5 @@ import {
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
-export const osHomedirAdapter = (): AbsoluteFilePath => absoluteFilePathContract.parse(homedir());
+export const osHomedirAdapter = (): AbsoluteFilePath =>
+  absoluteFilePathContract.parse(process.env.DUNGEONMASTER_HOME ?? homedir());

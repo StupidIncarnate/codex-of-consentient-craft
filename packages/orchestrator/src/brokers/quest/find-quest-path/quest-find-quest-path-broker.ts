@@ -1,21 +1,21 @@
 /**
- * PURPOSE: Finds the quest path and project ID for a given quest ID by scanning all projects in ~/.dungeonmaster/projects/
+ * PURPOSE: Finds the quest path and guild ID for a given quest ID by scanning all guilds in ~/.dungeonmaster/guilds/
  *
  * USAGE:
- * const { questPath, projectId } = await questFindQuestPathBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
- * // Returns: { questPath: AbsoluteFilePath, projectId: ProjectId } or throws if not found
+ * const { questPath, guildId } = await questFindQuestPathBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
+ * // Returns: { questPath: AbsoluteFilePath, guildId: GuildId } or throws if not found
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { fsReaddirWithTypesAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import { projectIdContract, questContract } from '@dungeonmaster/shared/contracts';
+import { guildIdContract, questContract } from '@dungeonmaster/shared/contracts';
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import type {
   AbsoluteFilePath,
   FileName,
   FilePath,
-  ProjectId,
+  GuildId,
   QuestId,
 } from '@dungeonmaster/shared/contracts';
 
@@ -27,25 +27,25 @@ export const questFindQuestPathBroker = async ({
   questId,
 }: {
   questId: QuestId;
-}): Promise<{ questPath: AbsoluteFilePath; projectId: ProjectId }> => {
+}): Promise<{ questPath: AbsoluteFilePath; guildId: GuildId }> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  const projectsDir = pathJoinAdapter({
-    paths: [homePath, dungeonmasterHomeStatics.paths.projectsDir],
+  const guildsDir = pathJoinAdapter({
+    paths: [homePath, dungeonmasterHomeStatics.paths.guildsDir],
   });
 
-  const projectEntries = fsReaddirWithTypesAdapter({ dirPath: projectsDir as AbsoluteFilePath });
-  const projectDirs = projectEntries.filter((entry) => entry.isDirectory());
+  const guildEntries = fsReaddirWithTypesAdapter({ dirPath: guildsDir as AbsoluteFilePath });
+  const guildDirs = guildEntries.filter((entry) => entry.isDirectory());
 
   const candidates: {
     questFilePath: FilePath;
     questFolderPath: FilePath;
-    projectDirName: FileName;
+    guildDirName: FileName;
   }[] = [];
 
-  for (const projectDir of projectDirs) {
+  for (const guildDir of guildDirs) {
     const questsDirPath = pathJoinAdapter({
-      paths: [projectsDir, projectDir.name, dungeonmasterHomeStatics.paths.questsDir],
+      paths: [guildsDir, guildDir.name, dungeonmasterHomeStatics.paths.questsDir],
     });
 
     try {
@@ -63,7 +63,7 @@ export const questFindQuestPathBroker = async ({
           questFolderPath: pathJoinAdapter({
             paths: [questsDirPath, questFolder.name],
           }),
-          projectDirName: fileNameContract.parse(projectDir.name),
+          guildDirName: fileNameContract.parse(guildDir.name),
         });
       }
     } catch {
@@ -81,7 +81,7 @@ export const questFindQuestPathBroker = async ({
         if (quest.id === questId) {
           return {
             questPath: candidate.questFolderPath as AbsoluteFilePath,
-            projectId: projectIdContract.parse(candidate.projectDirName),
+            guildId: guildIdContract.parse(candidate.guildDirName),
           };
         }
 
@@ -98,5 +98,5 @@ export const questFindQuestPathBroker = async ({
     return match;
   }
 
-  throw new Error(`Quest with id "${questId}" not found in any project`);
+  throw new Error(`Quest with id "${questId}" not found in any guild`);
 };

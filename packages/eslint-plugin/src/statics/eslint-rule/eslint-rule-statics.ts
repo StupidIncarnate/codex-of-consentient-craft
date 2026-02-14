@@ -52,7 +52,7 @@ export const eslintRuleStatics = {
     // ✅ if (x < 5) { }
     // ❌ if (x < 5 && y < 10 && z < 15 && a < 20) { }
     // Limits cyclomatic complexity to prevent overly complex functions
-    complexity: ['warn', { max: 20 }],
+    complexity: ['error', { max: 50 }],
 
     // ✅ function foo() { return x }
     // ❌ function foo() { if (x) return x }

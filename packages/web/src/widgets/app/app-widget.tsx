@@ -3,41 +3,41 @@
  *
  * USAGE:
  * <AppWidget />
- * // Renders the full Dungeonmaster web UI with guild list, quest views, and project management
+ * // Renders the full Dungeonmaster web UI with guild list, quest views, and guild management
  */
 
 import { useState } from 'react';
 
 import { Box, Center, Group, Stack, Text } from '@mantine/core';
 
-import type { ProjectId, ProjectName, ProjectPath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, GuildName, GuildPath, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { useAgentOutputBinding } from '../../bindings/use-agent-output/use-agent-output-binding';
 import { useExecutionBinding } from '../../bindings/use-execution/use-execution-binding';
-import { useProjectsBinding } from '../../bindings/use-projects/use-projects-binding';
+import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestDetailBinding } from '../../bindings/use-quest-detail/use-quest-detail-binding';
 import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
-import { projectCreateBroker } from '../../brokers/project/create/project-create-broker';
+import { guildCreateBroker } from '../../brokers/guild/create/guild-create-broker';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { GuildAddModalWidget } from '../guild-add-modal/guild-add-modal-widget';
+import { GuildEmptyStateWidget } from '../guild-empty-state/guild-empty-state-widget';
 import { GuildListWidget } from '../guild-list/guild-list-widget';
 import { GuildQuestListWidget } from '../guild-quest-list/guild-quest-list-widget';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
-import { ProjectAddModalWidget } from '../project-add-modal/project-add-modal-widget';
-import { ProjectEmptyStateWidget } from '../project-empty-state/project-empty-state-widget';
 import { QuestDetailWidget } from '../quest-detail/quest-detail-widget';
 
-type View = 'main' | 'new-project' | 'detail';
+type View = 'main' | 'new-guild' | 'detail';
 
 export const AppWidget = (): React.JSX.Element => {
   const [currentView, setCurrentView] = useState<View>('main');
-  const [selectedProjectId, setSelectedProjectId] = useState<ProjectId | null>(null);
+  const [selectedGuildId, setSelectedGuildId] = useState<GuildId | null>(null);
   const [selectedQuestId, setSelectedQuestId] = useState<QuestId | null>(null);
-  const [addProjectModalOpened, setAddProjectModalOpened] = useState(false);
+  const [addGuildModalOpened, setAddGuildModalOpened] = useState(false);
 
-  const { projects, loading: projectsLoading, refresh: refreshProjects } = useProjectsBinding();
+  const { guilds, loading: guildsLoading, refresh: refreshGuilds } = useGuildsBinding();
 
-  const { data: quests, refresh } = useQuestsBinding({ projectId: selectedProjectId });
+  const { data: quests, refresh } = useQuestsBinding({ guildId: selectedGuildId });
 
   const {
     data: quest,
@@ -59,7 +59,7 @@ export const AppWidget = (): React.JSX.Element => {
   const { slotOutputs: agentSlotOutputs } = useAgentOutputBinding();
 
   const { colors } = emberDepthsThemeStatics;
-  const hasProjects = projects.length > 0;
+  const hasGuilds = guilds.length > 0;
 
   return (
     <div style={{ background: colors['bg-deep'], color: colors.text, minHeight: '100vh' }}>
@@ -67,20 +67,20 @@ export const AppWidget = (): React.JSX.Element => {
         <Stack align="center" gap="md" w="100%" maw={800} px="md">
           <LogoWidget />
           <MapFrameWidget>
-            {(!hasProjects && !projectsLoading) || currentView === 'new-project' ? (
+            {(!hasGuilds && !guildsLoading) || currentView === 'new-guild' ? (
               <Center style={{ height: 250 }}>
-                <ProjectEmptyStateWidget
-                  onAddProject={({ name, path }) => {
-                    projectCreateBroker({ name: String(name), path: String(path) })
+                <GuildEmptyStateWidget
+                  onAddGuild={({ name, path }) => {
+                    guildCreateBroker({ name: String(name), path: String(path) })
                       .then(async ({ id }) => {
-                        await refreshProjects();
-                        setSelectedProjectId(id);
+                        await refreshGuilds();
+                        setSelectedGuildId(id);
                         setCurrentView('main');
                       })
                       .catch(() => undefined);
                   }}
                   onCancel={
-                    hasProjects
+                    hasGuilds
                       ? () => {
                           setCurrentView('main');
                         }
@@ -119,19 +119,19 @@ export const AppWidget = (): React.JSX.Element => {
                   }}
                 >
                   <GuildListWidget
-                    projects={projects}
-                    selectedProjectId={selectedProjectId}
-                    onSelect={({ id }: { id: ProjectId }) => {
-                      setSelectedProjectId(id);
+                    guilds={guilds}
+                    selectedGuildId={selectedGuildId}
+                    onSelect={({ id }: { id: GuildId }) => {
+                      setSelectedGuildId(id);
                       setSelectedQuestId(null);
                     }}
                     onAdd={() => {
-                      setCurrentView('new-project');
+                      setCurrentView('new-guild');
                     }}
                   />
                 </Box>
                 <Box style={{ flex: 1 }}>
-                  {selectedProjectId ? (
+                  {selectedGuildId ? (
                     <GuildQuestListWidget
                       quests={quests}
                       onSelect={({ questId }: { questId: QuestId }) => {
@@ -156,17 +156,17 @@ export const AppWidget = (): React.JSX.Element => {
         </Stack>
       </Center>
 
-      <ProjectAddModalWidget
-        opened={addProjectModalOpened}
+      <GuildAddModalWidget
+        opened={addGuildModalOpened}
         onClose={() => {
-          setAddProjectModalOpened(false);
+          setAddGuildModalOpened(false);
         }}
-        onSubmit={({ name, path }: { name: ProjectName; path: ProjectPath }) => {
-          projectCreateBroker({ name: String(name), path: String(path) })
+        onSubmit={({ name, path }: { name: GuildName; path: GuildPath }) => {
+          guildCreateBroker({ name: String(name), path: String(path) })
             .then(async ({ id }) => {
-              setAddProjectModalOpened(false);
-              await refreshProjects();
-              setSelectedProjectId(id);
+              setAddGuildModalOpened(false);
+              await refreshGuilds();
+              setSelectedGuildId(id);
             })
             .catch(() => undefined);
         }}

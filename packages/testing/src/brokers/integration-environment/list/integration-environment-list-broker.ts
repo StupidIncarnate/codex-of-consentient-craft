@@ -7,7 +7,7 @@
  */
 
 import { integrationEnvironmentTrackingBroker } from '../tracking/integration-environment-tracking-broker';
-import type { TestProject } from '../../../contracts/test-project/test-project-contract';
+import type { TestGuild } from '../../../contracts/test-guild/test-guild-contract';
 
-export const integrationEnvironmentListBroker = (): readonly TestProject[] =>
+export const integrationEnvironmentListBroker = (): readonly TestGuild[] =>
   integrationEnvironmentTrackingBroker.getAll();

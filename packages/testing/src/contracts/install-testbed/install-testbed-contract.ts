@@ -2,7 +2,7 @@
  * PURPOSE: Validates install testbed data properties for integration testing the install system
  *
  * USAGE:
- * installTestbedContract.parse({projectPath: '/tmp/test-123', dungeonmasterPath: '/repo/path'});
+ * installTestbedContract.parse({guildPath: '/tmp/test-123', dungeonmasterPath: '/repo/path'});
  * // Returns validated InstallTestbedData with branded types
  */
 
@@ -14,7 +14,7 @@ import type { ProcessOutput } from '../process-output/process-output-contract';
 import type { DungeonmasterConfig } from '../dungeonmaster-config/dungeonmaster-config-contract';
 
 export const installTestbedContract = z.object({
-  projectPath: z.string().brand<'ProjectPath'>(),
+  guildPath: z.string().brand<'GuildPath'>(),
   dungeonmasterPath: z.string().brand<'DungeonmasterPath'>(),
 });
 

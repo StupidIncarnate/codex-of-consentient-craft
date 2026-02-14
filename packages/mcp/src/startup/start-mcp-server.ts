@@ -18,14 +18,14 @@ import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
 import {
-  projectIdContract,
+  guildIdContract,
   questIdContract,
   processIdContract,
 } from '@dungeonmaster/shared/contracts';
 import { orchestratorAddQuestAdapter } from '../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter';
 import { orchestratorGetQuestAdapter } from '../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorGetQuestStatusAdapter } from '../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
-import { orchestratorListProjectsAdapter } from '../adapters/orchestrator/list-projects/orchestrator-list-projects-adapter';
+import { orchestratorListGuildsAdapter } from '../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
 import { orchestratorListQuestsAdapter } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorModifyQuestAdapter } from '../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
 import { orchestratorStartQuestAdapter } from '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
@@ -138,9 +138,8 @@ export const StartMcpServer = async (): Promise<void> => {
         inputSchema: zodToJsonSchema(listQuestsInputContract, { $refStrategy: 'none' }),
       },
       {
-        name: 'list-projects',
-        description:
-          'Lists all registered projects with their IDs, names, paths, and quest counts.',
+        name: 'list-guilds',
+        description: 'Lists all registered guilds with their IDs, names, paths, and quest counts.',
         inputSchema: zodToJsonSchema(emptyInputSchema, { $refStrategy: 'none' }),
       },
       {
@@ -232,13 +231,13 @@ export const StartMcpServer = async (): Promise<void> => {
       const args = request.params.arguments as never;
       const titleRaw: unknown = Reflect.get(args, 'title');
       const userRequestRaw: unknown = Reflect.get(args, 'userRequest');
-      const projectIdRaw: unknown = Reflect.get(args, 'projectId');
+      const guildIdRaw: unknown = Reflect.get(args, 'guildId');
       const title = String(titleRaw);
       const userRequest = String(userRequestRaw);
-      const projectId = projectIdContract.parse(projectIdRaw);
+      const guildId = guildIdContract.parse(guildIdRaw);
 
       try {
-        const result = await orchestratorAddQuestAdapter({ title, userRequest, projectId });
+        const result = await orchestratorAddQuestAdapter({ title, userRequest, guildId });
         return {
           content: [
             {
@@ -444,11 +443,11 @@ export const StartMcpServer = async (): Promise<void> => {
 
     if (request.params.name === 'list-quests') {
       const args = request.params.arguments as never;
-      const projectIdRaw: unknown = Reflect.get(args, 'projectId');
-      const projectId = projectIdContract.parse(projectIdRaw);
+      const guildIdRaw: unknown = Reflect.get(args, 'guildId');
+      const guildId = guildIdContract.parse(guildIdRaw);
 
       try {
-        const quests = await orchestratorListQuestsAdapter({ projectId });
+        const quests = await orchestratorListQuestsAdapter({ guildId });
         return {
           content: [
             {
@@ -474,14 +473,14 @@ export const StartMcpServer = async (): Promise<void> => {
       }
     }
 
-    if (request.params.name === 'list-projects') {
+    if (request.params.name === 'list-guilds') {
       try {
-        const projects = await orchestratorListProjectsAdapter();
+        const guilds = await orchestratorListGuildsAdapter();
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify({ success: true, projects }, null, JSON_INDENT_SPACES),
+              text: JSON.stringify({ success: true, guilds }, null, JSON_INDENT_SPACES),
             },
           ],
         };

@@ -1,4 +1,4 @@
-import { FilePathStub, ProjectPathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
 
 import { directoryBrowseBroker } from './directory-browse-broker';
 import { directoryBrowseBrokerProxy } from './directory-browse-broker.proxy';
@@ -7,7 +7,7 @@ describe('directoryBrowseBroker', () => {
   describe('with explicit path', () => {
     it('VALID: {path with directories} => returns directory entries sorted alphabetically', () => {
       const proxy = directoryBrowseBrokerProxy();
-      const path = ProjectPathStub({ value: '/home/user' });
+      const path = GuildPathStub({ value: '/home/user' });
 
       proxy.setupDirectories({
         targetPath: '/home/user',
@@ -29,7 +29,7 @@ describe('directoryBrowseBroker', () => {
 
     it('VALID: {path with files and directories} => returns only directories', () => {
       const proxy = directoryBrowseBrokerProxy();
-      const path = ProjectPathStub({ value: '/home/user' });
+      const path = GuildPathStub({ value: '/home/user' });
 
       proxy.setupDirectories({
         targetPath: '/home/user',
@@ -45,7 +45,7 @@ describe('directoryBrowseBroker', () => {
 
     it('VALID: {path with hidden directories} => hides directories starting with dot', () => {
       const proxy = directoryBrowseBrokerProxy();
-      const path = ProjectPathStub({ value: '/home/user' });
+      const path = GuildPathStub({ value: '/home/user' });
 
       proxy.setupDirectories({
         targetPath: '/home/user',
@@ -65,7 +65,7 @@ describe('directoryBrowseBroker', () => {
 
     it('EMPTY: {path with no entries} => returns empty array', () => {
       const proxy = directoryBrowseBrokerProxy();
-      const path = ProjectPathStub({ value: '/home/user/empty' });
+      const path = GuildPathStub({ value: '/home/user/empty' });
 
       proxy.setupEmpty();
 
@@ -95,7 +95,7 @@ describe('directoryBrowseBroker', () => {
   describe('error cases', () => {
     it('ERROR: {invalid path} => throws error from readdir', () => {
       const proxy = directoryBrowseBrokerProxy();
-      const path = ProjectPathStub({ value: '/nonexistent' });
+      const path = GuildPathStub({ value: '/nonexistent' });
 
       proxy.setupThrows({ error: new Error('ENOENT: no such file or directory') });
 

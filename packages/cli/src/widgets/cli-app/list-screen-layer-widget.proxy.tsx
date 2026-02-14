@@ -4,7 +4,7 @@
  * USAGE:
  * const proxy = ListScreenLayerWidgetProxy();
  * proxy.setupQuests({ quests });
- * const { lastFrame, stdin } = render(<ListScreenLayerWidget projectId={projectId} onBack={onBack} />);
+ * const { lastFrame, stdin } = render(<ListScreenLayerWidget guildId={guildId} onBack={onBack} />);
  */
 
 import type { QuestListItem } from '@dungeonmaster/shared/contracts';

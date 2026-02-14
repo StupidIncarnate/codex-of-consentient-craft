@@ -83,7 +83,7 @@ console.log(greeting);`,
         }),
       });
 
-      const result = execSync(`npx tsx ${path.join(env.projectPath, 'hello.ts')}`, {
+      const result = execSync(`npx tsx ${path.join(env.guildPath, 'hello.ts')}`, {
         encoding: 'utf8',
         env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
       });
@@ -112,7 +112,7 @@ console.log(add(2, 3));`,
         }),
       });
 
-      const result = execSync(`npx tsx ${path.join(env.projectPath, 'main.ts')}`, {
+      const result = execSync(`npx tsx ${path.join(env.guildPath, 'main.ts')}`, {
         encoding: 'utf8',
         env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
       });
@@ -135,7 +135,7 @@ console.log(add(2, 3));`,
       });
 
       // Read it back programmatically (simulating what a CLI tool would do)
-      const configPath = path.join(env.projectPath, 'config.json');
+      const configPath = path.join(env.guildPath, 'config.json');
       const configContent = fs.readFileSync(configPath, 'utf-8');
       const config = JSON.parse(configContent);
 
@@ -184,9 +184,9 @@ console.log(add(2, 3));`,
         content: FileContentStub({ value: 'content 3' }),
       });
 
-      const { projectPath } = env;
+      const { guildPath } = env;
 
-      expect(fs.existsSync(projectPath)).toBe(true);
+      expect(fs.existsSync(guildPath)).toBe(true);
 
       // No manual cleanup needed! jest.setup.js handles it automatically
       // This test documents that files exist during the test

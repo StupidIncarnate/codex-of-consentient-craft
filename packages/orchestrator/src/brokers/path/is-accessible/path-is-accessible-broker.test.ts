@@ -1,4 +1,4 @@
-import { ProjectPathStub } from '@dungeonmaster/shared/contracts';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts';
 
 import { pathIsAccessibleBroker } from './path-is-accessible-broker';
 import { pathIsAccessibleBrokerProxy } from './path-is-accessible-broker.proxy';
@@ -7,7 +7,7 @@ describe('pathIsAccessibleBroker', () => {
   describe('accessible paths', () => {
     it('VALID: {path: "/home/user/project"} => returns true when path is accessible', async () => {
       const proxy = pathIsAccessibleBrokerProxy();
-      const path = ProjectPathStub({ value: '/home/user/project' });
+      const path = GuildPathStub({ value: '/home/user/project' });
 
       proxy.setupResult({ result: true });
 
@@ -20,7 +20,7 @@ describe('pathIsAccessibleBroker', () => {
   describe('inaccessible paths', () => {
     it('INVALID_PATH: {path: "/missing/project"} => returns false when path is not accessible', async () => {
       const proxy = pathIsAccessibleBrokerProxy();
-      const path = ProjectPathStub({ value: '/missing/project' });
+      const path = GuildPathStub({ value: '/missing/project' });
 
       proxy.setupResult({ result: false });
 

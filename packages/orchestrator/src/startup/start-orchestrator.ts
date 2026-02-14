@@ -1,12 +1,12 @@
 /**
- * PURPOSE: Public API for the orchestrator package providing project management, quest management, and orchestration functions
+ * PURPOSE: Public API for the orchestrator package providing guild management, quest management, and orchestration functions
  *
  * USAGE:
  * import { StartOrchestrator } from '@dungeonmaster/orchestrator';
- * const projects = await StartOrchestrator.listProjects();
- * const quests = await StartOrchestrator.listQuests({projectId});
+ * const guilds = await StartOrchestrator.listGuilds();
+ * const quests = await StartOrchestrator.listQuests({guildId});
  * const quest = await StartOrchestrator.loadQuest({questId});
- * const added = await StartOrchestrator.addQuest({title: 'Add Auth', userRequest: 'User wants...', projectId});
+ * const added = await StartOrchestrator.addQuest({title: 'Add Auth', userRequest: 'User wants...', guildId});
  * const got = await StartOrchestrator.getQuest({questId: 'add-auth'});
  * const modified = await StartOrchestrator.modifyQuest({questId: 'add-auth', input: {...}});
  */
@@ -16,13 +16,13 @@ import { randomUUID } from 'crypto';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import type {
   DirectoryEntry,
+  Guild,
+  GuildId,
+  GuildListItem,
+  GuildName,
+  GuildPath,
   OrchestrationStatus,
   ProcessId,
-  Project,
-  ProjectId,
-  ProjectListItem,
-  ProjectName,
-  ProjectPath,
   Quest,
   QuestId,
   QuestListItem,
@@ -33,11 +33,11 @@ import { childProcessSpawnStreamJsonAdapter } from '../adapters/child-process/sp
 import { readlineCreateInterfaceAdapter } from '../adapters/readline/create-interface/readline-create-interface-adapter';
 import { directoryBrowseBroker } from '../brokers/directory/browse/directory-browse-broker';
 import { pathseekerPipelineBroker } from '../brokers/pathseeker/pipeline/pathseeker-pipeline-broker';
-import { projectAddBroker } from '../brokers/project/add/project-add-broker';
-import { projectGetBroker } from '../brokers/project/get/project-get-broker';
-import { projectListBroker } from '../brokers/project/list/project-list-broker';
-import { projectRemoveBroker } from '../brokers/project/remove/project-remove-broker';
-import { projectUpdateBroker } from '../brokers/project/update/project-update-broker';
+import { guildAddBroker } from '../brokers/guild/add/guild-add-broker';
+import { guildGetBroker } from '../brokers/guild/get/guild-get-broker';
+import { guildListBroker } from '../brokers/guild/list/guild-list-broker';
+import { guildRemoveBroker } from '../brokers/guild/remove/guild-remove-broker';
+import { guildUpdateBroker } from '../brokers/guild/update/guild-update-broker';
 import { questAddBroker } from '../brokers/quest/add/quest-add-broker';
 import { questFindQuestPathBroker } from '../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../brokers/quest/get/quest-get-broker';
@@ -70,39 +70,39 @@ import { questToListItemTransformer } from '../transformers/quest-to-list-item/q
 const QUEST_FILE_NAME = 'quest.json';
 
 export const StartOrchestrator = {
-  // Project methods
-  listProjects: async (): Promise<ProjectListItem[]> => projectListBroker(),
+  // Guild methods
+  listGuilds: async (): Promise<GuildListItem[]> => guildListBroker(),
 
-  getProject: async ({ projectId }: { projectId: ProjectId }): Promise<Project> =>
-    projectGetBroker({ projectId }),
+  getGuild: async ({ guildId }: { guildId: GuildId }): Promise<Guild> =>
+    guildGetBroker({ guildId }),
 
-  addProject: async ({ name, path }: { name: ProjectName; path: ProjectPath }): Promise<Project> =>
-    projectAddBroker({ name, path }),
+  addGuild: async ({ name, path }: { name: GuildName; path: GuildPath }): Promise<Guild> =>
+    guildAddBroker({ name, path }),
 
-  updateProject: async ({
-    projectId,
+  updateGuild: async ({
+    guildId,
     name,
     path,
   }: {
-    projectId: ProjectId;
-    name?: ProjectName;
-    path?: ProjectPath;
-  }): Promise<Project> =>
-    projectUpdateBroker({
-      projectId,
+    guildId: GuildId;
+    name?: GuildName;
+    path?: GuildPath;
+  }): Promise<Guild> =>
+    guildUpdateBroker({
+      guildId,
       ...(name !== undefined && { name }),
       ...(path !== undefined && { path }),
     }),
 
-  removeProject: async ({ projectId }: { projectId: ProjectId }): Promise<void> =>
-    projectRemoveBroker({ projectId }),
+  removeGuild: async ({ guildId }: { guildId: GuildId }): Promise<void> =>
+    guildRemoveBroker({ guildId }),
 
-  browseDirectories: ({ path }: { path?: ProjectPath }): DirectoryEntry[] =>
+  browseDirectories: ({ path }: { path?: GuildPath }): DirectoryEntry[] =>
     directoryBrowseBroker(path === undefined ? {} : { path }),
 
   // Quest methods
-  listQuests: async ({ projectId }: { projectId: ProjectId }): Promise<QuestListItem[]> => {
-    const quests = await questListBroker({ projectId });
+  listQuests: async ({ guildId }: { guildId: GuildId }): Promise<QuestListItem[]> => {
+    const quests = await questListBroker({ guildId });
     return quests.map((quest) => questToListItemTransformer({ quest }));
   },
 
@@ -117,16 +117,16 @@ export const StartOrchestrator = {
   },
 
   startQuest: async ({ questId }: { questId: QuestId }): Promise<ProcessId> => {
-    const { questPath, projectId } = await questFindQuestPathBroker({ questId });
+    const { questPath, guildId } = await questFindQuestPathBroker({ questId });
 
-    const project = await projectGetBroker({ projectId });
-    const startPath = filePathContract.parse(project.path);
+    const guild = await guildGetBroker({ guildId });
+    const startPath = filePathContract.parse(guild.path);
 
     const questFilePath = filePathContract.parse(
       pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
     );
 
-    const quests = await questListBroker({ projectId });
+    const quests = await questListBroker({ guildId });
     const quest = quests.find((q) => q.id === questId);
 
     if (!quest) {
@@ -245,14 +245,14 @@ export const StartOrchestrator = {
   addQuest: async ({
     title,
     userRequest,
-    projectId,
+    guildId,
   }: {
     title: string;
     userRequest: string;
-    projectId: ProjectId;
+    guildId: GuildId;
   }): Promise<AddQuestResult> => {
     const input = addQuestInputContract.parse({ title, userRequest });
-    return questAddBroker({ input, projectId });
+    return questAddBroker({ input, guildId });
   },
 
   getQuest: async ({

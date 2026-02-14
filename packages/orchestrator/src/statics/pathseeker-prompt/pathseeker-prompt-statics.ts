@@ -52,8 +52,8 @@ build, what inputs it needs, and what outputs it produces to accomplish the ques
 **Before anything else**, call these HTTP API endpoints to understand the project structure:
 
 \`\`\`bash
-curl -s http://localhost:3737/api/docs/architecture        # Folder types, import rules, decision tree
-curl -s http://localhost:3737/api/docs/testing-patterns     # What test/proxy/stub files are required
+curl -s {{SERVER_URL}}/api/docs/architecture        # Folder types, import rules, decision tree
+curl -s {{SERVER_URL}}/api/docs/testing-patterns     # What test/proxy/stub files are required
 \`\`\`
 
 This tells you:
@@ -67,7 +67,7 @@ This tells you:
 Use the HTTP API to retrieve the quest specification with \`stage: "spec"\`:
 
 \`\`\`bash
-curl -s 'http://localhost:3737/api/quests/QUEST_ID?stage=spec'
+curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec'
 \`\`\`
 
 Understand:
@@ -83,8 +83,8 @@ Understand:
 Use the HTTP API discover endpoint to find what already exists:
 
 \`\`\`bash
-curl -s http://localhost:3737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"src/"}'           # Browse file structure
-curl -s http://localhost:3737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","name":"user-broker"}'    # Find specific files
+curl -s {{SERVER_URL}}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"src/"}'           # Browse file structure
+curl -s {{SERVER_URL}}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","name":"user-broker"}'    # Find specific files
 \`\`\`
 
 Look for:
@@ -97,10 +97,10 @@ Look for:
 Before creating steps, call the folder detail endpoint for **each folder type** you'll be creating files in:
 
 \`\`\`bash
-curl -s http://localhost:3737/api/docs/folder-detail/contracts   # If creating contracts
-curl -s http://localhost:3737/api/docs/folder-detail/brokers     # If creating brokers
-curl -s http://localhost:3737/api/docs/folder-detail/adapters    # If creating adapters
-curl -s http://localhost:3737/api/docs/folder-detail/widgets     # If creating widgets
+curl -s {{SERVER_URL}}/api/docs/folder-detail/contracts   # If creating contracts
+curl -s {{SERVER_URL}}/api/docs/folder-detail/brokers     # If creating brokers
+curl -s {{SERVER_URL}}/api/docs/folder-detail/adapters    # If creating adapters
+curl -s {{SERVER_URL}}/api/docs/folder-detail/widgets     # If creating widgets
 \`\`\`
 
 This tells you:
@@ -241,7 +241,7 @@ userFetchAdapter({ email })\\n3. If !user → throw AuthError(\\"Invalid email o
 Use the HTTP API to upsert steps into the quest:
 
 \`\`\`bash
-curl -s http://localhost:3737/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{
+curl -s {{SERVER_URL}}/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{
   "steps": [
     ...
   ]
@@ -253,7 +253,7 @@ curl -s http://localhost:3737/api/quests/QUEST_ID -X PATCH -H 'Content-Type: app
 After persisting, retrieve the full quest without a stage filter for cross-referencing:
 
 \`\`\`bash
-curl -s http://localhost:3737/api/quests/QUEST_ID
+curl -s {{SERVER_URL}}/api/quests/QUEST_ID
 \`\`\`
 
 Review critically:
@@ -278,7 +278,7 @@ requirement refs, file companions, no raw primitives, step contract declarations
 contract refs, step export names).
 
 \`\`\`bash
-curl -s http://localhost:3737/api/quests/QUEST_ID/verify -X POST
+curl -s {{SERVER_URL}}/api/quests/QUEST_ID/verify -X POST
 \`\`\`
 
 If ANY check fails:
@@ -313,7 +313,7 @@ contracts first via \`modify-quest\` before creating the step that uses it.
 
 When planning steps:
 
-1. **Search for existing contracts** - Use the discover endpoint (\`curl -s http://localhost:3737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"contract"}'\`) and check the quest's contracts section
+1. **Search for existing contracts** - Use the discover endpoint (\`curl -s {{SERVER_URL}}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"contract"}'\`) and check the quest's contracts section
 2. **If type exists** - Reference it by name (e.g., "accepts UserId from user-id contract")
 3. **If type doesn't exist** - Add it to the quest's contracts dictionary AND add a contract step BEFORE the step that needs it
 
@@ -329,7 +329,7 @@ As you flesh out steps, identify npm packages that aren't already in the project
 \`toolingRequirements\` via the HTTP API:
 
 \`\`\`bash
-curl -s http://localhost:3737/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{
+curl -s {{SERVER_URL}}/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{
   "toolingRequirements": [
     {
       "id": "tool-uuid",
@@ -353,7 +353,7 @@ curl -s http://localhost:3737/api/quests/QUEST_ID -X PATCH -H 'Content-Type: app
 - UUID generation -> \`uuid\`
 - File operations -> check if adapter exists first
 
-**Check before adding:** Use the discover endpoint (\`curl -s http://localhost:3737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"jwt"}'\`) to see if an adapter already wraps the
+**Check before adding:** Use the discover endpoint (\`curl -s {{SERVER_URL}}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"jwt"}'\`) to see if an adapter already wraps the
 functionality.
 
 ## Step Dependency Rules

@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Creates ~/.dungeonmaster/ and ~/.dungeonmaster/projects/ directories if they do not exist
+ * PURPOSE: Creates ~/.dungeonmaster/ and ~/.dungeonmaster/guilds/ directories if they do not exist
  *
  * USAGE:
- * const { homePath, projectsPath } = await dungeonmasterHomeEnsureBroker();
+ * const { homePath, guildsPath } = await dungeonmasterHomeEnsureBroker();
  * // Creates both directories and returns their paths
  */
 
@@ -14,17 +14,17 @@ import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const dungeonmasterHomeEnsureBroker = async (): Promise<{
   homePath: FilePath;
-  projectsPath: FilePath;
+  guildsPath: FilePath;
 }> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   await fsMkdirAdapter({ filepath: homePath });
 
-  const projectsPath = pathJoinAdapter({
-    paths: [homePath, dungeonmasterHomeStatics.paths.projectsDir],
+  const guildsPath = pathJoinAdapter({
+    paths: [homePath, dungeonmasterHomeStatics.paths.guildsDir],
   });
 
-  await fsMkdirAdapter({ filepath: projectsPath });
+  await fsMkdirAdapter({ filepath: guildsPath });
 
-  return { homePath, projectsPath };
+  return { homePath, guildsPath };
 };

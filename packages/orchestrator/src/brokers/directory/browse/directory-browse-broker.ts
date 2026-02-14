@@ -2,7 +2,7 @@
  * PURPOSE: Lists directories at a given absolute path, hiding hidden directories by default
  *
  * USAGE:
- * const entries = await directoryBrowseBroker({ path: ProjectPathStub({ value: '/home/user' }) });
+ * const entries = await directoryBrowseBroker({ path: GuildPathStub({ value: '/home/user' }) });
  * // Returns: DirectoryEntry[] sorted alphabetically, directories only
  */
 
@@ -12,9 +12,9 @@ import {
   pathJoinAdapter,
 } from '@dungeonmaster/shared/adapters';
 import { directoryEntryContract } from '@dungeonmaster/shared/contracts';
-import type { DirectoryEntry, ProjectPath } from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntry, GuildPath } from '@dungeonmaster/shared/contracts';
 
-export const directoryBrowseBroker = ({ path }: { path?: ProjectPath }): DirectoryEntry[] => {
+export const directoryBrowseBroker = ({ path }: { path?: GuildPath }): DirectoryEntry[] => {
   const targetPath = path ?? osHomedirAdapter();
 
   const entries = fsReaddirWithTypesAdapter({ dirPath: targetPath as never });

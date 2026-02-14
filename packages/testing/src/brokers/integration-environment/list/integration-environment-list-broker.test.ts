@@ -1,7 +1,7 @@
 import { integrationEnvironmentListBroker } from './integration-environment-list-broker';
 import { integrationEnvironmentListBrokerProxy } from './integration-environment-list-broker.proxy';
 import { integrationEnvironmentTrackingBroker } from '../tracking/integration-environment-tracking-broker';
-import { TestProjectStub } from '../../../contracts/test-project/test-project.stub';
+import { TestGuildStub } from '../../../contracts/test-guild/test-guild.stub';
 
 describe('integrationEnvironmentListBroker', () => {
   describe('list environments', () => {
@@ -17,25 +17,25 @@ describe('integrationEnvironmentListBroker', () => {
     it('VALID: one environment => returns array with one project', () => {
       integrationEnvironmentTrackingBroker.clear();
       integrationEnvironmentListBrokerProxy();
-      const project = TestProjectStub();
-      integrationEnvironmentTrackingBroker.add({ project });
+      const guild = TestGuildStub();
+      integrationEnvironmentTrackingBroker.add({ guild });
 
       const result = integrationEnvironmentListBroker();
 
-      expect(result).toStrictEqual([project]);
+      expect(result).toStrictEqual([guild]);
     });
 
-    it('VALID: multiple environments => returns all projects', () => {
+    it('VALID: multiple environments => returns all guilds', () => {
       integrationEnvironmentTrackingBroker.clear();
       integrationEnvironmentListBrokerProxy();
-      const project1 = TestProjectStub({ projectName: 'test-1' });
-      const project2 = TestProjectStub({ projectName: 'test-2' });
-      integrationEnvironmentTrackingBroker.add({ project: project1 });
-      integrationEnvironmentTrackingBroker.add({ project: project2 });
+      const guild1 = TestGuildStub({ guildName: 'test-1' });
+      const guild2 = TestGuildStub({ guildName: 'test-2' });
+      integrationEnvironmentTrackingBroker.add({ guild: guild1 });
+      integrationEnvironmentTrackingBroker.add({ guild: guild2 });
 
       const result = integrationEnvironmentListBroker();
 
-      expect(result).toStrictEqual([project1, project2]);
+      expect(result).toStrictEqual([guild1, guild2]);
     });
   });
 });

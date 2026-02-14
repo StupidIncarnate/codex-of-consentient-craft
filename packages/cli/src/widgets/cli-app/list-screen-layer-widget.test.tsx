@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ProjectIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
@@ -17,12 +17,12 @@ describe('ListScreenLayerWidget', () => {
   describe('rendering list content', () => {
     it('VALID: {empty quests} => displays Quests title and no quests message', async () => {
       const proxy = ListScreenLayerWidgetProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({ quests: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
-        element: <ListScreenLayerWidget projectId={projectId} onBack={noopCallback} />,
+        element: <ListScreenLayerWidget guildId={guildId} onBack={noopCallback} />,
       });
 
       await new Promise((resolve) => {
@@ -38,7 +38,7 @@ describe('ListScreenLayerWidget', () => {
 
     it('VALID: {with quests} => displays quest list sorted by newest first', async () => {
       const proxy = ListScreenLayerWidgetProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({
         quests: [
@@ -60,7 +60,7 @@ describe('ListScreenLayerWidget', () => {
       });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
-        element: <ListScreenLayerWidget projectId={projectId} onBack={noopCallback} />,
+        element: <ListScreenLayerWidget guildId={guildId} onBack={noopCallback} />,
       });
 
       await new Promise((resolve) => {
@@ -78,12 +78,12 @@ describe('ListScreenLayerWidget', () => {
 
     it('VALID: {} => displays back instruction', async () => {
       const proxy = ListScreenLayerWidgetProxy();
-      const projectId = ProjectIdStub();
+      const guildId = GuildIdStub();
 
       proxy.setupQuests({ quests: [] });
 
       const { lastFrame, unmount } = inkTestingLibraryRenderAdapter({
-        element: <ListScreenLayerWidget projectId={projectId} onBack={noopCallback} />,
+        element: <ListScreenLayerWidget guildId={guildId} onBack={noopCallback} />,
       });
 
       await new Promise((resolve) => {

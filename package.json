@@ -14,10 +14,12 @@
     "lint": "npm run lint --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "ward:all": "npm run lint --workspaces && npm run typecheck --workspaces && npm run test --workspaces",
-    "dev": "npm run dev --workspace=@dungeonmaster/server & npm run dev --workspace=@dungeonmaster/web & wait",
+    "dev": "DUNGEONMASTER_PORT=4737 DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/server & DUNGEONMASTER_PORT=4737 DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/web & wait",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "npm run build && changeset publish",
+    "test:e2e:web": "playwright test",
+    "test:e2e:web:ui": "playwright test --ui",
     "claude": "claude",
     "claude:version": "claude --version"
   },
@@ -40,7 +42,6 @@
   },
   "dependencies": {
     "@anthropic-ai/claude-code": "latest",
-    "@types/ioredis": "^4.28.10",
     "@dungeonmaster/cli": "*",
     "@dungeonmaster/config": "*",
     "@dungeonmaster/eslint-plugin": "*",
@@ -53,6 +54,7 @@
     "@dungeonmaster/testing": "*",
     "@dungeonmaster/tooling": "*",
     "@dungeonmaster/web": "*",
+    "@types/ioredis": "^4.28.10",
     "ioredis": "^5.7.0",
     "zod": "^3.25.76"
   },
@@ -60,6 +62,7 @@
     "@changesets/cli": "^2.29.7",
     "@eslint/compat": "^1.3.1",
     "@eslint/eslintrc": "^3.3.1",
+    "@playwright/test": "^1.58.2",
     "@types/debug": "^4.1.12",
     "@types/eslint": "^9.0.0",
     "@types/jest": "^30.0.0",

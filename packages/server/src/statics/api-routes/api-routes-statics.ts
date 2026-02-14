@@ -23,9 +23,9 @@ export const apiRoutesStatics = {
   discover: {
     search: '/api/discover',
   },
-  projects: {
-    list: '/api/projects',
-    byId: '/api/projects/:projectId',
+  guilds: {
+    list: '/api/guilds',
+    byId: '/api/guilds/:guildId',
   },
   directories: {
     browse: '/api/directories/browse',

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { InstallContextStub, ProjectIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, InstallContextStub } from '@dungeonmaster/shared/contracts';
 
 import { inkTestingLibraryRenderAdapter } from '../../adapters/ink-testing-library/render/ink-testing-library-render-adapter';
 
@@ -33,7 +33,7 @@ describe('CliAppWidget', () => {
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
-            projectId={ProjectIdStub()}
+            guildId={GuildIdStub()}
           />
         ),
       });
@@ -55,7 +55,7 @@ describe('CliAppWidget', () => {
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
-            projectId={ProjectIdStub()}
+            guildId={GuildIdStub()}
           />
         ),
       });
@@ -76,7 +76,7 @@ describe('CliAppWidget', () => {
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
-            projectId={ProjectIdStub()}
+            guildId={GuildIdStub()}
           />
         ),
       });
@@ -97,7 +97,7 @@ describe('CliAppWidget', () => {
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
-            projectId={ProjectIdStub()}
+            guildId={GuildIdStub()}
           />
         ),
       });
@@ -118,7 +118,7 @@ describe('CliAppWidget', () => {
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
-            projectId={ProjectIdStub()}
+            guildId={GuildIdStub()}
           />
         ),
       });
@@ -141,7 +141,7 @@ describe('CliAppWidget', () => {
             onRunQuest={noopCallback}
             onExit={noopCallback}
             installContext={createMockInstallContext()}
-            projectId={ProjectIdStub()}
+            guildId={GuildIdStub()}
           />
         ),
       });

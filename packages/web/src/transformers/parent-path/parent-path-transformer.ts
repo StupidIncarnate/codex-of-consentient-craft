@@ -3,13 +3,13 @@
  *
  * USAGE:
  * parentPathTransformer({path: '/home/user/projects'});
- * // Returns '/home/user' as ProjectPath
+ * // Returns '/home/user' as GuildPath
  */
-import { projectPathContract } from '@dungeonmaster/shared/contracts';
-import type { ProjectPath } from '@dungeonmaster/shared/contracts';
+import { guildPathContract } from '@dungeonmaster/shared/contracts';
+import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
-export const parentPathTransformer = ({ path }: { path: ProjectPath }): ProjectPath => {
+export const parentPathTransformer = ({ path }: { path: GuildPath }): GuildPath => {
   const parent = path.replace(/\/[^/]+\/?$/u, '') || '/';
 
-  return projectPathContract.parse(parent);
+  return guildPathContract.parse(parent);
 };

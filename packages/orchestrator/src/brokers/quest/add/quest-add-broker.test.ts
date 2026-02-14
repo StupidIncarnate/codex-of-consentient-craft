@@ -1,4 +1,4 @@
-import { FilePathStub, ProjectIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 
 import { AddQuestInputStub } from '../../../contracts/add-quest-input/add-quest-input.stub';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
@@ -8,7 +8,7 @@ import { questAddBrokerProxy } from './quest-add-broker.proxy';
 describe('questAddBroker', () => {
   it('VALID: {input: {title, userRequest}} => creates quest with sequence 001', async () => {
     const brokerProxy = questAddBrokerProxy();
-    const projectId = ProjectIdStub();
+    const guildId = GuildIdStub();
     const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
     const questFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests/001-add-auth' });
     const questFilePath = FilePathStub({
@@ -27,7 +27,7 @@ describe('questAddBroker', () => {
       userRequest: 'User wants authentication',
     });
 
-    const result = await questAddBroker({ input, projectId });
+    const result = await questAddBroker({ input, guildId });
 
     expect(result.success).toBe(true);
     expect(result.questId).toBe('add-auth');
@@ -37,7 +37,7 @@ describe('questAddBroker', () => {
 
   it('VALID: {input: {...}} with existing folders => creates quest with next sequence', async () => {
     const brokerProxy = questAddBrokerProxy();
-    const projectId = ProjectIdStub();
+    const guildId = GuildIdStub();
     const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
     const questFolderPath = FilePathStub({
       value: '/project/.dungeonmaster-quests/003-fix-bug',
@@ -61,7 +61,7 @@ describe('questAddBroker', () => {
       userRequest: 'User wants bug fixed',
     });
 
-    const result = await questAddBroker({ input, projectId });
+    const result = await questAddBroker({ input, guildId });
 
     expect(result.success).toBe(true);
     expect(result.questId).toBe('fix-bug');
@@ -70,7 +70,7 @@ describe('questAddBroker', () => {
 
   it('VALID: {input: {title: "Add User Profile", ...}} => creates quest with kebab-case id', async () => {
     const brokerProxy = questAddBrokerProxy();
-    const projectId = ProjectIdStub();
+    const guildId = GuildIdStub();
     const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
     const questFolderPath = FilePathStub({
       value: '/project/.dungeonmaster-quests/001-add-user-profile',
@@ -91,7 +91,7 @@ describe('questAddBroker', () => {
       userRequest: 'User wants profile',
     });
 
-    const result = await questAddBroker({ input, projectId });
+    const result = await questAddBroker({ input, guildId });
 
     expect(result.success).toBe(true);
     expect(result.questId).toBe('add-user-profile');
@@ -100,7 +100,7 @@ describe('questAddBroker', () => {
 
   it('ERROR: mkdir fails => returns error result', async () => {
     const brokerProxy = questAddBrokerProxy();
-    const projectId = ProjectIdStub();
+    const guildId = GuildIdStub();
     const questsFolderPath = FilePathStub({ value: '/readonly/.dungeonmaster-quests' });
 
     brokerProxy.setupQuestCreationFailure({
@@ -113,7 +113,7 @@ describe('questAddBroker', () => {
       userRequest: 'User wants auth',
     });
 
-    const result = await questAddBroker({ input, projectId });
+    const result = await questAddBroker({ input, guildId });
 
     expect(result.success).toBe(false);
     expect(result.error).toBe('Permission denied');

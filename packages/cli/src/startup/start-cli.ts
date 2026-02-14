@@ -17,9 +17,10 @@ import type { InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contr
 import {
   absoluteFilePathContract,
   filePathContract,
-  projectIdContract,
+  guildIdContract,
 } from '@dungeonmaster/shared/contracts';
 import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
 import { cliStatics } from '../statics/cli/cli-statics';
@@ -55,15 +56,15 @@ export const StartCli = async ({
   const targetProjectRoot = filePathContract.parse(process.cwd());
   const installContext: InstallContext = { dungeonmasterRoot, targetProjectRoot };
 
-  // Placeholder projectId until project registry integration is wired up
-  const projectId = projectIdContract.parse('00000000-0000-0000-0000-000000000000');
+  // Placeholder guildId until guild registry integration is wired up
+  const guildId = guildIdContract.parse('00000000-0000-0000-0000-000000000000');
 
   // Render the Ink app
   const { unmount, waitUntilExit } = render(
     React.createElement(CliAppWidget, {
       initialScreen,
       installContext,
-      projectId,
+      guildId,
       onRunQuest: ({ questId, questFolder }: { questId: QuestId; questFolder: QuestFolder }) => {
         state.pendingQuestExecution = { questId, questFolder };
         unmount();
@@ -111,14 +112,15 @@ if (isMain) {
     runtimeDynamicImportAdapter<{ StartServer: () => void }>({ path: serverPath })
       .then((serverModule) => {
         serverModule.StartServer();
-        process.stdout.write(`Dungeonmaster server running at ${cliStatics.server.url}\n`);
-        const { url } = cliStatics.server;
+        const port = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;
+        const serverUrl = `http://${environmentStatics.hostname}:${port}`;
+        process.stdout.write(`Dungeonmaster server running at ${serverUrl}\n`);
         const cmd =
           process.platform === 'darwin'
-            ? `open ${url}`
+            ? `open ${serverUrl}`
             : process.platform === 'win32'
-              ? `start ${url}`
-              : `xdg-open ${url}`;
+              ? `start ${serverUrl}`
+              : `xdg-open ${serverUrl}`;
         exec(cmd);
       })
       .catch((error: unknown) => {

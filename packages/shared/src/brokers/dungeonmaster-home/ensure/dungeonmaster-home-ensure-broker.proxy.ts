@@ -7,7 +7,7 @@ export const dungeonmasterHomeEnsureBrokerProxy = (): {
   setupEnsureSuccess: (params: {
     homeDir: string;
     homePath: FilePath;
-    projectsPath: FilePath;
+    guildsPath: FilePath;
   }) => void;
   setupMkdirFails: (params: { homeDir: string; homePath: FilePath; error: Error }) => void;
 } => {
@@ -19,16 +19,16 @@ export const dungeonmasterHomeEnsureBrokerProxy = (): {
     setupEnsureSuccess: ({
       homeDir,
       homePath,
-      projectsPath,
+      guildsPath,
     }: {
       homeDir: string;
       homePath: FilePath;
-      projectsPath: FilePath;
+      guildsPath: FilePath;
     }): void => {
       findProxy.setupHomePath({ homeDir, homePath });
       mkdirProxy.succeeds({ filepath: homePath });
-      pathJoinProxy.returns({ result: projectsPath });
-      mkdirProxy.succeeds({ filepath: projectsPath });
+      pathJoinProxy.returns({ result: guildsPath });
+      mkdirProxy.succeeds({ filepath: guildsPath });
     },
     setupMkdirFails: ({
       homeDir,

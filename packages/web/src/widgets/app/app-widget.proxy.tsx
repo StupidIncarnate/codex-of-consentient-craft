@@ -1,39 +1,39 @@
 import { screen } from '@testing-library/react';
 
 import type {
+  GuildIdStub,
+  GuildListItemStub,
   OrchestrationStatusStub,
   ProcessIdStub,
-  ProjectIdStub,
-  ProjectListItemStub,
   QuestListItemStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { useAgentOutputBindingProxy } from '../../bindings/use-agent-output/use-agent-output-binding.proxy';
 import { useExecutionBindingProxy } from '../../bindings/use-execution/use-execution-binding.proxy';
-import { useProjectsBindingProxy } from '../../bindings/use-projects/use-projects-binding.proxy';
+import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { useQuestDetailBindingProxy } from '../../bindings/use-quest-detail/use-quest-detail-binding.proxy';
 import { useQuestsBindingProxy } from '../../bindings/use-quests/use-quests-binding.proxy';
-import { projectCreateBrokerProxy } from '../../brokers/project/create/project-create-broker.proxy';
+import { guildCreateBrokerProxy } from '../../brokers/guild/create/guild-create-broker.proxy';
+import { GuildAddModalWidgetProxy } from '../guild-add-modal/guild-add-modal-widget.proxy';
+import { GuildEmptyStateWidgetProxy } from '../guild-empty-state/guild-empty-state-widget.proxy';
 import { GuildListWidgetProxy } from '../guild-list/guild-list-widget.proxy';
 import { GuildQuestListWidgetProxy } from '../guild-quest-list/guild-quest-list-widget.proxy';
 import { LogoWidgetProxy } from '../logo/logo-widget.proxy';
 import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
-import { ProjectAddModalWidgetProxy } from '../project-add-modal/project-add-modal-widget.proxy';
-import { ProjectEmptyStateWidgetProxy } from '../project-empty-state/project-empty-state-widget.proxy';
 import { QuestDetailWidgetProxy } from '../quest-detail/quest-detail-widget.proxy';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
-type ProjectListItem = ReturnType<typeof ProjectListItemStub>;
-type ProjectId = ReturnType<typeof ProjectIdStub>;
+type GuildListItem = ReturnType<typeof GuildListItemStub>;
+type GuildId = ReturnType<typeof GuildIdStub>;
 
 export const AppWidgetProxy = (): {
-  setupProjects: (params: { projects: ProjectListItem[] }) => void;
-  setupProjectsError: () => void;
-  setupCreateProject: (params: { id: ProjectId }) => void;
+  setupGuilds: (params: { guilds: GuildListItem[] }) => void;
+  setupGuildsError: () => void;
+  setupCreateGuild: (params: { id: GuildId }) => void;
   setupDirectoryBrowse: (params: Parameters<typeof emptyState.setupDirectoryBrowse>[0]) => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
   setupQuestsError: () => void;
@@ -60,36 +60,36 @@ export const AppWidgetProxy = (): {
   clickDirectorySelect: () => Promise<void>;
   clickQuestItem: (params: { testId: string }) => Promise<void>;
   isQuestVisible: (params: { testId: string }) => boolean;
-  typeProjectName: (params: { name: string }) => Promise<void>;
+  typeGuildModalName: (params: { name: string }) => Promise<void>;
   clickBrowse: () => Promise<void>;
-  clickCreateProjectSubmit: () => Promise<void>;
+  clickCreateGuildSubmit: () => Promise<void>;
   clickCancelModal: () => Promise<void>;
-  isCreateProjectDisabled: () => boolean;
+  isCreateGuildDisabled: () => boolean;
   getPathDisplay: () => HTMLElement['textContent'];
 } => {
   const questDetailProxy = useQuestDetailBindingProxy();
   const executionProxy = useExecutionBindingProxy();
   useAgentOutputBindingProxy();
   const questsProxy = useQuestsBindingProxy();
-  const projectsProxy = useProjectsBindingProxy();
-  const createProjectProxy = projectCreateBrokerProxy();
+  const guildsProxy = useGuildsBindingProxy();
+  const createGuildProxy = guildCreateBrokerProxy();
   LogoWidgetProxy();
   MapFrameWidgetProxy();
   const guildList = GuildListWidgetProxy();
   const questList = GuildQuestListWidgetProxy();
-  const emptyState = ProjectEmptyStateWidgetProxy();
-  const addModal = ProjectAddModalWidgetProxy();
+  const emptyState = GuildEmptyStateWidgetProxy();
+  const addModal = GuildAddModalWidgetProxy();
   QuestDetailWidgetProxy();
 
   return {
-    setupProjects: ({ projects }: { projects: ProjectListItem[] }): void => {
-      projectsProxy.setupProjects({ projects });
+    setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
+      guildsProxy.setupGuilds({ guilds });
     },
-    setupProjectsError: (): void => {
-      projectsProxy.setupError();
+    setupGuildsError: (): void => {
+      guildsProxy.setupError();
     },
-    setupCreateProject: ({ id }: { id: ProjectId }): void => {
-      createProjectProxy.setupCreate({ id });
+    setupCreateGuild: ({ id }: { id: GuildId }): void => {
+      createGuildProxy.setupCreate({ id });
     },
     setupDirectoryBrowse: (params: Parameters<typeof emptyState.setupDirectoryBrowse>[0]): void => {
       emptyState.setupDirectoryBrowse(params);
@@ -159,19 +159,19 @@ export const AppWidgetProxy = (): {
     },
     isQuestVisible: ({ testId }: { testId: string }): boolean =>
       questList.isQuestVisible({ testId }),
-    typeProjectName: async ({ name }: { name: string }): Promise<void> => {
+    typeGuildModalName: async ({ name }: { name: string }): Promise<void> => {
       await addModal.typeName({ name });
     },
     clickBrowse: async (): Promise<void> => {
       await addModal.clickBrowse();
     },
-    clickCreateProjectSubmit: async (): Promise<void> => {
+    clickCreateGuildSubmit: async (): Promise<void> => {
       await addModal.clickCreate();
     },
     clickCancelModal: async (): Promise<void> => {
       await addModal.clickCancel();
     },
-    isCreateProjectDisabled: (): boolean => addModal.isCreateDisabled(),
+    isCreateGuildDisabled: (): boolean => addModal.isCreateDisabled(),
     getPathDisplay: (): HTMLElement['textContent'] => addModal.getPathDisplay(),
   };
 };

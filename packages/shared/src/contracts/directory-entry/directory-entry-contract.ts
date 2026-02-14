@@ -8,11 +8,11 @@
 
 import { z } from 'zod';
 
-import { projectPathContract } from '../project-path/project-path-contract';
+import { guildPathContract } from '../guild-path/guild-path-contract';
 
 export const directoryEntryContract = z.object({
   name: z.string().min(1).brand<'DirectoryEntryName'>(),
-  path: projectPathContract,
+  path: guildPathContract,
   isDirectory: z.boolean(),
 });
 

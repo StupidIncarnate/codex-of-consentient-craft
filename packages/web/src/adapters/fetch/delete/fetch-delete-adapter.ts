@@ -2,7 +2,7 @@
  * PURPOSE: Wraps browser fetch API for DELETE requests, returning parsed JSON
  *
  * USAGE:
- * const data = await fetchDeleteAdapter({url: '/api/projects/proj-123'});
+ * const data = await fetchDeleteAdapter({url: '/api/guilds/guild-123'});
  * // Returns parsed JSON response body
  */
 
