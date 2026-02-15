@@ -63,6 +63,35 @@ describe('guildGetBroker', () => {
     });
   });
 
+  describe('url slug backfill', () => {
+    it('VALID: {guild without urlSlug} => generates slug from name and returns guild with slug', async () => {
+      const proxy = guildGetBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const guild = GuildStub({
+        id: guildId,
+        name: 'My Cool App',
+        path: '/home/user/my-cool-app',
+        urlSlug: undefined,
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+
+      proxy.setupConfig({
+        config: GuildConfigStub({ guilds: [guild] }),
+      });
+
+      const result = await guildGetBroker({ guildId });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'My Cool App',
+        path: '/home/user/my-cool-app',
+        urlSlug: 'my-cool-app',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
+      });
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {guildId not in config} => throws guild not found', async () => {
       const proxy = guildGetBrokerProxy();

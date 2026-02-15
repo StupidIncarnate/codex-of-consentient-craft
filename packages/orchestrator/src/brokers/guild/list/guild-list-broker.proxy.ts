@@ -6,8 +6,9 @@ import {
 import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
 import type { Dirent } from 'fs';
 
-import { pathIsAccessibleBrokerProxy } from '../../path/is-accessible/path-is-accessible-broker.proxy';
 import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
+import { guildConfigWriteBrokerProxy } from '../../guild-config/write/guild-config-write-broker.proxy';
+import { pathIsAccessibleBrokerProxy } from '../../path/is-accessible/path-is-accessible-broker.proxy';
 
 export const guildListBrokerProxy = (): {
   setupGuildList: (params: {
@@ -23,6 +24,7 @@ export const guildListBrokerProxy = (): {
   setupEmptyConfig: (params: { homeDir: string; homePath: FilePath }) => void;
 } => {
   const configReadProxy = guildConfigReadBrokerProxy();
+  const configWriteProxy = guildConfigWriteBrokerProxy();
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const readdirProxy = fsReaddirWithTypesAdapterProxy();
@@ -45,6 +47,7 @@ export const guildListBrokerProxy = (): {
       }[];
     }): void => {
       configReadProxy.setupConfig({ config });
+      configWriteProxy.setupSuccess();
       homeFindProxy.setupHomePath({ homeDir, homePath });
 
       for (const entry of guildEntries) {

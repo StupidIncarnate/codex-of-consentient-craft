@@ -215,6 +215,51 @@ describe('guildListBroker', () => {
     });
   });
 
+  describe('url slug backfill', () => {
+    it('VALID: {guild without urlSlug} => generates slug from name and persists', async () => {
+      const proxy = guildListBrokerProxy();
+      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
+      const guild = GuildStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'My Cool App',
+        path: '/home/user/my-cool-app',
+        urlSlug: undefined,
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const questsDirPath = FilePathStub({
+        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+      });
+
+      proxy.setupGuildList({
+        config: GuildConfigStub({ guilds: [guild] }),
+        homeDir: '/home/user',
+        homePath,
+        guildEntries: [
+          {
+            accessible: true,
+            questsDirPath,
+            questDirEntries: [],
+          },
+        ],
+      });
+
+      const result = await guildListBroker();
+
+      expect(result).toStrictEqual([
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'My Cool App',
+          path: '/home/user/my-cool-app',
+          urlSlug: 'my-cool-app',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          chatSessions: [],
+          valid: true,
+          questCount: 0,
+        },
+      ]);
+    });
+  });
+
   describe('empty config', () => {
     it('EMPTY: {no guilds in config} => returns empty array', async () => {
       const proxy = guildListBrokerProxy();
