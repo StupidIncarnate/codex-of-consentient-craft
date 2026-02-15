@@ -62,6 +62,7 @@ import { wsEventRelayBroadcastBroker } from '../brokers/ws-event-relay/broadcast
 import type { WsClient } from '../contracts/ws-client/ws-client-contract';
 import { fsReadJsonlAdapter } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { claudeProjectPathEncoderTransformer } from '../transformers/claude-project-path-encoder/claude-project-path-encoder-transformer';
+import { processDevLogAdapter } from '../adapters/process/dev-log/process-dev-log-adapter';
 
 const FLUSH_INTERVAL_MS = 100;
 
@@ -78,9 +79,11 @@ export const StartServer = (): void => {
     upgradeWebSocket(() => ({
       onOpen: (_evt, ws: WSContext) => {
         clients.add(ws);
+        processDevLogAdapter({ message: 'WebSocket client connected' });
       },
       onClose: (_evt, ws: WSContext) => {
         clients.delete(ws);
+        processDevLogAdapter({ message: 'WebSocket client disconnected' });
       },
     })),
   );
@@ -444,16 +447,27 @@ export const StartServer = (): void => {
       }
 
       const chatProcessId = processIdContract.parse(crypto.randomUUID());
-
-      const args =
+      const resumeSessionId =
         typeof rawSessionId === 'string' && rawSessionId.length > 0
-          ? ['--resume', rawSessionId, '-p', rawMessage]
-          : ['-p', rawMessage];
+          ? sessionIdContract.parse(rawSessionId)
+          : undefined;
+
+      processDevLogAdapter({
+        message: `Chat started: questId=${questIdRaw}, messageLength=${String(rawMessage.length)}${resumeSessionId ? `, resuming=${resumeSessionId}` : ''}`,
+      });
+
+      const args = resumeSessionId
+        ? ['--resume', resumeSessionId, '-p', rawMessage]
+        : ['-p', rawMessage];
 
       args.push('--output-format', 'stream-json', '--verbose');
 
       const childProcess = spawn('claude', args, {
         stdio: ['inherit', 'pipe', 'inherit'],
+      });
+
+      processDevLogAdapter({
+        message: `Claude CLI spawned: processId=${chatProcessId}, args=${JSON.stringify(args)}`,
       });
 
       chatProcessState.register({
@@ -468,6 +482,19 @@ export const StartServer = (): void => {
       const rl = createInterface({ input: stdout as NodeJS.ReadableStream });
 
       rl.on('line', (line) => {
+        try {
+          const parsed: unknown = JSON.parse(line);
+          const lineType: unknown =
+            typeof parsed === 'object' && parsed !== null ? Reflect.get(parsed, 'type') : 'unknown';
+          processDevLogAdapter({
+            message: `Chat stream: processId=${chatProcessId}, type=${String(lineType)}`,
+          });
+        } catch {
+          processDevLogAdapter({
+            message: `Chat stream: processId=${chatProcessId}, type=unparseable`,
+          });
+        }
+
         wsEventRelayBroadcastBroker({
           clients,
           message: wsMessageContract.parse({
@@ -479,6 +506,9 @@ export const StartServer = (): void => {
       });
 
       childProcess.on('exit', (code) => {
+        processDevLogAdapter({
+          message: `Chat completed: processId=${chatProcessId}, exitCode=${String(code ?? 1)}`,
+        });
         chatProcessState.remove({ processId: chatProcessId });
         wsEventRelayBroadcastBroker({
           clients,
@@ -502,7 +532,11 @@ export const StartServer = (): void => {
     try {
       const chatProcessIdRaw = c.req.param('chatProcessId');
       const chatProcessId = processIdContract.parse(chatProcessIdRaw);
+      processDevLogAdapter({ message: `Chat stop requested: processId=${chatProcessId}` });
       const killed = chatProcessState.kill({ processId: chatProcessId });
+      processDevLogAdapter({
+        message: `Chat stop result: processId=${chatProcessId}, killed=${String(killed)}`,
+      });
 
       if (!killed) {
         return c.json(
@@ -625,10 +659,12 @@ export const StartServer = (): void => {
 
   // Kill all active chat processes on server shutdown
   process.on('SIGTERM', () => {
+    processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
     chatProcessState.killAll();
     process.exit(0);
   });
   process.on('SIGINT', () => {
+    processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGINT)' });
     chatProcessState.killAll();
     process.exit(0);
   });

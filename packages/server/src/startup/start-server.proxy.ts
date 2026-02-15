@@ -51,6 +51,8 @@ import { honoCreateNodeWebSocketAdapterProxy } from '../adapters/hono/create-nod
 import { agentOutputBufferStateProxy } from '../state/agent-output-buffer/agent-output-buffer-state.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
 import { fsReadJsonlAdapterProxy } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
+import { processDevLogAdapterProxy } from '../adapters/process/dev-log/process-dev-log-adapter.proxy';
+import { chatProcessStateProxy } from '../state/chat-process/chat-process-state.proxy';
 import { StartServer } from './start-server';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
@@ -96,8 +98,10 @@ export const StartServerProxy = (): {
   architectureTestingPatternsBrokerProxy();
   mcpDiscoverBrokerProxy();
   agentOutputBufferStateProxy();
+  chatProcessStateProxy();
   wsEventRelayBroadcastBrokerProxy();
   fsReadJsonlAdapterProxy();
+  processDevLogAdapterProxy();
 
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const addGuildProxy = orchestratorAddGuildAdapterProxy();
