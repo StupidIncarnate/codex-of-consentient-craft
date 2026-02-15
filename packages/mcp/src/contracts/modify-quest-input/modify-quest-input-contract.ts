@@ -8,6 +8,7 @@
 import { z } from 'zod';
 
 import {
+  chatSessionContract,
   contextContract,
   dependencyStepContract,
   designDecisionContract,
@@ -47,6 +48,10 @@ export const modifyQuestInputContract = z
     contracts: z
       .array(questContractEntryContract)
       .describe('Contracts to upsert (existing ID updates, new ID adds)')
+      .optional(),
+    chatSessions: z
+      .array(chatSessionContract)
+      .describe('Chat sessions (direct replacement, not upsert)')
       .optional(),
   })
   .brand<'ModifyQuestInput'>();
