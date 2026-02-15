@@ -462,7 +462,26 @@ export const StartServer = (): void => {
   app.post(apiRoutesStatics.quests.chat, async (c) => {
     try {
       const questIdRaw = c.req.param('questId');
-      questIdContract.parse(questIdRaw);
+      const questId = questIdContract.parse(questIdRaw);
+      const guilds = await orchestratorListGuildsAdapter();
+      const guildQuestPairs = await Promise.all(
+        guilds.map(async (guild) => ({
+          guild,
+          quests: await orchestratorListQuestsAdapter({ guildId: guild.id }),
+        })),
+      );
+      const matchingGuild = guildQuestPairs.find(({ quests }) =>
+        quests.some((q) => q.id === questId),
+      );
+
+      if (!matchingGuild) {
+        return c.json(
+          { error: 'Guild not found for quest' },
+          httpStatusStatics.clientError.notFound,
+        );
+      }
+
+      const questGuildPath = matchingGuild.guild.path;
       const body: unknown = await c.req.json();
 
       if (typeof body !== 'object' || body === null) {
@@ -496,11 +515,12 @@ export const StartServer = (): void => {
       args.push('--output-format', 'stream-json', '--verbose');
 
       const childProcess = spawn('claude', args, {
+        cwd: questGuildPath,
         stdio: ['inherit', 'pipe', 'inherit'],
       });
 
       processDevLogAdapter({
-        message: `Claude CLI spawned: processId=${chatProcessId}, args=${JSON.stringify(args)}`,
+        message: `Claude CLI spawned: processId=${chatProcessId}, cwd=${questGuildPath}, args=${JSON.stringify(args)}`,
       });
 
       chatProcessState.register({
@@ -622,6 +642,26 @@ export const StartServer = (): void => {
   // Quest chat history - read JSONL session file
   app.get(apiRoutesStatics.quests.chatHistory, async (c) => {
     try {
+      const questIdRaw = c.req.param('questId');
+      const questId = questIdContract.parse(questIdRaw);
+      const guilds = await orchestratorListGuildsAdapter();
+      const guildQuestPairs = await Promise.all(
+        guilds.map(async (guild) => ({
+          guild,
+          quests: await orchestratorListQuestsAdapter({ guildId: guild.id }),
+        })),
+      );
+      const matchingGuild = guildQuestPairs.find(({ quests }) =>
+        quests.some((q) => q.id === questId),
+      );
+
+      if (!matchingGuild) {
+        return c.json(
+          { error: 'Guild not found for quest' },
+          httpStatusStatics.clientError.notFound,
+        );
+      }
+
       const rawSessionId = c.req.query('sessionId');
 
       if (!rawSessionId) {
@@ -634,7 +674,7 @@ export const StartServer = (): void => {
       const sessionId = sessionIdContract.parse(rawSessionId);
 
       const homeDir = absoluteFilePathContract.parse(homedir());
-      const projectPath = absoluteFilePathContract.parse(process.cwd());
+      const projectPath = absoluteFilePathContract.parse(matchingGuild.guild.path);
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
         projectPath,
@@ -662,7 +702,9 @@ export const StartServer = (): void => {
   app.post(apiRoutesStatics.guilds.chat, async (c) => {
     try {
       const guildIdRaw = c.req.param('guildId');
-      guildIdContract.parse(guildIdRaw);
+      const guildId = guildIdContract.parse(guildIdRaw);
+      const guild = await orchestratorGetGuildAdapter({ guildId });
+      const guildPath = guild.path;
       const body: unknown = await c.req.json();
 
       if (typeof body !== 'object' || body === null) {
@@ -696,11 +738,12 @@ export const StartServer = (): void => {
       args.push('--output-format', 'stream-json', '--verbose');
 
       const childProcess = spawn('claude', args, {
+        cwd: guildPath,
         stdio: ['inherit', 'pipe', 'inherit'],
       });
 
       processDevLogAdapter({
-        message: `Claude CLI spawned (guild): processId=${chatProcessId}, args=${JSON.stringify(args)}`,
+        message: `Claude CLI spawned (guild): processId=${chatProcessId}, cwd=${guildPath}, args=${JSON.stringify(args)}`,
       });
 
       chatProcessState.register({
@@ -822,6 +865,9 @@ export const StartServer = (): void => {
   // Guild chat history - read JSONL session file
   app.get(apiRoutesStatics.guilds.chatHistory, async (c) => {
     try {
+      const guildIdRaw = c.req.param('guildId');
+      const guildId = guildIdContract.parse(guildIdRaw);
+      const guild = await orchestratorGetGuildAdapter({ guildId });
       const rawSessionId = c.req.query('sessionId');
 
       if (!rawSessionId) {
@@ -834,7 +880,7 @@ export const StartServer = (): void => {
       const sessionId = sessionIdContract.parse(rawSessionId);
 
       const homeDir = absoluteFilePathContract.parse(homedir());
-      const projectPath = absoluteFilePathContract.parse(process.cwd());
+      const projectPath = absoluteFilePathContract.parse(guild.path);
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
         projectPath,
