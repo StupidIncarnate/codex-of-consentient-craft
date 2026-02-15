@@ -3,7 +3,7 @@
  *
  * USAGE:
  * <QuestChatWidget />
- * // Renders split panel chat interface, reads questId from URL params
+ * // Renders split panel chat interface, reads guildSlug and optional questSlug from URL params
  */
 
 import { Box, Text } from '@mantine/core';
@@ -17,9 +17,10 @@ import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 
 export const QuestChatWidget = (): React.JSX.Element => {
   const params = useParams();
+  const questSlug = params.questSlug as QuestId | undefined;
   const { colors } = emberDepthsThemeStatics;
   const { entries, isStreaming, sendMessage, stopChat } = useQuestChatBinding({
-    questId: params.questId as QuestId,
+    ...(questSlug ? { questId: questSlug } : {}),
   });
 
   return (

@@ -22,7 +22,7 @@ describe('PixelSpriteWidget', () => {
 
       const sprite = screen.getByTestId('PIXEL_SPRITE');
 
-      expect(sprite.style.boxShadow).toBe('8px 12px 0 4px #ff4500');
+      expect(sprite.style.boxShadow).toBe('8px 12px 0 0 #ff4500');
       expect(sprite.style.width).toBe('4px');
       expect(sprite.style.height).toBe('4px');
     });
@@ -44,7 +44,7 @@ describe('PixelSpriteWidget', () => {
 
       const sprite = screen.getByTestId('PIXEL_SPRITE');
 
-      expect(sprite.style.boxShadow).toBe('0px 0px 0 2px #ff0000,2px 2px 0 2px #00ff00');
+      expect(sprite.style.boxShadow).toBe('0px 0px 0 0 #ff0000,2px 2px 0 0 #00ff00');
     });
 
     it('VALID: {flip: true} => mirrors x coordinates', () => {
@@ -62,7 +62,7 @@ describe('PixelSpriteWidget', () => {
       const sprite = screen.getByTestId('PIXEL_SPRITE');
 
       // flip: (width - 1 - x) * scale = (8 - 1 - 2) * 4 = 20
-      expect(sprite.style.boxShadow).toBe('20px 0px 0 4px #ff4500');
+      expect(sprite.style.boxShadow).toBe('20px 0px 0 0 #ff4500');
       expect(sprite.style.transform).toBe('scaleX(-1)');
     });
 

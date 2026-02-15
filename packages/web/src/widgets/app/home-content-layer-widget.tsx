@@ -31,7 +31,7 @@ export const HomeContentLayerWidget = (): React.JSX.Element => {
   const [addGuildModalOpened, setAddGuildModalOpened] = useState(false);
 
   const { guilds, loading: guildsLoading, refresh: refreshGuilds } = useGuildsBinding();
-  const { data: quests, refresh } = useQuestsBinding({ guildId: selectedGuildId });
+  const { data: quests } = useQuestsBinding({ guildId: selectedGuildId });
 
   const { colors } = emberDepthsThemeStatics;
   const hasGuilds = guilds.length > 0;
@@ -84,13 +84,20 @@ export const HomeContentLayerWidget = (): React.JSX.Element => {
               <GuildQuestListWidget
                 quests={quests}
                 onSelect={({ questId }: { questId: QuestId }) => {
-                  const result = navigate(`/quest/${questId}`);
+                  const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
+                  const slug = selectedGuild?.urlSlug ?? selectedGuildId;
+                  const result = navigate(`/${slug}/quest/${questId}`);
                   if (result instanceof Promise) {
                     result.catch(() => undefined);
                   }
                 }}
                 onAdd={() => {
-                  refresh().catch(() => undefined);
+                  const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
+                  const slug = selectedGuild?.urlSlug ?? selectedGuildId;
+                  const result = navigate(`/${slug}/quest`);
+                  if (result instanceof Promise) {
+                    result.catch(() => undefined);
+                  }
                 }}
               />
             ) : (

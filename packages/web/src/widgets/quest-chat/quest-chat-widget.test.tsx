@@ -15,9 +15,9 @@ describe('QuestChatWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/quest/chat-q1']}>
+          <MemoryRouter initialEntries={['/guild/test-guild/quest/chat-q1']}>
             <Routes>
-              <Route path="/quest/:questId" element={<QuestChatWidget />} />
+              <Route path="/guild/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -31,9 +31,9 @@ describe('QuestChatWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/quest/chat-q2']}>
+          <MemoryRouter initialEntries={['/guild/test-guild/quest/chat-q2']}>
             <Routes>
-              <Route path="/quest/:questId" element={<QuestChatWidget />} />
+              <Route path="/guild/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -49,9 +49,9 @@ describe('QuestChatWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/quest/chat-q3']}>
+          <MemoryRouter initialEntries={['/guild/test-guild/quest/chat-q3']}>
             <Routes>
-              <Route path="/quest/:questId" element={<QuestChatWidget />} />
+              <Route path="/guild/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),

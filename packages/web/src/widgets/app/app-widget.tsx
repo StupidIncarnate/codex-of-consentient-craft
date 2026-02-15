@@ -3,7 +3,7 @@
  *
  * USAGE:
  * <AppWidget />
- * // Renders the full Dungeonmaster web UI with routes for guild selection (/) and quest chat (/quest/:questId)
+ * // Renders the full Dungeonmaster web UI with routes for guild selection (/), guild chat (/:guildSlug/quest), and quest chat (/:guildSlug/quest/:questSlug)
  */
 
 import { Route, Routes, useLocation } from 'react-router-dom';
@@ -13,6 +13,7 @@ import { Box, Center } from '@mantine/core';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { isQuestRouteGuard } from '../../guards/is-quest-route/is-quest-route-guard';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
@@ -28,7 +29,7 @@ const unrestrictedMaxWidth = cssPixelsContract.parse(mapFrameStatics.unrestricte
 
 export const AppWidget = (): React.JSX.Element => {
   const location = useLocation();
-  const isQuestRoute = location.pathname.startsWith('/quest/');
+  const isQuestRoute = isQuestRouteGuard({ pathname: location.pathname });
   const { colors } = emberDepthsThemeStatics;
 
   const transition = `all ${TRANSITION_DURATION} ${TRANSITION_EASING}`;
@@ -84,7 +85,8 @@ export const AppWidget = (): React.JSX.Element => {
           <MapFrameWidget maxWidth={isQuestRoute ? unrestrictedMaxWidth : defaultMaxWidth}>
             <Routes>
               <Route path="/" element={<HomeContentLayerWidget />} />
-              <Route path="/quest/:questId" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
             </Routes>
           </MapFrameWidget>
         </div>

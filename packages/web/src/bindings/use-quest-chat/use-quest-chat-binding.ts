@@ -22,7 +22,7 @@ import { streamJsonToChatEntryTransformer } from '../../transformers/stream-json
 export const useQuestChatBinding = ({
   questId,
 }: {
-  questId: QuestId;
+  questId?: QuestId;
 }): {
   entries: ChatEntry[];
   isStreaming: boolean;
@@ -107,6 +107,8 @@ export const useQuestChatBinding = ({
 
       const currentSessionId = sessionIdRef.current;
 
+      if (!questId) return;
+
       questChatBroker({
         questId,
         message,
@@ -132,6 +134,8 @@ export const useQuestChatBinding = ({
   const stopChat = useCallback((): void => {
     const currentProcessId = chatProcessIdRef.current;
     if (!currentProcessId) return;
+
+    if (!questId) return;
 
     questChatStopBroker({ questId, chatProcessId: currentProcessId }).catch(() => {
       // Process may have already exited — force local cleanup
