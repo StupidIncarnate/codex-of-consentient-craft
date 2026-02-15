@@ -11,6 +11,9 @@ export const webConfigStatics = {
     routes: {
       guilds: '/api/guilds',
       guildById: '/api/guilds/:guildId',
+      guildChat: '/api/guilds/:guildId/chat',
+      guildChatStop: '/api/guilds/:guildId/chat/:chatProcessId/stop',
+      guildChatHistory: '/api/guilds/:guildId/chat/history',
       directoriesBrowse: '/api/directories/browse',
       quests: '/api/quests',
       questById: '/api/quests/:questId',
