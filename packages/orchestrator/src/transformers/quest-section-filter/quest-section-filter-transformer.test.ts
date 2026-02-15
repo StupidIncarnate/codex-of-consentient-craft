@@ -71,6 +71,7 @@ describe('questSectionFilterTransformer', () => {
         observables: [],
         steps: [],
         toolingRequirements: [],
+        chatSessions: [],
       });
     });
 
@@ -123,6 +124,7 @@ describe('questSectionFilterTransformer', () => {
         ],
         steps: [],
         toolingRequirements: [],
+        chatSessions: [],
       });
     });
   });
@@ -193,6 +195,7 @@ describe('questSectionFilterTransformer', () => {
         ],
         steps: [],
         toolingRequirements: [],
+        chatSessions: [],
       });
     });
   });
@@ -230,6 +233,7 @@ describe('questSectionFilterTransformer', () => {
         observables: [],
         steps: [],
         toolingRequirements: [],
+        chatSessions: [],
       });
     });
   });
@@ -267,6 +271,7 @@ describe('questSectionFilterTransformer', () => {
         observables: [],
         steps: [],
         toolingRequirements: [],
+        chatSessions: [],
       });
     });
   });

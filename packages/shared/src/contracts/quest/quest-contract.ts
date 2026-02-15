@@ -8,6 +8,7 @@
 
 import { z } from 'zod';
 
+import { chatSessionContract } from '../chat-session/chat-session-contract';
 import { contextContract } from '../context/context-contract';
 import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
@@ -70,6 +71,10 @@ export const questContract = z.object({
     .describe(
       'Shared type dictionary defining all data types, API endpoints, and event schemas. Included in every stage filter as the common reference for all agents',
     ),
+  chatSessions: z
+    .array(chatSessionContract)
+    .default([])
+    .describe('Chat sessions associated with this quest for resumable agent conversations'),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
 });

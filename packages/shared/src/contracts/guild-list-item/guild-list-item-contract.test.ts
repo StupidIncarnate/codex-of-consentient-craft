@@ -13,6 +13,7 @@ describe('guildListItemContract', () => {
         name: 'My Guild',
         path: '/home/user/my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
         valid: true,
         questCount: 0,
       });

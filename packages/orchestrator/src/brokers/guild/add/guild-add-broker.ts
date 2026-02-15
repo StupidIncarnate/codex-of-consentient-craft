@@ -11,6 +11,7 @@ import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters'
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { guildContract } from '@dungeonmaster/shared/contracts';
 import type { Guild, GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
+import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
@@ -39,10 +40,13 @@ export const guildAddBroker = async ({
   });
   await fsMkdirAdapter({ filepath: questsDir });
 
+  const urlSlug = nameToUrlSlugTransformer({ name });
+
   const guild = guildContract.parse({
     id,
     name,
     path,
+    urlSlug,
     createdAt: new Date().toISOString(),
   });
 

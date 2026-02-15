@@ -12,3 +12,6 @@ export * from './src/transformers/metadata-extractor/metadata-extractor-transfor
 
 // Folder Dependency Tree
 export * from './src/transformers/folder-dependency-tree/folder-dependency-tree-transformer';
+
+// Name to URL Slug
+export * from './src/transformers/name-to-url-slug/name-to-url-slug-transformer';
