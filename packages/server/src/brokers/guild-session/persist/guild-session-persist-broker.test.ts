@@ -87,6 +87,100 @@ describe('guildSessionPersistBroker', () => {
     });
   });
 
+  describe('duplicate sessionId', () => {
+    it('VALID: {guildId with same sessionId already exists} => updates existing instead of duplicating', async () => {
+      const proxy = guildSessionPersistBrokerProxy();
+      const sessionId: SessionId = SessionIdStub({ value: 'same-session-123' });
+      const guild: Guild = GuildStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        chatSessions: [
+          {
+            sessionId: 'same-session-123',
+            agentRole: 'chaoswhisperer',
+            startedAt: '2026-01-01T00:00:00.000Z',
+            active: false,
+          },
+        ],
+      });
+
+      proxy.setupGuildFound({ guild });
+      proxy.setupUpdateReturns({ guild });
+
+      await guildSessionPersistBroker({
+        guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        sessionId,
+      });
+
+      const callArgs = proxy.getUpdateCallArgs();
+
+      expect(callArgs).toStrictEqual([
+        {
+          guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          chatSessions: [
+            {
+              sessionId: 'same-session-123',
+              agentRole: 'chaoswhisperer',
+              startedAt: '2026-02-14T00:00:00.000Z',
+              active: true,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {guildId with same sessionId among others} => updates matching, deactivates rest, no duplicates', async () => {
+      const proxy = guildSessionPersistBrokerProxy();
+      const sessionId: SessionId = SessionIdStub({ value: 'same-session-123' });
+      const guild: Guild = GuildStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        chatSessions: [
+          {
+            sessionId: 'other-session-000',
+            agentRole: 'chaoswhisperer',
+            startedAt: '2025-12-01T00:00:00.000Z',
+            active: false,
+          },
+          {
+            sessionId: 'same-session-123',
+            agentRole: 'chaoswhisperer',
+            startedAt: '2026-01-01T00:00:00.000Z',
+            active: true,
+          },
+        ],
+      });
+
+      proxy.setupGuildFound({ guild });
+      proxy.setupUpdateReturns({ guild });
+
+      await guildSessionPersistBroker({
+        guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        sessionId,
+      });
+
+      const callArgs = proxy.getUpdateCallArgs();
+
+      expect(callArgs).toStrictEqual([
+        {
+          guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          chatSessions: [
+            {
+              sessionId: 'other-session-000',
+              agentRole: 'chaoswhisperer',
+              startedAt: '2025-12-01T00:00:00.000Z',
+              active: false,
+            },
+            {
+              sessionId: 'same-session-123',
+              agentRole: 'chaoswhisperer',
+              startedAt: '2026-02-14T00:00:00.000Z',
+              active: true,
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
   describe('adapter throws', () => {
     it('ERROR: {get guild throws} => catches error without throwing', async () => {
       const proxy = guildSessionPersistBrokerProxy();

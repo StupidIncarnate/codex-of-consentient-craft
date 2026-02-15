@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Persists a new active chat session to a quest, deactivating all previous sessions
+ * PURPOSE: Upserts an active chat session to a quest, deactivating all other sessions
  *
  * USAGE:
  * questSessionPersistBroker({ questId: 'abc-123', sessionId: SessionIdStub() });
- * // Reads quest, deactivates existing sessions, appends new active session, writes back
+ * // Reads quest, if sessionId exists updates it in place, otherwise appends new entry
  */
 
 import { chatSessionContract, questContract } from '@dungeonmaster/shared/contracts';
@@ -32,18 +32,28 @@ export const questSessionPersistBroker = async ({
     }
 
     const quest = questContract.parse(questRaw);
-    const deactivated = quest.chatSessions.map((s) =>
-      chatSessionContract.parse({ ...s, active: false }),
-    );
-    const newSession = chatSessionContract.parse({
-      sessionId,
-      agentRole: 'chaoswhisperer',
-      startedAt: new Date().toISOString(),
-      active: true,
-    });
+    const existingIndex = quest.chatSessions.findIndex((s) => s.sessionId === sessionId);
+    const updatedSessions =
+      existingIndex >= 0
+        ? quest.chatSessions.map((s, idx) =>
+            chatSessionContract.parse({
+              ...s,
+              active: idx === existingIndex,
+              ...(idx === existingIndex ? { startedAt: new Date().toISOString() } : {}),
+            }),
+          )
+        : [
+            ...quest.chatSessions.map((s) => chatSessionContract.parse({ ...s, active: false })),
+            chatSessionContract.parse({
+              sessionId,
+              agentRole: 'chaoswhisperer',
+              startedAt: new Date().toISOString(),
+              active: true,
+            }),
+          ];
     await orchestratorModifyQuestAdapter({
       questId,
-      input: { questId, chatSessions: [...deactivated, newSession] } as never,
+      input: { questId, chatSessions: updatedSessions } as never,
     });
     processDevLogAdapter({
       message: `Session persisted to quest: questId=${questId}, sessionId=${sessionId}`,

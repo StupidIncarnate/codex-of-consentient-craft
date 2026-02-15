@@ -107,7 +107,7 @@ describe('useQuestChatBinding', () => {
       expect(result.current.isStreaming).toBe(true);
     });
 
-    it('VALID: {multiple chat-outputs with growing text} => updates entry in-place', async () => {
+    it('VALID: {multiple chat-outputs with growing text} => appends all entries', async () => {
       const proxy = useQuestChatBindingProxy();
       const questId = QuestIdStub({ value: 'quest-abc' });
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
@@ -160,6 +160,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current.entries).toStrictEqual([
         { role: 'user', content: 'Hello' },
+        { role: 'assistant', type: 'text', content: 'Hi' },
         { role: 'assistant', type: 'text', content: 'Hi there' },
       ]);
     });
@@ -218,12 +219,79 @@ describe('useQuestChatBinding', () => {
       expect(result.current.entries).toStrictEqual([
         { role: 'user', content: 'Hello' },
         { role: 'assistant', type: 'text', content: 'Let me check' },
+        { role: 'assistant', type: 'text', content: 'Let me check' },
         {
           role: 'assistant',
           type: 'tool_use',
           toolName: 'Read',
           toolInput: '{"file_path":"/test"}',
         },
+      ]);
+    });
+
+    it('VALID: {multi-turn streaming with tool use} => preserves all entries across turns', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-abc' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Help me' });
+
+      proxy.setupChat({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      // Turn 1: text + tool_use (content array grows)
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Let me check"},{"type":"tool_use","id":"tool-1","name":"Read","input":{"file_path":"/test"}}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      // Turn 2: new content array with just text (fewer items = new turn)
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"I found the answer"}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Help me' },
+        { role: 'assistant', type: 'text', content: 'Let me check' },
+        {
+          role: 'assistant',
+          type: 'tool_use',
+          toolName: 'Read',
+          toolInput: '{"file_path":"/test"}',
+        },
+        { role: 'assistant', type: 'text', content: 'I found the answer' },
       ]);
     });
 
@@ -374,9 +442,9 @@ describe('useQuestChatBinding', () => {
       expect(result.current.entries).toStrictEqual([
         { role: 'user', content: 'Hello' },
         {
-          role: 'assistant',
-          type: 'text',
-          content: expect.stringMatching(/^Error:/u),
+          role: 'system',
+          type: 'error',
+          content: expect.any(String),
         },
       ]);
     });
@@ -434,9 +502,9 @@ describe('useQuestChatBinding', () => {
       expect(result.current.entries).toStrictEqual([
         { role: 'user', content: 'Hello guild' },
         {
-          role: 'assistant',
-          type: 'text',
-          content: expect.stringMatching(/^Error:/u),
+          role: 'system',
+          type: 'error',
+          content: expect.any(String),
         },
       ]);
     });

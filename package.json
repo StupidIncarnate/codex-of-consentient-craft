@@ -10,7 +10,8 @@
     "build:clean": "npm run build:clean --workspaces",
     "test": "npm run test --workspaces",
     "test:unit": "npm run test:unit --workspaces",
-    "test:e2e": "jest --config tests/e2e/jest.config.js --runInBand",
+    "test:e2e": "playwright test",
+    "test:e2e:web": "playwright test --ui",
     "lint": "npm run lint --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "ward:all": "npm run lint --workspaces && npm run typecheck --workspaces && npm run test --workspaces",
@@ -18,8 +19,6 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "npm run build && changeset publish",
-    "test:e2e:web": "playwright test",
-    "test:e2e:web:ui": "playwright test --ui",
     "claude": "claude",
     "claude:version": "claude --version"
   },

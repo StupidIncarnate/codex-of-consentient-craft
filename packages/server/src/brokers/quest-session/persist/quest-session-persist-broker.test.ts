@@ -87,6 +87,104 @@ describe('questSessionPersistBroker', () => {
     });
   });
 
+  describe('duplicate sessionId', () => {
+    it('VALID: {questId with same sessionId already exists} => updates existing instead of duplicating', async () => {
+      const proxy = questSessionPersistBrokerProxy();
+      const sessionId: SessionId = SessionIdStub({ value: 'same-session-123' });
+      const quest = QuestStub({
+        id: 'quest-1',
+        chatSessions: [
+          {
+            sessionId: 'same-session-123',
+            agentRole: 'chaoswhisperer',
+            startedAt: '2026-01-01T00:00:00.000Z',
+            active: false,
+          },
+        ],
+      });
+
+      proxy.setupQuestFound({
+        result: { success: true, quest } as never,
+      });
+      proxy.setupModifyReturns({ result: { success: true } as never });
+
+      await questSessionPersistBroker({ questId: 'quest-1', sessionId });
+
+      const callArgs = proxy.getModifyCallArgs();
+
+      expect(callArgs).toStrictEqual([
+        {
+          questId: 'quest-1',
+          input: {
+            questId: 'quest-1',
+            chatSessions: [
+              {
+                sessionId: 'same-session-123',
+                agentRole: 'chaoswhisperer',
+                startedAt: '2026-02-14T00:00:00.000Z',
+                active: true,
+              },
+            ],
+          },
+        },
+      ]);
+    });
+
+    it('VALID: {questId with same sessionId among others} => updates matching, deactivates rest, no duplicates', async () => {
+      const proxy = questSessionPersistBrokerProxy();
+      const sessionId: SessionId = SessionIdStub({ value: 'same-session-123' });
+      const quest = QuestStub({
+        id: 'quest-2',
+        chatSessions: [
+          {
+            sessionId: 'other-session-000',
+            agentRole: 'chaoswhisperer',
+            startedAt: '2025-12-01T00:00:00.000Z',
+            active: false,
+          },
+          {
+            sessionId: 'same-session-123',
+            agentRole: 'chaoswhisperer',
+            startedAt: '2026-01-01T00:00:00.000Z',
+            active: true,
+          },
+        ],
+      });
+
+      proxy.setupQuestFound({
+        result: { success: true, quest } as never,
+      });
+      proxy.setupModifyReturns({ result: { success: true } as never });
+
+      await questSessionPersistBroker({ questId: 'quest-2', sessionId });
+
+      const callArgs = proxy.getModifyCallArgs();
+
+      expect(callArgs).toStrictEqual([
+        {
+          questId: 'quest-2',
+          input: {
+            questId: 'quest-2',
+            chatSessions: [
+              {
+                sessionId: 'other-session-000',
+                agentRole: 'chaoswhisperer',
+                startedAt: '2025-12-01T00:00:00.000Z',
+                active: false,
+              },
+              {
+                sessionId: 'same-session-123',
+                agentRole: 'chaoswhisperer',
+                startedAt: '2026-02-14T00:00:00.000Z',
+                active: true,
+              },
+            ],
+          },
+        },
+      ]);
+    });
+  });
+
   describe('quest not found', () => {
     it('ERROR: {nonexistent questId} => does not call modify', async () => {
       const proxy = questSessionPersistBrokerProxy();

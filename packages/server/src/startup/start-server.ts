@@ -68,8 +68,10 @@ import type { WsClient } from '../contracts/ws-client/ws-client-contract';
 import { fsReadJsonlAdapter } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { claudeProjectPathEncoderTransformer } from '../transformers/claude-project-path-encoder/claude-project-path-encoder-transformer';
 import { processDevLogAdapter } from '../adapters/process/dev-log/process-dev-log-adapter';
+import { streamLineSummaryTransformer } from '../transformers/stream-line-summary/stream-line-summary-transformer';
 
 const FLUSH_INTERVAL_MS = 100;
+const CLAUDE_CLI_COMMAND = process.env.CLAUDE_CLI_PATH ?? 'claude';
 
 export const StartServer = (): void => {
   const app = new Hono();
@@ -514,7 +516,7 @@ export const StartServer = (): void => {
 
       args.push('--output-format', 'stream-json', '--verbose');
 
-      const childProcess = spawn('claude', args, {
+      const childProcess = spawn(CLAUDE_CLI_COMMAND, args, {
         cwd: questGuildPath,
         stdio: ['inherit', 'pipe', 'inherit'],
       });
@@ -539,11 +541,17 @@ export const StartServer = (): void => {
       rl.on('line', (line) => {
         try {
           const parsed: unknown = JSON.parse(line);
-          const lineType: unknown =
-            typeof parsed === 'object' && parsed !== null ? Reflect.get(parsed, 'type') : 'unknown';
-          processDevLogAdapter({
-            message: `Chat stream: processId=${chatProcessId}, type=${String(lineType)}`,
-          });
+
+          if (typeof parsed === 'object' && parsed !== null) {
+            const summary = streamLineSummaryTransformer({ parsed });
+            processDevLogAdapter({
+              message: `Chat stream: processId=${chatProcessId}, ${summary}`,
+            });
+          } else {
+            processDevLogAdapter({
+              message: `Chat stream: processId=${chatProcessId}, type=non-object`,
+            });
+          }
         } catch {
           processDevLogAdapter({
             message: `Chat stream: processId=${chatProcessId}, type=unparseable`,
@@ -737,7 +745,7 @@ export const StartServer = (): void => {
 
       args.push('--output-format', 'stream-json', '--verbose');
 
-      const childProcess = spawn('claude', args, {
+      const childProcess = spawn(CLAUDE_CLI_COMMAND, args, {
         cwd: guildPath,
         stdio: ['inherit', 'pipe', 'inherit'],
       });
@@ -762,11 +770,17 @@ export const StartServer = (): void => {
       rl.on('line', (line) => {
         try {
           const parsed: unknown = JSON.parse(line);
-          const lineType: unknown =
-            typeof parsed === 'object' && parsed !== null ? Reflect.get(parsed, 'type') : 'unknown';
-          processDevLogAdapter({
-            message: `Guild chat stream: processId=${chatProcessId}, type=${String(lineType)}`,
-          });
+
+          if (typeof parsed === 'object' && parsed !== null) {
+            const summary = streamLineSummaryTransformer({ parsed });
+            processDevLogAdapter({
+              message: `Guild chat stream: processId=${chatProcessId}, ${summary}`,
+            });
+          } else {
+            processDevLogAdapter({
+              message: `Guild chat stream: processId=${chatProcessId}, type=non-object`,
+            });
+          }
         } catch {
           processDevLogAdapter({
             message: `Guild chat stream: processId=${chatProcessId}, type=unparseable`,

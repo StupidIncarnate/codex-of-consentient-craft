@@ -26,8 +26,6 @@ import { questChatHistoryBroker } from '../../brokers/quest/chat-history/quest-c
 import { questChatStopBroker } from '../../brokers/quest/chat-stop/quest-chat-stop-broker';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
-import { streamingBlockCountContract } from '../../contracts/streaming-block-count/streaming-block-count-contract';
-import type { StreamingBlockCount } from '../../contracts/streaming-block-count/streaming-block-count-contract';
 import { jsonlToChatEntriesTransformer } from '../../transformers/jsonl-to-chat-entries/jsonl-to-chat-entries-transformer';
 import { streamJsonToChatEntryTransformer } from '../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 
@@ -50,7 +48,6 @@ export const useQuestChatBinding = ({
   const sessionIdRef = useRef<SessionId | null>(null);
   const chatProcessIdRef = useRef<ProcessId | null>(null);
   const wsRef = useRef<{ close: () => void } | null>(null);
-  const streamingBlockCountRef = useRef<StreamingBlockCount>(streamingBlockCountContract.parse(0));
   const historyLoadedRef = useRef(false);
 
   const handleWebSocketMessage = useCallback((message: unknown): void => {
@@ -73,15 +70,7 @@ export const useQuestChatBinding = ({
       }
 
       if (result.entries.length > 0) {
-        const previousBlockCount = streamingBlockCountRef.current;
-
-        streamingBlockCountRef.current = streamingBlockCountContract.parse(result.entries.length);
-        setEntries((prev) => {
-          const baseCount = prev.length - previousBlockCount;
-          const base = prev.slice(0, baseCount);
-
-          return [...base, ...result.entries];
-        });
+        setEntries((prev) => [...prev, ...result.entries]);
       }
     }
 
@@ -96,7 +85,6 @@ export const useQuestChatBinding = ({
         sessionIdRef.current = rawSessionId as SessionId;
       }
 
-      streamingBlockCountRef.current = streamingBlockCountContract.parse(0);
       setIsStreaming(false);
     }
   }, []);
@@ -146,7 +134,6 @@ export const useQuestChatBinding = ({
       const userEntry = chatEntryContract.parse({ role: 'user', content: message });
       setEntries((prev) => [...prev, userEntry]);
       setIsStreaming(true);
-      streamingBlockCountRef.current = streamingBlockCountContract.parse(0);
 
       const currentSessionId = sessionIdRef.current;
 
@@ -174,9 +161,9 @@ export const useQuestChatBinding = ({
           setIsStreaming(false);
           const errorMessage = err instanceof Error ? err.message : String(err);
           const errorEntry = chatEntryContract.parse({
-            role: 'assistant',
-            type: 'text',
-            content: `Error: ${errorMessage}`,
+            role: 'system',
+            type: 'error',
+            content: errorMessage,
           });
           setEntries((prev) => [...prev, errorEntry]);
         });
@@ -199,7 +186,6 @@ export const useQuestChatBinding = ({
     stopPromise.catch(() => {
       // Process may have already exited — force local cleanup
       setIsStreaming(false);
-      streamingBlockCountRef.current = streamingBlockCountContract.parse(0);
     });
   }, [questId, guildId]);
 

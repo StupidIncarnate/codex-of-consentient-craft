@@ -43,11 +43,18 @@ const assistantToolResultEntryContract = z.object({
   content: z.string().brand<'ToolResultContent'>(),
 });
 
+const systemErrorEntryContract = z.object({
+  role: z.literal('system'),
+  type: z.literal('error'),
+  content: z.string().min(1).brand<'ErrorContent'>(),
+});
+
 export const chatEntryContract = z.union([
   userEntryContract,
   assistantTextEntryContract,
   assistantToolUseEntryContract,
   assistantToolResultEntryContract,
+  systemErrorEntryContract,
 ]);
 
 export type ChatEntry = z.infer<typeof chatEntryContract>;

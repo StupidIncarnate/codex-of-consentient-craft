@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Persists a new active chat session to a guild, deactivating all previous sessions
+ * PURPOSE: Upserts an active chat session to a guild, deactivating all other sessions
  *
  * USAGE:
  * guildSessionPersistBroker({ guildId: 'abc-123', sessionId: SessionIdStub() });
- * // Reads guild, deactivates existing sessions, appends new active session, writes back
+ * // Reads guild, if sessionId exists updates it in place, otherwise appends new entry
  */
 
 import { chatSessionContract, guildIdContract } from '@dungeonmaster/shared/contracts';
@@ -23,18 +23,28 @@ export const guildSessionPersistBroker = async ({
   try {
     const guildIdParsed = guildIdContract.parse(guildId);
     const guild = await orchestratorGetGuildAdapter({ guildId: guildIdParsed });
-    const deactivated = guild.chatSessions.map((s) =>
-      chatSessionContract.parse({ ...s, active: false }),
-    );
-    const newSession = chatSessionContract.parse({
-      sessionId,
-      agentRole: 'chaoswhisperer',
-      startedAt: new Date().toISOString(),
-      active: true,
-    });
+    const existingIndex = guild.chatSessions.findIndex((s) => s.sessionId === sessionId);
+    const updatedSessions =
+      existingIndex >= 0
+        ? guild.chatSessions.map((s, idx) =>
+            chatSessionContract.parse({
+              ...s,
+              active: idx === existingIndex,
+              ...(idx === existingIndex ? { startedAt: new Date().toISOString() } : {}),
+            }),
+          )
+        : [
+            ...guild.chatSessions.map((s) => chatSessionContract.parse({ ...s, active: false })),
+            chatSessionContract.parse({
+              sessionId,
+              agentRole: 'chaoswhisperer',
+              startedAt: new Date().toISOString(),
+              active: true,
+            }),
+          ];
     await orchestratorUpdateGuildAdapter({
       guildId: guildIdParsed,
-      chatSessions: [...deactivated, newSession],
+      chatSessions: updatedSessions,
     });
     processDevLogAdapter({
       message: `Session persisted to guild: guildId=${guildId}, sessionId=${sessionId}`,
