@@ -22,6 +22,7 @@ export default defineConfig({
   cacheDir: `node_modules/.vite-${basePort}`,
   optimizeDeps: {
     include: ['@dungeonmaster/shared/contracts'],
+    force: true,
   },
   build: {
     outDir: 'dist',
