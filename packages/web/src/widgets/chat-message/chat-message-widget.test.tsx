@@ -36,6 +36,17 @@ describe('ChatMessageWidget', () => {
       expect(message.style.borderLeft).toBe('2px solid rgb(251, 191, 36)');
       expect(message.style.borderRight).toBe('2px solid rgb(251, 191, 36)');
     });
+
+    it('VALID: {role: user} => renders with textAlign left', () => {
+      ChatMessageWidgetProxy();
+      const entry = UserChatEntryStub();
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.style.textAlign).toBe('left');
+    });
   });
 
   describe('assistant text message', () => {
@@ -64,7 +75,18 @@ describe('ChatMessageWidget', () => {
       expect(message.style.backgroundColor).toBe('transparent');
     });
 
-    it('VALID: {usage present} => renders token count badge', () => {
+    it('VALID: {role: assistant, type: text} => renders with textAlign right', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub();
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.style.textAlign).toBe('right');
+    });
+
+    it('VALID: {usage present} => renders token count badge below content', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({
         usage: {
@@ -80,6 +102,16 @@ describe('ChatMessageWidget', () => {
       const badge = screen.getByTestId('TOKEN_BADGE');
 
       expect(badge.textContent).toBe('100/50 tokens');
+      expect(badge.style.fontSize).toBe('10px');
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+      const children = Array.from(message.children);
+      const labelIndex = children.findIndex((child) =>
+        child.textContent?.includes('CHAOSWHISPERER'),
+      );
+      const badgeIndex = children.indexOf(badge);
+
+      expect(badgeIndex).toBeGreaterThan(labelIndex + 1);
     });
 
     it('VALID: {no usage} => does not render token count badge', () => {
@@ -131,6 +163,30 @@ describe('ChatMessageWidget', () => {
       const contentElement = message.children[1] as HTMLElement;
 
       expect(contentElement.style.fontStyle).toBe('italic');
+    });
+
+    it('VALID: {isLoading: true} => renders Running... indicator', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantToolUseChatEntryStub();
+
+      mantineRenderAdapter({
+        ui: <ChatMessageWidget entry={entry} isLoading={true} />,
+      });
+
+      const loading = screen.getByTestId('TOOL_LOADING');
+
+      expect(loading.textContent).toBe('Running...');
+    });
+
+    it('VALID: {isLoading: false} => does not render Running... indicator', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantToolUseChatEntryStub();
+
+      mantineRenderAdapter({
+        ui: <ChatMessageWidget entry={entry} isLoading={false} />,
+      });
+
+      expect(screen.queryByTestId('TOOL_LOADING')).toBeNull();
     });
   });
 

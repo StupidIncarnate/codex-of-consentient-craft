@@ -6,7 +6,8 @@
  * // Renders full-page chat interface with logo, map frame, and split panels
  */
 
-import { Box } from '@mantine/core';
+import { Box, Text } from '@mantine/core';
+import { useEffect, useState } from 'react';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
@@ -26,9 +27,16 @@ export interface QuestChatWidgetProps {
 const zeroPadding = cssPixelsContract.parse(0);
 const unrestrictedMaxWidth = cssPixelsContract.parse(mapFrameStatics.unrestrictedMaxWidth);
 
+const collapsedMaxWidth = mapFrameStatics.defaultMaxWidth;
+
 export const QuestChatWidget = ({ questId }: QuestChatWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const { entries, isStreaming, sendMessage } = useQuestChatBinding({ questId });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <Box
@@ -51,6 +59,10 @@ export const QuestChatWidget = ({ questId }: QuestChatWidgetProps): React.JSX.El
           margin: '0 16px 16px 16px',
           display: 'flex',
           flexDirection: 'column',
+          maxWidth: mounted ? undefined : collapsedMaxWidth,
+          alignSelf: mounted ? undefined : 'center',
+          width: '100%',
+          transition: 'max-width 0.4s ease-out',
         }}
       >
         <MapFrameWidget
@@ -67,7 +79,7 @@ export const QuestChatWidget = ({ questId }: QuestChatWidgetProps): React.JSX.El
               minHeight: 0,
             }}
           >
-            <Box style={{ flex: 1 }}>
+            <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <ChatPanelWidget
                 entries={entries}
                 isStreaming={isStreaming}
@@ -88,14 +100,13 @@ export const QuestChatWidget = ({ questId }: QuestChatWidgetProps): React.JSX.El
               data-testid="QUEST_CHAT_ACTIVITY"
               style={{
                 flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: 'monospace',
-                color: colors['text-dim'],
+                padding: 16,
+                transition: 'transform 0.3s ease, opacity 0.3s ease',
               }}
             >
-              Awaiting quest activity...
+              <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
+                Awaiting quest activity...
+              </Text>
             </Box>
           </Box>
         </MapFrameWidget>

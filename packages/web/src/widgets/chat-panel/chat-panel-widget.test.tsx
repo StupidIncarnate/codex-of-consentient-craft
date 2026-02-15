@@ -55,6 +55,18 @@ describe('ChatPanelWidget', () => {
     });
   });
 
+  describe('raccoon sprite', () => {
+    it('VALID: {rendered} => displays raccoon sprite', () => {
+      ChatPanelWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ChatPanelWidget entries={[]} isStreaming={false} onSendMessage={jest.fn()} />,
+      });
+
+      expect(screen.queryByTestId('RACCOON_SPRITE')).not.toBeNull();
+    });
+  });
+
   describe('send message via button', () => {
     it('VALID: {typed message, click send} => calls onSendMessage and clears input', async () => {
       const proxy = ChatPanelWidgetProxy();
@@ -145,7 +157,7 @@ describe('ChatPanelWidget', () => {
 
       const button = screen.getByTestId('SEND_BUTTON');
 
-      expect(button.hasAttribute('data-disabled')).toBe(true);
+      expect((button as HTMLButtonElement).disabled).toBe(true);
     });
   });
 });

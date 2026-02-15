@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
+import { PixelSpriteWidgetProxy } from '../pixel-sprite/pixel-sprite-widget.proxy';
 
 export const ChatPanelWidgetProxy = (): {
   typeMessage: (params: { text: string }) => Promise<void>;
@@ -11,6 +12,7 @@ export const ChatPanelWidgetProxy = (): {
   hasMessageCount: (params: { count: number }) => boolean;
 } => {
   ChatMessageWidgetProxy();
+  PixelSpriteWidgetProxy();
 
   return {
     typeMessage: async ({ text }: { text: string }): Promise<void> => {

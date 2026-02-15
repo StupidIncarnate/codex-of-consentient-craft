@@ -99,6 +99,126 @@ describe('useQuestChatBinding', () => {
       expect(result.current.isStreaming).toBe(true);
     });
 
+    it('VALID: {multiple chat-outputs with growing text} => updates entry in-place', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-abc' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupChat({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Hi"}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Hi there"}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Hello' },
+        { role: 'assistant', type: 'text', content: 'Hi there' },
+      ]);
+    });
+
+    it('VALID: {chat-output adds new content block} => appends new entry', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-abc' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupChat({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Let me check"}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Let me check"},{"type":"tool_use","id":"tool-1","name":"Read","input":{"file_path":"/test"}}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Hello' },
+        { role: 'assistant', type: 'text', content: 'Let me check' },
+        {
+          role: 'assistant',
+          type: 'tool_use',
+          toolName: 'Read',
+          toolInput: '{"file_path":"/test"}',
+        },
+      ]);
+    });
+
     it('EDGE: {chat-output with non-matching chatProcessId} => ignores message', async () => {
       const proxy = useQuestChatBindingProxy();
       const questId = QuestIdStub({ value: 'quest-abc' });

@@ -14,6 +14,8 @@ import { websocketConnectAdapter } from '../../adapters/websocket/connect/websoc
 import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
+import { streamingBlockCountContract } from '../../contracts/streaming-block-count/streaming-block-count-contract';
+import type { StreamingBlockCount } from '../../contracts/streaming-block-count/streaming-block-count-contract';
 import { streamJsonToChatEntryTransformer } from '../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 
 export const useQuestChatBinding = ({
@@ -30,6 +32,7 @@ export const useQuestChatBinding = ({
   const sessionIdRef = useRef<SessionId | null>(null);
   const chatProcessIdRef = useRef<ProcessId | null>(null);
   const wsRef = useRef<{ close: () => void } | null>(null);
+  const streamingBlockCountRef = useRef<StreamingBlockCount>(streamingBlockCountContract.parse(0));
 
   const handleWebSocketMessage = useCallback((message: unknown): void => {
     const parsed = wsMessageContract.safeParse(message);
@@ -51,7 +54,15 @@ export const useQuestChatBinding = ({
       }
 
       if (result.entries.length > 0) {
-        setEntries((prev) => [...prev, ...result.entries]);
+        const previousBlockCount = streamingBlockCountRef.current;
+
+        streamingBlockCountRef.current = streamingBlockCountContract.parse(result.entries.length);
+        setEntries((prev) => {
+          const baseCount = prev.length - previousBlockCount;
+          const base = prev.slice(0, baseCount);
+
+          return [...base, ...result.entries];
+        });
       }
     }
 
@@ -66,6 +77,7 @@ export const useQuestChatBinding = ({
         sessionIdRef.current = rawSessionId as SessionId;
       }
 
+      streamingBlockCountRef.current = streamingBlockCountContract.parse(0);
       setIsStreaming(false);
     }
   }, []);
@@ -89,6 +101,7 @@ export const useQuestChatBinding = ({
       const userEntry = chatEntryContract.parse({ role: 'user', content: message });
       setEntries((prev) => [...prev, userEntry]);
       setIsStreaming(true);
+      streamingBlockCountRef.current = streamingBlockCountContract.parse(0);
 
       const currentSessionId = sessionIdRef.current;
 
