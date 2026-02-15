@@ -57,6 +57,7 @@ import { httpStatusStatics } from '../statics/http-status/http-status-statics';
 import { agentOutputLineContract } from '../contracts/agent-output-line/agent-output-line-contract';
 import type { AgentOutputLine } from '../contracts/agent-output-line/agent-output-line-contract';
 import { agentOutputBufferState } from '../state/agent-output-buffer/agent-output-buffer-state';
+import { chatProcessState } from '../state/chat-process/chat-process-state';
 import { wsEventRelayBroadcastBroker } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import type { WsClient } from '../contracts/ws-client/ws-client-contract';
 import { fsReadJsonlAdapter } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
@@ -442,7 +443,7 @@ export const StartServer = (): void => {
         return c.json({ error: 'message is required' }, httpStatusStatics.clientError.badRequest);
       }
 
-      const chatProcessId = crypto.randomUUID();
+      const chatProcessId = processIdContract.parse(crypto.randomUUID());
 
       const args =
         typeof rawSessionId === 'string' && rawSessionId.length > 0
@@ -453,6 +454,13 @@ export const StartServer = (): void => {
 
       const childProcess = spawn('claude', args, {
         stdio: ['inherit', 'pipe', 'inherit'],
+      });
+
+      chatProcessState.register({
+        processId: chatProcessId,
+        kill: () => {
+          childProcess.kill();
+        },
       });
 
       const { stdout } = childProcess;
@@ -471,6 +479,7 @@ export const StartServer = (): void => {
       });
 
       childProcess.on('exit', (code) => {
+        chatProcessState.remove({ processId: chatProcessId });
         wsEventRelayBroadcastBroker({
           clients,
           message: wsMessageContract.parse({
@@ -484,6 +493,27 @@ export const StartServer = (): void => {
       return c.json({ chatProcessId });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to start chat';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Quest chat stop - kill a running Claude CLI chat process
+  app.post(apiRoutesStatics.quests.chatStop, (c) => {
+    try {
+      const chatProcessIdRaw = c.req.param('chatProcessId');
+      const chatProcessId = processIdContract.parse(chatProcessIdRaw);
+      const killed = chatProcessState.kill({ processId: chatProcessId });
+
+      if (!killed) {
+        return c.json(
+          { error: 'Process not found or already exited' },
+          httpStatusStatics.clientError.notFound,
+        );
+      }
+
+      return c.json({ stopped: true });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to stop chat';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
     }
   });
@@ -592,6 +622,16 @@ export const StartServer = (): void => {
       }
     }
   }, FLUSH_INTERVAL_MS);
+
+  // Kill all active chat processes on server shutdown
+  process.on('SIGTERM', () => {
+    chatProcessState.killAll();
+    process.exit(0);
+  });
+  process.on('SIGINT', () => {
+    chatProcessState.killAll();
+    process.exit(0);
+  });
 };
 
 if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {

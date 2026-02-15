@@ -27,6 +27,7 @@ export interface ChatPanelWidgetProps {
   entries: ChatEntry[];
   isStreaming: boolean;
   onSendMessage: (params: { message: UserInput }) => void;
+  onStopChat: () => void;
 }
 
 const SEND_BUTTON_SIZE = 44;
@@ -42,6 +43,7 @@ export const ChatPanelWidget = ({
   entries,
   isStreaming,
   onSendMessage,
+  onStopChat,
 }: ChatPanelWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const [inputValue, setInputValue] = useState('');
@@ -127,6 +129,7 @@ export const ChatPanelWidget = ({
         {entries.map((entry, index) => {
           const nextEntry = entries[index + 1];
           const isToolLoading =
+            isStreaming &&
             entry.role === 'assistant' &&
             entry.type === 'tool_use' &&
             (index === entries.length - 1 ||
@@ -134,7 +137,14 @@ export const ChatPanelWidget = ({
                 nextEntry.role === 'assistant' &&
                 nextEntry.type !== 'tool_result'));
 
-          return <ChatMessageWidget key={index} entry={entry} isLoading={isToolLoading} />;
+          return (
+            <ChatMessageWidget
+              key={index}
+              entry={entry}
+              isLoading={isToolLoading}
+              isStreaming={isStreaming}
+            />
+          );
         })}
 
         <div ref={messagesEndRef} />
@@ -182,32 +192,56 @@ export const ChatPanelWidget = ({
               outline: 'none',
             }}
           />
-          <UnstyledButton
-            data-testid="SEND_BUTTON"
-            onClick={() => {
-              const trimmed = inputValue.trim();
-              if (trimmed.length === 0) return;
-              onSendMessage({ message: trimmed as UserInput });
-              setInputValue('');
-            }}
-            disabled={isStreaming}
-            style={{
-              width: SEND_BUTTON_SIZE,
-              height: SEND_BUTTON_SIZE,
-              flexShrink: 0,
-              backgroundColor: colors.primary,
-              border: `1px solid ${colors.border}`,
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: colors['bg-deep'],
-              fontFamily: 'monospace',
-              fontSize: 18,
-            }}
-          >
-            {'\u25B6'}
-          </UnstyledButton>
+          {isStreaming ? (
+            <UnstyledButton
+              data-testid="STOP_BUTTON"
+              onClick={() => {
+                onStopChat();
+              }}
+              style={{
+                width: SEND_BUTTON_SIZE,
+                height: SEND_BUTTON_SIZE,
+                flexShrink: 0,
+                backgroundColor: colors.danger,
+                border: `1px solid ${colors.border}`,
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: colors.text,
+                fontFamily: 'monospace',
+                fontSize: 16,
+              }}
+            >
+              {'\u25A0'}
+            </UnstyledButton>
+          ) : (
+            <UnstyledButton
+              data-testid="SEND_BUTTON"
+              onClick={() => {
+                const trimmed = inputValue.trim();
+                if (trimmed.length === 0) return;
+                onSendMessage({ message: trimmed as UserInput });
+                setInputValue('');
+              }}
+              style={{
+                width: SEND_BUTTON_SIZE,
+                height: SEND_BUTTON_SIZE,
+                flexShrink: 0,
+                backgroundColor: colors.primary,
+                border: `1px solid ${colors.border}`,
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: colors['bg-deep'],
+                fontFamily: 'monospace',
+                fontSize: 18,
+              }}
+            >
+              {'\u25B6'}
+            </UnstyledButton>
+          )}
         </div>
         {isStreaming ? (
           <Text

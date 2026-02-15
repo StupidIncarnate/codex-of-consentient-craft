@@ -18,7 +18,7 @@ import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 export const QuestChatWidget = (): React.JSX.Element => {
   const params = useParams();
   const { colors } = emberDepthsThemeStatics;
-  const { entries, isStreaming, sendMessage } = useQuestChatBinding({
+  const { entries, isStreaming, sendMessage, stopChat } = useQuestChatBinding({
     questId: params.questId as QuestId,
   });
 
@@ -33,7 +33,12 @@ export const QuestChatWidget = (): React.JSX.Element => {
       }}
     >
       <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <ChatPanelWidget entries={entries} isStreaming={isStreaming} onSendMessage={sendMessage} />
+        <ChatPanelWidget
+          entries={entries}
+          isStreaming={isStreaming}
+          onSendMessage={sendMessage}
+          onStopChat={stopChat}
+        />
       </Box>
 
       <div

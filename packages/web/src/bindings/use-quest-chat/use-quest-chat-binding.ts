@@ -2,8 +2,8 @@
  * PURPOSE: React hook that manages quest chat state and WebSocket communication for real-time agent responses
  *
  * USAGE:
- * const {entries, isStreaming, sendMessage} = useQuestChatBinding({questId});
- * // Returns chat entries, streaming state, and a function to send messages
+ * const {entries, isStreaming, sendMessage, stopChat} = useQuestChatBinding({questId});
+ * // Returns chat entries, streaming state, send/stop functions
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -12,6 +12,7 @@ import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
+import { questChatStopBroker } from '../../brokers/quest/chat-stop/quest-chat-stop-broker';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
 import { streamingBlockCountContract } from '../../contracts/streaming-block-count/streaming-block-count-contract';
@@ -26,6 +27,7 @@ export const useQuestChatBinding = ({
   entries: ChatEntry[];
   isStreaming: boolean;
   sendMessage: (params: { message: UserInput }) => void;
+  stopChat: () => void;
 } => {
   const [entries, setEntries] = useState<ChatEntry[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -127,5 +129,16 @@ export const useQuestChatBinding = ({
     [questId],
   );
 
-  return { entries, isStreaming, sendMessage };
+  const stopChat = useCallback((): void => {
+    const currentProcessId = chatProcessIdRef.current;
+    if (!currentProcessId) return;
+
+    questChatStopBroker({ questId, chatProcessId: currentProcessId }).catch(() => {
+      // Process may have already exited — force local cleanup
+      setIsStreaming(false);
+      streamingBlockCountRef.current = streamingBlockCountContract.parse(0);
+    });
+  }, [questId]);
+
+  return { entries, isStreaming, sendMessage, stopChat };
 };

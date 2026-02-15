@@ -14,6 +14,7 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 export interface ChatMessageWidgetProps {
   entry: ChatEntry;
   isLoading?: boolean;
+  isStreaming?: boolean;
 }
 
 const BORDER_WIDTH = '2px solid';
@@ -21,6 +22,7 @@ const BORDER_WIDTH = '2px solid';
 export const ChatMessageWidget = ({
   entry,
   isLoading,
+  isStreaming,
 }: ChatMessageWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
 
@@ -66,7 +68,7 @@ export const ChatMessageWidget = ({
         <Text ff="monospace" size="xs" style={{ color: colors.text }}>
           {entry.content}
         </Text>
-        {entry.usage ? (
+        {entry.usage && !isStreaming ? (
           <Text
             ff="monospace"
             data-testid="TOKEN_BADGE"

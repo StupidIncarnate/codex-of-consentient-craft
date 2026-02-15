@@ -16,6 +16,7 @@ export const apiRoutesStatics = {
     verify: '/api/quests/:questId/verify',
     start: '/api/quests/:questId/start',
     chat: '/api/quests/:questId/chat',
+    chatStop: '/api/quests/:questId/chat/:chatProcessId/stop',
     chatHistory: '/api/quests/:questId/chat/history',
   },
   process: {

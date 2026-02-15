@@ -22,6 +22,7 @@ describe('useQuestChatBinding', () => {
         entries: [],
         isStreaming: false,
         sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
       });
     });
   });
@@ -394,6 +395,7 @@ describe('useQuestChatBinding', () => {
         entries: [],
         isStreaming: false,
         sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
       });
     });
   });

@@ -17,6 +17,7 @@ export const webConfigStatics = {
       questStart: '/api/quests/:questId/start',
       questVerify: '/api/quests/:questId/verify',
       questChat: '/api/quests/:questId/chat',
+      questChatStop: '/api/quests/:questId/chat/:chatProcessId/stop',
       questChatHistory: '/api/quests/:questId/chat/history',
       processStatus: '/api/process/:processId',
     },

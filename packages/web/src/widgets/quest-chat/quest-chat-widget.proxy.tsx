@@ -16,6 +16,7 @@ import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 export const QuestChatWidgetProxy = (): {
   setupChat: (params: { chatProcessId: ProcessId }) => void;
   setupChatError: () => void;
+  setupStop: () => void;
   receiveWsMessage: (params: { data: string }) => void;
   hasChatPanel: () => boolean;
   hasActivityPlaceholder: () => boolean;
@@ -31,6 +32,9 @@ export const QuestChatWidgetProxy = (): {
     },
     setupChatError: (): void => {
       chatBindingProxy.setupChatError();
+    },
+    setupStop: (): void => {
+      chatBindingProxy.setupStop();
     },
     receiveWsMessage: ({ data }: { data: string }): void => {
       chatBindingProxy.receiveWsMessage({ data });

@@ -19,7 +19,14 @@ describe('ChatPanelWidget', () => {
       ];
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={entries} isStreaming={false} onSendMessage={jest.fn()} />,
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       expect(proxy.hasMessageCount({ count: 2 })).toBe(true);
@@ -33,7 +40,14 @@ describe('ChatPanelWidget', () => {
       ];
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={entries} isStreaming={false} onSendMessage={jest.fn()} />,
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       expect(proxy.hasMessageCount({ count: 2 })).toBe(true);
@@ -44,11 +58,60 @@ describe('ChatPanelWidget', () => {
       expect(toolMessage.textContent).toMatch(/TOOL CALL/u);
     });
 
+    it('VALID: {tool_use as last entry, isStreaming true} => shows Running indicator', () => {
+      ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'Do something' }),
+        AssistantToolUseChatEntryStub({ toolName: 'Read', toolInput: '{"path":"/src"}' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={true}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('TOOL_LOADING')).not.toBeNull();
+    });
+
+    it('VALID: {tool_use as last entry, isStreaming false} => does not show Running indicator', () => {
+      ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'Do something' }),
+        AssistantToolUseChatEntryStub({ toolName: 'Read', toolInput: '{"path":"/src"}' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('TOOL_LOADING')).toBeNull();
+    });
+
     it('EMPTY: {no entries} => renders empty message area', () => {
       const proxy = ChatPanelWidgetProxy();
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={[]} isStreaming={false} onSendMessage={jest.fn()} />,
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       expect(proxy.hasMessageCount({ count: 0 })).toBe(true);
@@ -60,7 +123,14 @@ describe('ChatPanelWidget', () => {
       ChatPanelWidgetProxy();
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={[]} isStreaming={false} onSendMessage={jest.fn()} />,
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       expect(screen.queryByTestId('RACCOON_SPRITE')).not.toBeNull();
@@ -73,7 +143,14 @@ describe('ChatPanelWidget', () => {
       const onSendMessage = jest.fn();
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={[]} isStreaming={false} onSendMessage={onSendMessage} />,
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       await proxy.typeMessage({ text: 'Build auth flow' });
@@ -89,7 +166,14 @@ describe('ChatPanelWidget', () => {
       const onSendMessage = jest.fn();
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={[]} isStreaming={false} onSendMessage={onSendMessage} />,
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       await proxy.clickSend();
@@ -104,7 +188,14 @@ describe('ChatPanelWidget', () => {
       const onSendMessage = jest.fn();
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={[]} isStreaming={false} onSendMessage={onSendMessage} />,
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       await proxy.typeMessage({ text: 'Build auth flow{enter}' });
@@ -120,7 +211,14 @@ describe('ChatPanelWidget', () => {
       const proxy = ChatPanelWidgetProxy();
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={[]} isStreaming={true} onSendMessage={jest.fn()} />,
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={true}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       expect(proxy.isStreamingVisible()).toBe(true);
@@ -130,7 +228,14 @@ describe('ChatPanelWidget', () => {
       const proxy = ChatPanelWidgetProxy();
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={[]} isStreaming={false} onSendMessage={jest.fn()} />,
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       expect(proxy.isStreamingVisible()).toBe(false);
@@ -140,7 +245,14 @@ describe('ChatPanelWidget', () => {
       ChatPanelWidgetProxy();
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={[]} isStreaming={true} onSendMessage={jest.fn()} />,
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={true}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
       const textarea = screen.getByPlaceholderText('Describe your quest...');
@@ -148,16 +260,62 @@ describe('ChatPanelWidget', () => {
       expect((textarea as HTMLTextAreaElement).disabled).toBe(true);
     });
 
-    it('VALID: {isStreaming: true} => disables send button', () => {
-      ChatPanelWidgetProxy();
+    it('VALID: {isStreaming: true} => shows stop button instead of send button', () => {
+      const proxy = ChatPanelWidgetProxy();
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={[]} isStreaming={true} onSendMessage={jest.fn()} />,
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={true}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
       });
 
-      const button = screen.getByTestId('SEND_BUTTON');
+      expect(proxy.isStopButtonVisible()).toBe(true);
+      expect(proxy.isSendButtonVisible()).toBe(false);
+    });
 
-      expect((button as HTMLButtonElement).disabled).toBe(true);
+    it('VALID: {isStreaming: false} => shows send button instead of stop button', () => {
+      const proxy = ChatPanelWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.isSendButtonVisible()).toBe(true);
+      expect(proxy.isStopButtonVisible()).toBe(false);
+    });
+  });
+
+  describe('stop chat', () => {
+    it('VALID: {isStreaming, click stop} => calls onStopChat', async () => {
+      const proxy = ChatPanelWidgetProxy();
+      const onStopChat = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={true}
+            onSendMessage={jest.fn()}
+            onStopChat={onStopChat}
+          />
+        ),
+      });
+
+      await proxy.clickStop();
+
+      expect(onStopChat).toHaveBeenCalledTimes(1);
     });
   });
 });

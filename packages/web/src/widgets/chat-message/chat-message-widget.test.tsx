@@ -114,6 +114,24 @@ describe('ChatMessageWidget', () => {
       expect(badgeIndex).toBeGreaterThan(labelIndex + 1);
     });
 
+    it('VALID: {usage present, isStreaming true} => does not render token count badge', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({
+        usage: {
+          inputTokens: 100,
+          outputTokens: 50,
+          cacheCreationInputTokens: 0,
+          cacheReadInputTokens: 0,
+        },
+      });
+
+      mantineRenderAdapter({
+        ui: <ChatMessageWidget entry={entry} isStreaming={true} />,
+      });
+
+      expect(screen.queryByTestId('TOKEN_BADGE')).toBeNull();
+    });
+
     it('VALID: {no usage} => does not render token count badge', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub();
