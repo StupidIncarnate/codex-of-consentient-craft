@@ -288,6 +288,7 @@ export const folderConfigStatics = {
       '@mantine/core',
       '@mantine/hooks',
       'ansi-to-react',
+      'react-router-dom',
       '@testing-library/react',
       '@testing-library/user-event',
     ],

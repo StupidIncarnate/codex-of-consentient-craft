@@ -31,7 +31,7 @@ export const PixelSpriteWidget = ({
       const y = Number(yStr);
       const offsetX = flip ? (width - 1 - x) * scale : x * scale;
       const offsetY = y * scale;
-      return `${offsetX}px ${offsetY}px 0 ${scale}px ${color}`;
+      return `${offsetX}px ${offsetY}px 0 0 ${color}`;
     })
     .join(',');
 

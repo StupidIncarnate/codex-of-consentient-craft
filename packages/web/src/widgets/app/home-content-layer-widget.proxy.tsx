@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Test proxy for AppWidget - sets up mocks for child widgets and provides query helpers
+ * PURPOSE: Test proxy for HomeContentLayerWidget - sets up mocks for guilds, quests, and guild creation
  *
  * USAGE:
- * const proxy = AppWidgetProxy();
+ * const proxy = HomeContentLayerWidgetProxy();
  * proxy.setupGuilds({ guilds: [] });
  */
 
@@ -14,16 +14,19 @@ import type {
   QuestListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { LogoWidgetProxy } from '../logo/logo-widget.proxy';
-import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
-import { QuestChatWidgetProxy } from '../quest-chat/quest-chat-widget.proxy';
-import { HomeContentLayerWidgetProxy } from './home-content-layer-widget.proxy';
+import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
+import { useQuestsBindingProxy } from '../../bindings/use-quests/use-quests-binding.proxy';
+import { guildCreateBrokerProxy } from '../../brokers/guild/create/guild-create-broker.proxy';
+import { GuildAddModalWidgetProxy } from '../guild-add-modal/guild-add-modal-widget.proxy';
+import { GuildEmptyStateWidgetProxy } from '../guild-empty-state/guild-empty-state-widget.proxy';
+import { GuildListWidgetProxy } from '../guild-list/guild-list-widget.proxy';
+import { GuildQuestListWidgetProxy } from '../guild-quest-list/guild-quest-list-widget.proxy';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
 
-export const AppWidgetProxy = (): {
+export const HomeContentLayerWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
   setupGuildsError: () => void;
   setupCreateGuild: (params: { id: GuildId }) => void;
@@ -42,61 +45,62 @@ export const AppWidgetProxy = (): {
   clickCreateGuild: () => Promise<void>;
   clickCancelGuild: () => Promise<void>;
   clickQuestItem: (params: { testId: string }) => Promise<void>;
-  isQuestChatVisible: () => boolean;
 } => {
-  LogoWidgetProxy();
-  MapFrameWidgetProxy();
-  QuestChatWidgetProxy();
-  const homeProxy = HomeContentLayerWidgetProxy();
+  const questsProxy = useQuestsBindingProxy();
+  const guildsProxy = useGuildsBindingProxy();
+  const createGuildProxy = guildCreateBrokerProxy();
+  const guildList = GuildListWidgetProxy();
+  const questList = GuildQuestListWidgetProxy();
+  const emptyState = GuildEmptyStateWidgetProxy();
+  GuildAddModalWidgetProxy();
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
-      homeProxy.setupGuilds({ guilds });
+      guildsProxy.setupGuilds({ guilds });
     },
     setupGuildsError: (): void => {
-      homeProxy.setupGuildsError();
+      guildsProxy.setupError();
     },
     setupCreateGuild: ({ id }: { id: GuildId }): void => {
-      homeProxy.setupCreateGuild({ id });
+      createGuildProxy.setupCreate({ id });
     },
     setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
-      homeProxy.setupQuests({ quests });
+      questsProxy.setupQuests({ quests });
     },
     setupQuestsError: (): void => {
-      homeProxy.setupQuestsError();
+      questsProxy.setupError();
     },
     clickGuildItem: async ({ testId }: { testId: string }): Promise<void> => {
-      await homeProxy.clickGuildItem({ testId });
+      await guildList.clickItem({ testId });
     },
     isGuildItemVisible: ({ testId }: { testId: string }): boolean =>
-      homeProxy.isGuildItemVisible({ testId }),
+      guildList.isItemVisible({ testId }),
     isGuildItemSelected: ({ testId }: { testId: string }): boolean =>
-      homeProxy.isGuildItemSelected({ testId }),
+      guildList.isItemSelected({ testId }),
     clickAddGuild: async (): Promise<void> => {
-      await homeProxy.clickAddGuild();
+      await guildList.clickAddButton();
     },
-    isNewGuildTitleVisible: (): boolean => homeProxy.isNewGuildTitleVisible(),
-    isQuestEmptyStateVisible: (): boolean => homeProxy.isQuestEmptyStateVisible(),
-    isSelectGuildMessageVisible: (): boolean => homeProxy.isSelectGuildMessageVisible(),
+    isNewGuildTitleVisible: (): boolean => emptyState.isNewGuildTitleVisible(),
+    isQuestEmptyStateVisible: (): boolean => questList.hasEmptyState(),
+    isSelectGuildMessageVisible: (): boolean => screen.queryByText('Select a guild') !== null,
     getQuestStatusText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
       const element = screen.queryByTestId(testId);
       return element?.textContent ?? null;
     },
     typeGuildName: async ({ value }: { value: string }): Promise<void> => {
-      await homeProxy.typeGuildName({ value });
+      await emptyState.typeGuildName({ value });
     },
     typeGuildPath: async ({ value }: { value: string }): Promise<void> => {
-      await homeProxy.typeGuildPath({ value });
+      await emptyState.typeGuildPath({ value });
     },
     clickCreateGuild: async (): Promise<void> => {
-      await homeProxy.clickCreateGuild();
+      await emptyState.clickCreate();
     },
     clickCancelGuild: async (): Promise<void> => {
-      await homeProxy.clickCancelGuild();
+      await emptyState.clickCancel();
     },
     clickQuestItem: async ({ testId }: { testId: string }): Promise<void> => {
-      await homeProxy.clickQuestItem({ testId });
+      await questList.clickQuest({ testId });
     },
-    isQuestChatVisible: (): boolean => screen.queryByTestId('QUEST_CHAT') !== null,
   };
 };

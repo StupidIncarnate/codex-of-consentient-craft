@@ -11,6 +11,7 @@ import '@mantine/notifications/styles.css';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import { MantineProvider, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { emberDepthsThemeStatics } from '../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -35,13 +36,17 @@ export const StartApp = (): void => {
       React.StrictMode,
       null,
       React.createElement(
-        MantineProvider,
-        { theme, forceColorScheme: 'dark' as const },
+        BrowserRouter,
+        null,
         React.createElement(
-          'div',
-          { style: { backgroundColor: colors['bg-deep'], minHeight: '100vh' } },
-          React.createElement(Notifications, null),
-          React.createElement(AppWidget, null),
+          MantineProvider,
+          { theme, forceColorScheme: 'dark' as const },
+          React.createElement(
+            'div',
+            { style: { backgroundColor: colors['bg-deep'], minHeight: '100vh' } },
+            React.createElement(Notifications, null),
+            React.createElement(AppWidget, null),
+          ),
         ),
       ),
     ),

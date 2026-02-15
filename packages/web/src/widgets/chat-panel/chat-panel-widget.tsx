@@ -30,7 +30,7 @@ export interface ChatPanelWidgetProps {
 }
 
 const SEND_BUTTON_SIZE = 44;
-const RACCOON_SCALE = 3;
+const RACCOON_SCALE = 8;
 const BOUNCE_UP = bounceOffsetPxContract.parse(raccoonAnimationConfigStatics.bounceOffsetPx);
 const BOUNCE_REST = bounceOffsetPxContract.parse(raccoonAnimationConfigStatics.bounceRestPx);
 

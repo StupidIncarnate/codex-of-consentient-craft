@@ -1,144 +1,101 @@
 /**
- * PURPOSE: Root application layout managing guild selection, quest list, and quest detail views
+ * PURPOSE: Root application layout with URL routing and animated map frame transitions
  *
  * USAGE:
  * <AppWidget />
- * // Renders the full Dungeonmaster web UI with guild list, quest views, and guild management
+ * // Renders the full Dungeonmaster web UI with routes for guild selection (/) and quest chat (/quest/:questId)
  */
 
-import { useState } from 'react';
+import { Route, Routes, useLocation } from 'react-router-dom';
 
-import { Box, Center, Group, Stack, Text } from '@mantine/core';
+import { Box, Center } from '@mantine/core';
 
-import type { GuildId, GuildName, GuildPath, QuestId } from '@dungeonmaster/shared/contracts';
+import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
-import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
-import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
-import { guildCreateBroker } from '../../brokers/guild/create/guild-create-broker';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { GuildAddModalWidget } from '../guild-add-modal/guild-add-modal-widget';
-import { GuildEmptyStateWidget } from '../guild-empty-state/guild-empty-state-widget';
-import { GuildListWidget } from '../guild-list/guild-list-widget';
-import { GuildQuestListWidget } from '../guild-quest-list/guild-quest-list-widget';
+import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
 import { QuestChatWidget } from '../quest-chat/quest-chat-widget';
+import { HomeContentLayerWidget } from './home-content-layer-widget';
 
-type View = 'main' | 'new-guild' | 'detail';
+const TRANSITION_DURATION = '0.4s';
+const TRANSITION_EASING = 'ease-out';
+const QUEST_TOP_PADDING = 40;
+
+const defaultMaxWidth = cssPixelsContract.parse(mapFrameStatics.defaultMaxWidth);
+const unrestrictedMaxWidth = cssPixelsContract.parse(mapFrameStatics.unrestrictedMaxWidth);
 
 export const AppWidget = (): React.JSX.Element => {
-  const [currentView, setCurrentView] = useState<View>('main');
-  const [selectedGuildId, setSelectedGuildId] = useState<GuildId | null>(null);
-  const [selectedQuestId, setSelectedQuestId] = useState<QuestId | null>(null);
-  const [addGuildModalOpened, setAddGuildModalOpened] = useState(false);
-
-  const { guilds, loading: guildsLoading, refresh: refreshGuilds } = useGuildsBinding();
-
-  const { data: quests, refresh } = useQuestsBinding({ guildId: selectedGuildId });
-
+  const location = useLocation();
+  const isQuestRoute = location.pathname.startsWith('/quest/');
   const { colors } = emberDepthsThemeStatics;
-  const hasGuilds = guilds.length > 0;
 
-  if (currentView === 'detail' && selectedQuestId) {
-    return (
-      <QuestChatWidget
-        questId={selectedQuestId}
-        onBack={() => {
-          setCurrentView('main');
-          setSelectedQuestId(null);
-          refresh().catch(() => undefined);
-        }}
-      />
-    );
-  }
+  const transition = `all ${TRANSITION_DURATION} ${TRANSITION_EASING}`;
 
   return (
-    <div style={{ background: colors['bg-deep'], color: colors.text, minHeight: '100vh' }}>
-      <Center h="100vh">
-        <Stack align="center" gap="md" w="100%" maw={800} px="md">
-          <LogoWidget />
-          <MapFrameWidget>
-            {(!hasGuilds && !guildsLoading) || currentView === 'new-guild' ? (
-              <Center style={{ height: 250 }}>
-                <GuildEmptyStateWidget
-                  onAddGuild={({ name, path }) => {
-                    guildCreateBroker({ name: String(name), path: String(path) })
-                      .then(async ({ id }) => {
-                        await refreshGuilds();
-                        setSelectedGuildId(id);
-                        setCurrentView('main');
-                      })
-                      .catch(() => undefined);
-                  }}
-                  onCancel={
-                    hasGuilds
-                      ? () => {
-                          setCurrentView('main');
-                        }
-                      : undefined
-                  }
-                />
-              </Center>
-            ) : (
-              <Group align="stretch" gap="xl" wrap="nowrap" style={{ flex: 1 }}>
-                <Box
-                  style={{
-                    flex: '0 0 200px',
-                    borderRight: `1px solid ${colors.border}`,
-                    paddingRight: 16,
-                  }}
-                >
-                  <GuildListWidget
-                    guilds={guilds}
-                    selectedGuildId={selectedGuildId}
-                    onSelect={({ id }: { id: GuildId }) => {
-                      setSelectedGuildId(id);
-                      setSelectedQuestId(null);
-                    }}
-                    onAdd={() => {
-                      setCurrentView('new-guild');
-                    }}
-                  />
-                </Box>
-                <Box style={{ flex: 1 }}>
-                  {selectedGuildId ? (
-                    <GuildQuestListWidget
-                      quests={quests}
-                      onSelect={({ questId }: { questId: QuestId }) => {
-                        setSelectedQuestId(questId);
-                        setCurrentView('detail');
-                      }}
-                      onAdd={() => {
-                        refresh().catch(() => undefined);
-                      }}
-                    />
-                  ) : (
-                    <Center h={200}>
-                      <Text ff="monospace" size="sm" style={{ color: colors['text-dim'] }}>
-                        Select a guild
-                      </Text>
-                    </Center>
-                  )}
-                </Box>
-              </Group>
-            )}
-          </MapFrameWidget>
-        </Stack>
-      </Center>
-
-      <GuildAddModalWidget
-        opened={addGuildModalOpened}
-        onClose={() => {
-          setAddGuildModalOpened(false);
+    <div
+      style={{
+        background: colors['bg-deep'],
+        color: colors.text,
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Top spacer: flex-grows on home to push content to center, collapses on quest */}
+      <div
+        data-testid="APP_SPACER_TOP"
+        style={{
+          flex: isQuestRoute ? `0 0 ${QUEST_TOP_PADDING}px` : '1 1 0px',
+          transition,
         }}
-        onSubmit={({ name, path }: { name: GuildName; path: GuildPath }) => {
-          guildCreateBroker({ name: String(name), path: String(path) })
-            .then(async ({ id }) => {
-              setAddGuildModalOpened(false);
-              await refreshGuilds();
-              setSelectedGuildId(id);
-            })
-            .catch(() => undefined);
+      />
+
+      {/* Logo: always horizontally centered */}
+      <Box py="sm">
+        <Center>
+          <LogoWidget />
+        </Center>
+      </Box>
+
+      {/* Map frame container: constrained on home, fills remaining space on quest */}
+      <div
+        data-testid="APP_MAP_CONTAINER"
+        style={{
+          flex: isQuestRoute ? '1 1 0px' : '0 0 auto',
+          display: 'flex',
+          justifyContent: 'center',
+          padding: isQuestRoute ? '0 16px 16px 16px' : '0 16px',
+          minHeight: 0,
+          transition,
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            maxWidth: isQuestRoute ? undefined : defaultMaxWidth,
+            display: 'flex',
+            flexDirection: 'column',
+            flex: isQuestRoute ? 1 : undefined,
+            transition: `max-width ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
+          }}
+        >
+          <MapFrameWidget maxWidth={isQuestRoute ? unrestrictedMaxWidth : defaultMaxWidth}>
+            <Routes>
+              <Route path="/" element={<HomeContentLayerWidget />} />
+              <Route path="/quest/:questId" element={<QuestChatWidget />} />
+            </Routes>
+          </MapFrameWidget>
+        </div>
+      </div>
+
+      {/* Bottom spacer: matches top spacer on home, collapses on quest */}
+      <div
+        data-testid="APP_SPACER_BOTTOM"
+        style={{
+          flex: isQuestRoute ? '0 0 0px' : '1 1 0px',
+          transition,
         }}
       />
     </div>
