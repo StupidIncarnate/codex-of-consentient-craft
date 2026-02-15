@@ -18,7 +18,9 @@ import type {
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
+import { guildChatBroker } from '../../brokers/guild/chat/guild-chat-broker';
 import { guildChatHistoryBroker } from '../../brokers/guild/chat-history/guild-chat-history-broker';
+import { guildChatStopBroker } from '../../brokers/guild/chat-stop/guild-chat-stop-broker';
 import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
 import { questChatHistoryBroker } from '../../brokers/quest/chat-history/quest-chat-history-broker';
 import { questChatStopBroker } from '../../brokers/quest/chat-stop/quest-chat-stop-broker';
@@ -148,13 +150,23 @@ export const useQuestChatBinding = ({
 
       const currentSessionId = sessionIdRef.current;
 
-      if (!questId) return;
+      const chatPromise = questId
+        ? questChatBroker({
+            questId,
+            message,
+            ...(currentSessionId ? { sessionId: currentSessionId } : {}),
+          })
+        : guildId
+          ? guildChatBroker({
+              guildId,
+              message,
+              ...(currentSessionId ? { sessionId: currentSessionId } : {}),
+            })
+          : null;
 
-      questChatBroker({
-        questId,
-        message,
-        ...(currentSessionId ? { sessionId: currentSessionId } : {}),
-      })
+      if (!chatPromise) return;
+
+      chatPromise
         .then(({ chatProcessId }) => {
           chatProcessIdRef.current = chatProcessId;
         })
@@ -169,21 +181,27 @@ export const useQuestChatBinding = ({
           setEntries((prev) => [...prev, errorEntry]);
         });
     },
-    [questId],
+    [questId, guildId],
   );
 
   const stopChat = useCallback((): void => {
     const currentProcessId = chatProcessIdRef.current;
     if (!currentProcessId) return;
 
-    if (!questId) return;
+    const stopPromise = questId
+      ? questChatStopBroker({ questId, chatProcessId: currentProcessId })
+      : guildId
+        ? guildChatStopBroker({ guildId, chatProcessId: currentProcessId })
+        : null;
 
-    questChatStopBroker({ questId, chatProcessId: currentProcessId }).catch(() => {
+    if (!stopPromise) return;
+
+    stopPromise.catch(() => {
       // Process may have already exited — force local cleanup
       setIsStreaming(false);
       streamingBlockCountRef.current = streamingBlockCountContract.parse(0);
     });
-  }, [questId]);
+  }, [questId, guildId]);
 
   return { entries, isStreaming, sendMessage, stopChat };
 };

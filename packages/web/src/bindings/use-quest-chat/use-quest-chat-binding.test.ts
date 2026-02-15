@@ -382,6 +382,87 @@ describe('useQuestChatBinding', () => {
     });
   });
 
+  describe('guild sendMessage', () => {
+    it('VALID: {guildId, message} => appends user entry and sets isStreaming', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'guild-chat-proc-1' });
+      const message = UserInputStub({ value: 'Set up CI pipeline' });
+
+      proxy.setupGuildChat({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Set up CI pipeline' },
+      ]);
+      expect(result.current.isStreaming).toBe(true);
+    });
+
+    it('ERROR: {guildId, broker fails} => sets isStreaming false and appends error entry', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const message = UserInputStub({ value: 'Hello guild' });
+
+      proxy.setupGuildChatError();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.isStreaming).toBe(false);
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Hello guild' },
+        {
+          role: 'assistant',
+          type: 'text',
+          content: expect.stringMatching(/^Error:/u),
+        },
+      ]);
+    });
+
+    it('EMPTY: {no questId, no guildId} => sendMessage adds user entry but does not call broker', async () => {
+      useQuestChatBindingProxy();
+      const message = UserInputStub({ value: 'No target' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({}),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([{ role: 'user', content: 'No target' }]);
+      expect(result.current.isStreaming).toBe(true);
+    });
+  });
+
   describe('cleanup', () => {
     it('VALID: {unmount} => closes WebSocket', () => {
       useQuestChatBindingProxy();
