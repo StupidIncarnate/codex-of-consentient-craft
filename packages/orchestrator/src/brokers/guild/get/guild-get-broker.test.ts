@@ -25,7 +25,9 @@ describe('guildGetBroker', () => {
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'My App',
         path: '/home/user/my-app',
+        urlSlug: 'my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
       });
     });
 
@@ -54,7 +56,38 @@ describe('guildGetBroker', () => {
         id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
         name: 'Second Guild',
         path: '/home/user/second',
+        urlSlug: 'my-guild',
         createdAt: '2024-02-20T12:00:00.000Z',
+        chatSessions: [],
+      });
+    });
+  });
+
+  describe('url slug backfill', () => {
+    it('VALID: {guild without urlSlug} => generates slug from name and returns guild with slug', async () => {
+      const proxy = guildGetBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const guild = GuildStub({
+        id: guildId,
+        name: 'My Cool App',
+        path: '/home/user/my-cool-app',
+        urlSlug: undefined,
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+
+      proxy.setupConfig({
+        config: GuildConfigStub({ guilds: [guild] }),
+      });
+
+      const result = await guildGetBroker({ guildId });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'My Cool App',
+        path: '/home/user/my-cool-app',
+        urlSlug: 'my-cool-app',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
       });
     });
   });

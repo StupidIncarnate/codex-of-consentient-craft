@@ -39,7 +39,9 @@ describe('guildAddBroker', () => {
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'My App',
         path: '/home/user/my-app',
+        urlSlug: 'my-app',
         createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
       });
     });
 
@@ -77,7 +79,9 @@ describe('guildAddBroker', () => {
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Second App',
         path: '/home/user/second-app',
+        urlSlug: 'second-app',
         createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
       });
     });
   });

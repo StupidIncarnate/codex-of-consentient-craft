@@ -3,24 +3,96 @@
  *
  * USAGE:
  * <QuestChatWidget />
- * // Renders split panel chat interface, reads questId from URL params
+ * // Renders split panel chat interface, reads guildSlug and optional questSlug from URL params
  */
 
+import { useEffect, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import { Box, Text } from '@mantine/core';
-import { useParams } from 'react-router-dom';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { ChatSession, QuestId } from '@dungeonmaster/shared/contracts';
+import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
+import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
+import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
+import { useQuestDetailBinding } from '../../bindings/use-quest-detail/use-quest-detail-binding';
+import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 
 export const QuestChatWidget = (): React.JSX.Element => {
   const params = useParams();
+  const navigate = useNavigate();
+  const { guildSlug } = params;
+  const questSlug = params.questSlug as QuestId | undefined;
   const { colors } = emberDepthsThemeStatics;
-  const { entries, isStreaming, sendMessage, stopChat } = useQuestChatBinding({
-    questId: params.questId as QuestId,
+  const prevIsStreamingRef = useRef(false);
+
+  const { guilds } = useGuildsBinding();
+  const matchedGuild = guilds.find(
+    (guild) => guild.urlSlug === guildSlug || guild.id === guildSlug,
+  );
+  const resolvedGuildId = matchedGuild?.id ?? null;
+
+  const { data: questData, refresh: refreshQuest } = useQuestDetailBinding({
+    questId: questSlug ?? null,
   });
+
+  const { data: guildData, refresh: refreshGuild } = useGuildDetailBinding({
+    guildId: questSlug ? null : resolvedGuildId,
+  });
+
+  const chatSessions: ChatSession[] = questSlug
+    ? (questData?.chatSessions ?? [])
+    : (guildData?.chatSessions ?? []);
+
+  const { entries, isStreaming, sendMessage, stopChat } = useQuestChatBinding({
+    ...(questSlug ? { questId: questSlug } : {}),
+    ...(resolvedGuildId && !questSlug ? { guildId: resolvedGuildId } : {}),
+    chatSessions,
+  });
+
+  useEffect(() => {
+    if (prevIsStreamingRef.current && !isStreaming) {
+      if (questSlug) {
+        refreshQuest().catch(() => undefined);
+      } else {
+        refreshGuild().catch(() => undefined);
+      }
+    }
+    prevIsStreamingRef.current = isStreaming;
+  }, [isStreaming, questSlug, refreshQuest, refreshGuild]);
+
+  useEffect(() => {
+    if (!resolvedGuildId) return undefined;
+
+    const ws = websocketConnectAdapter({
+      url: `ws://${globalThis.location.host}/ws`,
+      onMessage: (message: unknown): void => {
+        const parsed = wsMessageContract.safeParse(message);
+        if (!parsed.success) return;
+
+        if (parsed.data.type === 'quest-created') {
+          const { payload } = parsed.data;
+          const eventGuildId: unknown = Reflect.get(payload, 'guildId');
+          const eventQuestSlug: unknown = Reflect.get(payload, 'questSlug');
+
+          if (eventGuildId === resolvedGuildId && typeof eventQuestSlug === 'string') {
+            const result = navigate(`/${guildSlug}/quest/${eventQuestSlug}`, { replace: true });
+            if (result instanceof Promise) {
+              result.catch(() => undefined);
+            }
+          }
+        }
+      },
+    });
+
+    return (): void => {
+      ws.close();
+    };
+  }, [resolvedGuildId, guildSlug, navigate]);
 
   return (
     <Box

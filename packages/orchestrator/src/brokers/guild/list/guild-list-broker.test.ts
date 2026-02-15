@@ -47,7 +47,9 @@ describe('guildListBroker', () => {
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           name: 'My App',
           path: '/home/user/my-app',
+          urlSlug: 'my-guild',
           createdAt: '2024-01-15T10:00:00.000Z',
+          chatSessions: [],
           valid: true,
           questCount: 2,
         },
@@ -87,7 +89,9 @@ describe('guildListBroker', () => {
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           name: 'Missing App',
           path: '/home/user/missing-app',
+          urlSlug: 'my-guild',
           createdAt: '2024-01-15T10:00:00.000Z',
+          chatSessions: [],
           valid: false,
           questCount: 0,
         },
@@ -145,7 +149,9 @@ describe('guildListBroker', () => {
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           name: 'First App',
           path: '/home/user/first-app',
+          urlSlug: 'my-guild',
           createdAt: '2024-01-15T10:00:00.000Z',
+          chatSessions: [],
           valid: true,
           questCount: 1,
         },
@@ -153,7 +159,9 @@ describe('guildListBroker', () => {
           id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
           name: 'Second App',
           path: '/home/user/second-app',
+          urlSlug: 'my-guild',
           createdAt: '2024-02-20T12:00:00.000Z',
+          chatSessions: [],
           valid: true,
           questCount: 3,
         },
@@ -197,9 +205,56 @@ describe('guildListBroker', () => {
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           name: 'My App',
           path: '/home/user/my-app',
+          urlSlug: 'my-guild',
           createdAt: '2024-01-15T10:00:00.000Z',
+          chatSessions: [],
           valid: true,
           questCount: 2,
+        },
+      ]);
+    });
+  });
+
+  describe('url slug backfill', () => {
+    it('VALID: {guild without urlSlug} => generates slug from name and persists', async () => {
+      const proxy = guildListBrokerProxy();
+      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
+      const guild = GuildStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'My Cool App',
+        path: '/home/user/my-cool-app',
+        urlSlug: undefined,
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const questsDirPath = FilePathStub({
+        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+      });
+
+      proxy.setupGuildList({
+        config: GuildConfigStub({ guilds: [guild] }),
+        homeDir: '/home/user',
+        homePath,
+        guildEntries: [
+          {
+            accessible: true,
+            questsDirPath,
+            questDirEntries: [],
+          },
+        ],
+      });
+
+      const result = await guildListBroker();
+
+      expect(result).toStrictEqual([
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'My Cool App',
+          path: '/home/user/my-cool-app',
+          urlSlug: 'my-cool-app',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          chatSessions: [],
+          valid: true,
+          questCount: 0,
         },
       ]);
     });

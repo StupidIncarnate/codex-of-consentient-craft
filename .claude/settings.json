@@ -1,4 +1,8 @@
 {
+  "attribution": {
+    "commit": "Claude'd it up in here!",
+    "pr": ""
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -59,11 +63,6 @@
       "Bash(npx tsc:*)",
       "Bash(npx ts-node:*)",
       "Bash(npx eslint:*)",
-      "mcp__dungeonmaster__get-architecture",
-      "mcp__dungeonmaster__get-syntax-rules",
-      "mcp__dungeonmaster__get-folder-detail",
-      "mcp__dungeonmaster__get-testing-patterns",
-      "mcp__dungeonmaster__discover",
       "Bash(tee:*)",
       "Bash(echo:*)",
       "Bash(npm ls:*)",
@@ -79,6 +78,11 @@
       "Bash(npm view:*)",
       "Bash(npm show:*)",
       "WebFetch(domain:registry.npmjs.org)",
+      "mcp__dungeonmaster__discover",
+      "mcp__dungeonmaster__get-architecture",
+      "mcp__dungeonmaster__get-folder-detail",
+      "mcp__dungeonmaster__get-syntax-rules",
+      "mcp__dungeonmaster__get-testing-patterns",
       "mcp__dungeonmaster__add-quest",
       "mcp__dungeonmaster__get-quest",
       "mcp__dungeonmaster__modify-quest",
@@ -86,15 +90,11 @@
       "mcp__dungeonmaster__start-quest",
       "mcp__dungeonmaster__get-quest-status",
       "mcp__dungeonmaster__list-quests",
+      "mcp__dungeonmaster__list-guilds",
       "mcp__dungeonmaster__verify-quest"
     ],
-    "deny": [
-      "Bash(cat:*)",
-      "Bash(sed:*)"
-    ]
+    "deny": ["Bash(cat:*)", "Bash(sed:*)"]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "dungeonmaster"
-  ]
+  "enabledMcpjsonServers": ["dungeonmaster"]
 }

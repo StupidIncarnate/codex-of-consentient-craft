@@ -3,14 +3,14 @@ import { AbsoluteFilePathStub, SessionIdStub } from '@dungeonmaster/shared/contr
 
 describe('claudeProjectPathEncoderTransformer', () => {
   describe('path encoding', () => {
-    it('VALID: {projectPath: "/home/user/my-project"} => encodes slashes to hyphens and strips leading hyphen', () => {
+    it('VALID: {projectPath: "/home/user/my-project"} => encodes slashes to hyphens keeping leading hyphen', () => {
       const result = claudeProjectPathEncoderTransformer({
         homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
         projectPath: AbsoluteFilePathStub({ value: '/home/user/my-project' }),
         sessionId: SessionIdStub({ value: 'abc-123' }),
       });
 
-      expect(result).toBe('/home/user/.claude/projects/home-user-my-project/abc-123.jsonl');
+      expect(result).toBe('/home/user/.claude/projects/-home-user-my-project/abc-123.jsonl');
     });
 
     it('VALID: {projectPath: "/opt/code/repo"} => encodes deeply nested path', () => {
@@ -20,7 +20,7 @@ describe('claudeProjectPathEncoderTransformer', () => {
         sessionId: SessionIdStub({ value: 'session-456' }),
       });
 
-      expect(result).toBe('/root/.claude/projects/opt-code-repo/session-456.jsonl');
+      expect(result).toBe('/root/.claude/projects/-opt-code-repo/session-456.jsonl');
     });
 
     it('VALID: {projectPath: "/single"} => encodes single-level path', () => {
@@ -30,7 +30,7 @@ describe('claudeProjectPathEncoderTransformer', () => {
         sessionId: SessionIdStub({ value: 'sess-1' }),
       });
 
-      expect(result).toBe('/home/dev/.claude/projects/single/sess-1.jsonl');
+      expect(result).toBe('/home/dev/.claude/projects/-single/sess-1.jsonl');
     });
   });
 });

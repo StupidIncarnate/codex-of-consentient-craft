@@ -9,9 +9,7 @@
  */
 
 import * as fs from 'fs';
-import { existsSync } from 'fs';
 import * as path from 'path';
-import { resolve } from 'path';
 
 // Testbed directory for E2E tests
 const E2E_TESTBED_ROOT = path.join(__dirname, '..', 'tmp');
@@ -130,51 +128,4 @@ export function createE2ETestDir(testName: string): string {
   fs.mkdirSync(dirPath, { recursive: true });
 
   return dirPath;
-}
-
-// Export helper for checking if Claude CLI is available
-export async function isClaudeAvailable(): Promise<boolean> {
-  const { execSync } = await import('child_process');
-  try {
-    execSync('claude --version', { stdio: 'pipe' });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check if MCP server entry point exists
- */
-export function isMcpServerAvailable(): boolean {
-  const mcpServerPath = resolve(__dirname, '../../packages/mcp/src/index.ts');
-  return existsSync(mcpServerPath);
-}
-
-/**
- * Check if MCP tools are available for E2E testing
- * Now auto-enabled when MCP server is available (no explicit opt-in needed)
- */
-export function isMcpTestingEnabled(): boolean {
-  // Allow explicit opt-out
-  if (process.env['SKIP_MCP_TESTS'] === 'true') {
-    return false;
-  }
-
-  // MCP is enabled if server is available
-  return isMcpServerAvailable();
-}
-
-// Export helper for skipping tests when Claude is not available
-export function skipIfNoClaudeAvailable(
-  testFn: () => void | Promise<void>,
-): () => void | Promise<void> {
-  return async () => {
-    const available = await isClaudeAvailable();
-    if (!available) {
-      console.warn('Claude CLI not available, skipping test');
-      return;
-    }
-    return testFn();
-  };
 }

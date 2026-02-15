@@ -5,6 +5,7 @@ import {
   AssistantTextChatEntryStub,
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
+  SystemErrorChatEntryStub,
   UserChatEntryStub,
 } from '../../contracts/chat-entry/chat-entry.stub';
 import { ChatMessageWidget } from './chat-message-widget';
@@ -235,6 +236,34 @@ describe('ChatMessageWidget', () => {
 
       expect(message.style.borderLeft).toBe('2px solid rgb(138, 114, 96)');
       expect(message.style.borderRight).toBe('2px solid rgb(138, 114, 96)');
+    });
+  });
+
+  describe('system error message', () => {
+    it('VALID: {role: system, type: error} => renders ERROR label with danger color', () => {
+      ChatMessageWidgetProxy();
+      const entry = SystemErrorChatEntryStub({ content: 'Server failed' });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/ERROR/u);
+      expect(message.textContent).toMatch(/Server failed/u);
+      expect(message.textContent).not.toMatch(/CHAOSWHISPERER/u);
+    });
+
+    it('VALID: {role: system, type: error} => renders danger borders and centered text', () => {
+      ChatMessageWidgetProxy();
+      const entry = SystemErrorChatEntryStub();
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.style.borderLeft).toBe('2px solid rgb(239, 68, 68)');
+      expect(message.style.borderRight).toBe('2px solid rgb(239, 68, 68)');
+      expect(message.style.textAlign).toBe('center');
     });
   });
 });

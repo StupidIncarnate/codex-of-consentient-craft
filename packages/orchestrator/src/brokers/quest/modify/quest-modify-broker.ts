@@ -92,6 +92,10 @@ export const questModifyBroker = async ({
       });
     }
 
+    if (validated.chatSessions) {
+      quest.chatSessions = validated.chatSessions;
+    }
+
     quest.updatedAt = new Date().toISOString() as typeof quest.updatedAt;
 
     // Write updated quest back to quest.json

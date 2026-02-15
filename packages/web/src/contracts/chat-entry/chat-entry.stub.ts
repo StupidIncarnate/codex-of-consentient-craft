@@ -40,6 +40,14 @@ export const AssistantToolResultChatEntryStub = ({
     ...props,
   });
 
+export const SystemErrorChatEntryStub = ({ ...props }: StubArgument<ChatEntry> = {}): ChatEntry =>
+  chatEntryContract.parse({
+    role: 'system',
+    type: 'error',
+    content: 'Something went wrong',
+    ...props,
+  });
+
 export const ChatEntryStub = ({ ...props }: StubArgument<ChatEntry> = {}): ChatEntry =>
   chatEntryContract.parse({
     role: 'user',

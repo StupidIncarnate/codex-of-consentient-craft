@@ -1,4 +1,11 @@
-import { ProcessIdStub, QuestIdStub, UserInputStub } from '@dungeonmaster/shared/contracts';
+import {
+  ChatSessionStub,
+  GuildIdStub,
+  ProcessIdStub,
+  QuestIdStub,
+  SessionIdStub,
+  UserInputStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
@@ -100,7 +107,7 @@ describe('useQuestChatBinding', () => {
       expect(result.current.isStreaming).toBe(true);
     });
 
-    it('VALID: {multiple chat-outputs with growing text} => updates entry in-place', async () => {
+    it('VALID: {multiple chat-outputs with growing text} => appends all entries', async () => {
       const proxy = useQuestChatBindingProxy();
       const questId = QuestIdStub({ value: 'quest-abc' });
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
@@ -153,6 +160,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current.entries).toStrictEqual([
         { role: 'user', content: 'Hello' },
+        { role: 'assistant', type: 'text', content: 'Hi' },
         { role: 'assistant', type: 'text', content: 'Hi there' },
       ]);
     });
@@ -211,12 +219,79 @@ describe('useQuestChatBinding', () => {
       expect(result.current.entries).toStrictEqual([
         { role: 'user', content: 'Hello' },
         { role: 'assistant', type: 'text', content: 'Let me check' },
+        { role: 'assistant', type: 'text', content: 'Let me check' },
         {
           role: 'assistant',
           type: 'tool_use',
           toolName: 'Read',
           toolInput: '{"file_path":"/test"}',
         },
+      ]);
+    });
+
+    it('VALID: {multi-turn streaming with tool use} => preserves all entries across turns', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-abc' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Help me' });
+
+      proxy.setupChat({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      // Turn 1: text + tool_use (content array grows)
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Let me check"},{"type":"tool_use","id":"tool-1","name":"Read","input":{"file_path":"/test"}}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      // Turn 2: new content array with just text (fewer items = new turn)
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"I found the answer"}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Help me' },
+        { role: 'assistant', type: 'text', content: 'Let me check' },
+        {
+          role: 'assistant',
+          type: 'tool_use',
+          toolName: 'Read',
+          toolInput: '{"file_path":"/test"}',
+        },
+        { role: 'assistant', type: 'text', content: 'I found the answer' },
       ]);
     });
 
@@ -367,11 +442,92 @@ describe('useQuestChatBinding', () => {
       expect(result.current.entries).toStrictEqual([
         { role: 'user', content: 'Hello' },
         {
-          role: 'assistant',
-          type: 'text',
-          content: expect.stringMatching(/^Error:/u),
+          role: 'system',
+          type: 'error',
+          content: expect.any(String),
         },
       ]);
+    });
+  });
+
+  describe('guild sendMessage', () => {
+    it('VALID: {guildId, message} => appends user entry and sets isStreaming', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'guild-chat-proc-1' });
+      const message = UserInputStub({ value: 'Set up CI pipeline' });
+
+      proxy.setupGuildChat({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Set up CI pipeline' },
+      ]);
+      expect(result.current.isStreaming).toBe(true);
+    });
+
+    it('ERROR: {guildId, broker fails} => sets isStreaming false and appends error entry', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const message = UserInputStub({ value: 'Hello guild' });
+
+      proxy.setupGuildChatError();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.isStreaming).toBe(false);
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Hello guild' },
+        {
+          role: 'system',
+          type: 'error',
+          content: expect.any(String),
+        },
+      ]);
+    });
+
+    it('EMPTY: {no questId, no guildId} => sendMessage adds user entry but does not call broker', async () => {
+      useQuestChatBindingProxy();
+      const message = UserInputStub({ value: 'No target' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({}),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([{ role: 'user', content: 'No target' }]);
+      expect(result.current.isStreaming).toBe(true);
     });
   });
 
@@ -397,6 +553,107 @@ describe('useQuestChatBinding', () => {
         sendMessage: expect.any(Function),
         stopChat: expect.any(Function),
       });
+    });
+  });
+
+  describe('history loading', () => {
+    it('VALID: {questId + chatSessions with active session} => loads quest history on mount', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-abc' });
+      const sessionId = SessionIdStub({ value: 'session-active-1' });
+      const chatSessions = [ChatSessionStub({ sessionId, active: true })];
+
+      proxy.setupQuestHistory({
+        entries: [
+          { type: 'user', message: { role: 'user', content: 'Previous question' } },
+          {
+            type: 'assistant',
+            message: { content: [{ type: 'text', text: 'Previous answer' }] },
+          },
+        ],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId, chatSessions }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Previous question' },
+        { role: 'assistant', type: 'text', content: 'Previous answer' },
+      ]);
+    });
+
+    it('VALID: {guildId + chatSessions with active session} => loads guild history on mount', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'session-guild-1' });
+      const chatSessions = [ChatSessionStub({ sessionId, active: true })];
+
+      proxy.setupGuildHistory({
+        entries: [{ type: 'user', message: { role: 'user', content: 'Guild question' } }],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ guildId, chatSessions }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([{ role: 'user', content: 'Guild question' }]);
+    });
+
+    it('EDGE: {chatSessions with no active session} => does not load history', async () => {
+      useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-abc' });
+      const chatSessions = [ChatSessionStub({ active: false })];
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId, chatSessions }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([]);
+    });
+
+    it('EDGE: {empty chatSessions} => does not load history', async () => {
+      useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-abc' });
+      const chatSessions: ReturnType<typeof ChatSessionStub>[] = [];
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId, chatSessions }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([]);
     });
   });
 });

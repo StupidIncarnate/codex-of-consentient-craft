@@ -32,7 +32,9 @@ describe('guildUpdateBroker', () => {
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'New Name',
         path: '/home/user/my-app',
+        urlSlug: 'my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
       });
     });
 
@@ -57,7 +59,9 @@ describe('guildUpdateBroker', () => {
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'My App',
         path: '/home/user/new-path',
+        urlSlug: 'my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
       });
     });
 
@@ -83,7 +87,9 @@ describe('guildUpdateBroker', () => {
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'New Name',
         path: '/home/user/new-path',
+        urlSlug: 'my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
       });
     });
 
@@ -113,7 +119,9 @@ describe('guildUpdateBroker', () => {
         id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
         name: 'Updated Second',
         path: '/home/user/second',
+        urlSlug: 'my-guild',
         createdAt: '2024-02-20T12:00:00.000Z',
+        chatSessions: [],
       });
     });
   });
@@ -178,7 +186,9 @@ describe('guildUpdateBroker', () => {
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'My App',
         path: '/home/user/my-app',
+        urlSlug: 'my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
       });
     });
   });

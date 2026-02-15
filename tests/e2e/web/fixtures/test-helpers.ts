@@ -1,5 +1,14 @@
 import { APIRequestContext } from '@playwright/test';
 
+export { queueClaudeResponse, clearClaudeQueue } from '../harness/claude-mock/queue-helpers';
+export {
+  SimpleTextResponseStub,
+  ToolUseChainResponseStub,
+  ErrorResponseStub,
+  ResumeResponseStub,
+  MultiTurnResponseStubs,
+} from '../harness/claude-mock/claude-response-stubs';
+
 export const cleanGuilds = async (request: APIRequestContext): Promise<void> => {
   const response = await request.get('/api/guilds');
   const guilds = await response.json();

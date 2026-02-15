@@ -22,9 +22,10 @@ dispatch a sub agent to gather it and report back.
 1. Read the plan below. Identify logical groups of work (steps, phases, or however the plan is structured).
 2. For each group:
    a. **Dispatch an agent** with the plan context and specify which steps to implement.
-   b. **Dispatch a sub agent** to run lint, typecheck, and tests on changed files. If issues are found, dispatch a sub
+   b. **Dispatch a sub agent** to pull a list of changed implementation files and manually verify that all implementation changes have test coverage based on project standards. If missing cases are discovered, the agent needs to fill them in and run tests until passing. 
+   c. **Dispatch a sub agent** to run lint, typecheck, and tests on changed files. If issues are found, dispatch a sub
    agent to fix them.
-   c. **Update progress** — Edit the plan file directly to mark completed steps. Then **commit** the changes.
+   d. **Update progress** — Edit the plan file directly to mark completed steps. Then **commit** the changes.
 3. Repeat until all plan steps are complete.
 
 ## After All Steps Pass

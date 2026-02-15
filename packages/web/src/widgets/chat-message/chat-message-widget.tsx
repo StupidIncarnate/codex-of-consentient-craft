@@ -26,6 +26,29 @@ export const ChatMessageWidget = ({
 }: ChatMessageWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
 
+  if (entry.role === 'system') {
+    return (
+      <Box
+        data-testid="CHAT_MESSAGE"
+        style={{
+          padding: '6px 10px',
+          borderRadius: 2,
+          backgroundColor: 'transparent',
+          borderLeft: `${BORDER_WIDTH} ${colors.danger}`,
+          borderRight: `${BORDER_WIDTH} ${colors.danger}`,
+          textAlign: 'center',
+        }}
+      >
+        <Text ff="monospace" size="xs" fw={600} mb={2} style={{ color: colors.danger }}>
+          ERROR
+        </Text>
+        <Text ff="monospace" size="xs" style={{ color: colors.danger }}>
+          {entry.content}
+        </Text>
+      </Box>
+    );
+  }
+
   if (entry.role === 'user') {
     return (
       <Box

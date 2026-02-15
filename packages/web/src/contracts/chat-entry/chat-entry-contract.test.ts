@@ -4,6 +4,7 @@ import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
   ChatEntryStub,
+  SystemErrorChatEntryStub,
 } from './chat-entry.stub';
 
 describe('chatEntryContract', () => {
@@ -100,8 +101,22 @@ describe('chatEntryContract', () => {
     });
   });
 
+  describe('system error entries', () => {
+    it('VALID: {role: "system", type: "error"} => parses successfully', () => {
+      const entry = SystemErrorChatEntryStub();
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'system',
+        type: 'error',
+        content: 'Something went wrong',
+      });
+    });
+  });
+
   describe('invalid entries', () => {
-    it('INVALID_ROLE: {role: "system"} => throws validation error', () => {
+    it('INVALID_ROLE: {role: "system", missing type} => throws validation error', () => {
       expect(() => {
         chatEntryContract.parse({ role: 'system', content: 'test' });
       }).toThrow(/Invalid input/u);

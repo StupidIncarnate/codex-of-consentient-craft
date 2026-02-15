@@ -22,6 +22,7 @@ import {
   sessionIdContract,
   absoluteFilePathContract,
 } from '@dungeonmaster/shared/contracts';
+import type { SessionId } from '@dungeonmaster/shared/contracts';
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
 import {
   architectureFolderDetailBroker,
@@ -32,7 +33,9 @@ import {
 import {
   isoTimestampContract,
   orchestrationEventsState,
+  sessionIdExtractorTransformer,
   slotIndexContract,
+  streamJsonLineContract,
 } from '@dungeonmaster/orchestrator';
 import type { SlotIndex } from '@dungeonmaster/orchestrator';
 
@@ -59,12 +62,16 @@ import type { AgentOutputLine } from '../contracts/agent-output-line/agent-outpu
 import { agentOutputBufferState } from '../state/agent-output-buffer/agent-output-buffer-state';
 import { chatProcessState } from '../state/chat-process/chat-process-state';
 import { wsEventRelayBroadcastBroker } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
+import { questSessionPersistBroker } from '../brokers/quest-session/persist/quest-session-persist-broker';
+import { guildSessionPersistBroker } from '../brokers/guild-session/persist/guild-session-persist-broker';
 import type { WsClient } from '../contracts/ws-client/ws-client-contract';
 import { fsReadJsonlAdapter } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { claudeProjectPathEncoderTransformer } from '../transformers/claude-project-path-encoder/claude-project-path-encoder-transformer';
 import { processDevLogAdapter } from '../adapters/process/dev-log/process-dev-log-adapter';
+import { streamLineSummaryTransformer } from '../transformers/stream-line-summary/stream-line-summary-transformer';
 
 const FLUSH_INTERVAL_MS = 100;
+const CLAUDE_CLI_COMMAND = process.env.CLAUDE_CLI_PATH ?? 'claude';
 
 export const StartServer = (): void => {
   const app = new Hono();
@@ -248,7 +255,7 @@ export const StartServer = (): void => {
     }
   });
 
-  // Quest add
+  // Quest add (with session migration from guild)
   app.post(apiRoutesStatics.quests.list, async (c) => {
     try {
       const body: unknown = await c.req.json();
@@ -277,6 +284,34 @@ export const StartServer = (): void => {
 
       const guildId = guildIdContract.parse(guildIdRaw);
       const result = await orchestratorAddQuestAdapter({ title, userRequest, guildId });
+
+      // Session migration: copy active guild sessions to quest, clear guild sessions
+      (async () => {
+        try {
+          const guild = await orchestratorGetGuildAdapter({ guildId });
+          const activeSessions = guild.chatSessions.filter((s) => s.active);
+
+          if (activeSessions.length > 0) {
+            const questIdRaw: unknown = Reflect.get(result, 'questId');
+
+            if (typeof questIdRaw === 'string') {
+              await orchestratorModifyQuestAdapter({
+                questId: questIdRaw,
+                input: { questId: questIdRaw, chatSessions: activeSessions } as never,
+              });
+              await orchestratorUpdateGuildAdapter({ guildId, chatSessions: [] });
+              processDevLogAdapter({
+                message: `Sessions migrated from guild=${guildIdRaw} to quest=${questIdRaw}`,
+              });
+            }
+          }
+        } catch (migrationError: unknown) {
+          processDevLogAdapter({
+            message: `Session migration failed: ${migrationError instanceof Error ? migrationError.message : 'unknown'}`,
+          });
+        }
+      })().catch(() => undefined);
+
       return c.json(result, httpStatusStatics.success.created);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to add quest';
@@ -429,7 +464,26 @@ export const StartServer = (): void => {
   app.post(apiRoutesStatics.quests.chat, async (c) => {
     try {
       const questIdRaw = c.req.param('questId');
-      questIdContract.parse(questIdRaw);
+      const questId = questIdContract.parse(questIdRaw);
+      const guilds = await orchestratorListGuildsAdapter();
+      const guildQuestPairs = await Promise.all(
+        guilds.map(async (guild) => ({
+          guild,
+          quests: await orchestratorListQuestsAdapter({ guildId: guild.id }),
+        })),
+      );
+      const matchingGuild = guildQuestPairs.find(({ quests }) =>
+        quests.some((q) => q.id === questId),
+      );
+
+      if (!matchingGuild) {
+        return c.json(
+          { error: 'Guild not found for quest' },
+          httpStatusStatics.clientError.notFound,
+        );
+      }
+
+      const questGuildPath = matchingGuild.guild.path;
       const body: unknown = await c.req.json();
 
       if (typeof body !== 'object' || body === null) {
@@ -462,12 +516,13 @@ export const StartServer = (): void => {
 
       args.push('--output-format', 'stream-json', '--verbose');
 
-      const childProcess = spawn('claude', args, {
+      const childProcess = spawn(CLAUDE_CLI_COMMAND, args, {
+        cwd: questGuildPath,
         stdio: ['inherit', 'pipe', 'inherit'],
       });
 
       processDevLogAdapter({
-        message: `Claude CLI spawned: processId=${chatProcessId}, args=${JSON.stringify(args)}`,
+        message: `Claude CLI spawned: processId=${chatProcessId}, cwd=${questGuildPath}, args=${JSON.stringify(args)}`,
       });
 
       chatProcessState.register({
@@ -481,18 +536,41 @@ export const StartServer = (): void => {
 
       const rl = createInterface({ input: stdout as NodeJS.ReadableStream });
 
+      let extractedSessionId: SessionId | null = null;
+
       rl.on('line', (line) => {
         try {
           const parsed: unknown = JSON.parse(line);
-          const lineType: unknown =
-            typeof parsed === 'object' && parsed !== null ? Reflect.get(parsed, 'type') : 'unknown';
-          processDevLogAdapter({
-            message: `Chat stream: processId=${chatProcessId}, type=${String(lineType)}`,
-          });
+
+          if (typeof parsed === 'object' && parsed !== null) {
+            const summary = streamLineSummaryTransformer({ parsed });
+            processDevLogAdapter({
+              message: `Chat stream: processId=${chatProcessId}, ${summary}`,
+            });
+          } else {
+            processDevLogAdapter({
+              message: `Chat stream: processId=${chatProcessId}, type=non-object`,
+            });
+          }
         } catch {
           processDevLogAdapter({
             message: `Chat stream: processId=${chatProcessId}, type=unparseable`,
           });
+        }
+
+        if (!extractedSessionId) {
+          const lineParseResult = streamJsonLineContract.safeParse(line);
+
+          if (lineParseResult.success) {
+            const sid = sessionIdExtractorTransformer({ line: lineParseResult.data });
+
+            if (sid) {
+              extractedSessionId = sid;
+              processDevLogAdapter({
+                message: `Session ID extracted: processId=${chatProcessId}, sessionId=${sid}`,
+              });
+            }
+          }
         }
 
         wsEventRelayBroadcastBroker({
@@ -510,14 +588,31 @@ export const StartServer = (): void => {
           message: `Chat completed: processId=${chatProcessId}, exitCode=${String(code ?? 1)}`,
         });
         chatProcessState.remove({ processId: chatProcessId });
-        wsEventRelayBroadcastBroker({
-          clients,
-          message: wsMessageContract.parse({
-            type: 'chat-complete',
-            payload: { chatProcessId, exitCode: code ?? 1 },
-            timestamp: isoTimestampContract.parse(new Date().toISOString()),
-          }),
-        });
+
+        // Persist session BEFORE broadcasting chat-complete so clients see updated data on refresh
+        const persistPromise = extractedSessionId
+          ? questSessionPersistBroker({
+              questId: questIdRaw,
+              sessionId: extractedSessionId,
+            }).catch(() => undefined)
+          : Promise.resolve();
+
+        persistPromise
+          .then(() => {
+            wsEventRelayBroadcastBroker({
+              clients,
+              message: wsMessageContract.parse({
+                type: 'chat-complete',
+                payload: {
+                  chatProcessId,
+                  exitCode: code ?? 1,
+                  ...(extractedSessionId && { sessionId: extractedSessionId }),
+                },
+                timestamp: isoTimestampContract.parse(new Date().toISOString()),
+              }),
+            });
+          })
+          .catch(() => undefined);
       });
 
       return c.json({ chatProcessId });
@@ -555,6 +650,26 @@ export const StartServer = (): void => {
   // Quest chat history - read JSONL session file
   app.get(apiRoutesStatics.quests.chatHistory, async (c) => {
     try {
+      const questIdRaw = c.req.param('questId');
+      const questId = questIdContract.parse(questIdRaw);
+      const guilds = await orchestratorListGuildsAdapter();
+      const guildQuestPairs = await Promise.all(
+        guilds.map(async (guild) => ({
+          guild,
+          quests: await orchestratorListQuestsAdapter({ guildId: guild.id }),
+        })),
+      );
+      const matchingGuild = guildQuestPairs.find(({ quests }) =>
+        quests.some((q) => q.id === questId),
+      );
+
+      if (!matchingGuild) {
+        return c.json(
+          { error: 'Guild not found for quest' },
+          httpStatusStatics.clientError.notFound,
+        );
+      }
+
       const rawSessionId = c.req.query('sessionId');
 
       if (!rawSessionId) {
@@ -567,7 +682,7 @@ export const StartServer = (): void => {
       const sessionId = sessionIdContract.parse(rawSessionId);
 
       const homeDir = absoluteFilePathContract.parse(homedir());
-      const projectPath = absoluteFilePathContract.parse(process.cwd());
+      const projectPath = absoluteFilePathContract.parse(matchingGuild.guild.path);
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
         projectPath,
@@ -587,6 +702,218 @@ export const StartServer = (): void => {
       return c.json(filtered);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to read chat history';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Guild chat - spawn Claude CLI and stream output via WebSocket (guild-level)
+  app.post(apiRoutesStatics.guilds.chat, async (c) => {
+    try {
+      const guildIdRaw = c.req.param('guildId');
+      const guildId = guildIdContract.parse(guildIdRaw);
+      const guild = await orchestratorGetGuildAdapter({ guildId });
+      const guildPath = guild.path;
+      const body: unknown = await c.req.json();
+
+      if (typeof body !== 'object' || body === null) {
+        return c.json(
+          { error: 'Request body must be a JSON object' },
+          httpStatusStatics.clientError.badRequest,
+        );
+      }
+
+      const rawMessage: unknown = Reflect.get(body, 'message');
+      const rawSessionId: unknown = Reflect.get(body, 'sessionId');
+
+      if (typeof rawMessage !== 'string' || rawMessage.length === 0) {
+        return c.json({ error: 'message is required' }, httpStatusStatics.clientError.badRequest);
+      }
+
+      const chatProcessId = processIdContract.parse(crypto.randomUUID());
+      const resumeSessionId =
+        typeof rawSessionId === 'string' && rawSessionId.length > 0
+          ? sessionIdContract.parse(rawSessionId)
+          : undefined;
+
+      processDevLogAdapter({
+        message: `Guild chat started: guildId=${guildIdRaw}, messageLength=${String(rawMessage.length)}${resumeSessionId ? `, resuming=${resumeSessionId}` : ''}`,
+      });
+
+      const args = resumeSessionId
+        ? ['--resume', resumeSessionId, '-p', rawMessage]
+        : ['-p', rawMessage];
+
+      args.push('--output-format', 'stream-json', '--verbose');
+
+      const childProcess = spawn(CLAUDE_CLI_COMMAND, args, {
+        cwd: guildPath,
+        stdio: ['inherit', 'pipe', 'inherit'],
+      });
+
+      processDevLogAdapter({
+        message: `Claude CLI spawned (guild): processId=${chatProcessId}, cwd=${guildPath}, args=${JSON.stringify(args)}`,
+      });
+
+      chatProcessState.register({
+        processId: chatProcessId,
+        kill: () => {
+          childProcess.kill();
+        },
+      });
+
+      const { stdout } = childProcess;
+
+      const rl = createInterface({ input: stdout as NodeJS.ReadableStream });
+
+      let extractedSessionId: SessionId | null = null;
+
+      rl.on('line', (line) => {
+        try {
+          const parsed: unknown = JSON.parse(line);
+
+          if (typeof parsed === 'object' && parsed !== null) {
+            const summary = streamLineSummaryTransformer({ parsed });
+            processDevLogAdapter({
+              message: `Guild chat stream: processId=${chatProcessId}, ${summary}`,
+            });
+          } else {
+            processDevLogAdapter({
+              message: `Guild chat stream: processId=${chatProcessId}, type=non-object`,
+            });
+          }
+        } catch {
+          processDevLogAdapter({
+            message: `Guild chat stream: processId=${chatProcessId}, type=unparseable`,
+          });
+        }
+
+        if (!extractedSessionId) {
+          const lineParseResult = streamJsonLineContract.safeParse(line);
+
+          if (lineParseResult.success) {
+            const sid = sessionIdExtractorTransformer({ line: lineParseResult.data });
+
+            if (sid) {
+              extractedSessionId = sid;
+              processDevLogAdapter({
+                message: `Session ID extracted (guild): processId=${chatProcessId}, sessionId=${sid}`,
+              });
+            }
+          }
+        }
+
+        wsEventRelayBroadcastBroker({
+          clients,
+          message: wsMessageContract.parse({
+            type: 'chat-output',
+            payload: { chatProcessId, line },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          }),
+        });
+      });
+
+      childProcess.on('exit', (code) => {
+        processDevLogAdapter({
+          message: `Guild chat completed: processId=${chatProcessId}, exitCode=${String(code ?? 1)}`,
+        });
+        chatProcessState.remove({ processId: chatProcessId });
+
+        // Persist session BEFORE broadcasting chat-complete so clients see updated data on refresh
+        const persistPromise = extractedSessionId
+          ? guildSessionPersistBroker({
+              guildId: guildIdRaw,
+              sessionId: extractedSessionId,
+            }).catch(() => undefined)
+          : Promise.resolve();
+
+        persistPromise
+          .then(() => {
+            wsEventRelayBroadcastBroker({
+              clients,
+              message: wsMessageContract.parse({
+                type: 'chat-complete',
+                payload: {
+                  chatProcessId,
+                  exitCode: code ?? 1,
+                  ...(extractedSessionId && { sessionId: extractedSessionId }),
+                },
+                timestamp: isoTimestampContract.parse(new Date().toISOString()),
+              }),
+            });
+          })
+          .catch(() => undefined);
+      });
+
+      return c.json({ chatProcessId });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to start guild chat';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Guild chat stop - kill a running Claude CLI guild chat process
+  app.post(apiRoutesStatics.guilds.chatStop, (c) => {
+    try {
+      const chatProcessIdRaw = c.req.param('chatProcessId');
+      const chatProcessId = processIdContract.parse(chatProcessIdRaw);
+      processDevLogAdapter({ message: `Guild chat stop requested: processId=${chatProcessId}` });
+      const killed = chatProcessState.kill({ processId: chatProcessId });
+      processDevLogAdapter({
+        message: `Guild chat stop result: processId=${chatProcessId}, killed=${String(killed)}`,
+      });
+
+      if (!killed) {
+        return c.json(
+          { error: 'Process not found or already exited' },
+          httpStatusStatics.clientError.notFound,
+        );
+      }
+
+      return c.json({ stopped: true });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to stop guild chat';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Guild chat history - read JSONL session file
+  app.get(apiRoutesStatics.guilds.chatHistory, async (c) => {
+    try {
+      const guildIdRaw = c.req.param('guildId');
+      const guildId = guildIdContract.parse(guildIdRaw);
+      const guild = await orchestratorGetGuildAdapter({ guildId });
+      const rawSessionId = c.req.query('sessionId');
+
+      if (!rawSessionId) {
+        return c.json(
+          { error: 'sessionId query parameter is required' },
+          httpStatusStatics.clientError.badRequest,
+        );
+      }
+
+      const sessionId = sessionIdContract.parse(rawSessionId);
+
+      const homeDir = absoluteFilePathContract.parse(homedir());
+      const projectPath = absoluteFilePathContract.parse(guild.path);
+      const jsonlPath = claudeProjectPathEncoderTransformer({
+        homeDir,
+        projectPath,
+        sessionId,
+      });
+
+      const entries = await fsReadJsonlAdapter({ filePath: jsonlPath });
+
+      const filtered = entries.filter((entry: unknown) => {
+        if (typeof entry !== 'object' || entry === null) {
+          return false;
+        }
+        const type: unknown = Reflect.get(entry, 'type');
+        return type === 'user' || type === 'assistant';
+      });
+
+      return c.json(filtered);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to read guild chat history';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
     }
   });

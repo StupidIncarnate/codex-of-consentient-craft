@@ -1,3 +1,4 @@
+import { ChatSessionStub } from '../chat-session/chat-session.stub';
 import { guildContract } from './guild-contract';
 import { GuildStub } from './guild.stub';
 
@@ -12,8 +13,32 @@ describe('guildContract', () => {
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'My Guild',
         path: '/home/user/my-guild',
+        urlSlug: 'my-guild',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        chatSessions: [],
+      });
+    });
+
+    it('VALID: guild with chatSessions => parses successfully', () => {
+      const chatSession = ChatSessionStub();
+      const guild = GuildStub({
+        chatSessions: [chatSession],
+      });
+
+      const result = guildContract.parse(guild);
+
+      expect(result.chatSessions).toStrictEqual([chatSession]);
+    });
+
+    it('VALID: guild without chatSessions field => backward compat defaults to empty array', () => {
+      const result = guildContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'My Guild',
+        path: '/home/user/my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
+
+      expect(result.chatSessions).toStrictEqual([]);
     });
 
     it('VALID: guild with custom name => parses successfully', () => {
