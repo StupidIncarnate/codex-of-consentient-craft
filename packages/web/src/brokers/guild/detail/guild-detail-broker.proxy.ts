@@ -20,7 +20,7 @@ export const guildDetailBrokerProxy = (): {
 
   return {
     setupGuild: ({ guild }) => {
-      endpoint.resolves({ data: { guild } });
+      endpoint.resolves({ data: guild });
     },
     setupError: () => {
       endpoint.networkError();

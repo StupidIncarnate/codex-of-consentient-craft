@@ -560,25 +560,31 @@ export const StartServer = (): void => {
           message: `Chat completed: processId=${chatProcessId}, exitCode=${String(code ?? 1)}`,
         });
         chatProcessState.remove({ processId: chatProcessId });
-        wsEventRelayBroadcastBroker({
-          clients,
-          message: wsMessageContract.parse({
-            type: 'chat-complete',
-            payload: {
-              chatProcessId,
-              exitCode: code ?? 1,
-              ...(extractedSessionId && { sessionId: extractedSessionId }),
-            },
-            timestamp: isoTimestampContract.parse(new Date().toISOString()),
-          }),
-        });
 
-        // Fire-and-forget: persist session to quest
-        if (extractedSessionId) {
-          questSessionPersistBroker({ questId: questIdRaw, sessionId: extractedSessionId }).catch(
-            () => undefined,
-          );
-        }
+        // Persist session BEFORE broadcasting chat-complete so clients see updated data on refresh
+        const persistPromise = extractedSessionId
+          ? questSessionPersistBroker({
+              questId: questIdRaw,
+              sessionId: extractedSessionId,
+            }).catch(() => undefined)
+          : Promise.resolve();
+
+        persistPromise
+          .then(() => {
+            wsEventRelayBroadcastBroker({
+              clients,
+              message: wsMessageContract.parse({
+                type: 'chat-complete',
+                payload: {
+                  chatProcessId,
+                  exitCode: code ?? 1,
+                  ...(extractedSessionId && { sessionId: extractedSessionId }),
+                },
+                timestamp: isoTimestampContract.parse(new Date().toISOString()),
+              }),
+            });
+          })
+          .catch(() => undefined);
       });
 
       return c.json({ chatProcessId });
@@ -754,25 +760,31 @@ export const StartServer = (): void => {
           message: `Guild chat completed: processId=${chatProcessId}, exitCode=${String(code ?? 1)}`,
         });
         chatProcessState.remove({ processId: chatProcessId });
-        wsEventRelayBroadcastBroker({
-          clients,
-          message: wsMessageContract.parse({
-            type: 'chat-complete',
-            payload: {
-              chatProcessId,
-              exitCode: code ?? 1,
-              ...(extractedSessionId && { sessionId: extractedSessionId }),
-            },
-            timestamp: isoTimestampContract.parse(new Date().toISOString()),
-          }),
-        });
 
-        // Fire-and-forget: persist session to guild
-        if (extractedSessionId) {
-          guildSessionPersistBroker({ guildId: guildIdRaw, sessionId: extractedSessionId }).catch(
-            () => undefined,
-          );
-        }
+        // Persist session BEFORE broadcasting chat-complete so clients see updated data on refresh
+        const persistPromise = extractedSessionId
+          ? guildSessionPersistBroker({
+              guildId: guildIdRaw,
+              sessionId: extractedSessionId,
+            }).catch(() => undefined)
+          : Promise.resolve();
+
+        persistPromise
+          .then(() => {
+            wsEventRelayBroadcastBroker({
+              clients,
+              message: wsMessageContract.parse({
+                type: 'chat-complete',
+                payload: {
+                  chatProcessId,
+                  exitCode: code ?? 1,
+                  ...(extractedSessionId && { sessionId: extractedSessionId }),
+                },
+                timestamp: isoTimestampContract.parse(new Date().toISOString()),
+              }),
+            });
+          })
+          .catch(() => undefined);
       });
 
       return c.json({ chatProcessId });
