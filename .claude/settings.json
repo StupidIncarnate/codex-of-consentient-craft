@@ -1,4 +1,8 @@
 {
+  "attribution": {
+    "commit": "Claude'd it up in here!",
+    "pr": ""
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -88,13 +92,8 @@
       "mcp__dungeonmaster__list-quests",
       "mcp__dungeonmaster__verify-quest"
     ],
-    "deny": [
-      "Bash(cat:*)",
-      "Bash(sed:*)"
-    ]
+    "deny": ["Bash(cat:*)", "Bash(sed:*)"]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "dungeonmaster"
-  ]
+  "enabledMcpjsonServers": ["dungeonmaster"]
 }
