@@ -4,20 +4,27 @@
 
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
+import { GuildListItemStub, GuildStub, QuestStub } from '@dungeonmaster/shared/contracts';
+
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestChatWidget } from './quest-chat-widget';
 import { QuestChatWidgetProxy } from './quest-chat-widget.proxy';
 
 describe('QuestChatWidget', () => {
   describe('layout structure', () => {
-    it('VALID: {questId in URL} => renders ChatPanelWidget', () => {
+    it('VALID: {questSlug in URL} => renders ChatPanelWidget', () => {
       const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({ id: 'chat-q1' });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupQuest({ quest });
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/guild/test-guild/quest/chat-q1']}>
+          <MemoryRouter initialEntries={['/test-guild/quest/chat-q1']}>
             <Routes>
-              <Route path="/guild/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -26,14 +33,19 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasChatPanel()).toBe(true);
     });
 
-    it('VALID: {questId in URL} => renders vertical divider', () => {
+    it('VALID: {questSlug in URL} => renders vertical divider', () => {
       const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({ id: 'chat-q2' });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupQuest({ quest });
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/guild/test-guild/quest/chat-q2']}>
+          <MemoryRouter initialEntries={['/test-guild/quest/chat-q2']}>
             <Routes>
-              <Route path="/guild/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -44,14 +56,19 @@ describe('QuestChatWidget', () => {
   });
 
   describe('right panel', () => {
-    it('VALID: {questId in URL} => renders activity placeholder text', () => {
+    it('VALID: {questSlug in URL} => renders activity placeholder text', () => {
       const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({ id: 'chat-q3' });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupQuest({ quest });
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/guild/test-guild/quest/chat-q3']}>
+          <MemoryRouter initialEntries={['/test-guild/quest/chat-q3']}>
             <Routes>
-              <Route path="/guild/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -59,6 +76,29 @@ describe('QuestChatWidget', () => {
 
       expect(proxy.hasActivityPlaceholder()).toBe(true);
       expect(proxy.getActivityText()).toBe('Awaiting quest activity...');
+    });
+  });
+
+  describe('guild-level chat', () => {
+    it('VALID: {guildSlug without questSlug} => renders ChatPanelWidget', () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'my-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/my-guild/quest']}>
+            <Routes>
+              <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      expect(proxy.hasChatPanel()).toBe(true);
     });
   });
 });

@@ -1,4 +1,11 @@
-import { ProcessIdStub, QuestIdStub, UserInputStub } from '@dungeonmaster/shared/contracts';
+import {
+  ChatSessionStub,
+  GuildIdStub,
+  ProcessIdStub,
+  QuestIdStub,
+  SessionIdStub,
+  UserInputStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
@@ -397,6 +404,107 @@ describe('useQuestChatBinding', () => {
         sendMessage: expect.any(Function),
         stopChat: expect.any(Function),
       });
+    });
+  });
+
+  describe('history loading', () => {
+    it('VALID: {questId + chatSessions with active session} => loads quest history on mount', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-abc' });
+      const sessionId = SessionIdStub({ value: 'session-active-1' });
+      const chatSessions = [ChatSessionStub({ sessionId, active: true })];
+
+      proxy.setupQuestHistory({
+        entries: [
+          { type: 'user', message: { role: 'user', content: 'Previous question' } },
+          {
+            type: 'assistant',
+            message: { content: [{ type: 'text', text: 'Previous answer' }] },
+          },
+        ],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId, chatSessions }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Previous question' },
+        { role: 'assistant', type: 'text', content: 'Previous answer' },
+      ]);
+    });
+
+    it('VALID: {guildId + chatSessions with active session} => loads guild history on mount', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'session-guild-1' });
+      const chatSessions = [ChatSessionStub({ sessionId, active: true })];
+
+      proxy.setupGuildHistory({
+        entries: [{ type: 'user', message: { role: 'user', content: 'Guild question' } }],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ guildId, chatSessions }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([{ role: 'user', content: 'Guild question' }]);
+    });
+
+    it('EDGE: {chatSessions with no active session} => does not load history', async () => {
+      useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-abc' });
+      const chatSessions = [ChatSessionStub({ active: false })];
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId, chatSessions }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([]);
+    });
+
+    it('EDGE: {empty chatSessions} => does not load history', async () => {
+      useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-abc' });
+      const chatSessions: ReturnType<typeof ChatSessionStub>[] = [];
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId, chatSessions }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([]);
     });
   });
 });

@@ -2,27 +2,41 @@
  * PURPOSE: React hook that manages quest chat state and WebSocket communication for real-time agent responses
  *
  * USAGE:
- * const {entries, isStreaming, sendMessage, stopChat} = useQuestChatBinding({questId});
+ * const {entries, isStreaming, sendMessage, stopChat} = useQuestChatBinding({questId, chatSessions});
  * // Returns chat entries, streaming state, send/stop functions
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { ProcessId, QuestId, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
+import type {
+  ChatSession,
+  GuildId,
+  ProcessId,
+  QuestId,
+  SessionId,
+  UserInput,
+} from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
+import { guildChatHistoryBroker } from '../../brokers/guild/chat-history/guild-chat-history-broker';
 import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
+import { questChatHistoryBroker } from '../../brokers/quest/chat-history/quest-chat-history-broker';
 import { questChatStopBroker } from '../../brokers/quest/chat-stop/quest-chat-stop-broker';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
 import { streamingBlockCountContract } from '../../contracts/streaming-block-count/streaming-block-count-contract';
 import type { StreamingBlockCount } from '../../contracts/streaming-block-count/streaming-block-count-contract';
+import { jsonlToChatEntriesTransformer } from '../../transformers/jsonl-to-chat-entries/jsonl-to-chat-entries-transformer';
 import { streamJsonToChatEntryTransformer } from '../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 
 export const useQuestChatBinding = ({
   questId,
+  guildId,
+  chatSessions,
 }: {
   questId?: QuestId;
+  guildId?: GuildId;
+  chatSessions?: ChatSession[];
 }): {
   entries: ChatEntry[];
   isStreaming: boolean;
@@ -35,6 +49,7 @@ export const useQuestChatBinding = ({
   const chatProcessIdRef = useRef<ProcessId | null>(null);
   const wsRef = useRef<{ close: () => void } | null>(null);
   const streamingBlockCountRef = useRef<StreamingBlockCount>(streamingBlockCountContract.parse(0));
+  const historyLoadedRef = useRef(false);
 
   const handleWebSocketMessage = useCallback((message: unknown): void => {
     const parsed = wsMessageContract.safeParse(message);
@@ -97,6 +112,32 @@ export const useQuestChatBinding = ({
       }
     };
   }, [handleWebSocketMessage]);
+
+  useEffect(() => {
+    if (historyLoadedRef.current) return;
+    if (!chatSessions || chatSessions.length === 0) return;
+
+    const activeSession = chatSessions.find((session) => session.active);
+    if (!activeSession) return;
+
+    historyLoadedRef.current = true;
+    sessionIdRef.current = activeSession.sessionId;
+
+    const historyPromise = questId
+      ? questChatHistoryBroker({ questId, sessionId: activeSession.sessionId })
+      : guildId
+        ? guildChatHistoryBroker({ guildId, sessionId: activeSession.sessionId })
+        : Promise.resolve([]);
+
+    historyPromise
+      .then((rawEntries) => {
+        if (rawEntries.length > 0) {
+          const chatEntries = jsonlToChatEntriesTransformer({ entries: rawEntries });
+          setEntries(chatEntries);
+        }
+      })
+      .catch(() => undefined);
+  }, [chatSessions, questId, guildId]);
 
   const sendMessage = useCallback(
     ({ message }: { message: UserInput }): void => {
