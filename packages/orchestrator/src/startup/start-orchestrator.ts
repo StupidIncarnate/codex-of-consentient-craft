@@ -252,7 +252,22 @@ export const StartOrchestrator = {
     guildId: GuildId;
   }): Promise<AddQuestResult> => {
     const input = addQuestInputContract.parse({ title, userRequest });
-    return questAddBroker({ input, guildId });
+    const result = await questAddBroker({ input, guildId });
+
+    if (result.success) {
+      orchestrationEventsState.emit({
+        type: 'quest-created',
+        processId: processIdContract.parse(randomUUID()),
+        payload: {
+          questId: result.questId,
+          questFolder: result.questFolder,
+          guildId,
+          title,
+        },
+      });
+    }
+
+    return result;
   },
 
   getQuest: async ({
