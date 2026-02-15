@@ -7,7 +7,7 @@
  *   projectPath: AbsoluteFilePathStub({ value: '/home/user/my-project' }),
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
  * });
- * // Returns AbsoluteFilePath '/home/user/.claude/projects/home-user-my-project/abc-123.jsonl'
+ * // Returns AbsoluteFilePath '/home/user/.claude/projects/-home-user-my-project/abc-123.jsonl'
  */
 
 import {
@@ -25,7 +25,7 @@ export const claudeProjectPathEncoderTransformer = ({
   projectPath: AbsoluteFilePath;
   sessionId: SessionId;
 }): AbsoluteFilePath => {
-  const encoded = projectPath.replace(/\//gu, '-').replace(/^-/u, '');
+  const encoded = projectPath.replace(/\//gu, '-');
   return absoluteFilePathContract.parse(
     `${homeDir}/.claude/projects/${encoded}/${sessionId}.jsonl`,
   );
