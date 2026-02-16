@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Runs npm run ward:all as a gating verification step, spawns spiritmender agents on failure
+ * PURPOSE: Runs dungeonmaster-ward run as a gating verification step, spawns spiritmender agents on failure
  *
  * USAGE:
  * await wardPhaseLayerBroker({ questFilePath, startPath, onPhaseChange });
- * // Runs ward:all, retries up to 3 times with spiritmender fixes
+ * // Runs ward, retries up to 3 times with spiritmender fixes
  */
 
 import {
@@ -45,13 +45,13 @@ export const wardPhaseLayerBroker = async ({
     throw new Error(`Ward phase failed after ${String(MAX_RETRIES)} retries`);
   }
 
-  const { exitCode, output } = await spawnWardLayerBroker({ startPath });
+  const { exitCode, wardResultJson } = await spawnWardLayerBroker({ startPath });
 
   if (exitCode === 0) {
     return;
   }
 
-  let filePaths = wardOutputToFilePathsTransformer({ output });
+  let filePaths = wardResultJson ? wardOutputToFilePathsTransformer({ wardResultJson }) : [];
 
   if (filePaths.length === 0) {
     const quest = await questLoadBroker({ questFilePath });
@@ -62,7 +62,7 @@ export const wardPhaseLayerBroker = async ({
     throw new Error('Ward phase failed and no file paths could be extracted for spiritmender');
   }
 
-  const errors = String(output).length > 0 ? [errorMessageContract.parse(String(output))] : [];
+  const errors = wardResultJson ? [errorMessageContract.parse(wardResultJson)] : [];
 
   const workUnits = filePathsToSpiritmenderWorkUnitsTransformer({
     filePaths,

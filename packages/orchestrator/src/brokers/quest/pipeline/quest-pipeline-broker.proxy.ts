@@ -11,7 +11,7 @@ export const questPipelineBrokerProxy = (): {
   setupWardSuccessFirstTry: (params: { exitCode: ExitCode }) => void;
   setupWardFailMaxRetries: (params: {
     failExitCode: ExitCode;
-    failOutput: string;
+    failWardResultJson: string;
     spiritmenderExitCode: ExitCode;
   }) => void;
   setupSiegemasterQuestFile: (params: { questJson: string }) => void;
@@ -38,14 +38,14 @@ export const questPipelineBrokerProxy = (): {
     },
     setupWardFailMaxRetries: ({
       failExitCode,
-      failOutput,
+      failWardResultJson,
       spiritmenderExitCode,
     }: {
       failExitCode: ExitCode;
-      failOutput: string;
+      failWardResultJson: string;
       spiritmenderExitCode: ExitCode;
     }): void => {
-      ward.setupWardFailMaxRetries({ failExitCode, failOutput, spiritmenderExitCode });
+      ward.setupWardFailMaxRetries({ failExitCode, failWardResultJson, spiritmenderExitCode });
     },
     setupSiegemasterQuestFile: ({ questJson }: { questJson: string }): void => {
       siegemaster.setupQuestFile({ questJson });

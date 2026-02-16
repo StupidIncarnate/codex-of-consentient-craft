@@ -1,115 +1,260 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 import { wardOutputToFilePathsTransformer } from './ward-output-to-file-paths-transformer';
 
 describe('wardOutputToFilePathsTransformer', () => {
-  describe('output with absolute file paths', () => {
-    it('VALID: {output with single .ts path} => returns array with one path', () => {
-      const output = ErrorMessageStub({
-        value: 'Error in /src/brokers/test/test-broker.ts at line 5',
+  describe('ward result with error file paths', () => {
+    it('VALID: {single error with filePath} => returns array with one path', () => {
+      const wardResultJson = FileContentsStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'lint',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'orchestrator', path: '/project/packages/orchestrator' },
+                  status: 'fail',
+                  errors: [
+                    {
+                      filePath: '/src/brokers/test/test-broker.ts',
+                      line: 5,
+                      column: 1,
+                      message: 'Unexpected any',
+                      severity: 'error',
+                    },
+                  ],
+                  testFailures: [],
+                  rawOutput: { stdout: '', stderr: '', exitCode: 1 },
+                },
+              ],
+            },
+          ],
+        }),
       });
 
-      const result = wardOutputToFilePathsTransformer({ output });
+      const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
       expect(result).toStrictEqual(['/src/brokers/test/test-broker.ts']);
     });
 
-    it('VALID: {output with multiple .ts paths} => returns deduplicated array', () => {
-      const output = ErrorMessageStub({
-        value:
-          'Error in /src/brokers/auth/auth-broker.ts\nWarning in /src/contracts/user/user-contract.ts',
+    it('VALID: {multiple errors across checks} => returns deduplicated array', () => {
+      const wardResultJson = FileContentsStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'lint',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'orchestrator', path: '/project/packages/orchestrator' },
+                  status: 'fail',
+                  errors: [
+                    {
+                      filePath: '/src/brokers/auth/auth-broker.ts',
+                      line: 1,
+                      column: 1,
+                      message: 'err',
+                      severity: 'error',
+                    },
+                    {
+                      filePath: '/src/contracts/user/user-contract.ts',
+                      line: 2,
+                      column: 1,
+                      message: 'err',
+                      severity: 'error',
+                    },
+                  ],
+                  testFailures: [],
+                  rawOutput: { stdout: '', stderr: '', exitCode: 1 },
+                },
+              ],
+            },
+            {
+              checkType: 'typecheck',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'orchestrator', path: '/project/packages/orchestrator' },
+                  status: 'fail',
+                  errors: [
+                    {
+                      filePath: '/src/brokers/auth/auth-broker.ts',
+                      line: 10,
+                      column: 5,
+                      message: 'err',
+                      severity: 'error',
+                    },
+                  ],
+                  testFailures: [],
+                  rawOutput: { stdout: '', stderr: '', exitCode: 1 },
+                },
+              ],
+            },
+          ],
+        }),
       });
 
-      const result = wardOutputToFilePathsTransformer({ output });
+      const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
       expect(result).toStrictEqual([
         '/src/brokers/auth/auth-broker.ts',
         '/src/contracts/user/user-contract.ts',
       ]);
     });
+  });
 
-    it('VALID: {output with .tsx path} => returns array with tsx path', () => {
-      const output = ErrorMessageStub({
-        value: 'Error in /src/widgets/user-card/user-card-widget.tsx',
+  describe('ward result with test failure paths', () => {
+    it('VALID: {test failure with suitePath} => returns suite path', () => {
+      const wardResultJson = FileContentsStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'test',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'orchestrator', path: '/project/packages/orchestrator' },
+                  status: 'fail',
+                  errors: [],
+                  testFailures: [
+                    {
+                      suitePath: '/src/brokers/test/test-broker.test.ts',
+                      testName: 'should work',
+                      message: 'Expected true',
+                    },
+                  ],
+                  rawOutput: { stdout: '', stderr: '', exitCode: 1 },
+                },
+              ],
+            },
+          ],
+        }),
       });
 
-      const result = wardOutputToFilePathsTransformer({ output });
+      const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
-      expect(result).toStrictEqual(['/src/widgets/user-card/user-card-widget.tsx']);
+      expect(result).toStrictEqual(['/src/brokers/test/test-broker.test.ts']);
     });
 
-    it('VALID: {output with duplicate paths} => returns deduplicated array', () => {
-      const output = ErrorMessageStub({
-        value: 'Error in /src/file.ts at line 1\nError in /src/file.ts at line 10',
+    it('VALID: {errors and test failures mixed} => returns all unique paths', () => {
+      const wardResultJson = FileContentsStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'test',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'orchestrator', path: '/project/packages/orchestrator' },
+                  status: 'fail',
+                  errors: [
+                    {
+                      filePath: '/src/file-a.ts',
+                      line: 1,
+                      column: 1,
+                      message: 'err',
+                      severity: 'error',
+                    },
+                  ],
+                  testFailures: [
+                    { suitePath: '/src/file-b.test.ts', testName: 'test', message: 'fail' },
+                  ],
+                  rawOutput: { stdout: '', stderr: '', exitCode: 1 },
+                },
+              ],
+            },
+          ],
+        }),
       });
 
-      const result = wardOutputToFilePathsTransformer({ output });
+      const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
-      expect(result).toStrictEqual(['/src/file.ts']);
+      expect(result).toStrictEqual(['/src/file-a.ts', '/src/file-b.test.ts']);
     });
   });
 
-  describe('output without file paths', () => {
-    it('EMPTY: {output with no paths} => returns empty array', () => {
-      const output = ErrorMessageStub({
-        value: 'Some generic error message without paths',
+  describe('ward result with no failing paths', () => {
+    it('EMPTY: {all checks pass with empty errors} => returns empty array', () => {
+      const wardResultJson = FileContentsStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'lint',
+              status: 'pass',
+              projectResults: [
+                {
+                  projectFolder: { name: 'orchestrator', path: '/project/packages/orchestrator' },
+                  status: 'pass',
+                  errors: [],
+                  testFailures: [],
+                  rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+                },
+              ],
+            },
+          ],
+        }),
       });
 
-      const result = wardOutputToFilePathsTransformer({ output });
+      const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
       expect(result).toStrictEqual([]);
     });
 
-    it('EMPTY: {empty output} => returns empty array', () => {
-      const output = ErrorMessageStub({ value: '' });
+    it('EMPTY: {empty checks array} => returns empty array', () => {
+      const wardResultJson = FileContentsStub({
+        value: JSON.stringify({ checks: [] }),
+      });
 
-      const result = wardOutputToFilePathsTransformer({ output });
+      const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
       expect(result).toStrictEqual([]);
     });
   });
 
-  describe('output with no recognizable paths', () => {
-    it('EDGE: {output with no slash-prefixed paths} => returns empty array', () => {
-      const output = ErrorMessageStub({
-        value: 'Error: module not found\nTypeError: Cannot read property',
+  describe('edge cases', () => {
+    it('EDGE: {no checks key in JSON} => returns empty array', () => {
+      const wardResultJson = FileContentsStub({
+        value: JSON.stringify({ runId: '123', timestamp: 0 }),
       });
 
-      const result = wardOutputToFilePathsTransformer({ output });
+      const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
       expect(result).toStrictEqual([]);
     });
-  });
 
-  describe('output with mixed content', () => {
-    it('VALID: {output with paths mixed in error text} => extracts only valid absolute paths', () => {
-      const output = ErrorMessageStub({
-        value:
-          'packages/orchestrator/src/brokers/test.ts:5:1 - error TS2322\n/home/user/project/src/adapters/fs/read-file/fs-read-file-adapter.ts(10,5): error',
+    it('EDGE: {non-absolute filePath in error} => skips invalid path', () => {
+      const wardResultJson = FileContentsStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'lint',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'orchestrator', path: '/project/packages/orchestrator' },
+                  status: 'fail',
+                  errors: [
+                    {
+                      filePath: 'relative/path.ts',
+                      line: 1,
+                      column: 1,
+                      message: 'err',
+                      severity: 'error',
+                    },
+                  ],
+                  testFailures: [],
+                  rawOutput: { stdout: '', stderr: '', exitCode: 1 },
+                },
+              ],
+            },
+          ],
+        }),
       });
 
-      const result = wardOutputToFilePathsTransformer({ output });
+      const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
-      expect(result).toStrictEqual([
-        '/orchestrator/src/brokers/test.ts',
-        '/home/user/project/src/adapters/fs/read-file/fs-read-file-adapter.ts',
-      ]);
-    });
-  });
-
-  describe('false-positive relative path extraction', () => {
-    // Known behavior: The regex /\/[\w./-]+\.tsx?/g matches from the first `/` in a relative path.
-    // A relative path like `packages/orchestrator/src/file.ts` extracts `/orchestrator/src/file.ts`
-    // because the regex starts matching at the first `/` character. This means ward output
-    // containing relative paths will produce truncated absolute paths.
-    it('EDGE: {relative path like packages/orchestrator/src/file.ts} => extracts from first slash as /orchestrator/src/file.ts', () => {
-      const output = ErrorMessageStub({
-        value: 'packages/orchestrator/src/file.ts:10:5 - error TS2322',
-      });
-
-      const result = wardOutputToFilePathsTransformer({ output });
-
-      expect(result).toStrictEqual(['/orchestrator/src/file.ts']);
+      expect(result).toStrictEqual([]);
     });
   });
 });

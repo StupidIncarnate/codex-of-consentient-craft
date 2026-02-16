@@ -47,7 +47,7 @@ Call these via Bash using curl:
 
 **A step is only considered complete when:**
 1. All functionality is implemented according to step requirements
-2. All verification commands pass: \`npm run ward [filenames]\`
+2. All verification commands pass: \`dungeonmaster-ward run --glob "filenames"\`
 3. Tests provide 100% branch coverage
 
 **Nothing proceeds to "complete" status without passing verification.**
@@ -81,7 +81,7 @@ Write stub test cases around all planned functionality:
 Implement functionality:
 - Follow coding standards for production code
 - Adhere to project patterns identified in Gate 1
-- Ensure \`npm run ward\` passes for changed files
+- Ensure \`dungeonmaster-ward run\` passes for changed files
 
 **Exit Criteria:** Production code exists and compiles
 
@@ -100,7 +100,7 @@ Fill in test case stubs:
 Run verification and handle failures:
 
 \`\`\`bash
-npm run ward [filenames]
+dungeonmaster-ward run --glob "filenames"
 \`\`\`
 
 If verification fails:
@@ -123,7 +123,7 @@ Compare test cases against production code:
 ### Gate 7: Quality Check
 
 Final validation:
-1. Run \`npm run ward\` on all changed files
+1. Run \`dungeonmaster-ward run\` on all changed files
 2. Verify all requirements are met
 3. Check code quality and readability
 4. Ensure integration with existing code

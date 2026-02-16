@@ -131,7 +131,31 @@ describe('questPipelineBroker', () => {
       proxy.setupCodeweaverQuestLoad({ questJson: JSON.stringify(quest) });
       proxy.setupWardFailMaxRetries({
         failExitCode: ExitCodeStub({ value: 1 }),
-        failOutput: '/project/src/brokers/auth/auth-broker.ts',
+        failWardResultJson: JSON.stringify({
+          checks: [
+            {
+              checkType: 'lint',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'orchestrator', path: '/project/packages/orchestrator' },
+                  status: 'fail',
+                  errors: [
+                    {
+                      filePath: '/project/src/brokers/auth/auth-broker.ts',
+                      line: 1,
+                      column: 1,
+                      message: 'err',
+                      severity: 'error',
+                    },
+                  ],
+                  testFailures: [],
+                  rawOutput: { stdout: '', stderr: '', exitCode: 1 },
+                },
+              ],
+            },
+          ],
+        }),
         spiritmenderExitCode: ExitCodeStub({ value: 0 }),
       });
       proxy.setupLawbringerSpawnsSucceed({ exitCode: ExitCodeStub({ value: 0 }) });

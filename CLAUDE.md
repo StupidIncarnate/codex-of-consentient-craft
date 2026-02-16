@@ -21,7 +21,7 @@ discovery/execution).
 **CRITICAL: Use architecture API endpoints FIRST for EVERY task. No exceptions.**
 
 The dungeonmaster server exposes HTTP endpoints for architecture documentation and code discovery.
-Start the server with `npm run dev` and use `curl` via `Bash` to query these endpoints.
+Start the server with `npm run dev` (or `dungeonmaster-ward dev`) and use `curl` via `Bash` to query these endpoints.
 
 ### Available Endpoints
 
@@ -60,7 +60,7 @@ Start the server with `npm run dev` and use `curl` via `Bash` to query these end
 3. curl -s http://localhost:4737/api/docs/syntax-rules                // Get syntax conventions
 4. curl -s http://localhost:4737/api/docs/testing-patterns            // Get testing patterns (if writing tests)
 5. Write code following API-provided examples                         // All patterns provided by API
-6. Run tests to verify                                                // npm test -- path/to/file.test.ts
+6. Run tests to verify                                                // dungeonmaster-ward run --only test -- path/to/file.test.ts
 ```
 
 ### When to Use Read
@@ -119,7 +119,11 @@ const testbed = installTestbedCreateBroker({
 - Import: `import {x} from '@dungeonmaster/shared/statics'`
 
 ### Common Commands
-- **Run tests**: `npm test`
-- **Run specific test**: `npm test -- path/to/file.test.ts`
-- **Lint + typecheck**: `npm run ward "*pattern*"`
+- **Run all quality checks**: `dungeonmaster-ward run`
+- **Run lint only**: `dungeonmaster-ward run --only lint`
+- **Run tests only**: `dungeonmaster-ward run --only test`
+- **Run typecheck only**: `dungeonmaster-ward run --only typecheck`
+- **Run specific test file**: `dungeonmaster-ward run --only test -- path/to/file.test.ts`
+- **Lint with glob pattern**: `dungeonmaster-ward run --only lint --glob "*pattern*"`
 - **Build**: `npm run build`
+- **Start dev server**: `dungeonmaster-ward dev`

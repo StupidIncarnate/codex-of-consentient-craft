@@ -8,27 +8,23 @@ export const wardPhaseLayerBrokerProxy = (): {
   setupWardSuccessFirstTry: (params: { exitCode: ExitCode }) => void;
   setupWardFailThenSucceed: (params: {
     failExitCode: ExitCode;
-    failOutput: string;
+    failWardResultJson: string;
     successExitCode: ExitCode;
     spiritmenderExitCode: ExitCode;
   }) => void;
   setupWardFailMaxRetries: (params: {
     failExitCode: ExitCode;
-    failOutput: string;
+    failWardResultJson: string;
     spiritmenderExitCode: ExitCode;
   }) => void;
   setupWardFailNoPathsFallbackToQuest: (params: {
     failExitCode: ExitCode;
-    failOutput: string;
+    failWardResultJson: string;
     questJson: string;
     successExitCode: ExitCode;
     spiritmenderExitCode: ExitCode;
   }) => void;
-  setupWardFailNoPathsNoQuest: (params: {
-    failExitCode: ExitCode;
-    failOutput: string;
-    questJson: string;
-  }) => void;
+  setupWardFailNoPathsNoQuest: (params: { failExitCode: ExitCode; questJson: string }) => void;
 } => {
   const questProxy = questLoadBrokerProxy();
   const parallelRunnerProxy = agentParallelRunnerBrokerProxy();
@@ -38,69 +34,67 @@ export const wardPhaseLayerBrokerProxy = (): {
 
   return {
     setupWardSuccessFirstTry: ({ exitCode }: { exitCode: ExitCode }): void => {
-      spawnProxy.setupWardSuccess({ exitCode });
+      spawnProxy.setupWardSuccess({ exitCode, wardResultJson: '{"checks":[]}' });
     },
 
     setupWardFailThenSucceed: ({
       failExitCode,
-      failOutput,
+      failWardResultJson,
       successExitCode,
       spiritmenderExitCode,
     }: {
       failExitCode: ExitCode;
-      failOutput: string;
+      failWardResultJson: string;
       successExitCode: ExitCode;
       spiritmenderExitCode: ExitCode;
     }): void => {
-      spawnProxy.setupWardFailure({ exitCode: failExitCode, output: failOutput });
+      spawnProxy.setupWardFailure({ exitCode: failExitCode, wardResultJson: failWardResultJson });
       parallelRunnerProxy.setupAllSpawnsSucceed({ exitCode: spiritmenderExitCode });
-      spawnProxy.setupWardSuccess({ exitCode: successExitCode });
+      spawnProxy.setupWardSuccess({ exitCode: successExitCode, wardResultJson: '{"checks":[]}' });
     },
 
     setupWardFailMaxRetries: ({
       failExitCode,
-      failOutput,
+      failWardResultJson,
       spiritmenderExitCode,
     }: {
       failExitCode: ExitCode;
-      failOutput: string;
+      failWardResultJson: string;
       spiritmenderExitCode: ExitCode;
     }): void => {
       parallelRunnerProxy.setupAllSpawnsSucceed({ exitCode: spiritmenderExitCode });
-      spawnProxy.setupWardFailure({ exitCode: failExitCode, output: failOutput });
-      spawnProxy.setupWardFailure({ exitCode: failExitCode, output: failOutput });
-      spawnProxy.setupWardFailure({ exitCode: failExitCode, output: failOutput });
+      spawnProxy.setupWardFailure({ exitCode: failExitCode, wardResultJson: failWardResultJson });
+      spawnProxy.setupWardFailure({ exitCode: failExitCode, wardResultJson: failWardResultJson });
+      spawnProxy.setupWardFailure({ exitCode: failExitCode, wardResultJson: failWardResultJson });
     },
 
     setupWardFailNoPathsFallbackToQuest: ({
       failExitCode,
-      failOutput,
+      failWardResultJson,
       questJson,
       successExitCode,
       spiritmenderExitCode,
     }: {
       failExitCode: ExitCode;
-      failOutput: string;
+      failWardResultJson: string;
       questJson: string;
       successExitCode: ExitCode;
       spiritmenderExitCode: ExitCode;
     }): void => {
-      spawnProxy.setupWardFailure({ exitCode: failExitCode, output: failOutput });
+      spawnProxy.setupWardFailure({ exitCode: failExitCode, wardResultJson: failWardResultJson });
       questProxy.setupQuestFile({ questJson });
       parallelRunnerProxy.setupAllSpawnsSucceed({ exitCode: spiritmenderExitCode });
-      spawnProxy.setupWardSuccess({ exitCode: successExitCode });
+      spawnProxy.setupWardSuccess({ exitCode: successExitCode, wardResultJson: '{"checks":[]}' });
     },
 
     setupWardFailNoPathsNoQuest: ({
       failExitCode,
-      failOutput,
       questJson,
     }: {
       failExitCode: ExitCode;
-      failOutput: string;
       questJson: string;
     }): void => {
-      spawnProxy.setupWardFailure({ exitCode: failExitCode, output: failOutput });
+      spawnProxy.setupWardNoRunId({ exitCode: failExitCode });
       questProxy.setupQuestFile({ questJson });
     },
   };

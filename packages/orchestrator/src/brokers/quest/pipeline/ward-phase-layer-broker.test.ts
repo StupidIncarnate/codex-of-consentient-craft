@@ -12,6 +12,50 @@ import { wardPhaseLayerBrokerProxy } from './ward-phase-layer-broker.proxy';
 
 type OrchestrationPhase = ReturnType<typeof OrchestrationPhaseStub>;
 
+const FAIL_WARD_RESULT_JSON = JSON.stringify({
+  checks: [
+    {
+      checkType: 'lint',
+      status: 'fail',
+      projectResults: [
+        {
+          projectFolder: { name: 'orchestrator', path: '/project/packages/orchestrator' },
+          status: 'fail',
+          errors: [
+            {
+              filePath: '/src/brokers/test/test-broker.ts',
+              line: 5,
+              column: 1,
+              message: 'Lint failed',
+              severity: 'error',
+            },
+          ],
+          testFailures: [],
+          rawOutput: { stdout: '', stderr: '', exitCode: 1 },
+        },
+      ],
+    },
+  ],
+});
+
+const NO_PATHS_WARD_RESULT_JSON = JSON.stringify({
+  checks: [
+    {
+      checkType: 'lint',
+      status: 'fail',
+      projectResults: [
+        {
+          projectFolder: { name: 'orchestrator', path: '/project/packages/orchestrator' },
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          rawOutput: { stdout: 'Some error without file paths', stderr: '', exitCode: 1 },
+        },
+      ],
+    },
+  ],
+});
+
 describe('wardPhaseLayerBroker', () => {
   describe('ward succeeds first try', () => {
     it('VALID: {ward exits 0} => returns successfully without spiritmender', async () => {
@@ -38,7 +82,7 @@ describe('wardPhaseLayerBroker', () => {
       const proxy = wardPhaseLayerBrokerProxy();
       proxy.setupWardFailThenSucceed({
         failExitCode: ExitCodeStub({ value: 1 }),
-        failOutput: 'Error in /src/brokers/test/test-broker.ts\nLint failed',
+        failWardResultJson: FAIL_WARD_RESULT_JSON,
         successExitCode: ExitCodeStub({ value: 0 }),
         spiritmenderExitCode: ExitCodeStub({ value: 0 }),
       });
@@ -72,7 +116,7 @@ describe('wardPhaseLayerBroker', () => {
 
       proxy.setupWardFailNoPathsFallbackToQuest({
         failExitCode: ExitCodeStub({ value: 1 }),
-        failOutput: 'Some error without file paths',
+        failWardResultJson: NO_PATHS_WARD_RESULT_JSON,
         questJson: JSON.stringify(quest),
         successExitCode: ExitCodeStub({ value: 0 }),
         spiritmenderExitCode: ExitCodeStub({ value: 0 }),
@@ -98,7 +142,7 @@ describe('wardPhaseLayerBroker', () => {
       const proxy = wardPhaseLayerBrokerProxy();
       proxy.setupWardFailMaxRetries({
         failExitCode: ExitCodeStub({ value: 1 }),
-        failOutput: 'Error in /src/file.ts',
+        failWardResultJson: FAIL_WARD_RESULT_JSON,
         spiritmenderExitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -124,7 +168,6 @@ describe('wardPhaseLayerBroker', () => {
 
       proxy.setupWardFailNoPathsNoQuest({
         failExitCode: ExitCodeStub({ value: 1 }),
-        failOutput: 'generic error without paths',
         questJson: JSON.stringify(quest),
       });
 
@@ -148,7 +191,7 @@ describe('wardPhaseLayerBroker', () => {
       const proxy = wardPhaseLayerBrokerProxy();
       proxy.setupWardFailThenSucceed({
         failExitCode: ExitCodeStub({ value: 1 }),
-        failOutput: 'Error in /src/file.ts',
+        failWardResultJson: FAIL_WARD_RESULT_JSON,
         successExitCode: ExitCodeStub({ value: 0 }),
         spiritmenderExitCode: ExitCodeStub({ value: 0 }),
       });

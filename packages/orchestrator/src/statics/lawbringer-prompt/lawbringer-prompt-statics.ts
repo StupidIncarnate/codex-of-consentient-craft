@@ -123,7 +123,7 @@ Manually verify all branches are tested:
 
 Execute verification commands:
 \`\`\`bash
-npm run ward [filenames]
+dungeonmaster-ward run --glob "filenames"
 \`\`\`
 
 All files must pass lint and type checks.

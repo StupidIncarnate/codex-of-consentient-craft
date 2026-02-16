@@ -3,12 +3,19 @@ import { AbsoluteFilePathStub, ExitCodeStub } from '@dungeonmaster/shared/contra
 import { spawnWardLayerBroker } from './spawn-ward-layer-broker';
 import { spawnWardLayerBrokerProxy } from './spawn-ward-layer-broker.proxy';
 
+const WARD_RESULT_JSON = JSON.stringify({
+  runId: '1739625600000-a3f1',
+  timestamp: 1739625600000,
+  filters: {},
+  checks: [],
+});
+
 describe('spawnWardLayerBroker', () => {
   describe('successful ward run', () => {
-    it('VALID: {ward exits with 0} => returns exit code 0 and empty output', async () => {
+    it('VALID: {ward exits with 0} => returns exit code 0 and ward result JSON', async () => {
       const proxy = spawnWardLayerBrokerProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupWardSuccess({ exitCode });
+      proxy.setupWardSuccess({ exitCode, wardResultJson: WARD_RESULT_JSON });
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
@@ -16,19 +23,16 @@ describe('spawnWardLayerBroker', () => {
 
       expect(result).toStrictEqual({
         exitCode: 0,
-        output: '',
+        wardResultJson: WARD_RESULT_JSON,
       });
     });
   });
 
   describe('failed ward run', () => {
-    it('VALID: {ward exits with 1 and error output} => returns exit code 1 and output', async () => {
+    it('VALID: {ward exits with 1 and result JSON} => returns exit code 1 and ward result JSON', async () => {
       const proxy = spawnWardLayerBrokerProxy();
       const exitCode = ExitCodeStub({ value: 1 });
-      proxy.setupWardFailure({
-        exitCode,
-        output: 'Error in /src/brokers/test/test-broker.ts',
-      });
+      proxy.setupWardFailure({ exitCode, wardResultJson: WARD_RESULT_JSON });
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
@@ -36,15 +40,15 @@ describe('spawnWardLayerBroker', () => {
 
       expect(result).toStrictEqual({
         exitCode: 1,
-        output: 'Error in /src/brokers/test/test-broker.ts',
+        wardResultJson: WARD_RESULT_JSON,
       });
     });
   });
 
   describe('error cases', () => {
-    it('ERROR: {spawn error} => resolves with exit code 1', async () => {
+    it('ERROR: {spawn error} => resolves with exit code 1 and null wardResultJson', async () => {
       const proxy = spawnWardLayerBrokerProxy();
-      proxy.setupWardError({ error: new Error('ENOENT: npm not found') });
+      proxy.setupWardError({ error: new Error('ENOENT: dungeonmaster-ward not found') });
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
@@ -52,29 +56,44 @@ describe('spawnWardLayerBroker', () => {
 
       expect(result).toStrictEqual({
         exitCode: 1,
-        output: '',
+        wardResultJson: null,
+      });
+    });
+
+    it('ERROR: {ward output has no run ID} => returns null wardResultJson', async () => {
+      const proxy = spawnWardLayerBrokerProxy();
+      const exitCode = ExitCodeStub({ value: 1 });
+      proxy.setupWardNoRunId({ exitCode });
+
+      const result = await spawnWardLayerBroker({
+        startPath: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual({
+        exitCode: 1,
+        wardResultJson: null,
       });
     });
   });
 
   describe('spawn arguments', () => {
-    it('VALID: {startPath} => spawns npm run ward:all with correct cwd', async () => {
+    it('VALID: {startPath} => spawns dungeonmaster-ward run with correct cwd', async () => {
       const proxy = spawnWardLayerBrokerProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupWardSuccess({ exitCode });
+      proxy.setupWardSuccess({ exitCode, wardResultJson: WARD_RESULT_JSON });
 
       await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/home/user/project' }),
       });
 
-      expect(proxy.getSpawnedCommand()).toBe('npm');
-      expect(proxy.getSpawnedArgs()).toStrictEqual(['run', 'ward:all']);
+      expect(proxy.getSpawnedCommand()).toBe('dungeonmaster-ward');
+      expect(proxy.getSpawnedArgs()).toStrictEqual(['run']);
     });
 
     it('VALID: {startPath} => forwards startPath as cwd to spawned process', async () => {
       const proxy = spawnWardLayerBrokerProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupWardSuccess({ exitCode });
+      proxy.setupWardSuccess({ exitCode, wardResultJson: WARD_RESULT_JSON });
 
       await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/home/user/project' }),
