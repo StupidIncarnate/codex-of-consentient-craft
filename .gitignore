@@ -70,3 +70,4 @@ tsconfig.tsbuildinfo
 dependency-graph.html
 .husky
 .test-tmp/
+.ward/
