@@ -8,7 +8,7 @@
 
 import type { AbsoluteFilePath, ErrorMessage, ExitCode } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnCaptureAdapter } from '../../../adapters/child-process/spawn-capture/child-process-spawn-capture-adapter';
+import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
 
 export const spawnWardLayerBroker = async ({
   startPath,

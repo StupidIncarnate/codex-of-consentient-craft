@@ -51,6 +51,7 @@
     "@dungeonmaster/standards": "*",
     "@dungeonmaster/testing": "*",
     "@dungeonmaster/tooling": "*",
+    "@dungeonmaster/ward": "*",
     "@dungeonmaster/web": "*",
     "@types/ioredis": "^4.28.10",
     "ioredis": "^5.7.0",

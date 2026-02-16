@@ -1,6 +1,6 @@
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnCaptureAdapterProxy } from '../../../adapters/child-process/spawn-capture/child-process-spawn-capture-adapter.proxy';
+import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const spawnWardLayerBrokerProxy = (): {
   setupWardSuccess: (params: { exitCode: ExitCode }) => void;

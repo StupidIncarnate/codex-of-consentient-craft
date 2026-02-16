@@ -1,0 +1,34 @@
+{
+  "name": "@dungeonmaster/ward",
+  "version": "0.1.0",
+  "description": "Structured lint/typecheck/test runner with tiered drill-down output",
+  "bin": {
+    "dungeonmaster-ward": "./dist/startup/start-ward.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
+    "build:clean": "rm -rf dist && npm run build",
+    "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": ["dist/", "src/", "README.md"],
+  "keywords": ["ward", "lint", "typecheck", "test", "runner"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@dungeonmaster/testing": "*"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-eslint-comments": "^3.2.0"
+  },
+  "dependencies": {
+    "@dungeonmaster/shared": "*",
+    "zod": "^3.25.76"
+  }
+}

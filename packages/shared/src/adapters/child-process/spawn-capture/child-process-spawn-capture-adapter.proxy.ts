@@ -1,5 +1,5 @@
 import { ExitCodeStub, type ExitCode } from '@dungeonmaster/shared/contracts';
-import { execFile } from 'child_process';
+import type { execFile } from 'child_process';
 
 jest.mock('child_process');
 
@@ -12,7 +12,11 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
   getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => unknown;
 } => {
-  const mock = jest.mocked(execFile) as jest.Mock;
+  // Re-acquire execFile from the current mock registry to avoid stale references
+  // when this proxy is used cross-package from compiled dist (where jest.mock is not hoisted)
+  const mock = jest.mocked(
+    jest.requireMock<{ execFile: typeof execFile }>('child_process').execFile,
+  ) as jest.Mock;
 
   mock.mockImplementation(
     (_cmd: string, _args: string[], _opts: unknown, callback: ExecFileCallback) => {
