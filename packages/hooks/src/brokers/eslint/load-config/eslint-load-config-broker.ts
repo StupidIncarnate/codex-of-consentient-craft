@@ -7,6 +7,9 @@
  */
 import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
 import { eslintCalculateConfigForFileAdapter } from '../../../adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter';
+import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import { hasEslintRulesConfigGuard } from '../../../guards/has-eslint-rules-config/has-eslint-rules-config-guard';
+import { eslintFallbackPathsBroker } from '../fallback-paths/eslint-fallback-paths-broker';
 
 // Cache the config to avoid repeated expensive loading
 // WARNING: This is a module-level cache that persists across function calls.
@@ -35,7 +38,30 @@ export const eslintLoadConfigBroker = async ({
 
   try {
     const eslint = eslintEslintAdapter({ options: { cwd: targetCwd } });
-    const config = await eslintCalculateConfigForFileAdapter({ eslint, filePath });
+    let config = await eslintCalculateConfigForFileAdapter({ eslint, filePath });
+
+    // If the file is in an ESLint-ignored path (e.g., .test-tmp), calculateConfigForFile
+    // returns an empty config with no rules. Build candidate fallback paths by walking up
+    // from cwd, then resolve them all in parallel to find a non-ignored location.
+    if (!hasEslintRulesConfigGuard({ config })) {
+      const candidatePaths = eslintFallbackPathsBroker({
+        cwd: pathResolveAdapter({ paths: [targetCwd] }),
+      });
+
+      const candidateConfigs = await Promise.all(
+        candidatePaths.map(async (candidate) =>
+          eslintCalculateConfigForFileAdapter({ eslint, filePath: candidate }),
+        ),
+      );
+
+      const matchingConfig = candidateConfigs.find((candidate) =>
+        hasEslintRulesConfigGuard({ config: candidate }),
+      );
+
+      if (matchingConfig !== undefined) {
+        config = matchingConfig;
+      }
+    }
 
     // Only update cache if no other call has changed it
     // This prevents race conditions where parallel calls overwrite each other

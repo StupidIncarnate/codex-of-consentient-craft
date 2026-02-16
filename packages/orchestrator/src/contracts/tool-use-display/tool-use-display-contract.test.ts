@@ -4,9 +4,9 @@ import { ToolUseDisplayStub } from './tool-use-display.stub';
 describe('toolUseDisplayContract', () => {
   describe('valid input', () => {
     it('VALID: {value: tool name display} => returns branded string', () => {
-      const result = ToolUseDisplayStub({ value: '[mcp__dungeonmaster__discover]' });
+      const result = ToolUseDisplayStub({ value: '[Bash]' });
 
-      expect(result).toBe('[mcp__dungeonmaster__discover]');
+      expect(result).toBe('[Bash]');
     });
 
     it('VALID: {value: tool with newline} => returns branded string', () => {

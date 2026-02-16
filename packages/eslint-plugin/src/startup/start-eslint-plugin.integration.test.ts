@@ -71,7 +71,7 @@ describe('StartEslintPlugin', () => {
           },
           messages: {
             banPrimitive:
-              'Raw {{typeName}} type is not allowed. Use mcp__dungeonmaster__discover to search for existing contracts (e.g., {{suggestion}}). If none fits, create a new contract.',
+              'Raw {{typeName}} type is not allowed. Use the discover endpoint to search for existing contracts (e.g., {{suggestion}}). If none fits, create a new contract.',
           },
           schema: [
             {

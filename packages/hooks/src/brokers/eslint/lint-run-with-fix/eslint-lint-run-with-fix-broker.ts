@@ -30,6 +30,7 @@ import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severit
  */
 export const eslintLintRunWithFixBroker = async ({
   filePath,
+  config: _config,
   cwd = process.cwd(),
 }: {
   filePath: string;
@@ -50,8 +51,7 @@ export const eslintLintRunWithFixBroker = async ({
     }
 
     // Create ESLint instance with fix: true
-    // Use the project's eslint.config.js instead of overriding
-    // The 'config' parameter is not used since we rely on the project config
+    // Use the project's eslint.config.js for full plugin support (prettier, etc.)
     const eslint = eslintEslintAdapter({
       options: {
         cwd,

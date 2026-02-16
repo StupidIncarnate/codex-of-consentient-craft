@@ -1,19 +1,19 @@
-**🔴 PRIMARY SOURCE: MCP Architecture Tools**
+**PRIMARY SOURCE: Architecture HTTP API**
 
 Get complete architecture information dynamically:
 
-```typescript
-// Complete orientation (all folders, layers, rules):
-mcp__dungeonmaster__get - architecture()
+```bash
+# Complete orientation (all folders, layers, rules):
+curl -s http://localhost:4737/api/docs/architecture
 
-// Deep dive on specific folder:
-mcp__dungeonmaster__get - folder - detail({folderType: "brokers"})
+# Deep dive on specific folder:
+curl -s http://localhost:4737/api/docs/folder-detail/brokers
 
-// Universal syntax rules:
-mcp__dungeonmaster__get - syntax - rules()
+# Universal syntax rules:
+curl -s http://localhost:4737/api/docs/syntax-rules
 ```
 
-This page is a human-readable backup only. MCP provides the authoritative, always-current source.
+This page is a human-readable backup only. The HTTP API provides the authoritative, always-current source.
 
 ---
 
@@ -44,11 +44,11 @@ src/
 
 ## Forbidden Folders - Where Code Actually Goes
 
-| ❌ FORBIDDEN   | ✅ USE INSTEAD              | WHY                                                            |
+| FORBIDDEN     | USE INSTEAD                | WHY                                                            |
 |---------------|----------------------------|----------------------------------------------------------------|
 | utils/        | adapters/ or transformers/ | Based on whether it wraps external packages or transforms data |
 | lib/          | adapters/                  | External package wrappers only                                 |
-| helpers/      | guards/ or transformers/   | Boolean functions → guards/, others → transformers/            |
+| helpers/      | guards/ or transformers/   | Boolean functions -> guards/, others -> transformers/          |
 | common/       | Distribute by function     | No catch-all folders allowed                                   |
 | shared/       | Distribute by function     | No catch-all folders allowed                                   |
 | core/         | brokers/                   | Business logic operations                                      |
@@ -71,16 +71,16 @@ src/
 
 Files within the same domain folder can import each other:
 
-- `adapters/fs/fs-exists-sync-adapter.test.ts` → `./fs-exists-sync-adapter` ✅
-- `contracts/user/user.stub.ts` → `./user-contract` ✅
+- `adapters/fs/fs-exists-sync-adapter.test.ts` -> `./fs-exists-sync-adapter`
+- `contracts/user/user.stub.ts` -> `./user-contract`
 
 ### Cross-folder imports
 
 Only entry files can be imported across domain folders:
 
 - Entry files = files matching folder's suffix pattern (`-adapter.ts`, `-contract.ts`, `-broker.ts`, etc.)
-- `guards/auth/auth-guard.ts` → `../../contracts/user/user-contract` ✅ (entry file)
-- `guards/auth/auth-guard.ts` → `../../contracts/user/helper` ❌ (not entry file)
+- `guards/auth/auth-guard.ts` -> `../../contracts/user/user-contract` (entry file)
+- `guards/auth/auth-guard.ts` -> `../../contracts/user/helper` NOT allowed (not entry file)
 
 ### Import hierarchy (top can import from bottom)
 
@@ -101,22 +101,22 @@ errors/           # Can import: statics
 
 ## File Suffixes by Folder
 
-| Folder       | File Suffix        | Export Pattern                 | Example                             |
-|--------------|--------------------|--------------------------------|-------------------------------------|
-| statics      | `-statics.ts`      | `export const nameStatics`     | `user-statics.ts` → `userStatics`   |
-| contracts    | `-contract.ts`     | `export const nameContract`    | `user-contract.ts` → `userContract` |
-| guards       | `-guard.ts`        | `export const nameGuard`       | `has-permission-guard.ts`           |
-| transformers | `-transformer.ts`  | `export const nameTransformer` | `format-date-transformer.ts`        |
-| errors       | `-error.ts`        | `export class NameError`       | `validation-error.ts`               |
-| flows        | `-flow.ts(x)`      | `export const NameFlow`        | `user-flow.tsx` → `UserFlow`        |
-| adapters     | `-adapter.ts`      | `export const nameAdapter`     | `axios-get-adapter.ts`              |
-| middleware   | `-middleware.ts`   | `export const nameMiddleware`  | `http-telemetry-middleware.ts`      |
-| brokers      | `-broker.ts`       | `export const nameBroker`      | `user-fetch-broker.ts`              |
-| bindings     | `-binding.ts`      | `export const nameBinding`     | `use-user-data-binding.ts`          |
-| state        | `-state.ts`        | `export const nameState`       | `user-cache-state.ts`               |
-| responders   | `-responder.ts(x)` | `export const NameResponder`   | `user-get-responder.ts`             |
-| widgets      | `-widget.tsx`      | `export const NameWidget`      | `user-card-widget.tsx`              |
-| startup      | `start-*.ts(x)`    | `export const StartName`       | `start-server.ts` → `StartServer`   |
+| Folder       | File Suffix        | Export Pattern                 | Example                              |
+|--------------|--------------------|--------------------------------|--------------------------------------|
+| statics      | `-statics.ts`      | `export const nameStatics`     | `user-statics.ts` -> `userStatics`   |
+| contracts    | `-contract.ts`     | `export const nameContract`    | `user-contract.ts` -> `userContract` |
+| guards       | `-guard.ts`        | `export const nameGuard`       | `has-permission-guard.ts`            |
+| transformers | `-transformer.ts`  | `export const nameTransformer` | `format-date-transformer.ts`         |
+| errors       | `-error.ts`        | `export class NameError`       | `validation-error.ts`                |
+| flows        | `-flow.ts(x)`      | `export const NameFlow`        | `user-flow.tsx` -> `UserFlow`        |
+| adapters     | `-adapter.ts`      | `export const nameAdapter`     | `axios-get-adapter.ts`               |
+| middleware   | `-middleware.ts`   | `export const nameMiddleware`  | `http-telemetry-middleware.ts`       |
+| brokers      | `-broker.ts`       | `export const nameBroker`      | `user-fetch-broker.ts`               |
+| bindings     | `-binding.ts`      | `export const nameBinding`     | `use-user-data-binding.ts`           |
+| state        | `-state.ts`        | `export const nameState`       | `user-cache-state.ts`                |
+| responders   | `-responder.ts(x)` | `export const NameResponder`   | `user-get-responder.ts`              |
+| widgets      | `-widget.tsx`      | `export const NameWidget`      | `user-card-widget.tsx`               |
+| startup      | `start-*.ts(x)`    | `export const StartName`       | `start-server.ts` -> `StartServer`   |
 
 ## Naming Conventions Summary
 
@@ -159,23 +159,25 @@ startup/
 
 **"Where does this code go?"**
 
-1. Does it wrap an npm package? → **adapters/**
-2. Is it a boolean check? → **guards/**
-3. Does it transform data? → **transformers/**
-4. Is it a Zod schema/type? → **contracts/**
-5. Is it immutable config? → **statics/**
-6. Is it business logic? → **brokers/**
-7. Is it a React hook? → **bindings/**
-8. Is it UI/component? → **widgets/**
-9. Is it a route handler? → **responders/**
-10. Is it in-memory storage? → **state/**
-11. Is it app initialization? → **startup/**
+1. Does it wrap an npm package? -> **adapters/**
+2. Is it a boolean check? -> **guards/**
+3. Does it transform data? -> **transformers/**
+4. Is it a Zod schema/type? -> **contracts/**
+5. Is it immutable config? -> **statics/**
+6. Is it business logic? -> **brokers/**
+7. Is it a React hook? -> **bindings/**
+8. Is it UI/component? -> **widgets/**
+9. Is it a route handler? -> **responders/**
+10. Is it in-memory storage? -> **state/**
+11. Is it app initialization? -> **startup/**
 
 **"Should I create a new file or extend existing?"**
 
-1. Search for existing domain files using MCP discovery:
-    - `mcp__dungeonmaster__discover({ type: "files", fileType: "broker", search: "user" })`
-    - `mcp__dungeonmaster__discover({ type: "files", path: "packages/eslint-plugin/src/guards" })`
+1. Search for existing domain files using the discover endpoint:
+    -
+    `curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"user"}'`
+    -
+    `curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/eslint-plugin/src/guards"}'`
 2. If exists:
     - **bindings/widgets/brokers**: Extend with options
     - **transformers**: Create new file for each output shape
@@ -183,9 +185,9 @@ startup/
 
 **"Can I use while/if statements?"**
 
-- **while (true)** → ❌ Use recursion instead
-- **if/else** → ✅ Normal conditionals are fine
-- **for/forEach** → ✅ Loops over collections are fine
+- **while (true)** -> Use recursion instead
+- **if/else** -> Normal conditionals are fine
+- **for/forEach** -> Loops over collections are fine
 
 **"How do I mock this in tests?"**
 

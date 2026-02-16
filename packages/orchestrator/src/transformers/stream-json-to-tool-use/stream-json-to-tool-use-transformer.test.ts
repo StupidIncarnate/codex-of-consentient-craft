@@ -8,14 +8,14 @@ describe('streamJsonToToolUseTransformer', () => {
         value: JSON.stringify({
           type: 'assistant',
           message: {
-            content: [{ type: 'tool_use', name: 'mcp__dungeonmaster__discover', input: {} }],
+            content: [{ type: 'tool_use', name: 'Bash', input: {} }],
           },
         }),
       });
 
       const result = streamJsonToToolUseTransformer({ line });
 
-      expect(result).toBe('[mcp__dungeonmaster__discover]\n');
+      expect(result).toBe('[Bash]\n');
     });
 
     it('VALID: {assistant message with multiple tool_use, empty inputs} => returns all tool names', () => {

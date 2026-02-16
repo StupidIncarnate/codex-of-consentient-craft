@@ -26,14 +26,18 @@ export const fsWriteFileAdapterProxy = (): {
     getWrittenContent: (): unknown => {
       const { calls } = mock.mock;
       const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
+      if (!lastCall) {
+        return undefined;
+      }
       return lastCall[1];
     },
 
     getWrittenPath: (): unknown => {
       const { calls } = mock.mock;
       const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
+      if (!lastCall) {
+        return undefined;
+      }
       return lastCall[0];
     },
   };

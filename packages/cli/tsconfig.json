@@ -6,7 +6,6 @@
     "declarationMap": true,
     "declaration": true,
     "noEmit": false,
-    "jsx": "react",
     "module": "commonjs",
     "moduleResolution": "node",
     "typeRoots": [

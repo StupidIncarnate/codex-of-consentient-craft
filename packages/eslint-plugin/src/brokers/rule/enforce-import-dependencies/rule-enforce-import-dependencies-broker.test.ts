@@ -881,7 +881,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'widgets',
             importedFolder: 'flows',
             allowed:
-              'adapters/, bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, react, @mantine/core, @mantine/hooks, ansi-to-react, @testing-library/react, @testing-library/user-event',
+              'adapters/, bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, react, @mantine/core, @mantine/hooks, ansi-to-react, react-router-dom, @testing-library/react, @testing-library/user-event',
           },
         },
       ],
@@ -896,7 +896,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'widgets',
             importedFolder: 'responders',
             allowed:
-              'adapters/, bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, react, @mantine/core, @mantine/hooks, ansi-to-react, @testing-library/react, @testing-library/user-event',
+              'adapters/, bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, react, @mantine/core, @mantine/hooks, ansi-to-react, react-router-dom, @testing-library/react, @testing-library/user-event',
           },
         },
       ],

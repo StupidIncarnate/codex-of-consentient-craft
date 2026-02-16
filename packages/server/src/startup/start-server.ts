@@ -24,12 +24,10 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
-import {
-  architectureFolderDetailBroker,
-  architectureSyntaxRulesBroker,
-  architectureTestingPatternsBroker,
-  mcpDiscoverBroker,
-} from '@dungeonmaster/mcp/brokers';
+import { architectureFolderDetailBroker } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker';
+import { architectureSyntaxRulesBroker } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
+import { architectureTestingPatternsBroker } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
+import { mcpDiscoverBroker } from '../brokers/mcp/discover/mcp-discover-broker';
 import {
   isoTimestampContract,
   orchestrationEventsState,

@@ -10,7 +10,7 @@ test.describe('Guild Selection & Quest Loading', () => {
     await page.goto('/');
     await page.getByText('Guild A').click();
 
-    await expect(page.getByText('QUESTS')).toBeVisible();
+    await expect(page.getByTestId('GUILD_QUEST_LIST')).toBeVisible();
     await expect(page.getByText('Quest Alpha')).toBeVisible();
   });
 
@@ -39,9 +39,5 @@ test.describe('Guild Selection & Quest Loading', () => {
     await page.getByText('Guild B').click();
     await expect(page.getByText('Quest Alpha')).not.toBeVisible();
     await expect(page.getByText('Quest Beta')).toBeVisible();
-  });
-
-  test.skip('quest list error shows error state', async () => {
-    // Requires mocking server responses - skipped for now
   });
 });

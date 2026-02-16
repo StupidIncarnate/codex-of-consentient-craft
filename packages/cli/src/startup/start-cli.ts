@@ -1,95 +1,67 @@
 #!/usr/bin/env node
 
 /**
- * PURPOSE: CLI entry point with interactive Ink menu and server launcher
+ * PURPOSE: CLI entry point for init command and server launcher
  *
  * USAGE:
- * await StartCli();
- * // Renders interactive menu
+ * dungeonmaster init  // Runs install across all packages
+ * dungeonmaster       // Launches HTTP server and opens browser
  */
 
 import { exec } from 'child_process';
 import { resolve } from 'path';
-import { render } from 'ink';
-import React from 'react';
 
-import type { InstallContext, Quest, QuestId } from '@dungeonmaster/shared/contracts';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  guildIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { fsRealpathAdapter } from '../adapters/fs/realpath/fs-realpath-adapter';
-import { cliStatics } from '../statics/cli/cli-statics';
+import { installRunBroker } from '../brokers/install/run/install-run-broker';
 
-import type { CliAppScreen } from '../widgets/cli-app/cli-app-widget';
-import { CliAppWidget } from '../widgets/cli-app/cli-app-widget';
+const COMMAND_ARG_START_INDEX = 2;
 
-type QuestFolder = Quest['folder'];
+const COMMANDS = {
+  init: 'init',
+  serve: 'serve',
+} as const;
 
-// ANSI escape sequence to clear screen and move cursor to top-left
-const CLEAR_SCREEN = '\x1b[2J\x1b[H';
+const SERVER_MODULE_NAME = '@dungeonmaster/server';
 
-export const StartCli = async ({
-  initialScreen = 'menu' as CliAppScreen,
-}: {
-  initialScreen?: CliAppScreen;
-} = {}): Promise<void> => {
-  // Clear screen before rendering ink UI
-  process.stdout.write(CLEAR_SCREEN);
+export const StartCli = async ({ command }: { command: string | undefined }): Promise<void> => {
+  if (command === COMMANDS.init) {
+    const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, '../../../..'));
+    const targetProjectRoot = filePathContract.parse(process.cwd());
 
-  // State object to capture results from Ink callbacks (object reference stays constant)
-  const state: {
-    pendingQuestExecution: { questId: QuestId; questFolder: QuestFolder } | null;
-    shouldExit: boolean;
-  } = {
-    pendingQuestExecution: null,
-    shouldExit: false,
-  };
+    const results = await installRunBroker({
+      context: { dungeonmasterRoot, targetProjectRoot },
+    });
 
-  // Compute install context for init flow
-  // dungeonmasterRoot is 4 levels up from startup/ (startup -> src -> cli -> packages -> root)
-  const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, '../../../..'));
-  const targetProjectRoot = filePathContract.parse(process.cwd());
-  const installContext: InstallContext = { dungeonmasterRoot, targetProjectRoot };
+    for (const result of results) {
+      const status = result.success ? 'OK' : 'FAIL';
+      process.stdout.write(`[${status}] ${result.packageName}: ${result.message}\n`);
+    }
 
-  // Placeholder guildId until guild registry integration is wired up
-  const guildId = guildIdContract.parse('00000000-0000-0000-0000-000000000000');
-
-  // Render the Ink app
-  const { unmount, waitUntilExit } = render(
-    React.createElement(CliAppWidget, {
-      initialScreen,
-      installContext,
-      guildId,
-      onRunQuest: ({ questId, questFolder }: { questId: QuestId; questFolder: QuestFolder }) => {
-        state.pendingQuestExecution = { questId, questFolder };
-        unmount();
-      },
-      onExit: () => {
-        state.shouldExit = true;
-        unmount();
-      },
-    }),
-  );
-
-  await waitUntilExit();
-
-  // Exit if user requested
-  if (state.shouldExit) {
     return;
   }
 
-  // Handle quest execution if pending - quest execution is handled by orchestrator package
-  if (state.pendingQuestExecution !== null) {
-    return StartCli({ initialScreen: 'menu' });
-  }
+  // Default: launch HTTP server and open browser
+  const serverPath = filePathContract.parse(require.resolve(SERVER_MODULE_NAME));
+  const serverModule = await runtimeDynamicImportAdapter<{ StartServer: () => void }>({
+    path: serverPath,
+  });
 
-  // No quest pending, restart at menu
-  return StartCli({ initialScreen: 'menu' });
+  serverModule.StartServer();
+  const port = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;
+  const serverUrl = `http://${environmentStatics.hostname}:${port}`;
+  process.stdout.write(`Dungeonmaster server running at ${serverUrl}\n`);
+
+  const cmd =
+    process.platform === 'darwin'
+      ? `open ${serverUrl}`
+      : process.platform === 'win32'
+        ? `start ${serverUrl}`
+        : `xdg-open ${serverUrl}`;
+  exec(cmd);
 };
 
 const isMain =
@@ -98,35 +70,11 @@ const isMain =
     fsRealpathAdapter({ filePath: absoluteFilePathContract.parse(__filename) });
 
 if (isMain) {
-  const [command] = process.argv.slice(cliStatics.argv.commandLineArgStartIndex);
+  const [command] = process.argv.slice(COMMAND_ARG_START_INDEX);
 
-  if (command === cliStatics.commands.init) {
-    StartCli({ initialScreen: 'init' }).catch((error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      process.stderr.write(`Error: ${errorMessage}\n`);
-      process.exit(1);
-    });
-  } else {
-    // Default: launch HTTP server and open browser
-    const serverPath = filePathContract.parse(require.resolve(cliStatics.server.moduleName));
-    runtimeDynamicImportAdapter<{ StartServer: () => void }>({ path: serverPath })
-      .then((serverModule) => {
-        serverModule.StartServer();
-        const port = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;
-        const serverUrl = `http://${environmentStatics.hostname}:${port}`;
-        process.stdout.write(`Dungeonmaster server running at ${serverUrl}\n`);
-        const cmd =
-          process.platform === 'darwin'
-            ? `open ${serverUrl}`
-            : process.platform === 'win32'
-              ? `start ${serverUrl}`
-              : `xdg-open ${serverUrl}`;
-        exec(cmd);
-      })
-      .catch((error: unknown) => {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        process.stderr.write(`Failed to start server: ${errorMessage}\n`);
-        process.exit(1);
-      });
-  }
+  StartCli({ command }).catch((error: unknown) => {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`Error: ${errorMessage}\n`);
+    process.exit(1);
+  });
 }

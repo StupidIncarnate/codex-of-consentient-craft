@@ -13,6 +13,8 @@ jest.mock('eslint');
 import { ESLint } from 'eslint';
 import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
 import { eslintCalculateConfigForFileAdapterProxy } from '../../../adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.proxy';
+import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
+import { eslintFallbackPathsBrokerProxy } from '../fallback-paths/eslint-fallback-paths-broker.proxy';
 
 const EDGE_CASE_TEST_CONSTRUCTOR_CALL_COUNT = 6;
 
@@ -23,6 +25,8 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   // Create child proxies
   eslintEslintAdapterProxy();
   eslintCalculateConfigForFileAdapterProxy();
+  pathResolveAdapterProxy();
+  eslintFallbackPathsBrokerProxy();
 
   // Create a mock that returns different values based on which test is running
   const mockEslintConstructor = jest.fn((options: { cwd?: string } | undefined) => {

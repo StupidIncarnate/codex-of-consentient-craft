@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const queueDir = process.env.FAKE_CLAUDE_QUEUE_DIR;
 
@@ -36,11 +37,63 @@ fs.unlinkSync(nextFile);
 const lines = response.lines || [];
 const exitCode = response.exitCode ?? 0;
 const delayMs = response.delayMs ?? 10;
+const sessionId = response.sessionId || null;
+
+// Extract user message from -p argument (matches real Claude CLI behavior)
+const pFlagIndex = process.argv.indexOf('-p');
+const userMessage = pFlagIndex !== -1 && pFlagIndex + 1 < process.argv.length
+    ? process.argv[pFlagIndex + 1]
+    : null;
+
+// Write JSONL session file (mimics real Claude CLI writing ~/.claude/projects/...)
+function writeJsonlSessionFile() {
+    if (!sessionId) return;
+
+    const homeDir = os.homedir();
+    const projectPath = process.cwd();
+    const encodedPath = projectPath.replace(/\//g, '-');
+    const jsonlDir = path.join(homeDir, '.claude', 'projects', encodedPath);
+    const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
+
+    fs.mkdirSync(jsonlDir, {recursive: true});
+
+    // Build JSONL entries using same data structures as stream-json stubs
+    const entries = [];
+
+    // Add user message entry (same shape as real Claude JSONL)
+    if (userMessage) {
+        entries.push(JSON.stringify({
+            type: 'user',
+            message: {role: 'user', content: userMessage},
+        }));
+    }
+
+    // Add assistant entries from stream lines (filter out system/result types)
+    for (const line of lines) {
+        try {
+            const parsed = JSON.parse(line);
+            if (parsed.type === 'assistant') {
+                entries.push(line);
+            }
+        } catch {
+            // Skip unparseable lines
+        }
+    }
+
+    // For --resume flows, append to existing file; otherwise overwrite
+    const isResume = process.argv.includes('--resume');
+    if (isResume) {
+        fs.appendFileSync(jsonlPath, entries.join('\n') + '\n');
+    } else {
+        fs.writeFileSync(jsonlPath, entries.join('\n') + '\n');
+    }
+}
 
 let index = 0;
 
 function writeLine() {
     if (index >= lines.length) {
+        writeJsonlSessionFile();
         process.exit(exitCode);
         return;
     }
@@ -49,6 +102,7 @@ function writeLine() {
     index++;
 
     if (index >= lines.length) {
+        writeJsonlSessionFile();
         process.exit(exitCode);
     } else {
         setTimeout(writeLine, delayMs);

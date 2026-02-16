@@ -6,9 +6,9 @@ module.exports = {
   preset: undefined, // Override ts-jest preset to use our custom transform
   roots: ['<rootDir>/src', '<rootDir>/bin'],
   setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  moduleFileExtensions: ['ts', 'js', 'json'],
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
-  testMatch: ['**/src/**/*.test.ts', '**/src/**/*.test.tsx', '**/bin/**/*.test.ts'],
+  testMatch: ['**/src/**/*.test.ts', '**/bin/**/*.test.ts'],
   testPathIgnorePatterns: ['/node_modules/'],
   transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
   transform: {
@@ -19,7 +19,6 @@ module.exports = {
           allowJs: true,
           esModuleInterop: true,
           skipLibCheck: true,
-          jsx: 'react',
           module: 'commonjs',
           moduleResolution: 'node',
         },

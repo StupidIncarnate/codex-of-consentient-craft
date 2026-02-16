@@ -2,7 +2,7 @@
  * PURPOSE: Defines a branded string type for formatted tool use display text
  *
  * USAGE:
- * const display: ToolUseDisplay = toolUseDisplayContract.parse('[mcp__dungeonmaster__discover]');
+ * const display: ToolUseDisplay = toolUseDisplayContract.parse('[Bash]');
  * // Returns a branded ToolUseDisplay string type
  */
 

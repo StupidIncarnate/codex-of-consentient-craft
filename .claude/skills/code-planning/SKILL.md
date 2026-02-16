@@ -32,8 +32,8 @@ Achieve full understanding before any discovery or planning.
 
 Load the codebase rules that govern file placement and imports.
 
-```
-mcp__dungeonmaster__get-architecture()
+```bash
+curl -s http://localhost:4737/api/docs/architecture
 ```
 
 Internalize before proceeding:
@@ -52,10 +52,10 @@ Find existing code related to this request. Extend existing functionality rather
 
 **Search strategies:**
 
-```
-mcp__dungeonmaster__discover({ type: "files", search: "[keyword]" })
-mcp__dungeonmaster__discover({ type: "files", fileType: "broker", search: "[domain]" })
-mcp__dungeonmaster__discover({ type: "files", path: "packages/[pkg]/src/[folder]" })
+```bash
+curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"[keyword]"}'
+curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"[domain]"}'
+curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/[pkg]/src/[folder]"}'
 ```
 
 **Questions to answer:**
@@ -66,7 +66,8 @@ mcp__dungeonmaster__discover({ type: "files", path: "packages/[pkg]/src/[folder]
 - What brokers handle related business logic?
 - What patterns do similar features follow?
 
-**Only use Read tool when:** MCP discover returns a file but doesn't provide enough implementation detail to understand
+**Only use Read tool when:** The discover endpoint returns a file but doesn't provide enough implementation detail to
+understand
 how to extend or integrate with it.
 
 ---
@@ -75,10 +76,10 @@ how to extend or integrate with it.
 
 For each folder type you'll create/modify files in, load the specific rules.
 
-```
-mcp__dungeonmaster__get-folder-detail({ folderType: "brokers" })
-mcp__dungeonmaster__get-folder-detail({ folderType: "contracts" })
-mcp__dungeonmaster__get-folder-detail({ folderType: "adapters" })
+```bash
+curl -s http://localhost:4737/api/docs/folder-detail/brokers
+curl -s http://localhost:4737/api/docs/folder-detail/contracts
+curl -s http://localhost:4737/api/docs/folder-detail/adapters
 ```
 
 Each call provides:
@@ -188,7 +189,8 @@ After writing BDD scenarios, determine HOW Claude will execute each.
 
 **If tooling needed:**
 
-1. Check if adapter exists: `discover({ type: "files", fileType: "adapter", search: "playwright" })`
+1. Check if adapter exists:
+   `curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"adapter","search":"playwright"}'`
 2. If not, add adapter to plan Files table
 3. Include adapter setup in plan Dependencies
 

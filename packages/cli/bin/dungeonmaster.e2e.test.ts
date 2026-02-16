@@ -41,7 +41,7 @@ describe('dungeonmaster binary', () => {
 
   describe('process execution', () => {
     it(
-      'VALID: {non-TTY, init} => exits with raw mode error in non-TTY environment',
+      'VALID: {non-TTY, init} => runs init command and exits successfully',
       async () => {
         const result = await new Promise((promiseResolve, promiseReject) => {
           const child = spawn('node', [BIN_PATH, 'init'], {
@@ -49,14 +49,14 @@ describe('dungeonmaster binary', () => {
             env: { ...process.env, FORCE_COLOR: '0' },
           });
 
-          let stderrOutput = '';
+          let stdoutOutput = '';
 
-          child.stderr.on('data', (data: Buffer) => {
-            stderrOutput += data.toString();
+          child.stdout.on('data', (data: Buffer) => {
+            stdoutOutput += data.toString();
           });
 
           child.on('exit', (exitCode) => {
-            promiseResolve({ code: exitCode, stderr: stderrOutput });
+            promiseResolve({ code: exitCode, stdout: stdoutOutput });
           });
 
           child.on('error', (err) => {
@@ -66,11 +66,9 @@ describe('dungeonmaster binary', () => {
 
         // Extract properties from result using Reflect.get for type safety
         const code = Reflect.get(result as object, 'code');
-        const stderr = Reflect.get(result as object, 'stderr');
 
-        // In non-TTY environment, ink exits with raw mode error - this is expected
-        expect(code).toBe(1);
-        expect(stderr).toMatch(/Raw mode is not supported/u);
+        // Init command should complete without error (exit 0)
+        expect(code).toBe(0);
       },
       TIMEOUT_MS,
     );
@@ -79,7 +77,6 @@ describe('dungeonmaster binary', () => {
       // Verify the module can be imported without throwing
       const modulePromise = import(BIN_PATH);
 
-      // The module will try to run but fail on raw mode - we just want to verify no syntax errors
       await expect(modulePromise).resolves.toBeDefined();
     });
   });

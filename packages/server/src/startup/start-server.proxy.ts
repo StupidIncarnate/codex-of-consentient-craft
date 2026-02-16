@@ -12,12 +12,10 @@ jest.mock('fs', () => ({
 }));
 
 import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/testing';
-import {
-  architectureFolderDetailBrokerProxy,
-  architectureSyntaxRulesBrokerProxy,
-  architectureTestingPatternsBrokerProxy,
-  mcpDiscoverBrokerProxy,
-} from '@dungeonmaster/mcp/testing';
+import { architectureFolderDetailBrokerProxy } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
+import { architectureSyntaxRulesBrokerProxy } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker.proxy';
+import { architectureTestingPatternsBrokerProxy } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';
+import { mcpDiscoverBrokerProxy } from '../brokers/mcp/discover/mcp-discover-broker.proxy';
 import type {
   AddQuestResult,
   GetQuestResult,
@@ -53,6 +51,8 @@ import { wsEventRelayBroadcastBrokerProxy } from '../brokers/ws-event-relay/broa
 import { fsReadJsonlAdapterProxy } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
 import { processDevLogAdapterProxy } from '../adapters/process/dev-log/process-dev-log-adapter.proxy';
 import { chatProcessStateProxy } from '../state/chat-process/chat-process-state.proxy';
+import { questSessionPersistBrokerProxy } from '../brokers/quest-session/persist/quest-session-persist-broker.proxy';
+import { guildSessionPersistBrokerProxy } from '../brokers/guild-session/persist/guild-session-persist-broker.proxy';
 import { StartServer } from './start-server';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
@@ -102,6 +102,8 @@ export const StartServerProxy = (): {
   wsEventRelayBroadcastBrokerProxy();
   fsReadJsonlAdapterProxy();
   processDevLogAdapterProxy();
+  questSessionPersistBrokerProxy();
+  guildSessionPersistBrokerProxy();
 
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const addGuildProxy = orchestratorAddGuildAdapterProxy();
