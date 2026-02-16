@@ -26,6 +26,10 @@ export const dungeonmasterHooksCreatorTransformer = (): {
           matcher: 'Write|Edit|MultiEdit',
           hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
         },
+        {
+          matcher: 'Bash',
+          hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+        },
       ],
       SessionStart: [
         {

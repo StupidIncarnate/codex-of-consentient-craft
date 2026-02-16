@@ -25,6 +25,16 @@ describe('toolInputContract', () => {
     });
   });
 
+  it('VALID: {Bash tool input} => parses successfully', () => {
+    const result = toolInputContract.parse({
+      command: 'echo hello',
+    });
+
+    expect(result).toStrictEqual({
+      command: 'echo hello',
+    });
+  });
+
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {

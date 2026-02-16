@@ -7,9 +7,17 @@ describe('postToolUseHookDataContract', () => {
       const data = PostToolUseHookStub();
       const result = postToolUseHookDataContract.parse(data);
 
-      expect(result.hook_event_name).toBe('PostToolUse');
-      expect(result.tool_name).toBe('Write');
-      expect(result.tool_input.file_path).toBe('/test/file.ts');
+      expect(result).toStrictEqual({
+        session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        transcript_path: '/tmp/transcript.jsonl',
+        cwd: process.cwd(),
+        hook_event_name: 'PostToolUse',
+        tool_name: 'Write',
+        tool_input: {
+          file_path: '/test/file.ts',
+          content: '',
+        },
+      });
     });
 
     it('VALID: {with tool response} => parses successfully', () => {
@@ -18,8 +26,18 @@ describe('postToolUseHookDataContract', () => {
       });
       const result = postToolUseHookDataContract.parse(data);
 
-      expect(result.tool_response).toBeDefined();
-      expect(result.tool_response?.success).toBe(true);
+      expect(result).toStrictEqual({
+        session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        transcript_path: '/tmp/transcript.jsonl',
+        cwd: process.cwd(),
+        hook_event_name: 'PostToolUse',
+        tool_name: 'Write',
+        tool_input: {
+          file_path: '/test/file.ts',
+          content: '',
+        },
+        tool_response: { success: true, filePath: '/test/output.ts' },
+      });
     });
   });
 

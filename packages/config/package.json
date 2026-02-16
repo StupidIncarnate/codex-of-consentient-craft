@@ -11,11 +11,10 @@
     "build": "tsc",
     "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
-    "test": "jest",
+    "test": "dungeonmaster-ward run --only test",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "ward": "bash -c 'FILES=$(fd --glob \"$1\" src); FILE_PATTERN=$(echo \"$FILES\" | tr \" \" \"|\" | sed \"s/|$//\"); echo \"=== LINT: $1 ===\"  && (npx eslint $FILES --fix 2>&1 | grep -A 999999 -E \"$FILE_PATTERN\" || echo \"No lint issues\"); echo \"\" && echo \"=== TYPECHECK: $1 ===\" && npx tsc --noEmit 2>&1 | grep -E \"$FILE_PATTERN\" || echo \"No type errors\"' --"
+    "lint": "dungeonmaster-ward run --only lint",
+    "typecheck": "dungeonmaster-ward run --only typecheck"
   },
   "keywords": [
     "dungeonmaster",
