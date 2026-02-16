@@ -28,6 +28,24 @@ describe('projectFolderDiscoverBroker', () => {
     });
   });
 
+  describe('sub-package cwd', () => {
+    it('VALID: {cwd is sub-package with own package.json} => returns single ProjectFolder for cwd', async () => {
+      const proxy = projectFolderDiscoverBrokerProxy();
+      proxy.setupFindsPackages({
+        gitOutput: 'package.json\n',
+        packageContents: [JSON.stringify({ name: '@dungeonmaster/shared' })],
+      });
+
+      const result = await projectFolderDiscoverBroker({
+        rootPath: AbsoluteFilePathStub({ value: '/project/packages/shared' }),
+      });
+
+      expect(result).toStrictEqual([
+        ProjectFolderStub({ name: '@dungeonmaster/shared', path: '/project/packages/shared' }),
+      ]);
+    });
+  });
+
   describe('no packages found', () => {
     it('EMPTY: {git returns empty output} => returns empty array', async () => {
       const proxy = projectFolderDiscoverBrokerProxy();

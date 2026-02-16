@@ -19,7 +19,15 @@ export const projectFolderDiscoverBroker = async ({
 }): Promise<ProjectFolder[]> => {
   const result = await childProcessSpawnCaptureAdapter({
     command: 'git',
-    args: ['ls-files', '--cached', '--others', '--exclude-standard', '--', '**/package.json'],
+    args: [
+      'ls-files',
+      '--cached',
+      '--others',
+      '--exclude-standard',
+      '--',
+      'package.json',
+      '**/package.json',
+    ],
     cwd: rootPath,
   });
 

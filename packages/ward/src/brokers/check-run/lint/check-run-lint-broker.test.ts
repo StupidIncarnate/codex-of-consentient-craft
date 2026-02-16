@@ -31,6 +31,31 @@ describe('checkRunLintBroker', () => {
     });
   });
 
+  describe('non-json eslint output', () => {
+    it('EDGE: {eslint outputs non-JSON text} => returns fail result with empty errors and raw output preserved', async () => {
+      const proxy = checkRunLintBrokerProxy();
+      const nonJsonOutput = 'Oops! Something went wrong! See above for details.';
+      proxy.setupNonJsonFailure({ stdout: nonJsonOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunLintBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({ stdout: nonJsonOutput, stderr: '', exitCode: 1 }),
+        }),
+      );
+    });
+  });
+
   describe('failing lint', () => {
     it('VALID: {eslint exits 1 with errors} => returns fail result with parsed errors', async () => {
       const proxy = checkRunLintBrokerProxy();

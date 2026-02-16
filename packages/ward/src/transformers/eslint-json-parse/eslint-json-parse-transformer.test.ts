@@ -173,6 +173,12 @@ describe('eslintJsonParseTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
+    it('EDGE: {non-JSON string} => throws SyntaxError', () => {
+      expect(() =>
+        eslintJsonParseTransformer({ jsonOutput: 'Oops! Something went wrong!' }),
+      ).toThrow(SyntaxError);
+    });
+
     it('EDGE: {message missing required fields} => skips that message', () => {
       const jsonOutput = JSON.stringify([
         {

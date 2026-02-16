@@ -4,6 +4,7 @@ import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 export const checkRunLintBrokerProxy = (): {
   setupPass: () => void;
   setupFail: (params: { stdout: string }) => void;
+  setupNonJsonFailure: (params: { stdout: string }) => void;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const successCode = ExitCodeStub({ value: 0 });
@@ -15,6 +16,10 @@ export const checkRunLintBrokerProxy = (): {
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {
+      captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
+    },
+
+    setupNonJsonFailure: ({ stdout }: { stdout: string }): void => {
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
     },
   };

@@ -40,11 +40,21 @@ export const checkRunLintBroker = async ({
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
-  const errors = status === 'fail' ? eslintJsonParseTransformer({ jsonOutput: result.output }) : [];
+  let errors: ReturnType<typeof eslintJsonParseTransformer> = [];
+  let resolvedStatus = status;
+
+  if (status === 'fail') {
+    try {
+      errors = eslintJsonParseTransformer({ jsonOutput: result.output });
+    } catch {
+      resolvedStatus = 'fail';
+      errors = [];
+    }
+  }
 
   return projectResultContract.parse({
     projectFolder,
-    status,
+    status: resolvedStatus,
     errors,
     testFailures: [],
     rawOutput: rawOutputContract.parse({
