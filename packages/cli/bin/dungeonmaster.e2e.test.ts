@@ -6,8 +6,10 @@
  */
 
 import { spawn } from 'node:child_process';
-import { accessSync, constants, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { accessSync, constants, existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 const BIN_PATH = resolve(__dirname, '../dist/bin/dungeonmaster.js');
 const TIMEOUT_MS = 5000;
@@ -20,6 +22,9 @@ const isExecutable = ({ filePath }: { filePath: string }): boolean => {
     return false;
   }
 };
+
+const createTempDir = (): ReturnType<typeof FilePathStub> =>
+  FilePathStub({ value: mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-')) });
 
 describe('dungeonmaster binary', () => {
   describe('file structure', () => {
@@ -43,10 +48,13 @@ describe('dungeonmaster binary', () => {
     it(
       'VALID: {non-TTY, init} => runs init command and exits successfully',
       async () => {
+        const tempDir = createTempDir();
+
         const result = await new Promise((promiseResolve, promiseReject) => {
           const child = spawn('node', [BIN_PATH, 'init'], {
             stdio: ['pipe', 'pipe', 'pipe'],
             env: { ...process.env, FORCE_COLOR: '0' },
+            cwd: tempDir,
           });
 
           let stdoutOutput = '';
@@ -63,6 +71,8 @@ describe('dungeonmaster binary', () => {
             promiseReject(err);
           });
         });
+
+        rmSync(tempDir, { recursive: true, force: true });
 
         // Extract properties from result using Reflect.get for type safety
         const code = Reflect.get(result as object, 'code');
