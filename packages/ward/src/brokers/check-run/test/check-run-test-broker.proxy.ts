@@ -12,7 +12,11 @@ export const checkRunTestBrokerProxy = (): {
 
   return {
     setupPass: (): void => {
-      captureProxy.setupSuccess({ exitCode: successCode, stdout: '{"testResults":[],"success":true}', stderr: '' });
+      captureProxy.setupSuccess({
+        exitCode: successCode,
+        stdout: '{"testResults":[],"success":true}',
+        stderr: '',
+      });
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {
@@ -20,7 +24,11 @@ export const checkRunTestBrokerProxy = (): {
     },
 
     setupFailWithBadOutput: (): void => {
-      captureProxy.setupSuccess({ exitCode: failCode, stdout: 'not valid json \x1b[31m', stderr: '' });
+      captureProxy.setupSuccess({
+        exitCode: failCode,
+        stdout: 'not valid json \x1b[31m',
+        stderr: '',
+      });
     },
   };
 };

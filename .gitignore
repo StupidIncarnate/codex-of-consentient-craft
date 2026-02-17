@@ -25,7 +25,7 @@ node_modules
 
 # E2E Test Results (but keep baseline snapshots)
 /playwright-report
-/test-results
+test-results
 **/*-actual.png
 **/*-diff.png
 **/visual-reports/

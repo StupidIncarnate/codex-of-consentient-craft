@@ -26,7 +26,7 @@ describe('orchestrateRunAllBroker', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const config = WardConfigStub();
 
-      const result = await orchestrateRunAllBroker({ config, rootPath });
+      const result = await orchestrateRunAllBroker({ config, rootPath, isSubPackage: false });
 
       const wardFolder = ProjectFolderStub({
         name: '@dungeonmaster/ward',
@@ -106,7 +106,7 @@ describe('orchestrateRunAllBroker', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const config = WardConfigStub({ glob: '**/index.ts' });
 
-      const result = await orchestrateRunAllBroker({ config, rootPath });
+      const result = await orchestrateRunAllBroker({ config, rootPath, isSubPackage: false });
 
       const wardFolder = ProjectFolderStub({
         name: '@dungeonmaster/ward',
@@ -154,6 +154,65 @@ describe('orchestrateRunAllBroker', () => {
     });
   });
 
+  describe('sub-package run', () => {
+    it('VALID: {cwd differs from rootPath} => runs per-project checks, skips e2e', async () => {
+      const proxy = orchestrateRunAllBrokerProxy();
+      proxy.setupSubPackageRun({
+        gitOutput: 'packages/ward/package.json\n',
+        packageContents: [JSON.stringify({ name: '@dungeonmaster/ward' })],
+        checkCount: 1,
+      });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub();
+
+      const result = await orchestrateRunAllBroker({ config, rootPath, isSubPackage: true });
+
+      const wardFolder = ProjectFolderStub({
+        name: '@dungeonmaster/ward',
+        path: '/project/packages/ward',
+      });
+
+      expect(result).toStrictEqual(
+        WardResultStub({
+          runId: '1739625600000-a38e',
+          checks: [
+            CheckResultStub({
+              checkType: 'lint',
+              status: 'pass',
+              projectResults: [
+                ProjectResultStub({
+                  projectFolder: wardFolder,
+                  rawOutput: RawOutputStub({ stdout: '[]' }),
+                }),
+              ],
+            }),
+            CheckResultStub({
+              checkType: 'typecheck',
+              status: 'pass',
+              projectResults: [ProjectResultStub({ projectFolder: wardFolder })],
+            }),
+            CheckResultStub({
+              checkType: 'test',
+              status: 'pass',
+              projectResults: [
+                ProjectResultStub({
+                  projectFolder: wardFolder,
+                  rawOutput: RawOutputStub({ stdout: '{"testResults":[],"success":true}' }),
+                }),
+              ],
+            }),
+            CheckResultStub({
+              checkType: 'e2e',
+              status: 'skip',
+              projectResults: [],
+            }),
+          ],
+        }),
+      );
+    });
+  });
+
   describe('no projects found', () => {
     it('EMPTY: {no projects discovered} => returns WardResult with empty project results', async () => {
       const proxy = orchestrateRunAllBrokerProxy();
@@ -162,7 +221,7 @@ describe('orchestrateRunAllBroker', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const config = WardConfigStub();
 
-      const result = await orchestrateRunAllBroker({ config, rootPath });
+      const result = await orchestrateRunAllBroker({ config, rootPath, isSubPackage: false });
 
       expect(result).toStrictEqual(
         WardResultStub({

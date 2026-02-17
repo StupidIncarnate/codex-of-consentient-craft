@@ -30,6 +30,27 @@ describe('checkRunE2eBroker', () => {
     });
   });
 
+  describe('unparseable output', () => {
+    it('VALID: {playwright exits 1 with non-JSON output} => returns fail result with empty test failures', async () => {
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupFailWithBadOutput();
+
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+
+      const result = await checkRunE2eBroker({ rootPath });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder: ProjectFolderStub({ name: 'root', path: '/home/user/project' }),
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({ stdout: 'not valid json \x1b[31m', stderr: '', exitCode: 1 }),
+        }),
+      );
+    });
+  });
+
   describe('failing e2e', () => {
     it('VALID: {playwright exits 1 with failures} => returns fail result with parsed test failures', async () => {
       const proxy = checkRunE2eBrokerProxy();

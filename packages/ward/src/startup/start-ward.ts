@@ -10,7 +10,12 @@
  * ward raw <run-id> <check-type>    // Shows raw output for a check
  */
 
-import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
+import {
+  absoluteFilePathContract,
+  exitCodeContract,
+  filePathContract,
+} from '@dungeonmaster/shared/contracts';
 import { projectRootFindBroker } from '@dungeonmaster/shared/brokers';
 
 import { cliArgContract } from '../contracts/cli-arg/cli-arg-contract';
@@ -41,10 +46,23 @@ export const StartWard = async ({ args }: { args: string[] }): Promise<void> => 
   const rootPath = await projectRootFindBroker({ startPath });
   const resolvedRootPath = absoluteFilePathContract.parse(rootPath);
 
+  const gitResult = await childProcessSpawnCaptureAdapter({
+    command: 'git',
+    args: ['rev-parse', '--show-toplevel'],
+    cwd,
+  });
+
+  const gitRoot =
+    gitResult.exitCode === exitCodeContract.parse(0)
+      ? absoluteFilePathContract.parse(gitResult.output.trim())
+      : resolvedRootPath;
+
+  const isSubPackage = resolvedRootPath !== gitRoot;
+
   if (command === COMMANDS.run) {
     const cliArgs = args.slice(FIRST_POSITIONAL_INDEX).map((arg) => cliArgContract.parse(arg));
     const config = cliArgsParseTransformer({ args: cliArgs });
-    await commandRunBroker({ config, rootPath: resolvedRootPath });
+    await commandRunBroker({ config, rootPath: resolvedRootPath, isSubPackage });
     return;
   }
 

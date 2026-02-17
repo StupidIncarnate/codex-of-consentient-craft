@@ -25,6 +25,11 @@ export const orchestrateRunAllBrokerProxy = (): {
     diffOutput: string;
     checkCount: number;
   }) => void;
+  setupSubPackageRun: (params: {
+    gitOutput: string;
+    packageContents: string[];
+    checkCount: number;
+  }) => void;
   setupNoProjects: () => void;
 } => {
   jest.spyOn(Date, 'now').mockReturnValue(runIdMockStatics.timestamp);
@@ -97,6 +102,21 @@ export const orchestrateRunAllBrokerProxy = (): {
     }): void => {
       discoverProxy.setupFindsPackages({ gitOutput, packageContents });
       changedProxy.setupWithChangedFiles({ diffOutput });
+      setupChecksForCount({ checkCount });
+      saveProxy.setupSuccess();
+      pruneProxy.setupEmpty();
+    },
+
+    setupSubPackageRun: ({
+      gitOutput,
+      packageContents,
+      checkCount,
+    }: {
+      gitOutput: string;
+      packageContents: string[];
+      checkCount: number;
+    }): void => {
+      discoverProxy.setupFindsPackages({ gitOutput, packageContents });
       setupChecksForCount({ checkCount });
       saveProxy.setupSuccess();
       pruneProxy.setupEmpty();

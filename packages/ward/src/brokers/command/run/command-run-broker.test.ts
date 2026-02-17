@@ -18,7 +18,7 @@ describe('commandRunBroker', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const config = WardConfigStub();
 
-      await commandRunBroker({ config, rootPath });
+      await commandRunBroker({ config, rootPath, isSubPackage: false });
 
       expect(process.stdout.write).toHaveBeenCalledWith(
         expect.stringMatching(/^run: 1739625600000-a38e\n/u),

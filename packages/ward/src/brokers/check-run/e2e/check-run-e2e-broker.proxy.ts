@@ -4,6 +4,7 @@ import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 export const checkRunE2eBrokerProxy = (): {
   setupPass: () => void;
   setupFail: (params: { stdout: string }) => void;
+  setupFailWithBadOutput: () => void;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const successCode = ExitCodeStub({ value: 0 });
@@ -16,6 +17,14 @@ export const checkRunE2eBrokerProxy = (): {
 
     setupFail: ({ stdout }: { stdout: string }): void => {
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
+    },
+
+    setupFailWithBadOutput: (): void => {
+      captureProxy.setupSuccess({
+        exitCode: failCode,
+        stdout: 'not valid json \x1b[31m',
+        stderr: '',
+      });
     },
   };
 };

@@ -15,11 +15,13 @@ import { resultToSummaryTransformer } from '../../../transformers/result-to-summ
 export const commandRunBroker = async ({
   config,
   rootPath,
+  isSubPackage,
 }: {
   config: WardConfig;
   rootPath: AbsoluteFilePath;
+  isSubPackage: boolean;
 }): Promise<void> => {
-  const wardResult = await orchestrateRunAllBroker({ config, rootPath });
+  const wardResult = await orchestrateRunAllBroker({ config, rootPath, isSubPackage });
   const summary = resultToSummaryTransformer({ wardResult });
 
   process.stdout.write(`${summary}\n`);

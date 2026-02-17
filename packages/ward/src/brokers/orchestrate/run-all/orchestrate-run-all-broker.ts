@@ -29,9 +29,11 @@ import { orchestrateRunAllLayerCheckBroker } from './orchestrate-run-all-layer-c
 export const orchestrateRunAllBroker = async ({
   config,
   rootPath,
+  isSubPackage,
 }: {
   config: WardConfig;
   rootPath: AbsoluteFilePath;
+  isSubPackage: boolean;
 }): Promise<WardResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
@@ -65,10 +67,10 @@ export const orchestrateRunAllBroker = async ({
 
   const checks = [...perProjectChecks];
 
-  if (checkTypes.includes('e2e') && !hasFileScope) {
+  if (checkTypes.includes('e2e') && !hasFileScope && !isSubPackage) {
     const e2eResult = await checkRunE2eBroker({ rootPath });
     checks.push(checkResultBuildTransformer({ checkType: 'e2e', projectResults: [e2eResult] }));
-  } else if (checkTypes.includes('e2e') && hasFileScope) {
+  } else if (checkTypes.includes('e2e') && (hasFileScope || isSubPackage)) {
     checks.push(
       checkResultContract.parse({ checkType: 'e2e', status: 'skip', projectResults: [] }),
     );

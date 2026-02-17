@@ -34,8 +34,17 @@ export const checkRunE2eBroker = async ({
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
-  const testFailures =
-    status === 'fail' ? playwrightJsonParseTransformer({ jsonOutput: result.output }) : [];
+  let testFailures: ReturnType<typeof playwrightJsonParseTransformer> = [];
+  let resolvedStatus = status;
+
+  if (status === 'fail') {
+    try {
+      testFailures = playwrightJsonParseTransformer({ jsonOutput: result.output });
+    } catch {
+      resolvedStatus = 'fail';
+      testFailures = [];
+    }
+  }
 
   const projectFolder = projectFolderContract.parse({
     name: 'root',
@@ -44,7 +53,7 @@ export const checkRunE2eBroker = async ({
 
   return projectResultContract.parse({
     projectFolder,
-    status,
+    status: resolvedStatus,
     errors: [],
     testFailures,
     rawOutput: rawOutputContract.parse({
