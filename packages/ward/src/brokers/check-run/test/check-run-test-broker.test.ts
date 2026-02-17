@@ -77,6 +77,30 @@ describe('checkRunTestBroker', () => {
     });
   });
 
+  describe('unparseable output', () => {
+    it('VALID: {jest exits 1 with non-JSON output} => returns fail result with empty test failures', async () => {
+      const proxy = checkRunTestBrokerProxy();
+      proxy.setupFailWithBadOutput();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunTestBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({ stdout: 'not valid json \x1b[31m', stderr: '', exitCode: 1 }),
+        }),
+      );
+    });
+  });
+
   describe('file list filtering', () => {
     it('VALID: {fileList provided} => passes --findRelatedTests flag to jest', async () => {
       const proxy = checkRunTestBrokerProxy();

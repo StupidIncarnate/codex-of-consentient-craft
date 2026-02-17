@@ -42,13 +42,21 @@ export const checkRunTestBroker = async ({
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
-  const testFailures = status === 'fail'
-    ? jestJsonParseTransformer({ jsonOutput: result.output })
-    : [];
+  let testFailures: ReturnType<typeof jestJsonParseTransformer> = [];
+  let resolvedStatus = status;
+
+  if (status === 'fail') {
+    try {
+      testFailures = jestJsonParseTransformer({ jsonOutput: result.output });
+    } catch {
+      resolvedStatus = 'fail';
+      testFailures = [];
+    }
+  }
 
   return projectResultContract.parse({
     projectFolder,
-    status,
+    status: resolvedStatus,
     errors: [],
     testFailures,
     rawOutput: rawOutputContract.parse({
