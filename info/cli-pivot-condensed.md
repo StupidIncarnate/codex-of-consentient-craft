@@ -9,7 +9,7 @@
 3. Codeweaver (repeats for each file chunk)
 4. Siegemaster (test gap analysis)  
 5. Lawbringer (standards review)
-6. Spiritmender (inserted anywhere if ward:all fails)
+6. Spiritmender (inserted anywhere if ward fails)
 ```
 
 ### Core Architecture

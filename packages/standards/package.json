@@ -9,7 +9,8 @@
     "test": "echo 'No tests for docs package'",
     "test:unit": "echo 'No tests for docs package'",
     "lint": "echo 'No linting for docs package'",
-    "typecheck": "echo 'No typecheck needed for docs package'"
+    "typecheck": "echo 'No typecheck needed for docs package'",
+    "ward": "dungeonmaster-ward run"
   },
   "files": [
     "*.md",

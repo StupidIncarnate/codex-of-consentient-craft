@@ -26,7 +26,8 @@
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "ward": "dungeonmaster-ward run"
   },
   "dependencies": {
     "@dungeonmaster/shared": "*",

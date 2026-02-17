@@ -96,7 +96,7 @@ Dungeonmaster → Siegemaster → Integration tests
 ### Phase 5: Validation
 
 ```
-Dungeonmaster → ward:all
+Dungeonmaster → ward
             → Spiritmender (if errors)
 ```
 
@@ -158,7 +158,7 @@ Dungeonmaster → ward:all
    - Codeweaver-3: JWTMiddleware + tests
 3. **Lawbringer**: Reviews all implementations
 4. **Siegemaster**: Creates auth flow integration tests
-5. **Validation**: Run ward:all, fix if needed
+5. **Validation**: Run ward, fix if needed
 
 ## Benefits of Quest System
 

@@ -112,7 +112,7 @@ Edit `.dungeonmaster` to customize for your project:
   },
   "commands": {
     "ward": "npm run lint -- $FILE",
-    "ward:all": "npm run lint && npm run typecheck"
+    "ward": "dungeonmaster-ward run"
   }
 }
 ```
@@ -121,7 +121,7 @@ Edit `.dungeonmaster` to customize for your project:
 
 `ward` is Dungeonmaster's protection spell against bugs and late-night AI-inflicted madness sessions:
 - `ward` - Checks a single file for errors
-- `ward:all` - Protects the entire codebase
+- `ward` - Protects the entire codebase
 
 Configure these to match your project's lint/validation commands.
 
@@ -173,7 +173,7 @@ Configure ward commands to work with your workspace:
 {
   "commands": {
     "ward": "npm run lint -- $FILE && npm run typecheck -- $FILE && npm run test -- $FILE",
-    "ward:all": "npm run lint && npm run typecheck && npm run build && npm run test"
+    "ward": "dungeonmaster-ward run"
   }
 }
 ```

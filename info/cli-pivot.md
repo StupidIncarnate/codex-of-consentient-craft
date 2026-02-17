@@ -9,7 +9,7 @@
 3. Codeweaver (repeats for each file chunk)
 4. Siegemaster (test gap analysis)  
 5. Lawbringer (standards review)
-6. Spiritmender (inserted anywhere if ward:all fails)
+6. Spiritmender (inserted anywhere if ward fails)
 ```
 
 ### Core Architecture
@@ -470,7 +470,7 @@ async function checkProjectDiscovery() {
       const scripts = packageJson.scripts || {};
       
       // Check ward commands
-      if (!scripts['ward:all'] && !scripts.ward && !scripts.lint && !scripts.typecheck) {
+        if (!scripts['ward'] && !scripts.ward && !scripts.lint && !scripts.typecheck) {
         console.error(`❌ No ward commands found in ${pkg.path}`);
         console.error('   Please add lint/typecheck scripts or re-run discovery');
         allGood = false;
@@ -723,8 +723,8 @@ async function runCodeweavers(quest) {
       taskInQuest.completedBy = result.reportFilename;
     }
     saveQuest(quest);
-    
-    // Run ward:all after each Codeweaver
+
+      // Run ward after each Codeweaver
     const wardOk = await runWardAll();
     if (!wardOk) {
       await handleWardFailure(quest, wardOk.errors);
@@ -889,7 +889,7 @@ async function runWardAll() {
   console.log('[🎲] 🛡️ Running ward validation...');
   
   try {
-    const result = await exec('npm run ward:all');
+      const result = await exec('npm run ward');
     return { success: true };
   } catch (error) {
     return { 
@@ -1400,7 +1400,7 @@ async function runLawbringer(quest) {
 #### Lawbringer Updates Needed
 - **Remove complex review categories** - Just run ward and check standards
 - **Simplified Workflow**:
-  1. Run ward:all command
+    1. Run ward command
   2. Review changed files for standards
   3. Fix any issues found
   4. Write JSON report
@@ -1475,7 +1475,7 @@ Task: {
   "filesToCreate": ["src/auth/auth-service.ts", "src/auth/auth-service.test.ts"],
   "filesToEdit": []
 }
-Ward commands: npm run ward:all
+Ward commands: npm run ward
 [Include previous progress if continuing from blocked agent]
 ```
 
@@ -1495,7 +1495,7 @@ Quest: [quest title]
 Quest folder: 01-add-authentication
 Report number: 009
 Changed files: [all files created/modified in quest]
-Ward commands: npm run ward:all
+Ward commands: npm run ward
 Standards: Check CLAUDE.md files in directory hierarchy
 ```
 
@@ -1504,7 +1504,7 @@ Standards: Check CLAUDE.md files in directory hierarchy
 Quest: [quest title]
 Quest folder: 01-add-authentication
 Report number: 006
-Ward errors: [full error output from ward:all]
+Ward errors: [full error output from ward]
 Error type: lint | typecheck | test | build
 Failed files: [files with errors]
 Lore folder: dungeonmaster/lore/

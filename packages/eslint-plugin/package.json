@@ -20,7 +20,8 @@
     "test": "dungeonmaster-ward run --only test",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
     "lint": "dungeonmaster-ward run --only lint",
-    "typecheck": "dungeonmaster-ward run --only typecheck"
+    "typecheck": "dungeonmaster-ward run --only typecheck",
+    "ward": "dungeonmaster-ward run"
   },
   "keywords": [
     "eslint",

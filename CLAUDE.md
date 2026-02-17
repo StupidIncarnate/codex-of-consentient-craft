@@ -21,7 +21,7 @@ discovery/execution).
 **CRITICAL: Use architecture API endpoints FIRST for EVERY task. No exceptions.**
 
 The dungeonmaster server exposes HTTP endpoints for architecture documentation and code discovery.
-Start the server with `npm run dev` (or `dungeonmaster-ward dev`) and use `curl` via `Bash` to query these endpoints.
+Start the server with `npm run dev` and use `curl` via `Bash` to query these endpoints.
 
 ### Available Endpoints
 
@@ -126,4 +126,4 @@ const testbed = installTestbedCreateBroker({
 - **Run specific test file**: `dungeonmaster-ward run --only test -- path/to/file.test.ts`
 - **Lint with glob pattern**: `dungeonmaster-ward run --only lint --glob "*pattern*"`
 - **Build**: `npm run build`
-- **Start dev server**: `dungeonmaster-ward dev`
+- **Start dev server**: `npm run dev`

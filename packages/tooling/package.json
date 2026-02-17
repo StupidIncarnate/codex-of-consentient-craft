@@ -15,6 +15,7 @@
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
+    "ward": "dungeonmaster-ward run",
     "detect-duplicates": "tsx src/index.ts"
   },
   "dependencies": {

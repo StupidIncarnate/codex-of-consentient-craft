@@ -74,7 +74,7 @@ Note: Integration/e2e tests wait for their implementation dependencies before st
 
 ### Ward (CLI Command, Not Agent)
 - **ward <files>**: CLI runs this after each agent completes, validates specific files
-- **ward:all**: CLI runs this for final integration validation across entire system  
+- **ward**: CLI runs this for final integration validation across entire system
 - **Automatic execution**: Dungeonmaster automatically runs ward after agent completion
 - **Spiritmender spawning**: If ward fails, Dungeonmaster spawns Spiritmender agent to fix issues
 - **Quality gates**: Prevents progression until validation passes
@@ -304,7 +304,7 @@ Ward:all ✓ → COMPLETE
 1. **Multiple Escapes**: All collected for batch replanning
 2. **Dependency Loops**: Pathseeker responsible for valid dependencies  
 3. **Resource Exhaustion**: Configurable parallel limits
-4. **Integration Conflicts**: Final ward:all catches system-level issues
+4. **Integration Conflicts**: Final ward catches system-level issues
 5. **Spiritmender Limits**: Max 3 attempts before escalating to escape
 6. **BLOCKED State**: Quest transitions to BLOCKED when unrecoverable errors occur (e.g., Redis failure, system crash, manual intervention needed)
 
@@ -567,7 +567,7 @@ interface LawbringerOutput {
 interface WardInput {
   mode: 'single-task' | 'integration';
   files?: string[];  // For single-task mode: specific files to check
-  // integration mode uses ward:all (no files specified)
+  // integration mode uses ward (no files specified)
 }
 
 interface WardOutput {
@@ -705,7 +705,7 @@ class TaskPipelineExecutor {
   private async runWard(input: WardInput): Promise<WardOutput> {
     // TODO: Execute ward command based on input mode and files
     // For single-task: ward with file list
-    // For integration: ward:all
+    // For integration: ward
     throw new Error('runWard method needs implementation');
   }
   
@@ -1069,7 +1069,7 @@ class IntegrationValidator {
     // Run comprehensive system check
     const wardResult = await this.runWard({
       mode: 'integration'
-      // No files specified - uses ward:all
+      // No files specified - uses ward
     });
     
     if (wardResult.success) {
@@ -1190,10 +1190,10 @@ This is a complete ground-up rebuild replacing the entire V1 quest system. No ba
 ### Ward Command Integration
 Ward is an npm script installed by this CLI package:
 - **ward <files>**: Runs TypeScript compilation, linting, and tests for specific files
-- **ward:all**: System-wide lint/TypeScript/test checks across entire codebase (backend + frontend)
+- **ward**: System-wide lint/TypeScript/test checks across entire codebase (backend + frontend)
 - **File tracking**: Each agent's work is tracked so ward knows which files to validate
 - **Task-specific validation**: `ward` called with files modified during that agent's work
-- **Integration validation**: `ward:all` called after all tasks complete for full system check
+- **Integration validation**: `ward` called after all tasks complete for full system check
 
 ## Implementation Strategy
 
@@ -1239,7 +1239,8 @@ Ward is an npm script installed by this CLI package:
 - **Mitigation**: Pathseeker validates dependency graphs
 
 ### Risk: Integration Failures
-- **Mitigation**: ward:all catches system-level issues
+
+- **Mitigation**: ward catches system-level issues
 
 ### Risk: Escape Loops
 - **Mitigation**: History tracking, round limits if needed

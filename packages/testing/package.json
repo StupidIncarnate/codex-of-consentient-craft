@@ -11,7 +11,8 @@
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint"
+    "lint": "eslint",
+    "ward": "dungeonmaster-ward run"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

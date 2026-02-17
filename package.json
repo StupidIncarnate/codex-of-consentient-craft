@@ -14,7 +14,7 @@
     "test:e2e:ui": "playwright test --ui",
     "lint": "dungeonmaster-ward run --only lint",
     "typecheck": "dungeonmaster-ward run --only typecheck",
-    "ward:all": "dungeonmaster-ward run",
+    "ward": "dungeonmaster-ward run",
     "dev": "DUNGEONMASTER_PORT=4737 DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/server & DUNGEONMASTER_PORT=4737 DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/web & wait",
     "changeset": "changeset",
     "version-packages": "changeset version",

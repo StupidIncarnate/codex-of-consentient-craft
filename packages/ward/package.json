@@ -12,10 +12,21 @@
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "ward": "dungeonmaster-ward run"
   },
-  "files": ["dist/", "src/", "README.md"],
-  "keywords": ["ward", "lint", "typecheck", "test", "runner"],
+  "files": [
+    "dist/",
+    "src/",
+    "README.md"
+  ],
+  "keywords": [
+    "ward",
+    "lint",
+    "typecheck",
+    "test",
+    "runner"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
