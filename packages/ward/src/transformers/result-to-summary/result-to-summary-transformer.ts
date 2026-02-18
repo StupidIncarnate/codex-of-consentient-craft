@@ -6,16 +6,22 @@
  * // Returns: WardSummary like "run: 1739625600000-a3f1\nlint:      PASS  10 packages"
  */
 
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+
+import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
 import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 import type { WardSummary } from '../../contracts/ward-summary/ward-summary-contract';
 import { wardSummaryContract } from '../../contracts/ward-summary/ward-summary-contract';
+import { toCwdRelativePathTransformer } from '../to-cwd-relative-path/to-cwd-relative-path-transformer';
 
 const CHECK_TYPE_PAD = 10;
 
 export const resultToSummaryTransformer = ({
   wardResult,
+  cwd,
 }: {
   wardResult: WardResult;
+  cwd: AbsoluteFilePath;
 }): WardSummary => {
   const runLine = `run: ${wardResult.runId}`;
 
@@ -43,5 +49,43 @@ export const resultToSummaryTransformer = ({
     return `${label} SKIP  ${skipped.join(', ')}`;
   });
 
-  return wardSummaryContract.parse([runLine, ...checkLines].join('\n'));
+  const detailLines = wardResult.checks.flatMap((check) => {
+    if (check.status !== 'fail') {
+      return [];
+    }
+
+    const fileEntries = check.projectResults.flatMap((project) => {
+      const errorLines = project.errors.map((error) => {
+        const displayPath = toCwdRelativePathTransformer({
+          filePath: error.filePath,
+          projectPath: project.projectFolder.path,
+          cwd,
+        });
+        const rulePart = error.rule ? `${error.rule} ` : '';
+        return `${displayPath}\n  ${rulePart}${error.message} (line ${error.line})`;
+      });
+
+      const failureLines = project.testFailures.map((failure) => {
+        const displayPath = toCwdRelativePathTransformer({
+          filePath: errorEntryContract.shape.filePath.parse(failure.suitePath),
+          projectPath: project.projectFolder.path,
+          cwd,
+        });
+        const [firstLine] = failure.message.split('\n');
+        return `${displayPath}\n  FAIL "${failure.testName}"\n    ${firstLine}`;
+      });
+
+      return [...errorLines, ...failureLines];
+    });
+
+    if (fileEntries.length === 0) {
+      return [];
+    }
+
+    return [`\n--- ${check.checkType} ---\n${fileEntries.join('\n')}`];
+  });
+
+  const summaryLines = [runLine, ...checkLines];
+
+  return wardSummaryContract.parse([...summaryLines, ...detailLines].join('\n'));
 };

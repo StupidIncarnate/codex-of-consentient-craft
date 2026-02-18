@@ -38,8 +38,8 @@ describe('checkRunTestBroker', () => {
       const jestOutput = JSON.stringify({
         testResults: [
           {
-            testFilePath: 'src/index.test.ts',
-            testResults: [
+            name: 'src/index.test.ts',
+            assertionResults: [
               {
                 status: 'failed',
                 fullName: 'should return valid result',

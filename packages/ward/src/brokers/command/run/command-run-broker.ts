@@ -16,13 +16,15 @@ export const commandRunBroker = async ({
   config,
   rootPath,
   isSubPackage,
+  cwd,
 }: {
   config: WardConfig;
   rootPath: AbsoluteFilePath;
   isSubPackage: boolean;
+  cwd: AbsoluteFilePath;
 }): Promise<void> => {
   const wardResult = await orchestrateRunAllBroker({ config, rootPath, isSubPackage });
-  const summary = resultToSummaryTransformer({ wardResult });
+  const summary = resultToSummaryTransformer({ wardResult, cwd });
 
   process.stdout.write(`${summary}\n`);
 

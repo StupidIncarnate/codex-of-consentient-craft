@@ -6,13 +6,21 @@
  * // Returns TestFailure[] containing only failed test entries
  */
 
+import { type ErrorMessage, errorMessageContract } from '@dungeonmaster/shared/contracts';
 import {
   testFailureContract,
   type TestFailure,
 } from '../../contracts/test-failure/test-failure-contract';
+import { extractJsonObjectTransformer } from '../extract-json-object/extract-json-object-transformer';
+import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
 
-export const jestJsonParseTransformer = ({ jsonOutput }: { jsonOutput: string }): TestFailure[] => {
-  const parsed: unknown = JSON.parse(jsonOutput);
+export const jestJsonParseTransformer = ({
+  jsonOutput,
+}: {
+  jsonOutput: ErrorMessage;
+}): TestFailure[] => {
+  const jsonString = extractJsonObjectTransformer({ output: jsonOutput });
+  const parsed: unknown = JSON.parse(jsonString);
 
   if (typeof parsed !== 'object' || parsed === null) {
     return [];
@@ -29,14 +37,14 @@ export const jestJsonParseTransformer = ({ jsonOutput }: { jsonOutput: string })
       return [];
     }
 
-    const testFilePath: unknown = Reflect.get(suite, 'testFilePath');
-    const suiteResults: unknown = Reflect.get(suite, 'testResults');
+    const testFilePath: unknown = Reflect.get(suite, 'name');
+    const suiteResults: unknown = Reflect.get(suite, 'assertionResults');
 
     if (typeof testFilePath !== 'string' || !Array.isArray(suiteResults)) {
       return [];
     }
 
-    return suiteResults.reduce<TestFailure[]>((failures, test: unknown) => {
+    const assertionFailures = suiteResults.reduce<TestFailure[]>((failures, test: unknown) => {
       if (typeof test !== 'object' || test === null) {
         return failures;
       }
@@ -70,5 +78,34 @@ export const jestJsonParseTransformer = ({ jsonOutput }: { jsonOutput: string })
         }),
       ];
     }, []);
+
+    const suiteStatus: unknown = Reflect.get(suite, 'status');
+    const suiteMessage: unknown = Reflect.get(suite, 'message');
+
+    if (
+      suiteStatus === 'failed' &&
+      typeof suiteMessage === 'string' &&
+      suiteMessage.length > 0 &&
+      assertionFailures.length === 0
+    ) {
+      const stripped = stripAnsiCodesTransformer({
+        text: errorMessageContract.parse(suiteMessage),
+      });
+      const cleanedMessage =
+        stripped
+          .split('\n')
+          .map((line) => line.trim())
+          .find((line) => line.length > 0 && !line.startsWith('●')) ?? stripped;
+
+      return [
+        testFailureContract.parse({
+          suitePath: testFilePath,
+          testName: 'Test suite failed to run',
+          message: cleanedMessage,
+        }),
+      ];
+    }
+
+    return assertionFailures;
   });
 };

@@ -62,7 +62,7 @@ export const StartWard = async ({ args }: { args: string[] }): Promise<void> => 
   if (command === COMMANDS.run) {
     const cliArgs = args.slice(FIRST_POSITIONAL_INDEX).map((arg) => cliArgContract.parse(arg));
     const config = cliArgsParseTransformer({ args: cliArgs });
-    await commandRunBroker({ config, rootPath: resolvedRootPath, isSubPackage });
+    await commandRunBroker({ config, rootPath: resolvedRootPath, isSubPackage, cwd });
     return;
   }
 
