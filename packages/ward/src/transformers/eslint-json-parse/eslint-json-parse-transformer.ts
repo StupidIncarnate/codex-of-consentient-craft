@@ -6,18 +6,24 @@
  * // Returns ErrorEntry[] with severity mapped from ESLint numeric codes
  */
 
+import { errorMessageContract } from '@dungeonmaster/shared/contracts';
+
 import {
   errorEntryContract,
   type ErrorEntry,
 } from '../../contracts/error-entry/error-entry-contract';
 import { eslintSeverityStatics } from '../../statics/eslint-severity/eslint-severity-statics';
+import { extractJsonArrayTransformer } from '../extract-json-array/extract-json-array-transformer';
 
 export const eslintJsonParseTransformer = ({
   jsonOutput,
 }: {
   jsonOutput: string;
 }): ErrorEntry[] => {
-  const parsed: unknown = JSON.parse(jsonOutput);
+  const cleanedOutput = extractJsonArrayTransformer({
+    output: errorMessageContract.parse(jsonOutput),
+  });
+  const parsed: unknown = JSON.parse(cleanedOutput);
 
   if (!Array.isArray(parsed)) {
     return [];

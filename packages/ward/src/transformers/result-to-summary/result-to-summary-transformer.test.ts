@@ -23,15 +23,23 @@ describe('resultToSummaryTransformer', () => {
   });
 
   describe('passing checks', () => {
-    it('VALID: {wardResult: lint pass with 2 packages} => returns PASS with package count', () => {
+    it('VALID: {wardResult: lint pass with 2 packages} => returns PASS with package and file count', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
             status: 'pass',
             projectResults: [
-              ProjectResultStub({ projectFolder: { name: 'web', path: '/p/web' }, status: 'pass' }),
-              ProjectResultStub({ projectFolder: { name: 'cli', path: '/p/cli' }, status: 'pass' }),
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 100,
+              }),
+              ProjectResultStub({
+                projectFolder: { name: 'cli', path: '/p/cli' },
+                status: 'pass',
+                filesCount: 47,
+              }),
             ],
           }),
         ],
@@ -43,7 +51,38 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({ value: 'run: 1739625600000-a3f1\nlint:      PASS  2 packages' }),
+        WardSummaryStub({
+          value: 'run: 1739625600000-a3f1\nlint:      PASS  2 packages (147 files)',
+        }),
+      );
+    });
+  });
+
+  describe('zero files warning', () => {
+    it('VALID: {wardResult: lint pass with 0 files} => returns WARN for zero files', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 0,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({ value: 'run: 1739625600000-a3f1\nlint:      WARN  0 files run' }),
       );
     });
   });
@@ -59,6 +98,7 @@ describe('resultToSummaryTransformer', () => {
               ProjectResultStub({
                 projectFolder: { name: 'web', path: '/p/web' },
                 status: 'fail',
+                filesCount: 10,
                 testFailures: [
                   TestFailureStub({ testName: 'test1' }),
                   TestFailureStub({ testName: 'test2' }),
@@ -68,6 +108,7 @@ describe('resultToSummaryTransformer', () => {
               ProjectResultStub({
                 projectFolder: { name: 'cli', path: '/p/cli' },
                 status: 'fail',
+                filesCount: 10,
                 errors: [ErrorEntryStub()],
               }),
             ],
@@ -83,7 +124,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\ntest:      FAIL  web (3 failures), cli (1 failures)\n\n--- test ---\nsrc/index.test.ts\n  FAIL "test1"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test2"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test3"\n    Expected true to be false\n/p/cli/src/index.ts\n  Unexpected any (line 10)',
+            'run: 1739625600000-a3f1\ntest:      FAIL  2 packages (20 files)  web (3), cli (1)\n\n--- test ---\nsrc/index.test.ts\n  FAIL "test1"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test2"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test3"\n    Expected true to be false\n/p/cli/src/index.ts\n  Unexpected any (line 10)',
         }),
       );
     });
@@ -98,6 +139,7 @@ describe('resultToSummaryTransformer', () => {
               ProjectResultStub({
                 projectFolder: { name: 'cli', path: '/p/cli' },
                 status: 'fail',
+                filesCount: 10,
                 errors: [
                   ErrorEntryStub({
                     filePath: '/p/cli/src/start-install.ts',
@@ -120,7 +162,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nlint:      FAIL  cli (1 failures)\n\n--- lint ---\nsrc/start-install.ts\n  @typescript-eslint/no-unsafe-assignment Unsafe assignment (line 55)',
+            'run: 1739625600000-a3f1\nlint:      FAIL  1 packages (10 files)  cli (1)\n\n--- lint ---\nsrc/start-install.ts\n  @typescript-eslint/no-unsafe-assignment Unsafe assignment (line 55)',
         }),
       );
     });
@@ -135,6 +177,7 @@ describe('resultToSummaryTransformer', () => {
               ProjectResultStub({
                 projectFolder: { name: 'cli', path: '/p/cli' },
                 status: 'fail',
+                filesCount: 10,
                 testFailures: [
                   TestFailureStub({
                     suitePath: '/p/cli/src/guard.test.ts',
@@ -156,7 +199,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\ntest:      FAIL  cli (1 failures)\n\n--- test ---\nsrc/guard.test.ts\n  FAIL "should return false"\n    Expected: false',
+            'run: 1739625600000-a3f1\ntest:      FAIL  1 packages (10 files)  cli (1)\n\n--- test ---\nsrc/guard.test.ts\n  FAIL "should return false"\n    Expected: false',
         }),
       );
     });
@@ -171,6 +214,7 @@ describe('resultToSummaryTransformer', () => {
               ProjectResultStub({
                 projectFolder: { name: 'cli', path: '/repo/packages/cli' },
                 status: 'fail',
+                filesCount: 10,
                 errors: [
                   ErrorEntryStub({
                     filePath: '/repo/packages/cli/src/file.ts',
@@ -193,7 +237,71 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nlint:      FAIL  cli (1 failures)\n\n--- lint ---\npackages/cli/src/file.ts\n  @typescript-eslint/no-unused-vars Unused var (line 10)',
+            'run: 1739625600000-a3f1\nlint:      FAIL  1 packages (10 files)  cli (1)\n\n--- lint ---\npackages/cli/src/file.ts\n  @typescript-eslint/no-unused-vars Unused var (line 10)',
+        }),
+      );
+    });
+  });
+
+  describe('fail edge cases', () => {
+    it('VALID: {wardResult: fail status with 0 total files} => shows WARN instead of FAIL for summary line', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'fail',
+                filesCount: 0,
+                errors: [ErrorEntryStub()],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p/web' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nlint:      WARN  0 files run\n\n--- lint ---\nsrc/index.ts\n  Unexpected any (line 10)',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: fail status but no project has errors or failures} => FAIL line shows no package names', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'test',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'fail',
+                filesCount: 5,
+                errors: [],
+                testFailures: [],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value: 'run: 1739625600000-a3f1\ntest:      FAIL  1 packages (5 files)',
         }),
       );
     });
@@ -230,6 +338,37 @@ describe('resultToSummaryTransformer', () => {
     });
   });
 
+  describe('skip edge cases', () => {
+    it('VALID: {wardResult: test skip with empty stderr} => shows skipped as fallback reason', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'test',
+            status: 'skip',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'standards', path: '/p/standards' },
+                status: 'skip',
+                rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p/standards' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value: 'run: 1739625600000-a3f1\ntest:      SKIP  standards (skipped)',
+        }),
+      );
+    });
+  });
+
   describe('multiple check types', () => {
     it('VALID: {wardResult: lint pass + test fail + e2e pass} => returns all check lines', () => {
       const wardResult = WardResultStub({
@@ -238,7 +377,11 @@ describe('resultToSummaryTransformer', () => {
             checkType: 'lint',
             status: 'pass',
             projectResults: [
-              ProjectResultStub({ projectFolder: { name: 'web', path: '/p/web' }, status: 'pass' }),
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 10,
+              }),
             ],
           }),
           CheckResultStub({
@@ -249,6 +392,7 @@ describe('resultToSummaryTransformer', () => {
                 projectFolder: { name: 'cli', path: '/p/cli' },
                 status: 'fail',
                 testFailures: [TestFailureStub()],
+                filesCount: 8,
               }),
             ],
           }),
@@ -256,7 +400,11 @@ describe('resultToSummaryTransformer', () => {
             checkType: 'e2e',
             status: 'pass',
             projectResults: [
-              ProjectResultStub({ projectFolder: { name: 'e2e', path: '/p/e2e' }, status: 'pass' }),
+              ProjectResultStub({
+                projectFolder: { name: 'e2e', path: '/p/e2e' },
+                status: 'pass',
+                filesCount: 2,
+              }),
             ],
           }),
         ],
@@ -270,7 +418,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nlint:      PASS  1 packages\ntest:      FAIL  cli (1 failures)\ne2e:       PASS  1 packages\n\n--- test ---\nsrc/index.test.ts\n  FAIL "should return valid result"\n    Expected true to be false',
+            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (10 files)\ntest:      FAIL  1 packages (8 files)  cli (1)\ne2e:       PASS  1 packages (2 files)\n\n--- test ---\nsrc/index.test.ts\n  FAIL "should return valid result"\n    Expected true to be false',
         }),
       );
     });

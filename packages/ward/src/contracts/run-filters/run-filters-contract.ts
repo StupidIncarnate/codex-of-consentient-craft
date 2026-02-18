@@ -13,6 +13,7 @@ export const runFiltersContract = z.object({
   glob: z.string().brand<'GlobPattern'>().optional(),
   changed: z.boolean().optional(),
   only: z.array(checkTypeContract).optional(),
+  passthrough: z.array(z.string().brand<'PassthroughArg'>()).optional(),
 });
 
 export type RunFilters = z.infer<typeof runFiltersContract>;

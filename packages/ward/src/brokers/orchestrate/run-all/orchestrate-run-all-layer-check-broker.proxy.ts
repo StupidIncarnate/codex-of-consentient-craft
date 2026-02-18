@@ -6,6 +6,7 @@ export const orchestrateRunAllLayerCheckBrokerProxy = (): {
   setupLintPass: () => void;
   setupTypecheckPass: () => void;
   setupTestPass: () => void;
+  getTestSpawnedArgs: () => unknown;
 } => {
   const lintProxy = checkRunLintBrokerProxy();
   const typecheckProxy = checkRunTypecheckBrokerProxy();
@@ -21,5 +22,6 @@ export const orchestrateRunAllLayerCheckBrokerProxy = (): {
     setupTestPass: (): void => {
       testProxy.setupPass();
     },
+    getTestSpawnedArgs: (): unknown => testProxy.getSpawnedArgs(),
   };
 };

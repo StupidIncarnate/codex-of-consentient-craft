@@ -17,6 +17,7 @@ import {
 } from '../../../contracts/project-result/project-result-contract';
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
+import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
 
 export const checkRunTestBroker = async ({
@@ -27,9 +28,8 @@ export const checkRunTestBroker = async ({
   fileList: GitRelativePath[];
 }): Promise<ProjectResult> => {
   const { command, args } = checkCommandsStatics.test;
-  const finalArgs = fileList.length > 0
-    ? [...args, '--findRelatedTests', ...fileList]
-    : [...args];
+  const finalArgs =
+    fileList.length > 0 ? [...args, '--runInBand', '--findRelatedTests', ...fileList] : [...args];
 
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
 
@@ -44,6 +44,7 @@ export const checkRunTestBroker = async ({
 
   let testFailures: ReturnType<typeof jestJsonParseTransformer> = [];
   let resolvedStatus = status;
+  let filesCount = 0;
 
   if (status === 'fail') {
     try {
@@ -54,11 +55,25 @@ export const checkRunTestBroker = async ({
     }
   }
 
+  try {
+    const jsonSlice = extractJsonObjectTransformer({ output: result.output });
+    const parsed: unknown = JSON.parse(jsonSlice);
+    if (typeof parsed === 'object' && parsed !== null && 'numTotalTestSuites' in parsed) {
+      const count: unknown = Reflect.get(parsed, 'numTotalTestSuites');
+      if (typeof count === 'number') {
+        filesCount = count;
+      }
+    }
+  } catch {
+    // non-JSON output, filesCount stays 0
+  }
+
   return projectResultContract.parse({
     projectFolder,
     status: resolvedStatus,
     errors: [],
     testFailures,
+    filesCount,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

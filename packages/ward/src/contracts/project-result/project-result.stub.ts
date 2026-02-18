@@ -8,5 +8,6 @@ export const ProjectResultStub = ({ ...props }: StubArgument<ProjectResult> = {}
     errors: [],
     testFailures: [],
     rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+    filesCount: 0,
     ...props,
   });

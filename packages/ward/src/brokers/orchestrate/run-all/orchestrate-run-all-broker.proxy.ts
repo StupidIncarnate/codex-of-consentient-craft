@@ -25,6 +25,12 @@ export const orchestrateRunAllBrokerProxy = (): {
     diffOutput: string;
     checkCount: number;
   }) => void;
+  setupWithPassthrough: (params: {
+    gitOutput: string;
+    packageContents: string[];
+    checkCount: number;
+  }) => void;
+  getSpawnedArgs: () => unknown;
   setupSubPackageRun: (params: {
     gitOutput: string;
     packageContents: string[];
@@ -43,11 +49,15 @@ export const orchestrateRunAllBrokerProxy = (): {
   const layerCheckProxy = orchestrateRunAllLayerCheckBrokerProxy();
 
   const setupChecksForCount = ({ checkCount }: { checkCount: number }): void => {
+    // Sequential execution: lint all packages, then typecheck all packages (with glob after each),
+    // then test all packages. Order: lint1, lint2, typecheck1+glob+glob, typecheck2+glob+glob, test1, test2
     Array.from({ length: checkCount }).forEach(() => {
       layerCheckProxy.setupLintPass();
     });
     Array.from({ length: checkCount }).forEach(() => {
       layerCheckProxy.setupTypecheckPass();
+      globProxy.setupNoMatches();
+      globProxy.setupNoMatches();
     });
     Array.from({ length: checkCount }).forEach(() => {
       layerCheckProxy.setupTestPass();
@@ -107,6 +117,23 @@ export const orchestrateRunAllBrokerProxy = (): {
       pruneProxy.setupEmpty();
     },
 
+    setupWithPassthrough: ({
+      gitOutput,
+      packageContents,
+      checkCount,
+    }: {
+      gitOutput: string;
+      packageContents: string[];
+      checkCount: number;
+    }): void => {
+      discoverProxy.setupFindsPackages({ gitOutput, packageContents });
+      Array.from({ length: checkCount }).forEach(() => {
+        layerCheckProxy.setupTestPass();
+      });
+      saveProxy.setupSuccess();
+      pruneProxy.setupEmpty();
+    },
+
     setupSubPackageRun: ({
       gitOutput,
       packageContents,
@@ -128,5 +155,7 @@ export const orchestrateRunAllBrokerProxy = (): {
       saveProxy.setupSuccess();
       pruneProxy.setupEmpty();
     },
+
+    getSpawnedArgs: (): unknown => layerCheckProxy.getTestSpawnedArgs(),
   };
 };

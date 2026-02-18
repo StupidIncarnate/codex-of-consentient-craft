@@ -38,6 +38,16 @@ describe('runFiltersContract', () => {
 
       expect(result).toStrictEqual({ only: [] });
     });
+
+    it('VALID: {passthrough with file paths} => parses passthrough array', () => {
+      const result = runFiltersContract.parse({
+        passthrough: ['packages/ward/src/index.test.ts'],
+      });
+
+      expect(result).toStrictEqual({
+        passthrough: ['packages/ward/src/index.test.ts'],
+      });
+    });
   });
 
   describe('invalid inputs', () => {
@@ -47,6 +57,10 @@ describe('runFiltersContract', () => {
 
     it('INVALID_CHANGED: {changed: "yes"} => throws for non-boolean', () => {
       expect(() => runFiltersContract.parse({ changed: 'yes' })).toThrow(/Expected boolean/u);
+    });
+
+    it('INVALID_PASSTHROUGH: {passthrough: [123]} => throws for non-string element', () => {
+      expect(() => runFiltersContract.parse({ passthrough: [123] })).toThrow(/Expected string/u);
     });
   });
 

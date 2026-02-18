@@ -23,11 +23,19 @@ export const storageSaveBroker = async ({
   rootPath: AbsoluteFilePath;
   wardResult: WardResult;
 }): Promise<void> => {
+  const slim = {
+    ...wardResult,
+    checks: wardResult.checks.map((check) => ({
+      ...check,
+      projectResults: check.projectResults.map(({ rawOutput: _rawOutput, ...rest }) => rest),
+    })),
+  };
+
   const wardDir = filePathContract.parse(`${rootPath}/.ward`);
   await fsMkdirAdapter({ dirPath: wardDir });
 
   const filePath = filePathContract.parse(`${rootPath}/.ward/run-${wardResult.runId}.json`);
-  const contents = fileContentsContract.parse(JSON.stringify(wardResult));
+  const contents = fileContentsContract.parse(JSON.stringify(slim));
 
   await fsWriteFileAdapter({ filePath, contents });
 };

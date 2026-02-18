@@ -3,8 +3,12 @@ import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
 export const checkRunTestBrokerProxy = (): {
   setupPass: () => void;
+  setupPassWithOutput: (params: { stdout: string }) => void;
   setupFail: (params: { stdout: string }) => void;
   setupFailWithBadOutput: () => void;
+  setupPassWithStderr: (params: { stdout: string; stderr: string }) => void;
+  setupFailWithStderr: (params: { stdout: string; stderr: string }) => void;
+  getSpawnedArgs: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const successCode = ExitCodeStub({ value: 0 });
@@ -14,9 +18,13 @@ export const checkRunTestBrokerProxy = (): {
     setupPass: (): void => {
       captureProxy.setupSuccess({
         exitCode: successCode,
-        stdout: '{"testResults":[],"success":true}',
+        stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
         stderr: '',
       });
+    },
+
+    setupPassWithOutput: ({ stdout }: { stdout: string }): void => {
+      captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr: '' });
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {
@@ -30,5 +38,15 @@ export const checkRunTestBrokerProxy = (): {
         stderr: '',
       });
     },
+
+    setupPassWithStderr: ({ stdout, stderr }: { stdout: string; stderr: string }): void => {
+      captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr });
+    },
+
+    setupFailWithStderr: ({ stdout, stderr }: { stdout: string; stderr: string }): void => {
+      captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr });
+    },
+
+    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),
   };
 };

@@ -7,8 +7,10 @@
  */
 
 import type { CliArg } from '../../contracts/cli-arg/cli-arg-contract';
-import type { WardConfig } from '../../contracts/ward-config/ward-config-contract';
-import { wardConfigContract } from '../../contracts/ward-config/ward-config-contract';
+import {
+  wardConfigContract,
+  type WardConfig,
+} from '../../contracts/ward-config/ward-config-contract';
 import { checkTypeContract } from '../../contracts/check-type/check-type-contract';
 
 export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfig => {
@@ -16,6 +18,16 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
+
+    if (arg === '--') {
+      const rest = args.slice(i + 1).map(String);
+      if (rest.length > 0) {
+        parsed.passthrough = rest.map((value) =>
+          wardConfigContract.shape.passthrough.unwrap().element.parse(value),
+        );
+      }
+      break;
+    }
 
     if (arg === '--only' && args[i + 1]) {
       parsed.only = String(args[i + 1])

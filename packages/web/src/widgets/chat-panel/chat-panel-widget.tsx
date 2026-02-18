@@ -126,26 +126,37 @@ export const ChatPanelWidget = ({
           />
         </Box>
 
-        {entries.map((entry, index) => {
-          const nextEntry = entries[index + 1];
-          const isToolLoading =
-            isStreaming &&
-            entry.role === 'assistant' &&
-            entry.type === 'tool_use' &&
-            (index === entries.length - 1 ||
-              (nextEntry !== undefined &&
-                nextEntry.role === 'assistant' &&
-                nextEntry.type !== 'tool_result'));
+        {(() => {
+          let lastUserIndex = -1;
 
-          return (
-            <ChatMessageWidget
-              key={index}
-              entry={entry}
-              isLoading={isToolLoading}
-              isStreaming={isStreaming}
-            />
-          );
-        })}
+          for (let i = entries.length - 1; i >= 0; i--) {
+            if (entries[i]?.role === 'user') {
+              lastUserIndex = i;
+              break;
+            }
+          }
+          const hasTextAfterLastUser = entries
+            .slice(lastUserIndex + 1)
+            .some((e) => e.role === 'assistant' && e.type === 'text');
+
+          return entries.map((entry, index) => {
+            const isToolLoading =
+              isStreaming &&
+              entry.role === 'assistant' &&
+              entry.type === 'tool_use' &&
+              index > lastUserIndex &&
+              !hasTextAfterLastUser;
+
+            return (
+              <ChatMessageWidget
+                key={index}
+                entry={entry}
+                isLoading={isToolLoading}
+                isStreaming={isStreaming}
+              />
+            );
+          });
+        })()}
 
         <div ref={messagesEndRef} />
       </Box>

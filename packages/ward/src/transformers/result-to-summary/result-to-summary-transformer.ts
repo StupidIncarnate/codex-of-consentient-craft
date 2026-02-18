@@ -27,20 +27,28 @@ export const resultToSummaryTransformer = ({
 
   const checkLines = wardResult.checks.map((check) => {
     const label = `${check.checkType}:`.padEnd(CHECK_TYPE_PAD);
+    const totalFiles = check.projectResults.reduce((sum, pr) => sum + pr.filesCount, 0);
+
+    if (check.status !== 'skip' && totalFiles === 0) {
+      return `${label} WARN  0 files run`;
+    }
 
     if (check.status === 'pass') {
       const passCount = check.projectResults.filter((pr) => pr.status === 'pass').length;
-      return `${label} PASS  ${String(passCount)} packages`;
+      return `${label} PASS  ${String(passCount)} packages (${String(totalFiles)} files)`;
     }
 
     if (check.status === 'fail') {
-      const failing = check.projectResults
+      const totalPackages = check.projectResults.length;
+      const failingNames = check.projectResults
         .filter((pr) => pr.status === 'fail')
+        .filter((pr) => pr.errors.length > 0 || pr.testFailures.length > 0)
         .map((pr) => {
           const failureCount = pr.testFailures.length + pr.errors.length;
-          return `${pr.projectFolder.name} (${String(failureCount)} failures)`;
+          return `${pr.projectFolder.name} (${String(failureCount)})`;
         });
-      return `${label} FAIL  ${failing.join(', ')}`;
+      const failPart = failingNames.length > 0 ? `  ${failingNames.join(', ')}` : '';
+      return `${label} FAIL  ${String(totalPackages)} packages (${String(totalFiles)} files)${failPart}`;
     }
 
     const skipped = check.projectResults

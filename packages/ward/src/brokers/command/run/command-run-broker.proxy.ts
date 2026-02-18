@@ -9,6 +9,7 @@ export const commandRunBrokerProxy = (): {
 } => {
   jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
   jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+  jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
   const orchestrateProxy = orchestrateRunAllBrokerProxy();
 

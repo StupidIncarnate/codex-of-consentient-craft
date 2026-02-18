@@ -5,7 +5,8 @@
   "bin": {
     "dungeonmaster-session-start-hook": "./dist/startup/start-session-start-hook.js",
     "dungeonmaster-pre-edit-lint": "./dist/startup/start-pre-edit-hook.js",
-    "dungeonmaster-pre-bash": "./dist/startup/start-pre-bash-hook.js"
+    "dungeonmaster-pre-bash": "./dist/startup/start-pre-bash-hook.js",
+    "dungeonmaster-post-edit-lint": "./dist/startup/start-post-edit-hook.js"
   },
   "scripts": {
     "build": "tsc",

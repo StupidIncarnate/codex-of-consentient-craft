@@ -79,6 +79,92 @@ describe('ChatPanelWidget', () => {
       expect(screen.queryByTestId('TOOL_LOADING')).not.toBeNull();
     });
 
+    it('VALID: {multiple parallel tool_use, no text response, isStreaming true} => shows Running on all current turn tools', () => {
+      ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'Do something' }),
+        AssistantToolUseChatEntryStub({ toolName: 'Bash', toolInput: '{"command":"ls cli"}' }),
+        AssistantToolUseChatEntryStub({
+          toolName: 'Bash',
+          toolInput: '{"command":"ls standards"}',
+        }),
+        AssistantToolUseChatEntryStub({ toolName: 'Task', toolInput: '{"prompt":"explore"}' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={true}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const loadingIndicators = screen.queryAllByTestId('TOOL_LOADING');
+
+      expect(loadingIndicators).toHaveLength(3);
+    });
+
+    it('VALID: {previous turn tool_use, new turn streaming} => does not show Running on previous turn tools', () => {
+      ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'First question' }),
+        AssistantToolUseChatEntryStub({ toolName: 'Bash', toolInput: '{"command":"ls cli"}' }),
+        AssistantToolUseChatEntryStub({
+          toolName: 'Bash',
+          toolInput: '{"command":"ls standards"}',
+        }),
+        AssistantTextChatEntryStub({ content: 'Here are the results' }),
+        UserChatEntryStub({ content: 'Second question' }),
+        AssistantToolUseChatEntryStub({ toolName: 'Task', toolInput: '{"prompt":"explore"}' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={true}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const loadingIndicators = screen.queryAllByTestId('TOOL_LOADING');
+
+      expect(loadingIndicators).toHaveLength(1);
+    });
+
+    it('VALID: {tool_use with text response after, isStreaming true} => does not show Running when text response exists', () => {
+      ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'Do something' }),
+        AssistantToolUseChatEntryStub({ toolName: 'Bash', toolInput: '{"command":"ls cli"}' }),
+        AssistantToolUseChatEntryStub({
+          toolName: 'Bash',
+          toolInput: '{"command":"ls standards"}',
+        }),
+        AssistantTextChatEntryStub({ content: 'Here are the results' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={true}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const loadingIndicators = screen.queryAllByTestId('TOOL_LOADING');
+
+      expect(loadingIndicators).toHaveLength(0);
+    });
+
     it('VALID: {tool_use as last entry, isStreaming false} => does not show Running indicator', () => {
       ChatPanelWidgetProxy();
       const entries = [
@@ -203,6 +289,67 @@ describe('ChatPanelWidget', () => {
       expect(onSendMessage).toHaveBeenCalledTimes(1);
       expect(onSendMessage).toHaveBeenCalledWith({ message: 'Build auth flow' });
       expect(proxy.isInputEmpty()).toBe(true);
+    });
+
+    it('VALID: {typed message, press Shift+Enter} => does not send message', async () => {
+      const proxy = ChatPanelWidgetProxy();
+      const onSendMessage = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      await proxy.typeMessage({ text: 'line one{shift>}{enter}{/shift}line two' });
+
+      expect(onSendMessage).toHaveBeenCalledTimes(0);
+    });
+
+    it('EMPTY: {empty input, press Enter} => does not call onSendMessage', async () => {
+      const proxy = ChatPanelWidgetProxy();
+      const onSendMessage = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      await proxy.typeMessage({ text: '{enter}' });
+
+      expect(onSendMessage).toHaveBeenCalledTimes(0);
+    });
+
+    it('VALID: {typed message with whitespace, press Enter} => sends trimmed message', async () => {
+      const proxy = ChatPanelWidgetProxy();
+      const onSendMessage = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      await proxy.typeMessage({ text: '  hello  {enter}' });
+
+      expect(onSendMessage).toHaveBeenCalledTimes(1);
+      expect(onSendMessage).toHaveBeenCalledWith({ message: 'hello' });
     });
   });
 

@@ -18,6 +18,7 @@ import {
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { tscOutputParseTransformer } from '../../../transformers/tsc-output-parse/tsc-output-parse-transformer';
+import { globResolveBroker } from '../../glob/resolve/glob-resolve-broker';
 
 export const checkRunTypecheckBroker = async ({
   projectFolder,
@@ -48,11 +49,16 @@ export const checkRunTypecheckBroker = async ({
 
   const filteredStatus = errors.length > 0 ? 'fail' : 'pass';
 
+  const tsFiles = await globResolveBroker({ pattern: '**/*.ts', basePath: cwd });
+  const tsxFiles = await globResolveBroker({ pattern: '**/*.tsx', basePath: cwd });
+  const filesCount = tsFiles.length + tsxFiles.length;
+
   return projectResultContract.parse({
     projectFolder,
     status: filteredStatus,
     errors,
     testFailures: [],
+    filesCount,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

@@ -23,7 +23,17 @@ export const commandRunBroker = async ({
   isSubPackage: boolean;
   cwd: AbsoluteFilePath;
 }): Promise<void> => {
-  const wardResult = await orchestrateRunAllBroker({ config, rootPath, isSubPackage });
+  const wardResult = await orchestrateRunAllBroker({
+    config,
+    rootPath,
+    isSubPackage,
+    onProgress: ({ checkType, packageName, completed, total }) => {
+      process.stderr.write(
+        `\r\x1b[KProcessing... ${packageName} (${checkType}) [${String(completed)}/${String(total)}]`,
+      );
+    },
+  });
+  process.stderr.write('\r\x1b[K');
   const summary = resultToSummaryTransformer({ wardResult, cwd });
 
   process.stdout.write(`${summary}\n`);

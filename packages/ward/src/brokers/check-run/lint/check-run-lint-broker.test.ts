@@ -91,9 +91,55 @@ describe('checkRunLintBroker', () => {
             }),
           ],
           testFailures: [],
+          filesCount: 1,
           rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 1 }),
         }),
       );
+    });
+  });
+
+  describe('filesCount', () => {
+    it('VALID: {eslint passes with 3 files} => returns filesCount from JSON array length', async () => {
+      const proxy = checkRunLintBrokerProxy();
+      const eslintOutput = JSON.stringify([
+        { filePath: 'a.ts', messages: [] },
+        { filePath: 'b.ts', messages: [] },
+        { filePath: 'c.ts', messages: [] },
+      ]);
+      proxy.setupPassWithOutput({ stdout: eslintOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunLintBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.filesCount).toBe(3);
+    });
+  });
+
+  describe('stderr contamination', () => {
+    it('VALID: {eslint passes with stderr warnings} => returns correct filesCount', async () => {
+      const proxy = checkRunLintBrokerProxy();
+      const eslintOutput = JSON.stringify([
+        { filePath: 'a.ts', messages: [] },
+        { filePath: 'b.ts', messages: [] },
+      ]);
+      proxy.setupPassWithStderr({
+        stdout: eslintOutput,
+        stderr: 'Warning: some deprecation notice from eslint plugin',
+      });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunLintBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.filesCount).toBe(2);
+      expect(result.status).toBe('pass');
     });
   });
 });

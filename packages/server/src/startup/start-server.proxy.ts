@@ -1,6 +1,12 @@
 import { glob as _glob } from 'glob';
 import { readFile as _readFile } from 'fs/promises';
 import { existsSync as _existsSync } from 'fs';
+import { homedir as _homedir } from 'os';
+import { join as _join } from 'path';
+import { spawn as _spawn } from 'child_process';
+import { EventEmitter } from 'events';
+import { PassThrough } from 'stream';
+import type { ChildProcess } from 'child_process';
 
 jest.mock('glob', () => ({
   glob: jest.fn().mockResolvedValue([]),
@@ -9,6 +15,15 @@ jest.mock('fs/promises');
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
   existsSync: jest.fn(),
+}));
+jest.mock('os', () => ({
+  ...jest.requireActual('os'),
+  homedir: jest.fn().mockReturnValue('/home/user'),
+}));
+jest.mock('path', () => jest.requireActual('path'));
+jest.mock('child_process', () => ({
+  ...jest.requireActual('child_process'),
+  spawn: jest.fn(),
 }));
 
 import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/testing';
@@ -29,7 +44,9 @@ import type {
   GuildListItemStub,
   GuildStub,
   DirectoryEntryStub,
+  WsMessage,
 } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorListGuildsAdapterProxy } from '../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter.proxy';
 import { orchestratorAddGuildAdapterProxy } from '../adapters/orchestrator/add-guild/orchestrator-add-guild-adapter.proxy';
@@ -89,6 +106,14 @@ export const StartServerProxy = (): {
   setupStartQuestError: (params: { error: Error }) => void;
   setupGetQuestStatus: (params: { status: OrchestrationStatus }) => void;
   setupGetQuestStatusError: (params: { error: Error }) => void;
+  setupJsonlContent: (params: { content: string }) => void;
+  setupJsonlError: (params: { error: Error }) => void;
+  setupSubagentReaddir: (params: { files: string[] }) => void;
+  setupChatSpawn: () => {
+    emitLine: (line: string) => void;
+    emitExit: (code: number) => void;
+  };
+  getBroadcastedMessages: () => WsMessage[];
 } => {
   const serveProxy = honoServeAdapterProxy();
   honoCreateNodeWebSocketAdapterProxy();
@@ -99,11 +124,13 @@ export const StartServerProxy = (): {
   mcpDiscoverBrokerProxy();
   agentOutputBufferStateProxy();
   chatProcessStateProxy();
-  wsEventRelayBroadcastBrokerProxy();
-  fsReadJsonlAdapterProxy();
+  const broadcastProxy = wsEventRelayBroadcastBrokerProxy();
+  const jsonlProxy = fsReadJsonlAdapterProxy();
   processDevLogAdapterProxy();
   questSessionPersistBrokerProxy();
   guildSessionPersistBrokerProxy();
+
+  jest.mocked(_homedir).mockReturnValue('/home/user');
 
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const addGuildProxy = orchestratorAddGuildAdapterProxy();
@@ -204,5 +231,43 @@ export const StartServerProxy = (): {
     setupGetQuestStatusError: ({ error }: { error: Error }): void => {
       getQuestStatusProxy.throws({ error });
     },
+    setupJsonlContent: ({ content }: { content: string }): void => {
+      jsonlProxy.returns({
+        filePath: AbsoluteFilePathStub({ value: '/stub/path.jsonl' }),
+        content,
+      });
+    },
+    setupJsonlError: ({ error }: { error: Error }): void => {
+      jsonlProxy.throws({
+        filePath: AbsoluteFilePathStub({ value: '/stub/path.jsonl' }),
+        error,
+      });
+    },
+    setupSubagentReaddir: ({ files }: { files: string[] }): void => {
+      jsonlProxy.setupReaddir({ files });
+    },
+    setupChatSpawn: (): {
+      emitLine: (line: string) => void;
+      emitExit: (code: number) => void;
+    } => {
+      const stdout = new PassThrough();
+      const fakeProcess = Object.assign(new EventEmitter(), {
+        stdout,
+        stderr: null,
+        stdin: null,
+        kill: jest.fn(),
+        pid: 12345,
+      });
+      jest.mocked(_spawn).mockReturnValueOnce(fakeProcess as unknown as ChildProcess);
+      return {
+        emitLine: (line: string): void => {
+          stdout.write(`${line}\n`);
+        },
+        emitExit: (code: number): void => {
+          fakeProcess.emit('exit', code);
+        },
+      };
+    },
+    getBroadcastedMessages: (): WsMessage[] => broadcastProxy.getCapturedMessages(),
   };
 };

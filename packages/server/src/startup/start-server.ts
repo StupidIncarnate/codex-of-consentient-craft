@@ -10,6 +10,8 @@ import { Hono } from 'hono';
 import type { WSContext } from 'hono/ws';
 import { spawn } from 'child_process';
 import { createInterface } from 'readline';
+import { readdir } from 'fs/promises';
+import { join } from 'path';
 import { homedir } from 'os';
 import {
   questIdContract,
@@ -689,7 +691,38 @@ export const StartServer = (): void => {
 
       const entries = await fsReadJsonlAdapter({ filePath: jsonlPath });
 
-      const filtered = entries.filter((entry: unknown) => {
+      const subagentsDir = join(jsonlPath.replace(/\.jsonl$/u, ''), 'subagents');
+      let subagentEntries: unknown[] = [];
+
+      try {
+        const files = await readdir(subagentsDir);
+        const jsonlFiles = files.filter((f) => f.endsWith('.jsonl'));
+        const subagentResults = await Promise.all(
+          jsonlFiles.map(async (file) =>
+            fsReadJsonlAdapter({
+              filePath: absoluteFilePathContract.parse(join(subagentsDir, file)),
+            }),
+          ),
+        );
+        subagentEntries = subagentResults.flat();
+      } catch {
+        // subagents directory may not exist
+      }
+
+      const allEntries = [...entries, ...subagentEntries].sort((a, b) => {
+        const tsA =
+          typeof a === 'object' && a !== null && 'timestamp' in a
+            ? String(Reflect.get(a, 'timestamp'))
+            : '';
+        const tsB =
+          typeof b === 'object' && b !== null && 'timestamp' in b
+            ? String(Reflect.get(b, 'timestamp'))
+            : '';
+
+        return tsA.localeCompare(tsB);
+      });
+
+      const filtered = allEntries.filter((entry: unknown) => {
         if (typeof entry !== 'object' || entry === null) {
           return false;
         }
@@ -901,7 +934,38 @@ export const StartServer = (): void => {
 
       const entries = await fsReadJsonlAdapter({ filePath: jsonlPath });
 
-      const filtered = entries.filter((entry: unknown) => {
+      const subagentsDir = join(jsonlPath.replace(/\.jsonl$/u, ''), 'subagents');
+      let subagentEntries: unknown[] = [];
+
+      try {
+        const files = await readdir(subagentsDir);
+        const jsonlFiles = files.filter((f) => f.endsWith('.jsonl'));
+        const subagentResults = await Promise.all(
+          jsonlFiles.map(async (file) =>
+            fsReadJsonlAdapter({
+              filePath: absoluteFilePathContract.parse(join(subagentsDir, file)),
+            }),
+          ),
+        );
+        subagentEntries = subagentResults.flat();
+      } catch {
+        // subagents directory may not exist
+      }
+
+      const allEntries = [...entries, ...subagentEntries].sort((a, b) => {
+        const tsA =
+          typeof a === 'object' && a !== null && 'timestamp' in a
+            ? String(Reflect.get(a, 'timestamp'))
+            : '';
+        const tsB =
+          typeof b === 'object' && b !== null && 'timestamp' in b
+            ? String(Reflect.get(b, 'timestamp'))
+            : '';
+
+        return tsA.localeCompare(tsB);
+      });
+
+      const filtered = allEntries.filter((entry: unknown) => {
         if (typeof entry !== 'object' || entry === null) {
           return false;
         }

@@ -69,11 +69,15 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({ stdout: '{"testResults":[],"success":true}' }),
+                  rawOutput: RawOutputStub({
+                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+                  }),
                 }),
                 ProjectResultStub({
                   projectFolder: sharedFolder,
-                  rawOutput: RawOutputStub({ stdout: '{"testResults":[],"success":true}' }),
+                  rawOutput: RawOutputStub({
+                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+                  }),
                 }),
               ],
             }),
@@ -139,7 +143,9 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({ stdout: '{"testResults":[],"success":true}' }),
+                  rawOutput: RawOutputStub({
+                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+                  }),
                 }),
               ],
             }),
@@ -198,7 +204,9 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({ stdout: '{"testResults":[],"success":true}' }),
+                  rawOutput: RawOutputStub({
+                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+                  }),
                 }),
               ],
             }),
@@ -210,6 +218,61 @@ describe('orchestrateRunAllBroker', () => {
           ],
         }),
       );
+    });
+  });
+
+  describe('run with passthrough files', () => {
+    it('VALID: {passthrough files, two projects} => only runs checks in matching project', async () => {
+      const proxy = orchestrateRunAllBrokerProxy();
+      proxy.setupWithPassthrough({
+        gitOutput: 'packages/ward/package.json\npackages/shared/package.json\n',
+        packageContents: [
+          JSON.stringify({ name: '@dungeonmaster/ward' }),
+          JSON.stringify({ name: '@dungeonmaster/shared' }),
+        ],
+        checkCount: 1,
+      });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({
+        only: ['test'],
+        passthrough: ['packages/ward/src/index.test.ts'],
+      });
+
+      const result = await orchestrateRunAllBroker({ config, rootPath, isSubPackage: false });
+
+      const wardFolder = ProjectFolderStub({
+        name: '@dungeonmaster/ward',
+        path: '/project/packages/ward',
+      });
+
+      expect(result).toStrictEqual(
+        WardResultStub({
+          runId: '1739625600000-a38e',
+          filters: {
+            only: ['test'],
+            passthrough: ['packages/ward/src/index.test.ts'],
+          },
+          checks: [
+            CheckResultStub({
+              checkType: 'test',
+              status: 'pass',
+              projectResults: [
+                ProjectResultStub({
+                  projectFolder: wardFolder,
+                  rawOutput: RawOutputStub({
+                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+                  }),
+                }),
+              ],
+            }),
+          ],
+        }),
+      );
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+      expect(spawnedArgs).toContain('--findRelatedTests');
+      expect(spawnedArgs).toContain('src/index.test.ts');
     });
   });
 

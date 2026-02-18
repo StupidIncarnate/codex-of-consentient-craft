@@ -4,6 +4,7 @@ import {
   GuildIdStub,
   DirectoryEntryStub,
   QuestListItemStub,
+  SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 import { AddQuestResultStub } from '@dungeonmaster/orchestrator/testing';
 
@@ -427,6 +428,527 @@ describe('StartServer', () => {
 
       expect(response.status).toBe(200);
       expect(typeof Reflect.get(body as object, 'content')).toBe('string');
+    });
+  });
+
+  describe('POST /api/quests/:questId/chat (streaming)', () => {
+    const STREAM_SETTLE_MS = 50;
+
+    const setupQuestChatStreamContext = (): ReturnType<typeof StartServerProxy> => {
+      const proxy = StartServerProxy();
+      const guild = GuildListItemStub();
+      const quest = QuestListItemStub();
+      proxy.setupListGuilds({ guilds: [guild] });
+      proxy.setupListQuests({ quests: [quest] });
+      return proxy;
+    };
+
+    it('VALID: {stream with tool_use lines} => broadcasts all lines including tool calls via WebSocket', async () => {
+      const proxy = setupQuestChatStreamContext();
+      const chat = proxy.setupChatSpawn();
+      const questId = QuestListItemStub().id;
+
+      const response = await proxy.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'hello' }),
+      });
+
+      expect(response.status).toBe(200);
+      const body: unknown = await response.json();
+      expect(Reflect.get(body as object, 'chatProcessId')).toBeDefined();
+
+      chat.emitLine(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Let me check"}]}}',
+      );
+      chat.emitLine(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"tu_1","name":"Read","input":{"path":"/foo"}}]}}',
+      );
+      chat.emitLine('{"type":"tool_result","content":"file contents here"}');
+      chat.emitLine(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Done"}]}}',
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+
+      const messages = proxy.getBroadcastedMessages();
+      const chatOutputs = messages.filter((m) => m.type === 'chat-output');
+
+      expect(chatOutputs).toHaveLength(4);
+
+      const lines = chatOutputs.map((m) => (m.payload as Record<string, unknown>).line as string);
+      expect(lines.some((l) => l.includes('tool_use'))).toBe(true);
+      expect(lines.some((l) => l.includes('tool_result'))).toBe(true);
+    });
+
+    it('VALID: {non-JSON lines in stream} => broadcasts all lines without filtering', async () => {
+      const proxy = setupQuestChatStreamContext();
+      const chat = proxy.setupChatSpawn();
+      const questId = QuestListItemStub().id;
+
+      await proxy.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'hello' }),
+      });
+
+      chat.emitLine('not valid json');
+      chat.emitLine('{"type":"assistant","message":"real line"}');
+
+      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+
+      const messages = proxy.getBroadcastedMessages();
+      const chatOutputs = messages.filter((m) => m.type === 'chat-output');
+
+      expect(chatOutputs).toHaveLength(2);
+
+      const lines = chatOutputs.map((m) => (m.payload as Record<string, unknown>).line as string);
+      expect(lines[0]).toBe('not valid json');
+      expect(lines[1]).toBe('{"type":"assistant","message":"real line"}');
+    });
+
+    it('VALID: {process exits} => broadcasts chat-complete with exit code', async () => {
+      const proxy = setupQuestChatStreamContext();
+      const chat = proxy.setupChatSpawn();
+      const questId = QuestListItemStub().id;
+
+      await proxy.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'hello' }),
+      });
+
+      chat.emitExit(0);
+
+      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+
+      const messages = proxy.getBroadcastedMessages();
+      const chatCompletes = messages.filter((m) => m.type === 'chat-complete');
+
+      expect(chatCompletes).toHaveLength(1);
+      expect((chatCompletes[0]?.payload as Record<string, unknown>).exitCode).toBe(0);
+    });
+
+    it('VALID: {stream lines then exit} => broadcasts all outputs then chat-complete in order', async () => {
+      const proxy = setupQuestChatStreamContext();
+      const chat = proxy.setupChatSpawn();
+      const questId = QuestListItemStub().id;
+
+      await proxy.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'hello' }),
+      });
+
+      chat.emitLine('{"type":"user","message":"hello"}');
+      chat.emitLine(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"tu_1","name":"Bash","input":{"cmd":"ls"}}]}}',
+      );
+      chat.emitLine('{"type":"tool_result","content":"README.md"}');
+      chat.emitLine(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Found README"}]}}',
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+
+      chat.emitExit(0);
+
+      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+
+      const messages = proxy.getBroadcastedMessages();
+      const types = messages.map((m) => m.type);
+
+      expect(types.filter((t) => t === 'chat-output')).toHaveLength(4);
+      expect(types[types.length - 1]).toBe('chat-complete');
+    });
+
+    it('INVALID: {missing message} => 400 with error', async () => {
+      const proxy = setupQuestChatStreamContext();
+      proxy.setupChatSpawn();
+      const questId = QuestListItemStub().id;
+
+      const response = await proxy.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      expect(response.status).toBe(400);
+      const body: unknown = await response.json();
+      expect(toPlain(body)).toStrictEqual(toPlain({ error: 'message is required' }));
+    });
+  });
+
+  describe('POST /api/guilds/:guildId/chat (streaming)', () => {
+    const STREAM_SETTLE_MS = 50;
+
+    const setupGuildChatStreamContext = (): ReturnType<typeof StartServerProxy> => {
+      const proxy = StartServerProxy();
+      const guild = GuildStub();
+      proxy.setupGetGuild({ guild });
+      return proxy;
+    };
+
+    it('VALID: {stream with tool_use lines} => broadcasts all lines including tool calls via WebSocket', async () => {
+      const proxy = setupGuildChatStreamContext();
+      const chat = proxy.setupChatSpawn();
+      const guildId = GuildIdStub();
+
+      const response = await proxy.request(`/api/guilds/${guildId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'hello' }),
+      });
+
+      expect(response.status).toBe(200);
+      const body: unknown = await response.json();
+      expect(Reflect.get(body as object, 'chatProcessId')).toBeDefined();
+
+      chat.emitLine(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Let me check"}]}}',
+      );
+      chat.emitLine(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"tu_1","name":"Read","input":{"path":"/bar"}}]}}',
+      );
+      chat.emitLine('{"type":"tool_result","content":"file data"}');
+      chat.emitLine(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Done"}]}}',
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+
+      const messages = proxy.getBroadcastedMessages();
+      const chatOutputs = messages.filter((m) => m.type === 'chat-output');
+
+      expect(chatOutputs).toHaveLength(4);
+
+      const lines = chatOutputs.map((m) => (m.payload as Record<string, unknown>).line as string);
+      expect(lines.some((l) => l.includes('tool_use'))).toBe(true);
+      expect(lines.some((l) => l.includes('tool_result'))).toBe(true);
+    });
+
+    it('VALID: {stream lines then exit} => broadcasts all outputs then chat-complete', async () => {
+      const proxy = setupGuildChatStreamContext();
+      const chat = proxy.setupChatSpawn();
+      const guildId = GuildIdStub();
+
+      await proxy.request(`/api/guilds/${guildId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'hello' }),
+      });
+
+      chat.emitLine('{"type":"assistant","message":"thinking"}');
+      chat.emitLine(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"tu_1","name":"Grep","input":{"pattern":"foo"}}]}}',
+      );
+      chat.emitLine('{"type":"tool_result","content":"match found"}');
+
+      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+
+      chat.emitExit(0);
+
+      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+
+      const messages = proxy.getBroadcastedMessages();
+      const chatOutputs = messages.filter((m) => m.type === 'chat-output');
+      const chatCompletes = messages.filter((m) => m.type === 'chat-complete');
+
+      expect(chatOutputs).toHaveLength(3);
+      expect(chatCompletes).toHaveLength(1);
+      expect((chatCompletes[0]?.payload as Record<string, unknown>).exitCode).toBe(0);
+    });
+
+    it('INVALID: {missing message} => 400 with error', async () => {
+      const proxy = setupGuildChatStreamContext();
+      proxy.setupChatSpawn();
+      const guildId = GuildIdStub();
+
+      const response = await proxy.request(`/api/guilds/${guildId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      expect(response.status).toBe(400);
+      const body: unknown = await response.json();
+      expect(toPlain(body)).toStrictEqual(toPlain({ error: 'message is required' }));
+    });
+  });
+
+  describe('GET /api/quests/:questId/chat/history', () => {
+    const setupQuestContext = (): ReturnType<typeof StartServerProxy> => {
+      const proxy = StartServerProxy();
+      const guild = GuildListItemStub();
+      const quest = QuestListItemStub();
+      proxy.setupListGuilds({ guilds: [guild] });
+      proxy.setupListQuests({ quests: [quest] });
+      return proxy;
+    };
+
+    it('VALID: {main session only, no subagents dir} => returns main entries filtered by type', async () => {
+      const proxy = setupQuestContext();
+      const questId = QuestListItemStub().id;
+      const sessionId = SessionIdStub();
+
+      proxy.setupJsonlContent({
+        content: [
+          '{"type":"user","timestamp":"2024-01-01T00:00:01Z","message":{"role":"user","content":"hello"}}',
+          '{"type":"assistant","timestamp":"2024-01-01T00:00:02Z","message":{"role":"assistant","content":"hi"}}',
+          '{"type":"system","timestamp":"2024-01-01T00:00:00Z","message":"init"}',
+        ].join('\n'),
+      });
+
+      const response = await proxy.request(
+        `/api/quests/${questId}/chat/history?sessionId=${sessionId}`,
+      );
+      const body = (await response.json()) as unknown[];
+
+      expect(response.status).toBe(200);
+      expect(body).toHaveLength(2);
+      expect(Reflect.get(body[0] as object, 'type')).toBe('user');
+      expect(Reflect.get(body[1] as object, 'type')).toBe('assistant');
+    });
+
+    it('VALID: {main session + one subagent} => returns merged entries sorted by timestamp', async () => {
+      const proxy = setupQuestContext();
+      const questId = QuestListItemStub().id;
+      const sessionId = SessionIdStub();
+
+      proxy.setupJsonlContent({
+        content: [
+          '{"type":"user","timestamp":"2024-01-01T00:00:01.000Z","message":"hello"}',
+          '{"type":"assistant","timestamp":"2024-01-01T00:00:03.000Z","message":"done"}',
+        ].join('\n'),
+      });
+
+      proxy.setupSubagentReaddir({ files: ['agent-abc.jsonl'] });
+
+      proxy.setupJsonlContent({
+        content:
+          '{"type":"assistant","timestamp":"2024-01-01T00:00:02.000Z","message":"tool call"}',
+      });
+
+      const response = await proxy.request(
+        `/api/quests/${questId}/chat/history?sessionId=${sessionId}`,
+      );
+      const body = (await response.json()) as unknown[];
+
+      expect(response.status).toBe(200);
+      expect(body).toHaveLength(3);
+
+      const timestamps = body.map((e) => Reflect.get(e as object, 'timestamp'));
+      expect(timestamps).toStrictEqual([
+        '2024-01-01T00:00:01.000Z',
+        '2024-01-01T00:00:02.000Z',
+        '2024-01-01T00:00:03.000Z',
+      ]);
+    });
+
+    it('VALID: {main session + multiple subagents} => returns all merged chronologically', async () => {
+      const proxy = setupQuestContext();
+      const questId = QuestListItemStub().id;
+      const sessionId = SessionIdStub();
+
+      proxy.setupJsonlContent({
+        content: '{"type":"user","timestamp":"2024-01-01T00:00:01.000Z","message":"hello"}',
+      });
+      proxy.setupJsonlContent({
+        content: '{"type":"assistant","timestamp":"2024-01-01T00:00:02.000Z","message":"sub1"}',
+      });
+      proxy.setupJsonlContent({
+        content: '{"type":"assistant","timestamp":"2024-01-01T00:00:03.000Z","message":"sub2"}',
+      });
+
+      proxy.setupSubagentReaddir({
+        files: ['agent-aaa.jsonl', 'agent-bbb.jsonl'],
+      });
+
+      const response = await proxy.request(
+        `/api/quests/${questId}/chat/history?sessionId=${sessionId}`,
+      );
+      const body = (await response.json()) as unknown[];
+
+      expect(response.status).toBe(200);
+      expect(body).toHaveLength(3);
+
+      const timestamps = body.map((e) => Reflect.get(e as object, 'timestamp'));
+      expect(timestamps).toStrictEqual([
+        '2024-01-01T00:00:01.000Z',
+        '2024-01-01T00:00:02.000Z',
+        '2024-01-01T00:00:03.000Z',
+      ]);
+    });
+
+    it('VALID: {entries with non-user/assistant types} => filters out system and other types', async () => {
+      const proxy = setupQuestContext();
+      const questId = QuestListItemStub().id;
+      const sessionId = SessionIdStub();
+
+      proxy.setupJsonlContent({
+        content: [
+          '{"type":"user","timestamp":"2024-01-01T00:00:01Z","message":"hello"}',
+          '{"type":"system","timestamp":"2024-01-01T00:00:00Z","message":"init"}',
+          '{"type":"queue-operation","timestamp":"2024-01-01T00:00:00.500Z","data":"queued"}',
+          '{"type":"assistant","timestamp":"2024-01-01T00:00:02Z","message":"hi"}',
+        ].join('\n'),
+      });
+
+      const response = await proxy.request(
+        `/api/quests/${questId}/chat/history?sessionId=${sessionId}`,
+      );
+      const body = (await response.json()) as unknown[];
+
+      expect(response.status).toBe(200);
+      expect(body).toHaveLength(2);
+
+      const types = body.map((e) => Reflect.get(e as object, 'type'));
+      expect(types).toStrictEqual(['user', 'assistant']);
+    });
+
+    it('VALID: {empty subagents dir} => returns main entries only', async () => {
+      const proxy = setupQuestContext();
+      const questId = QuestListItemStub().id;
+      const sessionId = SessionIdStub();
+
+      proxy.setupJsonlContent({
+        content: '{"type":"user","timestamp":"2024-01-01T00:00:01Z","message":"hello"}',
+      });
+      proxy.setupSubagentReaddir({ files: [] });
+
+      const response = await proxy.request(
+        `/api/quests/${questId}/chat/history?sessionId=${sessionId}`,
+      );
+      const body = (await response.json()) as unknown[];
+
+      expect(response.status).toBe(200);
+      expect(body).toHaveLength(1);
+      expect(Reflect.get(body[0] as object, 'type')).toBe('user');
+    });
+
+    it('INVALID: {missing sessionId} => 400 with error', async () => {
+      const proxy = setupQuestContext();
+      const questId = QuestListItemStub().id;
+
+      const response = await proxy.request(`/api/quests/${questId}/chat/history`);
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(toPlain(body)).toStrictEqual(
+        toPlain({ error: 'sessionId query parameter is required' }),
+      );
+    });
+
+    it('INVALID: {read error} => 500 with error', async () => {
+      const proxy = setupQuestContext();
+      const questId = QuestListItemStub().id;
+      const sessionId = SessionIdStub();
+
+      proxy.setupJsonlError({ error: new Error('file not found') });
+
+      const response = await proxy.request(
+        `/api/quests/${questId}/chat/history?sessionId=${sessionId}`,
+      );
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(toPlain(body)).toStrictEqual(toPlain({ error: 'file not found' }));
+    });
+  });
+
+  describe('GET /api/guilds/:guildId/chat/history', () => {
+    const setupGuildContext = (): ReturnType<typeof StartServerProxy> => {
+      const proxy = StartServerProxy();
+      const guild = GuildStub();
+      proxy.setupGetGuild({ guild });
+      return proxy;
+    };
+
+    it('VALID: {main session only, no subagents dir} => returns main entries filtered by type', async () => {
+      const proxy = setupGuildContext();
+      const guildId = GuildIdStub();
+      const sessionId = SessionIdStub();
+
+      proxy.setupJsonlContent({
+        content: [
+          '{"type":"user","timestamp":"2024-01-01T00:00:01Z","message":"hello"}',
+          '{"type":"assistant","timestamp":"2024-01-01T00:00:02Z","message":"hi"}',
+          '{"type":"system","timestamp":"2024-01-01T00:00:00Z","message":"init"}',
+        ].join('\n'),
+      });
+
+      const response = await proxy.request(
+        `/api/guilds/${guildId}/chat/history?sessionId=${sessionId}`,
+      );
+      const body = (await response.json()) as unknown[];
+
+      expect(response.status).toBe(200);
+      expect(body).toHaveLength(2);
+
+      const types = body.map((e) => Reflect.get(e as object, 'type'));
+      expect(types).toStrictEqual(['user', 'assistant']);
+    });
+
+    it('VALID: {main session + subagent} => returns merged entries sorted by timestamp', async () => {
+      const proxy = setupGuildContext();
+      const guildId = GuildIdStub();
+      const sessionId = SessionIdStub();
+
+      proxy.setupJsonlContent({
+        content: [
+          '{"type":"user","timestamp":"2024-01-01T00:00:01.000Z","message":"hello"}',
+          '{"type":"assistant","timestamp":"2024-01-01T00:00:03.000Z","message":"done"}',
+        ].join('\n'),
+      });
+      proxy.setupJsonlContent({
+        content:
+          '{"type":"assistant","timestamp":"2024-01-01T00:00:02.000Z","message":"tool call"}',
+      });
+      proxy.setupSubagentReaddir({ files: ['agent-xyz.jsonl'] });
+
+      const response = await proxy.request(
+        `/api/guilds/${guildId}/chat/history?sessionId=${sessionId}`,
+      );
+      const body = (await response.json()) as unknown[];
+
+      expect(response.status).toBe(200);
+      expect(body).toHaveLength(3);
+
+      const timestamps = body.map((e) => Reflect.get(e as object, 'timestamp'));
+      expect(timestamps).toStrictEqual([
+        '2024-01-01T00:00:01.000Z',
+        '2024-01-01T00:00:02.000Z',
+        '2024-01-01T00:00:03.000Z',
+      ]);
+    });
+
+    it('INVALID: {missing sessionId} => 400 with error', async () => {
+      const proxy = setupGuildContext();
+      const guildId = GuildIdStub();
+
+      const response = await proxy.request(`/api/guilds/${guildId}/chat/history`);
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(toPlain(body)).toStrictEqual(
+        toPlain({ error: 'sessionId query parameter is required' }),
+      );
+    });
+
+    it('INVALID: {read error} => 500 with error', async () => {
+      const proxy = setupGuildContext();
+      const guildId = GuildIdStub();
+      const sessionId = SessionIdStub();
+
+      proxy.setupJsonlError({ error: new Error('file not found') });
+
+      const response = await proxy.request(
+        `/api/guilds/${guildId}/chat/history?sessionId=${sessionId}`,
+      );
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(toPlain(body)).toStrictEqual(toPlain({ error: 'file not found' }));
     });
   });
 });

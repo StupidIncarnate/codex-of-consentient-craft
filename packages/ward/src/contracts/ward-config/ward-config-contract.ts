@@ -14,6 +14,7 @@ export const wardConfigContract = z.object({
   glob: z.string().brand<'ConfigGlob'>().optional(),
   changed: z.boolean().optional(),
   verbose: z.boolean().optional(),
+  passthrough: z.array(z.string().brand<'PassthroughArg'>()).optional(),
 });
 
 export type WardConfig = z.infer<typeof wardConfigContract>;

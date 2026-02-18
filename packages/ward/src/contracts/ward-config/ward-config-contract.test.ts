@@ -27,6 +27,22 @@ describe('wardConfigContract', () => {
 
       expect(result).toStrictEqual({ verbose: false });
     });
+
+    it('VALID: {passthrough with file paths} => parses passthrough array', () => {
+      const result = wardConfigContract.parse({
+        passthrough: ['packages/ward/src/index.test.ts'],
+      });
+
+      expect(result).toStrictEqual({
+        passthrough: ['packages/ward/src/index.test.ts'],
+      });
+    });
+
+    it('VALID: {passthrough empty array} => parses empty passthrough', () => {
+      const result = wardConfigContract.parse({ passthrough: [] });
+
+      expect(result).toStrictEqual({ passthrough: [] });
+    });
   });
 
   describe('invalid inputs', () => {
@@ -36,6 +52,10 @@ describe('wardConfigContract', () => {
 
     it('INVALID_VERBOSE: {verbose: "yes"} => throws for non-boolean', () => {
       expect(() => wardConfigContract.parse({ verbose: 'yes' })).toThrow(/Expected boolean/u);
+    });
+
+    it('INVALID_GLOB: {glob: 123} => throws for non-string', () => {
+      expect(() => wardConfigContract.parse({ glob: 123 })).toThrow(/Expected string/u);
     });
   });
 

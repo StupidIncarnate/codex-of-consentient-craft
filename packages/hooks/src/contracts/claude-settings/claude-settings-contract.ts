@@ -33,8 +33,14 @@ const sessionStartHookContract = z.object({
   hooks: z.array(hookEntryContract),
 });
 
+const postToolUseHookContract = z.object({
+  matcher: hookMatcherContract.optional(),
+  hooks: z.array(hookEntryContract),
+});
+
 const hooksConfigContract = z.object({
   PreToolUse: z.array(preToolUseHookContract).optional(),
+  PostToolUse: z.array(postToolUseHookContract).optional(),
   SessionStart: z.array(sessionStartHookContract).optional(),
 });
 
@@ -59,6 +65,7 @@ export type SessionStartHook = z.infer<typeof sessionStartHookContract>;
 export type HookEntry = z.infer<typeof hookEntryContract>;
 export type HookType = z.infer<typeof hookTypeContract>;
 export type HookCommand = z.infer<typeof hookCommandContract>;
+export type PostToolUseHook = z.infer<typeof postToolUseHookContract>;
 export type HookMatcher = z.infer<typeof hookMatcherContract>;
 export type PermissionsConfig = z.infer<typeof permissionsConfigContract>;
 export type PermissionString = z.infer<typeof permissionStringContract>;

@@ -60,6 +60,7 @@ export const StartInstall = async ({
   // Merge into existing settings or create new
   if (existingSettings) {
     const existingPreToolUse = existingSettings.hooks?.PreToolUse ?? [];
+    // const existingPostToolUse = existingSettings.hooks?.PostToolUse ?? [];
     const existingSessionStart = existingSettings.hooks?.SessionStart ?? [];
 
     const mergedSettings: ClaudeSettings = {
@@ -67,6 +68,7 @@ export const StartInstall = async ({
       hooks: {
         ...existingSettings.hooks,
         PreToolUse: [...existingPreToolUse, ...dungeonmasterHooks.PreToolUse],
+        // PostToolUse: [...existingPostToolUse, ...dungeonmasterHooks.PostToolUse],
         SessionStart: [...existingSessionStart, ...dungeonmasterHooks.SessionStart],
       },
     };

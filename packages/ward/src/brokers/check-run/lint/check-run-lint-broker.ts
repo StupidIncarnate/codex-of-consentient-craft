@@ -18,6 +18,7 @@ import {
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { eslintJsonParseTransformer } from '../../../transformers/eslint-json-parse/eslint-json-parse-transformer';
+import { extractJsonArrayTransformer } from '../../../transformers/extract-json-array/extract-json-array-transformer';
 
 export const checkRunLintBroker = async ({
   projectFolder,
@@ -42,6 +43,7 @@ export const checkRunLintBroker = async ({
 
   let errors: ReturnType<typeof eslintJsonParseTransformer> = [];
   let resolvedStatus = status;
+  let filesCount = 0;
 
   if (status === 'fail') {
     try {
@@ -52,11 +54,22 @@ export const checkRunLintBroker = async ({
     }
   }
 
+  try {
+    const jsonSlice = extractJsonArrayTransformer({ output: result.output });
+    const parsed: unknown = JSON.parse(jsonSlice);
+    if (Array.isArray(parsed)) {
+      filesCount = parsed.length;
+    }
+  } catch {
+    // non-JSON output, filesCount stays 0
+  }
+
   return projectResultContract.parse({
     projectFolder,
     status: resolvedStatus,
     errors,
     testFailures: [],
+    filesCount,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

@@ -72,6 +72,84 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
+  describe('-- passthrough separator', () => {
+    it('VALID: {args: ["--", "path/to/file.test.ts"]} => returns config with passthrough', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--' }),
+          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        passthrough: ['packages/ward/src/index.test.ts'],
+      });
+    });
+
+    it('VALID: {--only test -- file1 file2} => returns config with only and passthrough', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'test' }),
+          CliArgStub({ value: '--' }),
+          CliArgStub({ value: 'packages/ward/src/a.test.ts' }),
+          CliArgStub({ value: 'packages/ward/src/b.test.ts' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        only: ['test'],
+        passthrough: ['packages/ward/src/a.test.ts', 'packages/ward/src/b.test.ts'],
+      });
+    });
+
+    it('VALID: {-- with no files after} => returns config without passthrough', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--' })],
+      });
+
+      expect(result).toStrictEqual({});
+    });
+  });
+
+  describe('edge cases', () => {
+    it('EDGE: {args: ["--only", "badvalue"]} => throws validation error for invalid check type', () => {
+      cliArgsParseTransformerProxy();
+
+      expect(() =>
+        cliArgsParseTransformer({
+          args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'badvalue' })],
+        }),
+      ).toThrow(/Invalid enum value/u);
+    });
+
+    it('EDGE: {args: ["--glob"]} => glob flag with no value is ignored', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--glob' })],
+      });
+
+      expect(result).toStrictEqual({});
+    });
+
+    it('EDGE: {args: ["--only"]} => only flag with no value is ignored', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--only' })],
+      });
+
+      expect(result).toStrictEqual({});
+    });
+  });
+
   describe('combined flags', () => {
     it('VALID: {all flags} => returns config with all options', () => {
       cliArgsParseTransformerProxy();

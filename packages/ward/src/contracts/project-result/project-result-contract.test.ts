@@ -12,6 +12,7 @@ describe('projectResultContract', () => {
         errors: [],
         testFailures: [],
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        filesCount: 0,
       });
     });
 
@@ -46,6 +47,7 @@ describe('projectResultContract', () => {
         ],
         testFailures: [],
         rawOutput: { stdout: '', stderr: 'Error', exitCode: 1 },
+        filesCount: 0,
       });
     });
 
@@ -75,6 +77,7 @@ describe('projectResultContract', () => {
           },
         ],
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        filesCount: 0,
       });
     });
 
@@ -87,7 +90,28 @@ describe('projectResultContract', () => {
         errors: [],
         testFailures: [],
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        filesCount: 0,
       });
+    });
+  });
+
+  describe('filesCount defaults', () => {
+    it('VALID: {filesCount omitted} => defaults to 0', () => {
+      const result = projectResultContract.parse({
+        projectFolder: { name: 'ward', path: '/path' },
+        status: 'pass',
+        errors: [],
+        testFailures: [],
+        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+      });
+
+      expect(result.filesCount).toBe(0);
+    });
+
+    it('VALID: {filesCount provided} => preserves value', () => {
+      const result = projectResultContract.parse(ProjectResultStub({ filesCount: 42 }));
+
+      expect(result.filesCount).toBe(42);
     });
   });
 
@@ -107,6 +131,19 @@ describe('projectResultContract', () => {
     it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
       expect(() => projectResultContract.parse({})).toThrow(/Required/u);
     });
+
+    it('INVALID_FILES_COUNT: {filesCount: -1} => throws validation error', () => {
+      expect(() =>
+        projectResultContract.parse({
+          projectFolder: { name: 'ward', path: '/path' },
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+          filesCount: -1,
+        }),
+      ).toThrow(/too_small/u);
+    });
   });
 
   describe('stub', () => {
@@ -119,6 +156,7 @@ describe('projectResultContract', () => {
         errors: [],
         testFailures: [],
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+        filesCount: 0,
       });
     });
   });

@@ -2,8 +2,8 @@
 require('ts-node/register');
 
 const tsparser = require('@typescript-eslint/parser');
-const prettierConfig = require('eslint-config-prettier');
-const prettierPlugin = require('eslint-plugin-prettier');
+// const prettierConfig = require('eslint-config-prettier');
+// const prettierPlugin = require('eslint-plugin-prettier');
 const jestPlugin = require('eslint-plugin-jest');
 const eslintCommentsPlugin = require('eslint-plugin-eslint-comments');
 // Import our own dungeonmaster plugin and config directly from TypeScript source
@@ -67,14 +67,14 @@ module.exports = [
     },
     plugins: {
       ...dungeonmasterConfigs.typescript.plugins,
-      prettier: prettierPlugin,
+      // prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
       '@dungeonmaster': dungeonmasterPlugin,
     },
     rules: {
       ...dungeonmasterConfigs.typescript.rules,
-      ...prettierConfig.rules,
-      'prettier/prettier': 'error',
+      // ...prettierConfig.rules,
+      // 'prettier/prettier': 'error',
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': 'error',
       // 'eslint-comments/no-unlimited-disable': 'error',
@@ -100,7 +100,7 @@ module.exports = [
     },
     plugins: {
       ...dungeonmasterTestConfigs.test.plugins,
-      prettier: prettierPlugin,
+      // prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
       jest: jestPlugin,
     },

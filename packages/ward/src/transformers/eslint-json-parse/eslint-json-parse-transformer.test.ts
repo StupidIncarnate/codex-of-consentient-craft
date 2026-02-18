@@ -179,6 +179,38 @@ describe('eslintJsonParseTransformer', () => {
       ).toThrow(SyntaxError);
     });
 
+    it('EDGE: {ESLint output with text before JSON array} => extracts and parses correctly', () => {
+      const jsonOutput = `Deprecation warning: something\n${JSON.stringify([
+        {
+          filePath: '/path/file.ts',
+          messages: [
+            {
+              ruleId: 'no-unused-vars',
+              severity: 2,
+              message: 'Unused var',
+              line: 1,
+              column: 1,
+            },
+          ],
+          errorCount: 1,
+          warningCount: 0,
+        },
+      ])}`;
+
+      const result = eslintJsonParseTransformer({ jsonOutput });
+
+      expect(result).toStrictEqual([
+        ErrorEntryStub({
+          filePath: '/path/file.ts',
+          line: 1,
+          column: 1,
+          message: 'Unused var',
+          severity: 'error',
+          rule: 'no-unused-vars',
+        }),
+      ]);
+    });
+
     it('EDGE: {message missing required fields} => skips that message', () => {
       const jsonOutput = JSON.stringify([
         {
