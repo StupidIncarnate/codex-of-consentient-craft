@@ -60,7 +60,7 @@ Start the server with `npm run dev` and use `curl` via `Bash` to query these end
 3. curl -s http://localhost:4737/api/docs/syntax-rules                // Get syntax conventions
 4. curl -s http://localhost:4737/api/docs/testing-patterns            // Get testing patterns (if writing tests)
 5. Write code following API-provided examples                         // All patterns provided by API
-6. Run tests to verify                                                // dungeonmaster-ward run --only test -- path/to/file.test.ts
+6. Run tests to verify                                                // npx dungeonmaster-ward run --only test -- path/to/file.test.ts
 ```
 
 ### When to Use Read
@@ -119,11 +119,16 @@ const testbed = installTestbedCreateBroker({
 - Import: `import {x} from '@dungeonmaster/shared/statics'`
 
 ### Common Commands
-- **Run all quality checks**: `dungeonmaster-ward run`
-- **Run lint only**: `dungeonmaster-ward run --only lint`
-- **Run tests only**: `dungeonmaster-ward run --only test`
-- **Run typecheck only**: `dungeonmaster-ward run --only typecheck`
-- **Run specific test file**: `dungeonmaster-ward run --only test -- path/to/file.test.ts`
-- **Lint with glob pattern**: `dungeonmaster-ward run --only lint --glob "*pattern*"`
+
+- **Run all quality checks**: `npx dungeonmaster-ward run`
+- **Run lint only**: `npx dungeonmaster-ward run --only lint`
+- **Run tests only**: `npx dungeonmaster-ward run --only test`
+- **Run typecheck only**: `npx dungeonmaster-ward run --only typecheck`
+- **Run specific test file**: `npx dungeonmaster-ward run --only test -- path/to/file.test.ts`
+- **Lint with glob pattern**: `npx dungeonmaster-ward run --only lint --glob "*pattern*"`
+- **Get full error details after a failing run**: `npx dungeonmaster-ward list <run-id>`
 - **Build**: `npm run build`
 - **Start dev server**: `npm run dev`
+
+**When ward fails:** The run output shows a summary with truncated errors. Follow the hint at the bottom
+(`npx dungeonmaster-ward list <run-id>`) to get full details — especially jest diffs for test failures.

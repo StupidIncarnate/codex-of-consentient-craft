@@ -71,7 +71,7 @@ export const checkRunLintBroker = async ({
     testFailures: [],
     filesCount,
     rawOutput: rawOutputContract.parse({
-      stdout: result.output,
+      stdout: '',
       stderr: '',
       exitCode,
     }),

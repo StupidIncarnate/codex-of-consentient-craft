@@ -2,22 +2,23 @@
 
 ## What This Package Does
 
-Ward is a quality orchestration CLI tool (`dungeonmaster-ward`) that runs lint, typecheck, test, and e2e checks across
+Ward is a quality orchestration CLI tool (`npx dungeonmaster-ward`) that runs lint, typecheck, test, and e2e checks
+across
 all packages in the monorepo. It discovers project folders, runs checks sequentially per package, parses structured JSON
 output from each tool, and persists results for drill-down inspection via `list`, `detail`, and `raw` subcommands.
 
 ## CLI Usage
 
-The binary is `dungeonmaster-ward`. It has four subcommands:
+The binary is `npx dungeonmaster-ward`. It has four subcommands:
 
 ```
-dungeonmaster-ward run                        # Run checks (default if no subcommand given)
-dungeonmaster-ward list [run-id]              # List errors by file from most recent (or specified) run
-dungeonmaster-ward detail <run-id> <file>     # Show detailed errors for a specific file
-dungeonmaster-ward raw <run-id> <check-type>  # Show raw tool output for a check type
+npx dungeonmaster-ward run                        # Run checks (default if no subcommand given)
+npx dungeonmaster-ward list [run-id]              # List errors by file from most recent (or specified) run
+npx dungeonmaster-ward detail <run-id> <file>     # Show detailed errors for a specific file
+npx dungeonmaster-ward raw <run-id> <check-type>  # Show raw tool output for a check type
 ```
 
-Running `dungeonmaster-ward` with no arguments is equivalent to `dungeonmaster-ward run`.
+Running `npx dungeonmaster-ward` with no arguments is equivalent to `npx dungeonmaster-ward run`.
 
 ## Flags
 
@@ -35,29 +36,50 @@ All flags apply to the `run` subcommand. The `detail` subcommand also accepts `-
 
 ```bash
 # Run all checks (lint, typecheck, test, e2e) across all packages
-dungeonmaster-ward run
+npx dungeonmaster-ward run
 
 # Lint only
-dungeonmaster-ward run --only lint
+npx dungeonmaster-ward run --only lint
 
 # Test a single file
-dungeonmaster-ward run --only test -- path/to/file.test.ts
+npx dungeonmaster-ward run --only test -- path/to/file.test.ts
 
 # Lint files matching a glob
-dungeonmaster-ward run --only lint --glob "*pattern*"
+npx dungeonmaster-ward run --only lint --glob "*pattern*"
 
 # Run multiple check types
-dungeonmaster-ward run --only lint,test
+npx dungeonmaster-ward run --only lint,test
 
 # Lint only changed files
-dungeonmaster-ward run --only lint --changed
+npx dungeonmaster-ward run --only lint --changed
 
 # Inspect results after a run
-dungeonmaster-ward list                          # errors from latest run
-dungeonmaster-ward list <run-id>                 # errors from a specific run
-dungeonmaster-ward detail <run-id> <file-path>   # drill into a file's errors
-dungeonmaster-ward raw <run-id> lint             # raw eslint JSON output
+npx dungeonmaster-ward list                          # errors from latest run
+npx dungeonmaster-ward list <run-id>                 # errors from a specific run
+npx dungeonmaster-ward detail <run-id> <file-path>   # drill into a file's errors
+npx dungeonmaster-ward raw <run-id> lint             # raw eslint JSON output
 ```
+
+## Workflow: run → list → detail
+
+When ward finds failures, it prints a summary with truncated error info. To get full details (especially jest diffs for
+test failures), use `list`:
+
+```bash
+# 1. Run checks — see summary with one-line errors
+npx dungeonmaster-ward run --only lint,test
+# Output includes: "Full error details: npx dungeonmaster-ward list <run-id>"
+
+# 2. List errors — see full jest diffs and complete error messages
+npx dungeonmaster-ward list <run-id>
+
+# 3. Detail — drill into a specific file
+npx dungeonmaster-ward detail <run-id> <file-path>
+```
+
+**Why this matters:** The `run` output truncates test failure messages to the first line. The `list` command shows the
+full `toStrictEqual` diff, which is what you need to actually fix the test. Always follow the hint at the bottom of a
+failing run.
 
 ## How File Scoping Works
 

@@ -113,5 +113,21 @@ describe('childProcessSpawnCaptureAdapter', () => {
       expect(proxy.getSpawnedCommand()).toBe('npm');
       expect(proxy.getSpawnedArgs()).toStrictEqual(['run', 'ward:all']);
     });
+
+    it('VALID: {any command} => passes maxBuffer option to execFile', async () => {
+      const proxy = childProcessSpawnCaptureAdapterProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      proxy.setupSuccess({ exitCode, stdout: '', stderr: '' });
+
+      await childProcessSpawnCaptureAdapter({
+        command: 'npm',
+        args: ['run', 'test'],
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      const options: unknown = proxy.getSpawnedOptions();
+      const FIFTY_MB = 52_428_800;
+      expect(Reflect.get(options as object, 'maxBuffer')).toBe(FIFTY_MB);
+    });
   });
 });

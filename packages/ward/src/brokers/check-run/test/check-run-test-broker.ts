@@ -75,7 +75,7 @@ export const checkRunTestBroker = async ({
     testFailures,
     filesCount,
     rawOutput: rawOutputContract.parse({
-      stdout: result.output,
+      stdout: '',
       stderr: '',
       exitCode,
     }),

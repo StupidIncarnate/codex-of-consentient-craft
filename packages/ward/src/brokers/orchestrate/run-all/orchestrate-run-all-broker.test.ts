@@ -47,11 +47,11 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({ stdout: '[]' }),
+                  rawOutput: RawOutputStub(),
                 }),
                 ProjectResultStub({
                   projectFolder: sharedFolder,
-                  rawOutput: RawOutputStub({ stdout: '[]' }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),
@@ -69,15 +69,11 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({
-                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
-                  }),
+                  rawOutput: RawOutputStub(),
                 }),
                 ProjectResultStub({
                   projectFolder: sharedFolder,
-                  rawOutput: RawOutputStub({
-                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
-                  }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),
@@ -87,7 +83,7 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: ProjectFolderStub({ name: 'root', path: '/project' }),
-                  rawOutput: RawOutputStub({ stdout: '{"suites":[]}' }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),
@@ -128,7 +124,7 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({ stdout: '[]' }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),
@@ -143,9 +139,7 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({
-                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
-                  }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),
@@ -194,7 +188,7 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({ stdout: '[]' }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),
@@ -209,9 +203,7 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({
-                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
-                  }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),
@@ -255,7 +247,7 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({ stdout: '[]' }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),
@@ -270,9 +262,7 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({
-                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
-                  }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),
@@ -326,9 +316,7 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: wardFolder,
-                  rawOutput: RawOutputStub({
-                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
-                  }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),
@@ -365,7 +353,7 @@ describe('orchestrateRunAllBroker', () => {
               projectResults: [
                 ProjectResultStub({
                   projectFolder: ProjectFolderStub({ name: 'root', path: '/project' }),
-                  rawOutput: RawOutputStub({ stdout: '{"suites":[]}' }),
+                  rawOutput: RawOutputStub(),
                 }),
               ],
             }),

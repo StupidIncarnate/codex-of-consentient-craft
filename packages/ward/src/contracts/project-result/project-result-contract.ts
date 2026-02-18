@@ -18,7 +18,7 @@ export const projectResultContract = z.object({
   status: checkStatusContract,
   errors: z.array(errorEntryContract),
   testFailures: z.array(testFailureContract),
-  rawOutput: rawOutputContract,
+  rawOutput: rawOutputContract.default({ stdout: '', stderr: '', exitCode: 0 }),
   filesCount: z.number().int().nonnegative().brand<'FilesCount'>().default(0),
 });
 

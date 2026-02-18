@@ -31,6 +31,18 @@ const sleep = ({ ms }: { ms: number }): Promise<void> =>
     setTimeout(resolve, ms);
   });
 
+const readRssKb = ({ pid }: { pid: number }) => {
+  try {
+    const result = execSync(`ps -o rss= -p ${String(pid)}`, {
+      encoding: 'utf-8',
+      timeout: 2000,
+    });
+    return parseInt(result.trim(), 10);
+  } catch {
+    return 0;
+  }
+};
+
 describe('start-ward e2e', () => {
   describe('concurrency safety', () => {
     it('SAFETY: {--only lint, all packages} => max concurrent child processes stays bounded', async () => {
@@ -77,6 +89,51 @@ describe('start-ward e2e', () => {
       // Sequential execution: at most 1 child at a time (allow 2 for brief transition overlap)
       // Parallel execution would show 12+ children (one eslint per package simultaneously)
       expect(maxChildren).toBeLessThanOrEqual(2);
+    }, 60_000);
+  });
+
+  describe('memory ceiling', () => {
+    it('SAFETY: {--only lint, all packages} => RSS stays under 300MB', async () => {
+      expect(existsSync(WARD_BIN)).toBe(true);
+
+      const wardProcess = spawn('node', [WARD_BIN, 'run', '--only', 'lint'], {
+        cwd: REPO_ROOT,
+        stdio: 'ignore',
+        detached: true,
+      });
+
+      const pid = wardProcess.pid!;
+      let maxRssKb = 0;
+
+      // Wait for process to complete or timeout after 30s
+      await new Promise<void>((resolve) => {
+        const POLL_MS = 100;
+        const interval = setInterval(() => {
+          const rss = readRssKb({ pid });
+          maxRssKb = Math.max(maxRssKb, rss);
+        }, POLL_MS);
+
+        wardProcess.on('exit', () => {
+          clearInterval(interval);
+          resolve();
+        });
+
+        setTimeout(() => {
+          clearInterval(interval);
+          try {
+            process.kill(-pid, 'SIGKILL');
+          } catch {
+            // Process may have already exited
+          }
+          resolve();
+        }, 30_000);
+      });
+
+      await sleep({ ms: 1000 });
+
+      // 300MB ceiling in KB
+      const MAX_RSS_KB = 307_200;
+      expect(maxRssKb).toBeLessThan(MAX_RSS_KB);
     }, 60_000);
   });
 });

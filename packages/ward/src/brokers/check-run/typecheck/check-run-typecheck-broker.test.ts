@@ -26,7 +26,7 @@ describe('checkRunTypecheckBroker', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 0 }),
+          rawOutput: RawOutputStub({ exitCode: 0 }),
         }),
       );
     });
@@ -59,7 +59,7 @@ describe('checkRunTypecheckBroker', () => {
             }),
           ],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: tscOutput, stderr: '', exitCode: 1 }),
+          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 1 }),
         }),
       );
     });
@@ -102,7 +102,7 @@ describe('checkRunTypecheckBroker', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: tscOutput, stderr: '', exitCode: 1 }),
+          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 1 }),
         }),
       );
     });

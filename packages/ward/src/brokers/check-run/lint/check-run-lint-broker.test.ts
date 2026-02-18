@@ -25,7 +25,7 @@ describe('checkRunLintBroker', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: '[]', stderr: '', exitCode: 0 }),
+          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 0 }),
         }),
       );
     });
@@ -50,7 +50,7 @@ describe('checkRunLintBroker', () => {
           status: 'fail',
           errors: [],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: nonJsonOutput, stderr: '', exitCode: 1 }),
+          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 1 }),
         }),
       );
     });
@@ -92,7 +92,7 @@ describe('checkRunLintBroker', () => {
           ],
           testFailures: [],
           filesCount: 1,
-          rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 1 }),
+          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 1 }),
         }),
       );
     });

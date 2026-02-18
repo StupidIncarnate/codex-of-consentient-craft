@@ -41,6 +41,7 @@ export const commandRunBroker = async ({
   const hasFailing = wardResult.checks.some((check) => check.status === 'fail');
 
   if (hasFailing) {
+    process.stdout.write(`\nFull error details: npx dungeonmaster-ward list ${wardResult.runId}\n`);
     process.exit(1);
   }
 };

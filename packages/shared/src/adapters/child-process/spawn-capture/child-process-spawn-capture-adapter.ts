@@ -15,6 +15,8 @@ import {
   type ExitCode,
 } from '@dungeonmaster/shared/contracts';
 
+const FIFTY_MB = 52_428_800;
+
 export const childProcessSpawnCaptureAdapter = async ({
   command,
   args,
@@ -25,7 +27,7 @@ export const childProcessSpawnCaptureAdapter = async ({
   cwd: AbsoluteFilePath;
 }): Promise<{ exitCode: ExitCode | null; output: ErrorMessage }> =>
   new Promise((resolve) => {
-    execFile(command, args, { cwd }, (error, stdout, stderr) => {
+    execFile(command, args, { cwd, maxBuffer: FIFTY_MB }, (error, stdout, stderr) => {
       const combinedOutput = errorMessageContract.parse(stdout + stderr);
 
       if (error && 'code' in error && typeof error.code === 'number') {

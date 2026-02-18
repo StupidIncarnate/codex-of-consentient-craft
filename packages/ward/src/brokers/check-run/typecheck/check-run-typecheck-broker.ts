@@ -49,8 +49,10 @@ export const checkRunTypecheckBroker = async ({
 
   const filteredStatus = errors.length > 0 ? 'fail' : 'pass';
 
-  const tsFiles = await globResolveBroker({ pattern: '**/*.ts', basePath: cwd });
-  const tsxFiles = await globResolveBroker({ pattern: '**/*.tsx', basePath: cwd });
+  const [tsFiles, tsxFiles] = await Promise.all([
+    globResolveBroker({ pattern: '**/*.ts', basePath: cwd }),
+    globResolveBroker({ pattern: '**/*.tsx', basePath: cwd }),
+  ]);
   const filesCount = tsFiles.length + tsxFiles.length;
 
   return projectResultContract.parse({
@@ -60,7 +62,7 @@ export const checkRunTypecheckBroker = async ({
     testFailures: [],
     filesCount,
     rawOutput: rawOutputContract.parse({
-      stdout: result.output,
+      stdout: '',
       stderr: '',
       exitCode,
     }),

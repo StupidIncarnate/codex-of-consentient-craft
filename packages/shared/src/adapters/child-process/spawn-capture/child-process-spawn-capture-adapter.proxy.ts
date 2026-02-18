@@ -11,6 +11,7 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => unknown;
+  getSpawnedOptions: () => unknown;
 } => {
   // Re-acquire execFile from the current mock registry to avoid stale references
   // when this proxy is used cross-package from compiled dist (where jest.mock is not hoisted)
@@ -77,6 +78,14 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       const [, , opts] = lastCall as unknown[];
       if (typeof opts !== 'object' || opts === null) return undefined;
       return Reflect.get(opts, 'cwd');
+    },
+
+    getSpawnedOptions: (): unknown => {
+      const { calls } = mock.mock;
+      const lastCall: unknown = calls[calls.length - 1];
+      if (!Array.isArray(lastCall)) return undefined;
+      const [, , opts] = lastCall as unknown[];
+      return opts;
     },
   };
 };

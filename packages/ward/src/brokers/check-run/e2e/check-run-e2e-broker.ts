@@ -57,7 +57,7 @@ export const checkRunE2eBroker = async ({
     errors: [],
     testFailures,
     rawOutput: rawOutputContract.parse({
-      stdout: result.output,
+      stdout: '',
       stderr: '',
       exitCode,
     }),

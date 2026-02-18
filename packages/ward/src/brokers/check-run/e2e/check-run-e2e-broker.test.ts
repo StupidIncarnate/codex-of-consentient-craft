@@ -24,7 +24,7 @@ describe('checkRunE2eBroker', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: '{"suites":[]}', stderr: '', exitCode: 0 }),
+          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 0 }),
         }),
       );
     });
@@ -45,7 +45,7 @@ describe('checkRunE2eBroker', () => {
           status: 'fail',
           errors: [],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: 'not valid json \x1b[31m', stderr: '', exitCode: 1 }),
+          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 1 }),
         }),
       );
     });
@@ -91,7 +91,7 @@ describe('checkRunE2eBroker', () => {
               message: 'Login failed',
             }),
           ],
-          rawOutput: RawOutputStub({ stdout: playwrightOutput, stderr: '', exitCode: 1 }),
+          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 1 }),
         }),
       );
     });
