@@ -38,7 +38,12 @@ export const orchestrateRunAllBroker = async ({
   config: WardConfig;
   rootPath: AbsoluteFilePath;
   isSubPackage: boolean;
-  onProgress?: (params: { checkType: string; packageName: string; completed: number; total: number }) => void;
+  onProgress?: (params: {
+    checkType: string;
+    packageName: string;
+    completed: number;
+    total: number;
+  }) => void;
 }): Promise<WardResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
@@ -51,14 +56,16 @@ export const orchestrateRunAllBroker = async ({
 
   let fileList: GitRelativePath[] = [];
   if (hasPassthrough) {
-    fileList = (config.passthrough ?? []).map((filePath) => gitRelativePathContract.parse(filePath));
+    fileList = (config.passthrough ?? []).map((filePath) =>
+      gitRelativePathContract.parse(filePath),
+    );
   } else if (config.glob) {
     fileList = await globResolveBroker({ pattern: config.glob, basePath: rootPath });
   } else if (config.changed === true) {
     fileList = await changedFilesDiscoverBroker({ cwd: rootPath });
   }
 
-  const projectFolders = hasPassthrough
+  const projectFolders = hasFileScope
     ? allProjectFolders.filter((folder) => {
         const relativePath = String(folder.path).replace(`${String(rootPath)}/`, '');
         return fileList.some((file) => String(file).startsWith(relativePath));
@@ -79,12 +86,18 @@ export const orchestrateRunAllBroker = async ({
 
     for (const projectFolder of projectFolders) {
       const projectRelativePath = String(projectFolder.path).replace(`${String(rootPath)}/`, '');
-      const projectFileList = hasPassthrough
+      const projectFileList = hasFileScope
         ? fileList
             .filter((file) => String(file).startsWith(projectRelativePath))
-            .map((file) => gitRelativePathContract.parse(String(file).replace(`${projectRelativePath}/`, '')))
+            .map((file) =>
+              gitRelativePathContract.parse(String(file).replace(`${projectRelativePath}/`, '')),
+            )
         : fileList;
-      const result = await orchestrateRunAllLayerCheckBroker({ checkType, projectFolder, fileList: projectFileList });
+      const result = await orchestrateRunAllLayerCheckBroker({
+        checkType,
+        projectFolder,
+        fileList: projectFileList,
+      });
       completedChecks += 1;
       onProgress?.({
         checkType,

@@ -55,6 +55,7 @@ describe('checkResultContract', () => {
               },
             ],
             testFailures: [],
+            filesCount: 0,
             rawOutput: { stdout: '', stderr: 'error', exitCode: 1 },
           },
         ],

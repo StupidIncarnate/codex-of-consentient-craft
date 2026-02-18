@@ -160,6 +160,72 @@ describe('orchestrateRunAllBroker', () => {
     });
   });
 
+  describe('glob scoping across projects', () => {
+    it('VALID: {glob matches one of two projects} => only runs checks in matching project', async () => {
+      const proxy = orchestrateRunAllBrokerProxy();
+      proxy.setupWithGlob({
+        gitOutput: 'packages/ward/package.json\npackages/shared/package.json\n',
+        packageContents: [
+          JSON.stringify({ name: '@dungeonmaster/ward' }),
+          JSON.stringify({ name: '@dungeonmaster/shared' }),
+        ],
+        globOutput: 'packages/ward/src/index.ts\n',
+        checkCount: 1,
+      });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ glob: '**/index.ts' });
+
+      const result = await orchestrateRunAllBroker({ config, rootPath, isSubPackage: false });
+
+      const wardFolder = ProjectFolderStub({
+        name: '@dungeonmaster/ward',
+        path: '/project/packages/ward',
+      });
+
+      expect(result).toStrictEqual(
+        WardResultStub({
+          runId: '1739625600000-a38e',
+          filters: { glob: '**/index.ts' },
+          checks: [
+            CheckResultStub({
+              checkType: 'lint',
+              status: 'pass',
+              projectResults: [
+                ProjectResultStub({
+                  projectFolder: wardFolder,
+                  rawOutput: RawOutputStub({ stdout: '[]' }),
+                }),
+              ],
+            }),
+            CheckResultStub({
+              checkType: 'typecheck',
+              status: 'pass',
+              projectResults: [ProjectResultStub({ projectFolder: wardFolder })],
+            }),
+            CheckResultStub({
+              checkType: 'test',
+              status: 'pass',
+              projectResults: [
+                ProjectResultStub({
+                  projectFolder: wardFolder,
+                  rawOutput: RawOutputStub({
+                    stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+                  }),
+                }),
+              ],
+            }),
+            CheckResultStub({
+              checkType: 'e2e',
+              status: 'skip',
+              projectResults: [],
+            }),
+          ],
+        }),
+      );
+    });
+  });
+
   describe('sub-package run', () => {
     it('VALID: {cwd differs from rootPath} => runs per-project checks, skips e2e', async () => {
       const proxy = orchestrateRunAllBrokerProxy();
