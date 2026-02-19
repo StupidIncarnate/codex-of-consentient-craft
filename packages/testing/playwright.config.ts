@@ -18,9 +18,9 @@ export default defineConfig({
   workers: 1,
   fullyParallel: false,
   timeout: 30_000,
-  forbidOnly: !!process.env.CI,
+  forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? CI_RETRIES : 0,
-  reporter: 'html',
+  reporter: 'json',
 
   globalSetup: './e2e/web/global-setup.ts',
   globalTeardown: './e2e/web/global-teardown.ts',

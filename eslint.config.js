@@ -25,6 +25,7 @@ module.exports = [
       'coverage/**',
       'tests/**',
       'packages/testing/e2e/**',
+      'packages/testing/playwright.config.ts',
       '**/.test-tmp/**',
       'packages/*/dist/**',
       '@types/**',
