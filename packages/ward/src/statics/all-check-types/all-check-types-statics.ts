@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const checks = allCheckTypesStatics;
- * // Returns ['lint', 'typecheck', 'test', 'e2e']
+ * // Returns ['lint', 'typecheck', 'test']
  */
 
-export const allCheckTypesStatics = ['lint', 'typecheck', 'test', 'e2e'] as const;
+export const allCheckTypesStatics = ['lint', 'typecheck', 'test'] as const;

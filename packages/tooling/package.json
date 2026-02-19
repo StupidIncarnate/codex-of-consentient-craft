@@ -11,10 +11,10 @@
     "build": "tsc",
     "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
-    "test": "jest",
+    "test": "dungeonmaster-ward run --only test",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint",
+    "typecheck": "dungeonmaster-ward run --only typecheck",
+    "lint": "dungeonmaster-ward run --only lint",
     "ward": "dungeonmaster-ward run",
     "detect-duplicates": "tsx src/index.ts"
   },

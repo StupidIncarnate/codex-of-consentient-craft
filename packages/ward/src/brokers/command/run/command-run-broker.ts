@@ -15,18 +15,15 @@ import { resultToSummaryTransformer } from '../../../transformers/result-to-summ
 export const commandRunBroker = async ({
   config,
   rootPath,
-  isSubPackage,
   cwd,
 }: {
   config: WardConfig;
   rootPath: AbsoluteFilePath;
-  isSubPackage: boolean;
   cwd: AbsoluteFilePath;
 }): Promise<void> => {
   const wardResult = await orchestrateRunAllBroker({
     config,
     rootPath,
-    isSubPackage,
     onProgress: ({ checkType, packageName, completed, total }) => {
       process.stderr.write(
         `\r\x1b[KProcessing... ${packageName} (${checkType}) [${String(completed)}/${String(total)}]`,

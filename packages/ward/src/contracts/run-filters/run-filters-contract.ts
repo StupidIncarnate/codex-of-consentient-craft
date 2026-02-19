@@ -2,7 +2,7 @@
  * PURPOSE: Defines the filter options for a ward run
  *
  * USAGE:
- * runFiltersContract.parse({glob: 'packages/ward/**', changed: true, only: ['lint']});
+ * runFiltersContract.parse({changed: true, only: ['lint']});
  * // Returns: RunFilters validated object
  */
 
@@ -10,7 +10,6 @@ import { z } from 'zod';
 import { checkTypeContract } from '../check-type/check-type-contract';
 
 export const runFiltersContract = z.object({
-  glob: z.string().brand<'GlobPattern'>().optional(),
   changed: z.boolean().optional(),
   only: z.array(checkTypeContract).optional(),
   passthrough: z.array(z.string().brand<'PassthroughArg'>()).optional(),

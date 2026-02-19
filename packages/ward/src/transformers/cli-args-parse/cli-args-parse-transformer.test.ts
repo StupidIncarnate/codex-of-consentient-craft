@@ -36,18 +36,6 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
-  describe('--glob flag', () => {
-    it('VALID: {args: ["--glob", "*ward*"]} => returns config with glob', () => {
-      cliArgsParseTransformerProxy();
-
-      const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--glob' }), CliArgStub({ value: '*ward*' })],
-      });
-
-      expect(result).toStrictEqual({ glob: '*ward*' });
-    });
-  });
-
   describe('--changed flag', () => {
     it('VALID: {args: ["--changed"]} => returns config with changed true', () => {
       cliArgsParseTransformerProxy();
@@ -129,16 +117,6 @@ describe('cliArgsParseTransformer', () => {
       ).toThrow(/Invalid enum value/u);
     });
 
-    it('EDGE: {args: ["--glob"]} => glob flag with no value is ignored', () => {
-      cliArgsParseTransformerProxy();
-
-      const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--glob' })],
-      });
-
-      expect(result).toStrictEqual({});
-    });
-
     it('EDGE: {args: ["--only"]} => only flag with no value is ignored', () => {
       cliArgsParseTransformerProxy();
 
@@ -158,8 +136,6 @@ describe('cliArgsParseTransformer', () => {
         args: [
           CliArgStub({ value: '--only' }),
           CliArgStub({ value: 'lint' }),
-          CliArgStub({ value: '--glob' }),
-          CliArgStub({ value: '*ward*' }),
           CliArgStub({ value: '--changed' }),
           CliArgStub({ value: '--verbose' }),
         ],
@@ -167,7 +143,6 @@ describe('cliArgsParseTransformer', () => {
 
       expect(result).toStrictEqual({
         only: ['lint'],
-        glob: '*ward*',
         changed: true,
         verbose: true,
       });

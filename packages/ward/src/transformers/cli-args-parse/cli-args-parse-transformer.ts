@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Parses CLI argument array into ward config flags (--only, --glob, --changed, --verbose)
+ * PURPOSE: Parses CLI argument array into ward config flags (--only, --changed, --verbose)
  *
  * USAGE:
  * cliArgsParseTransformer({ args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'lint,typecheck' })] });
@@ -33,11 +33,6 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
       parsed.only = String(args[i + 1])
         .split(',')
         .map((value) => checkTypeContract.parse(value));
-      i++;
-    }
-
-    if (arg === '--glob' && args[i + 1]) {
-      parsed.glob = wardConfigContract.shape.glob.parse(String(args[i + 1]));
       i++;
     }
 

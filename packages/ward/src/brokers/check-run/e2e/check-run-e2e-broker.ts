@@ -15,15 +15,16 @@ import {
   projectResultContract,
   type ProjectResult,
 } from '../../../contracts/project-result/project-result-contract';
-import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { playwrightJsonParseTransformer } from '../../../transformers/playwright-json-parse/playwright-json-parse-transformer';
+
+const e2eCommand = { command: 'npx', args: ['playwright', 'test', '--reporter', 'json'] } as const;
 
 export const checkRunE2eBroker = async ({
   rootPath,
 }: {
   rootPath: AbsoluteFilePath;
 }): Promise<ProjectResult> => {
-  const { command, args } = checkCommandsStatics.e2e;
+  const { command, args } = e2eCommand;
 
   const result = await childProcessSpawnCaptureAdapter({
     command,

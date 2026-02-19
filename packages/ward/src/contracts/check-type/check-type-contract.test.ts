@@ -21,14 +21,13 @@ describe('checkTypeContract', () => {
       expect(result).toBe('test');
     });
 
-    it('VALID: {value: "e2e"} => parses e2e', () => {
-      const result = checkTypeContract.parse('e2e');
-
-      expect(result).toBe('e2e');
-    });
   });
 
   describe('invalid inputs', () => {
+    it('INVALID_VALUE: {value: "e2e"} => throws for removed e2e check type', () => {
+      expect(() => checkTypeContract.parse('e2e')).toThrow(/Invalid enum value/u);
+    });
+
     it('INVALID_VALUE: {value: "unknown"} => throws for unknown check type', () => {
       expect(() => checkTypeContract.parse('unknown')).toThrow(/Invalid enum value/u);
     });
