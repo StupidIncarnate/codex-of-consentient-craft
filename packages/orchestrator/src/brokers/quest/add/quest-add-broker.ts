@@ -60,7 +60,7 @@ export const questAddBroker = async ({
       id: questId,
       folder: questFolder,
       title: validated.title,
-      status: 'in_progress' as const,
+      status: 'created' as const,
       createdAt: new Date().toISOString(),
       executionLog: [],
       requirements: [],

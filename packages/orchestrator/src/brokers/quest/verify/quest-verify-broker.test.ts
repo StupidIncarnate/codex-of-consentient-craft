@@ -55,6 +55,16 @@ describe('questVerifyBroker', () => {
             exportName: 'hasAuthGuard',
           },
         ],
+        flows: [
+          {
+            id: 'd47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'Login Flow',
+            requirementIds: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
+            diagram: 'graph TD; A[Start] --> B[Login] --> C[Dashboard]',
+            entryPoint: '/login',
+            exitPoints: ['/dashboard'],
+          },
+        ],
       });
 
       proxy.setupQuestFound({ quest });
@@ -63,7 +73,7 @@ describe('questVerifyBroker', () => {
       const result = await questVerifyBroker({ input });
 
       expect(result.success).toBe(true);
-      expect(result.checks).toHaveLength(11);
+      expect(result.checks).toHaveLength(13);
       expect(result.checks.every((check) => check.passed)).toBe(true);
     });
 
@@ -102,7 +112,7 @@ describe('questVerifyBroker', () => {
       const result = await questVerifyBroker({ input });
 
       expect(result.success).toBe(false);
-      expect(result.checks).toHaveLength(11);
+      expect(result.checks).toHaveLength(13);
       expect(result.checks.some((check) => !check.passed)).toBe(true);
     });
   });

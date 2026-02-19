@@ -12,6 +12,7 @@ import { contextIdContract } from '../context-id/context-id-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
 import { requirementIdContract } from '../requirement-id/requirement-id-contract';
+import { verificationStepContract } from '../verification-step/verification-step-contract';
 
 const outcomeRefContract = z.object({
   type: outcomeTypeContract,
@@ -29,6 +30,7 @@ export const observableContract = z.object({
   verificationStatus: z.enum(['pending', 'verified', 'failed']).optional(),
   verifiedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   verificationNotes: z.string().brand<'VerificationNotes'>().optional(),
+  verification: z.array(verificationStepContract).default([]),
 });
 
 export type Observable = z.infer<typeof observableContract>;

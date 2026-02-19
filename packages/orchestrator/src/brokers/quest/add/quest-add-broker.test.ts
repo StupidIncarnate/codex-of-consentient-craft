@@ -98,6 +98,34 @@ describe('questAddBroker', () => {
     expect(result.questFolder).toBe('001-add-user-profile');
   });
 
+  it('VALID: {input: {title, userRequest}} => creates quest with status created', async () => {
+    const brokerProxy = questAddBrokerProxy();
+    const guildId = GuildIdStub();
+    const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
+    const questFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests/001-add-auth' });
+    const questFilePath = FilePathStub({
+      value: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
+    });
+
+    brokerProxy.setupQuestCreation({
+      questsFolderPath,
+      existingFolders: [],
+      questFolderPath,
+      questFilePath,
+    });
+
+    const input = AddQuestInputStub({
+      title: 'Add Auth',
+      userRequest: 'User wants authentication',
+    });
+
+    await questAddBroker({ input, guildId });
+
+    const writtenQuest = JSON.parse(brokerProxy.getWrittenContent() as never);
+
+    expect(writtenQuest.status).toBe('created');
+  });
+
   it('ERROR: mkdir fails => returns error result', async () => {
     const brokerProxy = questAddBrokerProxy();
     const guildId = GuildIdStub();

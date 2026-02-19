@@ -130,6 +130,17 @@ export * from './src/contracts/requirement-id/requirement-id.stub';
 export * from './src/contracts/design-decision-id/design-decision-id-contract';
 export * from './src/contracts/design-decision-id/design-decision-id.stub';
 
+export * from './src/contracts/flow-id/flow-id-contract';
+export * from './src/contracts/flow-id/flow-id.stub';
+
+// Verification Step Contracts
+export * from './src/contracts/verification-step/verification-step-contract';
+export * from './src/contracts/verification-step/verification-step.stub';
+
+// Flow Contracts
+export * from './src/contracts/flow/flow-contract';
+export * from './src/contracts/flow/flow.stub';
+
 // Context & Observable Contracts (Wave 1)
 export * from './src/contracts/context-locator/context-locator-contract';
 export * from './src/contracts/context-locator/context-locator.stub';

@@ -12,6 +12,7 @@ import { chatSessionContract } from '../chat-session/chat-session-contract';
 import { contextContract } from '../context/context-contract';
 import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
+import { flowContract } from '../flow/flow-contract';
 import { executionLogEntryContract } from '../execution-log-entry/execution-log-entry-contract';
 import { observableContract } from '../observable/observable-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
@@ -71,6 +72,10 @@ export const questContract = z.object({
     .describe(
       'Shared type dictionary defining all data types, API endpoints, and event schemas. Included in every stage filter as the common reference for all agents',
     ),
+  flows: z
+    .array(flowContract)
+    .default([])
+    .describe('User journey sequences linking requirements to entry/exit points with mermaid diagrams'),
   chatSessions: z
     .array(chatSessionContract)
     .default([])

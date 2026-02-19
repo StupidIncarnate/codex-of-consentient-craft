@@ -97,12 +97,24 @@ For each observable, scrutinize:
 - Are preconditions clear? What state must exist before this trigger?
 - What data is involved? If "user enters data", what data exactly?
 
+**Verification Steps:**
+
+- Does the observable have a \`verification\` array? If empty, flag it as missing verification.
+- Does the verification follow the **setup -> trigger -> assert** pattern?
+  - Setup steps (\`navigate\`, \`fill\`): Are preconditions properly established?
+  - Trigger step (\`click\`, \`request\`): Is there exactly one trigger action?
+  - Assert steps (\`assert\`): Do they have concrete \`condition\` and \`value\` fields?
+- Do assert steps have appropriate \`type\` tags (\`ui-state\`, \`api-call\`, \`file-exists\`, \`process-state\`, etc.)?
+- Are assert conditions testable? (\`equals\`, \`contains\`, \`exists\`, \`matches\` with concrete values)
+- Is there at least one assert step per verification sequence?
+
 **Outcomes (THEN):**
 
 - Are all outcomes verifiable with concrete assertions?
 - Are outcomes atomic and independently checkable?
 - Is the criteria complete with all values needed to verify?
 - Are there missing outcomes that should also happen?
+- Do outcomes align with verification assert steps? Each assert with a \`type\` tag should have a corresponding outcome.
 
 **Dependencies:**
 

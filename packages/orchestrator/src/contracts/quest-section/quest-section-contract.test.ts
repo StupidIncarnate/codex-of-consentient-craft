@@ -51,6 +51,12 @@ describe('questSectionContract', () => {
       expect(result).toBe('executionLog');
     });
 
+    it('VALID: {value: "flows"} => parses successfully', () => {
+      const result = questSectionContract.parse(QuestSectionStub({ value: 'flows' }));
+
+      expect(result).toBe('flows');
+    });
+
     it('VALID: {default stub} => parses with default value', () => {
       const result = questSectionContract.parse(QuestSectionStub());
 

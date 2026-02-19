@@ -8,8 +8,10 @@
 
 export const questStatusColorsStatics = {
   status: {
+    created: 'gray',
     pending: 'yellow',
     proposed: 'yellow',
+    requirements_approved: 'indigo',
     approved: 'green',
     deferred: 'gray',
     ready: 'blue',
@@ -18,6 +20,7 @@ export const questStatusColorsStatics = {
     failed: 'red',
     blocked: 'orange',
     partially_complete: 'teal',
+    abandoned: 'red',
   },
   contractStatus: {
     new: 'blue',

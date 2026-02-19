@@ -71,6 +71,7 @@ describe('questSectionFilterTransformer', () => {
         observables: [],
         steps: [],
         toolingRequirements: [],
+        flows: [],
         chatSessions: [],
       });
     });
@@ -120,10 +121,12 @@ describe('questSectionFilterTransformer', () => {
             trigger: 'User submits login form',
             dependsOn: [],
             outcomes: [],
+            verification: [],
           },
         ],
         steps: [],
         toolingRequirements: [],
+        flows: [],
         chatSessions: [],
       });
     });
@@ -191,10 +194,12 @@ describe('questSectionFilterTransformer', () => {
             trigger: 'User submits login form',
             dependsOn: [],
             outcomes: [],
+            verification: [],
           },
         ],
         steps: [],
         toolingRequirements: [],
+        flows: [],
         chatSessions: [],
       });
     });
@@ -233,6 +238,7 @@ describe('questSectionFilterTransformer', () => {
         observables: [],
         steps: [],
         toolingRequirements: [],
+        flows: [],
         chatSessions: [],
       });
     });
@@ -271,6 +277,7 @@ describe('questSectionFilterTransformer', () => {
         observables: [],
         steps: [],
         toolingRequirements: [],
+        flows: [],
         chatSessions: [],
       });
     });
@@ -302,6 +309,7 @@ describe('questSectionFilterTransformer', () => {
           trigger: 'User submits login form',
           dependsOn: [],
           outcomes: [],
+          verification: [],
         },
       ]);
     });

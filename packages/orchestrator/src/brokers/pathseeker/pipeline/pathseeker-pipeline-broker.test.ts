@@ -58,6 +58,16 @@ describe('pathseekerPipelineBroker', () => {
             exportName: 'hasAuthGuard',
           },
         ],
+        flows: [
+          {
+            id: 'd47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'Login Flow',
+            requirementIds: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
+            diagram: 'graph TD; A[Start] --> B[Login] --> C[Dashboard]',
+            entryPoint: '/login',
+            exitPoints: ['/dashboard'],
+          },
+        ],
       });
 
       proxy.setupVerifySuccess({ quest });

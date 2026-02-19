@@ -7,6 +7,7 @@ import {
   QuestContractEntryStub,
   QuestIdStub,
   RequirementStub,
+  VerificationStepStub,
 } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -231,6 +232,64 @@ describe('workUnitToArgumentsTransformer', () => {
       );
     });
 
+    it('VALID: {codeweaver with observable verification steps} => includes verification details', () => {
+      const workUnit = CodeweaverWorkUnitStub({
+        step: DependencyStepStub({
+          name: 'Step',
+          description: 'Desc',
+          filesToCreate: [],
+          filesToModify: [],
+        }),
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedContracts: [],
+        relatedObservables: [
+          ObservableStub({
+            trigger: 'User clicks login',
+            outcomes: [{ type: 'ui-state', description: 'Redirected to /dashboard', criteria: {} }],
+            verification: [
+              VerificationStepStub({ action: 'navigate', target: '/login', value: undefined, condition: undefined, type: undefined }),
+              VerificationStepStub({ action: 'click', target: 'submit button', value: undefined, condition: undefined, type: undefined }),
+              VerificationStepStub({ action: 'assert', target: 'window.location', value: '/dashboard', condition: 'equals', type: 'ui-state' }),
+            ],
+          }),
+        ],
+        relatedRequirements: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/Verification:/u);
+      expect(result).toMatch(/ {6}- navigate \/login$/mu);
+      expect(result).toMatch(/ {6}- click submit button$/mu);
+      expect(result).toMatch(/ {6}- assert window\.location = \/dashboard \[equals\] \(ui-state\)$/mu);
+    });
+
+    it('VALID: {codeweaver with observable without verification} => omits verification section', () => {
+      const workUnit = CodeweaverWorkUnitStub({
+        step: DependencyStepStub({
+          name: 'Step',
+          description: 'Desc',
+          filesToCreate: [],
+          filesToModify: [],
+        }),
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedContracts: [],
+        relatedObservables: [
+          ObservableStub({
+            trigger: 'User clicks login',
+            outcomes: [{ type: 'api-call', description: 'POST /auth/login', criteria: {} }],
+            verification: [],
+          }),
+        ],
+        relatedRequirements: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).not.toMatch(/Verification:/u);
+      expect(result).toMatch(/api-call: POST \/auth\/login/u);
+    });
+
     it('VALID: {codeweaver with related requirements} => includes requirement details', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
@@ -277,6 +336,32 @@ describe('workUnitToArgumentsTransformer', () => {
           'Contexts:\n' +
           '  - Login Page: Main login form',
       );
+    });
+
+    it('VALID: {siegemaster with observable verification steps} => includes verification details', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'verify-quest' }),
+        observables: [
+          ObservableStub({
+            contextId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            trigger: 'User submits form',
+            outcomes: [{ type: 'ui-state', description: 'Shows success message', criteria: {} }],
+            verification: [
+              VerificationStepStub({ action: 'fill', target: 'name input', value: 'John', condition: undefined, type: undefined }),
+              VerificationStepStub({ action: 'click', target: 'submit', value: undefined, condition: undefined, type: undefined }),
+              VerificationStepStub({ action: 'assert', target: 'toast', value: 'Success', condition: 'contains', type: 'ui-state' }),
+            ],
+          }),
+        ],
+        contexts: [ContextStub({ name: 'Form Page', description: 'Main form' })],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/Verification:/u);
+      expect(result).toMatch(/ {6}- fill name input = John$/mu);
+      expect(result).toMatch(/ {6}- click submit$/mu);
+      expect(result).toMatch(/ {6}- assert toast = Success \[contains\] \(ui-state\)$/mu);
     });
 
     it('VALID: {siegemaster with empty observables and contexts} => returns quest ID only', () => {

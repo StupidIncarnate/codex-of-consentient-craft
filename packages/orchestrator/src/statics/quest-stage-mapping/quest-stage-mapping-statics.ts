@@ -15,9 +15,11 @@ export const questStageMappingStatics = {
       'contexts',
       'observables',
       'toolingRequirements',
+      'flows',
     ],
     'spec-decisions': ['requirements', 'designDecisions', 'contracts', 'toolingRequirements'],
     'spec-bdd': ['contexts', 'observables', 'contracts'],
+    'spec-flows': ['requirements', 'designDecisions', 'flows', 'contracts'],
     implementation: ['steps', 'contracts'],
   },
 } as const;

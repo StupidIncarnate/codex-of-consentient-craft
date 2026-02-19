@@ -100,6 +100,7 @@ describe('questGetBroker', () => {
           trigger: 'User submits login form',
           dependsOn: [],
           outcomes: [],
+          verification: [],
         },
       ]);
       expect(result.quest?.steps).toStrictEqual([]);

@@ -1,4 +1,4 @@
-import { ChatSessionStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { ChatSessionStub, FlowStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
 import { questModifyBroker } from './quest-modify-broker';
@@ -177,6 +177,39 @@ describe('questModifyBroker', () => {
             relatedRequirements: [],
           },
         ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {questId, flows: [new]} => adds new flow', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', flows: [] });
+
+      proxy.setupQuestFound({ quest });
+
+      const flow = FlowStub();
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [flow],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {questId, status: "requirements_approved"} => sets status on quest', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', status: 'created' });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'requirements_approved',
       });
 
       const result = await questModifyBroker({ input });

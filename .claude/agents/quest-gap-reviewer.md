@@ -77,7 +77,19 @@ For each context, verify:
 - **Completeness**: Do observables reference places that aren't defined as contexts?
 - **Scope clarity**: Does the description make it unambiguous what this context covers?
 
-### Step 5: Review Observables
+### Step 5: Review Flows
+
+For each flow, verify:
+
+- **Entry point**: Does it have a clear, concrete entry point (URL, event, etc.)?
+- **Exit points**: Does it have at least one exit point? Are all exit points reachable?
+- **Node connectivity**: Do all nodes have at least one incoming and one outgoing edge (except entry/exit)?
+- **Error paths**: Do error paths loop back to a recovery node or terminate at an explicit error exit?
+- **Diagram validity**: Is the mermaid syntax valid and parseable?
+- **Requirement linkage**: After Phase 3, are `requirementIds` populated and correct?
+- **Completeness**: Do the flows cover all major user journeys implied by the requirements?
+
+### Step 6: Review Observables
 
 For each observable, scrutinize:
 
@@ -93,12 +105,24 @@ For each observable, scrutinize:
 - Are preconditions clear? What state must exist before this trigger?
 - What data is involved? If "user enters data", what data exactly?
 
+**Verification Steps:**
+
+- Does the observable have a `verification` array? If empty, flag it.
+- Does the verification follow the **setup -> trigger -> assert** sequence?
+  - Setup steps (`navigate`, `fill`): Are preconditions properly established?
+  - Trigger step (`click`, `request`): Is there exactly one trigger action?
+  - Assert steps (`assert`): Do they have concrete `condition` and `value`?
+- Do assert steps have appropriate `type` tags (`ui-state`, `api-call`, `file-exists`, `process-state`, etc.)?
+- Are assert conditions testable? (`equals`, `contains`, `exists`, `matches` with concrete values)
+- Is there at least one assert step per verification sequence?
+
 **Outcomes (THEN):**
 
 - Are all outcomes verifiable with concrete assertions?
 - Are outcomes atomic and independently checkable?
 - Is the criteria complete with all values needed to verify?
 - Are there missing outcomes that should also happen?
+- Do outcomes align with the verification assert steps? Each assert with a `type` tag should correspond to an outcome.
 
 **Dependencies:**
 
@@ -106,7 +130,7 @@ For each observable, scrutinize:
 - Are dependencies missing? Should this wait for something else first?
 - Is there circular dependency? A depends on B depends on A?
 
-### Step 6: Review Tangible Requirements
+### Step 7: Review Tangible Requirements
 
 Verify ALL concrete values are specified (this is a subset list):
 
@@ -119,14 +143,14 @@ Verify ALL concrete values are specified (this is a subset list):
 - **Timeouts/durations**: Actual numbers, not "reasonable timeout"
 - **Limits**: Concrete values for rate limits, max lengths, etc.
 
-### Step 7: Review Tooling Requirements
+### Step 8: Review Tooling Requirements
 
 - Are all needed packages identified for the observables?
 - Are package names correct and real npm packages?
 - Is the reason for each package clear?
 - Are links to observables correct in `requiredByObservables`?
 
-### Step 8: Review Contracts
+### Step 9: Review Contracts
 
 For each contract, scrutinize from a semantic perspective (structural validation like valid UUIDs and non-empty fields
 is handled by `verify-quest`):
@@ -148,7 +172,7 @@ is handled by `verify-quest`):
   LoginCredentials), does contract B exist in the quest? Flag any dangling type references that point to contracts not
   declared in the quest.
 
-### Step 9: Check for Logic Gaps
+### Step 10: Check for Logic Gaps
 
 - **Happy path**: Is the success flow fully specified?
 - **Error paths**: What happens when things fail?
@@ -157,7 +181,7 @@ is handled by `verify-quest`):
 - **Concurrent access**: What if multiple users/requests happen at once?
 - **Recovery**: What happens after errors - can user retry?
 
-### Step 10: Spot Bad Assumptions
+### Step 11: Spot Bad Assumptions
 
 Look for assumptions that might not hold:
 
@@ -167,14 +191,15 @@ Look for assumptions that might not hold:
 - Implicit ordering - "After X, Y happens" - is this enforced or assumed?
 - External dependencies - APIs, databases, services - are they reliable?
 
-### Step 11: Validate Testability
+### Step 12: Validate Testability
 
-For each observable outcome:
+For each observable outcome and verification step:
 
 - Can this be asserted with a concrete check?
 - Is timing handled for async operations?
 - Is state accessible for tests to inspect?
 - Are criteria sufficient to write the assertion?
+- Do verification assert steps have concrete `condition` and `value` fields?
 
 ## Output Format
 
