@@ -9,29 +9,31 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
-import { orchestrateRunAllBroker } from '../../orchestrate/run-all/orchestrate-run-all-broker';
+import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
+import { commandRunLayerFolderBroker } from './command-run-layer-folder-broker';
+import { commandRunLayerSingleBroker } from './command-run-layer-single-broker';
+import { commandRunLayerMultiBroker } from './command-run-layer-multi-broker';
 import { resultToSummaryTransformer } from '../../../transformers/result-to-summary/result-to-summary-transformer';
 
 export const commandRunBroker = async ({
   config,
   rootPath,
-  cwd,
 }: {
   config: WardConfig;
   rootPath: AbsoluteFilePath;
-  cwd: AbsoluteFilePath;
 }): Promise<void> => {
-  const wardResult = await orchestrateRunAllBroker({
-    config,
-    rootPath,
-    onProgress: ({ checkType, packageName, completed, total }) => {
-      process.stderr.write(
-        `\r\x1b[KProcessing... ${packageName} (${checkType}) [${String(completed)}/${String(total)}]`,
-      );
-    },
-  });
+  const workspaces = await workspaceDiscoverBroker({ rootPath });
+
+  const wardResult =
+    workspaces === null
+      ? await (async () => {
+          const projectFolder = await commandRunLayerFolderBroker({ rootPath });
+          return commandRunLayerSingleBroker({ config, projectFolder, rootPath });
+        })()
+      : await commandRunLayerMultiBroker({ config, projectFolders: workspaces, rootPath });
+
   process.stderr.write('\r\x1b[K');
-  const summary = resultToSummaryTransformer({ wardResult, cwd });
+  const summary = resultToSummaryTransformer({ wardResult, cwd: rootPath });
 
   process.stdout.write(`${summary}\n`);
 

@@ -20,7 +20,6 @@ describe('checkTypeContract', () => {
 
       expect(result).toBe('test');
     });
-
   });
 
   describe('invalid inputs', () => {

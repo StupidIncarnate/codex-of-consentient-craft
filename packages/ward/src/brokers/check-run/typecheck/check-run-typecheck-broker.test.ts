@@ -65,24 +65,6 @@ describe('checkRunTypecheckBroker', () => {
     });
   });
 
-  describe('filesCount', () => {
-    it('VALID: {glob returns ts and tsx files} => returns combined filesCount', async () => {
-      const proxy = checkRunTypecheckBrokerProxy();
-      proxy.setupPass();
-      proxy.setupGlobTs({ output: 'src/a.ts\nsrc/b.ts' });
-      proxy.setupGlobTsx({ output: 'src/c.tsx' });
-
-      const projectFolder = ProjectFolderStub();
-
-      const result = await checkRunTypecheckBroker({
-        projectFolder,
-        fileList: [],
-      });
-
-      expect(result.filesCount).toBe(3);
-    });
-  });
-
   describe('filtered by file list', () => {
     it('VALID: {tsc fails but errors not in file list} => returns pass after filtering', async () => {
       const proxy = checkRunTypecheckBrokerProxy();

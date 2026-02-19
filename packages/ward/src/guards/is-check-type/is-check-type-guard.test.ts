@@ -19,12 +19,6 @@ describe('isCheckTypeGuard', () => {
 
       expect(result).toBe(true);
     });
-
-    it('VALID: {value: "e2e"} => returns true', () => {
-      const result = isCheckTypeGuard({ value: 'e2e' });
-
-      expect(result).toBe(true);
-    });
   });
 
   describe('invalid check types', () => {

@@ -9,16 +9,12 @@ describe('commandRunBroker', () => {
   describe('passing run', () => {
     it('VALID: {all checks pass} => writes summary to stdout, does not exit with 1', async () => {
       const proxy = commandRunBrokerProxy();
-      proxy.setupPassingRun({
-        gitOutput: 'packages/ward/package.json\n',
-        packageContents: [JSON.stringify({ name: '@dungeonmaster/ward' })],
-        checkCount: 1,
-      });
+      proxy.setupSinglePackagePass();
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const config = WardConfigStub();
 
-      await commandRunBroker({ config, rootPath, cwd: rootPath });
+      await commandRunBroker({ config, rootPath });
 
       expect(process.stdout.write).toHaveBeenCalledWith(
         expect.stringMatching(/^run: 1739625600000-a38e\n/u),

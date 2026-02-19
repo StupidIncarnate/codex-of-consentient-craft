@@ -370,7 +370,7 @@ describe('resultToSummaryTransformer', () => {
   });
 
   describe('multiple check types', () => {
-    it('VALID: {wardResult: lint pass + test fail + e2e pass} => returns all check lines', () => {
+    it('VALID: {wardResult: lint pass + test fail + typecheck pass} => returns all check lines', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
@@ -397,11 +397,11 @@ describe('resultToSummaryTransformer', () => {
             ],
           }),
           CheckResultStub({
-            checkType: 'e2e',
+            checkType: 'typecheck',
             status: 'pass',
             projectResults: [
               ProjectResultStub({
-                projectFolder: { name: 'e2e', path: '/p/e2e' },
+                projectFolder: { name: 'standards', path: '/p/standards' },
                 status: 'pass',
                 filesCount: 2,
               }),
@@ -418,7 +418,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (10 files)\ntest:      FAIL  1 packages (8 files)  cli (1)\ne2e:       PASS  1 packages (2 files)\n\n--- test ---\nsrc/index.test.ts\n  FAIL "should return valid result"\n    Expected true to be false',
+            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (10 files)\ntest:      FAIL  1 packages (8 files)  cli (1)\ntypecheck: PASS  1 packages (2 files)\n\n--- test ---\nsrc/index.test.ts\n  FAIL "should return valid result"\n    Expected true to be false',
         }),
       );
     });
