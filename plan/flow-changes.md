@@ -739,7 +739,7 @@ Phase 7: Gap Review + Handoff
 
 ## Implementation Changes
 
-### Phase 0: New Contracts (packages/shared)
+### Phase 0: New Contracts (packages/shared) [x] DONE
 
 All in `packages/shared/src/contracts/`. Each gets `-contract.ts`, `-contract.test.ts`, `.stub.ts`.
 
@@ -781,7 +781,7 @@ first, then PATCHes requirements, then backfills `requirementIds` on flows in th
 
 ---
 
-### Phase 1: Orchestrator Wiring (packages/orchestrator)
+### Phase 1: Orchestrator Wiring (packages/orchestrator) [x] DONE
 
 #### Batch 1A — Section + Stage
 
@@ -808,7 +808,7 @@ first, then PATCHes requirements, then backfills `requirementIds` on flows in th
 
 ---
 
-### Phase 2: Verification Guards (packages/orchestrator)
+### Phase 2: Verification Guards (packages/orchestrator) [x] DONE
 
 New guards, each in own folder with `-guard.ts`, `-guard.test.ts`, `-guard.proxy.ts`:
 

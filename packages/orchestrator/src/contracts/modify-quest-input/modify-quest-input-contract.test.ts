@@ -1,4 +1,4 @@
-import { ChatSessionStub } from '@dungeonmaster/shared/contracts';
+import { ChatSessionStub, FlowStub } from '@dungeonmaster/shared/contracts';
 
 import { modifyQuestInputContract } from './modify-quest-input-contract';
 import { ModifyQuestInputStub } from './modify-quest-input.stub';
@@ -90,6 +90,31 @@ describe('modifyQuestInputContract', () => {
           ],
         },
       ]);
+    });
+
+    it('VALID: {questId, flows} => parses with flows array', () => {
+      const flow = FlowStub();
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [flow],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.questId).toBe('add-auth');
+      expect(result.flows).toStrictEqual([flow]);
+    });
+
+    it('VALID: {questId, status} => parses with status field', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'requirements_approved',
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.questId).toBe('add-auth');
+      expect(result.status).toBe('requirements_approved');
     });
 
     it('VALID: {questId, steps} => parses with steps array', () => {

@@ -3,6 +3,30 @@ import { QuestStatusStub } from './quest-status.stub';
 
 describe('questStatusContract', () => {
   describe('valid statuses', () => {
+    it('VALID: created => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'created' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('created');
+    });
+
+    it('VALID: requirements_approved => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'requirements_approved' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('requirements_approved');
+    });
+
+    it('VALID: approved => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'approved' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('approved');
+    });
+
     it('VALID: pending => parses successfully', () => {
       const status = QuestStatusStub({ value: 'pending' });
 

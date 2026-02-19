@@ -12,8 +12,10 @@ import {
   contextContract,
   dependencyStepContract,
   designDecisionContract,
+  flowContract,
   observableContract,
   questContractEntryContract,
+  questStatusContract,
   requirementContract,
   toolingRequirementContract,
 } from '@dungeonmaster/shared/contracts';
@@ -49,9 +51,16 @@ export const modifyQuestInputContract = z
       .array(questContractEntryContract)
       .describe('Contracts to upsert (existing ID updates, new ID adds)')
       .optional(),
+    flows: z
+      .array(flowContract)
+      .describe('Flows to upsert (existing ID updates, new ID adds)')
+      .optional(),
     chatSessions: z
       .array(chatSessionContract)
       .describe('Chat sessions (direct replacement, not upsert)')
+      .optional(),
+    status: questStatusContract
+      .describe('Lifecycle gate transition status')
       .optional(),
   })
   .brand<'ModifyQuestInput'>();

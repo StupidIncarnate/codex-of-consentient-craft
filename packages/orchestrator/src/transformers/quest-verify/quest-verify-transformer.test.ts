@@ -11,6 +11,7 @@ import {
   QuestContractEntryStub,
   QuestContractPropertyStub,
   ContractNameStub,
+  FlowStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questVerifyTransformer } from './quest-verify-transformer';
@@ -26,8 +27,9 @@ describe('questVerifyTransformer', () => {
 
       const quest = QuestStub({
         contexts: [ContextStub({ id: ctxId })],
-        requirements: [RequirementStub({ id: reqId })],
+        requirements: [RequirementStub({ id: reqId, status: 'approved' })],
         observables: [ObservableStub({ id: obsId, contextId: ctxId, requirementId: reqId })],
+        flows: [FlowStub({ requirementIds: [reqId] })],
         contracts: [
           QuestContractEntryStub({
             name: contractName,
@@ -107,6 +109,16 @@ describe('questVerifyTransformer', () => {
           name: 'Step Export Names',
           passed: true,
           details: 'All steps creating entry files have exportName set',
+        },
+        {
+          name: 'Valid Flow References',
+          passed: true,
+          details: 'All flow requirementIds reference existing requirements',
+        },
+        {
+          name: 'Flow Coverage',
+          passed: true,
+          details: 'All approved requirements are covered by at least one flow',
         },
       ]);
     });
@@ -309,6 +321,45 @@ describe('questVerifyTransformer', () => {
         name: 'Step Export Names',
         passed: false,
         details: 'Some steps with entry files are missing required exportName',
+      });
+    });
+  });
+
+  describe('invalid flow references', () => {
+    it('INVALID_FLOW_REF: {flow references non-existent requirement} => valid flow references fails', () => {
+      const reqId = RequirementIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const invalidReqId = RequirementIdStub({ value: 'aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee' });
+
+      const quest = QuestStub({
+        requirements: [RequirementStub({ id: reqId })],
+        flows: [FlowStub({ requirementIds: [invalidReqId] })],
+      });
+
+      const [, , , , , , , , , , , flowRefsCheck] = questVerifyTransformer({ quest });
+
+      expect(flowRefsCheck).toStrictEqual({
+        name: 'Valid Flow References',
+        passed: false,
+        details: 'Some flows reference non-existent requirement IDs',
+      });
+    });
+  });
+
+  describe('flow coverage fails', () => {
+    it('INVALID_COVERAGE: {approved requirement not covered by any flow} => flow coverage fails', () => {
+      const reqId = RequirementIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+
+      const quest = QuestStub({
+        requirements: [RequirementStub({ id: reqId, status: 'approved' })],
+        flows: [FlowStub({ requirementIds: [] })],
+      });
+
+      const [, , , , , , , , , , , , flowCoverageCheck] = questVerifyTransformer({ quest });
+
+      expect(flowCoverageCheck).toStrictEqual({
+        name: 'Flow Coverage',
+        passed: false,
+        details: 'Some approved requirements are not referenced by any flow',
       });
     });
   });

@@ -92,8 +92,19 @@ export const questModifyBroker = async ({
       });
     }
 
+    if (validated.flows) {
+      quest.flows = questArrayUpsertTransformer({
+        existing: quest.flows,
+        updates: validated.flows,
+      });
+    }
+
     if (validated.chatSessions) {
       quest.chatSessions = validated.chatSessions;
+    }
+
+    if (validated.status) {
+      quest.status = validated.status;
     }
 
     quest.updatedAt = new Date().toISOString() as typeof quest.updatedAt;

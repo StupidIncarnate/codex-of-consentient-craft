@@ -29,6 +29,7 @@ describe('observableContract', () => {
           criteria: { method: 'GET', endpoint: '/api/permissions/{id}' },
         },
       ],
+      verification: [],
     });
   });
 
@@ -82,7 +83,44 @@ describe('observableContract', () => {
       trigger: 'Click test button',
       dependsOn: [],
       outcomes: [],
+      verification: [],
     });
+  });
+
+  it('VALID: {with verification steps} => parses verification array', () => {
+    const observable = ObservableStub({
+      verification: [
+        {
+          action: 'assert',
+          target: 'response.status',
+          value: '200',
+          condition: 'equals',
+          type: 'api-call',
+        },
+      ],
+    });
+
+    expect(observable.verification).toStrictEqual([
+      {
+        action: 'assert',
+        target: 'response.status',
+        value: '200',
+        condition: 'equals',
+        type: 'api-call',
+      },
+    ]);
+  });
+
+  it('VALID: {without verification field} => backward compat defaults to empty array', () => {
+    const result = observableContract.parse({
+      id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+      contextId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      trigger: 'Click test button',
+      dependsOn: [],
+      outcomes: [],
+    });
+
+    expect(result.verification).toStrictEqual([]);
   });
 
   it('VALID: {with verification fields} => parses verification status', () => {

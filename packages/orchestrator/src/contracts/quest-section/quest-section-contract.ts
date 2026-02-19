@@ -16,6 +16,7 @@ export const questSectionContract = z.enum([
   'steps',
   'toolingRequirements',
   'executionLog',
+  'flows',
 ]);
 
 export type QuestSection = z.infer<typeof questSectionContract>;

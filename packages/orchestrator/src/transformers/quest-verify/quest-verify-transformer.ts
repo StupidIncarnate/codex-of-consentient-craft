@@ -19,6 +19,8 @@ import { questHasObservableCoverageGuard } from '../../guards/quest-has-observab
 import { questHasValidContextRefsGuard } from '../../guards/quest-has-valid-context-refs/quest-has-valid-context-refs-guard';
 import { questHasValidRequirementRefsGuard } from '../../guards/quest-has-valid-requirement-refs/quest-has-valid-requirement-refs-guard';
 import { questStepHasContractRefsGuard } from '../../guards/quest-step-has-contract-refs/quest-step-has-contract-refs-guard';
+import { questHasFlowCoverageGuard } from '../../guards/quest-has-flow-coverage/quest-has-flow-coverage-guard';
+import { questHasValidFlowRefsGuard } from '../../guards/quest-has-valid-flow-refs/quest-has-valid-flow-refs-guard';
 import { questStepHasExportNameGuard } from '../../guards/quest-step-has-export-name/quest-step-has-export-name-guard';
 import { questStepHasValidContractRefsGuard } from '../../guards/quest-step-has-valid-contract-refs/quest-step-has-valid-contract-refs-guard';
 
@@ -165,6 +167,34 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
       details: stepExportNames
         ? 'All steps creating entry files have exportName set'
         : 'Some steps with entry files are missing required exportName',
+    }),
+  );
+
+  const validFlowRefs = questHasValidFlowRefsGuard({
+    flows: quest.flows,
+    requirements: quest.requirements,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: 'Valid Flow References',
+      passed: validFlowRefs,
+      details: validFlowRefs
+        ? 'All flow requirementIds reference existing requirements'
+        : 'Some flows reference non-existent requirement IDs',
+    }),
+  );
+
+  const flowCoverage = questHasFlowCoverageGuard({
+    flows: quest.flows,
+    requirements: quest.requirements,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: 'Flow Coverage',
+      passed: flowCoverage,
+      details: flowCoverage
+        ? 'All approved requirements are covered by at least one flow'
+        : 'Some approved requirements are not referenced by any flow',
     }),
   );
 
