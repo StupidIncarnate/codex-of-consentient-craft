@@ -118,7 +118,7 @@ describe('questVerifyTransformer', () => {
         {
           name: 'Flow Coverage',
           passed: true,
-          details: 'All approved requirements are covered by at least one flow',
+          details: 'All approved requirements covered by flows',
         },
       ]);
     });
@@ -345,8 +345,8 @@ describe('questVerifyTransformer', () => {
     });
   });
 
-  describe('flow coverage fails', () => {
-    it('INVALID_COVERAGE: {approved requirement not covered by any flow} => flow coverage fails', () => {
+  describe('flow coverage soft warning', () => {
+    it('SOFT_WARNING: {approved requirement not covered by any flow} => flow coverage passes with warning', () => {
       const reqId = RequirementIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
       const quest = QuestStub({
@@ -358,8 +358,9 @@ describe('questVerifyTransformer', () => {
 
       expect(flowCoverageCheck).toStrictEqual({
         name: 'Flow Coverage',
-        passed: false,
-        details: 'Some approved requirements are not referenced by any flow',
+        passed: true,
+        details:
+          'WARNING: Not all approved requirements are covered by flows (optional for simple quests)',
       });
     });
   });

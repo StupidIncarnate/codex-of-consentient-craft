@@ -23,6 +23,7 @@ export const questAddBrokerProxy = (): {
     questFilePath: FilePath;
   }) => void;
   setupQuestCreationFailure: (params: { questsFolderPath: FilePath; error: Error }) => void;
+  getWrittenContent: () => unknown;
 } => {
   const resolveQuestsPathProxy = questResolveQuestsPathBrokerProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
@@ -83,5 +84,7 @@ export const questAddBrokerProxy = (): {
       // Mock mkdir failure for quests base directory
       mkdirProxy.throws({ filepath: questsFolderPath, error });
     },
+
+    getWrittenContent: (): unknown => writeFileProxy.getWrittenContent(),
   };
 };
