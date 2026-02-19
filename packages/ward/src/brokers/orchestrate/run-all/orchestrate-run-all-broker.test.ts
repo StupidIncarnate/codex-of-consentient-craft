@@ -326,8 +326,14 @@ describe('orchestrateRunAllBroker', () => {
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
-      expect(spawnedArgs).toContain('--findRelatedTests');
-      expect(spawnedArgs).toContain('src/index.test.ts');
+      expect(spawnedArgs).toStrictEqual([
+        'jest',
+        '--json',
+        '--no-color',
+        '--runInBand',
+        '--findRelatedTests',
+        'src/index.test.ts',
+      ]);
     });
   });
 

@@ -116,7 +116,7 @@ export const StartServerProxy = (): {
   getBroadcastedMessages: () => WsMessage[];
 } => {
   const serveProxy = honoServeAdapterProxy();
-  honoCreateNodeWebSocketAdapterProxy();
+  const wsProxy = honoCreateNodeWebSocketAdapterProxy();
   architectureOverviewBrokerProxy();
   architectureFolderDetailBrokerProxy();
   architectureSyntaxRulesBrokerProxy();
@@ -147,6 +147,8 @@ export const StartServerProxy = (): {
   const getQuestStatusProxy = orchestratorGetQuestStatusAdapterProxy();
 
   StartServer();
+
+  wsProxy.simulateConnection({ client: broadcastProxy.captureClient });
 
   const capturedFetch = serveProxy.getCapturedFetch();
 

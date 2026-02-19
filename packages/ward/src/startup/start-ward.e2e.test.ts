@@ -9,20 +9,24 @@
 import { spawn, execSync } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
+import { z } from 'zod';
+
+const childCountContract = z.number().int().nonnegative().brand<'ChildCount'>();
+type ChildCount = z.infer<typeof childCountContract>;
 
 const REPO_ROOT = path.resolve(__dirname, '../../../..');
 const WARD_BIN = path.resolve(REPO_ROOT, 'packages/ward/dist/startup/start-ward.js');
 
-const countDirectChildren = ({ pid }: { pid: number }): number => {
+const countDirectChildren = ({ pid }: { pid: number }): ChildCount => {
   try {
     const result = execSync(`pgrep -cP ${String(pid)}`, {
       encoding: 'utf-8',
       timeout: 2000,
     });
-    return parseInt(result.trim(), 10);
+    return childCountContract.parse(parseInt(result.trim(), 10));
   } catch {
     // pgrep exits 1 when no children found
-    return 0;
+    return childCountContract.parse(0);
   }
 };
 
@@ -56,33 +60,35 @@ describe('start-ward e2e', () => {
 
       const pid = wardProcess.pid!;
       let maxChildren = 0;
-      let exited = false;
-
-      wardProcess.on('exit', () => {
-        exited = true;
-      });
 
       // Skip discovery phase (git ls-files, package.json reads)
       await sleep({ ms: 2000 });
 
-      // Monitor direct child count for up to 10 seconds
+      // Monitor direct child count until process exits or 10s timeout
       const POLL_MS = 50;
-      const MONITOR_ROUNDS = 200;
+      const MONITOR_MS = 10_000;
 
-      for (let i = 0; i < MONITOR_ROUNDS && !exited; i++) {
-        await sleep({ ms: POLL_MS });
-        const count = countDirectChildren({ pid });
-        if (count > maxChildren) {
-          maxChildren = count;
-        }
-      }
+      await new Promise<void>((resolve) => {
+        const interval = setInterval(() => {
+          const count = countDirectChildren({ pid });
+          maxChildren = Math.max(maxChildren, count);
+        }, POLL_MS);
 
-      // Kill ward process group
-      try {
-        process.kill(-pid, 'SIGKILL');
-      } catch {
-        // Process may have already exited
-      }
+        wardProcess.on('exit', () => {
+          clearInterval(interval);
+          resolve();
+        });
+
+        setTimeout(() => {
+          clearInterval(interval);
+          try {
+            process.kill(-pid, 'SIGKILL');
+          } catch {
+            // Process may have already exited
+          }
+          resolve();
+        }, MONITOR_MS);
+      });
 
       await sleep({ ms: 1000 });
 

@@ -67,6 +67,7 @@ import { guildSessionPersistBroker } from '../brokers/guild-session/persist/guil
 import type { WsClient } from '../contracts/ws-client/ws-client-contract';
 import { fsReadJsonlAdapter } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { claudeProjectPathEncoderTransformer } from '../transformers/claude-project-path-encoder/claude-project-path-encoder-transformer';
+import { stripJsonlSuffixTransformer } from '../transformers/strip-jsonl-suffix/strip-jsonl-suffix-transformer';
 import { processDevLogAdapter } from '../adapters/process/dev-log/process-dev-log-adapter';
 import { streamLineSummaryTransformer } from '../transformers/stream-line-summary/stream-line-summary-transformer';
 
@@ -691,7 +692,7 @@ export const StartServer = (): void => {
 
       const entries = await fsReadJsonlAdapter({ filePath: jsonlPath });
 
-      const subagentsDir = join(jsonlPath.replace(/\.jsonl$/u, ''), 'subagents');
+      const subagentsDir = join(stripJsonlSuffixTransformer({ filePath: jsonlPath }), 'subagents');
       let subagentEntries: unknown[] = [];
 
       try {
@@ -934,7 +935,7 @@ export const StartServer = (): void => {
 
       const entries = await fsReadJsonlAdapter({ filePath: jsonlPath });
 
-      const subagentsDir = join(jsonlPath.replace(/\.jsonl$/u, ''), 'subagents');
+      const subagentsDir = join(stripJsonlSuffixTransformer({ filePath: jsonlPath }), 'subagents');
       let subagentEntries: unknown[] = [];
 
       try {

@@ -471,14 +471,16 @@ describe('StartServer', () => {
         '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Done"}]}}',
       );
 
-      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, STREAM_SETTLE_MS);
+      });
 
       const messages = proxy.getBroadcastedMessages();
       const chatOutputs = messages.filter((m) => m.type === 'chat-output');
 
       expect(chatOutputs).toHaveLength(4);
 
-      const lines = chatOutputs.map((m) => (m.payload as Record<string, unknown>).line as string);
+      const lines = chatOutputs.map((m) => String(Reflect.get(m.payload as object, 'line')));
 
       expect(lines.some((l) => l.includes('tool_use'))).toBe(true);
       expect(lines.some((l) => l.includes('tool_result'))).toBe(true);
@@ -498,14 +500,16 @@ describe('StartServer', () => {
       chat.emitLine('not valid json');
       chat.emitLine('{"type":"assistant","message":"real line"}');
 
-      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, STREAM_SETTLE_MS);
+      });
 
       const messages = proxy.getBroadcastedMessages();
       const chatOutputs = messages.filter((m) => m.type === 'chat-output');
 
       expect(chatOutputs).toHaveLength(2);
 
-      const lines = chatOutputs.map((m) => (m.payload as Record<string, unknown>).line as string);
+      const lines = chatOutputs.map((m) => String(Reflect.get(m.payload as object, 'line')));
 
       expect(lines[0]).toBe('not valid json');
       expect(lines[1]).toBe('{"type":"assistant","message":"real line"}');
@@ -524,13 +528,15 @@ describe('StartServer', () => {
 
       chat.emitExit(0);
 
-      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, STREAM_SETTLE_MS);
+      });
 
       const messages = proxy.getBroadcastedMessages();
       const chatCompletes = messages.filter((m) => m.type === 'chat-complete');
 
       expect(chatCompletes).toHaveLength(1);
-      expect((chatCompletes[0]?.payload as Record<string, unknown>).exitCode).toBe(0);
+      expect(Reflect.get(chatCompletes[0]?.payload as object, 'exitCode')).toBe(0);
     });
 
     it('VALID: {stream lines then exit} => broadcasts all outputs then chat-complete in order', async () => {
@@ -553,11 +559,15 @@ describe('StartServer', () => {
         '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Found README"}]}}',
       );
 
-      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, STREAM_SETTLE_MS);
+      });
 
       chat.emitExit(0);
 
-      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, STREAM_SETTLE_MS);
+      });
 
       const messages = proxy.getBroadcastedMessages();
       const types = messages.map((m) => m.type);
@@ -623,14 +633,16 @@ describe('StartServer', () => {
         '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Done"}]}}',
       );
 
-      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, STREAM_SETTLE_MS);
+      });
 
       const messages = proxy.getBroadcastedMessages();
       const chatOutputs = messages.filter((m) => m.type === 'chat-output');
 
       expect(chatOutputs).toHaveLength(4);
 
-      const lines = chatOutputs.map((m) => (m.payload as Record<string, unknown>).line as string);
+      const lines = chatOutputs.map((m) => String(Reflect.get(m.payload as object, 'line')));
 
       expect(lines.some((l) => l.includes('tool_use'))).toBe(true);
       expect(lines.some((l) => l.includes('tool_result'))).toBe(true);
@@ -653,11 +665,15 @@ describe('StartServer', () => {
       );
       chat.emitLine('{"type":"tool_result","content":"match found"}');
 
-      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, STREAM_SETTLE_MS);
+      });
 
       chat.emitExit(0);
 
-      await new Promise((resolve) => setTimeout(resolve, STREAM_SETTLE_MS));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, STREAM_SETTLE_MS);
+      });
 
       const messages = proxy.getBroadcastedMessages();
       const chatOutputs = messages.filter((m) => m.type === 'chat-output');
@@ -665,7 +681,7 @@ describe('StartServer', () => {
 
       expect(chatOutputs).toHaveLength(3);
       expect(chatCompletes).toHaveLength(1);
-      expect((chatCompletes[0]?.payload as Record<string, unknown>).exitCode).toBe(0);
+      expect(Reflect.get(chatCompletes[0]?.payload as object, 'exitCode')).toBe(0);
     });
 
     it('INVALID: {missing message} => 400 with error', async () => {

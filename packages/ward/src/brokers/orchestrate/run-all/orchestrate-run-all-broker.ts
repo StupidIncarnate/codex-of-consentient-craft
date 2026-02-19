@@ -79,37 +79,45 @@ export const orchestrateRunAllBroker = async ({
   const totalChecks = perProjectTypes.length * projectFolders.length;
   let completedChecks = 0;
 
-  const perProjectChecks = [];
-
-  for (const checkType of perProjectTypes) {
-    const projectResults = [];
-
-    for (const projectFolder of projectFolders) {
-      const projectRelativePath = String(projectFolder.path).replace(`${String(rootPath)}/`, '');
-      const projectFileList = hasFileScope
-        ? fileList
-            .filter((file) => String(file).startsWith(projectRelativePath))
-            .map((file) =>
-              gitRelativePathContract.parse(String(file).replace(`${projectRelativePath}/`, '')),
-            )
-        : fileList;
-      const result = await orchestrateRunAllLayerCheckBroker({
-        checkType,
-        projectFolder,
-        fileList: projectFileList,
-      });
-      completedChecks += 1;
-      onProgress?.({
-        checkType,
-        packageName: projectFolder.name,
-        completed: completedChecks,
-        total: totalChecks,
-      });
-      projectResults.push(result);
-    }
-
-    perProjectChecks.push(checkResultBuildTransformer({ checkType, projectResults }));
-  }
+  const perProjectChecks = await perProjectTypes.reduce(
+    async (outerAccPromise, checkType) => {
+      const outerAcc = await outerAccPromise;
+      const projectResults = await projectFolders.reduce(
+        async (innerAccPromise, projectFolder) => {
+          const accumulated = await innerAccPromise;
+          const projectRelativePath = String(projectFolder.path).replace(
+            `${String(rootPath)}/`,
+            '',
+          );
+          const projectFileList = hasFileScope
+            ? fileList
+                .filter((file) => String(file).startsWith(projectRelativePath))
+                .map((file) =>
+                  gitRelativePathContract.parse(
+                    String(file).replace(`${projectRelativePath}/`, ''),
+                  ),
+                )
+            : fileList;
+          const result = await orchestrateRunAllLayerCheckBroker({
+            checkType,
+            projectFolder,
+            fileList: projectFileList,
+          });
+          completedChecks += 1;
+          onProgress?.({
+            checkType,
+            packageName: projectFolder.name,
+            completed: completedChecks,
+            total: totalChecks,
+          });
+          return [...accumulated, result];
+        },
+        Promise.resolve([] as Awaited<ReturnType<typeof orchestrateRunAllLayerCheckBroker>>[]),
+      );
+      return [...outerAcc, checkResultBuildTransformer({ checkType, projectResults })];
+    },
+    Promise.resolve([] as ReturnType<typeof checkResultBuildTransformer>[]),
+  );
 
   const checks = [...perProjectChecks];
 
