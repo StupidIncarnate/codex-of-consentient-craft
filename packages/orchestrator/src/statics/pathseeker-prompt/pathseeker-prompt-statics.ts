@@ -122,6 +122,10 @@ For each observable, determine:
 - File naming based on project conventions (from folder details)
 - All required companion files
 - **What npm packages are needed** - JWT libraries, validation libraries, adapters for external services, etc.
+- **Verification steps** - Use the observable's \`verification\` array (assert \`type\` tags like \`ui-state\`, \`api-call\`,
+  \`file-exists\`, \`process-state\`) alongside \`outcomes\` to decide which files to create. Assert type tags indicate
+  the category of verification needed and inform file type selection (e.g., \`api-call\` asserts suggest adapter/broker
+  files, \`ui-state\` asserts suggest widget/component files).
 
 ### Step 6: Create Detailed Steps
 

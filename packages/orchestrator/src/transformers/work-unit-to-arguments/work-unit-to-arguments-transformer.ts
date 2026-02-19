@@ -58,6 +58,20 @@ export const workUnitToArgumentsTransformer = ({
         parts.push(contentTextContract.parse('Related Observables:'));
         for (const observable of relatedObservables) {
           parts.push(contentTextContract.parse(`  - Trigger: ${observable.trigger}`));
+          if (observable.verification.length > 0) {
+            parts.push(contentTextContract.parse('    Verification:'));
+            for (const verificationStep of observable.verification) {
+              const targetSuffix = verificationStep.target === undefined ? '' : ` ${verificationStep.target}`;
+              const valueSuffix = verificationStep.value === undefined ? '' : ` = ${verificationStep.value}`;
+              const conditionSuffix = verificationStep.condition === undefined ? '' : ` [${verificationStep.condition}]`;
+              const typeSuffix = verificationStep.type === undefined ? '' : ` (${verificationStep.type})`;
+              parts.push(
+                contentTextContract.parse(
+                  `      - ${verificationStep.action}${targetSuffix}${valueSuffix}${conditionSuffix}${typeSuffix}`,
+                ),
+              );
+            }
+          }
           for (const outcome of observable.outcomes) {
             parts.push(contentTextContract.parse(`    - ${outcome.type}: ${outcome.description}`));
           }
@@ -88,6 +102,20 @@ export const workUnitToArgumentsTransformer = ({
           siegeParts.push(
             contentTextContract.parse(`  - [${observable.contextId}] ${observable.trigger}`),
           );
+          if (observable.verification.length > 0) {
+            siegeParts.push(contentTextContract.parse('    Verification:'));
+            for (const verificationStep of observable.verification) {
+              const targetSuffix = verificationStep.target === undefined ? '' : ` ${verificationStep.target}`;
+              const valueSuffix = verificationStep.value === undefined ? '' : ` = ${verificationStep.value}`;
+              const conditionSuffix = verificationStep.condition === undefined ? '' : ` [${verificationStep.condition}]`;
+              const typeSuffix = verificationStep.type === undefined ? '' : ` (${verificationStep.type})`;
+              siegeParts.push(
+                contentTextContract.parse(
+                  `      - ${verificationStep.action}${targetSuffix}${valueSuffix}${conditionSuffix}${typeSuffix}`,
+                ),
+              );
+            }
+          }
           for (const outcome of observable.outcomes) {
             siegeParts.push(
               contentTextContract.parse(`    - ${outcome.type}: ${outcome.description}`),

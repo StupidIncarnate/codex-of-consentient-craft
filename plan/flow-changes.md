@@ -821,7 +821,7 @@ Update `transformers/quest-verify/quest-verify-transformer.ts` to include new gu
 
 ---
 
-### Phase 3: Prompt + Agent Pipeline Updates
+### Phase 3: Prompt + Agent Pipeline Updates [x] DONE
 
 | #  | File                                                                             | Change                                                                                                                                                                                                                       |
 |----|----------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -835,7 +835,7 @@ Update `transformers/quest-verify/quest-verify-transformer.ts` to include new gu
 
 ---
 
-### Phase 4: Exhaustive Switch Fixups
+### Phase 4: Exhaustive Switch Fixups [x] DONE
 
 Adding `'created'`, `'requirements_approved'`, `'approved'` to `questStatusContract` and `'flows'` to
 `questSectionContract` may cause TypeScript errors in exhaustive switches.

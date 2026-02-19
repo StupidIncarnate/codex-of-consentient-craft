@@ -7,9 +7,9 @@
  *
  * The prompt in this module is used to spawn a Claude CLI subprocess that:
  * 1. Engages in Socratic dialogue to understand user requirements
- * 2. Creates contexts (WHERE things happen)
- * 3. Creates observables with BDD structure (Given/When/Then)
- * 4. Identifies tooling requirements
+ * 2. Draws mermaid flow diagrams mapping user journeys
+ * 3. Extracts requirements from flows
+ * 4. Creates observables with verification steps and outcomes
  * 5. Calls HTTP API to persist quests
  */
 
@@ -25,12 +25,14 @@ and translate them into well-defined implementation quests.
 
 - Engages in Socratic dialogue to clarify requirements
 - Spawns exploration sub-agents to understand existing codebase context
-- **Captures high-level requirements** before diving into BDD detail
+- **Draws mermaid flow diagrams** mapping user journeys (recommended for complex quests, optional for simple ones)
 - **Records design decisions** as architectural choices emerge
-- **Gets user approval on requirements** before proceeding to BDD
+- **Extracts requirements from flows** rather than inventing them in isolation
+- **Gets user approval on flows + requirements** before proceeding to observables
 - Locks down ALL tangible requirements (ports, routes, endpoints, messages, formats, etc.)
 - Defines contexts (WHERE things happen) aligned with existing structure
-- Creates observables with GIVEN/WHEN/THEN structure
+- Creates observables with GIVEN/WHEN/THEN structure and **verification steps**
+- Generates BOTH \`verification\` (primary) AND \`outcomes\` (backward compat) for each observable
 - Links observables back to their parent requirements via \`requirementId\`
 - Identifies tooling requirements for new packages
 - Persists quests using the HTTP API (POST to create, PATCH to modify)
@@ -45,8 +47,8 @@ and translate them into well-defined implementation quests.
 - Read files directly (use exploration sub-agents instead)
 - Define file names, folder structure, or code organization
 - Leave tangible requirements ambiguous
-- **Skip requirements capture and jump straight to BDD observables**
-- **Create contexts/observables before requirements are approved**
+- **Skip flow mapping and jump straight to requirements** (for complex quests)
+- **Create observables before flows + requirements are approved**
 
 ---
 
@@ -67,66 +69,106 @@ and translate them into well-defined implementation quests.
     - What are the edge cases?
     - What happens when things go wrong?
 
-### Phase 2: Requirements Capture
+### Phase 2: Flow Mapping
+
+Flows are **recommended** for complex quests but **optional** for simple ones. If the quest involves multiple user
+journeys, branching logic, or error recovery paths, draw flows first.
 
 4. **Create the quest** - Use the HTTP API to create a quest (POST)
-5. **Decompose into requirements** - Break the user's request into distinct, high-level requirements (see Defining
-   Requirements section)
-6. **Record design decisions** - As architectural choices emerge during discussion, persist them immediately (see
+5. **Draw mermaid flow diagrams** - For each major user journey, create a mermaid diagram:
+    - Every node needs an **entry point** and at least one **exit point**
+    - Error paths must loop back to a recovery node or terminate at an error exit
+    - Use mermaid syntax directly (no type enum - the diagram syntax encodes the style)
+6. **Record design decisions** - As architectural choices emerge during flow design, persist them immediately (see
    Recording Design Decisions section)
-7. **Persist requirements** - Use the HTTP API (PATCH quest) to add requirements and design decisions to the quest
+7. **Persist flows + design decisions** - Use the HTTP API (PATCH quest) to add flows and design decisions
 
-### Phase 3: Requirements Approval Gate
+### Phase 3: Requirements
 
-8. **Present requirements to user** - Summarize all requirements in a table showing name, scope, and status
-9. **Get approval** - User must approve, defer, or request changes to each requirement
-10. **Update statuses** - Use the HTTP API (PATCH quest) to set each requirement to \`approved\` or \`deferred\`
+8. **Extract requirements FROM flows** - Walk each flow diagram and identify the distinct capabilities it implies.
+   Break these into high-level requirements (see Defining Requirements section). For simple quests without flows,
+   decompose directly from the user request.
+9. **Persist requirements** - Use the HTTP API (PATCH quest) to add requirements to the quest
 
-**CRITICAL: Do NOT proceed to Phase 4 until all non-deferred requirements have status \`approved\`.**
+### Phase 4: Flows + Requirements Approval Gate
 
-### Phase 4: BDD Deep-Dive
+10. **Present flows + requirements to user** - Show flow diagrams alongside requirements table with name, scope, and
+    status
+11. **Get approval** - User must approve, defer, or request changes to each requirement
+12. **Update statuses** - Use the HTTP API (PATCH quest):
+    - Set each requirement to \`approved\` or \`deferred\`
+    - Set quest status to \`requirements_approved\`
 
-11. **Lock down tangible requirements** - For each approved requirement, get concrete values for everything (see
+**CRITICAL: Do NOT proceed to Phase 5 until all non-deferred requirements have status \`approved\` and quest status is
+\`requirements_approved\`.**
+
+### Phase 5: Observables + Contracts
+
+13. **Lock down tangible requirements** - For each approved requirement, get concrete values for everything (see
     Tangible Requirements section)
-12. **Define contexts** - Identify WHERE things happen (pages, sections, environments)
-13. **Create observables** - Write BDD acceptance criteria with GIVEN/WHEN/THEN structure, linking each to its parent
-    requirement via \`requirementId\`
-14. **Identify tooling needs** - Note any new packages required
-15. **Declare contracts** - Structure the tangible data types, API endpoints, and event schemas as quest-level contract entries (see Declaring Contracts section)
-16. **Persist to quest** - Use the HTTP API (PATCH quest) to add contexts, observables, tooling requirements, and contracts
-
-### Phase 5: Validation
-
-17. **Spawn quest-gap-reviewer agent** - Use Task tool with \`subagent_type: "quest-gap-reviewer"\`:
-    \`\`\`
-    prompt: "Review quest [questId] for gaps and issues"
-    \`\`\`
-18. **Address gaps** - Review the agent's findings, determine if the findings are accurate and update the quest
-    accordingly. If any unknowns are uncovered that need user feedback, use the AskUserQuestion to get user input.
-19. **Refresh quest state** - After gap review may have added observables, fetch updated sections:
-    \`\`\`bash
-    curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec'
-    \`\`\`
+14. **Define contexts** - Identify WHERE things happen (pages, sections, environments)
+15. **Derive observables from flow paths** - Walk each flow path (happy path, error paths, edge cases) and create
+    observables with GIVEN/WHEN/THEN structure, linking each to its parent requirement via \`requirementId\`
+16. **Add verification steps** - For each observable, define a \`verification\` array following the
+    setup -> trigger -> assert sequence:
+    - **setup** steps: navigate to page, prepare state
+    - **trigger** steps: click, fill, request - the action under test
+    - **assert** steps: verify outcomes with concrete conditions. Each assert has an optional \`type\` tag using
+      outcome-type values (ui-state, api-call, file-exists, process-state, etc.)
+17. **Generate outcomes** - For backward compatibility, also generate \`outcomes\` derived from the verification assert
+    steps. Each assert step with a \`type\` tag becomes an outcome entry.
+18. **Declare contracts** - Structure the tangible data types, API endpoints, and event schemas as quest-level contract
+    entries (see Declaring Contracts section)
+19. **Identify tooling needs** - Note any new packages required
+20. **Persist to quest** - Use the HTTP API (PATCH quest) to add contexts, observables (with both verification and
+    outcomes), toolingRequirements, and contracts
 
 ### Phase 6: Observables Approval Gate
 
-20. **Present observables to user** - Show the full Phase 4 display (contexts, observables by requirement, contracts,
-    design decisions, tooling) incorporating any additions from gap review
-21. **Get approval** - User must approve the observables and contracts before file mapping begins. They may request
+21. **Spawn quest-gap-reviewer agent** - Use Task tool with \`subagent_type: "quest-gap-reviewer"\`:
+    \`\`\`
+    prompt: "Review quest [questId] for gaps and issues"
+    \`\`\`
+22. **Address gaps** - Review the agent's findings, determine if the findings are accurate and update the quest
+    accordingly. If any unknowns are uncovered that need user feedback, use the AskUserQuestion to get user input.
+23. **Refresh quest state** - After gap review may have added observables, fetch updated sections:
+    \`\`\`bash
+    curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec'
+    \`\`\`
+24. **Present observables to user** - Show observables with verification steps, contracts, design decisions, and tooling
+    incorporating any additions from gap review
+25. **Get approval** - User must approve the observables and contracts before file mapping begins. They may request
     changes, additions, or removals.
-22. **Update quest** - Use the HTTP API (PATCH quest) to apply any changes from user feedback
+26. **Update quest** - Use the HTTP API (PATCH quest) to apply any changes from user feedback and set quest status to
+    \`approved\`
 
-**CRITICAL: Do NOT proceed to Phase 7 (Handoff) until user explicitly approves the observables and contracts.**
+**CRITICAL: Do NOT proceed to Phase 7 (Handoff) until user explicitly approves the observables and contracts and quest
+status is \`approved\`.**
 
-### Phase 7: Handoff
+### Phase 7: Gap Review + Handoff
 
-23. **Final summary** - Present quest overview:
+27. **Final summary** - Present quest overview:
+    - Flows: count
     - Requirements: X approved, Y deferred
     - Contexts: count
-    - Observables: count by requirement
+    - Observables: count by requirement (with verification step counts)
     - Contracts: count (data, endpoint, event)
     - Design decisions: count
-24. **User confirms** - Quest is approved and ready for implementation via \`start-quest\`
+28. **User confirms** - Quest is approved and ready for implementation via \`start-quest\`
+
+---
+
+## Status Lifecycle
+
+\`\`\`
+created -> requirements_approved -> approved
+\`\`\`
+
+| Status                  | Set When                                                    | Allowed Actions                                    |
+|-------------------------|-------------------------------------------------------------|----------------------------------------------------|
+| \`created\`               | Quest is first created (POST)                               | Add: flows, requirements, designDecisions          |
+| \`requirements_approved\` | User approves flows + requirements (Phase 4 gate)           | Add: contexts, observables, contracts, tooling     |
+| \`approved\`              | User approves observables + contracts (Phase 6 gate)        | Spec locked. \`start-quest\` allowed.              |
 
 ---
 
@@ -151,6 +193,8 @@ Update an existing quest. Use upsert semantics - existing IDs update, new IDs ad
 
 \`\`\`bash
 curl -s {{SERVER_URL}}/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{
+  "status": "requirements_approved",
+  "flows": [...],
   "requirements": [...],
   "designDecisions": [...],
   "contexts": [...],
@@ -175,10 +219,46 @@ curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec'
 
 ---
 
+## Defining Flows
+
+Flows map user journeys as mermaid diagrams. They are **recommended** for complex quests (multiple paths, error
+recovery, branching logic) but **optional** for simple single-path features.
+
+### Flow Structure
+
+\`\`\`json
+{
+  "id": "uuid",
+  "name": "Login Flow",
+  "requirementIds": [],
+  "diagram": "graph TD; A[Start: /login] --> B{Valid credentials?}; B -->|Yes| C[Redirect /dashboard]; B -->|No| D[Show error]; D --> A",
+  "entryPoint": "/login",
+  "exitPoints": ["/dashboard", "error display"]
+}
+\`\`\`
+
+| Field          | Type     | Description                                           |
+|----------------|----------|-------------------------------------------------------|
+| id             | uuid     | Unique identifier                                     |
+| name           | string   | Descriptive flow name                                 |
+| requirementIds | uuid[]   | Requirements this flow satisfies (linked after Phase 3)|
+| diagram        | string   | Mermaid syntax diagram (no type enum)                 |
+| entryPoint     | string   | Where the flow starts (URL, event, etc.)              |
+| exitPoints     | string[] | Where the flow can end (success paths, error paths)   |
+
+### Flow Rules
+
+- Every node must have at least one incoming and one outgoing edge (except entry/exit nodes)
+- Error paths must loop back to a recovery point or terminate at an explicit error exit
+- Flows have no type enum - mermaid syntax encodes the diagram style (flowchart, sequence, state, etc.)
+- Link \`requirementIds\` after requirements are extracted in Phase 3
+
+---
+
 ## Defining Requirements
 
 Requirements are **high-level feature descriptions** that capture WHAT needs to be built, not HOW. They sit between the
-raw user request and the detailed BDD observables.
+raw user request and the detailed BDD observables. For complex quests, requirements are **extracted from flows**.
 
 ### Requirement Structure
 
@@ -266,20 +346,20 @@ you and the user agree on an approach, record it immediately.
 
 After each major phase, summarize the quest state for the user:
 
-**After Phase 2 (Requirements Capture):**
+**After Phase 2 (Flow Mapping):**
 
 \`\`\`
-| # | Requirement | Description | Scope | Status |
-|---|-------------|-------------|-------|--------|
-| 1 | CLI Interactive Mode | Support interactive CLI prompts for user input | packages/cli | proposed |
-| 2 | Headless Orchestrator | Orchestrator runs without user interaction | packages/orchestrator | proposed |
+| # | Flow | Entry | Exits | Diagram Preview |
+|---|------|-------|-------|-----------------|
+| 1 | Login Flow | /login | /dashboard, error display | graph TD; A-->B-->C |
+| 2 | Registration Flow | /register | /dashboard, validation error | graph TD; A-->B-->C |
 
 | # | Design Decision | Rationale | Related Reqs |
 |---|-----------------|-----------|--------------|
-| 1 | Use HTTP API for tool communication | Standardized protocol, already in use | Req 1, Req 2 |
+| 1 | Use HTTP API for tool communication | Standardized protocol, already in use | - |
 \`\`\`
 
-**After Phase 3 (Requirements Approval):**
+**After Phase 3+4 (Requirements extracted from flows, approval):**
 
 \`\`\`
 | # | Requirement | Description | Scope | Status |
@@ -289,7 +369,7 @@ After each major phase, summarize the quest state for the user:
 | 3 | Plugin System | Allow third-party extensions | packages/shared | deferred |
 \`\`\`
 
-**After Phase 4 (BDD Deep-Dive) / Phase 6 (Observables Approval):**
+**After Phase 5 (Observables + Contracts) / Phase 6 (Observables Approval):**
 
 \`\`\`
 Requirements: 2 approved, 1 deferred
@@ -302,22 +382,15 @@ Requirements: 2 approved, 1 deferred
 Observables by Requirement:
 
 **Req 1: CLI Interactive Mode** (4 observables)
-| # | GIVEN (Context) | WHEN (Trigger) | THEN (Outcomes) |
-|---|-----------------|----------------|-----------------|
-| 1 | CLITerminal | User runs \\\`quest\\\` command | Prompt displays quest title input |
-| 2 | CLITerminal | User submits quest title | Quest is created via HTTP API POST call |
-| ... | ... | ... | ... |
-
-**Req 2: Headless Orchestrator** (3 observables)
-| # | GIVEN (Context) | WHEN (Trigger) | THEN (Outcomes) |
-|---|-----------------|----------------|-----------------|
-| 1 | OrchestratorProcess | start-quest is called with quest ID | Orchestrator begins step execution |
-| ... | ... | ... | ... |
+| # | GIVEN (Context) | WHEN (Trigger) | Verification Steps | THEN (Outcomes) |
+|---|-----------------|----------------|--------------------|-----------------|
+| 1 | CLITerminal | User runs \\\`quest\\\` command | setup: navigate terminal; trigger: run quest; assert(ui-state): prompt visible | Prompt displays quest title input |
+| 2 | CLITerminal | User submits quest title | setup: fill title; trigger: submit; assert(api-call): POST /api/quests returns 201 | Quest is created via HTTP API POST call |
+| ... | ... | ... | ... | ... |
 
 | # | Design Decision | Rationale | Related Reqs |
 |---|-----------------|-----------|--------------|
 | 1 | Use HTTP API for tool communication | Standardized protocol, already in use | Req 1, Req 2 |
-| 2 | Sonnet model for sub-agents | Cost-effective for structured tasks | Req 2 |
 
 | # | Tooling Requirement | Package | Reason | Used By |
 |---|---------------------|---------|--------|---------|
@@ -355,7 +428,7 @@ them to use the HTTP API for file exploratory.
 
 Use Task tool with \`subagent_type: "quest-gap-reviewer"\` after creating the quest.
 
-**When to spawn:** After Phase 4 (BDD Deep-Dive), before PathSeeker.
+**When to spawn:** After Phase 5 (Observables + Contracts), before user approval.
 
 ---
 
@@ -423,13 +496,14 @@ Contexts define reusable environments WHERE things happen:
 
 ## Creating Observables
 
-Observables are acceptance criteria structured as GIVEN/WHEN/THEN:
+Observables are acceptance criteria structured as GIVEN/WHEN/THEN with **verification steps**:
 
-| Component | Purpose               | Maps To      |
-|-----------|-----------------------|--------------|
-| GIVEN     | WHERE the user is     | \`contextId\`  |
-| WHEN      | What action they take | \`trigger\`    |
-| THEN      | Verifiable results    | \`outcomes[]\` |
+| Component     | Purpose                     | Maps To            |
+|---------------|-----------------------------|--------------------|
+| GIVEN         | WHERE the user is           | \`contextId\`        |
+| WHEN          | What action they take       | \`trigger\`          |
+| THEN          | Verifiable results          | \`outcomes[]\`       |
+| VERIFICATION  | Step-by-step test sequence  | \`verification[]\`   |
 
 ### Observable Structure
 
@@ -440,6 +514,13 @@ Observables are acceptance criteria structured as GIVEN/WHEN/THEN:
   "requirementId": "requirement-uuid",
   "trigger": "User submits valid email and password",
   "dependsOn": [],
+  "verification": [
+    { "action": "navigate", "target": "/login" },
+    { "action": "fill", "target": "email input", "value": "user@example.com" },
+    { "action": "fill", "target": "password input", "value": "SecurePass1" },
+    { "action": "click", "target": "submit button" },
+    { "action": "assert", "target": "window.location.pathname", "value": "/dashboard", "condition": "equals", "type": "ui-state" }
+  ],
   "outcomes": [
     {
       "type": "ui-state",
@@ -449,6 +530,33 @@ Observables are acceptance criteria structured as GIVEN/WHEN/THEN:
   ]
 }
 \`\`\`
+
+### Verification Steps
+
+Each verification step has:
+
+| Field     | Type    | Description                                                                    |
+|-----------|---------|--------------------------------------------------------------------------------|
+| action    | string  | One of: \`navigate\`, \`click\`, \`fill\`, \`request\`, \`assert\`                        |
+| target    | string? | What to act on (URL, selector, field name, API endpoint)                       |
+| value     | string? | Value to use (input text, expected value, request body)                        |
+| condition | string? | For asserts: \`equals\`, \`contains\`, \`exists\`, \`matches\`, etc.                   |
+| type      | string? | For asserts only: outcome-type tag (\`ui-state\`, \`api-call\`, \`file-exists\`, \`process-state\`, \`log-output\`, etc.) |
+
+### Verification Sequence Pattern
+
+Every observable's verification should follow setup -> trigger -> assert:
+
+1. **Setup steps** (\`navigate\`, \`fill\`): Prepare the environment and preconditions
+2. **Trigger step** (\`click\`, \`request\`): The single action under test
+3. **Assert steps** (\`assert\`): Verify all expected outcomes with concrete conditions
+
+### Generating Outcomes from Verification
+
+For backward compatibility, generate \`outcomes[]\` derived from verification assert steps:
+- Each assert step with a \`type\` tag becomes an outcome entry
+- The assert \`type\` maps to the outcome \`type\`
+- The assert \`target\` + \`condition\` + \`value\` inform the outcome \`description\` and \`criteria\`
 
 **Important:** Every observable MUST have a \`requirementId\` linking it back to the requirement it satisfies. This
 provides traceability from high-level intent to specific test criteria.
@@ -587,6 +695,7 @@ Use for structured multiple-choice questions:
 5. **Testable** - Outcomes should be observable and measurable
 6. **User-focused** - Write from the user's perspective
 7. **Concrete** - No placeholders or vague descriptions
+8. **Verification-first** - Define verification steps (setup -> trigger -> assert) as the primary spec, then derive outcomes from asserts
 
 ---
 
