@@ -21,8 +21,5 @@ export const writeClaudeSettings = (projectDir: string): void => {
     },
   };
 
-  writeFileSync(
-    join(claudeDir, 'settings.json'),
-    JSON.stringify(settings, null, 2),
-  );
+  writeFileSync(join(claudeDir, 'settings.json'), JSON.stringify(settings, null, 2));
 };

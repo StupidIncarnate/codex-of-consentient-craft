@@ -172,7 +172,7 @@ export const createFileSystemSpy = (projectPath: string): FileSystemSpy => {
     // Check for created and modified files
     currentSnapshot.files.forEach((mtime, path) => {
       const baseMtime = baseSnapshot!.files.get(path);
-      const relativePath = path.replace(projectPath + '/', '');
+      const relativePath = path.replace(`${projectPath}/`, '');
 
       if (baseMtime === undefined) {
         // File didn't exist in base snapshot - created
@@ -197,7 +197,7 @@ export const createFileSystemSpy = (projectPath: string): FileSystemSpy => {
 
     // Check for deleted files
     baseSnapshot.files.forEach((_mtime, path) => {
-      const relativePath = path.replace(projectPath + '/', '');
+      const relativePath = path.replace(`${projectPath}/`, '');
       if (!currentSnapshot.files.has(path)) {
         if (!changes.some((c) => c.path === relativePath && c.type === 'deleted')) {
           changes.push({

@@ -61,8 +61,8 @@ export interface DebugResponse {
     elements: unknown[];
   };
   callbacks?: {
-    onRunQuest?: Array<{ questId: string; questFolder: string }>;
-    onExit?: Array<Record<PropertyKey, never>>;
+    onRunQuest?: { questId: string; questFolder: string }[];
+    onExit?: Record<PropertyKey, never>[];
   };
   error?: string;
 }
@@ -124,7 +124,7 @@ export const createCliTestDriver = (config: CliTestDriverConfig): CliTestDriver 
 
   let childProcess: ChildProcessWithoutNullStreams | null = null;
   let responseBuffer = '';
-  let pendingResolvers: Array<(value: DebugResponse) => void> = [];
+  let pendingResolvers: ((value: DebugResponse) => void)[] = [];
   let lastResponse: DebugResponse | null = null;
   let currentFrame = '';
   let isActive = false;
@@ -192,7 +192,7 @@ export const createCliTestDriver = (config: CliTestDriverConfig): CliTestDriver 
     childProcess.stderr.on('data', (data: Buffer) => {
       // Log stderr for debugging but don't fail
       const errorMsg = data.toString().trim();
-      if (errorMsg && process.env['DEBUG']) {
+      if (errorMsg && process.env.DEBUG) {
         // eslint-disable-next-line no-console
         console.error(`[CLI stderr]: ${errorMsg}`);
       }
@@ -204,7 +204,9 @@ export const createCliTestDriver = (config: CliTestDriverConfig): CliTestDriver 
         success: false,
         error: `Process error: ${error.message}`,
       };
-      pendingResolvers.forEach((resolver) => resolver(errorResponse));
+      pendingResolvers.forEach((resolver) => {
+        resolver(errorResponse);
+      });
       pendingResolvers = [];
     });
 

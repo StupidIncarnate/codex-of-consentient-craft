@@ -24,6 +24,7 @@ module.exports = [
       'dist/**',
       'coverage/**',
       'tests/**',
+      'packages/testing/e2e/**',
       '**/.test-tmp/**',
       'packages/*/dist/**',
       '@types/**',

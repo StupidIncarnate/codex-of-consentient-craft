@@ -9,9 +9,15 @@ import { checkRunTypecheckBrokerProxy } from './check-run-typecheck-broker.proxy
 
 describe('checkRunTypecheckBroker', () => {
   describe('passing typecheck', () => {
-    it('VALID: {tsc exits 0} => returns pass result with no errors', async () => {
+    it('VALID: {tsc exits 0 with listFiles output} => returns pass result with filesCount', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
-      proxy.setupPass();
+      const listFilesOutput = [
+        '/project/node_modules/typescript/lib/lib.es5.d.ts',
+        '/project/src/index.ts',
+        '/project/src/utils.ts',
+        '/project/src/types.ts',
+      ].join('\n');
+      proxy.setupPass({ stdout: listFilesOutput });
 
       const projectFolder = ProjectFolderStub();
 
@@ -26,16 +32,22 @@ describe('checkRunTypecheckBroker', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
-          rawOutput: RawOutputStub({ exitCode: 0 }),
+          filesCount: 3,
+          rawOutput: RawOutputStub({ stdout: listFilesOutput, exitCode: 0 }),
         }),
       );
     });
   });
 
   describe('failing typecheck', () => {
-    it('VALID: {tsc exits 1 with errors} => returns fail result with parsed errors', async () => {
+    it('VALID: {tsc exits 1 with errors and listFiles} => returns fail result with parsed errors and filesCount', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
-      const tscOutput = 'src/index.ts(10,5): error TS2345: Argument mismatch.';
+      const tscOutput = [
+        '/project/node_modules/typescript/lib/lib.es5.d.ts',
+        '/project/src/index.ts',
+        '/project/src/utils.ts',
+        'src/index.ts(10,5): error TS2345: Argument mismatch.',
+      ].join('\n');
       proxy.setupFail({ stdout: tscOutput });
 
       const projectFolder = ProjectFolderStub();
@@ -59,7 +71,59 @@ describe('checkRunTypecheckBroker', () => {
             }),
           ],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 1 }),
+          filesCount: 2,
+          rawOutput: RawOutputStub({ stdout: tscOutput, stderr: '', exitCode: 1 }),
+        }),
+      );
+    });
+  });
+
+  describe('crash handling', () => {
+    it('VALID: {tsc exits 1 but parser finds 0 errors} => status stays fail', async () => {
+      const proxy = checkRunTypecheckBrokerProxy();
+      const tscOutput = 'error TS5058: The specified path does not exist';
+      proxy.setupFail({ stdout: tscOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunTypecheckBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          filesCount: 0,
+          rawOutput: RawOutputStub({ stdout: tscOutput, stderr: '', exitCode: 1 }),
+        }),
+      );
+    });
+  });
+
+  describe('missing tsconfig.json', () => {
+    it('VALID: {no tsconfig.json in project folder} => returns skip result with reason', async () => {
+      const proxy = checkRunTypecheckBrokerProxy();
+      proxy.setupNoTsconfig();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunTypecheckBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          filesCount: 0,
+          rawOutput: RawOutputStub({ stdout: '', stderr: 'no tsconfig.json', exitCode: 0 }),
         }),
       );
     });
@@ -68,7 +132,10 @@ describe('checkRunTypecheckBroker', () => {
   describe('filtered by file list', () => {
     it('VALID: {tsc fails but errors not in file list} => returns pass after filtering', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
-      const tscOutput = 'src/other.ts(5,1): error TS2345: Type mismatch.';
+      const tscOutput = [
+        '/project/src/index.ts',
+        'src/other.ts(5,1): error TS2345: Type mismatch.',
+      ].join('\n');
       proxy.setupFail({ stdout: tscOutput });
 
       const projectFolder = ProjectFolderStub();
@@ -84,7 +151,8 @@ describe('checkRunTypecheckBroker', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 1 }),
+          filesCount: 1,
+          rawOutput: RawOutputStub({ stdout: tscOutput, stderr: '', exitCode: 1 }),
         }),
       );
     });

@@ -7,7 +7,7 @@
  */
 export const checkCommandsStatics = {
   lint: { command: 'npx', args: ['eslint', '--fix', '--format', 'json', '.'] },
-  typecheck: { command: 'npx', args: ['tsc', '--noEmit'] },
+  typecheck: { command: 'npx', args: ['tsc', '--noEmit', '--listFiles'] },
   test: {
     command: 'npx',
     args: ['jest', '--json', '--no-color', '--forceExit', '--detectOpenHandles'],

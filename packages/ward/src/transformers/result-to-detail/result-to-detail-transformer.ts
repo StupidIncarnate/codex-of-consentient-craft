@@ -29,9 +29,9 @@ export const resultToDetailTransformer = ({
       for (const error of project.errors) {
         if (String(error.filePath) === String(filePath)) {
           const rulePart = error.rule ? ` ${error.rule}` : '';
-          entries.push(
-            `  ${check.checkType}${rulePart} (line ${String(error.line)}, col ${String(error.column)})` as ErrorEntry['message'],
-          );
+          const locationPart =
+            error.line === 0 ? '' : ` (line ${String(error.line)}, col ${String(error.column)})`;
+          entries.push(`  ${check.checkType}${rulePart}${locationPart}` as ErrorEntry['message']);
           entries.push(`    ${error.message}` as ErrorEntry['message']);
         }
       }

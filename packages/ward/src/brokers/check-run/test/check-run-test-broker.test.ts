@@ -26,7 +26,11 @@ describe('checkRunTestBroker', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 0 }),
+          rawOutput: RawOutputStub({
+            stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+            stderr: '',
+            exitCode: 0,
+          }),
         }),
       );
     });
@@ -71,7 +75,7 @@ describe('checkRunTestBroker', () => {
               message: 'Expected true to be false',
             }),
           ],
-          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 1 }),
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 1 }),
         }),
       );
     });
@@ -95,7 +99,11 @@ describe('checkRunTestBroker', () => {
           status: 'fail',
           errors: [],
           testFailures: [],
-          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 1 }),
+          rawOutput: RawOutputStub({
+            stdout: 'not valid json \x1b[31m',
+            stderr: '',
+            exitCode: 1,
+          }),
         }),
       );
     });

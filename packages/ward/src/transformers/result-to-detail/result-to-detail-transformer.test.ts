@@ -219,6 +219,42 @@ describe('resultToDetailTransformer', () => {
     });
   });
 
+  describe('line zero errors', () => {
+    it('VALID: {wardResult: lint error with line=0} => omits location from output', () => {
+      const { filePath } = ErrorEntryStub({ filePath: 'src/broken.ts' });
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [
+                  ErrorEntryStub({
+                    filePath: 'src/broken.ts',
+                    line: 0,
+                    column: 0,
+                    message: 'Parsing error: Unexpected token',
+                    severity: 'error',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult, filePath });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: 'src/broken.ts\n  lint\n    Parsing error: Unexpected token',
+        }),
+      );
+    });
+  });
+
   describe('multiple errors in same file', () => {
     it('VALID: {wardResult: lint + test errors for same file} => shows all entries', () => {
       const { filePath } = ErrorEntryStub({ filePath: 'src/app.ts' });

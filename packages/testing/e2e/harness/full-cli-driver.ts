@@ -30,7 +30,12 @@ import { resolve, join } from 'path';
 import { EventEmitter } from 'events';
 import { existsSync, readdirSync } from 'fs';
 
-import { createScreenCapture, stripAnsiCodes, type ScreenCapture, type ScreenType } from './screen-capture';
+import {
+  createScreenCapture,
+  stripAnsiCodes,
+  type ScreenCapture,
+  type ScreenType,
+} from './screen-capture';
 
 /**
  * Configuration for the full CLI driver
@@ -57,7 +62,15 @@ export interface FullCliDriverConfig {
 /**
  * Key names that can be sent via pressKey
  */
-export type FullCliKeyName = 'enter' | 'escape' | 'up' | 'down' | 'backspace' | 'tab' | 'left' | 'right';
+export type FullCliKeyName =
+  | 'enter'
+  | 'escape'
+  | 'up'
+  | 'down'
+  | 'backspace'
+  | 'tab'
+  | 'left'
+  | 'right';
 
 /**
  * Wait configuration for waitFor operations
@@ -149,7 +162,7 @@ export const createFullCliDriver = (config: FullCliDriverConfig): FullCliDriver 
     pollInterval = 100,
     cols = 120,
     rows = 40,
-    debug = process.env['DEBUG_E2E'] === 'true',
+    debug = process.env.DEBUG_E2E === 'true',
     env = {},
   } = config;
 
@@ -159,7 +172,8 @@ export const createFullCliDriver = (config: FullCliDriverConfig): FullCliDriver 
   const emitter = new EventEmitter();
 
   // Path to the CLI entry point (can be overridden)
-  const cliPath = customCliPath ?? resolve(__dirname, '../../../packages/cli/src/startup/start-cli.ts');
+  const cliPath =
+    customCliPath ?? resolve(__dirname, '../../../packages/cli/src/startup/start-cli.ts');
 
   const log = (...args: unknown[]): void => {
     if (debug) {
@@ -451,7 +465,12 @@ export const createFullCliDriver = (config: FullCliDriverConfig): FullCliDriver 
         await new Promise((r) => setTimeout(r, interval));
       }
 
-      log('Timeout waiting for screen:', screenType, 'current:', detectScreenType(stripAnsiCodes(outputBuffer)));
+      log(
+        'Timeout waiting for screen:',
+        screenType,
+        'current:',
+        detectScreenType(stripAnsiCodes(outputBuffer)),
+      );
       return false;
     },
 
@@ -493,6 +512,6 @@ export const createE2ECliDriver = (
   createFullCliDriver({
     cwd,
     timeout: 120000,
-    debug: process.env['DEBUG_E2E'] === 'true',
+    debug: process.env.DEBUG_E2E === 'true',
     ...options,
   });

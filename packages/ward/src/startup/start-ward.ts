@@ -91,7 +91,9 @@ export const StartWard = async ({ args }: { args: string[] }): Promise<void> => 
   process.stderr.write('Available commands: run, list, detail, raw\n');
 };
 
-const isDirectExecution = process.argv[1]?.includes('start-ward') === true;
+const isDirectExecution =
+  process.argv[1]?.includes('start-ward') === true ||
+  process.argv[1]?.includes('dungeonmaster-ward') === true;
 
 if (isDirectExecution) {
   StartWard({ args: process.argv }).catch((error: unknown) => {

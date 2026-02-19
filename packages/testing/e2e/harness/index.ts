@@ -79,9 +79,7 @@ export {
 } from './full-cli-driver';
 
 // Test Helpers
-export {
-  writeClaudeSettings,
-} from './mcp-test-helpers';
+export { writeClaudeSettings } from './mcp-test-helpers';
 
 /**
  * Simple test project for E2E tests
@@ -166,8 +164,10 @@ export const given = {
     wait: import('./wait-strategies').WaitStrategies;
   } => {
     // Use synchronous imports since these are local modules
-    const { createCliTestDriver } = require('./cli-test-driver') as typeof import('./cli-test-driver');
-    const { createWaitStrategies } = require('./wait-strategies') as typeof import('./wait-strategies');
+    const { createCliTestDriver } =
+      require('./cli-test-driver') as typeof import('./cli-test-driver');
+    const { createWaitStrategies } =
+      require('./wait-strategies') as typeof import('./wait-strategies');
 
     const driver = createCliTestDriver({ mode: 'debug', ...config });
     const wait = createWaitStrategies(driver);
@@ -185,7 +185,8 @@ export const given = {
     spy: import('./file-system-spy').FileSystemSpy;
     cleanup: () => void;
   } => {
-    const { createFileSystemSpy } = require('./file-system-spy') as typeof import('./file-system-spy');
+    const { createFileSystemSpy } =
+      require('./file-system-spy') as typeof import('./file-system-spy');
 
     const testProject = createE2ETestProject(baseName);
     const spy = createFileSystemSpy(testProject.rootDir);
@@ -193,7 +194,9 @@ export const given = {
     return {
       testProject,
       spy,
-      cleanup: () => testProject.cleanup(),
+      cleanup: () => {
+        testProject.cleanup();
+      },
     };
   },
 
@@ -209,9 +212,12 @@ export const given = {
     spy: import('./file-system-spy').FileSystemSpy;
     cleanup: () => Promise<void>;
   } => {
-    const { createCliTestDriver } = require('./cli-test-driver') as typeof import('./cli-test-driver');
-    const { createWaitStrategies } = require('./wait-strategies') as typeof import('./wait-strategies');
-    const { createFileSystemSpy } = require('./file-system-spy') as typeof import('./file-system-spy');
+    const { createCliTestDriver } =
+      require('./cli-test-driver') as typeof import('./cli-test-driver');
+    const { createWaitStrategies } =
+      require('./wait-strategies') as typeof import('./wait-strategies');
+    const { createFileSystemSpy } =
+      require('./file-system-spy') as typeof import('./file-system-spy');
 
     const testProject = createE2ETestProject(baseName);
     const driver = createCliTestDriver({ mode: 'debug', cwd: testProject.rootDir });
@@ -234,10 +240,7 @@ export const then = {
   /**
    * Assert screen contains text
    */
-  screenContains: (
-    screen: import('./screen-capture').ScreenCapture,
-    text: string,
-  ): void => {
+  screenContains: (screen: import('./screen-capture').ScreenCapture, text: string): void => {
     if (!screen.contains(text)) {
       throw new Error(`Expected screen to contain "${text}"\n\nActual content:\n${screen.text}`);
     }
@@ -246,12 +249,11 @@ export const then = {
   /**
    * Assert screen does not contain text
    */
-  screenNotContains: (
-    screen: import('./screen-capture').ScreenCapture,
-    text: string,
-  ): void => {
+  screenNotContains: (screen: import('./screen-capture').ScreenCapture, text: string): void => {
     if (screen.contains(text)) {
-      throw new Error(`Expected screen to NOT contain "${text}"\n\nActual content:\n${screen.text}`);
+      throw new Error(
+        `Expected screen to NOT contain "${text}"\n\nActual content:\n${screen.text}`,
+      );
     }
   },
 
@@ -270,10 +272,7 @@ export const then = {
   /**
    * Assert quest was created with name pattern
    */
-  questWasCreated: (
-    spy: import('./file-system-spy').FileSystemSpy,
-    namePattern: string,
-  ): void => {
+  questWasCreated: (spy: import('./file-system-spy').FileSystemSpy, namePattern: string): void => {
     const quests = spy.findQuestsWithName(namePattern);
     if (quests.length === 0) {
       const allQuests = spy.getAllQuests();

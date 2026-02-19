@@ -5,7 +5,11 @@ test.describe('Guild Selection & Quest Loading', () => {
   test('click guild loads its quest list', async ({ page, request }) => {
     await cleanGuilds(request);
     const guild = await createGuild(request, { name: 'Guild A', path: '/tmp/guild-a' });
-    await createQuest(request, { guildId: guild.id as string, title: 'Quest Alpha', userRequest: 'Test quest' });
+    await createQuest(request, {
+      guildId: guild.id as string,
+      title: 'Quest Alpha',
+      userRequest: 'Test quest',
+    });
 
     await page.goto('/');
     await page.getByText('Guild A').click();
@@ -29,8 +33,16 @@ test.describe('Guild Selection & Quest Loading', () => {
     await cleanGuilds(request);
     const guildA = await createGuild(request, { name: 'Guild A', path: '/tmp/guild-a' });
     const guildB = await createGuild(request, { name: 'Guild B', path: '/tmp/guild-b' });
-    await createQuest(request, { guildId: guildA.id as string, title: 'Quest Alpha', userRequest: 'Test' });
-    await createQuest(request, { guildId: guildB.id as string, title: 'Quest Beta', userRequest: 'Test' });
+    await createQuest(request, {
+      guildId: guildA.id as string,
+      title: 'Quest Alpha',
+      userRequest: 'Test',
+    });
+    await createQuest(request, {
+      guildId: guildB.id as string,
+      title: 'Quest Beta',
+      userRequest: 'Test',
+    });
 
     await page.goto('/');
     await page.getByText('Guild A').click();

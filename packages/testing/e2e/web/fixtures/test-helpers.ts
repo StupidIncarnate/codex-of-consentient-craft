@@ -1,4 +1,4 @@
-import { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '@playwright/test';
 
 export { queueClaudeResponse, clearClaudeQueue } from '../harness/claude-mock/queue-helpers';
 export {
@@ -19,7 +19,7 @@ export const cleanGuilds = async (request: APIRequestContext): Promise<void> => 
 
 export const createGuild = async (
   request: APIRequestContext,
-  { name, path }: { name: string; path: string }
+  { name, path }: { name: string; path: string },
 ): Promise<Record<string, unknown>> => {
   const response = await request.post('/api/guilds', {
     data: { name, path },
@@ -29,7 +29,7 @@ export const createGuild = async (
 
 export const createQuest = async (
   request: APIRequestContext,
-  { guildId, title, userRequest }: { guildId: string; title: string; userRequest: string }
+  { guildId, title, userRequest }: { guildId: string; title: string; userRequest: string },
 ): Promise<{ questId: string; success: boolean }> => {
   const response = await request.post('/api/quests', {
     data: { guildId, title, userRequest },

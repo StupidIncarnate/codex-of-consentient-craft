@@ -68,7 +68,7 @@ export const MultiTurnResponseStubs = ({
   messages,
 }: {
   sessionId?: string;
-  messages: Array<{ text: string }>;
+  messages: { text: string }[];
 }): ClaudeResponse[] =>
   messages.map((msg, index) => {
     if (index === 0) {

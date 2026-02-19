@@ -220,23 +220,31 @@ export const expectScreen = (
 } => ({
   toContain: (text: string): void => {
     if (!screen.contains(text)) {
-      throw new Error(`Expected screen to contain "${text}" but it did not.\nScreen content:\n${screen.text}`);
+      throw new Error(
+        `Expected screen to contain "${text}" but it did not.\nScreen content:\n${screen.text}`,
+      );
     }
   },
   toNotContain: (text: string): void => {
     if (screen.contains(text)) {
-      throw new Error(`Expected screen to NOT contain "${text}" but it did.\nScreen content:\n${screen.text}`);
+      throw new Error(
+        `Expected screen to NOT contain "${text}" but it did.\nScreen content:\n${screen.text}`,
+      );
     }
   },
   toMatch: (pattern: RegExp): void => {
     if (!screen.matches(pattern)) {
-      throw new Error(`Expected screen to match ${String(pattern)} but it did not.\nScreen content:\n${screen.text}`);
+      throw new Error(
+        `Expected screen to match ${String(pattern)} but it did not.\nScreen content:\n${screen.text}`,
+      );
     }
   },
   toBeScreen: (screenType: ScreenType): void => {
     const detected = screen.getScreenType();
     if (detected !== screenType) {
-      throw new Error(`Expected screen type "${screenType}" but detected "${detected}".\nScreen content:\n${screen.text}`);
+      throw new Error(
+        `Expected screen type "${screenType}" but detected "${detected}".\nScreen content:\n${screen.text}`,
+      );
     }
   },
 });
