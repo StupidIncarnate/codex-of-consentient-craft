@@ -7,6 +7,12 @@
  */
 import { z } from 'zod';
 
-export const questStageContract = z.enum(['spec', 'spec-decisions', 'spec-bdd', 'spec-flows', 'implementation']);
+export const questStageContract = z.enum([
+  'spec',
+  'spec-decisions',
+  'spec-bdd',
+  'spec-flows',
+  'implementation',
+]);
 
 export type QuestStage = z.infer<typeof questStageContract>;

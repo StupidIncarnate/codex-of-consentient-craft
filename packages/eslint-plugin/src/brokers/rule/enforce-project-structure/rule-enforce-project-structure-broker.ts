@@ -103,8 +103,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
               folderConfig,
               isLayerFile,
             })
-          )
+          ) {
             return;
+          }
 
           // LEVEL 2: Folder Depth + Kebab-Case folder names
           if (
@@ -115,8 +116,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
               firstFolder,
               folderConfig,
             })
-          )
+          ) {
             return;
+          }
 
           // LEVEL 3: Filename suffix, kebab-case, domain prefix match
           if (
@@ -128,8 +130,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
               folderConfig,
               isLayerFile,
             })
-          )
+          ) {
             return;
+          }
 
           // LEVEL 4a: Collect exports (walks AST, checks forbidden patterns)
           const collectedExports = collectExportsLayerBroker({
@@ -138,7 +141,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
             filename,
             firstFolder,
           });
-          if (!collectedExports) return;
+          if (!collectedExports) {
+            return;
+          }
 
           // LEVEL 4b: Validate export count, suffix, case, name match
           validateExportLayerBroker({

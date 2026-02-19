@@ -26,7 +26,7 @@ const countDirectChildren = ({ pid }: { pid: number }): number => {
   }
 };
 
-const sleep = ({ ms }: { ms: number }): Promise<void> =>
+const sleep = async ({ ms }: { ms: number }): Promise<void> =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
@@ -133,6 +133,7 @@ describe('start-ward e2e', () => {
 
       // 300MB ceiling in KB
       const MAX_RSS_KB = 307_200;
+
       expect(maxRssKb).toBeLessThan(MAX_RSS_KB);
     }, 60_000);
   });

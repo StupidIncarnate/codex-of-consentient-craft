@@ -27,7 +27,5 @@ export const questHasValidFlowRefsGuard = ({
 
   const requirementIds = new Set(requirements.map((req) => req.id));
 
-  return flows.every((flow) =>
-    flow.requirementIds.every((reqId) => requirementIds.has(reqId)),
-  );
+  return flows.every((flow) => flow.requirementIds.every((reqId) => requirementIds.has(reqId)));
 };

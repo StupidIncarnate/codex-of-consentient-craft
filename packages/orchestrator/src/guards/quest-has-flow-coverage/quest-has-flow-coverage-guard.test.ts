@@ -1,8 +1,4 @@
-import {
-  FlowStub,
-  RequirementStub,
-  RequirementIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowStub, RequirementStub, RequirementIdStub } from '@dungeonmaster/shared/contracts';
 
 import { questHasFlowCoverageGuard } from './quest-has-flow-coverage-guard';
 
@@ -42,7 +38,11 @@ describe('questHasFlowCoverageGuard', () => {
     it('VALID: {no approved requirements} => returns true', () => {
       const requirements = [
         RequirementStub({ status: 'proposed' }),
-        RequirementStub({ id: 'a47ac10b-58cc-4372-a567-0e02b2c3d479', name: 'Other', status: 'deferred' }),
+        RequirementStub({
+          id: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'Other',
+          status: 'deferred',
+        }),
       ];
       const flows: ReturnType<typeof FlowStub>[] = [];
 

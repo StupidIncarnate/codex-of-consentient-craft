@@ -6,7 +6,7 @@
  * // Returns: {command: 'npx', args: ['eslint', '--format', 'json', '.']}
  */
 export const checkCommandsStatics = {
-  lint: { command: 'npx', args: ['eslint', '--format', 'json', '.'] },
+  lint: { command: 'npx', args: ['eslint', '--fix', '--format', 'json', '.'] },
   typecheck: { command: 'npx', args: ['tsc', '--noEmit'] },
   test: { command: 'npx', args: ['jest', '--json', '--no-color'] },
   e2e: { command: 'npx', args: ['playwright', 'test', '--reporter', 'json'] },

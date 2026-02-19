@@ -455,7 +455,9 @@ describe('StartServer', () => {
       });
 
       expect(response.status).toBe(200);
+
       const body: unknown = await response.json();
+
       expect(Reflect.get(body as object, 'chatProcessId')).toBeDefined();
 
       chat.emitLine(
@@ -477,6 +479,7 @@ describe('StartServer', () => {
       expect(chatOutputs).toHaveLength(4);
 
       const lines = chatOutputs.map((m) => (m.payload as Record<string, unknown>).line as string);
+
       expect(lines.some((l) => l.includes('tool_use'))).toBe(true);
       expect(lines.some((l) => l.includes('tool_result'))).toBe(true);
     });
@@ -503,6 +506,7 @@ describe('StartServer', () => {
       expect(chatOutputs).toHaveLength(2);
 
       const lines = chatOutputs.map((m) => (m.payload as Record<string, unknown>).line as string);
+
       expect(lines[0]).toBe('not valid json');
       expect(lines[1]).toBe('{"type":"assistant","message":"real line"}');
     });
@@ -574,7 +578,9 @@ describe('StartServer', () => {
       });
 
       expect(response.status).toBe(400);
+
       const body: unknown = await response.json();
+
       expect(toPlain(body)).toStrictEqual(toPlain({ error: 'message is required' }));
     });
   });
@@ -601,7 +607,9 @@ describe('StartServer', () => {
       });
 
       expect(response.status).toBe(200);
+
       const body: unknown = await response.json();
+
       expect(Reflect.get(body as object, 'chatProcessId')).toBeDefined();
 
       chat.emitLine(
@@ -623,6 +631,7 @@ describe('StartServer', () => {
       expect(chatOutputs).toHaveLength(4);
 
       const lines = chatOutputs.map((m) => (m.payload as Record<string, unknown>).line as string);
+
       expect(lines.some((l) => l.includes('tool_use'))).toBe(true);
       expect(lines.some((l) => l.includes('tool_result'))).toBe(true);
     });
@@ -671,7 +680,9 @@ describe('StartServer', () => {
       });
 
       expect(response.status).toBe(400);
+
       const body: unknown = await response.json();
+
       expect(toPlain(body)).toStrictEqual(toPlain({ error: 'message is required' }));
     });
   });
@@ -738,6 +749,7 @@ describe('StartServer', () => {
       expect(body).toHaveLength(3);
 
       const timestamps = body.map((e) => Reflect.get(e as object, 'timestamp'));
+
       expect(timestamps).toStrictEqual([
         '2024-01-01T00:00:01.000Z',
         '2024-01-01T00:00:02.000Z',
@@ -773,6 +785,7 @@ describe('StartServer', () => {
       expect(body).toHaveLength(3);
 
       const timestamps = body.map((e) => Reflect.get(e as object, 'timestamp'));
+
       expect(timestamps).toStrictEqual([
         '2024-01-01T00:00:01.000Z',
         '2024-01-01T00:00:02.000Z',
@@ -803,6 +816,7 @@ describe('StartServer', () => {
       expect(body).toHaveLength(2);
 
       const types = body.map((e) => Reflect.get(e as object, 'type'));
+
       expect(types).toStrictEqual(['user', 'assistant']);
     });
 
@@ -886,6 +900,7 @@ describe('StartServer', () => {
       expect(body).toHaveLength(2);
 
       const types = body.map((e) => Reflect.get(e as object, 'type'));
+
       expect(types).toStrictEqual(['user', 'assistant']);
     });
 
@@ -915,6 +930,7 @@ describe('StartServer', () => {
       expect(body).toHaveLength(3);
 
       const timestamps = body.map((e) => Reflect.get(e as object, 'timestamp'));
+
       expect(timestamps).toStrictEqual([
         '2024-01-01T00:00:01.000Z',
         '2024-01-01T00:00:02.000Z',

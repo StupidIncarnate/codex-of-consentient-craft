@@ -75,7 +75,9 @@ export const questContract = z.object({
   flows: z
     .array(flowContract)
     .default([])
-    .describe('User journey sequences linking requirements to entry/exit points with mermaid diagrams'),
+    .describe(
+      'User journey sequences linking requirements to entry/exit points with mermaid diagrams',
+    ),
   chatSessions: z
     .array(chatSessionContract)
     .default([])

@@ -247,9 +247,27 @@ describe('workUnitToArgumentsTransformer', () => {
             trigger: 'User clicks login',
             outcomes: [{ type: 'ui-state', description: 'Redirected to /dashboard', criteria: {} }],
             verification: [
-              VerificationStepStub({ action: 'navigate', target: '/login', value: undefined, condition: undefined, type: undefined }),
-              VerificationStepStub({ action: 'click', target: 'submit button', value: undefined, condition: undefined, type: undefined }),
-              VerificationStepStub({ action: 'assert', target: 'window.location', value: '/dashboard', condition: 'equals', type: 'ui-state' }),
+              VerificationStepStub({
+                action: 'navigate',
+                target: '/login',
+                value: undefined,
+                condition: undefined,
+                type: undefined,
+              }),
+              VerificationStepStub({
+                action: 'click',
+                target: 'submit button',
+                value: undefined,
+                condition: undefined,
+                type: undefined,
+              }),
+              VerificationStepStub({
+                action: 'assert',
+                target: 'window.location',
+                value: '/dashboard',
+                condition: 'equals',
+                type: 'ui-state',
+              }),
             ],
           }),
         ],
@@ -261,7 +279,9 @@ describe('workUnitToArgumentsTransformer', () => {
       expect(result).toMatch(/Verification:/u);
       expect(result).toMatch(/ {6}- navigate \/login$/mu);
       expect(result).toMatch(/ {6}- click submit button$/mu);
-      expect(result).toMatch(/ {6}- assert window\.location = \/dashboard \[equals\] \(ui-state\)$/mu);
+      expect(result).toMatch(
+        / {6}- assert window\.location = \/dashboard \[equals\] \(ui-state\)$/mu,
+      );
     });
 
     it('VALID: {codeweaver with observable without verification} => omits verification section', () => {
@@ -347,9 +367,27 @@ describe('workUnitToArgumentsTransformer', () => {
             trigger: 'User submits form',
             outcomes: [{ type: 'ui-state', description: 'Shows success message', criteria: {} }],
             verification: [
-              VerificationStepStub({ action: 'fill', target: 'name input', value: 'John', condition: undefined, type: undefined }),
-              VerificationStepStub({ action: 'click', target: 'submit', value: undefined, condition: undefined, type: undefined }),
-              VerificationStepStub({ action: 'assert', target: 'toast', value: 'Success', condition: 'contains', type: 'ui-state' }),
+              VerificationStepStub({
+                action: 'fill',
+                target: 'name input',
+                value: 'John',
+                condition: undefined,
+                type: undefined,
+              }),
+              VerificationStepStub({
+                action: 'click',
+                target: 'submit',
+                value: undefined,
+                condition: undefined,
+                type: undefined,
+              }),
+              VerificationStepStub({
+                action: 'assert',
+                target: 'toast',
+                value: 'Success',
+                condition: 'contains',
+                type: 'ui-state',
+              }),
             ],
           }),
         ],

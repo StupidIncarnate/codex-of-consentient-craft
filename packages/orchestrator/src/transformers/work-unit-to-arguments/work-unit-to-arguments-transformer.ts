@@ -61,10 +61,14 @@ export const workUnitToArgumentsTransformer = ({
           if (observable.verification.length > 0) {
             parts.push(contentTextContract.parse('    Verification:'));
             for (const verificationStep of observable.verification) {
-              const targetSuffix = verificationStep.target === undefined ? '' : ` ${verificationStep.target}`;
-              const valueSuffix = verificationStep.value === undefined ? '' : ` = ${verificationStep.value}`;
-              const conditionSuffix = verificationStep.condition === undefined ? '' : ` [${verificationStep.condition}]`;
-              const typeSuffix = verificationStep.type === undefined ? '' : ` (${verificationStep.type})`;
+              const targetSuffix =
+                verificationStep.target === undefined ? '' : ` ${verificationStep.target}`;
+              const valueSuffix =
+                verificationStep.value === undefined ? '' : ` = ${verificationStep.value}`;
+              const conditionSuffix =
+                verificationStep.condition === undefined ? '' : ` [${verificationStep.condition}]`;
+              const typeSuffix =
+                verificationStep.type === undefined ? '' : ` (${verificationStep.type})`;
               parts.push(
                 contentTextContract.parse(
                   `      - ${verificationStep.action}${targetSuffix}${valueSuffix}${conditionSuffix}${typeSuffix}`,
@@ -105,10 +109,14 @@ export const workUnitToArgumentsTransformer = ({
           if (observable.verification.length > 0) {
             siegeParts.push(contentTextContract.parse('    Verification:'));
             for (const verificationStep of observable.verification) {
-              const targetSuffix = verificationStep.target === undefined ? '' : ` ${verificationStep.target}`;
-              const valueSuffix = verificationStep.value === undefined ? '' : ` = ${verificationStep.value}`;
-              const conditionSuffix = verificationStep.condition === undefined ? '' : ` [${verificationStep.condition}]`;
-              const typeSuffix = verificationStep.type === undefined ? '' : ` (${verificationStep.type})`;
+              const targetSuffix =
+                verificationStep.target === undefined ? '' : ` ${verificationStep.target}`;
+              const valueSuffix =
+                verificationStep.value === undefined ? '' : ` = ${verificationStep.value}`;
+              const conditionSuffix =
+                verificationStep.condition === undefined ? '' : ` [${verificationStep.condition}]`;
+              const typeSuffix =
+                verificationStep.type === undefined ? '' : ` (${verificationStep.type})`;
               siegeParts.push(
                 contentTextContract.parse(
                   `      - ${verificationStep.action}${targetSuffix}${valueSuffix}${conditionSuffix}${typeSuffix}`,

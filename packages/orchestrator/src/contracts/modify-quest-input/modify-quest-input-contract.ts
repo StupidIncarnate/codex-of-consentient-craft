@@ -59,9 +59,7 @@ export const modifyQuestInputContract = z
       .array(chatSessionContract)
       .describe('Chat sessions (direct replacement, not upsert)')
       .optional(),
-    status: questStatusContract
-      .describe('Lifecycle gate transition status')
-      .optional(),
+    status: questStatusContract.describe('Lifecycle gate transition status').optional(),
   })
   .brand<'ModifyQuestInput'>();
 

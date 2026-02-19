@@ -127,6 +127,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
 
       const options: unknown = proxy.getSpawnedOptions();
       const FIFTY_MB = 52_428_800;
+
       expect(Reflect.get(options as object, 'maxBuffer')).toBe(FIFTY_MB);
     });
   });
