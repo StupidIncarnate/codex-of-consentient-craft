@@ -6,13 +6,20 @@
  * // Renders guild list sidebar + quest list, used as the "/" route content
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Box, Center, Group, Text } from '@mantine/core';
 
-import type { GuildId, GuildName, GuildPath, QuestId } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildId,
+  GuildName,
+  GuildPath,
+  QuestId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 
+import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
 import { guildCreateBroker } from '../../brokers/guild/create/guild-create-broker';
@@ -20,6 +27,7 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 import { GuildAddModalWidget } from '../guild-add-modal/guild-add-modal-widget';
 import { GuildEmptyStateWidget } from '../guild-empty-state/guild-empty-state-widget';
 import { GuildListWidget } from '../guild-list/guild-list-widget';
+import type { TempSessionItem } from '../../contracts/temp-session-item/temp-session-item-contract';
 import { GuildQuestListWidget } from '../guild-quest-list/guild-quest-list-widget';
 
 type InternalView = 'main' | 'new-guild';
@@ -32,6 +40,18 @@ export const HomeContentLayerWidget = (): React.JSX.Element => {
 
   const { guilds, loading: guildsLoading, refresh: refreshGuilds } = useGuildsBinding();
   const { data: quests } = useQuestsBinding({ guildId: selectedGuildId });
+  const { data: guildDetail } = useGuildDetailBinding({ guildId: selectedGuildId });
+
+  const tempSessions = useMemo((): readonly TempSessionItem[] => {
+    if (!guildDetail?.chatSessions) {
+      return [];
+    }
+    return guildDetail.chatSessions.map((session) => ({
+      sessionId: session.sessionId,
+      title: session.summary,
+      startedAt: session.startedAt,
+    }));
+  }, [guildDetail?.chatSessions]);
 
   const { colors } = emberDepthsThemeStatics;
   const hasGuilds = guilds.length > 0;
@@ -83,10 +103,23 @@ export const HomeContentLayerWidget = (): React.JSX.Element => {
             {selectedGuildId ? (
               <GuildQuestListWidget
                 quests={quests}
+                tempSessions={tempSessions}
                 onSelect={({ questId }: { questId: QuestId }) => {
                   const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
                   const slug = selectedGuild?.urlSlug ?? selectedGuildId;
-                  const result = navigate(`/${slug}/quest/${questId}`);
+                  const quest = quests.find((q) => q.id === questId);
+                  const sessionPath = quest?.activeSessionId
+                    ? `/${slug}/quest/${quest.activeSessionId}`
+                    : `/${slug}/quest`;
+                  const result = navigate(sessionPath);
+                  if (result instanceof Promise) {
+                    result.catch(() => undefined);
+                  }
+                }}
+                onSelectSession={({ sessionId }: { sessionId: SessionId }) => {
+                  const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
+                  const slug = selectedGuild?.urlSlug ?? selectedGuildId;
+                  const result = navigate(`/${slug}/quest/${sessionId}`);
                   if (result instanceof Promise) {
                     result.catch(() => undefined);
                   }

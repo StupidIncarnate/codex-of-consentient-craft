@@ -8,17 +8,20 @@
 
 import { Group, Stack, Text, UnstyledButton } from '@mantine/core';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 import type { QuestListItem } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
+import type { TempSessionItem } from '../../contracts/temp-session-item/temp-session-item-contract';
 
 export interface GuildQuestListWidgetProps {
   quests: readonly QuestListItem[];
+  tempSessions?: readonly TempSessionItem[];
   onSelect: (params: { questId: QuestId }) => void;
+  onSelectSession?: (params: { sessionId: SessionId }) => void;
   onAdd: () => void;
 }
 
@@ -36,7 +39,9 @@ const STATUS_COLORS = {
 
 export const GuildQuestListWidget = ({
   quests,
+  tempSessions,
   onSelect,
+  onSelectSession,
   onAdd,
 }: GuildQuestListWidgetProps): React.JSX.Element => (
   <Stack gap={4} data-testid="GUILD_QUEST_LIST">
@@ -51,7 +56,38 @@ export const GuildQuestListWidget = ({
         icon
       />
     </Group>
-    {quests.length === 0 && (
+    {tempSessions?.map((session) => (
+      <UnstyledButton
+        key={session.sessionId}
+        onClick={() => {
+          onSelectSession?.({ sessionId: session.sessionId });
+        }}
+        px="xs"
+        py={3}
+        data-testid={`TEMP_SESSION_${session.sessionId}`}
+        style={{
+          fontFamily: 'monospace',
+          fontSize: ITEM_FONT_SIZE,
+          color: colors.text,
+          borderRadius: 2,
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: 12,
+        }}
+      >
+        <span>{session.title ?? 'Untitled session'}</span>
+        <span
+          data-testid={`TEMP_LABEL_${session.sessionId}`}
+          style={{
+            color: colors.warning,
+            fontSize: STATUS_FONT_SIZE,
+          }}
+        >
+          TEMP
+        </span>
+      </UnstyledButton>
+    ))}
+    {quests.length === 0 && (!tempSessions || tempSessions.length === 0) && (
       <Text
         ff="monospace"
         size="xs"

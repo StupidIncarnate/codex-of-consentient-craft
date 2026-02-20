@@ -28,6 +28,7 @@ describe('useQuestChatBinding', () => {
       expect(result.current).toStrictEqual({
         entries: [],
         isStreaming: false,
+        currentSessionId: null,
         sendMessage: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -550,6 +551,7 @@ describe('useQuestChatBinding', () => {
       expect(result.current).toStrictEqual({
         entries: [],
         isStreaming: false,
+        currentSessionId: null,
         sendMessage: expect.any(Function),
         stopChat: expect.any(Function),
       });

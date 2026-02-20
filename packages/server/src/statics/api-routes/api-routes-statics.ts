@@ -32,6 +32,7 @@ export const apiRoutesStatics = {
     chat: '/api/guilds/:guildId/chat',
     chatStop: '/api/guilds/:guildId/chat/:chatProcessId/stop',
     chatHistory: '/api/guilds/:guildId/chat/history',
+    sessionResolve: '/api/guilds/:guildId/sessions/:sessionId',
   },
   directories: {
     browse: '/api/directories/browse',

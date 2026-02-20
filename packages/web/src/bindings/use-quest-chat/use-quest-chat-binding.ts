@@ -33,19 +33,25 @@ export const useQuestChatBinding = ({
   questId,
   guildId,
   chatSessions,
+  sessionId: initialSessionId,
 }: {
   questId?: QuestId;
   guildId?: GuildId;
   chatSessions?: ChatSession[];
+  sessionId?: SessionId | null;
 }): {
   entries: ChatEntry[];
   isStreaming: boolean;
+  currentSessionId: SessionId | null;
   sendMessage: (params: { message: UserInput }) => void;
   stopChat: () => void;
 } => {
   const [entries, setEntries] = useState<ChatEntry[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const sessionIdRef = useRef<SessionId | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<SessionId | null>(
+    initialSessionId ?? null,
+  );
+  const sessionIdRef = useRef<SessionId | null>(initialSessionId ?? null);
   const chatProcessIdRef = useRef<ProcessId | null>(null);
   const wsRef = useRef<{ close: () => void } | null>(null);
   const historyLoadedRef = useRef(false);
@@ -67,6 +73,7 @@ export const useQuestChatBinding = ({
 
       if (result.sessionId) {
         sessionIdRef.current = result.sessionId;
+        setCurrentSessionId(result.sessionId);
       }
 
       if (result.entries.length > 0) {
@@ -83,6 +90,7 @@ export const useQuestChatBinding = ({
       const rawSessionId: unknown = Reflect.get(payload, 'sessionId');
       if (typeof rawSessionId === 'string' && rawSessionId.length > 0) {
         sessionIdRef.current = rawSessionId as SessionId;
+        setCurrentSessionId(rawSessionId as SessionId);
       }
 
       setIsStreaming(false);
@@ -112,6 +120,7 @@ export const useQuestChatBinding = ({
 
     historyLoadedRef.current = true;
     sessionIdRef.current = activeSession.sessionId;
+    setCurrentSessionId(activeSession.sessionId);
 
     const historyPromise = questId
       ? questChatHistoryBroker({ questId, sessionId: activeSession.sessionId })
@@ -135,19 +144,19 @@ export const useQuestChatBinding = ({
       setEntries((prev) => [...prev, userEntry]);
       setIsStreaming(true);
 
-      const currentSessionId = sessionIdRef.current;
+      const activeSessionId = sessionIdRef.current;
 
       const chatPromise = questId
         ? questChatBroker({
             questId,
             message,
-            ...(currentSessionId ? { sessionId: currentSessionId } : {}),
+            ...(activeSessionId ? { sessionId: activeSessionId } : {}),
           })
         : guildId
           ? guildChatBroker({
               guildId,
               message,
-              ...(currentSessionId ? { sessionId: currentSessionId } : {}),
+              ...(activeSessionId ? { sessionId: activeSessionId } : {}),
             })
           : null;
 
@@ -189,5 +198,5 @@ export const useQuestChatBinding = ({
     });
   }, [questId, guildId]);
 
-  return { entries, isStreaming, sendMessage, stopChat };
+  return { entries, isStreaming, currentSessionId, sendMessage, stopChat };
 };

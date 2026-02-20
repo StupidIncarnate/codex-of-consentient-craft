@@ -16,9 +16,11 @@ import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-
 export const questSessionPersistBroker = async ({
   questId,
   sessionId,
+  summary,
 }: {
   questId: string;
   sessionId: SessionId;
+  summary?: string;
 }): Promise<void> => {
   try {
     const result = await orchestratorGetQuestAdapter({ questId });
@@ -40,6 +42,7 @@ export const questSessionPersistBroker = async ({
               ...s,
               active: idx === existingIndex,
               ...(idx === existingIndex ? { startedAt: new Date().toISOString() } : {}),
+              ...(idx === existingIndex && summary ? { summary } : {}),
             }),
           )
         : [
@@ -49,6 +52,7 @@ export const questSessionPersistBroker = async ({
               agentRole: 'chaoswhisperer',
               startedAt: new Date().toISOString(),
               active: true,
+              ...(summary ? { summary } : {}),
             }),
           ];
     await orchestratorModifyQuestAdapter({

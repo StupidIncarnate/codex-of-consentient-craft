@@ -11,9 +11,11 @@ import { screen } from '@testing-library/react';
 import type {
   GuildIdStub,
   GuildListItemStub,
+  GuildStub,
   QuestListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { useGuildDetailBindingProxy } from '../../bindings/use-guild-detail/use-guild-detail-binding.proxy';
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { useQuestsBindingProxy } from '../../bindings/use-quests/use-quests-binding.proxy';
 import { guildCreateBrokerProxy } from '../../brokers/guild/create/guild-create-broker.proxy';
@@ -25,6 +27,7 @@ import { GuildQuestListWidgetProxy } from '../guild-quest-list/guild-quest-list-
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
+type Guild = ReturnType<typeof GuildStub>;
 
 export const HomeContentLayerWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
@@ -32,6 +35,8 @@ export const HomeContentLayerWidgetProxy = (): {
   setupCreateGuild: (params: { id: GuildId }) => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
   setupQuestsError: () => void;
+  setupGuildDetail: (params: { guild: Guild }) => void;
+  setupGuildDetailError: () => void;
   clickGuildItem: (params: { testId: string }) => Promise<void>;
   isGuildItemVisible: (params: { testId: string }) => boolean;
   isGuildItemSelected: (params: { testId: string }) => boolean;
@@ -45,9 +50,12 @@ export const HomeContentLayerWidgetProxy = (): {
   clickCreateGuild: () => Promise<void>;
   clickCancelGuild: () => Promise<void>;
   clickQuestItem: (params: { testId: string }) => Promise<void>;
+  isTempSessionVisible: (params: { testId: string }) => boolean;
+  clickTempSession: (params: { testId: string }) => Promise<void>;
 } => {
   const questsProxy = useQuestsBindingProxy();
   const guildsProxy = useGuildsBindingProxy();
+  const guildDetailProxy = useGuildDetailBindingProxy();
   const createGuildProxy = guildCreateBrokerProxy();
   const guildList = GuildListWidgetProxy();
   const questList = GuildQuestListWidgetProxy();
@@ -69,6 +77,12 @@ export const HomeContentLayerWidgetProxy = (): {
     },
     setupQuestsError: (): void => {
       questsProxy.setupError();
+    },
+    setupGuildDetail: ({ guild }: { guild: Guild }): void => {
+      guildDetailProxy.setupGuild({ guild });
+    },
+    setupGuildDetailError: (): void => {
+      guildDetailProxy.setupError();
     },
     clickGuildItem: async ({ testId }: { testId: string }): Promise<void> => {
       await guildList.clickItem({ testId });
@@ -101,6 +115,11 @@ export const HomeContentLayerWidgetProxy = (): {
     },
     clickQuestItem: async ({ testId }: { testId: string }): Promise<void> => {
       await questList.clickQuest({ testId });
+    },
+    isTempSessionVisible: ({ testId }: { testId: string }): boolean =>
+      questList.isTempSessionVisible({ testId }),
+    clickTempSession: async ({ testId }: { testId: string }): Promise<void> => {
+      await questList.clickTempSession({ testId });
     },
   };
 };

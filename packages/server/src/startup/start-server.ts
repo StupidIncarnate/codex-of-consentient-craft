@@ -15,6 +15,7 @@ import { join } from 'path';
 import { homedir } from 'os';
 import {
   questIdContract,
+  questContract,
   processIdContract,
   guildIdContract,
   guildNameContract,
@@ -72,6 +73,7 @@ import { processDevLogAdapter } from '../adapters/process/dev-log/process-dev-lo
 import { streamLineSummaryTransformer } from '../transformers/stream-line-summary/stream-line-summary-transformer';
 
 const FLUSH_INTERVAL_MS = 100;
+const SUMMARY_MAX_LENGTH = 100;
 const CLAUDE_CLI_COMMAND = process.env.CLAUDE_CLI_PATH ?? 'claude';
 
 export const StartServer = (): void => {
@@ -202,6 +204,52 @@ export const StartServer = (): void => {
     }
   });
 
+  // Session resolve - find which quest (if any) owns a session
+  app.get(apiRoutesStatics.guilds.sessionResolve, async (c) => {
+    try {
+      const guildIdRaw = c.req.param('guildId');
+      const sessionIdRaw = c.req.param('sessionId');
+      const guildId = guildIdContract.parse(guildIdRaw);
+      const sessionId = sessionIdContract.parse(sessionIdRaw);
+      const guild = await orchestratorGetGuildAdapter({ guildId });
+
+      // Check guild-level sessions first
+      const guildMatch = guild.chatSessions.find((s) => s.sessionId === sessionId);
+
+      if (guildMatch) {
+        return c.json({ questId: null });
+      }
+
+      // Search quest-level sessions
+      const quests = await orchestratorListQuestsAdapter({ guildId });
+      const questResults = await Promise.all(
+        quests.map(async (q) => {
+          const result = await orchestratorGetQuestAdapter({ questId: q.id });
+          const questRaw: unknown = Reflect.get(result, 'quest');
+
+          if (!questRaw || typeof questRaw !== 'object') {
+            return null;
+          }
+
+          const quest = questContract.parse(questRaw);
+          const match = quest.chatSessions.find((s) => s.sessionId === sessionId);
+          return match ? q.id : null;
+        }),
+      );
+
+      const matchingQuestId = questResults.find((id) => id !== null);
+
+      if (matchingQuestId) {
+        return c.json({ questId: matchingQuestId });
+      }
+
+      return c.json({ error: 'Session not found' }, httpStatusStatics.clientError.notFound);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to resolve session';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
   // Directory browse
   app.post(apiRoutesStatics.directories.browse, async (c) => {
     try {
@@ -233,7 +281,34 @@ export const StartServer = (): void => {
 
       const guildId = guildIdContract.parse(guildIdRaw);
       const quests = await orchestratorListQuestsAdapter({ guildId });
-      return c.json(quests);
+
+      const enriched = await Promise.all(
+        quests.map(async (q) => {
+          try {
+            const result = await orchestratorGetQuestAdapter({ questId: q.id });
+            const questRaw: unknown = Reflect.get(result, 'quest');
+
+            if (!questRaw || typeof questRaw !== 'object') {
+              return q;
+            }
+
+            const quest = questContract.parse(questRaw);
+            const activeSession = quest.chatSessions.find((s) => s.active);
+            const mostRecent =
+              !activeSession && quest.chatSessions.length > 0
+                ? quest.chatSessions.reduce((latest, s) =>
+                    s.startedAt > latest.startedAt ? s : latest,
+                  )
+                : undefined;
+            const activeSessionId = activeSession?.sessionId ?? mostRecent?.sessionId;
+            return activeSessionId ? { ...q, activeSessionId } : q;
+          } catch {
+            return q;
+          }
+        }),
+      );
+
+      return c.json(enriched);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to list quests';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
@@ -595,6 +670,9 @@ export const StartServer = (): void => {
           ? questSessionPersistBroker({
               questId: questIdRaw,
               sessionId: extractedSessionId,
+              ...(typeof rawMessage === 'string'
+                ? { summary: rawMessage.slice(0, SUMMARY_MAX_LENGTH) }
+                : {}),
             }).catch(() => undefined)
           : Promise.resolve();
 
@@ -855,6 +933,9 @@ export const StartServer = (): void => {
           ? guildSessionPersistBroker({
               guildId: guildIdRaw,
               sessionId: extractedSessionId,
+              ...(typeof rawMessage === 'string'
+                ? { summary: rawMessage.slice(0, SUMMARY_MAX_LENGTH) }
+                : {}),
             }).catch(() => undefined)
           : Promise.resolve();
 

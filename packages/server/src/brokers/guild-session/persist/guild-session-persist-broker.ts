@@ -16,9 +16,11 @@ import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-
 export const guildSessionPersistBroker = async ({
   guildId,
   sessionId,
+  summary,
 }: {
   guildId: string;
   sessionId: SessionId;
+  summary?: string;
 }): Promise<void> => {
   try {
     const guildIdParsed = guildIdContract.parse(guildId);
@@ -31,6 +33,7 @@ export const guildSessionPersistBroker = async ({
               ...s,
               active: idx === existingIndex,
               ...(idx === existingIndex ? { startedAt: new Date().toISOString() } : {}),
+              ...(idx === existingIndex && summary ? { summary } : {}),
             }),
           )
         : [
@@ -40,6 +43,7 @@ export const guildSessionPersistBroker = async ({
               agentRole: 'chaoswhisperer',
               startedAt: new Date().toISOString(),
               active: true,
+              ...(summary ? { summary } : {}),
             }),
           ];
     await orchestratorUpdateGuildAdapter({

@@ -86,7 +86,7 @@ export const AppWidget = (): React.JSX.Element => {
             <Routes>
               <Route path="/" element={<HomeContentLayerWidget />} />
               <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
-              <Route path="/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
             </Routes>
           </MapFrameWidget>
         </div>

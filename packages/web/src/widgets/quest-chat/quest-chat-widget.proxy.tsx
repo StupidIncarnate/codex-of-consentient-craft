@@ -13,6 +13,7 @@ import type {
   GuildListItemStub,
   GuildStub,
   ProcessId,
+  QuestId,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -21,7 +22,7 @@ import { useGuildDetailBindingProxy } from '../../bindings/use-guild-detail/use-
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { useQuestChatBindingProxy } from '../../bindings/use-quest-chat/use-quest-chat-binding.proxy';
 import { useQuestDetailBindingProxy } from '../../bindings/use-quest-detail/use-quest-detail-binding.proxy';
-import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
+import { useSessionResolveBindingProxy } from '../../bindings/use-session-resolve/use-session-resolve-binding.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
@@ -41,6 +42,7 @@ export const QuestChatWidgetProxy = (): {
   setupQuestError: () => void;
   setupGuild: (params: { guild: Guild }) => void;
   setupGuildError: () => void;
+  setupSessionResolve: (params: { questId: QuestId | null }) => void;
   setupQuestHistory: (params: { entries: unknown[] }) => void;
   setupGuildHistory: (params: { entries: unknown[] }) => void;
   hasChatPanel: () => boolean;
@@ -57,11 +59,11 @@ export const QuestChatWidgetProxy = (): {
   const questDetailProxy = useQuestDetailBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
   const chatBindingProxy = useQuestChatBindingProxy();
+  const sessionResolveProxy = useSessionResolveBindingProxy();
   ChatPanelWidgetProxy();
   QuestClarifyPanelWidgetProxy();
   QuestSpecPanelWidgetProxy();
   questModifyBrokerProxy();
-  websocketConnectAdapterProxy();
 
   return {
     setupChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
@@ -90,6 +92,9 @@ export const QuestChatWidgetProxy = (): {
     },
     setupGuildError: (): void => {
       guildDetailProxy.setupError();
+    },
+    setupSessionResolve: ({ questId }: { questId: QuestId | null }): void => {
+      sessionResolveProxy.setupResponse({ response: { questId } });
     },
     setupQuestHistory: ({ entries }: { entries: unknown[] }): void => {
       chatBindingProxy.setupQuestHistory({ entries });

@@ -1,7 +1,8 @@
 import { screen } from '@testing-library/react';
-import { QuestIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub, QuestListItemStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { TempSessionItemStub } from '../../contracts/temp-session-item/temp-session-item.stub';
 import { GuildQuestListWidget } from './guild-quest-list-widget';
 import { GuildQuestListWidgetProxy } from './guild-quest-list-widget.proxy';
 
@@ -178,6 +179,104 @@ describe('GuildQuestListWidget', () => {
       await proxy.clickAddButton();
 
       expect(onAdd).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('temp sessions', () => {
+    it('VALID: {tempSessions with items} => renders TEMP label', () => {
+      const proxy = GuildQuestListWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'temp-session-1' });
+      const tempSession = TempSessionItemStub({ sessionId });
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildQuestListWidget
+            quests={[]}
+            tempSessions={[tempSession]}
+            onSelect={jest.fn()}
+            onSelectSession={jest.fn()}
+            onAdd={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.isTempSessionVisible({ testId: `TEMP_SESSION_${sessionId}` })).toBe(true);
+      expect(proxy.getTempLabel({ testId: `TEMP_LABEL_${sessionId}` })).toBe('TEMP');
+    });
+
+    it('VALID: {tempSessions} => hides empty state when temp sessions exist', () => {
+      const proxy = GuildQuestListWidgetProxy();
+      const tempSession = TempSessionItemStub();
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildQuestListWidget
+            quests={[]}
+            tempSessions={[tempSession]}
+            onSelect={jest.fn()}
+            onSelectSession={jest.fn()}
+            onAdd={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.hasEmptyState()).toBe(false);
+    });
+
+    it('VALID: {click temp session} => calls onSelectSession with sessionId', async () => {
+      const proxy = GuildQuestListWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'click-session' });
+      const tempSession = TempSessionItemStub({ sessionId });
+      const onSelectSession = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildQuestListWidget
+            quests={[]}
+            tempSessions={[tempSession]}
+            onSelect={jest.fn()}
+            onSelectSession={onSelectSession}
+            onAdd={jest.fn()}
+          />
+        ),
+      });
+
+      await proxy.clickTempSession({ testId: `TEMP_SESSION_${sessionId}` });
+
+      expect(onSelectSession).toHaveBeenCalledTimes(1);
+      expect(onSelectSession).toHaveBeenCalledWith({ sessionId });
+    });
+
+    it('VALID: {tempSessions rendered before quests} => temp sessions appear before quest items', () => {
+      const proxy = GuildQuestListWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'order-session' });
+      const tempSession = TempSessionItemStub({ sessionId });
+      const questId = QuestIdStub({ value: 'order-quest' });
+      const quest = QuestListItemStub({ id: questId, title: 'Second item' });
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildQuestListWidget
+            quests={[quest]}
+            tempSessions={[tempSession]}
+            onSelect={jest.fn()}
+            onSelectSession={jest.fn()}
+            onAdd={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.isTempSessionVisible({ testId: `TEMP_SESSION_${sessionId}` })).toBe(true);
+      expect(proxy.isQuestVisible({ testId: `QUEST_ITEM_${questId}` })).toBe(true);
+
+      const tempEl = screen.getByTestId(`TEMP_SESSION_${sessionId}`);
+      const questEl = screen.getByTestId(`QUEST_ITEM_${questId}`);
+      const listContainer = screen.getByTestId('GUILD_QUEST_LIST');
+      const allButtons = listContainer.querySelectorAll('button');
+      const tempIndex = Array.from(allButtons).indexOf(tempEl as HTMLButtonElement);
+      const questIndex = Array.from(allButtons).indexOf(questEl as HTMLButtonElement);
+
+      expect(tempIndex).toBeLessThan(questIndex);
     });
   });
 });

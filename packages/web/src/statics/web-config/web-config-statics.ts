@@ -22,6 +22,7 @@ export const webConfigStatics = {
       questChat: '/api/quests/:questId/chat',
       questChatStop: '/api/quests/:questId/chat/:chatProcessId/stop',
       questChatHistory: '/api/quests/:questId/chat/history',
+      guildSessionResolve: '/api/guilds/:guildId/sessions/:sessionId',
       processStatus: '/api/process/:processId',
     },
   },
