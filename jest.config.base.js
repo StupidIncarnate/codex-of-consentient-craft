@@ -27,4 +27,6 @@ module.exports = {
   },
   coverageDirectory: 'coverage',
   verbose: false,
+  detectOpenHandles: true,
+  forceExit: true,
 };

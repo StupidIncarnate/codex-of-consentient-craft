@@ -76,21 +76,16 @@ export const collectPlaywrightFailuresTransformer = ({
             }
 
             const error: unknown = Reflect.get(lastResult, 'error');
-            let message = 'Test failed';
-            let stackTrace: undefined | typeof message;
+            const errorObj = typeof error === 'object' && error !== null ? error : null;
 
-            if (typeof error === 'object' && error !== null) {
-              const errorMessage: unknown = Reflect.get(error, 'message');
-              const errorStack: unknown = Reflect.get(error, 'stack');
+            const rawMessage: unknown = errorObj === null ? null : Reflect.get(errorObj, 'message');
+            const rawStack: unknown = errorObj === null ? null : Reflect.get(errorObj, 'stack');
 
-              if (typeof errorMessage === 'string' && errorMessage.length > 0) {
-                message = errorMessage;
-              }
+            const message =
+              typeof rawMessage === 'string' && rawMessage.length > 0 ? rawMessage : 'Test failed';
 
-              if (typeof errorStack === 'string' && errorStack.length > 0) {
-                stackTrace = errorStack;
-              }
-            }
+            const stackTrace =
+              typeof rawStack === 'string' && rawStack.length > 0 ? rawStack : undefined;
 
             const testTitle = [...currentPath, specTitle].join(' > ');
 
@@ -99,7 +94,7 @@ export const collectPlaywrightFailuresTransformer = ({
                 suitePath,
                 testName: testTitle,
                 message,
-                ...(stackTrace ? { stackTrace } : {}),
+                ...(stackTrace === undefined ? {} : { stackTrace }),
               }),
             ];
           });
