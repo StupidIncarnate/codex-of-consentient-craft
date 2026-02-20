@@ -10,6 +10,7 @@ import {
   GuildListItemStub,
   GuildStub,
   QuestStub,
+  RequirementStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -195,6 +196,122 @@ describe('QuestChatWidget', () => {
       await proxy.clickClarifyOption({ label: 'React' as never });
 
       expect(proxy.hasClarifyPanel()).toBe(false);
+    });
+  });
+
+  describe('spec panel', () => {
+    it('VALID: {quest has requirements} => renders spec panel in right panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-q6',
+        requirements: [RequirementStub()],
+      });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupQuest({ quest });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/quest/chat-q6']}>
+            <Routes>
+              <Route path="/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      expect(proxy.hasActivityPlaceholder()).toBe(true);
+    });
+
+    it('VALID: {quest has requirements} => spec panel receives quest data', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-q7',
+        requirements: [RequirementStub()],
+      });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupQuest({ quest });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/quest/chat-q7']}>
+            <Routes>
+              <Route path="/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      expect(proxy.hasSpecPanel()).toBe(true);
+    });
+
+    it('VALID: {pending question with quest content} => clarify panel takes priority over spec panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const chatSession = ChatSessionStub({ active: true });
+      const quest = QuestStub({
+        id: 'chat-q8',
+        chatSessions: [chatSession],
+        requirements: [RequirementStub()],
+      });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupQuest({ quest });
+      proxy.setupQuestHistory({
+        entries: [
+          {
+            type: 'assistant',
+            message: {
+              content: [
+                {
+                  type: 'tool_use',
+                  name: 'AskUserQuestion',
+                  input: {
+                    questions: [
+                      {
+                        question: 'Which DB?',
+                        header: 'Database Choice',
+                        options: [
+                          { label: 'Postgres', description: 'Relational' },
+                          { label: 'Mongo', description: 'Document' },
+                        ],
+                        multiSelect: false,
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/quest/chat-q8']}>
+            <Routes>
+              <Route path="/:guildSlug/quest/:questSlug" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasClarifyPanel()).toBe(true);
+      });
+
+      expect(proxy.hasSpecPanel()).toBe(false);
     });
   });
 

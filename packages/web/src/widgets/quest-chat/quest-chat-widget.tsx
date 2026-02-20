@@ -22,8 +22,10 @@ import { websocketConnectAdapter } from '../../adapters/websocket/connect/websoc
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
+import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { QuestClarifyPanelWidget } from '../quest-clarify-panel/quest-clarify-panel-widget';
+import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 
 export const QuestChatWidget = (): React.JSX.Element => {
   const params = useParams();
@@ -71,6 +73,14 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const pendingQuestion = hasPendingQuestionGuard({ entries })
     ? extractAskUserQuestionTransformer({ entries })
     : null;
+
+  const questWithContent =
+    questData !== null &&
+    (questData.requirements.length > 0 ||
+      questData.observables.length > 0 ||
+      questData.flows.length > 0)
+      ? questData
+      : null;
 
   useEffect(() => {
     if (!resolvedGuildId) return undefined;
@@ -147,10 +157,22 @@ export const QuestChatWidget = (): React.JSX.Element => {
               sendMessage({ message: label as unknown as UserInput });
             }}
           />
-        ) : (
+        ) : questWithContent === null ? (
           <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], padding: 16 }}>
             Awaiting quest activity...
           </Text>
+        ) : (
+          <QuestSpecPanelWidget
+            quest={questWithContent}
+            onModify={({ modifications }): void => {
+              questModifyBroker({ questId: questWithContent.id, modifications })
+                .then(async () => refreshQuest())
+                .catch(() => undefined);
+            }}
+            onRefresh={(): void => {
+              refreshQuest().catch(() => undefined);
+            }}
+          />
         )}
       </Box>
     </Box>

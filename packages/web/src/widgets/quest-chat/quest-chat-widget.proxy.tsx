@@ -22,8 +22,10 @@ import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-bind
 import { useQuestChatBindingProxy } from '../../bindings/use-quest-chat/use-quest-chat-binding.proxy';
 import { useQuestDetailBindingProxy } from '../../bindings/use-quest-detail/use-quest-detail-binding.proxy';
 import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
+import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
+import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
@@ -46,6 +48,7 @@ export const QuestChatWidgetProxy = (): {
   hasDivider: () => boolean;
   getActivityText: () => HTMLElement['textContent'];
   hasClarifyPanel: () => boolean;
+  hasSpecPanel: () => boolean;
   getClarifyQuestionText: () => HTMLElement['textContent'];
   getClarifyOptionLabels: () => HTMLElement['textContent'][];
   clickClarifyOption: (params: { label: AskUserQuestionOption['label'] }) => Promise<void>;
@@ -56,6 +59,8 @@ export const QuestChatWidgetProxy = (): {
   const chatBindingProxy = useQuestChatBindingProxy();
   ChatPanelWidgetProxy();
   QuestClarifyPanelWidgetProxy();
+  QuestSpecPanelWidgetProxy();
+  questModifyBrokerProxy();
   websocketConnectAdapterProxy();
 
   return {
@@ -100,6 +105,7 @@ export const QuestChatWidgetProxy = (): {
       return element?.textContent ?? null;
     },
     hasClarifyPanel: (): boolean => screen.queryByTestId('QUEST_CLARIFY_PANEL') !== null,
+    hasSpecPanel: (): boolean => screen.queryByTestId('QUEST_SPEC_PANEL') !== null,
     getClarifyQuestionText: (): HTMLElement['textContent'] => {
       const element = screen.queryByTestId('CLARIFY_QUESTION_TEXT');
       return element?.textContent ?? null;
