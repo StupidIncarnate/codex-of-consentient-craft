@@ -14,6 +14,12 @@ describe('buttonVariantContract', () => {
 
       expect(result).toBe('ghost');
     });
+
+    it('VALID: {value: "danger"} => parses danger variant', () => {
+      const result = buttonVariantContract.parse('danger');
+
+      expect(result).toBe('danger');
+    });
   });
 
   describe('invalid inputs', () => {
@@ -45,6 +51,12 @@ describe('buttonVariantContract', () => {
       const result = ButtonVariantStub({ value: 'ghost' });
 
       expect(result).toBe('ghost');
+    });
+
+    it('VALID: {value: "danger"} => creates variant with danger value', () => {
+      const result = ButtonVariantStub({ value: 'danger' });
+
+      expect(result).toBe('danger');
     });
   });
 });

@@ -11,7 +11,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Box, Text } from '@mantine/core';
 
-import type { ChatSession, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ChatSession, QuestId, UserInput } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
@@ -19,8 +19,11 @@ import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
 import { useQuestDetailBinding } from '../../bindings/use-quest-detail/use-quest-detail-binding';
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
+import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
+import { QuestClarifyPanelWidget } from '../quest-clarify-panel/quest-clarify-panel-widget';
 
 export const QuestChatWidget = (): React.JSX.Element => {
   const params = useParams();
@@ -64,6 +67,10 @@ export const QuestChatWidget = (): React.JSX.Element => {
     }
     prevIsStreamingRef.current = isStreaming;
   }, [isStreaming, questSlug, refreshQuest, refreshGuild]);
+
+  const pendingQuestion = hasPendingQuestionGuard({ entries })
+    ? extractAskUserQuestionTransformer({ entries })
+    : null;
 
   useEffect(() => {
     if (!resolvedGuildId) return undefined;
@@ -126,12 +133,25 @@ export const QuestChatWidget = (): React.JSX.Element => {
         data-testid="QUEST_CHAT_ACTIVITY"
         style={{
           flex: 1,
-          padding: 16,
+          overflow: 'auto',
         }}
       >
-        <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
-          Awaiting quest activity...
-        </Text>
+        {pendingQuestion ? (
+          <QuestClarifyPanelWidget
+            questions={pendingQuestion.questions}
+            questTitle={
+              (questData?.title ??
+                '') as unknown as (typeof pendingQuestion.questions)[0]['question']
+            }
+            onSelectOption={({ label }): void => {
+              sendMessage({ message: label as unknown as UserInput });
+            }}
+          />
+        ) : (
+          <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], padding: 16 }}>
+            Awaiting quest activity...
+          </Text>
+        )}
       </Box>
     </Box>
   );

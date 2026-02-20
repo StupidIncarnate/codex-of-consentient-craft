@@ -8,6 +8,8 @@
 
 import { z } from 'zod';
 
-export const buttonVariantContract = z.enum(['primary', 'ghost']).brand<'ButtonVariant'>();
+export const buttonVariantContract = z
+  .enum(['primary', 'ghost', 'danger'])
+  .brand<'ButtonVariant'>();
 
 export type ButtonVariant = z.infer<typeof buttonVariantContract>;
