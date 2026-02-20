@@ -50,11 +50,16 @@ const STATUS_COLORS = {
   deferred: colors['text-dim'],
 } as const;
 
+export interface RequirementsLayerOnChangePayload {
+  requirements: Requirement[];
+  designDecisions: DesignDecision[];
+}
+
 export interface RequirementsLayerWidgetProps {
   requirements: Requirement[];
   designDecisions: DesignDecision[];
   editing: boolean;
-  onChange: () => void;
+  onChange: (payload: RequirementsLayerOnChangePayload) => void;
 }
 
 export const RequirementsLayerWidget = ({
@@ -68,26 +73,54 @@ export const RequirementsLayerWidget = ({
       title={REQUIREMENTS_LABEL}
       items={requirements}
       editing={editing}
-      onAdd={onChange}
-      onRemove={() => {
-        onChange();
+      onAdd={() => {
+        onChange({
+          requirements: [
+            ...requirements,
+            {
+              id: crypto.randomUUID(),
+              name: '',
+              description: '',
+              scope: '',
+            } as unknown as Requirement,
+          ],
+          designDecisions,
+        });
       }}
-      renderItem={(requirement) => (
+      onRemove={(index) => {
+        onChange({
+          requirements: requirements.filter((_, i) => i !== index),
+          designDecisions,
+        });
+      }}
+      renderItem={(requirement, index) => (
         <Group gap={8} wrap="nowrap" align="flex-start">
           <Box style={{ flex: 1 }}>
             {editing ? (
               <>
                 <FormInputWidget
                   value={requirement.name as unknown as FormInputValue}
-                  onChange={() => {
-                    onChange();
+                  onChange={(value) => {
+                    onChange({
+                      requirements: requirements.map((item, i) =>
+                        i === index ? ({ ...item, name: value } as unknown as Requirement) : item,
+                      ),
+                      designDecisions,
+                    });
                   }}
                   placeholder={NAME_PLACEHOLDER}
                 />
                 <FormInputWidget
                   value={requirement.description as unknown as FormInputValue}
-                  onChange={() => {
-                    onChange();
+                  onChange={(value) => {
+                    onChange({
+                      requirements: requirements.map((item, i) =>
+                        i === index
+                          ? ({ ...item, description: value } as unknown as Requirement)
+                          : item,
+                      ),
+                      designDecisions,
+                    });
                   }}
                   placeholder={DESCRIPTION_PLACEHOLDER}
                   mt={FIELD_MARGIN_TOP}
@@ -95,8 +128,13 @@ export const RequirementsLayerWidget = ({
                 />
                 <FormInputWidget
                   value={requirement.scope as unknown as FormInputValue}
-                  onChange={() => {
-                    onChange();
+                  onChange={(value) => {
+                    onChange({
+                      requirements: requirements.map((item, i) =>
+                        i === index ? ({ ...item, scope: value } as unknown as Requirement) : item,
+                      ),
+                      designDecisions,
+                    });
                   }}
                   placeholder={SCOPE_PLACEHOLDER}
                   mt={FIELD_MARGIN_TOP}
@@ -137,8 +175,13 @@ export const RequirementsLayerWidget = ({
             <FormDropdownWidget
               value={(requirement.status ?? 'proposed') as DropdownOption}
               options={REQUIREMENT_STATUSES}
-              onChange={() => {
-                onChange();
+              onChange={(value) => {
+                onChange({
+                  requirements: requirements.map((item, i) =>
+                    i === index ? ({ ...item, status: value } as unknown as Requirement) : item,
+                  ),
+                  designDecisions,
+                });
               }}
             />
           ) : (
@@ -166,25 +209,53 @@ export const RequirementsLayerWidget = ({
       title={DESIGN_DECISIONS_LABEL}
       items={designDecisions}
       editing={editing}
-      onAdd={onChange}
-      onRemove={() => {
-        onChange();
+      onAdd={() => {
+        onChange({
+          requirements,
+          designDecisions: [
+            ...designDecisions,
+            {
+              id: crypto.randomUUID(),
+              title: '',
+              rationale: '',
+              relatedRequirements: [],
+            } as unknown as DesignDecision,
+          ],
+        });
       }}
-      renderItem={(decision) => (
+      onRemove={(index) => {
+        onChange({
+          requirements,
+          designDecisions: designDecisions.filter((_, i) => i !== index),
+        });
+      }}
+      renderItem={(decision, index) => (
         <Box>
           {editing ? (
             <>
               <FormInputWidget
                 value={decision.title as unknown as FormInputValue}
-                onChange={() => {
-                  onChange();
+                onChange={(value) => {
+                  onChange({
+                    requirements,
+                    designDecisions: designDecisions.map((item, i) =>
+                      i === index ? ({ ...item, title: value } as unknown as DesignDecision) : item,
+                    ),
+                  });
                 }}
                 placeholder={TITLE_PLACEHOLDER}
               />
               <FormInputWidget
                 value={decision.rationale as unknown as FormInputValue}
-                onChange={() => {
-                  onChange();
+                onChange={(value) => {
+                  onChange({
+                    requirements,
+                    designDecisions: designDecisions.map((item, i) =>
+                      i === index
+                        ? ({ ...item, rationale: value } as unknown as DesignDecision)
+                        : item,
+                    ),
+                  });
                 }}
                 placeholder={RATIONALE_PLACEHOLDER}
                 mt={FIELD_MARGIN_TOP}

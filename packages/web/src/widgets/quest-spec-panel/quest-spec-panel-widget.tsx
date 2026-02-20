@@ -48,15 +48,30 @@ export const QuestSpecPanelWidget = ({
   onRefresh,
 }: QuestSpecPanelWidgetProps): React.JSX.Element => {
   const [editing, setEditing] = useState(false);
+  const [draftModifications, setDraftModifications] = useState<Partial<Quest>>({});
   const { colors } = emberDepthsThemeStatics;
+
+  const draftTitle = draftModifications.title ?? quest.title;
+  const draftRequirements = draftModifications.requirements ?? quest.requirements;
+  const draftDesignDecisions = draftModifications.designDecisions ?? quest.designDecisions;
+  const draftFlows = draftModifications.flows ?? quest.flows;
+  const draftContexts = draftModifications.contexts ?? quest.contexts;
+  const draftObservables = draftModifications.observables ?? quest.observables;
+  const draftContracts = draftModifications.contracts ?? quest.contracts;
+  const draftTooling = draftModifications.toolingRequirements ?? quest.toolingRequirements;
 
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="QUEST_SPEC_PANEL">
       <Box style={{ ...TITLE_BAR_STYLE_BASE, borderBottom: `1px solid ${colors.border}` }}>
         {editing ? (
           <FormInputWidget
-            value={quest.title as unknown as FormInputValue}
-            onChange={() => undefined}
+            value={draftTitle as unknown as FormInputValue}
+            onChange={(value) => {
+              setDraftModifications((prev) => ({
+                ...prev,
+                title: value as unknown as Quest['title'],
+              }));
+            }}
             placeholder={TITLE_PLACEHOLDER}
             color={TITLE_COLOR}
           />
@@ -85,25 +100,44 @@ export const QuestSpecPanelWidget = ({
         </Text>
 
         <RequirementsLayerWidget
-          requirements={quest.requirements}
-          designDecisions={quest.designDecisions}
+          requirements={draftRequirements}
+          designDecisions={draftDesignDecisions}
           editing={editing}
-          onChange={() => undefined}
+          onChange={(payload) => {
+            setDraftModifications((prev) => ({
+              ...prev,
+              requirements: payload.requirements,
+              designDecisions: payload.designDecisions,
+            }));
+          }}
         />
 
         <ObservablesLayerWidget
-          flows={quest.flows}
-          contexts={quest.contexts}
-          observables={quest.observables}
+          flows={draftFlows}
+          contexts={draftContexts}
+          observables={draftObservables}
           editing={editing}
-          onChange={() => undefined}
+          onChange={(payload) => {
+            setDraftModifications((prev) => ({
+              ...prev,
+              flows: payload.flows,
+              contexts: payload.contexts,
+              observables: payload.observables,
+            }));
+          }}
         />
 
         <ContractsLayerWidget
-          contracts={quest.contracts}
-          tooling={quest.toolingRequirements}
+          contracts={draftContracts}
+          tooling={draftTooling}
           editing={editing}
-          onChange={() => undefined}
+          onChange={(payload) => {
+            setDraftModifications((prev) => ({
+              ...prev,
+              contracts: payload.contracts,
+              toolingRequirements: payload.toolingRequirements,
+            }));
+          }}
         />
       </Box>
       <Box
@@ -120,7 +154,7 @@ export const QuestSpecPanelWidget = ({
                 label={SUBMIT_LABEL}
                 onClick={() => {
                   setEditing(false);
-                  onModify({ modifications: {} });
+                  onModify({ modifications: draftModifications });
                 }}
               />
               <PixelBtnWidget
@@ -128,6 +162,7 @@ export const QuestSpecPanelWidget = ({
                 variant={GHOST_VARIANT}
                 onClick={() => {
                   setEditing(false);
+                  setDraftModifications({});
                 }}
               />
             </>
@@ -143,6 +178,7 @@ export const QuestSpecPanelWidget = ({
                 label={MODIFY_LABEL}
                 variant={GHOST_VARIANT}
                 onClick={() => {
+                  setDraftModifications({});
                   setEditing(true);
                 }}
               />

@@ -74,12 +74,18 @@ const STATUS_COLORS = {
   failed: colors.danger,
 } as const;
 
+export interface ObservablesLayerOnChangePayload {
+  flows: Flow[];
+  contexts: Context[];
+  observables: Observable[];
+}
+
 export interface ObservablesLayerWidgetProps {
   flows: Flow[];
   contexts: Context[];
   observables: Observable[];
   editing: boolean;
-  onChange: () => void;
+  onChange: (payload: ObservablesLayerOnChangePayload) => void;
 }
 
 export const ObservablesLayerWidget = ({
@@ -94,26 +100,57 @@ export const ObservablesLayerWidget = ({
       title={FLOWS_LABEL}
       items={flows}
       editing={editing}
-      onAdd={onChange}
-      onRemove={() => {
-        onChange();
+      onAdd={() => {
+        onChange({
+          flows: [
+            ...flows,
+            {
+              id: crypto.randomUUID(),
+              name: '',
+              requirementIds: [],
+              entryPoint: '',
+              exitPoints: [],
+            } as unknown as Flow,
+          ],
+          contexts,
+          observables,
+        });
       }}
-      renderItem={(flow) => (
+      onRemove={(index) => {
+        onChange({
+          flows: flows.filter((_, i) => i !== index),
+          contexts,
+          observables,
+        });
+      }}
+      renderItem={(flow, index) => (
         <Box>
           {editing ? (
             <>
               <FormInputWidget
                 value={flow.name as unknown as FormInputValue}
-                onChange={() => {
-                  onChange();
+                onChange={(value) => {
+                  onChange({
+                    flows: flows.map((item, i) =>
+                      i === index ? ({ ...item, name: value } as unknown as Flow) : item,
+                    ),
+                    contexts,
+                    observables,
+                  });
                 }}
                 placeholder={NAME_PLACEHOLDER}
                 color={GOLD_COLOR}
               />
               <FormInputWidget
                 value={flow.entryPoint as unknown as FormInputValue}
-                onChange={() => {
-                  onChange();
+                onChange={(value) => {
+                  onChange({
+                    flows: flows.map((item, i) =>
+                      i === index ? ({ ...item, entryPoint: value } as unknown as Flow) : item,
+                    ),
+                    contexts,
+                    observables,
+                  });
                 }}
                 placeholder={ENTRY_POINT_PLACEHOLDER}
                 mt={FIELD_MARGIN_TOP}
@@ -165,26 +202,56 @@ export const ObservablesLayerWidget = ({
       title={CONTEXTS_LABEL}
       items={contexts}
       editing={editing}
-      onAdd={onChange}
-      onRemove={() => {
-        onChange();
+      onAdd={() => {
+        onChange({
+          flows,
+          contexts: [
+            ...contexts,
+            {
+              id: crypto.randomUUID(),
+              name: '',
+              description: '',
+              locator: {},
+            } as unknown as Context,
+          ],
+          observables,
+        });
       }}
-      renderItem={(ctx) => (
+      onRemove={(index) => {
+        onChange({
+          flows,
+          contexts: contexts.filter((_, i) => i !== index),
+          observables,
+        });
+      }}
+      renderItem={(ctx, index) => (
         <Box>
           {editing ? (
             <>
               <FormInputWidget
                 value={ctx.name as unknown as FormInputValue}
-                onChange={() => {
-                  onChange();
+                onChange={(value) => {
+                  onChange({
+                    flows,
+                    contexts: contexts.map((item, i) =>
+                      i === index ? ({ ...item, name: value } as unknown as Context) : item,
+                    ),
+                    observables,
+                  });
                 }}
                 placeholder={NAME_PLACEHOLDER}
                 color={GOLD_COLOR}
               />
               <FormInputWidget
                 value={ctx.description as unknown as FormInputValue}
-                onChange={() => {
-                  onChange();
+                onChange={(value) => {
+                  onChange({
+                    flows,
+                    contexts: contexts.map((item, i) =>
+                      i === index ? ({ ...item, description: value } as unknown as Context) : item,
+                    ),
+                    observables,
+                  });
                 }}
                 placeholder={DESCRIPTION_PLACEHOLDER}
                 mt={FIELD_MARGIN_TOP}
@@ -199,16 +266,38 @@ export const ObservablesLayerWidget = ({
                 </Text>
                 <FormInputWidget
                   value={(ctx.locator.page ?? '') as unknown as FormInputValue}
-                  onChange={() => {
-                    onChange();
+                  onChange={(value) => {
+                    onChange({
+                      flows,
+                      contexts: contexts.map((item, i) =>
+                        i === index
+                          ? ({
+                              ...item,
+                              locator: { ...item.locator, page: value },
+                            } as unknown as Context)
+                          : item,
+                      ),
+                      observables,
+                    });
                   }}
                   placeholder={PAGE_PLACEHOLDER}
                   color={DIM_COLOR}
                 />
                 <FormInputWidget
                   value={(ctx.locator.section ?? '') as unknown as FormInputValue}
-                  onChange={() => {
-                    onChange();
+                  onChange={(value) => {
+                    onChange({
+                      flows,
+                      contexts: contexts.map((item, i) =>
+                        i === index
+                          ? ({
+                              ...item,
+                              locator: { ...item.locator, section: value },
+                            } as unknown as Context)
+                          : item,
+                      ),
+                      observables,
+                    });
                   }}
                   placeholder={SECTION_PLACEHOLDER}
                   color={DIM_COLOR}
@@ -255,11 +344,30 @@ export const ObservablesLayerWidget = ({
       title={OBSERVABLES_LABEL}
       items={observables}
       editing={editing}
-      onAdd={onChange}
-      onRemove={() => {
-        onChange();
+      onAdd={() => {
+        onChange({
+          flows,
+          contexts,
+          observables: [
+            ...observables,
+            {
+              id: crypto.randomUUID(),
+              contextId: contexts[0]?.id ?? '',
+              trigger: '',
+              dependsOn: [],
+              outcomes: [],
+            } as unknown as Observable,
+          ],
+        });
       }}
-      renderItem={(obs) => (
+      onRemove={(index) => {
+        onChange({
+          flows,
+          contexts,
+          observables: observables.filter((_, i) => i !== index),
+        });
+      }}
+      renderItem={(obs, index) => (
         <Box>
           {editing ? (
             <>
@@ -273,8 +381,16 @@ export const ObservablesLayerWidget = ({
                 <FormDropdownWidget
                   value={obs.contextId as unknown as DropdownOption}
                   options={contexts.map((c) => c.id as unknown as DropdownOption)}
-                  onChange={() => {
-                    onChange();
+                  onChange={(value) => {
+                    onChange({
+                      flows,
+                      contexts,
+                      observables: observables.map((item, i) =>
+                        i === index
+                          ? ({ ...item, contextId: value } as unknown as Observable)
+                          : item,
+                      ),
+                    });
                   }}
                   color={GOLD_COLOR}
                 />
@@ -287,8 +403,16 @@ export const ObservablesLayerWidget = ({
                 <FormDropdownWidget
                   value={(obs.requirementId ?? '') as unknown as DropdownOption}
                   options={['' as DropdownOption]}
-                  onChange={() => {
-                    onChange();
+                  onChange={(value) => {
+                    onChange({
+                      flows,
+                      contexts,
+                      observables: observables.map((item, i) =>
+                        i === index
+                          ? ({ ...item, requirementId: value } as unknown as Observable)
+                          : item,
+                      ),
+                    });
                   }}
                   color={colors['loot-rare'] as CssColorOverride}
                 />
@@ -301,15 +425,29 @@ export const ObservablesLayerWidget = ({
                 <FormDropdownWidget
                   value={(obs.verificationStatus ?? 'pending') as unknown as DropdownOption}
                   options={VERIFICATION_STATUSES}
-                  onChange={() => {
-                    onChange();
+                  onChange={(value) => {
+                    onChange({
+                      flows,
+                      contexts,
+                      observables: observables.map((item, i) =>
+                        i === index
+                          ? ({ ...item, verificationStatus: value } as unknown as Observable)
+                          : item,
+                      ),
+                    });
                   }}
                 />
               </Group>
               <FormInputWidget
                 value={obs.trigger as unknown as FormInputValue}
-                onChange={() => {
-                  onChange();
+                onChange={(value) => {
+                  onChange({
+                    flows,
+                    contexts,
+                    observables: observables.map((item, i) =>
+                      i === index ? ({ ...item, trigger: value } as unknown as Observable) : item,
+                    ),
+                  });
                 }}
                 placeholder={TRIGGER_PLACEHOLDER}
               />
@@ -324,16 +462,42 @@ export const ObservablesLayerWidget = ({
                   <FormDropdownWidget
                     value={oc.type as unknown as DropdownOption}
                     options={OUTCOME_TYPES}
-                    onChange={() => {
-                      onChange();
+                    onChange={(value) => {
+                      onChange({
+                        flows,
+                        contexts,
+                        observables: observables.map((item, i) =>
+                          i === index
+                            ? ({
+                                ...item,
+                                outcomes: item.outcomes.map((o, oIdx) =>
+                                  oIdx === oi ? { ...o, type: value } : o,
+                                ),
+                              } as unknown as Observable)
+                            : item,
+                        ),
+                      });
                     }}
                     color={DIM_COLOR}
                   />
                   <Box style={{ flex: 1 }}>
                     <FormInputWidget
                       value={oc.description as unknown as FormInputValue}
-                      onChange={() => {
-                        onChange();
+                      onChange={(value) => {
+                        onChange({
+                          flows,
+                          contexts,
+                          observables: observables.map((item, i) =>
+                            i === index
+                              ? ({
+                                  ...item,
+                                  outcomes: item.outcomes.map((o, oIdx) =>
+                                    oIdx === oi ? { ...o, description: value } : o,
+                                  ),
+                                } as unknown as Observable)
+                              : item,
+                          ),
+                        });
                       }}
                       placeholder={OUTCOME_PLACEHOLDER}
                       color={SUCCESS_COLOR}
@@ -343,8 +507,16 @@ export const ObservablesLayerWidget = ({
               ))}
               <FormInputWidget
                 value={(obs.verificationNotes ?? '') as unknown as FormInputValue}
-                onChange={() => {
-                  onChange();
+                onChange={(value) => {
+                  onChange({
+                    flows,
+                    contexts,
+                    observables: observables.map((item, i) =>
+                      i === index
+                        ? ({ ...item, verificationNotes: value } as unknown as Observable)
+                        : item,
+                    ),
+                  });
                 }}
                 placeholder={VERIFICATION_NOTES_PLACEHOLDER}
                 mt={FIELD_MARGIN_TOP}

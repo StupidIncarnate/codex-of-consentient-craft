@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { QuestStub, RequirementStub, DesignDecisionStub } from '@dungeonmaster/shared/contracts';
 
@@ -106,7 +107,7 @@ describe('QuestSpecPanelWidget', () => {
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('OBSERVABLES APPROVAL');
     });
 
-    it('VALID: {click MODIFY then SUBMIT} => calls onModify and returns to read mode', async () => {
+    it('VALID: {click MODIFY then SUBMIT without edits} => calls onModify with empty modifications', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub();
       const onModify = jest.fn();
@@ -121,6 +122,76 @@ describe('QuestSpecPanelWidget', () => {
       expect(onModify).toHaveBeenCalledTimes(1);
       expect(onModify).toHaveBeenCalledWith({ modifications: {} });
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('OBSERVABLES APPROVAL');
+    });
+
+    it('VALID: {edit title then SUBMIT} => calls onModify with title modification', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ title: 'Old Title' });
+      const onModify = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} onRefresh={jest.fn()} />,
+      });
+
+      await proxy.clickModify();
+
+      const inputs = screen.getAllByTestId('FORM_INPUT');
+      const titleInput = inputs[0] as HTMLInputElement;
+      await userEvent.clear(titleInput);
+      await userEvent.type(titleInput, 'New Title');
+
+      await proxy.clickSubmit();
+
+      expect(onModify).toHaveBeenCalledTimes(1);
+
+      const callArg = onModify.mock.calls[0] as unknown[];
+      const modifications = Reflect.get(callArg[0] as object, 'modifications') as Partial<Quest>;
+
+      expect(modifications.title).toBe('New Title');
+    });
+
+    it('VALID: {edit title then CANCEL} => discards title change', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ title: 'Original Title' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+      });
+
+      await proxy.clickModify();
+
+      const inputs = screen.getAllByTestId('FORM_INPUT');
+      const titleInput = inputs[0] as HTMLInputElement;
+      await userEvent.clear(titleInput);
+      await userEvent.type(titleInput, 'Changed Title');
+
+      await proxy.clickCancel();
+
+      expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Original Title');
+    });
+
+    it('VALID: {edit title then CANCEL then MODIFY again} => shows original quest title', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ title: 'Original Title' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+      });
+
+      await proxy.clickModify();
+
+      const inputs = screen.getAllByTestId('FORM_INPUT');
+      const titleInput = inputs[0] as HTMLInputElement;
+      await userEvent.clear(titleInput);
+      await userEvent.type(titleInput, 'Changed Title');
+
+      await proxy.clickCancel();
+      await proxy.clickModify();
+
+      const inputsAfterReopen = screen.getAllByTestId('FORM_INPUT');
+      const titleInputAfterReopen = inputsAfterReopen[0] as HTMLInputElement;
+
+      expect(titleInputAfterReopen.getAttribute('value')).toBe('Original Title');
     });
 
     it('VALID: {click MODIFY} => shows FormInputWidget for quest title', async () => {
