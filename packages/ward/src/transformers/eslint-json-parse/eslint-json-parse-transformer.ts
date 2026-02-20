@@ -52,14 +52,12 @@ export const eslintJsonParseTransformer = ({
       const line: unknown = Reflect.get(message, 'line');
       const column: unknown = Reflect.get(message, 'column');
 
-      if (
-        typeof severity !== 'number' ||
-        typeof msg !== 'string' ||
-        typeof line !== 'number' ||
-        typeof column !== 'number'
-      ) {
+      if (typeof severity !== 'number' || typeof msg !== 'string') {
         return entries;
       }
+
+      const resolvedLine = typeof line === 'number' ? line : 0;
+      const resolvedColumn = typeof column === 'number' ? column : 0;
 
       const severityKey = severity as keyof typeof eslintSeverityStatics;
       const severityValue = eslintSeverityStatics[severityKey];
@@ -68,8 +66,8 @@ export const eslintJsonParseTransformer = ({
         ...entries,
         errorEntryContract.parse({
           filePath,
-          line,
-          column,
+          line: resolvedLine,
+          column: resolvedColumn,
           message: msg,
           severity: severityValue,
           ...(typeof ruleId === 'string' ? { rule: ruleId } : {}),

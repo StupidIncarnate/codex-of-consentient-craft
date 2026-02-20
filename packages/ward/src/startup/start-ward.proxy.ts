@@ -1,7 +1,3 @@
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
-import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
-
 import { commandRunBrokerProxy } from '../brokers/command/run/command-run-broker.proxy';
 import { commandListBrokerProxy } from '../brokers/command/list/command-list-broker.proxy';
 import { commandDetailBrokerProxy } from '../brokers/command/detail/command-detail-broker.proxy';
@@ -14,8 +10,6 @@ export const StartWardProxy = (): {
   jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
   jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
-  projectRootFindBrokerProxy();
-  const captureProxy = childProcessSpawnCaptureAdapterProxy();
   commandRunBrokerProxy();
   commandListBrokerProxy();
   commandDetailBrokerProxy();
@@ -24,7 +18,6 @@ export const StartWardProxy = (): {
   return {
     setupCwd: ({ cwd }: { cwd: string }): void => {
       jest.spyOn(process, 'cwd').mockReturnValue(cwd);
-      captureProxy.setupSuccess({ exitCode: ExitCodeStub({ value: 0 }), stdout: cwd, stderr: '' });
     },
   };
 };

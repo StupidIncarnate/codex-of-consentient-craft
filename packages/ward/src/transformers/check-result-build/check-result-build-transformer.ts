@@ -21,9 +21,11 @@ export const checkResultBuildTransformer = ({
   projectResults: ProjectResult[];
 }): CheckResult => {
   const hasFail = projectResults.some((pr) => pr.status === 'fail');
+  const allSkip = projectResults.length > 0 && projectResults.every((pr) => pr.status === 'skip');
+  const status = hasFail ? 'fail' : allSkip ? 'skip' : 'pass';
   return checkResultContract.parse({
     checkType,
-    status: hasFail ? 'fail' : 'pass',
+    status,
     projectResults,
   });
 };

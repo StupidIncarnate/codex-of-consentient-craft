@@ -34,14 +34,30 @@ describe('checkResultBuildTransformer', () => {
     });
   });
 
+  describe('all skipped', () => {
+    it('VALID: {all project results skip} => returns skip status', () => {
+      const checkType = CheckTypeStub({ value: 'e2e' });
+      const projectResults = [
+        ProjectResultStub({ status: 'skip' }),
+        ProjectResultStub({ status: 'skip' }),
+      ];
+
+      const result = checkResultBuildTransformer({ checkType, projectResults });
+
+      expect(result).toStrictEqual(
+        CheckResultStub({ checkType: 'e2e', status: 'skip', projectResults }),
+      );
+    });
+  });
+
   describe('empty results', () => {
     it('EMPTY: {no project results} => returns pass status', () => {
-      const checkType = CheckTypeStub({ value: 'test' });
+      const checkType = CheckTypeStub({ value: 'unit' });
 
       const result = checkResultBuildTransformer({ checkType, projectResults: [] });
 
       expect(result).toStrictEqual(
-        CheckResultStub({ checkType: 'test', status: 'pass', projectResults: [] }),
+        CheckResultStub({ checkType: 'unit', status: 'pass', projectResults: [] }),
       );
     });
   });

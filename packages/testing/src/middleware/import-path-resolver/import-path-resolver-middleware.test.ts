@@ -65,15 +65,20 @@ describe('importPathResolverMiddleware', () => {
     it('VALID: {relative import to .tsx proxy file} => returns FilePath with .tsx', () => {
       importPathResolverMiddlewareProxy();
 
-      // Use CLI widget proxy which is a .tsx file
-      const cliWidgetsDir =
-        '/home/brutus-home/projects/codex-of-consentient-craft/packages/cli/src/widgets/cli-app';
+      // Use web widget proxy which is a .tsx file
+      // __dirname is packages/testing/src/middleware/import-path-resolver
+      // Strip /packages/testing/src/middleware/import-path-resolver to get repo root
+      const repoRoot = __dirname.replace(
+        /\/packages\/testing\/src\/middleware\/import-path-resolver$/u,
+        '',
+      );
+      const webWidgetsDir = `${repoRoot}/packages/web/src/widgets/app`;
       const sourceFilePath = FilePathStub({
-        value: `${cliWidgetsDir}/list-screen-layer-widget.test.tsx`,
+        value: `${webWidgetsDir}/app-widget.test.tsx`,
       });
-      const importPath = ImportPathStub({ value: './list-screen-layer-widget.proxy' });
+      const importPath = ImportPathStub({ value: './app-widget.proxy' });
       const expectedPath = FilePathStub({
-        value: `${cliWidgetsDir}/list-screen-layer-widget.proxy.tsx`,
+        value: `${webWidgetsDir}/app-widget.proxy.tsx`,
       });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });

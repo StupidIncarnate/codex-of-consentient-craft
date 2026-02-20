@@ -5,12 +5,11 @@ describe('wardConfigContract', () => {
   describe('valid inputs', () => {
     it('VALID: {all fields} => parses successfully', () => {
       const result = wardConfigContract.parse(
-        WardConfigStub({ only: ['lint', 'test'], glob: 'src/**', changed: true, verbose: true }),
+        WardConfigStub({ only: ['lint', 'unit'], changed: true, verbose: true }),
       );
 
       expect(result).toStrictEqual({
-        only: ['lint', 'test'],
-        glob: 'src/**',
+        only: ['lint', 'unit'],
         changed: true,
         verbose: true,
       });
@@ -54,8 +53,10 @@ describe('wardConfigContract', () => {
       expect(() => wardConfigContract.parse({ verbose: 'yes' })).toThrow(/Expected boolean/u);
     });
 
-    it('INVALID_GLOB: {glob: 123} => throws for non-string', () => {
-      expect(() => wardConfigContract.parse({ glob: 123 })).toThrow(/Expected string/u);
+    it('VALID_ONLY: {only: ["e2e"]} => parses e2e check type', () => {
+      const result = wardConfigContract.parse({ only: ['e2e'] });
+
+      expect(result).toStrictEqual({ only: ['e2e'] });
     });
   });
 
@@ -67,10 +68,10 @@ describe('wardConfigContract', () => {
     });
 
     it('VALID: {custom values} => creates ward config with overrides', () => {
-      const result = WardConfigStub({ only: ['e2e'], verbose: true });
+      const result = WardConfigStub({ only: ['unit'], verbose: true });
 
       expect(result).toStrictEqual({
-        only: ['e2e'],
+        only: ['unit'],
         verbose: true,
       });
     });

@@ -15,10 +15,10 @@ describe('checkTypeContract', () => {
       expect(result).toBe('typecheck');
     });
 
-    it('VALID: {value: "test"} => parses test', () => {
-      const result = checkTypeContract.parse('test');
+    it('VALID: {value: "unit"} => parses unit', () => {
+      const result = checkTypeContract.parse('unit');
 
-      expect(result).toBe('test');
+      expect(result).toBe('unit');
     });
 
     it('VALID: {value: "e2e"} => parses e2e', () => {
@@ -53,10 +53,16 @@ describe('checkTypeContract', () => {
       expect(result).toBe('lint');
     });
 
-    it('VALID: {value: "test"} => creates check type with custom value', () => {
-      const result = CheckTypeStub({ value: 'test' });
+    it('VALID: {value: "unit"} => creates check type with custom value', () => {
+      const result = CheckTypeStub({ value: 'unit' });
 
-      expect(result).toBe('test');
+      expect(result).toBe('unit');
+    });
+
+    it('VALID: {value: "e2e"} => creates check type with e2e value', () => {
+      const result = CheckTypeStub({ value: 'e2e' });
+
+      expect(result).toBe('e2e');
     });
   });
 });

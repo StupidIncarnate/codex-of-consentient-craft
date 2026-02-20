@@ -125,7 +125,6 @@ const testbed = installTestbedCreateBroker({
 - **Run tests only**: `npx dungeonmaster-ward run --only test`
 - **Run typecheck only**: `npx dungeonmaster-ward run --only typecheck`
 - **Run specific test file**: `npx dungeonmaster-ward run --only test -- path/to/file.test.ts`
-- **Lint with glob pattern**: `npx dungeonmaster-ward run --only lint --glob "*pattern*"`
 - **Get full error details after a failing run**: `npx dungeonmaster-ward list <run-id>`
 - **Build**: `npm run build`
 - **Start dev server**: `npm run dev`

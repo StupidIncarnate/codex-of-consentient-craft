@@ -23,10 +23,10 @@
     "build": "tsc",
     "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
-    "test": "jest",
+    "test": "dungeonmaster-ward run --only test",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "lint": "dungeonmaster-ward run --only lint",
+    "typecheck": "dungeonmaster-ward run --only typecheck",
     "ward": "dungeonmaster-ward run"
   },
   "dependencies": {

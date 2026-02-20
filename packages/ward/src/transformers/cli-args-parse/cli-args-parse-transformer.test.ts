@@ -36,15 +36,45 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
-  describe('--glob flag', () => {
-    it('VALID: {args: ["--glob", "*ward*"]} => returns config with glob', () => {
+  describe('--only test alias expansion', () => {
+    it('VALID: {args: ["--only", "test"]} => expands test to unit and e2e', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--glob' }), CliArgStub({ value: '*ward*' })],
+        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test' })],
       });
 
-      expect(result).toStrictEqual({ glob: '*ward*' });
+      expect(result).toStrictEqual({ only: ['unit', 'e2e'] });
+    });
+
+    it('VALID: {args: ["--only", "test,lint"]} => expands test and keeps lint', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test,lint' })],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit', 'e2e', 'lint'] });
+    });
+
+    it('VALID: {args: ["--only", "test,e2e"]} => deduplicates e2e after expansion', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test,e2e' })],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit', 'e2e'] });
+    });
+
+    it('VALID: {args: ["--only", "unit"]} => returns unit without expansion', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'unit' })],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit'] });
     });
   });
 
@@ -88,13 +118,13 @@ describe('cliArgsParseTransformer', () => {
       });
     });
 
-    it('VALID: {--only test -- file1 file2} => returns config with only and passthrough', () => {
+    it('VALID: {--only unit -- file1 file2} => returns config with only and passthrough', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
         args: [
           CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'test' }),
+          CliArgStub({ value: 'unit' }),
           CliArgStub({ value: '--' }),
           CliArgStub({ value: 'packages/ward/src/a.test.ts' }),
           CliArgStub({ value: 'packages/ward/src/b.test.ts' }),
@@ -102,7 +132,7 @@ describe('cliArgsParseTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        only: ['test'],
+        only: ['unit'],
         passthrough: ['packages/ward/src/a.test.ts', 'packages/ward/src/b.test.ts'],
       });
     });
@@ -129,16 +159,6 @@ describe('cliArgsParseTransformer', () => {
       ).toThrow(/Invalid enum value/u);
     });
 
-    it('EDGE: {args: ["--glob"]} => glob flag with no value is ignored', () => {
-      cliArgsParseTransformerProxy();
-
-      const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--glob' })],
-      });
-
-      expect(result).toStrictEqual({});
-    });
-
     it('EDGE: {args: ["--only"]} => only flag with no value is ignored', () => {
       cliArgsParseTransformerProxy();
 
@@ -158,8 +178,6 @@ describe('cliArgsParseTransformer', () => {
         args: [
           CliArgStub({ value: '--only' }),
           CliArgStub({ value: 'lint' }),
-          CliArgStub({ value: '--glob' }),
-          CliArgStub({ value: '*ward*' }),
           CliArgStub({ value: '--changed' }),
           CliArgStub({ value: '--verbose' }),
         ],
@@ -167,7 +185,6 @@ describe('cliArgsParseTransformer', () => {
 
       expect(result).toStrictEqual({
         only: ['lint'],
-        glob: '*ward*',
         changed: true,
         verbose: true,
       });

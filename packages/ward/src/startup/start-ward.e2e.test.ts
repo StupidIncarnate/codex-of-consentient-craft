@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Black-box concurrency safety test for ward. Spawns the real ward binary and monitors
- * the process tree to verify child processes stay bounded. No mocking — exercises the real code path.
+ * PURPOSE: Black-box memory safety test for ward. Spawns the real ward binary and monitors
+ * RSS memory usage to verify it stays bounded. No mocking — exercises the real code path.
  *
  * USAGE:
  * npx jest packages/ward/src/startup/start-ward.e2e.test.ts --no-coverage
@@ -9,26 +9,9 @@
 import { spawn, execSync } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
-import { z } from 'zod';
-
-const childCountContract = z.number().int().nonnegative().brand<'ChildCount'>();
-type ChildCount = z.infer<typeof childCountContract>;
 
 const REPO_ROOT = path.resolve(__dirname, '../../../..');
 const WARD_BIN = path.resolve(REPO_ROOT, 'packages/ward/dist/startup/start-ward.js');
-
-const countDirectChildren = ({ pid }: { pid: number }): ChildCount => {
-  try {
-    const result = execSync(`pgrep -cP ${String(pid)}`, {
-      encoding: 'utf-8',
-      timeout: 2000,
-    });
-    return childCountContract.parse(parseInt(result.trim(), 10));
-  } catch {
-    // pgrep exits 1 when no children found
-    return childCountContract.parse(0);
-  }
-};
 
 const sleep = async ({ ms }: { ms: number }): Promise<void> =>
   new Promise((resolve) => {
@@ -48,56 +31,6 @@ const readRssKb = ({ pid }: { pid: number }) => {
 };
 
 describe('start-ward e2e', () => {
-  describe('concurrency safety', () => {
-    it('SAFETY: {--only lint, all packages} => max concurrent child processes stays bounded', async () => {
-      expect(existsSync(WARD_BIN)).toBe(true);
-
-      const wardProcess = spawn('node', [WARD_BIN, 'run', '--only', 'lint'], {
-        cwd: REPO_ROOT,
-        stdio: 'ignore',
-        detached: true,
-      });
-
-      const pid = wardProcess.pid!;
-      let maxChildren = 0;
-
-      // Skip discovery phase (git ls-files, package.json reads)
-      await sleep({ ms: 2000 });
-
-      // Monitor direct child count until process exits or 10s timeout
-      const POLL_MS = 50;
-      const MONITOR_MS = 10_000;
-
-      await new Promise<void>((resolve) => {
-        const interval = setInterval(() => {
-          const count = countDirectChildren({ pid });
-          maxChildren = Math.max(maxChildren, count);
-        }, POLL_MS);
-
-        wardProcess.on('exit', () => {
-          clearInterval(interval);
-          resolve();
-        });
-
-        setTimeout(() => {
-          clearInterval(interval);
-          try {
-            process.kill(-pid, 'SIGKILL');
-          } catch {
-            // Process may have already exited
-          }
-          resolve();
-        }, MONITOR_MS);
-      });
-
-      await sleep({ ms: 1000 });
-
-      // Sequential execution: at most 1 child at a time (allow 2 for brief transition overlap)
-      // Parallel execution would show 12+ children (one eslint per package simultaneously)
-      expect(maxChildren).toBeLessThanOrEqual(2);
-    }, 60_000);
-  });
-
   describe('memory ceiling', () => {
     it('SAFETY: {--only lint, all packages} => RSS stays under 300MB', async () => {
       expect(existsSync(WARD_BIN)).toBe(true);

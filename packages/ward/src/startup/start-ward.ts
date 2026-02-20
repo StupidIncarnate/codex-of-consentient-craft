@@ -10,13 +10,7 @@
  * ward raw <run-id> <check-type>    // Shows raw output for a check
  */
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
-import {
-  absoluteFilePathContract,
-  exitCodeContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
-import { projectRootFindBroker } from '@dungeonmaster/shared/brokers';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { cliArgContract } from '../contracts/cli-arg/cli-arg-contract';
 import { runIdContract } from '../contracts/run-id/run-id-contract';
@@ -41,35 +35,19 @@ const COMMANDS = {
 
 export const StartWard = async ({ args }: { args: string[] }): Promise<void> => {
   const command = args[COMMAND_ARG_INDEX] ?? COMMANDS.run;
-  const cwd = absoluteFilePathContract.parse(process.cwd());
-  const startPath = filePathContract.parse(cwd);
-  const rootPath = await projectRootFindBroker({ startPath });
-  const resolvedRootPath = absoluteFilePathContract.parse(rootPath);
-
-  const gitResult = await childProcessSpawnCaptureAdapter({
-    command: 'git',
-    args: ['rev-parse', '--show-toplevel'],
-    cwd,
-  });
-
-  const gitRoot =
-    gitResult.exitCode === exitCodeContract.parse(0)
-      ? absoluteFilePathContract.parse(gitResult.output.trim())
-      : resolvedRootPath;
-
-  const isSubPackage = resolvedRootPath !== gitRoot;
+  const rootPath = absoluteFilePathContract.parse(process.cwd());
 
   if (command === COMMANDS.run) {
     const cliArgs = args.slice(FIRST_POSITIONAL_INDEX).map((arg) => cliArgContract.parse(arg));
     const config = cliArgsParseTransformer({ args: cliArgs });
-    await commandRunBroker({ config, rootPath: resolvedRootPath, isSubPackage, cwd });
+    await commandRunBroker({ config, rootPath });
     return;
   }
 
   if (command === COMMANDS.list) {
     const runIdArg = args[FIRST_POSITIONAL_INDEX];
     const runId = runIdArg ? runIdContract.parse(runIdArg) : undefined;
-    const loadArgs = runId ? { rootPath: resolvedRootPath, runId } : { rootPath: resolvedRootPath };
+    const loadArgs = runId ? { rootPath, runId } : { rootPath };
     await commandListBroker(loadArgs);
     return;
   }
@@ -88,8 +66,8 @@ export const StartWard = async ({ args }: { args: string[] }): Promise<void> => 
     const cliArgs = args.slice(SECOND_POSITIONAL_INDEX + 1).map((arg) => cliArgContract.parse(arg));
     const flags = cliArgsParseTransformer({ args: cliArgs });
     const detailArgs = flags.verbose
-      ? { rootPath: resolvedRootPath, runId, filePath, verbose: flags.verbose }
-      : { rootPath: resolvedRootPath, runId, filePath };
+      ? { rootPath, runId, filePath, verbose: flags.verbose }
+      : { rootPath, runId, filePath };
     await commandDetailBroker(detailArgs);
     return;
   }
@@ -105,7 +83,7 @@ export const StartWard = async ({ args }: { args: string[] }): Promise<void> => 
 
     const runId = runIdContract.parse(runIdArg);
     const checkType = checkTypeContract.parse(checkTypeArg);
-    await commandRawBroker({ rootPath: resolvedRootPath, runId, checkType });
+    await commandRawBroker({ rootPath, runId, checkType });
     return;
   }
 
@@ -113,7 +91,9 @@ export const StartWard = async ({ args }: { args: string[] }): Promise<void> => 
   process.stderr.write('Available commands: run, list, detail, raw\n');
 };
 
-const isDirectExecution = process.argv[1] !== undefined && __filename.includes('start-ward');
+const isDirectExecution =
+  process.argv[1]?.includes('start-ward') === true ||
+  process.argv[1]?.includes('dungeonmaster-ward') === true;
 
 if (isDirectExecution) {
   StartWard({ args: process.argv }).catch((error: unknown) => {

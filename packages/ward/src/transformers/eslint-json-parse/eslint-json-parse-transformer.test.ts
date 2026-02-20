@@ -223,5 +223,34 @@ describe('eslintJsonParseTransformer', () => {
 
       expect(result).toStrictEqual([]);
     });
+
+    it('EDGE: {fatal error with no line/column} => returns ErrorEntry with line=0 column=0', () => {
+      const jsonOutput = JSON.stringify([
+        {
+          filePath: '/path/file.ts',
+          messages: [
+            {
+              ruleId: null,
+              severity: 2,
+              message: 'Parsing error: Unexpected token',
+              line: null,
+              column: null,
+            },
+          ],
+        },
+      ]);
+
+      const result = eslintJsonParseTransformer({ jsonOutput });
+
+      expect(result).toStrictEqual([
+        ErrorEntryStub({
+          filePath: '/path/file.ts',
+          line: 0,
+          column: 0,
+          message: 'Parsing error: Unexpected token',
+          severity: 'error',
+        }),
+      ]);
+    });
   });
 });

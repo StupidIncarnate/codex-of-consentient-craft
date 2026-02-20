@@ -1,29 +1,35 @@
-import { orchestrateRunAllBrokerProxy } from '../../orchestrate/run-all/orchestrate-run-all-broker.proxy';
+import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
+import { commandRunLayerFolderBrokerProxy } from './command-run-layer-folder-broker.proxy';
+import { commandRunLayerSingleBrokerProxy } from './command-run-layer-single-broker.proxy';
+import { commandRunLayerMultiBrokerProxy } from './command-run-layer-multi-broker.proxy';
 
 export const commandRunBrokerProxy = (): {
-  setupPassingRun: (params: {
-    gitOutput: string;
-    packageContents: string[];
-    checkCount: number;
-  }) => void;
+  setupSinglePackagePass: () => void;
+  setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
 } => {
   jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
   jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
   jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
-  const orchestrateProxy = orchestrateRunAllBrokerProxy();
+  const workspaceProxy = workspaceDiscoverBrokerProxy();
+  const folderProxy = commandRunLayerFolderBrokerProxy();
+  const singleProxy = commandRunLayerSingleBrokerProxy();
+  const multiProxy = commandRunLayerMultiBrokerProxy();
 
   return {
-    setupPassingRun: ({
-      gitOutput,
-      packageContents,
-      checkCount,
+    setupSinglePackagePass: (): void => {
+      workspaceProxy.setupSinglePackage();
+      folderProxy.setupReturnsPackage({ name: 'test-pkg' });
+      singleProxy.setupAllChecksPass();
+    },
+    setupMultiPackagePass: ({
+      packageCount,
+      subResultContent,
     }: {
-      gitOutput: string;
-      packageContents: string[];
-      checkCount: number;
+      packageCount: number;
+      subResultContent: string;
     }): void => {
-      orchestrateProxy.setupDefaultRun({ gitOutput, packageContents, checkCount });
+      multiProxy.setupSpawnAndLoad({ packageCount, subResultContent });
     },
   };
 };

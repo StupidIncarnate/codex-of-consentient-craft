@@ -5,13 +5,12 @@ describe('runFiltersContract', () => {
   describe('valid inputs', () => {
     it('VALID: {all fields} => parses successfully', () => {
       const result = runFiltersContract.parse(
-        RunFiltersStub({ glob: 'packages/ward/**', changed: true, only: ['lint', 'test'] }),
+        RunFiltersStub({ changed: true, only: ['lint', 'unit'] }),
       );
 
       expect(result).toStrictEqual({
-        glob: 'packages/ward/**',
         changed: true,
-        only: ['lint', 'test'],
+        only: ['lint', 'unit'],
       });
     });
 
@@ -19,12 +18,6 @@ describe('runFiltersContract', () => {
       const result = runFiltersContract.parse({});
 
       expect(result).toStrictEqual({});
-    });
-
-    it('VALID: {only glob} => parses with single field', () => {
-      const result = runFiltersContract.parse({ glob: 'src/**' });
-
-      expect(result).toStrictEqual({ glob: 'src/**' });
     });
 
     it('VALID: {only changed} => parses boolean filter', () => {
@@ -72,11 +65,11 @@ describe('runFiltersContract', () => {
     });
 
     it('VALID: {custom values} => creates run filters with overrides', () => {
-      const result = RunFiltersStub({ glob: 'test/**', changed: true });
+      const result = RunFiltersStub({ changed: true, only: ['lint'] });
 
       expect(result).toStrictEqual({
-        glob: 'test/**',
         changed: true,
+        only: ['lint'],
       });
     });
   });

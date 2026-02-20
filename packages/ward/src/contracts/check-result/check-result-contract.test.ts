@@ -91,11 +91,11 @@ describe('checkResultContract', () => {
     });
 
     it('VALID: {custom checkType} => creates check result with override', () => {
-      const result = CheckResultStub({ checkType: 'e2e', status: 'skip' });
+      const result = CheckResultStub({ checkType: 'unit', status: 'fail' });
 
       expect(result).toStrictEqual({
-        checkType: 'e2e',
-        status: 'skip',
+        checkType: 'unit',
+        status: 'fail',
         projectResults: [],
       });
     });

@@ -6,8 +6,15 @@
  * // Returns ProjectResult with parsed TypeScript errors, filtered by fileList when provided
  */
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
-import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
+import {
+  childProcessSpawnCaptureAdapter,
+  fsExistsSyncAdapter,
+} from '@dungeonmaster/shared/adapters';
+import {
+  absoluteFilePathContract,
+  exitCodeContract,
+  filePathContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -18,7 +25,6 @@ import {
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { tscOutputParseTransformer } from '../../../transformers/tsc-output-parse/tsc-output-parse-transformer';
-import { globResolveBroker } from '../../glob/resolve/glob-resolve-broker';
 
 export const checkRunTypecheckBroker = async ({
   projectFolder,
@@ -27,6 +33,22 @@ export const checkRunTypecheckBroker = async ({
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
 }): Promise<ProjectResult> => {
+  const tsconfigPath = filePathContract.parse(`${projectFolder.path}/tsconfig.json`);
+  if (!fsExistsSyncAdapter({ filePath: tsconfigPath })) {
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'skip',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: 'no tsconfig.json',
+        exitCode: exitCodeContract.parse(0),
+      }),
+    });
+  }
+
   const { command, args } = checkCommandsStatics.typecheck;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
 
@@ -39,7 +61,15 @@ export const checkRunTypecheckBroker = async ({
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
-  const allErrors = status === 'fail' ? tscOutputParseTransformer({ output: result.output }) : [];
+  let allErrors: ReturnType<typeof tscOutputParseTransformer> = [];
+
+  if (status === 'fail') {
+    try {
+      allErrors = tscOutputParseTransformer({ output: result.output });
+    } catch {
+      allErrors = [];
+    }
+  }
 
   const fileSet = new Set(fileList.map(String));
   const errors =
@@ -47,13 +77,11 @@ export const checkRunTypecheckBroker = async ({
       ? allErrors.filter((entry) => fileSet.has(String(entry.filePath)))
       : allErrors;
 
-  const filteredStatus = errors.length > 0 ? 'fail' : 'pass';
+  const filteredStatus = fileList.length > 0 && errors.length === 0 ? 'pass' : status;
 
-  const [tsFiles, tsxFiles] = await Promise.all([
-    globResolveBroker({ pattern: '**/*.ts', basePath: cwd }),
-    globResolveBroker({ pattern: '**/*.tsx', basePath: cwd }),
-  ]);
-  const filesCount = tsFiles.length + tsxFiles.length;
+  const filesCount = result.output
+    .split('\n')
+    .filter((line) => line.startsWith('/') && !line.includes('node_modules')).length;
 
   return projectResultContract.parse({
     projectFolder,
@@ -62,7 +90,7 @@ export const checkRunTypecheckBroker = async ({
     testFailures: [],
     filesCount,
     rawOutput: rawOutputContract.parse({
-      stdout: '',
+      stdout: result.output,
       stderr: '',
       exitCode,
     }),

@@ -102,7 +102,7 @@ describe('resultToListTransformer', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
-            checkType: 'test',
+            checkType: 'unit',
             status: 'fail',
             projectResults: [
               ProjectResultStub({
@@ -136,6 +136,37 @@ describe('resultToListTransformer', () => {
     });
   });
 
+  describe('line zero errors', () => {
+    it('VALID: {wardResult: lint error with line=0} => omits line number from output', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [
+                  ErrorEntryStub({
+                    filePath: 'src/broken.ts',
+                    line: 0,
+                    column: 0,
+                    message: 'Parsing error: Unexpected token',
+                    severity: 'error',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToListTransformer({ wardResult });
+
+      expect(result).toBe(WardErrorListStub({ value: 'src/broken.ts\n  lint' }));
+    });
+  });
+
   describe('mixed errors and failures across files', () => {
     it('VALID: {wardResult: lint + test errors in different files} => groups all by file path', () => {
       const wardResult = WardResultStub({
@@ -158,7 +189,7 @@ describe('resultToListTransformer', () => {
             ],
           }),
           CheckResultStub({
-            checkType: 'test',
+            checkType: 'unit',
             status: 'fail',
             projectResults: [
               ProjectResultStub({

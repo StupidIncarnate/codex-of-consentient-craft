@@ -11,7 +11,6 @@ import { checkTypeContract } from '../check-type/check-type-contract';
 
 export const wardConfigContract = z.object({
   only: z.array(checkTypeContract).optional(),
-  glob: z.string().brand<'ConfigGlob'>().optional(),
   changed: z.boolean().optional(),
   verbose: z.boolean().optional(),
   passthrough: z.array(z.string().brand<'PassthroughArg'>()).optional(),

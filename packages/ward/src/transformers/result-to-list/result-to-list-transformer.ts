@@ -27,9 +27,8 @@ export const resultToListTransformer = ({
       for (const error of project.errors) {
         const existing = fileMap.get(error.filePath) ?? [];
         const rulePart = error.rule ? ` ${error.rule}` : '';
-        existing.push(
-          `  ${check.checkType}${rulePart} (line ${String(error.line)})` as ErrorEntry['message'],
-        );
+        const linePart = error.line === 0 ? '' : ` (line ${String(error.line)})`;
+        existing.push(`  ${check.checkType}${rulePart}${linePart}` as ErrorEntry['message']);
         fileMap.set(error.filePath, existing);
       }
 
