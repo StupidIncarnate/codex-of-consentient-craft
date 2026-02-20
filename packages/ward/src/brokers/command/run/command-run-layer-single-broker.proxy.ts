@@ -8,9 +8,14 @@ import { storagePruneBrokerProxy } from '../../storage/prune/storage-prune-broke
 
 export const commandRunLayerSingleBrokerProxy = (): {
   setupAllChecksPass: () => void;
+  setupLintOnlyPass: () => void;
+  setupLintOnlyFail: (params: { stdout: string }) => void;
+  setupE2eOnlySkip: () => void;
+  getStderrCalls: () => unknown[];
 } => {
   jest.spyOn(Date, 'now').mockReturnValue(runIdMockStatics.timestamp);
   jest.spyOn(Math, 'random').mockReturnValue(runIdMockStatics.randomValue);
+  const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
   const lintProxy = checkRunLintBrokerProxy();
   const typecheckProxy = checkRunTypecheckBrokerProxy();
@@ -28,5 +33,21 @@ export const commandRunLayerSingleBrokerProxy = (): {
       saveProxy.setupSuccess();
       pruneProxy.setupEmpty();
     },
+    setupLintOnlyPass: (): void => {
+      lintProxy.setupPass();
+      saveProxy.setupSuccess();
+      pruneProxy.setupEmpty();
+    },
+    setupLintOnlyFail: ({ stdout }: { stdout: string }): void => {
+      lintProxy.setupFail({ stdout });
+      saveProxy.setupSuccess();
+      pruneProxy.setupEmpty();
+    },
+    setupE2eOnlySkip: (): void => {
+      e2eProxy.setupNoPlaywrightConfig();
+      saveProxy.setupSuccess();
+      pruneProxy.setupEmpty();
+    },
+    getStderrCalls: (): unknown[] => stderrSpy.mock.calls.map((call) => call[0]),
   };
 };

@@ -8,9 +8,11 @@ import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.p
 
 export const commandRunLayerMultiBrokerProxy = (): {
   setupSpawnAndLoad: (params: { packageCount: number; subResultContent: string }) => void;
+  getStderrCalls: () => unknown[];
 } => {
   jest.spyOn(Date, 'now').mockReturnValue(runIdMockStatics.timestamp);
   jest.spyOn(Math, 'random').mockReturnValue(runIdMockStatics.randomValue);
+  const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const saveProxy = storageSaveBrokerProxy();
@@ -36,5 +38,6 @@ export const commandRunLayerMultiBrokerProxy = (): {
       saveProxy.setupSuccess();
       pruneProxy.setupEmpty();
     },
+    getStderrCalls: (): unknown[] => stderrSpy.mock.calls.map((call) => call[0]),
   };
 };

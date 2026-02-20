@@ -51,11 +51,35 @@ export const commandRunLayerSingleBroker = async ({
     ? (config.passthrough ?? []).map((arg) => gitRelativePathContract.parse(arg))
     : [];
 
+  const CHECK_PAD = 12;
+  const NAME_PAD = 20;
+
   const checks = await checkTypes.reduce(
     async (accPromise, checkType) => {
       const acc = await accPromise;
       const runner = CHECK_RUNNERS[checkType];
+
+      process.stderr.write(
+        `${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} running...\r`,
+      );
+
       const projectResult = await runner({ projectFolder, fileList });
+
+      if (projectResult.status === 'skip') {
+        process.stderr.write(`\x1b[K`);
+      } else {
+        const failCount = projectResult.errors.length + projectResult.testFailures.length;
+        const statusLabel = projectResult.status === 'pass' ? 'PASS' : 'FAIL';
+        const detail =
+          failCount > 0
+            ? `${String(projectResult.filesCount)} files, ${String(failCount)} errors`
+            : `${String(projectResult.filesCount)} files`;
+
+        process.stderr.write(
+          `\x1b[K${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} ${statusLabel}  ${detail}\n`,
+        );
+      }
+
       return [...acc, checkResultBuildTransformer({ checkType, projectResults: [projectResult] })];
     },
     Promise.resolve([] as ReturnType<typeof checkResultBuildTransformer>[]),

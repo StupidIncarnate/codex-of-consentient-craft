@@ -50,17 +50,41 @@ export const commandRunLayerMultiBroker = async ({
     spawnArgs.push('--', ...config.passthrough.map(String));
   }
 
-  await Promise.all(
-    projectFolders.map(async (folder) => {
-      const cwd = absoluteFilePathContract.parse(folder.path);
-      await childProcessSpawnCaptureAdapter({ command: 'npx', args: spawnArgs, cwd });
-    }),
-  );
+  const CHECK_PAD = 12;
+  const NAME_PAD = 20;
 
   const subResults = await Promise.all(
     projectFolders.map(async (folder) => {
+      const cwd = absoluteFilePathContract.parse(folder.path);
+      await childProcessSpawnCaptureAdapter({ command: 'npx', args: spawnArgs, cwd });
+
       const pkgRootPath = absoluteFilePathContract.parse(folder.path);
-      return storageLoadBroker({ rootPath: pkgRootPath });
+      const result = await storageLoadBroker({ rootPath: pkgRootPath });
+
+      if (result !== null) {
+        for (const check of result.checks) {
+          if (check.status === 'skip') {
+            continue;
+          }
+
+          const failCount = check.projectResults.reduce(
+            (sum, pr) => sum + pr.errors.length + pr.testFailures.length,
+            0,
+          );
+          const filesCount = check.projectResults.reduce((sum, pr) => sum + pr.filesCount, 0);
+          const statusLabel = check.status === 'pass' ? 'PASS' : 'FAIL';
+          const detail =
+            failCount > 0
+              ? `${String(filesCount)} files, ${String(failCount)} errors`
+              : `${String(filesCount)} files`;
+
+          process.stderr.write(
+            `${check.checkType.padEnd(CHECK_PAD)}${folder.name.padEnd(NAME_PAD)} ${statusLabel}  ${detail}\n`,
+          );
+        }
+      }
+
+      return result;
     }),
   );
 

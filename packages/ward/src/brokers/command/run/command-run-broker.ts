@@ -32,7 +32,7 @@ export const commandRunBroker = async ({
         })()
       : await commandRunLayerMultiBroker({ config, projectFolders: workspaces, rootPath });
 
-  process.stderr.write('\r\x1b[K');
+  process.stderr.write('\r\x1b[K\n');
   const summary = resultToSummaryTransformer({ wardResult, cwd: rootPath });
 
   process.stdout.write(`${summary}\n`);

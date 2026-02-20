@@ -352,7 +352,7 @@ describe('resultToSummaryTransformer', () => {
   });
 
   describe('skipped checks', () => {
-    it('VALID: {wardResult: test skip with stderr reason} => returns SKIP with reason', () => {
+    it('VALID: {wardResult: test skip} => omits skipped check from summary', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
@@ -376,38 +376,7 @@ describe('resultToSummaryTransformer', () => {
 
       expect(result).toBe(
         WardSummaryStub({
-          value: 'run: 1739625600000-a3f1\nunit:      SKIP  standards (no jest.config)',
-        }),
-      );
-    });
-  });
-
-  describe('skip edge cases', () => {
-    it('VALID: {wardResult: test skip with empty stderr} => shows skipped as fallback reason', () => {
-      const wardResult = WardResultStub({
-        checks: [
-          CheckResultStub({
-            checkType: 'unit',
-            status: 'skip',
-            projectResults: [
-              ProjectResultStub({
-                projectFolder: { name: 'standards', path: '/p/standards' },
-                status: 'skip',
-                rawOutput: { stdout: '', stderr: '', exitCode: 0 },
-              }),
-            ],
-          }),
-        ],
-      });
-
-      const result = resultToSummaryTransformer({
-        wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p/standards' }),
-      });
-
-      expect(result).toBe(
-        WardSummaryStub({
-          value: 'run: 1739625600000-a3f1\nunit:      SKIP  standards (skipped)',
+          value: 'run: 1739625600000-a3f1',
         }),
       );
     });
