@@ -3,10 +3,14 @@ import userEvent from '@testing-library/user-event';
 import {
   ContextStub,
   DependencyStepStub,
+  DesignDecisionStub,
+  FlowStub,
+  ObservableStub,
   OrchestrationStatusStub,
   QuestContractEntryStub,
   QuestStub,
   RequirementStub,
+  ToolingRequirementStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -40,7 +44,7 @@ describe('QuestDetailWidget', () => {
       expect(screen.getByText('Add Authentication')).toBeInTheDocument();
     });
 
-    it('VALID: {quest} => renders tabs', () => {
+    it('VALID: {quest} => renders plan section headers (requirements, decisions, flows, contexts)', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub();
 
@@ -59,10 +63,35 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
-      expect(screen.getByText('Overview')).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /Requirements/u })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /Steps/u })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /Contracts/u })).toBeInTheDocument();
+      expect(screen.getByText('REQUIREMENTS')).toBeInTheDocument();
+      expect(screen.getByText('DESIGN DECISIONS')).toBeInTheDocument();
+      expect(screen.getByText('FLOWS')).toBeInTheDocument();
+      expect(screen.getByText('CONTEXTS')).toBeInTheDocument();
+    });
+
+    it('VALID: {quest} => renders execution section headers (observables, steps, contracts, tooling)', () => {
+      QuestDetailWidgetProxy();
+      const quest: Quest = QuestStub();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestDetailWidget
+            quest={quest}
+            loading={false}
+            error={null}
+            onBack={jest.fn()}
+            onStartQuest={jest.fn()}
+            isRunning={false}
+            processStatus={null}
+            slotOutputs={new Map()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('OBSERVABLES')).toBeInTheDocument();
+      expect(screen.getByText('STEPS')).toBeInTheDocument();
+      expect(screen.getByText('CONTRACTS')).toBeInTheDocument();
+      expect(screen.getByText('TOOLING')).toBeInTheDocument();
     });
 
     it('VALID: {click back} => fires onBack', async () => {
@@ -184,7 +213,7 @@ describe('QuestDetailWidget', () => {
   });
 
   describe('empty array fields', () => {
-    it('EDGE: {quest with requirements: []} => renders without crash', () => {
+    it('EDGE: {quest with requirements: []} => renders section header with (0) count', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({ requirements: [] });
 
@@ -203,10 +232,11 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
+      expect(screen.getByText('REQUIREMENTS')).toBeInTheDocument();
       expect(screen.getByText(quest.title)).toBeInTheDocument();
     });
 
-    it('EDGE: {quest with steps: []} => renders without crash', () => {
+    it('EDGE: {quest with steps: []} => renders section header with (0) count', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({ steps: [] });
 
@@ -225,10 +255,11 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
+      expect(screen.getByText('STEPS')).toBeInTheDocument();
       expect(screen.getByText(quest.title)).toBeInTheDocument();
     });
 
-    it('EDGE: {quest with contracts: []} => renders without crash', () => {
+    it('EDGE: {quest with contracts: []} => renders section header with (0) count', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({ contracts: [] });
 
@@ -247,10 +278,11 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
+      expect(screen.getByText('CONTRACTS')).toBeInTheDocument();
       expect(screen.getByText(quest.title)).toBeInTheDocument();
     });
 
-    it('EDGE: {quest with contexts: []} => renders without crash', () => {
+    it('EDGE: {quest with contexts: []} => renders section header with (0) count', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({ contexts: [] });
 
@@ -269,10 +301,11 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
+      expect(screen.getByText('CONTEXTS')).toBeInTheDocument();
       expect(screen.getByText(quest.title)).toBeInTheDocument();
     });
 
-    it('EDGE: {quest with observables: []} => renders without crash', () => {
+    it('EDGE: {quest with observables: []} => renders section header with (0) count', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({ observables: [] });
 
@@ -291,6 +324,76 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
+      expect(screen.getByText('OBSERVABLES')).toBeInTheDocument();
+      expect(screen.getByText(quest.title)).toBeInTheDocument();
+    });
+
+    it('EDGE: {quest with designDecisions: []} => renders section header with (0) count', () => {
+      QuestDetailWidgetProxy();
+      const quest: Quest = QuestStub({ designDecisions: [] });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestDetailWidget
+            quest={quest}
+            loading={false}
+            error={null}
+            onBack={jest.fn()}
+            onStartQuest={jest.fn()}
+            isRunning={false}
+            processStatus={null}
+            slotOutputs={new Map()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('DESIGN DECISIONS')).toBeInTheDocument();
+      expect(screen.getByText(quest.title)).toBeInTheDocument();
+    });
+
+    it('EDGE: {quest with flows: []} => renders section header with (0) count', () => {
+      QuestDetailWidgetProxy();
+      const quest: Quest = QuestStub({ flows: [] });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestDetailWidget
+            quest={quest}
+            loading={false}
+            error={null}
+            onBack={jest.fn()}
+            onStartQuest={jest.fn()}
+            isRunning={false}
+            processStatus={null}
+            slotOutputs={new Map()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('FLOWS')).toBeInTheDocument();
+      expect(screen.getByText(quest.title)).toBeInTheDocument();
+    });
+
+    it('EDGE: {quest with toolingRequirements: []} => renders section header with (0) count', () => {
+      QuestDetailWidgetProxy();
+      const quest: Quest = QuestStub({ toolingRequirements: [] });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestDetailWidget
+            quest={quest}
+            loading={false}
+            error={null}
+            onBack={jest.fn()}
+            onStartQuest={jest.fn()}
+            isRunning={false}
+            processStatus={null}
+            slotOutputs={new Map()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('TOOLING')).toBeInTheDocument();
       expect(screen.getByText(quest.title)).toBeInTheDocument();
     });
   });
@@ -678,7 +781,7 @@ describe('QuestDetailWidget', () => {
   });
 
   describe('populated data rendering', () => {
-    it('VALID: {quest with 2 requirements} => renders requirements table with rows', async () => {
+    it('VALID: {quest with 2 requirements} => renders requirement names inline', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({
         requirements: [
@@ -702,37 +805,11 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
-      await userEvent.click(screen.getByRole('tab', { name: /Requirements/u }));
-
       expect(screen.getByText('Feature A')).toBeInTheDocument();
       expect(screen.getByText('Feature B')).toBeInTheDocument();
     });
 
-    it('VALID: {quest with 0 requirements} => renders "No requirements defined" message', async () => {
-      QuestDetailWidgetProxy();
-      const quest: Quest = QuestStub({ requirements: [] });
-
-      mantineRenderAdapter({
-        ui: (
-          <QuestDetailWidget
-            quest={quest}
-            loading={false}
-            error={null}
-            onBack={jest.fn()}
-            onStartQuest={jest.fn()}
-            isRunning={false}
-            processStatus={null}
-            slotOutputs={new Map()}
-          />
-        ),
-      });
-
-      await userEvent.click(screen.getByRole('tab', { name: /Requirements/u }));
-
-      expect(screen.getByText('No requirements defined')).toBeInTheDocument();
-    });
-
-    it('VALID: {quest with 2 steps} => renders steps table with rows', async () => {
+    it('VALID: {quest with 2 steps} => renders step names inline', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({
         steps: [
@@ -756,37 +833,11 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
-      await userEvent.click(screen.getByRole('tab', { name: /Steps/u }));
-
       expect(screen.getByText('Step Alpha')).toBeInTheDocument();
       expect(screen.getByText('Step Beta')).toBeInTheDocument();
     });
 
-    it('VALID: {quest with 0 steps} => renders "No steps defined" message', async () => {
-      QuestDetailWidgetProxy();
-      const quest: Quest = QuestStub({ steps: [] });
-
-      mantineRenderAdapter({
-        ui: (
-          <QuestDetailWidget
-            quest={quest}
-            loading={false}
-            error={null}
-            onBack={jest.fn()}
-            onStartQuest={jest.fn()}
-            isRunning={false}
-            processStatus={null}
-            slotOutputs={new Map()}
-          />
-        ),
-      });
-
-      await userEvent.click(screen.getByRole('tab', { name: /Steps/u }));
-
-      expect(screen.getByText('No steps defined')).toBeInTheDocument();
-    });
-
-    it('VALID: {quest with 2 contracts} => renders contracts table with rows', async () => {
+    it('VALID: {quest with 2 contracts} => renders contract names inline', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({
         contracts: [
@@ -816,37 +867,11 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
-      await userEvent.click(screen.getByRole('tab', { name: /Contracts/u }));
-
       expect(screen.getByText('LoginCredentials')).toBeInTheDocument();
       expect(screen.getByText('UserProfile')).toBeInTheDocument();
     });
 
-    it('VALID: {quest with 0 contracts} => renders "No contracts defined" message', async () => {
-      QuestDetailWidgetProxy();
-      const quest: Quest = QuestStub({ contracts: [] });
-
-      mantineRenderAdapter({
-        ui: (
-          <QuestDetailWidget
-            quest={quest}
-            loading={false}
-            error={null}
-            onBack={jest.fn()}
-            onStartQuest={jest.fn()}
-            isRunning={false}
-            processStatus={null}
-            slotOutputs={new Map()}
-          />
-        ),
-      });
-
-      await userEvent.click(screen.getByRole('tab', { name: /Contracts/u }));
-
-      expect(screen.getByText('No contracts defined')).toBeInTheDocument();
-    });
-
-    it('VALID: {quest with 3 contexts} => renders contexts card with list items', () => {
+    it('VALID: {quest with 3 contexts} => renders context names inline', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({
         contexts: [
@@ -876,47 +901,12 @@ describe('QuestDetailWidget', () => {
       expect(screen.getByText('Settings')).toBeInTheDocument();
     });
 
-    it('VALID: {quest with 0 contexts} => does not render contexts card', () => {
-      QuestDetailWidgetProxy();
-      const quest: Quest = QuestStub({ contexts: [] });
-
-      mantineRenderAdapter({
-        ui: (
-          <QuestDetailWidget
-            quest={quest}
-            loading={false}
-            error={null}
-            onBack={jest.fn()}
-            onStartQuest={jest.fn()}
-            isRunning={false}
-            processStatus={null}
-            slotOutputs={new Map()}
-          />
-        ),
-      });
-
-      const contextsElements = screen.getAllByText('Contexts');
-
-      expect(contextsElements).toStrictEqual([expect.any(HTMLElement) as HTMLElement]);
-    });
-
-    it('VALID: {quest with 3 requirements, 2 steps, 1 contract} => renders correct counts in tab labels', () => {
+    it('VALID: {quest with 2 design decisions} => renders decision titles inline', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({
-        requirements: [
-          RequirementStub({ id: 'a12ac10b-58cc-4372-a567-0e02b2c3d479', name: 'Req 1' }),
-          RequirementStub({ id: 'b12ac10b-58cc-4372-a567-0e02b2c3d479', name: 'Req 2' }),
-          RequirementStub({ id: 'c12ac10b-58cc-4372-a567-0e02b2c3d479', name: 'Req 3' }),
-        ],
-        steps: [
-          DependencyStepStub({ id: 'a5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b', name: 'Step 1' }),
-          DependencyStepStub({ id: 'b5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b', name: 'Step 2' }),
-        ],
-        contracts: [
-          QuestContractEntryStub({
-            id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Contract 1',
-          }),
+        designDecisions: [
+          DesignDecisionStub({ title: 'Use HS256' }),
+          DesignDecisionStub({ title: 'Store in SQLite' }),
         ],
       });
 
@@ -935,14 +925,89 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
-      expect(screen.getByRole('tab', { name: /^Requirements \(3\)$/u })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /^Steps \(2\)$/u })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /^Contracts \(1\)$/u })).toBeInTheDocument();
+      expect(screen.getByText('Use HS256')).toBeInTheDocument();
+      expect(screen.getByText('Store in SQLite')).toBeInTheDocument();
+    });
+
+    it('VALID: {quest with 1 flow} => renders flow name and entry point', () => {
+      QuestDetailWidgetProxy();
+      const quest: Quest = QuestStub({
+        flows: [FlowStub({ name: 'Login Flow', entryPoint: '/login' })],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestDetailWidget
+            quest={quest}
+            loading={false}
+            error={null}
+            onBack={jest.fn()}
+            onStartQuest={jest.fn()}
+            isRunning={false}
+            processStatus={null}
+            slotOutputs={new Map()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('Login Flow')).toBeInTheDocument();
+      expect(screen.getByText(/entry: \/login/u)).toBeInTheDocument();
+    });
+
+    it('VALID: {quest with 1 observable} => renders trigger text', () => {
+      QuestDetailWidgetProxy();
+      const quest: Quest = QuestStub({
+        observables: [ObservableStub({ trigger: 'User clicks login' })],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestDetailWidget
+            quest={quest}
+            loading={false}
+            error={null}
+            onBack={jest.fn()}
+            onStartQuest={jest.fn()}
+            isRunning={false}
+            processStatus={null}
+            slotOutputs={new Map()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('User clicks login')).toBeInTheDocument();
+    });
+
+    it('VALID: {quest with 1 tooling requirement} => renders tool name and package', () => {
+      QuestDetailWidgetProxy();
+      const quest: Quest = QuestStub({
+        toolingRequirements: [
+          ToolingRequirementStub({ name: 'JWT Library', packageName: 'jsonwebtoken' }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestDetailWidget
+            quest={quest}
+            loading={false}
+            error={null}
+            onBack={jest.fn()}
+            onStartQuest={jest.fn()}
+            isRunning={false}
+            processStatus={null}
+            slotOutputs={new Map()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('JWT Library')).toBeInTheDocument();
+      expect(screen.getByText('jsonwebtoken')).toBeInTheDocument();
     });
   });
 
   describe('detail rendering', () => {
-    it('EDGE: {requirement with no status field} => renders "pending" as default status', async () => {
+    it('EDGE: {requirement with no status field} => renders "PROPOSED" as default status', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({
         requirements: [
@@ -965,12 +1030,10 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
-      await userEvent.click(screen.getByRole('tab', { name: /Requirements/u }));
-
-      expect(screen.getByText('pending')).toBeInTheDocument();
+      expect(screen.getByText('PROPOSED')).toBeInTheDocument();
     });
 
-    it('VALID: {step with 1 dependency} => renders "1 dep"', async () => {
+    it('VALID: {step with 1 dependency} => renders "1 dep"', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({
         steps: [
@@ -997,12 +1060,10 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
-      await userEvent.click(screen.getByRole('tab', { name: /Steps/u }));
-
       expect(screen.getByText('1 dep')).toBeInTheDocument();
     });
 
-    it('VALID: {step with 3 dependencies} => renders "3 deps"', async () => {
+    it('VALID: {step with 3 dependencies} => renders "3 deps"', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({
         steps: [
@@ -1033,12 +1094,10 @@ describe('QuestDetailWidget', () => {
         ),
       });
 
-      await userEvent.click(screen.getByRole('tab', { name: /Steps/u }));
-
       expect(screen.getByText('3 deps')).toBeInTheDocument();
     });
 
-    it('VALID: {step with 0 dependencies} => renders "None"', async () => {
+    it('VALID: {step with 0 dependencies} => renders "None"', () => {
       QuestDetailWidgetProxy();
       const quest: Quest = QuestStub({
         steps: [
@@ -1064,8 +1123,6 @@ describe('QuestDetailWidget', () => {
           />
         ),
       });
-
-      await userEvent.click(screen.getByRole('tab', { name: /Steps/u }));
 
       expect(screen.getByText('None')).toBeInTheDocument();
     });
@@ -1111,6 +1168,49 @@ describe('QuestDetailWidget', () => {
       });
 
       expect(container.querySelector('.mantine-Loader-root')).toBeInTheDocument();
+    });
+  });
+
+  describe('section counts in summary card', () => {
+    it('VALID: {quest with various counts} => renders correct counts in summary card', () => {
+      QuestDetailWidgetProxy();
+      const quest: Quest = QuestStub({
+        requirements: [
+          RequirementStub({ id: 'a12ac10b-58cc-4372-a567-0e02b2c3d479', name: 'Req 1' }),
+          RequirementStub({ id: 'b12ac10b-58cc-4372-a567-0e02b2c3d479', name: 'Req 2' }),
+          RequirementStub({ id: 'c12ac10b-58cc-4372-a567-0e02b2c3d479', name: 'Req 3' }),
+        ],
+        steps: [
+          DependencyStepStub({ id: 'a5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b', name: 'Step 1' }),
+          DependencyStepStub({ id: 'b5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b', name: 'Step 2' }),
+        ],
+        contracts: [
+          QuestContractEntryStub({
+            id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'Contract 1',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestDetailWidget
+            quest={quest}
+            loading={false}
+            error={null}
+            onBack={jest.fn()}
+            onStartQuest={jest.fn()}
+            isRunning={false}
+            processStatus={null}
+            slotOutputs={new Map()}
+          />
+        ),
+      });
+
+      expect(screen.getByText('Summary')).toBeInTheDocument();
+      expect(screen.getByText('Req 1')).toBeInTheDocument();
+      expect(screen.getByText('Step 1')).toBeInTheDocument();
+      expect(screen.getByText('Contract 1')).toBeInTheDocument();
     });
   });
 });
