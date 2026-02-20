@@ -7,8 +7,26 @@ import { spawn as _spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import { PassThrough } from 'stream';
 import type { ChildProcess } from 'child_process';
-import type { StartOrchestrator as _StartOrchestrator } from '@dungeonmaster/orchestrator';
 
+jest.mock('@dungeonmaster/orchestrator', () => ({
+  __esModule: true,
+  ...jest.requireActual('@dungeonmaster/orchestrator'),
+  StartOrchestrator: {
+    listGuilds: jest.fn(),
+    addGuild: jest.fn(),
+    getGuild: jest.fn(),
+    updateGuild: jest.fn(),
+    removeGuild: jest.fn(),
+    browseDirectories: jest.fn(),
+    listQuests: jest.fn(),
+    getQuest: jest.fn(),
+    addQuest: jest.fn(),
+    modifyQuest: jest.fn(),
+    verifyQuest: jest.fn(),
+    startQuest: jest.fn(),
+    getQuestStatus: jest.fn(),
+  },
+}));
 jest.mock('glob', () => ({
   glob: jest.fn().mockResolvedValue([]),
 }));
@@ -26,17 +44,6 @@ jest.mock('child_process', () => ({
   ...jest.requireActual('child_process'),
   spawn: jest.fn(),
 }));
-jest.mock('@dungeonmaster/orchestrator', () => {
-  const actual = jest.requireActual('@dungeonmaster/orchestrator');
-  const realOrchestrator: typeof _StartOrchestrator = actual.StartOrchestrator;
-
-  return {
-    ...actual,
-    StartOrchestrator: Object.fromEntries(
-      Object.keys(realOrchestrator).map((key) => [key, jest.fn()]),
-    ),
-  };
-});
 
 import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/testing';
 import { architectureFolderDetailBrokerProxy } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
@@ -158,7 +165,9 @@ export const StartServerProxy = (): {
   const startQuestProxy = orchestratorStartQuestAdapterProxy();
   const getQuestStatusProxy = orchestratorGetQuestStatusAdapterProxy();
 
+  jest.useFakeTimers();
   StartServer();
+  jest.useRealTimers();
 
   wsProxy.simulateConnection({ client: broadcastProxy.captureClient });
 

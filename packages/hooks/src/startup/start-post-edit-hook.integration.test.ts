@@ -8,8 +8,8 @@ import { WriteToolInputStub } from '../contracts/write-tool-input/write-tool-inp
 import { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
-// Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
-const tempRoot = path.join(process.cwd(), 'src', '.test-tmp', 'post-edit-tests');
+// Using _test-workspace (NOT .test-tmp which is ESLint-ignored, and no dot-prefix which ESLint globs skip)
+const tempRoot = path.join(process.cwd(), 'src', '_test-workspace', 'post-edit-tests');
 const hookPath = path.join(process.cwd(), 'src', 'startup', 'start-post-edit-hook.ts');
 
 // Track directories created in each test for proper cleanup (prevents parallel test interference)
