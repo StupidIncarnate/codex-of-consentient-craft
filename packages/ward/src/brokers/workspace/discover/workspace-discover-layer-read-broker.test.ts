@@ -5,7 +5,7 @@ import { workspaceDiscoverLayerReadBrokerProxy } from './workspace-discover-laye
 
 describe('workspaceDiscoverLayerReadBroker', () => {
   describe('valid package', () => {
-    it('VALID: {valid package.json with name} => returns ProjectFolder', async () => {
+    it('VALID: {valid package.json with name and src/} => returns ProjectFolder', async () => {
       const proxy = workspaceDiscoverLayerReadBrokerProxy();
       proxy.setupReturnsPackage({ name: '@dungeonmaster/ward' });
 
@@ -52,6 +52,25 @@ describe('workspaceDiscoverLayerReadBroker', () => {
       });
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('no src directory', () => {
+    it('EDGE: {valid package but no src/} => returns null and warns', async () => {
+      const proxy = workspaceDiscoverLayerReadBrokerProxy();
+      proxy.setupReturnsPackageNoSrc({ name: '@dungeonmaster/standards' });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+
+      const result = await workspaceDiscoverLayerReadBroker({
+        fullPath: '/project/packages/standards',
+        rootPath,
+      });
+
+      expect(result).toBeNull();
+      expect(proxy.getStderrOutput()).toHaveBeenCalledWith(
+        'ward: skipping @dungeonmaster/standards (no src/ directory)\n',
+      );
     });
   });
 });

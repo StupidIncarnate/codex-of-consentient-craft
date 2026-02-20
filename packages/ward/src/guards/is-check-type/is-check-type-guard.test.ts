@@ -15,7 +15,7 @@ describe('isCheckTypeGuard', () => {
     });
 
     it('VALID: {value: "test"} => returns true', () => {
-      const result = isCheckTypeGuard({ value: 'test' });
+      const result = isCheckTypeGuard({ value: 'unit' });
 
       expect(result).toBe(true);
     });

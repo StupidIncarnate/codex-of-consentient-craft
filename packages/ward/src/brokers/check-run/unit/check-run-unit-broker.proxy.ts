@@ -1,7 +1,7 @@
 import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
-export const checkRunTestBrokerProxy = (): {
+export const checkRunUnitBrokerProxy = (): {
   setupPass: () => void;
   setupPassWithOutput: (params: { stdout: string }) => void;
   setupFail: (params: { stdout: string }) => void;

@@ -20,14 +20,16 @@ import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/
 import { checkResultBuildTransformer } from '../../../transformers/check-result-build/check-result-build-transformer';
 import { checkRunLintBroker } from '../../check-run/lint/check-run-lint-broker';
 import { checkRunTypecheckBroker } from '../../check-run/typecheck/check-run-typecheck-broker';
-import { checkRunTestBroker } from '../../check-run/test/check-run-test-broker';
+import { checkRunUnitBroker } from '../../check-run/unit/check-run-unit-broker';
+import { checkRunE2eBroker } from '../../check-run/e2e/check-run-e2e-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
 import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
 
 const CHECK_RUNNERS = {
   lint: checkRunLintBroker,
   typecheck: checkRunTypecheckBroker,
-  test: checkRunTestBroker,
+  unit: checkRunUnitBroker,
+  e2e: checkRunE2eBroker,
 } as const;
 
 export const commandRunLayerSingleBroker = async ({

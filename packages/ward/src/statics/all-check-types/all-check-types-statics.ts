@@ -6,4 +6,4 @@
  * // Returns ['lint', 'typecheck', 'test']
  */
 
-export const allCheckTypesStatics = ['lint', 'typecheck', 'test'] as const;
+export const allCheckTypesStatics = ['lint', 'typecheck', 'unit', 'e2e'] as const;

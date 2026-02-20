@@ -102,7 +102,7 @@ describe('resultToListTransformer', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
-            checkType: 'test',
+            checkType: 'unit',
             status: 'fail',
             projectResults: [
               ProjectResultStub({
@@ -189,7 +189,7 @@ describe('resultToListTransformer', () => {
             ],
           }),
           CheckResultStub({
-            checkType: 'test',
+            checkType: 'unit',
             status: 'fail',
             projectResults: [
               ProjectResultStub({

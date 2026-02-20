@@ -4,18 +4,18 @@ import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 
-import { checkRunTestBroker } from './check-run-test-broker';
-import { checkRunTestBrokerProxy } from './check-run-test-broker.proxy';
+import { checkRunUnitBroker } from './check-run-unit-broker';
+import { checkRunUnitBrokerProxy } from './check-run-unit-broker.proxy';
 
-describe('checkRunTestBroker', () => {
+describe('checkRunUnitBroker', () => {
   describe('passing tests', () => {
     it('VALID: {jest exits 0} => returns pass result with no test failures', async () => {
-      const proxy = checkRunTestBrokerProxy();
+      const proxy = checkRunUnitBrokerProxy();
       proxy.setupPass();
 
       const projectFolder = ProjectFolderStub();
 
-      const result = await checkRunTestBroker({
+      const result = await checkRunUnitBroker({
         projectFolder,
         fileList: [],
       });
@@ -38,7 +38,7 @@ describe('checkRunTestBroker', () => {
 
   describe('failing tests', () => {
     it('VALID: {jest exits 1 with failures} => returns fail result with parsed test failures', async () => {
-      const proxy = checkRunTestBrokerProxy();
+      const proxy = checkRunUnitBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [
           {
@@ -58,7 +58,7 @@ describe('checkRunTestBroker', () => {
 
       const projectFolder = ProjectFolderStub();
 
-      const result = await checkRunTestBroker({
+      const result = await checkRunUnitBroker({
         projectFolder,
         fileList: [],
       });
@@ -83,12 +83,12 @@ describe('checkRunTestBroker', () => {
 
   describe('unparseable output', () => {
     it('VALID: {jest exits 1 with non-JSON output} => returns fail result with empty test failures', async () => {
-      const proxy = checkRunTestBrokerProxy();
+      const proxy = checkRunUnitBrokerProxy();
       proxy.setupFailWithBadOutput();
 
       const projectFolder = ProjectFolderStub();
 
-      const result = await checkRunTestBroker({
+      const result = await checkRunUnitBroker({
         projectFolder,
         fileList: [],
       });
@@ -111,7 +111,7 @@ describe('checkRunTestBroker', () => {
 
   describe('filesCount', () => {
     it('VALID: {jest output with numTotalTestSuites} => returns filesCount from jest output', async () => {
-      const proxy = checkRunTestBrokerProxy();
+      const proxy = checkRunUnitBrokerProxy();
       const expectedSuiteCount = 3;
       const jestOutput = JSON.stringify({
         testResults: [
@@ -125,18 +125,18 @@ describe('checkRunTestBroker', () => {
 
       const projectFolder = ProjectFolderStub();
 
-      const result = await checkRunTestBroker({
+      const result = await checkRunUnitBroker({
         projectFolder,
         fileList: [],
       });
 
-      expect(result.filesCount).toBe(expectedSuiteCount);
+      expect(result.filesCount).toStrictEqual(expectedSuiteCount);
     });
   });
 
   describe('stderr contamination', () => {
-    it('VALID: {jest passes with ts-jest warnings on stderr} => returns correct filesCount', async () => {
-      const proxy = checkRunTestBrokerProxy();
+    it('VALID: {jest passes with ts-jest warnings on stderr} => returns pass with correct filesCount', async () => {
+      const proxy = checkRunUnitBrokerProxy();
       const expectedSuiteCount = 1;
       const jestOutput = JSON.stringify({
         testResults: [],
@@ -151,17 +151,30 @@ describe('checkRunTestBroker', () => {
 
       const projectFolder = ProjectFolderStub();
 
-      const result = await checkRunTestBroker({
+      const result = await checkRunUnitBroker({
         projectFolder,
         fileList: [],
       });
 
-      expect(result.filesCount).toBe(expectedSuiteCount);
-      expect(result.status).toBe('pass');
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: expectedSuiteCount,
+          rawOutput: RawOutputStub({
+            stdout: `${jestOutput}ts-jest[ts-compiler] (WARN) Unable to process file, falling back to original content`,
+            stderr: '',
+            exitCode: 0,
+          }),
+        }),
+      );
     });
 
-    it('VALID: {jest fails with stderr warnings} => returns parsed test failures', async () => {
-      const proxy = checkRunTestBrokerProxy();
+    it('VALID: {jest fails with stderr warnings} => returns fail with parsed test failures', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      const stderrText = 'ts-jest[ts-compiler] (WARN) Unable to process file';
       const jestOutput = JSON.stringify({
         testResults: [
           {
@@ -179,39 +192,62 @@ describe('checkRunTestBroker', () => {
       });
       proxy.setupFailWithStderr({
         stdout: jestOutput,
-        stderr: 'ts-jest[ts-compiler] (WARN) Unable to process file',
+        stderr: stderrText,
       });
 
       const projectFolder = ProjectFolderStub();
 
-      const result = await checkRunTestBroker({
+      const result = await checkRunUnitBroker({
         projectFolder,
         fileList: [],
       });
 
-      expect(result.status).toBe('fail');
-      expect(result.testFailures).toHaveLength(1);
-      expect(result.testFailures[0]?.testName).toBe('should work correctly');
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'fail',
+          errors: [],
+          testFailures: [
+            TestFailureStub({
+              suitePath: 'src/index.test.ts',
+              testName: 'should work correctly',
+              message: 'Expected true to be false',
+            }),
+          ],
+          rawOutput: RawOutputStub({
+            stdout: `${jestOutput}${stderrText}`,
+            stderr: '',
+            exitCode: 1,
+          }),
+        }),
+      );
     });
   });
 
   describe('file list filtering', () => {
     it('VALID: {fileList provided} => passes --findRelatedTests and --runInBand with files to jest', async () => {
-      const proxy = checkRunTestBrokerProxy();
+      const proxy = checkRunUnitBrokerProxy();
       proxy.setupPass();
 
       const projectFolder = ProjectFolderStub();
 
-      await checkRunTestBroker({
+      await checkRunUnitBroker({
         projectFolder,
         fileList: [GitRelativePathStub({ value: 'src/index.ts' })],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
-      expect(spawnedArgs).toContain('--findRelatedTests');
-      expect(spawnedArgs).toContain('--runInBand');
-      expect(spawnedArgs).toContain('src/index.ts');
+      expect(spawnedArgs).toStrictEqual([
+        'jest',
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--runInBand',
+        '--findRelatedTests',
+        'src/index.ts',
+      ]);
     });
   });
 });

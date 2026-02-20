@@ -93,7 +93,7 @@ describe('resultToSummaryTransformer', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
-            checkType: 'test',
+            checkType: 'unit',
             status: 'fail',
             projectResults: [
               ProjectResultStub({
@@ -125,7 +125,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\ntest:      FAIL  2 packages (18 files passed/2 files failed)  web (3), cli (1)\n\n--- test ---\nsrc/index.test.ts\n  FAIL "test1"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test2"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test3"\n    Expected true to be false\n/p/cli/src/index.ts\n  Unexpected any (line 10)',
+            'run: 1739625600000-a3f1\nunit:      FAIL  2 packages (18 files passed/2 files failed)  web (3), cli (1)\n\n--- unit ---\nsrc/index.test.ts\n  FAIL "test1"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test2"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test3"\n    Expected true to be false\n/p/cli/src/index.ts\n  Unexpected any (line 10)',
         }),
       );
     });
@@ -172,7 +172,7 @@ describe('resultToSummaryTransformer', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
-            checkType: 'test',
+            checkType: 'unit',
             status: 'fail',
             projectResults: [
               ProjectResultStub({
@@ -200,7 +200,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\ntest:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- test ---\nsrc/guard.test.ts\n  FAIL "should return false"\n    Expected: false',
+            'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- unit ---\nsrc/guard.test.ts\n  FAIL "should return false"\n    Expected: false',
         }),
       );
     });
@@ -321,7 +321,7 @@ describe('resultToSummaryTransformer', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
-            checkType: 'test',
+            checkType: 'unit',
             status: 'fail',
             projectResults: [
               ProjectResultStub({
@@ -345,7 +345,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\ntest:      FAIL  1 packages (5 files passed/0 files failed)  web (crash)\n\n--- test ---\nweb\n  (crash) FATAL ERROR: out of memory',
+            'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (5 files passed/0 files failed)  web (crash)\n\n--- unit ---\nweb\n  (crash) FATAL ERROR: out of memory',
         }),
       );
     });
@@ -356,7 +356,7 @@ describe('resultToSummaryTransformer', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
-            checkType: 'test',
+            checkType: 'unit',
             status: 'skip',
             projectResults: [
               ProjectResultStub({
@@ -376,7 +376,7 @@ describe('resultToSummaryTransformer', () => {
 
       expect(result).toBe(
         WardSummaryStub({
-          value: 'run: 1739625600000-a3f1\ntest:      SKIP  standards (no jest.config)',
+          value: 'run: 1739625600000-a3f1\nunit:      SKIP  standards (no jest.config)',
         }),
       );
     });
@@ -387,7 +387,7 @@ describe('resultToSummaryTransformer', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
-            checkType: 'test',
+            checkType: 'unit',
             status: 'skip',
             projectResults: [
               ProjectResultStub({
@@ -407,7 +407,7 @@ describe('resultToSummaryTransformer', () => {
 
       expect(result).toBe(
         WardSummaryStub({
-          value: 'run: 1739625600000-a3f1\ntest:      SKIP  standards (skipped)',
+          value: 'run: 1739625600000-a3f1\nunit:      SKIP  standards (skipped)',
         }),
       );
     });
@@ -429,7 +429,7 @@ describe('resultToSummaryTransformer', () => {
             ],
           }),
           CheckResultStub({
-            checkType: 'test',
+            checkType: 'unit',
             status: 'fail',
             projectResults: [
               ProjectResultStub({
@@ -462,7 +462,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (10 files passed/0 files failed)\ntest:      FAIL  1 packages (7 files passed/1 files failed)  cli (1)\ntypecheck: PASS  1 packages (2 files passed/0 files failed)\n\n--- test ---\nsrc/index.test.ts\n  FAIL "should return valid result"\n    Expected true to be false',
+            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (10 files passed/0 files failed)\nunit:      FAIL  1 packages (7 files passed/1 files failed)  cli (1)\ntypecheck: PASS  1 packages (2 files passed/0 files failed)\n\n--- unit ---\nsrc/index.test.ts\n  FAIL "should return valid result"\n    Expected true to be false',
         }),
       );
     });

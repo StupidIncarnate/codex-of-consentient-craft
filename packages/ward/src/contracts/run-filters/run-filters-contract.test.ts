@@ -5,12 +5,12 @@ describe('runFiltersContract', () => {
   describe('valid inputs', () => {
     it('VALID: {all fields} => parses successfully', () => {
       const result = runFiltersContract.parse(
-        RunFiltersStub({ changed: true, only: ['lint', 'test'] }),
+        RunFiltersStub({ changed: true, only: ['lint', 'unit'] }),
       );
 
       expect(result).toStrictEqual({
         changed: true,
-        only: ['lint', 'test'],
+        only: ['lint', 'unit'],
       });
     });
 

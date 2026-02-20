@@ -36,6 +36,48 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
+  describe('--only test alias expansion', () => {
+    it('VALID: {args: ["--only", "test"]} => expands test to unit and e2e', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test' })],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit', 'e2e'] });
+    });
+
+    it('VALID: {args: ["--only", "test,lint"]} => expands test and keeps lint', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test,lint' })],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit', 'e2e', 'lint'] });
+    });
+
+    it('VALID: {args: ["--only", "test,e2e"]} => deduplicates e2e after expansion', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test,e2e' })],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit', 'e2e'] });
+    });
+
+    it('VALID: {args: ["--only", "unit"]} => returns unit without expansion', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'unit' })],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit'] });
+    });
+  });
+
   describe('--changed flag', () => {
     it('VALID: {args: ["--changed"]} => returns config with changed true', () => {
       cliArgsParseTransformerProxy();
@@ -76,13 +118,13 @@ describe('cliArgsParseTransformer', () => {
       });
     });
 
-    it('VALID: {--only test -- file1 file2} => returns config with only and passthrough', () => {
+    it('VALID: {--only unit -- file1 file2} => returns config with only and passthrough', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
         args: [
           CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'test' }),
+          CliArgStub({ value: 'unit' }),
           CliArgStub({ value: '--' }),
           CliArgStub({ value: 'packages/ward/src/a.test.ts' }),
           CliArgStub({ value: 'packages/ward/src/b.test.ts' }),
@@ -90,7 +132,7 @@ describe('cliArgsParseTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        only: ['test'],
+        only: ['unit'],
         passthrough: ['packages/ward/src/a.test.ts', 'packages/ward/src/b.test.ts'],
       });
     });

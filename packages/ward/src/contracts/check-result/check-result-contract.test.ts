@@ -91,10 +91,10 @@ describe('checkResultContract', () => {
     });
 
     it('VALID: {custom checkType} => creates check result with override', () => {
-      const result = CheckResultStub({ checkType: 'test', status: 'fail' });
+      const result = CheckResultStub({ checkType: 'unit', status: 'fail' });
 
       expect(result).toStrictEqual({
-        checkType: 'test',
+        checkType: 'unit',
         status: 'fail',
         projectResults: [],
       });

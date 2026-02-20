@@ -9,8 +9,6 @@
     "build": "npm run build --workspaces",
     "build:clean": "npm run build:clean --workspaces",
     "test": "dungeonmaster-ward run --only test",
-    "test:unit": "npm run test:unit --workspaces",
-    "test:e2e": "npm run test:e2e --workspace=@dungeonmaster/testing",
     "lint": "dungeonmaster-ward run --only lint",
     "typecheck": "dungeonmaster-ward run --only typecheck",
     "ward": "dungeonmaster-ward run",

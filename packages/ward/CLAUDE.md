@@ -2,7 +2,7 @@
 
 ## What This Package Does
 
-Ward is a quality orchestration CLI tool (`npx dungeonmaster-ward`) that runs lint, typecheck, and test checks. It
+Ward is a quality orchestration CLI tool (`npx dungeonmaster-ward`) that runs lint, typecheck, unit, and e2e checks. It
 operates in two modes depending on whether the current project has npm workspaces:
 
 - **Single-package mode** (no workspaces): Runs checks directly in the current working directory.
@@ -24,31 +24,53 @@ npx dungeonmaster-ward raw <run-id> <check-type>  # Show raw tool output for a c
 
 Running `npx dungeonmaster-ward` with no arguments is equivalent to `npx dungeonmaster-ward run`.
 
+## Check Types
+
+| Check Type | Tool       | Description                          |
+|------------|------------|--------------------------------------|
+| `lint`     | ESLint     | Linting with `--fix`                 |
+| `typecheck`| tsc        | TypeScript type checking             |
+| `unit`     | Jest       | Unit/integration tests               |
+| `e2e`      | Playwright | End-to-end browser tests             |
+| `test`     | *(alias)*  | Expands to `unit,e2e` (runs both)    |
+
+**`test` is a virtual alias**, not a real check type. `--only test` expands to `--only unit,e2e` during CLI parsing.
+Deduplication is automatic: `--only test,e2e` becomes `--only unit,e2e`.
+
 ## Flags
 
 All flags apply to the `run` subcommand. The `detail` subcommand also accepts `--verbose`.
 
-| Flag                          | Description                                                            |
-|-------------------------------|------------------------------------------------------------------------|
-| `--only lint,typecheck,test`  | Comma-separated list of check types to run. Omit to run all three.    |
-| `--changed`                   | Scope checks to files changed in git (uses `git diff`).               |
-| `-- file1 file2`              | Passthrough file list. Everything after `--` is treated as file paths. |
-| `--verbose`                   | Enable verbose output.                                                 |
+| Flag                               | Description                                                            |
+|------------------------------------|------------------------------------------------------------------------|
+| `--only lint,typecheck,unit,e2e`   | Comma-separated list of check types to run. Omit to run all four.      |
+| `--changed`                        | Scope checks to files changed in git (uses `git diff`).               |
+| `-- file1 file2`                   | Passthrough file list. Everything after `--` is treated as file paths. |
+| `--verbose`                        | Enable verbose output.                                                 |
 
 ## Common Invocation Patterns
 
 ```bash
-# Run all checks (lint, typecheck, test) across all packages
+# Run all checks (lint, typecheck, unit, e2e) across all packages
 npx dungeonmaster-ward run
 
 # Lint only
 npx dungeonmaster-ward run --only lint
 
-# Test a single file
-npx dungeonmaster-ward run --only test -- path/to/file.test.ts
+# Run all tests (unit + e2e)
+npx dungeonmaster-ward run --only test
+
+# Run only Jest unit tests
+npx dungeonmaster-ward run --only unit
+
+# Run only Playwright e2e tests
+npx dungeonmaster-ward run --only e2e
+
+# Test a single file (unit tests)
+npx dungeonmaster-ward run --only unit -- path/to/file.test.ts
 
 # Run multiple check types
-npx dungeonmaster-ward run --only lint,test
+npx dungeonmaster-ward run --only lint,unit
 
 # Lint only changed files
 npx dungeonmaster-ward run --only lint --changed
@@ -101,7 +123,11 @@ Ward spawns these commands per package:
 |------------|---------------------------------------|---------------------------------------------------------------------------------|
 | lint       | `npx eslint --format json .`          | `npx eslint --format json <file1> <file2> ...` (replaces `.` with file list)   |
 | typecheck  | `npx tsc --noEmit`                    | `npx tsc --noEmit` (unchanged, always full project)                             |
-| test       | `npx jest --json --no-color`          | `npx jest --json --no-color --runInBand --findRelatedTests <file1> <file2> ...` |
+| unit       | `npx jest --json --no-color`          | `npx jest --json --no-color --runInBand --findRelatedTests <file1> <file2> ...` |
+| e2e        | `npx playwright test --reporter=json` | `npx playwright test --reporter=json <file1> <file2> ...`                       |
+
+**E2e skip behavior:** The e2e broker checks for `playwright.config.ts` before spawning. If absent, it returns
+`status: 'skip'` — packages without Playwright tests are skipped gracefully.
 
 ## Architecture
 
@@ -114,7 +140,8 @@ start-ward.ts (entry point, routes subcommands)
       -> orchestrate-run-all-layer-check-broker (dispatches to the right check runner)
         -> check-run-lint-broker      (spawns eslint, parses JSON output)
         -> check-run-typecheck-broker (spawns tsc)
-        -> check-run-test-broker      (spawns jest, parses JSON output)
+        -> check-run-unit-broker      (spawns jest, parses JSON output)
+        -> check-run-e2e-broker       (spawns playwright, parses JSON output)
     -> storage-save-broker (persists WardResult to disk)
     -> storage-prune-broker (cleans old results)
 ```

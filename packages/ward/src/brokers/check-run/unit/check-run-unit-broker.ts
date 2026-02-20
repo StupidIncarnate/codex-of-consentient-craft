@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Runs Jest on a project folder and parses the JSON output into a ProjectResult
+ * PURPOSE: Runs Jest unit tests on a project folder and parses the JSON output into a ProjectResult
  *
  * USAGE:
- * const result = await checkRunTestBroker({ projectFolder: ProjectFolderStub(), fileList: [] });
+ * const result = await checkRunUnitBroker({ projectFolder: ProjectFolderStub(), fileList: [] });
  * // Returns ProjectResult with parsed Jest test failures
  */
 
@@ -20,14 +20,14 @@ import { checkCommandsStatics } from '../../../statics/check-commands/check-comm
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
 
-export const checkRunTestBroker = async ({
+export const checkRunUnitBroker = async ({
   projectFolder,
   fileList,
 }: {
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
 }): Promise<ProjectResult> => {
-  const { command, args } = checkCommandsStatics.test;
+  const { command, args } = checkCommandsStatics.unit;
   const finalArgs =
     fileList.length > 0 ? [...args, '--runInBand', '--findRelatedTests', ...fileList] : [...args];
 
