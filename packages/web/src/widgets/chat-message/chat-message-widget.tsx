@@ -9,7 +9,9 @@
 import { Box, Text } from '@mantine/core';
 
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 
 export interface ChatMessageWidgetProps {
   entry: ChatEntry;
@@ -97,7 +99,14 @@ export const ChatMessageWidget = ({
             data-testid="TOKEN_BADGE"
             style={{ color: colors['text-dim'], fontSize: 10 }}
           >
-            {entry.usage.inputTokens}/{entry.usage.outputTokens} tokens
+            {formatContextTokensTransformer({
+              count: contextTokenCountContract.parse(
+                Number(entry.usage.inputTokens) +
+                  Number(entry.usage.cacheCreationInputTokens) +
+                  Number(entry.usage.cacheReadInputTokens),
+              ),
+            })}{' '}
+            context ({entry.usage.outputTokens} out)
           </Text>
         ) : null}
       </Box>

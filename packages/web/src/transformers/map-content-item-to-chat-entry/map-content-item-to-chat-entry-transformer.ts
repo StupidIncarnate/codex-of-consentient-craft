@@ -7,6 +7,7 @@
  */
 import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
 import type { ChatEntry, ChatUsage } from '../../contracts/chat-entry/chat-entry-contract';
+import { normalizeAskUserQuestionInputTransformer } from '../normalize-ask-user-question-input/normalize-ask-user-question-input-transformer';
 
 export const mapContentItemToChatEntryTransformer = ({
   item,
@@ -30,12 +31,13 @@ export const mapContentItemToChatEntryTransformer = ({
 
   if (itemType === 'tool_use') {
     const name = typeof item.name === 'string' ? item.name : '';
+    const normalizedInput = normalizeAskUserQuestionInputTransformer({ name, input: item.input });
 
     return chatEntryContract.parse({
       role: 'assistant',
       type: 'tool_use',
       toolName: name,
-      toolInput: JSON.stringify(item.input ?? {}),
+      toolInput: JSON.stringify(normalizedInput),
     });
   }
 

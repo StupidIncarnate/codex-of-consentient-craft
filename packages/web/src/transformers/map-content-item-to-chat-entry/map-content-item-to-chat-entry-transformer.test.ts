@@ -1,3 +1,4 @@
+import { AskUserQuestionStub } from '../../contracts/ask-user-question/ask-user-question.stub';
 import { mapContentItemToChatEntryTransformer } from './map-content-item-to-chat-entry-transformer';
 
 describe('mapContentItemToChatEntryTransformer', () => {
@@ -65,6 +66,26 @@ describe('mapContentItemToChatEntryTransformer', () => {
         type: 'tool_use',
         toolName: 'read_file',
         toolInput: '{"path":"/test"}',
+      });
+    });
+
+    it('VALID: {type: "tool_use", AskUserQuestion with string questions} => normalizes questions to array', () => {
+      const stubData = AskUserQuestionStub();
+
+      const result = mapContentItemToChatEntryTransformer({
+        item: {
+          type: 'tool_use',
+          name: 'AskUserQuestion',
+          input: { questions: JSON.stringify(stubData.questions) },
+        },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolName: 'AskUserQuestion',
+        toolInput: JSON.stringify({ questions: stubData.questions }),
       });
     });
 

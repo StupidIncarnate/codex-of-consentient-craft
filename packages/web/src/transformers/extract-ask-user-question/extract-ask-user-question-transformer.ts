@@ -29,7 +29,9 @@ export const extractAskUserQuestionTransformer = ({
     ) {
       const parsed: unknown = JSON.parse(entry.toolInput);
 
-      return askUserQuestionContract.parse(parsed);
+      const result = askUserQuestionContract.safeParse(parsed);
+
+      return result.success ? result.data : null;
     }
   }
 

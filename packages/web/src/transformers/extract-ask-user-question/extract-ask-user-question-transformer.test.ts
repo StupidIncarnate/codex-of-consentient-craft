@@ -113,6 +113,25 @@ describe('extractAskUserQuestionTransformer', () => {
     });
   });
 
+  describe('invalid input', () => {
+    it('INVALID: {toolInput fails schema validation} => returns null', () => {
+      const invalidInput = JSON.stringify({
+        questions: 'not an array',
+      });
+
+      const result = extractAskUserQuestionTransformer({
+        entries: [
+          AssistantToolUseChatEntryStub({
+            toolName: 'AskUserQuestion' as never,
+            toolInput: invalidInput as never,
+          }),
+        ],
+      });
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe('no AskUserQuestion found', () => {
     it('VALID: {no AskUserQuestion entries} => returns null', () => {
       const result = extractAskUserQuestionTransformer({

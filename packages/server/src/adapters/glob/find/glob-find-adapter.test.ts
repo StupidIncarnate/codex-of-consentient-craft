@@ -4,6 +4,22 @@ import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.st
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('globFindAdapter', () => {
+  it('DEFENSIVE: {glob returns iterable non-array} => coerces to array and parses', async () => {
+    const adapterProxy = globFindAdapterProxy();
+    const pattern = GlobPatternStub({ value: '**/*.ts' });
+    const expectedFiles = [
+      FilePathStub({ value: '/home/project/src/file1.ts' }),
+      FilePathStub({ value: '/home/project/src/file2.ts' }),
+    ];
+
+    // Simulate glob v7 behavior: returns an iterable non-array object
+    adapterProxy.returnsNonArray({ pattern, files: expectedFiles });
+
+    const result = await globFindAdapter({ pattern });
+
+    expect(result).toStrictEqual(expectedFiles);
+  });
+
   it('VALID: {pattern: "**/*.ts"} => returns array of .ts files', async () => {
     const adapterProxy = globFindAdapterProxy();
     const pattern = GlobPatternStub({ value: '**/*.ts' });

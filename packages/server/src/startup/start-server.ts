@@ -666,10 +666,11 @@ export const StartServer = (): void => {
         chatProcessState.remove({ processId: chatProcessId });
 
         // Persist session BEFORE broadcasting chat-complete so clients see updated data on refresh
-        const persistPromise = extractedSessionId
+        const sessionIdToPersist = resumeSessionId ?? extractedSessionId;
+        const persistPromise = sessionIdToPersist
           ? questSessionPersistBroker({
               questId: questIdRaw,
-              sessionId: extractedSessionId,
+              sessionId: sessionIdToPersist,
               ...(typeof rawMessage === 'string'
                 ? { summary: rawMessage.slice(0, SUMMARY_MAX_LENGTH) }
                 : {}),
@@ -685,7 +686,7 @@ export const StartServer = (): void => {
                 payload: {
                   chatProcessId,
                   exitCode: code ?? 1,
-                  ...(extractedSessionId && { sessionId: extractedSessionId }),
+                  ...(sessionIdToPersist && { sessionId: sessionIdToPersist }),
                 },
                 timestamp: isoTimestampContract.parse(new Date().toISOString()),
               }),
@@ -929,10 +930,11 @@ export const StartServer = (): void => {
         chatProcessState.remove({ processId: chatProcessId });
 
         // Persist session BEFORE broadcasting chat-complete so clients see updated data on refresh
-        const persistPromise = extractedSessionId
+        const sessionIdToPersist = resumeSessionId ?? extractedSessionId;
+        const persistPromise = sessionIdToPersist
           ? guildSessionPersistBroker({
               guildId: guildIdRaw,
-              sessionId: extractedSessionId,
+              sessionId: sessionIdToPersist,
               ...(typeof rawMessage === 'string'
                 ? { summary: rawMessage.slice(0, SUMMARY_MAX_LENGTH) }
                 : {}),
@@ -948,7 +950,7 @@ export const StartServer = (): void => {
                 payload: {
                   chatProcessId,
                   exitCode: code ?? 1,
-                  ...(extractedSessionId && { sessionId: extractedSessionId }),
+                  ...(sessionIdToPersist && { sessionId: sessionIdToPersist }),
                 },
                 timestamp: isoTimestampContract.parse(new Date().toISOString()),
               }),

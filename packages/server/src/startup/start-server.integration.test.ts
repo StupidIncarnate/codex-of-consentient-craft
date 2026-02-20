@@ -431,6 +431,36 @@ describe('StartServer', () => {
     });
   });
 
+  describe('POST /api/discover', () => {
+    it('VALID: {type: "files"} => 200 with results string and numeric count', async () => {
+      const proxy = StartServerProxy();
+      const response = await proxy.request('/api/discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'files' }),
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(typeof Reflect.get(body as object, 'count')).toBe('number');
+      expect(Reflect.get(body as object, 'results')).toBeDefined();
+    });
+
+    it('VALID: {type: "files", path: "packages/server/src/transformers"} => 200 with results and count', async () => {
+      const proxy = StartServerProxy();
+      const response = await proxy.request('/api/discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'files', path: 'packages/server/src/transformers' }),
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(typeof Reflect.get(body as object, 'count')).toBe('number');
+      expect(Reflect.get(body as object, 'results')).toBeDefined();
+    });
+  });
+
   describe('POST /api/quests/:questId/chat (streaming)', () => {
     const STREAM_SETTLE_MS = 50;
 

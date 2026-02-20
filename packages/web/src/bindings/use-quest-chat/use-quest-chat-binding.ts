@@ -113,19 +113,19 @@ export const useQuestChatBinding = ({
 
   useEffect(() => {
     if (historyLoadedRef.current) return;
-    if (!chatSessions || chatSessions.length === 0) return;
+    if (!questId && !guildId) return;
 
-    const activeSession = chatSessions.find((session) => session.active);
-    if (!activeSession) return;
+    const targetSessionId = initialSessionId ?? chatSessions?.find((s) => s.active)?.sessionId;
+    if (!targetSessionId) return;
 
     historyLoadedRef.current = true;
-    sessionIdRef.current = activeSession.sessionId;
-    setCurrentSessionId(activeSession.sessionId);
+    sessionIdRef.current = targetSessionId;
+    setCurrentSessionId(targetSessionId);
 
     const historyPromise = questId
-      ? questChatHistoryBroker({ questId, sessionId: activeSession.sessionId })
+      ? questChatHistoryBroker({ questId, sessionId: targetSessionId })
       : guildId
-        ? guildChatHistoryBroker({ guildId, sessionId: activeSession.sessionId })
+        ? guildChatHistoryBroker({ guildId, sessionId: targetSessionId })
         : Promise.resolve([]);
 
     historyPromise
@@ -136,7 +136,7 @@ export const useQuestChatBinding = ({
         }
       })
       .catch(() => undefined);
-  }, [chatSessions, questId, guildId]);
+  }, [chatSessions, questId, guildId, initialSessionId]);
 
   const sendMessage = useCallback(
     ({ message }: { message: UserInput }): void => {

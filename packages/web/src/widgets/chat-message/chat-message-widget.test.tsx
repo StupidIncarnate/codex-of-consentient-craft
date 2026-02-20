@@ -102,7 +102,7 @@ describe('ChatMessageWidget', () => {
 
       const badge = screen.getByTestId('TOKEN_BADGE');
 
-      expect(badge.textContent).toBe('100/50 tokens');
+      expect(badge.textContent).toBe('100 context (50 out)');
       expect(badge.style.fontSize).toBe('10px');
 
       const message = screen.getByTestId('CHAT_MESSAGE');
