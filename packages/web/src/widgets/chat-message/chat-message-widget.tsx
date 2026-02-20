@@ -65,7 +65,7 @@ export const ChatMessageWidget = ({
         <Text ff="monospace" size="xs" fw={600} mb={2} style={{ color: colors['loot-gold'] }}>
           YOU
         </Text>
-        <Text ff="monospace" size="xs" style={{ color: colors.text }}>
+        <Text ff="monospace" size="xs" style={{ color: colors.text, whiteSpace: 'pre-wrap' }}>
           {entry.content}
         </Text>
       </Box>

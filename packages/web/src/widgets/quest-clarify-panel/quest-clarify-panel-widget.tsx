@@ -25,17 +25,24 @@ const OPTION_FONT_SIZE = 12;
 const OPTION_BORDER_RADIUS = 2;
 const OPTION_PADDING_Y = 8;
 
+export interface ClarifyAnswer {
+  header: AskUserQuestionItem['header'];
+  question: AskUserQuestionItem['question'];
+  label: AskUserQuestionOption['label'];
+}
+
 export const QuestClarifyPanelWidget = ({
   questions,
   questTitle,
-  onSelectOption,
+  onSubmitAnswers,
 }: {
   questions: AskUserQuestionItem[];
   questTitle: AskUserQuestionItem['question'];
-  onSelectOption: (params: { label: AskUserQuestionOption['label'] }) => void;
+  onSubmitAnswers: (params: { answers: ClarifyAnswer[] }) => void;
 }): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
-  const [currentQuestionIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [collectedAnswers, setCollectedAnswers] = useState<ClarifyAnswer[]>([]);
   const [showFreeform, setShowFreeform] = useState(false);
   const [freeformValue, setFreeformValue] = useState('' as FormInputValue);
 
@@ -88,7 +95,22 @@ export const QuestClarifyPanelWidget = ({
               px="sm"
               py={OPTION_PADDING_Y}
               onClick={(): void => {
-                onSelectOption({ label: opt.label });
+                const updated = [
+                  ...collectedAnswers,
+                  {
+                    header: currentQuestion.header,
+                    question: currentQuestion.question,
+                    label: opt.label,
+                  },
+                ];
+                if (currentQuestionIndex < questions.length - 1) {
+                  setCollectedAnswers(updated);
+                  setCurrentQuestionIndex(currentQuestionIndex + 1);
+                  setShowFreeform(false);
+                  setFreeformValue('' as FormInputValue);
+                } else {
+                  onSubmitAnswers({ answers: updated });
+                }
               }}
               style={{
                 fontFamily: 'monospace',
@@ -120,10 +142,24 @@ export const QuestClarifyPanelWidget = ({
               <PixelBtnWidget
                 label={'Send' as ButtonLabel}
                 onClick={(): void => {
-                  if (freeformValue.length > 0) {
-                    onSelectOption({
-                      label: freeformValue as unknown as AskUserQuestionOption['label'],
-                    });
+                  if (freeformValue.length > 0 && currentQuestion) {
+                    const freeLabel = freeformValue as unknown as AskUserQuestionOption['label'];
+                    const updated = [
+                      ...collectedAnswers,
+                      {
+                        header: currentQuestion.header,
+                        question: currentQuestion.question,
+                        label: freeLabel,
+                      },
+                    ];
+                    if (currentQuestionIndex < questions.length - 1) {
+                      setCollectedAnswers(updated);
+                      setCurrentQuestionIndex(currentQuestionIndex + 1);
+                      setShowFreeform(false);
+                      setFreeformValue('' as FormInputValue);
+                    } else {
+                      onSubmitAnswers({ answers: updated });
+                    }
                   }
                 }}
               />

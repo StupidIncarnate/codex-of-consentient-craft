@@ -153,8 +153,11 @@ export const QuestChatWidget = (): React.JSX.Element => {
               (questData?.title ??
                 '') as unknown as (typeof pendingQuestion.questions)[0]['question']
             }
-            onSelectOption={({ label }): void => {
-              sendMessage({ message: label as unknown as UserInput });
+            onSubmitAnswers={({ answers }): void => {
+              const message = answers
+                .map((a) => `${String(a.header)}: ${String(a.label)}`)
+                .join('\n');
+              sendMessage({ message: message as UserInput });
             }}
           />
         ) : questWithContent === null ? (

@@ -141,7 +141,7 @@ describe('QuestChatWidget', () => {
       expect(proxy.getClarifyQuestionText()).toBe('Which framework?');
     });
 
-    it('VALID: {click clarify option} => calls sendMessage with selected label', async () => {
+    it('VALID: {click clarify option on single question} => calls sendMessage with formatted answer', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const chatSession = ChatSessionStub({ active: true });

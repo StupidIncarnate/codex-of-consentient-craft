@@ -17,14 +17,14 @@ describe('QuestClarifyPanelWidget', () => {
           },
         ],
       });
-      const onSelectOption = jest.fn();
+      const onSubmitAnswers = jest.fn();
 
       mantineRenderAdapter({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
             questTitle={parsed.questions[0]!.question}
-            onSelectOption={onSelectOption}
+            onSubmitAnswers={onSubmitAnswers}
           />
         ),
       });
@@ -50,14 +50,14 @@ describe('QuestClarifyPanelWidget', () => {
           },
         ],
       });
-      const onSelectOption = jest.fn();
+      const onSubmitAnswers = jest.fn();
 
       mantineRenderAdapter({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
             questTitle={parsed.questions[0]!.question}
-            onSelectOption={onSelectOption}
+            onSubmitAnswers={onSubmitAnswers}
           />
         ),
       });
@@ -80,14 +80,14 @@ describe('QuestClarifyPanelWidget', () => {
           },
         ],
       });
-      const onSelectOption = jest.fn();
+      const onSubmitAnswers = jest.fn();
 
       mantineRenderAdapter({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
             questTitle={parsed.questions[0]!.question}
-            onSelectOption={onSelectOption}
+            onSubmitAnswers={onSubmitAnswers}
           />
         ),
       });
@@ -100,7 +100,7 @@ describe('QuestClarifyPanelWidget', () => {
   });
 
   describe('option selection', () => {
-    it('VALID: {click option} => calls onSelectOption with option label', async () => {
+    it('VALID: {single question, click option} => calls onSubmitAnswers with answer', async () => {
       const proxy = QuestClarifyPanelWidgetProxy();
       const parsed = AskUserQuestionStub({
         questions: [
@@ -117,27 +117,122 @@ describe('QuestClarifyPanelWidget', () => {
       });
       const firstQuestion = parsed.questions[0]!;
       const secondOption = firstQuestion.options[1]!;
-      const onSelectOption = jest.fn();
+      const onSubmitAnswers = jest.fn();
 
       mantineRenderAdapter({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
             questTitle={firstQuestion.question}
-            onSelectOption={onSelectOption}
+            onSubmitAnswers={onSubmitAnswers}
           />
         ),
       });
 
       await proxy.clickOption({ label: secondOption.label });
 
-      expect(onSelectOption).toHaveBeenCalledTimes(1);
-      expect(onSelectOption).toHaveBeenCalledWith({ label: secondOption.label });
+      expect(onSubmitAnswers).toHaveBeenCalledTimes(1);
+      expect(onSubmitAnswers).toHaveBeenCalledWith({
+        answers: [
+          {
+            header: firstQuestion.header,
+            question: firstQuestion.question,
+            label: secondOption.label,
+          },
+        ],
+      });
+    });
+
+    it('VALID: {2 questions, click first option} => does not submit yet', async () => {
+      const proxy = QuestClarifyPanelWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'First question?',
+            header: 'Q1',
+            options: [{ label: 'Yes', description: 'Agree' }],
+            multiSelect: false,
+          },
+          {
+            question: 'Second question?',
+            header: 'Q2',
+            options: [{ label: 'No', description: 'Disagree' }],
+            multiSelect: false,
+          },
+        ],
+      });
+      const onSubmitAnswers = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestClarifyPanelWidget
+            questions={parsed.questions}
+            questTitle={parsed.questions[0]!.question}
+            onSubmitAnswers={onSubmitAnswers}
+          />
+        ),
+      });
+
+      await proxy.clickOption({ label: parsed.questions[0]!.options[0]!.label });
+
+      expect(onSubmitAnswers).not.toHaveBeenCalled();
+      expect(proxy.getCounter()).toBe('Question 2 of 2');
+      expect(proxy.getQuestionText()).toBe('Second question?');
+    });
+
+    it('VALID: {2 questions, click both options} => submits all answers', async () => {
+      const proxy = QuestClarifyPanelWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'First question?',
+            header: 'Q1',
+            options: [{ label: 'Yes', description: 'Agree' }],
+            multiSelect: false,
+          },
+          {
+            question: 'Second question?',
+            header: 'Q2',
+            options: [{ label: 'No', description: 'Disagree' }],
+            multiSelect: false,
+          },
+        ],
+      });
+      const onSubmitAnswers = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestClarifyPanelWidget
+            questions={parsed.questions}
+            questTitle={parsed.questions[0]!.question}
+            onSubmitAnswers={onSubmitAnswers}
+          />
+        ),
+      });
+
+      await proxy.clickOption({ label: parsed.questions[0]!.options[0]!.label });
+      await proxy.clickOption({ label: parsed.questions[1]!.options[0]!.label });
+
+      expect(onSubmitAnswers).toHaveBeenCalledTimes(1);
+      expect(onSubmitAnswers).toHaveBeenCalledWith({
+        answers: [
+          {
+            header: parsed.questions[0]!.header,
+            question: parsed.questions[0]!.question,
+            label: parsed.questions[0]!.options[0]!.label,
+          },
+          {
+            header: parsed.questions[1]!.header,
+            question: parsed.questions[1]!.question,
+            label: parsed.questions[1]!.options[0]!.label,
+          },
+        ],
+      });
     });
   });
 
   describe('freeform input', () => {
-    it('VALID: {click Other then type and submit} => calls onSelectOption with freeform text', async () => {
+    it('VALID: {click Other then type and submit} => calls onSubmitAnswers with freeform text', async () => {
       const proxy = QuestClarifyPanelWidgetProxy();
       const parsed = AskUserQuestionStub({
         questions: [
@@ -150,14 +245,14 @@ describe('QuestClarifyPanelWidget', () => {
         ],
       });
       const firstQuestion = parsed.questions[0]!;
-      const onSelectOption = jest.fn();
+      const onSubmitAnswers = jest.fn();
 
       mantineRenderAdapter({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
             questTitle={firstQuestion.question}
-            onSelectOption={onSelectOption}
+            onSubmitAnswers={onSubmitAnswers}
           />
         ),
       });
@@ -166,7 +261,7 @@ describe('QuestClarifyPanelWidget', () => {
       await proxy.typeFreeform({ text: 'Custom answer' as never });
       await proxy.submitFreeform();
 
-      expect(onSelectOption).toHaveBeenCalledTimes(1);
+      expect(onSubmitAnswers).toHaveBeenCalledTimes(1);
     });
   });
 });
