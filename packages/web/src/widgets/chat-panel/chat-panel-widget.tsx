@@ -19,6 +19,7 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/raccoon-wizard-pixels-statics';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
+import { contextTokenDeltaContract } from '../../contracts/context-token-delta/context-token-delta-contract';
 import { groupChatEntriesTransformer } from '../../transformers/group-chat-entries/group-chat-entries-transformer';
 import { raccoonAnimationIntervalTransformer } from '../../transformers/raccoon-animation-interval/raccoon-animation-interval-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
@@ -185,7 +186,7 @@ export const ChatPanelWidget = ({
                 const delta =
                   prevContext === null
                     ? null
-                    : contextTokenCountContract.parse(Number(totalContext) - Number(prevContext));
+                    : contextTokenDeltaContract.parse(Number(totalContext) - Number(prevContext));
 
                 elements.push(
                   <ContextDividerWidget

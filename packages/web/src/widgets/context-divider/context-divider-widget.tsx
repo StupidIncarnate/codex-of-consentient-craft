@@ -8,6 +8,7 @@
 
 import { Box, Text } from '@mantine/core';
 
+import type { ContextTokenDelta } from '../../contracts/context-token-delta/context-token-delta-contract';
 import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -15,7 +16,7 @@ import { formatContextTokensTransformer } from '../../transformers/format-contex
 
 export interface ContextDividerWidgetProps {
   contextTokens: ContextTokenCount;
-  delta: ContextTokenCount | null;
+  delta: ContextTokenDelta | null;
   source: 'session' | 'subagent';
 }
 

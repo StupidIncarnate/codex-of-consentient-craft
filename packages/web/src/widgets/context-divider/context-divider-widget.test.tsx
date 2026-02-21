@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ContextTokenCountStub } from '../../contracts/context-token-count/context-token-count.stub';
+import { ContextTokenDeltaStub } from '../../contracts/context-token-delta/context-token-delta.stub';
 import { ContextDividerWidget } from './context-divider-widget';
 import { ContextDividerWidgetProxy } from './context-divider-widget.proxy';
 
@@ -34,7 +35,7 @@ describe('ContextDividerWidget', () => {
         ui: (
           <ContextDividerWidget
             contextTokens={ContextTokenCountStub({ value: 25500 })}
-            delta={ContextTokenCountStub({ value: 2100 })}
+            delta={ContextTokenDeltaStub({ value: 2100 })}
             source="session"
           />
         ),
@@ -43,6 +44,24 @@ describe('ContextDividerWidget', () => {
       const divider = screen.getByTestId('CONTEXT_DIVIDER');
 
       expect(divider.textContent).toMatch(/^25\.5k context \(\+2\.1k\)$/u);
+    });
+
+    it('VALID: {contextTokens: 26116, delta: -3682, source: session} => shows delta with minus', () => {
+      ContextDividerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ContextDividerWidget
+            contextTokens={ContextTokenCountStub({ value: 26116 })}
+            delta={ContextTokenDeltaStub({ value: -3682 })}
+            source="session"
+          />
+        ),
+      });
+
+      const divider = screen.getByTestId('CONTEXT_DIVIDER');
+
+      expect(divider.textContent).toMatch(/^26\.1k context \(-3\.7k\)$/u);
     });
   });
 
