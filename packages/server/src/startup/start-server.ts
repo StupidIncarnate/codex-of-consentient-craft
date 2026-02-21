@@ -783,6 +783,17 @@ export const StartServer = (): void => {
         // subagents directory may not exist
       }
 
+      for (const e of entries) {
+        if (typeof e === 'object' && e !== null) {
+          Reflect.set(e, 'source', 'session');
+        }
+      }
+      for (const e of subagentEntries) {
+        if (typeof e === 'object' && e !== null) {
+          Reflect.set(e, 'source', 'subagent');
+        }
+      }
+
       const allEntries = [...entries, ...subagentEntries].sort((a, b) => {
         const tsA =
           typeof a === 'object' && a !== null && 'timestamp' in a
@@ -1028,6 +1039,17 @@ export const StartServer = (): void => {
         subagentEntries = subagentResults.flat();
       } catch {
         // subagents directory may not exist
+      }
+
+      for (const e of entries) {
+        if (typeof e === 'object' && e !== null) {
+          Reflect.set(e, 'source', 'session');
+        }
+      }
+      for (const e of subagentEntries) {
+        if (typeof e === 'object' && e !== null) {
+          Reflect.set(e, 'source', 'subagent');
+        }
       }
 
       const allEntries = [...entries, ...subagentEntries].sort((a, b) => {
@@ -1417,6 +1439,17 @@ export const StartServer = (): void => {
         subagentEntries = subagentResults.flat();
       } catch {
         // subagents directory may not exist
+      }
+
+      for (const e of entries) {
+        if (typeof e === 'object' && e !== null) {
+          Reflect.set(e, 'source', 'session');
+        }
+      }
+      for (const e of subagentEntries) {
+        if (typeof e === 'object' && e !== null) {
+          Reflect.set(e, 'source', 'subagent');
+        }
       }
 
       const allEntries = [...entries, ...subagentEntries].sort((a, b) => {

@@ -12,9 +12,11 @@ import { normalizeAskUserQuestionInputTransformer } from '../normalize-ask-user-
 export const mapContentItemToChatEntryTransformer = ({
   item,
   usage,
+  source,
 }: {
   item: Record<string, unknown>;
   usage: ChatUsage | undefined;
+  source?: 'session' | 'subagent';
 }): ChatEntry | null => {
   const itemType = item.type;
 
@@ -26,6 +28,7 @@ export const mapContentItemToChatEntryTransformer = ({
       type: 'text',
       content: text,
       ...(usage ? { usage } : {}),
+      ...(source ? { source } : {}),
     });
   }
 
@@ -38,18 +41,23 @@ export const mapContentItemToChatEntryTransformer = ({
       type: 'tool_use',
       toolName: name,
       toolInput: JSON.stringify(normalizedInput),
+      ...(usage ? { usage } : {}),
+      ...(source ? { source } : {}),
     });
   }
 
   if (itemType === 'tool_result') {
     const toolUseId = typeof item.tool_use_id === 'string' ? item.tool_use_id : '';
     const content = typeof item.content === 'string' ? item.content : '';
+    const isError = item.is_error === true;
 
     return chatEntryContract.parse({
       role: 'assistant',
       type: 'tool_result',
       toolName: toolUseId,
       content,
+      ...(isError ? { isError } : {}),
+      ...(source ? { source } : {}),
     });
   }
 

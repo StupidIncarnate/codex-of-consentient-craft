@@ -136,6 +136,12 @@ describe('streamJsonToChatEntryTransformer', () => {
             type: 'tool_use',
             toolName: 'read_file',
             toolInput: '{"path":"/src"}',
+            usage: {
+              inputTokens: 200,
+              outputTokens: 100,
+              cacheCreationInputTokens: 0,
+              cacheReadInputTokens: 0,
+            },
           },
         ],
         sessionId: null,

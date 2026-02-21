@@ -19,6 +19,8 @@ export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] 
     }
 
     const entryType: unknown = Reflect.get(entry, 'type');
+    const source: unknown = 'source' in entry ? Reflect.get(entry, 'source') : undefined;
+    const validSource = source === 'session' || source === 'subagent' ? source : undefined;
 
     if (entryType === 'user') {
       const message: unknown = 'message' in entry ? Reflect.get(entry, 'message') : null;
@@ -31,7 +33,13 @@ export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] 
 
       if (typeof content === 'string') {
         if (content.length > 0) {
-          result.push(chatEntryContract.parse({ role: 'user', content }));
+          result.push(
+            chatEntryContract.parse({
+              role: 'user',
+              content,
+              ...(validSource ? { source: validSource } : {}),
+            }),
+          );
         }
 
         continue;
@@ -58,7 +66,32 @@ export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] 
           .join('');
 
         if (textContent.length > 0) {
-          result.push(chatEntryContract.parse({ role: 'user', content: textContent }));
+          result.push(
+            chatEntryContract.parse({
+              role: 'user',
+              content: textContent,
+              ...(validSource ? { source: validSource } : {}),
+            }),
+          );
+        }
+
+        for (const item of content) {
+          if (
+            typeof item === 'object' &&
+            item !== null &&
+            'type' in item &&
+            Reflect.get(item, 'type') === 'tool_result'
+          ) {
+            const chatEntry = mapContentItemToChatEntryTransformer({
+              item: item as never,
+              usage: undefined,
+              ...(validSource ? { source: validSource } : {}),
+            });
+
+            if (chatEntry) {
+              result.push(chatEntry);
+            }
+          }
         }
       }
 
@@ -88,6 +121,7 @@ export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] 
           const chatEntry = mapContentItemToChatEntryTransformer({
             item: item as never,
             usage,
+            ...(validSource ? { source: validSource } : {}),
           });
 
           if (chatEntry) {
