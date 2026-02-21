@@ -6,11 +6,12 @@
  * // Starts HTTP server on port 3737 with guild, quest, process, health, docs endpoints, and WebSocket event relay
  */
 
+import { z } from 'zod';
 import { Hono } from 'hono';
 import type { WSContext } from 'hono/ws';
 import { spawn } from 'child_process';
 import { createInterface } from 'readline';
-import { readdir } from 'fs/promises';
+import { readdir, readFile, stat } from 'fs/promises';
 import { join } from 'path';
 import { homedir } from 'os';
 import {
@@ -25,7 +26,7 @@ import {
   sessionIdContract,
   absoluteFilePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import type { SessionId, Quest, ChatSession } from '@dungeonmaster/shared/contracts';
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
 import { architectureFolderDetailBroker } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker';
 import { architectureSyntaxRulesBroker } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
@@ -65,12 +66,21 @@ import { chatProcessState } from '../state/chat-process/chat-process-state';
 import { wsEventRelayBroadcastBroker } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { questSessionPersistBroker } from '../brokers/quest-session/persist/quest-session-persist-broker';
 import { guildSessionPersistBroker } from '../brokers/guild-session/persist/guild-session-persist-broker';
+import { sessionResolveOwnerBroker } from '../brokers/session/resolve-owner/session-resolve-owner-broker';
 import type { WsClient } from '../contracts/ws-client/ws-client-contract';
 import { fsReadJsonlAdapter } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { claudeProjectPathEncoderTransformer } from '../transformers/claude-project-path-encoder/claude-project-path-encoder-transformer';
 import { stripJsonlSuffixTransformer } from '../transformers/strip-jsonl-suffix/strip-jsonl-suffix-transformer';
+import { globFindAdapter } from '../adapters/glob/find/glob-find-adapter';
+import { globPatternContract } from '../contracts/glob-pattern/glob-pattern-contract';
+import { filePathContract } from '../contracts/file-path/file-path-contract';
 import { processDevLogAdapter } from '../adapters/process/dev-log/process-dev-log-adapter';
 import { streamLineSummaryTransformer } from '../transformers/stream-line-summary/stream-line-summary-transformer';
+import { extractSessionFileSummaryTransformer } from '../transformers/extract-session-file-summary/extract-session-file-summary-transformer';
+import { fileContentsContract } from '../contracts/file-contents/file-contents-contract';
+import { mtimeMsContract } from '../contracts/mtime-ms/mtime-ms-contract';
+import { sessionSummaryCacheState } from '../state/session-summary-cache/session-summary-cache-state';
+import { hasSessionSummaryGuard } from '../guards/has-session-summary/has-session-summary-guard';
 
 const FLUSH_INTERVAL_MS = 100;
 const SUMMARY_MAX_LENGTH = 100;
@@ -220,27 +230,11 @@ export const StartServer = (): void => {
         return c.json({ questId: null });
       }
 
-      // Search quest-level sessions
-      const quests = await orchestratorListQuestsAdapter({ guildId });
-      const questResults = await Promise.all(
-        quests.map(async (q) => {
-          const result = await orchestratorGetQuestAdapter({ questId: q.id });
-          const questRaw: unknown = Reflect.get(result, 'quest');
+      // Search quest-level sessions via broker
+      const { questId } = await sessionResolveOwnerBroker({ guildId, sessionId });
 
-          if (!questRaw || typeof questRaw !== 'object') {
-            return null;
-          }
-
-          const quest = questContract.parse(questRaw);
-          const match = quest.chatSessions.find((s) => s.sessionId === sessionId);
-          return match ? q.id : null;
-        }),
-      );
-
-      const matchingQuestId = questResults.find((id) => id !== null);
-
-      if (matchingQuestId) {
-        return c.json({ questId: matchingQuestId });
+      if (questId) {
+        return c.json({ questId });
       }
 
       return c.json({ error: 'Session not found' }, httpStatusStatics.clientError.notFound);
@@ -1060,6 +1054,390 @@ export const StartServer = (): void => {
       return c.json(filtered);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to read guild chat history';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Session list - disk is source of truth, config is enrichment only
+  app.get(apiRoutesStatics.sessions.list, async (c) => {
+    try {
+      const guildIdRaw = c.req.param('guildId');
+      const guildId = guildIdContract.parse(guildIdRaw);
+      const guild = await orchestratorGetGuildAdapter({ guildId });
+
+      // 1. Compute claude projects dir from guild path
+      const homeDir = absoluteFilePathContract.parse(homedir());
+      const guildPath = absoluteFilePathContract.parse(guild.path);
+      const dummySessionId = sessionIdContract.parse('_probe');
+      const probePath = claudeProjectPathEncoderTransformer({
+        homeDir,
+        projectPath: guildPath,
+        sessionId: dummySessionId,
+      });
+      const claudeProjectDir = filePathContract.parse(
+        String(probePath).slice(0, String(probePath).lastIndexOf('/')),
+      );
+
+      // 2. Glob all *.jsonl files from disk
+      const jsonlFiles = await globFindAdapter({
+        pattern: globPatternContract.parse('*.jsonl'),
+        cwd: claudeProjectDir,
+      });
+
+      // 3. Build quest lookup: Map<sessionId, quest metadata>
+      const quests = await orchestratorListQuestsAdapter({ guildId });
+      const questLookup = new Map<SessionId, Pick<Quest, 'id' | 'title' | 'status'>>();
+      const questSessionMeta = new Map<
+        SessionId,
+        Pick<ChatSession, 'summary' | 'agentRole' | 'active' | 'endedAt'>
+      >();
+
+      await Promise.all(
+        quests.map(async (q) => {
+          try {
+            const result = await orchestratorGetQuestAdapter({ questId: q.id });
+            const questRaw: unknown = Reflect.get(result, 'quest');
+
+            if (!questRaw || typeof questRaw !== 'object') {
+              return;
+            }
+
+            const quest = questContract.parse(questRaw);
+            for (const s of quest.chatSessions) {
+              questLookup.set(s.sessionId, {
+                id: quest.id,
+                title: quest.title,
+                status: quest.status,
+              });
+              questSessionMeta.set(s.sessionId, {
+                ...(s.summary ? { summary: s.summary } : {}),
+                agentRole: s.agentRole,
+                active: s.active,
+                ...(s.endedAt ? { endedAt: s.endedAt } : {}),
+              });
+            }
+          } catch {
+            // skip inaccessible quests
+          }
+        }),
+      );
+
+      // 4. Build guild chatSession lookup for enrichment
+      const guildSessionMeta = new Map<
+        SessionId,
+        Pick<ChatSession, 'summary' | 'agentRole' | 'active' | 'endedAt'>
+      >();
+      for (const s of guild.chatSessions) {
+        guildSessionMeta.set(s.sessionId, {
+          ...(s.summary ? { summary: s.summary } : {}),
+          agentRole: s.agentRole,
+          active: s.active,
+          ...(s.endedAt ? { endedAt: s.endedAt } : {}),
+        });
+      }
+
+      // 5. For each disk file: extract sessionId, stat, read first-line summary, enrich
+      const diskResults = await Promise.all(
+        jsonlFiles.map(async (filePath) => {
+          const fileName = String(filePath).split('/').pop() ?? '';
+          const diskSessionId = sessionIdContract.parse(fileName.replace('.jsonl', ''));
+
+          try {
+            const stats = await stat(String(filePath));
+            const startedAt = isoTimestampContract.parse(stats.birthtime.toISOString());
+
+            // Check cache before reading file
+            const mtimeMs = mtimeMsContract.parse(stats.mtimeMs);
+            const cached = sessionSummaryCacheState.get({ sessionId: diskSessionId, mtimeMs });
+            let diskSummary: ReturnType<typeof extractSessionFileSummaryTransformer>;
+
+            if (cached.hit) {
+              diskSummary = cached.summary;
+            } else {
+              const rawContent = await readFile(String(filePath), 'utf8').catch(() => '');
+              diskSummary = rawContent
+                ? extractSessionFileSummaryTransformer({
+                    fileContent: fileContentsContract.parse(rawContent),
+                  })
+                : undefined;
+              sessionSummaryCacheState.set({ sessionId: diskSessionId, mtimeMs, summary: diskSummary });
+            }
+
+            // Enrich from quest or guild config
+            const questInfo = questLookup.get(diskSessionId);
+            const meta = questSessionMeta.get(diskSessionId) ?? guildSessionMeta.get(diskSessionId);
+            const resolvedSummary = meta?.summary ?? diskSummary;
+
+            return {
+              sessionId: diskSessionId,
+              startedAt,
+              active: meta?.active ?? false,
+              agentRole: z
+                .string()
+                .brand<'AgentRole'>()
+                .parse(meta?.agentRole ?? 'unknown'),
+              ...(meta?.endedAt ? { endedAt: meta.endedAt } : {}),
+              ...(resolvedSummary ? { summary: resolvedSummary } : {}),
+              ...(questInfo
+                ? {
+                    questId: questInfo.id,
+                    questTitle: questInfo.title,
+                    questStatus: questInfo.status,
+                  }
+                : {}),
+            };
+          } catch {
+            return null;
+          }
+        }),
+      );
+
+      const allSessions = diskResults
+        .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+        .filter((entry) => hasSessionSummaryGuard({ session: entry }));
+
+      // 6. Sort by startedAt descending
+      allSessions.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+
+      return c.json(allSessions);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to list sessions';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Session chat - spawn Claude CLI for a session (resolves owner automatically)
+  app.post(apiRoutesStatics.sessions.chat, async (c) => {
+    try {
+      const sessionIdRaw = c.req.param('sessionId');
+      const sessionId = sessionIdContract.parse(sessionIdRaw);
+      const body: unknown = await c.req.json();
+
+      if (typeof body !== 'object' || body === null) {
+        return c.json(
+          { error: 'Request body must be a JSON object' },
+          httpStatusStatics.clientError.badRequest,
+        );
+      }
+
+      const rawMessage: unknown = Reflect.get(body, 'message');
+      const rawGuildId: unknown = Reflect.get(body, 'guildId');
+
+      if (typeof rawMessage !== 'string' || rawMessage.length === 0) {
+        return c.json({ error: 'message is required' }, httpStatusStatics.clientError.badRequest);
+      }
+
+      if (typeof rawGuildId !== 'string') {
+        return c.json({ error: 'guildId is required' }, httpStatusStatics.clientError.badRequest);
+      }
+
+      const guildId = guildIdContract.parse(rawGuildId);
+      const { questId } = await sessionResolveOwnerBroker({ guildId, sessionId });
+
+      const guild = await orchestratorGetGuildAdapter({ guildId });
+      const workingDir = guild.path;
+
+      const chatProcessId = processIdContract.parse(crypto.randomUUID());
+
+      processDevLogAdapter({
+        message: `Session chat started: sessionId=${sessionIdRaw}, guildId=${rawGuildId}, questId=${questId ?? 'null'}, messageLength=${String(rawMessage.length)}`,
+      });
+
+      const args = ['--resume', sessionId, '-p', rawMessage];
+      args.push('--output-format', 'stream-json', '--verbose');
+
+      const childProcess = spawn(CLAUDE_CLI_COMMAND, args, {
+        cwd: workingDir,
+        stdio: ['inherit', 'pipe', 'inherit'],
+      });
+
+      processDevLogAdapter({
+        message: `Claude CLI spawned (session): processId=${chatProcessId}, cwd=${workingDir}, args=${JSON.stringify(args)}`,
+      });
+
+      chatProcessState.register({
+        processId: chatProcessId,
+        kill: () => {
+          childProcess.kill();
+        },
+      });
+
+      const { stdout } = childProcess;
+
+      const rl = createInterface({ input: stdout as NodeJS.ReadableStream });
+
+      rl.on('line', (line) => {
+        try {
+          const parsed: unknown = JSON.parse(line);
+
+          if (typeof parsed === 'object' && parsed !== null) {
+            const summary = streamLineSummaryTransformer({ parsed });
+            processDevLogAdapter({
+              message: `Session chat stream: processId=${chatProcessId}, ${summary}`,
+            });
+          } else {
+            processDevLogAdapter({
+              message: `Session chat stream: processId=${chatProcessId}, type=non-object`,
+            });
+          }
+        } catch {
+          processDevLogAdapter({
+            message: `Session chat stream: processId=${chatProcessId}, type=unparseable`,
+          });
+        }
+
+        wsEventRelayBroadcastBroker({
+          clients,
+          message: wsMessageContract.parse({
+            type: 'chat-output',
+            payload: { chatProcessId, line },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          }),
+        });
+      });
+
+      childProcess.on('exit', (code) => {
+        processDevLogAdapter({
+          message: `Session chat completed: processId=${chatProcessId}, exitCode=${String(code ?? 1)}`,
+        });
+        chatProcessState.remove({ processId: chatProcessId });
+
+        const persistPromise = questId
+          ? questSessionPersistBroker({
+              questId,
+              sessionId,
+              ...(typeof rawMessage === 'string'
+                ? { summary: rawMessage.slice(0, SUMMARY_MAX_LENGTH) }
+                : {}),
+            }).catch(() => undefined)
+          : guildSessionPersistBroker({
+              guildId: guildId as never,
+              sessionId,
+              ...(typeof rawMessage === 'string'
+                ? { summary: rawMessage.slice(0, SUMMARY_MAX_LENGTH) }
+                : {}),
+            }).catch(() => undefined);
+
+        persistPromise
+          .then(() => {
+            wsEventRelayBroadcastBroker({
+              clients,
+              message: wsMessageContract.parse({
+                type: 'chat-complete',
+                payload: {
+                  chatProcessId,
+                  exitCode: code ?? 1,
+                  sessionId,
+                },
+                timestamp: isoTimestampContract.parse(new Date().toISOString()),
+              }),
+            });
+          })
+          .catch(() => undefined);
+      });
+
+      return c.json({ chatProcessId });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to start session chat';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Session chat stop - kill a running Claude CLI session chat process
+  app.post(apiRoutesStatics.sessions.chatStop, (c) => {
+    try {
+      const chatProcessIdRaw = c.req.param('chatProcessId');
+      const chatProcessId = processIdContract.parse(chatProcessIdRaw);
+      processDevLogAdapter({ message: `Session chat stop requested: processId=${chatProcessId}` });
+      const killed = chatProcessState.kill({ processId: chatProcessId });
+      processDevLogAdapter({
+        message: `Session chat stop result: processId=${chatProcessId}, killed=${String(killed)}`,
+      });
+
+      if (!killed) {
+        return c.json(
+          { error: 'Process not found or already exited' },
+          httpStatusStatics.clientError.notFound,
+        );
+      }
+
+      return c.json({ stopped: true });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to stop session chat';
+      return c.json({ error: message }, httpStatusStatics.serverError.internal);
+    }
+  });
+
+  // Session chat history - read JSONL session file (resolves owner automatically)
+  app.get(apiRoutesStatics.sessions.chatHistory, async (c) => {
+    try {
+      const sessionIdRaw = c.req.param('sessionId');
+      const sessionId = sessionIdContract.parse(sessionIdRaw);
+      const rawGuildId = c.req.query('guildId');
+
+      if (!rawGuildId) {
+        return c.json(
+          { error: 'guildId query parameter is required' },
+          httpStatusStatics.clientError.badRequest,
+        );
+      }
+
+      const guildId = guildIdContract.parse(rawGuildId);
+      const guild = await orchestratorGetGuildAdapter({ guildId });
+      const projectPath = absoluteFilePathContract.parse(guild.path);
+
+      const homeDir = absoluteFilePathContract.parse(homedir());
+      const jsonlPath = claudeProjectPathEncoderTransformer({
+        homeDir,
+        projectPath,
+        sessionId,
+      });
+
+      const entries = await fsReadJsonlAdapter({ filePath: jsonlPath });
+
+      const subagentsDir = join(stripJsonlSuffixTransformer({ filePath: jsonlPath }), 'subagents');
+      let subagentEntries: unknown[] = [];
+
+      try {
+        const files = await readdir(subagentsDir);
+        const jsonlFiles = files.filter((f) => f.endsWith('.jsonl'));
+        const subagentResults = await Promise.all(
+          jsonlFiles.map(async (file) =>
+            fsReadJsonlAdapter({
+              filePath: absoluteFilePathContract.parse(join(subagentsDir, file)),
+            }),
+          ),
+        );
+        subagentEntries = subagentResults.flat();
+      } catch {
+        // subagents directory may not exist
+      }
+
+      const allEntries = [...entries, ...subagentEntries].sort((a, b) => {
+        const tsA =
+          typeof a === 'object' && a !== null && 'timestamp' in a
+            ? String(Reflect.get(a, 'timestamp'))
+            : '';
+        const tsB =
+          typeof b === 'object' && b !== null && 'timestamp' in b
+            ? String(Reflect.get(b, 'timestamp'))
+            : '';
+
+        return tsA.localeCompare(tsB);
+      });
+
+      const filtered = allEntries.filter((entry: unknown) => {
+        if (typeof entry !== 'object' || entry === null) {
+          return false;
+        }
+        const type: unknown = Reflect.get(entry, 'type');
+        return type === 'user' || type === 'assistant';
+      });
+
+      return c.json(filtered);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to read session chat history';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
     }
   });

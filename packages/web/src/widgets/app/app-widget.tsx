@@ -13,7 +13,7 @@ import { Box, Center } from '@mantine/core';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { isQuestRouteGuard } from '../../guards/is-quest-route/is-quest-route-guard';
+import { isSessionRouteGuard } from '../../guards/is-session-route/is-session-route-guard';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
@@ -29,7 +29,7 @@ const unrestrictedMaxWidth = cssPixelsContract.parse(mapFrameStatics.unrestricte
 
 export const AppWidget = (): React.JSX.Element => {
   const location = useLocation();
-  const isQuestRoute = isQuestRouteGuard({ pathname: location.pathname });
+  const isQuestRoute = isSessionRouteGuard({ pathname: location.pathname });
   const { colors } = emberDepthsThemeStatics;
 
   const transition = `all ${TRANSITION_DURATION} ${TRANSITION_EASING}`;
@@ -69,6 +69,8 @@ export const AppWidget = (): React.JSX.Element => {
           justifyContent: 'center',
           padding: isQuestRoute ? '0 16px 16px 16px' : '0 16px',
           minHeight: 0,
+          maxHeight: isQuestRoute ? undefined : '80vh',
+          overflow: isQuestRoute ? undefined : 'hidden',
           transition,
         }}
       >
@@ -85,6 +87,8 @@ export const AppWidget = (): React.JSX.Element => {
           <MapFrameWidget maxWidth={isQuestRoute ? unrestrictedMaxWidth : defaultMaxWidth}>
             <Routes>
               <Route path="/" element={<HomeContentLayerWidget />} />
+              <Route path="/:guildSlug/session" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
               <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
               <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
             </Routes>

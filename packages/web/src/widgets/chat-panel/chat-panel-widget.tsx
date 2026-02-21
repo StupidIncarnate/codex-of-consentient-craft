@@ -91,6 +91,27 @@ export const ChatPanelWidget = ({
       }}
     >
       <Box
+        data-testid="RACCOON_SPRITE"
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          backgroundColor: 'transparent',
+          padding: 16,
+          flexShrink: 0,
+          transform: `translateY(${String(bounceOffset)}px)`,
+          transition: 'transform 0.15s ease',
+        }}
+      >
+        <PixelSpriteWidget
+          pixels={raccoonPixels}
+          scale={RACCOON_SCALE as PixelDimension}
+          width={raccoonWizardPixelsStatics.dimensions.width as PixelDimension}
+          height={raccoonWizardPixelsStatics.dimensions.height as PixelDimension}
+          flip={raccoonFlip}
+        />
+      </Box>
+
+      <Box
         ref={scrollContainerRef}
         data-testid="CHAT_MESSAGES_AREA"
         style={{
@@ -108,24 +129,6 @@ export const ChatPanelWidget = ({
             target.scrollTop + target.clientHeight < target.scrollHeight - scrollThresholdPx;
         }}
       >
-        <Box
-          data-testid="RACCOON_SPRITE"
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            transform: `translateY(${String(bounceOffset)}px)`,
-            transition: 'transform 0.15s ease',
-          }}
-        >
-          <PixelSpriteWidget
-            pixels={raccoonPixels}
-            scale={RACCOON_SCALE as PixelDimension}
-            width={raccoonWizardPixelsStatics.dimensions.width as PixelDimension}
-            height={raccoonWizardPixelsStatics.dimensions.height as PixelDimension}
-            flip={raccoonFlip}
-          />
-        </Box>
-
         {(() => {
           let lastUserIndex = -1;
 

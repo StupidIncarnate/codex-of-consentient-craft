@@ -11,7 +11,7 @@ import { screen } from '@testing-library/react';
 import type {
   GuildIdStub,
   GuildListItemStub,
-  QuestListItemStub,
+  SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { LogoWidgetProxy } from '../logo/logo-widget.proxy';
@@ -19,7 +19,7 @@ import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
 import { QuestChatWidgetProxy } from '../quest-chat/quest-chat-widget.proxy';
 import { HomeContentLayerWidgetProxy } from './home-content-layer-widget.proxy';
 
-type QuestListItem = ReturnType<typeof QuestListItemStub>;
+type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
 
@@ -27,21 +27,20 @@ export const AppWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
   setupGuildsError: () => void;
   setupCreateGuild: (params: { id: GuildId }) => void;
-  setupQuests: (params: { quests: QuestListItem[] }) => void;
-  setupQuestsError: () => void;
+  setupSessions: (params: { sessions: SessionListItem[] }) => void;
+  setupSessionsError: () => void;
   clickGuildItem: (params: { testId: string }) => Promise<void>;
   isGuildItemVisible: (params: { testId: string }) => boolean;
   isGuildItemSelected: (params: { testId: string }) => boolean;
   clickAddGuild: () => Promise<void>;
   isNewGuildTitleVisible: () => boolean;
-  isQuestEmptyStateVisible: () => boolean;
+  isSessionEmptyStateVisible: () => boolean;
   isSelectGuildMessageVisible: () => boolean;
-  getQuestStatusText: (params: { testId: string }) => HTMLElement['textContent'];
   typeGuildName: (params: { value: string }) => Promise<void>;
   typeGuildPath: (params: { value: string }) => Promise<void>;
   clickCreateGuild: () => Promise<void>;
   clickCancelGuild: () => Promise<void>;
-  clickQuestItem: (params: { testId: string }) => Promise<void>;
+  clickSessionItem: (params: { testId: string }) => Promise<void>;
   isQuestChatVisible: () => boolean;
 } => {
   LogoWidgetProxy();
@@ -59,11 +58,11 @@ export const AppWidgetProxy = (): {
     setupCreateGuild: ({ id }: { id: GuildId }): void => {
       homeProxy.setupCreateGuild({ id });
     },
-    setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
-      homeProxy.setupQuests({ quests });
+    setupSessions: ({ sessions }: { sessions: SessionListItem[] }): void => {
+      homeProxy.setupSessions({ sessions });
     },
-    setupQuestsError: (): void => {
-      homeProxy.setupQuestsError();
+    setupSessionsError: (): void => {
+      homeProxy.setupSessionsError();
     },
     clickGuildItem: async ({ testId }: { testId: string }): Promise<void> => {
       await homeProxy.clickGuildItem({ testId });
@@ -76,12 +75,8 @@ export const AppWidgetProxy = (): {
       await homeProxy.clickAddGuild();
     },
     isNewGuildTitleVisible: (): boolean => homeProxy.isNewGuildTitleVisible(),
-    isQuestEmptyStateVisible: (): boolean => homeProxy.isQuestEmptyStateVisible(),
+    isSessionEmptyStateVisible: (): boolean => homeProxy.isSessionEmptyStateVisible(),
     isSelectGuildMessageVisible: (): boolean => homeProxy.isSelectGuildMessageVisible(),
-    getQuestStatusText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
-      const element = screen.queryByTestId(testId);
-      return element?.textContent ?? null;
-    },
     typeGuildName: async ({ value }: { value: string }): Promise<void> => {
       await homeProxy.typeGuildName({ value });
     },
@@ -94,8 +89,8 @@ export const AppWidgetProxy = (): {
     clickCancelGuild: async (): Promise<void> => {
       await homeProxy.clickCancelGuild();
     },
-    clickQuestItem: async ({ testId }: { testId: string }): Promise<void> => {
-      await homeProxy.clickQuestItem({ testId });
+    clickSessionItem: async ({ testId }: { testId: string }): Promise<void> => {
+      await homeProxy.clickSessionItem({ testId });
     },
     isQuestChatVisible: (): boolean => screen.queryByTestId('QUEST_CHAT') !== null,
   };

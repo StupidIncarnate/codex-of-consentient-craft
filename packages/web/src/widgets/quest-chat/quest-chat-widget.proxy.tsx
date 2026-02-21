@@ -13,16 +13,14 @@ import type {
   GuildListItemStub,
   GuildStub,
   ProcessId,
-  QuestId,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
 import type { AskUserQuestionOption } from '../../contracts/ask-user-question/ask-user-question-contract';
 import { useGuildDetailBindingProxy } from '../../bindings/use-guild-detail/use-guild-detail-binding.proxy';
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
-import { useQuestChatBindingProxy } from '../../bindings/use-quest-chat/use-quest-chat-binding.proxy';
 import { useQuestDetailBindingProxy } from '../../bindings/use-quest-detail/use-quest-detail-binding.proxy';
-import { useSessionResolveBindingProxy } from '../../bindings/use-session-resolve/use-session-resolve-binding.proxy';
+import { useSessionChatBindingProxy } from '../../bindings/use-session-chat/use-session-chat-binding.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
@@ -42,9 +40,7 @@ export const QuestChatWidgetProxy = (): {
   setupQuestError: () => void;
   setupGuild: (params: { guild: Guild }) => void;
   setupGuildError: () => void;
-  setupSessionResolve: (params: { questId: QuestId | null }) => void;
-  setupQuestHistory: (params: { entries: unknown[] }) => void;
-  setupGuildHistory: (params: { entries: unknown[] }) => void;
+  setupHistory: (params: { entries: unknown[] }) => void;
   hasChatPanel: () => boolean;
   hasActivityPlaceholder: () => boolean;
   hasDivider: () => boolean;
@@ -58,8 +54,7 @@ export const QuestChatWidgetProxy = (): {
   const guildsBindingProxy = useGuildsBindingProxy();
   const questDetailProxy = useQuestDetailBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
-  const chatBindingProxy = useQuestChatBindingProxy();
-  const sessionResolveProxy = useSessionResolveBindingProxy();
+  const chatBindingProxy = useSessionChatBindingProxy();
   ChatPanelWidgetProxy();
   QuestClarifyPanelWidgetProxy();
   QuestSpecPanelWidgetProxy();
@@ -93,14 +88,8 @@ export const QuestChatWidgetProxy = (): {
     setupGuildError: (): void => {
       guildDetailProxy.setupError();
     },
-    setupSessionResolve: ({ questId }: { questId: QuestId | null }): void => {
-      sessionResolveProxy.setupResponse({ response: { questId } });
-    },
-    setupQuestHistory: ({ entries }: { entries: unknown[] }): void => {
-      chatBindingProxy.setupQuestHistory({ entries });
-    },
-    setupGuildHistory: ({ entries }: { entries: unknown[] }): void => {
-      chatBindingProxy.setupGuildHistory({ entries });
+    setupHistory: ({ entries }: { entries: unknown[] }): void => {
+      chatBindingProxy.setupHistory({ entries });
     },
     hasChatPanel: (): boolean => screen.queryByTestId('CHAT_PANEL') !== null,
     hasActivityPlaceholder: (): boolean => screen.queryByTestId('QUEST_CHAT_ACTIVITY') !== null,

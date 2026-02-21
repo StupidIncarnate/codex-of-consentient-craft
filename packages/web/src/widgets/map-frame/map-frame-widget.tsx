@@ -15,20 +15,17 @@ import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 
-const defaultMinHeight = cssPixelsContract.parse(mapFrameStatics.defaultMinHeight);
 const defaultMaxWidth = cssPixelsContract.parse(mapFrameStatics.defaultMaxWidth);
 const defaultPadding = cssPixelsContract.parse(mapFrameStatics.defaultPadding);
 
 export interface MapFrameWidgetProps {
   children: React.ReactNode;
-  minHeight?: CssPixels;
   maxWidth?: CssPixels;
   padding?: CssPixels;
 }
 
 export const MapFrameWidget = ({
   children,
-  minHeight = defaultMinHeight,
   maxWidth = defaultMaxWidth,
   padding = defaultPadding,
 }: MapFrameWidgetProps): React.JSX.Element => {
@@ -44,12 +41,13 @@ export const MapFrameWidget = ({
         borderRadius: 2,
         padding,
         position: 'relative',
-        minHeight,
         width: '100%',
         maxWidth,
         display: 'flex',
         flexDirection: 'column' as const,
         flex: 1,
+        minHeight: 0,
+        overflow: 'hidden',
       }}
     >
       <Text

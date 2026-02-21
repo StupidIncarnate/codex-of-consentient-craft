@@ -226,6 +226,10 @@ export * from './src/contracts/guild-config/guild-config.stub';
 export * from './src/contracts/directory-entry/directory-entry-contract';
 export * from './src/contracts/directory-entry/directory-entry.stub';
 
+// Session List Item Contracts
+export * from './src/contracts/session-list-item/session-list-item-contract';
+export * from './src/contracts/session-list-item/session-list-item.stub';
+
 // CSS & Display Contracts
 export * from './src/contracts/hex-color/hex-color-contract';
 export * from './src/contracts/hex-color/hex-color.stub';

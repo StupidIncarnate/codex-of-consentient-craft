@@ -22,17 +22,16 @@ describe('QuestChatWidget', () => {
     it('VALID: {sessionId in URL} => renders ChatPanelWidget', () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
-      const quest = QuestStub({ id: 'chat-q1' });
+      const guildDetail = GuildStub({ id: guild.id });
 
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupSessionResolve({ questId: quest.id });
-      proxy.setupQuest({ quest });
+      proxy.setupGuild({ guild: guildDetail });
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/test-guild/quest/chat-q1']}>
+          <MemoryRouter initialEntries={['/test-guild/session/chat-q1']}>
             <Routes>
-              <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -44,17 +43,16 @@ describe('QuestChatWidget', () => {
     it('VALID: {sessionId in URL} => renders vertical divider', () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
-      const quest = QuestStub({ id: 'chat-q2' });
+      const guildDetail = GuildStub({ id: guild.id });
 
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupSessionResolve({ questId: quest.id });
-      proxy.setupQuest({ quest });
+      proxy.setupGuild({ guild: guildDetail });
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/test-guild/quest/chat-q2']}>
+          <MemoryRouter initialEntries={['/test-guild/session/chat-q2']}>
             <Routes>
-              <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -65,20 +63,19 @@ describe('QuestChatWidget', () => {
   });
 
   describe('right panel', () => {
-    it('VALID: {sessionId in URL} => renders activity placeholder text', () => {
+    it('VALID: {sessionId in URL, no questId in state} => renders activity placeholder text', () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
-      const quest = QuestStub({ id: 'chat-q3' });
+      const guildDetail = GuildStub({ id: guild.id });
 
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupSessionResolve({ questId: quest.id });
-      proxy.setupQuest({ quest });
+      proxy.setupGuild({ guild: guildDetail });
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/test-guild/quest/chat-q3']}>
+          <MemoryRouter initialEntries={['/test-guild/session/chat-q3']}>
             <Routes>
-              <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -94,12 +91,11 @@ describe('QuestChatWidget', () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const chatSession = ChatSessionStub({ active: true });
-      const quest = QuestStub({ id: 'chat-q4', chatSessions: [chatSession] });
+      const guildDetail = GuildStub({ id: guild.id, chatSessions: [chatSession] });
 
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupSessionResolve({ questId: quest.id });
-      proxy.setupQuest({ quest });
-      proxy.setupQuestHistory({
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupHistory({
         entries: [
           {
             type: 'assistant',
@@ -130,9 +126,9 @@ describe('QuestChatWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/test-guild/quest/chat-q4']}>
+          <MemoryRouter initialEntries={['/test-guild/session/chat-q4']}>
             <Routes>
-              <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -149,13 +145,12 @@ describe('QuestChatWidget', () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const chatSession = ChatSessionStub({ active: true });
-      const quest = QuestStub({ id: 'chat-q5', chatSessions: [chatSession] });
+      const guildDetail = GuildStub({ id: guild.id, chatSessions: [chatSession] });
 
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupSessionResolve({ questId: quest.id });
-      proxy.setupQuest({ quest });
+      proxy.setupGuild({ guild: guildDetail });
       proxy.setupChat({ chatProcessId: 'proc-1' as never });
-      proxy.setupQuestHistory({
+      proxy.setupHistory({
         entries: [
           {
             type: 'assistant',
@@ -186,9 +181,9 @@ describe('QuestChatWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/test-guild/quest/chat-q5']}>
+          <MemoryRouter initialEntries={['/test-guild/session/chat-q5']}>
             <Routes>
-              <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -205,23 +200,28 @@ describe('QuestChatWidget', () => {
   });
 
   describe('spec panel', () => {
-    it('VALID: {quest has requirements} => renders spec panel in right panel', async () => {
+    it('VALID: {quest has requirements via route state} => renders spec panel in right panel', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-q6',
         requirements: [RequirementStub()],
       });
+      const guildDetail = GuildStub({ id: guild.id });
 
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupSessionResolve({ questId: quest.id });
+      proxy.setupGuild({ guild: guildDetail });
       proxy.setupQuest({ quest });
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/test-guild/quest/chat-q6']}>
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-q6', state: { questId: quest.id } },
+            ]}
+          >
             <Routes>
-              <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -234,23 +234,28 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasActivityPlaceholder()).toBe(true);
     });
 
-    it('VALID: {quest has requirements} => spec panel receives quest data', async () => {
+    it('VALID: {quest has requirements via route state} => spec panel receives quest data', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-q7',
         requirements: [RequirementStub()],
       });
+      const guildDetail = GuildStub({ id: guild.id });
 
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupSessionResolve({ questId: quest.id });
+      proxy.setupGuild({ guild: guildDetail });
       proxy.setupQuest({ quest });
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/test-guild/quest/chat-q7']}>
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-q7', state: { questId: quest.id } },
+            ]}
+          >
             <Routes>
-              <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -272,11 +277,12 @@ describe('QuestChatWidget', () => {
         chatSessions: [chatSession],
         requirements: [RequirementStub()],
       });
+      const guildDetail = GuildStub({ id: guild.id, chatSessions: [chatSession] });
 
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupSessionResolve({ questId: quest.id });
+      proxy.setupGuild({ guild: guildDetail });
       proxy.setupQuest({ quest });
-      proxy.setupQuestHistory({
+      proxy.setupHistory({
         entries: [
           {
             type: 'assistant',
@@ -307,9 +313,13 @@ describe('QuestChatWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/test-guild/quest/chat-q8']}>
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-q8', state: { questId: quest.id } },
+            ]}
+          >
             <Routes>
-              <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -334,9 +344,9 @@ describe('QuestChatWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/my-guild/quest']}>
+          <MemoryRouter initialEntries={['/my-guild/session']}>
             <Routes>
-              <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
+              <Route path="/:guildSlug/session" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),

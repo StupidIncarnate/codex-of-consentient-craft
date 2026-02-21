@@ -7,17 +7,16 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Box, Text } from '@mantine/core';
 
-import type { ChatSession, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
+import type { QuestId, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 
 import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
-import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
 import { useQuestDetailBinding } from '../../bindings/use-quest-detail/use-quest-detail-binding';
-import { useSessionResolveBinding } from '../../bindings/use-session-resolve/use-session-resolve-binding';
+import { useSessionChatBinding } from '../../bindings/use-session-chat/use-session-chat-binding';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
@@ -29,8 +28,10 @@ import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widge
 export const QuestChatWidget = (): React.JSX.Element => {
   const params = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { guildSlug } = params;
   const sessionId = (params.sessionId as SessionId | undefined) ?? null;
+  const routeQuestId = (location.state as { questId?: QuestId } | null)?.questId ?? null;
   const { colors } = emberDepthsThemeStatics;
   const prevIsStreamingRef = useRef(false);
 
@@ -40,36 +41,25 @@ export const QuestChatWidget = (): React.JSX.Element => {
   );
   const resolvedGuildId = matchedGuild?.id ?? null;
 
-  const { data: resolveData, refresh: refreshResolve } = useSessionResolveBinding({
+  const { data: guildData, refresh: refreshGuild } = useGuildDetailBinding({
     guildId: resolvedGuildId,
-    sessionId,
   });
-  const resolvedQuestId = resolveData?.questId ?? null;
 
   const { data: questData, refresh: refreshQuest } = useQuestDetailBinding({
-    questId: resolvedQuestId,
+    questId: routeQuestId,
   });
 
-  const { data: guildData, refresh: refreshGuild } = useGuildDetailBinding({
-    guildId: resolvedQuestId || sessionId ? null : resolvedGuildId,
-  });
-
-  const chatSessions: ChatSession[] = resolvedQuestId
-    ? (questData?.chatSessions ?? [])
-    : (guildData?.chatSessions ?? []);
-
-  const { entries, isStreaming, currentSessionId, sendMessage, stopChat } = useQuestChatBinding({
-    ...(resolvedQuestId ? { questId: resolvedQuestId } : {}),
-    ...(resolvedGuildId && !resolvedQuestId && !sessionId ? { guildId: resolvedGuildId } : {}),
-    chatSessions,
+  const { entries, isStreaming, currentSessionId, sendMessage, stopChat } = useSessionChatBinding({
+    guildId: resolvedGuildId,
     sessionId,
+    chatSessions: guildData?.chatSessions ?? [],
   });
 
   useEffect(() => {
     if (!currentSessionId || sessionId) return;
     if (!guildSlug) return;
 
-    const result = navigate(`/${guildSlug}/quest/${currentSessionId}`, { replace: true });
+    const result = navigate(`/${guildSlug}/session/${currentSessionId}`, { replace: true });
     if (result instanceof Promise) {
       result.catch(() => undefined);
     }
@@ -77,15 +67,13 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
   useEffect(() => {
     if (prevIsStreamingRef.current && !isStreaming) {
-      if (resolvedQuestId) {
+      refreshGuild().catch(() => undefined);
+      if (routeQuestId) {
         refreshQuest().catch(() => undefined);
-      } else {
-        refreshGuild().catch(() => undefined);
       }
-      refreshResolve().catch(() => undefined);
     }
     prevIsStreamingRef.current = isStreaming;
-  }, [isStreaming, resolvedQuestId, refreshQuest, refreshGuild, refreshResolve]);
+  }, [isStreaming, refreshGuild, refreshQuest, routeQuestId]);
 
   const pendingQuestion = hasPendingQuestionGuard({ entries })
     ? extractAskUserQuestionTransformer({ entries })

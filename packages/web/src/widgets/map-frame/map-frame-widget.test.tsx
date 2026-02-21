@@ -59,7 +59,7 @@ describe('MapFrameWidget', () => {
       expect(frame.style.position).toBe('relative');
     });
 
-    it('VALID: {default props} => uses default minHeight and maxWidth', () => {
+    it('VALID: {default props} => uses minHeight 0 and default maxWidth', () => {
       MapFrameWidgetProxy();
 
       mantineRenderAdapter({
@@ -72,20 +72,19 @@ describe('MapFrameWidget', () => {
 
       const frame = screen.getByTestId('MAP_FRAME');
 
-      expect(frame.style.minHeight).toBe('280px');
+      expect(frame.style.minHeight).toBe('0');
       expect(frame.style.maxWidth).toBe('740px');
       expect(frame.style.width).toBe('100%');
     });
 
-    it('VALID: {custom minHeight and maxWidth} => overrides defaults', () => {
+    it('VALID: {custom maxWidth} => overrides default', () => {
       MapFrameWidgetProxy();
 
-      const minHeight = CssPixelsStub({ value: 400 });
       const maxWidth = CssPixelsStub({ value: 900 });
 
       mantineRenderAdapter({
         ui: (
-          <MapFrameWidget minHeight={minHeight} maxWidth={maxWidth}>
+          <MapFrameWidget maxWidth={maxWidth}>
             <span>content</span>
           </MapFrameWidget>
         ),
@@ -93,7 +92,6 @@ describe('MapFrameWidget', () => {
 
       const frame = screen.getByTestId('MAP_FRAME');
 
-      expect(frame.style.minHeight).toBe('400px');
       expect(frame.style.maxWidth).toBe('900px');
     });
 
