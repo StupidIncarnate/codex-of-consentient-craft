@@ -32,7 +32,7 @@ describe('ChatPanelWidget', () => {
       expect(proxy.hasMessageCount({ count: 2 })).toBe(true);
     });
 
-    it('VALID: {entries with tool use} => renders tool call message', () => {
+    it('VALID: {entries with tool use} => renders user message and tool group header', () => {
       const proxy = ChatPanelWidgetProxy();
       const entries = [
         UserChatEntryStub({ content: 'Do something' }),
@@ -50,12 +50,8 @@ describe('ChatPanelWidget', () => {
         ),
       });
 
-      expect(proxy.hasMessageCount({ count: 2 })).toBe(true);
-
-      const messages = screen.getAllByTestId('CHAT_MESSAGE');
-      const toolMessage = messages.at(1)!;
-
-      expect(toolMessage.textContent).toMatch(/TOOL CALL/u);
+      expect(proxy.hasMessageCount({ count: 1 })).toBe(true);
+      expect(proxy.hasToolGroupCount({ count: 1 })).toBe(true);
     });
 
     it('VALID: {tool_use as last entry, isStreaming true} => shows Running indicator', () => {
@@ -79,7 +75,7 @@ describe('ChatPanelWidget', () => {
       expect(screen.queryByTestId('TOOL_LOADING')).not.toBeNull();
     });
 
-    it('VALID: {multiple parallel tool_use, no text response, isStreaming true} => shows Running on all current turn tools', () => {
+    it('VALID: {multiple parallel tool_use, no text response, isStreaming true} => shows Running on last entry of last tool group', () => {
       ChatPanelWidgetProxy();
       const entries = [
         UserChatEntryStub({ content: 'Do something' }),
@@ -104,7 +100,7 @@ describe('ChatPanelWidget', () => {
 
       const loadingIndicators = screen.queryAllByTestId('TOOL_LOADING');
 
-      expect(loadingIndicators).toHaveLength(3);
+      expect(loadingIndicators).toHaveLength(1);
     });
 
     it('VALID: {previous turn tool_use, new turn streaming} => does not show Running on previous turn tools', () => {
