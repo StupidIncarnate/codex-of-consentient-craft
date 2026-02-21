@@ -23,7 +23,7 @@ dispatch a sub agent to gather it and report back.
 2. For each group:
    a. **Dispatch an agent** with the plan context and specify which steps to implement.
    b. **Dispatch a sub agent** to pull a list of changed implementation files and manually verify that all implementation changes have test coverage based on project standards. If missing cases are discovered, the agent needs to fill them in and run tests until passing. 
-   c. **Dispatch a sub agent** to run lint, typecheck, and tests on changed files. If issues are found, dispatch a sub
+   c. **Dispatch a sub agent** to run `npm run ward --changed` at root of repo. If issues are found, dispatch a sub
    agent to fix them.
    d. **Update progress** — Edit the plan file directly to mark completed steps. Then **commit** the changes.
 3. Repeat until all plan steps are complete.
@@ -37,7 +37,9 @@ Dispatch an agent with the full plan. Tell it to:
   `mcp__claude-in-chrome__*`)
 - Backend test cases should include endpoint verification steps using `curl` or `Bash` tool against the running server
 
-Then use those E2E test cases to drive manual validation.
+Then use those E2E test cases to drive manual validation. After all that is done, have a sub agent run a full `npm run ward` in the root of repo and to fix any issues that come out of it.
+
+After ward is passing, commit any remaining changes if any. 
 
 ## Progress Tracking
 
