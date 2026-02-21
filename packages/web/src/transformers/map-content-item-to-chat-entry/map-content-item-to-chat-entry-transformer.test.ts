@@ -52,6 +52,19 @@ describe('mapContentItemToChatEntryTransformer', () => {
         content: '',
       });
     });
+
+    it('EDGE: {type: "text", text is non-string} => returns entry with empty content', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'text', text: 42 },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: '',
+      });
+    });
   });
 
   describe('tool_use items', () => {
@@ -102,6 +115,15 @@ describe('mapContentItemToChatEntryTransformer', () => {
         toolInput: '{}',
       });
     });
+
+    it('EDGE: {type: "tool_use", name is non-string} => falls back to empty string and throws', () => {
+      expect(() => {
+        mapContentItemToChatEntryTransformer({
+          item: { type: 'tool_use', name: 123, input: { path: '/test' } },
+          usage: undefined,
+        });
+      }).toThrow(/too_small/u);
+    });
   });
 
   describe('tool_result items', () => {
@@ -129,6 +151,20 @@ describe('mapContentItemToChatEntryTransformer', () => {
         role: 'assistant',
         type: 'tool_result',
         toolName: 'toolu_456',
+        content: '',
+      });
+    });
+
+    it('EDGE: {type: "tool_result", content is non-string} => falls back to empty content', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'tool_result', tool_use_id: 'toolu_789', content: 42 },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_789',
         content: '',
       });
     });

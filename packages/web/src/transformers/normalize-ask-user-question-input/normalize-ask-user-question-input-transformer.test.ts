@@ -25,6 +25,15 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
 
       expect(result).toStrictEqual({});
     });
+
+    it('EDGE: {name is not AskUserQuestion, input is undefined} => returns empty object', () => {
+      const result = normalizeAskUserQuestionInputTransformer({
+        name: 'read_file',
+        input: undefined,
+      });
+
+      expect(result).toStrictEqual({});
+    });
   });
 
   describe('AskUserQuestion with array questions', () => {
@@ -91,6 +100,24 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
       });
 
       expect(result).toStrictEqual({ other: 'field' });
+    });
+
+    it('EDGE: {input is undefined} => returns empty object', () => {
+      const result = normalizeAskUserQuestionInputTransformer({
+        name: 'AskUserQuestion',
+        input: undefined,
+      });
+
+      expect(result).toStrictEqual({});
+    });
+
+    it('EDGE: {input is a non-object primitive} => returns input unchanged', () => {
+      const result = normalizeAskUserQuestionInputTransformer({
+        name: 'AskUserQuestion',
+        input: 'some string',
+      });
+
+      expect(result).toBe('some string');
     });
   });
 });

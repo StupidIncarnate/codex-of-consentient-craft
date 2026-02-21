@@ -1,3 +1,5 @@
+import { screen } from '@testing-library/react';
+
 import { AskUserQuestionStub } from '../../contracts/ask-user-question/ask-user-question.stub';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestClarifyPanelWidget } from './quest-clarify-panel-widget';
@@ -5,6 +7,33 @@ import { QuestClarifyPanelWidgetProxy } from './quest-clarify-panel-widget.proxy
 
 describe('QuestClarifyPanelWidget', () => {
   describe('rendering', () => {
+    it('VALID: {questTitle} => renders quest title', () => {
+      QuestClarifyPanelWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Which DB?',
+            header: 'DB',
+            options: [{ label: 'Postgres', description: 'SQL DB' }],
+            multiSelect: false,
+          },
+        ],
+      });
+      const onSubmitAnswers = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestClarifyPanelWidget
+            questions={parsed.questions}
+            questTitle={'Build Login Feature' as never}
+            onSubmitAnswers={onSubmitAnswers}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('CLARIFY_QUEST_TITLE').textContent).toBe('Build Login Feature');
+    });
+
     it('VALID: {questions with text} => renders question text', () => {
       const proxy = QuestClarifyPanelWidgetProxy();
       const parsed = AskUserQuestionStub({
@@ -262,6 +291,37 @@ describe('QuestClarifyPanelWidget', () => {
       await proxy.submitFreeform();
 
       expect(onSubmitAnswers).toHaveBeenCalledTimes(1);
+    });
+
+    it('EDGE: {click Other then submit without typing} => does not call onSubmitAnswers', async () => {
+      const proxy = QuestClarifyPanelWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Any preference?',
+            header: 'Pref',
+            options: [{ label: 'Default', description: 'Standard option' }],
+            multiSelect: false,
+          },
+        ],
+      });
+      const firstQuestion = parsed.questions[0]!;
+      const onSubmitAnswers = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestClarifyPanelWidget
+            questions={parsed.questions}
+            questTitle={firstQuestion.question}
+            onSubmitAnswers={onSubmitAnswers}
+          />
+        ),
+      });
+
+      await proxy.clickOther();
+      await proxy.submitFreeform();
+
+      expect(onSubmitAnswers).not.toHaveBeenCalled();
     });
   });
 });

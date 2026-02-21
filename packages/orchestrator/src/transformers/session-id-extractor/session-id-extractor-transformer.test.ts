@@ -137,6 +137,38 @@ describe('sessionIdExtractorTransformer', () => {
     });
   });
 
+  describe('hook event filtering', () => {
+    it('EDGE: {subtype: hook_started with session_id} => returns null', () => {
+      const line = StreamJsonLineStub({
+        value: '{"subtype":"hook_started","session_id":"hook-session-abc"}',
+      });
+
+      const result = sessionIdExtractorTransformer({ line });
+
+      expect(result).toBeNull();
+    });
+
+    it('EDGE: {subtype: hook_response with session_id} => returns null', () => {
+      const line = StreamJsonLineStub({
+        value: '{"subtype":"hook_response","session_id":"hook-session-def"}',
+      });
+
+      const result = sessionIdExtractorTransformer({ line });
+
+      expect(result).toBeNull();
+    });
+
+    it('VALID: {subtype: other with session_id} => returns SessionId', () => {
+      const line = StreamJsonLineStub({
+        value: '{"subtype":"init","session_id":"real-session-789"}',
+      });
+
+      const result = sessionIdExtractorTransformer({ line });
+
+      expect(result).toBe('real-session-789');
+    });
+  });
+
   describe('invalid JSON handling', () => {
     it('ERROR: {invalid JSON} => returns null', () => {
       const line = StreamJsonLineStub({

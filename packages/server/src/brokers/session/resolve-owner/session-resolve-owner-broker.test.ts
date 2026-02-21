@@ -90,6 +90,25 @@ describe('sessionResolveOwnerBroker', () => {
     });
   });
 
+  describe('quest returns invalid data', () => {
+    it('EDGE: {quest result has no quest property} => skips quest and returns questId null', async () => {
+      const proxy = sessionResolveOwnerBrokerProxy();
+      const sessionId: SessionId = SessionIdStub({ value: 'quest-session-001' });
+      const guildId: GuildId = GuildIdStub();
+      const guild = GuildStub({ chatSessions: [] });
+
+      proxy.setupGuild({ guild });
+      proxy.setupQuestList({
+        quests: [QuestListItemStub({ id: 'bad-quest' })],
+      });
+      proxy.setupGetQuest({ result: { success: false } as never });
+
+      const result = await sessionResolveOwnerBroker({ guildId, sessionId });
+
+      expect(result).toStrictEqual({ questId: null });
+    });
+  });
+
   describe('no quests in guild', () => {
     it('EMPTY: {guild has no quests} => returns questId null', async () => {
       const proxy = sessionResolveOwnerBrokerProxy();

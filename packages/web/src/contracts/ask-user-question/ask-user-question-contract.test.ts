@@ -90,6 +90,29 @@ describe('askUserQuestionContract', () => {
       }).toThrow(/Required/u);
     });
 
+    it('INVALID_QUESTION: {empty question string} => throws validation error', () => {
+      expect(() => {
+        askUserQuestionContract.parse({
+          questions: [{ question: '', header: 'H', options: [], multiSelect: false }],
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID_LABEL: {empty option label string} => throws validation error', () => {
+      expect(() => {
+        askUserQuestionContract.parse({
+          questions: [
+            {
+              question: 'Pick one',
+              header: 'Choice',
+              options: [{ label: '', description: 'desc' }],
+              multiSelect: false,
+            },
+          ],
+        });
+      }).toThrow(/too_small/u);
+    });
+
     it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
       expect(() => {
         askUserQuestionContract.parse({});

@@ -99,6 +99,65 @@ describe('extractFirstUserMessageTransformer', () => {
     });
   });
 
+  describe('invalid JSON lines', () => {
+    it('EDGE: {fileContent: invalid JSON before valid user line} => skips invalid JSON and returns user message', () => {
+      const result = extractFirstUserMessageTransformer({
+        fileContent: FileContentsStub({
+          value: [
+            'not valid json at all',
+            '{"type":"user","message":{"role":"user","content":"after invalid"}}',
+          ].join('\n'),
+        }),
+      });
+
+      expect(result).toBe('after invalid');
+    });
+  });
+
+  describe('non-object parsed lines', () => {
+    it('EDGE: {fileContent: JSON number before valid user line} => skips non-object parsed values', () => {
+      const result = extractFirstUserMessageTransformer({
+        fileContent: FileContentsStub({
+          value: ['42', '{"type":"user","message":{"role":"user","content":"after number"}}'].join(
+            '\n',
+          ),
+        }),
+      });
+
+      expect(result).toBe('after number');
+    });
+  });
+
+  describe('message not object', () => {
+    it('EDGE: {fileContent: user line with string message} => skips lines where message is not an object', () => {
+      const result = extractFirstUserMessageTransformer({
+        fileContent: FileContentsStub({
+          value: [
+            '{"type":"user","message":"just a string"}',
+            '{"type":"user","message":{"role":"user","content":"valid message"}}',
+          ].join('\n'),
+        }),
+      });
+
+      expect(result).toBe('valid message');
+    });
+  });
+
+  describe('empty lines', () => {
+    it('EDGE: {fileContent: empty lines between valid lines} => skips empty lines', () => {
+      const result = extractFirstUserMessageTransformer({
+        fileContent: FileContentsStub({
+          value: [
+            '',
+            '{"type":"user","message":{"role":"user","content":"after empty lines"}}',
+          ].join('\n'),
+        }),
+      });
+
+      expect(result).toBe('after empty lines');
+    });
+  });
+
   describe('no valid user message', () => {
     it('VALID: {fileContent: only assistant lines} => returns undefined', () => {
       const result = extractFirstUserMessageTransformer({

@@ -1149,19 +1149,25 @@ export const StartServer = (): void => {
             // Check cache before reading file
             const mtimeMs = mtimeMsContract.parse(stats.mtimeMs);
             const cached = sessionSummaryCacheState.get({ sessionId: diskSessionId, mtimeMs });
-            let diskSummary: ReturnType<typeof extractSessionFileSummaryTransformer>;
+            const diskSummary: ReturnType<typeof extractSessionFileSummaryTransformer> =
+              await (async (): Promise<ReturnType<typeof extractSessionFileSummaryTransformer>> => {
+                if (cached.hit) {
+                  return cached.summary;
+                }
 
-            if (cached.hit) {
-              diskSummary = cached.summary;
-            } else {
-              const rawContent = await readFile(String(filePath), 'utf8').catch(() => '');
-              diskSummary = rawContent
-                ? extractSessionFileSummaryTransformer({
-                    fileContent: fileContentsContract.parse(rawContent),
-                  })
-                : undefined;
-              sessionSummaryCacheState.set({ sessionId: diskSessionId, mtimeMs, summary: diskSummary });
-            }
+                const rawContent = await readFile(String(filePath), 'utf8').catch(() => '');
+                const summary = rawContent
+                  ? extractSessionFileSummaryTransformer({
+                      fileContent: fileContentsContract.parse(rawContent),
+                    })
+                  : undefined;
+                sessionSummaryCacheState.set({
+                  sessionId: diskSessionId,
+                  mtimeMs,
+                  summary,
+                });
+                return summary;
+              })();
 
             // Enrich from quest or guild config
             const questInfo = questLookup.get(diskSessionId);

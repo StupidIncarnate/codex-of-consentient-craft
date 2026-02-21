@@ -105,6 +105,68 @@ describe('ContractsLayerWidget', () => {
       expect(propertyElement.textContent).toBe('email: EmailAddress');
     });
 
+    it('VALID: {contracts: [entry without source]} => does not render CONTRACT_SOURCE', () => {
+      ContractsLayerWidgetProxy();
+      const contract = QuestContractEntryStub({});
+
+      mantineRenderAdapter({
+        ui: (
+          <ContractsLayerWidget
+            contracts={[contract]}
+            tooling={[]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('CONTRACT_SOURCE')).not.toBeInTheDocument();
+    });
+
+    it('VALID: {contracts: [entry with property value but no type]} => renders value as fallback', () => {
+      ContractsLayerWidgetProxy();
+      const contract = QuestContractEntryStub({
+        properties: [{ name: 'timeout', value: '3000' }],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ContractsLayerWidget
+            contracts={[contract]}
+            tooling={[]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      const propertyElement = screen.getByTestId('CONTRACT_PROPERTY');
+
+      expect(propertyElement.textContent).toBe('timeout: 3000');
+    });
+
+    it('VALID: {contracts: [entry with property description]} => renders em-dash and description', () => {
+      ContractsLayerWidgetProxy();
+      const contract = QuestContractEntryStub({
+        properties: [{ name: 'email', type: 'EmailAddress', description: 'User email for auth' }],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ContractsLayerWidget
+            contracts={[contract]}
+            tooling={[]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      const propertyElement = screen.getByTestId('CONTRACT_PROPERTY');
+
+      expect(propertyElement.textContent).toBe('email: EmailAddress \u2014 User email for auth');
+    });
+
     it('EMPTY: {contracts: []} => renders section with zero count', () => {
       ContractsLayerWidgetProxy();
       const contracts: QuestContractEntry[] = [];

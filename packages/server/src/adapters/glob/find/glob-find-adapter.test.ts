@@ -48,6 +48,16 @@ describe('globFindAdapter', () => {
     expect(result).toStrictEqual(expectedFiles);
   });
 
+  it('ERROR: {glob v7 callback returns error} => rejects with error', async () => {
+    const adapterProxy = globFindAdapterProxy();
+    const pattern = GlobPatternStub({ value: '**/*.ts' });
+    const error = new Error('Glob callback error');
+
+    adapterProxy.throwsNonArray({ pattern, error });
+
+    await expect(globFindAdapter({ pattern })).rejects.toThrow(/Glob callback error/u);
+  });
+
   it('EMPTY: {pattern: "nonexistent/**"} => returns empty array', async () => {
     const adapterProxy = globFindAdapterProxy();
     const pattern = GlobPatternStub({ value: 'nonexistent/**' });

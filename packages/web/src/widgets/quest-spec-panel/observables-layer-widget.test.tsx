@@ -170,6 +170,25 @@ describe('ObservablesLayerWidget', () => {
       );
     });
 
+    it('VALID: {contexts: [ctx without locator page or section]} => does not render CONTEXT_LOCATOR', () => {
+      ObservablesLayerWidgetProxy();
+      const ctx = ContextStub({ locator: {} });
+
+      mantineRenderAdapter({
+        ui: (
+          <ObservablesLayerWidget
+            flows={[]}
+            contexts={[ctx]}
+            observables={[]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('CONTEXT_LOCATOR')).not.toBeInTheDocument();
+    });
+
     it('EMPTY: {contexts: []} => renders section with CONTEXTS header', () => {
       ObservablesLayerWidgetProxy();
       const contexts: Context[] = [];
@@ -292,6 +311,68 @@ describe('ObservablesLayerWidget', () => {
       expect(screen.getByTestId('OBSERVABLE_OUTCOME').textContent).toBe(
         'THEN Form is submitted (ui-state)',
       );
+    });
+
+    it('VALID: {observables: [obs without requirementId]} => does not render OBSERVABLE_REQ_REF', () => {
+      ObservablesLayerWidgetProxy();
+      const obs = ObservableStub({});
+
+      mantineRenderAdapter({
+        ui: (
+          <ObservablesLayerWidget
+            flows={[]}
+            contexts={[]}
+            observables={[obs]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('OBSERVABLE_REQ_REF')).not.toBeInTheDocument();
+    });
+
+    it('VALID: {observables: [obs with dependsOn]} => renders depends tag list', () => {
+      ObservablesLayerWidgetProxy();
+      const obs = ObservableStub({
+        dependsOn: [
+          'b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e',
+          'c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f',
+        ] as never,
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ObservablesLayerWidget
+            flows={[]}
+            contexts={[]}
+            observables={[obs]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('FORM_TAG_LIST')).toBeInTheDocument();
+    });
+
+    it('VALID: {observables: [obs with empty dependsOn]} => does not render depends tag list', () => {
+      ObservablesLayerWidgetProxy();
+      const obs = ObservableStub({ dependsOn: [] as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <ObservablesLayerWidget
+            flows={[]}
+            contexts={[]}
+            observables={[obs]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('FORM_TAG_LIST')).not.toBeInTheDocument();
     });
 
     it('EDGE: {observables: [obs with no verificationStatus]} => renders pending as default', () => {

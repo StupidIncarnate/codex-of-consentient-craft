@@ -95,6 +95,24 @@ describe('MapFrameWidget', () => {
       expect(frame.style.maxWidth).toBe('900px');
     });
 
+    it('VALID: {custom padding} => overrides default', () => {
+      MapFrameWidgetProxy();
+
+      const padding = CssPixelsStub({ value: 32 });
+
+      mantineRenderAdapter({
+        ui: (
+          <MapFrameWidget padding={padding}>
+            <span>content</span>
+          </MapFrameWidget>
+        ),
+      });
+
+      const frame = screen.getByTestId('MAP_FRAME');
+
+      expect(frame.style.padding).toBe('32px');
+    });
+
     it('VALID: {top corners} => positions top-left and top-right absolutely', () => {
       MapFrameWidgetProxy();
 

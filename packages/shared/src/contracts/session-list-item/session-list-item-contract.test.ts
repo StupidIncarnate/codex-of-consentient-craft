@@ -108,5 +108,16 @@ describe('sessionListItemContract', () => {
         });
       }).toThrow(/too_small/u);
     });
+
+    it('INVALID_ACTIVE: {active: not boolean} => throws validation error', () => {
+      const base = SessionListItemStub();
+
+      expect(() => {
+        sessionListItemContract.parse({
+          ...base,
+          active: 'yes' as never,
+        });
+      }).toThrow(/Expected boolean/u);
+    });
   });
 });

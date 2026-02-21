@@ -8,6 +8,7 @@ export const globFindAdapterProxy = (): {
   returns: (params: { pattern: GlobPattern; files: readonly FilePath[] }) => void;
   returnsNonArray: (params: { pattern: GlobPattern; files: readonly FilePath[] }) => void;
   throws: (params: { pattern: GlobPattern; error: Error }) => void;
+  throwsNonArray: (params: { pattern: GlobPattern; error: Error }) => void;
 } => {
   const mockGlob = jest.mocked(glob);
 
@@ -30,6 +31,15 @@ export const globFindAdapterProxy = (): {
     },
     throws: ({ error }: { pattern: GlobPattern; error: Error }): void => {
       mockGlob.mockRejectedValueOnce(error);
+    },
+    throwsNonArray: ({ error }: { pattern: GlobPattern; error: Error }): void => {
+      const globInstance = { constructor: { name: 'Glob' } };
+      mockGlob.mockResolvedValueOnce(globInstance as unknown as FilePath[]);
+      const v7Handler = (...args: unknown[]): void => {
+        const callback = args[2] as (error: Error, matches: null) => void;
+        callback(error, null);
+      };
+      mockGlob.mockImplementationOnce(v7Handler as unknown as typeof glob);
     },
   };
 };

@@ -135,7 +135,7 @@ describe('AppWidget', () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({ name: 'My Guild' });
       const guilds = [guild];
-      const sessions = [SessionListItemStub({ sessionId: 'session-1' })];
+      const sessions = [SessionListItemStub({ sessionId: 'session-1', questId: 'quest-1' })];
 
       proxy.setupGuilds({ guilds });
 
@@ -536,7 +536,7 @@ describe('AppWidget', () => {
         id: 'e1f2a3b4-c5d6-7890-efab-901234567890',
         name: 'Nav Guild',
       });
-      const sessions = [SessionListItemStub({ sessionId: 'nav-s1' })];
+      const sessions = [SessionListItemStub({ sessionId: 'nav-s1', questId: 'quest-nav' })];
 
       proxy.setupGuilds({ guilds: [guild] });
 
@@ -717,7 +717,7 @@ describe('AppWidget', () => {
         id: 'a9b0c1d2-e3f4-5678-abcd-789abcdef012',
         name: 'Tab Guild',
       });
-      const sessions = [SessionListItemStub({ sessionId: 'tab-s1' })];
+      const sessions = [SessionListItemStub({ sessionId: 'tab-s1', questId: 'quest-tab' })];
 
       proxy.setupGuilds({ guilds: [guild] });
 

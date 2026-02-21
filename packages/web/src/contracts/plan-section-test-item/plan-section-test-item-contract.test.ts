@@ -6,7 +6,7 @@ describe('planSectionTestItemContract', () => {
     it('VALID: {text: "step-a"} => parses test item', () => {
       const result = planSectionTestItemContract.parse({ text: 'step-a' });
 
-      expect(result.text).toBe('step-a');
+      expect(result).toStrictEqual({ text: 'step-a' });
     });
   });
 
@@ -26,13 +26,13 @@ describe('planSectionTestItemContract', () => {
     it('VALID: {default} => creates valid test item', () => {
       const result = PlanSectionTestItemStub();
 
-      expect(result.text).toBe('step-a');
+      expect(result).toStrictEqual({ text: 'step-a' });
     });
 
     it('VALID: {text: "step-b"} => creates item with custom text', () => {
       const result = PlanSectionTestItemStub({ text: 'step-b' });
 
-      expect(result.text).toBe('step-b');
+      expect(result).toStrictEqual({ text: 'step-b' });
     });
   });
 });

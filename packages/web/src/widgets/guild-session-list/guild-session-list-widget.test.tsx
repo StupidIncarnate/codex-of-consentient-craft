@@ -175,6 +175,34 @@ describe('GuildSessionListWidget', () => {
         'rgb(74, 222, 128)',
       );
     });
+
+    it('VALID: {session with questStatus: in_progress} => shows IN PROGRESS with warning color', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'in-progress-session' });
+      const session = SessionListItemStub({
+        sessionId,
+        questStatus: 'in_progress' as never,
+        questId: 'quest-ip' as never,
+      });
+      const filter = SessionFilterStub();
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            sessions={[session]}
+            filter={filter}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onAdd={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.getStatusText({ testId: `SESSION_STATUS_${sessionId}` })).toBe('IN PROGRESS');
+      expect(proxy.getStatusColor({ testId: `SESSION_STATUS_${sessionId}` })).toBe(
+        'rgb(245, 158, 11)',
+      );
+    });
   });
 
   describe('empty state', () => {

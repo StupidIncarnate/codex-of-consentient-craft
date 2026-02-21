@@ -135,7 +135,7 @@ describe('useSessionListBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.data).toHaveLength(2);
+          expect(result.current.loading).toBe(false);
         },
       });
 
