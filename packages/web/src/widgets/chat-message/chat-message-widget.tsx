@@ -160,6 +160,9 @@ export const ChatMessageWidget = ({
   }
 
   if (entry.role === 'user') {
+    const userBorderColor = isSubagent ? colors['loot-rare'] : colors['loot-gold'];
+    const userLabel = isSubagent ? 'SUB-AGENT PROMPT' : 'YOU';
+
     return (
       <Box
         data-testid="CHAT_MESSAGE"
@@ -167,8 +170,8 @@ export const ChatMessageWidget = ({
           padding: '6px 10px',
           borderRadius: 2,
           backgroundColor: colors['bg-raised'],
-          borderLeft: `${BORDER_WIDTH} ${colors['loot-gold']}`,
-          borderRight: `${BORDER_WIDTH} ${colors['loot-gold']}`,
+          borderLeft: `${BORDER_WIDTH} ${userBorderColor}`,
+          borderRight: `${BORDER_WIDTH} ${userBorderColor}`,
           textAlign: 'left',
         }}
       >
@@ -177,9 +180,9 @@ export const ChatMessageWidget = ({
           size="xs"
           fw={LABEL_FONT_WEIGHT}
           mb={2}
-          style={{ color: colors['loot-gold'] }}
+          style={{ color: userBorderColor }}
         >
-          YOU
+          {userLabel}
         </Text>
         <Text ff="monospace" size="xs" style={{ color: colors.text, whiteSpace: 'pre-wrap' }}>
           {entry.content}
