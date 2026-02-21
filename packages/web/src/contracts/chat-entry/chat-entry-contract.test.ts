@@ -5,6 +5,7 @@ import {
   AssistantToolUseChatEntryStub,
   ChatEntryStub,
   SystemErrorChatEntryStub,
+  TaskToolUseChatEntryStub,
 } from './chat-entry.stub';
 
 describe('chatEntryContract', () => {
@@ -111,6 +112,74 @@ describe('chatEntryContract', () => {
         role: 'system',
         type: 'error',
         content: 'Something went wrong',
+      });
+    });
+  });
+
+  describe('agentId field', () => {
+    it('VALID: {role: "user", agentId: "abc123"} => parses with agentId', () => {
+      const entry = ChatEntryStub({ agentId: 'abc123' } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'user',
+        content: 'Hello world',
+        agentId: 'abc123',
+      });
+    });
+
+    it('VALID: {role: "assistant", type: "tool_use", agentId} => parses with agentId', () => {
+      const entry = AssistantToolUseChatEntryStub({ agentId: 'agent-42' } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolName: 'read_file',
+        toolInput: '{"path":"/test"}',
+        agentId: 'agent-42',
+      });
+    });
+
+    it('VALID: {role: "user", no agentId} => parses without agentId (optional)', () => {
+      const entry = ChatEntryStub();
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'user',
+        content: 'Hello world',
+      });
+    });
+  });
+
+  describe('TaskToolUseChatEntryStub', () => {
+    it('VALID: TaskToolUseChatEntryStub => creates tool_use with Task toolName', () => {
+      const entry = TaskToolUseChatEntryStub();
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolName: 'Task',
+        toolInput: JSON.stringify({ description: 'Run tests', prompt: 'Execute the test suite' }),
+      });
+    });
+
+    it('VALID: TaskToolUseChatEntryStub with agentId => includes agentId', () => {
+      const entry = TaskToolUseChatEntryStub({ agentId: 'sub-1' } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolName: 'Task',
+        toolInput: JSON.stringify({ description: 'Run tests', prompt: 'Execute the test suite' }),
+        agentId: 'sub-1',
       });
     });
   });

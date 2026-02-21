@@ -4,6 +4,8 @@ import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-rend
 import {
   AssistantTextChatEntryStub,
   AssistantToolUseChatEntryStub,
+  TaskNotificationChatEntryStub,
+  TaskToolUseChatEntryStub,
   UserChatEntryStub,
 } from '../../contracts/chat-entry/chat-entry.stub';
 import { ChatPanelWidget } from './chat-panel-widget';
@@ -437,6 +439,31 @@ describe('ChatPanelWidget', () => {
 
       expect(proxy.isSendButtonVisible()).toBe(true);
       expect(proxy.isStopButtonVisible()).toBe(false);
+    });
+  });
+
+  describe('subagent chain rendering', () => {
+    it('VALID: {entries forming subagent chain} => renders SubagentChainWidget', () => {
+      const proxy = ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'Run my tests' }),
+        TaskToolUseChatEntryStub({ agentId: 'agent-001' }),
+        AssistantToolUseChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
+        TaskNotificationChatEntryStub({ taskId: 'agent-001', status: 'completed' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.hasSubagentChainCount({ count: 1 })).toBe(true);
     });
   });
 

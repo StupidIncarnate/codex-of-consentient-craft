@@ -13,10 +13,12 @@ export const mapContentItemToChatEntryTransformer = ({
   item,
   usage,
   source,
+  agentId,
 }: {
   item: Record<string, unknown>;
   usage: ChatUsage | undefined;
   source?: 'session' | 'subagent';
+  agentId?: string;
 }): ChatEntry | null => {
   const itemType = item.type;
 
@@ -29,6 +31,7 @@ export const mapContentItemToChatEntryTransformer = ({
       content: text,
       ...(usage ? { usage } : {}),
       ...(source ? { source } : {}),
+      ...(agentId ? { agentId } : {}),
     });
   }
 
@@ -43,6 +46,7 @@ export const mapContentItemToChatEntryTransformer = ({
       toolInput: JSON.stringify(normalizedInput),
       ...(usage ? { usage } : {}),
       ...(source ? { source } : {}),
+      ...(agentId ? { agentId } : {}),
     });
   }
 
@@ -58,6 +62,7 @@ export const mapContentItemToChatEntryTransformer = ({
       content,
       ...(isError ? { isError } : {}),
       ...(source ? { source } : {}),
+      ...(agentId ? { agentId } : {}),
     });
   }
 

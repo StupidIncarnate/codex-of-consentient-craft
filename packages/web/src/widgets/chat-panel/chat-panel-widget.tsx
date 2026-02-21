@@ -20,11 +20,12 @@ import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
 import { contextTokenDeltaContract } from '../../contracts/context-token-delta/context-token-delta-contract';
-import { groupChatEntriesTransformer } from '../../transformers/group-chat-entries/group-chat-entries-transformer';
+import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
 import { raccoonAnimationIntervalTransformer } from '../../transformers/raccoon-animation-interval/raccoon-animation-interval-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 import { ContextDividerWidget } from '../context-divider/context-divider-widget';
 import { PixelSpriteWidget } from '../pixel-sprite/pixel-sprite-widget';
+import { SubagentChainWidget } from '../subagent-chain/subagent-chain-widget';
 import { ToolGroupWidget } from '../tool-group/tool-group-widget';
 
 import type { UserInput } from '@dungeonmaster/shared/contracts';
@@ -136,7 +137,7 @@ export const ChatPanelWidget = ({
         }}
       >
         {(() => {
-          const groupedEntries = groupChatEntriesTransformer({ entries });
+          const groupedEntries = collectSubagentChainsTransformer({ entries });
           let prevSessionContext: ContextTokenCount | null = null;
           let prevSubagentContext: ContextTokenCount | null = null;
           const elements: React.JSX.Element[] = [];
@@ -151,6 +152,14 @@ export const ChatPanelWidget = ({
                   key={`group-${String(i)}`}
                   group={group}
                   isLastGroup={i === groupedEntries.length - 1}
+                  isStreaming={isStreaming}
+                />,
+              );
+            } else if (group.kind === 'subagent-chain') {
+              elements.push(
+                <SubagentChainWidget
+                  key={`chain-${String(i)}`}
+                  group={group}
                   isStreaming={isStreaming}
                 />,
               );

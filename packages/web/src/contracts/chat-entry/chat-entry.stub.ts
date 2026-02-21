@@ -60,6 +60,15 @@ export const SystemErrorChatEntryStub = ({ ...props }: StubArgument<ChatEntry> =
     ...props,
   });
 
+export const TaskToolUseChatEntryStub = ({ ...props }: StubArgument<ChatEntry> = {}): ChatEntry =>
+  chatEntryContract.parse({
+    role: 'assistant',
+    type: 'tool_use',
+    toolName: 'Task',
+    toolInput: JSON.stringify({ description: 'Run tests', prompt: 'Execute the test suite' }),
+    ...props,
+  });
+
 export const ChatEntryStub = ({ ...props }: StubArgument<ChatEntry> = {}): ChatEntry =>
   chatEntryContract.parse({
     role: 'user',

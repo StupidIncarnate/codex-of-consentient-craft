@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
 import { ContextDividerWidgetProxy } from '../context-divider/context-divider-widget.proxy';
 import { PixelSpriteWidgetProxy } from '../pixel-sprite/pixel-sprite-widget.proxy';
+import { SubagentChainWidgetProxy } from '../subagent-chain/subagent-chain-widget.proxy';
 import { ToolGroupWidgetProxy } from '../tool-group/tool-group-widget.proxy';
 
 export const ChatPanelWidgetProxy = (): {
@@ -17,11 +18,13 @@ export const ChatPanelWidgetProxy = (): {
   hasMessageCount: (params: { count: number }) => boolean;
   hasToolGroupCount: (params: { count: number }) => boolean;
   hasDividerCount: (params: { count: number }) => boolean;
+  hasSubagentChainCount: (params: { count: number }) => boolean;
 } => {
   ChatMessageWidgetProxy();
   PixelSpriteWidgetProxy();
   ToolGroupWidgetProxy();
   ContextDividerWidgetProxy();
+  SubagentChainWidgetProxy();
 
   return {
     typeMessage: async ({ text }: { text: string }): Promise<void> => {
@@ -46,5 +49,7 @@ export const ChatPanelWidgetProxy = (): {
       screen.queryAllByTestId('TOOL_GROUP_HEADER').length === count,
     hasDividerCount: ({ count }: { count: number }): boolean =>
       screen.queryAllByTestId('CONTEXT_DIVIDER').length === count,
+    hasSubagentChainCount: ({ count }: { count: number }): boolean =>
+      screen.queryAllByTestId('SUBAGENT_CHAIN_HEADER').length === count,
   };
 };

@@ -794,6 +794,56 @@ export const StartServer = (): void => {
         }
       }
 
+      // Build agentId map from queue-operation enqueue entries (session entries only)
+      const agentIdMap = new Map();
+      for (const e of entries) {
+        if (typeof e !== 'object' || e === null) continue;
+        if (Reflect.get(e, 'type') !== 'queue-operation') continue;
+        if (Reflect.get(e, 'operation') !== 'enqueue') continue;
+        const toolUseId: unknown = Reflect.get(e, 'tool_use_id');
+        const taskId: unknown = Reflect.get(e, 'task_id');
+        if (typeof toolUseId === 'string' && typeof taskId === 'string') {
+          agentIdMap.set(toolUseId, taskId);
+        }
+      }
+
+      // Attach agentId to assistant entries with Task tool_use
+      for (const e of entries) {
+        if (typeof e !== 'object' || e === null) continue;
+        if (Reflect.get(e, 'type') !== 'assistant') continue;
+        const message: unknown = Reflect.get(e, 'message');
+        if (typeof message !== 'object' || message === null) continue;
+        const content: unknown = Reflect.get(message, 'content');
+        if (!Array.isArray(content)) continue;
+        for (const item of content) {
+          if (typeof item !== 'object' || item === null) continue;
+          if (Reflect.get(item, 'type') !== 'tool_use') continue;
+          if (Reflect.get(item, 'name') !== 'Task') continue;
+          const id: unknown = Reflect.get(item, 'id');
+          if (typeof id === 'string' && agentIdMap.has(id)) {
+            Reflect.set(e, 'agentId', agentIdMap.get(id));
+          }
+        }
+      }
+
+      // Attach agentId to user entries with Task tool_result
+      for (const e of entries) {
+        if (typeof e !== 'object' || e === null) continue;
+        if (Reflect.get(e, 'type') !== 'user') continue;
+        const message: unknown = Reflect.get(e, 'message');
+        if (typeof message !== 'object' || message === null) continue;
+        const content: unknown = Reflect.get(message, 'content');
+        if (!Array.isArray(content)) continue;
+        for (const item of content) {
+          if (typeof item !== 'object' || item === null) continue;
+          if (Reflect.get(item, 'type') !== 'tool_result') continue;
+          const toolUseId: unknown = Reflect.get(item, 'tool_use_id');
+          if (typeof toolUseId === 'string' && agentIdMap.has(toolUseId)) {
+            Reflect.set(e, 'agentId', agentIdMap.get(toolUseId));
+          }
+        }
+      }
+
       const allEntries = [...entries, ...subagentEntries].sort((a, b) => {
         const tsA =
           typeof a === 'object' && a !== null && 'timestamp' in a
@@ -1049,6 +1099,56 @@ export const StartServer = (): void => {
       for (const e of subagentEntries) {
         if (typeof e === 'object' && e !== null) {
           Reflect.set(e, 'source', 'subagent');
+        }
+      }
+
+      // Build agentId map from queue-operation enqueue entries (session entries only)
+      const agentIdMap = new Map();
+      for (const e of entries) {
+        if (typeof e !== 'object' || e === null) continue;
+        if (Reflect.get(e, 'type') !== 'queue-operation') continue;
+        if (Reflect.get(e, 'operation') !== 'enqueue') continue;
+        const toolUseId: unknown = Reflect.get(e, 'tool_use_id');
+        const taskId: unknown = Reflect.get(e, 'task_id');
+        if (typeof toolUseId === 'string' && typeof taskId === 'string') {
+          agentIdMap.set(toolUseId, taskId);
+        }
+      }
+
+      // Attach agentId to assistant entries with Task tool_use
+      for (const e of entries) {
+        if (typeof e !== 'object' || e === null) continue;
+        if (Reflect.get(e, 'type') !== 'assistant') continue;
+        const message: unknown = Reflect.get(e, 'message');
+        if (typeof message !== 'object' || message === null) continue;
+        const content: unknown = Reflect.get(message, 'content');
+        if (!Array.isArray(content)) continue;
+        for (const item of content) {
+          if (typeof item !== 'object' || item === null) continue;
+          if (Reflect.get(item, 'type') !== 'tool_use') continue;
+          if (Reflect.get(item, 'name') !== 'Task') continue;
+          const id: unknown = Reflect.get(item, 'id');
+          if (typeof id === 'string' && agentIdMap.has(id)) {
+            Reflect.set(e, 'agentId', agentIdMap.get(id));
+          }
+        }
+      }
+
+      // Attach agentId to user entries with Task tool_result
+      for (const e of entries) {
+        if (typeof e !== 'object' || e === null) continue;
+        if (Reflect.get(e, 'type') !== 'user') continue;
+        const message: unknown = Reflect.get(e, 'message');
+        if (typeof message !== 'object' || message === null) continue;
+        const content: unknown = Reflect.get(message, 'content');
+        if (!Array.isArray(content)) continue;
+        for (const item of content) {
+          if (typeof item !== 'object' || item === null) continue;
+          if (Reflect.get(item, 'type') !== 'tool_result') continue;
+          const toolUseId: unknown = Reflect.get(item, 'tool_use_id');
+          if (typeof toolUseId === 'string' && agentIdMap.has(toolUseId)) {
+            Reflect.set(e, 'agentId', agentIdMap.get(toolUseId));
+          }
         }
       }
 
@@ -1449,6 +1549,56 @@ export const StartServer = (): void => {
       for (const e of subagentEntries) {
         if (typeof e === 'object' && e !== null) {
           Reflect.set(e, 'source', 'subagent');
+        }
+      }
+
+      // Build agentId map from queue-operation enqueue entries (session entries only)
+      const agentIdMap = new Map();
+      for (const e of entries) {
+        if (typeof e !== 'object' || e === null) continue;
+        if (Reflect.get(e, 'type') !== 'queue-operation') continue;
+        if (Reflect.get(e, 'operation') !== 'enqueue') continue;
+        const toolUseId: unknown = Reflect.get(e, 'tool_use_id');
+        const taskId: unknown = Reflect.get(e, 'task_id');
+        if (typeof toolUseId === 'string' && typeof taskId === 'string') {
+          agentIdMap.set(toolUseId, taskId);
+        }
+      }
+
+      // Attach agentId to assistant entries with Task tool_use
+      for (const e of entries) {
+        if (typeof e !== 'object' || e === null) continue;
+        if (Reflect.get(e, 'type') !== 'assistant') continue;
+        const message: unknown = Reflect.get(e, 'message');
+        if (typeof message !== 'object' || message === null) continue;
+        const content: unknown = Reflect.get(message, 'content');
+        if (!Array.isArray(content)) continue;
+        for (const item of content) {
+          if (typeof item !== 'object' || item === null) continue;
+          if (Reflect.get(item, 'type') !== 'tool_use') continue;
+          if (Reflect.get(item, 'name') !== 'Task') continue;
+          const id: unknown = Reflect.get(item, 'id');
+          if (typeof id === 'string' && agentIdMap.has(id)) {
+            Reflect.set(e, 'agentId', agentIdMap.get(id));
+          }
+        }
+      }
+
+      // Attach agentId to user entries with Task tool_result
+      for (const e of entries) {
+        if (typeof e !== 'object' || e === null) continue;
+        if (Reflect.get(e, 'type') !== 'user') continue;
+        const message: unknown = Reflect.get(e, 'message');
+        if (typeof message !== 'object' || message === null) continue;
+        const content: unknown = Reflect.get(message, 'content');
+        if (!Array.isArray(content)) continue;
+        for (const item of content) {
+          if (typeof item !== 'object' || item === null) continue;
+          if (Reflect.get(item, 'type') !== 'tool_result') continue;
+          const toolUseId: unknown = Reflect.get(item, 'tool_use_id');
+          if (typeof toolUseId === 'string' && agentIdMap.has(toolUseId)) {
+            Reflect.set(e, 'agentId', agentIdMap.get(toolUseId));
+          }
         }
       }
 

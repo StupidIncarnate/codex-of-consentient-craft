@@ -18,11 +18,13 @@ const chatUsageContract = z.object({
 export type ChatUsage = z.infer<typeof chatUsageContract>;
 
 const sourceContract = z.enum(['session', 'subagent']).optional();
+const agentIdContract = z.string().min(1).brand<'AgentId'>().optional();
 
 const userEntryContract = z.object({
   role: z.literal('user'),
   content: z.string().min(1).brand<'UserContent'>(),
   source: sourceContract,
+  agentId: agentIdContract,
 });
 
 const assistantTextEntryContract = z.object({
@@ -31,6 +33,7 @@ const assistantTextEntryContract = z.object({
   content: z.string().brand<'AssistantContent'>(),
   usage: chatUsageContract.optional(),
   source: sourceContract,
+  agentId: agentIdContract,
 });
 
 const assistantToolUseEntryContract = z.object({
@@ -40,6 +43,7 @@ const assistantToolUseEntryContract = z.object({
   toolInput: z.string().brand<'ToolInput'>(),
   usage: chatUsageContract.optional(),
   source: sourceContract,
+  agentId: agentIdContract,
 });
 
 const assistantToolResultEntryContract = z.object({
@@ -49,6 +53,7 @@ const assistantToolResultEntryContract = z.object({
   content: z.string().brand<'ToolResultContent'>(),
   isError: z.boolean().optional(),
   source: sourceContract,
+  agentId: agentIdContract,
 });
 
 const taskNotificationEntryContract = z.object({
@@ -62,6 +67,7 @@ const taskNotificationEntryContract = z.object({
   toolUses: z.number().int().nonnegative().brand<'ToolUses'>().optional(),
   durationMs: z.number().int().nonnegative().brand<'DurationMs'>().optional(),
   source: sourceContract,
+  agentId: agentIdContract,
 });
 
 const systemErrorEntryContract = z.object({
@@ -69,6 +75,7 @@ const systemErrorEntryContract = z.object({
   type: z.literal('error'),
   content: z.string().min(1).brand<'ErrorContent'>(),
   source: sourceContract,
+  agentId: agentIdContract,
 });
 
 export const chatEntryContract = z.union([

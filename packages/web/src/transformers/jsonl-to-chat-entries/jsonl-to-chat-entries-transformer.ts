@@ -22,6 +22,9 @@ export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] 
     const entryType: unknown = Reflect.get(entry, 'type');
     const source: unknown = 'source' in entry ? Reflect.get(entry, 'source') : undefined;
     const validSource = source === 'session' || source === 'subagent' ? source : undefined;
+    const rawAgentId: unknown = 'agentId' in entry ? Reflect.get(entry, 'agentId') : undefined;
+    const validAgentId =
+      typeof rawAgentId === 'string' && rawAgentId.length > 0 ? rawAgentId : undefined;
 
     if (entryType === 'user') {
       const message: unknown = 'message' in entry ? Reflect.get(entry, 'message') : null;
@@ -48,6 +51,7 @@ export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] 
               role: 'user',
               content,
               ...(validSource ? { source: validSource } : {}),
+              ...(validAgentId ? { agentId: validAgentId } : {}),
             }),
           );
         }
@@ -81,6 +85,7 @@ export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] 
               role: 'user',
               content: textContent,
               ...(validSource ? { source: validSource } : {}),
+              ...(validAgentId ? { agentId: validAgentId } : {}),
             }),
           );
         }
@@ -96,6 +101,7 @@ export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] 
               item: item as never,
               usage: undefined,
               ...(validSource ? { source: validSource } : {}),
+              ...(validAgentId ? { agentId: validAgentId } : {}),
             });
 
             if (chatEntry) {
@@ -132,6 +138,7 @@ export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] 
             item: item as never,
             usage,
             ...(validSource ? { source: validSource } : {}),
+            ...(validAgentId ? { agentId: validAgentId } : {}),
           });
 
           if (chatEntry) {

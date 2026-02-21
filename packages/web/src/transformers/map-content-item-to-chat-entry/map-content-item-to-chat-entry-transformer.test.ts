@@ -170,6 +170,36 @@ describe('mapContentItemToChatEntryTransformer', () => {
     });
   });
 
+  describe('agentId propagation', () => {
+    it('VALID: {item with agentId param} => includes agentId in result', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'text', text: 'hello' },
+        usage: undefined,
+        agentId: 'agent-1',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: 'hello',
+        agentId: 'agent-1',
+      });
+    });
+
+    it('VALID: {item without agentId param} => no agentId in result', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'text', text: 'hello' },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: 'hello',
+      });
+    });
+  });
+
   describe('unrecognized items', () => {
     it('EMPTY: {type: "unknown"} => returns null', () => {
       const result = mapContentItemToChatEntryTransformer({

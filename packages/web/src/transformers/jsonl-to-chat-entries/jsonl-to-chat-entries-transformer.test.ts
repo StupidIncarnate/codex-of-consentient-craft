@@ -157,6 +157,50 @@ describe('jsonlToChatEntriesTransformer', () => {
     });
   });
 
+  describe('agentId propagation', () => {
+    it('VALID: {entry with agentId} => propagates agentId to ChatEntry', () => {
+      const result = jsonlToChatEntriesTransformer({
+        entries: [
+          { type: 'user', agentId: 'agent-1', message: { role: 'user', content: 'hello' } },
+        ],
+      });
+
+      expect(result).toStrictEqual([{ role: 'user', content: 'hello', agentId: 'agent-1' }]);
+    });
+
+    it('VALID: {entry without agentId} => ChatEntry has no agentId', () => {
+      const result = jsonlToChatEntriesTransformer({
+        entries: [{ type: 'user', message: { role: 'user', content: 'hello' } }],
+      });
+
+      expect(result).toStrictEqual([{ role: 'user', content: 'hello' }]);
+    });
+
+    it('VALID: {assistant entry with agentId} => propagates to tool_use entries', () => {
+      const result = jsonlToChatEntriesTransformer({
+        entries: [
+          {
+            type: 'assistant',
+            agentId: 'agent-2',
+            message: {
+              content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
+            },
+          },
+        ],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_use',
+          toolName: 'read_file',
+          toolInput: '{"path":"/test"}',
+          agentId: 'agent-2',
+        },
+      ]);
+    });
+  });
+
   describe('skipped entries', () => {
     it('EDGE: {type: "result"} => skips non-user non-assistant entries', () => {
       const result = jsonlToChatEntriesTransformer({

@@ -24,11 +24,23 @@ const toolGroupContract = z.object({
   source: z.enum(['session', 'subagent']),
 });
 
+const subagentChainGroupContract = z.object({
+  kind: z.literal('subagent-chain'),
+  agentId: z.string().min(1).brand<'ChainAgentId'>(),
+  description: z.string().brand<'ChainDescription'>(),
+  taskToolUse: chatEntryContract.nullable(),
+  innerGroups: z.array(z.union([singleGroupContract, toolGroupContract])),
+  taskNotification: chatEntryContract.nullable(),
+  entryCount: z.number().int().nonnegative().brand<'ChainEntryCount'>(),
+});
+
 export const chatEntryGroupContract = z.discriminatedUnion('kind', [
   singleGroupContract,
   toolGroupContract,
+  subagentChainGroupContract,
 ]);
 
 export type ChatEntryGroup = z.infer<typeof chatEntryGroupContract>;
 export type SingleGroup = z.infer<typeof singleGroupContract>;
 export type ToolGroup = z.infer<typeof toolGroupContract>;
+export type SubagentChainGroup = z.infer<typeof subagentChainGroupContract>;
