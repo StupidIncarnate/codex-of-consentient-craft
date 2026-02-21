@@ -9,6 +9,7 @@ import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contrac
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { mapContentItemToChatEntryTransformer } from '../map-content-item-to-chat-entry/map-content-item-to-chat-entry-transformer';
 import { mapUsageToChatUsageTransformer } from '../map-usage-to-chat-usage/map-usage-to-chat-usage-transformer';
+import { parseTaskNotificationTransformer } from '../parse-task-notification/parse-task-notification-transformer';
 
 export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] }): ChatEntry[] => {
   const result: ChatEntry[] = [];
@@ -32,6 +33,15 @@ export const jsonlToChatEntriesTransformer = ({ entries }: { entries: unknown[] 
       const content: unknown = Reflect.get(message, 'content');
 
       if (typeof content === 'string') {
+        if (content.trimStart().startsWith('<task-notification>')) {
+          const taskEntry = parseTaskNotificationTransformer({ content });
+
+          if (taskEntry) {
+            result.push(taskEntry);
+            continue;
+          }
+        }
+
         if (content.length > 0) {
           result.push(
             chatEntryContract.parse({

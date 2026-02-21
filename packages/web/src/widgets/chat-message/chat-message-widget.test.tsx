@@ -144,7 +144,7 @@ describe('ChatMessageWidget', () => {
   });
 
   describe('tool use message', () => {
-    it('VALID: {role: assistant, type: tool_use} => renders TOOL CALL label with tool name and input', () => {
+    it('VALID: {role: assistant, type: tool_use} => renders TOOL CALL label with formatted fields', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'read_file',
@@ -156,8 +156,8 @@ describe('ChatMessageWidget', () => {
       const message = screen.getByTestId('CHAT_MESSAGE');
 
       expect(message.textContent).toMatch(/TOOL CALL/u);
-      expect(message.textContent).toMatch(/read_file/u);
-      expect(message.textContent).toMatch(/\{"path":"\/src"\}/u);
+      expect(message.textContent).toMatch(/path/u);
+      expect(message.textContent).toMatch(/\/src/u);
     });
 
     it('VALID: {role: assistant, type: tool_use} => renders text-dim borders', () => {
@@ -172,16 +172,17 @@ describe('ChatMessageWidget', () => {
       expect(message.style.borderRight).toBe('2px solid rgb(138, 114, 96)');
     });
 
-    it('VALID: {role: assistant, type: tool_use} => renders italic text', () => {
+    it('VALID: {role: assistant, type: tool_use} => renders formatted fields with italic style', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub();
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
-      const contentElement = message.children[1] as HTMLElement;
+      const fieldContainer = message.children[1] as HTMLElement;
+      const fieldElement = fieldContainer.children[0] as HTMLElement;
 
-      expect(contentElement.style.fontStyle).toBe('italic');
+      expect(fieldElement.style.fontStyle).toBe('italic');
     });
 
     it('VALID: {isLoading: true} => renders Running... indicator', () => {

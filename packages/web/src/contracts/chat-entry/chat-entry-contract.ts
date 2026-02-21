@@ -51,6 +51,19 @@ const assistantToolResultEntryContract = z.object({
   source: sourceContract,
 });
 
+const taskNotificationEntryContract = z.object({
+  role: z.literal('system'),
+  type: z.literal('task_notification'),
+  taskId: z.string().min(1).brand<'TaskId'>(),
+  status: z.string().min(1).brand<'TaskStatus'>(),
+  summary: z.string().brand<'TaskSummary'>().optional(),
+  result: z.string().brand<'TaskResult'>().optional(),
+  totalTokens: z.number().int().nonnegative().brand<'TotalTokens'>().optional(),
+  toolUses: z.number().int().nonnegative().brand<'ToolUses'>().optional(),
+  durationMs: z.number().int().nonnegative().brand<'DurationMs'>().optional(),
+  source: sourceContract,
+});
+
 const systemErrorEntryContract = z.object({
   role: z.literal('system'),
   type: z.literal('error'),
@@ -63,6 +76,7 @@ export const chatEntryContract = z.union([
   assistantTextEntryContract,
   assistantToolUseEntryContract,
   assistantToolResultEntryContract,
+  taskNotificationEntryContract,
   systemErrorEntryContract,
 ]);
 
