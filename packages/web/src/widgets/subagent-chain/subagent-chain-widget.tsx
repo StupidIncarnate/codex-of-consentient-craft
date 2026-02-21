@@ -10,9 +10,10 @@ import { Box, Text } from '@mantine/core';
 import { useState } from 'react';
 
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
+import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
-import { ToolGroupWidget } from '../tool-group/tool-group-widget';
 
 export interface SubagentChainWidgetProps {
   group: ChatEntryGroup;
@@ -29,6 +30,18 @@ export const SubagentChainWidget = ({
   if (group.kind !== 'subagent-chain') return null;
 
   const chevron = expanded ? '\u25BE' : '\u25B8';
+
+  const formattedTokens =
+    group.contextTokens === null
+      ? null
+      : formatContextTokensTransformer({
+          count: contextTokenCountContract.parse(group.contextTokens),
+        });
+
+  const entrySuffix =
+    formattedTokens === null
+      ? `${String(group.entryCount)} entries`
+      : `${String(group.entryCount)} entries, ${formattedTokens}`;
 
   return (
     <Box>
@@ -60,32 +73,21 @@ export const SubagentChainWidget = ({
           {chevron} SUB-AGENT
         </Text>
         <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
-          &quot;{group.description}&quot; ({String(group.entryCount)} entries)
+          &quot;{group.description}&quot; ({entrySuffix})
         </Text>
       </Box>
 
       {expanded ? (
-        <Box style={{ paddingLeft: 12, borderLeft: `2px solid ${colors['loot-rare']}` }}>
-          {group.innerGroups.map((innerGroup, index) => {
-            if (innerGroup.kind === 'tool-group') {
-              return (
-                <ToolGroupWidget
-                  key={`inner-${String(index)}`}
-                  group={innerGroup}
-                  isLastGroup={false}
-                  isStreaming={isStreaming}
-                />
-              );
-            }
-
-            return (
+        <Box style={{ paddingLeft: 12 }}>
+          {group.innerGroups.map((innerGroup, index) =>
+            innerGroup.kind === 'single' ? (
               <ChatMessageWidget
                 key={`inner-${String(index)}`}
                 entry={innerGroup.entry}
                 isStreaming={isStreaming}
               />
-            );
-          })}
+            ) : null,
+          )}
           {group.taskNotification === null ? null : (
             <ChatMessageWidget entry={group.taskNotification} isStreaming={isStreaming} />
           )}

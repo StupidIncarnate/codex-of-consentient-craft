@@ -43,6 +43,41 @@ describe('SubagentChainWidget', () => {
       expect(proxy.isBadgeVisible()).toBe(true);
     });
 
+    it('VALID: {collapsed with contextTokens} => shows token count in header', () => {
+      SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub({
+        description: 'Read files',
+        entryCount: 7,
+        contextTokens: 1900,
+      });
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+      });
+
+      const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+      expect(header.textContent).toMatch(/7 entries, 1\.9k/u);
+    });
+
+    it('VALID: {collapsed without contextTokens} => shows only entry count', () => {
+      SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub({
+        description: 'Run tests',
+        entryCount: 3,
+        contextTokens: null,
+      });
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+      });
+
+      const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+      expect(header.textContent).toMatch(/3 entries/u);
+      expect(header.textContent).not.toMatch(/,/u);
+    });
+
     it('VALID: {collapsed} => shows right-pointing chevron', () => {
       SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub();
@@ -68,7 +103,7 @@ describe('SubagentChainWidget', () => {
 
       await proxy.clickHeader();
 
-      expect(screen.queryByTestId('TOOL_GROUP_HEADER')).not.toBeNull();
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').length).toBeGreaterThan(0);
     });
 
     it('VALID: {click header twice} => collapses back', async () => {
@@ -82,7 +117,7 @@ describe('SubagentChainWidget', () => {
       await proxy.clickHeader();
       await proxy.clickHeader();
 
-      expect(screen.queryByTestId('TOOL_GROUP_HEADER')).toBeNull();
+      expect(screen.queryAllByTestId('CHAT_MESSAGE')).toHaveLength(0);
     });
 
     it('VALID: {expanded} => shows down-pointing chevron', async () => {
@@ -102,19 +137,17 @@ describe('SubagentChainWidget', () => {
   });
 
   describe('inner groups rendering', () => {
-    it('VALID: {expanded with tool-group innerGroup} => renders nested ToolGroupWidget', async () => {
+    it('VALID: {expanded with tool entries} => renders flat without tool-group collapse', async () => {
       const proxy = SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub({
         innerGroups: [
           {
-            kind: 'tool-group',
-            entries: [
-              AssistantToolUseChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
-              AssistantToolResultChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
-            ],
-            toolCount: 1,
-            contextTokens: null,
-            source: 'subagent',
+            kind: 'single',
+            entry: AssistantToolUseChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolResultChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
           },
         ],
       });
@@ -125,7 +158,8 @@ describe('SubagentChainWidget', () => {
 
       await proxy.clickHeader();
 
-      expect(screen.queryAllByTestId('TOOL_GROUP_HEADER')).toHaveLength(1);
+      expect(screen.queryAllByTestId('TOOL_GROUP_HEADER')).toHaveLength(0);
+      expect(screen.queryAllByTestId('CHAT_MESSAGE')).toHaveLength(2);
     });
 
     it('VALID: {expanded with single innerGroup} => renders ChatMessageWidget', async () => {

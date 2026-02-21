@@ -85,13 +85,13 @@ export const ToolGroupWidget = ({
       </Box>
 
       {isActiveStreaming && !expanded && lastEntry !== undefined ? (
-        <Box style={{ paddingLeft: 12, borderLeft: `2px solid ${colors.border}` }}>
+        <Box style={{ paddingLeft: 12 }}>
           <ChatMessageWidget entry={lastEntry} isLoading={true} isStreaming={isStreaming} />
         </Box>
       ) : null}
 
       {expanded ? (
-        <Box style={{ paddingLeft: 12, borderLeft: `2px solid ${colors.border}` }}>
+        <Box style={{ paddingLeft: 12 }}>
           {group.entries.map((entry, index) => (
             <ChatMessageWidget key={index} entry={entry} isStreaming={isStreaming} />
           ))}

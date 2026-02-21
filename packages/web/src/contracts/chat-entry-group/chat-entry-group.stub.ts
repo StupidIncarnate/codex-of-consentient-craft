@@ -36,17 +36,16 @@ export const SubagentChainGroupStub = ({
     taskToolUse: TaskToolUseChatEntryStub({ agentId: 'agent-001' }),
     innerGroups: [
       {
-        kind: 'tool-group',
-        entries: [
-          AssistantToolUseChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
-          AssistantToolResultChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
-        ],
-        toolCount: 1,
-        contextTokens: null,
-        source: 'subagent',
+        kind: 'single',
+        entry: AssistantToolUseChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
+      },
+      {
+        kind: 'single',
+        entry: AssistantToolResultChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
       },
     ],
     taskNotification: null,
     entryCount: 2,
+    contextTokens: null,
     ...props,
   });

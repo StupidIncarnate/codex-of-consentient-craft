@@ -55,16 +55,12 @@ describe('collectSubagentChainsTransformer', () => {
           description: 'Run tests',
           taskToolUse,
           innerGroups: [
-            {
-              kind: 'tool-group',
-              entries: [subagentToolUse, subagentToolResult],
-              toolCount: 1,
-              contextTokens: null,
-              source: 'subagent',
-            },
+            { kind: 'single', entry: subagentToolUse },
+            { kind: 'single', entry: subagentToolResult },
           ],
           taskNotification: null,
           entryCount: 2,
+          contextTokens: null,
         },
       ]);
     });
@@ -92,11 +88,12 @@ describe('collectSubagentChainsTransformer', () => {
           innerGroups: [{ kind: 'single', entry: subagentEntry }],
           taskNotification: null,
           entryCount: 1,
+          contextTokens: null,
         },
       ]);
     });
 
-    it('VALID: {subagent entries grouped into innerGroups with nested tool-groups}', () => {
+    it('VALID: {subagent tool entries rendered flat as singles, not grouped}', () => {
       const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
       const subToolUse1 = AssistantToolUseChatEntryStub({
         source: 'subagent',
@@ -130,16 +127,14 @@ describe('collectSubagentChainsTransformer', () => {
           description: 'Run tests',
           taskToolUse,
           innerGroups: [
-            {
-              kind: 'tool-group',
-              entries: [subToolUse1, subToolResult1, subToolUse2, subToolResult2],
-              toolCount: 2,
-              contextTokens: null,
-              source: 'subagent',
-            },
+            { kind: 'single', entry: subToolUse1 },
+            { kind: 'single', entry: subToolResult1 },
+            { kind: 'single', entry: subToolUse2 },
+            { kind: 'single', entry: subToolResult2 },
           ],
           taskNotification: null,
           entryCount: 4,
+          contextTokens: null,
         },
       ]);
     });
@@ -165,6 +160,7 @@ describe('collectSubagentChainsTransformer', () => {
           innerGroups: [{ kind: 'single', entry: subagentEntry }],
           taskNotification,
           entryCount: 1,
+          contextTokens: null,
         },
       ]);
     });
@@ -194,6 +190,7 @@ describe('collectSubagentChainsTransformer', () => {
           innerGroups: [{ kind: 'single', entry: subagentEntry }],
           taskNotification: null,
           entryCount: 1,
+          contextTokens: null,
         },
         { kind: 'single', entry: textEntry },
       ]);
@@ -224,6 +221,7 @@ describe('collectSubagentChainsTransformer', () => {
           innerGroups: [{ kind: 'single', entry: subagentEntry1 }],
           taskNotification: null,
           entryCount: 1,
+          contextTokens: null,
         },
         {
           kind: 'subagent-chain',
@@ -233,6 +231,122 @@ describe('collectSubagentChainsTransformer', () => {
           innerGroups: [{ kind: 'single', entry: subagentEntry2 }],
           taskNotification: null,
           entryCount: 1,
+          contextTokens: null,
+        },
+      ]);
+    });
+  });
+
+  describe('context delta computation', () => {
+    it('VALID: {subagent chain with usage on inner entries} => computes contextTokens delta', () => {
+      const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
+      const subEntry1 = AssistantToolUseChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-001',
+        usage: {
+          inputTokens: 10000,
+          outputTokens: 100,
+          cacheCreationInputTokens: 3000,
+          cacheReadInputTokens: 2000,
+        },
+      });
+      const subEntry2 = AssistantToolResultChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-001',
+      });
+      const subEntry3 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-001',
+        usage: {
+          inputTokens: 12000,
+          outputTokens: 200,
+          cacheCreationInputTokens: 3500,
+          cacheReadInputTokens: 2400,
+        },
+      });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [taskToolUse, subEntry1, subEntry2, subEntry3],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-001',
+          description: 'Run tests',
+          taskToolUse,
+          innerGroups: [
+            { kind: 'single', entry: subEntry1 },
+            { kind: 'single', entry: subEntry2 },
+            { kind: 'single', entry: subEntry3 },
+          ],
+          taskNotification: null,
+          entryCount: 3,
+          contextTokens: 2900,
+        },
+      ]);
+    });
+
+    it('VALID: {tool-group followed by entry with usage} => computes contextTokens as delta', () => {
+      const toolUse = AssistantToolUseChatEntryStub({
+        usage: {
+          inputTokens: 20000,
+          outputTokens: 100,
+          cacheCreationInputTokens: 3000,
+          cacheReadInputTokens: 2000,
+        },
+      });
+      const toolResult = AssistantToolResultChatEntryStub();
+      const nextText = AssistantTextChatEntryStub({
+        usage: {
+          inputTokens: 20500,
+          outputTokens: 200,
+          cacheCreationInputTokens: 3000,
+          cacheReadInputTokens: 2150,
+        },
+      });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [toolUse, toolResult, nextText],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'tool-group',
+          entries: [toolUse, toolResult],
+          toolCount: 1,
+          contextTokens: 650,
+          source: 'session',
+        },
+        {
+          kind: 'single',
+          entry: nextText,
+        },
+      ]);
+    });
+
+    it('VALID: {tool-group with no subsequent usage entry} => contextTokens becomes null', () => {
+      const toolUse = AssistantToolUseChatEntryStub({
+        usage: {
+          inputTokens: 20000,
+          outputTokens: 100,
+          cacheCreationInputTokens: 3000,
+          cacheReadInputTokens: 2000,
+        },
+      });
+      const toolResult = AssistantToolResultChatEntryStub();
+
+      const result = collectSubagentChainsTransformer({
+        entries: [toolUse, toolResult],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'tool-group',
+          entries: [toolUse, toolResult],
+          toolCount: 1,
+          contextTokens: null,
+          source: 'session',
         },
       ]);
     });
@@ -253,6 +367,7 @@ describe('collectSubagentChainsTransformer', () => {
           innerGroups: [],
           taskNotification: null,
           entryCount: 0,
+          contextTokens: null,
         },
       ]);
     });

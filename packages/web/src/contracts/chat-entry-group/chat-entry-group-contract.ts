@@ -32,6 +32,7 @@ const subagentChainGroupContract = z.object({
   innerGroups: z.array(z.union([singleGroupContract, toolGroupContract])),
   taskNotification: chatEntryContract.nullable(),
   entryCount: z.number().int().nonnegative().brand<'ChainEntryCount'>(),
+  contextTokens: contextTokenCountContract.nullable(),
 });
 
 export const chatEntryGroupContract = z.discriminatedUnion('kind', [
