@@ -26,7 +26,9 @@ export const wardSuggestionMessageTransformer = ({
     const suggestion = pathArg
       ? `npx dungeonmaster-ward run --only test -- ${pathArg}`
       : 'npx dungeonmaster-ward run --only test';
-    return errorMessageContract.parse(`Blocked: direct jest invocation. Use instead: \`${suggestion}\``);
+    return errorMessageContract.parse(
+      `Blocked: direct jest invocation. Use instead: \`${suggestion}\``,
+    );
   }
 
   if (ESLINT_PATTERN.test(command)) {

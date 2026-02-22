@@ -8,7 +8,7 @@ describe('wardSuggestionMessageTransformer', () => {
 
       const result = wardSuggestionMessageTransformer({ command });
 
-      expect(result).toStrictEqual(
+      expect(result).toBe(
         'Blocked: direct jest invocation. Use instead: `npx dungeonmaster-ward run --only test`',
       );
     });
@@ -18,7 +18,7 @@ describe('wardSuggestionMessageTransformer', () => {
 
       const result = wardSuggestionMessageTransformer({ command });
 
-      expect(result).toStrictEqual(
+      expect(result).toBe(
         'Blocked: direct jest invocation. Use instead: `npx dungeonmaster-ward run --only test -- foo.test.ts`',
       );
     });
@@ -28,7 +28,7 @@ describe('wardSuggestionMessageTransformer', () => {
 
       const result = wardSuggestionMessageTransformer({ command });
 
-      expect(result).toStrictEqual(
+      expect(result).toBe(
         'Blocked: direct jest invocation. Use instead: `npx dungeonmaster-ward run --only test -- --verbose src/test.ts`',
       );
     });
@@ -40,7 +40,7 @@ describe('wardSuggestionMessageTransformer', () => {
 
       const result = wardSuggestionMessageTransformer({ command });
 
-      expect(result).toStrictEqual(
+      expect(result).toBe(
         'Blocked: direct eslint invocation. Use instead: `npx dungeonmaster-ward run --only lint`',
       );
     });
@@ -50,7 +50,7 @@ describe('wardSuggestionMessageTransformer', () => {
 
       const result = wardSuggestionMessageTransformer({ command });
 
-      expect(result).toStrictEqual(
+      expect(result).toBe(
         'Blocked: direct eslint invocation. Use instead: `npx dungeonmaster-ward run --only lint`',
       );
     });
@@ -62,7 +62,7 @@ describe('wardSuggestionMessageTransformer', () => {
 
       const result = wardSuggestionMessageTransformer({ command });
 
-      expect(result).toStrictEqual(
+      expect(result).toBe(
         'Blocked: direct tsc invocation. Use instead: `npx dungeonmaster-ward run --only typecheck`',
       );
     });
@@ -72,7 +72,7 @@ describe('wardSuggestionMessageTransformer', () => {
 
       const result = wardSuggestionMessageTransformer({ command });
 
-      expect(result).toStrictEqual(
+      expect(result).toBe(
         'Blocked: direct tsc invocation. Use instead: `npx dungeonmaster-ward run --only typecheck`',
       );
     });
@@ -84,7 +84,7 @@ describe('wardSuggestionMessageTransformer', () => {
 
       const result = wardSuggestionMessageTransformer({ command });
 
-      expect(result).toStrictEqual(
+      expect(result).toBe(
         'Blocked: direct tool invocation. Use instead: `npx dungeonmaster-ward run`',
       );
     });

@@ -7,6 +7,7 @@
  * // Sets up glob and read-file adapters to return test data
  */
 
+import { workspaceRootFindBrokerProxy } from '../../workspace-root/find/workspace-root-find-broker.proxy';
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { sharedPackageResolveAdapterProxy } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter.proxy';
@@ -34,6 +35,7 @@ export const fileScannerBrokerProxy = (): {
   const globProxy = globFindAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
   const sharedProxy = sharedPackageResolveAdapterProxy();
+  workspaceRootFindBrokerProxy();
 
   // Default: shared package not found
   sharedProxy.srcDoesNotExist();

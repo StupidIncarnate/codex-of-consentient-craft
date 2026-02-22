@@ -9,6 +9,7 @@
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
+import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
 import { metadataExtractorTransformer } from '../../../transformers/metadata-extractor/metadata-extractor-transformer';
 import { signatureExtractorTransformer } from '../../../transformers/signature-extractor/signature-extractor-transformer';
@@ -42,8 +43,8 @@ export const fileScannerBroker = async ({
   search?: string;
   name?: string;
 }): Promise<readonly FileMetadata[]> => {
-  // 1. Get scan roots: project + shared package (if available)
-  const cwdPath = filePathContract.parse(process.cwd());
+  // 1. Get scan roots: workspace root + shared package (if available)
+  const cwdPath = await workspaceRootFindBroker();
   const sharedPath = sharedPackageResolveAdapter();
 
   // Build list of roots to scan with their source type
