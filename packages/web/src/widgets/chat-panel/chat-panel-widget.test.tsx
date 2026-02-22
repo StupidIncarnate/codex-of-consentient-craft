@@ -442,6 +442,40 @@ describe('ChatPanelWidget', () => {
     });
   });
 
+  describe('token badge rendering', () => {
+    it('VALID: {assistant text entry with usage, not streaming} => renders token badge with context suffix', () => {
+      ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'Hello' }),
+        AssistantTextChatEntryStub({
+          content: 'Hi there',
+          usage: {
+            inputTokens: 500,
+            outputTokens: 50,
+            cacheCreationInputTokens: 0,
+            cacheReadInputTokens: 0,
+          },
+        }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const tokenBadge = screen.queryByTestId('TOKEN_BADGE');
+
+      expect(tokenBadge).not.toBeNull();
+      expect(tokenBadge?.textContent).toStrictEqual('500 context');
+    });
+  });
+
   describe('subagent chain rendering', () => {
     it('VALID: {entries forming subagent chain} => renders SubagentChainWidget', () => {
       const proxy = ChatPanelWidgetProxy();

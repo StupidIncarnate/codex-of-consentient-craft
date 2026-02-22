@@ -40,6 +40,17 @@ export const ChatMessageWidget = ({
   const [expanded, setExpanded] = useState(false);
   const [expandedFields, setExpandedFields] = useState<Record<PropertyKey, boolean>>({});
 
+  const tokenBadgeElement =
+    tokenBadgeLabel !== undefined && !isStreaming ? (
+      <Text
+        ff="monospace"
+        data-testid="TOKEN_BADGE"
+        style={{ color: colors['text-dim'], fontSize: 10 }}
+      >
+        {tokenBadgeLabel}
+      </Text>
+    ) : null;
+
   // Task notification - MUST come BEFORE system error check
   if (entry.role === 'system' && entry.type === 'task_notification') {
     const formattedTokens =
@@ -222,30 +233,13 @@ export const ChatMessageWidget = ({
         <Text ff="monospace" size="xs" style={{ color: colors.text }}>
           {entry.content}
         </Text>
-        {tokenBadgeLabel !== undefined && !isStreaming ? (
-          <Text
-            ff="monospace"
-            data-testid="TOKEN_BADGE"
-            style={{ color: colors['text-dim'], fontSize: 10 }}
-          >
-            {tokenBadgeLabel} context
-          </Text>
-        ) : null}
+        {tokenBadgeElement}
       </Box>
     );
   }
 
   if (entry.type === 'tool_use') {
-    const toolBadge =
-      tokenBadgeLabel !== undefined && !isStreaming ? (
-        <Text
-          ff="monospace"
-          data-testid="TOKEN_BADGE"
-          style={{ color: colors['text-dim'], fontSize: 10 }}
-        >
-          {tokenBadgeLabel} context
-        </Text>
-      ) : null;
+    const toolBadge = tokenBadgeElement;
 
     // Skill invocation (Improvement 8)
     if (entry.toolName === 'Skill') {
@@ -505,6 +499,7 @@ export const ChatMessageWidget = ({
       >
         {toolResultLabel}
       </Text>
+      {tokenBadgeElement}
       {needsToolResultTruncation && !expanded ? (
         <Box>
           <Text
