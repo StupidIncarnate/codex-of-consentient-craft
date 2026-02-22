@@ -615,16 +615,16 @@ proxies — the fetch adapter code runs real, just like any other adapter.
 
 **Rule:** If a domain file exists, extend it with options - never create variant files.
 
-**Search for existing domain files using the discover endpoint:**
+**Search for existing domain files using the `discover` MCP tool:**
 
-```bash
+```
 # 1. Search for specific domain files
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"user"}'
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"binding","search":"user-data"}'
+discover({ type: "files", fileType: "broker", search: "user" })
+discover({ type: "files", fileType: "binding", search: "user-data" })
 
 # 2. Get all files in a folder
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/eslint-plugin/src/brokers"}'
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/eslint-plugin/src/bindings"}'
+discover({ type: "files", path: "packages/eslint-plugin/src/brokers" })
+discover({ type: "files", path: "packages/eslint-plugin/src/bindings" })
 ```
 
 **If domain exists → MUST extend existing files, not create new ones**

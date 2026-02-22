@@ -32,9 +32,7 @@ Achieve full understanding before any discovery or planning.
 
 Load the codebase rules that govern file placement and imports.
 
-```bash
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/architecture
-```
+Use the `get-architecture` MCP tool (no params).
 
 Internalize before proceeding:
 
@@ -50,13 +48,11 @@ Internalize before proceeding:
 
 Find existing code related to this request. Extend existing functionality rather than duplicating.
 
-**Search strategies:**
+**Search strategies** (use the `discover` MCP tool):
 
-```bash
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"[keyword]"}'
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"[domain]"}'
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/[pkg]/src/[folder]"}'
-```
+- `{ type: "files", search: "[keyword]" }` - Search by keyword
+- `{ type: "files", fileType: "broker", search: "[domain]" }` - Search by file type and domain
+- `{ type: "files", path: "packages/[pkg]/src/[folder]" }` - Browse a specific folder
 
 **Questions to answer:**
 
@@ -66,9 +62,8 @@ curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Co
 - What brokers handle related business logic?
 - What patterns do similar features follow?
 
-**Only use Read tool when:** The discover endpoint returns a file but doesn't provide enough implementation detail to
-understand
-how to extend or integrate with it.
+**Only use Read tool when:** The discover tool returns a file but doesn't provide enough implementation detail to
+understand how to extend or integrate with it.
 
 ---
 
@@ -76,11 +71,11 @@ how to extend or integrate with it.
 
 For each folder type you'll create/modify files in, load the specific rules.
 
-```bash
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/brokers
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/contracts
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/adapters
-```
+Use the `get-folder-detail` MCP tool for each folder type:
+
+- `{ folderType: "brokers" }`
+- `{ folderType: "contracts" }`
+- `{ folderType: "adapters" }`
 
 Each call provides:
 
@@ -189,8 +184,8 @@ After writing BDD scenarios, determine HOW Claude will execute each.
 
 **If tooling needed:**
 
-1. Check if adapter exists:
-   `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"adapter","search":"playwright"}'`
+1. Check if adapter exists using the `discover` MCP tool:
+   `{ type: "files", fileType: "adapter", search: "playwright" }`
 2. If not, add adapter to plan Files table
 3. Include adapter setup in plan Dependencies
 

@@ -116,11 +116,9 @@ This structure forces deterministic organization by:
   // Build extension over creation rules
   const extensionRules = `**Golden Rule:** If a domain file exists, EXTEND it with options - never create variant files.
 
-**Search first using the discover endpoint:**
-\`\`\`bash
-curl -s http://localhost:\${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"user"}'
-curl -s http://localhost:\${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/*/src/bindings"}'
-\`\`\`
+**Search first using the \`discover\` MCP tool:**
+- \`{ type: "files", fileType: "broker", search: "user" }\`
+- \`{ type: "files", path: "packages/*/src/bindings" }\`
 
 **If domain exists → MUST extend, not create new**
 
