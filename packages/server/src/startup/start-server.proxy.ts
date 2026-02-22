@@ -89,6 +89,9 @@ import { processDevLogAdapterProxy } from '../adapters/process/dev-log/process-d
 import { chatProcessStateProxy } from '../state/chat-process/chat-process-state.proxy';
 import { questSessionPersistBrokerProxy } from '../brokers/quest-session/persist/quest-session-persist-broker.proxy';
 import { guildSessionPersistBrokerProxy } from '../brokers/guild-session/persist/guild-session-persist-broker.proxy';
+import { sessionResolveOwnerBrokerProxy } from '../brokers/session/resolve-owner/session-resolve-owner-broker.proxy';
+import { globFindAdapterProxy } from '../adapters/glob/find/glob-find-adapter.proxy';
+import { sessionSummaryCacheStateProxy } from '../state/session-summary-cache/session-summary-cache-state.proxy';
 import { StartServer } from './start-server';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
@@ -148,6 +151,9 @@ export const StartServerProxy = (): {
   processDevLogAdapterProxy();
   questSessionPersistBrokerProxy();
   guildSessionPersistBrokerProxy();
+  sessionResolveOwnerBrokerProxy();
+  globFindAdapterProxy();
+  sessionSummaryCacheStateProxy();
 
   jest.mocked(_homedir).mockReturnValue('/home/user');
 

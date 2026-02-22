@@ -17,9 +17,17 @@ import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimen
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/raccoon-wizard-pixels-statics';
+import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
+import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
+import { contextTokenDeltaContract } from '../../contracts/context-token-delta/context-token-delta-contract';
+import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
+import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
 import { raccoonAnimationIntervalTransformer } from '../../transformers/raccoon-animation-interval/raccoon-animation-interval-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
+import { ContextDividerWidget } from '../context-divider/context-divider-widget';
 import { PixelSpriteWidget } from '../pixel-sprite/pixel-sprite-widget';
+import { SubagentChainWidget } from '../subagent-chain/subagent-chain-widget';
+import { ToolGroupWidget } from '../tool-group/tool-group-widget';
 
 import type { UserInput } from '@dungeonmaster/shared/contracts';
 
@@ -91,6 +99,27 @@ export const ChatPanelWidget = ({
       }}
     >
       <Box
+        data-testid="RACCOON_SPRITE"
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          backgroundColor: 'transparent',
+          padding: 16,
+          flexShrink: 0,
+          transform: `translateY(${String(bounceOffset)}px)`,
+          transition: 'transform 0.15s ease',
+        }}
+      >
+        <PixelSpriteWidget
+          pixels={raccoonPixels}
+          scale={RACCOON_SCALE as PixelDimension}
+          width={raccoonWizardPixelsStatics.dimensions.width as PixelDimension}
+          height={raccoonWizardPixelsStatics.dimensions.height as PixelDimension}
+          flip={raccoonFlip}
+        />
+      </Box>
+
+      <Box
         ref={scrollContainerRef}
         data-testid="CHAT_MESSAGES_AREA"
         style={{
@@ -108,54 +137,104 @@ export const ChatPanelWidget = ({
             target.scrollTop + target.clientHeight < target.scrollHeight - scrollThresholdPx;
         }}
       >
-        <Box
-          data-testid="RACCOON_SPRITE"
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            transform: `translateY(${String(bounceOffset)}px)`,
-            transition: 'transform 0.15s ease',
-          }}
-        >
-          <PixelSpriteWidget
-            pixels={raccoonPixels}
-            scale={RACCOON_SCALE as PixelDimension}
-            width={raccoonWizardPixelsStatics.dimensions.width as PixelDimension}
-            height={raccoonWizardPixelsStatics.dimensions.height as PixelDimension}
-            flip={raccoonFlip}
-          />
-        </Box>
-
         {(() => {
-          let lastUserIndex = -1;
+          const groupedEntries = collectSubagentChainsTransformer({ entries });
+          let prevSessionContext: ContextTokenCount | null = null;
+          let prevSubagentContext: ContextTokenCount | null = null;
+          const elements: React.JSX.Element[] = [];
 
-          for (let i = entries.length - 1; i >= 0; i--) {
-            if (entries[i]?.role === 'user') {
-              lastUserIndex = i;
-              break;
+          for (let i = 0; i < groupedEntries.length; i++) {
+            const group = groupedEntries[i];
+            if (group === undefined) continue;
+
+            if (group.kind === 'tool-group') {
+              elements.push(
+                <ToolGroupWidget
+                  key={`group-${String(i)}`}
+                  group={group}
+                  isLastGroup={i === groupedEntries.length - 1}
+                  isStreaming={isStreaming}
+                />,
+              );
+            } else if (group.kind === 'subagent-chain') {
+              elements.push(
+                <SubagentChainWidget
+                  key={`chain-${String(i)}`}
+                  group={group}
+                  isStreaming={isStreaming}
+                />,
+              );
+            } else {
+              const { entry } = group;
+
+              const hasUsage =
+                entry.role === 'assistant' &&
+                'type' in entry &&
+                entry.type === 'text' &&
+                'usage' in entry &&
+                entry.usage !== undefined &&
+                !isStreaming;
+
+              if (hasUsage && entry.usage !== undefined) {
+                const entrySource =
+                  'source' in entry && entry.source === 'subagent' ? 'subagent' : 'session';
+                const totalContext = contextTokenCountContract.parse(
+                  Number(entry.usage.inputTokens) +
+                    Number(entry.usage.cacheCreationInputTokens) +
+                    Number(entry.usage.cacheReadInputTokens),
+                );
+
+                const prevContext =
+                  entrySource === 'subagent' ? prevSubagentContext : prevSessionContext;
+                const deltaCount =
+                  prevContext === null
+                    ? totalContext
+                    : contextTokenCountContract.parse(
+                        Math.max(0, Number(totalContext) - Number(prevContext)),
+                      );
+                const tokenBadgeLabel = formatContextTokensTransformer({ count: deltaCount });
+
+                elements.push(
+                  <ChatMessageWidget
+                    key={`single-${String(i)}`}
+                    entry={entry}
+                    isStreaming={isStreaming}
+                    tokenBadgeLabel={tokenBadgeLabel}
+                  />,
+                );
+
+                const delta =
+                  prevContext === null
+                    ? null
+                    : contextTokenDeltaContract.parse(Number(totalContext) - Number(prevContext));
+
+                elements.push(
+                  <ContextDividerWidget
+                    key={`divider-${String(i)}`}
+                    contextTokens={totalContext}
+                    delta={delta}
+                    source={entrySource}
+                  />,
+                );
+
+                if (entrySource === 'subagent') {
+                  prevSubagentContext = totalContext;
+                } else {
+                  prevSessionContext = totalContext;
+                }
+              } else {
+                elements.push(
+                  <ChatMessageWidget
+                    key={`single-${String(i)}`}
+                    entry={entry}
+                    isStreaming={isStreaming}
+                  />,
+                );
+              }
             }
           }
-          const hasTextAfterLastUser = entries
-            .slice(lastUserIndex + 1)
-            .some((e) => e.role === 'assistant' && e.type === 'text');
 
-          return entries.map((entry, index) => {
-            const isToolLoading =
-              isStreaming &&
-              entry.role === 'assistant' &&
-              entry.type === 'tool_use' &&
-              index > lastUserIndex &&
-              !hasTextAfterLastUser;
-
-            return (
-              <ChatMessageWidget
-                key={index}
-                entry={entry}
-                isLoading={isToolLoading}
-                isStreaming={isStreaming}
-              />
-            );
-          });
+          return elements;
         })()}
 
         <div ref={messagesEndRef} />

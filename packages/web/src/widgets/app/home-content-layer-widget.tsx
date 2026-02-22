@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Renders the home screen content with guild selection and quest list inside the shared map frame
+ * PURPOSE: Renders the home screen content with guild selection and session list inside the shared map frame
  *
  * USAGE:
  * <HomeContentLayerWidget />
- * // Renders guild list sidebar + quest list, used as the "/" route content
+ * // Renders guild list sidebar + session list, used as the "/" route content
  */
 
 import { useState } from 'react';
@@ -11,16 +11,17 @@ import { useNavigate } from 'react-router-dom';
 
 import { Box, Center, Group, Text } from '@mantine/core';
 
-import type { GuildId, GuildName, GuildPath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, GuildName, GuildPath, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
-import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
+import { useSessionListBinding } from '../../bindings/use-session-list/use-session-list-binding';
 import { guildCreateBroker } from '../../brokers/guild/create/guild-create-broker';
+import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { GuildAddModalWidget } from '../guild-add-modal/guild-add-modal-widget';
 import { GuildEmptyStateWidget } from '../guild-empty-state/guild-empty-state-widget';
 import { GuildListWidget } from '../guild-list/guild-list-widget';
-import { GuildQuestListWidget } from '../guild-quest-list/guild-quest-list-widget';
+import { GuildSessionListWidget } from '../guild-session-list/guild-session-list-widget';
 
 type InternalView = 'main' | 'new-guild';
 
@@ -29,9 +30,10 @@ export const HomeContentLayerWidget = (): React.JSX.Element => {
   const [internalView, setInternalView] = useState<InternalView>('main');
   const [selectedGuildId, setSelectedGuildId] = useState<GuildId | null>(null);
   const [addGuildModalOpened, setAddGuildModalOpened] = useState(false);
+  const [sessionFilter, setSessionFilter] = useState<SessionFilter>('quests-only' as SessionFilter);
 
   const { guilds, loading: guildsLoading, refresh: refreshGuilds } = useGuildsBinding();
-  const { data: quests } = useQuestsBinding({ guildId: selectedGuildId });
+  const { data: sessions } = useSessionListBinding({ guildId: selectedGuildId });
 
   const { colors } = emberDepthsThemeStatics;
   const hasGuilds = guilds.length > 0;
@@ -60,7 +62,7 @@ export const HomeContentLayerWidget = (): React.JSX.Element => {
           />
         </Center>
       ) : (
-        <Group align="stretch" gap="xl" wrap="nowrap" style={{ flex: 1 }}>
+        <Group align="stretch" gap="xl" wrap="nowrap" style={{ flex: 1, minHeight: 0 }}>
           <Box
             style={{
               flex: '0 0 200px',
@@ -79,14 +81,18 @@ export const HomeContentLayerWidget = (): React.JSX.Element => {
               }}
             />
           </Box>
-          <Box style={{ flex: 1 }}>
+          <Box style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
             {selectedGuildId ? (
-              <GuildQuestListWidget
-                quests={quests}
-                onSelect={({ questId }: { questId: QuestId }) => {
+              <GuildSessionListWidget
+                sessions={sessions}
+                filter={sessionFilter}
+                onFilterChange={({ filter }) => {
+                  setSessionFilter(filter);
+                }}
+                onSelect={({ sessionId }: { sessionId: SessionId }) => {
                   const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
                   const slug = selectedGuild?.urlSlug ?? selectedGuildId;
-                  const result = navigate(`/${slug}/quest/${questId}`);
+                  const result = navigate(`/${slug}/session/${sessionId}`);
                   if (result instanceof Promise) {
                     result.catch(() => undefined);
                   }
@@ -94,7 +100,7 @@ export const HomeContentLayerWidget = (): React.JSX.Element => {
                 onAdd={() => {
                   const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
                   const slug = selectedGuild?.urlSlug ?? selectedGuildId;
-                  const result = navigate(`/${slug}/quest`);
+                  const result = navigate(`/${slug}/session`);
                   if (result instanceof Promise) {
                     result.catch(() => undefined);
                   }

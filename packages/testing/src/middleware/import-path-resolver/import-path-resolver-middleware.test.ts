@@ -1,3 +1,4 @@
+import { pathResolveAdapter } from '../../adapters/path/resolve/path-resolve-adapter';
 import { importPathResolverMiddleware } from './import-path-resolver-middleware';
 import { importPathResolverMiddlewareProxy } from './import-path-resolver-middleware.proxy';
 import { FilePathStub } from '../../contracts/file-path/file-path.stub';
@@ -65,20 +66,16 @@ describe('importPathResolverMiddleware', () => {
     it('VALID: {relative import to .tsx proxy file} => returns FilePath with .tsx', () => {
       importPathResolverMiddlewareProxy();
 
-      // Use web widget proxy which is a .tsx file
-      // __dirname is packages/testing/src/middleware/import-path-resolver
-      // Strip /packages/testing/src/middleware/import-path-resolver to get repo root
-      const repoRoot = __dirname.replace(
-        /\/packages\/testing\/src\/middleware\/import-path-resolver$/u,
-        '',
-      );
-      const webWidgetsDir = `${repoRoot}/packages/web/src/widgets/app`;
-      const sourceFilePath = FilePathStub({
-        value: `${webWidgetsDir}/app-widget.test.tsx`,
+      // Use web widget proxy which is a .tsx file — derive path from __dirname for worktree compatibility
+      const webWidgetsDir = pathResolveAdapter({
+        paths: [__dirname, '..', '..', '..', '..', 'web', 'src', 'widgets', 'pixel-btn'],
       });
-      const importPath = ImportPathStub({ value: './app-widget.proxy' });
+      const sourceFilePath = FilePathStub({
+        value: `${webWidgetsDir}/pixel-btn-widget.test.tsx`,
+      });
+      const importPath = ImportPathStub({ value: './pixel-btn-widget.proxy' });
       const expectedPath = FilePathStub({
-        value: `${webWidgetsDir}/app-widget.proxy.tsx`,
+        value: `${webWidgetsDir}/pixel-btn-widget.proxy.tsx`,
       });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });

@@ -19,10 +19,35 @@ export const globFindAdapter = async ({
   pattern: GlobPattern;
   cwd?: FilePath;
 }): Promise<readonly FilePath[]> => {
-  const files = await glob(pattern, {
+  const options = {
     cwd: cwd ? String(cwd) : process.cwd(),
     absolute: true,
     ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**'],
+  };
+
+  const result = await glob(pattern, options);
+
+  // glob v10 returns string[], glob v7 returns a non-iterable Glob instance.
+  // Wrap in callback-based Promise as fallback for v7 compatibility.
+  if (Array.isArray(result)) {
+    return result.map((file) => filePathContract.parse(file));
+  }
+
+  // glob v7 uses callback API: glob(pattern, options, callback)
+  const globWithCallback = glob as unknown as (
+    p: GlobPattern,
+    o: typeof options,
+    cb: (error: Error | null, matches: unknown[]) => void,
+  ) => void;
+
+  const files: unknown[] = await new Promise((resolve, reject) => {
+    globWithCallback(pattern, options, (error, matches) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve(matches);
+    });
   });
 
   return files.map((file) => filePathContract.parse(file));

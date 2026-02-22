@@ -365,6 +365,17 @@ package-root/
 **Use for:** Extending built-in JavaScript/TypeScript types (\`Error\`, \`Window\`, etc.)
 **Do NOT use for:** Application types (those go in \`src/contracts/\`)`;
 
+  // Build quality commands section
+  const qualityCommands = `**ALWAYS use \`dungeonmaster-ward\` instead of raw tool invocations:**
+
+| ❌ Don't Use | ✅ Use Instead |
+|-------------|---------------|
+| \`npx jest ...\` | \`npx dungeonmaster-ward run --only test -- <path>\` |
+| \`npx eslint ...\` | \`npx dungeonmaster-ward run --only lint\` |
+| \`npx tsc --noEmit\` | \`npx dungeonmaster-ward run --only typecheck\` |
+| \`npm test\` | \`npx dungeonmaster-ward run --only test\` |
+| Running all checks | \`npx dungeonmaster-ward run\` |`;
+
   // Build critical rules
   const criticalRules = `**Never do these things (❌):**
 - ❌ Use while (true) - use recursion instead
@@ -439,6 +450,10 @@ ${frontendDataFlow}
 ## Backend Validation (Express/HTTP)
 
 ${backendValidation}
+
+## Quality Commands
+
+${qualityCommands}
 
 ## Critical Rules Summary
 

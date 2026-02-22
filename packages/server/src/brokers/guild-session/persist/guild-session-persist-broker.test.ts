@@ -87,6 +87,85 @@ describe('guildSessionPersistBroker', () => {
     });
   });
 
+  describe('with summary', () => {
+    it('VALID: {new session with summary} => includes summary in new session entry', async () => {
+      const proxy = guildSessionPersistBrokerProxy();
+      const sessionId: SessionId = SessionIdStub({ value: 'summary-session-123' });
+      const guild: Guild = GuildStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        chatSessions: [],
+      });
+
+      proxy.setupGuildFound({ guild });
+      proxy.setupUpdateReturns({ guild });
+
+      await guildSessionPersistBroker({
+        guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        sessionId,
+        summary: 'Built login page',
+      });
+
+      const callArgs = proxy.getUpdateCallArgs();
+
+      expect(callArgs).toStrictEqual([
+        {
+          guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          chatSessions: [
+            {
+              sessionId: 'summary-session-123',
+              agentRole: 'chaoswhisperer',
+              startedAt: '2026-02-14T00:00:00.000Z',
+              active: true,
+              summary: 'Built login page',
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {existing session with summary} => includes summary on matching session', async () => {
+      const proxy = guildSessionPersistBrokerProxy();
+      const sessionId: SessionId = SessionIdStub({ value: 'existing-summary-123' });
+      const guild: Guild = GuildStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        chatSessions: [
+          {
+            sessionId: 'existing-summary-123',
+            agentRole: 'chaoswhisperer',
+            startedAt: '2026-01-01T00:00:00.000Z',
+            active: false,
+          },
+        ],
+      });
+
+      proxy.setupGuildFound({ guild });
+      proxy.setupUpdateReturns({ guild });
+
+      await guildSessionPersistBroker({
+        guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        sessionId,
+        summary: 'Fixed auth bug',
+      });
+
+      const callArgs = proxy.getUpdateCallArgs();
+
+      expect(callArgs).toStrictEqual([
+        {
+          guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          chatSessions: [
+            {
+              sessionId: 'existing-summary-123',
+              agentRole: 'chaoswhisperer',
+              startedAt: '2026-02-14T00:00:00.000Z',
+              active: true,
+              summary: 'Fixed auth bug',
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
   describe('duplicate sessionId', () => {
     it('VALID: {guildId with same sessionId already exists} => updates existing instead of duplicating', async () => {
       const proxy = guildSessionPersistBrokerProxy();

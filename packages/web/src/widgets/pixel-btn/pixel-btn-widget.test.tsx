@@ -73,6 +73,101 @@ describe('PixelBtnWidget', () => {
     });
   });
 
+  describe('danger variant', () => {
+    it('VALID: {variant: "danger"} => renders with danger background color', () => {
+      PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'DELETE' });
+      const variant = ButtonVariantStub({ value: 'danger' });
+      const onClick = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <PixelBtnWidget label={label} onClick={onClick} variant={variant} />,
+      });
+
+      const button = screen.getByTestId('PIXEL_BTN');
+
+      expect(button.style.backgroundColor).toBe('rgb(239, 68, 68)');
+    });
+
+    it('VALID: {variant: "danger"} => renders with bg-deep foreground color', () => {
+      PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'DELETE' });
+      const variant = ButtonVariantStub({ value: 'danger' });
+      const onClick = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <PixelBtnWidget label={label} onClick={onClick} variant={variant} />,
+      });
+
+      const button = screen.getByTestId('PIXEL_BTN');
+
+      expect(button.style.color).toBe('rgb(13, 9, 7)');
+    });
+  });
+
+  describe('disabled state', () => {
+    it('VALID: {disabled: true} => renders with reduced opacity', () => {
+      PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'NOPE' });
+      const onClick = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <PixelBtnWidget label={label} onClick={onClick} disabled={true} />,
+      });
+
+      const button = screen.getByTestId('PIXEL_BTN');
+
+      expect(button.style.opacity).toBe('0.4');
+    });
+
+    it('VALID: {disabled: true} => renders with default cursor', () => {
+      PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'NOPE' });
+      const onClick = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <PixelBtnWidget label={label} onClick={onClick} disabled={true} />,
+      });
+
+      const button = screen.getByTestId('PIXEL_BTN');
+
+      expect(button.style.cursor).toBe('default');
+    });
+
+    it('VALID: {disabled: true} => renders with pointer-events none', () => {
+      PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'NOPE' });
+      const onClick = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <PixelBtnWidget label={label} onClick={onClick} disabled={true} />,
+      });
+
+      const button = screen.getByTestId('PIXEL_BTN');
+
+      expect(button.style.pointerEvents).toBe('none');
+    });
+  });
+
+  describe('danger + disabled combination', () => {
+    it('VALID: {variant: "danger", disabled: true} => renders danger colors with disabled opacity', () => {
+      PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'DELETE' });
+      const variant = ButtonVariantStub({ value: 'danger' });
+      const onClick = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <PixelBtnWidget label={label} onClick={onClick} variant={variant} disabled={true} />,
+      });
+
+      const button = screen.getByTestId('PIXEL_BTN');
+
+      expect(button.style.backgroundColor).toBe('rgb(239, 68, 68)');
+      expect(button.style.opacity).toBe('0.4');
+      expect(button.style.pointerEvents).toBe('none');
+    });
+  });
+
   describe('interaction', () => {
     it('VALID: {click} => calls onClick handler', async () => {
       const proxy = PixelBtnWidgetProxy();

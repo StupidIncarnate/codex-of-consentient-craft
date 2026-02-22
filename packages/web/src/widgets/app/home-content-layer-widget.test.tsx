@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Tests for HomeContentLayerWidget - guild selection and quest list rendering
+ * PURPOSE: Tests for HomeContentLayerWidget - guild selection and session list rendering
  */
 
 import { waitFor } from '@testing-library/react';
@@ -132,7 +132,7 @@ describe('HomeContentLayerWidget', () => {
 
       proxy.setupCreateGuild({ id: guildId });
       proxy.setupGuilds({ guilds: [createdGuild] });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupSessions({ sessions: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {

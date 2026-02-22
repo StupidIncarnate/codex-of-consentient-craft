@@ -26,8 +26,8 @@ test.describe('Guild Creation Flow', () => {
     // Form should disappear, guild appears in list
     await expect(page.getByText('NEW GUILD')).not.toBeVisible({ timeout: 5000 });
     await expect(page.getByText('My Guild')).toBeVisible();
-    // Quest list should show empty state
-    await expect(page.getByTestId('QUEST_EMPTY_STATE')).toBeVisible();
+    // Session list should show empty state
+    await expect(page.getByTestId('SESSION_EMPTY_STATE')).toBeVisible();
   });
 
   test('browse directory flow selects path', async ({ page, request }) => {

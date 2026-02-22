@@ -7,6 +7,7 @@
  */
 
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type {
   GuildListItemStub,
@@ -15,12 +16,15 @@ import type {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
+import type { AskUserQuestionOption } from '../../contracts/ask-user-question/ask-user-question-contract';
 import { useGuildDetailBindingProxy } from '../../bindings/use-guild-detail/use-guild-detail-binding.proxy';
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
-import { useQuestChatBindingProxy } from '../../bindings/use-quest-chat/use-quest-chat-binding.proxy';
 import { useQuestDetailBindingProxy } from '../../bindings/use-quest-detail/use-quest-detail-binding.proxy';
-import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
+import { useSessionChatBindingProxy } from '../../bindings/use-session-chat/use-session-chat-binding.proxy';
+import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
+import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
+import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
@@ -36,19 +40,25 @@ export const QuestChatWidgetProxy = (): {
   setupQuestError: () => void;
   setupGuild: (params: { guild: Guild }) => void;
   setupGuildError: () => void;
-  setupQuestHistory: (params: { entries: unknown[] }) => void;
-  setupGuildHistory: (params: { entries: unknown[] }) => void;
+  setupHistory: (params: { entries: unknown[] }) => void;
   hasChatPanel: () => boolean;
   hasActivityPlaceholder: () => boolean;
   hasDivider: () => boolean;
   getActivityText: () => HTMLElement['textContent'];
+  hasClarifyPanel: () => boolean;
+  hasSpecPanel: () => boolean;
+  getClarifyQuestionText: () => HTMLElement['textContent'];
+  getClarifyOptionLabels: () => HTMLElement['textContent'][];
+  clickClarifyOption: (params: { label: AskUserQuestionOption['label'] }) => Promise<void>;
 } => {
   const guildsBindingProxy = useGuildsBindingProxy();
   const questDetailProxy = useQuestDetailBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
-  const chatBindingProxy = useQuestChatBindingProxy();
+  const chatBindingProxy = useSessionChatBindingProxy();
   ChatPanelWidgetProxy();
-  websocketConnectAdapterProxy();
+  QuestClarifyPanelWidgetProxy();
+  QuestSpecPanelWidgetProxy();
+  questModifyBrokerProxy();
 
   return {
     setupChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
@@ -78,11 +88,8 @@ export const QuestChatWidgetProxy = (): {
     setupGuildError: (): void => {
       guildDetailProxy.setupError();
     },
-    setupQuestHistory: ({ entries }: { entries: unknown[] }): void => {
-      chatBindingProxy.setupQuestHistory({ entries });
-    },
-    setupGuildHistory: ({ entries }: { entries: unknown[] }): void => {
-      chatBindingProxy.setupGuildHistory({ entries });
+    setupHistory: ({ entries }: { entries: unknown[] }): void => {
+      chatBindingProxy.setupHistory({ entries });
     },
     hasChatPanel: (): boolean => screen.queryByTestId('CHAT_PANEL') !== null,
     hasActivityPlaceholder: (): boolean => screen.queryByTestId('QUEST_CHAT_ACTIVITY') !== null,
@@ -90,6 +97,27 @@ export const QuestChatWidgetProxy = (): {
     getActivityText: (): HTMLElement['textContent'] => {
       const element = screen.queryByTestId('QUEST_CHAT_ACTIVITY');
       return element?.textContent ?? null;
+    },
+    hasClarifyPanel: (): boolean => screen.queryByTestId('QUEST_CLARIFY_PANEL') !== null,
+    hasSpecPanel: (): boolean => screen.queryByTestId('QUEST_SPEC_PANEL') !== null,
+    getClarifyQuestionText: (): HTMLElement['textContent'] => {
+      const element = screen.queryByTestId('CLARIFY_QUESTION_TEXT');
+      return element?.textContent ?? null;
+    },
+    getClarifyOptionLabels: (): HTMLElement['textContent'][] => {
+      const options = screen.queryAllByTestId('CLARIFY_OPTION');
+      return options.map((el) => el.textContent);
+    },
+    clickClarifyOption: async ({
+      label,
+    }: {
+      label: AskUserQuestionOption['label'];
+    }): Promise<void> => {
+      const options = screen.getAllByTestId('CLARIFY_OPTION');
+      const target = options.find((el) => el.textContent?.includes(label));
+      if (target) {
+        await userEvent.click(target);
+      }
     },
   };
 };

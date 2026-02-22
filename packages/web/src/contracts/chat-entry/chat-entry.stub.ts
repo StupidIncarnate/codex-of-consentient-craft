@@ -40,11 +40,32 @@ export const AssistantToolResultChatEntryStub = ({
     ...props,
   });
 
+export const TaskNotificationChatEntryStub = ({
+  ...props
+}: StubArgument<ChatEntry> = {}): ChatEntry =>
+  chatEntryContract.parse({
+    role: 'system',
+    type: 'task_notification',
+    taskId: 'task-001',
+    status: 'completed',
+    summary: 'Agent completed the task',
+    ...props,
+  });
+
 export const SystemErrorChatEntryStub = ({ ...props }: StubArgument<ChatEntry> = {}): ChatEntry =>
   chatEntryContract.parse({
     role: 'system',
     type: 'error',
     content: 'Something went wrong',
+    ...props,
+  });
+
+export const TaskToolUseChatEntryStub = ({ ...props }: StubArgument<ChatEntry> = {}): ChatEntry =>
+  chatEntryContract.parse({
+    role: 'assistant',
+    type: 'tool_use',
+    toolName: 'Task',
+    toolInput: JSON.stringify({ description: 'Run tests', prompt: 'Execute the test suite' }),
     ...props,
   });
 

@@ -485,6 +485,23 @@ const activeUsers = users.filter(user => {
 });
 ```
 
+### Array Index Maps
+
+**When building `Map<K, number>` for index lookups, use `ArrayIndex` from shared contracts:**
+
+```typescript
+import { arrayIndexContract, type ArrayIndex } from '@dungeonmaster/shared/contracts';
+
+// ✅ CORRECT - Branded index type
+const indexMap = new Map<ChatEntry, ArrayIndex>();
+entries.forEach((e, i) => { indexMap.set(e, arrayIndexContract.parse(i)); });
+
+// ❌ WRONG - Raw number triggers ban-primitives
+const indexMap = new Map<ChatEntry, number>();
+```
+
+`ArrayIndex` represents a nonnegative integer position in an array. Use it for entry-to-index lookup maps, position tracking, and similar mechanical indexing patterns.
+
 ### Remove Dead Code
 
 **Delete:**

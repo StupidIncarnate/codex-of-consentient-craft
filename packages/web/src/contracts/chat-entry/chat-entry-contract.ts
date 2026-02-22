@@ -17,9 +17,14 @@ const chatUsageContract = z.object({
 
 export type ChatUsage = z.infer<typeof chatUsageContract>;
 
+const sourceContract = z.enum(['session', 'subagent']).optional();
+const agentIdContract = z.string().min(1).brand<'AgentId'>().optional();
+
 const userEntryContract = z.object({
   role: z.literal('user'),
   content: z.string().min(1).brand<'UserContent'>(),
+  source: sourceContract,
+  agentId: agentIdContract,
 });
 
 const assistantTextEntryContract = z.object({
@@ -27,6 +32,8 @@ const assistantTextEntryContract = z.object({
   type: z.literal('text'),
   content: z.string().brand<'AssistantContent'>(),
   usage: chatUsageContract.optional(),
+  source: sourceContract,
+  agentId: agentIdContract,
 });
 
 const assistantToolUseEntryContract = z.object({
@@ -34,6 +41,9 @@ const assistantToolUseEntryContract = z.object({
   type: z.literal('tool_use'),
   toolName: z.string().min(1).brand<'ToolName'>(),
   toolInput: z.string().brand<'ToolInput'>(),
+  usage: chatUsageContract.optional(),
+  source: sourceContract,
+  agentId: agentIdContract,
 });
 
 const assistantToolResultEntryContract = z.object({
@@ -41,12 +51,31 @@ const assistantToolResultEntryContract = z.object({
   type: z.literal('tool_result'),
   toolName: z.string().min(1).brand<'ToolName'>(),
   content: z.string().brand<'ToolResultContent'>(),
+  isError: z.boolean().optional(),
+  source: sourceContract,
+  agentId: agentIdContract,
+});
+
+const taskNotificationEntryContract = z.object({
+  role: z.literal('system'),
+  type: z.literal('task_notification'),
+  taskId: z.string().min(1).brand<'TaskId'>(),
+  status: z.string().min(1).brand<'TaskStatus'>(),
+  summary: z.string().brand<'TaskSummary'>().optional(),
+  result: z.string().brand<'TaskResult'>().optional(),
+  totalTokens: z.number().int().nonnegative().brand<'TotalTokens'>().optional(),
+  toolUses: z.number().int().nonnegative().brand<'ToolUses'>().optional(),
+  durationMs: z.number().int().nonnegative().brand<'DurationMs'>().optional(),
+  source: sourceContract,
+  agentId: agentIdContract,
 });
 
 const systemErrorEntryContract = z.object({
   role: z.literal('system'),
   type: z.literal('error'),
   content: z.string().min(1).brand<'ErrorContent'>(),
+  source: sourceContract,
+  agentId: agentIdContract,
 });
 
 export const chatEntryContract = z.union([
@@ -54,6 +83,7 @@ export const chatEntryContract = z.union([
   assistantTextEntryContract,
   assistantToolUseEntryContract,
   assistantToolResultEntryContract,
+  taskNotificationEntryContract,
   systemErrorEntryContract,
 ]);
 

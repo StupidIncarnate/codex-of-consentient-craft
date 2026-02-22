@@ -17,12 +17,17 @@ export const sessionIdExtractorTransformer = ({
   try {
     const parsed: unknown = JSON.parse(line);
 
-    if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      'session_id' in parsed &&
-      typeof Reflect.get(parsed, 'session_id') === 'string'
-    ) {
+    if (typeof parsed !== 'object' || parsed === null) {
+      return null;
+    }
+
+    // Skip hook events — they carry a temporary session_id that differs from the real one
+    const subtype: unknown = Reflect.get(parsed, 'subtype');
+    if (subtype === 'hook_started' || subtype === 'hook_response') {
+      return null;
+    }
+
+    if ('session_id' in parsed && typeof Reflect.get(parsed, 'session_id') === 'string') {
       const sessionIdValue = Reflect.get(parsed, 'session_id');
       const parseResult = sessionIdContract.safeParse(sessionIdValue);
       if (parseResult.success) {

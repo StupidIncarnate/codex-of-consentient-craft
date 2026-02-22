@@ -9,6 +9,7 @@
 import { z } from 'zod';
 
 import { questStatusContract } from '../quest-status/quest-status-contract';
+import { sessionIdContract } from '../session-id/session-id-contract';
 
 export const questListItemContract = z.object({
   id: z.string().min(1).brand<'QuestId'>(),
@@ -17,6 +18,7 @@ export const questListItemContract = z.object({
   status: questStatusContract,
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
   stepProgress: z.string().brand<'StepProgress'>().optional(),
+  activeSessionId: sessionIdContract.optional(),
 });
 
 export type QuestListItem = z.infer<typeof questListItemContract>;

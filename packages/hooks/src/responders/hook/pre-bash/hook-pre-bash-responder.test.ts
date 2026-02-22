@@ -4,7 +4,7 @@ import { HookDataStub } from '../../../contracts/hook-data/hook-data.stub';
 
 describe('HookPreBashResponder', () => {
   describe('blocked commands', () => {
-    it('VALID: {command: "jest"} => returns {shouldBlock: true, message}', () => {
+    it('VALID: {command: "jest"} => returns ward test suggestion', () => {
       HookPreBashResponderProxy();
       const hookData = HookDataStub({
         tool_name: 'Bash',
@@ -16,11 +16,27 @@ describe('HookPreBashResponder', () => {
       expect(result).toStrictEqual({
         shouldBlock: true,
         message:
-          'Direct invocation of jest/eslint/tsc is blocked. Use `dungeonmaster-ward` or `npm run ward` instead.',
+          'Blocked: direct jest invocation. Use instead: `npx dungeonmaster-ward run --only test`',
       });
     });
 
-    it('VALID: {command: "npx eslint src/"} => returns {shouldBlock: true, message}', () => {
+    it('VALID: {command: "npx jest foo.test.ts"} => returns ward test suggestion with path', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npx jest foo.test.ts' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: true,
+        message:
+          'Blocked: direct jest invocation. Use instead: `npx dungeonmaster-ward run --only test -- foo.test.ts`',
+      });
+    });
+
+    it('VALID: {command: "npx eslint src/"} => returns ward lint suggestion', () => {
       HookPreBashResponderProxy();
       const hookData = HookDataStub({
         tool_name: 'Bash',
@@ -32,11 +48,11 @@ describe('HookPreBashResponder', () => {
       expect(result).toStrictEqual({
         shouldBlock: true,
         message:
-          'Direct invocation of jest/eslint/tsc is blocked. Use `dungeonmaster-ward` or `npm run ward` instead.',
+          'Blocked: direct eslint invocation. Use instead: `npx dungeonmaster-ward run --only lint`',
       });
     });
 
-    it('VALID: {command: "tsc --noEmit"} => returns {shouldBlock: true, message}', () => {
+    it('VALID: {command: "tsc --noEmit"} => returns ward typecheck suggestion', () => {
       HookPreBashResponderProxy();
       const hookData = HookDataStub({
         tool_name: 'Bash',
@@ -48,7 +64,7 @@ describe('HookPreBashResponder', () => {
       expect(result).toStrictEqual({
         shouldBlock: true,
         message:
-          'Direct invocation of jest/eslint/tsc is blocked. Use `dungeonmaster-ward` or `npm run ward` instead.',
+          'Blocked: direct tsc invocation. Use instead: `npx dungeonmaster-ward run --only typecheck`',
       });
     });
   });

@@ -42,6 +42,41 @@ describe('chatSessionContract', () => {
       expect(result.agentRole).toBe('GateKeeper');
     });
 
+    it('VALID: session with summary => parses successfully', () => {
+      const chatSession = ChatSessionStub({
+        summary: 'Implemented auth flow',
+      });
+
+      const result = chatSessionContract.parse(chatSession);
+
+      expect(result).toStrictEqual({
+        sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        agentRole: 'PathSeeker',
+        startedAt: '2024-01-15T10:00:00.000Z',
+        active: false,
+        summary: 'Implemented auth flow',
+      });
+    });
+
+    it('VALID: full session with all optional fields => parses successfully', () => {
+      const chatSession = ChatSessionStub({
+        active: true,
+        endedAt: '2024-01-15T12:00:00.000Z',
+        summary: 'Completed auth setup',
+      });
+
+      const result = chatSessionContract.parse(chatSession);
+
+      expect(result).toStrictEqual({
+        sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        agentRole: 'PathSeeker',
+        startedAt: '2024-01-15T10:00:00.000Z',
+        endedAt: '2024-01-15T12:00:00.000Z',
+        active: true,
+        summary: 'Completed auth setup',
+      });
+    });
+
     it('VALID: without active field => defaults to false', () => {
       const result = chatSessionContract.parse({
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',

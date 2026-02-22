@@ -16,6 +16,7 @@ export const chatSessionContract = z.object({
   startedAt: z.string().datetime().brand<'IsoTimestamp'>(),
   endedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   active: z.boolean().default(false),
+  summary: z.string().brand<'SessionSummary'>().optional(),
 });
 
 export type ChatSession = z.infer<typeof chatSessionContract>;

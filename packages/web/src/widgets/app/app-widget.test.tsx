@@ -1,10 +1,14 @@
 /**
- * PURPOSE: Tests for AppWidget - routing, layout, guild selection, and quest navigation
+ * PURPOSE: Tests for AppWidget - routing, layout, guild selection, and session navigation
  */
 
 import { waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { GuildIdStub, GuildListItemStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import {
+  GuildIdStub,
+  GuildListItemStub,
+  SessionListItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
@@ -86,14 +90,14 @@ describe('AppWidget', () => {
     });
   });
 
-  describe('quest list view', () => {
-    it('VALID: {guild selected, quests loaded} => shows quest list', async () => {
+  describe('session list view', () => {
+    it('VALID: {guild selected, sessions loaded} => shows session list', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({ name: 'My Guild' });
       const guilds = [guild];
-      const quests = [
-        QuestListItemStub({ id: 'quest-1', title: 'First Quest' }),
-        QuestListItemStub({ id: 'quest-2', title: 'Second Quest' }),
+      const sessions = [
+        SessionListItemStub({ sessionId: 'session-1' }),
+        SessionListItemStub({ sessionId: 'session-2' }),
       ];
 
       proxy.setupGuilds({ guilds });
@@ -109,7 +113,7 @@ describe('AppWidget', () => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      proxy.setupQuests({ quests });
+      proxy.setupSessions({ sessions });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -126,12 +130,12 @@ describe('AppWidget', () => {
     });
   });
 
-  describe('quest chat view', () => {
-    it('VALID: {click quest} => navigates to quest chat route', async () => {
+  describe('session chat view', () => {
+    it('VALID: {click session} => navigates to session chat route', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({ name: 'My Guild' });
       const guilds = [guild];
-      const quests = [QuestListItemStub({ id: 'quest-1', title: 'My Quest' })];
+      const sessions = [SessionListItemStub({ sessionId: 'session-1', questId: 'quest-1' })];
 
       proxy.setupGuilds({ guilds });
 
@@ -146,7 +150,7 @@ describe('AppWidget', () => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      proxy.setupQuests({ quests });
+      proxy.setupSessions({ sessions });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -157,7 +161,7 @@ describe('AppWidget', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          await proxy.clickQuestItem({ testId: 'QUEST_ITEM_quest-1' });
+          await proxy.clickSessionItem({ testId: 'SESSION_ITEM_session-1' });
           await Promise.resolve();
         },
       });
@@ -202,7 +206,7 @@ describe('AppWidget', () => {
 
       proxy.setupCreateGuild({ id: guildId });
       proxy.setupGuilds({ guilds: [createdGuild] });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupSessions({ sessions: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -249,7 +253,7 @@ describe('AppWidget', () => {
 
       proxy.setupCreateGuild({ id: guildId });
       proxy.setupGuilds({ guilds: [createdGuild] });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupSessions({ sessions: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -311,7 +315,7 @@ describe('AppWidget', () => {
 
       proxy.setupCreateGuild({ id: newGuildId });
       proxy.setupGuilds({ guilds: [existingGuild, newGuild] });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupSessions({ sessions: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -414,14 +418,14 @@ describe('AppWidget', () => {
     });
   });
 
-  describe('guild selection and quest loading', () => {
-    it('VALID: {click guild item} => quest list renders for that guild', async () => {
+  describe('guild selection and session loading', () => {
+    it('VALID: {click guild item} => session list renders for that guild', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
         id: 'f6a7b8c9-d0e1-2345-fabc-456789012345',
         name: 'Guild Alpha',
       });
-      const quests = [QuestListItemStub({ id: 'q-1', title: 'Alpha Quest' })];
+      const sessions = [SessionListItemStub({ sessionId: 'session-1' })];
 
       proxy.setupGuilds({ guilds: [guild] });
 
@@ -436,7 +440,7 @@ describe('AppWidget', () => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      proxy.setupQuests({ quests });
+      proxy.setupSessions({ sessions });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -452,7 +456,7 @@ describe('AppWidget', () => {
       expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
     });
 
-    it('VALID: {click guild with no quests} => shows empty state', async () => {
+    it('VALID: {click guild with no sessions} => shows empty state', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
         id: 'a7b8c9d0-e1f2-3456-abcd-567890123456',
@@ -472,7 +476,7 @@ describe('AppWidget', () => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      proxy.setupQuests({ quests: [] });
+      proxy.setupSessions({ sessions: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -482,13 +486,13 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.isQuestEmptyStateVisible()).toBe(true);
+        expect(proxy.isSessionEmptyStateVisible()).toBe(true);
       });
 
-      expect(proxy.isQuestEmptyStateVisible()).toBe(true);
+      expect(proxy.isSessionEmptyStateVisible()).toBe(true);
     });
 
-    it('VALID: {click guild, quest list error} => error state', async () => {
+    it('VALID: {click guild, session list error} => error state', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
         id: 'd0e1f2a3-b4c5-6789-defa-890123456789',
@@ -508,7 +512,7 @@ describe('AppWidget', () => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      proxy.setupQuestsError();
+      proxy.setupSessionsError();
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -518,21 +522,21 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.isQuestEmptyStateVisible()).toBe(true);
+        expect(proxy.isSessionEmptyStateVisible()).toBe(true);
       });
 
-      expect(proxy.isQuestEmptyStateVisible()).toBe(true);
+      expect(proxy.isSessionEmptyStateVisible()).toBe(true);
     });
   });
 
   describe('navigation between views', () => {
-    it('VALID: {main, click quest} => shows quest chat view', async () => {
+    it('VALID: {main, click session} => shows quest chat view', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
         id: 'e1f2a3b4-c5d6-7890-efab-901234567890',
         name: 'Nav Guild',
       });
-      const quests = [QuestListItemStub({ id: 'nav-q1', title: 'Nav Quest' })];
+      const sessions = [SessionListItemStub({ sessionId: 'nav-s1', questId: 'quest-nav' })];
 
       proxy.setupGuilds({ guilds: [guild] });
 
@@ -547,7 +551,7 @@ describe('AppWidget', () => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      proxy.setupQuests({ quests });
+      proxy.setupSessions({ sessions });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -558,7 +562,7 @@ describe('AppWidget', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          await proxy.clickQuestItem({ testId: 'QUEST_ITEM_nav-q1' });
+          await proxy.clickSessionItem({ testId: 'SESSION_ITEM_nav-s1' });
           await Promise.resolve();
         },
       });
@@ -598,7 +602,7 @@ describe('AppWidget', () => {
 
       proxy.setupCreateGuild({ id: guildId });
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupSessions({ sessions: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -638,7 +642,7 @@ describe('AppWidget', () => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guildA.id}` })).toBe(true);
       });
 
-      proxy.setupQuests({ quests: [] });
+      proxy.setupSessions({ sessions: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -707,13 +711,13 @@ describe('AppWidget', () => {
       expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guildC.id}` })).toBe(true);
     });
 
-    it('VALID: {click quest} => renders quest chat instead of quest detail tabs', async () => {
+    it('VALID: {click session} => renders quest chat instead of quest detail tabs', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
         id: 'a9b0c1d2-e3f4-5678-abcd-789abcdef012',
         name: 'Tab Guild',
       });
-      const quests = [QuestListItemStub({ id: 'tab-q1', title: 'Tab Quest' })];
+      const sessions = [SessionListItemStub({ sessionId: 'tab-s1', questId: 'quest-tab' })];
 
       proxy.setupGuilds({ guilds: [guild] });
 
@@ -728,7 +732,7 @@ describe('AppWidget', () => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      proxy.setupQuests({ quests });
+      proxy.setupSessions({ sessions });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -739,7 +743,7 @@ describe('AppWidget', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
-          await proxy.clickQuestItem({ testId: 'QUEST_ITEM_tab-q1' });
+          await proxy.clickSessionItem({ testId: 'SESSION_ITEM_tab-s1' });
           await Promise.resolve();
         },
       });
