@@ -59,16 +59,10 @@ describe('ChatInputWidget', () => {
       ChatInputWidgetProxy();
 
       mantineRenderAdapter({
-        ui: (
-          <ChatInputWidget
-            isStreaming={true}
-            onSendMessage={jest.fn()}
-            onStopChat={jest.fn()}
-          />
-        ),
+        ui: <ChatInputWidget isStreaming={true} onSendMessage={jest.fn()} onStopChat={jest.fn()} />,
       });
 
-      const textarea = screen.getByTestId('CHAT_INPUT') as HTMLTextAreaElement;
+      const textarea = screen.getByTestId('CHAT_INPUT');
 
       expect(textarea.disabled).toBe(true);
     });
@@ -167,15 +161,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget
-            isStreaming={false}
-            onSendMessage={jest.fn()}
-            onStopChat={jest.fn()}
-          />
+          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
         ),
       });
 
-      const textarea = screen.getByTestId('CHAT_INPUT') as HTMLTextAreaElement;
+      const textarea = screen.getByTestId('CHAT_INPUT');
 
       fireEvent.change(textarea, { target: { value: 'hello' } });
       fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: false });
@@ -191,11 +181,7 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget
-            isStreaming={true}
-            onSendMessage={jest.fn()}
-            onStopChat={onStopChat}
-          />
+          <ChatInputWidget isStreaming={true} onSendMessage={jest.fn()} onStopChat={onStopChat} />
         ),
       });
 
@@ -211,11 +197,7 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget
-            isStreaming={false}
-            onSendMessage={jest.fn()}
-            onStopChat={jest.fn()}
-          />
+          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
         ),
       });
 
@@ -232,15 +214,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget
-            isStreaming={false}
-            onSendMessage={jest.fn()}
-            onStopChat={jest.fn()}
-          />
+          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
         ),
       });
 
-      const textarea = screen.getByTestId('CHAT_INPUT') as HTMLTextAreaElement;
+      const textarea = screen.getByTestId('CHAT_INPUT');
 
       expect(textarea.value).toBe('saved draft');
     });
@@ -251,11 +229,7 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget
-            isStreaming={false}
-            onSendMessage={jest.fn()}
-            onStopChat={jest.fn()}
-          />
+          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
         ),
       });
 
@@ -271,15 +245,11 @@ describe('ChatInputWidget', () => {
 
       mantineRenderAdapter({
         ui: (
-          <ChatInputWidget
-            isStreaming={false}
-            onSendMessage={jest.fn()}
-            onStopChat={jest.fn()}
-          />
+          <ChatInputWidget isStreaming={false} onSendMessage={jest.fn()} onStopChat={jest.fn()} />
         ),
       });
 
-      const textarea = screen.getByTestId('CHAT_INPUT') as HTMLTextAreaElement;
+      const textarea = screen.getByTestId('CHAT_INPUT');
 
       expect(textarea.value).toBe('');
     });

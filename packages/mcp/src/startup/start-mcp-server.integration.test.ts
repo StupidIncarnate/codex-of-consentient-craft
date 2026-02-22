@@ -669,4 +669,88 @@ describe('StartMcpServer', () => {
       });
     });
   });
+
+  describe('tools/call with ward-list', () => {
+    it('VALID: {no runId} => returns ward list result text', async () => {
+      const client = await createMcpClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8001 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'ward-list',
+          arguments: {},
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(result.content[0]?.type).toBe('text');
+      expect(result.content[0]?.text).toMatch(/ward|No ward|errors/u);
+    });
+  });
+
+  describe('tools/call with ward-detail', () => {
+    it('VALID: {runId, filePath} => returns ward detail result text', async () => {
+      const client = await createMcpClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8002 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'ward-detail',
+          arguments: {
+            runId: '1739625600000-a3f1',
+            filePath: 'src/app.ts',
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(result.content[0]?.type).toBe('text');
+      expect(result.content[0]?.text).toMatch(/ward|No ward|src\/app\.ts/u);
+    });
+  });
+
+  describe('tools/call with ward-raw', () => {
+    it('VALID: {runId, checkType} => returns ward raw result text', async () => {
+      const client = await createMcpClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8003 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'ward-raw',
+          arguments: {
+            runId: '1739625600000-a3f1',
+            checkType: 'lint',
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(result.content[0]?.type).toBe('text');
+      expect(result.content[0]?.text).toMatch(/ward|No ward|lint|output/u);
+    });
+  });
 });

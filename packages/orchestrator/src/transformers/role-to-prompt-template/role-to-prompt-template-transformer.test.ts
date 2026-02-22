@@ -1,49 +1,46 @@
-import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { AgentRoleStub } from '../../contracts/agent-role/agent-role.stub';
 import { roleToPromptTemplateTransformer } from './role-to-prompt-template-transformer';
 
-const PLACEHOLDER = environmentStatics.serverUrlPlaceholder;
-
 describe('roleToPromptTemplateTransformer', () => {
-  describe('server URL resolution', () => {
-    it('VALID: {role: codeweaver} => no unresolved {{SERVER_URL}} placeholders remain', () => {
+  describe('returns prompt template for each role', () => {
+    it('VALID: {role: codeweaver} => returns codeweaver prompt template', () => {
       const result = roleToPromptTemplateTransformer({
         role: AgentRoleStub({ value: 'codeweaver' }),
       });
 
-      expect(result.includes(PLACEHOLDER)).toBe(false);
+      expect(result.length).toBeGreaterThan(0);
     });
 
-    it('VALID: {role: pathseeker} => no unresolved {{SERVER_URL}} placeholders remain', () => {
+    it('VALID: {role: pathseeker} => returns pathseeker prompt template', () => {
       const result = roleToPromptTemplateTransformer({
         role: AgentRoleStub({ value: 'pathseeker' }),
       });
 
-      expect(result.includes(PLACEHOLDER)).toBe(false);
+      expect(result.length).toBeGreaterThan(0);
     });
 
-    it('VALID: {role: siegemaster} => no unresolved {{SERVER_URL}} placeholders remain', () => {
+    it('VALID: {role: siegemaster} => returns siegemaster prompt template', () => {
       const result = roleToPromptTemplateTransformer({
         role: AgentRoleStub({ value: 'siegemaster' }),
       });
 
-      expect(result.includes(PLACEHOLDER)).toBe(false);
+      expect(result.length).toBeGreaterThan(0);
     });
 
-    it('VALID: {role: lawbringer} => no unresolved {{SERVER_URL}} placeholders remain', () => {
+    it('VALID: {role: lawbringer} => returns lawbringer prompt template', () => {
       const result = roleToPromptTemplateTransformer({
         role: AgentRoleStub({ value: 'lawbringer' }),
       });
 
-      expect(result.includes(PLACEHOLDER)).toBe(false);
+      expect(result.length).toBeGreaterThan(0);
     });
 
-    it('VALID: {role: spiritmender} => no unresolved {{SERVER_URL}} placeholders remain', () => {
+    it('VALID: {role: spiritmender} => returns spiritmender prompt template', () => {
       const result = roleToPromptTemplateTransformer({
         role: AgentRoleStub({ value: 'spiritmender' }),
       });
 
-      expect(result.includes(PLACEHOLDER)).toBe(false);
+      expect(result.length).toBeGreaterThan(0);
     });
   });
 });

@@ -12,7 +12,6 @@ import {
   installMessageContract,
   packageNameContract,
   fileContentsContract,
-  contentTextContract,
 } from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
@@ -21,7 +20,6 @@ import { chaoswhispererPromptStatics } from '../statics/chaoswhisperer-prompt/ch
 import { questStartPromptStatics } from '../statics/quest-start-prompt/quest-start-prompt-statics';
 import { finalizerQuestAgentPromptStatics } from '../statics/finalizer-quest-agent-prompt/finalizer-quest-agent-prompt-statics';
 import { gapReviewerAgentPromptStatics } from '../statics/gap-reviewer-agent-prompt/gap-reviewer-agent-prompt-statics';
-import { resolveServerUrlTransformer } from '../transformers/resolve-server-url/resolve-server-url-transformer';
 
 const CLAUDE_DIR = '.claude';
 const COMMANDS_DIR = 'commands';
@@ -51,16 +49,8 @@ export const StartInstall = async ({
     paths: [commandsDir, QUEST_START_FILENAME],
   });
 
-  const questContent = fileContentsContract.parse(
-    resolveServerUrlTransformer({
-      template: contentTextContract.parse(chaoswhispererPromptStatics.prompt.template),
-    }),
-  );
-  const questStartContent = fileContentsContract.parse(
-    resolveServerUrlTransformer({
-      template: contentTextContract.parse(questStartPromptStatics.prompt.template),
-    }),
-  );
+  const questContent = fileContentsContract.parse(chaoswhispererPromptStatics.prompt.template);
+  const questStartContent = fileContentsContract.parse(questStartPromptStatics.prompt.template);
 
   await fsWriteFileAdapter({ filePath: questFilePath, contents: questContent });
   await fsWriteFileAdapter({ filePath: questStartFilePath, contents: questStartContent });
@@ -80,15 +70,11 @@ export const StartInstall = async ({
   });
 
   const questFinalizerContent = fileContentsContract.parse(
-    resolveServerUrlTransformer({
-      template: contentTextContract.parse(finalizerQuestAgentPromptStatics.prompt.template),
-    }),
+    finalizerQuestAgentPromptStatics.prompt.template,
   );
 
   const questGapReviewerContent = fileContentsContract.parse(
-    resolveServerUrlTransformer({
-      template: contentTextContract.parse(gapReviewerAgentPromptStatics.prompt.template),
-    }),
+    gapReviewerAgentPromptStatics.prompt.template,
   );
 
   await fsWriteFileAdapter({ filePath: questFinalizerFilePath, contents: questFinalizerContent });
