@@ -33,7 +33,7 @@ Achieve full understanding before any discovery or planning.
 Load the codebase rules that govern file placement and imports.
 
 ```bash
-curl -s http://localhost:4737/api/docs/architecture
+curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/architecture
 ```
 
 Internalize before proceeding:
@@ -53,9 +53,9 @@ Find existing code related to this request. Extend existing functionality rather
 **Search strategies:**
 
 ```bash
-curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"[keyword]"}'
-curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"[domain]"}'
-curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/[pkg]/src/[folder]"}'
+curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"[keyword]"}'
+curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"[domain]"}'
+curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/[pkg]/src/[folder]"}'
 ```
 
 **Questions to answer:**
@@ -77,9 +77,9 @@ how to extend or integrate with it.
 For each folder type you'll create/modify files in, load the specific rules.
 
 ```bash
-curl -s http://localhost:4737/api/docs/folder-detail/brokers
-curl -s http://localhost:4737/api/docs/folder-detail/contracts
-curl -s http://localhost:4737/api/docs/folder-detail/adapters
+curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/brokers
+curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/contracts
+curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/adapters
 ```
 
 Each call provides:
@@ -190,7 +190,7 @@ After writing BDD scenarios, determine HOW Claude will execute each.
 **If tooling needed:**
 
 1. Check if adapter exists:
-   `curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"adapter","search":"playwright"}'`
+   `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"adapter","search":"playwright"}'`
 2. If not, add adapter to plan Files table
 3. Include adapter setup in plan Dependencies
 

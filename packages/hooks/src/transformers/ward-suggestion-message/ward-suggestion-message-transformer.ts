@@ -10,6 +10,7 @@ import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
+const NPX_WARD_PATTERN = /npx\s+dungeonmaster-ward(?:\s|$)/u;
 const JEST_PATTERN = /(?:npx\s+)?jest(?:\s|$)/u;
 const ESLINT_PATTERN = /(?:npx\s+)?eslint(?:\s|$)/u;
 const TSC_PATTERN = /(?:npx\s+)?tsc(?:\s|$)/u;
@@ -20,12 +21,20 @@ export const wardSuggestionMessageTransformer = ({
 }: {
   command: BashToolInput['command'];
 }): ErrorMessage => {
+  if (NPX_WARD_PATTERN.test(command)) {
+    const wardArgs = command.replace(/npx\s+dungeonmaster-ward\s*/u, '').trim();
+    const suggestion = wardArgs ? `npm run ward -- ${wardArgs}` : 'npm run ward';
+    return errorMessageContract.parse(
+      `Blocked: npx dungeonmaster-ward is banned. Use instead: \`${suggestion}\``,
+    );
+  }
+
   if (JEST_PATTERN.test(command)) {
     const pathMatch = JEST_PATH_PATTERN.exec(command);
     const pathArg = pathMatch?.[1]?.trim();
     const suggestion = pathArg
-      ? `npx dungeonmaster-ward run --only test -- ${pathArg}`
-      : 'npx dungeonmaster-ward run --only test';
+      ? `npm run ward -- --only test -- ${pathArg}`
+      : 'npm run ward -- --only test';
     return errorMessageContract.parse(
       `Blocked: direct jest invocation. Use instead: \`${suggestion}\``,
     );
@@ -33,17 +42,15 @@ export const wardSuggestionMessageTransformer = ({
 
   if (ESLINT_PATTERN.test(command)) {
     return errorMessageContract.parse(
-      'Blocked: direct eslint invocation. Use instead: `npx dungeonmaster-ward run --only lint`',
+      'Blocked: direct eslint invocation. Use instead: `npm run ward -- --only lint`',
     );
   }
 
   if (TSC_PATTERN.test(command)) {
     return errorMessageContract.parse(
-      'Blocked: direct tsc invocation. Use instead: `npx dungeonmaster-ward run --only typecheck`',
+      'Blocked: direct tsc invocation. Use instead: `npm run ward -- --only typecheck`',
     );
   }
 
-  return errorMessageContract.parse(
-    'Blocked: direct tool invocation. Use instead: `npx dungeonmaster-ward run`',
-  );
+  return errorMessageContract.parse('Blocked: direct tool invocation. Use instead: `npm run ward`');
 };

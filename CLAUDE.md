@@ -28,39 +28,39 @@ Start the server with `npm run dev` and use `curl` via `Bash` to query these end
 - **`GET /api/docs/architecture`** - ALWAYS RUN FIRST
     - Returns: Folder types, import hierarchy, decision tree (~1K tokens)
     - Purpose: Understand where code goes and architectural constraints
-  - Example: `curl -s http://localhost:4737/api/docs/architecture`
+  - Example: `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/architecture`
 
 - **`POST /api/discover`** - Find existing code
     - Browse: `{"type":"files", "path":"packages/X/src/guards"}` - Tree list of files with purposes
     - Details: `{"type":"files", "name":"has-file-suffix-guard"}` - Full metadata (signature, usage, related files)
     - Purpose: Check if similar code exists before creating new
     - Example:
-      `curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"user"}'`
+      `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"user"}'`
 
 - **`GET /api/docs/folder-detail/:type`** - Get folder-specific rules
     - Returns: Purpose, naming, imports, constraints, code examples, proxy requirements (~500-1K tokens)
     - Purpose: Complete patterns for the specific folder you're working in
-  - Example: `curl -s http://localhost:4737/api/docs/folder-detail/guards`
+  - Example: `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/guards`
 
 - **`GET /api/docs/syntax-rules`** - Universal syntax conventions
     - Returns: File naming, exports, types, destructuring, all conventions with examples (~5K tokens)
     - Purpose: Ensure code passes ESLint
-  - Example: `curl -s http://localhost:4737/api/docs/syntax-rules`
+  - Example: `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/syntax-rules`
 
 - **`GET /api/docs/testing-patterns`** - Testing architecture
     - Returns: Testing philosophy, proxy patterns, assertions, test structure (~5K tokens)
     - Purpose: Understand how to write tests and proxy files
-  - Example: `curl -s http://localhost:4737/api/docs/testing-patterns`
+  - Example: `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/testing-patterns`
 
 ### Standard Workflow
 
 ```
-1. curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"..."}'   // Check if code exists
-2. curl -s http://localhost:4737/api/docs/folder-detail/FOLDER_TYPE   // Get folder patterns
-3. curl -s http://localhost:4737/api/docs/syntax-rules                // Get syntax conventions
-4. curl -s http://localhost:4737/api/docs/testing-patterns            // Get testing patterns (if writing tests)
+1. curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"..."}'   // Check if code exists
+2. curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/FOLDER_TYPE   // Get folder patterns
+3. curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/syntax-rules                // Get syntax conventions
+4. curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/testing-patterns            // Get testing patterns (if writing tests)
 5. Write code following API-provided examples                         // All patterns provided by API
-6. Run tests to verify                                                // npx dungeonmaster-ward run --only test -- path/to/file.test.ts
+6. Run tests to verify                                                // npm run ward -- --only test -- path/to/file.test.ts
 ```
 
 ### When to Use Read
@@ -93,6 +93,18 @@ When existing code violates architecture:
 9. Run tests to verify                                     // Ensure nothing breaks
 ```
 
+## Worktree Isolation
+
+When the repo is cloned into a `worktrees/` directory alongside sibling worktrees, `npm install` auto-generates a
+`.env` file via `scripts/worktree-env-setup.js` (the `postinstall` hook).
+
+- **Port assignment** is deterministic: sibling folders are sorted by filesystem creation time (`birthtime`) and each
+  gets `4700 + index * 10` (e.g. 4700, 4710, 4720). The 10-step gap leaves room for server port and web port (port+1).
+- **`DUNGEONMASTER_HOME`** points to `.dungeonmaster-home` inside the worktree, keeping data isolated per worktree.
+- The `dev` and `dev:kill` scripts source `.env` automatically if it exists.
+- To manually override: edit `.env` directly. The postinstall script never overwrites an existing `.env`.
+- For non-worktree setups (regular clones, end-user installs) the script is a no-op.
+
 ## Project Info
 
 **Tech Stack**: TypeScript, Node.js, Jest
@@ -120,14 +132,14 @@ const testbed = installTestbedCreateBroker({
 
 ### Common Commands
 
-- **Run all quality checks**: `npx dungeonmaster-ward run`
-- **Run lint only**: `npx dungeonmaster-ward run --only lint`
-- **Run tests only**: `npx dungeonmaster-ward run --only test`
-- **Run typecheck only**: `npx dungeonmaster-ward run --only typecheck`
-- **Run specific test file**: `npx dungeonmaster-ward run --only test -- path/to/file.test.ts`
-- **Get full error details after a failing run**: `npx dungeonmaster-ward list <run-id>`
+- **Run all quality checks**: `npm run ward`
+- **Run lint only**: `npm run ward -- --only lint`
+- **Run tests only**: `npm run ward -- --only test`
+- **Run typecheck only**: `npm run ward -- --only typecheck`
+- **Run specific test file**: `npm run ward -- --only test -- path/to/file.test.ts`
+- **Get full error details after a failing run**: `dungeonmaster-ward list <run-id>`
 - **Build**: `npm run build`
 - **Start dev server**: `npm run dev`
 
 **When ward fails:** The run output shows a summary with truncated errors. Follow the hint at the bottom
-(`npx dungeonmaster-ward list <run-id>`) to get full details — especially jest diffs for test failures.
+(`dungeonmaster-ward list <run-id>`) to get full details — especially jest diffs for test failures.

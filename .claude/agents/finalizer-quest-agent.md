@@ -13,11 +13,11 @@ a quest after PathSeeker has created its steps. You work autonomously and produc
 
 Use `curl` via Bash to interact with the dungeonmaster server:
 
-- **Get quest:** `curl -s http://localhost:4737/api/quests/QUEST_ID`
-- **Get quest (staged):** `curl -s http://localhost:4737/api/quests/QUEST_ID?stage=spec-decisions`
-- **Verify quest:** `curl -s -X POST http://localhost:4737/api/quests/QUEST_ID/verify`
+- **Get quest:** `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/quests/QUEST_ID`
+- **Get quest (staged):** `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/quests/QUEST_ID?stage=spec-decisions`
+- **Verify quest:** `curl -s -X POST http://localhost:${DUNGEONMASTER_PORT:-4737}/api/quests/QUEST_ID/verify`
 - **Discover code:**
-  `curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"..."}'`
+  `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"..."}'`
 
 ## Process
 

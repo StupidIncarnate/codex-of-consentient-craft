@@ -27,7 +27,7 @@ Codeweaver (x3 concurrent, 600s timeout)
   │  dependency-aware DAG scheduling
   │
   ▼
-Ward ──► dungeonmaster-ward run
+Ward ──► npm run ward
   │  └─ Spiritmender (x3) on failure ◄── retry (max 3)
   │
   ▼

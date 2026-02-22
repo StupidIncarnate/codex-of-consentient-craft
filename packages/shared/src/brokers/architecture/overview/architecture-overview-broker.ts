@@ -366,15 +366,15 @@ package-root/
 **Do NOT use for:** Application types (those go in \`src/contracts/\`)`;
 
   // Build quality commands section
-  const qualityCommands = `**ALWAYS use \`dungeonmaster-ward\` instead of raw tool invocations:**
+  const qualityCommands = `**ALWAYS use \`npm run ward\` instead of raw tool invocations:**
 
 | ❌ Don't Use | ✅ Use Instead |
 |-------------|---------------|
-| \`npx jest ...\` | \`npx dungeonmaster-ward run --only test -- <path>\` |
-| \`npx eslint ...\` | \`npx dungeonmaster-ward run --only lint\` |
-| \`npx tsc --noEmit\` | \`npx dungeonmaster-ward run --only typecheck\` |
-| \`npm test\` | \`npx dungeonmaster-ward run --only test\` |
-| Running all checks | \`npx dungeonmaster-ward run\` |`;
+| \`npx jest ...\` | \`npm run ward -- --only test -- <path>\` |
+| \`npx eslint ...\` | \`npm run ward -- --only lint\` |
+| \`npx tsc --noEmit\` | \`npm run ward -- --only typecheck\` |
+| \`npm test\` | \`npm run ward -- --only test\` |
+| Running all checks | \`npm run ward\` |`;
 
   // Build critical rules
   const criticalRules = `**Never do these things (❌):**

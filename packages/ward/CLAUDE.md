@@ -2,7 +2,7 @@
 
 ## What This Package Does
 
-Ward is a quality orchestration CLI tool (`npx dungeonmaster-ward`) that runs lint, typecheck, unit, and e2e checks. It
+Ward is a quality orchestration CLI tool (`npm run ward`) that runs lint, typecheck, unit, and e2e checks. It
 operates in two modes depending on whether the current project has npm workspaces:
 
 - **Single-package mode** (no workspaces): Runs checks directly in the current working directory.
@@ -13,16 +13,16 @@ and `raw` subcommands.
 
 ## CLI Usage
 
-The binary is `npx dungeonmaster-ward`. It has four subcommands:
+The binary is `dungeonmaster-ward`. It has four subcommands:
 
 ```
-npx dungeonmaster-ward run                        # Run checks (default if no subcommand given)
-npx dungeonmaster-ward list [run-id]              # List errors by file from most recent (or specified) run
-npx dungeonmaster-ward detail <run-id> <file>     # Show detailed errors for a specific file
-npx dungeonmaster-ward raw <run-id> <check-type>  # Show raw tool output for a check type
+npm run ward                                       # Run checks (default if no subcommand given)
+dungeonmaster-ward list [run-id]                   # List errors by file from most recent (or specified) run
+dungeonmaster-ward detail <run-id> <file>          # Show detailed errors for a specific file
+dungeonmaster-ward raw <run-id> <check-type>       # Show raw tool output for a check type
 ```
 
-Running `npx dungeonmaster-ward` with no arguments is equivalent to `npx dungeonmaster-ward run`.
+Running `npm run ward` with no arguments is equivalent to `npm run ward -- run`.
 
 ## Check Types
 
@@ -52,34 +52,34 @@ All flags apply to the `run` subcommand. The `detail` subcommand also accepts `-
 
 ```bash
 # Run all checks (lint, typecheck, unit, e2e) across all packages
-npx dungeonmaster-ward run
+npm run ward
 
 # Lint only
-npx dungeonmaster-ward run --only lint
+npm run ward -- --only lint
 
 # Run all tests (unit + e2e)
-npx dungeonmaster-ward run --only test
+npm run ward -- --only test
 
 # Run only Jest unit tests
-npx dungeonmaster-ward run --only unit
+npm run ward -- --only unit
 
 # Run only Playwright e2e tests
-npx dungeonmaster-ward run --only e2e
+npm run ward -- --only e2e
 
 # Test a single file (unit tests)
-npx dungeonmaster-ward run --only unit -- path/to/file.test.ts
+npm run ward -- --only unit -- path/to/file.test.ts
 
 # Run multiple check types
-npx dungeonmaster-ward run --only lint,unit
+npm run ward -- --only lint,unit
 
 # Lint only changed files
-npx dungeonmaster-ward run --only lint --changed
+npm run ward -- --only lint --changed
 
 # Inspect results after a run
-npx dungeonmaster-ward list                          # errors from latest run
-npx dungeonmaster-ward list <run-id>                 # errors from a specific run
-npx dungeonmaster-ward detail <run-id> <file-path>   # drill into a file's errors
-npx dungeonmaster-ward raw <run-id> lint             # raw eslint JSON output
+dungeonmaster-ward list                          # errors from latest run
+dungeonmaster-ward list <run-id>                 # errors from a specific run
+dungeonmaster-ward detail <run-id> <file-path>   # drill into a file's errors
+dungeonmaster-ward raw <run-id> lint             # raw eslint JSON output
 ```
 
 ## Workflow: run → list → detail
@@ -89,14 +89,14 @@ test failures), use `list`:
 
 ```bash
 # 1. Run checks — see summary with one-line errors
-npx dungeonmaster-ward run --only lint,test
-# Output includes: "Full error details: npx dungeonmaster-ward list <run-id>"
+npm run ward -- --only lint,test
+# Output includes: "Full error details: dungeonmaster-ward list <run-id>"
 
 # 2. List errors — see full jest diffs and complete error messages
-npx dungeonmaster-ward list <run-id>
+dungeonmaster-ward list <run-id>
 
 # 3. Detail — drill into a specific file
-npx dungeonmaster-ward detail <run-id> <file-path>
+dungeonmaster-ward detail <run-id> <file-path>
 ```
 
 **Why this matters:** The `run` output truncates test failure messages to the first line. The `list` command shows the

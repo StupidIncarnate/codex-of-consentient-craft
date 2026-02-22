@@ -15,8 +15,7 @@ describe('HookPreBashResponder', () => {
 
       expect(result).toStrictEqual({
         shouldBlock: true,
-        message:
-          'Blocked: direct jest invocation. Use instead: `npx dungeonmaster-ward run --only test`',
+        message: 'Blocked: direct jest invocation. Use instead: `npm run ward -- --only test`',
       });
     });
 
@@ -32,7 +31,7 @@ describe('HookPreBashResponder', () => {
       expect(result).toStrictEqual({
         shouldBlock: true,
         message:
-          'Blocked: direct jest invocation. Use instead: `npx dungeonmaster-ward run --only test -- foo.test.ts`',
+          'Blocked: direct jest invocation. Use instead: `npm run ward -- --only test -- foo.test.ts`',
       });
     });
 
@@ -47,8 +46,7 @@ describe('HookPreBashResponder', () => {
 
       expect(result).toStrictEqual({
         shouldBlock: true,
-        message:
-          'Blocked: direct eslint invocation. Use instead: `npx dungeonmaster-ward run --only lint`',
+        message: 'Blocked: direct eslint invocation. Use instead: `npm run ward -- --only lint`',
       });
     });
 
@@ -63,8 +61,23 @@ describe('HookPreBashResponder', () => {
 
       expect(result).toStrictEqual({
         shouldBlock: true,
+        message: 'Blocked: direct tsc invocation. Use instead: `npm run ward -- --only typecheck`',
+      });
+    });
+
+    it('VALID: {command: "npx dungeonmaster-ward run --only test"} => returns blocked with npm run ward suggestion', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npx dungeonmaster-ward run --only test' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: true,
         message:
-          'Blocked: direct tsc invocation. Use instead: `npx dungeonmaster-ward run --only typecheck`',
+          'Blocked: npx dungeonmaster-ward is banned. Use instead: `npm run ward -- run --only test`',
       });
     });
   });
