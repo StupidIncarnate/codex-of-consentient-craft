@@ -14,7 +14,7 @@
     "ward": "dungeonmaster-ward run",
     "ward:changed": "dungeonmaster-ward run --changed",
     "dev": "npm run dev:kill; [ -f .env ] && set -a && . ./.env && set +a; DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/server & [ -f .env ] && set -a && . ./.env && set +a; DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/web & wait",
-    "dev:kill": "[ -f .env ] && set -a && . ./.env && set +a; P=${DUNGEONMASTER_PORT:-4737}; lsof -ti :$P -ti :$((P+1)) | xargs -r kill -9 2>/dev/null; echo 'Killed existing dev instances on ports '$P' and '$((P+1))'",
+    "dev:kill": "[ -f .env ] && set -a && . ./.env && set +a; P=${DUNGEONMASTER_PORT:-4737}; lsof -ti :$P -ti :$((P+1)) | xargs -r kill -9 2>/dev/null; echo \"Killed existing dev instances on ports $P and $((P+1))\"",
     "postinstall": "node scripts/worktree-env-setup.js",
     "changeset": "changeset",
     "version-packages": "changeset version",
