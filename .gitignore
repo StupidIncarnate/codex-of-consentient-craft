@@ -72,3 +72,4 @@ dependency-graph.html
 .test-tmp/
 _test-workspace/
 .ward/
+.dungeonmaster-home

@@ -104,7 +104,7 @@ dungeonmaster clean
 
 4. **Ward Validation**: After each code change, the system runs:
    ```bash
-   dungeonmaster-ward run  # Runs lint + typecheck + test
+   npm run ward  # Runs lint + typecheck + test
    ```
 
 5. **Quest Completion**: When all phases complete, a retrospective is generated and saved.
@@ -185,7 +185,7 @@ npm run typecheck
 
 ### Full Validation
 ```bash
-dungeonmaster-ward run
+npm run ward
 ```
 
 ## Tips

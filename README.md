@@ -112,7 +112,7 @@ Edit `.dungeonmaster` to customize for your project:
   },
   "commands": {
     "ward": "npm run lint -- $FILE",
-    "ward": "dungeonmaster-ward run"
+    "ward": "npm run ward"
   }
 }
 ```
@@ -173,7 +173,7 @@ Configure ward commands to work with your workspace:
 {
   "commands": {
     "ward": "npm run lint -- $FILE && npm run typecheck -- $FILE && npm run test -- $FILE",
-    "ward": "dungeonmaster-ward run"
+    "ward": "npm run ward"
   }
 }
 ```

@@ -7,10 +7,10 @@
  */
 
 const BLOCKED_COMMAND_PATTERN =
-  /(?:^|\s*&&\s*|\s*;\s*|\s*\|\|\s*)(?:npx\s+)?(?:jest|eslint|tsc)(?:\s|$)/u;
+  /(?:^|\s*&&\s*|\s*;\s*|\s*\|\|\s*)(?:npx\s+)?(?:jest|eslint|tsc|dungeonmaster-ward)(?:\s|$)/u;
 
 const ALLOWED_COMMAND_PATTERN =
-  /(?:dungeonmaster-ward|npx\s+dungeonmaster-ward|npm\s+run\s+test|npm\s+run\s+lint|npm\s+run\s+typecheck|npm\s+test|npm\s+run\s+ward)/u;
+  /(?:(?<!npx\s)dungeonmaster-ward|npm\s+run\s+test|npm\s+run\s+lint|npm\s+run\s+typecheck|npm\s+test|npm\s+run\s+ward)/u;
 
 export const isBlockedQualityCommandGuard = ({ command }: { command?: string }): boolean => {
   if (command === undefined) {

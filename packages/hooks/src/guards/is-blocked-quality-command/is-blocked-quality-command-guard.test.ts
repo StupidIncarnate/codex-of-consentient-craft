@@ -93,17 +93,19 @@ describe('isBlockedQualityCommandGuard', () => {
 
       expect(result).toBe(true);
     });
+
+    it('VALID: {command: "npx dungeonmaster-ward run --only test"} => returns true', () => {
+      const result = isBlockedQualityCommandGuard({
+        command: 'npx dungeonmaster-ward run --only test',
+      });
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('allowed commands', () => {
     it('VALID: {command: "dungeonmaster-ward"} => returns false', () => {
       const result = isBlockedQualityCommandGuard({ command: 'dungeonmaster-ward' });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {command: "npx dungeonmaster-ward"} => returns false', () => {
-      const result = isBlockedQualityCommandGuard({ command: 'npx dungeonmaster-ward' });
 
       expect(result).toBe(false);
     });

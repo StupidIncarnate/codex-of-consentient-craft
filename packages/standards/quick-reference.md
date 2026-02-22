@@ -4,13 +4,13 @@ Get complete architecture information dynamically:
 
 ```bash
 # Complete orientation (all folders, layers, rules):
-curl -s http://localhost:4737/api/docs/architecture
+curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/architecture
 
 # Deep dive on specific folder:
-curl -s http://localhost:4737/api/docs/folder-detail/brokers
+curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/brokers
 
 # Universal syntax rules:
-curl -s http://localhost:4737/api/docs/syntax-rules
+curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/syntax-rules
 ```
 
 This page is a human-readable backup only. The HTTP API provides the authoritative, always-current source.
@@ -175,9 +175,9 @@ startup/
 
 1. Search for existing domain files using the discover endpoint:
     -
-    `curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"user"}'`
+    `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"user"}'`
     -
-    `curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/eslint-plugin/src/guards"}'`
+    `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/eslint-plugin/src/guards"}'`
 2. If exists:
     - **bindings/widgets/brokers**: Extend with options
     - **transformers**: Create new file for each output shape

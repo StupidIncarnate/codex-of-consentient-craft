@@ -78,10 +78,10 @@ describe('architectureOverviewBroker', () => {
       const result = architectureOverviewBroker();
 
       expect(result.includes('## Quality Commands')).toBe(true);
-      expect(result.includes('dungeonmaster-ward')).toBe(true);
-      expect(result.includes('npx dungeonmaster-ward run --only test')).toBe(true);
-      expect(result.includes('npx dungeonmaster-ward run --only lint')).toBe(true);
-      expect(result.includes('npx dungeonmaster-ward run --only typecheck')).toBe(true);
+      expect(result.includes('npm run ward')).toBe(true);
+      expect(result.includes('npm run ward -- --only test')).toBe(true);
+      expect(result.includes('npm run ward -- --only lint')).toBe(true);
+      expect(result.includes('npm run ward -- --only typecheck')).toBe(true);
     });
   });
 

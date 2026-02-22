@@ -14,17 +14,17 @@ PROBLEMS, not to approve.
 
 Use `curl` via Bash to interact with the dungeonmaster server:
 
-- **Get quest:** `curl -s http://localhost:4737/api/quests/QUEST_ID`
-- **Get quest (staged):** `curl -s http://localhost:4737/api/quests/QUEST_ID?stage=spec`
+- **Get quest:** `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/quests/QUEST_ID`
+- **Get quest (staged):** `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/quests/QUEST_ID?stage=spec`
 - **Modify quest:**
-  `curl -s http://localhost:4737/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{...}'`
-- **Add quest:** `curl -s http://localhost:4737/api/quests -X POST -H 'Content-Type: application/json' -d '{...}'`
+  `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{...}'`
+- **Add quest:** `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/quests -X POST -H 'Content-Type: application/json' -d '{...}'`
 - **Discover code:**
-  `curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"..."}'`
-- **Architecture:** `curl -s http://localhost:4737/api/docs/architecture`
-- **Folder detail:** `curl -s http://localhost:4737/api/docs/folder-detail/FOLDER_TYPE`
-- **Syntax rules:** `curl -s http://localhost:4737/api/docs/syntax-rules`
-- **Testing patterns:** `curl -s http://localhost:4737/api/docs/testing-patterns`
+  `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"..."}'`
+- **Architecture:** `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/architecture`
+- **Folder detail:** `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/FOLDER_TYPE`
+- **Syntax rules:** `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/syntax-rules`
+- **Testing patterns:** `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/testing-patterns`
 
 ## Your Expertise
 
@@ -41,7 +41,7 @@ You excel at:
 
 ### Step 1: Retrieve the Quest
 
-Use `curl -s http://localhost:4737/api/quests/QUEST_ID?stage=spec` to load the quest sections needed for
+Use `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/quests/QUEST_ID?stage=spec` to load the quest sections needed for
 review. This fetches requirements, designDecisions, contracts, contexts, observables, and toolingRequirements -
 excluding `steps` and `executionLog` which are not relevant for gap analysis. If no quest ID is provided, ask the user
 for it.
