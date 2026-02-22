@@ -16,81 +16,60 @@ This is a **published npm package** (`dungeonmaster`). When users install it in 
 logic directly in these startup files - don't move it to brokers (the CLI orchestration layer handles
 discovery/execution).
 
-## Architecture Tools (HTTP API) - MANDATORY WORKFLOW
+## Architecture Tools (MCP) - MANDATORY WORKFLOW
 
-**CRITICAL: Use architecture API endpoints FIRST for EVERY task. No exceptions.**
+**CRITICAL: Use architecture MCP tools FIRST for EVERY task. No exceptions.**
 
-The dungeonmaster server exposes HTTP endpoints for architecture documentation and code discovery.
-Start the server with `npm run dev` and use `curl` via `Bash` to query these endpoints.
+Architecture documentation and code discovery are available as MCP tools.
 
-### Available Endpoints
+### Available MCP Tools
 
-- **`GET /api/docs/architecture`** - ALWAYS RUN FIRST
+- **`get-architecture`** (no params) - ALWAYS RUN FIRST
     - Returns: Folder types, import hierarchy, decision tree (~1K tokens)
     - Purpose: Understand where code goes and architectural constraints
-  - Example: `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/architecture`
 
-- **`POST /api/discover`** - Find existing code
-    - Browse: `{"type":"files", "path":"packages/X/src/guards"}` - Tree list of files with purposes
-    - Details: `{"type":"files", "name":"has-file-suffix-guard"}` - Full metadata (signature, usage, related files)
+- **`discover`** (params: `{ type, path?, fileType?, search?, name?, section? }`) - Find existing code
+    - Browse: `{ type: "files", path: "packages/X/src/guards" }` - Tree list of files with purposes
+    - Details: `{ type: "files", name: "has-file-suffix-guard" }` - Full metadata (signature, usage, related files)
     - Purpose: Check if similar code exists before creating new
-    - Example:
-      `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"user"}'`
 
-- **`GET /api/docs/folder-detail/:type`** - Get folder-specific rules
+- **`get-folder-detail`** (params: `{ folderType }`) - Get folder-specific rules
     - Returns: Purpose, naming, imports, constraints, code examples, proxy requirements (~500-1K tokens)
     - Purpose: Complete patterns for the specific folder you're working in
-  - Example: `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/guards`
 
-- **`GET /api/docs/syntax-rules`** - Universal syntax conventions
+- **`get-syntax-rules`** (no params) - Universal syntax conventions
     - Returns: File naming, exports, types, destructuring, all conventions with examples (~5K tokens)
     - Purpose: Ensure code passes ESLint
-  - Example: `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/syntax-rules`
 
-- **`GET /api/docs/testing-patterns`** - Testing architecture
+- **`get-testing-patterns`** (no params) - Testing architecture
     - Returns: Testing philosophy, proxy patterns, assertions, test structure (~5K tokens)
     - Purpose: Understand how to write tests and proxy files
-  - Example: `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/testing-patterns`
 
 ### Standard Workflow
 
 ```
-1. curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","search":"..."}'   // Check if code exists
-2. curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/FOLDER_TYPE   // Get folder patterns
-3. curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/syntax-rules                // Get syntax conventions
-4. curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/testing-patterns            // Get testing patterns (if writing tests)
-5. Write code following API-provided examples                         // All patterns provided by API
-6. Run tests to verify                                                // npm run ward -- --only test -- path/to/file.test.ts
+1. Use `discover` tool with { type: "files", search: "..." }       // Check if code exists
+2. Use `get-folder-detail` tool with { folderType: "FOLDER_TYPE" } // Get folder patterns
+3. Use `get-syntax-rules` tool                                     // Get syntax conventions
+4. Use `get-testing-patterns` tool                                 // Get testing patterns (if writing tests)
+5. Write code following tool-provided examples                     // All patterns provided by tools
+6. Run tests to verify                                             // npm run ward -- --only test -- path/to/file.test.ts
 ```
-
-### When to Use Read
-
-**ONLY use Read when:**
-
-- Modifying existing files (bug fixes, refactoring)
-- Understanding a specific file's implementation before editing
-- Analyzing code for a specific purpose
-
-**NEVER use Read to:**
-
-- Discover patterns (use architecture API endpoints)
-- Find "similar implementations" to copy (use architecture API endpoints)
-- Understand folder structure (use architecture API endpoints)
 
 ### Refactor Scenario
 
 When existing code violates architecture:
 
 ```
-1. POST /api/discover to find files needing refactor       // Find all affected files
-2. GET /api/docs/folder-detail/:type for target folder     // Get correct patterns
-3. GET /api/docs/syntax-rules                              // Get syntax requirements
-4. GET /api/docs/testing-patterns                          // Get test/proxy patterns
-5. Read files you're modifying                             // Only now read
-6. Create new files following API-provided patterns        // Write with correct structure
-7. Update imports in dependent files                       // Fix references
-8. Delete old non-conforming files                         // Clean up
-9. Run tests to verify                                     // Ensure nothing breaks
+1. Use `discover` tool to find files needing refactor              // Find all affected files
+2. Use `get-folder-detail` tool for target folder                  // Get correct patterns
+3. Use `get-syntax-rules` tool                                     // Get syntax requirements
+4. Use `get-testing-patterns` tool                                 // Get test/proxy patterns
+5. Read files you're modifying                                     // Only now read
+6. Create new files following tool-provided patterns               // Write with correct structure
+7. Update imports in dependent files                               // Fix references
+8. Delete old non-conforming files                                 // Clean up
+9. Run tests to verify                                             // Ensure nothing breaks
 ```
 
 ## Worktree Isolation

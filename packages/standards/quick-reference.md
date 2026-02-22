@@ -1,19 +1,12 @@
-**PRIMARY SOURCE: Architecture HTTP API**
+**PRIMARY SOURCE: Architecture MCP Tools**
 
 Get complete architecture information dynamically:
 
-```bash
-# Complete orientation (all folders, layers, rules):
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/architecture
+- **Complete orientation** (all folders, layers, rules): `get-architecture` tool (no params)
+- **Deep dive on specific folder**: `get-folder-detail` tool with `{ folderType: "brokers" }`
+- **Universal syntax rules**: `get-syntax-rules` tool (no params)
 
-# Deep dive on specific folder:
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/folder-detail/brokers
-
-# Universal syntax rules:
-curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/docs/syntax-rules
-```
-
-This page is a human-readable backup only. The HTTP API provides the authoritative, always-current source.
+This page is a human-readable backup only. The MCP tools provide the authoritative, always-current source.
 
 ---
 
@@ -173,11 +166,9 @@ startup/
 
 **"Should I create a new file or extend existing?"**
 
-1. Search for existing domain files using the discover endpoint:
-    -
-    `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"user"}'`
-    -
-    `curl -s http://localhost:${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/eslint-plugin/src/guards"}'`
+1. Search for existing domain files using the `discover` MCP tool:
+    - `{ type: "files", fileType: "broker", search: "user" }`
+    - `{ type: "files", path: "packages/eslint-plugin/src/guards" }`
 2. If exists:
     - **bindings/widgets/brokers**: Extend with options
     - **transformers**: Create new file for each output shape

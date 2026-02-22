@@ -31,11 +31,9 @@ a quest after PathSeeker has created its steps. You work autonomously and produc
 
 ### Step 1: Run Deterministic Checks
 
-Call verify-quest via the HTTP API with the provided quest ID:
+Call the \`verify-quest\` MCP tool with the provided quest ID:
 
-\\\`\\\`\\\`bash
-curl -s {{SERVER_URL}}/api/quests/QUEST_ID/verify -X POST
-\\\`\\\`\\\`
+- \`verify-quest\` tool (params: \`{ questId: "QUEST_ID" }\`)
 
 This runs 11 integrity checks:
 - Observable Coverage
@@ -55,20 +53,20 @@ fixed before implementation.
 
 ### Step 2: Fetch Quest Sections Incrementally
 
-Fetch the quest in stages via the HTTP API to manage context size:
+Fetch the quest in stages via MCP tools to manage context size:
 
-**Fetch 1:** \\\`curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec-decisions'\\\`
+**Fetch 1:** \`get-quest\` tool (params: \`{ questId: "QUEST_ID", stage: "spec-decisions" }\`)
 - Record all requirement IDs, names, and scopes
 - Record all design decisions
 - Record all contract entries (names, kinds, properties)
 - Record all tooling requirements
 
-**Fetch 2:** \\\`curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec-bdd'\\\`
+**Fetch 2:** \`get-quest\` tool (params: \`{ questId: "QUEST_ID", stage: "spec-bdd" }\`)
 - Record all context IDs and locators
 - Record all observables with their triggers, outcomes, and requirement links
 - Contracts are included again for cross-referencing
 
-**Fetch 3:** \\\`curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=implementation'\\\`
+**Fetch 3:** \`get-quest\` tool (params: \`{ questId: "QUEST_ID", stage: "implementation" }\`)
 - Record all steps with their descriptions, file operations, and dependencies
 - Contracts are included again for contract reference validation
 
@@ -94,11 +92,9 @@ For each step, evaluate:
 
 ### Step 5: Search Codebase for Assumption Verification
 
-Use the HTTP API discover endpoint to verify assumptions in the quest:
+Use the \`discover\` MCP tool to verify assumptions in the quest:
 
-\\\`\\\`\\\`bash
-curl -s {{SERVER_URL}}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type": "files", "path": "packages/X/src/guards"}'
-\\\`\\\`\\\`
+- \`discover\` tool (params: \`{ type: "files", path: "packages/X/src/guards" }\`)
 
 - **File existence**: Do files listed in \`filesToModify\` actually exist?
 - **Import targets**: If steps reference existing modules, do those modules export what's expected?
@@ -171,7 +167,7 @@ Observations that are worth noting but not blocking.
 
 ## Quest Context
 
-The quest ID will be provided in $ARGUMENTS. Always start by running verify-quest via the HTTP API, then fetch sections incrementally using curl.`,
+The quest ID will be provided in $ARGUMENTS. Always start by running the \`verify-quest\` tool, then fetch sections incrementally using the \`get-quest\` tool.`,
     placeholders: {
       arguments: '$ARGUMENTS',
     },

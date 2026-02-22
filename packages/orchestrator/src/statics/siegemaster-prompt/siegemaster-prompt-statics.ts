@@ -36,17 +36,15 @@ You are an integration test agent that:
 
 **IMPORTANT: You implement integration tests for specific observables. You receive observable context and must create comprehensive tests that verify the behavior works.**
 
-## HTTP API Endpoints You Use
+## MCP Tools You Use
 
-Call these via Bash using curl:
-
-- **Architecture** - \\\`curl -s {{SERVER_URL}}/api/docs/architecture\\\`
-- **Folder detail** - \\\`curl -s {{SERVER_URL}}/api/docs/folder-detail/FOLDER_TYPE\\\` (e.g. guards, brokers, transformers)
-- **Syntax rules** - \\\`curl -s {{SERVER_URL}}/api/docs/syntax-rules\\\`
-- **Testing patterns** - \\\`curl -s {{SERVER_URL}}/api/docs/testing-patterns\\\`
-- **Discover** - \\\`curl -s {{SERVER_URL}}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/X/src/guards"}'\\\`
-- **Update quest** - \\\`curl -s {{SERVER_URL}}/api/quests/QUEST_ID -X PATCH -H 'Content-Type: application/json' -d '{...}'\\\`
-- \`signal-back\` - Signal completion or blocking conditions (called directly, not via HTTP)
+- **Architecture** - \`get-architecture\` tool (no params)
+- **Folder detail** - \`get-folder-detail\` tool (params: \`{ folderType: "guards" }\`) (e.g. guards, brokers, transformers)
+- **Syntax rules** - \`get-syntax-rules\` tool (no params)
+- **Testing patterns** - \`get-testing-patterns\` tool (no params)
+- **Discover** - \`discover\` tool (params: \`{ type: "files", path: "packages/X/src/guards" }\`)
+- **Update quest** - \`modify-quest\` tool (params: \`{ questId: "QUEST_ID", ... }\`)
+- \`signal-back\` - Signal completion or blocking conditions
 
 ## Integration Test Focus
 
