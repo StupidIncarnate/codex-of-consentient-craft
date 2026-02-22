@@ -10,12 +10,16 @@ import { typescriptSourceFileGetterAdapterProxy } from '../../adapters/typescrip
 import { typescriptAstToMockCallsAdapterProxy } from '../../adapters/typescript/ast-to-mock-calls/typescript-ast-to-mock-calls-adapter.proxy';
 import { typescriptAstToProxyImportsAdapterProxy } from '../../adapters/typescript/ast-to-proxy-imports/typescript-ast-to-proxy-imports-adapter.proxy';
 import { importPathResolverMiddlewareProxy } from '../import-path-resolver/import-path-resolver-middleware.proxy';
+import { pathDirnameAdapterProxy } from '../../adapters/path/dirname/path-dirname-adapter.proxy';
+import { pathResolveAdapterProxy } from '../../adapters/path/resolve/path-resolve-adapter.proxy';
 
 export const proxyMockCollectorMiddlewareProxy = (): Record<PropertyKey, never> => {
   typescriptSourceFileGetterAdapterProxy();
   typescriptAstToMockCallsAdapterProxy();
   typescriptAstToProxyImportsAdapterProxy();
   importPathResolverMiddlewareProxy();
+  pathDirnameAdapterProxy();
+  pathResolveAdapterProxy();
 
   return {};
 };
