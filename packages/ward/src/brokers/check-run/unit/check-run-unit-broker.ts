@@ -9,6 +9,7 @@
 import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
 
+import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -19,6 +20,7 @@ import type { GitRelativePath } from '../../../contracts/git-relative-path/git-r
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
+import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 
 export const checkRunUnitBroker = async ({
   projectFolder,
@@ -27,11 +29,12 @@ export const checkRunUnitBroker = async ({
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
 }): Promise<ProjectResult> => {
-  const { command, args } = checkCommandsStatics.unit;
+  const { bin, args } = checkCommandsStatics.unit;
   const finalArgs =
     fileList.length > 0 ? [...args, '--runInBand', '--findRelatedTests', ...fileList] : [...args];
 
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({
     command,

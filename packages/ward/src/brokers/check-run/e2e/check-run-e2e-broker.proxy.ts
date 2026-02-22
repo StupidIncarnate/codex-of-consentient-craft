@@ -4,6 +4,8 @@ import {
 } from '@dungeonmaster/shared/testing';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
+import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
+
 export const checkRunE2eBrokerProxy = (): {
   setupPass: () => void;
   setupPassWithOutput: (params: { stdout: string }) => void;
@@ -14,12 +16,14 @@ export const checkRunE2eBrokerProxy = (): {
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
+  const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
 
   return {
     setupPass: (): void => {
       existsProxy.returns({ result: true });
+      binProxy.setupFound();
       captureProxy.setupSuccess({
         exitCode: successCode,
         stdout: '{"suites":[],"errors":[]}',
@@ -29,16 +33,19 @@ export const checkRunE2eBrokerProxy = (): {
 
     setupPassWithOutput: ({ stdout }: { stdout: string }): void => {
       existsProxy.returns({ result: true });
+      binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr: '' });
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {
       existsProxy.returns({ result: true });
+      binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
     },
 
     setupFailWithBadOutput: (): void => {
       existsProxy.returns({ result: true });
+      binProxy.setupFound();
       captureProxy.setupSuccess({
         exitCode: failCode,
         stdout: 'not valid json \x1b[31m',

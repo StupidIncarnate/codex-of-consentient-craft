@@ -16,6 +16,7 @@ import {
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
 
+import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -25,6 +26,7 @@ import {
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { tscOutputParseTransformer } from '../../../transformers/tsc-output-parse/tsc-output-parse-transformer';
+import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 
 export const checkRunTypecheckBroker = async ({
   projectFolder,
@@ -49,8 +51,9 @@ export const checkRunTypecheckBroker = async ({
     });
   }
 
-  const { command, args } = checkCommandsStatics.typecheck;
+  const { bin, args } = checkCommandsStatics.typecheck;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({
     command,

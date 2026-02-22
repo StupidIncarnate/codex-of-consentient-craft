@@ -1,2 +1,7 @@
-export const ChatInputWidgetProxy = (): Record<PropertyKey, never> =>
-  ({}) as Record<PropertyKey, never>;
+export const ChatInputWidgetProxy = (): {
+  clearStorage: () => void;
+} => ({
+  clearStorage: (): void => {
+    localStorage.clear();
+  },
+});

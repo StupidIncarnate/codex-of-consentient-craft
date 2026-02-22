@@ -15,3 +15,6 @@ export * from './src/transformers/folder-dependency-tree/folder-dependency-tree-
 
 // Name to URL Slug
 export * from './src/transformers/name-to-url-slug/name-to-url-slug-transformer';
+
+// Promise Pool
+export * from './src/transformers/promise-pool/promise-pool-transformer';

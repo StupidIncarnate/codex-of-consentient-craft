@@ -1,8 +1,9 @@
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
+import { childProcessSpawnStreamAdapterProxy } from '@dungeonmaster/shared/testing';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
-import type { execFile } from 'child_process';
+import type { spawn } from 'child_process';
 
 import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-statics';
+import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { storageSaveBrokerProxy } from '../../storage/save/storage-save-broker.proxy';
 import { storagePruneBrokerProxy } from '../../storage/prune/storage-prune-broker.proxy';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
@@ -12,6 +13,7 @@ const CHILD_RUN_ID = '1739625600000-a38e';
 export const commandRunLayerMultiBrokerProxy = (): {
   setupSpawnAndLoad: (params: { packageCount: number; subResultContent: string }) => void;
   setupSpawnAndLoadSelective: (params: { packages: { subResultContent: string }[] }) => void;
+  setupSpawnWithNullLoad: () => void;
   setupNoSpawns: () => void;
   getStderrCalls: () => unknown[];
   getAllSpawnedArgs: () => unknown[];
@@ -20,14 +22,15 @@ export const commandRunLayerMultiBrokerProxy = (): {
   jest.spyOn(Math, 'random').mockReturnValue(runIdMockStatics.randomValue);
   const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
-  const captureProxy = childProcessSpawnCaptureAdapterProxy();
+  const streamProxy = childProcessSpawnStreamAdapterProxy();
+  const binProxy = binResolveBrokerProxy();
   const saveProxy = storageSaveBrokerProxy();
   const pruneProxy = storagePruneBrokerProxy();
   const loadProxy = storageLoadBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
 
-  const execFileMock = jest.mocked(
-    jest.requireMock<{ execFile: typeof execFile }>('child_process').execFile,
+  const spawnMock = jest.mocked(
+    jest.requireMock<{ spawn: typeof spawn }>('child_process').spawn,
   ) as jest.Mock;
 
   return {
@@ -38,8 +41,9 @@ export const commandRunLayerMultiBrokerProxy = (): {
       packageCount: number;
       subResultContent: string;
     }): void => {
+      binProxy.setupFound();
       Array.from({ length: packageCount }).forEach(() => {
-        captureProxy.setupSuccess({
+        streamProxy.setupSuccess({
           exitCode: successCode,
           stdout: `run: ${CHILD_RUN_ID}\n`,
           stderr: '',
@@ -54,8 +58,9 @@ export const commandRunLayerMultiBrokerProxy = (): {
     }: {
       packages: { subResultContent: string }[];
     }): void => {
+      binProxy.setupFound();
       for (const pkg of packages) {
-        captureProxy.setupSuccess({
+        streamProxy.setupSuccess({
           exitCode: successCode,
           stdout: `run: ${CHILD_RUN_ID}\n`,
           stderr: '',
@@ -65,12 +70,24 @@ export const commandRunLayerMultiBrokerProxy = (): {
       saveProxy.setupSuccess();
       pruneProxy.setupEmpty();
     },
+    setupSpawnWithNullLoad: (): void => {
+      binProxy.setupFound();
+      streamProxy.setupSuccess({
+        exitCode: successCode,
+        stdout: `run: ${CHILD_RUN_ID}\n`,
+        stderr: '',
+      });
+      loadProxy.setupReadFail({ error: new Error('ENOENT') });
+      saveProxy.setupSuccess();
+      pruneProxy.setupEmpty();
+    },
     setupNoSpawns: (): void => {
+      binProxy.setupFound();
       saveProxy.setupSuccess();
       pruneProxy.setupEmpty();
     },
     getStderrCalls: (): unknown[] => stderrSpy.mock.calls.map((call) => call[0]),
     getAllSpawnedArgs: (): unknown[] =>
-      execFileMock.mock.calls.map((call) => Reflect.get(call as object, 1)),
+      spawnMock.mock.calls.map((call) => Reflect.get(call as object, 1)),
   };
 };

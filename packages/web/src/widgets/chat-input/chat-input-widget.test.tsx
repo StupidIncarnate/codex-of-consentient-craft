@@ -7,13 +7,10 @@ import { ChatInputWidgetProxy } from './chat-input-widget.proxy';
 const DRAFT_STORAGE_KEY = 'dungeonmaster-chat-draft';
 
 describe('ChatInputWidget', () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   describe('rendering', () => {
     it('VALID: {isStreaming: false} => renders textarea and send button', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
       const onSendMessage = jest.fn();
       const onStopChat = jest.fn();
 
@@ -34,7 +31,8 @@ describe('ChatInputWidget', () => {
     });
 
     it('VALID: {isStreaming: true} => renders stop button and streaming indicator', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
       const onSendMessage = jest.fn();
       const onStopChat = jest.fn();
 
@@ -56,13 +54,14 @@ describe('ChatInputWidget', () => {
     });
 
     it('VALID: {isStreaming: true} => textarea is disabled', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
 
       mantineRenderAdapter({
         ui: <ChatInputWidget isStreaming={true} onSendMessage={jest.fn()} onStopChat={jest.fn()} />,
       });
 
-      const textarea = screen.getByTestId('CHAT_INPUT');
+      const textarea: HTMLTextAreaElement = screen.getByTestId('CHAT_INPUT');
 
       expect(textarea.disabled).toBe(true);
     });
@@ -70,7 +69,8 @@ describe('ChatInputWidget', () => {
 
   describe('send message', () => {
     it('VALID: {type text, press Enter} => calls onSendMessage with trimmed text', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
       const onSendMessage = jest.fn();
 
       mantineRenderAdapter({
@@ -92,7 +92,8 @@ describe('ChatInputWidget', () => {
     });
 
     it('VALID: {click send button} => calls onSendMessage', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
       const onSendMessage = jest.fn();
 
       mantineRenderAdapter({
@@ -114,7 +115,8 @@ describe('ChatInputWidget', () => {
     });
 
     it('VALID: {empty input, press Enter} => does not call onSendMessage', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
       const onSendMessage = jest.fn();
 
       mantineRenderAdapter({
@@ -135,7 +137,8 @@ describe('ChatInputWidget', () => {
     });
 
     it('VALID: {Shift+Enter} => does not send message', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
       const onSendMessage = jest.fn();
 
       mantineRenderAdapter({
@@ -157,7 +160,8 @@ describe('ChatInputWidget', () => {
     });
 
     it('VALID: {send message} => clears textarea after sending', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
 
       mantineRenderAdapter({
         ui: (
@@ -165,7 +169,7 @@ describe('ChatInputWidget', () => {
         ),
       });
 
-      const textarea = screen.getByTestId('CHAT_INPUT');
+      const textarea: HTMLTextAreaElement = screen.getByTestId('CHAT_INPUT');
 
       fireEvent.change(textarea, { target: { value: 'hello' } });
       fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: false });
@@ -176,7 +180,8 @@ describe('ChatInputWidget', () => {
 
   describe('stop chat', () => {
     it('VALID: {click stop button} => calls onStopChat', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
       const onStopChat = jest.fn();
 
       mantineRenderAdapter({
@@ -193,7 +198,8 @@ describe('ChatInputWidget', () => {
 
   describe('localStorage persistence', () => {
     it('VALID: {type text} => saves draft to localStorage', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
 
       mantineRenderAdapter({
         ui: (
@@ -209,7 +215,8 @@ describe('ChatInputWidget', () => {
     });
 
     it('VALID: {existing draft in localStorage} => restores on mount', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
       localStorage.setItem(DRAFT_STORAGE_KEY, 'saved draft');
 
       mantineRenderAdapter({
@@ -218,13 +225,14 @@ describe('ChatInputWidget', () => {
         ),
       });
 
-      const textarea = screen.getByTestId('CHAT_INPUT');
+      const textarea: HTMLTextAreaElement = screen.getByTestId('CHAT_INPUT');
 
       expect(textarea.value).toBe('saved draft');
     });
 
     it('VALID: {send message} => removes draft from localStorage', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
       localStorage.setItem(DRAFT_STORAGE_KEY, 'will be cleared');
 
       mantineRenderAdapter({
@@ -241,7 +249,8 @@ describe('ChatInputWidget', () => {
     });
 
     it('VALID: {no saved draft} => starts with empty textarea', () => {
-      ChatInputWidgetProxy();
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
 
       mantineRenderAdapter({
         ui: (
@@ -249,7 +258,7 @@ describe('ChatInputWidget', () => {
         ),
       });
 
-      const textarea = screen.getByTestId('CHAT_INPUT');
+      const textarea: HTMLTextAreaElement = screen.getByTestId('CHAT_INPUT');
 
       expect(textarea.value).toBe('');
     });

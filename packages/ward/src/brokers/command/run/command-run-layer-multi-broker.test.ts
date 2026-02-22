@@ -58,6 +58,27 @@ describe('commandRunLayerMultiBroker', () => {
     });
   });
 
+  describe('null sub-result', () => {
+    it('VALID: {one package, storage load returns null} => skips package and returns empty checks', async () => {
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnWithNullLoad();
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const projectFolders = [ProjectFolderStub()];
+      const config = WardConfigStub({ only: ['lint'] });
+
+      const result = await commandRunLayerMultiBroker({ config, projectFolders, rootPath });
+
+      expect(result.checks).toStrictEqual([
+        {
+          checkType: 'lint',
+          status: 'pass',
+          projectResults: [],
+        },
+      ]);
+    });
+  });
+
   describe('progress output', () => {
     it('VALID: {one package, lint passes} => writes PASS progress line to stderr', async () => {
       const subResult = JSON.stringify({
@@ -92,6 +113,59 @@ describe('commandRunLayerMultiBroker', () => {
 
       expect(proxy.getStderrCalls()).toStrictEqual([
         'lint        ward                 PASS  5 files\n',
+      ]);
+    });
+
+    it('VALID: {one package, lint fails with errors} => writes FAIL progress line with error count to stderr', async () => {
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              {
+                projectFolder: { name: '@dungeonmaster/ward', path: '/project/packages/ward' },
+                status: 'fail',
+                errors: [
+                  {
+                    filePath: '/project/packages/ward/src/a.ts',
+                    line: 1,
+                    column: 1,
+                    message: 'err',
+                    rule: 'r',
+                    severity: 'error',
+                  },
+                  {
+                    filePath: '/project/packages/ward/src/b.ts',
+                    line: 2,
+                    column: 1,
+                    message: 'err2',
+                    rule: 'r',
+                    severity: 'error',
+                  },
+                ],
+                testFailures: [],
+                filesCount: 5,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoad({ packageCount: 1, subResultContent: subResult });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const projectFolders = [ProjectFolderStub()];
+      const config = WardConfigStub({ only: ['lint'] });
+
+      await commandRunLayerMultiBroker({ config, projectFolders, rootPath });
+
+      expect(proxy.getStderrCalls()).toStrictEqual([
+        'lint        ward                 FAIL  5 files, 2 errors\n',
       ]);
     });
 
@@ -181,7 +255,7 @@ describe('commandRunLayerMultiBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
+        ['run', '--only', 'lint', '--', 'src/foo.test.ts'],
       ]);
     });
 
@@ -259,8 +333,8 @@ describe('commandRunLayerMultiBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
-        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'src/bar.test.ts'],
+        ['run', '--only', 'lint', '--', 'src/foo.test.ts'],
+        ['run', '--only', 'lint', '--', 'src/bar.test.ts'],
       ]);
     });
 
@@ -369,8 +443,8 @@ describe('commandRunLayerMultiBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['dungeonmaster-ward', 'run', '--only', 'lint'],
-        ['dungeonmaster-ward', 'run', '--only', 'lint'],
+        ['run', '--only', 'lint'],
+        ['run', '--only', 'lint'],
       ]);
     });
   });
