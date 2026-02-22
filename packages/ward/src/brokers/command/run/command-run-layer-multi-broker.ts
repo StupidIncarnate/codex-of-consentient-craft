@@ -67,13 +67,16 @@ export const commandRunLayerMultiBroker = async ({
       }
 
       if (hasPassthrough && config.passthrough) {
-        const matchingArgs = config.passthrough.filter((arg) =>
-          hasPassthroughMatchGuard({
-            passthroughArg: cliArgContract.parse(arg),
-            projectFolder: folder,
-            rootPath,
-          }),
-        );
+        const prefix = `${folder.path.slice(rootPath.length + 1)}/`;
+        const matchingArgs = config.passthrough
+          .filter((arg) =>
+            hasPassthroughMatchGuard({
+              passthroughArg: cliArgContract.parse(arg),
+              projectFolder: folder,
+              rootPath,
+            }),
+          )
+          .map((arg) => cliArgContract.parse(arg.slice(prefix.length)));
         spawnArgs.push('--', ...matchingArgs.map(String));
       }
 

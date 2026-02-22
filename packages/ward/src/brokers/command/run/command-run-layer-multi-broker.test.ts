@@ -143,7 +143,10 @@ describe('commandRunLayerMultiBroker', () => {
             status: 'pass',
             projectResults: [
               {
-                projectFolder: { name: '@dungeonmaster/ward', path: '/home/user/project/packages/ward' },
+                projectFolder: {
+                  name: '@dungeonmaster/ward',
+                  path: '/home/user/project/packages/ward',
+                },
                 status: 'pass',
                 errors: [],
                 testFailures: [],
@@ -158,8 +161,14 @@ describe('commandRunLayerMultiBroker', () => {
       proxy.setupSpawnAndLoadSelective({ packages: [{ subResultContent: subResult }] });
 
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
-      const wardFolder = ProjectFolderStub({ name: 'ward', path: '/home/user/project/packages/ward' });
-      const hooksFolder = ProjectFolderStub({ name: 'hooks', path: '/home/user/project/packages/hooks' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
       const config = WardConfigStub({
         only: ['lint'],
         passthrough: ['packages/ward/src/foo.test.ts'],
@@ -172,7 +181,7 @@ describe('commandRunLayerMultiBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'packages/ward/src/foo.test.ts'],
+        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
       ]);
     });
 
@@ -187,7 +196,10 @@ describe('commandRunLayerMultiBroker', () => {
             status: 'pass',
             projectResults: [
               {
-                projectFolder: { name: '@dungeonmaster/ward', path: '/home/user/project/packages/ward' },
+                projectFolder: {
+                  name: '@dungeonmaster/ward',
+                  path: '/home/user/project/packages/ward',
+                },
                 status: 'pass',
                 errors: [],
                 testFailures: [],
@@ -207,7 +219,10 @@ describe('commandRunLayerMultiBroker', () => {
             status: 'pass',
             projectResults: [
               {
-                projectFolder: { name: '@dungeonmaster/hooks', path: '/home/user/project/packages/hooks' },
+                projectFolder: {
+                  name: '@dungeonmaster/hooks',
+                  path: '/home/user/project/packages/hooks',
+                },
                 status: 'pass',
                 errors: [],
                 testFailures: [],
@@ -220,21 +235,21 @@ describe('commandRunLayerMultiBroker', () => {
 
       const proxy = commandRunLayerMultiBrokerProxy();
       proxy.setupSpawnAndLoadSelective({
-        packages: [
-          { subResultContent: wardSubResult },
-          { subResultContent: hooksSubResult },
-        ],
+        packages: [{ subResultContent: wardSubResult }, { subResultContent: hooksSubResult }],
       });
 
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
-      const wardFolder = ProjectFolderStub({ name: 'ward', path: '/home/user/project/packages/ward' });
-      const hooksFolder = ProjectFolderStub({ name: 'hooks', path: '/home/user/project/packages/hooks' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
       const config = WardConfigStub({
         only: ['lint'],
-        passthrough: [
-          'packages/ward/src/foo.test.ts',
-          'packages/hooks/src/bar.test.ts',
-        ],
+        passthrough: ['packages/ward/src/foo.test.ts', 'packages/hooks/src/bar.test.ts'],
       });
 
       await commandRunLayerMultiBroker({
@@ -244,8 +259,8 @@ describe('commandRunLayerMultiBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'packages/ward/src/foo.test.ts'],
-        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'packages/hooks/src/bar.test.ts'],
+        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
+        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'src/bar.test.ts'],
       ]);
     });
 
@@ -254,8 +269,14 @@ describe('commandRunLayerMultiBroker', () => {
       proxy.setupNoSpawns();
 
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
-      const wardFolder = ProjectFolderStub({ name: 'ward', path: '/home/user/project/packages/ward' });
-      const hooksFolder = ProjectFolderStub({ name: 'hooks', path: '/home/user/project/packages/hooks' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
       const config = WardConfigStub({
         only: ['lint'],
         passthrough: ['packages/other/src/baz.test.ts'],
@@ -288,7 +309,10 @@ describe('commandRunLayerMultiBroker', () => {
             status: 'pass',
             projectResults: [
               {
-                projectFolder: { name: '@dungeonmaster/ward', path: '/home/user/project/packages/ward' },
+                projectFolder: {
+                  name: '@dungeonmaster/ward',
+                  path: '/home/user/project/packages/ward',
+                },
                 status: 'pass',
                 errors: [],
                 testFailures: [],
@@ -308,7 +332,10 @@ describe('commandRunLayerMultiBroker', () => {
             status: 'pass',
             projectResults: [
               {
-                projectFolder: { name: '@dungeonmaster/hooks', path: '/home/user/project/packages/hooks' },
+                projectFolder: {
+                  name: '@dungeonmaster/hooks',
+                  path: '/home/user/project/packages/hooks',
+                },
                 status: 'pass',
                 errors: [],
                 testFailures: [],
@@ -321,15 +348,18 @@ describe('commandRunLayerMultiBroker', () => {
 
       const proxy = commandRunLayerMultiBrokerProxy();
       proxy.setupSpawnAndLoadSelective({
-        packages: [
-          { subResultContent: wardSubResult },
-          { subResultContent: hooksSubResult },
-        ],
+        packages: [{ subResultContent: wardSubResult }, { subResultContent: hooksSubResult }],
       });
 
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
-      const wardFolder = ProjectFolderStub({ name: 'ward', path: '/home/user/project/packages/ward' });
-      const hooksFolder = ProjectFolderStub({ name: 'hooks', path: '/home/user/project/packages/hooks' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
       const config = WardConfigStub({ only: ['lint'] });
 
       await commandRunLayerMultiBroker({
