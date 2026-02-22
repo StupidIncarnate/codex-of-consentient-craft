@@ -9,6 +9,7 @@
 import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
 
+import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -19,6 +20,7 @@ import type { GitRelativePath } from '../../../contracts/git-relative-path/git-r
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { eslintJsonParseTransformer } from '../../../transformers/eslint-json-parse/eslint-json-parse-transformer';
 import { extractJsonArrayTransformer } from '../../../transformers/extract-json-array/extract-json-array-transformer';
+import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 
 export const checkRunLintBroker = async ({
   projectFolder,
@@ -27,10 +29,11 @@ export const checkRunLintBroker = async ({
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
 }): Promise<ProjectResult> => {
-  const { command, args } = checkCommandsStatics.lint;
+  const { bin, args } = checkCommandsStatics.lint;
   const finalArgs = fileList.length > 0 ? [...args.slice(0, -1), ...fileList] : [...args];
 
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({
     command,

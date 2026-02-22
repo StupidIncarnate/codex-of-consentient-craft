@@ -6,9 +6,11 @@
  * // Returns merged WardResult combining all package sub-results
  */
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
+import { childProcessSpawnStreamAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 
+import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import {
   wardResultContract,
   type WardResult,
@@ -24,6 +26,7 @@ import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/
 import { checkResultBuildTransformer } from '../../../transformers/check-result-build/check-result-build-transformer';
 import { extractChildRunIdTransformer } from '../../../transformers/extract-child-run-id/extract-child-run-id-transformer';
 import { hasPassthroughMatchGuard } from '../../../guards/has-passthrough-match/has-passthrough-match-guard';
+import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
 import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
@@ -39,6 +42,12 @@ export const commandRunLayerMultiBroker = async ({
 }): Promise<WardResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
+  const wardBin = String(
+    binResolveBroker({
+      binName: binCommandContract.parse(wardSpawnCommandStatics.bin),
+      cwd: rootPath,
+    }),
+  );
 
   const checkTypes = config.only ?? [...allCheckTypesStatics];
   const hasPassthrough = Array.isArray(config.passthrough) && config.passthrough.length > 0;
@@ -59,8 +68,12 @@ export const commandRunLayerMultiBroker = async ({
         )
       : projectFolders;
 
-  const subResults = await Promise.all(
-    filteredFolders.map(async (folder) => {
+  const CONCURRENCY_LIMIT = 4;
+
+  const subResults = await promisePoolTransformer({
+    items: filteredFolders,
+    concurrency: CONCURRENCY_LIMIT,
+    handler: async (folder) => {
       const spawnArgs = wardSpawnCommandStatics.baseArgs.map(String);
 
       if (config.only) {
@@ -82,10 +95,13 @@ export const commandRunLayerMultiBroker = async ({
       }
 
       const cwd = absoluteFilePathContract.parse(folder.path);
-      const spawnResult = await childProcessSpawnCaptureAdapter({
-        command: 'npx',
+      const spawnResult = await childProcessSpawnStreamAdapter({
+        command: wardBin,
         args: spawnArgs,
         cwd,
+        onStderr: (line: string) => {
+          process.stderr.write(line);
+        },
       });
 
       const pkgRootPath = absoluteFilePathContract.parse(folder.path);
@@ -120,8 +136,8 @@ export const commandRunLayerMultiBroker = async ({
       }
 
       return result;
-    }),
-  );
+    },
+  });
 
   const allChecksByType = new Map<CheckType, CheckResult[]>();
 

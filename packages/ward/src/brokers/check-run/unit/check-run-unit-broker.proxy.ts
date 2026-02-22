@@ -1,6 +1,8 @@
 import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
+import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
+
 export const checkRunUnitBrokerProxy = (): {
   setupPass: () => void;
   setupPassWithOutput: (params: { stdout: string }) => void;
@@ -11,11 +13,13 @@ export const checkRunUnitBrokerProxy = (): {
   getSpawnedArgs: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
+  const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
 
   return {
     setupPass: (): void => {
+      binProxy.setupFound();
       captureProxy.setupSuccess({
         exitCode: successCode,
         stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
@@ -24,14 +28,17 @@ export const checkRunUnitBrokerProxy = (): {
     },
 
     setupPassWithOutput: ({ stdout }: { stdout: string }): void => {
+      binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr: '' });
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {
+      binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
     },
 
     setupFailWithBadOutput: (): void => {
+      binProxy.setupFound();
       captureProxy.setupSuccess({
         exitCode: failCode,
         stdout: 'not valid json \x1b[31m',
@@ -40,10 +47,12 @@ export const checkRunUnitBrokerProxy = (): {
     },
 
     setupPassWithStderr: ({ stdout, stderr }: { stdout: string; stderr: string }): void => {
+      binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr });
     },
 
     setupFailWithStderr: ({ stdout, stderr }: { stdout: string; stderr: string }): void => {
+      binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr });
     },
 
