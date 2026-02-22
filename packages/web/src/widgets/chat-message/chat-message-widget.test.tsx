@@ -78,7 +78,7 @@ describe('ChatMessageWidget', () => {
       expect(message.style.backgroundColor).toBe('transparent');
     });
 
-    it('VALID: {role: assistant, type: text} => renders with textAlign right', () => {
+    it('VALID: {role: assistant, type: text} => renders with textAlign left and 15% paddingLeft', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub();
 
@@ -86,7 +86,8 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.style.textAlign).toBe('right');
+      expect(message.style.textAlign).toBe('left');
+      expect(message.style.paddingLeft).toBe('15%');
     });
 
     it('VALID: {tokenBadgeLabel present} => renders token badge below content', () => {
@@ -120,7 +121,7 @@ describe('ChatMessageWidget', () => {
       expect(badgeIndex).toBeGreaterThan(labelIndex + 1);
     });
 
-    it('VALID: {tokenBadgeLabel present, isStreaming true} => does not render token count badge', () => {
+    it('VALID: {tokenBadgeLabel present, isStreaming true} => renders token count badge during streaming', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({
         usage: {
@@ -133,12 +134,12 @@ describe('ChatMessageWidget', () => {
       const tokenBadgeLabel = FormattedTokenLabelStub({ value: '2.1k' });
 
       mantineRenderAdapter({
-        ui: (
-          <ChatMessageWidget entry={entry} isStreaming={true} tokenBadgeLabel={tokenBadgeLabel} />
-        ),
+        ui: <ChatMessageWidget entry={entry} tokenBadgeLabel={tokenBadgeLabel} />,
       });
 
-      expect(screen.queryByTestId('TOKEN_BADGE')).toBeNull();
+      const badge = screen.getByTestId('TOKEN_BADGE');
+
+      expect(badge.textContent).toBe('2.1k');
     });
 
     it('VALID: {no usage} => does not render token count badge', () => {

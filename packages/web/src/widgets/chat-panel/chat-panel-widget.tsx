@@ -6,7 +6,7 @@
  * // Renders chat message list with input textarea and send button
  */
 
-import { Box, Text, UnstyledButton } from '@mantine/core';
+import { Box } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 
 import { bounceOffsetPxContract } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
@@ -27,6 +27,7 @@ import { raccoonAnimationIntervalTransformer } from '../../transformers/raccoon-
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 import { ContextDividerWidget } from '../context-divider/context-divider-widget';
 import { PixelSpriteWidget } from '../pixel-sprite/pixel-sprite-widget';
+import { ChatInputWidget } from '../chat-input/chat-input-widget';
 import { SubagentChainWidget } from '../subagent-chain/subagent-chain-widget';
 import { ToolGroupWidget } from '../tool-group/tool-group-widget';
 
@@ -39,7 +40,6 @@ export interface ChatPanelWidgetProps {
   onStopChat: () => void;
 }
 
-const SEND_BUTTON_SIZE = 44;
 const RACCOON_SCALE = 8;
 const BOUNCE_UP = bounceOffsetPxContract.parse(raccoonAnimationConfigStatics.bounceOffsetPx);
 const BOUNCE_REST = bounceOffsetPxContract.parse(raccoonAnimationConfigStatics.bounceRestPx);
@@ -55,7 +55,6 @@ export const ChatPanelWidget = ({
   onStopChat,
 }: ChatPanelWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
-  const [inputValue, setInputValue] = useState('');
   const [raccoonFlip, setRaccoonFlip] = useState(false);
   const bounceOffsetRef = useRef<BounceOffsetPx>(BOUNCE_REST);
   const [bounceOffset, setBounceOffset] = useState<BounceOffsetPx>(BOUNCE_REST);
@@ -162,7 +161,6 @@ export const ChatPanelWidget = ({
                 <SubagentChainWidget
                   key={`chain-${String(i)}`}
                   group={group}
-                  isStreaming={isStreaming}
                 />,
               );
             } else {
@@ -173,8 +171,7 @@ export const ChatPanelWidget = ({
                 'type' in entry &&
                 entry.type === 'text' &&
                 'usage' in entry &&
-                entry.usage !== undefined &&
-                !isStreaming;
+                entry.usage !== undefined;
 
               if (hasUsage && entry.usage !== undefined) {
                 const entrySource =
@@ -201,7 +198,6 @@ export const ChatPanelWidget = ({
                   <ChatMessageWidget
                     key={`single-${String(i)}`}
                     entry={entry}
-                    isStreaming={isStreaming}
                     tokenBadgeLabel={tokenBadgeLabel}
                   />,
                 );
@@ -226,13 +222,7 @@ export const ChatPanelWidget = ({
                   prevSessionContext = totalContext;
                 }
               } else {
-                elements.push(
-                  <ChatMessageWidget
-                    key={`single-${String(i)}`}
-                    entry={entry}
-                    isStreaming={isStreaming}
-                  />,
-                );
+                elements.push(<ChatMessageWidget key={`single-${String(i)}`} entry={entry} />);
               }
             }
           }
@@ -245,109 +235,11 @@ export const ChatPanelWidget = ({
 
       <Box style={{ height: 1, backgroundColor: colors.border, flexShrink: 0 }} />
 
-      <Box style={{ padding: 12 }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <textarea
-            data-testid="CHAT_INPUT"
-            value={inputValue}
-            onChange={(event) => {
-              setInputValue(event.currentTarget.value);
-            }}
-            onInput={(event) => {
-              const target = event.currentTarget;
-              target.style.height = 'auto';
-              target.style.height = `${String(target.scrollHeight)}px`;
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                const trimmed = inputValue.trim();
-                if (trimmed.length === 0) return;
-                onSendMessage({ message: trimmed as UserInput });
-                setInputValue('');
-              }
-            }}
-            placeholder="Describe your quest..."
-            rows={3}
-            disabled={isStreaming}
-            style={{
-              flex: 1,
-              fontFamily: 'monospace',
-              fontSize: 12,
-              color: colors.text,
-              backgroundColor: colors['bg-deep'],
-              border: `1px solid ${colors.border}`,
-              borderRadius: 2,
-              padding: 8,
-              resize: 'none',
-              overflow: 'hidden',
-              lineHeight: 1.4,
-              outline: 'none',
-            }}
-          />
-          {isStreaming ? (
-            <UnstyledButton
-              data-testid="STOP_BUTTON"
-              onClick={() => {
-                onStopChat();
-              }}
-              style={{
-                width: SEND_BUTTON_SIZE,
-                height: SEND_BUTTON_SIZE,
-                flexShrink: 0,
-                backgroundColor: colors.danger,
-                border: `1px solid ${colors.border}`,
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: colors.text,
-                fontFamily: 'monospace',
-                fontSize: 16,
-              }}
-            >
-              {'\u25A0'}
-            </UnstyledButton>
-          ) : (
-            <UnstyledButton
-              data-testid="SEND_BUTTON"
-              onClick={() => {
-                const trimmed = inputValue.trim();
-                if (trimmed.length === 0) return;
-                onSendMessage({ message: trimmed as UserInput });
-                setInputValue('');
-              }}
-              style={{
-                width: SEND_BUTTON_SIZE,
-                height: SEND_BUTTON_SIZE,
-                flexShrink: 0,
-                backgroundColor: colors.primary,
-                border: `1px solid ${colors.border}`,
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: colors['bg-deep'],
-                fontFamily: 'monospace',
-                fontSize: 18,
-              }}
-            >
-              {'\u25B6'}
-            </UnstyledButton>
-          )}
-        </div>
-        {isStreaming ? (
-          <Text
-            ff="monospace"
-            size="xs"
-            mt={4}
-            data-testid="STREAMING_INDICATOR"
-            style={{ color: colors['text-dim'] }}
-          >
-            Thinking...
-          </Text>
-        ) : null}
-      </Box>
+      <ChatInputWidget
+        isStreaming={isStreaming}
+        onSendMessage={onSendMessage}
+        onStopChat={onStopChat}
+      />
     </Box>
   );
 };

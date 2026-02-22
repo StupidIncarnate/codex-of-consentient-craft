@@ -55,6 +55,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
   });
 
   useEffect(() => {
+    if (isStreaming) return;
     if (!currentSessionId || sessionId) return;
     if (!guildSlug) return;
 
@@ -62,7 +63,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     if (result instanceof Promise) {
       result.catch(() => undefined);
     }
-  }, [currentSessionId, sessionId, guildSlug, navigate]);
+  }, [currentSessionId, sessionId, guildSlug, navigate, isStreaming]);
 
   useEffect(() => {
     if (prevIsStreamingRef.current && !isStreaming) {

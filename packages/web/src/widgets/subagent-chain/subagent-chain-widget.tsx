@@ -2,7 +2,7 @@
  * PURPOSE: Renders a collapsible sub-agent chain with header showing description and entry count
  *
  * USAGE:
- * <SubagentChainWidget group={subagentChainGroup} isStreaming={false} />
+ * <SubagentChainWidget group={subagentChainGroup} />
  * // Renders collapsed chain header, expands to show inner tool groups and messages
  */
 
@@ -20,12 +20,10 @@ import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 
 export interface SubagentChainWidgetProps {
   group: ChatEntryGroup;
-  isStreaming: boolean;
 }
 
 export const SubagentChainWidget = ({
   group,
-  isStreaming,
 }: SubagentChainWidgetProps): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;
   const [expanded, setExpanded] = useState(false);
@@ -105,13 +103,7 @@ export const SubagentChainWidget = ({
                 prevContext = totalContext;
 
                 if (Number(delta) === 0) {
-                  return (
-                    <ChatMessageWidget
-                      key={`inner-${String(index)}`}
-                      entry={entry}
-                      isStreaming={isStreaming}
-                    />
-                  );
+                  return <ChatMessageWidget key={`inner-${String(index)}`} entry={entry} />;
                 }
 
                 const tokenBadgeLabel = formattedTokenLabelContract.parse(
@@ -122,7 +114,6 @@ export const SubagentChainWidget = ({
                   <ChatMessageWidget
                     key={`inner-${String(index)}`}
                     entry={entry}
-                    isStreaming={isStreaming}
                     tokenBadgeLabel={tokenBadgeLabel}
                   />
                 );
@@ -145,24 +136,17 @@ export const SubagentChainWidget = ({
                     <ChatMessageWidget
                       key={`inner-${String(index)}`}
                       entry={entry}
-                      isStreaming={isStreaming}
                       tokenBadgeLabel={tokenBadgeLabel}
                     />
                   );
                 }
               }
 
-              return (
-                <ChatMessageWidget
-                  key={`inner-${String(index)}`}
-                  entry={entry}
-                  isStreaming={isStreaming}
-                />
-              );
+              return <ChatMessageWidget key={`inner-${String(index)}`} entry={entry} />;
             });
           })()}
           {group.taskNotification === null ? null : (
-            <ChatMessageWidget entry={group.taskNotification} isStreaming={isStreaming} />
+            <ChatMessageWidget entry={group.taskNotification} />
           )}
         </Box>
       ) : null}

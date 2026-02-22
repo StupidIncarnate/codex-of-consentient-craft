@@ -43,6 +43,12 @@ export const streamJsonToChatEntryTransformer = ({ line }: { line: string }): St
         ? mapUsageToChatUsageTransformer({ usage: rawUsage as never })
         : undefined;
 
+    const rawSource: unknown = 'source' in parsed ? Reflect.get(parsed, 'source') : undefined;
+    const validSource = rawSource === 'session' || rawSource === 'subagent' ? rawSource : undefined;
+    const rawAgentId: unknown = 'agentId' in parsed ? Reflect.get(parsed, 'agentId') : undefined;
+    const validAgentId =
+      typeof rawAgentId === 'string' && rawAgentId.length > 0 ? rawAgentId : undefined;
+
     if (!Array.isArray(contentArray)) {
       return streamJsonResultContract.parse({ entries: [], sessionId: null });
     }
@@ -54,6 +60,8 @@ export const streamJsonToChatEntryTransformer = ({ line }: { line: string }): St
         const entry = mapContentItemToChatEntryTransformer({
           item: item as never,
           usage,
+          ...(validSource ? { source: validSource } : {}),
+          ...(validAgentId ? { agentId: validAgentId } : {}),
         });
 
         if (entry) {
