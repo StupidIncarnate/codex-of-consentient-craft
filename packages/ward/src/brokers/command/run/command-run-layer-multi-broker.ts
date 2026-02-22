@@ -8,6 +8,7 @@
 
 import { childProcessSpawnStreamAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import {
@@ -67,8 +68,12 @@ export const commandRunLayerMultiBroker = async ({
         )
       : projectFolders;
 
-  const subResults = await Promise.all(
-    filteredFolders.map(async (folder) => {
+  const CONCURRENCY_LIMIT = 4;
+
+  const subResults = await promisePoolTransformer({
+    items: filteredFolders,
+    concurrency: CONCURRENCY_LIMIT,
+    handler: async (folder) => {
       const spawnArgs = wardSpawnCommandStatics.baseArgs.map(String);
 
       if (config.only) {
@@ -131,8 +136,8 @@ export const commandRunLayerMultiBroker = async ({
       }
 
       return result;
-    }),
-  );
+    },
+  });
 
   const allChecksByType = new Map<CheckType, CheckResult[]>();
 
