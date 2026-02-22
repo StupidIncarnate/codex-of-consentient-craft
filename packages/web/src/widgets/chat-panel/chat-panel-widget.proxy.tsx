@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { ChatInputWidgetProxy } from '../chat-input/chat-input-widget.proxy';
 import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
 import { ContextDividerWidgetProxy } from '../context-divider/context-divider-widget.proxy';
 import { PixelSpriteWidgetProxy } from '../pixel-sprite/pixel-sprite-widget.proxy';
@@ -20,6 +21,8 @@ export const ChatPanelWidgetProxy = (): {
   hasDividerCount: (params: { count: number }) => boolean;
   hasSubagentChainCount: (params: { count: number }) => boolean;
 } => {
+  const inputProxy = ChatInputWidgetProxy();
+  inputProxy.clearStorage();
   ChatMessageWidgetProxy();
   PixelSpriteWidgetProxy();
   ToolGroupWidgetProxy();

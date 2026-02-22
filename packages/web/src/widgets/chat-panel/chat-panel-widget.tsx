@@ -157,12 +157,7 @@ export const ChatPanelWidget = ({
                 />,
               );
             } else if (group.kind === 'subagent-chain') {
-              elements.push(
-                <SubagentChainWidget
-                  key={`chain-${String(i)}`}
-                  group={group}
-                />,
-              );
+              elements.push(<SubagentChainWidget key={`chain-${String(i)}`} group={group} />);
             } else {
               const { entry } = group;
 

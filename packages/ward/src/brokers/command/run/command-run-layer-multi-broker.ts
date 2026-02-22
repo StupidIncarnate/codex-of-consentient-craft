@@ -6,7 +6,7 @@
  * // Returns merged WardResult combining all package sub-results
  */
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
+import { childProcessSpawnStreamAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -82,10 +82,13 @@ export const commandRunLayerMultiBroker = async ({
       }
 
       const cwd = absoluteFilePathContract.parse(folder.path);
-      const spawnResult = await childProcessSpawnCaptureAdapter({
+      const spawnResult = await childProcessSpawnStreamAdapter({
         command: 'npx',
         args: spawnArgs,
         cwd,
+        onStderr: (line: string) => {
+          process.stderr.write(line);
+        },
       });
 
       const pkgRootPath = absoluteFilePathContract.parse(folder.path);

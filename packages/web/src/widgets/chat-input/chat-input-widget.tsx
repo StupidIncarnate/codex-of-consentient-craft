@@ -43,7 +43,7 @@ export const ChatInputWidget = ({
           data-testid="CHAT_INPUT"
           value={inputValue}
           onChange={(event) => {
-            const value = event.currentTarget.value;
+            const { value } = event.currentTarget;
             setInputValue(value);
             try {
               if (value.length > 0) {

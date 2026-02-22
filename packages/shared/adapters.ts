@@ -22,6 +22,7 @@ export * from './src/adapters/os/homedir/os-homedir-adapter';
 
 // Child Process Adapters
 export * from './src/adapters/child-process/spawn-capture/child-process-spawn-capture-adapter';
+export * from './src/adapters/child-process/spawn-stream/child-process-spawn-stream-adapter';
 
 // Module Adapters
 export * from './src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter';
