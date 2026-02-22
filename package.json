@@ -45,6 +45,7 @@
     "@dungeonmaster/config": "*",
     "@dungeonmaster/eslint-plugin": "*",
     "@dungeonmaster/hooks": "*",
+    "@dungeonmaster/mcp": "*",
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/server": "*",
     "@dungeonmaster/shared": "*",
