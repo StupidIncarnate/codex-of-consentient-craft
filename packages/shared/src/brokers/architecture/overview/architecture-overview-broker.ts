@@ -118,8 +118,8 @@ This structure forces deterministic organization by:
 
 **Search first using the discover endpoint:**
 \`\`\`bash
-curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"user"}'
-curl -s http://localhost:4737/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/*/src/bindings"}'
+curl -s http://localhost:\${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","fileType":"broker","search":"user"}'
+curl -s http://localhost:\${DUNGEONMASTER_PORT:-4737}/api/discover -X POST -H 'Content-Type: application/json' -d '{"type":"files","path":"packages/*/src/bindings"}'
 \`\`\`
 
 **If domain exists → MUST extend, not create new**
