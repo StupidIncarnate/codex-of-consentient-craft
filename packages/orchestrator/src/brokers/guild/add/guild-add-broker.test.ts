@@ -41,7 +41,6 @@ describe('guildAddBroker', () => {
         path: '/home/user/my-app',
         urlSlug: 'my-app',
         createdAt: '2024-01-15T10:00:00.000Z',
-        chatSessions: [],
       });
     });
 
@@ -81,7 +80,6 @@ describe('guildAddBroker', () => {
         path: '/home/user/second-app',
         urlSlug: 'second-app',
         createdAt: '2024-01-15T10:00:00.000Z',
-        chatSessions: [],
       });
     });
   });

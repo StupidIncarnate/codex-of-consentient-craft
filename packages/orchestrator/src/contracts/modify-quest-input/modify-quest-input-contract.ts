@@ -8,7 +8,6 @@
 import { z } from 'zod';
 
 import {
-  chatSessionContract,
   contextContract,
   dependencyStepContract,
   designDecisionContract,
@@ -54,10 +53,6 @@ export const modifyQuestInputContract = z
     flows: z
       .array(flowContract)
       .describe('Flows to upsert (existing ID updates, new ID adds)')
-      .optional(),
-    chatSessions: z
-      .array(chatSessionContract)
-      .describe('Chat sessions (direct replacement, not upsert)')
       .optional(),
     status: questStatusContract.describe('Lifecycle gate transition status').optional(),
   })

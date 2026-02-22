@@ -49,7 +49,7 @@ describe('guildListBroker', () => {
           path: '/home/user/my-app',
           urlSlug: 'my-guild',
           createdAt: '2024-01-15T10:00:00.000Z',
-          chatSessions: [],
+
           valid: true,
           questCount: 2,
         },
@@ -91,7 +91,7 @@ describe('guildListBroker', () => {
           path: '/home/user/missing-app',
           urlSlug: 'my-guild',
           createdAt: '2024-01-15T10:00:00.000Z',
-          chatSessions: [],
+
           valid: false,
           questCount: 0,
         },
@@ -151,7 +151,7 @@ describe('guildListBroker', () => {
           path: '/home/user/first-app',
           urlSlug: 'my-guild',
           createdAt: '2024-01-15T10:00:00.000Z',
-          chatSessions: [],
+
           valid: true,
           questCount: 1,
         },
@@ -161,7 +161,7 @@ describe('guildListBroker', () => {
           path: '/home/user/second-app',
           urlSlug: 'my-guild',
           createdAt: '2024-02-20T12:00:00.000Z',
-          chatSessions: [],
+
           valid: true,
           questCount: 3,
         },
@@ -207,7 +207,7 @@ describe('guildListBroker', () => {
           path: '/home/user/my-app',
           urlSlug: 'my-guild',
           createdAt: '2024-01-15T10:00:00.000Z',
-          chatSessions: [],
+
           valid: true,
           questCount: 2,
         },
@@ -252,7 +252,7 @@ describe('guildListBroker', () => {
           path: '/home/user/my-cool-app',
           urlSlug: 'my-cool-app',
           createdAt: '2024-01-15T10:00:00.000Z',
-          chatSessions: [],
+
           valid: true,
           questCount: 0,
         },

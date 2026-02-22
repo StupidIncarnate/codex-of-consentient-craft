@@ -11,16 +11,12 @@ describe('sessionListItemContract', () => {
       expect(result).toStrictEqual({
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
         startedAt: '2024-01-15T10:00:00.000Z',
-        active: false,
-        agentRole: 'chaoswhisperer',
       });
     });
 
-    it('VALID: active session with all fields => parses successfully', () => {
+    it('VALID: session with all fields => parses successfully', () => {
       const item = SessionListItemStub({
-        active: true,
         summary: 'Help me build auth',
-        endedAt: '2024-01-15T12:00:00.000Z',
         questId: 'add-auth',
         questTitle: 'Add Authentication',
         questStatus: 'in_progress',
@@ -31,9 +27,6 @@ describe('sessionListItemContract', () => {
       expect(result).toStrictEqual({
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
         startedAt: '2024-01-15T10:00:00.000Z',
-        endedAt: '2024-01-15T12:00:00.000Z',
-        active: true,
-        agentRole: 'chaoswhisperer',
         summary: 'Help me build auth',
         questId: 'add-auth',
         questTitle: 'Add Authentication',
@@ -44,7 +37,6 @@ describe('sessionListItemContract', () => {
     it('VALID: guild-level session without quest fields => parses successfully', () => {
       const item = SessionListItemStub({
         sessionId: 'guild-session-001',
-        agentRole: 'PathSeeker',
       });
 
       const result = sessionListItemContract.parse(item);
@@ -52,8 +44,6 @@ describe('sessionListItemContract', () => {
       expect(result).toStrictEqual({
         sessionId: 'guild-session-001',
         startedAt: '2024-01-15T10:00:00.000Z',
-        active: false,
-        agentRole: 'PathSeeker',
       });
     });
   });
@@ -87,17 +77,6 @@ describe('sessionListItemContract', () => {
       }).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID: invalid endedAt => throws validation error', () => {
-      const base = SessionListItemStub();
-
-      expect(() => {
-        sessionListItemContract.parse({
-          ...base,
-          endedAt: 'not-a-timestamp',
-        });
-      }).toThrow(/Invalid datetime/u);
-    });
-
     it('INVALID: empty questId => throws validation error', () => {
       const base = SessionListItemStub();
 
@@ -107,17 +86,6 @@ describe('sessionListItemContract', () => {
           questId: '',
         });
       }).toThrow(/too_small/u);
-    });
-
-    it('INVALID_ACTIVE: {active: not boolean} => throws validation error', () => {
-      const base = SessionListItemStub();
-
-      expect(() => {
-        sessionListItemContract.parse({
-          ...base,
-          active: 'yes' as never,
-        });
-      }).toThrow(/Expected boolean/u);
     });
   });
 });

@@ -100,54 +100,6 @@ describe('GuildSessionListWidget', () => {
   });
 
   describe('status display', () => {
-    it('VALID: {active session, no questStatus} => shows ACTIVE in warning color', () => {
-      const proxy = GuildSessionListWidgetProxy();
-      const sessionId = SessionIdStub({ value: 'active-session' });
-      const session = SessionListItemStub({ sessionId, active: true });
-      const filter = SessionFilterStub();
-
-      mantineRenderAdapter({
-        ui: (
-          <GuildSessionListWidget
-            sessions={[session]}
-            filter={filter}
-            onFilterChange={jest.fn()}
-            onSelect={jest.fn()}
-            onAdd={jest.fn()}
-          />
-        ),
-      });
-
-      expect(proxy.getStatusText({ testId: `SESSION_STATUS_${sessionId}` })).toBe('ACTIVE');
-      expect(proxy.getStatusColor({ testId: `SESSION_STATUS_${sessionId}` })).toBe(
-        'rgb(245, 158, 11)',
-      );
-    });
-
-    it('VALID: {inactive session, no questStatus} => shows DONE in success color', () => {
-      const proxy = GuildSessionListWidgetProxy();
-      const sessionId = SessionIdStub({ value: 'done-session' });
-      const session = SessionListItemStub({ sessionId, active: false });
-      const filter = SessionFilterStub();
-
-      mantineRenderAdapter({
-        ui: (
-          <GuildSessionListWidget
-            sessions={[session]}
-            filter={filter}
-            onFilterChange={jest.fn()}
-            onSelect={jest.fn()}
-            onAdd={jest.fn()}
-          />
-        ),
-      });
-
-      expect(proxy.getStatusText({ testId: `SESSION_STATUS_${sessionId}` })).toBe('DONE');
-      expect(proxy.getStatusColor({ testId: `SESSION_STATUS_${sessionId}` })).toBe(
-        'rgb(74, 222, 128)',
-      );
-    });
-
     it('VALID: {session with questStatus: complete} => shows quest status', () => {
       const proxy = GuildSessionListWidgetProxy();
       const sessionId = SessionIdStub({ value: 'quest-status-session' });

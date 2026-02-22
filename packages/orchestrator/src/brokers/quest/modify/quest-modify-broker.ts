@@ -99,10 +99,6 @@ export const questModifyBroker = async ({
       });
     }
 
-    if (validated.chatSessions) {
-      quest.chatSessions = validated.chatSessions;
-    }
-
     if (validated.status) {
       quest.status = validated.status;
     }

@@ -83,18 +83,15 @@ export const StartOrchestrator = {
     guildId,
     name,
     path,
-    chatSessions,
   }: {
     guildId: GuildId;
     name?: GuildName;
     path?: GuildPath;
-    chatSessions?: Guild['chatSessions'];
   }): Promise<Guild> =>
     guildUpdateBroker({
       guildId,
       ...(name !== undefined && { name }),
       ...(path !== undefined && { path }),
-      ...(chatSessions !== undefined && { chatSessions }),
     }),
 
   removeGuild: async ({ guildId }: { guildId: GuildId }): Promise<void> =>

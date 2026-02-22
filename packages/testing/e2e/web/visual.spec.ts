@@ -3,7 +3,6 @@ import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
-  createQuest,
   createSessionFile,
   cleanSessionFiles,
 } from './fixtures/test-helpers';
@@ -42,13 +41,8 @@ test.describe('Status Badges & Visual', () => {
     expect(color).not.toBe(unselectedColor);
   });
 
-  test('session status badges show correct text', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Status Guild', path: STATUS_GUILD_PATH });
-    const quest = await createQuest(request, {
-      guildId: guild.id as string,
-      title: 'Status Quest',
-      userRequest: 'Test status',
-    });
+  test('session items display summary text', async ({ page, request }) => {
+    await createGuild(request, { name: 'Status Guild', path: STATUS_GUILD_PATH });
 
     const sessionId = `e2e-session-visual-${Date.now()}`;
     createSessionFile({
@@ -57,29 +51,12 @@ test.describe('Status Badges & Visual', () => {
       userMessage: 'Test status',
     });
 
-    await request.patch(`/api/quests/${quest.questId}`, {
-      data: {
-        questId: quest.questId,
-        chatSessions: [
-          {
-            sessionId,
-            startedAt: new Date().toISOString(),
-            active: false,
-            agentRole: 'test',
-          },
-        ],
-      },
-    });
-
     await page.goto('/');
     await page.getByText('Status Guild').click();
 
-    // Session should show with a status badge
-    const statusBadge = page.getByTestId(`SESSION_STATUS_${sessionId}`);
-    await expect(statusBadge).toBeVisible();
-    const statusText = await statusBadge.textContent();
-    // Status should be uppercase (PENDING is default for new quests)
-    expect(statusText?.toUpperCase()).toBe(statusText);
+    const sessionItem = page.getByTestId(`SESSION_ITEM_${sessionId}`);
+    await expect(sessionItem).toBeVisible();
+    await expect(page.getByText('Test status')).toBeVisible();
   });
 
   test('multiple guilds all visible', async ({ page, request }) => {

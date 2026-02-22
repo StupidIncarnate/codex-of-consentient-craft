@@ -1,4 +1,4 @@
-import { ChatSessionStub, FlowStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { FlowStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
 import { questModifyBroker } from './quest-modify-broker';
@@ -6,23 +6,6 @@ import { questModifyBrokerProxy } from './quest-modify-broker.proxy';
 
 describe('questModifyBroker', () => {
   describe('successful modification', () => {
-    it('VALID: {questId, chatSessions} => directly sets chatSessions (not upsert)', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', chatSessions: [] });
-
-      proxy.setupQuestFound({ quest });
-
-      const chatSession = ChatSessionStub();
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        chatSessions: [chatSession],
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-    });
-
     it('VALID: {questId, contexts: [new]} => adds new context', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', contexts: [] });

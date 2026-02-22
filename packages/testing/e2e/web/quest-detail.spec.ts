@@ -3,7 +3,6 @@ import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
-  createQuest,
   createSessionFile,
   cleanSessionFiles,
 } from './fixtures/test-helpers';
@@ -18,12 +17,7 @@ test.describe('Quest Detail Navigation', () => {
   });
 
   test('click session item opens quest chat view', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Test Guild', path: GUILD_PATH });
-    const quest = await createQuest(request, {
-      guildId: guild.id as string,
-      title: 'My Quest',
-      userRequest: 'Build something',
-    });
+    await createGuild(request, { name: 'Test Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-detail-${Date.now()}`;
     createSessionFile({
@@ -32,25 +26,10 @@ test.describe('Quest Detail Navigation', () => {
       userMessage: 'Build something',
     });
 
-    await request.patch(`/api/quests/${quest.questId}`, {
-      data: {
-        questId: quest.questId,
-        chatSessions: [
-          {
-            sessionId,
-            startedAt: new Date().toISOString(),
-            active: false,
-            agentRole: 'test',
-          },
-        ],
-      },
-    });
-
     await page.goto('/');
     await page.getByText('Test Guild').click();
     await page.getByTestId(`SESSION_ITEM_${sessionId}`).click();
 
-    // Quest chat view renders with chat panel and activity sidebar
     await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
     await expect(page.getByTestId('CHAT_PANEL')).toBeVisible();
     await expect(page.getByTestId('CHAT_INPUT')).toBeVisible();
@@ -59,12 +38,7 @@ test.describe('Quest Detail Navigation', () => {
   });
 
   test('quest chat view has input and activity panel', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Tab Guild', path: GUILD_PATH });
-    const quest = await createQuest(request, {
-      guildId: guild.id as string,
-      title: 'Tab Quest',
-      userRequest: 'Test tabs',
-    });
+    await createGuild(request, { name: 'Tab Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-tab-${Date.now()}`;
     createSessionFile({
@@ -73,59 +47,24 @@ test.describe('Quest Detail Navigation', () => {
       userMessage: 'Test tabs',
     });
 
-    await request.patch(`/api/quests/${quest.questId}`, {
-      data: {
-        questId: quest.questId,
-        chatSessions: [
-          {
-            sessionId,
-            startedAt: new Date().toISOString(),
-            active: false,
-            agentRole: 'test',
-          },
-        ],
-      },
-    });
-
     await page.goto('/');
     await page.getByText('Tab Guild').click();
     await page.getByTestId(`SESSION_ITEM_${sessionId}`).click();
 
-    // Chat input is functional
     await expect(page.getByTestId('CHAT_INPUT')).toBeEnabled();
     await expect(page.getByText('Awaiting quest activity...')).toBeVisible();
 
-    // Divider separates chat and activity panels
     await expect(page.getByTestId('QUEST_CHAT_DIVIDER')).toBeVisible();
   });
 
-  test('browser back returns to quest list', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Back Guild', path: GUILD_PATH });
-    const quest = await createQuest(request, {
-      guildId: guild.id as string,
-      title: 'Return Quest',
-      userRequest: 'Test back',
-    });
+  test('browser back returns to session list', async ({ page, request }) => {
+    await createGuild(request, { name: 'Back Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-back-${Date.now()}`;
     createSessionFile({
       guildPath: GUILD_PATH,
       sessionId,
       userMessage: 'Test back',
-    });
-
-    await request.patch(`/api/quests/${quest.questId}`, {
-      data: {
-        questId: quest.questId,
-        chatSessions: [
-          {
-            sessionId,
-            startedAt: new Date().toISOString(),
-            active: false,
-            agentRole: 'test',
-          },
-        ],
-      },
     });
 
     await page.goto('/');
@@ -135,9 +74,8 @@ test.describe('Quest Detail Navigation', () => {
 
     await page.goBack();
 
-    // Back to home — re-select guild to see session list
     await page.getByText('Back Guild').click();
-    await expect(page.getByText('Return Quest')).toBeVisible();
+    await expect(page.getByText('Test back')).toBeVisible();
     await expect(page.getByTestId('GUILD_SESSION_LIST')).toBeVisible();
   });
 });

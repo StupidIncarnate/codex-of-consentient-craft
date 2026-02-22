@@ -9,7 +9,5 @@ export const SessionListItemStub = ({
   sessionListItemContract.parse({
     sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
     startedAt: '2024-01-15T10:00:00.000Z',
-    active: false,
-    agentRole: 'chaoswhisperer',
     ...props,
   });

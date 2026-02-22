@@ -6,7 +6,6 @@ import { waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import {
-  ChatSessionStub,
   GuildListItemStub,
   GuildStub,
   QuestStub,
@@ -90,8 +89,7 @@ describe('QuestChatWidget', () => {
     it('VALID: {entries with pending AskUserQuestion} => renders clarify panel in right panel', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
-      const chatSession = ChatSessionStub({ active: true });
-      const guildDetail = GuildStub({ id: guild.id, chatSessions: [chatSession] });
+      const guildDetail = GuildStub({ id: guild.id });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
@@ -144,8 +142,7 @@ describe('QuestChatWidget', () => {
     it('VALID: {click clarify option on single question} => calls sendMessage with formatted answer', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
-      const chatSession = ChatSessionStub({ active: true });
-      const guildDetail = GuildStub({ id: guild.id, chatSessions: [chatSession] });
+      const guildDetail = GuildStub({ id: guild.id });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
@@ -271,13 +268,11 @@ describe('QuestChatWidget', () => {
     it('VALID: {pending question with quest content} => clarify panel takes priority over spec panel', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
-      const chatSession = ChatSessionStub({ active: true });
       const quest = QuestStub({
         id: 'chat-q8',
-        chatSessions: [chatSession],
         requirements: [RequirementStub()],
       });
-      const guildDetail = GuildStub({ id: guild.id, chatSessions: [chatSession] });
+      const guildDetail = GuildStub({ id: guild.id });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });

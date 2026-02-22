@@ -2,18 +2,12 @@
  * PURPOSE: React hook that manages session-centric chat state and WebSocket communication for real-time agent responses
  *
  * USAGE:
- * const {entries, isStreaming, currentSessionId, sendMessage, stopChat} = useSessionChatBinding({guildId, sessionId, chatSessions});
+ * const {entries, isStreaming, currentSessionId, sendMessage, stopChat} = useSessionChatBinding({guildId, sessionId});
  * // Returns chat entries, streaming state, send/stop functions
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type {
-  ChatSession,
-  GuildId,
-  ProcessId,
-  SessionId,
-  UserInput,
-} from '@dungeonmaster/shared/contracts';
+import type { GuildId, ProcessId, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
@@ -27,11 +21,9 @@ import { streamJsonToChatEntryTransformer } from '../../transformers/stream-json
 
 export const useSessionChatBinding = ({
   guildId,
-  chatSessions,
   sessionId: initialSessionId,
 }: {
   guildId: GuildId | null;
-  chatSessions?: ChatSession[];
   sessionId?: SessionId | null;
 }): {
   entries: ChatEntry[];
@@ -109,7 +101,7 @@ export const useSessionChatBinding = ({
     if (historyLoadedRef.current) return;
     if (!guildId) return;
 
-    const targetSessionId = initialSessionId ?? chatSessions?.find((s) => s.active)?.sessionId;
+    const targetSessionId = initialSessionId;
     if (!targetSessionId) return;
 
     historyLoadedRef.current = true;
@@ -124,7 +116,7 @@ export const useSessionChatBinding = ({
         }
       })
       .catch(() => undefined);
-  }, [chatSessions, guildId, initialSessionId]);
+  }, [guildId, initialSessionId]);
 
   const sendMessage = useCallback(
     ({ message }: { message: UserInput }): void => {

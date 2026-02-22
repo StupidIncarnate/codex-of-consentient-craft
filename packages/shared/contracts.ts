@@ -66,10 +66,6 @@ export * from './src/contracts/user-input/user-input.stub';
 export * from './src/contracts/exit-code/exit-code-contract';
 export * from './src/contracts/exit-code/exit-code.stub';
 
-// Chat Session Contracts
-export * from './src/contracts/chat-session/chat-session-contract';
-export * from './src/contracts/chat-session/chat-session.stub';
-
 // Quest Contracts
 export * from './src/contracts/quest-status/quest-status-contract';
 export * from './src/contracts/quest-status/quest-status.stub';
