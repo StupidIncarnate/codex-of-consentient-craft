@@ -1,7 +1,6 @@
 import { glob as _glob } from 'glob';
 import { readFile as _readFile } from 'fs/promises';
 import { existsSync as _existsSync } from 'fs';
-import { homedir as _homedir } from 'os';
 import { join as _join } from 'path';
 import { spawn as _spawn } from 'child_process';
 import { EventEmitter } from 'events';
@@ -35,17 +34,16 @@ jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
   existsSync: jest.fn(),
 }));
-jest.mock('os', () => ({
-  ...jest.requireActual('os'),
-  homedir: jest.fn().mockReturnValue('/home/user'),
-}));
 jest.mock('path', () => jest.requireActual('path'));
 jest.mock('child_process', () => ({
   ...jest.requireActual('child_process'),
   spawn: jest.fn(),
 }));
 
-import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/testing';
+import {
+  architectureOverviewBrokerProxy,
+  osHomedirAdapterProxy,
+} from '@dungeonmaster/shared/testing';
 import { architectureFolderDetailBrokerProxy } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
 import { architectureSyntaxRulesBrokerProxy } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker.proxy';
 import { architectureTestingPatternsBrokerProxy } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';
@@ -154,8 +152,7 @@ export const StartServerProxy = (): {
   sessionResolveOwnerBrokerProxy();
   globFindAdapterProxy();
   sessionSummaryCacheStateProxy();
-
-  jest.mocked(_homedir).mockReturnValue('/home/user');
+  osHomedirAdapterProxy();
 
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const addGuildProxy = orchestratorAddGuildAdapterProxy();

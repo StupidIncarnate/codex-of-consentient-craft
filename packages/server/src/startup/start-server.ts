@@ -13,7 +13,7 @@ import { spawn } from 'child_process';
 import { createInterface } from 'readline';
 import { readdir, readFile, stat } from 'fs/promises';
 import { join } from 'path';
-import { homedir } from 'os';
+import { osHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import {
   questIdContract,
   questContract,
@@ -756,7 +756,7 @@ export const StartServer = (): void => {
 
       const sessionId = sessionIdContract.parse(rawSessionId);
 
-      const homeDir = absoluteFilePathContract.parse(homedir());
+      const homeDir = osHomedirAdapter();
       const projectPath = absoluteFilePathContract.parse(matchingGuild.guild.path);
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
@@ -1016,7 +1016,7 @@ export const StartServer = (): void => {
 
       const sessionId = sessionIdContract.parse(rawSessionId);
 
-      const homeDir = absoluteFilePathContract.parse(homedir());
+      const homeDir = osHomedirAdapter();
       const projectPath = absoluteFilePathContract.parse(guild.path);
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
@@ -1093,7 +1093,7 @@ export const StartServer = (): void => {
       const guild = await orchestratorGetGuildAdapter({ guildId });
 
       // 1. Compute claude projects dir from guild path
-      const homeDir = absoluteFilePathContract.parse(homedir());
+      const homeDir = osHomedirAdapter();
       const guildPath = absoluteFilePathContract.parse(guild.path);
       const dummySessionId = sessionIdContract.parse('_probe');
       const probePath = claudeProjectPathEncoderTransformer({
@@ -1419,7 +1419,7 @@ export const StartServer = (): void => {
       const guild = await orchestratorGetGuildAdapter({ guildId });
       const projectPath = absoluteFilePathContract.parse(guild.path);
 
-      const homeDir = absoluteFilePathContract.parse(homedir());
+      const homeDir = osHomedirAdapter();
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
         projectPath,
