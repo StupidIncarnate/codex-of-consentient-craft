@@ -49,7 +49,7 @@ const userMessage = pFlagIndex !== -1 && pFlagIndex + 1 < process.argv.length
 function writeJsonlSessionFile() {
     if (!sessionId) return;
 
-    const homeDir = os.homedir();
+    const homeDir = process.env.DUNGEONMASTER_HOME || os.homedir();
     const projectPath = process.cwd();
     const encodedPath = projectPath.replace(/\//g, '-');
     const jsonlDir = path.join(homeDir, '.claude', 'projects', encodedPath);

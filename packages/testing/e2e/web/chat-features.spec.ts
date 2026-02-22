@@ -5,7 +5,6 @@ import {
   createGuild,
   queueClaudeResponse,
   clearClaudeQueue,
-  cleanSessionFiles,
   SimpleTextResponseStub,
   ToolUseChainResponseStub,
   ErrorResponseStub,
@@ -24,7 +23,6 @@ test.describe('Chat Advanced Features', () => {
   test.beforeEach(async ({ request }) => {
     await cleanGuilds(request);
     clearClaudeQueue();
-    cleanSessionFiles({ guildPath: GUILD_PATH });
     mkdirSync(GUILD_PATH, { recursive: true });
   });
 
