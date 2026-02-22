@@ -9,6 +9,7 @@
 import { childProcessSpawnStreamAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
+import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import {
   wardResultContract,
   type WardResult,
@@ -24,6 +25,7 @@ import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/
 import { checkResultBuildTransformer } from '../../../transformers/check-result-build/check-result-build-transformer';
 import { extractChildRunIdTransformer } from '../../../transformers/extract-child-run-id/extract-child-run-id-transformer';
 import { hasPassthroughMatchGuard } from '../../../guards/has-passthrough-match/has-passthrough-match-guard';
+import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
 import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
@@ -39,6 +41,12 @@ export const commandRunLayerMultiBroker = async ({
 }): Promise<WardResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
+  const wardBin = String(
+    binResolveBroker({
+      binName: binCommandContract.parse(wardSpawnCommandStatics.bin),
+      cwd: rootPath,
+    }),
+  );
 
   const checkTypes = config.only ?? [...allCheckTypesStatics];
   const hasPassthrough = Array.isArray(config.passthrough) && config.passthrough.length > 0;
@@ -83,7 +91,7 @@ export const commandRunLayerMultiBroker = async ({
 
       const cwd = absoluteFilePathContract.parse(folder.path);
       const spawnResult = await childProcessSpawnStreamAdapter({
-        command: 'npx',
+        command: wardBin,
         args: spawnArgs,
         cwd,
         onStderr: (line: string) => {

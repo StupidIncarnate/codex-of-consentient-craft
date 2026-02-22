@@ -3,6 +3,7 @@ import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 import type { spawn } from 'child_process';
 
 import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-statics';
+import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { storageSaveBrokerProxy } from '../../storage/save/storage-save-broker.proxy';
 import { storagePruneBrokerProxy } from '../../storage/prune/storage-prune-broker.proxy';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
@@ -22,6 +23,7 @@ export const commandRunLayerMultiBrokerProxy = (): {
   const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
   const streamProxy = childProcessSpawnStreamAdapterProxy();
+  const binProxy = binResolveBrokerProxy();
   const saveProxy = storageSaveBrokerProxy();
   const pruneProxy = storagePruneBrokerProxy();
   const loadProxy = storageLoadBrokerProxy();
@@ -39,6 +41,7 @@ export const commandRunLayerMultiBrokerProxy = (): {
       packageCount: number;
       subResultContent: string;
     }): void => {
+      binProxy.setupFound();
       Array.from({ length: packageCount }).forEach(() => {
         streamProxy.setupSuccess({
           exitCode: successCode,
@@ -55,6 +58,7 @@ export const commandRunLayerMultiBrokerProxy = (): {
     }: {
       packages: { subResultContent: string }[];
     }): void => {
+      binProxy.setupFound();
       for (const pkg of packages) {
         streamProxy.setupSuccess({
           exitCode: successCode,
@@ -67,6 +71,7 @@ export const commandRunLayerMultiBrokerProxy = (): {
       pruneProxy.setupEmpty();
     },
     setupSpawnWithNullLoad: (): void => {
+      binProxy.setupFound();
       streamProxy.setupSuccess({
         exitCode: successCode,
         stdout: `run: ${CHILD_RUN_ID}\n`,
@@ -77,6 +82,7 @@ export const commandRunLayerMultiBrokerProxy = (): {
       pruneProxy.setupEmpty();
     },
     setupNoSpawns: (): void => {
+      binProxy.setupFound();
       saveProxy.setupSuccess();
       pruneProxy.setupEmpty();
     },

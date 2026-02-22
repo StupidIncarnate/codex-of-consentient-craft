@@ -255,7 +255,7 @@ describe('commandRunLayerMultiBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
+        ['run', '--only', 'lint', '--', 'src/foo.test.ts'],
       ]);
     });
 
@@ -333,8 +333,8 @@ describe('commandRunLayerMultiBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
-        ['dungeonmaster-ward', 'run', '--only', 'lint', '--', 'src/bar.test.ts'],
+        ['run', '--only', 'lint', '--', 'src/foo.test.ts'],
+        ['run', '--only', 'lint', '--', 'src/bar.test.ts'],
       ]);
     });
 
@@ -443,8 +443,8 @@ describe('commandRunLayerMultiBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['dungeonmaster-ward', 'run', '--only', 'lint'],
-        ['dungeonmaster-ward', 'run', '--only', 'lint'],
+        ['run', '--only', 'lint'],
+        ['run', '--only', 'lint'],
       ]);
     });
   });

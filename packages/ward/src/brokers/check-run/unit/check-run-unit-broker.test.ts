@@ -239,7 +239,6 @@ describe('checkRunUnitBroker', () => {
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
       expect(spawnedArgs).toStrictEqual([
-        'jest',
         '--json',
         '--no-color',
         '--forceExit',
