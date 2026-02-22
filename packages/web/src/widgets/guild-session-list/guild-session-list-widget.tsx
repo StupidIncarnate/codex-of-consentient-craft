@@ -113,25 +113,20 @@ export const GuildSessionListWidget = ({
                 {session.questTitle}
               </Badge>
             ) : null}
-            <span
-              data-testid={`SESSION_STATUS_${session.sessionId}`}
-              style={{
-                color: session.questStatus
-                  ? ((Reflect.get(STATUS_COLORS, session.questStatus) as
+            {session.questStatus ? (
+              <span
+                data-testid={`SESSION_STATUS_${session.sessionId}`}
+                style={{
+                  color:
+                    (Reflect.get(STATUS_COLORS, session.questStatus) as
                       | (typeof colors)['text-dim']
-                      | undefined) ?? colors['text-dim'])
-                  : session.active
-                    ? colors.warning
-                    : colors.success,
-                fontSize: STATUS_FONT_SIZE,
-              }}
-            >
-              {session.questStatus
-                ? session.questStatus.toUpperCase().split('_').join(' ')
-                : session.active
-                  ? 'ACTIVE'
-                  : 'DONE'}
-            </span>
+                      | undefined) ?? colors['text-dim'],
+                  fontSize: STATUS_FONT_SIZE,
+                }}
+              >
+                {session.questStatus.toUpperCase().split('_').join(' ')}
+              </span>
+            ) : null}
           </Group>
         </UnstyledButton>
       ))}

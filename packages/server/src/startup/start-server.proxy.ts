@@ -85,9 +85,6 @@ import { wsEventRelayBroadcastBrokerProxy } from '../brokers/ws-event-relay/broa
 import { fsReadJsonlAdapterProxy } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
 import { processDevLogAdapterProxy } from '../adapters/process/dev-log/process-dev-log-adapter.proxy';
 import { chatProcessStateProxy } from '../state/chat-process/chat-process-state.proxy';
-import { questSessionPersistBrokerProxy } from '../brokers/quest-session/persist/quest-session-persist-broker.proxy';
-import { guildSessionPersistBrokerProxy } from '../brokers/guild-session/persist/guild-session-persist-broker.proxy';
-import { sessionResolveOwnerBrokerProxy } from '../brokers/session/resolve-owner/session-resolve-owner-broker.proxy';
 import { globFindAdapterProxy } from '../adapters/glob/find/glob-find-adapter.proxy';
 import { sessionSummaryCacheStateProxy } from '../state/session-summary-cache/session-summary-cache-state.proxy';
 import { StartServer } from './start-server';
@@ -147,9 +144,6 @@ export const StartServerProxy = (): {
   const broadcastProxy = wsEventRelayBroadcastBrokerProxy();
   const jsonlProxy = fsReadJsonlAdapterProxy();
   processDevLogAdapterProxy();
-  questSessionPersistBrokerProxy();
-  guildSessionPersistBrokerProxy();
-  sessionResolveOwnerBrokerProxy();
   globFindAdapterProxy();
   sessionSummaryCacheStateProxy();
   osHomedirAdapterProxy();

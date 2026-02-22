@@ -72,7 +72,6 @@ describe('questSectionFilterTransformer', () => {
         steps: [],
         toolingRequirements: [],
         flows: [],
-        chatSessions: [],
       });
     });
 
@@ -127,7 +126,6 @@ describe('questSectionFilterTransformer', () => {
         steps: [],
         toolingRequirements: [],
         flows: [],
-        chatSessions: [],
       });
     });
   });
@@ -200,7 +198,6 @@ describe('questSectionFilterTransformer', () => {
         steps: [],
         toolingRequirements: [],
         flows: [],
-        chatSessions: [],
       });
     });
   });
@@ -239,7 +236,6 @@ describe('questSectionFilterTransformer', () => {
         steps: [],
         toolingRequirements: [],
         flows: [],
-        chatSessions: [],
       });
     });
   });
@@ -278,7 +274,6 @@ describe('questSectionFilterTransformer', () => {
         steps: [],
         toolingRequirements: [],
         flows: [],
-        chatSessions: [],
       });
     });
   });

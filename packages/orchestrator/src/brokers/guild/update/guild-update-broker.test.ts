@@ -34,7 +34,6 @@ describe('guildUpdateBroker', () => {
         path: '/home/user/my-app',
         urlSlug: 'my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
-        chatSessions: [],
       });
     });
 
@@ -61,7 +60,6 @@ describe('guildUpdateBroker', () => {
         path: '/home/user/new-path',
         urlSlug: 'my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
-        chatSessions: [],
       });
     });
 
@@ -89,7 +87,6 @@ describe('guildUpdateBroker', () => {
         path: '/home/user/new-path',
         urlSlug: 'my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
-        chatSessions: [],
       });
     });
 
@@ -121,7 +118,6 @@ describe('guildUpdateBroker', () => {
         path: '/home/user/second',
         urlSlug: 'my-guild',
         createdAt: '2024-02-20T12:00:00.000Z',
-        chatSessions: [],
       });
     });
   });
@@ -188,7 +184,6 @@ describe('guildUpdateBroker', () => {
         path: '/home/user/my-app',
         urlSlug: 'my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
-        chatSessions: [],
       });
     });
   });

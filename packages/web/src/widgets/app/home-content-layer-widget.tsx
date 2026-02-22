@@ -30,7 +30,7 @@ export const HomeContentLayerWidget = (): React.JSX.Element => {
   const [internalView, setInternalView] = useState<InternalView>('main');
   const [selectedGuildId, setSelectedGuildId] = useState<GuildId | null>(null);
   const [addGuildModalOpened, setAddGuildModalOpened] = useState(false);
-  const [sessionFilter, setSessionFilter] = useState<SessionFilter>('quests-only' as SessionFilter);
+  const [sessionFilter, setSessionFilter] = useState<SessionFilter>('all' as SessionFilter);
 
   const { guilds, loading: guildsLoading, refresh: refreshGuilds } = useGuildsBinding();
   const { data: sessions } = useSessionListBinding({ guildId: selectedGuildId });

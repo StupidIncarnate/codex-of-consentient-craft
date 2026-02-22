@@ -17,12 +17,10 @@ export const guildUpdateBroker = async ({
   guildId,
   name,
   path,
-  chatSessions,
 }: {
   guildId: GuildId;
   name?: GuildName;
   path?: GuildPath;
-  chatSessions?: Guild['chatSessions'];
 }): Promise<Guild> => {
   const config = await guildConfigReadBroker();
 
@@ -43,7 +41,6 @@ export const guildUpdateBroker = async ({
     ...existing,
     ...(name !== undefined && { name }),
     ...(path !== undefined && { path }),
-    ...(chatSessions !== undefined && { chatSessions }),
   });
 
   const updatedGuilds = config.guilds.map((g) => (g.id === guildId ? updated : g));

@@ -3,7 +3,6 @@ import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
-  createQuest,
   createSessionFile,
   cleanSessionFiles,
 } from './fixtures/test-helpers';
@@ -24,14 +23,8 @@ test.describe('Guild Selection & Session Loading', () => {
   });
 
   test('click guild loads its session list', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Guild A', path: GUILD_A_PATH });
-    const quest = await createQuest(request, {
-      guildId: guild.id as string,
-      title: 'Quest Alpha',
-      userRequest: 'Test quest',
-    });
+    await createGuild(request, { name: 'Guild A', path: GUILD_A_PATH });
 
-    // Create a session file on disk linked to the quest via chat
     const sessionId = `e2e-session-guild-a-${Date.now()}`;
     createSessionFile({
       guildPath: GUILD_A_PATH,
@@ -39,28 +32,12 @@ test.describe('Guild Selection & Session Loading', () => {
       userMessage: 'Quest Alpha session',
     });
 
-    // Link session to the quest so it appears under quests-only filter
-    await request.patch(`/api/quests/${quest.questId}`, {
-      data: {
-        questId: quest.questId,
-        chatSessions: [
-          {
-            sessionId,
-            startedAt: new Date().toISOString(),
-            active: false,
-            agentRole: 'test',
-          },
-        ],
-      },
-    });
-
     await page.goto('/');
     await page.getByText('Guild A').click();
 
     await expect(page.getByTestId('GUILD_SESSION_LIST')).toBeVisible();
-    // Quest title appears as a badge on the session item
-    await expect(page.getByTestId(`SESSION_QUEST_BADGE_${sessionId}`)).toBeVisible();
-    await expect(page.getByTestId(`SESSION_QUEST_BADGE_${sessionId}`)).toContainText('Quest Alpha');
+    await expect(page.getByTestId(`SESSION_ITEM_${sessionId}`)).toBeVisible();
+    await expect(page.getByText('Quest Alpha session')).toBeVisible();
   });
 
   test('click guild with no quests shows empty state', async ({ page, request }) => {
@@ -74,19 +51,8 @@ test.describe('Guild Selection & Session Loading', () => {
   });
 
   test('switch between guilds refreshes session list', async ({ page, request }) => {
-    const guildA = await createGuild(request, { name: 'Guild A', path: GUILD_A_PATH });
-    const guildB = await createGuild(request, { name: 'Guild B', path: GUILD_B_PATH });
-
-    const questA = await createQuest(request, {
-      guildId: guildA.id as string,
-      title: 'Quest Alpha',
-      userRequest: 'Test',
-    });
-    const questB = await createQuest(request, {
-      guildId: guildB.id as string,
-      title: 'Quest Beta',
-      userRequest: 'Test',
-    });
+    await createGuild(request, { name: 'Guild A', path: GUILD_A_PATH });
+    await createGuild(request, { name: 'Guild B', path: GUILD_B_PATH });
 
     const sessionIdA = `e2e-session-a-${Date.now()}`;
     const sessionIdB = `e2e-session-b-${Date.now()}`;
@@ -94,48 +60,20 @@ test.describe('Guild Selection & Session Loading', () => {
     createSessionFile({
       guildPath: GUILD_A_PATH,
       sessionId: sessionIdA,
-      userMessage: 'Quest Alpha session',
+      userMessage: 'Alpha session',
     });
     createSessionFile({
       guildPath: GUILD_B_PATH,
       sessionId: sessionIdB,
-      userMessage: 'Quest Beta session',
-    });
-
-    // Link sessions to quests
-    await request.patch(`/api/quests/${questA.questId}`, {
-      data: {
-        questId: questA.questId,
-        chatSessions: [
-          {
-            sessionId: sessionIdA,
-            startedAt: new Date().toISOString(),
-            active: false,
-            agentRole: 'test',
-          },
-        ],
-      },
-    });
-    await request.patch(`/api/quests/${questB.questId}`, {
-      data: {
-        questId: questB.questId,
-        chatSessions: [
-          {
-            sessionId: sessionIdB,
-            startedAt: new Date().toISOString(),
-            active: false,
-            agentRole: 'test',
-          },
-        ],
-      },
+      userMessage: 'Beta session',
     });
 
     await page.goto('/');
     await page.getByText('Guild A').click();
-    await expect(page.getByTestId(`SESSION_QUEST_BADGE_${sessionIdA}`)).toBeVisible();
+    await expect(page.getByTestId(`SESSION_ITEM_${sessionIdA}`)).toBeVisible();
 
     await page.getByText('Guild B').click();
-    await expect(page.getByTestId(`SESSION_QUEST_BADGE_${sessionIdA}`)).not.toBeVisible();
-    await expect(page.getByTestId(`SESSION_QUEST_BADGE_${sessionIdB}`)).toBeVisible();
+    await expect(page.getByTestId(`SESSION_ITEM_${sessionIdA}`)).not.toBeVisible();
+    await expect(page.getByTestId(`SESSION_ITEM_${sessionIdB}`)).toBeVisible();
   });
 });

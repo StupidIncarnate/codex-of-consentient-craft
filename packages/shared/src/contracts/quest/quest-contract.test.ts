@@ -1,4 +1,3 @@
-import { ChatSessionStub } from '../chat-session/chat-session.stub';
 import { ContextStub } from '../context/context.stub';
 import { DependencyStepStub } from '../dependency-step/dependency-step.stub';
 import { FlowStub } from '../flow/flow.stub';
@@ -30,7 +29,6 @@ describe('questContract', () => {
         toolingRequirements: [],
         contracts: [],
         flows: [],
-        chatSessions: [],
       });
     });
 
@@ -122,34 +120,6 @@ describe('questContract', () => {
       const result = questContract.parse(quest);
 
       expect(result.flows).toStrictEqual([flow]);
-    });
-
-    it('VALID: quest with chatSessions => parses successfully', () => {
-      const chatSession = ChatSessionStub();
-      const quest = QuestStub({
-        chatSessions: [chatSession],
-      });
-
-      const result = questContract.parse(quest);
-
-      expect(result.chatSessions).toStrictEqual([chatSession]);
-    });
-
-    it('VALID: quest without chatSessions field => backward compat defaults to empty array', () => {
-      const result = questContract.parse({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        title: 'Add Authentication',
-        status: 'in_progress',
-        createdAt: '2024-01-15T10:00:00.000Z',
-        executionLog: [],
-        contexts: [],
-        observables: [],
-        steps: [],
-        toolingRequirements: [],
-      });
-
-      expect(result.chatSessions).toStrictEqual([]);
     });
 
     it('VALID: quest without flows field => backward compat defaults to empty array', () => {

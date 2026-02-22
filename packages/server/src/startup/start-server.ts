@@ -6,7 +6,6 @@
  * // Starts HTTP server on port 3737 with guild, quest, process, health, docs endpoints, and WebSocket event relay
  */
 
-import { z } from 'zod';
 import { Hono } from 'hono';
 import type { WSContext } from 'hono/ws';
 import { spawn } from 'child_process';
@@ -16,7 +15,6 @@ import { join } from 'path';
 import { osHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import {
   questIdContract,
-  questContract,
   processIdContract,
   guildIdContract,
   guildNameContract,
@@ -26,7 +24,7 @@ import {
   sessionIdContract,
   absoluteFilePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type { SessionId, Quest, ChatSession } from '@dungeonmaster/shared/contracts';
+import type { SessionId } from '@dungeonmaster/shared/contracts';
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
 import { architectureFolderDetailBroker } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker';
 import { architectureSyntaxRulesBroker } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
@@ -65,9 +63,6 @@ import type { AgentOutputLine } from '../contracts/agent-output-line/agent-outpu
 import { agentOutputBufferState } from '../state/agent-output-buffer/agent-output-buffer-state';
 import { chatProcessState } from '../state/chat-process/chat-process-state';
 import { wsEventRelayBroadcastBroker } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
-import { questSessionPersistBroker } from '../brokers/quest-session/persist/quest-session-persist-broker';
-import { guildSessionPersistBroker } from '../brokers/guild-session/persist/guild-session-persist-broker';
-import { sessionResolveOwnerBroker } from '../brokers/session/resolve-owner/session-resolve-owner-broker';
 import type { WsClient } from '../contracts/ws-client/ws-client-contract';
 import { fsReadJsonlAdapter } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { claudeProjectPathEncoderTransformer } from '../transformers/claude-project-path-encoder/claude-project-path-encoder-transformer';
@@ -84,7 +79,6 @@ import { sessionSummaryCacheState } from '../state/session-summary-cache/session
 import { hasSessionSummaryGuard } from '../guards/has-session-summary/has-session-summary-guard';
 
 const FLUSH_INTERVAL_MS = 100;
-const SUMMARY_MAX_LENGTH = 100;
 const CLAUDE_CLI_COMMAND = process.env.CLAUDE_CLI_PATH ?? 'claude';
 
 export const StartServer = (): void => {
@@ -216,29 +210,9 @@ export const StartServer = (): void => {
   });
 
   // Session resolve - find which quest (if any) owns a session
-  app.get(apiRoutesStatics.guilds.sessionResolve, async (c) => {
+  app.get(apiRoutesStatics.guilds.sessionResolve, (c) => {
     try {
-      const guildIdRaw = c.req.param('guildId');
-      const sessionIdRaw = c.req.param('sessionId');
-      const guildId = guildIdContract.parse(guildIdRaw);
-      const sessionId = sessionIdContract.parse(sessionIdRaw);
-      const guild = await orchestratorGetGuildAdapter({ guildId });
-
-      // Check guild-level sessions first
-      const guildMatch = guild.chatSessions.find((s) => s.sessionId === sessionId);
-
-      if (guildMatch) {
-        return c.json({ questId: null });
-      }
-
-      // Search quest-level sessions via broker
-      const { questId } = await sessionResolveOwnerBroker({ guildId, sessionId });
-
-      if (questId) {
-        return c.json({ questId });
-      }
-
-      return c.json({ error: 'Session not found' }, httpStatusStatics.clientError.notFound);
+      return c.json({ questId: null });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to resolve session';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
@@ -277,33 +251,7 @@ export const StartServer = (): void => {
       const guildId = guildIdContract.parse(guildIdRaw);
       const quests = await orchestratorListQuestsAdapter({ guildId });
 
-      const enriched = await Promise.all(
-        quests.map(async (q) => {
-          try {
-            const result = await orchestratorGetQuestAdapter({ questId: q.id });
-            const questRaw: unknown = Reflect.get(result, 'quest');
-
-            if (!questRaw || typeof questRaw !== 'object') {
-              return q;
-            }
-
-            const quest = questContract.parse(questRaw);
-            const activeSession = quest.chatSessions.find((s) => s.active);
-            const mostRecent =
-              !activeSession && quest.chatSessions.length > 0
-                ? quest.chatSessions.reduce((latest, s) =>
-                    s.startedAt > latest.startedAt ? s : latest,
-                  )
-                : undefined;
-            const activeSessionId = activeSession?.sessionId ?? mostRecent?.sessionId;
-            return activeSessionId ? { ...q, activeSessionId } : q;
-          } catch {
-            return q;
-          }
-        }),
-      );
-
-      return c.json(enriched);
+      return c.json(quests);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to list quests';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
@@ -355,33 +303,6 @@ export const StartServer = (): void => {
 
       const guildId = guildIdContract.parse(guildIdRaw);
       const result = await orchestratorAddQuestAdapter({ title, userRequest, guildId });
-
-      // Session migration: copy active guild sessions to quest, clear guild sessions
-      (async () => {
-        try {
-          const guild = await orchestratorGetGuildAdapter({ guildId });
-          const activeSessions = guild.chatSessions.filter((s) => s.active);
-
-          if (activeSessions.length > 0) {
-            const questIdRaw: unknown = Reflect.get(result, 'questId');
-
-            if (typeof questIdRaw === 'string') {
-              await orchestratorModifyQuestAdapter({
-                questId: questIdRaw,
-                input: { questId: questIdRaw, chatSessions: activeSessions } as never,
-              });
-              await orchestratorUpdateGuildAdapter({ guildId, chatSessions: [] });
-              processDevLogAdapter({
-                message: `Sessions migrated from guild=${guildIdRaw} to quest=${questIdRaw}`,
-              });
-            }
-          }
-        } catch (migrationError: unknown) {
-          processDevLogAdapter({
-            message: `Session migration failed: ${migrationError instanceof Error ? migrationError.message : 'unknown'}`,
-          });
-        }
-      })().catch(() => undefined);
 
       return c.json(result, httpStatusStatics.success.created);
     } catch (error: unknown) {
@@ -660,34 +581,19 @@ export const StartServer = (): void => {
         });
         chatProcessState.remove({ processId: chatProcessId });
 
-        // Persist session BEFORE broadcasting chat-complete so clients see updated data on refresh
         const sessionIdToPersist = resumeSessionId ?? extractedSessionId;
-        const persistPromise = sessionIdToPersist
-          ? questSessionPersistBroker({
-              questId: questIdRaw,
-              sessionId: sessionIdToPersist,
-              ...(typeof rawMessage === 'string'
-                ? { summary: rawMessage.slice(0, SUMMARY_MAX_LENGTH) }
-                : {}),
-            }).catch(() => undefined)
-          : Promise.resolve();
-
-        persistPromise
-          .then(() => {
-            wsEventRelayBroadcastBroker({
-              clients,
-              message: wsMessageContract.parse({
-                type: 'chat-complete',
-                payload: {
-                  chatProcessId,
-                  exitCode: code ?? 1,
-                  ...(sessionIdToPersist && { sessionId: sessionIdToPersist }),
-                },
-                timestamp: isoTimestampContract.parse(new Date().toISOString()),
-              }),
-            });
-          })
-          .catch(() => undefined);
+        wsEventRelayBroadcastBroker({
+          clients,
+          message: wsMessageContract.parse({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId,
+              exitCode: code ?? 1,
+              ...(sessionIdToPersist && { sessionId: sessionIdToPersist }),
+            },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          }),
+        });
       });
 
       return c.json({ chatProcessId });
@@ -937,34 +843,19 @@ export const StartServer = (): void => {
         });
         chatProcessState.remove({ processId: chatProcessId });
 
-        // Persist session BEFORE broadcasting chat-complete so clients see updated data on refresh
         const sessionIdToPersist = resumeSessionId ?? extractedSessionId;
-        const persistPromise = sessionIdToPersist
-          ? guildSessionPersistBroker({
-              guildId: guildIdRaw,
-              sessionId: sessionIdToPersist,
-              ...(typeof rawMessage === 'string'
-                ? { summary: rawMessage.slice(0, SUMMARY_MAX_LENGTH) }
-                : {}),
-            }).catch(() => undefined)
-          : Promise.resolve();
-
-        persistPromise
-          .then(() => {
-            wsEventRelayBroadcastBroker({
-              clients,
-              message: wsMessageContract.parse({
-                type: 'chat-complete',
-                payload: {
-                  chatProcessId,
-                  exitCode: code ?? 1,
-                  ...(sessionIdToPersist && { sessionId: sessionIdToPersist }),
-                },
-                timestamp: isoTimestampContract.parse(new Date().toISOString()),
-              }),
-            });
-          })
-          .catch(() => undefined);
+        wsEventRelayBroadcastBroker({
+          clients,
+          message: wsMessageContract.parse({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId,
+              exitCode: code ?? 1,
+              ...(sessionIdToPersist && { sessionId: sessionIdToPersist }),
+            },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          }),
+        });
       });
 
       return c.json({ chatProcessId });
@@ -1085,14 +976,13 @@ export const StartServer = (): void => {
     }
   });
 
-  // Session list - disk is source of truth, config is enrichment only
+  // Session list - disk is source of truth
   app.get(apiRoutesStatics.sessions.list, async (c) => {
     try {
       const guildIdRaw = c.req.param('guildId');
       const guildId = guildIdContract.parse(guildIdRaw);
       const guild = await orchestratorGetGuildAdapter({ guildId });
 
-      // 1. Compute claude projects dir from guild path
       const homeDir = osHomedirAdapter();
       const guildPath = absoluteFilePathContract.parse(guild.path);
       const dummySessionId = sessionIdContract.parse('_probe');
@@ -1105,65 +995,11 @@ export const StartServer = (): void => {
         String(probePath).slice(0, String(probePath).lastIndexOf('/')),
       );
 
-      // 2. Glob all *.jsonl files from disk
       const jsonlFiles = await globFindAdapter({
         pattern: globPatternContract.parse('*.jsonl'),
         cwd: claudeProjectDir,
       });
 
-      // 3. Build quest lookup: Map<sessionId, quest metadata>
-      const quests = await orchestratorListQuestsAdapter({ guildId });
-      const questLookup = new Map<SessionId, Pick<Quest, 'id' | 'title' | 'status'>>();
-      const questSessionMeta = new Map<
-        SessionId,
-        Pick<ChatSession, 'summary' | 'agentRole' | 'active' | 'endedAt'>
-      >();
-
-      await Promise.all(
-        quests.map(async (q) => {
-          try {
-            const result = await orchestratorGetQuestAdapter({ questId: q.id });
-            const questRaw: unknown = Reflect.get(result, 'quest');
-
-            if (!questRaw || typeof questRaw !== 'object') {
-              return;
-            }
-
-            const quest = questContract.parse(questRaw);
-            for (const s of quest.chatSessions) {
-              questLookup.set(s.sessionId, {
-                id: quest.id,
-                title: quest.title,
-                status: quest.status,
-              });
-              questSessionMeta.set(s.sessionId, {
-                ...(s.summary ? { summary: s.summary } : {}),
-                agentRole: s.agentRole,
-                active: s.active,
-                ...(s.endedAt ? { endedAt: s.endedAt } : {}),
-              });
-            }
-          } catch {
-            // skip inaccessible quests
-          }
-        }),
-      );
-
-      // 4. Build guild chatSession lookup for enrichment
-      const guildSessionMeta = new Map<
-        SessionId,
-        Pick<ChatSession, 'summary' | 'agentRole' | 'active' | 'endedAt'>
-      >();
-      for (const s of guild.chatSessions) {
-        guildSessionMeta.set(s.sessionId, {
-          ...(s.summary ? { summary: s.summary } : {}),
-          agentRole: s.agentRole,
-          active: s.active,
-          ...(s.endedAt ? { endedAt: s.endedAt } : {}),
-        });
-      }
-
-      // 5. For each disk file: extract sessionId, stat, read first-line summary, enrich
       const diskResults = await Promise.all(
         jsonlFiles.map(async (filePath) => {
           const fileName = String(filePath).split('/').pop() ?? '';
@@ -1173,7 +1009,6 @@ export const StartServer = (): void => {
             const stats = await stat(String(filePath));
             const startedAt = isoTimestampContract.parse(stats.birthtime.toISOString());
 
-            // Check cache before reading file
             const mtimeMs = mtimeMsContract.parse(stats.mtimeMs);
             const cached = sessionSummaryCacheState.get({ sessionId: diskSessionId, mtimeMs });
             const diskSummary: ReturnType<typeof extractSessionFileSummaryTransformer> =
@@ -1196,28 +1031,10 @@ export const StartServer = (): void => {
                 return summary;
               })();
 
-            // Enrich from quest or guild config
-            const questInfo = questLookup.get(diskSessionId);
-            const meta = questSessionMeta.get(diskSessionId) ?? guildSessionMeta.get(diskSessionId);
-            const resolvedSummary = meta?.summary ?? diskSummary;
-
             return {
               sessionId: diskSessionId,
               startedAt,
-              active: meta?.active ?? false,
-              agentRole: z
-                .string()
-                .brand<'AgentRole'>()
-                .parse(meta?.agentRole ?? 'unknown'),
-              ...(meta?.endedAt ? { endedAt: meta.endedAt } : {}),
-              ...(resolvedSummary ? { summary: resolvedSummary } : {}),
-              ...(questInfo
-                ? {
-                    questId: questInfo.id,
-                    questTitle: questInfo.title,
-                    questStatus: questInfo.status,
-                  }
-                : {}),
+              ...(diskSummary ? { summary: diskSummary } : {}),
             };
           } catch {
             return null;
@@ -1225,11 +1042,30 @@ export const StartServer = (): void => {
         }),
       );
 
-      const allSessions = diskResults
+      const filteredSessions = diskResults
         .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
         .filter((entry) => hasSessionSummaryGuard({ session: entry }));
 
-      // 6. Sort by startedAt descending
+      const quests = await orchestratorListQuestsAdapter({ guildId });
+      const sessionToQuest = new Map(
+        quests
+          .filter((q) => q.activeSessionId !== undefined)
+          .map((q) => [String(q.activeSessionId), q] as const),
+      );
+
+      const allSessions = filteredSessions.map((entry) => {
+        const quest = sessionToQuest.get(String(entry.sessionId));
+        if (!quest) {
+          return entry;
+        }
+        return {
+          ...entry,
+          questId: quest.id,
+          questTitle: quest.title,
+          questStatus: quest.status,
+        };
+      });
+
       allSessions.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 
       return c.json(allSessions);
@@ -1265,7 +1101,6 @@ export const StartServer = (): void => {
       }
 
       const guildId = guildIdContract.parse(rawGuildId);
-      const { questId } = await sessionResolveOwnerBroker({ guildId, sessionId });
 
       const guild = await orchestratorGetGuildAdapter({ guildId });
       const workingDir = guild.path;
@@ -1273,7 +1108,7 @@ export const StartServer = (): void => {
       const chatProcessId = processIdContract.parse(crypto.randomUUID());
 
       processDevLogAdapter({
-        message: `Session chat started: sessionId=${sessionIdRaw}, guildId=${rawGuildId}, questId=${questId ?? 'null'}, messageLength=${String(rawMessage.length)}`,
+        message: `Session chat started: sessionId=${sessionIdRaw}, guildId=${rawGuildId}, messageLength=${String(rawMessage.length)}`,
       });
 
       const args = ['--resume', sessionId, '-p', rawMessage];
@@ -1335,38 +1170,18 @@ export const StartServer = (): void => {
         });
         chatProcessState.remove({ processId: chatProcessId });
 
-        const persistPromise = questId
-          ? questSessionPersistBroker({
-              questId,
+        wsEventRelayBroadcastBroker({
+          clients,
+          message: wsMessageContract.parse({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId,
+              exitCode: code ?? 1,
               sessionId,
-              ...(typeof rawMessage === 'string'
-                ? { summary: rawMessage.slice(0, SUMMARY_MAX_LENGTH) }
-                : {}),
-            }).catch(() => undefined)
-          : guildSessionPersistBroker({
-              guildId: guildId as never,
-              sessionId,
-              ...(typeof rawMessage === 'string'
-                ? { summary: rawMessage.slice(0, SUMMARY_MAX_LENGTH) }
-                : {}),
-            }).catch(() => undefined);
-
-        persistPromise
-          .then(() => {
-            wsEventRelayBroadcastBroker({
-              clients,
-              message: wsMessageContract.parse({
-                type: 'chat-complete',
-                payload: {
-                  chatProcessId,
-                  exitCode: code ?? 1,
-                  sessionId,
-                },
-                timestamp: isoTimestampContract.parse(new Date().toISOString()),
-              }),
-            });
-          })
-          .catch(() => undefined);
+            },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          }),
+        });
       });
 
       return c.json({ chatProcessId });

@@ -10,6 +10,5 @@ export const GuildStub = ({ ...props }: StubArgument<Guild> = {}): Guild =>
     path: '/home/user/my-guild',
     urlSlug: 'my-guild',
     createdAt: '2024-01-15T10:00:00.000Z',
-    chatSessions: [],
     ...props,
   });

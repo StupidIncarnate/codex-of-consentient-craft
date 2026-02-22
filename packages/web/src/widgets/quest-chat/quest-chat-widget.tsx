@@ -41,7 +41,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
   );
   const resolvedGuildId = matchedGuild?.id ?? null;
 
-  const { data: guildData, refresh: refreshGuild } = useGuildDetailBinding({
+  const { refresh: refreshGuild } = useGuildDetailBinding({
     guildId: resolvedGuildId,
   });
 
@@ -52,7 +52,6 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const { entries, isStreaming, currentSessionId, sendMessage, stopChat } = useSessionChatBinding({
     guildId: resolvedGuildId,
     sessionId,
-    chatSessions: guildData?.chatSessions ?? [],
   });
 
   useEffect(() => {

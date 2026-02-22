@@ -27,7 +27,6 @@ describe('guildGetBroker', () => {
         path: '/home/user/my-app',
         urlSlug: 'my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
-        chatSessions: [],
       });
     });
 
@@ -58,7 +57,6 @@ describe('guildGetBroker', () => {
         path: '/home/user/second',
         urlSlug: 'my-guild',
         createdAt: '2024-02-20T12:00:00.000Z',
-        chatSessions: [],
       });
     });
   });
@@ -87,7 +85,6 @@ describe('guildGetBroker', () => {
         path: '/home/user/my-cool-app',
         urlSlug: 'my-cool-app',
         createdAt: '2024-01-15T10:00:00.000Z',
-        chatSessions: [],
       });
     });
   });

@@ -1,5 +1,4 @@
 import {
-  ChatSessionStub,
   GuildIdStub,
   ProcessIdStub,
   SessionIdStub,
@@ -511,40 +510,6 @@ describe('useSessionChatBinding', () => {
   });
 
   describe('history loading', () => {
-    it('VALID: {guildId + chatSessions with active session} => loads history on mount', async () => {
-      const proxy = useSessionChatBindingProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const sessionId = SessionIdStub({ value: 'session-active-1' });
-      const chatSessions = [ChatSessionStub({ sessionId, active: true })];
-
-      proxy.setupHistory({
-        entries: [
-          { type: 'user', message: { role: 'user', content: 'Previous question' } },
-          {
-            type: 'assistant',
-            message: { content: [{ type: 'text', text: 'Previous answer' }] },
-          },
-        ],
-      });
-
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionChatBinding({ guildId, chatSessions }),
-      });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
-      });
-
-      expect(result.current.entries).toStrictEqual([
-        { role: 'user', content: 'Previous question' },
-        { role: 'assistant', type: 'text', content: 'Previous answer' },
-      ]);
-    });
-
     it('VALID: {guildId + initialSessionId} => loads history using initialSessionId', async () => {
       const proxy = useSessionChatBindingProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -598,46 +563,6 @@ describe('useSessionChatBinding', () => {
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId: null }),
-      });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
-      });
-
-      expect(result.current.entries).toStrictEqual([]);
-    });
-
-    it('EDGE: {chatSessions with no active session} => does not load history', async () => {
-      useSessionChatBindingProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const chatSessions = [ChatSessionStub({ active: false })];
-
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionChatBinding({ guildId, chatSessions }),
-      });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
-      });
-
-      expect(result.current.entries).toStrictEqual([]);
-    });
-
-    it('EDGE: {empty chatSessions} => does not load history', async () => {
-      useSessionChatBindingProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const chatSessions: ReturnType<typeof ChatSessionStub>[] = [];
-
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionChatBinding({ guildId, chatSessions }),
       });
 
       await testingLibraryActAsyncAdapter({

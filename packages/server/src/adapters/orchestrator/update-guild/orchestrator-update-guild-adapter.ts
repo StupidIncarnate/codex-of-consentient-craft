@@ -13,16 +13,13 @@ export const orchestratorUpdateGuildAdapter = async ({
   guildId,
   name,
   path,
-  chatSessions,
 }: {
   guildId: GuildId;
   name?: GuildName;
   path?: GuildPath;
-  chatSessions?: Guild['chatSessions'];
 }): Promise<Guild> =>
   StartOrchestrator.updateGuild({
     guildId,
     ...(name !== undefined && { name }),
     ...(path !== undefined && { path }),
-    ...(chatSessions !== undefined && { chatSessions }),
   });

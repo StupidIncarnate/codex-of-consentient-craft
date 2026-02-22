@@ -8,7 +8,6 @@
 
 import { z } from 'zod';
 
-import { chatSessionContract } from '../chat-session/chat-session-contract';
 import { contextContract } from '../context/context-contract';
 import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
@@ -78,10 +77,6 @@ export const questContract = z.object({
     .describe(
       'User journey sequences linking requirements to entry/exit points with mermaid diagrams',
     ),
-  chatSessions: z
-    .array(chatSessionContract)
-    .default([])
-    .describe('Chat sessions associated with this quest for resumable agent conversations'),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
 });

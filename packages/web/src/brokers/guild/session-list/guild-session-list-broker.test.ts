@@ -8,7 +8,7 @@ describe('guildSessionListBroker', () => {
     it('VALID: {guildId} => returns session list', async () => {
       const proxy = guildSessionListBrokerProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const session = SessionListItemStub({ active: true });
+      const session = SessionListItemStub();
       const sessions = [session];
 
       proxy.setupSessions({ sessions });
