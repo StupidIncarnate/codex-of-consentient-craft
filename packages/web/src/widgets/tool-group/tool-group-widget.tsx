@@ -44,7 +44,7 @@ export const ToolGroupWidget = ({
   const headerText =
     formattedTokens === null
       ? `${chevron} ${String(group.toolCount)} Tools`
-      : `${chevron} ${String(group.toolCount)} Tools (${formattedTokens})`;
+      : `${chevron} ${String(group.toolCount)} Tools (${formattedTokens} context)`;
 
   const lastEntry = group.entries.at(-1);
 
@@ -92,9 +92,27 @@ export const ToolGroupWidget = ({
 
       {expanded ? (
         <Box style={{ paddingLeft: 12 }}>
-          {group.entries.map((entry, index) => (
-            <ChatMessageWidget key={index} entry={entry} isStreaming={isStreaming} />
-          ))}
+          {group.entries.map((entry, index) => {
+            const outputCount =
+              'usage' in entry && entry.usage !== undefined ? Number(entry.usage.outputTokens) : 0;
+
+            if (outputCount === 0) {
+              return <ChatMessageWidget key={index} entry={entry} isStreaming={isStreaming} />;
+            }
+
+            const tokenBadgeLabel = formatContextTokensTransformer({
+              count: contextTokenCountContract.parse(outputCount),
+            });
+
+            return (
+              <ChatMessageWidget
+                key={index}
+                entry={entry}
+                isStreaming={isStreaming}
+                tokenBadgeLabel={tokenBadgeLabel}
+              />
+            );
+          })}
         </Box>
       ) : null}
     </Box>

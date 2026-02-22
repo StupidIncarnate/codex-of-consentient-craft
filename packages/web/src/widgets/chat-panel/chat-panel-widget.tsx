@@ -20,6 +20,7 @@ import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
 import { contextTokenDeltaContract } from '../../contracts/context-token-delta/context-token-delta-contract';
+import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
 import { raccoonAnimationIntervalTransformer } from '../../transformers/raccoon-animation-interval/raccoon-animation-interval-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
@@ -166,22 +167,15 @@ export const ChatPanelWidget = ({
             } else {
               const { entry } = group;
 
-              elements.push(
-                <ChatMessageWidget
-                  key={`single-${String(i)}`}
-                  entry={entry}
-                  isStreaming={isStreaming}
-                />,
-              );
-
-              if (
+              const hasUsage =
                 entry.role === 'assistant' &&
                 'type' in entry &&
                 entry.type === 'text' &&
                 'usage' in entry &&
                 entry.usage !== undefined &&
-                !isStreaming
-              ) {
+                !isStreaming;
+
+              if (hasUsage && entry.usage !== undefined) {
                 const entrySource =
                   'source' in entry && entry.source === 'subagent' ? 'subagent' : 'session';
                 const totalContext = contextTokenCountContract.parse(
@@ -192,6 +186,23 @@ export const ChatPanelWidget = ({
 
                 const prevContext =
                   entrySource === 'subagent' ? prevSubagentContext : prevSessionContext;
+                const deltaCount =
+                  prevContext === null
+                    ? totalContext
+                    : contextTokenCountContract.parse(
+                        Math.max(0, Number(totalContext) - Number(prevContext)),
+                      );
+                const tokenBadgeLabel = formatContextTokensTransformer({ count: deltaCount });
+
+                elements.push(
+                  <ChatMessageWidget
+                    key={`single-${String(i)}`}
+                    entry={entry}
+                    isStreaming={isStreaming}
+                    tokenBadgeLabel={tokenBadgeLabel}
+                  />,
+                );
+
                 const delta =
                   prevContext === null
                     ? null
@@ -211,6 +222,14 @@ export const ChatPanelWidget = ({
                 } else {
                   prevSessionContext = totalContext;
                 }
+              } else {
+                elements.push(
+                  <ChatMessageWidget
+                    key={`single-${String(i)}`}
+                    entry={entry}
+                    isStreaming={isStreaming}
+                  />,
+                );
               }
             }
           }

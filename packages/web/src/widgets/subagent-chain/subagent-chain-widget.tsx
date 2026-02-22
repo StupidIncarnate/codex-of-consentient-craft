@@ -41,7 +41,7 @@ export const SubagentChainWidget = ({
   const entrySuffix =
     formattedTokens === null
       ? `${String(group.entryCount)} entries`
-      : `${String(group.entryCount)} entries, ${formattedTokens}`;
+      : `${String(group.entryCount)} entries, ${formattedTokens} context`;
 
   return (
     <Box>
@@ -79,15 +79,36 @@ export const SubagentChainWidget = ({
 
       {expanded ? (
         <Box style={{ paddingLeft: 12 }}>
-          {group.innerGroups.map((innerGroup, index) =>
-            innerGroup.kind === 'single' ? (
+          {group.innerGroups.map((innerGroup, index) => {
+            if (innerGroup.kind !== 'single') return null;
+
+            const { entry } = innerGroup;
+            const outputCount =
+              'usage' in entry && entry.usage !== undefined ? Number(entry.usage.outputTokens) : 0;
+
+            if (outputCount === 0) {
+              return (
+                <ChatMessageWidget
+                  key={`inner-${String(index)}`}
+                  entry={entry}
+                  isStreaming={isStreaming}
+                />
+              );
+            }
+
+            const tokenBadgeLabel = formatContextTokensTransformer({
+              count: contextTokenCountContract.parse(outputCount),
+            });
+
+            return (
               <ChatMessageWidget
                 key={`inner-${String(index)}`}
-                entry={innerGroup.entry}
+                entry={entry}
                 isStreaming={isStreaming}
+                tokenBadgeLabel={tokenBadgeLabel}
               />
-            ) : null,
-          )}
+            );
+          })}
           {group.taskNotification === null ? null : (
             <ChatMessageWidget entry={group.taskNotification} isStreaming={isStreaming} />
           )}

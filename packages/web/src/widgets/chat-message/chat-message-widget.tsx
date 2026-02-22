@@ -11,6 +11,7 @@ import { useState } from 'react';
 
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
+import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -22,6 +23,7 @@ export interface ChatMessageWidgetProps {
   entry: ChatEntry;
   isLoading?: boolean;
   isStreaming?: boolean;
+  tokenBadgeLabel?: FormattedTokenLabel;
 }
 
 const BORDER_WIDTH = '2px solid';
@@ -31,6 +33,7 @@ export const ChatMessageWidget = ({
   entry,
   isLoading,
   isStreaming,
+  tokenBadgeLabel,
 }: ChatMessageWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const isSubagent = 'source' in entry && entry.source === 'subagent';
@@ -219,20 +222,13 @@ export const ChatMessageWidget = ({
         <Text ff="monospace" size="xs" style={{ color: colors.text }}>
           {entry.content}
         </Text>
-        {entry.usage && !isStreaming ? (
+        {tokenBadgeLabel !== undefined && !isStreaming ? (
           <Text
             ff="monospace"
             data-testid="TOKEN_BADGE"
             style={{ color: colors['text-dim'], fontSize: 10 }}
           >
-            {formatContextTokensTransformer({
-              count: contextTokenCountContract.parse(
-                Number(entry.usage.inputTokens) +
-                  Number(entry.usage.cacheCreationInputTokens) +
-                  Number(entry.usage.cacheReadInputTokens),
-              ),
-            })}{' '}
-            context ({entry.usage.outputTokens} out)
+            {tokenBadgeLabel} context
           </Text>
         ) : null}
       </Box>
@@ -240,6 +236,17 @@ export const ChatMessageWidget = ({
   }
 
   if (entry.type === 'tool_use') {
+    const toolBadge =
+      tokenBadgeLabel !== undefined && !isStreaming ? (
+        <Text
+          ff="monospace"
+          data-testid="TOKEN_BADGE"
+          style={{ color: colors['text-dim'], fontSize: 10 }}
+        >
+          {tokenBadgeLabel} context
+        </Text>
+      ) : null;
+
     // Skill invocation (Improvement 8)
     if (entry.toolName === 'Skill') {
       const skillFormatted = formatToolInputTransformer({
@@ -289,6 +296,7 @@ export const ChatMessageWidget = ({
                 </Text>
               ))
             : null}
+          {toolBadge}
           {isLoading ? (
             <Text
               ff="monospace"
@@ -412,6 +420,7 @@ export const ChatMessageWidget = ({
             {entry.toolName}: {entry.toolInput}
           </Text>
         )}
+        {toolBadge}
         {isLoading ? (
           <Text
             ff="monospace"

@@ -12,6 +12,7 @@
     "lint": "dungeonmaster-ward run --only lint",
     "typecheck": "dungeonmaster-ward run --only typecheck",
     "ward": "dungeonmaster-ward run",
+    "ward:changed": "dungeonmaster-ward run --changed",
     "dev": "npm run dev:kill; DUNGEONMASTER_PORT=4737 DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/server & DUNGEONMASTER_PORT=4737 DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/web & wait",
     "dev:kill": "P=${DUNGEONMASTER_PORT:-4737}; lsof -ti :$P -ti :$((P+1)) | xargs -r kill -9 2>/dev/null; echo 'Killed existing dev instances on ports '$P' and '$((P+1))",
     "changeset": "changeset",

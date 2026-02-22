@@ -9,6 +9,7 @@ import {
   TaskNotificationChatEntryStub,
   UserChatEntryStub,
 } from '../../contracts/chat-entry/chat-entry.stub';
+import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
 import { ChatMessageWidget } from './chat-message-widget';
 import { ChatMessageWidgetProxy } from './chat-message-widget.proxy';
 
@@ -88,7 +89,7 @@ describe('ChatMessageWidget', () => {
       expect(message.style.textAlign).toBe('right');
     });
 
-    it('VALID: {usage present} => renders token count badge below content', () => {
+    it('VALID: {tokenBadgeLabel present} => renders token badge below content', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({
         usage: {
@@ -98,12 +99,15 @@ describe('ChatMessageWidget', () => {
           cacheReadInputTokens: 0,
         },
       });
+      const tokenBadgeLabel = FormattedTokenLabelStub({ value: '2.1k' });
 
-      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+      mantineRenderAdapter({
+        ui: <ChatMessageWidget entry={entry} tokenBadgeLabel={tokenBadgeLabel} />,
+      });
 
       const badge = screen.getByTestId('TOKEN_BADGE');
 
-      expect(badge.textContent).toBe('100 context (50 out)');
+      expect(badge.textContent).toBe('2.1k context');
       expect(badge.style.fontSize).toBe('10px');
 
       const message = screen.getByTestId('CHAT_MESSAGE');
@@ -116,7 +120,7 @@ describe('ChatMessageWidget', () => {
       expect(badgeIndex).toBeGreaterThan(labelIndex + 1);
     });
 
-    it('VALID: {usage present, isStreaming true} => does not render token count badge', () => {
+    it('VALID: {tokenBadgeLabel present, isStreaming true} => does not render token count badge', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({
         usage: {
@@ -126,9 +130,12 @@ describe('ChatMessageWidget', () => {
           cacheReadInputTokens: 0,
         },
       });
+      const tokenBadgeLabel = FormattedTokenLabelStub({ value: '2.1k' });
 
       mantineRenderAdapter({
-        ui: <ChatMessageWidget entry={entry} isStreaming={true} />,
+        ui: (
+          <ChatMessageWidget entry={entry} isStreaming={true} tokenBadgeLabel={tokenBadgeLabel} />
+        ),
       });
 
       expect(screen.queryByTestId('TOKEN_BADGE')).toBeNull();

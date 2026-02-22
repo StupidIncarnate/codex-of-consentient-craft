@@ -71,6 +71,20 @@ describe('architectureOverviewBroker', () => {
     });
   });
 
+  describe('quality commands', () => {
+    it('VALID: {} => includes quality commands section with ward guidance', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result.includes('## Quality Commands')).toBe(true);
+      expect(result.includes('dungeonmaster-ward')).toBe(true);
+      expect(result.includes('npx dungeonmaster-ward run --only test')).toBe(true);
+      expect(result.includes('npx dungeonmaster-ward run --only lint')).toBe(true);
+      expect(result.includes('npx dungeonmaster-ward run --only typecheck')).toBe(true);
+    });
+  });
+
   describe('critical rules', () => {
     it('VALID: {} => includes never-do rules', () => {
       architectureOverviewBrokerProxy();

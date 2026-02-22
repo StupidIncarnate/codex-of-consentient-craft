@@ -6,6 +6,7 @@
  * // Returns { shouldBlock: boolean, message?: string } indicating whether to block the bash command
  */
 import { isBlockedQualityCommandGuard } from '../../../guards/is-blocked-quality-command/is-blocked-quality-command-guard';
+import { wardSuggestionMessageTransformer } from '../../../transformers/ward-suggestion-message/ward-suggestion-message-transformer';
 import { bashToolInputContract } from '../../../contracts/bash-tool-input/bash-tool-input-contract';
 import { preToolUseHookDataContract } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
 import { hookPreEditResponderResultContract } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
@@ -41,8 +42,7 @@ export const HookPreBashResponder = ({
   if (isBlocked) {
     return hookPreEditResponderResultContract.parse({
       shouldBlock: true,
-      message:
-        'Direct invocation of jest/eslint/tsc is blocked. Use `dungeonmaster-ward` or `npm run ward` instead.',
+      message: wardSuggestionMessageTransformer({ command: parseResult.data.command }),
     });
   }
 

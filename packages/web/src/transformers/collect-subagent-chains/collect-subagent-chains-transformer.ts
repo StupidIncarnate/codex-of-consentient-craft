@@ -6,6 +6,7 @@
  * // Returns ChatEntryGroup[] with subagent-chain groups and normal groups interleaved
  */
 
+import { arrayIndexContract, type ArrayIndex } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type {
   ChatEntryGroup,
@@ -104,8 +105,10 @@ export const collectSubagentChainsTransformer = ({
   const remaining = flushNormalBufferTransformer({ buffer: normalBuffer });
   groups.push(...remaining);
 
-  const entryIndices = entries.map((e, i) => [e, i] as const);
-  const entryIndexMap = new Map(entryIndices);
+  const entryIndexMap = new Map<ChatEntry, ArrayIndex>();
+  entries.forEach((e, i) => {
+    entryIndexMap.set(e, arrayIndexContract.parse(i));
+  });
 
   for (let gi = 0; gi < groups.length; gi++) {
     const group = groups[gi];

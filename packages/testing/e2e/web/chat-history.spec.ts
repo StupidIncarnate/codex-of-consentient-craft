@@ -5,6 +5,7 @@ import {
   createGuild,
   queueClaudeResponse,
   clearClaudeQueue,
+  cleanSessionFiles,
   SimpleTextResponseStub,
   ResumeResponseStub,
 } from './fixtures/test-helpers';
@@ -19,6 +20,7 @@ test.describe('Chat History & Sessions', () => {
   test.beforeEach(async ({ request }) => {
     await cleanGuilds(request);
     clearClaudeQueue();
+    cleanSessionFiles({ guildPath: GUILD_PATH });
     mkdirSync(GUILD_PATH, { recursive: true });
   });
 
