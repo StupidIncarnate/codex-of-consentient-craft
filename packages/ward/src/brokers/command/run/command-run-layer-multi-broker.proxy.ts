@@ -7,6 +7,8 @@ import { storageSaveBrokerProxy } from '../../storage/save/storage-save-broker.p
 import { storagePruneBrokerProxy } from '../../storage/prune/storage-prune-broker.proxy';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
 
+const CHILD_RUN_ID = '1739625600000-a38e';
+
 export const commandRunLayerMultiBrokerProxy = (): {
   setupSpawnAndLoad: (params: { packageCount: number; subResultContent: string }) => void;
   setupSpawnAndLoadSelective: (params: { packages: { subResultContent: string }[] }) => void;
@@ -37,11 +39,12 @@ export const commandRunLayerMultiBrokerProxy = (): {
       subResultContent: string;
     }): void => {
       Array.from({ length: packageCount }).forEach(() => {
-        captureProxy.setupSuccess({ exitCode: successCode, stdout: '', stderr: '' });
-        loadProxy.setupLatestRun({
-          entries: ['run-1739625600000-a38e.json'],
-          content: subResultContent,
+        captureProxy.setupSuccess({
+          exitCode: successCode,
+          stdout: `run: ${CHILD_RUN_ID}\n`,
+          stderr: '',
         });
+        loadProxy.setupRunById({ content: subResultContent });
       });
       saveProxy.setupSuccess();
       pruneProxy.setupEmpty();
@@ -52,11 +55,12 @@ export const commandRunLayerMultiBrokerProxy = (): {
       packages: { subResultContent: string }[];
     }): void => {
       for (const pkg of packages) {
-        captureProxy.setupSuccess({ exitCode: successCode, stdout: '', stderr: '' });
-        loadProxy.setupLatestRun({
-          entries: ['run-1739625600000-a38e.json'],
-          content: pkg.subResultContent,
+        captureProxy.setupSuccess({
+          exitCode: successCode,
+          stdout: `run: ${CHILD_RUN_ID}\n`,
+          stderr: '',
         });
+        loadProxy.setupRunById({ content: pkg.subResultContent });
       }
       saveProxy.setupSuccess();
       pruneProxy.setupEmpty();

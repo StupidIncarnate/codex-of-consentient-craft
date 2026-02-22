@@ -22,6 +22,7 @@ import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check
 import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/ward-spawn-command-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
 import { checkResultBuildTransformer } from '../../../transformers/check-result-build/check-result-build-transformer';
+import { extractChildRunIdTransformer } from '../../../transformers/extract-child-run-id/extract-child-run-id-transformer';
 import { hasPassthroughMatchGuard } from '../../../guards/has-passthrough-match/has-passthrough-match-guard';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
@@ -81,10 +82,19 @@ export const commandRunLayerMultiBroker = async ({
       }
 
       const cwd = absoluteFilePathContract.parse(folder.path);
-      await childProcessSpawnCaptureAdapter({ command: 'npx', args: spawnArgs, cwd });
+      const spawnResult = await childProcessSpawnCaptureAdapter({
+        command: 'npx',
+        args: spawnArgs,
+        cwd,
+      });
 
       const pkgRootPath = absoluteFilePathContract.parse(folder.path);
-      const result = await storageLoadBroker({ rootPath: pkgRootPath });
+      const childRunId = extractChildRunIdTransformer({ output: spawnResult.output });
+
+      const result = await storageLoadBroker({
+        rootPath: pkgRootPath,
+        ...(childRunId === null ? {} : { runId: childRunId }),
+      });
 
       if (result !== null) {
         for (const check of result.checks) {
