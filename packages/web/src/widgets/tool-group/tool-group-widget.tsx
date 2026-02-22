@@ -11,7 +11,10 @@ import { useState } from 'react';
 
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
+import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
+import { formattedTokenLabelContract } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { estimateContentTokensTransformer } from '../../transformers/estimate-content-tokens/estimate-content-tokens-transformer';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 
@@ -92,27 +95,69 @@ export const ToolGroupWidget = ({
 
       {expanded ? (
         <Box style={{ paddingLeft: 12 }}>
-          {group.entries.map((entry, index) => {
-            const outputCount =
-              'usage' in entry && entry.usage !== undefined ? Number(entry.usage.outputTokens) : 0;
+          {(() => {
+            let prevContext: ContextTokenCount | null = null;
 
-            if (outputCount === 0) {
+            return group.entries.map((entry, index) => {
+              if ('usage' in entry && entry.usage !== undefined) {
+                const totalContext = contextTokenCountContract.parse(
+                  Number(entry.usage.inputTokens) +
+                    Number(entry.usage.cacheCreationInputTokens) +
+                    Number(entry.usage.cacheReadInputTokens),
+                );
+                const delta =
+                  prevContext === null
+                    ? totalContext
+                    : contextTokenCountContract.parse(
+                        Math.max(0, Number(totalContext) - Number(prevContext)),
+                      );
+                prevContext = totalContext;
+
+                if (Number(delta) === 0) {
+                  return <ChatMessageWidget key={index} entry={entry} isStreaming={isStreaming} />;
+                }
+
+                const tokenBadgeLabel = formattedTokenLabelContract.parse(
+                  `${formatContextTokensTransformer({ count: delta })} context`,
+                );
+
+                return (
+                  <ChatMessageWidget
+                    key={index}
+                    entry={entry}
+                    isStreaming={isStreaming}
+                    tokenBadgeLabel={tokenBadgeLabel}
+                  />
+                );
+              }
+
+              if (
+                'type' in entry &&
+                entry.type === 'tool_result' &&
+                'content' in entry &&
+                typeof entry.content === 'string' &&
+                entry.content.length > 0
+              ) {
+                const estimated = estimateContentTokensTransformer({ content: entry.content });
+                if (Number(estimated) > 0) {
+                  const tokenBadgeLabel = formattedTokenLabelContract.parse(
+                    `~${formatContextTokensTransformer({ count: estimated })} est`,
+                  );
+
+                  return (
+                    <ChatMessageWidget
+                      key={index}
+                      entry={entry}
+                      isStreaming={isStreaming}
+                      tokenBadgeLabel={tokenBadgeLabel}
+                    />
+                  );
+                }
+              }
+
               return <ChatMessageWidget key={index} entry={entry} isStreaming={isStreaming} />;
-            }
-
-            const tokenBadgeLabel = formatContextTokensTransformer({
-              count: contextTokenCountContract.parse(outputCount),
             });
-
-            return (
-              <ChatMessageWidget
-                key={index}
-                entry={entry}
-                isStreaming={isStreaming}
-                tokenBadgeLabel={tokenBadgeLabel}
-              />
-            );
-          })}
+          })()}
         </Box>
       ) : null}
     </Box>

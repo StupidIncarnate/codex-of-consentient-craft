@@ -472,7 +472,7 @@ describe('ChatPanelWidget', () => {
       const tokenBadge = screen.queryByTestId('TOKEN_BADGE');
 
       expect(tokenBadge).not.toBeNull();
-      expect(tokenBadge?.textContent).toStrictEqual('500 context');
+      expect(tokenBadge?.textContent).toBe('500 context');
     });
   });
 
