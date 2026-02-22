@@ -22,7 +22,6 @@ import { truncateContentTransformer } from '../../transformers/truncate-content/
 export interface ChatMessageWidgetProps {
   entry: ChatEntry;
   isLoading?: boolean;
-  isStreaming?: boolean;
   tokenBadgeLabel?: FormattedTokenLabel;
 }
 
@@ -32,7 +31,6 @@ const LABEL_FONT_WEIGHT = 600;
 export const ChatMessageWidget = ({
   entry,
   isLoading,
-  isStreaming,
   tokenBadgeLabel,
 }: ChatMessageWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
@@ -41,7 +39,7 @@ export const ChatMessageWidget = ({
   const [expandedFields, setExpandedFields] = useState<Record<PropertyKey, boolean>>({});
 
   const tokenBadgeElement =
-    tokenBadgeLabel !== undefined && !isStreaming ? (
+    tokenBadgeLabel === undefined ? null : (
       <Text
         ff="monospace"
         data-testid="TOKEN_BADGE"
@@ -49,7 +47,7 @@ export const ChatMessageWidget = ({
       >
         {tokenBadgeLabel}
       </Text>
-    ) : null;
+    );
 
   // Task notification - MUST come BEFORE system error check
   if (entry.role === 'system' && entry.type === 'task_notification') {
@@ -218,7 +216,8 @@ export const ChatMessageWidget = ({
           backgroundColor: 'transparent',
           borderLeft: `${BORDER_WIDTH} ${textBorderColor}`,
           borderRight: `${BORDER_WIDTH} ${textBorderColor}`,
-          textAlign: 'right',
+          textAlign: 'left',
+          paddingLeft: '15%',
         }}
       >
         <Text
@@ -230,7 +229,7 @@ export const ChatMessageWidget = ({
         >
           {textLabel}
         </Text>
-        <Text ff="monospace" size="xs" style={{ color: colors.text }}>
+        <Text ff="monospace" size="xs" style={{ color: colors.text, whiteSpace: 'pre-wrap' }}>
           {entry.content}
         </Text>
         {tokenBadgeElement}
@@ -263,7 +262,8 @@ export const ChatMessageWidget = ({
             backgroundColor: 'transparent',
             borderLeft: `${BORDER_WIDTH} ${colors['loot-gold']}`,
             borderRight: `${BORDER_WIDTH} ${colors['loot-gold']}`,
-            textAlign: 'right',
+            textAlign: 'left',
+            paddingLeft: '15%',
           }}
         >
           <Text
@@ -327,7 +327,8 @@ export const ChatMessageWidget = ({
           backgroundColor: 'transparent',
           borderLeft: `${BORDER_WIDTH} ${toolUseBorderColor}`,
           borderRight: `${BORDER_WIDTH} ${toolUseBorderColor}`,
-          textAlign: 'right',
+          textAlign: 'left',
+          paddingLeft: '15%',
         }}
       >
         <Text
@@ -448,7 +449,8 @@ export const ChatMessageWidget = ({
           backgroundColor: 'transparent',
           borderLeft: `${BORDER_WIDTH} ${colors.warning}`,
           borderRight: `${BORDER_WIDTH} ${colors.warning}`,
-          textAlign: 'right',
+          textAlign: 'left',
+          paddingLeft: '15%',
         }}
       >
         <Text
@@ -487,7 +489,8 @@ export const ChatMessageWidget = ({
         backgroundColor: 'transparent',
         borderLeft: `${BORDER_WIDTH} ${toolResultColor}`,
         borderRight: `${BORDER_WIDTH} ${toolResultColor}`,
-        textAlign: 'right',
+        textAlign: 'left',
+        paddingLeft: '15%',
       }}
     >
       <Text

@@ -22,7 +22,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       expect(proxy.isHeaderVisible()).toBe(true);
@@ -38,7 +38,7 @@ describe('SubagentChainWidget', () => {
       const group = SubagentChainGroupStub();
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       expect(proxy.isBadgeVisible()).toBe(true);
@@ -53,7 +53,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
@@ -70,7 +70,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
@@ -84,7 +84,7 @@ describe('SubagentChainWidget', () => {
       const group = SubagentChainGroupStub();
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
@@ -99,7 +99,7 @@ describe('SubagentChainWidget', () => {
       const group = SubagentChainGroupStub();
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -112,7 +112,7 @@ describe('SubagentChainWidget', () => {
       const group = SubagentChainGroupStub();
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -126,7 +126,7 @@ describe('SubagentChainWidget', () => {
       const group = SubagentChainGroupStub();
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -154,7 +154,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -175,7 +175,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -194,7 +194,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -218,7 +218,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -249,7 +249,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -294,7 +294,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -340,7 +340,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -366,7 +366,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -393,7 +393,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -416,7 +416,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();
@@ -506,7 +506,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <SubagentChainWidget group={group} isStreaming={false} />,
+        ui: <SubagentChainWidget group={group} />,
       });
 
       await proxy.clickHeader();

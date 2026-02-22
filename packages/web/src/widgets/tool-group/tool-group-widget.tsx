@@ -89,7 +89,7 @@ export const ToolGroupWidget = ({
 
       {isActiveStreaming && !expanded && lastEntry !== undefined ? (
         <Box style={{ paddingLeft: 12 }}>
-          <ChatMessageWidget entry={lastEntry} isLoading={true} isStreaming={isStreaming} />
+          <ChatMessageWidget entry={lastEntry} isLoading={true} />
         </Box>
       ) : null}
 
@@ -114,7 +114,7 @@ export const ToolGroupWidget = ({
                 prevContext = totalContext;
 
                 if (Number(delta) === 0) {
-                  return <ChatMessageWidget key={index} entry={entry} isStreaming={isStreaming} />;
+                  return <ChatMessageWidget key={index} entry={entry} />;
                 }
 
                 const tokenBadgeLabel = formattedTokenLabelContract.parse(
@@ -122,12 +122,7 @@ export const ToolGroupWidget = ({
                 );
 
                 return (
-                  <ChatMessageWidget
-                    key={index}
-                    entry={entry}
-                    isStreaming={isStreaming}
-                    tokenBadgeLabel={tokenBadgeLabel}
-                  />
+                  <ChatMessageWidget key={index} entry={entry} tokenBadgeLabel={tokenBadgeLabel} />
                 );
               }
 
@@ -148,14 +143,13 @@ export const ToolGroupWidget = ({
                     <ChatMessageWidget
                       key={index}
                       entry={entry}
-                      isStreaming={isStreaming}
                       tokenBadgeLabel={tokenBadgeLabel}
                     />
                   );
                 }
               }
 
-              return <ChatMessageWidget key={index} entry={entry} isStreaming={isStreaming} />;
+              return <ChatMessageWidget key={index} entry={entry} />;
             });
           })()}
         </Box>
