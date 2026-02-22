@@ -40,14 +40,7 @@ jest.mock('child_process', () => ({
   spawn: jest.fn(),
 }));
 
-import {
-  architectureOverviewBrokerProxy,
-  osHomedirAdapterProxy,
-} from '@dungeonmaster/shared/testing';
-import { architectureFolderDetailBrokerProxy } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
-import { architectureSyntaxRulesBrokerProxy } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker.proxy';
-import { architectureTestingPatternsBrokerProxy } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';
-import { mcpDiscoverBrokerProxy } from '../brokers/mcp/discover/mcp-discover-broker.proxy';
+import { osHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
 import type {
   AddQuestResult,
   GetQuestResult,
@@ -134,11 +127,7 @@ export const StartServerProxy = (): {
 } => {
   const serveProxy = honoServeAdapterProxy();
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
-  architectureOverviewBrokerProxy();
-  architectureFolderDetailBrokerProxy();
-  architectureSyntaxRulesBrokerProxy();
-  architectureTestingPatternsBrokerProxy();
-  mcpDiscoverBrokerProxy();
+  jest.mocked(_join).mockImplementation((...segments) => segments.join('/'));
   agentOutputBufferStateProxy();
   chatProcessStateProxy();
   const broadcastProxy = wsEventRelayBroadcastBrokerProxy();

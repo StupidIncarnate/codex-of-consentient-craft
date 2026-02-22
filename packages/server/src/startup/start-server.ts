@@ -3,7 +3,7 @@
  *
  * USAGE:
  * StartServer();
- * // Starts HTTP server on port 3737 with guild, quest, process, health, docs endpoints, and WebSocket event relay
+ * // Starts HTTP server on port 3737 with guild, quest, process, health endpoints, and WebSocket event relay
  */
 
 import { Hono } from 'hono';
@@ -25,11 +25,6 @@ import {
   absoluteFilePathContract,
 } from '@dungeonmaster/shared/contracts';
 import type { SessionId } from '@dungeonmaster/shared/contracts';
-import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
-import { architectureFolderDetailBroker } from '../brokers/architecture/folder-detail/architecture-folder-detail-broker';
-import { architectureSyntaxRulesBroker } from '../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
-import { architectureTestingPatternsBroker } from '../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
-import { mcpDiscoverBroker } from '../brokers/mcp/discover/mcp-discover-broker';
 import {
   isoTimestampContract,
   orchestrationEventsState,
@@ -391,63 +386,6 @@ export const StartServer = (): void => {
       return c.json({ slots });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to get process output';
-      return c.json({ error: message }, httpStatusStatics.serverError.internal);
-    }
-  });
-
-  // Docs - architecture overview
-  app.get(apiRoutesStatics.docs.architecture, (c) => {
-    try {
-      const result = architectureOverviewBroker();
-      return c.json({ content: result });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to get architecture';
-      return c.json({ error: message }, httpStatusStatics.serverError.internal);
-    }
-  });
-
-  // Docs - folder detail
-  app.get(apiRoutesStatics.docs.folderDetail, (c) => {
-    try {
-      const folderType = c.req.param('type');
-      const result = architectureFolderDetailBroker({ folderType: folderType as never });
-      return c.json({ content: result });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to get folder detail';
-      return c.json({ error: message }, httpStatusStatics.serverError.internal);
-    }
-  });
-
-  // Docs - syntax rules
-  app.get(apiRoutesStatics.docs.syntaxRules, (c) => {
-    try {
-      const result = architectureSyntaxRulesBroker();
-      return c.json({ content: result });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to get syntax rules';
-      return c.json({ error: message }, httpStatusStatics.serverError.internal);
-    }
-  });
-
-  // Docs - testing patterns
-  app.get(apiRoutesStatics.docs.testingPatterns, (c) => {
-    try {
-      const result = architectureTestingPatternsBroker();
-      return c.json({ content: result });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to get testing patterns';
-      return c.json({ error: message }, httpStatusStatics.serverError.internal);
-    }
-  });
-
-  // Discover
-  app.post(apiRoutesStatics.discover.search, async (c) => {
-    try {
-      const body: unknown = await c.req.json();
-      const result = await mcpDiscoverBroker({ input: body as never });
-      return c.json(result);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to discover';
       return c.json({ error: message }, httpStatusStatics.serverError.internal);
     }
   });

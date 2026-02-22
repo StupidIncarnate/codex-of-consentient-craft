@@ -23,9 +23,6 @@ export const apiRoutesStatics = {
     status: '/api/process/:processId',
     output: '/api/process/:processId/output',
   },
-  discover: {
-    search: '/api/discover',
-  },
   guilds: {
     list: '/api/guilds',
     byId: '/api/guilds/:guildId',
@@ -42,11 +39,5 @@ export const apiRoutesStatics = {
   },
   directories: {
     browse: '/api/directories/browse',
-  },
-  docs: {
-    architecture: '/api/docs/architecture',
-    folderDetail: '/api/docs/folder-detail/:type',
-    syntaxRules: '/api/docs/syntax-rules',
-    testingPatterns: '/api/docs/testing-patterns',
   },
 } as const;
