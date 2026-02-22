@@ -17,10 +17,12 @@ import type { WardConfig } from '../../../contracts/ward-config/ward-config-cont
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import type { CheckResult } from '../../../contracts/check-result/check-result-contract';
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
+import { cliArgContract } from '../../../contracts/cli-arg/cli-arg-contract';
 import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
 import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/ward-spawn-command-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
 import { checkResultBuildTransformer } from '../../../transformers/check-result-build/check-result-build-transformer';
+import { hasPassthroughMatchGuard } from '../../../guards/has-passthrough-match/has-passthrough-match-guard';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
 import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
@@ -40,21 +42,41 @@ export const commandRunLayerMultiBroker = async ({
   const checkTypes = config.only ?? [...allCheckTypesStatics];
   const hasPassthrough = Array.isArray(config.passthrough) && config.passthrough.length > 0;
 
-  const spawnArgs = wardSpawnCommandStatics.baseArgs.map(String);
-
-  if (config.only) {
-    spawnArgs.push('--only', config.only.join(','));
-  }
-
-  if (hasPassthrough && config.passthrough) {
-    spawnArgs.push('--', ...config.passthrough.map(String));
-  }
-
   const CHECK_PAD = 12;
   const NAME_PAD = 20;
 
+  const filteredFolders =
+    hasPassthrough && config.passthrough
+      ? projectFolders.filter((folder) =>
+          config.passthrough?.some((arg) =>
+            hasPassthroughMatchGuard({
+              passthroughArg: cliArgContract.parse(arg),
+              projectFolder: folder,
+              rootPath,
+            }),
+          ),
+        )
+      : projectFolders;
+
   const subResults = await Promise.all(
-    projectFolders.map(async (folder) => {
+    filteredFolders.map(async (folder) => {
+      const spawnArgs = wardSpawnCommandStatics.baseArgs.map(String);
+
+      if (config.only) {
+        spawnArgs.push('--only', config.only.join(','));
+      }
+
+      if (hasPassthrough && config.passthrough) {
+        const matchingArgs = config.passthrough.filter((arg) =>
+          hasPassthroughMatchGuard({
+            passthroughArg: cliArgContract.parse(arg),
+            projectFolder: folder,
+            rootPath,
+          }),
+        );
+        spawnArgs.push('--', ...matchingArgs.map(String));
+      }
+
       const cwd = absoluteFilePathContract.parse(folder.path);
       await childProcessSpawnCaptureAdapter({ command: 'npx', args: spawnArgs, cwd });
 
