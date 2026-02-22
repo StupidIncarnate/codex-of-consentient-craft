@@ -9,4 +9,5 @@
 export const tokenFormatConfigStatics = {
   abbreviationThreshold: 1000,
   abbreviationDivisor: 1000,
+  charsPerTokenEstimate: 3.7,
 } as const;

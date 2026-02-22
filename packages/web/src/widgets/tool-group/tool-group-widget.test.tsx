@@ -159,4 +159,139 @@ describe('ToolGroupWidget', () => {
       expect(header.textContent).toMatch(/\u25BE/u);
     });
   });
+
+  describe('per-line token badges', () => {
+    it('VALID: {tool_use entry with usage} => shows context delta badge', async () => {
+      const proxy = ToolGroupWidgetProxy();
+      const group = ToolGroupStub({
+        entries: [
+          AssistantToolUseChatEntryStub({
+            usage: {
+              inputTokens: 50,
+              outputTokens: 20,
+              cacheCreationInputTokens: 5000,
+              cacheReadInputTokens: 0,
+            },
+          }),
+        ],
+        toolCount: 1,
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
+      });
+
+      await proxy.clickHeader();
+
+      const badges = screen.queryAllByTestId('TOKEN_BADGE');
+
+      expect(badges).toHaveLength(1);
+      expect(badges[0]?.textContent).toBe('5.0k context');
+    });
+
+    it('VALID: {tool_result entry with content} => shows estimated badge', async () => {
+      const proxy = ToolGroupWidgetProxy();
+      const group = ToolGroupStub({
+        entries: [
+          AssistantToolResultChatEntryStub({
+            content: 'x'.repeat(740),
+          }),
+        ],
+        toolCount: 1,
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
+      });
+
+      await proxy.clickHeader();
+
+      const badges = screen.queryAllByTestId('TOKEN_BADGE');
+
+      expect(badges).toHaveLength(1);
+      expect(badges[0]?.textContent).toBe('~200 est');
+    });
+
+    it('VALID: {mixed tool_use and tool_result entries} => correct delta tracking', async () => {
+      const proxy = ToolGroupWidgetProxy();
+      const group = ToolGroupStub({
+        entries: [
+          AssistantToolUseChatEntryStub({
+            usage: {
+              inputTokens: 50,
+              outputTokens: 20,
+              cacheCreationInputTokens: 5000,
+              cacheReadInputTokens: 0,
+            },
+          }),
+          AssistantToolResultChatEntryStub({
+            content: 'x'.repeat(740),
+          }),
+          AssistantToolUseChatEntryStub({
+            toolName: 'write_file',
+            usage: {
+              inputTokens: 50,
+              outputTokens: 20,
+              cacheCreationInputTokens: 5000,
+              cacheReadInputTokens: 0,
+            },
+          }),
+          AssistantToolResultChatEntryStub({
+            toolName: 'write_file',
+            content: 'x'.repeat(370),
+          }),
+        ],
+        toolCount: 2,
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
+      });
+
+      await proxy.clickHeader();
+
+      const badges = screen.queryAllByTestId('TOKEN_BADGE');
+
+      expect(badges).toHaveLength(3);
+      expect(badges[0]?.textContent).toBe('5.0k context');
+      expect(badges[1]?.textContent).toBe('~200 est');
+      expect(badges[2]?.textContent).toBe('~100 est');
+    });
+
+    it('VALID: {tool_use with delta zero} => no badge on second entry', async () => {
+      const proxy = ToolGroupWidgetProxy();
+      const group = ToolGroupStub({
+        entries: [
+          AssistantToolUseChatEntryStub({
+            usage: {
+              inputTokens: 50,
+              outputTokens: 20,
+              cacheCreationInputTokens: 5000,
+              cacheReadInputTokens: 0,
+            },
+          }),
+          AssistantToolUseChatEntryStub({
+            toolName: 'write_file',
+            usage: {
+              inputTokens: 50,
+              outputTokens: 20,
+              cacheCreationInputTokens: 5000,
+              cacheReadInputTokens: 0,
+            },
+          }),
+        ],
+        toolCount: 2,
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
+      });
+
+      await proxy.clickHeader();
+
+      const badges = screen.queryAllByTestId('TOKEN_BADGE');
+
+      expect(badges).toHaveLength(1);
+    });
+  });
 });

@@ -99,7 +99,7 @@ describe('ChatMessageWidget', () => {
           cacheReadInputTokens: 0,
         },
       });
-      const tokenBadgeLabel = FormattedTokenLabelStub({ value: '2.1k' });
+      const tokenBadgeLabel = FormattedTokenLabelStub({ value: '2.1k context' });
 
       mantineRenderAdapter({
         ui: <ChatMessageWidget entry={entry} tokenBadgeLabel={tokenBadgeLabel} />,

@@ -20,6 +20,7 @@ import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
 import { contextTokenDeltaContract } from '../../contracts/context-token-delta/context-token-delta-contract';
+import { formattedTokenLabelContract } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
 import { raccoonAnimationIntervalTransformer } from '../../transformers/raccoon-animation-interval/raccoon-animation-interval-transformer';
@@ -192,7 +193,9 @@ export const ChatPanelWidget = ({
                     : contextTokenCountContract.parse(
                         Math.max(0, Number(totalContext) - Number(prevContext)),
                       );
-                const tokenBadgeLabel = formatContextTokensTransformer({ count: deltaCount });
+                const tokenBadgeLabel = formattedTokenLabelContract.parse(
+                  `${formatContextTokensTransformer({ count: deltaCount })} context`,
+                );
 
                 elements.push(
                   <ChatMessageWidget
