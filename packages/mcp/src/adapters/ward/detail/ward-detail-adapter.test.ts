@@ -67,7 +67,7 @@ describe('wardDetailAdapter', () => {
   });
 
   describe('no results found', () => {
-    it('VALID: {runId, no result} => returns not found message', async () => {
+    it('VALID: {runId, no result} => returns run-specific not found message', async () => {
       const proxy = wardDetailAdapterProxy();
       proxy.setupStorageReturns({ wardResult: null });
 
@@ -77,6 +77,17 @@ describe('wardDetailAdapter', () => {
       });
 
       expect(result).toBe('No ward result found for run 1739625600000-a3f1');
+    });
+
+    it('VALID: {no runId, no result} => returns generic not found message', async () => {
+      const proxy = wardDetailAdapterProxy();
+      proxy.setupStorageReturns({ wardResult: null });
+
+      const result = await wardDetailAdapter({
+        filePath: ContentTextStub({ value: 'src/app.ts' }),
+      });
+
+      expect(result).toBe('No ward results found');
     });
   });
 

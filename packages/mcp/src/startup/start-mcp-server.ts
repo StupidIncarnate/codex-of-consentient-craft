@@ -568,11 +568,11 @@ export const StartMcpServer = async (): Promise<void> => {
             const runIdRaw: unknown = Reflect.get(args, 'runId');
             const filePathRaw: unknown = Reflect.get(args, 'filePath');
             const verboseRaw: unknown = Reflect.get(args, 'verbose');
-            const runId = String(runIdRaw);
+            const runId = typeof runIdRaw === 'string' ? runIdRaw : undefined;
             const filePath = String(filePathRaw);
             const verbose = typeof verboseRaw === 'boolean' ? verboseRaw : undefined;
             return wardDetailAdapter({
-              runId: runId as never,
+              ...(runId && { runId: runId as never }),
               filePath: filePath as never,
               ...(verbose !== undefined && { verbose }),
               ...(packagePath && { packagePath }),
@@ -580,10 +580,10 @@ export const StartMcpServer = async (): Promise<void> => {
           }
           const runIdRaw: unknown = Reflect.get(args, 'runId');
           const checkTypeRaw: unknown = Reflect.get(args, 'checkType');
-          const runId = String(runIdRaw);
+          const runId = typeof runIdRaw === 'string' ? runIdRaw : undefined;
           const checkType = String(checkTypeRaw);
           return wardRawAdapter({
-            runId: runId as never,
+            ...(runId && { runId: runId as never }),
             checkType: checkType as never,
             ...(packagePath && { packagePath }),
           });

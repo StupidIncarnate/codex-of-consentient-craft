@@ -112,7 +112,7 @@ describe('wardRawAdapter', () => {
   });
 
   describe('no results found', () => {
-    it('VALID: {no ward result} => returns not found message', async () => {
+    it('VALID: {no ward result with runId} => returns run-specific not found message', async () => {
       const proxy = wardRawAdapterProxy();
       proxy.setupStorageReturns({ wardResult: null });
 
@@ -122,6 +122,17 @@ describe('wardRawAdapter', () => {
       });
 
       expect(result).toBe('No ward result found for run 1739625600000-a3f1');
+    });
+
+    it('VALID: {no ward result without runId} => returns generic not found message', async () => {
+      const proxy = wardRawAdapterProxy();
+      proxy.setupStorageReturns({ wardResult: null });
+
+      const result = await wardRawAdapter({
+        checkType: CheckTypeStub({ value: 'lint' }),
+      });
+
+      expect(result).toBe('No ward results found');
     });
 
     it('VALID: {no matching check type} => returns check not found message', async () => {
