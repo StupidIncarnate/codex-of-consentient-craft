@@ -1,25 +1,36 @@
+import {
+  AssistantToolUseStreamLineStub,
+  SuccessfulToolResultStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
+
 import { attachAgentIdsToEntriesTransformer } from './attach-agent-ids-to-entries-transformer';
 
 const AssistantTaskEntry = ({ toolUseId }: { toolUseId: unknown }) => ({
-  type: 'assistant',
-  message: {
-    content: [{ type: 'tool_use', name: 'Task', id: toolUseId }],
-  },
+  ...AssistantToolUseStreamLineStub({
+    message: {
+      role: 'assistant',
+      content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
+    },
+  } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
 });
 
 const UserToolResultEntry = ({ toolUseId, agentId }: { toolUseId: unknown; agentId: unknown }) => ({
-  type: 'user',
+  ...SuccessfulToolResultStreamLineStub({
+    message: {
+      role: 'user',
+      content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+    },
+  } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
   toolUseResult: { agentId },
-  message: {
-    content: [{ type: 'tool_result', tool_use_id: toolUseId }],
-  },
 });
 
 const UserToolResultEntryWithoutAgent = ({ toolUseId }: { toolUseId: unknown }) => ({
-  type: 'user',
-  message: {
-    content: [{ type: 'tool_result', tool_use_id: toolUseId }],
-  },
+  ...SuccessfulToolResultStreamLineStub({
+    message: {
+      role: 'user',
+      content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+    },
+  } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
 });
 
 describe('attachAgentIdsToEntriesTransformer', () => {

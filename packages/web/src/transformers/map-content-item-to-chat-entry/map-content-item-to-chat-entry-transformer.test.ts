@@ -200,6 +200,107 @@ describe('mapContentItemToChatEntryTransformer', () => {
     });
   });
 
+  describe('thinking items', () => {
+    it('VALID: {type: "thinking", thinking: "reasoning text"} => returns thinking entry', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'thinking', thinking: 'Let me analyze this' },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'thinking',
+        content: 'Let me analyze this',
+      });
+    });
+
+    it('VALID: {type: "thinking"} => extracts from item.thinking not item.text', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'thinking', thinking: 'thinking content', text: 'text content' },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'thinking',
+        content: 'thinking content',
+      });
+    });
+
+    it('EDGE: {type: "thinking", thinking missing} => returns entry with empty content', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'thinking' },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'thinking',
+        content: '',
+      });
+    });
+  });
+
+  describe('model param', () => {
+    it('VALID: {text item with model} => model is passed through to text entry', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'text', text: 'hello' },
+        usage: undefined,
+        model: 'claude-opus-4-6',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: 'hello',
+        model: 'claude-opus-4-6',
+      });
+    });
+
+    it('VALID: {tool_use item with model} => model is passed through to tool_use entry', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'tool_use', name: 'read_file', input: { path: '/test' } },
+        usage: undefined,
+        model: 'claude-sonnet-4',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolName: 'read_file',
+        toolInput: '{"path":"/test"}',
+        model: 'claude-sonnet-4',
+      });
+    });
+
+    it('VALID: {thinking item with model} => model is NOT on thinking entry', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'thinking', thinking: 'reasoning' },
+        usage: undefined,
+        model: 'claude-opus-4-6',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'thinking',
+        content: 'reasoning',
+      });
+    });
+
+    it('EDGE: {text item without model} => no model field in result', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'text', text: 'hello' },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: 'hello',
+      });
+    });
+  });
+
   describe('unrecognized items', () => {
     it('EMPTY: {type: "unknown"} => returns null', () => {
       const result = mapContentItemToChatEntryTransformer({

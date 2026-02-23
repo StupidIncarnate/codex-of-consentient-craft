@@ -31,7 +31,10 @@ test.describe('Guild Creation Flow', () => {
     await expect(page.getByTestId('SESSION_EMPTY_STATE')).toBeVisible();
   });
 
-  test('browse directory defaults to OS user home, not DUNGEONMASTER_HOME', async ({ page, request }) => {
+  test('browse directory defaults to OS user home, not DUNGEONMASTER_HOME', async ({
+    page,
+    request,
+  }) => {
     await cleanGuilds(request);
     await page.goto('/');
 

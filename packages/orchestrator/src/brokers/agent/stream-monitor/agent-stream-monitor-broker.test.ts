@@ -1,4 +1,8 @@
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import {
+  ExitCodeStub,
+  AssistantTextStreamLineStub,
+  AssistantToolUseStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
 
@@ -24,18 +28,21 @@ const makeSignalLine = ({
   stepId: typeof STEP_ID;
   summary: typeof SUMMARY_DONE | typeof SUMMARY_PARTIAL | typeof SUMMARY_FINAL;
 }) =>
-  JSON.stringify({
-    type: 'assistant',
-    message: {
-      content: [
-        {
-          type: 'tool_use',
-          name: 'mcp__dungeonmaster__signal-back',
-          input: { signal, stepId, summary },
-        },
-      ],
-    },
-  });
+  JSON.stringify(
+    AssistantToolUseStreamLineStub({
+      message: {
+        role: 'assistant',
+        content: [
+          {
+            type: 'tool_use',
+            id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+            name: 'mcp__dungeonmaster__signal-back',
+            input: { signal, stepId, summary },
+          },
+        ],
+      },
+    }),
+  );
 
 const makeSessionIdLine = ({
   sessionId,
@@ -44,12 +51,14 @@ const makeSessionIdLine = ({
 }) => JSON.stringify({ session_id: sessionId });
 
 const makeTextLine = ({ text }: { text: string }) =>
-  JSON.stringify({
-    type: 'assistant',
-    message: {
-      content: [{ type: 'text', text }],
-    },
-  });
+  JSON.stringify(
+    AssistantTextStreamLineStub({
+      message: {
+        role: 'assistant',
+        content: [{ type: 'text', text }],
+      },
+    }),
+  );
 
 describe('agentStreamMonitorBroker', () => {
   describe('signal extraction', () => {

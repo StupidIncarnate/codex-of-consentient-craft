@@ -1,10 +1,19 @@
+import {
+  AssistantTextStreamLineStub,
+  AssistantThinkingStreamLineStub,
+  AssistantToolResultStreamLineStub,
+  AssistantToolUseStreamLineStub,
+  ResultStreamLineStub,
+  UserTextArrayStreamLineStub,
+  UserTextStringStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
 import { jsonlToChatEntriesTransformer } from './jsonl-to-chat-entries-transformer';
 
 describe('jsonlToChatEntriesTransformer', () => {
   describe('user entries', () => {
     it('VALID: {type: "user", string content} => returns user chat entry', () => {
       const result = jsonlToChatEntriesTransformer({
-        entries: [{ type: 'user', message: { role: 'user', content: 'hello' } }],
+        entries: [UserTextStringStreamLineStub({ message: { role: 'user', content: 'hello' } })],
       });
 
       expect(result).toStrictEqual([{ role: 'user', content: 'hello' }]);
@@ -13,8 +22,7 @@ describe('jsonlToChatEntriesTransformer', () => {
     it('VALID: {type: "user", array content with text items} => returns joined text', () => {
       const result = jsonlToChatEntriesTransformer({
         entries: [
-          {
-            type: 'user',
+          UserTextArrayStreamLineStub({
             message: {
               role: 'user',
               content: [
@@ -22,7 +30,7 @@ describe('jsonlToChatEntriesTransformer', () => {
                 { type: 'text', text: 'world' },
               ],
             },
-          },
+          }),
         ],
       });
 
@@ -48,6 +56,39 @@ describe('jsonlToChatEntriesTransformer', () => {
       expect(result).toStrictEqual([{ role: 'user', content: 'hello' }]);
     });
 
+    it('VALID: {type: "user", content with "## User Request"} => sets isInjectedPrompt true', () => {
+      const result = jsonlToChatEntriesTransformer({
+        entries: [
+          UserTextStringStreamLineStub({
+            message: {
+              role: 'user',
+              content: 'Some system prompt\n\n## User Request\n\nDo something',
+            },
+          }),
+        ],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'user',
+          content: 'Some system prompt\n\n## User Request\n\nDo something',
+          isInjectedPrompt: true,
+        },
+      ]);
+    });
+
+    it('VALID: {type: "user", content without "## User Request"} => no isInjectedPrompt', () => {
+      const result = jsonlToChatEntriesTransformer({
+        entries: [
+          UserTextStringStreamLineStub({
+            message: { role: 'user', content: 'Just a normal message' },
+          }),
+        ],
+      });
+
+      expect(result).toStrictEqual([{ role: 'user', content: 'Just a normal message' }]);
+    });
+
     it('EDGE: {type: "user", empty string content} => skips entry', () => {
       const result = jsonlToChatEntriesTransformer({
         entries: [{ type: 'user', message: { role: 'user', content: '' } }],
@@ -59,15 +100,21 @@ describe('jsonlToChatEntriesTransformer', () => {
 
   describe('assistant entries', () => {
     it('VALID: {type: "assistant", text content with usage} => returns text entry with usage', () => {
+      const stub = AssistantTextStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'hi there' }],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        },
+      });
       const result = jsonlToChatEntriesTransformer({
         entries: [
           {
-            type: 'assistant',
+            ...stub,
             message: {
-              content: [{ type: 'text', text: 'hi there' }],
+              ...stub.message,
               usage: {
-                input_tokens: 100,
-                output_tokens: 50,
+                ...stub.message.usage,
                 cache_creation_input_tokens: 10,
                 cache_read_input_tokens: 5,
               },
@@ -94,12 +141,12 @@ describe('jsonlToChatEntriesTransformer', () => {
     it('VALID: {type: "assistant", tool_use content} => returns tool use entry', () => {
       const result = jsonlToChatEntriesTransformer({
         entries: [
-          {
-            type: 'assistant',
+          AssistantToolUseStreamLineStub({
             message: {
+              role: 'assistant',
               content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
             },
-          },
+          }),
         ],
       });
 
@@ -113,15 +160,71 @@ describe('jsonlToChatEntriesTransformer', () => {
       ]);
     });
 
+    it('VALID: {type: "assistant", model field on message} => passes model through to entries', () => {
+      const stub = AssistantTextStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'hi there' }],
+          model: 'claude-opus-4-20250514' as never,
+        },
+      });
+      const result = jsonlToChatEntriesTransformer({ entries: [stub] });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'hi there',
+          model: 'claude-opus-4-20250514',
+        },
+      ]);
+    });
+
+    it('VALID: {type: "assistant", no model field} => entries have no model', () => {
+      const stub = AssistantTextStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'hi there' }],
+        },
+      });
+      const result = jsonlToChatEntriesTransformer({ entries: [stub] });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'hi there',
+        },
+      ]);
+    });
+
+    it('VALID: {type: "assistant", thinking content} => returns thinking entry', () => {
+      const stub = AssistantThinkingStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [{ type: 'thinking', thinking: 'Let me reason about this.' }],
+        },
+      });
+      const result = jsonlToChatEntriesTransformer({ entries: [stub] });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'thinking',
+          content: 'Let me reason about this.',
+        },
+      ]);
+    });
+
     it('VALID: {type: "assistant", tool_result content} => returns tool result entry', () => {
       const result = jsonlToChatEntriesTransformer({
         entries: [
-          {
-            type: 'assistant',
+          AssistantToolResultStreamLineStub({
             message: {
+              role: 'assistant',
               content: [{ type: 'tool_result', tool_use_id: 'toolu_123', content: 'data' }],
             },
-          },
+          }),
         ],
       });
 
@@ -140,13 +243,15 @@ describe('jsonlToChatEntriesTransformer', () => {
     it('VALID: {user + assistant entries} => returns all entries in order', () => {
       const result = jsonlToChatEntriesTransformer({
         entries: [
-          { type: 'user', message: { role: 'user', content: 'what is 2+2?' } },
-          {
-            type: 'assistant',
+          UserTextStringStreamLineStub({
+            message: { role: 'user', content: 'what is 2+2?' },
+          }),
+          AssistantTextStreamLineStub({
             message: {
+              role: 'assistant',
               content: [{ type: 'text', text: 'The answer is 4.' }],
             },
-          },
+          }),
         ],
       });
 
@@ -161,7 +266,10 @@ describe('jsonlToChatEntriesTransformer', () => {
     it('VALID: {entry with agentId} => propagates agentId to ChatEntry', () => {
       const result = jsonlToChatEntriesTransformer({
         entries: [
-          { type: 'user', agentId: 'agent-1', message: { role: 'user', content: 'hello' } },
+          {
+            ...UserTextStringStreamLineStub({ message: { role: 'user', content: 'hello' } }),
+            agentId: 'agent-1',
+          },
         ],
       });
 
@@ -170,7 +278,7 @@ describe('jsonlToChatEntriesTransformer', () => {
 
     it('VALID: {entry without agentId} => ChatEntry has no agentId', () => {
       const result = jsonlToChatEntriesTransformer({
-        entries: [{ type: 'user', message: { role: 'user', content: 'hello' } }],
+        entries: [UserTextStringStreamLineStub({ message: { role: 'user', content: 'hello' } })],
       });
 
       expect(result).toStrictEqual([{ role: 'user', content: 'hello' }]);
@@ -180,11 +288,13 @@ describe('jsonlToChatEntriesTransformer', () => {
       const result = jsonlToChatEntriesTransformer({
         entries: [
           {
-            type: 'assistant',
+            ...AssistantToolUseStreamLineStub({
+              message: {
+                role: 'assistant',
+                content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
+              },
+            }),
             agentId: 'agent-2',
-            message: {
-              content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
-            },
           },
         ],
       });
@@ -204,7 +314,7 @@ describe('jsonlToChatEntriesTransformer', () => {
   describe('skipped entries', () => {
     it('EDGE: {type: "result"} => skips non-user non-assistant entries', () => {
       const result = jsonlToChatEntriesTransformer({
-        entries: [{ type: 'result', session_id: 'sess-123' }],
+        entries: [ResultStreamLineStub({ session_id: 'sess-123' })],
       });
 
       expect(result).toStrictEqual([]);

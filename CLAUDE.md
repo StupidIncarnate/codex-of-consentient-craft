@@ -109,6 +109,9 @@ const testbed = installTestbedCreateBroker({
 - After modifying: `npm run build --workspace=@dungeonmaster/shared`
 - Import: `import {x} from '@dungeonmaster/shared/statics'`
 
+**JSONL Stream Line Stubs**: Tests that construct Claude CLI JSONL shapes (assistant messages, tool results, etc.) must
+use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `packages/shared/CLAUDE.md` for reasoning.
+
 ### Common Commands
 
 - **Run all quality checks**: `npm run ward`

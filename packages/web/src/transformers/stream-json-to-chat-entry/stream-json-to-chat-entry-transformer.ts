@@ -49,6 +49,9 @@ export const streamJsonToChatEntryTransformer = ({ line }: { line: string }): St
     const validAgentId =
       typeof rawAgentId === 'string' && rawAgentId.length > 0 ? rawAgentId : undefined;
 
+    const rawModel: unknown = 'model' in message ? Reflect.get(message, 'model') : undefined;
+    const validModel = typeof rawModel === 'string' && rawModel.length > 0 ? rawModel : undefined;
+
     if (!Array.isArray(contentArray)) {
       return streamJsonResultContract.parse({ entries: [], sessionId: null });
     }
@@ -60,8 +63,45 @@ export const streamJsonToChatEntryTransformer = ({ line }: { line: string }): St
         const entry = mapContentItemToChatEntryTransformer({
           item: item as never,
           usage,
+          ...(validModel ? { model: validModel } : {}),
           ...(validSource ? { source: validSource } : {}),
           ...(validAgentId ? { agentId: validAgentId } : {}),
+        });
+
+        if (entry) {
+          entries.push(entry);
+        }
+      }
+    }
+
+    return streamJsonResultContract.parse({ entries, sessionId: null });
+  }
+
+  if (type === 'user') {
+    const message: unknown = 'message' in parsed ? Reflect.get(parsed, 'message') : null;
+
+    if (typeof message !== 'object' || message === null) {
+      return streamJsonResultContract.parse({ entries: [], sessionId: null });
+    }
+
+    const contentArray: unknown = 'content' in message ? Reflect.get(message, 'content') : null;
+
+    if (!Array.isArray(contentArray)) {
+      return streamJsonResultContract.parse({ entries: [], sessionId: null });
+    }
+
+    const entries: ChatEntry[] = [];
+
+    for (const item of contentArray) {
+      if (
+        typeof item === 'object' &&
+        item !== null &&
+        'type' in item &&
+        Reflect.get(item, 'type') === 'tool_result'
+      ) {
+        const entry = mapContentItemToChatEntryTransformer({
+          item: item as never,
+          usage: undefined,
         });
 
         if (entry) {

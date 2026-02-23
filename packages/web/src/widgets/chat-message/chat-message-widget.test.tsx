@@ -3,6 +3,7 @@ import { fireEvent, screen } from '@testing-library/react';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import {
   AssistantTextChatEntryStub,
+  AssistantThinkingChatEntryStub,
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
   SystemErrorChatEntryStub,
@@ -603,6 +604,138 @@ describe('ChatMessageWidget', () => {
       expect(message.style.borderLeft).toBe('2px solid rgb(239, 68, 68)');
       expect(message.style.borderRight).toBe('2px solid rgb(239, 68, 68)');
       expect(message.style.textAlign).toBe('center');
+    });
+  });
+
+  describe('thinking block message', () => {
+    it('VALID: {role: assistant, type: thinking} => renders THINKING label', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantThinkingChatEntryStub({ content: 'Let me think about this' });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/THINKING/u);
+      expect(message.textContent).toMatch(/Let me think about this/u);
+    });
+
+    it('VALID: {role: assistant, type: thinking, short content} => renders content without toggle', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantThinkingChatEntryStub({ content: 'Short thought' });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      expect(screen.queryByTestId('THINKING_TOGGLE')).toBeNull();
+    });
+
+    it('VALID: {role: assistant, type: thinking, long content} => renders expand toggle', () => {
+      ChatMessageWidgetProxy();
+      const longContent = 'x'.repeat(300);
+      const entry = AssistantThinkingChatEntryStub({ content: longContent });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const toggle = screen.getByTestId('THINKING_TOGGLE');
+
+      expect(toggle.textContent).toBe('Show full thinking');
+    });
+
+    it('VALID: {role: assistant, type: thinking} => renders text-dim borders', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantThinkingChatEntryStub();
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.style.borderLeft).toBe('2px solid rgb(138, 114, 96)');
+      expect(message.style.borderRight).toBe('2px solid rgb(138, 114, 96)');
+    });
+
+    it('VALID: {role: assistant, type: thinking, model present} => renders model name', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantThinkingChatEntryStub({ model: 'claude-opus-4-6' });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/claude-opus-4-6/u);
+    });
+  });
+
+  describe('model label on assistant text', () => {
+    it('VALID: {role: assistant, type: text, model present} => renders model name after label', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({
+        content: 'Hello',
+        model: 'claude-sonnet-4-20250514',
+      });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/CHAOSWHISPERER/u);
+      expect(message.textContent).toMatch(/claude-sonnet-4-20250514/u);
+    });
+
+    it('VALID: {role: assistant, type: text, no model} => does not render model suffix', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'Hello' });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/CHAOSWHISPERER/u);
+      expect(message.textContent).not.toMatch(/claude/u);
+    });
+  });
+
+  describe('injected prompt message', () => {
+    it('VALID: {role: user, isInjectedPrompt: true} => renders AGENT PROMPT section', () => {
+      ChatMessageWidgetProxy();
+      const entry = UserChatEntryStub({
+        content: 'You are an agent.\n\n## User Request\n\nFix the bug',
+        isInjectedPrompt: true,
+      });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const agentSection = screen.getByTestId('AGENT_PROMPT_SECTION');
+
+      expect(agentSection.textContent).toMatch(/AGENT PROMPT/u);
+      expect(agentSection.textContent).toMatch(/You are an agent\./u);
+    });
+
+    it('VALID: {role: user, isInjectedPrompt: true} => renders extracted user request with YOU label', () => {
+      ChatMessageWidgetProxy();
+      const entry = UserChatEntryStub({
+        content: 'System prompt here\n\n## User Request\n\nDo the thing',
+        isInjectedPrompt: true,
+      });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/YOU/u);
+      expect(message.textContent).toMatch(/Do the thing/u);
+    });
+
+    it('VALID: {role: user, isInjectedPrompt not set} => renders normally with YOU label and full content', () => {
+      ChatMessageWidgetProxy();
+      const entry = UserChatEntryStub({ content: 'Just a normal message' });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^YOU/u);
+      expect(message.textContent).toMatch(/Just a normal message/u);
+      expect(screen.queryByTestId('AGENT_PROMPT_SECTION')).toBeNull();
     });
   });
 });

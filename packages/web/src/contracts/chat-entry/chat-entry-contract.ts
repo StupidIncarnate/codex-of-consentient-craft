@@ -20,9 +20,12 @@ export type ChatUsage = z.infer<typeof chatUsageContract>;
 const sourceContract = z.enum(['session', 'subagent']).optional();
 const agentIdContract = z.string().min(1).brand<'AgentId'>().optional();
 
+const modelContract = z.string().min(1).brand<'ModelName'>().optional();
+
 const userEntryContract = z.object({
   role: z.literal('user'),
   content: z.string().min(1).brand<'UserContent'>(),
+  isInjectedPrompt: z.boolean().optional(),
   source: sourceContract,
   agentId: agentIdContract,
 });
@@ -31,6 +34,7 @@ const assistantTextEntryContract = z.object({
   role: z.literal('assistant'),
   type: z.literal('text'),
   content: z.string().brand<'AssistantContent'>(),
+  model: modelContract,
   usage: chatUsageContract.optional(),
   source: sourceContract,
   agentId: agentIdContract,
@@ -41,7 +45,17 @@ const assistantToolUseEntryContract = z.object({
   type: z.literal('tool_use'),
   toolName: z.string().min(1).brand<'ToolName'>(),
   toolInput: z.string().brand<'ToolInput'>(),
+  model: modelContract,
   usage: chatUsageContract.optional(),
+  source: sourceContract,
+  agentId: agentIdContract,
+});
+
+const assistantThinkingEntryContract = z.object({
+  role: z.literal('assistant'),
+  type: z.literal('thinking'),
+  content: z.string().brand<'ThinkingContent'>(),
+  model: modelContract,
   source: sourceContract,
   agentId: agentIdContract,
 });
@@ -82,6 +96,7 @@ export const chatEntryContract = z.union([
   userEntryContract,
   assistantTextEntryContract,
   assistantToolUseEntryContract,
+  assistantThinkingEntryContract,
   assistantToolResultEntryContract,
   taskNotificationEntryContract,
   systemErrorEntryContract,

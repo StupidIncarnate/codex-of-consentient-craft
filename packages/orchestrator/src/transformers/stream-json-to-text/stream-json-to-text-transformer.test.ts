@@ -1,3 +1,8 @@
+import {
+  AssistantTextStreamLineStub,
+  AssistantToolUseStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
+
 import { streamJsonToTextTransformer } from './stream-json-to-text-transformer';
 import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
 
@@ -5,12 +10,14 @@ describe('streamJsonToTextTransformer', () => {
   describe('valid text extraction', () => {
     it('VALID: {assistant message with single text} => returns StreamText', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'text', text: 'Hello from Claude' }],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'text', text: 'Hello from Claude' }],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToTextTransformer({ line });
@@ -20,15 +27,17 @@ describe('streamJsonToTextTransformer', () => {
 
     it('VALID: {assistant message with multiple text blocks} => returns concatenated StreamText', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              { type: 'text', text: 'Hello ' },
-              { type: 'text', text: 'World' },
-            ],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                { type: 'text', text: 'Hello ' },
+                { type: 'text', text: 'World' },
+              ],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToTextTransformer({ line });
@@ -38,16 +47,23 @@ describe('streamJsonToTextTransformer', () => {
 
     it('VALID: {assistant message with mixed content types} => returns only text content', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              { type: 'text', text: 'Before tool ' },
-              { type: 'tool_use', name: 'some_tool', input: {} },
-              { type: 'text', text: 'after tool' },
-            ],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                { type: 'text', text: 'Before tool ' },
+                {
+                  type: 'tool_use',
+                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  name: 'some_tool',
+                  input: {},
+                },
+                { type: 'text', text: 'after tool' },
+              ],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToTextTransformer({ line });
@@ -57,12 +73,14 @@ describe('streamJsonToTextTransformer', () => {
 
     it('VALID: {assistant message with empty string text} => returns empty StreamText', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'text', text: '' }],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'text', text: '' }],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToTextTransformer({ line });
@@ -72,12 +90,14 @@ describe('streamJsonToTextTransformer', () => {
 
     it('VALID: {assistant message with multiline text} => returns multiline StreamText', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'text', text: 'Line 1\nLine 2\nLine 3' }],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'text', text: 'Line 1\nLine 2\nLine 3' }],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToTextTransformer({ line });
@@ -134,12 +154,7 @@ describe('streamJsonToTextTransformer', () => {
 
     it('EMPTY: {assistant message with only tool calls} => returns null', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'tool_use', name: 'some_tool', input: {} }],
-          },
-        }),
+        value: JSON.stringify(AssistantToolUseStreamLineStub()),
       });
 
       const result = streamJsonToTextTransformer({ line });

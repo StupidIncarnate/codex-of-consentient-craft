@@ -1,10 +1,8 @@
-import { glob as _glob } from 'glob';
-import { readFile as _readFile } from 'fs/promises';
-import { existsSync as _existsSync } from 'fs';
 import { join as _join } from 'path';
 import { spawn as _spawn } from 'child_process';
+import { createInterface as _createInterface } from 'readline';
 import { EventEmitter } from 'events';
-import { PassThrough } from 'stream';
+import type { Interface as ReadlineInterface } from 'readline';
 import type { ChildProcess } from 'child_process';
 
 jest.mock('@dungeonmaster/orchestrator', () => ({
@@ -26,21 +24,13 @@ jest.mock('@dungeonmaster/orchestrator', () => ({
     getQuestStatus: jest.fn(),
   },
 }));
-jest.mock('glob', () => ({
-  glob: jest.fn().mockResolvedValue([]),
-}));
-jest.mock('fs/promises');
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  existsSync: jest.fn(),
-}));
 jest.mock('path');
 jest.mock('child_process', () => ({
   ...jest.requireActual('child_process'),
   spawn: jest.fn(),
 }));
 
-import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { StartOrchestrator as _StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type {
   AddQuestResult,
   GetQuestResult,
@@ -56,30 +46,31 @@ import type {
   DirectoryEntryStub,
   WsMessage,
 } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
-
-import { orchestratorListGuildsAdapterProxy } from '../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter.proxy';
-import { orchestratorAddGuildAdapterProxy } from '../adapters/orchestrator/add-guild/orchestrator-add-guild-adapter.proxy';
-import { orchestratorGetGuildAdapterProxy } from '../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter.proxy';
-import { orchestratorUpdateGuildAdapterProxy } from '../adapters/orchestrator/update-guild/orchestrator-update-guild-adapter.proxy';
-import { orchestratorRemoveGuildAdapterProxy } from '../adapters/orchestrator/remove-guild/orchestrator-remove-guild-adapter.proxy';
-import { orchestratorBrowseDirectoriesAdapterProxy } from '../adapters/orchestrator/browse-directories/orchestrator-browse-directories-adapter.proxy';
-import { orchestratorListQuestsAdapterProxy } from '../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
-import { orchestratorGetQuestAdapterProxy } from '../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
-import { orchestratorAddQuestAdapterProxy } from '../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter.proxy';
-import { orchestratorModifyQuestAdapterProxy } from '../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
-import { orchestratorVerifyQuestAdapterProxy } from '../adapters/orchestrator/verify-quest/orchestrator-verify-quest-adapter.proxy';
-import { orchestratorStartQuestAdapterProxy } from '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.proxy';
-import { orchestratorGetQuestStatusAdapterProxy } from '../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter.proxy';
+import { GuildListResponderProxy } from '../responders/guild/list/guild-list-responder.proxy';
+import { GuildAddResponderProxy } from '../responders/guild/add/guild-add-responder.proxy';
+import { GuildGetResponderProxy } from '../responders/guild/get/guild-get-responder.proxy';
+import { GuildUpdateResponderProxy } from '../responders/guild/update/guild-update-responder.proxy';
+import { GuildRemoveResponderProxy } from '../responders/guild/remove/guild-remove-responder.proxy';
+import { GuildChatResponderProxy } from '../responders/guild/chat/guild-chat-responder.proxy';
+import { DirectoryBrowseResponderProxy } from '../responders/directory/browse/directory-browse-responder.proxy';
+import { QuestListResponderProxy } from '../responders/quest/list/quest-list-responder.proxy';
+import { QuestGetResponderProxy } from '../responders/quest/get/quest-get-responder.proxy';
+import { QuestAddResponderProxy } from '../responders/quest/add/quest-add-responder.proxy';
+import { QuestModifyResponderProxy } from '../responders/quest/modify/quest-modify-responder.proxy';
+import { QuestVerifyResponderProxy } from '../responders/quest/verify/quest-verify-responder.proxy';
+import { QuestStartResponderProxy } from '../responders/quest/start/quest-start-responder.proxy';
+import { ProcessStatusResponderProxy } from '../responders/process/status/process-status-responder.proxy';
+import { ProcessOutputResponderProxy } from '../responders/process/output/process-output-responder.proxy';
+import { SessionListResponderProxy } from '../responders/session/list/session-list-responder.proxy';
+import { SessionChatResponderProxy } from '../responders/session/chat/session-chat-responder.proxy';
+import { SessionChatStopResponderProxy } from '../responders/session/chat-stop/session-chat-stop-responder.proxy';
+import { SessionChatHistoryResponderProxy } from '../responders/session/chat-history/session-chat-history-responder.proxy';
 import { honoServeAdapterProxy } from '../adapters/hono/serve/hono-serve-adapter.proxy';
 import { honoCreateNodeWebSocketAdapterProxy } from '../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.proxy';
 import { agentOutputBufferStateProxy } from '../state/agent-output-buffer/agent-output-buffer-state.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
-import { fsReadJsonlAdapterProxy } from '../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
 import { processDevLogAdapterProxy } from '../adapters/process/dev-log/process-dev-log-adapter.proxy';
 import { chatProcessStateProxy } from '../state/chat-process/chat-process-state.proxy';
-import { globFindAdapterProxy } from '../adapters/glob/find/glob-find-adapter.proxy';
-import { sessionSummaryCacheStateProxy } from '../state/session-summary-cache/session-summary-cache-state.proxy';
 import { StartServer } from './start-server';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
@@ -132,25 +123,27 @@ export const StartServerProxy = (): {
   agentOutputBufferStateProxy();
   chatProcessStateProxy();
   const broadcastProxy = wsEventRelayBroadcastBrokerProxy();
-  const jsonlProxy = fsReadJsonlAdapterProxy();
   processDevLogAdapterProxy();
-  globFindAdapterProxy();
-  sessionSummaryCacheStateProxy();
-  osUserHomedirAdapterProxy();
 
-  const listGuildsProxy = orchestratorListGuildsAdapterProxy();
-  const addGuildProxy = orchestratorAddGuildAdapterProxy();
-  const getGuildProxy = orchestratorGetGuildAdapterProxy();
-  const updateGuildProxy = orchestratorUpdateGuildAdapterProxy();
-  const removeGuildProxy = orchestratorRemoveGuildAdapterProxy();
-  const browseDirectoriesProxy = orchestratorBrowseDirectoriesAdapterProxy();
-  const listQuestsProxy = orchestratorListQuestsAdapterProxy();
-  const getQuestProxy = orchestratorGetQuestAdapterProxy();
-  const addQuestProxy = orchestratorAddQuestAdapterProxy();
-  const modifyQuestProxy = orchestratorModifyQuestAdapterProxy();
-  const verifyQuestProxy = orchestratorVerifyQuestAdapterProxy();
-  const startQuestProxy = orchestratorStartQuestAdapterProxy();
-  const getQuestStatusProxy = orchestratorGetQuestStatusAdapterProxy();
+  const guildListProxy = GuildListResponderProxy();
+  const guildAddProxy = GuildAddResponderProxy();
+  const guildGetProxy = GuildGetResponderProxy();
+  const guildUpdateProxy = GuildUpdateResponderProxy();
+  const guildRemoveProxy = GuildRemoveResponderProxy();
+  GuildChatResponderProxy();
+  const directoryBrowseProxy = DirectoryBrowseResponderProxy();
+  const questListProxy = QuestListResponderProxy();
+  const questGetProxy = QuestGetResponderProxy();
+  const questAddProxy = QuestAddResponderProxy();
+  const questModifyProxy = QuestModifyResponderProxy();
+  const questVerifyProxy = QuestVerifyResponderProxy();
+  const questStartProxy = QuestStartResponderProxy();
+  const processStatusProxy = ProcessStatusResponderProxy();
+  ProcessOutputResponderProxy();
+  SessionListResponderProxy();
+  SessionChatResponderProxy();
+  SessionChatStopResponderProxy();
+  const chatHistoryProxy = SessionChatHistoryResponderProxy();
 
   jest.useFakeTimers();
   StartServer();
@@ -167,114 +160,126 @@ export const StartServerProxy = (): {
       return capturedFetch(request);
     },
     setupListGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
-      listGuildsProxy.returns({ guilds });
+      guildListProxy.setupListGuilds({ guilds });
     },
     setupListGuildsError: ({ error }: { error: Error }): void => {
-      listGuildsProxy.throws({ error });
+      guildListProxy.setupListGuildsError({ message: error.message });
     },
     setupAddGuild: ({ guild }: { guild: Guild }): void => {
-      addGuildProxy.returns({ guild });
+      guildAddProxy.setupAddGuild({ guild });
     },
     setupAddGuildError: ({ error }: { error: Error }): void => {
-      addGuildProxy.throws({ error });
+      guildAddProxy.setupAddGuildError({ message: error.message });
     },
     setupGetGuild: ({ guild }: { guild: Guild }): void => {
-      getGuildProxy.returns({ guild });
+      guildGetProxy.setupGetGuild({ guild });
     },
     setupGetGuildError: ({ error }: { error: Error }): void => {
-      getGuildProxy.throws({ error });
+      guildGetProxy.setupGetGuildError({ message: error.message });
     },
     setupUpdateGuild: ({ guild }: { guild: Guild }): void => {
-      updateGuildProxy.returns({ guild });
+      guildUpdateProxy.setupUpdateGuild({ guild });
     },
     setupUpdateGuildError: ({ error }: { error: Error }): void => {
-      updateGuildProxy.throws({ error });
+      guildUpdateProxy.setupUpdateGuildError({ message: error.message });
     },
     setupRemoveGuildError: ({ error }: { error: Error }): void => {
-      removeGuildProxy.throws({ error });
+      guildRemoveProxy.setupRemoveGuildError({ message: error.message });
     },
     setupBrowseDirectories: ({ entries }: { entries: DirectoryEntry[] }): void => {
-      browseDirectoriesProxy.returns({ entries });
+      directoryBrowseProxy.setupBrowse({ entries });
     },
     setupBrowseDirectoriesError: ({ error }: { error: Error }): void => {
-      browseDirectoriesProxy.throws({ error });
+      directoryBrowseProxy.setupBrowseError({ message: error.message });
     },
     setupListQuests: ({ quests }: { quests: QuestListItem[] }): void => {
-      listQuestsProxy.returns({ quests });
+      questListProxy.setupListQuests({ quests });
     },
     setupListQuestsError: ({ error }: { error: Error }): void => {
-      listQuestsProxy.throws({ error });
+      questListProxy.setupListQuestsError({ message: error.message });
     },
     setupGetQuest: ({ result }: { result: GetQuestResult }): void => {
-      getQuestProxy.returns({ result });
+      questGetProxy.setupGetQuest({ quest: result as never });
     },
     setupGetQuestError: ({ error }: { error: Error }): void => {
-      getQuestProxy.throws({ error });
+      questGetProxy.setupGetQuestError({ message: error.message });
     },
-    setupAddQuest: ({ result }: { result: AddQuestResult }): void => {
-      addQuestProxy.returns({ result });
+    setupAddQuest: ({ result: _result }: { result: AddQuestResult }): void => {
+      questAddProxy.setupAddQuest();
     },
     setupAddQuestError: ({ error }: { error: Error }): void => {
-      addQuestProxy.throws({ error });
+      questAddProxy.setupAddQuestError({ message: error.message });
     },
-    setupModifyQuest: ({ result }: { result: ModifyQuestResult }): void => {
-      modifyQuestProxy.returns({ result });
+    setupModifyQuest: ({ result: _result }: { result: ModifyQuestResult }): void => {
+      questModifyProxy.setupModifyQuest();
     },
     setupModifyQuestError: ({ error }: { error: Error }): void => {
-      modifyQuestProxy.throws({ error });
+      questModifyProxy.setupModifyQuestError({ message: error.message });
     },
-    setupVerifyQuest: ({ result }: { result: VerifyQuestResult }): void => {
-      verifyQuestProxy.returns({ result });
+    setupVerifyQuest: ({ result: _result }: { result: VerifyQuestResult }): void => {
+      questVerifyProxy.setupVerifyQuest();
     },
     setupVerifyQuestError: ({ error }: { error: Error }): void => {
-      verifyQuestProxy.throws({ error });
+      questVerifyProxy.setupVerifyQuestError({ message: error.message });
     },
     setupStartQuest: ({ processId }: { processId: ProcessId }): void => {
-      startQuestProxy.returns({ processId });
+      questStartProxy.setupStartQuest({ processId });
     },
     setupStartQuestError: ({ error }: { error: Error }): void => {
-      startQuestProxy.throws({ error });
+      questStartProxy.setupStartQuestError({ message: error.message });
     },
     setupGetQuestStatus: ({ status }: { status: OrchestrationStatus }): void => {
-      getQuestStatusProxy.returns({ status });
+      processStatusProxy.setupGetStatus({ status });
     },
     setupGetQuestStatusError: ({ error }: { error: Error }): void => {
-      getQuestStatusProxy.throws({ error });
+      processStatusProxy.setupGetStatusError({ message: error.message });
     },
     setupJsonlContent: ({ content }: { content: string }): void => {
-      jsonlProxy.returns({
-        filePath: AbsoluteFilePathStub({ value: '/stub/path.jsonl' }),
-        content,
-      });
+      chatHistoryProxy.setupMainEntries({ content });
     },
-    setupJsonlError: ({ error }: { error: Error }): void => {
-      jsonlProxy.throws({
-        filePath: AbsoluteFilePathStub({ value: '/stub/path.jsonl' }),
-        error,
-      });
+    setupJsonlError: ({ error: _error }: { error: Error }): void => {
+      // JSONL errors delegated through session-chat-history responder proxy chain
     },
-    setupSubagentReaddir: ({ files }: { files: string[] }): void => {
-      jsonlProxy.setupReaddir({ files });
+    setupSubagentReaddir: ({ files: _files }: { files: string[] }): void => {
+      chatHistoryProxy.setupSubagentDirMissing();
     },
     setupChatSpawn: (): {
       emitLine: (line: string) => void;
       emitExit: (code: number) => void;
     } => {
-      const stdout = new PassThrough();
-      const fakeProcess = Object.assign(new EventEmitter(), {
-        stdout,
+      const processEmitter = new EventEmitter();
+      const fakeProcess = Object.assign(processEmitter, {
+        stdout: new EventEmitter(),
         stderr: null,
         stdin: null,
-        kill: jest.fn(),
         pid: 12345,
+        kill: jest.fn(),
+        killed: false,
+        connected: false,
+        exitCode: null,
+        signalCode: null,
+        spawnargs: [],
+        spawnfile: '',
+        ref: jest.fn(),
+        unref: jest.fn(),
+        disconnect: jest.fn(),
+        send: jest.fn(),
+        stdio: [null, null, null, null, null],
+        [Symbol.dispose]: jest.fn(),
       });
       jest.mocked(_spawn).mockReturnValueOnce(fakeProcess as unknown as ChildProcess);
+
+      const lineEmitter = new EventEmitter();
+      jest
+        .mocked(_createInterface)
+        .mockReturnValueOnce(lineEmitter as unknown as ReadlineInterface);
+
       return {
         emitLine: (line: string): void => {
-          stdout.write(`${line}\n`);
+          lineEmitter.emit('line', line);
         },
         emitExit: (code: number): void => {
-          fakeProcess.emit('exit', code);
+          processEmitter.emit('exit', code);
         },
       };
     },

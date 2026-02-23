@@ -1,3 +1,11 @@
+import {
+  AssistantTextStreamLineStub,
+  AssistantToolUseStreamLineStub,
+  AssistantMixedContentStreamLineStub,
+  ResultStreamLineStub,
+  SystemInitStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
+
 import { streamLineSummaryTransformer } from './stream-line-summary-transformer';
 
 describe('streamLineSummaryTransformer', () => {
@@ -15,7 +23,7 @@ describe('streamLineSummaryTransformer', () => {
     });
 
     it('VALID: {type: "system", subtype: "init"} => returns type and subtype', () => {
-      const result = streamLineSummaryTransformer({ parsed: { type: 'system', subtype: 'init' } });
+      const result = streamLineSummaryTransformer({ parsed: SystemInitStreamLineStub() });
 
       expect(result).toBe('type=system, subtype=init');
     });
@@ -24,12 +32,9 @@ describe('streamLineSummaryTransformer', () => {
   describe('assistant message extraction', () => {
     it('VALID: {assistant with text content} => includes preview', () => {
       const result = streamLineSummaryTransformer({
-        parsed: {
-          type: 'assistant',
-          message: {
-            content: [{ type: 'text', text: 'Hello world' }],
-          },
-        },
+        parsed: AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'Hello world' }] },
+        }),
       });
 
       expect(result).toBe('type=assistant, preview="Hello world"');
@@ -37,15 +42,15 @@ describe('streamLineSummaryTransformer', () => {
 
     it('VALID: {assistant with tool_use} => includes tool names', () => {
       const result = streamLineSummaryTransformer({
-        parsed: {
-          type: 'assistant',
+        parsed: AssistantToolUseStreamLineStub({
           message: {
+            role: 'assistant',
             content: [
-              { type: 'tool_use', name: 'Read' },
-              { type: 'tool_use', name: 'Write' },
+              { type: 'tool_use', id: 'toolu_01A', name: 'Read', input: {} },
+              { type: 'tool_use', id: 'toolu_01B', name: 'Write', input: {} },
             ],
           },
-        },
+        }),
       });
 
       expect(result).toBe('type=assistant, tools=[Read,Write]');
@@ -53,15 +58,15 @@ describe('streamLineSummaryTransformer', () => {
 
     it('VALID: {assistant with text and tools} => includes both', () => {
       const result = streamLineSummaryTransformer({
-        parsed: {
-          type: 'assistant',
+        parsed: AssistantMixedContentStreamLineStub({
           message: {
+            role: 'assistant',
             content: [
               { type: 'text', text: 'Let me help' },
-              { type: 'tool_use', name: 'Bash' },
+              { type: 'tool_use', id: 'toolu_01A', name: 'Bash', input: {} },
             ],
           },
-        },
+        }),
       });
 
       expect(result).toBe('type=assistant, preview="Let me help", tools=[Bash]');
@@ -71,12 +76,9 @@ describe('streamLineSummaryTransformer', () => {
       const longText = 'a'.repeat(200);
 
       const result = streamLineSummaryTransformer({
-        parsed: {
-          type: 'assistant',
-          message: {
-            content: [{ type: 'text', text: longText }],
-          },
-        },
+        parsed: AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: longText }] },
+        }),
       });
 
       expect(result).toBe(`type=assistant, preview="${'a'.repeat(120)}..."`);
@@ -84,12 +86,9 @@ describe('streamLineSummaryTransformer', () => {
 
     it('VALID: {text with newlines} => escapes newlines in preview', () => {
       const result = streamLineSummaryTransformer({
-        parsed: {
-          type: 'assistant',
-          message: {
-            content: [{ type: 'text', text: 'line1\nline2\nline3' }],
-          },
-        },
+        parsed: AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'line1\nline2\nline3' }] },
+        }),
       });
 
       expect(result).toBe('type=assistant, preview="line1\\nline2\\nline3"');
@@ -99,12 +98,7 @@ describe('streamLineSummaryTransformer', () => {
   describe('result type extraction', () => {
     it('VALID: {result with cost and duration} => includes metrics', () => {
       const result = streamLineSummaryTransformer({
-        parsed: {
-          type: 'result',
-          cost_usd: 0.0123,
-          duration_ms: 5432,
-          num_turns: 3,
-        },
+        parsed: ResultStreamLineStub({ cost_usd: 0.0123, duration_ms: 5432, num_turns: 3 }),
       });
 
       expect(result).toBe('type=result, cost=$0.0123, duration=5432ms, turns=3');

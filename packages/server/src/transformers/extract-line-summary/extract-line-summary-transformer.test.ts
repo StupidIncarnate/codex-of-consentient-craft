@@ -1,10 +1,12 @@
+import { SummaryStreamLineStub } from '@dungeonmaster/shared/contracts';
+
 import { extractLineSummaryTransformer } from './extract-line-summary-transformer';
 
 describe('extractLineSummaryTransformer', () => {
   describe('summary extraction', () => {
     it('VALID: {parsed: {type: "summary", summary: "Built login"}} => returns summary', () => {
       const result = extractLineSummaryTransformer({
-        parsed: { type: 'summary', summary: 'Built login' },
+        parsed: SummaryStreamLineStub({ summary: 'Built login' }),
       });
 
       expect(result).toBe('Built login');

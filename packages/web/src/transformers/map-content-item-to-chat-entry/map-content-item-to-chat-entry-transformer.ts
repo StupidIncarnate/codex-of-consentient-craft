@@ -14,11 +14,13 @@ export const mapContentItemToChatEntryTransformer = ({
   usage,
   source,
   agentId,
+  model,
 }: {
   item: Record<string, unknown>;
   usage: ChatUsage | undefined;
   source?: 'session' | 'subagent';
   agentId?: string;
+  model?: string;
 }): ChatEntry | null => {
   const itemType = item.type;
 
@@ -29,6 +31,7 @@ export const mapContentItemToChatEntryTransformer = ({
       role: 'assistant',
       type: 'text',
       content: text,
+      ...(model ? { model } : {}),
       ...(usage ? { usage } : {}),
       ...(source ? { source } : {}),
       ...(agentId ? { agentId } : {}),
@@ -44,6 +47,7 @@ export const mapContentItemToChatEntryTransformer = ({
       type: 'tool_use',
       toolName: name,
       toolInput: JSON.stringify(normalizedInput),
+      ...(model ? { model } : {}),
       ...(usage ? { usage } : {}),
       ...(source ? { source } : {}),
       ...(agentId ? { agentId } : {}),
@@ -61,6 +65,18 @@ export const mapContentItemToChatEntryTransformer = ({
       toolName: toolUseId,
       content,
       ...(isError ? { isError } : {}),
+      ...(source ? { source } : {}),
+      ...(agentId ? { agentId } : {}),
+    });
+  }
+
+  if (itemType === 'thinking') {
+    const text = typeof item.thinking === 'string' ? item.thinking : '';
+
+    return chatEntryContract.parse({
+      role: 'assistant',
+      type: 'thinking',
+      content: text,
       ...(source ? { source } : {}),
       ...(agentId ? { agentId } : {}),
     });

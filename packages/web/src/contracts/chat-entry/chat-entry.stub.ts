@@ -29,6 +29,16 @@ export const AssistantToolUseChatEntryStub = ({
     ...props,
   });
 
+export const AssistantThinkingChatEntryStub = ({
+  ...props
+}: StubArgument<ChatEntry> = {}): ChatEntry =>
+  chatEntryContract.parse({
+    role: 'assistant',
+    type: 'thinking',
+    content: 'This is internal thinking',
+    ...props,
+  });
+
 export const AssistantToolResultChatEntryStub = ({
   ...props
 }: StubArgument<ChatEntry> = {}): ChatEntry =>
