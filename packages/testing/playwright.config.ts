@@ -9,9 +9,12 @@ const TEST_PORT = environmentStatics.testPort;
 const TEST_HOME = process.env.DUNGEONMASTER_HOME ?? path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
 const FAKE_CLAUDE_CLI = path.resolve('e2e/web/harness/claude-mock/bin/claude');
 const FAKE_CLAUDE_QUEUE_DIR = path.join(TEST_HOME, 'claude-queue');
+const REAL_HOME = os.homedir();
 
 process.env.DUNGEONMASTER_PORT = String(TEST_PORT);
 process.env.DUNGEONMASTER_HOME = TEST_HOME;
+process.env.PLAYWRIGHT_BROWSERS_PATH =
+  process.env.PLAYWRIGHT_BROWSERS_PATH ?? path.join(REAL_HOME, '.cache', 'ms-playwright');
 process.env.HOME = TEST_HOME;
 
 export default defineConfig({
