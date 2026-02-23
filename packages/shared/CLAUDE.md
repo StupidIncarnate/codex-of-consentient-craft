@@ -44,6 +44,14 @@ When adding new functionality to `@dungeonmaster/shared`, you MUST:
    import { isKeyOfGuard } from '@dungeonmaster/shared/guards';
    ```
 
+## JSONL Stream Line Contracts
+
+Claude CLI outputs newline-delimited JSON (JSONL) during sessions. Each line has a `type` discriminator (`system`, `assistant`, `user`, `result`, `summary`). The `*-stream-line` contracts in `src/contracts/` capture these shapes with scenario-based stubs so test files across web, server, and orchestrator don't construct raw JSON inline.
+
+**Why stubs instead of raw objects:** Raw inline JSON in tests is opaque — you can't tell *when* that shape occurs in a real CLI session. Each stub is named for its scenario (e.g., `PermissionDeniedStreamLineStub`, `AssistantToolUseStreamLineStub`) and carries a JSDoc comment explaining the real-world trigger. This makes tests self-documenting.
+
+**Design decision:** One `assistant-stream-line` contract with variant stubs (not separate contracts per content type). The outer shape `{type: 'assistant', message: {content: [...]}}` is identical — only content items differ.
+
 ## Important Notes
 
 - **Never** import from `@dungeonmaster/shared/dist/...` directly
