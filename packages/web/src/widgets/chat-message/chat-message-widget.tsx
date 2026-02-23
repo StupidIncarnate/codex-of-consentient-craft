@@ -340,7 +340,7 @@ export const ChatMessageWidget = ({
         >
           {toolUseLabel}
         </Text>
-        {formatted ? (
+        {formatted && formatted.fields.length > 0 ? (
           <Box>
             {formatted.fields.map((field, index) => {
               const isFieldExpanded = expandedFields[index] === true;
@@ -412,7 +412,9 @@ export const ChatMessageWidget = ({
           </Box>
         ) : (
           <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], fontStyle: 'italic' }}>
-            {entry.toolName}: {entry.toolInput}
+            {entry.toolInput === '{}' || entry.toolInput === ''
+              ? entry.toolName
+              : `${entry.toolName}: ${entry.toolInput}`}
           </Text>
         )}
         {toolBadge}

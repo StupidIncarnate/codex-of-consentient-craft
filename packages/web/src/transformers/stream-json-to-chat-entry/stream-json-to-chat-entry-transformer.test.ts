@@ -1,3 +1,9 @@
+import {
+  MixedTextAndToolResultStreamLineStub,
+  PermissionDeniedStreamLineStub,
+  SuccessfulToolResultStreamLineStub,
+  TextOnlyUserStreamLineStub,
+} from '../../contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
 import { streamJsonToChatEntryTransformer } from './stream-json-to-chat-entry-transformer';
 
 describe('streamJsonToChatEntryTransformer', () => {
@@ -180,6 +186,104 @@ describe('streamJsonToChatEntryTransformer', () => {
           content: [{ type: 'unknown_type' }],
         },
       });
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [],
+        sessionId: null,
+      });
+    });
+  });
+
+  describe('user messages with tool_result', () => {
+    it('VALID: {permission denied tool result} => returns tool result entry with isError', () => {
+      const streamLine = PermissionDeniedStreamLineStub();
+      const line = JSON.stringify(streamLine);
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'tool_result',
+            toolName: 'toolu_016sbUuxidMBZVMKM9jpHsqK',
+            content:
+              "Claude requested permissions to use mcp__dungeonmaster__list-guilds, but you haven't granted it yet.",
+            isError: true,
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {successful tool result} => returns tool result entry without isError', () => {
+      const streamLine = SuccessfulToolResultStreamLineStub();
+      const line = JSON.stringify(streamLine);
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'tool_result',
+            toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+            content: 'File contents retrieved successfully',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {mixed text and tool result} => only returns tool_result entries', () => {
+      const streamLine = MixedTextAndToolResultStreamLineStub();
+      const line = JSON.stringify(streamLine);
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'tool_result',
+            toolName: 'toolu_015sb5Rz8yPMN4sbwdNaz8kk',
+            content: 'Read 42 lines from file',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('EDGE: {type: "user", no message} => returns empty entries', () => {
+      const line = JSON.stringify({ type: 'user' });
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [],
+        sessionId: null,
+      });
+    });
+
+    it('EDGE: {type: "user", content is plain string} => returns empty entries', () => {
+      const line = JSON.stringify({
+        type: 'user',
+        message: { role: 'user', content: 'plain string without tool results' },
+      });
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [],
+        sessionId: null,
+      });
+    });
+
+    it('EDGE: {text only user message} => returns empty entries', () => {
+      const streamLine = TextOnlyUserStreamLineStub();
+      const line = JSON.stringify(streamLine);
 
       const result = streamJsonToChatEntryTransformer({ line });
 

@@ -6,7 +6,7 @@
  * // Renders SESSIONS header with session list showing summaries and status indicators
  */
 
-import { Badge, Group, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Badge, Group, Loader, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core';
 
 import type { SessionId, SessionListItem } from '@dungeonmaster/shared/contracts';
 
@@ -20,6 +20,7 @@ import type { ButtonVariant } from '../../contracts/button-variant/button-varian
 
 export interface GuildSessionListWidgetProps {
   sessions: readonly SessionListItem[];
+  loading: boolean;
   filter: SessionFilter;
   onFilterChange: (params: { filter: SessionFilter }) => void;
   onSelect: (params: { sessionId: SessionId }) => void;
@@ -40,6 +41,7 @@ const STATUS_COLORS = {
 
 export const GuildSessionListWidget = ({
   sessions,
+  loading,
   filter,
   onFilterChange,
   onSelect,
@@ -73,7 +75,8 @@ export const GuildSessionListWidget = ({
           { label: 'All', value: 'all' },
         ]}
       />
-      {filtered.length === 0 && (
+      {loading && <Loader size="xs" color={colors.warning} data-testid="SESSION_LOADER" />}
+      {!loading && filtered.length === 0 && (
         <Text
           ff="monospace"
           size="xs"
@@ -83,53 +86,54 @@ export const GuildSessionListWidget = ({
           No sessions yet
         </Text>
       )}
-      {filtered.map((session) => (
-        <UnstyledButton
-          key={session.sessionId}
-          onClick={() => {
-            onSelect({ sessionId: session.sessionId });
-          }}
-          px="xs"
-          py={3}
-          data-testid={`SESSION_ITEM_${session.sessionId}`}
-          style={{
-            fontFamily: 'monospace',
-            fontSize: ITEM_FONT_SIZE,
-            color: colors.text,
-            borderRadius: 2,
-            display: 'flex',
-            justifyContent: 'space-between',
-            gap: 12,
-          }}
-        >
-          <span>{session.summary ?? 'Untitled session'}</span>
-          <Group gap={6}>
-            {session.questTitle ? (
-              <Badge
-                size="xs"
-                variant="outline"
-                data-testid={`SESSION_QUEST_BADGE_${session.sessionId}`}
-              >
-                {session.questTitle}
-              </Badge>
-            ) : null}
-            {session.questStatus ? (
-              <span
-                data-testid={`SESSION_STATUS_${session.sessionId}`}
-                style={{
-                  color:
-                    (Reflect.get(STATUS_COLORS, session.questStatus) as
-                      | (typeof colors)['text-dim']
-                      | undefined) ?? colors['text-dim'],
-                  fontSize: STATUS_FONT_SIZE,
-                }}
-              >
-                {session.questStatus.toUpperCase().split('_').join(' ')}
-              </span>
-            ) : null}
-          </Group>
-        </UnstyledButton>
-      ))}
+      {!loading &&
+        filtered.map((session) => (
+          <UnstyledButton
+            key={session.sessionId}
+            onClick={() => {
+              onSelect({ sessionId: session.sessionId });
+            }}
+            px="xs"
+            py={3}
+            data-testid={`SESSION_ITEM_${session.sessionId}`}
+            style={{
+              fontFamily: 'monospace',
+              fontSize: ITEM_FONT_SIZE,
+              color: colors.text,
+              borderRadius: 2,
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 12,
+            }}
+          >
+            <span>{session.summary ?? 'Untitled session'}</span>
+            <Group gap={6}>
+              {session.questTitle ? (
+                <Badge
+                  size="xs"
+                  variant="outline"
+                  data-testid={`SESSION_QUEST_BADGE_${session.sessionId}`}
+                >
+                  {session.questTitle}
+                </Badge>
+              ) : null}
+              {session.questStatus ? (
+                <span
+                  data-testid={`SESSION_STATUS_${session.sessionId}`}
+                  style={{
+                    color:
+                      (Reflect.get(STATUS_COLORS, session.questStatus) as
+                        | (typeof colors)['text-dim']
+                        | undefined) ?? colors['text-dim'],
+                    fontSize: STATUS_FONT_SIZE,
+                  }}
+                >
+                  {session.questStatus.toUpperCase().split('_').join(' ')}
+                </span>
+              ) : null}
+            </Group>
+          </UnstyledButton>
+        ))}
     </Stack>
   );
 };

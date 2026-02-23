@@ -15,6 +15,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -36,6 +37,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[session]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -63,6 +65,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[session]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -87,6 +90,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[session]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -114,6 +118,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[session]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -142,6 +147,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[session]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -166,6 +172,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -186,6 +193,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[session]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -207,6 +215,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -227,6 +236,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[]}
+            loading={false}
             filter={filter}
             onFilterChange={onFilterChange}
             onSelect={jest.fn()}
@@ -262,6 +272,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[questSession, nonQuestSession]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -293,6 +304,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[questSession, nonQuestSession]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -318,6 +330,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[nonQuestSession]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -343,6 +356,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[session]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={onSelect}
@@ -366,6 +380,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
@@ -391,6 +406,7 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             sessions={[session]}
+            loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}

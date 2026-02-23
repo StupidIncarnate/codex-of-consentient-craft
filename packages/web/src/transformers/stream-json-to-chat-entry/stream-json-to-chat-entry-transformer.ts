@@ -73,6 +73,42 @@ export const streamJsonToChatEntryTransformer = ({ line }: { line: string }): St
     return streamJsonResultContract.parse({ entries, sessionId: null });
   }
 
+  if (type === 'user') {
+    const message: unknown = 'message' in parsed ? Reflect.get(parsed, 'message') : null;
+
+    if (typeof message !== 'object' || message === null) {
+      return streamJsonResultContract.parse({ entries: [], sessionId: null });
+    }
+
+    const contentArray: unknown = 'content' in message ? Reflect.get(message, 'content') : null;
+
+    if (!Array.isArray(contentArray)) {
+      return streamJsonResultContract.parse({ entries: [], sessionId: null });
+    }
+
+    const entries: ChatEntry[] = [];
+
+    for (const item of contentArray) {
+      if (
+        typeof item === 'object' &&
+        item !== null &&
+        'type' in item &&
+        Reflect.get(item, 'type') === 'tool_result'
+      ) {
+        const entry = mapContentItemToChatEntryTransformer({
+          item: item as never,
+          usage: undefined,
+        });
+
+        if (entry) {
+          entries.push(entry);
+        }
+      }
+    }
+
+    return streamJsonResultContract.parse({ entries, sessionId: null });
+  }
+
   if (type === 'result') {
     const sessionId: unknown = 'session_id' in parsed ? Reflect.get(parsed, 'session_id') : null;
 
