@@ -59,6 +59,32 @@ describe('wardRawAdapter', () => {
       expect(result).toBe('type errors here');
     });
 
+    it('VALID: {runId, checkType, packagePath} => returns raw stdout with packagePath', async () => {
+      const proxy = wardRawAdapterProxy();
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: CheckTypeStub({ value: 'lint' }),
+            projectResults: [
+              ProjectResultStub({
+                rawOutput: { stdout: 'lint output here', stderr: '', exitCode: 0 },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      proxy.setupStorageReturns({ wardResult });
+
+      const result = await wardRawAdapter({
+        runId: RunIdStub(),
+        checkType: CheckTypeStub({ value: 'lint' }),
+        packagePath: 'packages/mcp',
+      });
+
+      expect(result).toBe('lint output here');
+    });
+
     it('VALID: {runId, checkType with no output} => returns no output message', async () => {
       const proxy = wardRawAdapterProxy();
       const wardResult = WardResultStub({
@@ -86,7 +112,7 @@ describe('wardRawAdapter', () => {
   });
 
   describe('no results found', () => {
-    it('VALID: {no ward result} => returns not found message', async () => {
+    it('VALID: {no ward result with runId} => returns run-specific not found message', async () => {
       const proxy = wardRawAdapterProxy();
       proxy.setupStorageReturns({ wardResult: null });
 
@@ -96,6 +122,17 @@ describe('wardRawAdapter', () => {
       });
 
       expect(result).toBe('No ward result found for run 1739625600000-a3f1');
+    });
+
+    it('VALID: {no ward result without runId} => returns generic not found message', async () => {
+      const proxy = wardRawAdapterProxy();
+      proxy.setupStorageReturns({ wardResult: null });
+
+      const result = await wardRawAdapter({
+        checkType: CheckTypeStub({ value: 'lint' }),
+      });
+
+      expect(result).toBe('No ward results found');
     });
 
     it('VALID: {no matching check type} => returns check not found message', async () => {

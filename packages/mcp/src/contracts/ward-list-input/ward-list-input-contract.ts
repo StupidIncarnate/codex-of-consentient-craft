@@ -14,6 +14,12 @@ export const wardListInputContract = z
       .regex(/^\d+-[a-f0-9]+$/u, 'Invalid RunId format: expected timestamp-hex pattern')
       .describe('The run ID to list errors for. If omitted, uses the most recent run.')
       .optional(),
+    packagePath: z
+      .string()
+      .describe(
+        'Optional package path relative to repo root (e.g., "packages/mcp"). Omit for repo root.',
+      )
+      .optional(),
   })
   .brand<'WardListInput'>();
 

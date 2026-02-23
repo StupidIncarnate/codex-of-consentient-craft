@@ -28,6 +28,20 @@ describe('wardDetailInputContract', () => {
     });
   });
 
+  it('VALID: {runId, filePath, packagePath} => parses successfully with packagePath', () => {
+    const result = WardDetailInputStub({
+      runId: '1739625600000-a3f1',
+      filePath: 'src/app.ts',
+      packagePath: 'packages/mcp',
+    });
+
+    expect(result).toStrictEqual({
+      runId: '1739625600000-a3f1',
+      filePath: 'src/app.ts',
+      packagePath: 'packages/mcp',
+    });
+  });
+
   it('VALID: default stub values => parses successfully', () => {
     const result = WardDetailInputStub();
 
