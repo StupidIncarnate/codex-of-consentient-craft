@@ -22,6 +22,12 @@ export const wardDetailInputContract = z
       .boolean()
       .describe('Whether to show verbose output including full stack traces')
       .optional(),
+    packagePath: z
+      .string()
+      .describe(
+        'Optional package path relative to repo root (e.g., "packages/mcp"). Omit for repo root.',
+      )
+      .optional(),
   })
   .brand<'WardDetailInput'>();
 

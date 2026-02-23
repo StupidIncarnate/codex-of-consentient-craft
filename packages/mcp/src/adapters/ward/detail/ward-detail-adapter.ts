@@ -20,12 +20,16 @@ export const wardDetailAdapter = async ({
   runId,
   filePath,
   verbose,
+  packagePath,
 }: {
   runId: RunId;
   filePath: ContentText;
   verbose?: boolean;
+  packagePath?: string;
 }): Promise<ContentText> => {
-  const rootPath = absoluteFilePathContract.parse(process.cwd());
+  const rootPath = packagePath
+    ? absoluteFilePathContract.parse(`${process.cwd()}/${packagePath}`)
+    : absoluteFilePathContract.parse(process.cwd());
   const wardResult = await WardStorage.storageLoadBroker({ rootPath, runId });
 
   if (!wardResult) {

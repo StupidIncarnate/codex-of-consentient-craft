@@ -16,6 +16,12 @@ export const wardRawInputContract = z
     checkType: z
       .enum(['lint', 'typecheck', 'unit', 'e2e'])
       .describe('The check type to show raw output for'),
+    packagePath: z
+      .string()
+      .describe(
+        'Optional package path relative to repo root (e.g., "packages/mcp"). Omit for repo root.',
+      )
+      .optional(),
   })
   .brand<'WardRawInput'>();
 

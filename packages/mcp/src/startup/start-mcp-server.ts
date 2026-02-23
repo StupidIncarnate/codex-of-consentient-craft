@@ -176,17 +176,20 @@ export const StartMcpServer = async (): Promise<void> => {
       },
       {
         name: 'ward-list',
-        description: 'List errors by file from a ward run',
+        description:
+          'List errors by file from a ward run. Supports per-package path via packagePath.',
         inputSchema: wardListSchema,
       },
       {
         name: 'ward-detail',
-        description: 'Show detailed errors for a file in a ward run',
+        description:
+          'Show detailed errors for a file in a ward run. Supports per-package path via packagePath.',
         inputSchema: wardDetailSchema,
       },
       {
         name: 'ward-raw',
-        description: 'Show raw tool output from a ward run',
+        description:
+          'Show raw tool output from a ward run. Supports per-package path via packagePath.',
         inputSchema: wardRawSchema,
       },
     ],
@@ -542,84 +545,51 @@ export const StartMcpServer = async (): Promise<void> => {
       }
     }
 
-    if (request.params.name === 'ward-list') {
+    if (
+      request.params.name === 'ward-list' ||
+      request.params.name === 'ward-detail' ||
+      request.params.name === 'ward-raw'
+    ) {
       const args = request.params.arguments as never;
-      const runIdRaw: unknown = Reflect.get(args, 'runId');
-      const runId = typeof runIdRaw === 'string' ? runIdRaw : undefined;
+      const packagePathRaw: unknown = Reflect.get(args, 'packagePath');
+      const packagePath = typeof packagePathRaw === 'string' ? packagePathRaw : undefined;
 
       try {
-        const result = await wardListAdapter({
-          ...(runId && { runId: runId as never }),
-        });
+        const wardResult = await (async (): Promise<unknown> => {
+          if (request.params.name === 'ward-list') {
+            const runIdRaw: unknown = Reflect.get(args, 'runId');
+            const runId = typeof runIdRaw === 'string' ? runIdRaw : undefined;
+            return wardListAdapter({
+              ...(runId && { runId: runId as never }),
+              ...(packagePath && { packagePath }),
+            });
+          }
+          if (request.params.name === 'ward-detail') {
+            const runIdRaw: unknown = Reflect.get(args, 'runId');
+            const filePathRaw: unknown = Reflect.get(args, 'filePath');
+            const verboseRaw: unknown = Reflect.get(args, 'verbose');
+            const runId = String(runIdRaw);
+            const filePath = String(filePathRaw);
+            const verbose = typeof verboseRaw === 'boolean' ? verboseRaw : undefined;
+            return wardDetailAdapter({
+              runId: runId as never,
+              filePath: filePath as never,
+              ...(verbose !== undefined && { verbose }),
+              ...(packagePath && { packagePath }),
+            });
+          }
+          const runIdRaw: unknown = Reflect.get(args, 'runId');
+          const checkTypeRaw: unknown = Reflect.get(args, 'checkType');
+          const runId = String(runIdRaw);
+          const checkType = String(checkTypeRaw);
+          return wardRawAdapter({
+            runId: runId as never,
+            checkType: checkType as never,
+            ...(packagePath && { packagePath }),
+          });
+        })();
         return {
-          content: [{ type: 'text', text: String(result) }],
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                { success: false, error: errorMessage },
-                null,
-                JSON_INDENT_SPACES,
-              ),
-            },
-          ],
-        };
-      }
-    }
-
-    if (request.params.name === 'ward-detail') {
-      const args = request.params.arguments as never;
-      const runIdRaw: unknown = Reflect.get(args, 'runId');
-      const filePathRaw: unknown = Reflect.get(args, 'filePath');
-      const verboseRaw: unknown = Reflect.get(args, 'verbose');
-      const runId = String(runIdRaw);
-      const filePath = String(filePathRaw);
-      const verbose = typeof verboseRaw === 'boolean' ? verboseRaw : undefined;
-
-      try {
-        const result = await wardDetailAdapter({
-          runId: runId as never,
-          filePath: filePath as never,
-          ...(verbose !== undefined && { verbose }),
-        });
-        return {
-          content: [{ type: 'text', text: String(result) }],
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                { success: false, error: errorMessage },
-                null,
-                JSON_INDENT_SPACES,
-              ),
-            },
-          ],
-        };
-      }
-    }
-
-    if (request.params.name === 'ward-raw') {
-      const args = request.params.arguments as never;
-      const runIdRaw: unknown = Reflect.get(args, 'runId');
-      const checkTypeRaw: unknown = Reflect.get(args, 'checkType');
-      const runId = String(runIdRaw);
-      const checkType = String(checkTypeRaw);
-
-      try {
-        const result = await wardRawAdapter({
-          runId: runId as never,
-          checkType: checkType as never,
-        });
-        return {
-          content: [{ type: 'text', text: String(result) }],
+          content: [{ type: 'text', text: String(wardResult) }],
         };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

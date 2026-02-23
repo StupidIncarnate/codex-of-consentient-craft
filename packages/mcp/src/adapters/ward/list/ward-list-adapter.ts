@@ -16,8 +16,16 @@ import {
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
 
-export const wardListAdapter = async ({ runId }: { runId?: RunId }): Promise<ContentText> => {
-  const rootPath = absoluteFilePathContract.parse(process.cwd());
+export const wardListAdapter = async ({
+  runId,
+  packagePath,
+}: {
+  runId?: RunId;
+  packagePath?: string;
+}): Promise<ContentText> => {
+  const rootPath = packagePath
+    ? absoluteFilePathContract.parse(`${process.cwd()}/${packagePath}`)
+    : absoluteFilePathContract.parse(process.cwd());
   const loadArgs = runId ? { rootPath, runId } : { rootPath };
   const wardResult = await WardStorage.storageLoadBroker(loadArgs);
 
