@@ -28,6 +28,7 @@ test.describe('Quest Detail Navigation', () => {
 
     await page.goto('/');
     await page.getByText('Test Guild').click();
+    await page.getByTestId('SESSION_FILTER').getByText('All').click();
     await page.getByTestId(`SESSION_ITEM_${sessionId}`).click();
 
     await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
@@ -49,6 +50,7 @@ test.describe('Quest Detail Navigation', () => {
 
     await page.goto('/');
     await page.getByText('Tab Guild').click();
+    await page.getByTestId('SESSION_FILTER').getByText('All').click();
     await page.getByTestId(`SESSION_ITEM_${sessionId}`).click();
 
     await expect(page.getByTestId('CHAT_INPUT')).toBeEnabled();
@@ -69,12 +71,14 @@ test.describe('Quest Detail Navigation', () => {
 
     await page.goto('/');
     await page.getByText('Back Guild').click();
+    await page.getByTestId('SESSION_FILTER').getByText('All').click();
     await page.getByTestId(`SESSION_ITEM_${sessionId}`).click();
     await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
 
     await page.goBack();
 
     await page.getByText('Back Guild').click();
+    await page.getByTestId('SESSION_FILTER').getByText('All').click();
     await expect(page.getByText('Test back')).toBeVisible();
     await expect(page.getByTestId('GUILD_SESSION_LIST')).toBeVisible();
   });

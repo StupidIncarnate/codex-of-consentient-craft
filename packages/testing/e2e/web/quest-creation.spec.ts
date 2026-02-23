@@ -28,6 +28,7 @@ test.describe('Session Creation', () => {
 
     await page.goto('/');
     await page.getByText('Quest Guild').click();
+    await page.getByTestId('SESSION_FILTER').getByText('All').click();
 
     await expect(page.getByTestId(`SESSION_ITEM_${sessionId}`)).toBeVisible();
     await expect(page.getByText('Build a feature')).toBeVisible();
@@ -53,6 +54,7 @@ test.describe('Session Creation', () => {
 
     await page.goto('/');
     await page.getByText('Multi Session Guild').click();
+    await page.getByTestId('SESSION_FILTER').getByText('All').click();
 
     await expect(page.getByText('First task')).toBeVisible();
     await expect(page.getByText('Second task')).toBeVisible();
@@ -71,6 +73,7 @@ test.describe('Session Creation', () => {
 
     await page.goto('/');
     await page.getByText('Click Guild').click();
+    await page.getByTestId('SESSION_FILTER').getByText('All').click();
 
     const sessionItem = page.getByTestId(`SESSION_ITEM_${sessionId}`);
     await expect(sessionItem).toBeVisible();

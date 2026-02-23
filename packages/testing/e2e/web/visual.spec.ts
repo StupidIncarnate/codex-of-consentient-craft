@@ -53,6 +53,7 @@ test.describe('Status Badges & Visual', () => {
 
     await page.goto('/');
     await page.getByText('Status Guild').click();
+    await page.getByTestId('SESSION_FILTER').getByText('All').click();
 
     const sessionItem = page.getByTestId(`SESSION_ITEM_${sessionId}`);
     await expect(sessionItem).toBeVisible();
