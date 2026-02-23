@@ -16,8 +16,10 @@ import { shouldTruncateContentGuard } from '../../guards/should-truncate-content
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
-import { formatToolInputTransformer } from '../../transformers/format-tool-input/format-tool-input-transformer';
 import { truncateContentTransformer } from '../../transformers/truncate-content/truncate-content-transformer';
+import { InjectedPromptLayerWidget } from './injected-prompt-layer-widget';
+import { ThinkingLayerWidget } from './thinking-layer-widget';
+import { ToolUseLayerWidget } from './tool-use-layer-widget';
 
 export interface ChatMessageWidgetProps {
   entry: ChatEntry;
@@ -36,7 +38,6 @@ export const ChatMessageWidget = ({
   const { colors } = emberDepthsThemeStatics;
   const isSubagent = 'source' in entry && entry.source === 'subagent';
   const [expanded, setExpanded] = useState(false);
-  const [expandedFields, setExpandedFields] = useState<Record<PropertyKey, boolean>>({});
 
   const tokenBadgeElement =
     tokenBadgeLabel === undefined ? null : (
@@ -174,6 +175,13 @@ export const ChatMessageWidget = ({
   if (entry.role === 'user') {
     const userBorderColor = isSubagent ? colors['loot-rare'] : colors['loot-gold'];
     const userLabel = isSubagent ? 'SUB-AGENT PROMPT' : 'YOU';
+    const isInjected = 'isInjectedPrompt' in entry && entry.isInjectedPrompt === true;
+
+    if (isInjected) {
+      return (
+        <InjectedPromptLayerWidget entry={entry} borderColor={userBorderColor} label={userLabel} />
+      );
+    }
 
     return (
       <Box
@@ -203,6 +211,10 @@ export const ChatMessageWidget = ({
     );
   }
 
+  if (entry.type === 'thinking') {
+    return <ThinkingLayerWidget entry={entry} />;
+  }
+
   if (entry.type === 'text') {
     const textBorderColor = isSubagent ? colors['loot-rare'] : colors.primary;
     const textLabel = isSubagent ? 'SUB-AGENT' : 'CHAOSWHISPERER';
@@ -228,6 +240,12 @@ export const ChatMessageWidget = ({
           style={{ color: textBorderColor }}
         >
           {textLabel}
+          {'model' in entry && entry.model ? (
+            <Text component="span" style={{ color: colors['text-dim'] }}>
+              {' '}
+              {entry.model}
+            </Text>
+          ) : null}
         </Text>
         <Text ff="monospace" size="xs" style={{ color: colors.text, whiteSpace: 'pre-wrap' }}>
           {entry.content}
@@ -238,198 +256,13 @@ export const ChatMessageWidget = ({
   }
 
   if (entry.type === 'tool_use') {
-    const toolBadge = tokenBadgeElement;
-
-    // Skill invocation (Improvement 8)
-    if (entry.toolName === 'Skill') {
-      const skillFormatted = formatToolInputTransformer({
-        toolName: 'Skill',
-        toolInput: entry.toolInput,
-      });
-
-      const skillField = skillFormatted?.fields.find((f) => f.key === 'skill');
-      const skillName = skillField ? skillField.value : 'unknown';
-      const remainingFields = skillFormatted
-        ? skillFormatted.fields.filter((f) => f.key !== 'skill')
-        : [];
-
-      return (
-        <Box
-          data-testid="CHAT_MESSAGE"
-          style={{
-            padding: '6px 10px',
-            borderRadius: 2,
-            backgroundColor: 'transparent',
-            borderLeft: `${BORDER_WIDTH} ${colors['loot-gold']}`,
-            borderRight: `${BORDER_WIDTH} ${colors['loot-gold']}`,
-            textAlign: 'left',
-            paddingLeft: '15%',
-          }}
-        >
-          <Text
-            ff="monospace"
-            size="xs"
-            fw={LABEL_FONT_WEIGHT}
-            mb={2}
-            style={{ color: colors['loot-gold'] }}
-          >
-            SKILL
-          </Text>
-          <Text ff="monospace" size="xs" style={{ color: colors['loot-gold'] }}>
-            {skillName}
-          </Text>
-          {remainingFields.length > 0
-            ? remainingFields.map((field) => (
-                <Text
-                  key={field.key}
-                  ff="monospace"
-                  size="xs"
-                  style={{ color: colors['text-dim'] }}
-                >
-                  {field.key}: {field.value}
-                </Text>
-              ))
-            : null}
-          {toolBadge}
-          {isLoading ? (
-            <Text
-              ff="monospace"
-              size="xs"
-              mt={4}
-              data-testid="TOOL_LOADING"
-              style={{ color: colors.primary, animation: 'pulse 1.5s infinite' }}
-            >
-              Running...
-            </Text>
-          ) : null}
-        </Box>
-      );
-    }
-
-    // Regular tool use with formatted input (Improvement 5)
-    const toolUseBorderColor = isSubagent ? `${colors['loot-rare']}80` : colors['text-dim'];
-    const toolUseLabel = isSubagent ? 'SUB-AGENT TOOL' : 'TOOL CALL';
-    const toolUseLabelColor = isSubagent ? `${colors['loot-rare']}80` : colors['text-dim'];
-
-    const formatted = formatToolInputTransformer({
-      toolName: entry.toolName,
-      toolInput: entry.toolInput,
-    });
-
-    const isBash = entry.toolName === 'Bash';
-
     return (
-      <Box
-        data-testid="CHAT_MESSAGE"
-        style={{
-          padding: '6px 10px',
-          borderRadius: 2,
-          backgroundColor: 'transparent',
-          borderLeft: `${BORDER_WIDTH} ${toolUseBorderColor}`,
-          borderRight: `${BORDER_WIDTH} ${toolUseBorderColor}`,
-          textAlign: 'left',
-          paddingLeft: '15%',
-        }}
-      >
-        <Text
-          ff="monospace"
-          size="xs"
-          fw={LABEL_FONT_WEIGHT}
-          mb={2}
-          style={{ color: toolUseLabelColor }}
-        >
-          {toolUseLabel}
-        </Text>
-        {formatted && formatted.fields.length > 0 ? (
-          <Box>
-            {formatted.fields.map((field, index) => {
-              const isFieldExpanded = expandedFields[index] === true;
-
-              if (isBash && field.key === 'command') {
-                return (
-                  <Box key={field.key}>
-                    <Box
-                      style={{
-                        backgroundColor: colors['bg-deep'],
-                        padding: '4px 8px',
-                        borderRadius: 2,
-                        display: 'inline-block',
-                      }}
-                    >
-                      <Text
-                        ff="monospace"
-                        size="xs"
-                        style={{ color: colors['text-dim'], whiteSpace: 'pre-wrap' }}
-                      >
-                        {field.isLong && !isFieldExpanded
-                          ? `${field.value.slice(0, contentTruncationConfigStatics.longFieldLimit)}...`
-                          : field.value}
-                      </Text>
-                    </Box>
-                    {field.isLong ? (
-                      <Text
-                        ff="monospace"
-                        size="xs"
-                        style={{ color: colors.primary, cursor: 'pointer' }}
-                        onClick={() => {
-                          setExpandedFields({ ...expandedFields, [index]: !isFieldExpanded });
-                        }}
-                      >
-                        {isFieldExpanded ? 'show less' : 'show more'}
-                      </Text>
-                    ) : null}
-                  </Box>
-                );
-              }
-
-              return (
-                <Text
-                  key={field.key}
-                  ff="monospace"
-                  size="xs"
-                  style={{ color: colors['text-dim'], fontStyle: 'italic' }}
-                >
-                  {field.key}:{' '}
-                  {field.isLong && !isFieldExpanded
-                    ? `${field.value.slice(0, contentTruncationConfigStatics.longFieldLimit)}...`
-                    : field.value}
-                  {field.isLong ? (
-                    <Text
-                      component="span"
-                      ff="monospace"
-                      size="xs"
-                      style={{ color: colors.primary, cursor: 'pointer', marginLeft: 4 }}
-                      onClick={() => {
-                        setExpandedFields({ ...expandedFields, [index]: !isFieldExpanded });
-                      }}
-                    >
-                      {isFieldExpanded ? 'show less' : 'show more'}
-                    </Text>
-                  ) : null}
-                </Text>
-              );
-            })}
-          </Box>
-        ) : (
-          <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], fontStyle: 'italic' }}>
-            {entry.toolInput === '{}' || entry.toolInput === ''
-              ? entry.toolName
-              : `${entry.toolName}: ${entry.toolInput}`}
-          </Text>
-        )}
-        {toolBadge}
-        {isLoading ? (
-          <Text
-            ff="monospace"
-            size="xs"
-            mt={4}
-            data-testid="TOOL_LOADING"
-            style={{ color: colors.primary, animation: 'pulse 1.5s infinite' }}
-          >
-            Running...
-          </Text>
-        ) : null}
-      </Box>
+      <ToolUseLayerWidget
+        entry={entry}
+        {...(isLoading === undefined ? {} : { isLoading })}
+        tokenBadgeElement={tokenBadgeElement}
+        isSubagent={isSubagent}
+      />
     );
   }
 

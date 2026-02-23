@@ -49,6 +49,9 @@ export const streamJsonToChatEntryTransformer = ({ line }: { line: string }): St
     const validAgentId =
       typeof rawAgentId === 'string' && rawAgentId.length > 0 ? rawAgentId : undefined;
 
+    const rawModel: unknown = 'model' in message ? Reflect.get(message, 'model') : undefined;
+    const validModel = typeof rawModel === 'string' && rawModel.length > 0 ? rawModel : undefined;
+
     if (!Array.isArray(contentArray)) {
       return streamJsonResultContract.parse({ entries: [], sessionId: null });
     }
@@ -60,6 +63,7 @@ export const streamJsonToChatEntryTransformer = ({ line }: { line: string }): St
         const entry = mapContentItemToChatEntryTransformer({
           item: item as never,
           usage,
+          ...(validModel ? { model: validModel } : {}),
           ...(validSource ? { source: validSource } : {}),
           ...(validAgentId ? { agentId: validAgentId } : {}),
         });

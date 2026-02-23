@@ -1,6 +1,7 @@
 import { chatEntryContract } from './chat-entry-contract';
 import {
   AssistantTextChatEntryStub,
+  AssistantThinkingChatEntryStub,
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
   ChatEntryStub,
@@ -180,6 +181,112 @@ describe('chatEntryContract', () => {
         toolName: 'Task',
         toolInput: JSON.stringify({ description: 'Run tests', prompt: 'Execute the test suite' }),
         agentId: 'sub-1',
+      });
+    });
+  });
+
+  describe('assistant thinking entries', () => {
+    it('VALID: {role: "assistant", type: "thinking"} => parses successfully', () => {
+      const entry = AssistantThinkingChatEntryStub();
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'thinking',
+        content: 'This is internal thinking',
+      });
+    });
+
+    it('VALID: {role: "assistant", type: "thinking", agentId} => parses with agentId', () => {
+      const entry = AssistantThinkingChatEntryStub({ agentId: 'agent-99' } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'thinking',
+        content: 'This is internal thinking',
+        agentId: 'agent-99',
+      });
+    });
+  });
+
+  describe('model field', () => {
+    it('VALID: {assistant text entry with model} => parses with model', () => {
+      const entry = AssistantTextChatEntryStub({ model: 'claude-opus-4-6' } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: 'Hello from assistant',
+        model: 'claude-opus-4-6',
+      });
+    });
+
+    it('VALID: {assistant tool_use entry with model} => parses with model', () => {
+      const entry = AssistantToolUseChatEntryStub({ model: 'claude-sonnet-4' } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolName: 'read_file',
+        toolInput: '{"path":"/test"}',
+        model: 'claude-sonnet-4',
+      });
+    });
+
+    it('VALID: {assistant thinking entry with model} => parses with model', () => {
+      const entry = AssistantThinkingChatEntryStub({ model: 'claude-opus-4-6' } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'thinking',
+        content: 'This is internal thinking',
+        model: 'claude-opus-4-6',
+      });
+    });
+
+    it('VALID: {assistant text entry without model} => model is optional', () => {
+      const entry = AssistantTextChatEntryStub();
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: 'Hello from assistant',
+      });
+    });
+  });
+
+  describe('isInjectedPrompt field', () => {
+    it('VALID: {user entry with isInjectedPrompt: true} => parses with isInjectedPrompt', () => {
+      const entry = ChatEntryStub({ isInjectedPrompt: true } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'user',
+        content: 'Hello world',
+        isInjectedPrompt: true,
+      });
+    });
+
+    it('VALID: {user entry without isInjectedPrompt} => isInjectedPrompt is optional', () => {
+      const entry = ChatEntryStub();
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'user',
+        content: 'Hello world',
       });
     });
   });

@@ -1,5 +1,6 @@
 import {
   AssistantTextStreamLineStub,
+  AssistantThinkingStreamLineStub,
   AssistantToolResultStreamLineStub,
   AssistantToolUseStreamLineStub,
   AssistantMixedContentStreamLineStub,
@@ -194,6 +195,77 @@ describe('streamJsonToChatEntryTransformer', () => {
 
       expect(result).toStrictEqual({
         entries: [],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {type: "assistant", model field on message} => passes model to resulting entries', () => {
+      const stub = AssistantTextStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'Hello world' }],
+          model: 'claude-opus-4-20250514' as never,
+        },
+      });
+      const line = JSON.stringify(stub);
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'Hello world',
+            model: 'claude-opus-4-20250514',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {type: "assistant", no model field} => entries have no model', () => {
+      const stub = AssistantTextStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'Hello world' }],
+        },
+      });
+      const line = JSON.stringify(stub);
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'Hello world',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {type: "assistant", thinking content} => returns thinking entry', () => {
+      const stub = AssistantThinkingStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [{ type: 'thinking', thinking: 'Let me think about this.' }],
+        },
+      });
+      const line = JSON.stringify(stub);
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'thinking',
+            content: 'Let me think about this.',
+          },
+        ],
         sessionId: null,
       });
     });
