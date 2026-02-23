@@ -1,3 +1,8 @@
+import {
+  AssistantTextStreamLineStub,
+  AssistantToolUseStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
+
 import { signalFromStreamTransformer } from './signal-from-stream-transformer';
 import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
 import { StepIdStub } from '@dungeonmaster/shared/contracts';
@@ -182,12 +187,7 @@ describe('signalFromStreamTransformer', () => {
 
     it('EMPTY: {assistant message without tool calls} => returns null', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'text', text: 'Hello' }],
-          },
-        }),
+        value: JSON.stringify(AssistantTextStreamLineStub()),
       });
 
       const result = signalFromStreamTransformer({ line });
@@ -197,18 +197,21 @@ describe('signalFromStreamTransformer', () => {
 
     it('EMPTY: {different MCP tool call} => returns null', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__other-tool',
-                input: { foo: 'bar' },
-              },
-            ],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  name: 'mcp__dungeonmaster__other-tool',
+                  input: { foo: 'bar' },
+                },
+              ],
+            },
+          }),
+        ),
       });
 
       const result = signalFromStreamTransformer({ line });

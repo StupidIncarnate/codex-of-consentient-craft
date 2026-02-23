@@ -1,19 +1,22 @@
 import {
+  AssistantTextStreamLineStub,
+  AssistantToolResultStreamLineStub,
+  AssistantToolUseStreamLineStub,
+  AssistantMixedContentStreamLineStub,
   MixedTextAndToolResultStreamLineStub,
   PermissionDeniedStreamLineStub,
+  ResultStreamLineStub,
   SuccessfulToolResultStreamLineStub,
+  SystemInitStreamLineStub,
   TextOnlyUserStreamLineStub,
-} from '../../contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
+  UserTextStringStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
 import { streamJsonToChatEntryTransformer } from './stream-json-to-chat-entry-transformer';
 
 describe('streamJsonToChatEntryTransformer', () => {
   describe('system init messages', () => {
     it('VALID: {type: "system", subtype: "init", session_id} => returns empty entries with session ID', () => {
-      const line = JSON.stringify({
-        type: 'system',
-        subtype: 'init',
-        session_id: 'sess-abc-123',
-      });
+      const line = JSON.stringify(SystemInitStreamLineStub({ session_id: 'sess-abc-123' }));
 
       const result = streamJsonToChatEntryTransformer({ line });
 
@@ -26,13 +29,19 @@ describe('streamJsonToChatEntryTransformer', () => {
 
   describe('assistant messages', () => {
     it('VALID: {type: "assistant", text content} => returns text chat entry', () => {
-      const line = JSON.stringify({
-        type: 'assistant',
+      const stub = AssistantTextStreamLineStub({
         message: {
+          role: 'assistant',
           content: [{ type: 'text', text: 'Hello world' }],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        },
+      });
+      const line = JSON.stringify({
+        ...stub,
+        message: {
+          ...stub.message,
           usage: {
-            input_tokens: 100,
-            output_tokens: 50,
+            ...stub.message.usage,
             cache_creation_input_tokens: 10,
             cache_read_input_tokens: 5,
           },
@@ -60,12 +69,14 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", tool_use content} => returns tool use chat entry', () => {
-      const line = JSON.stringify({
-        type: 'assistant',
-        message: {
-          content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
-        },
-      });
+      const line = JSON.stringify(
+        AssistantToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
+          },
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ line });
 
@@ -83,12 +94,14 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", tool_result content} => returns tool result chat entry', () => {
-      const line = JSON.stringify({
-        type: 'assistant',
-        message: {
-          content: [{ type: 'tool_result', tool_use_id: 'toolu_123', content: 'file data' }],
-        },
-      });
+      const line = JSON.stringify(
+        AssistantToolResultStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_123', content: 'file data' }],
+          },
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ line });
 
@@ -106,16 +119,22 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", multiple content items} => returns multiple entries', () => {
-      const line = JSON.stringify({
-        type: 'assistant',
+      const stub = AssistantMixedContentStreamLineStub({
         message: {
+          role: 'assistant',
           content: [
             { type: 'text', text: 'Let me read that file' },
             { type: 'tool_use', name: 'read_file', input: { path: '/src' } },
           ],
+          usage: { input_tokens: 200, output_tokens: 100 },
+        },
+      });
+      const line = JSON.stringify({
+        ...stub,
+        message: {
+          ...stub.message,
           usage: {
-            input_tokens: 200,
-            output_tokens: 100,
+            ...stub.message.usage,
             cache_creation_input_tokens: 0,
             cache_read_input_tokens: 0,
           },
@@ -268,10 +287,11 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('EDGE: {type: "user", content is plain string} => returns empty entries', () => {
-      const line = JSON.stringify({
-        type: 'user',
-        message: { role: 'user', content: 'plain string without tool results' },
-      });
+      const line = JSON.stringify(
+        UserTextStringStreamLineStub({
+          message: { role: 'user', content: 'plain string without tool results' },
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ line });
 
@@ -296,10 +316,7 @@ describe('streamJsonToChatEntryTransformer', () => {
 
   describe('result messages', () => {
     it('VALID: {type: "result", session_id} => returns empty entries with session ID', () => {
-      const line = JSON.stringify({
-        type: 'result',
-        session_id: 'sess-xyz-789',
-      });
+      const line = JSON.stringify(ResultStreamLineStub({ session_id: 'sess-xyz-789' }));
 
       const result = streamJsonToChatEntryTransformer({ line });
 

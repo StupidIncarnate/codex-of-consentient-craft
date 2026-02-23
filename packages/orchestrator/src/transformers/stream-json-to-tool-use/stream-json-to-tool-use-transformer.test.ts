@@ -1,3 +1,8 @@
+import {
+  AssistantTextStreamLineStub,
+  AssistantToolUseStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
+
 import { streamJsonToToolUseTransformer } from './stream-json-to-tool-use-transformer';
 import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
 
@@ -5,12 +10,16 @@ describe('streamJsonToToolUseTransformer', () => {
   describe('valid tool_use content', () => {
     it('VALID: {assistant message with single tool_use, empty input} => returns formatted tool name', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'tool_use', name: 'Bash', input: {} }],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                { type: 'tool_use', id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ', name: 'Bash', input: {} },
+              ],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToToolUseTransformer({ line });
@@ -20,15 +29,17 @@ describe('streamJsonToToolUseTransformer', () => {
 
     it('VALID: {assistant message with multiple tool_use, empty inputs} => returns all tool names', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              { type: 'tool_use', name: 'Task', input: {} },
-              { type: 'tool_use', name: 'Read', input: {} },
-            ],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                { type: 'tool_use', id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ', name: 'Task', input: {} },
+                { type: 'tool_use', id: 'toolu_02XYZ', name: 'Read', input: {} },
+              ],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToToolUseTransformer({ line });
@@ -38,16 +49,18 @@ describe('streamJsonToToolUseTransformer', () => {
 
     it('VALID: {assistant message with mixed content types} => returns only tool_use names', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              { type: 'text', text: 'Before tool ' },
-              { type: 'tool_use', name: 'Glob', input: {} },
-              { type: 'text', text: 'after tool' },
-            ],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                { type: 'text', text: 'Before tool ' },
+                { type: 'tool_use', id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ', name: 'Glob', input: {} },
+                { type: 'text', text: 'after tool' },
+              ],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToToolUseTransformer({ line });
@@ -59,12 +72,21 @@ describe('streamJsonToToolUseTransformer', () => {
   describe('tool_use with input parameters', () => {
     it('VALID: {tool_use with single input param} => returns tool name with formatted input', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'tool_use', name: 'Glob', input: { pattern: '*.ts' } }],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  name: 'Glob',
+                  input: { pattern: '*.ts' },
+                },
+              ],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToToolUseTransformer({ line });
@@ -74,12 +96,21 @@ describe('streamJsonToToolUseTransformer', () => {
 
     it('VALID: {tool_use with multiple input params} => returns tool name with formatted inputs', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'tool_use', name: 'Read', input: { file_path: '/path/to/file.ts' } }],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  name: 'Read',
+                  input: { file_path: '/path/to/file.ts' },
+                },
+              ],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToToolUseTransformer({ line });
@@ -89,18 +120,21 @@ describe('streamJsonToToolUseTransformer', () => {
 
     it('VALID: {tool_use with priority key ordering} => respects priority order', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                name: 'Grep',
-                input: { pattern: 'TODO', path: 'src/', output_mode: 'content' },
-              },
-            ],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  name: 'Grep',
+                  input: { pattern: 'TODO', path: 'src/', output_mode: 'content' },
+                },
+              ],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToToolUseTransformer({ line });
@@ -132,15 +166,27 @@ describe('streamJsonToToolUseTransformer', () => {
 
     it('VALID: {multiple tools with inputs} => formats each tool with its inputs', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              { type: 'tool_use', name: 'Glob', input: { pattern: '*.ts' } },
-              { type: 'tool_use', name: 'Read', input: { file_path: '/test.ts' } },
-            ],
-          },
-        }),
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  name: 'Glob',
+                  input: { pattern: '*.ts' },
+                },
+                {
+                  type: 'tool_use',
+                  id: 'toolu_02XYZ',
+                  name: 'Read',
+                  input: { file_path: '/test.ts' },
+                },
+              ],
+            },
+          }),
+        ),
       });
 
       const result = streamJsonToToolUseTransformer({ line });
@@ -197,12 +243,7 @@ describe('streamJsonToToolUseTransformer', () => {
   describe('no tool_use content', () => {
     it('EMPTY: {assistant message with only text} => returns null', () => {
       const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'text', text: 'Hello from Claude' }],
-          },
-        }),
+        value: JSON.stringify(AssistantTextStreamLineStub()),
       });
 
       const result = streamJsonToToolUseTransformer({ line });
