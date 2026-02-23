@@ -35,6 +35,7 @@
     "@dungeonmaster/eslint-plugin": "*",
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/shared": "*",
+    "@dungeonmaster/ward": "*",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "glob": "^10.0.0",
     "typescript": "^5.0.0",

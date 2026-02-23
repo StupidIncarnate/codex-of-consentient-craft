@@ -42,11 +42,7 @@ You excel at:
 
 ### Step 1: Retrieve the Quest
 
-Use the HTTP API to fetch the quest with the provided quest ID and \\\`stage=spec\\\`:
-
-\\\`\\\`\\\`bash
-curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec'
-\\\`\\\`\\\`
+Use the \\\`get-quest\\\` MCP tool with \\\`stage: "spec"\\\` and the provided quest ID.
 
 This fetches requirements, designDecisions, contracts, contexts, observables, and toolingRequirements - excluding \\\`steps\\\` and \\\`executionLog\\\` which are not relevant for gap analysis. If no quest ID is provided, ask the user for it.
 
@@ -249,11 +245,7 @@ Things that are fine but worth noting.
 
 ## Quest Context
 
-The quest ID will be provided in $ARGUMENTS. Use the HTTP API to retrieve it:
-
-\\\`\\\`\\\`bash
-curl -s '{{SERVER_URL}}/api/quests/QUEST_ID?stage=spec'
-\\\`\\\`\\\`
+The quest ID will be provided in $ARGUMENTS. Use the \\\`get-quest\\\` MCP tool with \\\`stage: "spec"\\\` to retrieve it.
 
 If no quest ID is provided, ask the user to specify which quest to review.`,
     placeholders: {

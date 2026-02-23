@@ -49,7 +49,7 @@ describe('start-install integration', () => {
       expect(questContent).toMatch(/ChaosWhisperer/u);
       expect(questContent).toMatch(/BDD/u);
       expect(questStartContent).toMatch(/monitoring quest execution/u);
-      expect(questStartContent).toMatch(/api\/quests/u);
+      expect(questStartContent).toMatch(/list-quests/u);
       expect(questFinalizerContent).toMatch(/Quest Finalizer/u);
       expect(questFinalizerContent).toMatch(/verify-quest/u);
       expect(questGapReviewerContent).toMatch(/Staff Engineer/u);
@@ -106,9 +106,9 @@ describe('start-install integration', () => {
       testbed.cleanup();
 
       expect(questContent).toMatch(/Socratic dialogue/u);
-      expect(questContent).toMatch(/api\/quests/u);
+      expect(questContent).toMatch(/add-quest/u);
       expect(questContent).toMatch(/modify-quest/u);
-      expect(questContent).toMatch(/AskUserQuestion/u);
+      expect(questContent).toMatch(/EXECUTION PROTOCOL/u);
     });
 
     it('VALID: {context: quest:start.md content} => contains quest start prompt template', async () => {
@@ -129,8 +129,8 @@ describe('start-install integration', () => {
 
       testbed.cleanup();
 
-      expect(questStartContent).toMatch(/api\/quests/u);
-      expect(questStartContent).toMatch(/api\/process/u);
+      expect(questStartContent).toMatch(/list-quests/u);
+      expect(questStartContent).toMatch(/get-quest-status/u);
       expect(questStartContent).toMatch(/pathseeker/iu);
       expect(questStartContent).toMatch(/codeweaver/iu);
     });

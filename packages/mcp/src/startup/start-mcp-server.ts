@@ -47,6 +47,12 @@ import { startQuestInputContract } from '../contracts/start-quest-input/start-qu
 import { getQuestStatusInputContract } from '../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { listQuestsInputContract } from '../contracts/list-quests-input/list-quests-input-contract';
 import { verifyQuestInputContract } from '../contracts/verify-quest-input/verify-quest-input-contract';
+import { wardListInputContract } from '../contracts/ward-list-input/ward-list-input-contract';
+import { wardDetailInputContract } from '../contracts/ward-detail-input/ward-detail-input-contract';
+import { wardRawInputContract } from '../contracts/ward-raw-input/ward-raw-input-contract';
+import { wardListAdapter } from '../adapters/ward/list/ward-list-adapter';
+import { wardDetailAdapter } from '../adapters/ward/detail/ward-detail-adapter';
+import { wardRawAdapter } from '../adapters/ward/raw/ward-raw-adapter';
 
 const emptyInputSchema = z.object({});
 
@@ -87,6 +93,9 @@ export const StartMcpServer = async (): Promise<void> => {
   );
   const listQuestsSchema = zodToJsonSchema(listQuestsInputContract as never, jsonSchemaOptions);
   const verifyQuestSchema = zodToJsonSchema(verifyQuestInputContract as never, jsonSchemaOptions);
+  const wardListSchema = zodToJsonSchema(wardListInputContract as never, jsonSchemaOptions);
+  const wardDetailSchema = zodToJsonSchema(wardDetailInputContract as never, jsonSchemaOptions);
+  const wardRawSchema = zodToJsonSchema(wardRawInputContract as never, jsonSchemaOptions);
 
   // List available tools
   server.setRequestHandler(ListToolsRequestSchema, () => ({
@@ -164,6 +173,21 @@ export const StartMcpServer = async (): Promise<void> => {
         description:
           'Validates quest structure integrity (dependency graph, observable coverage, file companions, etc.)',
         inputSchema: verifyQuestSchema,
+      },
+      {
+        name: 'ward-list',
+        description: 'List errors by file from a ward run',
+        inputSchema: wardListSchema,
+      },
+      {
+        name: 'ward-detail',
+        description: 'Show detailed errors for a file in a ward run',
+        inputSchema: wardDetailSchema,
+      },
+      {
+        name: 'ward-raw',
+        description: 'Show raw tool output from a ward run',
+        inputSchema: wardRawSchema,
       },
     ],
   }));
@@ -500,6 +524,102 @@ export const StartMcpServer = async (): Promise<void> => {
               text: JSON.stringify({ success: true, guilds }, null, JSON_INDENT_SPACES),
             },
           ],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
+    }
+
+    if (request.params.name === 'ward-list') {
+      const args = request.params.arguments as never;
+      const runIdRaw: unknown = Reflect.get(args, 'runId');
+      const runId = typeof runIdRaw === 'string' ? runIdRaw : undefined;
+
+      try {
+        const result = await wardListAdapter({
+          ...(runId && { runId: runId as never }),
+        });
+        return {
+          content: [{ type: 'text', text: String(result) }],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
+    }
+
+    if (request.params.name === 'ward-detail') {
+      const args = request.params.arguments as never;
+      const runIdRaw: unknown = Reflect.get(args, 'runId');
+      const filePathRaw: unknown = Reflect.get(args, 'filePath');
+      const verboseRaw: unknown = Reflect.get(args, 'verbose');
+      const runId = String(runIdRaw);
+      const filePath = String(filePathRaw);
+      const verbose = typeof verboseRaw === 'boolean' ? verboseRaw : undefined;
+
+      try {
+        const result = await wardDetailAdapter({
+          runId: runId as never,
+          filePath: filePath as never,
+          ...(verbose !== undefined && { verbose }),
+        });
+        return {
+          content: [{ type: 'text', text: String(result) }],
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { success: false, error: errorMessage },
+                null,
+                JSON_INDENT_SPACES,
+              ),
+            },
+          ],
+        };
+      }
+    }
+
+    if (request.params.name === 'ward-raw') {
+      const args = request.params.arguments as never;
+      const runIdRaw: unknown = Reflect.get(args, 'runId');
+      const checkTypeRaw: unknown = Reflect.get(args, 'checkType');
+      const runId = String(runIdRaw);
+      const checkType = String(checkTypeRaw);
+
+      try {
+        const result = await wardRawAdapter({
+          runId: runId as never,
+          checkType: checkType as never,
+        });
+        return {
+          content: [{ type: 'text', text: String(result) }],
         };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
