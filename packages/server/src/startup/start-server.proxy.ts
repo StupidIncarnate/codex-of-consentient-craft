@@ -40,7 +40,7 @@ jest.mock('child_process', () => ({
   spawn: jest.fn(),
 }));
 
-import { osHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
 import type {
   AddQuestResult,
   GetQuestResult,
@@ -135,7 +135,7 @@ export const StartServerProxy = (): {
   processDevLogAdapterProxy();
   globFindAdapterProxy();
   sessionSummaryCacheStateProxy();
-  osHomedirAdapterProxy();
+  osUserHomedirAdapterProxy();
 
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const addGuildProxy = orchestratorAddGuildAdapterProxy();

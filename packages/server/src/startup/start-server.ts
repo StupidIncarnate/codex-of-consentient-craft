@@ -12,7 +12,7 @@ import { spawn } from 'child_process';
 import { createInterface } from 'readline';
 import { readdir, readFile, stat } from 'fs/promises';
 import { join } from 'path';
-import { osHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import {
   questIdContract,
   processIdContract,
@@ -600,7 +600,7 @@ export const StartServer = (): void => {
 
       const sessionId = sessionIdContract.parse(rawSessionId);
 
-      const homeDir = osHomedirAdapter();
+      const homeDir = osUserHomedirAdapter();
       const projectPath = absoluteFilePathContract.parse(matchingGuild.guild.path);
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
@@ -845,7 +845,7 @@ export const StartServer = (): void => {
 
       const sessionId = sessionIdContract.parse(rawSessionId);
 
-      const homeDir = osHomedirAdapter();
+      const homeDir = osUserHomedirAdapter();
       const projectPath = absoluteFilePathContract.parse(guild.path);
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
@@ -921,7 +921,7 @@ export const StartServer = (): void => {
       const guildId = guildIdContract.parse(guildIdRaw);
       const guild = await orchestratorGetGuildAdapter({ guildId });
 
-      const homeDir = osHomedirAdapter();
+      const homeDir = osUserHomedirAdapter();
       const guildPath = absoluteFilePathContract.parse(guild.path);
       const dummySessionId = sessionIdContract.parse('_probe');
       const probePath = claudeProjectPathEncoderTransformer({
@@ -1172,7 +1172,7 @@ export const StartServer = (): void => {
       const guild = await orchestratorGetGuildAdapter({ guildId });
       const projectPath = absoluteFilePathContract.parse(guild.path);
 
-      const homeDir = osHomedirAdapter();
+      const homeDir = osUserHomedirAdapter();
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
         projectPath,

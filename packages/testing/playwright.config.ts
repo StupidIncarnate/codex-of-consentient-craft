@@ -12,6 +12,7 @@ const FAKE_CLAUDE_QUEUE_DIR = path.join(TEST_HOME, 'claude-queue');
 
 process.env.DUNGEONMASTER_PORT = String(TEST_PORT);
 process.env.DUNGEONMASTER_HOME = TEST_HOME;
+process.env.HOME = TEST_HOME;
 
 export default defineConfig({
   testDir: './e2e/web',
@@ -46,6 +47,7 @@ export default defineConfig({
       env: {
         DUNGEONMASTER_PORT: String(TEST_PORT),
         DUNGEONMASTER_HOME: TEST_HOME,
+        HOME: TEST_HOME,
         CLAUDE_CLI_PATH: FAKE_CLAUDE_CLI,
         FAKE_CLAUDE_QUEUE_DIR,
       },

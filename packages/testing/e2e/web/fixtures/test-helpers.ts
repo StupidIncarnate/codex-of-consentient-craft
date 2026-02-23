@@ -53,7 +53,7 @@ export const createSessionFile = ({
   sessionId: string;
   userMessage: string;
 }): void => {
-  const homeDir = process.env.DUNGEONMASTER_HOME || os.homedir();
+  const homeDir = os.homedir();
   const encodedPath = guildPath.replace(/\//gu, '-');
   const jsonlDir = path.join(homeDir, '.claude', 'projects', encodedPath);
   const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
@@ -71,7 +71,7 @@ export const createSessionFile = ({
  * Cleans up session JSONL files for a guild path.
  */
 export const cleanSessionFiles = ({ guildPath }: { guildPath: string }): void => {
-  const homeDir = process.env.DUNGEONMASTER_HOME || os.homedir();
+  const homeDir = os.homedir();
   const encodedPath = guildPath.replace(/\//gu, '-');
   const jsonlDir = path.join(homeDir, '.claude', 'projects', encodedPath);
 
