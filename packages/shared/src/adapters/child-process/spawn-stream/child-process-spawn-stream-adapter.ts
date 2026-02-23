@@ -51,7 +51,8 @@ export const childProcessSpawnStreamAdapter = async ({
 
     child.on('close', (code: number | null) => {
       const output = errorMessageContract.parse(stdoutChunks.join(''));
-      const exitCode = code === null ? null : exitCodeContract.parse(code);
+      const normalizedCode = code === null ? null : Math.max(0, code);
+      const exitCode = normalizedCode === null ? null : exitCodeContract.parse(normalizedCode);
       resolve({ exitCode, output });
     });
   });

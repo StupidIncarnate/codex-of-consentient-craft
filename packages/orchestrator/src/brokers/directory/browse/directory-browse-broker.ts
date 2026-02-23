@@ -8,14 +8,14 @@
 
 import {
   fsReaddirWithTypesAdapter,
-  osHomedirAdapter,
+  osUserHomedirAdapter,
   pathJoinAdapter,
 } from '@dungeonmaster/shared/adapters';
 import { directoryEntryContract } from '@dungeonmaster/shared/contracts';
 import type { DirectoryEntry, GuildPath } from '@dungeonmaster/shared/contracts';
 
 export const directoryBrowseBroker = ({ path }: { path?: GuildPath }): DirectoryEntry[] => {
-  const targetPath = path ?? osHomedirAdapter();
+  const targetPath = path ?? osUserHomedirAdapter();
 
   const entries = fsReaddirWithTypesAdapter({ dirPath: targetPath as never });
 

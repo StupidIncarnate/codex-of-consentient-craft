@@ -32,7 +32,7 @@ describe('pre-bash-hook', () => {
       const result = runHook({ hookData });
 
       expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/dungeonmaster-ward/u);
+      expect(result.stderr).toMatch(/npm run ward/u);
     });
 
     it('VALID: {command: "npx jest --verbose"} => returns exit code 2', () => {
@@ -44,7 +44,7 @@ describe('pre-bash-hook', () => {
       const result = runHook({ hookData });
 
       expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/dungeonmaster-ward/u);
+      expect(result.stderr).toMatch(/npm run ward/u);
     });
 
     it('VALID: {command: "eslint src/"} => returns exit code 2', () => {
@@ -56,7 +56,7 @@ describe('pre-bash-hook', () => {
       const result = runHook({ hookData });
 
       expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/dungeonmaster-ward/u);
+      expect(result.stderr).toMatch(/npm run ward/u);
     });
 
     it('VALID: {command: "npx eslint"} => returns exit code 2', () => {
@@ -68,7 +68,7 @@ describe('pre-bash-hook', () => {
       const result = runHook({ hookData });
 
       expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/dungeonmaster-ward/u);
+      expect(result.stderr).toMatch(/npm run ward/u);
     });
 
     it('VALID: {command: "tsc --noEmit"} => returns exit code 2', () => {
@@ -80,7 +80,7 @@ describe('pre-bash-hook', () => {
       const result = runHook({ hookData });
 
       expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/dungeonmaster-ward/u);
+      expect(result.stderr).toMatch(/npm run ward/u);
     });
 
     it('VALID: {command: "npx tsc"} => returns exit code 2', () => {
@@ -92,7 +92,7 @@ describe('pre-bash-hook', () => {
       const result = runHook({ hookData });
 
       expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/dungeonmaster-ward/u);
+      expect(result.stderr).toMatch(/npm run ward/u);
     });
   });
 

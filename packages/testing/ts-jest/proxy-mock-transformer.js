@@ -8,6 +8,10 @@
  */
 'use strict';
 
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+
 const {
   typescriptProxyMockTransformerMiddleware,
 } = require('../dist/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware');
@@ -15,9 +19,20 @@ const {
   typescriptProgramContract,
 } = require('../dist/contracts/typescript-program/typescript-program-contract');
 
+// Compute version from shared/testing.ts barrel content so cache invalidates when proxy exports change
+const computeVersion = () => {
+  try {
+    const barrelPath = path.resolve(__dirname, '../../shared/testing.ts');
+    const content = fs.readFileSync(barrelPath, 'utf-8');
+    return crypto.createHash('md5').update(content).digest('hex').slice(0, 8);
+  } catch {
+    return '2.0.0';
+  }
+};
+
 // Required by ts-jest for transformer identification and caching
 exports.name = 'proxy-mock-transformer';
-exports.version = '1.0.0';
+exports.version = computeVersion();
 
 // ts-jest requires the transformer factory to be exported as 'factory'
 exports.factory =
