@@ -1,3 +1,4 @@
+import * as os from 'os';
 import { test, expect } from '@playwright/test';
 import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
@@ -30,7 +31,7 @@ test.describe('Guild Creation Flow', () => {
     await expect(page.getByTestId('SESSION_EMPTY_STATE')).toBeVisible();
   });
 
-  test('browse directory flow selects path', async ({ page, request }) => {
+  test('browse directory defaults to OS user home, not DUNGEONMASTER_HOME', async ({ page, request }) => {
     await cleanGuilds(request);
     await page.goto('/');
 
@@ -40,26 +41,50 @@ test.describe('Guild Creation Flow', () => {
     await expect(page.getByText('Browse Directory')).toBeVisible();
     await expect(page.getByTestId('CURRENT_PATH_DISPLAY')).toBeVisible();
 
-    // Path should not be just "/"
+    // Default path must be the real OS user home directory, not DUNGEONMASTER_HOME.
+    // When DUNGEONMASTER_HOME is set (worktree isolation), the directory browser
+    // must still show the actual filesystem home so users can pick project paths.
     const pathText = await page.getByTestId('CURRENT_PATH_DISPLAY').textContent();
-    expect(pathText).toBeTruthy();
+    const userHome = os.homedir();
+    expect(pathText).toBe(userHome);
 
-    // Click a directory entry if available, then SELECT
+    // Directory entries MUST be visible — the user home always has subdirectories
     const dirEntries = page.locator('[data-testid^="DIR_ENTRY_"]');
+    await expect(dirEntries.first()).toBeVisible({ timeout: 5000 });
     const count = await dirEntries.count();
-    if (count > 0) {
-      const firstEntry = dirEntries.first();
-      await firstEntry.click();
-      // Path should update
-      await page.waitForTimeout(500);
-    }
+    expect(count).toBeGreaterThan(0);
 
-    await page.getByText('Select').click();
+    // "No subdirectories found" must NOT be shown
+    await expect(page.getByTestId('EMPTY_DIRECTORY')).not.toBeVisible();
+  });
 
-    // Modal should close, path input should be populated
+  test('browse directory navigate and select populates path input', async ({ page, request }) => {
+    await cleanGuilds(request);
+    await page.goto('/');
+
+    await page.getByText('BROWSE').click();
+    await expect(page.getByText('Browse Directory')).toBeVisible();
+
+    // Wait for entries to load
+    const dirEntries = page.locator('[data-testid^="DIR_ENTRY_"]');
+    await expect(dirEntries.first()).toBeVisible({ timeout: 5000 });
+
+    // Click into a directory
+    const firstEntry = dirEntries.first();
+    const entryName = await firstEntry.textContent();
+    await firstEntry.click();
+
+    // Path display should update to include the clicked directory
+    await expect(page.getByTestId('CURRENT_PATH_DISPLAY')).toContainText(String(entryName));
+
+    // Click Select
+    await page.getByTestId('SELECT_DIRECTORY_BUTTON').click();
+
+    // Modal closes, path input populated with selected directory
     await expect(page.getByText('Browse Directory')).not.toBeVisible();
     const pathValue = await page.getByTestId('GUILD_PATH_INPUT').inputValue();
     expect(pathValue.length).toBeGreaterThan(0);
+    expect(pathValue).toContain(String(entryName));
   });
 
   test('main view + button shows inline form with CANCEL', async ({ page, request }) => {

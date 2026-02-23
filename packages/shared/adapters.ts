@@ -19,6 +19,7 @@ export * from './src/adapters/path/join/path-join-adapter';
 
 // OS Adapters
 export * from './src/adapters/os/homedir/os-homedir-adapter';
+export * from './src/adapters/os/user-homedir/os-user-homedir-adapter';
 
 // Child Process Adapters
 export * from './src/adapters/child-process/spawn-capture/child-process-spawn-capture-adapter';

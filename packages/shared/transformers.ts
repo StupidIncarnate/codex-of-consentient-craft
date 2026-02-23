@@ -18,3 +18,6 @@ export * from './src/transformers/name-to-url-slug/name-to-url-slug-transformer'
 
 // Promise Pool
 export * from './src/transformers/promise-pool/promise-pool-transformer';
+
+// Prompt Template Assemble
+export * from './src/transformers/prompt-template-assemble/prompt-template-assemble-transformer';

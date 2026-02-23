@@ -24,11 +24,23 @@ specifications through Socratic dialogue.
 
 ## EXECUTION PROTOCOL
 
-**Your first three actions upon receiving a user request, in this order:**
+**Your first four actions upon receiving a user request, in this order:**
 
-1. Call the \`add-quest\` MCP tool to create the quest immediately
-2. Spawn ONE exploration agent (Task tool, \`subagent_type: "Explore"\`) to understand what exists in the codebase
-3. Interview the user - ask clarifying questions about scope, success criteria, and edge cases
+1. **Create task list for ALL phases** - Use TaskCreate to create one task per phase so you always know where you are
+   and what comes next. Create all seven tasks immediately:
+   - "Phase 1: Discovery" (explore codebase + interview user)
+   - "Phase 2: Flow Mapping" (draw mermaid diagrams + design decisions)
+   - "Phase 3: Requirements" (extract requirements from flows)
+   - "Phase 4: Approval Gate - Flows + Requirements" (present to user, get approval)
+   - "Phase 5: Observables + Contracts" (contexts, observables, verification, contracts)
+   - "Phase 6: Approval Gate - Observables" (gap review, present to user, get approval)
+   - "Phase 7: Handoff" (final summary, confirm ready for start-quest)
+2. Call the \`add-quest\` MCP tool to create the quest immediately
+3. Spawn ONE exploration agent (Task tool, \`subagent_type: "Explore"\`) to understand what exists in the codebase
+4. Interview the user - ask clarifying questions about scope, success criteria, and edge cases
+
+**Mark each task in_progress when you start it and completed when you finish it.** This keeps you oriented across long
+conversations and prevents skipping phases.
 
 **Begin every response with your current phase:** \`[Phase X: Name]\`
 
@@ -83,7 +95,8 @@ specifications through Socratic dialogue.
     - What are the edge cases?
     - What happens when things go wrong?
 
-**EXIT when:** Quest exists AND you have codebase context AND you have enough user clarity to draw flows.
+**EXIT when:** Quest exists AND you have codebase context AND you have enough user clarity to draw flows. Mark Phase 1
+task completed, mark Phase 2 task in_progress.
 
 ### Phase 2: Flow Mapping
 
@@ -94,7 +107,8 @@ journeys, branching logic, or error recovery paths, draw flows first.
 5. **Record design decisions** - As architectural choices emerge, persist them immediately
 6. **Persist flows + design decisions** - Call \`modify-quest\` with \`flows\` and \`designDecisions\` arrays
 
-**EXIT when:** Flows and design decisions are persisted to the quest via \`modify-quest\`.
+**EXIT when:** Flows and design decisions are persisted to the quest via \`modify-quest\`. Mark Phase 2 task completed,
+mark Phase 3 task in_progress.
 
 ### Phase 3: Requirements
 
@@ -102,7 +116,8 @@ journeys, branching logic, or error recovery paths, draw flows first.
    For simple quests without flows, decompose directly from the user request.
 8. **Persist requirements** - Call \`modify-quest\` with the \`requirements\` array
 
-**EXIT when:** Requirements are persisted to the quest via \`modify-quest\`.
+**EXIT when:** Requirements are persisted to the quest via \`modify-quest\`. Mark Phase 3 task completed, mark Phase 4
+task in_progress.
 
 ### Phase 4: Flows + Requirements Approval Gate
 
@@ -112,7 +127,7 @@ journeys, branching logic, or error recovery paths, draw flows first.
     \`status\` to \`requirements_approved\`
 
 **GATE: Do NOT proceed until all non-deferred requirements are \`approved\` and quest status is
-\`requirements_approved\`.**
+\`requirements_approved\`.** Mark Phase 4 task completed, mark Phase 5 task in_progress.
 
 ### Phase 5: Observables + Contracts
 
@@ -133,7 +148,8 @@ journeys, branching logic, or error recovery paths, draw flows first.
 19. **Persist everything** - Call \`modify-quest\` with \`contexts\`, \`observables\`, \`toolingRequirements\`, and
     \`contracts\`
 
-**EXIT when:** All observables, contexts, contracts, and tooling requirements are persisted via \`modify-quest\`.
+**EXIT when:** All observables, contexts, contracts, and tooling requirements are persisted via \`modify-quest\`. Mark
+Phase 5 task completed, mark Phase 6 task in_progress.
 
 ### Phase 6: Observables Approval Gate
 
@@ -146,7 +162,8 @@ journeys, branching logic, or error recovery paths, draw flows first.
 24. **Get approval** - User must approve observables and contracts
 25. **Update quest** - Call \`modify-quest\` to apply changes and set \`status\` to \`approved\`
 
-**GATE: Do NOT proceed until user explicitly approves observables and contracts and quest status is \`approved\`.**
+**GATE: Do NOT proceed until user explicitly approves observables and contracts and quest status is \`approved\`.** Mark
+Phase 6 task completed, mark Phase 7 task in_progress.
 
 ### Phase 7: Handoff
 
@@ -157,7 +174,7 @@ journeys, branching logic, or error recovery paths, draw flows first.
     - Observables: count by requirement (with verification step counts)
     - Contracts: count (data, endpoint, event)
     - Design decisions: count
-27. **User confirms** - Quest is approved and ready for implementation via \`start-quest\`
+27. **User confirms** - Quest is approved and ready for implementation via \`start-quest\`. Mark Phase 7 task completed.
 
 ---
 

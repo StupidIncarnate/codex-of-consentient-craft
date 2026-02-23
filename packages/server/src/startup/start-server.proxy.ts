@@ -40,7 +40,7 @@ jest.mock('child_process', () => ({
   spawn: jest.fn(),
 }));
 
-import { osHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
 import type {
   AddQuestResult,
   GetQuestResult,
@@ -123,6 +123,7 @@ export const StartServerProxy = (): {
     emitLine: (line: string) => void;
     emitExit: (code: number) => void;
   };
+  getSpawnedArgs: () => unknown[][];
   getBroadcastedMessages: () => WsMessage[];
 } => {
   const serveProxy = honoServeAdapterProxy();
@@ -135,7 +136,7 @@ export const StartServerProxy = (): {
   processDevLogAdapterProxy();
   globFindAdapterProxy();
   sessionSummaryCacheStateProxy();
-  osHomedirAdapterProxy();
+  osUserHomedirAdapterProxy();
 
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const addGuildProxy = orchestratorAddGuildAdapterProxy();
@@ -277,6 +278,7 @@ export const StartServerProxy = (): {
         },
       };
     },
+    getSpawnedArgs: (): unknown[][] => jest.mocked(_spawn).mock.calls,
     getBroadcastedMessages: (): WsMessage[] => broadcastProxy.getCapturedMessages(),
   };
 };

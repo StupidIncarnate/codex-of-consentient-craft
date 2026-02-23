@@ -39,8 +39,11 @@ test.describe('Chat History & Sessions', () => {
     // Wait for response to appear
     await expect(page.getByText('Persistent response')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
-    // Refresh the page
-    await page.goto(`/${guildId}/quest`);
+    // Wait for URL to update with session ID (happens after streaming completes)
+    await page.waitForURL(/\/session\//u, { timeout: CHAT_TIMEOUT });
+
+    // Refresh the page (use reload to preserve the session URL that was set after streaming)
+    await page.reload();
     await page.waitForResponse(
       (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
     );

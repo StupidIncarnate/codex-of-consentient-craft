@@ -53,3 +53,15 @@ All formatting and gating lives in one place:
 `src/adapters/process/dev-log/process-dev-log-adapter.ts`
 
 To change the prefix, add timestamps, or route logs elsewhere, modify that single file.
+
+## Dual-Homedir Pattern
+
+The server uses two different homedir adapters for two distinct storage locations:
+
+| Data | Adapter | Resolves to | Why |
+|---|---|---|---|
+| Session JSONL files | `osUserHomedirAdapter` | Real `~/.claude/` (the OS user homedir) | Claude CLI writes session files here. It has no env var to redirect this path, so we must read from the real homedir. |
+| Dungeonmaster data (guilds, quests) | `osHomedirAdapter` | `DUNGEONMASTER_HOME` (falls back to real homedir) | We control this path. In E2E tests and worktrees, `DUNGEONMASTER_HOME` isolates dungeonmaster data per environment. |
+
+In E2E tests, `HOME` is set to the test directory so that `os.homedir()` (used by `osUserHomedirAdapter`) resolves to
+the same isolated temp dir. This way the fake Claude CLI writes session files where the server expects to find them.

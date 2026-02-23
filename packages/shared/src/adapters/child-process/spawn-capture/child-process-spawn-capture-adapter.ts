@@ -31,7 +31,8 @@ export const childProcessSpawnCaptureAdapter = async ({
       const combinedOutput = errorMessageContract.parse(stdout + stderr);
 
       if (error && 'code' in error && typeof error.code === 'number') {
-        const exitCode = exitCodeContract.parse(error.code);
+        const normalizedCode = Math.max(0, error.code);
+        const exitCode = exitCodeContract.parse(normalizedCode);
         resolve({ exitCode, output: combinedOutput });
         return;
       }

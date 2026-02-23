@@ -2,7 +2,7 @@ import { Dirent } from 'fs';
 
 import {
   fsReaddirWithTypesAdapterProxy,
-  osHomedirAdapterProxy,
+  osUserHomedirAdapterProxy,
   pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
@@ -39,7 +39,7 @@ export const directoryBrowseBrokerProxy = (): {
   setupThrows: (params: { error: Error }) => void;
 } => {
   const readdirProxy = fsReaddirWithTypesAdapterProxy();
-  const homedirProxy = osHomedirAdapterProxy();
+  const homedirProxy = osUserHomedirAdapterProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
 
   return {

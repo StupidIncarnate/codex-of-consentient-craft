@@ -12,7 +12,7 @@ import { spawn } from 'child_process';
 import { createInterface } from 'readline';
 import { readdir, readFile, stat } from 'fs/promises';
 import { join } from 'path';
-import { osHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import {
   questIdContract,
   processIdContract,
@@ -23,9 +23,12 @@ import {
   wsMessageContract,
   sessionIdContract,
   absoluteFilePathContract,
+  contentTextContract,
 } from '@dungeonmaster/shared/contracts';
+import { promptTemplateAssembleTransformer } from '@dungeonmaster/shared/transformers';
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 import {
+  chaoswhispererPromptStatics,
   isoTimestampContract,
   orchestrationEventsState,
   sessionIdExtractorTransformer,
@@ -440,9 +443,19 @@ export const StartServer = (): void => {
         message: `Chat started: questId=${questIdRaw}, messageLength=${String(rawMessage.length)}${resumeSessionId ? `, resuming=${resumeSessionId}` : ''}`,
       });
 
+      const promptForCli = resumeSessionId
+        ? rawMessage
+        : promptTemplateAssembleTransformer({
+            template: contentTextContract.parse(chaoswhispererPromptStatics.prompt.template),
+            placeholder: contentTextContract.parse(
+              chaoswhispererPromptStatics.prompt.placeholders.arguments,
+            ),
+            value: contentTextContract.parse(rawMessage),
+          });
+
       const args = resumeSessionId
         ? ['--resume', resumeSessionId, '-p', rawMessage]
-        : ['-p', rawMessage];
+        : ['-p', promptForCli];
 
       args.push('--output-format', 'stream-json', '--verbose');
 
@@ -600,7 +613,7 @@ export const StartServer = (): void => {
 
       const sessionId = sessionIdContract.parse(rawSessionId);
 
-      const homeDir = osHomedirAdapter();
+      const homeDir = osUserHomedirAdapter();
       const projectPath = absoluteFilePathContract.parse(matchingGuild.guild.path);
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
@@ -845,7 +858,7 @@ export const StartServer = (): void => {
 
       const sessionId = sessionIdContract.parse(rawSessionId);
 
-      const homeDir = osHomedirAdapter();
+      const homeDir = osUserHomedirAdapter();
       const projectPath = absoluteFilePathContract.parse(guild.path);
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
@@ -921,7 +934,7 @@ export const StartServer = (): void => {
       const guildId = guildIdContract.parse(guildIdRaw);
       const guild = await orchestratorGetGuildAdapter({ guildId });
 
-      const homeDir = osHomedirAdapter();
+      const homeDir = osUserHomedirAdapter();
       const guildPath = absoluteFilePathContract.parse(guild.path);
       const dummySessionId = sessionIdContract.parse('_probe');
       const probePath = claudeProjectPathEncoderTransformer({
@@ -1172,7 +1185,7 @@ export const StartServer = (): void => {
       const guild = await orchestratorGetGuildAdapter({ guildId });
       const projectPath = absoluteFilePathContract.parse(guild.path);
 
-      const homeDir = osHomedirAdapter();
+      const homeDir = osUserHomedirAdapter();
       const jsonlPath = claudeProjectPathEncoderTransformer({
         homeDir,
         projectPath,
