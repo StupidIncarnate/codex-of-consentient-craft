@@ -15,9 +15,6 @@ export const apiRoutesStatics = {
     byId: '/api/quests/:questId',
     verify: '/api/quests/:questId/verify',
     start: '/api/quests/:questId/start',
-    chat: '/api/quests/:questId/chat',
-    chatStop: '/api/quests/:questId/chat/:chatProcessId/stop',
-    chatHistory: '/api/quests/:questId/chat/history',
   },
   process: {
     status: '/api/process/:processId',
@@ -27,9 +24,6 @@ export const apiRoutesStatics = {
     list: '/api/guilds',
     byId: '/api/guilds/:guildId',
     chat: '/api/guilds/:guildId/chat',
-    chatStop: '/api/guilds/:guildId/chat/:chatProcessId/stop',
-    chatHistory: '/api/guilds/:guildId/chat/history',
-    sessionResolve: '/api/guilds/:guildId/sessions/:sessionId',
   },
   sessions: {
     list: '/api/guilds/:guildId/sessions',
