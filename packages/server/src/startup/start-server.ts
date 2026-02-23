@@ -23,9 +23,12 @@ import {
   wsMessageContract,
   sessionIdContract,
   absoluteFilePathContract,
+  contentTextContract,
 } from '@dungeonmaster/shared/contracts';
+import { promptTemplateAssembleTransformer } from '@dungeonmaster/shared/transformers';
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 import {
+  chaoswhispererPromptStatics,
   isoTimestampContract,
   orchestrationEventsState,
   sessionIdExtractorTransformer,
@@ -440,9 +443,19 @@ export const StartServer = (): void => {
         message: `Chat started: questId=${questIdRaw}, messageLength=${String(rawMessage.length)}${resumeSessionId ? `, resuming=${resumeSessionId}` : ''}`,
       });
 
+      const promptForCli = resumeSessionId
+        ? rawMessage
+        : promptTemplateAssembleTransformer({
+            template: contentTextContract.parse(chaoswhispererPromptStatics.prompt.template),
+            placeholder: contentTextContract.parse(
+              chaoswhispererPromptStatics.prompt.placeholders.arguments,
+            ),
+            value: contentTextContract.parse(rawMessage),
+          });
+
       const args = resumeSessionId
         ? ['--resume', resumeSessionId, '-p', rawMessage]
-        : ['-p', rawMessage];
+        : ['-p', promptForCli];
 
       args.push('--output-format', 'stream-json', '--verbose');
 

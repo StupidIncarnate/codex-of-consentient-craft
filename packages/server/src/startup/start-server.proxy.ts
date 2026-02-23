@@ -123,6 +123,7 @@ export const StartServerProxy = (): {
     emitLine: (line: string) => void;
     emitExit: (code: number) => void;
   };
+  getSpawnedArgs: () => unknown[][];
   getBroadcastedMessages: () => WsMessage[];
 } => {
   const serveProxy = honoServeAdapterProxy();
@@ -277,6 +278,7 @@ export const StartServerProxy = (): {
         },
       };
     },
+    getSpawnedArgs: (): unknown[][] => jest.mocked(_spawn).mock.calls,
     getBroadcastedMessages: (): WsMessage[] => broadcastProxy.getCapturedMessages(),
   };
 };
