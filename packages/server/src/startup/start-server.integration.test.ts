@@ -721,6 +721,48 @@ describe('StartServer', () => {
 
       expect(toPlain(body)).toStrictEqual(toPlain({ error: 'message is required' }));
     });
+
+    it('VALID: {new session, no sessionId} => spawns Claude CLI with ChaosWhisperer prompt prepended to message', async () => {
+      const proxy = setupGuildChatStreamContext();
+      proxy.setupChatSpawn();
+      const guildId = GuildIdStub();
+
+      await proxy.request(`/api/guilds/${guildId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Build a login page' }),
+      });
+
+      const spawnCalls = proxy.getSpawnedArgs();
+      const lastCall = spawnCalls[spawnCalls.length - 1];
+      const args = lastCall?.[1] as unknown[];
+      const dashPIndex = args.indexOf('-p');
+      const prompt = Reflect.get(args, dashPIndex + 1) as never;
+
+      expect(String(prompt).startsWith('# ChaosWhisperer')).toBe(true);
+      expect(String(prompt).endsWith('Build a login page')).toBe(true);
+    });
+
+    it('VALID: {resume session, with sessionId} => spawns Claude CLI with raw message only', async () => {
+      const proxy = setupGuildChatStreamContext();
+      proxy.setupChatSpawn();
+      const guildId = GuildIdStub();
+      const sessionId = SessionIdStub();
+
+      await proxy.request(`/api/guilds/${guildId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'continue', sessionId }),
+      });
+
+      const spawnCalls = proxy.getSpawnedArgs();
+      const lastCall = spawnCalls[spawnCalls.length - 1];
+      const args = lastCall?.[1] as unknown[];
+      const dashPIndex = args.indexOf('-p');
+      const prompt = Reflect.get(args, dashPIndex + 1);
+
+      expect(prompt).toBe('continue');
+    });
   });
 
   describe('GET /api/quests/:questId/chat/history', () => {

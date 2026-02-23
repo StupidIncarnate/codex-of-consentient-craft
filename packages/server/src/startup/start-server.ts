@@ -715,9 +715,19 @@ export const StartServer = (): void => {
         message: `Guild chat started: guildId=${guildIdRaw}, messageLength=${String(rawMessage.length)}${resumeSessionId ? `, resuming=${resumeSessionId}` : ''}`,
       });
 
+      const promptForCli = resumeSessionId
+        ? rawMessage
+        : promptTemplateAssembleTransformer({
+            template: contentTextContract.parse(chaoswhispererPromptStatics.prompt.template),
+            placeholder: contentTextContract.parse(
+              chaoswhispererPromptStatics.prompt.placeholders.arguments,
+            ),
+            value: contentTextContract.parse(rawMessage),
+          });
+
       const args = resumeSessionId
         ? ['--resume', resumeSessionId, '-p', rawMessage]
-        : ['-p', rawMessage];
+        : ['-p', promptForCli];
 
       args.push('--output-format', 'stream-json', '--verbose');
 
