@@ -95,7 +95,10 @@ export const HomeContentLayerWidget = (): React.JSX.Element => {
                 onSelect={({ sessionId }: { sessionId: SessionId }) => {
                   const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
                   const slug = selectedGuild?.urlSlug ?? selectedGuildId;
-                  const result = navigate(`/${slug}/session/${sessionId}`);
+                  const session = sessions.find((s) => s.sessionId === sessionId);
+                  const result = navigate(`/${slug}/session/${sessionId}`, {
+                    state: { questId: session?.questId ?? null },
+                  });
                   if (result instanceof Promise) {
                     result.catch(() => undefined);
                   }

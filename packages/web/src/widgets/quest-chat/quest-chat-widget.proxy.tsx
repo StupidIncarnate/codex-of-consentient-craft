@@ -14,6 +14,7 @@ import type {
   GuildStub,
   ProcessId,
   QuestStub,
+  SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import type { AskUserQuestionOption } from '../../contracts/ask-user-question/ask-user-question-contract';
@@ -22,6 +23,7 @@ import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-bind
 import { useQuestDetailBindingProxy } from '../../bindings/use-quest-detail/use-quest-detail-binding.proxy';
 import { useQuestEventsBindingProxy } from '../../bindings/use-quest-events/use-quest-events-binding.proxy';
 import { useSessionChatBindingProxy } from '../../bindings/use-session-chat/use-session-chat-binding.proxy';
+import { useSessionListBindingProxy } from '../../bindings/use-session-list/use-session-list-binding.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
@@ -30,6 +32,7 @@ import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
 type Guild = ReturnType<typeof GuildStub>;
+type SessionListItem = ReturnType<typeof SessionListItemStub>;
 
 export const QuestChatWidgetProxy = (): {
   setupChat: (params: { chatProcessId: ProcessId }) => void;
@@ -37,6 +40,7 @@ export const QuestChatWidgetProxy = (): {
   setupStop: () => void;
   receiveWsMessage: (params: { data: string }) => void;
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
+  setupSessions: (params: { sessions: SessionListItem[] }) => void;
   setupQuest: (params: { quest: Quest }) => void;
   setupQuestError: () => void;
   setupGuild: (params: { guild: Guild }) => void;
@@ -53,6 +57,7 @@ export const QuestChatWidgetProxy = (): {
   clickClarifyOption: (params: { label: AskUserQuestionOption['label'] }) => Promise<void>;
 } => {
   const guildsBindingProxy = useGuildsBindingProxy();
+  const sessionListProxy = useSessionListBindingProxy();
   const questDetailProxy = useQuestDetailBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
   const chatBindingProxy = useSessionChatBindingProxy();
@@ -77,6 +82,9 @@ export const QuestChatWidgetProxy = (): {
     },
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
       guildsBindingProxy.setupGuilds({ guilds });
+    },
+    setupSessions: ({ sessions }: { sessions: SessionListItem[] }): void => {
+      sessionListProxy.setupSessions({ sessions });
     },
     setupQuest: ({ quest }: { quest: Quest }): void => {
       questDetailProxy.setupQuest({ quest });

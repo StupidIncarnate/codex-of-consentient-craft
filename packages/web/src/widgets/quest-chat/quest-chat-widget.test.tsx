@@ -10,6 +10,7 @@ import {
   GuildStub,
   QuestStub,
   RequirementStub,
+  SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -251,6 +252,41 @@ describe('QuestChatWidget', () => {
               { pathname: '/test-guild/session/chat-q7', state: { questId: quest.id } },
             ]}
           >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      expect(proxy.hasSpecPanel()).toBe(true);
+    });
+
+    it('VALID: {quest with requirements via session list fallback, no route state} => renders spec panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-fallback',
+        requirements: [RequirementStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+      const session = SessionListItemStub({
+        sessionId: 'chat-fallback' as never,
+        questId: quest.id as never,
+      });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [session] });
+      proxy.setupQuest({ quest });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/session/chat-fallback']}>
             <Routes>
               <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             </Routes>

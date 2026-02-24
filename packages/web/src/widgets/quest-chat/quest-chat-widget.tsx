@@ -18,6 +18,7 @@ import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestEventsBinding } from '../../bindings/use-quest-events/use-quest-events-binding';
 import { useQuestDetailBinding } from '../../bindings/use-quest-detail/use-quest-detail-binding';
 import { useSessionChatBinding } from '../../bindings/use-session-chat/use-session-chat-binding';
+import { useSessionListBinding } from '../../bindings/use-session-list/use-session-list-binding';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
@@ -46,14 +47,24 @@ export const QuestChatWidget = (): React.JSX.Element => {
     guildId: resolvedGuildId,
   });
 
+  const { data: sessionList } = useSessionListBinding({
+    guildId: resolvedGuildId,
+  });
+
+  const sessionQuestId =
+    routeQuestId ??
+    (sessionId === null
+      ? null
+      : (sessionList.find((s) => s.sessionId === sessionId)?.questId ?? null));
+
   const { data: questData, refresh: refreshQuest } = useQuestDetailBinding({
-    questId: routeQuestId,
+    questId: sessionQuestId,
   });
 
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
 
   useQuestEventsBinding({
-    questId: routeQuestId,
+    questId: sessionQuestId,
     onQuestModified: () => {
       refreshQuest().catch(() => undefined);
       setExternalUpdatePending(true);
@@ -79,12 +90,12 @@ export const QuestChatWidget = (): React.JSX.Element => {
   useEffect(() => {
     if (prevIsStreamingRef.current && !isStreaming) {
       refreshGuild().catch(() => undefined);
-      if (routeQuestId) {
+      if (sessionQuestId) {
         refreshQuest().catch(() => undefined);
       }
     }
     prevIsStreamingRef.current = isStreaming;
-  }, [isStreaming, refreshGuild, refreshQuest, routeQuestId]);
+  }, [isStreaming, refreshGuild, refreshQuest, sessionQuestId]);
 
   const pendingQuestion = hasPendingQuestionGuard({ entries })
     ? extractAskUserQuestionTransformer({ entries })
