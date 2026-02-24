@@ -26,11 +26,13 @@ import type {
   Quest,
   QuestId,
   QuestListItem,
+  SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapter } from '../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import { readlineCreateInterfaceAdapter } from '../adapters/readline/create-interface/readline-create-interface-adapter';
+import { chatSpawnBroker } from '../brokers/chat/spawn/chat-spawn-broker';
 import { directoryBrowseBroker } from '../brokers/directory/browse/directory-browse-broker';
 import { pathseekerPipelineBroker } from '../brokers/pathseeker/pipeline/pathseeker-pipeline-broker';
 import { guildAddBroker } from '../brokers/guild/add/guild-add-broker';
@@ -62,6 +64,7 @@ import { orchestrationProcessContract } from '../contracts/orchestration-process
 import { promptTextContract } from '../contracts/prompt-text/prompt-text-contract';
 import { slotIndexContract } from '../contracts/slot-index/slot-index-contract';
 import { totalCountContract } from '../contracts/total-count/total-count-contract';
+import { chatProcessState } from '../state/chat-process/chat-process-state';
 import { orchestrationEventsState } from '../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../state/orchestration-processes/orchestration-processes-state';
 import { pathseekerPromptStatics } from '../statics/pathseeker-prompt/pathseeker-prompt-statics';
@@ -306,5 +309,46 @@ export const StartOrchestrator = {
     }
 
     return result;
+  },
+
+  // Chat methods
+  startChat: async ({
+    guildId,
+    message,
+    sessionId,
+  }: {
+    guildId: GuildId;
+    message: string;
+    sessionId?: SessionId;
+  }): Promise<{ chatProcessId: ProcessId }> =>
+    chatSpawnBroker({
+      guildId,
+      message,
+      ...(sessionId && { sessionId }),
+      onLine: ({ chatProcessId, line }) => {
+        orchestrationEventsState.emit({
+          type: 'chat-output',
+          processId: chatProcessId,
+          payload: { chatProcessId, line },
+        });
+      },
+      onComplete: ({ chatProcessId, exitCode, sessionId: sid }) => {
+        chatProcessState.remove({ processId: chatProcessId });
+        orchestrationEventsState.emit({
+          type: 'chat-complete',
+          processId: chatProcessId,
+          payload: { chatProcessId, exitCode, sessionId: sid },
+        });
+      },
+      registerProcess: ({ processId, kill }) => {
+        chatProcessState.register({ processId, kill });
+      },
+    }),
+
+  stopChat: ({ chatProcessId }: { chatProcessId: ProcessId }): boolean =>
+    chatProcessState.kill({ processId: chatProcessId }),
+
+  stopAllChats: (): void => {
+    chatProcessState.killAll();
   },
 };

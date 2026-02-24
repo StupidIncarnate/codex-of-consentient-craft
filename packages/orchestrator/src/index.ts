@@ -54,6 +54,9 @@ export { toolInputToDisplayTransformer } from './transformers/tool-input-to-disp
 // State - event bus for orchestration lifecycle events
 export { orchestrationEventsState } from './state/orchestration-events/orchestration-events-state';
 
+// Chat process state - exported for server shutdown hooks
+export { chatProcessState } from './state/chat-process/chat-process-state';
+
 // Contracts - exported for use by CLI and other packages
 export { agentRoleContract } from './contracts/agent-role/agent-role-contract';
 export type { AgentRole } from './contracts/agent-role/agent-role-contract';

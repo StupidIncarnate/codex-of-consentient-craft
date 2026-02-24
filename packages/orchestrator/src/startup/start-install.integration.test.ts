@@ -106,7 +106,7 @@ describe('start-install integration', () => {
       testbed.cleanup();
 
       expect(questContent).toMatch(/Socratic dialogue/u);
-      expect(questContent).toMatch(/add-quest/u);
+      expect(questContent).toMatch(/get-quest/u);
       expect(questContent).toMatch(/modify-quest/u);
       expect(questContent).toMatch(/EXECUTION PROTOCOL/u);
     });

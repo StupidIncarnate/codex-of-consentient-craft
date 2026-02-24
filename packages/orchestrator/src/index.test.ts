@@ -9,6 +9,7 @@ describe('orchestrator', () => {
       'agentRoleContract',
       'agentSlotContract',
       'chaoswhispererPromptStatics',
+      'chatProcessState',
       'codeweaverPromptStatics',
       'getQuestInputContract',
       'getQuestResultContract',

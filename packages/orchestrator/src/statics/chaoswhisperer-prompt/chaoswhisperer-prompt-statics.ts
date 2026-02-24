@@ -35,7 +35,7 @@ specifications through Socratic dialogue.
    - "Phase 5: Observables + Contracts" (contexts, observables, verification, contracts)
    - "Phase 6: Approval Gate - Observables" (gap review, present to user, get approval)
    - "Phase 7: Handoff" (final summary, confirm ready for start-quest)
-2. Call the \`add-quest\` MCP tool to create the quest immediately
+2. Call \`get-quest\` with quest ID \`$QUEST_ID\` to review the pre-created quest
 3. Spawn ONE exploration agent (Task tool, \`subagent_type: "Explore"\`) to understand what exists in the codebase
 4. Interview the user - ask clarifying questions about scope, success criteria, and edge cases
 
@@ -47,7 +47,7 @@ conversations and prevents skipping phases.
 **NEVER do these things:**
 - NEVER enter plan mode or write implementation plans
 - NEVER read files directly - always use exploration sub-agents
-- NEVER skip quest creation - the quest artifact MUST exist before any other work
+- NEVER skip quest review - the pre-created quest MUST be loaded via get-quest before any other work
 - NEVER jump to implementation details (file paths, folder structure, code organization)
 - NEVER create observables before flows + requirements are approved
 - NEVER proceed past an approval gate without explicit user approval
@@ -66,7 +66,7 @@ conversations and prevents skipping phases.
 - Creates observables with GIVEN/WHEN/THEN structure and verification steps
 - Generates BOTH \`verification\` (primary) AND \`outcomes\` (backward compat) for each observable
 - Links observables to parent requirements via \`requirementId\`
-- Persists everything via MCP tools (\`add-quest\`, \`modify-quest\`, \`get-quest\`)
+- Persists everything via MCP tools (\`modify-quest\`, \`get-quest\`)
 - Spawns \`quest-gap-reviewer\` agent before final approval
 
 **Does NOT:**
@@ -82,7 +82,7 @@ conversations and prevents skipping phases.
 
 ### Phase 1: Discovery
 
-1. **Create the quest** - Call \`add-quest\` MCP tool with a title and the user request
+1. **Review the pre-created quest** - Call \`get-quest\` with ID \`$QUEST_ID\` to understand current state
 2. **Spawn exploration agent** - Use Task tool with \`subagent_type: "Explore"\` to understand:
     - What current apps and infrastructure exist as it relates to the request
     - Current patterns and conventions
@@ -95,7 +95,9 @@ conversations and prevents skipping phases.
     - What are the edge cases?
     - What happens when things go wrong?
 
-**EXIT when:** Quest exists AND you have codebase context AND you have enough user clarity to draw flows. Mark Phase 1
+4. **Update quest title** - The quest was created with a placeholder title. Update it to a concise, descriptive name via \`modify-quest\` before Phase 4.
+
+**EXIT when:** Quest reviewed AND you have codebase context AND you have enough user clarity to draw flows. Mark Phase 1
 task completed, mark Phase 2 task in_progress.
 
 ### Phase 2: Flow Mapping
@@ -127,7 +129,8 @@ task in_progress.
     \`status\` to \`requirements_approved\`
 
 **GATE: Do NOT proceed until all non-deferred requirements are \`approved\` and quest status is
-\`requirements_approved\`.** Mark Phase 4 task completed, mark Phase 5 task in_progress.
+\`requirements_approved\`.** Quest title must be updated from the placeholder before proceeding.
+Mark Phase 4 task completed, mark Phase 5 task in_progress.
 
 ### Phase 5: Observables + Contracts
 
@@ -325,6 +328,7 @@ Use Task tool with \`subagent_type: "quest-gap-reviewer"\` after Phase 5 (Observ
 $ARGUMENTS`,
     placeholders: {
       arguments: '$ARGUMENTS',
+      questId: '$QUEST_ID',
     },
   },
 } as const;
