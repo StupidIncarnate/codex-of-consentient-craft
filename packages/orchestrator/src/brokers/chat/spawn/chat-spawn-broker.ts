@@ -47,13 +47,14 @@ export const chatSpawnBroker = async ({
   registerProcess: (params: { processId: ProcessId; kill: () => void }) => void;
 }): Promise<{ chatProcessId: ProcessId }> => {
   const chatProcessId = processIdContract.parse(`chat-${crypto.randomUUID()}`);
-  await guildGetBroker({ guildId });
+  const guild = await guildGetBroker({ guildId });
 
   if (sessionId) {
     const prompt = promptTextContract.parse(message);
     const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter({
       prompt,
       resumeSessionId: sessionId,
+      cwd: guild.path,
     });
     const rl = readlineCreateInterfaceAdapter({ input: stdout });
 
@@ -89,7 +90,10 @@ export const chatSpawnBroker = async ({
 
   const prompt = promptTextContract.parse(promptText);
 
-  const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter({ prompt });
+  const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter({
+    prompt,
+    cwd: guild.path,
+  });
   const rl = readlineCreateInterfaceAdapter({ input: stdout });
 
   let extractedSessionId: SessionId | null = null;

@@ -4,8 +4,10 @@
  */
 
 import { spawn } from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import type { InstallTestbed } from '@dungeonmaster/testing';
 import { JsonRpcRequestStub } from '../contracts/json-rpc-request/json-rpc-request.stub';
 import { JsonRpcResponseStub } from '../contracts/json-rpc-response/json-rpc-response.stub';
 import { RpcIdStub } from '../contracts/rpc-id/rpc-id.stub';
@@ -13,7 +15,7 @@ import { RpcMethodStub } from '../contracts/rpc-method/rpc-method.stub';
 import { ToolListResultStub } from '../contracts/tool-list-result/tool-list-result.stub';
 import { ToolCallResultStub } from '../contracts/tool-call-result/tool-call-result.stub';
 import { DiscoverTreeResultStub } from '../contracts/discover-tree-result/discover-tree-result.stub';
-import { AddQuestResultStub } from '../contracts/add-quest-result/add-quest-result.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts';
 import { GetQuestResultStub } from '../contracts/get-quest-result/get-quest-result.stub';
 import { ModifyQuestResultStub } from '../contracts/modify-quest-result/modify-quest-result.stub';
 import { mcpServerStatics } from '../statics/mcp-server/mcp-server-statics';
@@ -25,7 +27,11 @@ type JsonRpcRequest = ReturnType<typeof JsonRpcRequestStub>;
 type RpcId = ReturnType<typeof RpcIdStub>;
 type McpServerClient = ReturnType<typeof McpServerClientStub>;
 
-const createMcpClient = async (): Promise<McpServerClient> => {
+const JSON_INDENT_SPACES = 2;
+
+const createMcpClient = async (): Promise<
+  McpServerClient & { dungeonmasterHome: InstallTestbed['guildPath'] }
+> => {
   const serverEntryPoint = path.join(__dirname, '../index.ts');
 
   // Create isolated temp directory using testbed
@@ -36,6 +42,7 @@ const createMcpClient = async (): Promise<McpServerClient> => {
   const serverProcess = spawn('npx', ['tsx', serverEntryPoint], {
     stdio: ['pipe', 'pipe', 'pipe'],
     cwd: testbed.guildPath,
+    env: { ...process.env, DUNGEONMASTER_HOME: testbed.guildPath },
   });
 
   const pendingResponses = new Map<RpcId, (response: JsonRpcResponse) => void>();
@@ -82,6 +89,7 @@ const createMcpClient = async (): Promise<McpServerClient> => {
   });
 
   return {
+    dungeonmasterHome: testbed.guildPath,
     process: serverProcess,
     sendRequest: async (request: JsonRpcRequest): Promise<JsonRpcResponse> =>
       new Promise((resolve, reject) => {
@@ -380,65 +388,34 @@ describe('StartMcpServer', () => {
   });
 
   describe('quest tools storage consistency', () => {
-    it('VALID: add-quest => creates quest successfully', async () => {
+    it('VALID: get-quest => retrieves a pre-seeded quest', async () => {
       const client = await createMcpClient();
 
-      const addQuestRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 1001 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'add-quest',
-          arguments: {
-            title: 'Integration Test Quest',
-            userRequest: 'Testing add-quest creates quest',
-            guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            tasks: [
-              {
-                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                name: 'Test task',
-                type: 'testing',
-              },
-            ],
-          },
-        },
+      const questId = 'storage-test-quest';
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const questFolder = '001-storage-test-quest';
+
+      const quest = QuestStub({
+        id: questId as never,
+        folder: questFolder as never,
+        title: 'Storage Test Quest' as never,
+        status: 'created' as never,
+        userRequest: 'Testing storage consistency' as never,
       });
 
-      const addResponse = await client.sendRequest(addQuestRequest);
-
-      await client.close();
-
-      const addResult = ToolCallResultStub(addResponse.result as never);
-      const [addContent] = addResult.content;
-      const addParsedData: unknown = JSON.parse(String(addContent!.text));
-      const addResultData = AddQuestResultStub(addParsedData as never);
-
-      expect(addResponse.error).toBeUndefined();
-      expect(addResultData.success).toBe(true);
-      expect(addResultData.questId).toBe('integration-test-quest');
-    });
-
-    it('VALID: add-quest then get-quest => retrieves the created quest', async () => {
-      const client = await createMcpClient();
-
-      const addQuestRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 1003 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'add-quest',
-          arguments: {
-            title: 'Storage Test Quest',
-            userRequest: 'Testing storage consistency',
-            guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            tasks: [],
-          },
-        },
-      });
-
-      const addResponse = await client.sendRequest(addQuestRequest);
-      const addResult = ToolCallResultStub(addResponse.result as never);
-      const [addContent] = addResult.content;
-      const addParsedData: unknown = JSON.parse(String(addContent!.text));
-      const addResultData = AddQuestResultStub(addParsedData as never);
+      const questDir = path.join(
+        client.dungeonmasterHome,
+        '.dungeonmaster',
+        'guilds',
+        guildId,
+        'quests',
+        questFolder,
+      );
+      fs.mkdirSync(questDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(questDir, 'quest.json'),
+        JSON.stringify(quest, null, JSON_INDENT_SPACES),
+      );
 
       const getQuestRequest = JsonRpcRequestStub({
         id: RpcIdStub({ value: 1004 }),
@@ -446,7 +423,7 @@ describe('StartMcpServer', () => {
         params: {
           name: 'get-quest',
           arguments: {
-            questId: addResultData.questId,
+            questId,
           },
         },
       });
@@ -462,37 +439,37 @@ describe('StartMcpServer', () => {
 
       expect(getResponse.error).toBeUndefined();
       expect(getResultData.success).toBe(true);
-      expect(getResultData.quest!.id).toBe(addResultData.questId);
+      expect(getResultData.quest!.id).toBe(questId);
     });
 
-    it('VALID: add-quest => modify-quest => get-quest => retrieves modified quest with new context', async () => {
+    it('VALID: modify-quest => get-quest => retrieves modified quest with new context', async () => {
       const client = await createMcpClient();
 
-      const addQuestRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 2001 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'add-quest',
-          arguments: {
-            title: 'Modify Flow Quest',
-            userRequest: 'Testing modify flow',
-            guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            tasks: [
-              {
-                id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-                name: 'Initial task',
-                type: 'implementation',
-              },
-            ],
-          },
-        },
+      const questId = 'modify-flow-quest';
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const questFolder = '001-modify-flow-quest';
+
+      const quest = QuestStub({
+        id: questId as never,
+        folder: questFolder as never,
+        title: 'Modify Flow Quest' as never,
+        status: 'created' as never,
+        userRequest: 'Testing modify flow' as never,
       });
 
-      const addResponse = await client.sendRequest(addQuestRequest);
-      const addResult = ToolCallResultStub(addResponse.result as never);
-      const [addContent] = addResult.content;
-      const addParsedData: unknown = JSON.parse(String(addContent!.text));
-      const addResultData = AddQuestResultStub(addParsedData as never);
+      const questDir = path.join(
+        client.dungeonmasterHome,
+        '.dungeonmaster',
+        'guilds',
+        guildId,
+        'quests',
+        questFolder,
+      );
+      fs.mkdirSync(questDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(questDir, 'quest.json'),
+        JSON.stringify(quest, null, JSON_INDENT_SPACES),
+      );
 
       const modifyQuestRequest = JsonRpcRequestStub({
         id: RpcIdStub({ value: 2002 }),
@@ -500,7 +477,7 @@ describe('StartMcpServer', () => {
         params: {
           name: 'modify-quest',
           arguments: {
-            questId: addResultData.questId,
+            questId,
             contexts: [
               {
                 id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
@@ -525,7 +502,7 @@ describe('StartMcpServer', () => {
         params: {
           name: 'get-quest',
           arguments: {
-            questId: addResultData.questId,
+            questId,
           },
         },
       });

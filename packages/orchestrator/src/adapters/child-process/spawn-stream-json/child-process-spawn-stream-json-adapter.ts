@@ -21,9 +21,11 @@ export interface SpawnStreamJsonResult {
 export const childProcessSpawnStreamJsonAdapter = ({
   prompt,
   resumeSessionId,
+  cwd,
 }: {
   prompt: PromptText;
   resumeSessionId?: SessionId;
+  cwd?: string;
 }): SpawnStreamJsonResult => {
   const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose'];
 
@@ -31,8 +33,11 @@ export const childProcessSpawnStreamJsonAdapter = ({
     args.push('--resume', resumeSessionId);
   }
 
-  const childProcess = spawn('claude', args, {
+  const cliPath = process.env.CLAUDE_CLI_PATH ?? 'claude';
+
+  const childProcess = spawn(cliPath, args, {
     stdio: ['inherit', 'pipe', 'inherit'],
+    ...(cwd && { cwd }),
   });
 
   // stdout is guaranteed to exist when stdio[1] is 'pipe'
