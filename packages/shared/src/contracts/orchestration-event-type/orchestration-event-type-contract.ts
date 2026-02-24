@@ -18,6 +18,7 @@ export const orchestrationEventTypeContract = z.enum([
   'chat-output',
   'chat-complete',
   'quest-created',
+  'quest-modified',
 ]);
 
 export type OrchestrationEventType = z.infer<typeof orchestrationEventTypeContract>;

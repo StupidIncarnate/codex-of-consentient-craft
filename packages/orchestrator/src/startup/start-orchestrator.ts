@@ -292,6 +292,19 @@ export const StartOrchestrator = {
   }: {
     questId: string;
     input: ModifyQuestInput;
-  }): Promise<ModifyQuestResult> =>
-    questModifyBroker({ input: { ...input, questId } as ModifyQuestInput }),
+  }): Promise<ModifyQuestResult> => {
+    const result = await questModifyBroker({ input: { ...input, questId } as ModifyQuestInput });
+
+    if (result.success) {
+      const { guildId } = await questFindQuestPathBroker({ questId: questId as QuestId });
+
+      orchestrationEventsState.emit({
+        type: 'quest-modified',
+        processId: processIdContract.parse(randomUUID()),
+        payload: { questId, guildId },
+      });
+    }
+
+    return result;
+  },
 };

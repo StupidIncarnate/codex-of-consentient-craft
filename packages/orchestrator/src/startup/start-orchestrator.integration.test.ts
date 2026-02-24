@@ -1,6 +1,10 @@
 import { GuildIdStub, ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
+import { ModifyQuestInputStub } from '../contracts/modify-quest-input/modify-quest-input.stub';
+import { orchestrationEventsState } from '../state/orchestration-events/orchestration-events-state';
 import { StartOrchestrator } from './start-orchestrator';
+
+type ProcessId = ReturnType<typeof ProcessIdStub>;
 
 describe('StartOrchestrator', () => {
   describe('listQuests', () => {
@@ -36,6 +40,34 @@ describe('StartOrchestrator', () => {
       expect(() => StartOrchestrator.getQuestStatus({ processId })).toThrow(
         /Process not found: proc-nonexistent/u,
       );
+    });
+  });
+
+  describe('modifyQuest event emission', () => {
+    it('ERROR: {quest not found} => does not emit quest-modified event', async () => {
+      const events: { processId: ProcessId; payload: Record<never, never> }[] = [];
+      const handler = ({
+        processId,
+        payload,
+      }: {
+        processId: ProcessId;
+        payload: Record<never, never>;
+      }): void => {
+        events.push({ processId, payload });
+      };
+
+      orchestrationEventsState.on({ type: 'quest-modified', handler });
+
+      const input = ModifyQuestInputStub({ questId: 'nonexistent-quest' });
+
+      await StartOrchestrator.modifyQuest({
+        questId: 'nonexistent-quest',
+        input,
+      });
+
+      orchestrationEventsState.off({ type: 'quest-modified', handler });
+
+      expect(events).toStrictEqual([]);
     });
   });
 });
