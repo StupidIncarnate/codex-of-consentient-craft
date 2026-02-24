@@ -77,6 +77,7 @@ export const questContract = z.object({
     .describe(
       'User journey sequences linking requirements to entry/exit points with mermaid diagrams',
     ),
+  questCreatedSessionBy: z.string().brand<'SessionId'>().optional(),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
 });
