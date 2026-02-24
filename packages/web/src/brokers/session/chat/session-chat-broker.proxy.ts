@@ -9,7 +9,7 @@ import { webConfigStatics } from '../../../statics/web-config/web-config-statics
 
 export const sessionChatBrokerProxy = (): {
   setupSessionChat: (params: { chatProcessId: ProcessId }) => void;
-  setupGuildChat: (params: { chatProcessId: ProcessId }) => void;
+  setupSessionNew: (params: { chatProcessId: ProcessId }) => void;
   setupError: () => void;
 } => {
   fetchPostAdapterProxy();
@@ -19,21 +19,21 @@ export const sessionChatBrokerProxy = (): {
     url: webConfigStatics.api.routes.sessionChat,
   });
 
-  const guildEndpoint = StartEndpointMock.listen({
+  const newSessionEndpoint = StartEndpointMock.listen({
     method: 'post',
-    url: webConfigStatics.api.routes.guildChat,
+    url: webConfigStatics.api.routes.sessionNew,
   });
 
   return {
     setupSessionChat: ({ chatProcessId }) => {
       sessionEndpoint.resolves({ data: { chatProcessId } });
     },
-    setupGuildChat: ({ chatProcessId }) => {
-      guildEndpoint.resolves({ data: { chatProcessId } });
+    setupSessionNew: ({ chatProcessId }) => {
+      newSessionEndpoint.resolves({ data: { chatProcessId } });
     },
     setupError: () => {
       sessionEndpoint.networkError();
-      guildEndpoint.networkError();
+      newSessionEndpoint.networkError();
     },
   };
 };

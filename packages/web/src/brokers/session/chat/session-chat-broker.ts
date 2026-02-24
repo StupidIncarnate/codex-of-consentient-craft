@@ -22,9 +22,9 @@ export const sessionChatBroker = async ({
 }): Promise<{ chatProcessId: ProcessId }> => {
   const url = sessionId
     ? webConfigStatics.api.routes.sessionChat.replace(':sessionId', sessionId)
-    : webConfigStatics.api.routes.guildChat.replace(':guildId', guildId);
+    : webConfigStatics.api.routes.sessionNew;
 
-  const body = sessionId ? { message, guildId } : { message };
+  const body = { message, guildId };
 
   const response = await fetchPostAdapter<{ chatProcessId: unknown }>({
     url,

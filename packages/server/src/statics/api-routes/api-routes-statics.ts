@@ -23,9 +23,9 @@ export const apiRoutesStatics = {
   guilds: {
     list: '/api/guilds',
     byId: '/api/guilds/:guildId',
-    chat: '/api/guilds/:guildId/chat',
   },
   sessions: {
+    new: '/api/sessions/new',
     list: '/api/guilds/:guildId/sessions',
     chat: '/api/sessions/:sessionId/chat',
     chatStop: '/api/sessions/:sessionId/chat/:chatProcessId/stop',

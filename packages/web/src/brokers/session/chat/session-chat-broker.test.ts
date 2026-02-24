@@ -26,13 +26,13 @@ describe('sessionChatBroker', () => {
   });
 
   describe('without sessionId', () => {
-    it('VALID: {guildId, message} => returns chatProcessId via guild endpoint', async () => {
+    it('VALID: {guildId, message} => returns chatProcessId via session-new endpoint', async () => {
       const proxy = sessionChatBrokerProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const message = UserInputStub({ value: 'Start a new conversation' });
       const processId = ProcessIdStub({ value: 'chat-proc-456' });
 
-      proxy.setupGuildChat({ chatProcessId: processId });
+      proxy.setupSessionNew({ chatProcessId: processId });
 
       const result = await sessionChatBroker({ guildId, message });
 

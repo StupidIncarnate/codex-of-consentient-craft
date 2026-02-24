@@ -21,7 +21,7 @@ import { GuildAddResponder } from '../responders/guild/add/guild-add-responder';
 import { GuildGetResponder } from '../responders/guild/get/guild-get-responder';
 import { GuildUpdateResponder } from '../responders/guild/update/guild-update-responder';
 import { GuildRemoveResponder } from '../responders/guild/remove/guild-remove-responder';
-import { GuildChatResponder } from '../responders/guild/chat/guild-chat-responder';
+import { SessionNewResponder } from '../responders/session/new/session-new-responder';
 import { DirectoryBrowseResponder } from '../responders/directory/browse/directory-browse-responder';
 import { QuestListResponder } from '../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../responders/quest/get/quest-get-responder';
@@ -172,10 +172,9 @@ export const StartServer = (): void => {
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 
-  // Guild chat
-  app.post(apiRoutesStatics.guilds.chat, async (c) => {
-    const result = await GuildChatResponder({
-      params: { guildId: c.req.param('guildId') },
+  // Session new (create new session)
+  app.post(apiRoutesStatics.sessions.new, async (c) => {
+    const result = await SessionNewResponder({
       body: await c.req.json(),
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);

@@ -38,7 +38,7 @@ describe('useSessionChatBinding', () => {
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
       const message = UserInputStub({ value: 'How do I add auth?' });
 
-      proxy.setupGuildChat({ chatProcessId });
+      proxy.setupSessionNew({ chatProcessId });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId }),
@@ -114,7 +114,7 @@ describe('useSessionChatBinding', () => {
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
       const message = UserInputStub({ value: 'Hello' });
 
-      proxy.setupGuildChat({ chatProcessId });
+      proxy.setupSessionNew({ chatProcessId });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId }),
@@ -157,7 +157,7 @@ describe('useSessionChatBinding', () => {
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
       const message = UserInputStub({ value: 'Hello' });
 
-      proxy.setupGuildChat({ chatProcessId });
+      proxy.setupSessionNew({ chatProcessId });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId }),
@@ -196,7 +196,7 @@ describe('useSessionChatBinding', () => {
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
       const message = UserInputStub({ value: 'Hello' });
 
-      proxy.setupGuildChat({ chatProcessId });
+      proxy.setupSessionNew({ chatProcessId });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId }),
@@ -235,7 +235,7 @@ describe('useSessionChatBinding', () => {
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
       const message = UserInputStub({ value: 'Hello' });
 
-      proxy.setupGuildChat({ chatProcessId });
+      proxy.setupSessionNew({ chatProcessId });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId }),
@@ -295,7 +295,7 @@ describe('useSessionChatBinding', () => {
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
       const message = UserInputStub({ value: 'Hello' });
 
-      proxy.setupGuildChat({ chatProcessId });
+      proxy.setupSessionNew({ chatProcessId });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId }),
@@ -336,7 +336,7 @@ describe('useSessionChatBinding', () => {
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
       const message = UserInputStub({ value: 'Hello' });
 
-      proxy.setupGuildChat({ chatProcessId });
+      proxy.setupSessionNew({ chatProcessId });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId }),
@@ -376,7 +376,7 @@ describe('useSessionChatBinding', () => {
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
       const message = UserInputStub({ value: 'Hello' });
 
-      proxy.setupGuildChat({ chatProcessId });
+      proxy.setupSessionNew({ chatProcessId });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId }),
@@ -416,7 +416,7 @@ describe('useSessionChatBinding', () => {
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
       const message = UserInputStub({ value: 'Hello' });
 
-      proxy.setupGuildChat({ chatProcessId });
+      proxy.setupSessionNew({ chatProcessId });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId }),

@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Handles guild chat requests by validating input and delegating to orchestrator for CLI spawning
+ * PURPOSE: Handles new session creation by validating input and delegating to orchestrator for CLI spawning
  *
  * USAGE:
- * const result = await GuildChatResponder({ params: { guildId: 'abc-123' }, body: { message: 'hello' } });
+ * const result = await SessionNewResponder({ body: { guildId: 'abc-123', message: 'hello' } });
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/500, data: { error } }
  */
 
@@ -12,30 +12,12 @@ import { responderResultContract } from '../../../contracts/responder-result/res
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 
-export const GuildChatResponder = async ({
-  params,
+export const SessionNewResponder = async ({
   body,
 }: {
-  params: unknown;
   body: unknown;
 }): Promise<ResponderResult> => {
   try {
-    if (typeof params !== 'object' || params === null) {
-      return responderResultContract.parse({
-        status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
-      });
-    }
-
-    const guildIdRaw: unknown = Reflect.get(params, 'guildId');
-
-    if (typeof guildIdRaw !== 'string') {
-      return responderResultContract.parse({
-        status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'guildId is required' },
-      });
-    }
-
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
@@ -43,7 +25,15 @@ export const GuildChatResponder = async ({
       });
     }
 
+    const rawGuildId: unknown = Reflect.get(body, 'guildId');
     const rawMessage: unknown = Reflect.get(body, 'message');
+
+    if (typeof rawGuildId !== 'string') {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: { error: 'guildId is required' },
+      });
+    }
 
     if (typeof rawMessage !== 'string' || rawMessage.length === 0) {
       return responderResultContract.parse({
@@ -52,7 +42,7 @@ export const GuildChatResponder = async ({
       });
     }
 
-    const guildId = guildIdContract.parse(guildIdRaw);
+    const guildId = guildIdContract.parse(rawGuildId);
     const { chatProcessId } = await orchestratorStartChatAdapter({ guildId, message: rawMessage });
 
     return responderResultContract.parse({
@@ -60,7 +50,7 @@ export const GuildChatResponder = async ({
       data: { chatProcessId },
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to start guild chat';
+    const message = error instanceof Error ? error.message : 'Failed to start new session';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
       data: { error: message },

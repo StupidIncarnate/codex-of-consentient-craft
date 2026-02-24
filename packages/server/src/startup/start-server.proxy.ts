@@ -44,7 +44,7 @@ import { GuildAddResponderProxy } from '../responders/guild/add/guild-add-respon
 import { GuildGetResponderProxy } from '../responders/guild/get/guild-get-responder.proxy';
 import { GuildUpdateResponderProxy } from '../responders/guild/update/guild-update-responder.proxy';
 import { GuildRemoveResponderProxy } from '../responders/guild/remove/guild-remove-responder.proxy';
-import { GuildChatResponderProxy } from '../responders/guild/chat/guild-chat-responder.proxy';
+import { SessionNewResponderProxy } from '../responders/session/new/session-new-responder.proxy';
 import { DirectoryBrowseResponderProxy } from '../responders/directory/browse/directory-browse-responder.proxy';
 import { QuestListResponderProxy } from '../responders/quest/list/quest-list-responder.proxy';
 import { QuestGetResponderProxy } from '../responders/quest/get/quest-get-responder.proxy';
@@ -121,7 +121,7 @@ export const StartServerProxy = (): {
   const guildGetProxy = GuildGetResponderProxy();
   const guildUpdateProxy = GuildUpdateResponderProxy();
   const guildRemoveProxy = GuildRemoveResponderProxy();
-  const guildChatProxy = GuildChatResponderProxy();
+  const sessionNewProxy = SessionNewResponderProxy();
   const directoryBrowseProxy = DirectoryBrowseResponderProxy();
   const questListProxy = QuestListResponderProxy();
   const questGetProxy = QuestGetResponderProxy();
@@ -235,11 +235,11 @@ export const StartServerProxy = (): {
       chatHistoryProxy.setupSubagentDirMissing();
     },
     setupStartChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
-      guildChatProxy.setupGuildChat({ chatProcessId });
+      sessionNewProxy.setupSessionNew({ chatProcessId });
       sessionChatProxy.setupSessionChat({ chatProcessId });
     },
     setupStartChatError: ({ error }: { error: Error }): void => {
-      guildChatProxy.setupError({ message: error.message });
+      sessionNewProxy.setupError({ message: error.message });
       sessionChatProxy.setupError({ message: error.message });
     },
     setupStopChat: ({ stopped }: { stopped: boolean }): void => {

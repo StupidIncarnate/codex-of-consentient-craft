@@ -410,17 +410,17 @@ describe('StartServer', () => {
     });
   });
 
-  describe('POST /api/guilds/:guildId/chat', () => {
+  describe('POST /api/sessions/new', () => {
     it('VALID: {guildId, message} => 200 with chatProcessId', async () => {
       const proxy = StartServerProxy();
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-001' });
       proxy.setupStartChat({ chatProcessId });
       const guildId = GuildIdStub();
 
-      const response = await proxy.request(`/api/guilds/${guildId}/chat`, {
+      const response = await proxy.request('/api/sessions/new', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: 'hello' }),
+        body: JSON.stringify({ guildId, message: 'hello' }),
       });
 
       expect(response.status).toBe(200);
@@ -434,10 +434,10 @@ describe('StartServer', () => {
       const proxy = StartServerProxy();
       const guildId = GuildIdStub();
 
-      const response = await proxy.request(`/api/guilds/${guildId}/chat`, {
+      const response = await proxy.request('/api/sessions/new', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ guildId }),
       });
 
       expect(response.status).toBe(400);
@@ -445,6 +445,22 @@ describe('StartServer', () => {
       const body: unknown = await response.json();
 
       expect(toPlain(body)).toStrictEqual(toPlain({ error: 'message is required' }));
+    });
+
+    it('INVALID: {missing guildId} => 400 with error', async () => {
+      const proxy = StartServerProxy();
+
+      const response = await proxy.request('/api/sessions/new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'hello' }),
+      });
+
+      expect(response.status).toBe(400);
+
+      const body: unknown = await response.json();
+
+      expect(toPlain(body)).toStrictEqual(toPlain({ error: 'guildId is required' }));
     });
   });
 

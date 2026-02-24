@@ -8,7 +8,7 @@ import { sessionChatStopBrokerProxy } from '../../brokers/session/chat-stop/sess
 export const useSessionChatBindingProxy = (): {
   setupChat: (params: { chatProcessId: ProcessId }) => void;
   setupSessionChat: (params: { chatProcessId: ProcessId }) => void;
-  setupGuildChat: (params: { chatProcessId: ProcessId }) => void;
+  setupSessionNew: (params: { chatProcessId: ProcessId }) => void;
   setupChatError: () => void;
   setupStop: () => void;
   setupStopError: () => void;
@@ -24,13 +24,13 @@ export const useSessionChatBindingProxy = (): {
   return {
     setupChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
       chatProxy.setupSessionChat({ chatProcessId });
-      chatProxy.setupGuildChat({ chatProcessId });
+      chatProxy.setupSessionNew({ chatProcessId });
     },
     setupSessionChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
       chatProxy.setupSessionChat({ chatProcessId });
     },
-    setupGuildChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
-      chatProxy.setupGuildChat({ chatProcessId });
+    setupSessionNew: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
+      chatProxy.setupSessionNew({ chatProcessId });
     },
     setupChatError: (): void => {
       chatProxy.setupError();
