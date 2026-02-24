@@ -6,7 +6,7 @@
  * // Renders split panel chat interface, reads guildSlug and optional sessionId from URL params
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Box, Text } from '@mantine/core';
@@ -15,6 +15,7 @@ import type { QuestId, SessionId, UserInput } from '@dungeonmaster/shared/contra
 
 import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
+import { useQuestEventsBinding } from '../../bindings/use-quest-events/use-quest-events-binding';
 import { useQuestDetailBinding } from '../../bindings/use-quest-detail/use-quest-detail-binding';
 import { useSessionChatBinding } from '../../bindings/use-session-chat/use-session-chat-binding';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
@@ -47,6 +48,16 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
   const { data: questData, refresh: refreshQuest } = useQuestDetailBinding({
     questId: routeQuestId,
+  });
+
+  const [externalUpdatePending, setExternalUpdatePending] = useState(false);
+
+  useQuestEventsBinding({
+    questId: routeQuestId,
+    onQuestModified: () => {
+      refreshQuest().catch(() => undefined);
+      setExternalUpdatePending(true);
+    },
   });
 
   const { entries, isStreaming, currentSessionId, sendMessage, stopChat } = useSessionChatBinding({
@@ -146,10 +157,17 @@ export const QuestChatWidget = (): React.JSX.Element => {
             onModify={({ modifications }): void => {
               questModifyBroker({ questId: questWithContent.id, modifications })
                 .then(async () => refreshQuest())
+                .then(() => {
+                  setExternalUpdatePending(false);
+                })
                 .catch(() => undefined);
             }}
             onRefresh={(): void => {
               refreshQuest().catch(() => undefined);
+            }}
+            externalUpdatePending={externalUpdatePending}
+            onDismissUpdate={() => {
+              setExternalUpdatePending(false);
             }}
           />
         )}

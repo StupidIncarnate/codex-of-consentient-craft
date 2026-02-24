@@ -12,6 +12,9 @@ export const QuestSpecPanelWidgetProxy = (): {
   clickApprove: () => Promise<void>;
   clickSubmit: () => Promise<void>;
   clickCancel: () => Promise<void>;
+  clickReload: () => Promise<void>;
+  clickKeepEditing: () => Promise<void>;
+  hasBanner: () => boolean;
 } => {
   FormInputWidgetProxy();
   PixelBtnWidgetProxy();
@@ -48,5 +51,28 @@ export const QuestSpecPanelWidgetProxy = (): {
         await userEvent.click(cancelButton);
       }
     },
+    clickReload: async (): Promise<void> => {
+      const banner = screen.queryByTestId('EXTERNAL_UPDATE_BANNER');
+      if (banner) {
+        const buttons = banner.querySelectorAll('[data-testid="PIXEL_BTN"]');
+        const reloadButton = Array.from(buttons).find((button) => button.textContent === 'RELOAD');
+        if (reloadButton) {
+          await userEvent.click(reloadButton);
+        }
+      }
+    },
+    clickKeepEditing: async (): Promise<void> => {
+      const banner = screen.queryByTestId('EXTERNAL_UPDATE_BANNER');
+      if (banner) {
+        const buttons = banner.querySelectorAll('[data-testid="PIXEL_BTN"]');
+        const keepButton = Array.from(buttons).find(
+          (button) => button.textContent === 'KEEP EDITING',
+        );
+        if (keepButton) {
+          await userEvent.click(keepButton);
+        }
+      }
+    },
+    hasBanner: (): boolean => screen.queryByTestId('EXTERNAL_UPDATE_BANNER') !== null,
   };
 };

@@ -20,6 +20,7 @@ import type { AskUserQuestionOption } from '../../contracts/ask-user-question/as
 import { useGuildDetailBindingProxy } from '../../bindings/use-guild-detail/use-guild-detail-binding.proxy';
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { useQuestDetailBindingProxy } from '../../bindings/use-quest-detail/use-quest-detail-binding.proxy';
+import { useQuestEventsBindingProxy } from '../../bindings/use-quest-events/use-quest-events-binding.proxy';
 import { useSessionChatBindingProxy } from '../../bindings/use-session-chat/use-session-chat-binding.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
@@ -55,6 +56,7 @@ export const QuestChatWidgetProxy = (): {
   const questDetailProxy = useQuestDetailBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
   const chatBindingProxy = useSessionChatBindingProxy();
+  useQuestEventsBindingProxy();
   ChatPanelWidgetProxy();
   QuestClarifyPanelWidgetProxy();
   QuestSpecPanelWidgetProxy();

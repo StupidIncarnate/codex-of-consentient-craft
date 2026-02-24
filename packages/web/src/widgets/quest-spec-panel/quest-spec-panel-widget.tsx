@@ -6,7 +6,7 @@
  * // Renders panel with requirements, observables, and contracts layers with edit/approve controls
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Box, Group, Stack, Text } from '@mantine/core';
 
@@ -40,16 +40,26 @@ export interface QuestSpecPanelWidgetProps {
   quest: Quest;
   onModify: (params: { modifications: Record<string, unknown> }) => void;
   onRefresh: () => void;
+  externalUpdatePending?: boolean;
+  onDismissUpdate?: () => void;
 }
 
 export const QuestSpecPanelWidget = ({
   quest,
   onModify,
   onRefresh,
+  externalUpdatePending,
+  onDismissUpdate,
 }: QuestSpecPanelWidgetProps): React.JSX.Element => {
   const [editing, setEditing] = useState(false);
   const [draftModifications, setDraftModifications] = useState<Partial<Quest>>({});
   const { colors } = emberDepthsThemeStatics;
+
+  useEffect(() => {
+    if (externalUpdatePending && !editing && onDismissUpdate) {
+      onDismissUpdate();
+    }
+  }, [externalUpdatePending, editing, onDismissUpdate]);
 
   const draftTitle = draftModifications.title ?? quest.title;
   const draftRequirements = draftModifications.requirements ?? quest.requirements;
@@ -88,6 +98,42 @@ export const QuestSpecPanelWidget = ({
         )}
       </Box>
       <Box style={SCROLLABLE_STYLE}>
+        {editing && externalUpdatePending ? (
+          <Box
+            data-testid="EXTERNAL_UPDATE_BANNER"
+            style={{
+              border: `1px solid ${colors.border}`,
+              padding: 8,
+              marginBottom: 12,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], flex: 1 }}>
+              Quest updated externally
+            </Text>
+            <PixelBtnWidget
+              label={'RELOAD' as ButtonLabel}
+              onClick={() => {
+                setDraftModifications({});
+                setEditing(false);
+                if (onDismissUpdate) {
+                  onDismissUpdate();
+                }
+              }}
+            />
+            <PixelBtnWidget
+              label={'KEEP EDITING' as ButtonLabel}
+              variant={GHOST_VARIANT}
+              onClick={() => {
+                if (onDismissUpdate) {
+                  onDismissUpdate();
+                }
+              }}
+            />
+          </Box>
+        ) : null}
         <Text
           ff="monospace"
           size={HEADER_FONT_SIZE}

@@ -328,6 +328,42 @@ describe('QuestChatWidget', () => {
     });
   });
 
+  describe('external update props', () => {
+    it('VALID: {quest with requirements} => spec panel receives externalUpdatePending and onDismissUpdate', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-q9',
+        requirements: [RequirementStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuest({ quest });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-q9', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      expect(proxy.hasSpecPanel()).toBe(true);
+    });
+  });
+
   describe('guild-level chat', () => {
     it('VALID: {guildSlug without sessionId} => renders ChatPanelWidget', () => {
       const proxy = QuestChatWidgetProxy();

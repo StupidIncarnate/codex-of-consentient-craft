@@ -259,4 +259,105 @@ describe('QuestSpecPanelWidget', () => {
       expect(screen.getByTestId('QUEST_SPEC_PANEL')).toBeInTheDocument();
     });
   });
+
+  describe('external update banner', () => {
+    it('VALID: {editing + externalUpdatePending} => shows update banner', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onRefresh={jest.fn()}
+            externalUpdatePending={true}
+            onDismissUpdate={jest.fn()}
+          />
+        ),
+      });
+
+      await proxy.clickModify();
+
+      expect(proxy.hasBanner()).toBe(true);
+    });
+
+    it('VALID: {RELOAD clicked} => clears draft and dismisses', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ title: 'Original Title' });
+      const onDismissUpdate = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onRefresh={jest.fn()}
+            externalUpdatePending={true}
+            onDismissUpdate={onDismissUpdate}
+          />
+        ),
+      });
+
+      await proxy.clickModify();
+
+      expect(proxy.hasBanner()).toBe(true);
+      const callsBeforeReload = onDismissUpdate.mock.calls.length;
+
+      await proxy.clickReload();
+
+      expect(proxy.hasBanner()).toBe(false);
+      expect(onDismissUpdate.mock.calls.length > callsBeforeReload).toBe(true);
+      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('OBSERVABLES APPROVAL');
+    });
+
+    it('VALID: {KEEP EDITING clicked} => dismisses without clearing draft', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub();
+      const onDismissUpdate = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onRefresh={jest.fn()}
+            externalUpdatePending={true}
+            onDismissUpdate={onDismissUpdate}
+          />
+        ),
+      });
+
+      await proxy.clickModify();
+
+      expect(proxy.hasBanner()).toBe(true);
+      const callsBeforeKeep = onDismissUpdate.mock.calls.length;
+
+      await proxy.clickKeepEditing();
+
+      expect(onDismissUpdate.mock.calls.length > callsBeforeKeep).toBe(true);
+      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('EDITING SPEC');
+    });
+
+    it('VALID: {not editing + externalUpdatePending} => auto-dismisses', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub();
+      const onDismissUpdate = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onRefresh={jest.fn()}
+            externalUpdatePending={true}
+            onDismissUpdate={onDismissUpdate}
+          />
+        ),
+      });
+
+      expect(onDismissUpdate).toHaveBeenCalledTimes(1);
+      expect(screen.queryByTestId('EXTERNAL_UPDATE_BANNER')).toBe(null);
+    });
+  });
 });
