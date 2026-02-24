@@ -1,23 +1,18 @@
-import { GuildStub, GuildIdStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
-import { WsClientStub } from '../../../contracts/ws-client/ws-client.stub';
+import { GuildIdStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildChatResponder } from './guild-chat-responder';
 import { GuildChatResponderProxy } from './guild-chat-responder.proxy';
 
 describe('GuildChatResponder', () => {
   describe('successful chat spawn', () => {
     it('VALID: {valid guildId, message} => returns 200 with chatProcessId', async () => {
       const proxy = GuildChatResponderProxy();
-      const guildId = GuildIdStub();
-      const guild = GuildStub({ id: guildId });
       const chatProcessId = ProcessIdStub({ value: 'chat-proc-001' });
-      const client = WsClientStub();
-      const clients = new Set([client]);
 
-      proxy.setupGuildChat({ guild, chatProcessId });
+      proxy.setupGuildChat({ chatProcessId });
 
       const result = await proxy.callResponder({
-        params: { guildId },
+        params: { guildId: GuildIdStub() },
         body: { message: 'help me build a feature' },
-        clients,
       });
 
       expect(result).toStrictEqual({
@@ -29,13 +24,11 @@ describe('GuildChatResponder', () => {
 
   describe('validation errors', () => {
     it('INVALID_MULTIPLE: {null params} => returns 400 with error', async () => {
-      const proxy = GuildChatResponderProxy();
-      const clients = new Set([WsClientStub()]);
+      GuildChatResponderProxy();
 
-      const result = await proxy.callResponder({
+      const result = await GuildChatResponder({
         params: null,
         body: { message: 'hello' },
-        clients,
       });
 
       expect(result).toStrictEqual({
@@ -45,13 +38,11 @@ describe('GuildChatResponder', () => {
     });
 
     it('INVALID_MULTIPLE: {missing guildId} => returns 400 with error', async () => {
-      const proxy = GuildChatResponderProxy();
-      const clients = new Set([WsClientStub()]);
+      GuildChatResponderProxy();
 
-      const result = await proxy.callResponder({
+      const result = await GuildChatResponder({
         params: {},
         body: { message: 'hello' },
-        clients,
       });
 
       expect(result).toStrictEqual({
@@ -61,13 +52,11 @@ describe('GuildChatResponder', () => {
     });
 
     it('INVALID_MULTIPLE: {null body} => returns 400 with error', async () => {
-      const proxy = GuildChatResponderProxy();
-      const clients = new Set([WsClientStub()]);
+      GuildChatResponderProxy();
 
-      const result = await proxy.callResponder({
+      const result = await GuildChatResponder({
         params: { guildId: GuildIdStub() },
         body: null,
-        clients,
       });
 
       expect(result).toStrictEqual({
@@ -77,13 +66,11 @@ describe('GuildChatResponder', () => {
     });
 
     it('INVALID_MULTIPLE: {missing message} => returns 400 with error', async () => {
-      const proxy = GuildChatResponderProxy();
-      const clients = new Set([WsClientStub()]);
+      GuildChatResponderProxy();
 
-      const result = await proxy.callResponder({
+      const result = await GuildChatResponder({
         params: { guildId: GuildIdStub() },
         body: {},
-        clients,
       });
 
       expect(result).toStrictEqual({
@@ -93,13 +80,11 @@ describe('GuildChatResponder', () => {
     });
 
     it('INVALID_MULTIPLE: {empty message} => returns 400 with error', async () => {
-      const proxy = GuildChatResponderProxy();
-      const clients = new Set([WsClientStub()]);
+      GuildChatResponderProxy();
 
-      const result = await proxy.callResponder({
+      const result = await GuildChatResponder({
         params: { guildId: GuildIdStub() },
         body: { message: '' },
-        clients,
       });
 
       expect(result).toStrictEqual({
@@ -112,13 +97,11 @@ describe('GuildChatResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = GuildChatResponderProxy();
-      const clients = new Set([WsClientStub()]);
-      proxy.setupGuildError({ message: 'Guild not found' });
+      proxy.setupError({ message: 'Guild not found' });
 
       const result = await proxy.callResponder({
         params: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
         body: { message: 'hello' },
-        clients,
       });
 
       expect(result).toStrictEqual({

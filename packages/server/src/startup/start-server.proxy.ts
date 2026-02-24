@@ -1,9 +1,4 @@
 import { join as _join } from 'path';
-import { spawn as _spawn } from 'child_process';
-import { createInterface as _createInterface } from 'readline';
-import { EventEmitter } from 'events';
-import type { Interface as ReadlineInterface } from 'readline';
-import type { ChildProcess } from 'child_process';
 
 jest.mock('@dungeonmaster/orchestrator', () => ({
   __esModule: true,
@@ -22,15 +17,13 @@ jest.mock('@dungeonmaster/orchestrator', () => ({
     verifyQuest: jest.fn(),
     startQuest: jest.fn(),
     getQuestStatus: jest.fn(),
+    startChat: jest.fn(),
+    stopChat: jest.fn(),
+    stopAllChats: jest.fn(),
   },
 }));
 jest.mock('path');
-jest.mock('child_process', () => ({
-  ...jest.requireActual('child_process'),
-  spawn: jest.fn(),
-}));
 
-import { StartOrchestrator as _StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type {
   AddQuestResult,
   GetQuestResult,
@@ -70,7 +63,7 @@ import { honoCreateNodeWebSocketAdapterProxy } from '../adapters/hono/create-nod
 import { agentOutputBufferStateProxy } from '../state/agent-output-buffer/agent-output-buffer-state.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
 import { processDevLogAdapterProxy } from '../adapters/process/dev-log/process-dev-log-adapter.proxy';
-import { chatProcessStateProxy } from '../state/chat-process/chat-process-state.proxy';
+import { orchestratorStopAllChatsAdapterProxy } from '../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter.proxy';
 import { StartServer } from './start-server';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
@@ -110,18 +103,16 @@ export const StartServerProxy = (): {
   setupJsonlContent: (params: { content: string }) => void;
   setupJsonlError: (params: { error: Error }) => void;
   setupSubagentReaddir: (params: { files: string[] }) => void;
-  setupChatSpawn: () => {
-    emitLine: (line: string) => void;
-    emitExit: (code: number) => void;
-  };
-  getSpawnedArgs: () => unknown[][];
+  setupStartChat: (params: { chatProcessId: ProcessId }) => void;
+  setupStartChatError: (params: { error: Error }) => void;
+  setupStopChat: (params: { stopped: boolean }) => void;
   getBroadcastedMessages: () => WsMessage[];
 } => {
   const serveProxy = honoServeAdapterProxy();
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
   jest.mocked(_join).mockImplementation((...segments) => segments.join('/'));
   agentOutputBufferStateProxy();
-  chatProcessStateProxy();
+  orchestratorStopAllChatsAdapterProxy();
   const broadcastProxy = wsEventRelayBroadcastBrokerProxy();
   processDevLogAdapterProxy();
 
@@ -130,7 +121,7 @@ export const StartServerProxy = (): {
   const guildGetProxy = GuildGetResponderProxy();
   const guildUpdateProxy = GuildUpdateResponderProxy();
   const guildRemoveProxy = GuildRemoveResponderProxy();
-  GuildChatResponderProxy();
+  const guildChatProxy = GuildChatResponderProxy();
   const directoryBrowseProxy = DirectoryBrowseResponderProxy();
   const questListProxy = QuestListResponderProxy();
   const questGetProxy = QuestGetResponderProxy();
@@ -141,8 +132,8 @@ export const StartServerProxy = (): {
   const processStatusProxy = ProcessStatusResponderProxy();
   ProcessOutputResponderProxy();
   SessionListResponderProxy();
-  SessionChatResponderProxy();
-  SessionChatStopResponderProxy();
+  const sessionChatProxy = SessionChatResponderProxy();
+  const sessionChatStopProxy = SessionChatStopResponderProxy();
   const chatHistoryProxy = SessionChatHistoryResponderProxy();
 
   jest.useFakeTimers();
@@ -243,47 +234,21 @@ export const StartServerProxy = (): {
     setupSubagentReaddir: ({ files: _files }: { files: string[] }): void => {
       chatHistoryProxy.setupSubagentDirMissing();
     },
-    setupChatSpawn: (): {
-      emitLine: (line: string) => void;
-      emitExit: (code: number) => void;
-    } => {
-      const processEmitter = new EventEmitter();
-      const fakeProcess = Object.assign(processEmitter, {
-        stdout: new EventEmitter(),
-        stderr: null,
-        stdin: null,
-        pid: 12345,
-        kill: jest.fn(),
-        killed: false,
-        connected: false,
-        exitCode: null,
-        signalCode: null,
-        spawnargs: [],
-        spawnfile: '',
-        ref: jest.fn(),
-        unref: jest.fn(),
-        disconnect: jest.fn(),
-        send: jest.fn(),
-        stdio: [null, null, null, null, null],
-        [Symbol.dispose]: jest.fn(),
-      });
-      jest.mocked(_spawn).mockReturnValueOnce(fakeProcess as unknown as ChildProcess);
-
-      const lineEmitter = new EventEmitter();
-      jest
-        .mocked(_createInterface)
-        .mockReturnValueOnce(lineEmitter as unknown as ReadlineInterface);
-
-      return {
-        emitLine: (line: string): void => {
-          lineEmitter.emit('line', line);
-        },
-        emitExit: (code: number): void => {
-          processEmitter.emit('exit', code);
-        },
-      };
+    setupStartChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
+      guildChatProxy.setupGuildChat({ chatProcessId });
+      sessionChatProxy.setupSessionChat({ chatProcessId });
     },
-    getSpawnedArgs: (): unknown[][] => jest.mocked(_spawn).mock.calls,
+    setupStartChatError: ({ error }: { error: Error }): void => {
+      guildChatProxy.setupError({ message: error.message });
+      sessionChatProxy.setupError({ message: error.message });
+    },
+    setupStopChat: ({ stopped }: { stopped: boolean }): void => {
+      if (stopped) {
+        sessionChatStopProxy.setupWithProcess();
+      } else {
+        sessionChatStopProxy.setupEmpty();
+      }
+    },
     getBroadcastedMessages: (): WsMessage[] => broadcastProxy.getCapturedMessages(),
   };
 };

@@ -22,7 +22,6 @@ import {
   questIdContract,
   processIdContract,
 } from '@dungeonmaster/shared/contracts';
-import { orchestratorAddQuestAdapter } from '../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter';
 import { orchestratorGetQuestAdapter } from '../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorGetQuestStatusAdapter } from '../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
 import { orchestratorListGuildsAdapter } from '../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
@@ -37,7 +36,6 @@ import { mcpDiscoverBroker } from '../brokers/mcp/discover/mcp-discover-broker';
 import { folderConstraintsInitBroker } from '../brokers/folder-constraints/init/folder-constraints-init-broker';
 import { folderConstraintsState } from '../state/folder-constraints/folder-constraints-state';
 import { signalBackBroker } from '../brokers/signal/back/signal-back-broker';
-import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract';
 import { discoverInputContract } from '../contracts/discover-input/discover-input-contract';
 import { folderDetailInputContract } from '../contracts/folder-detail-input/folder-detail-input-contract';
 import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract';
@@ -82,7 +80,6 @@ export const StartMcpServer = async (): Promise<void> => {
   const discoverSchema = zodToJsonSchema(discoverInputContract as never, jsonSchemaOptions);
   const emptySchema = zodToJsonSchema(emptyInputSchema as never, jsonSchemaOptions);
   const folderDetailSchema = zodToJsonSchema(folderDetailInputContract as never, jsonSchemaOptions);
-  const addQuestSchema = zodToJsonSchema(addQuestInputContract as never, jsonSchemaOptions);
   const getQuestSchema = zodToJsonSchema(getQuestInputContract as never, jsonSchemaOptions);
   const modifyQuestSchema = zodToJsonSchema(modifyQuestInputContract as never, jsonSchemaOptions);
   const signalBackSchema = zodToJsonSchema(signalBackInputContract as never, jsonSchemaOptions);
@@ -124,12 +121,6 @@ export const StartMcpServer = async (): Promise<void> => {
         name: 'get-testing-patterns',
         description: 'Returns testing patterns and philosophy for writing tests and proxies',
         inputSchema: emptySchema,
-      },
-      {
-        name: 'add-quest',
-        description:
-          'Creates a new quest with tasks and saves it to the .dungeonmaster-quests folder',
-        inputSchema: addQuestSchema,
       },
       {
         name: 'get-quest',
@@ -266,42 +257,6 @@ export const StartMcpServer = async (): Promise<void> => {
           },
         ],
       };
-    }
-
-    if (request.params.name === 'add-quest') {
-      const args = request.params.arguments as never;
-      const titleRaw: unknown = Reflect.get(args, 'title');
-      const userRequestRaw: unknown = Reflect.get(args, 'userRequest');
-      const guildIdRaw: unknown = Reflect.get(args, 'guildId');
-      const title = String(titleRaw);
-      const userRequest = String(userRequestRaw);
-      const guildId = guildIdContract.parse(guildIdRaw);
-
-      try {
-        const result = await orchestratorAddQuestAdapter({ title, userRequest, guildId });
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(result, null, JSON_INDENT_SPACES),
-            },
-          ],
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                { success: false, error: errorMessage },
-                null,
-                JSON_INDENT_SPACES,
-              ),
-            },
-          ],
-        };
-      }
     }
 
     if (request.params.name === 'get-quest') {

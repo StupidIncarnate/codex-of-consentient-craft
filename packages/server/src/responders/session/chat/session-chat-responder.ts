@@ -1,34 +1,23 @@
 /**
- * PURPOSE: Handles session chat requests by validating input, spawning Claude CLI with --resume, and managing process lifecycle
+ * PURPOSE: Handles session chat requests by validating input and delegating to orchestrator for CLI resumption
  *
  * USAGE:
- * const result = await SessionChatResponder({ params: { sessionId: 'sess-123' }, body: { message: 'hello', guildId: 'abc' }, clients });
+ * const result = await SessionChatResponder({ params: { sessionId: 'sess-123' }, body: { message: 'hello', guildId: 'abc' } });
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/500, data: { error } }
  */
 
-import {
-  guildIdContract,
-  sessionIdContract,
-  wsMessageContract,
-} from '@dungeonmaster/shared/contracts';
-import { orchestratorGetGuildAdapter } from '../../../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter';
-import { cryptoRandomUuidAdapter } from '../../../adapters/crypto/random-uuid/crypto-random-uuid-adapter';
-import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
-import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
-import { chatProcessState } from '../../../state/chat-process/chat-process-state';
+import { guildIdContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
+import { orchestratorStartChatAdapter } from '../../../adapters/orchestrator/start-chat/orchestrator-start-chat-adapter';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
-import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 
 export const SessionChatResponder = async ({
   params,
   body,
-  clients,
 }: {
   params: unknown;
   body: unknown;
-  clients: Set<WsClient>;
 }): Promise<ResponderResult> => {
   try {
     if (typeof params !== 'object' || params === null) {
@@ -73,38 +62,12 @@ export const SessionChatResponder = async ({
 
     const sessionId = sessionIdContract.parse(sessionIdRaw);
     const guildId = guildIdContract.parse(rawGuildId);
-    const guild = await orchestratorGetGuildAdapter({ guildId });
-    const workingDir = guild.path;
 
-    const chatProcessId = cryptoRandomUuidAdapter();
-
-    const args = ['--resume', sessionId, '-p', rawMessage];
-
-    const { kill } = chatSpawnBroker({
-      args,
-      workingDir,
-      clients,
-      chatProcessId,
-      logPrefix: 'Session',
-      onExit: ({ exitCode }) => {
-        chatProcessState.remove({ processId: chatProcessId });
-
-        wsEventRelayBroadcastBroker({
-          clients,
-          message: wsMessageContract.parse({
-            type: 'chat-complete',
-            payload: {
-              chatProcessId,
-              exitCode,
-              sessionId,
-            },
-            timestamp: new Date().toISOString(),
-          }),
-        });
-      },
+    const { chatProcessId } = await orchestratorStartChatAdapter({
+      guildId,
+      message: rawMessage,
+      sessionId,
     });
-
-    chatProcessState.register({ processId: chatProcessId, kill });
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,

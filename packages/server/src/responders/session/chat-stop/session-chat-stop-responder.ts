@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles session chat stop requests by killing an active chat process
+ * PURPOSE: Handles session chat stop requests by delegating to orchestrator
  *
  * USAGE:
  * const result = SessionChatStopResponder({ params: { chatProcessId: 'proc-123' } });
@@ -8,7 +8,7 @@
 
 import { processIdContract } from '../../../contracts/process-id/process-id-contract';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
-import { chatProcessState } from '../../../state/chat-process/chat-process-state';
+import { orchestratorStopChatAdapter } from '../../../adapters/orchestrator/stop-chat/orchestrator-stop-chat-adapter';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -31,16 +31,16 @@ export const SessionChatStopResponder = ({ params }: { params: unknown }): Respo
       });
     }
 
-    const processId = processIdContract.parse(chatProcessIdRaw);
+    const chatProcessId = processIdContract.parse(chatProcessIdRaw);
 
     processDevLogAdapter({
-      message: `Session chat stop requested: processId=${processId}`,
+      message: `Session chat stop requested: processId=${chatProcessId}`,
     });
 
-    const killed = chatProcessState.kill({ processId });
+    const killed = orchestratorStopChatAdapter({ chatProcessId });
 
     processDevLogAdapter({
-      message: `Session chat stop result: processId=${processId}, killed=${String(killed)}`,
+      message: `Session chat stop result: processId=${chatProcessId}, killed=${String(killed)}`,
     });
 
     if (!killed) {

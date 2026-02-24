@@ -6,7 +6,7 @@ describe('SessionChatStopResponder', () => {
     it('VALID: {active processId} => returns 200 with stopped true', () => {
       const proxy = SessionChatStopResponderProxy();
       const processId = ProcessIdStub({ value: 'proc-active-123' });
-      proxy.setupWithProcess({ processId });
+      proxy.setupWithProcess();
 
       const result = proxy.callResponder({ params: { chatProcessId: processId } });
 

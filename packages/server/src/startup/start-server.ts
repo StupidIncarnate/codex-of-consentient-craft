@@ -41,7 +41,7 @@ import { honoCreateNodeWebSocketAdapter } from '../adapters/hono/create-node-web
 import { apiRoutesStatics } from '../statics/api-routes/api-routes-statics';
 import { agentOutputLineContract } from '../contracts/agent-output-line/agent-output-line-contract';
 import { agentOutputBufferState } from '../state/agent-output-buffer/agent-output-buffer-state';
-import { chatProcessState } from '../state/chat-process/chat-process-state';
+import { orchestratorStopAllChatsAdapter } from '../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter';
 import { wsEventRelayBroadcastBroker } from '../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import type { WsClient } from '../contracts/ws-client/ws-client-contract';
 import { processDevLogAdapter } from '../adapters/process/dev-log/process-dev-log-adapter';
@@ -177,7 +177,6 @@ export const StartServer = (): void => {
     const result = await GuildChatResponder({
       params: { guildId: c.req.param('guildId') },
       body: await c.req.json(),
-      clients,
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
@@ -195,7 +194,6 @@ export const StartServer = (): void => {
     const result = await SessionChatResponder({
       params: { sessionId: c.req.param('sessionId') },
       body: await c.req.json(),
-      clients,
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
@@ -286,12 +284,12 @@ export const StartServer = (): void => {
   // Kill all active chat processes on server shutdown
   process.on('SIGTERM', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
-    chatProcessState.killAll();
+    orchestratorStopAllChatsAdapter();
     process.exit(0);
   });
   process.on('SIGINT', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGINT)' });
-    chatProcessState.killAll();
+    orchestratorStopAllChatsAdapter();
     process.exit(0);
   });
 };

@@ -1,24 +1,21 @@
 import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
-import { chatProcessStateProxy } from '../../../state/chat-process/chat-process-state.proxy';
+import { orchestratorStopChatAdapterProxy } from '../../../adapters/orchestrator/stop-chat/orchestrator-stop-chat-adapter.proxy';
 import { SessionChatStopResponder } from './session-chat-stop-responder';
-import type { ProcessIdStub } from '../../../contracts/process-id/process-id.stub';
-
-type ProcessId = ReturnType<typeof ProcessIdStub>;
 
 export const SessionChatStopResponderProxy = (): {
-  setupWithProcess: (params: { processId: ProcessId }) => void;
+  setupWithProcess: () => void;
   setupEmpty: () => void;
   callResponder: typeof SessionChatStopResponder;
 } => {
   processDevLogAdapterProxy();
-  const stateProxy = chatProcessStateProxy();
+  const stopProxy = orchestratorStopChatAdapterProxy();
 
   return {
-    setupWithProcess: ({ processId }: { processId: ProcessId }): void => {
-      stateProxy.setupWithProcess({ processId, kill: jest.fn() });
+    setupWithProcess: (): void => {
+      stopProxy.returns({ stopped: true });
     },
     setupEmpty: (): void => {
-      stateProxy.setupEmpty();
+      stopProxy.returns({ stopped: false });
     },
     callResponder: SessionChatStopResponder,
   };
