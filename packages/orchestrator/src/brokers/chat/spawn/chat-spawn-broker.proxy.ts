@@ -1,5 +1,10 @@
 import type { ExitCodeStub } from '@dungeonmaster/shared/contracts';
-import { GuildConfigStub, GuildStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  GuildConfigStub,
+  GuildStub,
+  GuildIdStub,
+  FilePathStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapterProxy } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.proxy';
 import { readlineCreateInterfaceAdapterProxy } from '../../../adapters/readline/create-interface/readline-create-interface-adapter.proxy';
@@ -12,12 +17,13 @@ type ExitCode = ReturnType<typeof ExitCodeStub>;
 export const chatSpawnBrokerProxy = (): {
   setupNewSession: (params: { exitCode: ExitCode; stdoutLines?: readonly string[] }) => void;
   setupResumeSession: (params: { exitCode: ExitCode; stdoutLines?: readonly string[] }) => void;
+  setupQuestCreationFailure: () => void;
   emitLines: (params: { lines: readonly string[] }) => void;
   getSpawnedArgs: () => unknown;
 } => {
   const spawnProxy = childProcessSpawnStreamJsonAdapterProxy();
   const rlProxy = readlineCreateInterfaceAdapterProxy();
-  questAddBrokerProxy();
+  const questProxy = questAddBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
   questSessionWriteLayerBrokerProxy();
 
@@ -51,6 +57,16 @@ export const chatSpawnBrokerProxy = (): {
       spawnProxy.setupSuccess({
         exitCode,
         ...(stdoutLines && { stdoutData: stdoutLines as never }),
+      });
+    },
+
+    setupQuestCreationFailure: (): void => {
+      const questsFolderPath = FilePathStub({
+        value: '/home/testuser/.dungeonmaster/guilds/quests',
+      });
+      questProxy.setupQuestCreationFailure({
+        questsFolderPath,
+        error: new Error('mkdir failed'),
       });
     },
 

@@ -8,6 +8,7 @@ type ProcessId = ReturnType<typeof ProcessIdStub>;
 export const orchestratorStartChatAdapterProxy = (): {
   returns: (params: { chatProcessId: ProcessId }) => void;
   throws: (params: { error: Error }) => void;
+  getLastCalledArgs: () => unknown;
 } => {
   const mock = jest.mocked(StartOrchestrator.startChat);
 
@@ -19,6 +20,12 @@ export const orchestratorStartChatAdapterProxy = (): {
     },
     throws: ({ error }: { error: Error }): void => {
       mock.mockRejectedValueOnce(error);
+    },
+    getLastCalledArgs: (): unknown => {
+      const { calls } = mock.mock;
+      const lastCall = calls[calls.length - 1];
+      if (!lastCall) return undefined;
+      return lastCall[0];
     },
   };
 };

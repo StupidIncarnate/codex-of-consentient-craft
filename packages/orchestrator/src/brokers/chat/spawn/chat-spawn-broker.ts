@@ -109,8 +109,10 @@ export const chatSpawnBroker = async ({
 
         if (sid) {
           extractedSessionId = sid;
-          questSessionWriteLayerBroker({ questId, sessionId: sid }).catch(() => {
-            // Best-effort session ID persistence
+          questSessionWriteLayerBroker({ questId, sessionId: sid }).catch((error: unknown) => {
+            process.stderr.write(
+              `questSessionWriteLayerBroker failed: ${error instanceof Error ? error.message : String(error)}\n`,
+            );
           });
         }
       }

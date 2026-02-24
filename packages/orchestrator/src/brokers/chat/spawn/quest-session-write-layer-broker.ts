@@ -7,12 +7,8 @@
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import type { SessionId } from '@dungeonmaster/shared/contracts';
-import {
-  fileContentsContract,
-  filePathContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
+import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -25,11 +21,10 @@ export const questSessionWriteLayerBroker = async ({
   questId,
   sessionId,
 }: {
-  questId: string;
+  questId: QuestId;
   sessionId: SessionId;
 }): Promise<void> => {
-  const parsedQuestId = questIdContract.parse(questId);
-  const { questPath } = await questFindQuestPathBroker({ questId: parsedQuestId });
+  const { questPath } = await questFindQuestPathBroker({ questId });
   const questFilePath = filePathContract.parse(
     pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
   );
