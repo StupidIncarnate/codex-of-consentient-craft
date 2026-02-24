@@ -90,7 +90,7 @@ describe('useQuestEventsBinding', () => {
         },
       });
 
-      const closeMock = proxy.getSocketCloseMock();
+      const closeMock = proxy.getSocketClose();
 
       expect(closeMock).toHaveBeenCalledTimes(0);
 

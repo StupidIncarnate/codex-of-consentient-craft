@@ -23,7 +23,7 @@ export const useQuestEventsBinding = ({
   callbackRef.current = onQuestModified;
 
   useEffect(() => {
-    if (!questId) return;
+    if (!questId) return undefined;
 
     const connection = websocketConnectAdapter({
       url: `ws://${globalThis.location.host}/ws`,
