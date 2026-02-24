@@ -302,12 +302,13 @@ describe('QuestSpecPanelWidget', () => {
       await proxy.clickModify();
 
       expect(proxy.hasBanner()).toBe(true);
+
       const callsBeforeReload = onDismissUpdate.mock.calls.length;
 
       await proxy.clickReload();
 
       expect(proxy.hasBanner()).toBe(false);
-      expect(onDismissUpdate.mock.calls.length > callsBeforeReload).toBe(true);
+      expect(onDismissUpdate.mock.calls.length).toBeGreaterThan(callsBeforeReload);
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('OBSERVABLES APPROVAL');
     });
 
@@ -331,11 +332,12 @@ describe('QuestSpecPanelWidget', () => {
       await proxy.clickModify();
 
       expect(proxy.hasBanner()).toBe(true);
+
       const callsBeforeKeep = onDismissUpdate.mock.calls.length;
 
       await proxy.clickKeepEditing();
 
-      expect(onDismissUpdate.mock.calls.length > callsBeforeKeep).toBe(true);
+      expect(onDismissUpdate.mock.calls.length).toBeGreaterThan(callsBeforeKeep);
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('EDITING SPEC');
     });
 
@@ -357,7 +359,7 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(onDismissUpdate).toHaveBeenCalledTimes(1);
-      expect(screen.queryByTestId('EXTERNAL_UPDATE_BANNER')).toBe(null);
+      expect(screen.queryByTestId('EXTERNAL_UPDATE_BANNER')).toBeNull();
     });
   });
 });
