@@ -12,12 +12,20 @@ const RECONNECT_DELAY_MS = 3000;
 export const websocketConnectAdapter = ({
   url,
   onMessage,
+  onOpen,
 }: {
   url: string;
   onMessage: (message: unknown) => void;
-}): { close: () => void } => {
+  onOpen?: () => void;
+}): { close: () => void; send: (data: Record<string, unknown>) => void } => {
   let shouldReconnect = true;
   const socket = new globalThis.WebSocket(url);
+
+  socket.onopen = (): void => {
+    if (onOpen) {
+      onOpen();
+    }
+  };
 
   socket.onmessage = (event: MessageEvent): void => {
     try {
@@ -40,6 +48,11 @@ export const websocketConnectAdapter = ({
     close: (): void => {
       shouldReconnect = false;
       socket.close();
+    },
+    send: (data: Record<string, unknown>): void => {
+      if (socket.readyState === globalThis.WebSocket.OPEN) {
+        socket.send(JSON.stringify(data));
+      }
     },
   };
 };

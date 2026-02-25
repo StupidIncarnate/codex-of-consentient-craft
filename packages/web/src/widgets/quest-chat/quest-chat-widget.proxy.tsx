@@ -45,7 +45,7 @@ export const QuestChatWidgetProxy = (): {
   setupQuestError: () => void;
   setupGuild: (params: { guild: Guild }) => void;
   setupGuildError: () => void;
-  setupHistory: (params: { entries: unknown[] }) => void;
+  getSentWsMessages: () => unknown[];
   hasChatPanel: () => boolean;
   hasActivityPlaceholder: () => boolean;
   hasDivider: () => boolean;
@@ -60,8 +60,8 @@ export const QuestChatWidgetProxy = (): {
   const sessionListProxy = useSessionListBindingProxy();
   const questDetailProxy = useQuestDetailBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
-  const chatBindingProxy = useSessionChatBindingProxy();
   useQuestEventsBindingProxy();
+  const chatBindingProxy = useSessionChatBindingProxy();
   ChatPanelWidgetProxy();
   QuestClarifyPanelWidgetProxy();
   QuestSpecPanelWidgetProxy();
@@ -98,9 +98,7 @@ export const QuestChatWidgetProxy = (): {
     setupGuildError: (): void => {
       guildDetailProxy.setupError();
     },
-    setupHistory: ({ entries }: { entries: unknown[] }): void => {
-      chatBindingProxy.setupHistory({ entries });
-    },
+    getSentWsMessages: (): unknown[] => chatBindingProxy.getSentWsMessages(),
     hasChatPanel: (): boolean => screen.queryByTestId('CHAT_PANEL') !== null,
     hasActivityPlaceholder: (): boolean => screen.queryByTestId('QUEST_CHAT_ACTIVITY') !== null,
     hasDivider: (): boolean => screen.queryByTestId('QUEST_CHAT_DIVIDER') !== null,

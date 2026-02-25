@@ -12,13 +12,11 @@ import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { sessionChatBroker } from '../../brokers/session/chat/session-chat-broker';
-import { sessionChatHistoryBroker } from '../../brokers/session/chat-history/session-chat-history-broker';
 import { sessionChatStopBroker } from '../../brokers/session/chat-stop/session-chat-stop-broker';
 import type { AskUserQuestionItem } from '../../contracts/ask-user-question/ask-user-question-contract';
 import { askUserQuestionContract } from '../../contracts/ask-user-question/ask-user-question-contract';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
-import { jsonlToChatEntriesTransformer } from '../../transformers/jsonl-to-chat-entries/jsonl-to-chat-entries-transformer';
 import { streamJsonToChatEntryTransformer } from '../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 
 export const useSessionChatBinding = ({
@@ -45,7 +43,9 @@ export const useSessionChatBinding = ({
   } | null>(null);
   const sessionIdRef = useRef<SessionId | null>(initialSessionId ?? null);
   const chatProcessIdRef = useRef<ProcessId | null>(null);
-  const wsRef = useRef<{ close: () => void } | null>(null);
+  const wsRef = useRef<{ close: () => void; send: (data: Record<string, unknown>) => void } | null>(
+    null,
+  );
   const historyLoadedRef = useRef(false);
 
   const handleWebSocketMessage = useCallback((message: unknown): void => {
@@ -101,15 +101,54 @@ export const useSessionChatBinding = ({
 
       setIsStreaming(false);
     }
+
+    if (parsed.data.type === 'chat-history-complete') {
+      const { payload } = parsed.data;
+      const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');
+
+      if (rawChatProcessId !== chatProcessIdRef.current) return;
+
+      chatProcessIdRef.current = null;
+    }
   }, []);
+
+  const wsOpenRef = useRef(false);
+  const guildIdRef = useRef(guildId);
+  const initialSessionIdRef = useRef(initialSessionId);
+  guildIdRef.current = guildId;
+  initialSessionIdRef.current = initialSessionId;
 
   useEffect(() => {
     wsRef.current = websocketConnectAdapter({
       url: `ws://${globalThis.location.host}/ws`,
       onMessage: handleWebSocketMessage,
+      onOpen: (): void => {
+        wsOpenRef.current = true;
+
+        if (historyLoadedRef.current) return;
+
+        const targetGuildId = guildIdRef.current;
+        const targetSessionId = initialSessionIdRef.current;
+        if (!targetGuildId || !targetSessionId || !wsRef.current) return;
+
+        historyLoadedRef.current = true;
+        sessionIdRef.current = targetSessionId;
+        setCurrentSessionId(targetSessionId);
+
+        const replayProcessId = `replay-${targetSessionId}` as ProcessId;
+        chatProcessIdRef.current = replayProcessId;
+
+        wsRef.current.send({
+          type: 'replay-history',
+          sessionId: targetSessionId,
+          guildId: targetGuildId,
+          chatProcessId: replayProcessId,
+        });
+      },
     });
 
     return (): void => {
+      wsOpenRef.current = false;
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
@@ -119,28 +158,31 @@ export const useSessionChatBinding = ({
 
   useEffect(() => {
     if (historyLoadedRef.current) return;
+    if (!wsOpenRef.current) return;
+    if (!wsRef.current) return;
     if (!guildId) return;
-
-    const targetSessionId = initialSessionId;
-    if (!targetSessionId) return;
+    if (!initialSessionId) return;
 
     historyLoadedRef.current = true;
-    sessionIdRef.current = targetSessionId;
-    setCurrentSessionId(targetSessionId);
+    sessionIdRef.current = initialSessionId;
+    setCurrentSessionId(initialSessionId);
 
-    sessionChatHistoryBroker({ sessionId: targetSessionId, guildId })
-      .then((rawEntries) => {
-        if (rawEntries.length > 0) {
-          const chatEntries = jsonlToChatEntriesTransformer({ entries: rawEntries });
-          setEntries(chatEntries);
-        }
-      })
-      .catch(() => undefined);
+    const replayProcessId = `replay-${initialSessionId}` as ProcessId;
+    chatProcessIdRef.current = replayProcessId;
+
+    wsRef.current.send({
+      type: 'replay-history',
+      sessionId: initialSessionId,
+      guildId,
+      chatProcessId: replayProcessId,
+    });
   }, [guildId, initialSessionId]);
 
   const sendMessage = useCallback(
     ({ message }: { message: UserInput }): void => {
       if (!guildId) return;
+
+      historyLoadedRef.current = true;
 
       const userEntry = chatEntryContract.parse({ role: 'user', content: message });
       setEntries((prev) => [...prev, userEntry]);

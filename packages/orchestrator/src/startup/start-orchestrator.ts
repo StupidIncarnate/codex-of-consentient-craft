@@ -32,6 +32,7 @@ import { filePathContract, processIdContract } from '@dungeonmaster/shared/contr
 
 import { childProcessSpawnStreamJsonAdapter } from '../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import { readlineCreateInterfaceAdapter } from '../adapters/readline/create-interface/readline-create-interface-adapter';
+import { chatHistoryReplayBroker } from '../brokers/chat/history-replay/chat-history-replay-broker';
 import { chatSpawnBroker } from '../brokers/chat/spawn/chat-spawn-broker';
 import { directoryBrowseBroker } from '../brokers/directory/browse/directory-browse-broker';
 import { pathseekerPipelineBroker } from '../brokers/pathseeker/pipeline/pathseeker-pipeline-broker';
@@ -366,5 +367,42 @@ export const StartOrchestrator = {
 
   stopAllChats: (): void => {
     chatProcessState.killAll();
+  },
+
+  replayChatHistory: async ({
+    sessionId,
+    guildId,
+    chatProcessId: clientChatProcessId,
+  }: {
+    sessionId: SessionId;
+    guildId: GuildId;
+    chatProcessId?: ProcessId;
+  }): Promise<void> => {
+    const chatProcessId = clientChatProcessId ?? processIdContract.parse(`replay-${randomUUID()}`);
+
+    await chatHistoryReplayBroker({
+      sessionId,
+      guildId,
+      onEntry: ({ entry }) => {
+        orchestrationEventsState.emit({
+          type: 'chat-output',
+          processId: chatProcessId,
+          payload: { chatProcessId, line: JSON.stringify(entry) },
+        });
+      },
+      onPatch: ({ toolUseId, agentId }) => {
+        orchestrationEventsState.emit({
+          type: 'chat-patch',
+          processId: chatProcessId,
+          payload: { chatProcessId, toolUseId, agentId },
+        });
+      },
+    });
+
+    orchestrationEventsState.emit({
+      type: 'chat-history-complete',
+      processId: chatProcessId,
+      payload: { chatProcessId, sessionId },
+    });
   },
 };

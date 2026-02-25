@@ -727,71 +727,111 @@ describe('useSessionChatBinding', () => {
     });
   });
 
-  describe('history loading', () => {
-    it('VALID: {guildId + initialSessionId} => loads history using initialSessionId', async () => {
+  describe('history loading via WebSocket replay', () => {
+    it('VALID: {guildId + initialSessionId} => sends replay-history WS message on mount', () => {
       const proxy = useSessionChatBindingProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'session-initial-1' });
 
-      proxy.setupHistory({
-        entries: [{ type: 'user', message: { role: 'user', content: 'Pinned question' } }],
-      });
-
-      const { result } = testingLibraryRenderHookAdapter({
+      testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId, sessionId }),
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
-      });
+      const sentMessages = proxy.getSentWsMessages();
 
-      expect(result.current.currentSessionId).toBe('session-initial-1');
-      expect(result.current.entries).toStrictEqual([{ role: 'user', content: 'Pinned question' }]);
+      expect(sentMessages).toStrictEqual([
+        {
+          type: 'replay-history',
+          sessionId: 'session-initial-1',
+          guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          chatProcessId: 'replay-session-initial-1',
+        },
+      ]);
     });
 
-    it('EDGE: {history returns empty entries} => does not set entries', async () => {
+    it('VALID: {replay chat-output events} => appends entries via same chat-output handler', () => {
       const proxy = useSessionChatBindingProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const sessionId = SessionIdStub({ value: 'session-empty-history' });
-
-      proxy.setupHistory({ entries: [] });
+      const sessionId = SessionIdStub({ value: 'session-replay-1' });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId, sessionId }),
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'replay-session-replay-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Replayed answer"}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
           });
         },
       });
 
-      expect(result.current.entries).toStrictEqual([]);
-      expect(result.current.currentSessionId).toBe('session-empty-history');
+      expect(result.current.entries).toStrictEqual([
+        { role: 'assistant', type: 'text', content: 'Replayed answer' },
+      ]);
     });
 
-    it('EDGE: {guildId: null} => does not load history', async () => {
-      useSessionChatBindingProxy();
+    it('VALID: {chat-history-complete} => clears replay chatProcessId', () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'session-replay-done' });
 
       const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId, sessionId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'replay-session-replay-done',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Historic answer"}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-history-complete',
+              payload: {
+                chatProcessId: 'replay-session-replay-done',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.currentSessionId).toBe('session-replay-done');
+      expect(result.current.entries).toStrictEqual([
+        { role: 'assistant', type: 'text', content: 'Historic answer' },
+      ]);
+    });
+
+    it('EDGE: {guildId: null} => does not send replay-history', () => {
+      const proxy = useSessionChatBindingProxy();
+
+      testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionChatBinding({ guildId: null }),
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
-      });
+      const sentMessages = proxy.getSentWsMessages();
 
-      expect(result.current.entries).toStrictEqual([]);
+      expect(sentMessages).toStrictEqual([]);
     });
   });
 

@@ -20,6 +20,7 @@ jest.mock('@dungeonmaster/orchestrator', () => ({
     startChat: jest.fn(),
     stopChat: jest.fn(),
     stopAllChats: jest.fn(),
+    replayChatHistory: jest.fn().mockResolvedValue(undefined),
   },
 }));
 jest.mock('path');
@@ -57,7 +58,6 @@ import { ProcessOutputResponderProxy } from '../responders/process/output/proces
 import { SessionListResponderProxy } from '../responders/session/list/session-list-responder.proxy';
 import { SessionChatResponderProxy } from '../responders/session/chat/session-chat-responder.proxy';
 import { SessionChatStopResponderProxy } from '../responders/session/chat-stop/session-chat-stop-responder.proxy';
-import { SessionChatHistoryResponderProxy } from '../responders/session/chat-history/session-chat-history-responder.proxy';
 import { honoServeAdapterProxy } from '../adapters/hono/serve/hono-serve-adapter.proxy';
 import { honoCreateNodeWebSocketAdapterProxy } from '../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.proxy';
 import { agentOutputBufferStateProxy } from '../state/agent-output-buffer/agent-output-buffer-state.proxy';
@@ -100,9 +100,6 @@ export const StartServerProxy = (): {
   setupStartQuestError: (params: { error: Error }) => void;
   setupGetQuestStatus: (params: { status: OrchestrationStatus }) => void;
   setupGetQuestStatusError: (params: { error: Error }) => void;
-  setupJsonlContent: (params: { content: string }) => void;
-  setupJsonlError: (params: { error: Error }) => void;
-  setupSubagentReaddir: (params: { files: string[] }) => void;
   setupStartChat: (params: { chatProcessId: ProcessId }) => void;
   setupStartChatError: (params: { error: Error }) => void;
   setupStopChat: (params: { stopped: boolean }) => void;
@@ -134,7 +131,6 @@ export const StartServerProxy = (): {
   SessionListResponderProxy();
   const sessionChatProxy = SessionChatResponderProxy();
   const sessionChatStopProxy = SessionChatStopResponderProxy();
-  const chatHistoryProxy = SessionChatHistoryResponderProxy();
 
   jest.useFakeTimers();
   StartServer();
@@ -224,15 +220,6 @@ export const StartServerProxy = (): {
     },
     setupGetQuestStatusError: ({ error }: { error: Error }): void => {
       processStatusProxy.setupGetStatusError({ message: error.message });
-    },
-    setupJsonlContent: ({ content }: { content: string }): void => {
-      chatHistoryProxy.setupMainEntries({ content });
-    },
-    setupJsonlError: ({ error: _error }: { error: Error }): void => {
-      // JSONL errors delegated through session-chat-history responder proxy chain
-    },
-    setupSubagentReaddir: ({ files: _files }: { files: string[] }): void => {
-      chatHistoryProxy.setupSubagentDirMissing();
     },
     setupStartChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
       sessionNewProxy.setupSessionNew({ chatProcessId });

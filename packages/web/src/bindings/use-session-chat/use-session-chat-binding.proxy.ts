@@ -2,7 +2,6 @@ import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
 import { sessionChatBrokerProxy } from '../../brokers/session/chat/session-chat-broker.proxy';
-import { sessionChatHistoryBrokerProxy } from '../../brokers/session/chat-history/session-chat-history-broker.proxy';
 import { sessionChatStopBrokerProxy } from '../../brokers/session/chat-stop/session-chat-stop-broker.proxy';
 
 export const useSessionChatBindingProxy = (): {
@@ -13,13 +12,11 @@ export const useSessionChatBindingProxy = (): {
   setupStop: () => void;
   setupStopError: () => void;
   receiveWsMessage: (params: { data: string }) => void;
-  setupHistory: (params: { entries: unknown[] }) => void;
-  setupHistoryError: () => void;
+  getSentWsMessages: () => unknown[];
 } => {
   const chatProxy = sessionChatBrokerProxy();
   const stopProxy = sessionChatStopBrokerProxy();
   const wsProxy = websocketConnectAdapterProxy();
-  const historyProxy = sessionChatHistoryBrokerProxy();
 
   return {
     setupChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
@@ -44,11 +41,6 @@ export const useSessionChatBindingProxy = (): {
     receiveWsMessage: ({ data }: { data: string }): void => {
       wsProxy.receiveMessage({ data });
     },
-    setupHistory: ({ entries }: { entries: unknown[] }): void => {
-      historyProxy.setupHistory({ entries });
-    },
-    setupHistoryError: (): void => {
-      historyProxy.setupError();
-    },
+    getSentWsMessages: (): unknown[] => wsProxy.getSentMessages(),
   };
 };

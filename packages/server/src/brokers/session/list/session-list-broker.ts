@@ -16,7 +16,7 @@ import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/li
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { claudeProjectPathEncoderTransformer } from '../../../transformers/claude-project-path-encoder/claude-project-path-encoder-transformer';
+import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { extractSessionFileSummaryTransformer } from '../../../transformers/extract-session-file-summary/extract-session-file-summary-transformer';
 import { hasSessionSummaryGuard } from '../../../guards/has-session-summary/has-session-summary-guard';
 import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';

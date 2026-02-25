@@ -21,3 +21,9 @@ export * from './src/transformers/promise-pool/promise-pool-transformer';
 
 // Prompt Template Assemble
 export * from './src/transformers/prompt-template-assemble/prompt-template-assemble-transformer';
+
+// Claude Project Path Encoder
+export * from './src/transformers/claude-project-path-encoder/claude-project-path-encoder-transformer';
+
+// Strip JSONL Suffix
+export * from './src/transformers/strip-jsonl-suffix/strip-jsonl-suffix-transformer';

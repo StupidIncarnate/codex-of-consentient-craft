@@ -20,6 +20,8 @@ describe('orchestrationEventTypeContract', () => {
     'quest-created',
     'quest-modified',
     'clarification-request',
+    'chat-patch',
+    'chat-history-complete',
   ] as const)('VALID: {value: %s} => parses successfully', (type) => {
     expect(orchestrationEventTypeContract.parse(type)).toBe(type);
   });

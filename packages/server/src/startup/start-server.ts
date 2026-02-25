@@ -8,12 +8,19 @@
 
 import { Hono } from 'hono';
 import type { WSContext } from 'hono/ws';
-import { orchestrationEventTypeContract, wsMessageContract } from '@dungeonmaster/shared/contracts';
+import {
+  guildIdContract,
+  orchestrationEventTypeContract,
+  processIdContract,
+  sessionIdContract,
+  wsMessageContract,
+} from '@dungeonmaster/shared/contracts';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import {
   isoTimestampContract,
   orchestrationEventsState,
   slotIndexContract,
+  StartOrchestrator,
 } from '@dungeonmaster/orchestrator';
 
 import { GuildListResponder } from '../responders/guild/list/guild-list-responder';
@@ -34,7 +41,6 @@ import { ProcessOutputResponder } from '../responders/process/output/process-out
 import { SessionListResponder } from '../responders/session/list/session-list-responder';
 import { SessionChatResponder } from '../responders/session/chat/session-chat-responder';
 import { SessionChatStopResponder } from '../responders/session/chat-stop/session-chat-stop-responder';
-import { SessionChatHistoryResponder } from '../responders/session/chat-history/session-chat-history-responder';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { honoServeAdapter } from '../adapters/hono/serve/hono-serve-adapter';
 import { honoCreateNodeWebSocketAdapter } from '../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
@@ -62,6 +68,27 @@ export const StartServer = (): void => {
       onOpen: (_evt, ws: WSContext) => {
         clients.add(ws);
         processDevLogAdapter({ message: 'WebSocket client connected' });
+      },
+      onMessage: (evt, _ws: WSContext) => {
+        try {
+          const raw: unknown = typeof evt.data === 'string' ? JSON.parse(evt.data) : undefined;
+
+          if (typeof raw !== 'object' || raw === null) return;
+
+          const type: unknown = Reflect.get(raw, 'type');
+
+          if (type === 'replay-history') {
+            const sessionId = sessionIdContract.parse(Reflect.get(raw, 'sessionId'));
+            const guildId = guildIdContract.parse(Reflect.get(raw, 'guildId'));
+            const chatProcessId = processIdContract.parse(Reflect.get(raw, 'chatProcessId'));
+
+            StartOrchestrator.replayChatHistory({ sessionId, guildId, chatProcessId }).catch(() => {
+              processDevLogAdapter({ message: 'replay-history failed' });
+            });
+          }
+        } catch {
+          processDevLogAdapter({ message: 'WebSocket message parse error' });
+        }
       },
       onClose: (_evt, ws: WSContext) => {
         clients.delete(ws);
@@ -201,15 +228,6 @@ export const StartServer = (): void => {
   app.post(apiRoutesStatics.sessions.chatStop, (c) => {
     const result = SessionChatStopResponder({
       params: { chatProcessId: c.req.param('chatProcessId') },
-    });
-    return c.json(result.data as object, result.status as ContentfulStatusCode);
-  });
-
-  // Session chat history
-  app.get(apiRoutesStatics.sessions.chatHistory, async (c) => {
-    const result = await SessionChatHistoryResponder({
-      params: { sessionId: c.req.param('sessionId') },
-      query: { guildId: c.req.query('guildId') },
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });

@@ -56,14 +56,17 @@ export const mapContentItemToChatEntryTransformer = ({
 
   if (itemType === 'tool_result') {
     const toolUseId = typeof item.tool_use_id === 'string' ? item.tool_use_id : '';
-    const content = typeof item.content === 'string'
-      ? item.content
-      : Array.isArray(item.content)
+    const content =
+      typeof item.content === 'string'
         ? item.content
-            .map((c: unknown) => (typeof c === 'object' && c !== null ? Reflect.get(c, 'text') : undefined))
-            .filter((t: unknown) => typeof t === 'string')
-            .join('\n')
-        : '';
+        : Array.isArray(item.content)
+          ? item.content
+              .map((c: unknown) =>
+                typeof c === 'object' && c !== null ? Reflect.get(c, 'text') : undefined,
+              )
+              .filter((t: unknown) => typeof t === 'string')
+              .join('\n')
+          : '';
     const isError = item.is_error === true;
 
     return chatEntryContract.parse({

@@ -2,7 +2,7 @@
  * PURPOSE: Tests for QuestChatWidget - split panel layout with chat and activity
  */
 
-import { waitFor } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import {
@@ -94,34 +94,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupHistory({
-        entries: [
-          {
-            type: 'assistant',
-            message: {
-              content: [
-                {
-                  type: 'tool_use',
-                  name: 'mcp__dungeonmaster__ask-user-question',
-                  input: {
-                    questions: [
-                      {
-                        question: 'Which framework?',
-                        header: 'Framework Choice',
-                        options: [
-                          { label: 'React', description: 'Component-based UI' },
-                          { label: 'Vue', description: 'Progressive framework' },
-                        ],
-                        multiSelect: false,
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      });
 
       mantineRenderAdapter({
         ui: (
@@ -131,6 +103,46 @@ describe('QuestChatWidget', () => {
             </Routes>
           </MemoryRouter>
         ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.getSentWsMessages().length).toBeGreaterThan(0);
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: 'replay-chat-q4',
+              line: JSON.stringify({
+                type: 'assistant',
+                message: {
+                  content: [
+                    {
+                      type: 'tool_use',
+                      name: 'mcp__dungeonmaster__ask-user-question',
+                      input: {
+                        questions: [
+                          {
+                            question: 'Which framework?',
+                            header: 'Framework Choice',
+                            options: [
+                              { label: 'React', description: 'Component-based UI' },
+                              { label: 'Vue', description: 'Progressive framework' },
+                            ],
+                            multiSelect: false,
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              }),
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       await waitFor(() => {
@@ -148,34 +160,6 @@ describe('QuestChatWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
       proxy.setupChat({ chatProcessId: 'proc-1' as never });
-      proxy.setupHistory({
-        entries: [
-          {
-            type: 'assistant',
-            message: {
-              content: [
-                {
-                  type: 'tool_use',
-                  name: 'mcp__dungeonmaster__ask-user-question',
-                  input: {
-                    questions: [
-                      {
-                        question: 'Which framework?',
-                        header: 'Framework Choice',
-                        options: [
-                          { label: 'React', description: 'Component-based UI' },
-                          { label: 'Vue', description: 'Progressive framework' },
-                        ],
-                        multiSelect: false,
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      });
 
       mantineRenderAdapter({
         ui: (
@@ -185,6 +169,46 @@ describe('QuestChatWidget', () => {
             </Routes>
           </MemoryRouter>
         ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.getSentWsMessages().length).toBeGreaterThan(0);
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: 'replay-chat-q5',
+              line: JSON.stringify({
+                type: 'assistant',
+                message: {
+                  content: [
+                    {
+                      type: 'tool_use',
+                      name: 'mcp__dungeonmaster__ask-user-question',
+                      input: {
+                        questions: [
+                          {
+                            question: 'Which framework?',
+                            header: 'Framework Choice',
+                            options: [
+                              { label: 'React', description: 'Component-based UI' },
+                              { label: 'Vue', description: 'Progressive framework' },
+                            ],
+                            multiSelect: false,
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              }),
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       await waitFor(() => {
@@ -313,34 +337,6 @@ describe('QuestChatWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
       proxy.setupQuest({ quest });
-      proxy.setupHistory({
-        entries: [
-          {
-            type: 'assistant',
-            message: {
-              content: [
-                {
-                  type: 'tool_use',
-                  name: 'mcp__dungeonmaster__ask-user-question',
-                  input: {
-                    questions: [
-                      {
-                        question: 'Which DB?',
-                        header: 'Database Choice',
-                        options: [
-                          { label: 'Postgres', description: 'Relational' },
-                          { label: 'Mongo', description: 'Document' },
-                        ],
-                        multiSelect: false,
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      });
 
       mantineRenderAdapter({
         ui: (
@@ -354,6 +350,46 @@ describe('QuestChatWidget', () => {
             </Routes>
           </MemoryRouter>
         ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.getSentWsMessages().length).toBeGreaterThan(0);
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: 'replay-chat-q8',
+              line: JSON.stringify({
+                type: 'assistant',
+                message: {
+                  content: [
+                    {
+                      type: 'tool_use',
+                      name: 'mcp__dungeonmaster__ask-user-question',
+                      input: {
+                        questions: [
+                          {
+                            question: 'Which DB?',
+                            header: 'Database Choice',
+                            options: [
+                              { label: 'Postgres', description: 'Relational' },
+                              { label: 'Mongo', description: 'Document' },
+                            ],
+                            multiSelect: false,
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              }),
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       await waitFor(() => {
