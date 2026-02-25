@@ -327,7 +327,7 @@ export const StartOrchestrator = {
     sessionId?: SessionId;
   }): Promise<{ chatProcessId: ProcessId }> => {
     const processor = chatLineProcessTransformer();
-    const subagentStopHandles: Array<() => void> = [];
+    const subagentStopHandles: (() => void)[] = [];
 
     return chatSpawnBroker({
       guildId,
