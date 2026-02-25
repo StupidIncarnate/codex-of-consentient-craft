@@ -289,6 +289,228 @@ describe('useSessionChatBinding', () => {
     });
   });
 
+  describe('WebSocket clarification-request handling', () => {
+    it('VALID: {clarification-request with matching chatProcessId and valid questions} => sets pendingClarification', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'clarification-request',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                questions: [
+                  {
+                    question: 'Which framework?',
+                    header: 'Framework',
+                    options: [
+                      { label: 'React', description: 'Component-based' },
+                      { label: 'Vue', description: 'Progressive' },
+                    ],
+                    multiSelect: false,
+                  },
+                ],
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.pendingClarification).toStrictEqual({
+        questions: [
+          {
+            question: 'Which framework?',
+            header: 'Framework',
+            options: [
+              { label: 'React', description: 'Component-based' },
+              { label: 'Vue', description: 'Progressive' },
+            ],
+            multiSelect: false,
+          },
+        ],
+      });
+    });
+
+    it('EDGE: {clarification-request with non-matching chatProcessId} => ignores message', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'clarification-request',
+              payload: {
+                chatProcessId: 'different-proc',
+                questions: [
+                  {
+                    question: 'Which framework?',
+                    header: 'Framework',
+                    options: [
+                      { label: 'React', description: 'Component-based' },
+                    ],
+                    multiSelect: false,
+                  },
+                ],
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.pendingClarification).toBeNull();
+    });
+
+    it('EDGE: {clarification-request with invalid questions payload} => does not set pendingClarification', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'clarification-request',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                questions: 'not-an-array',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.pendingClarification).toBeNull();
+    });
+
+    it('VALID: {sendMessage after clarification-request} => clears pendingClarification', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'clarification-request',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                questions: [
+                  {
+                    question: 'Which framework?',
+                    header: 'Framework',
+                    options: [
+                      { label: 'React', description: 'Component-based' },
+                    ],
+                    multiSelect: false,
+                  },
+                ],
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.pendingClarification).toStrictEqual({
+        questions: [
+          {
+            question: 'Which framework?',
+            header: 'Framework',
+            options: [
+              { label: 'React', description: 'Component-based' },
+            ],
+            multiSelect: false,
+          },
+        ],
+      });
+
+      const secondMessage = UserInputStub({ value: 'React please' });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message: secondMessage });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.pendingClarification).toBeNull();
+    });
+  });
+
   describe('WebSocket chat-complete handling', () => {
     it('VALID: {chat-complete with matching chatProcessId} => sets isStreaming to false', async () => {
       const proxy = useSessionChatBindingProxy();

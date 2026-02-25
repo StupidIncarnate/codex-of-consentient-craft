@@ -47,5 +47,37 @@ describe('clarificationQuestionContract', () => {
         }),
       ).toThrow(/too_small/u);
     });
+
+    it('INVALID_LABEL: {option with label: ""} => throws validation error', () => {
+      expect(() =>
+        clarificationQuestionContract.parse({
+          question: 'Valid question',
+          header: 'Header',
+          options: [{ label: '', description: 'Valid' }],
+          multiSelect: false,
+        }),
+      ).toThrow(/too_small/u);
+    });
+
+    it('INVALID_MISSING_FIELDS: {missing question field} => throws validation error', () => {
+      expect(() =>
+        clarificationQuestionContract.parse({
+          header: 'H',
+          options: [],
+          multiSelect: false,
+        }),
+      ).toThrow(/invalid_type/u);
+    });
+
+    it('INVALID_TYPE: {multiSelect as string} => throws validation error', () => {
+      expect(() =>
+        clarificationQuestionContract.parse({
+          question: 'Q',
+          header: 'H',
+          options: [],
+          multiSelect: 'yes',
+        }),
+      ).toThrow(/invalid_type/u);
+    });
   });
 });

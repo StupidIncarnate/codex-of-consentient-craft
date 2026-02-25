@@ -647,6 +647,65 @@ describe('StartMcpServer', () => {
     });
   });
 
+  describe('tools/call with ask-user-question', () => {
+    it('VALID: {questions array with single question} => returns instruction text', async () => {
+      const client = await createMcpClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 9001 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'ask-user-question',
+          arguments: {
+            questions: [
+              {
+                question: 'Which DB?',
+                header: 'Database',
+                options: [
+                  { label: 'Postgres', description: 'Relational' },
+                  { label: 'Mongo', description: 'Document' },
+                ],
+                multiSelect: false,
+              },
+            ],
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeUndefined();
+
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(result.content[0]?.type).toBe('text');
+      expect(result.content[0]?.text).toMatch(/Questions sent to user/u);
+    });
+
+    it('ERROR: {empty questions array} => returns error', async () => {
+      const client = await createMcpClient();
+
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 9002 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'ask-user-question',
+          arguments: {
+            questions: [],
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      await client.close();
+
+      expect(response.error).toBeDefined();
+    });
+  });
+
   describe('tools/call with ward-list', () => {
     it('VALID: {no runId} => returns ward list result text', async () => {
       const client = await createMcpClient();
