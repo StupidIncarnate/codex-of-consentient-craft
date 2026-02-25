@@ -16,6 +16,14 @@ describe('wardListInputContract', () => {
     });
   });
 
+  it('VALID: {packagePath} => parses successfully with packagePath', () => {
+    const result = WardListInputStub({ packagePath: 'packages/mcp' });
+
+    expect(result).toStrictEqual({
+      packagePath: 'packages/mcp',
+    });
+  });
+
   describe('invalid inputs', () => {
     it('INVALID_RUN_ID: {runId: "bad-format"} => throws validation error', () => {
       expect(() => {

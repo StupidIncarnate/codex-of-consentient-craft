@@ -23,6 +23,20 @@ describe('wardRawInputContract', () => {
     });
   });
 
+  it('VALID: {runId, checkType, packagePath} => parses successfully with packagePath', () => {
+    const result = WardRawInputStub({
+      runId: '1739625600000-a3f1',
+      checkType: 'lint',
+      packagePath: 'packages/mcp',
+    });
+
+    expect(result).toStrictEqual({
+      runId: '1739625600000-a3f1',
+      checkType: 'lint',
+      packagePath: 'packages/mcp',
+    });
+  });
+
   it('VALID: default stub values => parses successfully', () => {
     const result = WardRawInputStub();
 

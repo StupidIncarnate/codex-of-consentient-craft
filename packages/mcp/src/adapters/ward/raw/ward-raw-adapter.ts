@@ -19,15 +19,21 @@ import {
 export const wardRawAdapter = async ({
   runId,
   checkType,
+  packagePath,
 }: {
-  runId: RunId;
+  runId?: RunId;
   checkType: CheckType;
+  packagePath?: string;
 }): Promise<ContentText> => {
-  const rootPath = absoluteFilePathContract.parse(process.cwd());
-  const wardResult = await WardStorage.storageLoadBroker({ rootPath, runId });
+  const rootPath = packagePath
+    ? absoluteFilePathContract.parse(`${process.cwd()}/${packagePath}`)
+    : absoluteFilePathContract.parse(process.cwd());
+  const loadArgs = runId ? { rootPath, runId } : { rootPath };
+  const wardResult = await WardStorage.storageLoadBroker(loadArgs);
 
   if (!wardResult) {
-    return contentTextContract.parse(`No ward result found for run ${runId}`);
+    const message = runId ? `No ward result found for run ${runId}` : 'No ward results found';
+    return contentTextContract.parse(message);
   }
 
   const matchingCheck = wardResult.checks.find((check) => check.checkType === checkType);

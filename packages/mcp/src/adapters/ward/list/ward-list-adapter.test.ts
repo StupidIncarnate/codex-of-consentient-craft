@@ -39,6 +39,23 @@ describe('wardListAdapter', () => {
       expect(result).toBe(String(expectedList));
     });
 
+    it('VALID: {packagePath provided, result exists} => returns formatted list', async () => {
+      const proxy = wardListAdapterProxy();
+      const wardResult = WardResultStub();
+      const expectedList = WardErrorListStub({
+        value: 'src/app.ts\n  lint  error',
+      });
+
+      proxy.setupStorageReturns({ wardResult });
+      proxy.setupListReturns({ list: expectedList });
+
+      const result = await wardListAdapter({
+        packagePath: 'packages/mcp',
+      });
+
+      expect(result).toBe(String(expectedList));
+    });
+
     it('VALID: {result exists, no errors} => returns no errors message', async () => {
       const proxy = wardListAdapterProxy();
       const wardResult = WardResultStub();
