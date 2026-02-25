@@ -181,11 +181,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
         item: {
           type: 'tool_result',
           tool_use_id: 'toolu_789',
-          content: [
-            { type: 'text', text: 'Valid text' },
-            { type: 'image', data: 'base64...' },
-            42,
-          ],
+          content: [{ type: 'text', text: 'Valid text' }, { type: 'image', data: 'base64...' }, 42],
         },
         usage: undefined,
       });
