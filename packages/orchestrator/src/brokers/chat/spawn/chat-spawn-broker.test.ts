@@ -11,14 +11,18 @@ describe('chatSpawnBroker', () => {
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      const onLine = jest.fn();
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
       const onComplete = jest.fn();
       const registerProcess = jest.fn();
 
       const result = await chatSpawnBroker({
         guildId,
         message: 'Help me build auth',
-        onLine,
+        onEntry,
+        onPatch,
+        onAgentDetected,
         onComplete,
         registerProcess,
       });
@@ -32,14 +36,18 @@ describe('chatSpawnBroker', () => {
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      const onLine = jest.fn();
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
       const onComplete = jest.fn();
       const registerProcess = jest.fn();
 
       await chatSpawnBroker({
         guildId,
         message: 'Help me build auth',
-        onLine,
+        onEntry,
+        onPatch,
+        onAgentDetected,
         onComplete,
         registerProcess,
       });
@@ -58,7 +66,9 @@ describe('chatSpawnBroker', () => {
 
       proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      const onLine = jest.fn();
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
       const onComplete = jest.fn();
       const registerProcess = jest.fn();
 
@@ -66,7 +76,9 @@ describe('chatSpawnBroker', () => {
         guildId,
         message: 'Continue working',
         sessionId,
-        onLine,
+        onEntry,
+        onPatch,
+        onAgentDetected,
         onComplete,
         registerProcess,
       });
@@ -81,7 +93,9 @@ describe('chatSpawnBroker', () => {
 
       proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      const onLine = jest.fn();
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
       const onComplete = jest.fn();
       const registerProcess = jest.fn();
 
@@ -89,7 +103,9 @@ describe('chatSpawnBroker', () => {
         guildId,
         message: 'Continue working',
         sessionId,
-        onLine,
+        onEntry,
+        onPatch,
+        onAgentDetected,
         onComplete,
         registerProcess,
       });
@@ -100,56 +116,93 @@ describe('chatSpawnBroker', () => {
   });
 
   describe('line emission', () => {
-    it('VALID: {line emitted during new session} => calls onLine callback', async () => {
+    it('VALID: {assistant line emitted during new session} => calls onEntry callback', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      const onLine = jest.fn();
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
       const onComplete = jest.fn();
       const registerProcess = jest.fn();
 
       await chatSpawnBroker({
         guildId,
         message: 'Help me',
-        onLine,
+        onEntry,
+        onPatch,
+        onAgentDetected,
         onComplete,
         registerProcess,
       });
 
-      proxy.emitLines({ lines: ['{"type":"init"}'] });
+      proxy.emitLines({
+        lines: ['{"type":"assistant","message":{"content":[{"type":"text","text":"hello"}]}}'],
+      });
 
-      expect(onLine).toHaveBeenCalledTimes(1);
-      expect(onLine.mock.calls[0][0].line).toBe('{"type":"init"}');
-      expect(onLine.mock.calls[0][0].chatProcessId).toMatch(/^chat-/u);
+      expect(onEntry).toHaveBeenCalledTimes(1);
+      expect(onEntry.mock.calls[0][0].entry).toStrictEqual({
+        type: 'assistant',
+        message: { content: [{ type: 'text', text: 'hello' }] },
+        source: 'session',
+      });
+      expect(onEntry.mock.calls[0][0].chatProcessId).toMatch(/^chat-/u);
     });
 
-    it('VALID: {line emitted} => calls onLine with chatProcessId and line', async () => {
+    it('VALID: {non-parseable line emitted} => does not call onEntry', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      const onLine = jest.fn();
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
       const onComplete = jest.fn();
       const registerProcess = jest.fn();
 
-      const { chatProcessId } = await chatSpawnBroker({
+      await chatSpawnBroker({
         guildId,
         message: 'Help me build auth',
-        onLine,
+        onEntry,
+        onPatch,
+        onAgentDetected,
         onComplete,
         registerProcess,
       });
 
-      proxy.emitLines({ lines: ['{"type":"assistant","message":"hello"}'] });
+      proxy.emitLines({ lines: ['not-json'] });
 
-      expect(onLine).toHaveBeenCalledTimes(1);
-      expect(onLine.mock.calls[0][0]).toStrictEqual({
-        chatProcessId,
-        line: '{"type":"assistant","message":"hello"}',
+      expect(onEntry).toHaveBeenCalledTimes(0);
+    });
+
+    it('VALID: {system/init line emitted} => does not call onEntry', async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+
+      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
+      const onComplete = jest.fn();
+      const registerProcess = jest.fn();
+
+      await chatSpawnBroker({
+        guildId,
+        message: 'Help me build auth',
+        onEntry,
+        onPatch,
+        onAgentDetected,
+        onComplete,
+        registerProcess,
       });
+
+      proxy.emitLines({ lines: ['{"type":"init","session_id":"abc-123"}'] });
+
+      expect(onEntry).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -160,14 +213,18 @@ describe('chatSpawnBroker', () => {
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      const onLine = jest.fn();
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
       const onComplete = jest.fn();
       const registerProcess = jest.fn();
 
       const { chatProcessId } = await chatSpawnBroker({
         guildId,
         message: 'Help me build auth',
-        onLine,
+        onEntry,
+        onPatch,
+        onAgentDetected,
         onComplete,
         registerProcess,
       });
@@ -191,7 +248,9 @@ describe('chatSpawnBroker', () => {
 
       proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      const onLine = jest.fn();
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
       const onComplete = jest.fn();
       const registerProcess = jest.fn();
 
@@ -199,7 +258,9 @@ describe('chatSpawnBroker', () => {
         guildId,
         message: 'Continue working',
         sessionId,
-        onLine,
+        onEntry,
+        onPatch,
+        onAgentDetected,
         onComplete,
         registerProcess,
       });
@@ -224,7 +285,9 @@ describe('chatSpawnBroker', () => {
 
       proxy.setupQuestCreationFailure();
 
-      const onLine = jest.fn();
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
       const onComplete = jest.fn();
       const registerProcess = jest.fn();
 
@@ -232,7 +295,9 @@ describe('chatSpawnBroker', () => {
         chatSpawnBroker({
           guildId,
           message: 'Help me build auth',
-          onLine,
+          onEntry,
+          onPatch,
+          onAgentDetected,
           onComplete,
           registerProcess,
         }),

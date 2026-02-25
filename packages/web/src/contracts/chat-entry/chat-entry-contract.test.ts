@@ -86,6 +86,29 @@ describe('chatEntryContract', () => {
         toolInput: '{"path":"/test"}',
       });
     });
+
+    it('VALID: {role: "assistant", type: "tool_use", toolUseId} => parses with toolUseId', () => {
+      const entry = AssistantToolUseChatEntryStub({ toolUseId: 'toolu_abc123' } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolUseId: 'toolu_abc123',
+        toolName: 'read_file',
+        toolInput: '{"path":"/test"}',
+      });
+    });
+
+    it('VALID: {role: "assistant", type: "tool_use", no toolUseId} => toolUseId is optional', () => {
+      const entry = AssistantToolUseChatEntryStub();
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result.role).toBe('assistant');
+      expect(result).not.toHaveProperty('toolUseId');
+    });
   });
 
   describe('assistant tool_result entries', () => {

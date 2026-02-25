@@ -43,6 +43,7 @@ const assistantTextEntryContract = z.object({
 const assistantToolUseEntryContract = z.object({
   role: z.literal('assistant'),
   type: z.literal('tool_use'),
+  toolUseId: z.string().min(1).brand<'ToolUseId'>().optional(),
   toolName: z.string().min(1).brand<'ToolName'>(),
   toolInput: z.string().brand<'ToolInput'>(),
   model: modelContract,

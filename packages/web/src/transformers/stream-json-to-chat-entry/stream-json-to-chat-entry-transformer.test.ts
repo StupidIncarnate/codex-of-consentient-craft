@@ -270,6 +270,82 @@ describe('streamJsonToChatEntryTransformer', () => {
       });
     });
 
+    it('VALID: {type: "assistant", enriched content items with source and agentId} => passes through item-level source and agentId', () => {
+      const line = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [{ type: 'text', text: 'hello', source: 'subagent', agentId: 'agent-42' }],
+        },
+      });
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'hello',
+            source: 'subagent',
+            agentId: 'agent-42',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {type: "assistant", item-level source overrides top-level source} => item source wins', () => {
+      const line = JSON.stringify({
+        type: 'assistant',
+        source: 'session',
+        agentId: 'top-agent',
+        message: {
+          content: [{ type: 'text', text: 'hello', source: 'subagent', agentId: 'item-agent' }],
+        },
+      });
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'hello',
+            source: 'subagent',
+            agentId: 'item-agent',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {type: "assistant", no item-level source} => falls back to top-level source', () => {
+      const line = JSON.stringify({
+        type: 'assistant',
+        source: 'subagent',
+        agentId: 'top-agent',
+        message: {
+          content: [{ type: 'text', text: 'hello' }],
+        },
+      });
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'hello',
+            source: 'subagent',
+            agentId: 'top-agent',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
     it('EDGE: {type: "assistant", unrecognized content item} => skips unknown items', () => {
       const line = JSON.stringify({
         type: 'assistant',

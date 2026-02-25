@@ -328,14 +328,14 @@ export const StartOrchestrator = {
       guildId,
       message,
       ...(sessionId && { sessionId }),
-      onLine: ({ chatProcessId, line }) => {
+      onEntry: ({ chatProcessId, entry }) => {
         orchestrationEventsState.emit({
           type: 'chat-output',
           processId: chatProcessId,
-          payload: { chatProcessId, line },
+          payload: { chatProcessId, line: JSON.stringify(entry) },
         });
 
-        const lineParseResult = streamJsonLineContract.safeParse(line);
+        const lineParseResult = streamJsonLineContract.safeParse(JSON.stringify(entry));
         if (lineParseResult.success) {
           const clarification = streamJsonToClarificationTransformer({
             line: lineParseResult.data,
@@ -348,6 +348,16 @@ export const StartOrchestrator = {
             });
           }
         }
+      },
+      onPatch: ({ chatProcessId, toolUseId, agentId }) => {
+        orchestrationEventsState.emit({
+          type: 'chat-patch',
+          processId: chatProcessId,
+          payload: { chatProcessId, toolUseId, agentId },
+        });
+      },
+      onAgentDetected: () => {
+        // Phase 3 will wire subagent tailing here
       },
       onComplete: ({ chatProcessId, exitCode, sessionId: sid }) => {
         chatProcessState.remove({ processId: chatProcessId });

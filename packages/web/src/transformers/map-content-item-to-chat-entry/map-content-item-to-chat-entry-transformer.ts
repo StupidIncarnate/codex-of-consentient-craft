@@ -40,11 +40,13 @@ export const mapContentItemToChatEntryTransformer = ({
 
   if (itemType === 'tool_use') {
     const name = typeof item.name === 'string' ? item.name : '';
+    const id = typeof item.id === 'string' ? item.id : undefined;
     const normalizedInput = normalizeAskUserQuestionInputTransformer({ name, input: item.input });
 
     return chatEntryContract.parse({
       role: 'assistant',
       type: 'tool_use',
+      ...(id ? { toolUseId: id } : {}),
       toolName: name,
       toolInput: JSON.stringify(normalizedInput),
       ...(model ? { model } : {}),

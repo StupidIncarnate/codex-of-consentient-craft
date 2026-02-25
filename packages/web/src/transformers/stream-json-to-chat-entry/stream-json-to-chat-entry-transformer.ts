@@ -60,12 +60,19 @@ export const streamJsonToChatEntryTransformer = ({ line }: { line: string }): St
 
     for (const item of contentArray) {
       if (typeof item === 'object' && item !== null) {
+        const itemSource: unknown = 'source' in item ? Reflect.get(item, 'source') : undefined;
+        const itemAgentId: unknown = 'agentId' in item ? Reflect.get(item, 'agentId') : undefined;
+        const resolvedSource =
+          itemSource === 'session' || itemSource === 'subagent' ? itemSource : validSource;
+        const resolvedAgentId =
+          typeof itemAgentId === 'string' && itemAgentId.length > 0 ? itemAgentId : validAgentId;
+
         const entry = mapContentItemToChatEntryTransformer({
           item: item as never,
           usage,
           ...(validModel ? { model: validModel } : {}),
-          ...(validSource ? { source: validSource } : {}),
-          ...(validAgentId ? { agentId: validAgentId } : {}),
+          ...(resolvedSource ? { source: resolvedSource } : {}),
+          ...(resolvedAgentId ? { agentId: resolvedAgentId } : {}),
         });
 
         if (entry) {

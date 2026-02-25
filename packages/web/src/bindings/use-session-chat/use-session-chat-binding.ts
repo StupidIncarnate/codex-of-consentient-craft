@@ -110,6 +110,25 @@ export const useSessionChatBinding = ({
 
       chatProcessIdRef.current = null;
     }
+
+    if (parsed.data.type === 'chat-patch') {
+      const { payload } = parsed.data;
+      const rawToolUseId: unknown = Reflect.get(payload, 'toolUseId');
+      const rawAgentId: unknown = Reflect.get(payload, 'agentId');
+
+      if (typeof rawToolUseId !== 'string' || rawToolUseId.length === 0) return;
+      if (typeof rawAgentId !== 'string' || rawAgentId.length === 0) return;
+
+      setEntries((prev) =>
+        prev.map((entry) => {
+          if ('toolUseId' in entry && entry.toolUseId === rawToolUseId) {
+            return chatEntryContract.parse({ ...entry, agentId: rawAgentId });
+          }
+
+          return entry;
+        }),
+      );
+    }
   }, []);
 
   const wsOpenRef = useRef(false);

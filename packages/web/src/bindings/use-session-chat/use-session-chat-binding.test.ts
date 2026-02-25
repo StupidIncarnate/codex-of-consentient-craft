@@ -667,6 +667,198 @@ describe('useSessionChatBinding', () => {
     });
   });
 
+  describe('WebSocket chat-patch handling', () => {
+    it('VALID: {chat-patch with matching toolUseId} => updates agentId on matching entry', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tool-abc-123","name":"Read","input":{"file_path":"/tmp/test.ts"}}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-patch',
+              payload: {
+                toolUseId: 'tool-abc-123',
+                agentId: 'codeweaver-agent',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Hello' },
+        {
+          role: 'assistant',
+          type: 'tool_use',
+          toolUseId: 'tool-abc-123',
+          toolName: 'Read',
+          toolInput: '{"file_path":"/tmp/test.ts"}',
+          agentId: 'codeweaver-agent',
+        },
+      ]);
+    });
+
+    it('EDGE: {chat-patch with non-matching toolUseId} => does not modify entries', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tool-abc-123","name":"Read","input":{"file_path":"/tmp/test.ts"}}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-patch',
+              payload: {
+                toolUseId: 'non-existent-tool-id',
+                agentId: 'codeweaver-agent',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Hello' },
+        {
+          role: 'assistant',
+          type: 'tool_use',
+          toolUseId: 'tool-abc-123',
+          toolName: 'Read',
+          toolInput: '{"file_path":"/tmp/test.ts"}',
+        },
+      ]);
+    });
+
+    it('EDGE: {chat-patch with empty agentId} => ignores patch', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tool-abc-123","name":"Read","input":{"file_path":"/tmp/test.ts"}}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-patch',
+              payload: {
+                toolUseId: 'tool-abc-123',
+                agentId: '',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Hello' },
+        {
+          role: 'assistant',
+          type: 'tool_use',
+          toolUseId: 'tool-abc-123',
+          toolName: 'Read',
+          toolInput: '{"file_path":"/tmp/test.ts"}',
+        },
+      ]);
+    });
+  });
+
   describe('error handling', () => {
     it('ERROR: {broker fails} => sets isStreaming false and appends error entry', async () => {
       const proxy = useSessionChatBindingProxy();

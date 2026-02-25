@@ -82,6 +82,30 @@ describe('mapContentItemToChatEntryTransformer', () => {
       });
     });
 
+    it('VALID: {type: "tool_use", id, name, input} => returns tool use entry with toolUseId', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'tool_use', id: 'toolu_abc123', name: 'read_file', input: { path: '/test' } },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolUseId: 'toolu_abc123',
+        toolName: 'read_file',
+        toolInput: '{"path":"/test"}',
+      });
+    });
+
+    it('EDGE: {type: "tool_use", no id} => no toolUseId in result', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'tool_use', name: 'read_file', input: { path: '/test' } },
+        usage: undefined,
+      });
+
+      expect(result).not.toHaveProperty('toolUseId');
+    });
+
     it('VALID: {type: "tool_use", AskUserQuestion with string questions} => normalizes questions to array', () => {
       const stubData = AskUserQuestionStub();
 
