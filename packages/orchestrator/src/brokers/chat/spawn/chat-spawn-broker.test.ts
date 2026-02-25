@@ -1,5 +1,6 @@
 import { GuildIdStub, SessionIdStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
+import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { chatSpawnBroker } from './chat-spawn-broker';
 import { chatSpawnBrokerProxy } from './chat-spawn-broker.proxy';
 
@@ -20,6 +21,7 @@ describe('chatSpawnBroker', () => {
       const result = await chatSpawnBroker({
         guildId,
         message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
         onEntry,
         onPatch,
         onAgentDetected,
@@ -45,6 +47,7 @@ describe('chatSpawnBroker', () => {
       await chatSpawnBroker({
         guildId,
         message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
         onEntry,
         onPatch,
         onAgentDetected,
@@ -76,6 +79,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         message: 'Continue working',
         sessionId,
+        processor: chatLineProcessTransformer(),
         onEntry,
         onPatch,
         onAgentDetected,
@@ -103,6 +107,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         message: 'Continue working',
         sessionId,
+        processor: chatLineProcessTransformer(),
         onEntry,
         onPatch,
         onAgentDetected,
@@ -131,6 +136,7 @@ describe('chatSpawnBroker', () => {
       await chatSpawnBroker({
         guildId,
         message: 'Help me',
+        processor: chatLineProcessTransformer(),
         onEntry,
         onPatch,
         onAgentDetected,
@@ -166,6 +172,7 @@ describe('chatSpawnBroker', () => {
       await chatSpawnBroker({
         guildId,
         message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
         onEntry,
         onPatch,
         onAgentDetected,
@@ -193,6 +200,7 @@ describe('chatSpawnBroker', () => {
       await chatSpawnBroker({
         guildId,
         message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
         onEntry,
         onPatch,
         onAgentDetected,
@@ -222,6 +230,7 @@ describe('chatSpawnBroker', () => {
       const { chatProcessId } = await chatSpawnBroker({
         guildId,
         message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
         onEntry,
         onPatch,
         onAgentDetected,
@@ -258,6 +267,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         message: 'Continue working',
         sessionId,
+        processor: chatLineProcessTransformer(),
         onEntry,
         onPatch,
         onAgentDetected,
@@ -295,6 +305,7 @@ describe('chatSpawnBroker', () => {
         chatSpawnBroker({
           guildId,
           message: 'Help me build auth',
+          processor: chatLineProcessTransformer(),
           onEntry,
           onPatch,
           onAgentDetected,

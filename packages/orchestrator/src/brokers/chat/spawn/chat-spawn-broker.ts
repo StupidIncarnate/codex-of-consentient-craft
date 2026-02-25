@@ -23,12 +23,12 @@ import { readlineCreateInterfaceAdapter } from '../../../adapters/readline/creat
 import { addQuestInputContract } from '../../../contracts/add-quest-input/add-quest-input-contract';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
+import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import type { ToolUseId } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { chaoswhispererPromptStatics } from '../../../statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
-import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
 import { taskToolUseIdsFromContentTransformer } from '../../../transformers/task-tool-use-ids-from-content/task-tool-use-ids-from-content-transformer';
 import { questSessionWriteLayerBroker } from './quest-session-write-layer-broker';
@@ -39,6 +39,7 @@ export const chatSpawnBroker = async ({
   guildId,
   message,
   sessionId,
+  processor,
   onEntry,
   onPatch,
   onAgentDetected,
@@ -48,12 +49,14 @@ export const chatSpawnBroker = async ({
   guildId: GuildId;
   message: string;
   sessionId?: SessionId;
+  processor: ChatLineProcessor;
   onEntry: (params: { chatProcessId: ProcessId; entry: ChatLineEntry['entry'] }) => void;
   onPatch: (params: { chatProcessId: ProcessId; toolUseId: ToolUseId; agentId: AgentId }) => void;
   onAgentDetected: (params: {
     chatProcessId: ProcessId;
     toolUseId: ToolUseId;
     agentId: AgentId;
+    sessionId: SessionId;
   }) => void;
   onComplete: (params: {
     chatProcessId: ProcessId;
@@ -64,7 +67,6 @@ export const chatSpawnBroker = async ({
 }): Promise<{ chatProcessId: ProcessId }> => {
   const chatProcessId = processIdContract.parse(`chat-${crypto.randomUUID()}`);
   const guild = await guildGetBroker({ guildId });
-  const processor = chatLineProcessTransformer();
   const sessionSource = chatLineSourceContract.parse('session');
 
   if (sessionId) {
@@ -94,7 +96,12 @@ export const chatSpawnBroker = async ({
 
             if (taskToolUseIds.length > 0 && typeof entryAgentId === 'string') {
               for (const toolUseId of taskToolUseIds) {
-                onAgentDetected({ chatProcessId, toolUseId, agentId: entryAgentId as AgentId });
+                onAgentDetected({
+                  chatProcessId,
+                  toolUseId,
+                  agentId: entryAgentId as AgentId,
+                  sessionId,
+                });
               }
             }
           }
@@ -155,9 +162,14 @@ export const chatSpawnBroker = async ({
           const taskToolUseIds = taskToolUseIdsFromContentTransformer({ entry: output.entry });
           const entryAgentId: unknown = Reflect.get(output.entry, 'agentId');
 
-          if (taskToolUseIds.length > 0 && typeof entryAgentId === 'string') {
+          if (taskToolUseIds.length > 0 && typeof entryAgentId === 'string' && extractedSessionId) {
             for (const toolUseId of taskToolUseIds) {
-              onAgentDetected({ chatProcessId, toolUseId, agentId: entryAgentId as AgentId });
+              onAgentDetected({
+                chatProcessId,
+                toolUseId,
+                agentId: entryAgentId as AgentId,
+                sessionId: extractedSessionId,
+              });
             }
           }
         }

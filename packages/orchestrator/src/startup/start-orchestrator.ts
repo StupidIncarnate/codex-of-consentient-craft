@@ -34,6 +34,7 @@ import { childProcessSpawnStreamJsonAdapter } from '../adapters/child-process/sp
 import { readlineCreateInterfaceAdapter } from '../adapters/readline/create-interface/readline-create-interface-adapter';
 import { chatHistoryReplayBroker } from '../brokers/chat/history-replay/chat-history-replay-broker';
 import { chatSpawnBroker } from '../brokers/chat/spawn/chat-spawn-broker';
+import { chatSubagentTailBroker } from '../brokers/chat/subagent-tail/chat-subagent-tail-broker';
 import { directoryBrowseBroker } from '../brokers/directory/browse/directory-browse-broker';
 import { pathseekerPipelineBroker } from '../brokers/pathseeker/pipeline/pathseeker-pipeline-broker';
 import { guildAddBroker } from '../brokers/guild/add/guild-add-broker';
@@ -70,6 +71,7 @@ import { orchestrationEventsState } from '../state/orchestration-events/orchestr
 import { orchestrationProcessesState } from '../state/orchestration-processes/orchestration-processes-state';
 import { pathseekerPromptStatics } from '../statics/pathseeker-prompt/pathseeker-prompt-statics';
 import { streamJsonLineContract } from '../contracts/stream-json-line/stream-json-line-contract';
+import { chatLineProcessTransformer } from '../transformers/chat-line-process/chat-line-process-transformer';
 import { questToListItemTransformer } from '../transformers/quest-to-list-item/quest-to-list-item-transformer';
 import { streamJsonToClarificationTransformer } from '../transformers/stream-json-to-clarification/stream-json-to-clarification-transformer';
 
@@ -323,10 +325,14 @@ export const StartOrchestrator = {
     guildId: GuildId;
     message: string;
     sessionId?: SessionId;
-  }): Promise<{ chatProcessId: ProcessId }> =>
-    chatSpawnBroker({
+  }): Promise<{ chatProcessId: ProcessId }> => {
+    const processor = chatLineProcessTransformer();
+    const subagentStopHandles: Array<() => void> = [];
+
+    return chatSpawnBroker({
       guildId,
       message,
+      processor,
       ...(sessionId && { sessionId }),
       onEntry: ({ chatProcessId, entry }) => {
         orchestrationEventsState.emit({
@@ -356,10 +362,42 @@ export const StartOrchestrator = {
           payload: { chatProcessId, toolUseId, agentId },
         });
       },
-      onAgentDetected: () => {
-        // Phase 3 will wire subagent tailing here
+      onAgentDetected: ({ chatProcessId, agentId, sessionId: sid }) => {
+        chatSubagentTailBroker({
+          sessionId: sid,
+          guildId,
+          agentId,
+          processor,
+          chatProcessId,
+          onEntry: ({ chatProcessId: cpid, entry }) => {
+            orchestrationEventsState.emit({
+              type: 'chat-output',
+              processId: cpid,
+              payload: { chatProcessId: cpid, line: JSON.stringify(entry) },
+            });
+          },
+          onPatch: ({ chatProcessId: cpid, toolUseId: tuId, agentId: aId }) => {
+            orchestrationEventsState.emit({
+              type: 'chat-patch',
+              processId: cpid,
+              payload: { chatProcessId: cpid, toolUseId: tuId, agentId: aId },
+            });
+          },
+        })
+          .then((stop) => {
+            subagentStopHandles.push(stop);
+          })
+          .catch((error: unknown) => {
+            process.stderr.write(
+              `chatSubagentTailBroker failed: ${error instanceof Error ? error.message : String(error)}\n`,
+            );
+          });
       },
       onComplete: ({ chatProcessId, exitCode, sessionId: sid }) => {
+        for (const stop of subagentStopHandles) {
+          stop();
+        }
+
         chatProcessState.remove({ processId: chatProcessId });
         orchestrationEventsState.emit({
           type: 'chat-complete',
@@ -370,7 +408,8 @@ export const StartOrchestrator = {
       registerProcess: ({ processId, kill }) => {
         chatProcessState.register({ processId, kill });
       },
-    }),
+    });
+  },
 
   stopChat: ({ chatProcessId }: { chatProcessId: ProcessId }): boolean =>
     chatProcessState.kill({ processId: chatProcessId }),
