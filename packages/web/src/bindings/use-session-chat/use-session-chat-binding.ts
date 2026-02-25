@@ -14,6 +14,8 @@ import { websocketConnectAdapter } from '../../adapters/websocket/connect/websoc
 import { sessionChatBroker } from '../../brokers/session/chat/session-chat-broker';
 import { sessionChatHistoryBroker } from '../../brokers/session/chat-history/session-chat-history-broker';
 import { sessionChatStopBroker } from '../../brokers/session/chat-stop/session-chat-stop-broker';
+import type { AskUserQuestionItem } from '../../contracts/ask-user-question/ask-user-question-contract';
+import { askUserQuestionContract } from '../../contracts/ask-user-question/ask-user-question-contract';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
 import { jsonlToChatEntriesTransformer } from '../../transformers/jsonl-to-chat-entries/jsonl-to-chat-entries-transformer';
@@ -29,6 +31,7 @@ export const useSessionChatBinding = ({
   entries: ChatEntry[];
   isStreaming: boolean;
   currentSessionId: SessionId | null;
+  pendingClarification: { questions: AskUserQuestionItem[] } | null;
   sendMessage: (params: { message: UserInput }) => void;
   stopChat: () => void;
 } => {
@@ -37,6 +40,9 @@ export const useSessionChatBinding = ({
   const [currentSessionId, setCurrentSessionId] = useState<SessionId | null>(
     initialSessionId ?? null,
   );
+  const [pendingClarification, setPendingClarification] = useState<{
+    questions: AskUserQuestionItem[];
+  } | null>(null);
   const sessionIdRef = useRef<SessionId | null>(initialSessionId ?? null);
   const chatProcessIdRef = useRef<ProcessId | null>(null);
   const wsRef = useRef<{ close: () => void } | null>(null);
@@ -64,6 +70,20 @@ export const useSessionChatBinding = ({
 
       if (result.entries.length > 0) {
         setEntries((prev) => [...prev, ...result.entries]);
+      }
+    }
+
+    if (parsed.data.type === 'clarification-request') {
+      const { payload } = parsed.data;
+      const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');
+
+      if (rawChatProcessId !== chatProcessIdRef.current) return;
+
+      const rawQuestions: unknown = Reflect.get(payload, 'questions');
+      const result = askUserQuestionContract.safeParse({ questions: rawQuestions });
+
+      if (result.success) {
+        setPendingClarification({ questions: result.data.questions });
       }
     }
 
@@ -125,6 +145,7 @@ export const useSessionChatBinding = ({
       const userEntry = chatEntryContract.parse({ role: 'user', content: message });
       setEntries((prev) => [...prev, userEntry]);
       setIsStreaming(true);
+      setPendingClarification(null);
 
       const activeSessionId = sessionIdRef.current;
 
@@ -162,5 +183,5 @@ export const useSessionChatBinding = ({
     );
   }, []);
 
-  return { entries, isStreaming, currentSessionId, sendMessage, stopChat };
+  return { entries, isStreaming, currentSessionId, pendingClarification, sendMessage, stopChat };
 };

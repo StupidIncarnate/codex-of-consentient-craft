@@ -28,6 +28,7 @@ export const mcpToolsStatics = {
       'list-quests',
       'list-guilds',
       'verify-quest',
+      'ask-user-question',
     ] as const,
   },
 } as const;

@@ -35,7 +35,9 @@ import { architectureTestingPatternsBroker } from '../brokers/architecture/testi
 import { mcpDiscoverBroker } from '../brokers/mcp/discover/mcp-discover-broker';
 import { folderConstraintsInitBroker } from '../brokers/folder-constraints/init/folder-constraints-init-broker';
 import { folderConstraintsState } from '../state/folder-constraints/folder-constraints-state';
+import { askUserQuestionBroker } from '../brokers/ask/user-question/ask-user-question-broker';
 import { signalBackBroker } from '../brokers/signal/back/signal-back-broker';
+import { askUserQuestionInputContract } from '../contracts/ask-user-question-input/ask-user-question-input-contract';
 import { discoverInputContract } from '../contracts/discover-input/discover-input-contract';
 import { folderDetailInputContract } from '../contracts/folder-detail-input/folder-detail-input-contract';
 import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract';
@@ -77,6 +79,10 @@ export const StartMcpServer = async (): Promise<void> => {
 
   // Pre-compute JSON schemas to avoid deep type instantiation issues with zod 3.25
   const jsonSchemaOptions = { $refStrategy: 'none' as const };
+  const askUserQuestionSchema = zodToJsonSchema(
+    askUserQuestionInputContract as never,
+    jsonSchemaOptions,
+  );
   const discoverSchema = zodToJsonSchema(discoverInputContract as never, jsonSchemaOptions);
   const emptySchema = zodToJsonSchema(emptyInputSchema as never, jsonSchemaOptions);
   const folderDetailSchema = zodToJsonSchema(folderDetailInputContract as never, jsonSchemaOptions);
@@ -182,6 +188,12 @@ export const StartMcpServer = async (): Promise<void> => {
         description:
           'Show raw tool output from a ward run. Supports per-package path via packagePath.',
         inputSchema: wardRawSchema,
+      },
+      {
+        name: 'ask-user-question',
+        description:
+          "Ask the user clarifying questions with structured options. Fire-and-forget: returns immediately. The user's answers arrive as the next user message in the session.",
+        inputSchema: askUserQuestionSchema,
       },
     ],
   }));
@@ -561,6 +573,14 @@ export const StartMcpServer = async (): Promise<void> => {
           ],
         };
       }
+    }
+
+    if (request.params.name === 'ask-user-question') {
+      const result = askUserQuestionBroker({ input: request.params.arguments });
+
+      return {
+        content: [{ type: 'text', text: result }],
+      };
     }
 
     throw new Error(`Unknown tool: ${request.params.name}`);

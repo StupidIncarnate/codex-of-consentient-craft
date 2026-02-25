@@ -25,6 +25,7 @@ describe('useSessionChatBinding', () => {
         entries: [],
         isStreaming: false,
         currentSessionId: null,
+        pendingClarification: null,
         sendMessage: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -503,6 +504,7 @@ describe('useSessionChatBinding', () => {
         entries: [],
         isStreaming: false,
         currentSessionId: null,
+        pendingClarification: null,
         sendMessage: expect.any(Function),
         stopChat: expect.any(Function),
       });

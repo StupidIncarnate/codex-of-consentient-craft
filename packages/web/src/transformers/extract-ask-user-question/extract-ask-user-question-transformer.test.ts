@@ -27,7 +27,7 @@ describe('extractAskUserQuestionTransformer', () => {
         entries: [
           UserChatEntryStub(),
           AssistantToolUseChatEntryStub({
-            toolName: 'AskUserQuestion' as never,
+            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
             toolInput: VALID_TOOL_INPUT as never,
           }),
         ],
@@ -53,7 +53,7 @@ describe('extractAskUserQuestionTransformer', () => {
         entries: [
           UserChatEntryStub(),
           AssistantToolUseChatEntryStub({
-            toolName: 'AskUserQuestion' as never,
+            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
             toolInput: VALID_TOOL_INPUT as never,
           }),
           AssistantTextChatEntryStub(),
@@ -90,11 +90,11 @@ describe('extractAskUserQuestionTransformer', () => {
       const result = extractAskUserQuestionTransformer({
         entries: [
           AssistantToolUseChatEntryStub({
-            toolName: 'AskUserQuestion' as never,
+            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
             toolInput: VALID_TOOL_INPUT as never,
           }),
           AssistantToolUseChatEntryStub({
-            toolName: 'AskUserQuestion' as never,
+            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
             toolInput: secondInput as never,
           }),
         ],
@@ -122,7 +122,7 @@ describe('extractAskUserQuestionTransformer', () => {
       const result = extractAskUserQuestionTransformer({
         entries: [
           AssistantToolUseChatEntryStub({
-            toolName: 'AskUserQuestion' as never,
+            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
             toolInput: invalidInput as never,
           }),
         ],

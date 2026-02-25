@@ -92,7 +92,8 @@
       "mcp__dungeonmaster__verify-quest",
       "mcp__dungeonmaster__ward-list",
       "mcp__dungeonmaster__ward-detail",
-      "mcp__dungeonmaster__ward-raw"
+      "mcp__dungeonmaster__ward-raw",
+      "mcp__dungeonmaster__ask-user-question"
     ],
     "deny": ["Bash(cat:*)", "Bash(sed:*)"]
   }

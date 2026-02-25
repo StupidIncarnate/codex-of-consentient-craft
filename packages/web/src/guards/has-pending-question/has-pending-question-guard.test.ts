@@ -12,7 +12,9 @@ describe('hasPendingQuestionGuard', () => {
       const result = hasPendingQuestionGuard({
         entries: [
           UserChatEntryStub(),
-          AssistantToolUseChatEntryStub({ toolName: 'AskUserQuestion' as never }),
+          AssistantToolUseChatEntryStub({
+            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
+          }),
         ],
       });
 
@@ -23,7 +25,9 @@ describe('hasPendingQuestionGuard', () => {
       const result = hasPendingQuestionGuard({
         entries: [
           UserChatEntryStub(),
-          AssistantToolUseChatEntryStub({ toolName: 'AskUserQuestion' as never }),
+          AssistantToolUseChatEntryStub({
+            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
+          }),
           AssistantTextChatEntryStub(),
         ],
       });
@@ -36,7 +40,9 @@ describe('hasPendingQuestionGuard', () => {
     it('VALID: {user entry follows AskUserQuestion} => returns false', () => {
       const result = hasPendingQuestionGuard({
         entries: [
-          AssistantToolUseChatEntryStub({ toolName: 'AskUserQuestion' as never }),
+          AssistantToolUseChatEntryStub({
+            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
+          }),
           UserChatEntryStub(),
         ],
       });

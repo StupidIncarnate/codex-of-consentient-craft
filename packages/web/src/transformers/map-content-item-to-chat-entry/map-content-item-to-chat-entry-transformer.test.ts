@@ -88,7 +88,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
       const result = mapContentItemToChatEntryTransformer({
         item: {
           type: 'tool_use',
-          name: 'AskUserQuestion',
+          name: 'mcp__dungeonmaster__ask-user-question',
           input: { questions: JSON.stringify(stubData.questions) },
         },
         usage: undefined,
@@ -97,7 +97,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
       expect(result).toStrictEqual({
         role: 'assistant',
         type: 'tool_use',
-        toolName: 'AskUserQuestion',
+        toolName: 'mcp__dungeonmaster__ask-user-question',
         toolInput: JSON.stringify({ questions: stubData.questions }),
       });
     });

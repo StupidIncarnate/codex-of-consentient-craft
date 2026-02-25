@@ -10,7 +10,7 @@ import { askUserQuestionContract } from '../../contracts/ask-user-question/ask-u
 import type { AskUserQuestion } from '../../contracts/ask-user-question/ask-user-question-contract';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 
-const ASK_USER_QUESTION_TOOL = 'AskUserQuestion';
+const ASK_USER_QUESTION_TOOL = 'mcp__dungeonmaster__ask-user-question';
 
 export const extractAskUserQuestionTransformer = ({
   entries,

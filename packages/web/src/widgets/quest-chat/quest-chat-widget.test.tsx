@@ -102,7 +102,7 @@ describe('QuestChatWidget', () => {
               content: [
                 {
                   type: 'tool_use',
-                  name: 'AskUserQuestion',
+                  name: 'mcp__dungeonmaster__ask-user-question',
                   input: {
                     questions: [
                       {
@@ -156,7 +156,7 @@ describe('QuestChatWidget', () => {
               content: [
                 {
                   type: 'tool_use',
-                  name: 'AskUserQuestion',
+                  name: 'mcp__dungeonmaster__ask-user-question',
                   input: {
                     questions: [
                       {
@@ -321,7 +321,7 @@ describe('QuestChatWidget', () => {
               content: [
                 {
                   type: 'tool_use',
-                  name: 'AskUserQuestion',
+                  name: 'mcp__dungeonmaster__ask-user-question',
                   input: {
                     questions: [
                       {

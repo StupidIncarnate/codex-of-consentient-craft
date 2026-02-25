@@ -6,7 +6,7 @@
  * // Returns {questions: [{question: "Pick one"}]} or the original input if normalization is not needed
  */
 
-const ASK_USER_QUESTION_TOOL = 'AskUserQuestion';
+const ASK_USER_QUESTION_TOOL = 'mcp__dungeonmaster__ask-user-question';
 
 export const normalizeAskUserQuestionInputTransformer = ({
   name,

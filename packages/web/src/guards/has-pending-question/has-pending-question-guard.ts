@@ -8,7 +8,7 @@
 
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 
-const ASK_USER_QUESTION_TOOL = 'AskUserQuestion';
+const ASK_USER_QUESTION_TOOL = 'mcp__dungeonmaster__ask-user-question';
 
 export const hasPendingQuestionGuard = ({ entries }: { entries?: ChatEntry[] }): boolean => {
   if (!entries) return false;

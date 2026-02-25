@@ -158,7 +158,7 @@ Phase 5 task completed, mark Phase 6 task in_progress.
 
 20. **Spawn quest-gap-reviewer** - Use Task tool with \`subagent_type: "quest-gap-reviewer"\`:
     \`prompt: "Review quest [questId] for gaps and issues"\`
-21. **Address gaps** - Review findings, update quest. Use AskUserQuestion for any unknowns.
+21. **Address gaps** - Review findings, update quest. Use the \`mcp__dungeonmaster__ask-user-question\` MCP tool for any unknowns. When you need to ask the user questions, use the ask-user-question MCP tool. The user's answers will arrive as your next message when the session resumes.
 22. **Refresh quest state** - Call \`get-quest\` with \`stage: "spec"\` to see current state
 23. **Present observables to user** - Show observables with verification steps, contracts, design decisions, and
     tooling incorporating gap review additions

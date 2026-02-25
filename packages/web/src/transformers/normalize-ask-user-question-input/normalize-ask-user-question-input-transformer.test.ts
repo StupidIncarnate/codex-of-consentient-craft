@@ -41,7 +41,7 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
       const stubData = AskUserQuestionStub();
 
       const result = normalizeAskUserQuestionInputTransformer({
-        name: 'AskUserQuestion',
+        name: 'mcp__dungeonmaster__ask-user-question',
         input: stubData,
       });
 
@@ -55,7 +55,7 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
       const stringInput = createStringQuestionsInput();
 
       const result = normalizeAskUserQuestionInputTransformer({
-        name: 'AskUserQuestion',
+        name: 'mcp__dungeonmaster__ask-user-question',
         input: stringInput,
       });
 
@@ -64,7 +64,7 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
 
     it('INVALID: {questions is a non-JSON string} => returns input unchanged', () => {
       const result = normalizeAskUserQuestionInputTransformer({
-        name: 'AskUserQuestion',
+        name: 'mcp__dungeonmaster__ask-user-question',
         input: { questions: 'not valid json' },
       });
 
@@ -75,7 +75,7 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
       const nonArrayJson = JSON.stringify({ not: 'an array' });
 
       const result = normalizeAskUserQuestionInputTransformer({
-        name: 'AskUserQuestion',
+        name: 'mcp__dungeonmaster__ask-user-question',
         input: { questions: nonArrayJson },
       });
 
@@ -86,7 +86,7 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
   describe('AskUserQuestion with missing input', () => {
     it('EDGE: {input is null} => returns empty object', () => {
       const result = normalizeAskUserQuestionInputTransformer({
-        name: 'AskUserQuestion',
+        name: 'mcp__dungeonmaster__ask-user-question',
         input: null,
       });
 
@@ -95,7 +95,7 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
 
     it('EDGE: {input has no questions field} => returns input unchanged', () => {
       const result = normalizeAskUserQuestionInputTransformer({
-        name: 'AskUserQuestion',
+        name: 'mcp__dungeonmaster__ask-user-question',
         input: { other: 'field' },
       });
 
@@ -104,7 +104,7 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
 
     it('EDGE: {input is undefined} => returns empty object', () => {
       const result = normalizeAskUserQuestionInputTransformer({
-        name: 'AskUserQuestion',
+        name: 'mcp__dungeonmaster__ask-user-question',
         input: undefined,
       });
 
@@ -113,7 +113,7 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
 
     it('EDGE: {input is a non-object primitive} => returns input unchanged', () => {
       const result = normalizeAskUserQuestionInputTransformer({
-        name: 'AskUserQuestion',
+        name: 'mcp__dungeonmaster__ask-user-question',
         input: 'some string',
       });
 

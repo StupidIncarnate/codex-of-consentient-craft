@@ -68,7 +68,9 @@ import { chatProcessState } from '../state/chat-process/chat-process-state';
 import { orchestrationEventsState } from '../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../state/orchestration-processes/orchestration-processes-state';
 import { pathseekerPromptStatics } from '../statics/pathseeker-prompt/pathseeker-prompt-statics';
+import { streamJsonLineContract } from '../contracts/stream-json-line/stream-json-line-contract';
 import { questToListItemTransformer } from '../transformers/quest-to-list-item/quest-to-list-item-transformer';
+import { streamJsonToClarificationTransformer } from '../transformers/stream-json-to-clarification/stream-json-to-clarification-transformer';
 
 const QUEST_FILE_NAME = 'quest.json';
 
@@ -331,6 +333,20 @@ export const StartOrchestrator = {
           processId: chatProcessId,
           payload: { chatProcessId, line },
         });
+
+        const lineParseResult = streamJsonLineContract.safeParse(line);
+        if (lineParseResult.success) {
+          const clarification = streamJsonToClarificationTransformer({
+            line: lineParseResult.data,
+          });
+          if (clarification) {
+            orchestrationEventsState.emit({
+              type: 'clarification-request',
+              processId: chatProcessId,
+              payload: { chatProcessId, questions: clarification.questions },
+            });
+          }
+        }
       },
       onComplete: ({ chatProcessId, exitCode, sessionId: sid }) => {
         chatProcessState.remove({ processId: chatProcessId });
