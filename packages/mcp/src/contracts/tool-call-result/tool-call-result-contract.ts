@@ -14,6 +14,7 @@ const toolCallContentContract = z.object({
 
 export const toolCallResultContract = z.object({
   content: z.array(toolCallContentContract),
+  isError: z.boolean().optional(),
 });
 
 export type ToolCallResult = z.infer<typeof toolCallResultContract>;

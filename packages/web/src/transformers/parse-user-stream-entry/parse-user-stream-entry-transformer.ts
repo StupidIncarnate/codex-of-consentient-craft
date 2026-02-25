@@ -21,6 +21,12 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: object }):
     return [];
   }
 
+  const rawSource: unknown = 'source' in parsed ? Reflect.get(parsed, 'source') : undefined;
+  const validSource = rawSource === 'session' || rawSource === 'subagent' ? rawSource : undefined;
+  const rawAgentId: unknown = 'agentId' in parsed ? Reflect.get(parsed, 'agentId') : undefined;
+  const validAgentId =
+    typeof rawAgentId === 'string' && rawAgentId.length > 0 ? rawAgentId : undefined;
+
   const entries: ChatEntry[] = [];
 
   for (const item of contentArray) {
@@ -33,6 +39,8 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: object }):
       const entry = mapContentItemToChatEntryTransformer({
         item: item as never,
         usage: undefined,
+        ...(validSource ? { source: validSource } : {}),
+        ...(validAgentId ? { agentId: validAgentId } : {}),
       });
 
       if (entry) {

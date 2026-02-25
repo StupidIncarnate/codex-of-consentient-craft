@@ -288,6 +288,43 @@ describe('chatSpawnBroker', () => {
     });
   });
 
+  describe('quest id uniqueness', () => {
+    it('VALID: {new session} => prompt contains UUID quest ID, not kebab-case', async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+
+      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
+      const onComplete = jest.fn();
+      const registerProcess = jest.fn();
+
+      await chatSpawnBroker({
+        guildId,
+        message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
+        onEntry,
+        onPatch,
+        onAgentDetected,
+        onComplete,
+        registerProcess,
+      });
+
+      const spawnedArgs = proxy.getSpawnedArgs();
+
+      expect(Array.isArray(spawnedArgs)).toBe(true);
+
+      const argsArray = spawnedArgs as unknown[];
+      const promptIndex = argsArray.indexOf('-p') + 1;
+      const prompt = String(argsArray[promptIndex]);
+
+      expect(prompt).not.toContain('new-quest');
+      expect(prompt).toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/u);
+    });
+  });
+
   describe('quest creation failure', () => {
     it('ERROR: {quest creation fails} => throws error', async () => {
       const proxy = chatSpawnBrokerProxy();

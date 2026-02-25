@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await questAddBroker({ input: AddQuestInputStub({ title: 'Add Auth', userRequest: 'User wants...' }), guildId: GuildIdStub() });
- * // Returns: { success: true, questId: 'add-auth', questFolder: '001-add-auth', filePath: '/path/to/quest.json' }
+ * // Returns: { success: true, questId: '<uuid>', questFolder: '<uuid>', filePath: '/path/to/quest.json' }
  */
 
 import { pathJoinAdapter, fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
@@ -11,18 +11,14 @@ import {
   questContract,
   fileContentsContract,
   filePathContract,
-  contentTextContract,
 } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { addQuestInputContract } from '../../../contracts/add-quest-input/add-quest-input-contract';
 import type { AddQuestInput } from '../../../contracts/add-quest-input/add-quest-input-contract';
 import { addQuestResultContract } from '../../../contracts/add-quest-result/add-quest-result-contract';
 import type { AddQuestResult } from '../../../contracts/add-quest-result/add-quest-result-contract';
-import { textToKebabCaseTransformer } from '../../../transformers/text-to-kebab-case/text-to-kebab-case-transformer';
-import { questFolderSequenceTransformer } from '../../../transformers/quest-folder-sequence/quest-folder-sequence-transformer';
 import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
 
 const QUEST_FILE_NAME = 'quest.json';
@@ -39,21 +35,14 @@ export const questAddBroker = async ({
     // Validate input
     const validated = addQuestInputContract.parse(input);
 
-    // Generate quest ID from title (kebab-case)
-    const questId = textToKebabCaseTransformer({
-      text: contentTextContract.parse(validated.title),
-    });
+    // Generate unique quest ID (UUID) used as both ID and folder name
+    const questId = crypto.randomUUID();
+    const questFolder = questId;
 
     // Resolve quests directory for this project and ensure it exists
     const { questsPath } = questResolveQuestsPathBroker({ guildId });
     const questsBasePath = filePathContract.parse(questsPath);
     await fsMkdirAdapter({ filepath: questsBasePath });
-
-    // Scan existing folders to get next sequence number
-    const existingFolders = fsReaddirAdapter({ dirPath: questsBasePath });
-
-    const sequenceNumber = questFolderSequenceTransformer({ folders: existingFolders });
-    const questFolder = `${sequenceNumber}-${questId}`;
 
     // Create Quest object with all required fields
     const quest = questContract.parse({

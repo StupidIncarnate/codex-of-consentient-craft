@@ -57,6 +57,32 @@ describe('parseUserStreamEntryTransformer', () => {
     });
   });
 
+  describe('source and agentId propagation', () => {
+    it('VALID: {entry with source and agentId} => propagates to tool_result entries', () => {
+      const result = parseUserStreamEntryTransformer({
+        parsed: {
+          type: 'user',
+          source: 'session',
+          agentId: 'agent-42',
+          message: {
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_abc', content: 'done' }],
+          },
+        },
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_abc',
+          content: 'done',
+          source: 'session',
+          agentId: 'agent-42',
+        },
+      ]);
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: {no message field} => returns empty array', () => {
       const stub = TextOnlyUserStreamLineStub();

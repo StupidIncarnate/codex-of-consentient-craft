@@ -84,3 +84,104 @@ export const cleanSessionFiles = ({ guildPath }: { guildPath: string }): void =>
     // Directory may not exist
   }
 };
+
+/**
+ * Removes the entire encoded-path directory recursively, including subagent
+ * subdirectories that cleanSessionFiles would miss.
+ */
+export const cleanSessionDirectory = ({ guildPath }: { guildPath: string }): void => {
+  const homeDir = os.homedir();
+  const encodedPath = guildPath.replace(/\//gu, '-');
+  const jsonlDir = path.join(homeDir, '.claude', 'projects', encodedPath);
+
+  fs.rmSync(jsonlDir, { recursive: true, force: true });
+};
+
+/**
+ * Writes main session JSONL and subagent JSONL to disk for replay testing.
+ * The main JSONL contains a Task tool_use chain; the subagent JSONL contains
+ * the sub-agent's own output.
+ */
+export const createSubagentSessionFiles = ({
+  guildPath,
+  sessionId,
+  agentId,
+  toolUseId,
+  userMessage,
+  mainAssistantText,
+  subagentText,
+}: {
+  guildPath: string;
+  sessionId: string;
+  agentId: string;
+  toolUseId: string;
+  userMessage: string;
+  mainAssistantText: string;
+  subagentText: string;
+}): void => {
+  const homeDir = os.homedir();
+  const encodedPath = guildPath.replace(/\//gu, '-');
+  const jsonlDir = path.join(homeDir, '.claude', 'projects', encodedPath);
+
+  // Main session JSONL
+  const mainLines = [
+    // User message
+    JSON.stringify({
+      type: 'user',
+      message: { role: 'user', content: userMessage },
+    }),
+    // Assistant with Task tool_use
+    JSON.stringify({
+      type: 'assistant',
+      message: {
+        role: 'assistant',
+        content: [
+          {
+            type: 'tool_use',
+            id: toolUseId,
+            name: 'Task',
+            input: { description: 'Sub-agent work', prompt: 'Do the thing' },
+          },
+        ],
+      },
+    }),
+    // User tool_result with agentId (dungeonmaster extension)
+    JSON.stringify({
+      type: 'user',
+      message: {
+        role: 'user',
+        content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+      },
+      toolUseResult: { agentId },
+    }),
+    // Follow-up assistant text
+    JSON.stringify({
+      type: 'assistant',
+      message: {
+        role: 'assistant',
+        content: [{ type: 'text', text: mainAssistantText }],
+        usage: { input_tokens: 200, output_tokens: 80 },
+      },
+    }),
+  ];
+
+  fs.mkdirSync(jsonlDir, { recursive: true });
+  fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), mainLines.join('\n') + '\n');
+
+  // Subagent JSONL in subagents/ directory
+  const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
+  fs.mkdirSync(subagentDir, { recursive: true });
+
+  const subagentLines = [
+    JSON.stringify({
+      type: 'assistant',
+      message: {
+        role: 'assistant',
+        content: [{ type: 'text', text: subagentText }],
+        usage: { input_tokens: 50, output_tokens: 20 },
+      },
+    }),
+  ];
+
+  fs.writeFileSync(path.join(subagentDir, `${agentId}.jsonl`), subagentLines.join('\n') + '\n');
+};

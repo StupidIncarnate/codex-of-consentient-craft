@@ -35,4 +35,26 @@ describe('toolCallResultContract', () => {
       ],
     });
   });
+
+  it('VALID: {content: [...], isError: true} => parses successfully with isError flag', () => {
+    const result = ToolCallResultStub({
+      content: [{ type: 'text', text: 'Error occurred' }],
+      isError: true,
+    });
+
+    expect(result).toStrictEqual({
+      content: [{ type: 'text', text: 'Error occurred' }],
+      isError: true,
+    });
+  });
+
+  it('VALID: {content: [...]} => parses without isError when omitted', () => {
+    const result = ToolCallResultStub({
+      content: [{ type: 'text', text: 'Success' }],
+    });
+
+    expect(result).toStrictEqual({
+      content: [{ type: 'text', text: 'Success' }],
+    });
+  });
 });

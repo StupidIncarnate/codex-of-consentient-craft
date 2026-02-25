@@ -293,6 +293,7 @@ export const StartMcpServer = async (): Promise<void> => {
               text: JSON.stringify(result, null, JSON_INDENT_SPACES),
             },
           ],
+          ...(!result.success && { isError: true }),
         };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -307,6 +308,7 @@ export const StartMcpServer = async (): Promise<void> => {
               ),
             },
           ],
+          isError: true,
         };
       }
     }
@@ -328,6 +330,7 @@ export const StartMcpServer = async (): Promise<void> => {
               text: JSON.stringify(result, null, JSON_INDENT_SPACES),
             },
           ],
+          ...(!result.success && { isError: true }),
         };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -342,6 +345,7 @@ export const StartMcpServer = async (): Promise<void> => {
               ),
             },
           ],
+          isError: true,
         };
       }
     }
@@ -384,6 +388,7 @@ export const StartMcpServer = async (): Promise<void> => {
               ),
             },
           ],
+          isError: true,
         };
       }
     }
@@ -416,6 +421,7 @@ export const StartMcpServer = async (): Promise<void> => {
               ),
             },
           ],
+          isError: true,
         };
       }
     }
@@ -434,6 +440,7 @@ export const StartMcpServer = async (): Promise<void> => {
               text: JSON.stringify(result, null, JSON_INDENT_SPACES),
             },
           ],
+          ...(!result.success && { isError: true }),
         };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -448,6 +455,7 @@ export const StartMcpServer = async (): Promise<void> => {
               ),
             },
           ],
+          isError: true,
         };
       }
     }
@@ -480,6 +488,7 @@ export const StartMcpServer = async (): Promise<void> => {
               ),
             },
           ],
+          isError: true,
         };
       }
     }
@@ -508,6 +517,7 @@ export const StartMcpServer = async (): Promise<void> => {
               ),
             },
           ],
+          isError: true,
         };
       }
     }
@@ -571,6 +581,7 @@ export const StartMcpServer = async (): Promise<void> => {
               ),
             },
           ],
+          isError: true,
         };
       }
     }

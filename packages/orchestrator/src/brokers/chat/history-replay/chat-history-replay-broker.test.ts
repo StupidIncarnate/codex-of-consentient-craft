@@ -140,9 +140,51 @@ describe('chatHistoryReplayBroker', () => {
           timestamp: '2025-01-01T00:00:01Z',
           message: { content: [{ type: 'text', text: 'sub-reply' }] },
           source: 'subagent',
+          agentId: 'agent-1',
         },
       ]);
       expect(patches).toStrictEqual([]);
+    });
+
+    it('VALID: {subagent file named agent-1.jsonl} => emits entries with agentId derived from filename', async () => {
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-agentid' });
+      const guild = GuildStub({
+        id: guildId,
+        path: '/home/user/my-project',
+      });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupMainSession({
+        content:
+          '{"type":"user","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"hello"}]}}',
+      });
+      proxy.setupSubagentDir({ files: [FileNameStub({ value: 'agent-1.jsonl' })] });
+      proxy.setupSubagentFile({
+        content:
+          '{"type":"assistant","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"sub-reply"}]}}',
+      });
+
+      const entries: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        onEntry: ({ entry }) => {
+          entries.push(entry);
+        },
+        onPatch: () => {},
+      });
+
+      expect(entries[1]).toStrictEqual({
+        type: 'assistant',
+        timestamp: '2025-01-01T00:00:01Z',
+        message: { content: [{ type: 'text', text: 'sub-reply' }] },
+        source: 'subagent',
+        agentId: 'agent-1',
+      });
     });
 
     it('VALID: {subagents dir missing} => emits only main session entries', async () => {

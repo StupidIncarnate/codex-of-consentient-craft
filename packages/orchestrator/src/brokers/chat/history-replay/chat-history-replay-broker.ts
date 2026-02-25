@@ -21,6 +21,7 @@ import {
 
 import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
 import type {
   ChatLineEntry,
   ChatLinePatch,
@@ -57,20 +58,25 @@ export const chatHistoryReplayBroker = async ({
   const sessionLines = await fsReadJsonlAdapter({ filePath: jsonlPath });
 
   const subagentsDir = `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents`;
-  let subagentLines: StreamJsonLine[] = [];
+
+  const subagentFiles: {
+    agentId: ReturnType<typeof agentIdContract.parse>;
+    lines: StreamJsonLine[];
+  }[] = [];
 
   try {
     const files = fsReaddirAdapter({ dirPath: subagentsDir });
     const jsonlFiles = files.filter((f) => f.endsWith('.jsonl'));
 
-    const subagentResults = await Promise.all(
-      jsonlFiles.map(async (file) =>
-        fsReadJsonlAdapter({
+    const results = await Promise.all(
+      jsonlFiles.map(async (file) => ({
+        agentId: agentIdContract.parse(file.replace('.jsonl', '')),
+        lines: await fsReadJsonlAdapter({
           filePath: absoluteFilePathContract.parse(`${subagentsDir}/${file}`),
         }),
-      ),
+      })),
     );
-    subagentLines = subagentResults.flat();
+    subagentFiles.push(...results);
   } catch {
     // subagents directory may not exist
   }
@@ -91,14 +97,20 @@ export const chatHistoryReplayBroker = async ({
     }
   }
 
-  for (const line of subagentLines) {
-    const outputs = processor.processLine({ line, source: subagentSource });
-    for (const output of outputs) {
-      if (output.type === 'entry') {
-        onEntry({ entry: output.entry });
-      }
-      if (output.type === 'patch') {
-        onPatch({ toolUseId: output.toolUseId, agentId: output.agentId });
+  for (const subagentFile of subagentFiles) {
+    for (const line of subagentFile.lines) {
+      const outputs = processor.processLine({
+        line,
+        source: subagentSource,
+        agentId: subagentFile.agentId,
+      });
+      for (const output of outputs) {
+        if (output.type === 'entry') {
+          onEntry({ entry: output.entry });
+        }
+        if (output.type === 'patch') {
+          onPatch({ toolUseId: output.toolUseId, agentId: output.agentId });
+        }
       }
     }
   }

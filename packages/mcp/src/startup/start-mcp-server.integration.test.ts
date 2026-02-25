@@ -557,6 +557,80 @@ describe('StartMcpServer', () => {
       expect(getResultData.success).toBe(false);
       expect(getResultData.error).toMatch(/not found|ENOENT/iu);
     });
+
+    it('ERROR: get-quest with non-existent questId => sets isError true on tool result', async () => {
+      const client = await createMcpClient();
+
+      const getQuestRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 3002 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'get-quest',
+          arguments: {
+            questId: 'non-existent-quest-id',
+          },
+        },
+      });
+
+      const getResponse = await client.sendRequest(getQuestRequest);
+
+      await client.close();
+
+      const getResult = ToolCallResultStub(getResponse.result as never);
+
+      expect(getResponse.error).toBeUndefined();
+      expect(getResult.isError).toBe(true);
+    });
+
+    it('VALID: get-quest with existing quest => does not set isError', async () => {
+      const client = await createMcpClient();
+
+      const questId = 'is-error-success-test';
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const questFolder = '001-is-error-success-test';
+
+      const quest = QuestStub({
+        id: questId as never,
+        folder: questFolder as never,
+        title: 'IsError Success Test' as never,
+        status: 'created' as never,
+        userRequest: 'Testing isError not set on success' as never,
+      });
+
+      const questDir = path.join(
+        client.dungeonmasterHome,
+        '.dungeonmaster',
+        'guilds',
+        guildId,
+        'quests',
+        questFolder,
+      );
+      fs.mkdirSync(questDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(questDir, 'quest.json'),
+        JSON.stringify(quest, null, JSON_INDENT_SPACES),
+      );
+
+      const getQuestRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 3003 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'get-quest',
+          arguments: {
+            questId,
+          },
+        },
+      });
+
+      const getResponse = await client.sendRequest(getQuestRequest);
+
+      await client.close();
+
+      const getResult = ToolCallResultStub(getResponse.result as never);
+
+      expect(getResponse.error).toBeUndefined();
+      expect(getResult.isError).toBeUndefined();
+    });
   });
 
   describe('tools/call with get-folder-detail', () => {
