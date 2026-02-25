@@ -71,6 +71,28 @@ describe('fsWatchTailAdapter', () => {
     });
   });
 
+  describe('concurrent read guard', () => {
+    it('EDGE: second change event while reading => ignored until first read completes', async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onLine = jest.fn();
+
+      fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError: () => {},
+      });
+
+      proxy.setupLines({ lines: ['first-batch'] });
+      proxy.triggerChange();
+      proxy.triggerChange();
+      await flushPromises();
+
+      expect(onLine).toHaveBeenCalledTimes(1);
+      expect(onLine).toHaveBeenNthCalledWith(1, { line: 'first-batch' });
+    });
+  });
+
   describe('stop handle', () => {
     it('VALID: stop() called => watcher is closed and no more lines emitted', async () => {
       const proxy = fsWatchTailAdapterProxy();
@@ -146,6 +168,65 @@ describe('fsWatchTailAdapter', () => {
       handle.stop();
 
       proxy.triggerWatchError({ error: new Error('should-not-appear') });
+
+      expect(onError).toHaveBeenCalledTimes(0);
+    });
+
+    it('ERROR: statSync fails on close => calls onError', async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onError = jest.fn();
+
+      fsWatchTailAdapter({
+        filePath,
+        onLine: () => {},
+        onError,
+      });
+
+      proxy.setupLines({ lines: ['data'] });
+      proxy.setupStatError({ error: new Error('ENOENT: file deleted') });
+      proxy.triggerChange();
+      await flushPromises();
+
+      expect(onError).toHaveBeenCalledTimes(1);
+      expect(onError).toHaveBeenNthCalledWith(1, { error: new Error('ENOENT: file deleted') });
+    });
+
+    it('ERROR: statSync fails on close after stop => onError not called', async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onError = jest.fn();
+
+      const handle = fsWatchTailAdapter({
+        filePath,
+        onLine: () => {},
+        onError,
+      });
+
+      proxy.setupLines({ lines: ['data'] });
+      proxy.setupStatError({ error: new Error('ENOENT: file deleted') });
+      handle.stop();
+      proxy.triggerChange();
+      await flushPromises();
+
+      expect(onError).toHaveBeenCalledTimes(0);
+    });
+
+    it('ERROR: stream error after stop => onError not called', async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onError = jest.fn();
+
+      const handle = fsWatchTailAdapter({
+        filePath,
+        onLine: () => {},
+        onError,
+      });
+
+      proxy.setupStreamError({ error: new Error('EACCES') });
+      handle.stop();
+      proxy.triggerChange();
+      await flushPromises();
 
       expect(onError).toHaveBeenCalledTimes(0);
     });

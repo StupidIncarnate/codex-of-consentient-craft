@@ -627,6 +627,46 @@ describe('useSessionChatBinding', () => {
       expect(result.current.isStreaming).toBe(false);
     });
 
+    it('EDGE: {chat-complete with non-string sessionId} => does not update currentSessionId', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                sessionId: 12345,
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.currentSessionId).toBeNull();
+      expect(result.current.isStreaming).toBe(false);
+    });
+
     it('EDGE: {chat-complete with non-matching chatProcessId} => keeps streaming', async () => {
       const proxy = useSessionChatBindingProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -775,6 +815,69 @@ describe('useSessionChatBinding', () => {
               type: 'chat-patch',
               payload: {
                 toolUseId: 'non-existent-tool-id',
+                agentId: 'codeweaver-agent',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'user', content: 'Hello' },
+        {
+          role: 'assistant',
+          type: 'tool_use',
+          toolUseId: 'tool-abc-123',
+          toolName: 'Read',
+          toolInput: '{"file_path":"/tmp/test.ts"}',
+        },
+      ]);
+    });
+
+    it('EDGE: {chat-patch with empty toolUseId} => ignores patch', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tool-abc-123","name":"Read","input":{"file_path":"/tmp/test.ts"}}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-patch',
+              payload: {
+                toolUseId: '',
                 agentId: 'codeweaver-agent',
               },
               timestamp: '2025-01-01T00:00:00.000Z',
@@ -1011,6 +1114,49 @@ describe('useSessionChatBinding', () => {
       expect(result.current.currentSessionId).toBe('session-replay-done');
       expect(result.current.entries).toStrictEqual([
         { role: 'assistant', type: 'text', content: 'Historic answer' },
+      ]);
+    });
+
+    it('EDGE: {chat-history-complete with non-matching chatProcessId} => does not clear replay chatProcessId', () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'session-replay-mismatch' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId, sessionId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-history-complete',
+              payload: {
+                chatProcessId: 'different-proc',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: 'replay-session-replay-mismatch',
+                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Still works"}]}}',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([
+        { role: 'assistant', type: 'text', content: 'Still works' },
       ]);
     });
 

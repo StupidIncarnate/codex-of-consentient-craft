@@ -33,5 +33,15 @@ describe('claudeProjectPathEncoderTransformer', () => {
 
       expect(result).toBe('/home/dev/.claude/projects/-single/sess-1.jsonl');
     });
+
+    it('EDGE: {projectPath: "/a/b/c/d/e"} => encodes all slashes in deeply nested path', () => {
+      const result = claudeProjectPathEncoderTransformer({
+        homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
+        projectPath: AbsoluteFilePathStub({ value: '/a/b/c/d/e' }),
+        sessionId: SessionIdStub({ value: 'deep-session' }),
+      });
+
+      expect(result).toBe('/home/user/.claude/projects/-a-b-c-d-e/deep-session.jsonl');
+    });
   });
 });

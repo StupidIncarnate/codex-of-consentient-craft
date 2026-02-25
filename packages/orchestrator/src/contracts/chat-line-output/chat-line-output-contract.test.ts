@@ -31,5 +31,24 @@ describe('chatLineOutputContract', () => {
         /Invalid discriminator/u,
       );
     });
+
+    it('INVALID_ENTRY: {type: "entry" without entry field} => throws validation error', () => {
+      expect(() => chatLineOutputContract.parse({ type: 'entry' })).toThrow(/Required/u);
+    });
+
+    it('INVALID_PATCH: {type: "patch" without toolUseId} => throws validation error', () => {
+      expect(() => chatLineOutputContract.parse({ type: 'patch', agentId: 'agent-abc' })).toThrow(
+        /Required/u,
+      );
+    });
+
+    it('INVALID_PATCH: {type: "patch" without agentId} => throws validation error', () => {
+      expect(() =>
+        chatLineOutputContract.parse({
+          type: 'patch',
+          toolUseId: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+        }),
+      ).toThrow(/Required/u);
+    });
   });
 });

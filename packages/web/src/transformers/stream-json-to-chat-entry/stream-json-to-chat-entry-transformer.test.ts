@@ -26,6 +26,28 @@ describe('streamJsonToChatEntryTransformer', () => {
         sessionId: 'sess-abc-123',
       });
     });
+
+    it('EDGE: {type: "system", subtype: "init", no session_id} => returns null sessionId', () => {
+      const line = JSON.stringify({ type: 'system', subtype: 'init' });
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [],
+        sessionId: null,
+      });
+    });
+
+    it('EDGE: {type: "system", subtype: "other"} => falls through to empty result', () => {
+      const line = JSON.stringify({ type: 'system', subtype: 'other' });
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [],
+        sessionId: null,
+      });
+    });
   });
 
   describe('assistant messages', () => {
@@ -471,6 +493,28 @@ describe('streamJsonToChatEntryTransformer', () => {
       expect(result).toStrictEqual({
         entries: [],
         sessionId: 'sess-xyz-789',
+      });
+    });
+
+    it('EDGE: {type: "result", no session_id} => returns null sessionId', () => {
+      const line = JSON.stringify({ type: 'result' });
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [],
+        sessionId: null,
+      });
+    });
+
+    it('EDGE: {type: "result", session_id is non-string} => returns null sessionId', () => {
+      const line = JSON.stringify({ type: 'result', session_id: 123 });
+
+      const result = streamJsonToChatEntryTransformer({ line });
+
+      expect(result).toStrictEqual({
+        entries: [],
+        sessionId: null,
       });
     });
   });

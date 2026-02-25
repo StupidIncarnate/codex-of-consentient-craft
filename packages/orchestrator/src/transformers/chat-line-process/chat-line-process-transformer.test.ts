@@ -282,6 +282,108 @@ describe('chatLineProcessTransformer', () => {
 
       expect(result).toStrictEqual([]);
     });
+
+    it('ERROR: {JSON primitive number} => returns empty array', () => {
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const line = StreamJsonLineStub({ value: '42' });
+
+      const result = processor.processLine({ line, source });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('user tool_result with toolUseResult but non-string agentId', () => {
+    it('VALID: {toolUseResult with numeric agentId} => emits entry without agentId', () => {
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const line = StreamJsonLineStub({
+        value: JSON.stringify({
+          ...SuccessfulToolResultStreamLineStub(),
+          toolUseResult: { agentId: 123 },
+        }),
+      });
+
+      const result = processor.processLine({ line, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entry',
+          entry: {
+            type: 'user',
+            message: {
+              role: 'user',
+              content: [
+                {
+                  type: 'tool_result',
+                  tool_use_id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  content: 'File contents retrieved successfully',
+                },
+              ],
+            },
+            toolUseResult: { agentId: 123 },
+            source: 'session',
+          },
+        },
+      ]);
+    });
+  });
+
+  describe('explicit agentId param skipped when map has agentId', () => {
+    it('VALID: {assistant entry already has agentId from map, explicit agentId param given} => uses map agentId', () => {
+      const processor = chatLineProcessTransformer();
+      const toolUseId = ToolUseIdStub({ value: 'toolu_task_map_wins' });
+      const mapAgentId = AgentIdStub({ value: 'agent-from-map' });
+      const explicitAgentId = AgentIdStub({ value: 'agent-explicit-param' });
+      const source = ChatLineSourceStub({ value: 'subagent' });
+
+      const userLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId: mapAgentId },
+        }),
+      });
+
+      processor.processLine({ line: userLine, source });
+
+      const assistantLine = StreamJsonLineStub({
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
+            },
+          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+        ),
+      });
+
+      const result = processor.processLine({
+        line: assistantLine,
+        source,
+        agentId: explicitAgentId,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entry',
+          entry: {
+            type: 'assistant',
+            message: {
+              role: 'assistant',
+              content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
+            },
+            source: 'subagent',
+            agentId: 'agent-from-map',
+          },
+        },
+      ]);
+    });
   });
 
   describe('user tool_result without agentId', () => {

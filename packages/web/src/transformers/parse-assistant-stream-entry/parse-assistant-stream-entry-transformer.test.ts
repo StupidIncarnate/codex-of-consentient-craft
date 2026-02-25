@@ -155,6 +155,41 @@ describe('parseAssistantStreamEntryTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
+    it('EDGE: {message is null} => returns empty array', () => {
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: { type: 'assistant', message: null },
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EDGE: {content is not array} => returns empty array', () => {
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: { type: 'assistant', message: { content: 'not-an-array' } },
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EDGE: {content array has null item} => skips null items', () => {
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: {
+          type: 'assistant',
+          message: {
+            content: [null, { type: 'text', text: 'valid' }],
+          },
+        },
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'valid',
+        },
+      ]);
+    });
+
     it('EDGE: {unrecognized content item type} => skips unknown items', () => {
       const stub = AssistantTextStreamLineStub({
         message: {
@@ -186,6 +221,94 @@ describe('parseAssistantStreamEntryTransformer', () => {
           type: 'text',
           content: 'Hello world',
           model: 'claude-opus-4-20250514',
+        },
+      ]);
+    });
+  });
+
+  describe('source and agentId resolution', () => {
+    it('VALID: {top-level source and agentId, no item-level} => uses top-level values', () => {
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: {
+          type: 'assistant',
+          source: 'subagent',
+          agentId: 'top-agent',
+          message: {
+            content: [{ type: 'text', text: 'hello' }],
+          },
+        },
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'hello',
+          source: 'subagent',
+          agentId: 'top-agent',
+        },
+      ]);
+    });
+
+    it('VALID: {item-level source and agentId override top-level} => uses item-level values', () => {
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: {
+          type: 'assistant',
+          source: 'session',
+          agentId: 'top-agent',
+          message: {
+            content: [{ type: 'text', text: 'hello', source: 'subagent', agentId: 'item-agent' }],
+          },
+        },
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'hello',
+          source: 'subagent',
+          agentId: 'item-agent',
+        },
+      ]);
+    });
+
+    it('EDGE: {invalid top-level source} => source is omitted', () => {
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: {
+          type: 'assistant',
+          source: 'invalid',
+          message: {
+            content: [{ type: 'text', text: 'hello' }],
+          },
+        },
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'hello',
+        },
+      ]);
+    });
+
+    it('EDGE: {empty agentId string} => agentId is omitted', () => {
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: {
+          type: 'assistant',
+          agentId: '',
+          message: {
+            content: [{ type: 'text', text: 'hello' }],
+          },
+        },
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'hello',
         },
       ]);
     });

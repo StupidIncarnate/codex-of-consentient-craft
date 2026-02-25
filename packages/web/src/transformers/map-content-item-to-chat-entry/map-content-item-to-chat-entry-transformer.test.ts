@@ -364,6 +364,119 @@ describe('mapContentItemToChatEntryTransformer', () => {
     });
   });
 
+  describe('source propagation', () => {
+    it('VALID: {text item with source: "session"} => includes source in result', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'text', text: 'hello' },
+        usage: undefined,
+        source: 'session',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: 'hello',
+        source: 'session',
+      });
+    });
+
+    it('VALID: {text item with source: "subagent"} => includes source in result', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'text', text: 'hello' },
+        usage: undefined,
+        source: 'subagent',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: 'hello',
+        source: 'subagent',
+      });
+    });
+
+    it('VALID: {tool_result item with source and agentId} => includes source and agentId', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'tool_result', tool_use_id: 'toolu_123', content: 'data' },
+        usage: undefined,
+        source: 'subagent',
+        agentId: 'agent-1',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_123',
+        content: 'data',
+        source: 'subagent',
+        agentId: 'agent-1',
+      });
+    });
+  });
+
+  describe('tool_result is_error', () => {
+    it('VALID: {tool_result with is_error: true} => includes isError in result', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: {
+          type: 'tool_result',
+          tool_use_id: 'toolu_123',
+          content: 'error msg',
+          is_error: true,
+        },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_123',
+        content: 'error msg',
+        isError: true,
+      });
+    });
+
+    it('EDGE: {tool_result with is_error: false} => omits isError from result', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'tool_result', tool_use_id: 'toolu_123', content: 'ok', is_error: false },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_123',
+        content: 'ok',
+      });
+    });
+  });
+
+  describe('tool_use id edge cases', () => {
+    it('EDGE: {tool_use with non-string id} => omits toolUseId', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'tool_use', id: 123, name: 'read_file', input: { path: '/test' } },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolName: 'read_file',
+        toolInput: '{"path":"/test"}',
+      });
+    });
+  });
+
+  describe('tool_result tool_use_id edge cases', () => {
+    it('EDGE: {tool_result with non-string tool_use_id} => throws validation error', () => {
+      expect(() => {
+        mapContentItemToChatEntryTransformer({
+          item: { type: 'tool_result', tool_use_id: 123, content: 'data' },
+          usage: undefined,
+        });
+      }).toThrow(/too_small/u);
+    });
+  });
+
   describe('unrecognized items', () => {
     it('EMPTY: {type: "unknown"} => returns null', () => {
       const result = mapContentItemToChatEntryTransformer({

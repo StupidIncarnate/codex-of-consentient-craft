@@ -187,6 +187,60 @@ describe('chatHistoryReplayBroker', () => {
       expect(patches).toStrictEqual([]);
     });
 
+    it('VALID: {session with tool_use then tool_result with agentId} => emits patch', async () => {
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-patch' });
+      const guild = GuildStub({
+        id: guildId,
+        path: '/home/user/my-project',
+      });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupMainSession({
+        content:
+          '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_patch_01","name":"Task","input":{}}]}}\n{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_patch_01","content":"done"}]},"toolUseResult":{"agentId":"agent-patch"}}',
+      });
+      proxy.setupSubagentDirMissing();
+
+      const entries: unknown[] = [];
+      const patches: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        onEntry: ({ entry }) => {
+          entries.push(entry);
+        },
+        onPatch: ({ toolUseId, agentId }) => {
+          patches.push({ toolUseId, agentId });
+        },
+      });
+
+      expect(patches).toStrictEqual([{ toolUseId: 'toolu_patch_01', agentId: 'agent-patch' }]);
+      expect(entries).toStrictEqual([
+        {
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: 'toolu_patch_01', name: 'Task', input: {} }],
+          },
+          source: 'session',
+        },
+        {
+          type: 'user',
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_patch_01', content: 'done' }],
+          },
+          toolUseResult: { agentId: 'agent-patch' },
+          source: 'session',
+          agentId: 'agent-patch',
+        },
+      ]);
+    });
+
     it('VALID: {subagent dir with non-jsonl files} => ignores non-jsonl files', async () => {
       const proxy = chatHistoryReplayBrokerProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });

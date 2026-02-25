@@ -538,6 +538,140 @@ describe('StartServer', () => {
     });
   });
 
+  describe('WebSocket replay-history message', () => {
+    it('VALID: {type: "replay-history", sessionId, guildId, chatProcessId} => calls replayChatHistory', async () => {
+      const proxy = StartServerProxy();
+      const sessionId = SessionIdStub();
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub();
+
+      proxy.simulateWsMessage({
+        data: JSON.stringify({
+          type: 'replay-history',
+          sessionId,
+          guildId,
+          chatProcessId,
+        }),
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      const calls = proxy.getCapturedReplayChatHistoryCalls();
+
+      expect(calls).toStrictEqual([[{ sessionId, guildId, chatProcessId }]]);
+    });
+
+    it('INVALID: {type: "replay-history", missing sessionId} => does not call replayChatHistory', async () => {
+      const proxy = StartServerProxy();
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub();
+
+      proxy.simulateWsMessage({
+        data: JSON.stringify({
+          type: 'replay-history',
+          guildId,
+          chatProcessId,
+        }),
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      const calls = proxy.getCapturedReplayChatHistoryCalls();
+
+      expect(calls).toStrictEqual([]);
+    });
+
+    it('INVALID: {type: "replay-history", missing guildId} => does not call replayChatHistory', async () => {
+      const proxy = StartServerProxy();
+      const sessionId = SessionIdStub();
+      const chatProcessId = ProcessIdStub();
+
+      proxy.simulateWsMessage({
+        data: JSON.stringify({
+          type: 'replay-history',
+          sessionId,
+          chatProcessId,
+        }),
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      const calls = proxy.getCapturedReplayChatHistoryCalls();
+
+      expect(calls).toStrictEqual([]);
+    });
+
+    it('INVALID: {non-JSON data} => does not call replayChatHistory', async () => {
+      const proxy = StartServerProxy();
+
+      proxy.simulateWsMessage({
+        data: 'not-json',
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      const calls = proxy.getCapturedReplayChatHistoryCalls();
+
+      expect(calls).toStrictEqual([]);
+    });
+
+    it('INVALID: {non-object data} => does not call replayChatHistory', async () => {
+      const proxy = StartServerProxy();
+
+      proxy.simulateWsMessage({
+        data: JSON.stringify('a string'),
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      const calls = proxy.getCapturedReplayChatHistoryCalls();
+
+      expect(calls).toStrictEqual([]);
+    });
+
+    it('INVALID: {null data} => does not call replayChatHistory', async () => {
+      const proxy = StartServerProxy();
+
+      proxy.simulateWsMessage({
+        data: JSON.stringify(null),
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      const calls = proxy.getCapturedReplayChatHistoryCalls();
+
+      expect(calls).toStrictEqual([]);
+    });
+
+    it('EDGE: {unknown type} => does not call replayChatHistory', async () => {
+      const proxy = StartServerProxy();
+
+      proxy.simulateWsMessage({
+        data: JSON.stringify({ type: 'unknown-type' }),
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      const calls = proxy.getCapturedReplayChatHistoryCalls();
+
+      expect(calls).toStrictEqual([]);
+    });
+  });
+
   describe('POST /api/sessions/:sessionId/chat/:chatProcessId/stop', () => {
     it('VALID: {existing process} => 200 with stopped true', async () => {
       const proxy = StartServerProxy();

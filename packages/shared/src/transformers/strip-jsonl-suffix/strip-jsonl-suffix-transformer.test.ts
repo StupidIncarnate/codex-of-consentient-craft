@@ -26,5 +26,21 @@ describe('stripJsonlSuffixTransformer', () => {
 
       expect(result).toBe('/home/user/file.jsonl.bak');
     });
+
+    it('EDGE: {filePath: "/home/user/file.txt"} => returns path unchanged when no .jsonl suffix', () => {
+      const result = stripJsonlSuffixTransformer({
+        filePath: AbsoluteFilePathStub({ value: '/home/user/file.txt' }),
+      });
+
+      expect(result).toBe('/home/user/file.txt');
+    });
+
+    it('EDGE: {filePath: "/home/user/.jsonl"} => strips .jsonl leaving directory path', () => {
+      const result = stripJsonlSuffixTransformer({
+        filePath: AbsoluteFilePathStub({ value: '/home/user/.jsonl' }),
+      });
+
+      expect(result).toBe('/home/user/');
+    });
   });
 });

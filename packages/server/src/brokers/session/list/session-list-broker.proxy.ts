@@ -22,6 +22,7 @@ export const sessionListBrokerProxy = (): {
   setupFileStat: (params: { birthtime: Date; mtimeMs: number }) => void;
   setupFileContent: (params: { content: string }) => void;
   setupFileContentError: (params: { error: Error }) => void;
+  setupFileStatError: (params: { error: Error }) => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
 } => {
   const guildProxy = orchestratorGetGuildAdapterProxy();
@@ -58,6 +59,9 @@ export const sessionListBrokerProxy = (): {
         filepath: '' as FilePath,
         error,
       });
+    },
+    setupFileStatError: ({ error }: { error: Error }): void => {
+      statProxy.throws({ error });
     },
     setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
       questsProxy.returns({ quests });

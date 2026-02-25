@@ -25,6 +25,7 @@ jest.mock('@dungeonmaster/orchestrator', () => ({
 }));
 jest.mock('path');
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type {
   AddQuestResult,
   GetQuestResult,
@@ -58,6 +59,7 @@ import { ProcessOutputResponderProxy } from '../responders/process/output/proces
 import { SessionListResponderProxy } from '../responders/session/list/session-list-responder.proxy';
 import { SessionChatResponderProxy } from '../responders/session/chat/session-chat-responder.proxy';
 import { SessionChatStopResponderProxy } from '../responders/session/chat-stop/session-chat-stop-responder.proxy';
+import type { WsClient } from '../contracts/ws-client/ws-client-contract';
 import { honoServeAdapterProxy } from '../adapters/hono/serve/hono-serve-adapter.proxy';
 import { honoCreateNodeWebSocketAdapterProxy } from '../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.proxy';
 import { agentOutputBufferStateProxy } from '../state/agent-output-buffer/agent-output-buffer-state.proxy';
@@ -104,6 +106,8 @@ export const StartServerProxy = (): {
   setupStartChatError: (params: { error: Error }) => void;
   setupStopChat: (params: { stopped: boolean }) => void;
   getBroadcastedMessages: () => WsMessage[];
+  simulateWsMessage: (params: { data: string }) => void;
+  getCapturedReplayChatHistoryCalls: () => unknown[][];
 } => {
   const serveProxy = honoServeAdapterProxy();
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
@@ -237,5 +241,11 @@ export const StartServerProxy = (): {
       }
     },
     getBroadcastedMessages: (): WsMessage[] => broadcastProxy.getCapturedMessages(),
+    simulateWsMessage: ({ data }: { data: string }): void => {
+      const fakeWs: WsClient = { send: jest.fn() };
+      wsProxy.simulateMessage({ data, ws: fakeWs });
+    },
+    getCapturedReplayChatHistoryCalls: (): unknown[][] =>
+      jest.mocked(StartOrchestrator.replayChatHistory).mock.calls,
   };
 };

@@ -67,6 +67,14 @@ describe('parseUserStreamEntryTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
+    it('EDGE: {message is null} => returns empty array', () => {
+      const result = parseUserStreamEntryTransformer({
+        parsed: { type: 'user', message: null },
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
     it('EDGE: {content is plain string} => returns empty array', () => {
       const stub = UserTextStringStreamLineStub({
         message: { role: 'user', content: 'plain string without tool results' },
@@ -81,6 +89,52 @@ describe('parseUserStreamEntryTransformer', () => {
       const stub = TextOnlyUserStreamLineStub();
 
       const result = parseUserStreamEntryTransformer({ parsed: stub });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EDGE: {content array has null item} => skips null items', () => {
+      const result = parseUserStreamEntryTransformer({
+        parsed: {
+          type: 'user',
+          message: {
+            content: [null, { type: 'tool_result', tool_use_id: 'toolu_abc', content: 'data' }],
+          },
+        },
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_abc',
+          content: 'data',
+        },
+      ]);
+    });
+
+    it('EDGE: {content item without type field} => skips item', () => {
+      const result = parseUserStreamEntryTransformer({
+        parsed: {
+          type: 'user',
+          message: {
+            content: [{ tool_use_id: 'toolu_abc', content: 'data' }],
+          },
+        },
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EDGE: {content item with non-tool_result type} => skips non-tool_result items', () => {
+      const result = parseUserStreamEntryTransformer({
+        parsed: {
+          type: 'user',
+          message: {
+            content: [{ type: 'text', text: 'hello' }],
+          },
+        },
+      });
 
       expect(result).toStrictEqual([]);
     });
