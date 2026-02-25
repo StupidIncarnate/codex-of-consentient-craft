@@ -155,7 +155,50 @@ describe('mapContentItemToChatEntryTransformer', () => {
       });
     });
 
-    it('EDGE: {type: "tool_result", content is non-string} => falls back to empty content', () => {
+    it('VALID: {type: "tool_result", content is array of text items} => joins text from array', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: {
+          type: 'tool_result',
+          tool_use_id: 'toolu_789',
+          content: [
+            { type: 'text', text: 'First line' },
+            { type: 'text', text: 'Second line' },
+          ],
+        },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_789',
+        content: 'First line\nSecond line',
+      });
+    });
+
+    it('EDGE: {type: "tool_result", content is array with non-text items} => skips non-text items', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: {
+          type: 'tool_result',
+          tool_use_id: 'toolu_789',
+          content: [
+            { type: 'text', text: 'Valid text' },
+            { type: 'image', data: 'base64...' },
+            42,
+          ],
+        },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_789',
+        content: 'Valid text',
+      });
+    });
+
+    it('EDGE: {type: "tool_result", content is non-string non-array} => falls back to empty content', () => {
       const result = mapContentItemToChatEntryTransformer({
         item: { type: 'tool_result', tool_use_id: 'toolu_789', content: 42 },
         usage: undefined,

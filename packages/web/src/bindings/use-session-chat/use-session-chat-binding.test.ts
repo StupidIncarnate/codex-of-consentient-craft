@@ -383,9 +383,7 @@ describe('useSessionChatBinding', () => {
                   {
                     question: 'Which framework?',
                     header: 'Framework',
-                    options: [
-                      { label: 'React', description: 'Component-based' },
-                    ],
+                    options: [{ label: 'React', description: 'Component-based' }],
                     multiSelect: false,
                   },
                 ],
@@ -470,9 +468,7 @@ describe('useSessionChatBinding', () => {
                   {
                     question: 'Which framework?',
                     header: 'Framework',
-                    options: [
-                      { label: 'React', description: 'Component-based' },
-                    ],
+                    options: [{ label: 'React', description: 'Component-based' }],
                     multiSelect: false,
                   },
                 ],
@@ -488,9 +484,7 @@ describe('useSessionChatBinding', () => {
           {
             question: 'Which framework?',
             header: 'Framework',
-            options: [
-              { label: 'React', description: 'Component-based' },
-            ],
+            options: [{ label: 'React', description: 'Component-based' }],
             multiSelect: false,
           },
         ],
