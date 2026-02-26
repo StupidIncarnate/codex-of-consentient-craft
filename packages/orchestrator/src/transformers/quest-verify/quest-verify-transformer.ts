@@ -191,10 +191,10 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
   checks.push(
     verifyQuestCheckContract.parse({
       name: 'Flow Coverage',
-      passed: true,
+      passed: flowCoverage,
       details: flowCoverage
         ? 'All approved requirements covered by flows'
-        : 'WARNING: Not all approved requirements are covered by flows (optional for simple quests)',
+        : 'Not all approved requirements are covered by flows',
     }),
   );
 

@@ -19,6 +19,7 @@ import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { modifyQuestResultContract } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
 import type { ModifyQuestResult } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
+import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
@@ -100,6 +101,18 @@ export const questModifyBroker = async ({
     }
 
     if (validated.status) {
+      const isValidTransition = questHasValidStatusTransitionGuard({
+        currentStatus: quest.status,
+        nextStatus: validated.status,
+      });
+
+      if (!isValidTransition) {
+        return modifyQuestResultContract.parse({
+          success: false,
+          error: `Invalid status transition: ${quest.status} -> ${validated.status}`,
+        });
+      }
+
       quest.status = validated.status;
     }
 

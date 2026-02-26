@@ -8,11 +8,12 @@
   ├─ quest-gap-reviewer ── spec validation (read-only)
   │
   ├─ Phase 1: Discovery ──────── explore codebase, interview user
-  ├─ Phase 2: Flow Mapping ────── mermaid diagrams (flows-first)
-  ├─ Phase 3: Requirements ────── derived FROM flows
-  ├─ Gate #1: User approves flows + requirements together
-  ├─ Phase 4: Observables ─────── derived from flow paths, with verification steps
-  ├─ Gate #2: User approves observables + contracts
+  ├─ Phase 2: Flow Mapping ────── mermaid diagrams (mandatory)
+  ├─ Gate #1: User approves flows
+  ├─ Phase 4: Requirements ────── derived FROM approved flows
+  ├─ Gate #2: User approves requirements
+  ├─ Phase 6: Observables ─────── derived from flow paths, with verification steps
+  ├─ Gate #3: User approves observables + contracts
   │
   ▼
 /quest:start ──► start-quest MCP
@@ -47,21 +48,22 @@ Complete
 ## Quest Status Lifecycle
 
 ```
-created ──► requirements_approved ──► approved ──► in_progress ──► complete
-                                                       │
-                                                       ├──► blocked
-                                                       └──► abandoned
+created ──► flows_approved ──► requirements_approved ──► approved ──► in_progress ──► complete
+                                                                          │
+                                                                          ├──► blocked
+                                                                          └──► abandoned
 ```
 
-| Status                  | Set By                                                   | Gate                                               |
-|-------------------------|----------------------------------------------------------|----------------------------------------------------|
-| `created`               | `add-quest`                                              | Can add: requirements, designDecisions             |
-| `requirements_approved` | Auto when all requirements approved/deferred             | Can add: contexts, observables, contracts, tooling |
-| `approved`              | ChaosWhisperer after user approves observables (Gate #2) | Spec locked. `start-quest` allowed.                |
-| `in_progress`           | `start-quest`                                            | Steps can be added/modified                        |
-| `blocked`               | Pipeline blocker                                         | Execution paused                                   |
-| `complete`              | All phases pass                                          | Terminal                                           |
-| `abandoned`             | User abandons                                            | Terminal                                           |
+| Status                  | Set By                                                    | Gate                                               |
+|-------------------------|-----------------------------------------------------------|----------------------------------------------------|
+| `created`               | `add-quest`                                               | Can add: flows, designDecisions                    |
+| `flows_approved`        | ChaosWhisperer after user approves flows (Gate #1)        | Can add: requirements                              |
+| `requirements_approved` | ChaosWhisperer after user approves requirements (Gate #2) | Can add: contexts, observables, contracts, tooling |
+| `approved`              | ChaosWhisperer after user approves observables (Gate #3)  | Spec locked. `start-quest` allowed.                |
+| `in_progress`           | `start-quest`                                             | Steps can be added/modified                        |
+| `blocked`               | Pipeline blocker                                          | Execution paused                                   |
+| `complete`              | All phases pass                                           | Terminal                                           |
+| `abandoned`             | User abandons                                             | Terminal                                           |
 
 ## Flows (Mermaid Diagrams)
 
@@ -72,8 +74,8 @@ transitions) that isolated requirements miss.
 - Flows come FIRST, requirements are derived FROM them
 - No type enum — the mermaid syntax itself encodes the diagram style (`graph TD`, `sequenceDiagram`, etc.)
 - `requirementIds` defaults to `[]` because flows are created before requirements exist; backfilled later
-- Flows are recommended, not mandatory — simple quests (bug fixes, config) can skip them
-- The `quest-has-flow-coverage` guard is soft (warns, doesn't block verification)
+- Flows are mandatory — every quest must have flows before requirements can be extracted
+- The `quest-has-flow-coverage` guard is hard (blocks verification on failure)
 
 ## Enhanced Observables (Verification Steps)
 
@@ -130,13 +132,13 @@ Agents communicate via `signal-back` MCP tool:
 
 ## User-Invoked Skills
 
-| Skill          | Purpose                                                          |
-|----------------|------------------------------------------------------------------|
-| `/quest`       | ChaosWhisperer — BDD spec creation with two human approval gates |
-| `/quest:start` | Start execution, poll progress                                   |
-| `/test`        | Write unit tests for existing code                               |
-| `/tegrity`     | Fix lint + type errors iteratively                               |
-| `/document`    | Update project standards docs                                    |
+| Skill          | Purpose                                                            |
+|----------------|--------------------------------------------------------------------|
+| `/quest`       | ChaosWhisperer — BDD spec creation with three human approval gates |
+| `/quest:start` | Start execution, poll progress                                     |
+| `/test`        | Write unit tests for existing code                                 |
+| `/tegrity`     | Fix lint + type errors iteratively                                 |
+| `/document`    | Update project standards docs                                      |
 
 ## Sub-Agents
 

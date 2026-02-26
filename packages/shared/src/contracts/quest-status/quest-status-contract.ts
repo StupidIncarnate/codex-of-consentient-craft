@@ -11,6 +11,7 @@ import { z } from 'zod';
 export const questStatusContract = z.enum([
   'created',
   'pending',
+  'flows_approved',
   'requirements_approved',
   'approved',
   'in_progress',

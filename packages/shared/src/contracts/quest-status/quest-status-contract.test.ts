@@ -11,6 +11,14 @@ describe('questStatusContract', () => {
       expect(result).toBe('created');
     });
 
+    it('VALID: flows_approved => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'flows_approved' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('flows_approved');
+    });
+
     it('VALID: requirements_approved => parses successfully', () => {
       const status = QuestStatusStub({ value: 'requirements_approved' });
 
