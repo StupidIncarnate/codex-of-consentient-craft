@@ -49,7 +49,7 @@ export const QuestClarifyPanelWidget = ({
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <Stack gap={0} data-testid="QUEST_CLARIFY_PANEL" style={{ height: '100%' }}>
+    <Stack gap={0} data-testid="QUEST_CLARIFY_PANEL" style={{ flexShrink: 0 }}>
       <Text
         data-testid="CLARIFY_QUEST_TITLE"
         ff="monospace"

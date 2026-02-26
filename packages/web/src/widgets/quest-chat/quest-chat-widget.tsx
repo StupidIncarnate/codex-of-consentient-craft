@@ -154,9 +154,11 @@ export const QuestChatWidget = (): React.JSX.Element => {
         style={{
           flex: 1,
           overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        {pendingQuestion ? (
+        {pendingQuestion && (
           <QuestClarifyPanelWidget
             questions={pendingQuestion.questions}
             questTitle={
@@ -170,28 +172,32 @@ export const QuestChatWidget = (): React.JSX.Element => {
               sendMessage({ message: message as UserInput });
             }}
           />
-        ) : questWithContent === null ? (
+        )}
+
+        {questWithContent === null ? (
           <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], padding: 16 }}>
             Awaiting quest activity...
           </Text>
         ) : (
-          <QuestSpecPanelWidget
-            quest={questWithContent}
-            onModify={({ modifications }): void => {
-              questModifyBroker({ questId: questWithContent.id, modifications })
-                .then(() => {
-                  setExternalUpdatePending(false);
-                })
-                .catch(() => undefined);
-            }}
-            onRefresh={(): void => {
-              requestRefresh();
-            }}
-            externalUpdatePending={externalUpdatePending}
-            onDismissUpdate={() => {
-              setExternalUpdatePending(false);
-            }}
-          />
+          <Box style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <QuestSpecPanelWidget
+              quest={questWithContent}
+              onModify={({ modifications }): void => {
+                questModifyBroker({ questId: questWithContent.id, modifications })
+                  .then(() => {
+                    setExternalUpdatePending(false);
+                  })
+                  .catch(() => undefined);
+              }}
+              onRefresh={(): void => {
+                requestRefresh();
+              }}
+              externalUpdatePending={externalUpdatePending}
+              onDismissUpdate={() => {
+                setExternalUpdatePending(false);
+              }}
+            />
+          </Box>
         )}
       </Box>
     </Box>

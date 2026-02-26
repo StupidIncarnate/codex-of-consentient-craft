@@ -6,12 +6,13 @@
  * // Returns true if folder matches quest folder pattern (NNN-name)
  */
 
-const QUEST_FOLDER_PATTERN = /^\d{3}-/u;
+const LEGACY_QUEST_FOLDER_PATTERN = /^\d{3}-/u;
+const UUID_PATTERN = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/u;
 
 export const isQuestFolderGuard = ({ folderName }: { folderName?: string }): boolean => {
   if (!folderName) {
     return false;
   }
 
-  return QUEST_FOLDER_PATTERN.test(folderName);
+  return LEGACY_QUEST_FOLDER_PATTERN.test(folderName) || UUID_PATTERN.test(folderName);
 };

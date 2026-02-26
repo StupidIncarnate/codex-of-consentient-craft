@@ -2,6 +2,7 @@ import { ContextStub } from '../context/context.stub';
 import { DependencyStepStub } from '../dependency-step/dependency-step.stub';
 import { FlowStub } from '../flow/flow.stub';
 import { ObservableStub } from '../observable/observable.stub';
+import { QuestClarificationStub } from '../quest-clarification/quest-clarification.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
 import { questContract } from './quest-contract';
@@ -29,6 +30,7 @@ describe('questContract', () => {
         toolingRequirements: [],
         contracts: [],
         flows: [],
+        clarifications: [],
       });
     });
 
@@ -120,6 +122,34 @@ describe('questContract', () => {
       const result = questContract.parse(quest);
 
       expect(result.flows).toStrictEqual([flow]);
+    });
+
+    it('VALID: quest with clarifications => parses successfully', () => {
+      const clarification = QuestClarificationStub();
+      const quest = QuestStub({
+        clarifications: [clarification],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.clarifications).toStrictEqual([clarification]);
+    });
+
+    it('VALID: quest without clarifications field => backward compat defaults to empty array', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        executionLog: [],
+        contexts: [],
+        observables: [],
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.clarifications).toStrictEqual([]);
     });
 
     it('VALID: quest without flows field => backward compat defaults to empty array', () => {

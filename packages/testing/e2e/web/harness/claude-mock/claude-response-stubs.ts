@@ -63,6 +63,31 @@ export const ResumeResponseStub = ({
   lines: [TextLineStub({ text }), ResultLineStub({ sessionId })],
 });
 
+export const ClarificationResponseStub = ({
+  sessionId = DEFAULT_SESSION_ID,
+  questions = [
+    {
+      question: 'Which database do you want to use?',
+      header: 'Database Selection',
+      options: [
+        { label: 'PostgreSQL', description: 'Relational database with JSONB support' },
+        { label: 'SQLite', description: 'Lightweight file-based database' },
+      ],
+      multiSelect: false,
+    },
+  ],
+} = {}): ClaudeResponse => ({
+  sessionId,
+  lines: [
+    SessionInitLineStub({ sessionId }),
+    ToolUseLineStub({
+      name: 'mcp__dungeonmaster__ask-user-question',
+      input: { questions },
+    }),
+    ResultLineStub({ sessionId }),
+  ],
+});
+
 export const MultiTurnResponseStubs = ({
   sessionId = DEFAULT_SESSION_ID,
   messages,

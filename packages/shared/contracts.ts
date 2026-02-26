@@ -82,6 +82,9 @@ export * from './src/contracts/execution-log-entry/execution-log-entry.stub';
 export * from './src/contracts/quest-list-item/quest-list-item-contract';
 export * from './src/contracts/quest-list-item/quest-list-item.stub';
 
+export * from './src/contracts/quest-clarification/quest-clarification-contract';
+export * from './src/contracts/quest-clarification/quest-clarification.stub';
+
 export * from './src/contracts/quest/quest-contract';
 export * from './src/contracts/quest/quest.stub';
 

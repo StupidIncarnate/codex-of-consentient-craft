@@ -72,6 +72,7 @@ describe('questSectionFilterTransformer', () => {
         steps: [],
         toolingRequirements: [],
         flows: [],
+        clarifications: [],
       });
     });
 
@@ -126,6 +127,7 @@ describe('questSectionFilterTransformer', () => {
         steps: [],
         toolingRequirements: [],
         flows: [],
+        clarifications: [],
       });
     });
   });
@@ -198,6 +200,7 @@ describe('questSectionFilterTransformer', () => {
         steps: [],
         toolingRequirements: [],
         flows: [],
+        clarifications: [],
       });
     });
   });
@@ -236,6 +239,7 @@ describe('questSectionFilterTransformer', () => {
         steps: [],
         toolingRequirements: [],
         flows: [],
+        clarifications: [],
       });
     });
   });
@@ -274,6 +278,7 @@ describe('questSectionFilterTransformer', () => {
         steps: [],
         toolingRequirements: [],
         flows: [],
+        clarifications: [],
       });
     });
   });

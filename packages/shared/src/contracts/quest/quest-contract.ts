@@ -14,6 +14,7 @@ import { designDecisionContract } from '../design-decision/design-decision-contr
 import { flowContract } from '../flow/flow-contract';
 import { executionLogEntryContract } from '../execution-log-entry/execution-log-entry-contract';
 import { observableContract } from '../observable/observable-contract';
+import { questClarificationContract } from '../quest-clarification/quest-clarification-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { requirementContract } from '../requirement/requirement-contract';
@@ -76,6 +77,12 @@ export const questContract = z.object({
     .default([])
     .describe(
       'User journey sequences linking requirements to entry/exit points with mermaid diagrams',
+    ),
+  clarifications: z
+    .array(questClarificationContract)
+    .default([])
+    .describe(
+      'Captured user clarifications from ask-user-question interactions during quest spec creation',
     ),
   questCreatedSessionBy: z.string().brand<'SessionId'>().optional(),
   userRequest: z.string().brand<'UserRequest'>().optional(),

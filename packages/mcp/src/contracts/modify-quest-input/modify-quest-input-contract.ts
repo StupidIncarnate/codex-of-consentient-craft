@@ -13,6 +13,7 @@ import {
   designDecisionContract,
   flowContract,
   observableContract,
+  questClarificationContract,
   questContractEntryContract,
   questStatusContract,
   requirementContract,
@@ -53,6 +54,10 @@ export const modifyQuestInputContract = z
     flows: z
       .array(flowContract)
       .describe('Flows to upsert (existing ID updates, new ID adds)')
+      .optional(),
+    clarifications: z
+      .array(questClarificationContract)
+      .describe('Clarifications to upsert (existing ID updates, new ID adds)')
       .optional(),
     status: questStatusContract.describe('Lifecycle gate transition status').optional(),
   })

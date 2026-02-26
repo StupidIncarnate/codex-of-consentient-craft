@@ -17,7 +17,7 @@ export const websocketConnectAdapter = ({
   url: string;
   onMessage: (message: unknown) => void;
   onOpen?: () => void;
-}): { close: () => void; send: (data: Record<string, unknown>) => void } => {
+}): { close: () => void; send: (data: Record<string, unknown>) => boolean } => {
   let shouldReconnect = true;
   const socket = new globalThis.WebSocket(url);
 
@@ -49,10 +49,12 @@ export const websocketConnectAdapter = ({
       shouldReconnect = false;
       socket.close();
     },
-    send: (data: Record<string, unknown>): void => {
+    send: (data: Record<string, unknown>): boolean => {
       if (socket.readyState === globalThis.WebSocket.OPEN) {
         socket.send(JSON.stringify(data));
+        return true;
       }
+      return false;
     },
   };
 };

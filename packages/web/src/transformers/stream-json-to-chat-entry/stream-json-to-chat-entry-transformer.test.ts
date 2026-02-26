@@ -456,7 +456,7 @@ describe('streamJsonToChatEntryTransformer', () => {
       });
     });
 
-    it('EDGE: {type: "user", content is plain string} => returns empty entries', () => {
+    it('VALID: {type: "user", content is plain string} => returns user entry', () => {
       const line = JSON.stringify(
         UserTextStringStreamLineStub({
           message: { role: 'user', content: 'plain string without tool results' },
@@ -466,7 +466,12 @@ describe('streamJsonToChatEntryTransformer', () => {
       const result = streamJsonToChatEntryTransformer({ line });
 
       expect(result).toStrictEqual({
-        entries: [],
+        entries: [
+          {
+            role: 'user',
+            content: 'plain string without tool results',
+          },
+        ],
         sessionId: null,
       });
     });

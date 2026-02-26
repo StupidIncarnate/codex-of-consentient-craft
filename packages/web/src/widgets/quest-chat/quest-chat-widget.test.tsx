@@ -345,7 +345,7 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasSpecPanel()).toBe(true);
     });
 
-    it('VALID: {pending question with quest content} => clarify panel takes priority over spec panel', async () => {
+    it('VALID: {pending question with quest content} => renders both clarify panel and spec panel simultaneously', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
@@ -424,7 +424,7 @@ describe('QuestChatWidget', () => {
         expect(proxy.hasClarifyPanel()).toBe(true);
       });
 
-      expect(proxy.hasSpecPanel()).toBe(false);
+      expect(proxy.hasSpecPanel()).toBe(true);
     });
   });
 

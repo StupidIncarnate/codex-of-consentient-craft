@@ -29,14 +29,7 @@ const createQuestFile = ({
 }): void => {
   const homeDir = os.homedir();
   const questFolder = '001-e2e-spec-panel';
-  const questDir = path.join(
-    homeDir,
-    '.dungeonmaster',
-    'guilds',
-    guildId,
-    'quests',
-    questFolder,
-  );
+  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
   mkdirSync(questDir, { recursive: true });
 
   const quest = {
@@ -92,7 +85,9 @@ test.describe('Quest Spec Panel', () => {
     createQuestFile({ guildId, questId, sessionId });
 
     // Navigate directly to session page and wait for guild + session data to load
-    const urlSlug = String(guild.urlSlug ?? guild.name).toLowerCase().replace(/\s+/gu, '-');
+    const urlSlug = String(guild.urlSlug ?? guild.name)
+      .toLowerCase()
+      .replace(/\s+/gu, '-');
     await page.goto(`/${urlSlug}/session/${sessionId}`);
     await page.waitForResponse(
       (r) =>

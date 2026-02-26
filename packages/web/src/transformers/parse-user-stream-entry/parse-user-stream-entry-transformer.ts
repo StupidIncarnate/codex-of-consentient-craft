@@ -1,10 +1,11 @@
 /**
- * PURPOSE: Parses a user-type stream JSON object into chat entries, extracting only tool_result items
+ * PURPOSE: Parses a user-type stream JSON object into chat entries, extracting tool_result items and plain text user messages
  *
  * USAGE:
  * parseUserStreamEntryTransformer({parsed: {type: 'user', message: {content: [{type: 'tool_result', tool_use_id: 'id', content: 'data'}]}}});
- * // Returns ChatEntry[] containing only tool_result entries from user messages
+ * // Returns ChatEntry[] containing tool_result entries and/or user text entries from user messages
  */
+import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { mapContentItemToChatEntryTransformer } from '../map-content-item-to-chat-entry/map-content-item-to-chat-entry-transformer';
 
@@ -15,17 +16,28 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: object }):
     return [];
   }
 
-  const contentArray: unknown = 'content' in message ? Reflect.get(message, 'content') : null;
-
-  if (!Array.isArray(contentArray)) {
-    return [];
-  }
-
   const rawSource: unknown = 'source' in parsed ? Reflect.get(parsed, 'source') : undefined;
   const validSource = rawSource === 'session' || rawSource === 'subagent' ? rawSource : undefined;
   const rawAgentId: unknown = 'agentId' in parsed ? Reflect.get(parsed, 'agentId') : undefined;
   const validAgentId =
     typeof rawAgentId === 'string' && rawAgentId.length > 0 ? rawAgentId : undefined;
+
+  const contentArray: unknown = 'content' in message ? Reflect.get(message, 'content') : null;
+
+  if (typeof contentArray === 'string' && contentArray.length > 0) {
+    const userEntry = chatEntryContract.safeParse({
+      role: 'user',
+      content: contentArray,
+      ...(validSource ? { source: validSource } : {}),
+      ...(validAgentId ? { agentId: validAgentId } : {}),
+    });
+
+    return userEntry.success ? [userEntry.data] : [];
+  }
+
+  if (!Array.isArray(contentArray)) {
+    return [];
+  }
 
   const entries: ChatEntry[] = [];
 

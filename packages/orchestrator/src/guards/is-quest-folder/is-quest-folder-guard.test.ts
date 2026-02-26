@@ -19,6 +19,22 @@ describe('isQuestFolderGuard', () => {
 
       expect(result).toBe(true);
     });
+
+    it('VALID: {folderName: UUID} => returns true', () => {
+      const result = isQuestFolderGuard({
+        folderName: 'b1f8294a-7066-40ba-b9bf-aa214b6484bc',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {folderName: another UUID} => returns true', () => {
+      const result = isQuestFolderGuard({
+        folderName: '00000000-0000-0000-0000-000000000000',
+      });
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('invalid quest folders', () => {

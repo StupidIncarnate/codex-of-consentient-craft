@@ -167,6 +167,39 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
+    it('VALID: {questId, clarifications: [new]} => adds new clarification', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', clarifications: [] });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        clarifications: [
+          {
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            questions: [
+              {
+                question: 'Which framework?',
+                header: 'Framework Choice',
+                options: [
+                  { label: 'React', description: 'Component-based UI' },
+                  { label: 'Vue', description: 'Progressive framework' },
+                ],
+                multiSelect: false,
+              },
+            ],
+            answer: 'React',
+            timestamp: '2024-01-15T10:00:00.000Z',
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
     it('VALID: {questId, flows: [new]} => adds new flow', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', flows: [] });

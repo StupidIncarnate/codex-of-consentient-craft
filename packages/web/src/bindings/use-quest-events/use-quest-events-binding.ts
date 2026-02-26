@@ -33,6 +33,17 @@ export const useQuestEventsBinding = ({
   useEffect(() => {
     const connection = websocketConnectAdapter({
       url: `ws://${globalThis.location.host}/ws`,
+      onOpen: (): void => {
+        if (questIdRef.current && hasSentRequestRef.current !== questIdRef.current) {
+          const sent = connectionRef.current?.send({
+            type: 'quest-data-request',
+            questId: questIdRef.current,
+          });
+          if (sent) {
+            hasSentRequestRef.current = questIdRef.current;
+          }
+        }
+      },
       onMessage: (message: unknown): void => {
         const parsed = wsMessageContract.safeParse(message);
         if (!parsed.success) return;
@@ -68,8 +79,10 @@ export const useQuestEventsBinding = ({
     connectionRef.current = connection;
 
     if (questIdRef.current && hasSentRequestRef.current !== questIdRef.current) {
-      connection.send({ type: 'quest-data-request', questId: questIdRef.current });
-      hasSentRequestRef.current = questIdRef.current;
+      const sent = connection.send({ type: 'quest-data-request', questId: questIdRef.current });
+      if (sent) {
+        hasSentRequestRef.current = questIdRef.current;
+      }
     }
 
     return (): void => {
@@ -81,8 +94,10 @@ export const useQuestEventsBinding = ({
 
   useEffect(() => {
     if (questId && hasSentRequestRef.current !== questId) {
-      connectionRef.current?.send({ type: 'quest-data-request', questId });
-      hasSentRequestRef.current = questId;
+      const sent = connectionRef.current?.send({ type: 'quest-data-request', questId });
+      if (sent) {
+        hasSentRequestRef.current = questId;
+      }
     }
   }, [questId]);
 

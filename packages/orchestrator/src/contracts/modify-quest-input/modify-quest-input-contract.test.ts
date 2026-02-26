@@ -92,6 +92,35 @@ describe('modifyQuestInputContract', () => {
       expect(result.flows).toStrictEqual([flow]);
     });
 
+    it('VALID: {questId, clarifications} => parses with clarifications array', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        clarifications: [
+          {
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            questions: [
+              {
+                question: 'Which framework?',
+                header: 'Framework Choice',
+                options: [
+                  { label: 'React', description: 'Component-based UI' },
+                  { label: 'Vue', description: 'Progressive framework' },
+                ],
+                multiSelect: false,
+              },
+            ],
+            answer: 'React',
+            timestamp: '2024-01-15T10:00:00.000Z',
+          },
+        ],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.questId).toBe('add-auth');
+      expect(result.clarifications).toHaveLength(1);
+    });
+
     it('VALID: {questId, status} => parses with status field', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',

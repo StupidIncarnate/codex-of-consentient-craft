@@ -10,6 +10,7 @@ export {
   ErrorResponseStub,
   ResumeResponseStub,
   MultiTurnResponseStubs,
+  ClarificationResponseStub,
 } from '../harness/claude-mock/claude-response-stubs';
 
 export const cleanGuilds = async (request: APIRequestContext): Promise<void> => {
@@ -65,6 +66,28 @@ export const createSessionFile = ({
     message: { role: 'user', content: userMessage },
   });
   fs.writeFileSync(jsonlPath, entry + '\n');
+};
+
+/**
+ * Writes a multi-entry JSONL session file to disk for history replay testing.
+ * Each element in the lines array is a pre-stringified JSON line.
+ */
+export const createMultiEntrySessionFile = ({
+  guildPath,
+  sessionId,
+  lines,
+}: {
+  guildPath: string;
+  sessionId: string;
+  lines: string[];
+}): void => {
+  const homeDir = os.homedir();
+  const encodedPath = guildPath.replace(/\//gu, '-');
+  const jsonlDir = path.join(homeDir, '.claude', 'projects', encodedPath);
+  const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
+
+  fs.mkdirSync(jsonlDir, { recursive: true });
+  fs.writeFileSync(jsonlPath, lines.join('\n') + '\n');
 };
 
 /**

@@ -101,17 +101,22 @@ describe('parseUserStreamEntryTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('EDGE: {content is plain string} => returns empty array', () => {
+    it('VALID: {content is plain string} => returns user entry', () => {
       const stub = UserTextStringStreamLineStub({
         message: { role: 'user', content: 'plain string without tool results' },
       });
 
       const result = parseUserStreamEntryTransformer({ parsed: stub });
 
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual([
+        {
+          role: 'user',
+          content: 'plain string without tool results',
+        },
+      ]);
     });
 
-    it('EDGE: {text only user message} => returns empty array', () => {
+    it('EDGE: {text only user message with array content} => returns empty array', () => {
       const stub = TextOnlyUserStreamLineStub();
 
       const result = parseUserStreamEntryTransformer({ parsed: stub });

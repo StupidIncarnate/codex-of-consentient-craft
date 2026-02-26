@@ -50,6 +50,7 @@ import { questLoadBroker } from '../brokers/quest/load/quest-load-broker';
 import { questModifyBroker } from '../brokers/quest/modify/quest-modify-broker';
 import { questVerifyBroker } from '../brokers/quest/verify/quest-verify-broker';
 import { questPipelineBroker } from '../brokers/quest/pipeline/quest-pipeline-broker';
+import { modifyQuestInputContract } from '../contracts/modify-quest-input/modify-quest-input-contract';
 import { addQuestInputContract } from '../contracts/add-quest-input/add-quest-input-contract';
 import type { AddQuestResult } from '../contracts/add-quest-result/add-quest-result-contract';
 import { getQuestInputContract } from '../contracts/get-quest-input/get-quest-input-contract';
@@ -68,6 +69,7 @@ import { slotIndexContract } from '../contracts/slot-index/slot-index-contract';
 import { totalCountContract } from '../contracts/total-count/total-count-contract';
 import { chatProcessState } from '../state/chat-process/chat-process-state';
 import { orchestrationEventsState } from '../state/orchestration-events/orchestration-events-state';
+import { pendingClarificationState } from '../state/pending-clarification/pending-clarification-state';
 import { orchestrationProcessesState } from '../state/orchestration-processes/orchestration-processes-state';
 import { pathseekerPromptStatics } from '../statics/pathseeker-prompt/pathseeker-prompt-statics';
 import { streamJsonLineContract } from '../contracts/stream-json-line/stream-json-line-contract';
@@ -337,6 +339,31 @@ export const StartOrchestrator = {
     message: string;
     sessionId?: SessionId;
   }): Promise<{ chatProcessId: ProcessId }> => {
+    if (sessionId) {
+      const pending = pendingClarificationState.getForSession({ sessionId });
+      if (pending) {
+        pendingClarificationState.removeForSession({ sessionId });
+        questModifyBroker({
+          input: modifyQuestInputContract.parse({
+            questId: pending.questId,
+            clarifications: [
+              {
+                id: randomUUID(),
+                questions: pending.questions,
+                answer: message,
+                timestamp: new Date().toISOString(),
+              },
+            ],
+          }),
+        }).catch((error: unknown) => {
+          process.stderr.write(
+            `Failed to record clarification answer: ${error instanceof Error ? error.message : String(error)}\n`,
+          );
+        });
+      }
+    }
+
+    let chatQuestId: QuestId | null = null;
     const processor = chatLineProcessTransformer();
     const subagentStopHandles: (() => void)[] = [];
 
@@ -346,6 +373,7 @@ export const StartOrchestrator = {
       processor,
       ...(sessionId && { sessionId }),
       onQuestCreated: ({ questId, chatProcessId }) => {
+        chatQuestId = questId;
         orchestrationEventsState.emit({
           type: 'quest-session-linked',
           processId: chatProcessId,
@@ -370,6 +398,14 @@ export const StartOrchestrator = {
               processId: chatProcessId,
               payload: { chatProcessId, questions: clarification.questions },
             });
+
+            if (chatQuestId) {
+              pendingClarificationState.setForProcess({
+                processId: chatProcessId,
+                questId: chatQuestId,
+                questions: clarification.questions,
+              });
+            }
           }
         }
       },
@@ -414,6 +450,13 @@ export const StartOrchestrator = {
       onComplete: ({ chatProcessId, exitCode, sessionId: sid }) => {
         for (const stop of subagentStopHandles) {
           stop();
+        }
+
+        if (sid) {
+          pendingClarificationState.promoteToSession({
+            processId: chatProcessId,
+            sessionId: sid,
+          });
         }
 
         chatProcessState.remove({ processId: chatProcessId });
@@ -465,6 +508,22 @@ export const StartOrchestrator = {
         });
       },
     });
+
+    // Emit quest-session-linked if this session has a linked quest (belt-and-suspenders for session list fallback)
+    try {
+      const quests = await questListBroker({ guildId });
+      const linkedQuest = quests.find((quest) => quest.questCreatedSessionBy === sessionId);
+
+      if (linkedQuest) {
+        orchestrationEventsState.emit({
+          type: 'quest-session-linked',
+          processId: chatProcessId,
+          payload: { questId: linkedQuest.id, chatProcessId },
+        });
+      }
+    } catch {
+      // Quest lookup failure should not block history replay
+    }
 
     orchestrationEventsState.emit({
       type: 'chat-history-complete',
