@@ -16,7 +16,6 @@ import type { QuestId, SessionId, UserInput } from '@dungeonmaster/shared/contra
 import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestEventsBinding } from '../../bindings/use-quest-events/use-quest-events-binding';
-import { useQuestDetailBinding } from '../../bindings/use-quest-detail/use-quest-detail-binding';
 import { useSessionChatBinding } from '../../bindings/use-session-chat/use-session-chat-binding';
 import { useSessionListBinding } from '../../bindings/use-session-list/use-session-list-binding';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
@@ -56,6 +55,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     isStreaming,
     currentSessionId,
     linkedQuestId,
+    chatProcessId,
     pendingClarification,
     sendMessage,
     stopChat,
@@ -71,19 +71,20 @@ export const QuestChatWidget = (): React.JSX.Element => {
       ? null
       : (sessionList.find((s) => s.sessionId === sessionId)?.questId ?? null));
 
-  const { data: questData, refresh: refreshQuest } = useQuestDetailBinding({
+  const { questData, requestRefresh } = useQuestEventsBinding({
     questId: sessionQuestId,
+    chatProcessId,
   });
 
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
+  const prevQuestDataRef = useRef(questData);
 
-  useQuestEventsBinding({
-    questId: sessionQuestId,
-    onQuestModified: () => {
-      refreshQuest().catch(() => undefined);
+  useEffect(() => {
+    if (questData !== prevQuestDataRef.current && prevQuestDataRef.current !== null) {
       setExternalUpdatePending(true);
-    },
-  });
+    }
+    prevQuestDataRef.current = questData;
+  }, [questData]);
 
   useEffect(() => {
     if (isStreaming) return;
@@ -100,11 +101,11 @@ export const QuestChatWidget = (): React.JSX.Element => {
     if (prevIsStreamingRef.current && !isStreaming) {
       refreshGuild().catch(() => undefined);
       if (sessionQuestId) {
-        refreshQuest().catch(() => undefined);
+        requestRefresh();
       }
     }
     prevIsStreamingRef.current = isStreaming;
-  }, [isStreaming, refreshGuild, refreshQuest, sessionQuestId]);
+  }, [isStreaming, refreshGuild, requestRefresh, sessionQuestId]);
 
   const entryBasedQuestion = hasPendingQuestionGuard({ entries })
     ? extractAskUserQuestionTransformer({ entries })
@@ -178,14 +179,13 @@ export const QuestChatWidget = (): React.JSX.Element => {
             quest={questWithContent}
             onModify={({ modifications }): void => {
               questModifyBroker({ questId: questWithContent.id, modifications })
-                .then(async () => refreshQuest())
                 .then(() => {
                   setExternalUpdatePending(false);
                 })
                 .catch(() => undefined);
             }}
             onRefresh={(): void => {
-              refreshQuest().catch(() => undefined);
+              requestRefresh();
             }}
             externalUpdatePending={externalUpdatePending}
             onDismissUpdate={() => {

@@ -26,6 +26,7 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -47,6 +48,7 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -70,6 +72,7 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -94,6 +97,7 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -159,6 +163,7 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
       proxy.setupChat({ chatProcessId: 'proc-1' as never });
 
       mantineRenderAdapter({
@@ -233,7 +238,7 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupQuest({ quest });
+      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -247,6 +252,10 @@ describe('QuestChatWidget', () => {
             </Routes>
           </MemoryRouter>
         ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
       });
 
       await waitFor(() => {
@@ -267,7 +276,7 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupQuest({ quest });
+      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -281,6 +290,10 @@ describe('QuestChatWidget', () => {
             </Routes>
           </MemoryRouter>
         ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
       });
 
       await waitFor(() => {
@@ -306,16 +319,23 @@ describe('QuestChatWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
       proxy.setupSessions({ sessions: [session] });
-      proxy.setupQuest({ quest });
 
       mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/test-guild/session/chat-fallback']}>
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-fallback', state: { questId: quest.id } },
+            ]}
+          >
             <Routes>
               <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             </Routes>
           </MemoryRouter>
         ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
       });
 
       await waitFor(() => {
@@ -336,7 +356,7 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupQuest({ quest });
+      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -350,6 +370,14 @@ describe('QuestChatWidget', () => {
             </Routes>
           </MemoryRouter>
         ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
       });
 
       await waitFor(() => {
@@ -412,7 +440,7 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupQuest({ quest });
+      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -426,6 +454,10 @@ describe('QuestChatWidget', () => {
             </Routes>
           </MemoryRouter>
         ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
       });
 
       await waitFor(() => {
@@ -444,6 +476,7 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (

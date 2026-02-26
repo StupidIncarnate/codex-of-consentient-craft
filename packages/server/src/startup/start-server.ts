@@ -12,6 +12,7 @@ import {
   guildIdContract,
   orchestrationEventTypeContract,
   processIdContract,
+  questIdContract,
   sessionIdContract,
   wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
@@ -85,6 +86,23 @@ export const StartServer = (): void => {
             StartOrchestrator.replayChatHistory({ sessionId, guildId, chatProcessId }).catch(() => {
               processDevLogAdapter({ message: 'replay-history failed' });
             });
+          }
+
+          if (type === 'quest-data-request') {
+            const questId = questIdContract.parse(Reflect.get(raw, 'questId'));
+
+            StartOrchestrator.loadQuest({ questId })
+              .then((quest) => {
+                const message = wsMessageContract.parse({
+                  type: 'quest-modified',
+                  payload: { questId, quest },
+                  timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                });
+                _ws.send(JSON.stringify(message));
+              })
+              .catch(() => {
+                processDevLogAdapter({ message: `quest-data-request failed for ${questId}` });
+              });
           }
         } catch {
           processDevLogAdapter({ message: 'WebSocket message parse error' });

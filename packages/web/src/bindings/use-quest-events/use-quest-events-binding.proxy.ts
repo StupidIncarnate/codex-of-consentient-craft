@@ -3,6 +3,7 @@ import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/w
 export const useQuestEventsBindingProxy = (): {
   receiveWsMessage: (params: { data: string }) => void;
   getSocketClose: () => jest.Mock;
+  getSentMessages: () => unknown[];
 } => {
   const wsProxy = websocketConnectAdapterProxy();
 
@@ -11,5 +12,6 @@ export const useQuestEventsBindingProxy = (): {
       wsProxy.receiveMessage({ data });
     },
     getSocketClose: (): jest.Mock => wsProxy.getSocket().close,
+    getSentMessages: (): unknown[] => wsProxy.getSentMessages(),
   };
 };

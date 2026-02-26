@@ -11,7 +11,7 @@ import { mswServerAdapter } from '../adapters/msw/server/msw-server-adapter';
 const server = mswServerAdapter();
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'bypass' });
+  server.listen({ onUnhandledRequest: 'error' });
 });
 
 afterEach(() => {

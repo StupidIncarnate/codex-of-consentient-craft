@@ -308,12 +308,19 @@ export const StartOrchestrator = {
     const result = await questModifyBroker({ input: { ...input, questId } as ModifyQuestInput });
 
     if (result.success) {
-      const { guildId } = await questFindQuestPathBroker({ questId: questId as QuestId });
+      const { guildId, questPath } = await questFindQuestPathBroker({
+        questId: questId as QuestId,
+      });
+
+      const questFilePath = filePathContract.parse(
+        pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+      );
+      const quest = await questLoadBroker({ questFilePath });
 
       orchestrationEventsState.emit({
         type: 'quest-modified',
         processId: processIdContract.parse(randomUUID()),
-        payload: { questId, guildId },
+        payload: { questId, guildId, quest },
       });
     }
 

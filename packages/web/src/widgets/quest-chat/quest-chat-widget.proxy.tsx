@@ -20,7 +20,6 @@ import type {
 import type { AskUserQuestionOption } from '../../contracts/ask-user-question/ask-user-question-contract';
 import { useGuildDetailBindingProxy } from '../../bindings/use-guild-detail/use-guild-detail-binding.proxy';
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
-import { useQuestDetailBindingProxy } from '../../bindings/use-quest-detail/use-quest-detail-binding.proxy';
 import { useQuestEventsBindingProxy } from '../../bindings/use-quest-events/use-quest-events-binding.proxy';
 import { useSessionChatBindingProxy } from '../../bindings/use-session-chat/use-session-chat-binding.proxy';
 import { useSessionListBindingProxy } from '../../bindings/use-session-list/use-session-list-binding.proxy';
@@ -42,7 +41,6 @@ export const QuestChatWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
   setupSessions: (params: { sessions: SessionListItem[] }) => void;
   setupQuest: (params: { quest: Quest }) => void;
-  setupQuestError: () => void;
   setupGuild: (params: { guild: Guild }) => void;
   setupGuildError: () => void;
   getSentWsMessages: () => unknown[];
@@ -58,7 +56,6 @@ export const QuestChatWidgetProxy = (): {
 } => {
   const guildsBindingProxy = useGuildsBindingProxy();
   const sessionListProxy = useSessionListBindingProxy();
-  const questDetailProxy = useQuestDetailBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
   useQuestEventsBindingProxy();
   const chatBindingProxy = useSessionChatBindingProxy();
@@ -87,10 +84,13 @@ export const QuestChatWidgetProxy = (): {
       sessionListProxy.setupSessions({ sessions });
     },
     setupQuest: ({ quest }: { quest: Quest }): void => {
-      questDetailProxy.setupQuest({ quest });
-    },
-    setupQuestError: (): void => {
-      questDetailProxy.setupError();
+      chatBindingProxy.receiveWsMessage({
+        data: JSON.stringify({
+          type: 'quest-modified',
+          payload: { questId: quest.id, quest },
+          timestamp: '2025-01-01T00:00:00.000Z',
+        }),
+      });
     },
     setupGuild: ({ guild }: { guild: Guild }): void => {
       guildDetailProxy.setupGuild({ guild });

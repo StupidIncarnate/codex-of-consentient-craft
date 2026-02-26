@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub, QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
@@ -8,15 +8,13 @@ import { useQuestEventsBindingProxy } from './use-quest-events-binding.proxy';
 
 describe('useQuestEventsBinding', () => {
   describe('quest-modified matching', () => {
-    it('VALID: {quest-modified for matching questId} => calls onQuestModified', () => {
+    it('VALID: {quest-modified for matching questId} => sets questData', () => {
       const proxy = useQuestEventsBindingProxy();
       const questId = QuestIdStub({ value: 'my-quest' });
-      const onQuestModified = jest.fn();
+      const quest = QuestStub({ id: questId });
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => {
-          useQuestEventsBinding({ questId, onQuestModified });
-        },
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestEventsBinding({ questId, chatProcessId: null }),
       });
 
       testingLibraryActAdapter({
@@ -24,26 +22,116 @@ describe('useQuestEventsBinding', () => {
           proxy.receiveWsMessage({
             data: JSON.stringify({
               type: 'quest-modified',
-              payload: { questId: 'my-quest' },
+              payload: { questId: 'my-quest', quest },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
           });
         },
       });
 
-      expect(onQuestModified).toHaveBeenCalledTimes(1);
+      expect(result.current.questData).toStrictEqual(quest);
     });
   });
 
   describe('quest-modified non-matching', () => {
-    it('VALID: {quest-modified for different questId} => does not call onQuestModified', () => {
+    it('VALID: {quest-modified for different questId} => does not set questData', () => {
       const proxy = useQuestEventsBindingProxy();
       const questId = QuestIdStub({ value: 'my-quest' });
-      const onQuestModified = jest.fn();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestEventsBinding({ questId, chatProcessId: null }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: {
+                questId: 'other-quest',
+                quest: QuestStub({ id: QuestIdStub({ value: 'other-quest' }) }),
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.questData).toBeNull();
+    });
+  });
+
+  describe('quest-data-request on mount', () => {
+    it('VALID: {questId provided on mount} => sends quest-data-request', () => {
+      const proxy = useQuestEventsBindingProxy();
+      const questId = QuestIdStub({ value: 'my-quest' });
 
       testingLibraryRenderHookAdapter({
-        renderCallback: () => {
-          useQuestEventsBinding({ questId, onQuestModified });
+        renderCallback: () => useQuestEventsBinding({ questId, chatProcessId: null }),
+      });
+
+      const sentMessages = proxy.getSentMessages();
+
+      expect(sentMessages).toStrictEqual([{ type: 'quest-data-request', questId: 'my-quest' }]);
+    });
+
+    it('EMPTY: {questId is null on mount} => does not send quest-data-request', () => {
+      const proxy = useQuestEventsBindingProxy();
+
+      testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestEventsBinding({ questId: null, chatProcessId: null }),
+      });
+
+      const sentMessages = proxy.getSentMessages();
+
+      expect(sentMessages).toStrictEqual([]);
+    });
+  });
+
+  describe('quest-session-linked', () => {
+    it('VALID: {quest-session-linked with matching chatProcessId} => stores questId and sends quest-data-request', () => {
+      const proxy = useQuestEventsBindingProxy();
+      const chatProcessId = ProcessIdStub({ value: 'proc-1' });
+
+      testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestEventsBinding({ questId: null, chatProcessId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'quest-session-linked',
+              payload: { chatProcessId: 'proc-1', questId: 'linked-quest' },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      const sentMessages = proxy.getSentMessages();
+
+      expect(sentMessages).toStrictEqual([{ type: 'quest-data-request', questId: 'linked-quest' }]);
+    });
+
+    it('VALID: {quest-session-linked then quest-modified} => sets questData for linked questId', () => {
+      const proxy = useQuestEventsBindingProxy();
+      const chatProcessId = ProcessIdStub({ value: 'proc-1' });
+      const quest = QuestStub({ id: QuestIdStub({ value: 'linked-quest' }) });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestEventsBinding({ questId: null, chatProcessId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'quest-session-linked',
+              payload: { chatProcessId: 'proc-1', questId: 'linked-quest' },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
         },
       });
 
@@ -52,42 +140,48 @@ describe('useQuestEventsBinding', () => {
           proxy.receiveWsMessage({
             data: JSON.stringify({
               type: 'quest-modified',
-              payload: { questId: 'other-quest' },
+              payload: { questId: 'linked-quest', quest },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
           });
         },
       });
 
-      expect(onQuestModified).toHaveBeenCalledTimes(0);
+      expect(result.current.questData).toStrictEqual(quest);
     });
-  });
 
-  describe('null questId', () => {
-    it('VALID: {questId is null} => does not open WS connection', () => {
-      useQuestEventsBindingProxy();
-      const onQuestModified = jest.fn();
+    it('EDGE: {quest-session-linked with non-matching chatProcessId} => ignores message', () => {
+      const proxy = useQuestEventsBindingProxy();
+      const chatProcessId = ProcessIdStub({ value: 'proc-1' });
 
       testingLibraryRenderHookAdapter({
-        renderCallback: () => {
-          useQuestEventsBinding({ questId: null, onQuestModified });
+        renderCallback: () => useQuestEventsBinding({ questId: null, chatProcessId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'quest-session-linked',
+              payload: { chatProcessId: 'different-proc', questId: 'linked-quest' },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
         },
       });
 
-      expect(onQuestModified).toHaveBeenCalledTimes(0);
+      const sentMessages = proxy.getSentMessages();
+
+      expect(sentMessages).toStrictEqual([]);
     });
   });
 
   describe('cleanup', () => {
     it('CLEANUP: {unmount} => closes WS connection', () => {
       const proxy = useQuestEventsBindingProxy();
-      const questId = QuestIdStub({ value: 'my-quest' });
-      const onQuestModified = jest.fn();
 
       const { unmount } = testingLibraryRenderHookAdapter({
-        renderCallback: () => {
-          useQuestEventsBinding({ questId, onQuestModified });
-        },
+        renderCallback: () => useQuestEventsBinding({ questId: null, chatProcessId: null }),
       });
 
       const closeMock = proxy.getSocketClose();
@@ -104,44 +198,13 @@ describe('useQuestEventsBinding', () => {
     });
   });
 
-  describe('non-quest-modified messages', () => {
-    it('EDGE: {agent-output message} => does not call onQuestModified', () => {
-      const proxy = useQuestEventsBindingProxy();
-      const questId = QuestIdStub({ value: 'my-quest' });
-      const onQuestModified = jest.fn();
-
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => {
-          useQuestEventsBinding({ questId, onQuestModified });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.receiveWsMessage({
-            data: JSON.stringify({
-              type: 'agent-output',
-              payload: { questId: 'my-quest' },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
-      });
-
-      expect(onQuestModified).toHaveBeenCalledTimes(0);
-    });
-  });
-
   describe('invalid messages', () => {
-    it('EDGE: {invalid WS message} => does not call onQuestModified', () => {
+    it('EDGE: {invalid WS message} => does not set questData', () => {
       const proxy = useQuestEventsBindingProxy();
       const questId = QuestIdStub({ value: 'my-quest' });
-      const onQuestModified = jest.fn();
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => {
-          useQuestEventsBinding({ questId, onQuestModified });
-        },
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestEventsBinding({ questId, chatProcessId: null }),
       });
 
       testingLibraryActAdapter({
@@ -152,7 +215,7 @@ describe('useQuestEventsBinding', () => {
         },
       });
 
-      expect(onQuestModified).toHaveBeenCalledTimes(0);
+      expect(result.current.questData).toBeNull();
     });
   });
 });
