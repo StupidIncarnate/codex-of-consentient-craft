@@ -325,6 +325,68 @@ describe('chatSpawnBroker', () => {
     });
   });
 
+  describe('onQuestCreated callback', () => {
+    it('VALID: {new session} => calls onQuestCreated with questId and chatProcessId', async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+
+      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
+      const onComplete = jest.fn();
+      const registerProcess = jest.fn();
+      const onQuestCreated = jest.fn();
+
+      const result = await chatSpawnBroker({
+        guildId,
+        message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
+        onEntry,
+        onPatch,
+        onAgentDetected,
+        onComplete,
+        registerProcess,
+        onQuestCreated,
+      });
+
+      expect(onQuestCreated).toHaveBeenCalledTimes(1);
+      expect(onQuestCreated.mock.calls[0][0].chatProcessId).toBe(result.chatProcessId);
+      expect(typeof onQuestCreated.mock.calls[0][0].questId).toBe('string');
+    });
+
+    it('VALID: {resume session} => does not call onQuestCreated', async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const sessionId = SessionIdStub({ value: 'existing-session-999' });
+
+      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      const onEntry = jest.fn();
+      const onPatch = jest.fn();
+      const onAgentDetected = jest.fn();
+      const onComplete = jest.fn();
+      const registerProcess = jest.fn();
+      const onQuestCreated = jest.fn();
+
+      await chatSpawnBroker({
+        guildId,
+        message: 'Continue working',
+        sessionId,
+        processor: chatLineProcessTransformer(),
+        onEntry,
+        onPatch,
+        onAgentDetected,
+        onComplete,
+        registerProcess,
+        onQuestCreated,
+      });
+
+      expect(onQuestCreated).toHaveBeenCalledTimes(0);
+    });
+  });
+
   describe('quest creation failure', () => {
     it('ERROR: {quest creation fails} => throws error', async () => {
       const proxy = chatSpawnBrokerProxy();

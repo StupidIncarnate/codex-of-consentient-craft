@@ -141,6 +141,10 @@ export const StartOrchestrator = {
       throw new Error(`Quest not found: ${questId}`);
     }
 
+    if (quest.status !== 'approved') {
+      throw new Error(`Quest must be approved before starting. Current status: ${quest.status}`);
+    }
+
     const totalSteps = totalCountContract.parse(quest.steps.length);
 
     const promptText = pathseekerPromptStatics.prompt.template.replace(
@@ -334,6 +338,13 @@ export const StartOrchestrator = {
       message,
       processor,
       ...(sessionId && { sessionId }),
+      onQuestCreated: ({ questId, chatProcessId }) => {
+        orchestrationEventsState.emit({
+          type: 'quest-session-linked',
+          processId: chatProcessId,
+          payload: { questId, chatProcessId },
+        });
+      },
       onEntry: ({ chatProcessId, entry }) => {
         orchestrationEventsState.emit({
           type: 'chat-output',

@@ -14,7 +14,7 @@
  * // Spawns Claude CLI, streams output via callbacks, returns chatProcessId
  */
 
-import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
@@ -44,6 +44,7 @@ export const chatSpawnBroker = async ({
   onPatch,
   onAgentDetected,
   onComplete,
+  onQuestCreated,
   registerProcess,
 }: {
   guildId: GuildId;
@@ -63,6 +64,7 @@ export const chatSpawnBroker = async ({
     exitCode: number;
     sessionId: SessionId | null;
   }) => void;
+  onQuestCreated?: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   registerProcess: (params: { processId: ProcessId; kill: () => void }) => void;
 }): Promise<{ chatProcessId: ProcessId }> => {
   const chatProcessId = processIdContract.parse(`chat-${crypto.randomUUID()}`);
@@ -131,6 +133,8 @@ export const chatSpawnBroker = async ({
   }
 
   const { questId } = questResult;
+
+  onQuestCreated?.({ questId, chatProcessId });
 
   let promptText = chaoswhispererPromptStatics.prompt.template.replace(
     chaoswhispererPromptStatics.prompt.placeholders.arguments,

@@ -51,8 +51,22 @@ export const QuestChatWidget = (): React.JSX.Element => {
     guildId: resolvedGuildId,
   });
 
+  const {
+    entries,
+    isStreaming,
+    currentSessionId,
+    linkedQuestId,
+    pendingClarification,
+    sendMessage,
+    stopChat,
+  } = useSessionChatBinding({
+    guildId: resolvedGuildId,
+    sessionId,
+  });
+
   const sessionQuestId =
     routeQuestId ??
+    linkedQuestId ??
     (sessionId === null
       ? null
       : (sessionList.find((s) => s.sessionId === sessionId)?.questId ?? null));
@@ -70,12 +84,6 @@ export const QuestChatWidget = (): React.JSX.Element => {
       setExternalUpdatePending(true);
     },
   });
-
-  const { entries, isStreaming, currentSessionId, pendingClarification, sendMessage, stopChat } =
-    useSessionChatBinding({
-      guildId: resolvedGuildId,
-      sessionId,
-    });
 
   useEffect(() => {
     if (isStreaming) return;
