@@ -21,5 +21,6 @@ export const questToListItemTransformer = ({ quest }: { quest: Quest }): QuestLi
     status: quest.status,
     createdAt: quest.createdAt,
     stepProgress,
+    activeSessionId: quest.questCreatedSessionBy,
   });
 };

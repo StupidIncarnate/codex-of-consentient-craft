@@ -1,5 +1,5 @@
 import { questToListItemTransformer } from './quest-to-list-item-transformer';
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 import { DependencyStepStub } from '@dungeonmaster/shared/contracts';
 
 describe('questToListItemTransformer', () => {
@@ -16,6 +16,7 @@ describe('questToListItemTransformer', () => {
         status: quest.status,
         createdAt: quest.createdAt,
         stepProgress: undefined,
+        activeSessionId: undefined,
       });
     });
 
@@ -37,6 +38,7 @@ describe('questToListItemTransformer', () => {
         status: quest.status,
         createdAt: quest.createdAt,
         stepProgress: '1/3',
+        activeSessionId: undefined,
       });
     });
 
@@ -64,6 +66,23 @@ describe('questToListItemTransformer', () => {
       const result = questToListItemTransformer({ quest });
 
       expect(result.stepProgress).toBe('0/2');
+    });
+
+    it('VALID: {quest with questCreatedSessionBy} => returns activeSessionId', () => {
+      const sessionId = SessionIdStub();
+      const quest = QuestStub({ questCreatedSessionBy: sessionId });
+
+      const result = questToListItemTransformer({ quest });
+
+      expect(result.activeSessionId).toBe(sessionId);
+    });
+
+    it('VALID: {quest without questCreatedSessionBy} => returns undefined activeSessionId', () => {
+      const quest = QuestStub();
+
+      const result = questToListItemTransformer({ quest });
+
+      expect(result.activeSessionId).toBeUndefined();
     });
   });
 });
