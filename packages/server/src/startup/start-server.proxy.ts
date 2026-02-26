@@ -11,6 +11,7 @@ jest.mock('@dungeonmaster/orchestrator', () => ({
     removeGuild: jest.fn(),
     browseDirectories: jest.fn(),
     listQuests: jest.fn(),
+    loadQuest: jest.fn(),
     getQuest: jest.fn(),
     addQuest: jest.fn(),
     modifyQuest: jest.fn(),
@@ -36,6 +37,7 @@ import type {
   ProcessIdStub,
   OrchestrationStatusStub,
   QuestListItemStub,
+  QuestStub,
   GuildListItemStub,
   GuildStub,
   DirectoryEntryStub,
@@ -73,6 +75,7 @@ type ProcessId = ReturnType<typeof ProcessIdStub>;
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type Guild = ReturnType<typeof GuildStub>;
+type Quest = ReturnType<typeof QuestStub>;
 type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 
 export const StartServerProxy = (): {
@@ -105,8 +108,11 @@ export const StartServerProxy = (): {
   setupStartChat: (params: { chatProcessId: ProcessId }) => void;
   setupStartChatError: (params: { error: Error }) => void;
   setupStopChat: (params: { stopped: boolean }) => void;
+  setupLoadQuest: (params: { quest: Quest }) => void;
+  setupLoadQuestError: (params: { error: Error }) => void;
   getBroadcastedMessages: () => WsMessage[];
   simulateWsMessage: (params: { data: string }) => void;
+  simulateWsMessageWithWs: (params: { data: string }) => { getSentMessages: () => unknown[] };
   getCapturedReplayChatHistoryCalls: () => unknown[][];
 } => {
   const serveProxy = honoServeAdapterProxy();
@@ -240,10 +246,28 @@ export const StartServerProxy = (): {
         sessionChatStopProxy.setupEmpty();
       }
     },
+    setupLoadQuest: ({ quest }: { quest: Quest }): void => {
+      jest.mocked(StartOrchestrator.loadQuest).mockResolvedValue(quest);
+    },
+    setupLoadQuestError: ({ error }: { error: Error }): void => {
+      jest.mocked(StartOrchestrator.loadQuest).mockRejectedValue(error);
+    },
     getBroadcastedMessages: (): WsMessage[] => broadcastProxy.getCapturedMessages(),
     simulateWsMessage: ({ data }: { data: string }): void => {
       const fakeWs: WsClient = { send: jest.fn() };
       wsProxy.simulateMessage({ data, ws: fakeWs });
+    },
+    simulateWsMessageWithWs: ({ data }: { data: string }): { getSentMessages: () => unknown[] } => {
+      const sentMessages: unknown[] = [];
+      const fakeWs: WsClient = {
+        send: (message: string): void => {
+          sentMessages.push(message);
+        },
+      };
+      wsProxy.simulateMessage({ data, ws: fakeWs });
+      return {
+        getSentMessages: (): unknown[] => sentMessages,
+      };
     },
     getCapturedReplayChatHistoryCalls: (): unknown[][] =>
       jest.mocked(StartOrchestrator.replayChatHistory).mock.calls,

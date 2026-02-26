@@ -4,6 +4,8 @@ import {
   GuildIdStub,
   DirectoryEntryStub,
   QuestListItemStub,
+  QuestIdStub,
+  QuestStub,
   SessionIdStub,
   ProcessIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -669,6 +671,81 @@ describe('StartServer', () => {
       const calls = proxy.getCapturedReplayChatHistoryCalls();
 
       expect(calls).toStrictEqual([]);
+    });
+  });
+
+  describe('WebSocket quest-data-request message', () => {
+    it('VALID: {type: "quest-data-request", questId} => sends quest-modified message back to ws client', async () => {
+      const proxy = StartServerProxy();
+      const questId = QuestIdStub({ value: 'quest-data-req-test' });
+      const quest = QuestStub({ id: questId });
+      proxy.setupLoadQuest({ quest });
+
+      const wsHandle = proxy.simulateWsMessageWithWs({
+        data: JSON.stringify({
+          type: 'quest-data-request',
+          questId,
+        }),
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      const sentMessages = wsHandle.getSentMessages();
+
+      expect(sentMessages).toHaveLength(1);
+
+      const sentMessage: unknown = JSON.parse(sentMessages[0] as never);
+
+      expect(Reflect.get(sentMessage as object, 'type')).toBe('quest-modified');
+
+      const payload: unknown = Reflect.get(sentMessage as object, 'payload');
+
+      expect(Reflect.get(payload as object, 'questId')).toBe(questId);
+      expect(Reflect.get(payload as object, 'quest')).toStrictEqual(
+        JSON.parse(JSON.stringify(quest)),
+      );
+    });
+
+    it('INVALID: {type: "quest-data-request", missing questId} => does not send response', async () => {
+      const proxy = StartServerProxy();
+
+      const wsHandle = proxy.simulateWsMessageWithWs({
+        data: JSON.stringify({
+          type: 'quest-data-request',
+        }),
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      const sentMessages = wsHandle.getSentMessages();
+
+      expect(sentMessages).toHaveLength(0);
+    });
+
+    it('ERROR: {loadQuest rejects} => does not send response', async () => {
+      const proxy = StartServerProxy();
+      proxy.setupLoadQuestError({ error: new Error('quest not found') });
+
+      const questId = QuestIdStub({ value: 'nonexistent-quest' });
+
+      const wsHandle = proxy.simulateWsMessageWithWs({
+        data: JSON.stringify({
+          type: 'quest-data-request',
+          questId,
+        }),
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+
+      const sentMessages = wsHandle.getSentMessages();
+
+      expect(sentMessages).toHaveLength(0);
     });
   });
 
