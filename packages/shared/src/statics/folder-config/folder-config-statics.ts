@@ -289,6 +289,7 @@ export const folderConfigStatics = {
       '@mantine/hooks',
       'ansi-to-react',
       'react-router-dom',
+      '@tabler/icons-react',
       '@testing-library/react',
       '@testing-library/user-event',
     ],

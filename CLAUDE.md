@@ -119,9 +119,9 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 - **Run tests only**: `npm run ward -- --only test`
 - **Run typecheck only**: `npm run ward -- --only typecheck`
 - **Run specific test file**: `npm run ward -- --only test -- path/to/file.test.ts`
-- **Get full error details after a failing run**: `dungeonmaster-ward list <run-id>`
+- **Get full error details after a failing run**: Use MCP tool `ward-list` with the run ID
 - **Build**: `npm run build`
 - **Start dev server**: `npm run dev`
 
-**When ward fails:** The run output shows a summary with truncated errors. Follow the hint at the bottom
-(`dungeonmaster-ward list <run-id>`) to get full details — especially jest diffs for test failures.
+**When ward fails:** The run output shows a summary with truncated errors. Use the MCP tool `ward-list` with the
+run ID shown at the bottom to get full details — especially jest diffs for test failures.

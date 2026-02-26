@@ -40,7 +40,9 @@ export const commandRunBroker = async ({
   const hasFailing = wardResult.checks.some((check) => check.status === 'fail');
 
   if (hasFailing) {
-    process.stdout.write(`\nFull error details: dungeonmaster-ward list ${wardResult.runId}\n`);
+    process.stdout.write(
+      `\nFull error details: Use MCP tool ward-list with runId "${wardResult.runId}"\n`,
+    );
     process.exit(1);
   }
 };

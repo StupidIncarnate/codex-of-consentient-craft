@@ -26,6 +26,8 @@ module.exports = {
     '^react-dom/(.*)$': resolve(__dirname, 'node_modules/react-dom/$1'),
     '^react/(.*)$': resolve(__dirname, 'node_modules/react/$1'),
     '^mermaid$': '<rootDir>/src/__mocks__/mermaid-mock.cjs',
+    '^@panzoom/panzoom$': '<rootDir>/src/__mocks__/panzoom-mock.cjs',
+    '^@tabler/icons-react$': '<rootDir>/src/__mocks__/tabler-icons-mock.cjs',
   },
   transformIgnorePatterns: [
     '/dist/',

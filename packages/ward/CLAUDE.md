@@ -17,10 +17,9 @@ The binary is `dungeonmaster-ward`. It has four subcommands:
 
 ```
 npm run ward                                       # Run checks (default if no subcommand given)
-dungeonmaster-ward list [run-id]                   # List errors by file from most recent (or specified) run
-dungeonmaster-ward detail <run-id> <file>          # Show detailed errors for a specific file
-dungeonmaster-ward raw <run-id> <check-type>       # Show raw tool output for a check type
 ```
+
+For inspecting results after a run, use the MCP tools: `ward-list`, `ward-detail`, `ward-raw`.
 
 Running `npm run ward` with no arguments is equivalent to `npm run ward -- run`.
 
@@ -74,30 +73,21 @@ npm run ward -- --only lint,unit
 
 # Lint only changed files
 npm run ward -- --only lint --changed
-
-# Inspect results after a run
-dungeonmaster-ward list                          # errors from latest run
-dungeonmaster-ward list <run-id>                 # errors from a specific run
-dungeonmaster-ward detail <run-id> <file-path>   # drill into a file's errors
-dungeonmaster-ward raw <run-id> lint             # raw eslint JSON output
 ```
+
+**Inspect results after a run** — use MCP tools:
+- `ward-list` with runId — errors from a specific run
+- `ward-detail` with runId + filePath — drill into a file's errors
+- `ward-raw` with runId + checkType — raw tool output for a check type
 
 ## Workflow: run → list → detail
 
 When ward finds failures, it prints a summary with truncated error info. To get full details (especially jest diffs for
-test failures), use `list`:
+test failures), use the MCP tools:
 
-```bash
-# 1. Run checks — see summary with one-line errors
-npm run ward -- --only lint,test
-# Output includes: "Full error details: dungeonmaster-ward list <run-id>"
-
-# 2. List errors — see full jest diffs and complete error messages
-dungeonmaster-ward list <run-id>
-
-# 3. Detail — drill into a specific file
-dungeonmaster-ward detail <run-id> <file-path>
-```
+1. Run checks: `npm run ward -- --only lint,test`
+2. Use MCP tool `ward-list` with the run ID to see full error messages and jest diffs
+3. Use MCP tool `ward-detail` with the run ID and file path to drill into a specific file
 
 **Why this matters:** The `run` output truncates test failure messages to the first line. The `list` command shows the
 full `toStrictEqual` diff, which is what you need to actually fix the test. Always follow the hint at the bottom of a

@@ -604,8 +604,8 @@ function runSection8(packages: PackageInfo[]): void {
     const wardResult = exec({ cmd: 'npx', args: ['dungeonmaster-ward', 'run'] });
     const combined = wardResult.stdout + wardResult.stderr;
 
-    // Extract run-id from output (look for pattern like "dungeonmaster-ward list <id>")
-    const runIdMatch = /dungeonmaster-ward\s+list\s+(\S+)/.exec(combined);
+    // Extract run-id from output (look for pattern like 'ward-list with runId "<id>"')
+    const runIdMatch = /ward-list with runId "(\S+)"/.exec(combined);
 
     if (runIdMatch) {
       const runId = runIdMatch[1];
