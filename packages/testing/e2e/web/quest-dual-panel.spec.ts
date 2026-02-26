@@ -290,7 +290,9 @@ test.describe('Quest Dual Panel', () => {
     // 1. Clarification question
     // 2. Continuation text after the user answers
     queueClaudeResponse(ClarificationResponseStub({ sessionId }));
-    queueClaudeResponse(SimpleTextResponseStub({ sessionId, text: 'Phase 1: Setting up database schema' }));
+    queueClaudeResponse(
+      SimpleTextResponseStub({ sessionId, text: 'Phase 1: Setting up database schema' }),
+    );
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
@@ -371,7 +373,10 @@ test.describe('Quest Dual Panel', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, { name: 'Dual Panel History Guild', path: GUILD_PATH });
+    const guild = await createGuild(request, {
+      name: 'Dual Panel History Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-dual-history-${Date.now()}`;
