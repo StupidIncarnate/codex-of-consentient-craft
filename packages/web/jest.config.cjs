@@ -25,6 +25,7 @@ module.exports = {
     '^react-dom$': resolve(__dirname, 'node_modules/react-dom'),
     '^react-dom/(.*)$': resolve(__dirname, 'node_modules/react-dom/$1'),
     '^react/(.*)$': resolve(__dirname, 'node_modules/react/$1'),
+    '^mermaid$': '<rootDir>/src/__mocks__/mermaid-mock.cjs',
   },
   transformIgnorePatterns: [
     '/dist/',

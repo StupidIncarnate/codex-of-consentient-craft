@@ -1,14 +1,14 @@
 /**
- * PURPOSE: Renders the flows, contexts, and observables sections within the quest spec panel
+ * PURPOSE: Renders the contexts and observables sections within the quest spec panel
  *
  * USAGE:
- * <ObservablesLayerWidget flows={flows} contexts={contexts} observables={observables} editing={false} onChange={handleChange} />
- * // Renders flows with name/entry/exit, contexts with locator, observables with trigger/outcomes
+ * <ObservablesLayerWidget contexts={contexts} observables={observables} editing={false} onChange={handleChange} />
+ * // Renders contexts with locator, observables with trigger/outcomes
  */
 
 import { Box, Group, Text } from '@mantine/core';
 
-import type { Context, Flow, Observable } from '@dungeonmaster/shared/contracts';
+import type { Context, Observable } from '@dungeonmaster/shared/contracts';
 
 import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';
 import type { CssSpacing } from '../../contracts/css-spacing/css-spacing-contract';
@@ -23,14 +23,12 @@ import { FormInputWidget } from '../form-input/form-input-widget';
 import { FormTagListWidget } from '../form-tag-list/form-tag-list-widget';
 import { PlanSectionWidget } from '../plan-section/plan-section-widget';
 
-const FLOWS_LABEL = 'FLOWS' as SectionLabel;
 const CONTEXTS_LABEL = 'CONTEXTS' as SectionLabel;
 const OBSERVABLES_LABEL = 'OBSERVABLES' as SectionLabel;
 const DEPENDS_TAG_LABEL = 'depends' as SectionLabel;
 
 const NAME_PLACEHOLDER = 'Name' as FormPlaceholder;
 const DESCRIPTION_PLACEHOLDER = 'Description' as FormPlaceholder;
-const ENTRY_POINT_PLACEHOLDER = 'Entry point' as FormPlaceholder;
 const PAGE_PLACEHOLDER = 'page' as FormPlaceholder;
 const SECTION_PLACEHOLDER = 'section' as FormPlaceholder;
 const TRIGGER_PLACEHOLDER = 'WHEN trigger...' as FormPlaceholder;
@@ -75,13 +73,11 @@ const STATUS_COLORS = {
 } as const;
 
 export interface ObservablesLayerOnChangePayload {
-  flows: Flow[];
   contexts: Context[];
   observables: Observable[];
 }
 
 export interface ObservablesLayerWidgetProps {
-  flows: Flow[];
   contexts: Context[];
   observables: Observable[];
   editing: boolean;
@@ -89,7 +85,6 @@ export interface ObservablesLayerWidgetProps {
 }
 
 export const ObservablesLayerWidget = ({
-  flows,
   contexts,
   observables,
   editing,
@@ -97,114 +92,11 @@ export const ObservablesLayerWidget = ({
 }: ObservablesLayerWidgetProps): React.JSX.Element => (
   <Box data-testid="OBSERVABLES_LAYER">
     <PlanSectionWidget
-      title={FLOWS_LABEL}
-      items={flows}
-      editing={editing}
-      onAdd={() => {
-        onChange({
-          flows: [
-            ...flows,
-            {
-              id: crypto.randomUUID(),
-              name: '',
-              requirementIds: [],
-              entryPoint: '',
-              exitPoints: [],
-            } as unknown as Flow,
-          ],
-          contexts,
-          observables,
-        });
-      }}
-      onRemove={(index) => {
-        onChange({
-          flows: flows.filter((_, i) => i !== index),
-          contexts,
-          observables,
-        });
-      }}
-      renderItem={(flow, index) => (
-        <Box>
-          {editing ? (
-            <>
-              <FormInputWidget
-                value={flow.name as unknown as FormInputValue}
-                onChange={(value) => {
-                  onChange({
-                    flows: flows.map((item, i) =>
-                      i === index ? ({ ...item, name: value } as unknown as Flow) : item,
-                    ),
-                    contexts,
-                    observables,
-                  });
-                }}
-                placeholder={NAME_PLACEHOLDER}
-                color={GOLD_COLOR}
-              />
-              <FormInputWidget
-                value={flow.entryPoint as unknown as FormInputValue}
-                onChange={(value) => {
-                  onChange({
-                    flows: flows.map((item, i) =>
-                      i === index ? ({ ...item, entryPoint: value } as unknown as Flow) : item,
-                    ),
-                    contexts,
-                    observables,
-                  });
-                }}
-                placeholder={ENTRY_POINT_PLACEHOLDER}
-                mt={FIELD_MARGIN_TOP}
-                color={DIM_COLOR}
-              />
-            </>
-          ) : (
-            <>
-              <Text
-                ff="monospace"
-                size={HEADER_FONT_SIZE}
-                fw={600}
-                style={{ color: colors['loot-gold'] }}
-                data-testid="FLOW_NAME"
-              >
-                {flow.name}
-              </Text>
-              <Text
-                ff="monospace"
-                size={HEADER_FONT_SIZE}
-                style={{ color: colors['text-dim'] }}
-                data-testid="FLOW_ENTRY_POINT"
-              >
-                entry: {flow.entryPoint}
-              </Text>
-              <Text
-                ff="monospace"
-                style={{ fontSize: LABEL_FONT_SIZE, color: colors['text-dim'] }}
-                data-testid="FLOW_EXIT_POINTS"
-              >
-                exit: {flow.exitPoints.join(', ')}
-              </Text>
-              {flow.diagram && (
-                <Text
-                  ff="monospace"
-                  style={{ fontSize: LABEL_FONT_SIZE, color: colors['text-dim'] }}
-                  data-testid="FLOW_DIAGRAM_INDICATOR"
-                >
-                  [diagram]
-                </Text>
-              )}
-            </>
-          )}
-        </Box>
-      )}
-    />
-
-    <PlanSectionWidget
       title={CONTEXTS_LABEL}
       items={contexts}
       editing={editing}
       onAdd={() => {
         onChange({
-          flows,
           contexts: [
             ...contexts,
             {
@@ -219,7 +111,6 @@ export const ObservablesLayerWidget = ({
       }}
       onRemove={(index) => {
         onChange({
-          flows,
           contexts: contexts.filter((_, i) => i !== index),
           observables,
         });
@@ -232,7 +123,6 @@ export const ObservablesLayerWidget = ({
                 value={ctx.name as unknown as FormInputValue}
                 onChange={(value) => {
                   onChange({
-                    flows,
                     contexts: contexts.map((item, i) =>
                       i === index ? ({ ...item, name: value } as unknown as Context) : item,
                     ),
@@ -246,7 +136,6 @@ export const ObservablesLayerWidget = ({
                 value={ctx.description as unknown as FormInputValue}
                 onChange={(value) => {
                   onChange({
-                    flows,
                     contexts: contexts.map((item, i) =>
                       i === index ? ({ ...item, description: value } as unknown as Context) : item,
                     ),
@@ -268,7 +157,6 @@ export const ObservablesLayerWidget = ({
                   value={(ctx.locator.page ?? '') as unknown as FormInputValue}
                   onChange={(value) => {
                     onChange({
-                      flows,
                       contexts: contexts.map((item, i) =>
                         i === index
                           ? ({
@@ -287,7 +175,6 @@ export const ObservablesLayerWidget = ({
                   value={(ctx.locator.section ?? '') as unknown as FormInputValue}
                   onChange={(value) => {
                     onChange({
-                      flows,
                       contexts: contexts.map((item, i) =>
                         i === index
                           ? ({
@@ -346,7 +233,6 @@ export const ObservablesLayerWidget = ({
       editing={editing}
       onAdd={() => {
         onChange({
-          flows,
           contexts,
           observables: [
             ...observables,
@@ -362,7 +248,6 @@ export const ObservablesLayerWidget = ({
       }}
       onRemove={(index) => {
         onChange({
-          flows,
           contexts,
           observables: observables.filter((_, i) => i !== index),
         });
@@ -383,7 +268,6 @@ export const ObservablesLayerWidget = ({
                   options={contexts.map((c) => c.id as unknown as DropdownOption)}
                   onChange={(value) => {
                     onChange({
-                      flows,
                       contexts,
                       observables: observables.map((item, i) =>
                         i === index
@@ -405,7 +289,6 @@ export const ObservablesLayerWidget = ({
                   options={['' as DropdownOption]}
                   onChange={(value) => {
                     onChange({
-                      flows,
                       contexts,
                       observables: observables.map((item, i) =>
                         i === index
@@ -427,7 +310,6 @@ export const ObservablesLayerWidget = ({
                   options={VERIFICATION_STATUSES}
                   onChange={(value) => {
                     onChange({
-                      flows,
                       contexts,
                       observables: observables.map((item, i) =>
                         i === index
@@ -442,7 +324,6 @@ export const ObservablesLayerWidget = ({
                 value={obs.trigger as unknown as FormInputValue}
                 onChange={(value) => {
                   onChange({
-                    flows,
                     contexts,
                     observables: observables.map((item, i) =>
                       i === index ? ({ ...item, trigger: value } as unknown as Observable) : item,
@@ -464,7 +345,6 @@ export const ObservablesLayerWidget = ({
                     options={OUTCOME_TYPES}
                     onChange={(value) => {
                       onChange({
-                        flows,
                         contexts,
                         observables: observables.map((item, i) =>
                           i === index
@@ -485,7 +365,6 @@ export const ObservablesLayerWidget = ({
                       value={oc.description as unknown as FormInputValue}
                       onChange={(value) => {
                         onChange({
-                          flows,
                           contexts,
                           observables: observables.map((item, i) =>
                             i === index
@@ -509,7 +388,6 @@ export const ObservablesLayerWidget = ({
                 value={(obs.verificationNotes ?? '') as unknown as FormInputValue}
                 onChange={(value) => {
                   onChange({
-                    flows,
                     contexts,
                     observables: observables.map((item, i) =>
                       i === index

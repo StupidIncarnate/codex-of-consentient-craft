@@ -1,115 +1,15 @@
 import { screen } from '@testing-library/react';
 
-import { ContextStub, FlowStub, ObservableStub } from '@dungeonmaster/shared/contracts';
+import { ContextStub, ObservableStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ObservablesLayerWidget } from './observables-layer-widget';
 import { ObservablesLayerWidgetProxy } from './observables-layer-widget.proxy';
 
-type Flow = ReturnType<typeof FlowStub>;
 type Context = ReturnType<typeof ContextStub>;
 type Observable = ReturnType<typeof ObservableStub>;
 
 describe('ObservablesLayerWidget', () => {
-  describe('read mode - flows', () => {
-    it('VALID: {flows: [flow]} => renders flow name', () => {
-      ObservablesLayerWidgetProxy();
-      const flow = FlowStub({ name: 'Login Flow' });
-
-      mantineRenderAdapter({
-        ui: (
-          <ObservablesLayerWidget
-            flows={[flow]}
-            contexts={[]}
-            observables={[]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
-      });
-
-      expect(screen.getByTestId('FLOW_NAME').textContent).toBe('Login Flow');
-    });
-
-    it('VALID: {flows: [flow]} => renders flow entry point', () => {
-      ObservablesLayerWidgetProxy();
-      const flow = FlowStub({ entryPoint: '/login' });
-
-      mantineRenderAdapter({
-        ui: (
-          <ObservablesLayerWidget
-            flows={[flow]}
-            contexts={[]}
-            observables={[]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
-      });
-
-      expect(screen.getByTestId('FLOW_ENTRY_POINT').textContent).toBe('entry: /login');
-    });
-
-    it('VALID: {flows: [flow]} => renders flow exit points', () => {
-      ObservablesLayerWidgetProxy();
-      const flow = FlowStub({ exitPoints: ['/dashboard', '/settings'] });
-
-      mantineRenderAdapter({
-        ui: (
-          <ObservablesLayerWidget
-            flows={[flow]}
-            contexts={[]}
-            observables={[]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
-      });
-
-      expect(screen.getByTestId('FLOW_EXIT_POINTS').textContent).toBe(
-        'exit: /dashboard, /settings',
-      );
-    });
-
-    it('VALID: {flows: [flow with diagram]} => renders diagram indicator', () => {
-      ObservablesLayerWidgetProxy();
-      const flow = FlowStub({ diagram: 'graph TD; A-->B' });
-
-      mantineRenderAdapter({
-        ui: (
-          <ObservablesLayerWidget
-            flows={[flow]}
-            contexts={[]}
-            observables={[]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
-      });
-
-      expect(screen.getByTestId('FLOW_DIAGRAM_INDICATOR').textContent).toBe('[diagram]');
-    });
-
-    it('EMPTY: {flows: []} => renders section with FLOWS header', () => {
-      ObservablesLayerWidgetProxy();
-      const flows: Flow[] = [];
-
-      mantineRenderAdapter({
-        ui: (
-          <ObservablesLayerWidget
-            flows={flows}
-            contexts={[]}
-            observables={[]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
-      });
-
-      expect(screen.getByText('FLOWS')).toBeInTheDocument();
-    });
-  });
-
   describe('read mode - contexts', () => {
     it('VALID: {contexts: [ctx]} => renders context name in gold', () => {
       ObservablesLayerWidgetProxy();
@@ -118,7 +18,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[ctx]}
             observables={[]}
             editing={false}
@@ -137,7 +36,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[ctx]}
             observables={[]}
             editing={false}
@@ -156,7 +54,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[ctx]}
             observables={[]}
             editing={false}
@@ -177,7 +74,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[ctx]}
             observables={[]}
             editing={false}
@@ -196,7 +92,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={contexts}
             observables={[]}
             editing={false}
@@ -217,7 +112,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[]}
             observables={[obs]}
             editing={false}
@@ -238,7 +132,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[]}
             observables={[obs]}
             editing={false}
@@ -259,7 +152,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[]}
             observables={[obs]}
             editing={false}
@@ -278,7 +170,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[]}
             observables={[obs]}
             editing={false}
@@ -299,7 +190,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[]}
             observables={[obs]}
             editing={false}
@@ -320,7 +210,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[]}
             observables={[obs]}
             editing={false}
@@ -344,7 +233,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[]}
             observables={[obs]}
             editing={false}
@@ -363,7 +251,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[]}
             observables={[obs]}
             editing={false}
@@ -382,7 +269,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[]}
             observables={[obs]}
             editing={false}
@@ -401,7 +287,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[]}
             observables={observables}
             editing={false}
@@ -414,30 +299,6 @@ describe('ObservablesLayerWidget', () => {
     });
   });
 
-  describe('edit mode - flows', () => {
-    it('VALID: {editing: true, flows: [flow]} => renders FormInputWidget for name', () => {
-      ObservablesLayerWidgetProxy();
-      const flow = FlowStub({ name: 'Login Flow' });
-
-      mantineRenderAdapter({
-        ui: (
-          <ObservablesLayerWidget
-            flows={[flow]}
-            contexts={[]}
-            observables={[]}
-            editing={true}
-            onChange={jest.fn()}
-          />
-        ),
-      });
-
-      const inputs = screen.getAllByTestId('FORM_INPUT');
-      const nameInput = inputs.find((input) => input.getAttribute('value') === 'Login Flow');
-
-      expect(nameInput).toBeInTheDocument();
-    });
-  });
-
   describe('edit mode - contexts', () => {
     it('VALID: {editing: true, contexts: [ctx]} => renders FormInputWidget for name', () => {
       ObservablesLayerWidgetProxy();
@@ -446,7 +307,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[ctx]}
             observables={[]}
             editing={true}
@@ -471,7 +331,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[ctx]}
             observables={[obs]}
             editing={true}
@@ -496,7 +355,6 @@ describe('ObservablesLayerWidget', () => {
       mantineRenderAdapter({
         ui: (
           <ObservablesLayerWidget
-            flows={[]}
             contexts={[ctx]}
             observables={[obs]}
             editing={true}
