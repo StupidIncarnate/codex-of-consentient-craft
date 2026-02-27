@@ -50,7 +50,7 @@ startup/
 
 **Import Restrictions:**
 
-- Startup can ONLY import from: `flows/`, `contracts/`, `statics/`, `errors/`, and npm packages (`node_modules`)
+- Startup can ONLY import from: `flows/`, `contracts/`, `statics/`, `errors/`
 - NO direct imports of: `brokers/`, `adapters/`, `responders/`, `transformers/`, `guards/`, `state/`, `bindings/`,
   `widgets/`
 - The delegation chain is: `startup → flows → responders → brokers → adapters`
