@@ -309,7 +309,7 @@ export const folderConfigStatics = {
     exportCase: 'PascalCase',
     folderDepth: 0,
     folderPattern: 'startup/start-[name].ts',
-    allowedImports: ['flows/', 'contracts/', 'statics/', 'errors/', 'node_modules'],
+    allowedImports: ['flows/', 'contracts/', 'statics/', 'errors/'],
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,
