@@ -340,11 +340,15 @@ export const StartOrchestrator = {
     sessionId?: SessionId;
   }): Promise<{ chatProcessId: ProcessId }> => {
     if (sessionId) {
+      process.stderr.write(`[CLARIFICATION-DEBUG] startChat called with sessionId=${sessionId}\n`);
       const pending = pendingClarificationState.getForSession({ sessionId });
+      process.stderr.write(
+        `[CLARIFICATION-DEBUG] pending=${pending ? `questId=${pending.questId}, questions=${pending.questions.length}` : 'NONE'}\n`,
+      );
       if (pending) {
         pendingClarificationState.removeForSession({ sessionId });
-        questModifyBroker({
-          input: modifyQuestInputContract.parse({
+        try {
+          const clarificationInput = modifyQuestInputContract.parse({
             questId: pending.questId,
             clarifications: [
               {
@@ -354,16 +358,50 @@ export const StartOrchestrator = {
                 timestamp: new Date().toISOString(),
               },
             ],
-          }),
-        }).catch((error: unknown) => {
+          });
           process.stderr.write(
-            `Failed to record clarification answer: ${error instanceof Error ? error.message : String(error)}\n`,
+            `[CLARIFICATION-DEBUG] modifyQuestInput parsed OK, saving clarification\n`,
           );
-        });
+          questModifyBroker({
+            input: clarificationInput,
+          })
+            .then(() => {
+              process.stderr.write(
+                `[CLARIFICATION-DEBUG] clarification saved to quest successfully\n`,
+              );
+            })
+            .catch((error: unknown) => {
+              process.stderr.write(
+                `[CLARIFICATION-DEBUG] FAILED to save clarification: ${error instanceof Error ? error.message : String(error)}\n`,
+              );
+            });
+        } catch (parseError: unknown) {
+          process.stderr.write(
+            `[CLARIFICATION-DEBUG] PARSE ERROR: ${parseError instanceof Error ? parseError.message : String(parseError)}\n`,
+          );
+        }
       }
     }
 
     let chatQuestId: QuestId | null = null;
+
+    // For resumed sessions, look up the quest linked to this session
+    // so clarifications detected during the chat can be stored
+    if (sessionId) {
+      try {
+        const quests = await questListBroker({ guildId });
+        const linkedQuest = quests.find((quest) => quest.questCreatedSessionBy === sessionId);
+        if (linkedQuest) {
+          chatQuestId = linkedQuest.id;
+          process.stderr.write(
+            `[CLARIFICATION-DEBUG] resumed session: found linked questId=${chatQuestId}\n`,
+          );
+        }
+      } catch {
+        // Quest lookup failure should not block chat startup
+      }
+    }
+
     const processor = chatLineProcessTransformer();
     const subagentStopHandles: (() => void)[] = [];
 
@@ -387,12 +425,16 @@ export const StartOrchestrator = {
           payload: { chatProcessId, line: JSON.stringify(entry) },
         });
 
-        const lineParseResult = streamJsonLineContract.safeParse(JSON.stringify(entry));
+        const entryJson = JSON.stringify(entry);
+        const lineParseResult = streamJsonLineContract.safeParse(entryJson);
         if (lineParseResult.success) {
           const clarification = streamJsonToClarificationTransformer({
             line: lineParseResult.data,
           });
           if (clarification) {
+            process.stderr.write(
+              `[CLARIFICATION-DEBUG] onEntry: clarification DETECTED with ${clarification.questions.length} questions, chatQuestId=${chatQuestId ?? 'NULL'}\n`,
+            );
             orchestrationEventsState.emit({
               type: 'clarification-request',
               processId: chatProcessId,
@@ -405,6 +447,13 @@ export const StartOrchestrator = {
                 questId: chatQuestId,
                 questions: clarification.questions,
               });
+              process.stderr.write(
+                `[CLARIFICATION-DEBUG] onEntry: stored in pendingClarificationState for processId=${chatProcessId}\n`,
+              );
+            } else {
+              process.stderr.write(
+                `[CLARIFICATION-DEBUG] onEntry: SKIPPED storage - chatQuestId is NULL\n`,
+              );
             }
           }
         }
@@ -453,10 +502,17 @@ export const StartOrchestrator = {
         }
 
         if (sid) {
-          pendingClarificationState.promoteToSession({
+          const promoted = pendingClarificationState.promoteToSession({
             processId: chatProcessId,
             sessionId: sid,
           });
+          process.stderr.write(
+            `[CLARIFICATION-DEBUG] onComplete: promoteToSession processId=${chatProcessId} → sessionId=${sid}, promoted=${promoted}\n`,
+          );
+        } else {
+          process.stderr.write(
+            `[CLARIFICATION-DEBUG] onComplete: NO sessionId available, skipping promoteToSession\n`,
+          );
         }
 
         chatProcessState.remove({ processId: chatProcessId });

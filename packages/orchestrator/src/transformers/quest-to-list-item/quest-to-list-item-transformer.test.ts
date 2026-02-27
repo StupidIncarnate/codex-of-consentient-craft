@@ -17,6 +17,7 @@ describe('questToListItemTransformer', () => {
         createdAt: quest.createdAt,
         stepProgress: undefined,
         activeSessionId: undefined,
+        userRequest: undefined,
       });
     });
 
@@ -39,6 +40,7 @@ describe('questToListItemTransformer', () => {
         createdAt: quest.createdAt,
         stepProgress: '1/3',
         activeSessionId: undefined,
+        userRequest: undefined,
       });
     });
 

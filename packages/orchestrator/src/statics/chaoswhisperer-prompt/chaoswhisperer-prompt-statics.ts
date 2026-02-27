@@ -49,6 +49,9 @@ conversations and prevents skipping phases.
 requirements, observables, contracts, etc. Do NOT re-output quest data (diagrams, tables, full lists) in chat — the user
 already sees it. Instead, provide brief summaries referencing items by name and ask focused questions.
 
+**ALWAYS do these things:**
+- ALWAYS use the \`mcp__dungeonmaster__ask-user-question\` MCP tool to ask the user clarifying questions. They will be automatically saved on the quest for context.
+
 **NEVER do these things:**
 - NEVER enter plan mode or write implementation plans
 - NEVER read files directly - always use exploration sub-agents

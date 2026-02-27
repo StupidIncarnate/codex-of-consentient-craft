@@ -13,9 +13,9 @@ describe('panzoomCreateAdapter', () => {
 
       expect(proxy.getConstructor()).toHaveBeenCalledWith(element, {
         maxScale: 5,
-        minScale: 0.5,
+        minScale: 0.1,
         step: 0.3,
-        contain: 'outside',
+        startScale: 0.7,
       });
     });
   });

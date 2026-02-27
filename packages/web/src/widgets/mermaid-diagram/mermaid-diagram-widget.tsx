@@ -33,6 +33,9 @@ const controlStyles = {
   border: `1px solid ${emberDepthsThemeStatics.colors.border}`,
 };
 
+const DIAGRAM_STYLE_TAG =
+  '<style>.flowchart-link { stroke-width: 2px !important; } .marker { stroke-width: 1px; }</style>';
+
 export const MermaidDiagramWidget = ({ diagram }: MermaidDiagramWidgetProps): React.JSX.Element => {
   const inlineContainerRef = useRef<HTMLDivElement>(null);
   const inlinePanzoomRef = useRef<ReturnType<typeof panzoomCreateAdapter> | null>(null);
@@ -72,7 +75,7 @@ export const MermaidDiagramWidget = ({ diagram }: MermaidDiagramWidgetProps): Re
       return undefined;
     }
 
-    inlineContainerRef.current.innerHTML = svgContent;
+    inlineContainerRef.current.innerHTML = DIAGRAM_STYLE_TAG + svgContent;
 
     const instance = panzoomCreateAdapter({ element: inlineContainerRef.current });
     inlinePanzoomRef.current = instance;
@@ -91,7 +94,7 @@ export const MermaidDiagramWidget = ({ diagram }: MermaidDiagramWidgetProps): Re
       }
 
       if (node && svgContent) {
-        node.innerHTML = svgContent;
+        node.innerHTML = DIAGRAM_STYLE_TAG + svgContent;
         modalPanzoomRef.current = panzoomCreateAdapter({ element: node });
       }
     },

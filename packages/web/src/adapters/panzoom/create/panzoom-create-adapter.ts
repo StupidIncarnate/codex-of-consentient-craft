@@ -18,9 +18,9 @@ export interface PanzoomInstance {
 
 const PANZOOM_OPTIONS = {
   maxScale: 5,
-  minScale: 0.5,
+  minScale: 0.1,
   step: 0.3,
-  contain: 'outside' as const,
+  startScale: 0.7,
 };
 
 export const panzoomCreateAdapter = ({ element }: { element: HTMLElement }): PanzoomInstance => {

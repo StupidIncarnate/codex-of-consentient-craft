@@ -29,7 +29,7 @@ export const mermaidRenderAdapter = async ({
         background: '#1a110d',
         primaryColor: '#ff6b35',
         primaryTextColor: '#e0cfc0',
-        lineColor: '#3d2a1e',
+        lineColor: '#8b6b50',
         secondaryColor: '#2a1a14',
         tertiaryColor: '#0d0907',
       },
