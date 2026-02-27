@@ -5,17 +5,14 @@ responders/
   user/
     get/
       user-get-responder.ts
-      user-get-responder.proxy.ts
-      user-get-responder.test.ts
+      user-get-responder.integration.test.ts
     profile/
       user-profile-responder.tsx      # Frontend page
-      user-profile-responder.proxy.ts
-      user-profile-responder.test.tsx
+      user-profile-responder.integration.test.tsx
   email/
     process-queue/
       email-process-queue-responder.ts
-      email-process-queue-responder.proxy.ts
-      email-process-queue-responder.test.ts
+      email-process-queue-responder.integration.test.ts
 ```
 
 **FOUR TYPES OF RESPONDERS:**
@@ -185,17 +182,21 @@ export const HookResponder = async ({input}: { input: unknown }): Promise<Result
 - Without validation, external data bypasses type safety
 - `safeParse()` prevents throwing on invalid input (allows error handling)
 
+**TESTING (ESLint Enforced):**
+
+Responders use `.integration.test.ts` (NOT `.test.ts`). This is enforced by ESLint rule `@dungeonmaster/enforce-implementation-colocation`.
+
+Responders do NOT use `.proxy.ts` files.
+
 **LAYER FILE STRUCTURE:**
 
 ```
 responders/user/create/
   user-create-responder.ts                        # Parent
-  user-create-responder.proxy.ts
-  user-create-responder.test.ts
+  user-create-responder.integration.test.ts
 
   validate-request-layer-responder.ts             # Layer
-  validate-request-layer-responder.proxy.ts
-  validate-request-layer-responder.test.ts
+  validate-request-layer-responder.integration.test.ts
 ```
 
 **LAYER FILE EXAMPLE:**
@@ -229,7 +230,7 @@ export const validateRequestLayerResponder = ({req, res}: {
 };
 
 // Layer test
-// validate-request-layer-responder.test.ts
+// validate-request-layer-responder.integration.test.ts
 describe('validateRequestLayerResponder', () => {
     it('VALID: {valid body} => returns parsed data', () => {
         const req = {body: {name: 'John', email: 'john@example.com'}} as Request;
@@ -343,51 +344,11 @@ export const ReportGenerateScheduledResponder = async (): Promise<void> => {
 };
 ```
 
-**PROXY PATTERN:**
-
-Responder proxies delegate to broker proxies. Responder code runs REAL.
-
-```typescript
-// responders/user/create/user-create-responder.proxy.ts
-import {userCreateBrokerProxy} from '../../../brokers/user/create/user-create-broker.proxy';
-import {UserStub} from '../../../contracts/user/user.stub';
-import {UserCreateDataStub} from '../../../contracts/user-create-data/user-create-data.stub';
-
-type User = ReturnType<typeof UserStub>;
-type UserCreateData = ReturnType<typeof UserCreateDataStub>;
-
-export const userCreateResponderProxy = () => {
-    // Delegate to broker proxy
-    const brokerProxy = userCreateBrokerProxy();
-
-    // NO jest.mocked(responder) - responder runs real!
-
-    return {
-        // Semantic setup - delegate to broker
-        setupUserCreate: ({userData, user}: { userData: UserCreateData; user: User }) => {
-            brokerProxy.setupUserCreate({userData, user});
-        },
-
-        setupDuplicateEmail: ({userData}: { userData: UserCreateData }) => {
-            brokerProxy.setupDuplicateEmailError({userData});
-        }
-    };
-};
-```
-
-**Key principles:**
-
-- Delegate to broker proxies (which own the full mock chain)
-- Responder runs REAL - tests verify request validation and response formatting
-- Proxy methods describe scenarios from responder's perspective
-- Tests verify HTTP status codes, response shapes, error handling
-
 **TEST EXAMPLE:**
 
 ```typescript
-// responders/user/create/user-create-responder.test.ts
+// responders/user/create/user-create-responder.integration.test.ts
 import {UserCreateResponder} from './user-create-responder';
-import {userCreateResponderProxy} from './user-create-responder.proxy';
 import {UserStub} from '../../../contracts/user/user.stub';
 import {UserIdStub} from '../../../contracts/user-id/user-id.stub';
 
@@ -406,7 +367,6 @@ const mockResponse = () => {
 describe('UserCreateResponder', () => {
     describe('successful creation', () => {
         it('VALID: {name, email} => returns 201 with user', async () => {
-            const proxy = userCreateResponderProxy();
             const userId = UserIdStub({value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'});
             const user = UserStub({
                 id: userId,
@@ -415,11 +375,6 @@ describe('UserCreateResponder', () => {
             });
             const req = mockRequest({body: {name: 'John Doe', email: 'john@example.com'}});
             const res = mockResponse();
-
-            proxy.setupUserCreate({
-                userData: {name: 'John Doe', email: 'john@example.com'},
-                user,
-            });
 
             await UserCreateResponder({req, res});
 
@@ -434,7 +389,6 @@ describe('UserCreateResponder', () => {
 
     describe('validation errors', () => {
         it('INVALID_EMAIL: {invalid email} => returns 400 with error', async () => {
-            const proxy = userCreateResponderProxy();
             const req = mockRequest({body: {name: 'John Doe', email: 'invalid-email'}});
             const res = mockResponse();
 
@@ -447,7 +401,6 @@ describe('UserCreateResponder', () => {
         });
 
         it('INVALID_MULTIPLE: {missing name and email} => returns 400 with error', async () => {
-            const proxy = userCreateResponderProxy();
             const req = mockRequest({body: {}});
             const res = mockResponse();
 
@@ -456,25 +409,6 @@ describe('UserCreateResponder', () => {
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.json).toHaveBeenCalledWith({
                 error: expect.stringMatching(/required/iu),
-            });
-        });
-    });
-
-    describe('error cases', () => {
-        it('ERROR: {duplicate email} => returns 409 with error', async () => {
-            const proxy = userCreateResponderProxy();
-            const req = mockRequest({body: {name: 'John Doe', email: 'existing@example.com'}});
-            const res = mockResponse();
-
-            proxy.setupDuplicateEmail({
-                userData: {name: 'John Doe', email: 'existing@example.com'},
-            });
-
-            await UserCreateResponder({req, res});
-
-            expect(res.status).toHaveBeenCalledWith(409);
-            expect(res.json).toHaveBeenCalledWith({
-                error: expect.stringMatching(/already exists/iu),
             });
         });
     });

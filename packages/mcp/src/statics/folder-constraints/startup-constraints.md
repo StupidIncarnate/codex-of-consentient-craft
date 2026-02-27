@@ -16,7 +16,8 @@ startup/
 
 - **Folder depth: 0** - Startup files live at root of startup/ (no nesting)
 - **Wiring only** - Must NOT contain business logic, only initialization and wiring
-- **Can import from anywhere** - Only folder with unrestricted imports (it's the top-level orchestrator)
+- **Restricted imports** - Can only import from `flows/`, `contracts/`, `statics/`, `errors/`, and npm packages. Importing from `brokers/`, `adapters/`, `responders/`, `transformers/`, `guards/`, `state/`, `bindings/`, `widgets/`, or `middleware/` is forbidden.
+- **No branching logic** - Zero `if`, `switch`, or ternary operators allowed in startup files. If there's a branch, the code belongs in a flow, responder, or broker.
 - **Static constants allowed** - `const PORT = 3000` is fine here
 - **Environment loading** - Load .env and configure environment here
 - **Queue/scheduler registration** - Wire up responders to queues/cron jobs
@@ -101,7 +102,7 @@ The thin entry files just call startup/ functions.
 
 ```typescript
 /**
- * PURPOSE: Initializes Express server with routes, middleware, and database connection
+ * PURPOSE: Initializes Express server with routes and error flow
  *
  * USAGE:
  * await StartServer();
@@ -111,29 +112,23 @@ The thin entry files just call startup/ functions.
 import express from 'express';
 import {userFlow} from '../flows/user/user-flow';
 import {authFlow} from '../flows/auth/auth-flow';
-import {dbPoolState} from '../state/db-pool/db-pool-state';
-import {errorTrackingMiddleware} from '../middleware/error-tracking/error-tracking-middleware';
+import {errorTrackingFlow} from '../flows/error-tracking/error-tracking-flow';
 
 const PORT = 3000;
 
 export const StartServer = async (): Promise<void> => {
     const app = express();
 
-    // Initialize state
-    await dbPoolState.init();
-
     // Middleware
     app.use(express.json());
-    app.use((req, res, next) => errorTrackingMiddleware({req, res, next}));
+    app.use(errorTrackingFlow);
 
     // Routes
     app.use('/api/users', userFlow);
     app.use('/api/auth', authFlow);
 
     // Start server
-    app.listen(PORT, () => {
-        console.log(`Server listening on port ${PORT}`);
-    });
+    app.listen(PORT);
 };
 ```
 
@@ -178,20 +173,20 @@ export const StartApp = (): void => {
  */
 // startup/start-queue-worker.ts
 import Queue from 'bull';
-import {EmailProcessQueueResponder} from '../responders/email/process-queue/email-process-queue-responder';
-import {ReportProcessQueueResponder} from '../responders/report/process-queue/report-process-queue-responder';
+import {emailQueueNameStatic} from '../statics/email-queue-name/email-queue-name-static';
+import {reportQueueNameStatic} from '../statics/report-queue-name/report-queue-name-static';
+import {emailProcessQueueFlow} from '../flows/email-process-queue/email-process-queue-flow';
+import {reportProcessQueueFlow} from '../flows/report-process-queue/report-process-queue-flow';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
 export const StartQueueWorker = async (): Promise<void> => {
-    const emailQueue = new Queue('email', REDIS_URL);
-    const reportQueue = new Queue('report', REDIS_URL);
+    const emailQueue = new Queue(emailQueueNameStatic, REDIS_URL);
+    const reportQueue = new Queue(reportQueueNameStatic, REDIS_URL);
 
-    // Register responders
-    emailQueue.process(EmailProcessQueueResponder);
-    reportQueue.process(ReportProcessQueueResponder);
-
-    console.log('Queue worker started');
+    // Register flows
+    emailQueue.process(emailProcessQueueFlow);
+    reportQueue.process(reportProcessQueueFlow);
 };
 ```
 
