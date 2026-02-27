@@ -35,11 +35,17 @@ describe('folderConfigTransformer', () => {
       ]);
     });
 
-    it("VALID: {folderType: 'startup'} => returns startup config with wildcard imports", () => {
+    it("VALID: {folderType: 'startup'} => returns startup config with restricted imports", () => {
       const result = folderConfigTransformer({ folderType: 'startup' });
 
       expect(result).toStrictEqual(folderConfigStatics.startup);
-      expect(result!.allowedImports).toStrictEqual(['*']);
+      expect(result!.allowedImports).toStrictEqual([
+        'flows/',
+        'contracts/',
+        'statics/',
+        'errors/',
+        'node_modules',
+      ]);
     });
   });
 

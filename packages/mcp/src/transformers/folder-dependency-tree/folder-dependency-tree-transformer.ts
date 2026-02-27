@@ -37,14 +37,7 @@ export const folderDependencyTreeTransformer = ({
     }
 
     const imports = config.allowedImports;
-    const normalizedImports = imports
-      .map((imp) => {
-        if (imp === '*') {
-          return null;
-        }
-        return imp.replace(/\/$/u, '');
-      })
-      .filter((imp) => imp !== null);
+    const normalizedImports = imports.map((imp) => imp.replace(/\/$/u, ''));
 
     if (normalizedImports.length === 0) {
       hierarchyLines.push(
@@ -71,14 +64,9 @@ export const folderDependencyTreeTransformer = ({
       continue;
     }
 
-    const normalizedImports: readonly ImportPath[] = config.allowedImports
-      .map((imp) => {
-        if (imp === '*') {
-          return null;
-        }
-        return imp.replace(/\/$/u, '');
-      })
-      .filter((imp): imp is ImportPath => imp !== null);
+    const normalizedImports: readonly ImportPath[] = config.allowedImports.map(
+      (imp) => imp.replace(/\/$/u, '') as ImportPath,
+    );
 
     const folderType = folderTypeContract.parse(folder);
     graph[folderType] = normalizedImports;

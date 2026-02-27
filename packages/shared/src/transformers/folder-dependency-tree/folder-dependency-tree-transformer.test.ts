@@ -132,11 +132,11 @@ guards/          # Can import: contracts, statics`,
     });
   });
 
-  describe('with wildcard imports', () => {
-    it('VALID: {folderConfigs: {startup: {allowedImports: ["*"]}}} => filters out wildcard from output', () => {
+  describe('with startup restricted imports', () => {
+    it('VALID: {folderConfigs: {startup: {allowedImports: ["flows/", "contracts/"]}}} => lists specific imports', () => {
       const folderConfigs = FolderConfigsStub({
         statics: FolderConfigStub({ allowedImports: [] }),
-        startup: FolderConfigStub({ allowedImports: ['*'] }),
+        startup: FolderConfigStub({ allowedImports: ['flows/', 'contracts/'] }),
       });
 
       const result = folderDependencyTreeTransformer({ folderConfigs });
@@ -144,11 +144,11 @@ guards/          # Can import: contracts, statics`,
       expect(result).toStrictEqual({
         hierarchy: ContentTextStub({
           value: `statics/          # Can import: nothing (leaf node)
-startup/          # Can import: nothing (leaf node)`,
+startup/          # Can import: flows, contracts`,
         }),
         graph: {
           statics: [],
-          startup: [],
+          startup: ['flows', 'contracts'],
         },
         matrix: buildMatrixStub({
           folders: ['statics', 'startup'],

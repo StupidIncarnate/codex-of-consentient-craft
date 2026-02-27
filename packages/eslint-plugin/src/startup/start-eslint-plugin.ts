@@ -39,6 +39,7 @@ import { ruleForbidTodoSkipBroker } from '../brokers/rule/forbid-todo-skip/rule-
 import { ruleEnforceRegexUsageBroker } from '../brokers/rule/enforce-regex-usage/rule-enforce-regex-usage-broker';
 import { ruleEnforceFileMetadataBroker } from '../brokers/rule/enforce-file-metadata/rule-enforce-file-metadata-broker';
 import { ruleBanFetchInProxiesBroker } from '../brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker';
+import { ruleBanStartupBranchingBroker } from '../brokers/rule/ban-startup-branching/rule-ban-startup-branching-broker';
 import { configDungeonmasterBroker } from '../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintConfig } from '../contracts/eslint-config/eslint-config-contract';
 import type { EslintRule } from '../contracts/eslint-rule/eslint-rule-contract';
@@ -75,6 +76,7 @@ export const StartEslintPlugin = (): {
     readonly 'enforce-regex-usage': EslintRule;
     readonly 'enforce-file-metadata': EslintRule;
     readonly 'ban-fetch-in-proxies': EslintRule;
+    readonly 'ban-startup-branching': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: {
@@ -121,6 +123,7 @@ export const StartEslintPlugin = (): {
       'enforce-regex-usage': ruleEnforceRegexUsageBroker(),
       'enforce-file-metadata': ruleEnforceFileMetadataBroker(),
       'ban-fetch-in-proxies': ruleBanFetchInProxiesBroker(),
+      'ban-startup-branching': ruleBanStartupBranchingBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

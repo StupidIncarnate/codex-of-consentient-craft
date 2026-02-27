@@ -99,10 +99,6 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
 
           // Check if this folder type is in the allowed imports
           const isAllowed = allowedImports.some((allowed: string) => {
-            if (allowed === '*') {
-              return true;
-            }
-
             if (allowed === 'node_modules') {
               return false;
             }
@@ -191,10 +187,6 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
 
           // Check if the folder is allowed
           const isAllowed = allowedImports.some((allowed: string) => {
-            if (allowed === '*') {
-              return true;
-            }
-
             if (allowed === 'node_modules') {
               return false;
             }
@@ -270,14 +262,12 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
         } else {
           // Check if external imports are allowed
           // Note: Check raw string literals against the array (which has specific literal types from statics)
-          const canImportExternal =
-            (allowedImports as readonly unknown[]).includes('node_modules') ||
-            (allowedImports as readonly unknown[]).includes('*');
+          const canImportExternal = (allowedImports as readonly unknown[]).includes('node_modules');
 
           // Check if this specific package is explicitly allowed
           const isSpecificPackageAllowed = allowedImports.some((allowed: string) => {
             // Don't treat folder paths as package names
-            if (allowed.endsWith('/') || allowed === 'node_modules' || allowed === '*') {
+            if (allowed.endsWith('/') || allowed === 'node_modules') {
               return false;
             }
             // Check if the import source matches the allowed package name

@@ -29,7 +29,6 @@ beforeEach(() => {
       '/project/src/state/user-cache/user-cache-state.test.ts',
       '/project/src/middleware/http-telemetry/http-telemetry-middleware.test.ts',
       '/project/src/statics/user/user-statics.test.ts',
-      '/project/src/responders/user/get/user-get-responder.test.ts',
       '/project/src/bindings/use-user-data/use-user-data-binding.test.ts',
       '/project/src/errors/validation/validation-error.test.ts',
       '/project/src/flows/user/user-flow.integration.test.tsx',
@@ -37,10 +36,16 @@ beforeEach(() => {
       '/project/src/startup/start-database.integration.test.ts',
       // Startup with forbidden unit test (for invalid case)
       '/project/src/startup/start-bad-unit.test.ts',
+      // Responder integration test files
+      '/project/src/responders/user/get/user-get-responder.integration.test.ts',
+      '/project/src/responders/user/create/validate-request-layer-responder.integration.test.ts',
+      // Responder with forbidden unit test (for invalid case)
+      '/project/src/responders/order/create/order-create-responder.test.ts',
+      // Responder with forbidden proxy (has integration test but also has proxy)
+      '/project/src/responders/order/list/order-list-responder.integration.test.ts',
       // Layer files
       '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.test.ts',
       '/project/src/widgets/user-card/avatar-layer-widget.test.tsx',
-      '/project/src/responders/user/create/validate-request-layer-responder.test.ts',
     ];
 
     if (existingTestFiles.includes(path)) {
@@ -57,14 +62,14 @@ beforeEach(() => {
       '/project/src/state/user-cache/user-cache-state.proxy.ts',
       '/project/src/middleware/http-telemetry/http-telemetry-middleware.proxy.ts',
       '/project/src/statics/user/user-statics.proxy.ts',
-      '/project/src/responders/user/get/user-get-responder.proxy.ts',
       '/project/src/bindings/use-user-data/use-user-data-binding.proxy.ts',
       '/project/src/brokers/payment/process/payment-process-broker.proxy.ts',
       '/project/src/transformers/validate-schema/validate-schema-transformer.proxy.ts',
       // Layer file proxies
       '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.proxy.ts',
       '/project/src/widgets/user-card/avatar-layer-widget.proxy.tsx',
-      '/project/src/responders/user/create/validate-request-layer-responder.proxy.ts',
+      // Responder with forbidden proxy (for invalid case)
+      '/project/src/responders/order/list/order-list-responder.proxy.ts',
     ];
 
     if (existingProxyFiles.includes(path)) {
@@ -156,6 +161,7 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const httpTelemetryMiddleware = () => {};',
       filename: '/project/src/middleware/http-telemetry/http-telemetry-middleware.ts',
     },
+    // Responder with integration test - valid (no proxy needed)
     {
       code: 'export const UserGetResponder = () => {};',
       filename: '/project/src/responders/user/get/user-get-responder.ts',
@@ -219,6 +225,7 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const AvatarLayerWidget = () => <div />;',
       filename: '/project/src/widgets/user-card/avatar-layer-widget.tsx',
     },
+    // Layer responder with integration test - valid (no proxy needed)
     {
       code: 'export const ValidateRequestLayerResponder = () => {};',
       filename: '/project/src/responders/user/create/validate-request-layer-responder.ts',
@@ -298,10 +305,7 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
     {
       code: 'export const ProcessPaymentLayerResponder = () => {};',
       filename: '/project/src/responders/checkout/process/process-payment-layer-responder.ts',
-      errors: [
-        { messageId: 'missingTestFileWithLayer' },
-        { messageId: 'missingProxyFileWithLayer' },
-      ],
+      errors: [{ messageId: 'missingIntegrationTestFile' }],
     },
 
     // Statics files should not have tests (just immutable data)
@@ -321,6 +325,23 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const StartBadUnit = () => {};',
       filename: '/project/src/startup/start-bad-unit.ts',
       errors: [{ messageId: 'forbiddenUnitTestFile' }],
+    },
+
+    // Responder files - require integration tests, forbid unit tests and proxies
+    {
+      code: 'export const OrderDeleteResponder = () => {};',
+      filename: '/project/src/responders/order/delete/order-delete-responder.ts',
+      errors: [{ messageId: 'missingIntegrationTestFile' }],
+    },
+    {
+      code: 'export const OrderCreateResponder = () => {};',
+      filename: '/project/src/responders/order/create/order-create-responder.ts',
+      errors: [{ messageId: 'forbiddenUnitTestFile' }],
+    },
+    {
+      code: 'export const OrderListResponder = () => {};',
+      filename: '/project/src/responders/order/list/order-list-responder.ts',
+      errors: [{ messageId: 'forbiddenProxyFile' }],
     },
   ],
 });

@@ -281,9 +281,9 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/contracts/user/user.stub.ts',
     },
 
-    // Startup can import anything (*)
+    // Startup can import flows, contracts, statics, errors, and npm packages
     {
-      code: 'import { appStartBroker } from "../brokers/app/start/app-start-broker";',
+      code: 'import { userFlow } from "../flows/user/user-flow";',
       filename: '/project/src/startup/index.ts',
     },
     {
@@ -291,7 +291,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/startup/server.ts',
     },
     {
-      code: 'import { userWidget } from "../widgets/user/user-widget";',
+      code: 'import { serverPortStatics } from "../statics/server-port/server-port-statics";',
       filename: '/project/src/startup/app.ts',
     },
 

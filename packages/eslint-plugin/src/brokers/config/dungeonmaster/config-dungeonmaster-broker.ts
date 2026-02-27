@@ -108,6 +108,7 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/require-contract-validation': 'error',
     '@dungeonmaster/require-zod-on-primitives': 'error',
     '@dungeonmaster/ban-fetch-in-proxies': 'error',
+    '@dungeonmaster/ban-startup-branching': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

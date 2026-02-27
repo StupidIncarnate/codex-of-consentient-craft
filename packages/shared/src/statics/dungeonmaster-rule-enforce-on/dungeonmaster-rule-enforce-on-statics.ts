@@ -50,6 +50,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/no-multiple-property-assertions': 'pre-edit',
   '@dungeonmaster/no-mutable-state-in-proxy-factory': 'pre-edit',
   '@dungeonmaster/ban-fetch-in-proxies': 'pre-edit',
+  '@dungeonmaster/ban-startup-branching': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

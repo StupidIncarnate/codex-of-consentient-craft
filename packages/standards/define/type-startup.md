@@ -41,22 +41,73 @@ startup/
   proxies.
 - **Note:** Entry files (index.tsx, index.js) just import from startup/
 
+**No Branching Logic:**
+
+- Zero `if`, `switch`, or ternary (`? :`) statements allowed in startup files
+- No exceptions. If there's a branch, the code belongs in a flow, responder, or broker
+- Environment guards (`if (!rootElement)`) move to the flow or responder
+- Self-invocation guards (`if (require.main === module)`) move to the entry file (index.ts)
+
+**Import Restrictions:**
+
+- Startup can ONLY import from: `flows/`, `contracts/`, `statics/`, `errors/`, and npm packages (`node_modules`)
+- NO direct imports of: `brokers/`, `adapters/`, `responders/`, `transformers/`, `guards/`, `state/`, `bindings/`,
+  `widgets/`
+- The delegation chain is: `startup → flows → responders → brokers → adapters`
+- Startup mounts the framework and calls flows. Flows route to responders. Responders handle requests.
+
 **Example:**
 
 ```tsx
 // startup/start-server.ts
 import express from 'express';
 import {userFlow} from '../flows/user/user-flow';
-import {dbPoolState} from '../state/db-pool/db-pool-state';
-import {errorTrackingMiddleware} from '../middleware/error-tracking/error-tracking-middleware';
+import {serverPortStatics} from '../statics/server-port/server-port-statics';
 
 export const StartServer = async () => {
     const app = express();
-    await dbPoolState.init();
-    app.use((req, res, next) => errorTrackingMiddleware({req, res, next}));
     app.use('/api', userFlow);
+    app.listen(serverPortStatics.port);
+};
+```
+
+**Anti-patterns (DO NOT DO THIS):**
+
+```tsx
+// BAD: if-chains in startup
+import express from 'express';
+import {userFetchBroker} from '../brokers/user/fetch/user-fetch-broker';
+
+export const StartServer = async () => {
+    const app = express();
+    if (process.env.NODE_ENV === 'production') {  // WRONG: branching in startup
+        app.use(helmet());
+    }
+    app.get('/user', async (req, res) => {        // WRONG: inline callback belongs in a responder
+        const user = await userFetchBroker({userId: req.params.id});
+        if (!user) {                               // WRONG: more branching
+            res.status(404).json({error: 'Not found'});
+            return;
+        }
+        res.json(user);
+    });
     app.listen(3000);
 };
+```
+
+```tsx
+// CORRECT: delegate to flows, no branching, no broker imports
+import express from 'express';
+import {userFlow} from '../flows/user/user-flow';
+import {serverPortStatics} from '../statics/server-port/server-port-statics';
+
+export const StartServer = async () => {
+    const app = express();
+    app.use('/api/user', userFlow);
+    app.listen(serverPortStatics.port);
+};
+// Environment branching lives in the flow or responder.
+// Route handlers live in responders. Startup only mounts flows.
 ```
 
 **IMPORTANT:** The startup/ folder contains bootstrap logic, but tech stacks still need their conventional entry points:

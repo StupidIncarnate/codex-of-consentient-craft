@@ -2,7 +2,7 @@ import { StartEslintPlugin } from './start-eslint-plugin';
 
 describe('StartEslintPlugin', () => {
   describe('with default initialization', () => {
-    it('VALID: {} => returns plugin with all 28 rule names', () => {
+    it('VALID: {} => returns plugin with all 29 rule names', () => {
       const plugin = StartEslintPlugin();
 
       expect(Object.keys(plugin.rules)).toStrictEqual([
@@ -36,6 +36,7 @@ describe('StartEslintPlugin', () => {
         'enforce-regex-usage',
         'enforce-file-metadata',
         'ban-fetch-in-proxies',
+        'ban-startup-branching',
       ]);
     });
 

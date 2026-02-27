@@ -45,9 +45,11 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
         invalidProxyFilename:
           'Proxy file must follow naming pattern [baseName]-[folderType].proxy.ts. Expected: {{expectedFileName}}, but found: {{actualFileName}}',
         missingIntegrationTestFile:
-          'Startup file must have a colocated integration test file. Create {{testFileName}} in the same directory. Startup files require integration tests, not unit tests.',
+          '{{fileType}} file must have a colocated integration test file. Create {{testFileName}} in the same directory. {{fileType}} files require integration tests, not unit tests.',
         forbiddenUnitTestFile:
-          'Startup file must not have a unit test file. Found {{testFileName}}. Startup files require integration tests (.integration.test.ts), not unit tests (.test.ts).',
+          '{{fileType}} file must not have a unit test file. Found {{testFileName}}. {{fileType}} files require integration tests (.integration.test.ts), not unit tests (.test.ts).',
+        forbiddenProxyFile:
+          '{{fileType}} file must not have a proxy file. Found {{proxyFileName}}. {{fileType}} files use integration tests and do not need proxy files.',
         forbiddenStaticsTestFile:
           'Statics file must not have a test file. Found {{testFileName}}. Statics files contain immutable data and should not have tests.',
       },
@@ -103,8 +105,15 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           suffix: 'statics',
         });
 
-        // Determine if this is a startup file (requires integration tests, forbids unit tests)
+        // Determine if this is a startup or responder file (requires integration tests, forbids unit tests and proxies)
         const isStartup = filename.includes('/startup/');
+        const isResponder = isFileInFolderTypeGuard({
+          filename,
+          folderType: 'responders',
+          suffix: 'responder',
+        });
+        const isIntegrationTestOnly = isStartup || isResponder;
+        const integrationTestOnlyFileType = isStartup ? 'Startup' : 'Responder';
 
         // Get all possible test file paths for this source file
         const testFilePaths = testFilePathVariantsTransformer({ sourceFilePath: filename });
@@ -115,8 +124,8 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           return fsExistsSyncAdapter({ filePath: parsedPath });
         });
 
-        // Handle startup files specially - require integration tests, forbid unit tests
-        if (isStartup) {
+        // Handle startup and responder files specially - require integration tests, forbid unit tests and proxies
+        if (isIntegrationTestOnly) {
           const extension = getFileExtensionTransformer({ filename });
           const baseFilePath = filename.slice(0, -extension.length);
 
@@ -143,6 +152,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
               node,
               messageId: 'forbiddenUnitTestFile',
               data: {
+                fileType: integrationTestOnlyFileType,
                 testFileName: existingUnitTestPath.split('/').pop() ?? existingUnitTestPath,
               },
             });
@@ -152,8 +162,28 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
               node,
               messageId: 'missingIntegrationTestFile',
               data: {
+                fileType: integrationTestOnlyFileType,
                 testFileName:
                   primaryIntegrationTestFileName.split('/').pop() ?? primaryIntegrationTestFileName,
+              },
+            });
+          }
+
+          // Check for forbidden proxy file on integration-test-only files
+          const proxyBaseName = `${removeFileExtensionTransformer({ filename: fileBaseName })}.proxy${extension}`;
+          const proxyDir = filename.split('/').slice(0, -1).join('/');
+          const proxyFilePath = filePathContract.parse(
+            proxyDir ? `${proxyDir}/${proxyBaseName}` : proxyBaseName,
+          );
+          const hasForbiddenProxy = fsExistsSyncAdapter({ filePath: proxyFilePath });
+
+          if (hasForbiddenProxy) {
+            ctx.report({
+              node,
+              messageId: 'forbiddenProxyFile',
+              data: {
+                fileType: integrationTestOnlyFileType,
+                proxyFileName: proxyBaseName,
               },
             });
           }
