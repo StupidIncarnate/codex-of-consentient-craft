@@ -737,21 +737,22 @@ Mocks" section.
 
 #### Quick Reference: What Needs Proxies?
 
-| Category      | Needs Proxy? | Purpose                                                                                         |
-|---------------|--------------|-------------------------------------------------------------------------------------------------|
-| Contracts     | ❌ No         | Use stubs (`.stub.ts` files) - includes service objects with methods                            |
-| Errors        | ❌ No         | Throw directly in tests                                                                         |
-| Adapters      | ✅ Sometimes  | **Mock npm dependency** (axios, fs, etc.). Empty proxy if no mocking needed (simple re-exports) |
-| Brokers       | ✅ Sometimes  | Compose adapter proxies, provide semantic setup. Empty proxy if no dependencies mocked          |
-| Guards        | ❌ No         | Pure boolean functions - run real, no mocking needed                                            |
-| Transformers  | ❌ No         | Pure data transformation - run real, no mocking needed                                          |
-| Statics       | ❌ No         | Immutable values - test with actual values                                                      |
-| State         | ✅ Yes        | Spy on methods, clear state, mock external stores                                               |
-| Bindings      | ✅ Yes        | Delegate to broker proxies                                                                      |
-| Middleware    | ✅ Yes        | Delegate to adapter proxies                                                                     |
-| Responders    | ✅ Yes        | Delegate to broker proxies                                                                      |
-| Widgets       | ✅ Yes        | Delegate to bindings + provide UI triggers/selectors                                            |
-| Flows/Startup | ✅ Sometimes  | Integration tests with `.integration.proxy.ts` for complex setup (spawning processes, clients)  |
+| Category     | Needs Proxy? | Purpose                                                                                         |
+|--------------|--------------|-------------------------------------------------------------------------------------------------|
+| Contracts    | ❌ No         | Use stubs (`.stub.ts` files) - includes service objects with methods                            |
+| Errors       | ❌ No         | Throw directly in tests                                                                         |
+| Adapters     | ✅ Sometimes  | **Mock npm dependency** (axios, fs, etc.). Empty proxy if no mocking needed (simple re-exports) |
+| Brokers      | ✅ Sometimes  | Compose adapter proxies, provide semantic setup. Empty proxy if no dependencies mocked          |
+| Guards       | ❌ No         | Pure boolean functions - run real, no mocking needed                                            |
+| Transformers | ❌ No         | Pure data transformation - run real, no mocking needed                                          |
+| Statics      | ❌ No         | Immutable values - test with actual values                                                      |
+| State        | ✅ Yes        | Spy on methods, clear state, mock external stores                                               |
+| Bindings     | ✅ Yes        | Delegate to broker proxies                                                                      |
+| Middleware   | ✅ Yes        | Delegate to adapter proxies                                                                     |
+| Responders   | ✅ Yes        | Delegate to broker proxies                                                                      |
+| Widgets      | ✅ Yes        | Delegate to bindings + provide UI triggers/selectors                                            |
+| Flows        | ❌ No         | Integration tests (`.integration.test.ts`) - no proxies                                         |
+| Startup      | ✅ Sometimes  | Integration tests with `.integration.proxy.ts` for complex setup (spawning processes, clients)  |
 
 #### 1. Adapter Proxy (Foundation)
 
@@ -1653,18 +1654,18 @@ tests/
 - **Stub files** (`.stub.ts`) are co-located with contracts
 - **Proxy files** (`.proxy.ts`) are co-located with the code they test
 - **Test files** (`.test.ts`) are co-located with implementation files
-- **Integration test files** (`.integration.test.ts`) are co-located with startup files
+- **Integration test files** (`.integration.test.ts`) are co-located with startup and flow files
 - **NO separate** `tests/stubs/` or `tests/proxies/` directories
 
 ## Integration Testing
 
-Integration tests are **ONLY for startup files**. They validate that startup files correctly wire up the entire
-application. They use `.integration.test.ts` extension and are co-located with startup files.
+Integration tests are for **startup and flow files**. They validate that these files correctly wire up the application.
+They use `.integration.test.ts` extension and are co-located with the implementation files.
 
 **ESLint Enforced:** The `@dungeonmaster/enforce-implementation-colocation` rule:
 
-- **Requires** `.integration.test.ts` for startup files (will error if missing)
-- **Forbids** `.test.ts` for startup files (will error if present)
+- **Requires** `.integration.test.ts` for startup and flow files (will error if missing)
+- **Forbids** `.test.ts` for startup and flow files (will error if present)
 
 **All other code** (brokers, flows, guards, transformers, widgets, etc.) uses **unit tests** (`.test.ts`) with colocated
 proxies.
@@ -1706,8 +1707,9 @@ start - my - app.integration.test.ts  // <-- Don't do this
 
 ### Integration Test Proxies (Startup Only)
 
-**IMPORTANT:** Only **startup integration tests** can use proxies. Integration tests are ONLY for startup files - all
-other code uses unit tests with proxies.
+**IMPORTANT:** Only **startup integration tests** can use proxies. Integration tests are for startup and flow files -
+all
+other code uses unit tests with proxies. Flow integration tests do NOT use proxies.
 
 **When complex setup is needed** (spawning processes, creating clients, managing async resources), startup integration
 tests can use a colocated proxy:

@@ -31,18 +31,18 @@ beforeEach(() => {
       '/project/src/statics/user/user-statics.test.ts',
       '/project/src/bindings/use-user-data/use-user-data-binding.test.ts',
       '/project/src/errors/validation/validation-error.test.ts',
-      '/project/src/flows/user/user-flow.integration.test.tsx',
       '/project/src/startup/start-server.integration.test.ts',
       '/project/src/startup/start-database.integration.test.ts',
       // Startup with forbidden unit test (for invalid case)
       '/project/src/startup/start-bad-unit.test.ts',
-      // Responder integration test files
-      '/project/src/responders/user/get/user-get-responder.integration.test.ts',
-      '/project/src/responders/user/create/validate-request-layer-responder.integration.test.ts',
-      // Responder with forbidden unit test (for invalid case)
-      '/project/src/responders/order/create/order-create-responder.test.ts',
-      // Responder with forbidden proxy (has integration test but also has proxy)
-      '/project/src/responders/order/list/order-list-responder.integration.test.ts',
+      // Responder test files (normal unit tests)
+      '/project/src/responders/user/get/user-get-responder.test.ts',
+      '/project/src/responders/user/create/validate-request-layer-responder.test.ts',
+      // Flow integration test files
+      '/project/src/flows/user/user-flow.integration.test.tsx',
+      '/project/src/flows/api/api-flow.integration.test.ts',
+      // Flow with forbidden unit test (for invalid case)
+      '/project/src/flows/bad/bad-flow.test.ts',
       // Layer files
       '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.test.ts',
       '/project/src/widgets/user-card/avatar-layer-widget.test.tsx',
@@ -68,8 +68,9 @@ beforeEach(() => {
       // Layer file proxies
       '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.proxy.ts',
       '/project/src/widgets/user-card/avatar-layer-widget.proxy.tsx',
-      // Responder with forbidden proxy (for invalid case)
-      '/project/src/responders/order/list/order-list-responder.proxy.ts',
+      // Responder proxy files (normal proxies)
+      '/project/src/responders/user/get/user-get-responder.proxy.ts',
+      '/project/src/responders/user/create/validate-request-layer-responder.proxy.ts',
     ];
 
     if (existingProxyFiles.includes(path)) {
@@ -161,7 +162,7 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const httpTelemetryMiddleware = () => {};',
       filename: '/project/src/middleware/http-telemetry/http-telemetry-middleware.ts',
     },
-    // Responder with integration test - valid (no proxy needed)
+    // Responder with test and proxy - valid (normal testable file)
     {
       code: 'export const UserGetResponder = () => {};',
       filename: '/project/src/responders/user/get/user-get-responder.ts',
@@ -201,9 +202,15 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export class ValidationError extends Error {}',
       filename: '/project/src/errors/validation/validation-error.ts',
     },
+    // Flow with integration test - valid (no proxy needed)
     {
       code: 'export const UserFlow = () => <Route />;',
       filename: '/project/src/flows/user/user-flow.tsx',
+    },
+    // Flow with integration test - valid
+    {
+      code: 'export const ApiFlow = () => {};',
+      filename: '/project/src/flows/api/api-flow.ts',
     },
     {
       code: 'export const StartServer = () => {};',
@@ -225,7 +232,7 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const AvatarLayerWidget = () => <div />;',
       filename: '/project/src/widgets/user-card/avatar-layer-widget.tsx',
     },
-    // Layer responder with integration test - valid (no proxy needed)
+    // Layer responder with test and proxy - valid (normal testable file)
     {
       code: 'export const ValidateRequestLayerResponder = () => {};',
       filename: '/project/src/responders/user/create/validate-request-layer-responder.ts',
@@ -305,7 +312,10 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
     {
       code: 'export const ProcessPaymentLayerResponder = () => {};',
       filename: '/project/src/responders/checkout/process/process-payment-layer-responder.ts',
-      errors: [{ messageId: 'missingIntegrationTestFile' }],
+      errors: [
+        { messageId: 'missingTestFileWithLayer' },
+        { messageId: 'missingProxyFileWithLayer' },
+      ],
     },
 
     // Statics files should not have tests (just immutable data)
@@ -327,21 +337,16 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       errors: [{ messageId: 'forbiddenUnitTestFile' }],
     },
 
-    // Responder files - require integration tests, forbid unit tests and proxies
+    // Flow files - require integration tests, forbid unit tests and proxies
     {
-      code: 'export const OrderDeleteResponder = () => {};',
-      filename: '/project/src/responders/order/delete/order-delete-responder.ts',
+      code: 'export const SettingsFlow = () => {};',
+      filename: '/project/src/flows/settings/settings-flow.ts',
       errors: [{ messageId: 'missingIntegrationTestFile' }],
     },
     {
-      code: 'export const OrderCreateResponder = () => {};',
-      filename: '/project/src/responders/order/create/order-create-responder.ts',
+      code: 'export const BadFlow = () => {};',
+      filename: '/project/src/flows/bad/bad-flow.ts',
       errors: [{ messageId: 'forbiddenUnitTestFile' }],
-    },
-    {
-      code: 'export const OrderListResponder = () => {};',
-      filename: '/project/src/responders/order/list/order-list-responder.ts',
-      errors: [{ messageId: 'forbiddenProxyFile' }],
     },
   ],
 });

@@ -105,15 +105,15 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           suffix: 'statics',
         });
 
-        // Determine if this is a startup or responder file (requires integration tests, forbids unit tests and proxies)
+        // Determine if this is a startup or flow file (requires integration tests, forbids unit tests and proxies)
         const isStartup = filename.includes('/startup/');
-        const isResponder = isFileInFolderTypeGuard({
+        const isFlow = isFileInFolderTypeGuard({
           filename,
-          folderType: 'responders',
-          suffix: 'responder',
+          folderType: 'flows',
+          suffix: 'flow',
         });
-        const isIntegrationTestOnly = isStartup || isResponder;
-        const integrationTestOnlyFileType = isStartup ? 'Startup' : 'Responder';
+        const isIntegrationTestOnly = isStartup || isFlow;
+        const integrationTestOnlyFileType = isStartup ? 'Startup' : 'Flow';
 
         // Get all possible test file paths for this source file
         const testFilePaths = testFilePathVariantsTransformer({ sourceFilePath: filename });

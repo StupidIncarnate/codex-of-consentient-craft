@@ -257,7 +257,7 @@ export const folderConfigStatics = {
       'errors/',
     ],
     disallowAdhocTypes: true,
-    requireProxy: false,
+    requireProxy: true,
     allowsLayerFiles: true,
     allowRegex: false,
     requireContractDeclarations: true,

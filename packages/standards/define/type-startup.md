@@ -36,8 +36,8 @@ startup/
 - **Static constants:** Can live here (e.g., `const PORT = 3000`)
 - **Environment loading:** Happens here
 - **Queue/Scheduled registration:** Register responders here
-- **Integration tests:** Only startup files have `.integration.test.ts` files. These CAN use colocated `.proxy.ts` files
-  for complex setup (spawning processes, managing async clients). All other code uses unit tests (`.test.ts`) with
+- **Integration tests:** Startup and flow files use `.integration.test.ts` files. Startup CAN use colocated `.proxy.ts`
+  files for complex setup (spawning processes, managing async clients). All other code uses unit tests (`.test.ts`) with
   proxies.
 - **Note:** Entry files (index.tsx, index.js) just import from startup/
 

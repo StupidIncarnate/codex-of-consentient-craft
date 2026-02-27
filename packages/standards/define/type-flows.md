@@ -7,17 +7,22 @@
 ```
 flows/
   user/
-    user-flow.ts
-    user-flow.test.ts       # Unit test with proxy
-    user-flow.proxy.ts      # Proxy for mocking dependencies
+    user-flow.tsx
+    user-flow.integration.test.tsx    # Integration test
+  api/
+    api-flow.ts
+    api-flow.integration.test.ts
 ```
 
 **Naming Conventions:**
 
 - **Filename:** kebab-case ending with `-flow.ts` or `-flow.tsx` (e.g., `user-flow.tsx`)
 - **Export:** PascalCase ending with `Flow` (e.g., `UserFlow`, `CheckoutFlow`)
-- **Tests:** kebab-case ending with `.test.ts` - unit tests with proxy
-- **Proxy:** kebab-case ending with `-flow.proxy.ts`, export `[Name]FlowProxy` (e.g., `UserFlowProxy`)
+- **Tests:** kebab-case ending with `.integration.test.ts` (NOT `.test.ts` - these are integration tests)
+    - **ESLint enforced:** `@dungeonmaster/enforce-implementation-colocation` requires `.integration.test.ts` and
+      forbids
+      `.test.ts` for flow files
+- **No proxies:** Flows do NOT use `.proxy.ts` files. Flows are routing/wiring only and should be tested as integration.
 - **Pattern:** flows/[domain]/[domain]-flow.ts(x)
 
 **Constraints:**

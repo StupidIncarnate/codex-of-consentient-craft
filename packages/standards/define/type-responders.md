@@ -9,11 +9,13 @@ responders/
   user/
     get/
       user-get-responder.ts
-      user-get-responder.integration.test.ts
+      user-get-responder.proxy.ts
+      user-get-responder.test.ts
   email/
     process-queue/
       email-process-queue-responder.ts
-      email-process-queue-responder.integration.test.ts
+      email-process-queue-responder.proxy.ts
+      email-process-queue-responder.test.ts
 ```
 
 **Naming Conventions:**
@@ -21,11 +23,9 @@ responders/
 - **Filename:** kebab-case `[domain]-[action]-responder.ts` (e.g., `user-get-responder.ts`,
   `email-process-queue-responder.ts`)
 - **Export:** PascalCase `[Domain][Action]Responder` (e.g., `UserGetResponder`, `EmailProcessQueueResponder`)
-- **Tests:** kebab-case ending with `.integration.test.ts` (NOT `.test.ts` - these are integration tests)
-  - **ESLint enforced:** `@dungeonmaster/enforce-implementation-colocation` requires `.integration.test.ts` and forbids
-    `.test.ts` for responder files
-- **No proxies:** Responders do NOT use `.proxy.ts` files. Responders are integration points (they wire brokers to
-  request/response boundaries), not isolated units. They should be tested as integration, like startup.
+- **Tests:** kebab-case ending with `.test.ts` (standard unit tests with proxy pattern)
+  - **ESLint enforced:** `@dungeonmaster/enforce-implementation-colocation` requires `.test.ts` and `.proxy.ts`
+- **Proxies:** Responders use `.proxy.ts` files that delegate to broker proxies. Responder code runs REAL.
 - **Pattern:** responders/[domain]/[action]/[domain]-[action]-responder.ts
 
 **Constraints:**
