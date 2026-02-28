@@ -19,6 +19,7 @@ import { folderConfigTransformer } from '../../../transformers/folder-config/fol
 import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
 import { filepathResolveRelativeImportTransformer } from '../../../transformers/filepath-resolve-relative-import/filepath-resolve-relative-import-transformer';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
+import { nodeBuiltinStatics } from '../../../statics/node-builtin/node-builtin-statics';
 
 export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -290,6 +291,18 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
             if (!importsContract) {
               return;
             }
+          }
+
+          // Exception: Integration test files can import Node builtins (fs, path, crypto, etc.)
+          // Integration tests run real subprocesses and file I/O without mocking
+          const isIntegrationTest = (ctx.filename ?? '').includes('.integration.test.');
+          const bareModule = importSource.startsWith('node:')
+            ? importSource.slice('node:'.length)
+            : importSource;
+          const isNodeBuiltin = nodeBuiltinStatics.modules.some((mod) => mod === bareModule);
+
+          if (isIntegrationTest && isNodeBuiltin) {
+            return;
           }
 
           if (!canImportExternal && !isSpecificPackageAllowed) {

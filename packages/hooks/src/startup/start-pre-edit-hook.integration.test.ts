@@ -1,7 +1,12 @@
-import * as fs from 'fs';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
-import * as crypto from 'crypto';
+import {
+  installTestbedCreateBroker,
+  BaseNameStub,
+  RelativePathStub,
+  FileContentStub,
+} from '@dungeonmaster/testing';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import {
   EditToolHookStub,
   MultiEditToolHookStub,
@@ -11,15 +16,10 @@ import { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
-const tempRoot = path.join(process.cwd(), 'src', '.test-tmp', 'pre-edit-lint-tests');
+const BASE_DIR = FilePathStub({
+  value: path.join(process.cwd(), 'src', '.test-tmp', 'pre-edit-lint-tests'),
+});
 const hookPath = path.join(process.cwd(), 'src', 'startup', 'start-pre-edit-hook.ts');
-
-const createTestProject = ({ name }: { name: typeof tempRoot }) => {
-  const testId = crypto.randomBytes(4).toString('hex');
-  const projectDir = path.join(tempRoot, `${name}-${testId}`);
-  fs.mkdirSync(projectDir, { recursive: true });
-  return projectDir;
-};
 
 const runHook = ({ hookData }: { hookData: unknown }): ReturnType<typeof ExecResultStub> => {
   const input = JSON.stringify(hookData);
@@ -39,26 +39,18 @@ const runHook = ({ hookData }: { hookData: unknown }): ReturnType<typeof ExecRes
 };
 
 describe('pre-edit-lint', () => {
-  beforeEach(() => {
-    // Ensure temp directory exists
-    fs.mkdirSync(tempRoot, { recursive: true });
-  });
-
-  afterEach(() => {
-    // Clean up temp directory
-    if (fs.existsSync(tempRoot)) {
-      fs.rmSync(tempRoot, { recursive: true, force: true });
-    }
-  });
-
   describe('with Write tool', () => {
     describe('success cases', () => {
       it('VALID: {content: clean TypeScript code} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'clean-write' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'clean-write' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const hookData = WriteToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             content: `export function add({ a, b }: { a: boolean; b: boolean }): boolean {
@@ -69,6 +61,8 @@ describe('pre-edit-lint', () => {
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result).toStrictEqual({
           exitCode: 0,
           stdout: '',
@@ -77,11 +71,15 @@ describe('pre-edit-lint', () => {
       });
 
       it('VALID: {content: string containing "any"} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'string-any-write' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'string-any-write' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const hookData = WriteToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             content: `export const message = 'This can be any string you want';`,
@@ -89,6 +87,8 @@ describe('pre-edit-lint', () => {
         });
 
         const result = runHook({ hookData });
+
+        testbed.cleanup();
 
         expect(result).toStrictEqual({
           exitCode: 0,
@@ -98,11 +98,15 @@ describe('pre-edit-lint', () => {
       });
 
       it('VALID: {content: comment containing "any"} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'comment-any-write' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'comment-any-write' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const hookData = WriteToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             content: `export function test(): void {
@@ -113,6 +117,8 @@ describe('pre-edit-lint', () => {
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result).toStrictEqual({
           exitCode: 0,
           stdout: '',
@@ -121,11 +127,15 @@ describe('pre-edit-lint', () => {
       });
 
       it('EMPTY: {content: empty file} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'empty-write' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'empty-write' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const hookData = WriteToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             content: '',
@@ -133,6 +143,8 @@ describe('pre-edit-lint', () => {
         });
 
         const result = runHook({ hookData });
+
+        testbed.cleanup();
 
         expect(result).toStrictEqual({
           exitCode: 0,
@@ -142,14 +154,21 @@ describe('pre-edit-lint', () => {
       });
 
       it('VALID: {content: overwrites existing file with same violations} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'overwrite-same-violations' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'overwrite-same-violations' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         // Create file with existing violations
-        fs.writeFileSync(filePath, `const bad: any = 'test';`);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: `const bad: any = 'test';` }),
+        });
 
         const hookData = WriteToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             content: `const bad: any = 'updated test';`,
@@ -157,6 +176,8 @@ describe('pre-edit-lint', () => {
         });
 
         const result = runHook({ hookData });
+
+        testbed.cleanup();
 
         expect(result).toStrictEqual({
           exitCode: 0,
@@ -168,8 +189,12 @@ describe('pre-edit-lint', () => {
 
     describe('failure cases', () => {
       it('INVALID_ANY: {content: new explicit any type} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'any-violation-write' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'any-violation-write' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const hookData = WriteToolHookStub({
           cwd: path.resolve(process.cwd(), '../..'), // Use monorepo root so ESLint can find eslint.config.js
@@ -181,17 +206,23 @@ describe('pre-edit-lint', () => {
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
         expect(result.stderr).toMatch(/Type Safety Violation/u);
       });
 
       it('INVALID_TS_IGNORE: {content: @ts-ignore comment} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'ts-ignore-write' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'ts-ignore-write' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const hookData = WriteToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             content: `// @ts-ignore
@@ -201,17 +232,23 @@ export function test(): void {}`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
         expect(result.stderr).toMatch(/Type Error Suppression/u);
       });
 
       it('INVALID_TS_EXPECT_ERROR: {content: @ts-expect-error comment} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'ts-expect-error-write' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'ts-expect-error-write' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const hookData = WriteToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             content: `// @ts-expect-error
@@ -221,17 +258,23 @@ export function test(): void {}`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
         expect(result.stderr).toMatch(/Type Error Suppression/u);
       });
 
       it('INVALID_ESLINT_DISABLE: {content: eslint-disable comment} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'eslint-disable-write' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'eslint-disable-write' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const hookData = WriteToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             content: `// eslint-disable-next-line no-console
@@ -241,17 +284,23 @@ console.log('test');`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
         expect(result.stderr).toMatch(/Code Quality Rule Bypass/u);
       });
 
       it('INVALID_MULTIPLE: {content: multiple violations} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'multiple-violations-write' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'multiple-violations-write' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const hookData = WriteToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             content: `// @ts-ignore
@@ -262,6 +311,8 @@ export function dirty({ param }: { param: any }): any {
         });
 
         const result = runHook({ hookData });
+
+        testbed.cleanup();
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
@@ -274,17 +325,24 @@ export function dirty({ param }: { param: any }): any {
   describe('with Edit tool', () => {
     describe('success cases', () => {
       it('VALID: {old_string: clean code, new_string: clean code} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'clean-edit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'clean-edit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         // Create initial file
         const initialContent = `export function oldFunction(): string {
   return 'hello';
 }`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = EditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             old_string: `export function oldFunction(): string {
@@ -298,6 +356,8 @@ export function dirty({ param }: { param: any }): any {
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result).toStrictEqual({
           exitCode: 0,
           stdout: '',
@@ -306,16 +366,23 @@ export function dirty({ param }: { param: any }): any {
       });
 
       it('VALID: {old_string: existing violation, new_string: same violation} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'preserve-violation-edit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'preserve-violation-edit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         // Create file with existing violation
         const initialContent = `const bad: any = 'test';
 export function oldFunc(): void {}`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = EditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             old_string: `const bad: any = 'test';
@@ -327,6 +394,8 @@ export function newFunc(): void {}`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result).toStrictEqual({
           exitCode: 0,
           stdout: '',
@@ -335,14 +404,21 @@ export function newFunc(): void {}`,
       });
 
       it('VALID: {old_string: text, new_string: text with "any" in string} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'string-any-edit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'string-any-edit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const initialContent = `const message = 'hello';`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = EditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             old_string: `const message = 'hello';`,
@@ -352,6 +428,8 @@ export function newFunc(): void {}`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result).toStrictEqual({
           exitCode: 0,
           stdout: '',
@@ -360,14 +438,21 @@ export function newFunc(): void {}`,
       });
 
       it('EDGE: {old_string: code, new_string: whitespace change only} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'whitespace-edit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'whitespace-edit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const initialContent = `function test(){return 'hello';}`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = EditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             old_string: `function test(){return 'hello';}`,
@@ -379,6 +464,8 @@ export function newFunc(): void {}`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result).toStrictEqual({
           exitCode: 0,
           stdout: '',
@@ -389,14 +476,21 @@ export function newFunc(): void {}`,
 
     describe('failure cases', () => {
       it('INVALID_ANY: {old_string: clean code, new_string: adds any type} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'add-any-edit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'add-any-edit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const initialContent = `export function test(): void {}`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = EditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             old_string: `export function test(): void {}`,
@@ -406,22 +500,31 @@ export function newFunc(): void {}`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
         expect(result.stderr).toMatch(/Type Safety Violation/u);
       });
 
       it('INVALID_ANY: {old_string: partial function signature, new_string: adds any type} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'add-any-partial-edit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'add-any-partial-edit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const initialContent = `function testClean(param: string): void {
     console.log(param);
 }`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = EditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             old_string: 'function testClean(param: string): void {',
@@ -431,20 +534,29 @@ export function newFunc(): void {}`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
         expect(result.stderr).toMatch(/Type Safety Violation/u);
       });
 
       it('INVALID_TS_IGNORE: {old_string: clean code, new_string: adds @ts-ignore} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'add-ts-ignore-edit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'add-ts-ignore-edit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const initialContent = `export function test(): void {}`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = EditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             old_string: `export function test(): void {}`,
@@ -455,20 +567,29 @@ export function test(): void {}`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
         expect(result.stderr).toMatch(/Type Error Suppression/u);
       });
 
       it('INVALID_ESLINT_DISABLE: {old_string: console.log, new_string: adds eslint-disable} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'add-eslint-disable-edit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'add-eslint-disable-edit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const initialContent = `console.log('test');`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = EditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             old_string: `console.log('test');`,
@@ -479,21 +600,30 @@ console.log('test');`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
         expect(result.stderr).toMatch(/Code Quality Rule Bypass/u);
       });
 
       it('ERROR: {old_string: existing violation, new_string: adds second violation} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'add-second-violation-edit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'add-second-violation-edit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         // File with existing violation
         const initialContent = `const bad: any = 'test';`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = EditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             old_string: `const bad: any = 'test';`,
@@ -504,6 +634,8 @@ export function test({ param }: { param: any }): void {}`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
         expect(result.stderr).toMatch(/Type Safety Violation/u);
@@ -512,11 +644,15 @@ export function test({ param }: { param: any }): void {}`,
 
     describe('edge cases', () => {
       it('EDGE: {file_path: non-existent file} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'non-existent-edit' });
-        const filePath = path.join(projectDir, 'does-not-exist.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'non-existent-edit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'does-not-exist.ts');
 
         const hookData = EditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             old_string: 'old',
@@ -525,6 +661,8 @@ export function test({ param }: { param: any }): void {}`,
         });
 
         const result = runHook({ hookData });
+
+        testbed.cleanup();
 
         expect(result).toStrictEqual({
           exitCode: 0,
@@ -538,8 +676,12 @@ export function test({ param }: { param: any }): void {}`,
   describe('with MultiEdit tool', () => {
     describe('success cases', () => {
       it('VALID: {edits: multiple clean changes} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'clean-multiedit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'clean-multiedit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const initialContent = `export class Calculator {
   add({ a, b }: { a: number; b: number }): number {
@@ -550,10 +692,13 @@ export function test({ param }: { param: any }): void {}`,
     return a - b;
   }
 }`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = MultiEditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             edits: [
@@ -571,6 +716,8 @@ export function test({ param }: { param: any }): void {}`,
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result).toStrictEqual({
           exitCode: 0,
           stdout: '',
@@ -579,8 +726,12 @@ export function test({ param }: { param: any }): void {}`,
       });
 
       it('VALID: {edits: preserves existing violations without adding new ones} => returns exit code 0', () => {
-        const projectDir = createTestProject({ name: 'preserve-violations-multiedit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'preserve-violations-multiedit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         // File with existing violations
         const initialContent = `// @ts-ignore
@@ -593,10 +744,13 @@ export class Calculator {
     return a - b;
   }
 }`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = MultiEditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             edits: [
@@ -614,6 +768,8 @@ export class Calculator {
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result).toStrictEqual({
           exitCode: 0,
           stdout: '',
@@ -624,8 +780,12 @@ export class Calculator {
 
     describe('failure cases', () => {
       it('INVALID_ANY: {edits: one edit adds any violation} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'add-any-multiedit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'add-any-multiedit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const initialContent = `export class Calculator {
   add({ a, b }: { a: number; b: number }): number {
@@ -636,10 +796,13 @@ export class Calculator {
     return a - b;
   }
 }`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = MultiEditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             edits: [
@@ -657,21 +820,30 @@ export class Calculator {
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
       });
 
       it('INVALID_MULTIPLE: {edits: multiple edits add different violations} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'multiple-violations-multiedit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'multiple-violations-multiedit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const initialContent = `export function processData({ data }: { data: string }): string {
   return data;
 }`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = MultiEditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             edits: [
@@ -693,13 +865,19 @@ export class Calculator {
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
       });
 
       it('EDGE: {edits: replace_all adds violations} => returns exit code 2', () => {
-        const projectDir = createTestProject({ name: 'replace-all-violations-multiedit' });
-        const filePath = path.join(projectDir, 'example.ts');
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'replace-all-violations-multiedit' }),
+          baseDir: BASE_DIR,
+        });
+
+        const filePath = path.join(testbed.guildPath, 'example.ts');
 
         const initialContent = `export function processItem({ item }: { item: string }): string {
   if (item === '') {
@@ -711,10 +889,13 @@ export class Calculator {
 export function processItems({ items }: { items: string[] }): string[] {
   return items.map((item: string) => processItem({ item }));
 }`;
-        fs.writeFileSync(filePath, initialContent);
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'example.ts' }),
+          content: FileContentStub({ value: initialContent }),
+        });
 
         const hookData = MultiEditToolHookStub({
-          cwd: projectDir,
+          cwd: testbed.guildPath,
           tool_input: {
             file_path: filePath,
             edits: [
@@ -729,6 +910,8 @@ export function processItems({ items }: { items: string[] }): string[] {
 
         const result = runHook({ hookData });
 
+        testbed.cleanup();
+
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
         expect(result.stderr).toMatch(/Type Safety Violation/u);
@@ -738,11 +921,15 @@ export function processItems({ items }: { items: string[] }): string[] {
 
   describe('edge cases', () => {
     it('EDGE: {tool_input: non-TypeScript file} => returns exit code 0', () => {
-      const projectDir = createTestProject({ name: 'non-ts-file' });
-      const filePath = path.join(projectDir, 'README.md');
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'non-ts-file' }),
+        baseDir: BASE_DIR,
+      });
+
+      const filePath = path.join(testbed.guildPath, 'README.md');
 
       const hookData = WriteToolHookStub({
-        cwd: projectDir,
+        cwd: testbed.guildPath,
         tool_input: {
           file_path: filePath,
           content: `# TypeScript Guide
@@ -760,6 +947,8 @@ function test({ param }: { param: any }): void {
 
       const result = runHook({ hookData });
 
+      testbed.cleanup();
+
       expect(result).toStrictEqual({
         exitCode: 0,
         stdout: '',
@@ -768,11 +957,15 @@ function test({ param }: { param: any }): void {
     });
 
     it('EDGE: {tool_input: JavaScript file with TypeScript patterns} => ignores TypeScript patterns', () => {
-      const projectDir = createTestProject({ name: 'js-file-ts-patterns' });
-      const filePath = path.join(projectDir, 'example.js');
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'js-file-ts-patterns' }),
+        baseDir: BASE_DIR,
+      });
+
+      const filePath = path.join(testbed.guildPath, 'example.js');
 
       const hookData = WriteToolHookStub({
-        cwd: projectDir,
+        cwd: testbed.guildPath,
         tool_input: {
           file_path: filePath,
           content: `function test(param) {
@@ -784,6 +977,8 @@ function test({ param }: { param: any }): void {
 
       const result = runHook({ hookData });
 
+      testbed.cleanup();
+
       expect(result).toStrictEqual({
         exitCode: 0,
         stdout: '',
@@ -792,11 +987,15 @@ function test({ param }: { param: any }): void {
     });
 
     it('ERROR: {tool_input: violations in string literals and code} => detects only code violations', () => {
-      const projectDir = createTestProject({ name: 'mixed-violations' });
-      const filePath = path.join(projectDir, 'example.ts');
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'mixed-violations' }),
+        baseDir: BASE_DIR,
+      });
+
+      const filePath = path.join(testbed.guildPath, 'example.ts');
 
       const hookData = WriteToolHookStub({
-        cwd: projectDir,
+        cwd: testbed.guildPath,
         tool_input: {
           file_path: filePath,
           content: `export const ERROR_MSG = "Never use @ts-ignore or any type";
@@ -809,14 +1008,20 @@ export const handler: any = getValue();`,
 
       const result = runHook({ hookData });
 
+      testbed.cleanup();
+
       expect(result.exitCode).toBe(2);
       expect(result.stderr).toMatch(/Type Safety Violation/u);
       expect(result.stderr).toMatch(/Type Error Suppression/u);
     });
 
     it('EDGE: {tool_input: very large file with violations} => detects violations', () => {
-      const projectDir = createTestProject({ name: 'large-file-violations' });
-      const filePath = path.join(projectDir, 'example.ts');
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'large-file-violations' }),
+        baseDir: BASE_DIR,
+      });
+
+      const filePath = path.join(testbed.guildPath, 'example.ts');
 
       const largeContent = `export function processData({ data }: { data: unknown }): unknown {
   ${'  return data;\n'.repeat(100)}
@@ -826,7 +1031,7 @@ export const handler: any = getValue();`,
 export const handler: any = processData;`;
 
       const hookData = WriteToolHookStub({
-        cwd: projectDir,
+        cwd: testbed.guildPath,
         tool_input: {
           file_path: filePath,
           content: largeContent,
@@ -835,18 +1040,27 @@ export const handler: any = processData;`;
 
       const result = runHook({ hookData });
 
+      testbed.cleanup();
+
       expect(result.exitCode).toBe(2);
       expect(result.stderr).toMatch(/Type Safety Violation/u);
     });
 
     it('EMPTY: {tool_input: empty old_string to empty new_string} => returns exit code 0', () => {
-      const projectDir = createTestProject({ name: 'empty-to-empty' });
-      const filePath = path.join(projectDir, 'empty.ts');
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'empty-to-empty' }),
+        baseDir: BASE_DIR,
+      });
 
-      fs.writeFileSync(filePath, '');
+      const filePath = path.join(testbed.guildPath, 'empty.ts');
+
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'empty.ts' }),
+        content: FileContentStub({ value: '' }),
+      });
 
       const hookData = EditToolHookStub({
-        cwd: projectDir,
+        cwd: testbed.guildPath,
         tool_input: {
           file_path: filePath,
           old_string: '',
@@ -855,6 +1069,8 @@ export const handler: any = processData;`;
       });
 
       const result = runHook({ hookData });
+
+      testbed.cleanup();
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -866,8 +1082,12 @@ export const handler: any = processData;`;
 
   describe('performance tests', () => {
     it('PERF: typical file processing should be under 5 seconds', () => {
-      const projectDir = createTestProject({ name: 'perf-test-typical' });
-      const filePath = path.join(projectDir, 'example.ts');
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'perf-test-typical' }),
+        baseDir: BASE_DIR,
+      });
+
+      const filePath = path.join(testbed.guildPath, 'example.ts');
 
       const typicalContent = `export interface UserConfig {
   name: boolean;
@@ -899,7 +1119,7 @@ export class UserService {
 }`;
 
       const hookData = WriteToolHookStub({
-        cwd: projectDir,
+        cwd: testbed.guildPath,
         tool_input: {
           file_path: filePath,
           content: typicalContent,
@@ -911,13 +1131,19 @@ export class UserService {
       const endTime = Date.now();
       const executionTime = endTime - startTime;
 
+      testbed.cleanup();
+
       expect(result.exitCode).toBe(0);
       expect(executionTime).toBeLessThan(6000); // ESLint initialization overhead
     });
 
     it('PERF: large file processing should be under 5 seconds', () => {
-      const projectDir = createTestProject({ name: 'perf-test-large' });
-      const filePath = path.join(projectDir, 'example.ts');
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'perf-test-large' }),
+        baseDir: BASE_DIR,
+      });
+
+      const filePath = path.join(testbed.guildPath, 'example.ts');
 
       // Generate a large file with multiple classes and methods
       const CLASS_COUNT = 20;
@@ -957,7 +1183,7 @@ export class Service${classIndex} {
       const largeContent = classes.join('\n');
 
       const hookData = WriteToolHookStub({
-        cwd: projectDir,
+        cwd: testbed.guildPath,
         tool_input: {
           file_path: filePath,
           content: largeContent,
@@ -969,13 +1195,19 @@ export class Service${classIndex} {
       const endTime = Date.now();
       const executionTime = endTime - startTime;
 
+      testbed.cleanup();
+
       expect(result.exitCode).toBe(0);
       expect(executionTime).toBeLessThan(6000); // Large files still bound by ESLint initialization
     });
 
     it('PERF: violation detection should be under 5 seconds', () => {
-      const projectDir = createTestProject({ name: 'perf-test-violations' });
-      const filePath = path.join(projectDir, 'example.ts');
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'perf-test-violations' }),
+        baseDir: BASE_DIR,
+      });
+
+      const filePath = path.join(testbed.guildPath, 'example.ts');
 
       const contentWithViolations = `// @ts-ignore
 export function badFunction(param: any): any {
@@ -996,7 +1228,7 @@ export class BadService {
 }`;
 
       const hookData = WriteToolHookStub({
-        cwd: projectDir,
+        cwd: testbed.guildPath,
         tool_input: {
           file_path: filePath,
           content: contentWithViolations,
@@ -1008,13 +1240,19 @@ export class BadService {
       const endTime = Date.now();
       const executionTime = endTime - startTime;
 
+      testbed.cleanup();
+
       expect(result.exitCode).toBe(2); // Should block due to violations
       expect(executionTime).toBeLessThan(6000); // Violation detection still requires ESLint initialization
     });
 
     it('PERF: edit operation should be under 5 seconds', () => {
-      const projectDir = createTestProject({ name: 'perf-test-edit' });
-      const filePath = path.join(projectDir, 'example.ts');
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'perf-test-edit' }),
+        baseDir: BASE_DIR,
+      });
+
+      const filePath = path.join(testbed.guildPath, 'example.ts');
 
       const initialContent = `export class Calculator {
   add(a: number, b: number): number {
@@ -1034,10 +1272,13 @@ export class BadService {
     return a / b;
   }
 }`;
-      fs.writeFileSync(filePath, initialContent);
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'example.ts' }),
+        content: FileContentStub({ value: initialContent }),
+      });
 
       const hookData = EditToolHookStub({
-        cwd: projectDir,
+        cwd: testbed.guildPath,
         tool_input: {
           file_path: filePath,
           old_string: 'add(a: number, b: number): number',
@@ -1050,13 +1291,19 @@ export class BadService {
       const endTime = Date.now();
       const executionTime = endTime - startTime;
 
+      testbed.cleanup();
+
       expect(result.exitCode).toBe(0);
       expect(executionTime).toBeLessThan(6000); // Edit operations bound by ESLint initialization
     });
 
     it('PERF: multiedit operation should be under 5 seconds', () => {
-      const projectDir = createTestProject({ name: 'perf-test-multiedit' });
-      const filePath = path.join(projectDir, 'example.ts');
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'perf-test-multiedit' }),
+        baseDir: BASE_DIR,
+      });
+
+      const filePath = path.join(testbed.guildPath, 'example.ts');
 
       const initialContent = `export class UserManager {
   private users: User[] = [];
@@ -1080,10 +1327,13 @@ export class BadService {
     return [...this.users];
   }
 }`;
-      fs.writeFileSync(filePath, initialContent);
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'example.ts' }),
+        content: FileContentStub({ value: initialContent }),
+      });
 
       const hookData = MultiEditToolHookStub({
-        cwd: projectDir,
+        cwd: testbed.guildPath,
         tool_input: {
           file_path: filePath,
           edits: [
@@ -1111,6 +1361,8 @@ export class BadService {
       const result = runHook({ hookData });
       const endTime = Date.now();
       const executionTime = endTime - startTime;
+
+      testbed.cleanup();
 
       expect(result.exitCode).toBe(0);
       expect(executionTime).toBeLessThan(6000); // MultiEdit operations bound by ESLint initialization

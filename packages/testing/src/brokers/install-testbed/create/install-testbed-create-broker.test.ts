@@ -1,6 +1,9 @@
 import { installTestbedCreateBroker } from './install-testbed-create-broker';
 import { installTestbedCreateBrokerProxy } from './install-testbed-create-broker.proxy';
 import { BaseNameStub } from '../../../contracts/base-name/base-name.stub';
+import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
+import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 
 describe('installTestbedCreateBroker', () => {
   describe('testbed creation', () => {
@@ -12,6 +15,22 @@ describe('installTestbedCreateBroker', () => {
       testbed.cleanup();
 
       expect(testbed.guildPath).toMatch(/^\/tmp\/test-install-[a-f0-9]{8}$/u);
+    });
+
+    it('VALID: {baseDir: custom path} => creates testbed in custom directory', () => {
+      installTestbedCreateBrokerProxy();
+      const customBaseDir = '/tmp/custom-base-test';
+      fsMkdirAdapter({ dirPath: customBaseDir, recursive: true });
+
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'custom-base' }),
+        baseDir: FilePathStub({ value: customBaseDir }),
+      });
+
+      expect(testbed.guildPath).toMatch(/^\/tmp\/custom-base-test\/custom-base-[a-f0-9]{8}$/u);
+
+      testbed.cleanup();
+      fsRmAdapter({ filePath: customBaseDir, recursive: true, force: true });
     });
   });
 

@@ -137,8 +137,9 @@ Dispatch a sub agent for each NEW file to verify it has proper test coverage acc
 - Each flow must have an `.integration.test.ts`.
 - If coverage is missing or thin, the agent writes the missing tests.
 
-Then dispatch a sub agent to run `npm run ward` and fix any failures. If ward fails, use `ward-list` and `ward-detail`
-MCP tools to get full error details and dispatch a fix agent.
+Then dispatch a sub agent to run `npm run ward --workspace=@dungeonmaster/<target>` (scoped to this package only) and
+fix any failures. If ward fails, use `ward-list` and `ward-detail` MCP tools to get full error details and dispatch a
+fix agent.
 
 ### Phase 6: Commit
 
@@ -162,3 +163,7 @@ After ward passes, commit all changes.
 - **Branded types only.** No raw `string`/`number` in function signatures. Use contracts.
 - **PURPOSE/USAGE comments** are required on all new implementation files.
 - **`export const` arrow functions** for all exports. No `export default`, no `function` declarations.
+- **Integration tests must use testbed and claude mock for cleanup.** Flow `.integration.test.ts` files that touch the
+  filesystem must use `installTestbedCreateBroker` from `@dungeonmaster/testing` for isolated temp directories and
+  proper cleanup. If tests involve Claude CLI session data, use the claude mock utilities. Never write test files
+  directly to the repo or leave temp artifacts behind.

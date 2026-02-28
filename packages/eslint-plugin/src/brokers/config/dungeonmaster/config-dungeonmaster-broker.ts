@@ -210,6 +210,15 @@ export const configDungeonmasterBroker = ({
     },
   });
 
+  // Startup files use && for conditional side effects (ban-startup-branching provides the real protection)
+  const startupShortCircuitOverrides: EslintConfig = eslintConfigContract.parse({
+    files: ['**/startup/start-*.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-expressions': ['error', { allowShortCircuit: true }],
+    },
+  });
+
   return {
     typescript: typescriptConfig,
     test: testConfig,
@@ -219,6 +228,7 @@ export const configDungeonmasterBroker = ({
       integrationOverrides,
       e2eOverrides,
       startupTestOverrides,
+      startupShortCircuitOverrides,
     ],
     ruleEnforceOn: dungeonmasterRuleEnforceOnStatics,
   };

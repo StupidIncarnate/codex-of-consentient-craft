@@ -465,6 +465,28 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/guards/auth/auth-guard.test.ts',
     },
 
+    // Integration test files can import Node builtins
+    {
+      code: 'import * as fs from "fs";',
+      filename: '/project/src/startup/start-post-edit-hook.integration.test.ts',
+    },
+    {
+      code: 'import * as path from "path";',
+      filename: '/project/src/startup/start-pre-edit-hook.integration.test.ts',
+    },
+    {
+      code: 'import * as crypto from "crypto";',
+      filename: '/project/src/startup/start-post-edit-hook.integration.test.ts',
+    },
+    {
+      code: 'import { spawnSync } from "child_process";',
+      filename: '/project/src/startup/start-pre-bash-hook.integration.test.ts',
+    },
+    {
+      code: 'import * as fs from "node:fs";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.integration.test.ts',
+    },
+
     // Proxy files are exempt from import restrictions (have their own proxy rules)
     {
       code: 'import { fsEnsureReadFileSyncAdapterProxy } from "../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter.proxy";',
@@ -1160,6 +1182,47 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'brokers',
             packageName: '@dungeonmaster/testing',
+          },
+        },
+      ],
+    },
+
+    // Non-integration test files cannot import Node builtins
+    {
+      code: 'import * as fs from "fs";',
+      filename: '/project/src/startup/start-install.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'startup',
+            packageName: 'fs',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import * as path from "path";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.test.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'brokers',
+            packageName: 'path',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import * as crypto from "crypto";',
+      filename: '/project/src/guards/auth/auth-guard.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'guards',
+            packageName: 'crypto',
           },
         },
       ],

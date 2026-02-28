@@ -29,20 +29,23 @@ import { integrationEnvironmentStatics } from '../../../statics/integration-envi
 import type { BaseName } from '../../../contracts/base-name/base-name-contract';
 import type { RelativePath } from '../../../contracts/relative-path/relative-path-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
+import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { InstallTestbed } from '../../../contracts/install-testbed/install-testbed-contract';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const installTestbedCreateBroker = ({
   baseName,
+  baseDir,
 }: {
   baseName: BaseName;
+  baseDir?: FilePath;
 }): InstallTestbed => {
   const testId = cryptoRandomBytesAdapter({
     length: integrationEnvironmentStatics.constants.randomBytesLength,
   }).toString('hex');
   const projectName = `${baseName}-${testId}`;
-  const { baseDir } = integrationEnvironmentStatics.paths;
-  const projectPath = pathJoinAdapter({ paths: [baseDir, projectName] });
+  const resolvedBaseDir = baseDir ?? integrationEnvironmentStatics.paths.baseDir;
+  const projectPath = pathJoinAdapter({ paths: [resolvedBaseDir, projectName] });
 
   // Create project directory
   if (!fsExistsAdapter({ filePath: projectPath })) {

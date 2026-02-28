@@ -7,48 +7,23 @@
  * // Reads JSON from stdin, validates, outputs standards content to stdout if new session
  */
 
-import { HookSessionStartResponder } from '../responders/hook/session-start/hook-session-start-responder';
-import { isSessionStartHookDataContract } from '../contracts/is-session-start-hook-data/is-session-start-hook-data-contract';
-import { debugDebugAdapter } from '../adapters/debug/debug/debug-debug-adapter';
-import type { SessionStartHookData } from '../contracts/session-start-hook-data/session-start-hook-data-contract';
-
-const log = debugDebugAdapter({ namespace: 'dungeonmaster:session-start-hook' });
-const ERROR_CODE_INVALID_INPUT = 1;
+import { HookSessionStartFlow } from '../flows/hook-session-start/hook-session-start-flow';
 
 export const StartSessionStartHook = async ({
   inputData,
 }: {
   inputData: string;
 }): Promise<void> => {
-  try {
-    const parsedData: unknown = JSON.parse(inputData);
-
-    if (!isSessionStartHookDataContract({ data: parsedData })) {
-      log('Invalid hook data format');
-      process.exit(ERROR_CODE_INVALID_INPUT);
-    }
-
-    const result = await HookSessionStartResponder({ input: parsedData as SessionStartHookData });
-
-    if (result.shouldOutput && result.content !== undefined && result.content !== '') {
-      process.stdout.write(result.content);
-    }
-
-    process.exit(0);
-  } catch (error: unknown) {
-    log('Error in session start hook:', error);
-    process.exit(ERROR_CODE_INVALID_INPUT);
-  }
+  const result = await HookSessionStartFlow({ inputData });
+  process.stderr.write(result.stderr);
+  process.stdout.write(result.stdout);
+  process.exit(result.exitCode);
 };
 
-if (require.main === module) {
-  let inputData = '';
-
-  process.stdin.on('data', (chunk) => {
-    inputData += chunk.toString();
-  });
-
-  process.stdin.on('end', () => {
-    StartSessionStartHook({ inputData }).catch(() => undefined);
-  });
-}
+const inputBuffer = { data: '' };
+process.stdin.on('data', (chunk: Buffer) => {
+  inputBuffer.data += chunk.toString();
+});
+process.stdin.on('end', () => {
+  StartSessionStartHook({ inputData: inputBuffer.data }).catch(() => process.exit(1));
+});

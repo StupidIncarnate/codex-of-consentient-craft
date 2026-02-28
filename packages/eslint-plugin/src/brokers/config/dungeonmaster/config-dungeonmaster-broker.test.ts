@@ -89,6 +89,42 @@ describe('configDungeonmasterBroker', () => {
     });
   });
 
+  describe('startup short-circuit override', () => {
+    it('VALID: {} => fileOverrides includes startup short-circuit config targeting start-*.ts', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { fileOverrides } = configDungeonmasterBroker();
+      const startupConfig = fileOverrides.find((config) => {
+        return Boolean(
+          config.files?.some((file) => {
+            return file === '**/startup/start-*.ts';
+          }),
+        );
+      });
+
+      expect(startupConfig).toBeDefined();
+      expect(startupConfig?.rules?.['@typescript-eslint/no-unused-expressions']).toStrictEqual([
+        'error',
+        { allowShortCircuit: true },
+      ]);
+    });
+
+    it('VALID: {} => startup short-circuit config ignores test files', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { fileOverrides } = configDungeonmasterBroker();
+      const startupConfig = fileOverrides.find((config) => {
+        return Boolean(
+          config.files?.some((file) => {
+            return file === '**/startup/start-*.ts';
+          }),
+        );
+      });
+
+      expect(startupConfig?.ignores).toStrictEqual(['**/*.test.ts']);
+    });
+  });
+
   describe('forTesting parameter', () => {
     it('VALID: {forTesting: true} => test config has jest plugin', () => {
       configDungeonmasterBrokerProxy();

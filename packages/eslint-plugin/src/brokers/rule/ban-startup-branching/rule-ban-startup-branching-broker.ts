@@ -11,6 +11,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { isImplementationFileGuard } from '../../../guards/is-implementation-file/is-implementation-file-guard';
 
 export const ruleBanStartupBranchingBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -22,7 +23,9 @@ export const ruleBanStartupBranchingBroker = (): EslintRule => ({
       },
       messages: {
         noBranching:
-          'Startup files must not contain branching logic (if/switch/ternary). Move this logic to a flow, responder, or broker.',
+          "Startup files must not contain branching logic (if/switch/ternary). Move to a flow, responder, or broker. See 'No Branching Logic' in type-startup standards.",
+        noLogicalBranching:
+          "Startup files must not use logical expressions (&&/||) as control flow. Move conditional logic to a flow or responder. Self-invocation guards (require.main === module) belong in the entry file (bin/index.ts). See 'No Branching Logic' in type-startup standards.",
       },
       schema: [],
     },
@@ -33,7 +36,7 @@ export const ruleBanStartupBranchingBroker = (): EslintRule => ({
 
     const isStartupFile = filename.includes('/startup/');
 
-    if (!isStartupFile) {
+    if (!isStartupFile || !isImplementationFileGuard({ filename })) {
       return {};
     }
 
@@ -46,6 +49,9 @@ export const ruleBanStartupBranchingBroker = (): EslintRule => ({
       },
       ConditionalExpression: (node: Tsestree): void => {
         ctx.report({ node, messageId: 'noBranching' });
+      },
+      'ExpressionStatement[expression.type="LogicalExpression"]': (node: Tsestree): void => {
+        ctx.report({ node, messageId: 'noLogicalBranching' });
       },
     };
   },
