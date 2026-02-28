@@ -418,10 +418,22 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/middleware/cors/cors-middleware.ts',
     },
 
-    // Flows (depth 1) can ONLY import from responders
+    // Flows (depth 1) can import from responders, hono, react-router-dom, express
     {
       code: 'import { UserProfileResponder } from "../../responders/user/profile/user-profile-responder";',
       filename: '/project/src/flows/user/user-flow.tsx',
+    },
+    {
+      code: 'import express from "express";',
+      filename: '/project/src/flows/server/server-flow.ts',
+    },
+    {
+      code: 'import { Hono } from "hono";',
+      filename: '/project/src/flows/api/api-flow.ts',
+    },
+    {
+      code: 'import { BrowserRouter } from "react-router-dom";',
+      filename: '/project/src/flows/app/app-flow.tsx',
     },
 
     // Files not in src/ folder should be ignored
@@ -1008,7 +1020,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       ],
     },
 
-    // Flows cannot import from anything except responders
+    // Flows cannot import from folders other than responders (npm packages hono, react-router-dom, express are allowed)
     {
       code: 'import { userFetchBroker } from "../../brokers/user/fetch/user-fetch-broker";',
       filename: '/project/src/flows/api/api-flow.ts',
@@ -1018,7 +1030,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'flows',
             importedFolder: 'brokers',
-            allowed: 'responders/',
+            allowed: 'responders/, hono, react-router-dom, express',
           },
         },
       ],
@@ -1032,7 +1044,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'flows',
             importedFolder: 'widgets',
-            allowed: 'responders/',
+            allowed: 'responders/, hono, react-router-dom, express',
           },
         },
       ],
@@ -1046,20 +1058,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'flows',
             importedFolder: 'contracts',
-            allowed: 'responders/',
-          },
-        },
-      ],
-    },
-    {
-      code: 'import express from "express";',
-      filename: '/project/src/flows/server/server-flow.ts',
-      errors: [
-        {
-          messageId: 'forbiddenExternalImport',
-          data: {
-            folderType: 'flows',
-            packageName: 'express',
+            allowed: 'responders/, hono, react-router-dom, express',
           },
         },
       ],

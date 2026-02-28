@@ -1,0 +1,115 @@
+/**
+ * PURPOSE: Detects existing ESLint config files and creates eslint.config.js if none exist
+ *
+ * USAGE:
+ * const result = InstallDetectConfigResponder({ context });
+ * // Creates eslint.config.js with dungeonmaster config or skips if already exists
+ */
+
+import {
+  type InstallContext,
+  type InstallResult,
+  installMessageContract,
+  packageNameContract,
+  fileContentsContract,
+} from '@dungeonmaster/shared/contracts';
+import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { fsWriteFileSyncAdapter } from '../../../adapters/fs/write-file-sync/fs-write-file-sync-adapter';
+import { eslintConfigFilesStatics } from '../../../statics/eslint-config-files/eslint-config-files-statics';
+
+const PACKAGE_NAME = '@dungeonmaster/eslint-plugin';
+
+const NEW_CONFIG_TEMPLATE = `const dungeonmaster = require('@dungeonmaster/eslint-plugin').default;
+const tsparser = require('@typescript-eslint/parser');
+const dungeonmasterConfigs = dungeonmaster.configs.dungeonmaster;
+const dungeonmasterTestConfigs = dungeonmaster.configs.dungeonmasterTest;
+
+module.exports = [
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        ignores: ['**/*.test.ts', '**/*.test.tsx'],
+        languageOptions: {
+            parser: tsparser,
+            parserOptions: {
+                ecmaVersion: 2020,
+                sourceType: 'module',
+                project: './tsconfig.json',
+            },
+        },
+        plugins: {
+            ...dungeonmasterConfigs.typescript.plugins,
+            '@dungeonmaster': dungeonmaster,
+        },
+        rules: {...dungeonmasterConfigs.typescript.rules},
+    },
+    ...dungeonmasterConfigs.fileOverrides,
+    {
+        files: ['**/*.test.ts', '**/*.test.tsx'],
+        languageOptions: {
+            parser: tsparser,
+            parserOptions: {
+                ecmaVersion: 2020,
+                sourceType: 'module',
+                project: './tsconfig.json',
+            },
+        },
+        plugins: {
+            ...dungeonmasterTestConfigs.test.plugins,
+            '@dungeonmaster': dungeonmaster,
+        },
+        rules: {...dungeonmasterTestConfigs.test.rules},
+    },
+    ...dungeonmasterTestConfigs.fileOverrides,
+];
+`;
+
+export const InstallDetectConfigResponder = ({
+  context,
+}: {
+  context: InstallContext;
+}): InstallResult => {
+  for (const configFile of eslintConfigFilesStatics) {
+    const configPath = pathJoinAdapter({
+      paths: [context.targetProjectRoot, configFile],
+    });
+
+    if (fsExistsSyncAdapter({ filePath: configPath })) {
+      const content = fsReadFileSyncAdapter({ filePath: configPath });
+
+      if (content.includes('@dungeonmaster')) {
+        return {
+          packageName: packageNameContract.parse(PACKAGE_NAME),
+          success: true,
+          action: 'skipped',
+          message: installMessageContract.parse('ESLint already configured with dungeonmaster'),
+        };
+      }
+
+      return {
+        packageName: packageNameContract.parse(PACKAGE_NAME),
+        success: true,
+        action: 'skipped',
+        message: installMessageContract.parse(
+          `Found ${configFile} - please add @dungeonmaster/eslint-plugin manually`,
+        ),
+      };
+    }
+  }
+
+  const newConfigPath = pathJoinAdapter({
+    paths: [context.targetProjectRoot, 'eslint.config.js'],
+  });
+
+  const contents = fileContentsContract.parse(NEW_CONFIG_TEMPLATE);
+
+  fsWriteFileSyncAdapter({ filePath: newConfigPath, contents });
+
+  return {
+    packageName: packageNameContract.parse(PACKAGE_NAME),
+    success: true,
+    action: 'created',
+    message: installMessageContract.parse('Created eslint.config.js'),
+  };
+};

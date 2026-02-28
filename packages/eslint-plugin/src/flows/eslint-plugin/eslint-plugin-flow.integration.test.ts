@@ -1,9 +1,9 @@
-import { StartEslintPlugin } from './start-eslint-plugin';
+import { EslintPluginFlow } from './eslint-plugin-flow';
 
-describe('StartEslintPlugin', () => {
-  describe('wiring to eslint-plugin flow', () => {
-    it('VALID: {} => delegates to flow and returns plugin with rules and configs', () => {
-      const plugin = StartEslintPlugin();
+describe('EslintPluginFlow', () => {
+  describe('delegation to responder', () => {
+    it('VALID: {} => delegates to responder and returns plugin with rules and configs', () => {
+      const plugin = EslintPluginFlow();
 
       expect(Object.keys(plugin.rules)).toStrictEqual([
         'ban-adhoc-types',
