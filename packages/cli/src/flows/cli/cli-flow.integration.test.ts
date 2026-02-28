@@ -1,15 +1,15 @@
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { StartCli } from './start-cli';
+import { CliFlow } from './cli-flow';
 
-describe('StartCli', () => {
-  describe('delegation to CLI flow', () => {
-    it('VALID: {command: "init"} => delegates to CliFlow which runs init responder', async () => {
+describe('CliFlow', () => {
+  describe('command routing', () => {
+    it('VALID: {command: "init"} => routes to init responder and runs package installers', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-cli-init' }),
+        baseName: BaseNameStub({ value: 'cli-flow-init' }),
       });
 
-      await StartCli({
+      await CliFlow({
         command: 'init',
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
