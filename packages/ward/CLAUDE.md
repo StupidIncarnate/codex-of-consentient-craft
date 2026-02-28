@@ -2,7 +2,8 @@
 
 ## What This Package Does
 
-Ward is a quality orchestration CLI tool (`npm run ward`) that runs lint, typecheck, unit, and e2e checks. It
+Ward is a quality orchestration CLI tool (`npm run ward`) that runs lint, typecheck, unit, integration, and e2e checks.
+It
 operates in two modes depending on whether the current project has npm workspaces:
 
 - **Single-package mode** (no workspaces): Runs checks directly in the current working directory.
@@ -25,48 +26,58 @@ Running `npm run ward` with no arguments is equivalent to `npm run ward -- run`.
 
 ## Check Types
 
-| Check Type | Tool       | Description                          |
-|------------|------------|--------------------------------------|
-| `lint`     | ESLint     | Linting with `--fix`                 |
-| `typecheck`| tsc        | TypeScript type checking             |
-| `unit`     | Jest       | Unit/integration tests               |
-| `e2e`      | Playwright | End-to-end browser tests             |
-| `test`     | *(alias)*  | Expands to `unit,e2e` (runs both)    |
+| Check Type    | Tool       | Description                                                |
+|---------------|------------|------------------------------------------------------------|
+| `lint`        | ESLint     | Linting with `--fix`                                       |
+| `typecheck`   | tsc        | TypeScript type checking                                   |
+| `unit`        | Jest       | Unit tests (`*.test.ts`, excludes `*.integration.test.ts`) |
+| `integration` | Jest       | Integration tests (`*.integration.test.ts` only)           |
+| `e2e`         | Playwright | End-to-end browser tests                                   |
+| `test`        | *(alias)*  | Expands to `unit,integration,e2e` (runs all three)         |
 
-**`test` is a virtual alias**, not a real check type. `--only test` expands to `--only unit,e2e` during CLI parsing.
-Deduplication is automatic: `--only test,e2e` becomes `--only unit,e2e`.
+**`test` is a virtual alias**, not a real check type. `--only test` expands to `--only unit,integration,e2e` during CLI
+parsing. Deduplication is automatic: `--only test,e2e` becomes `--only unit,integration,e2e`.
 
 ## Flags
 
 All flags apply to the `run` subcommand. The `detail` subcommand also accepts `--verbose`.
 
-| Flag                               | Description                                                            |
-|------------------------------------|------------------------------------------------------------------------|
-| `--only lint,typecheck,unit,e2e`   | Comma-separated list of check types to run. Omit to run all four.      |
-| `--changed`                        | Scope checks to files changed in git (uses `git diff`).               |
-| `-- file1 file2`                   | Passthrough file list. Everything after `--` is treated as file paths. |
-| `--verbose`                        | Enable verbose output.                                                 |
+| Flag                                         | Description                                                            |
+|----------------------------------------------|------------------------------------------------------------------------|
+| `--only lint,typecheck,unit,integration,e2e` | Comma-separated list of check types to run. Omit to run all five.      |
+| `--changed`                                  | Scope checks to files changed in git (uses `git diff`).                |
+| `-- file1 file2`                             | Passthrough file list. Everything after `--` is treated as file paths. |
+| `--verbose`                                  | Enable verbose output.                                                 |
 
 ## Common Invocation Patterns
 
 ```bash
-# Run all checks (lint, typecheck, unit, e2e) across all packages
+# Run all checks (lint, typecheck, unit, integration, e2e) across all packages
 npm run ward
 
 # Lint only
 npm run ward -- --only lint
 
-# Run all tests (unit + e2e)
+# Run all tests (unit + integration + e2e)
 npm run ward -- --only test
 
-# Run only Jest unit tests
+# Run only Jest unit tests (excludes integration tests)
 npm run ward -- --only unit
+
+# Run only Jest integration tests
+npm run ward -- --only integration
 
 # Run only Playwright e2e tests
 npm run ward -- --only e2e
 
 # Test a single file (unit tests)
 npm run ward -- --only unit -- path/to/file.test.ts
+
+# Scope all checks to a single package
+npm run ward -- -- packages/hooks
+
+# Scope specific checks to a single package
+npm run ward -- --only test --only lint --only typecheck -- packages/hooks
 
 # Run multiple check types
 npm run ward -- --only lint,unit
@@ -99,7 +110,9 @@ Ward supports two file scoping mechanisms: passthrough (`--`) and changed (`--ch
 considers the run to have "file scope."
 
 - **No file scope**: Each check runs against all files in each package.
-- **Passthrough (`--`)**: The provided file paths are passed directly to the check tool.
+- **Passthrough (`--`)**: The provided paths are passed directly to the check tool. Accepts both file paths
+  (`-- packages/hooks/src/foo.test.ts`) and package paths (`-- packages/hooks`). A package path runs all checks in that
+  package without file-level scoping.
 - **Changed (`--changed`)**: Uses `git diff` to discover changed files, then passes them to each check tool.
 
 **Special case:** Typecheck always runs `tsc --noEmit` on the entire package regardless of file scope. There is no way
@@ -109,12 +122,13 @@ to typecheck individual files with tsc.
 
 Ward spawns these commands per package:
 
-| Check Type | Command                               | With File Scope                                                                 |
-|------------|---------------------------------------|---------------------------------------------------------------------------------|
-| lint       | `npx eslint --format json .`          | `npx eslint --format json <file1> <file2> ...` (replaces `.` with file list)   |
-| typecheck  | `npx tsc --noEmit`                    | `npx tsc --noEmit` (unchanged, always full project)                             |
-| unit       | `npx jest --json --no-color`          | `npx jest --json --no-color --runInBand --findRelatedTests <file1> <file2> ...` |
-| e2e        | `npx playwright test --reporter=json` | `npx playwright test --reporter=json <file1> <file2> ...`                       |
+| Check Type  | Command                                                                             | With File Scope                                                              |
+|-------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| lint        | `npx eslint --format json .`                                                        | `npx eslint --format json <file1> <file2> ...` (replaces `.` with file list) |
+| typecheck   | `npx tsc --noEmit`                                                                  | `npx tsc --noEmit` (unchanged, always full project)                          |
+| unit        | `npx jest --json --no-color --testPathIgnorePatterns '\\.integration\\.test\\.ts$'` | Same + `--runInBand --findRelatedTests <files>`                              |
+| integration | `npx jest --json --no-color --testPathPatterns '\\.integration\\.test\\.ts$'`       | Same + `--runInBand --findRelatedTests <files>`                              |
+| e2e         | `npx playwright test --reporter=json`                                               | `npx playwright test --reporter=json <file1> <file2> ...`                    |
 
 **E2e skip behavior:** The e2e broker checks for `playwright.config.ts` before spawning. If absent, it returns
 `status: 'skip'` — packages without Playwright tests are skipped gracefully.
@@ -130,7 +144,8 @@ start-ward.ts (entry point, routes subcommands)
       -> orchestrate-run-all-layer-check-broker (dispatches to the right check runner)
         -> check-run-lint-broker      (spawns eslint, parses JSON output)
         -> check-run-typecheck-broker (spawns tsc)
-        -> check-run-unit-broker      (spawns jest, parses JSON output)
+        -> check-run-unit-broker      (spawns jest, parses JSON output, excludes integration tests)
+        -> check-run-integration-broker (spawns jest, parses JSON output, integration tests only)
         -> check-run-e2e-broker       (spawns playwright, parses JSON output)
     -> storage-save-broker (persists WardResult to disk)
     -> storage-prune-broker (cleans old results)

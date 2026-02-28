@@ -243,6 +243,8 @@ describe('checkRunUnitBroker', () => {
         '--no-color',
         '--forceExit',
         '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.ts$',
         '--runInBand',
         '--findRelatedTests',
         'src/index.ts',

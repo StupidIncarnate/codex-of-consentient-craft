@@ -23,7 +23,8 @@ export const hasPassthroughMatchGuard = ({
     return false;
   }
 
-  const prefix = `${projectFolder.path.slice(rootPath.length + 1)}/`;
+  const relativePath = projectFolder.path.slice(rootPath.length + 1);
+  const prefix = `${relativePath}/`;
 
-  return passthroughArg.startsWith(prefix);
+  return passthroughArg === relativePath || passthroughArg.startsWith(prefix);
 };

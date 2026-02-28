@@ -59,14 +59,36 @@ describe('hasPassthroughMatchGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_PASSTHROUGH: {passthrough IS the package folder with no trailing file} => returns false', () => {
+    it('INVALID_PASSTHROUGH: {passthrough is partial package name} => returns false', () => {
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
+      const passthroughArg = CliArgStub({ value: 'packages/hook' });
+
+      const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('package-level matching', () => {
+    it('VALID: {passthrough IS the package folder without trailing slash} => returns true', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
       const passthroughArg = CliArgStub({ value: 'packages/hooks' });
 
       const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
 
-      expect(result).toBe(false);
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {passthrough IS the package folder with trailing slash} => returns true', () => {
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
+      const passthroughArg = CliArgStub({ value: 'packages/hooks/' });
+
+      const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
+
+      expect(result).toBe(true);
     });
   });
 

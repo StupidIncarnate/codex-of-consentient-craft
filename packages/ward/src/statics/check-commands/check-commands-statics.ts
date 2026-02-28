@@ -10,7 +10,25 @@ export const checkCommandsStatics = {
   typecheck: { bin: 'tsc', args: ['--noEmit', '--listFiles'] },
   unit: {
     bin: 'jest',
-    args: ['--json', '--no-color', '--forceExit', '--detectOpenHandles'],
+    args: [
+      '--json',
+      '--no-color',
+      '--forceExit',
+      '--detectOpenHandles',
+      '--testPathIgnorePatterns',
+      '\\.integration\\.test\\.ts$',
+    ],
+  },
+  integration: {
+    bin: 'jest',
+    args: [
+      '--json',
+      '--no-color',
+      '--forceExit',
+      '--detectOpenHandles',
+      '--testPathPatterns',
+      '\\.integration\\.test\\.ts$',
+    ],
   },
   e2e: {
     bin: 'playwright',

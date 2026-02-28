@@ -90,8 +90,12 @@ export const commandRunLayerMultiBroker = async ({
               rootPath,
             }),
           )
-          .map((arg) => cliArgContract.parse(arg.slice(prefix.length)));
-        spawnArgs.push('--', ...matchingArgs.map(String));
+          .map((arg) => cliArgContract.parse(arg.slice(prefix.length)))
+          .filter((arg) => String(arg).length > 0);
+
+        if (matchingArgs.length > 0) {
+          spawnArgs.push('--', ...matchingArgs.map(String));
+        }
       }
 
       const cwd = absoluteFilePathContract.parse(folder.path);

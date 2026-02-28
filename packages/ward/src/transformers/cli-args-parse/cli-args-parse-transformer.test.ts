@@ -52,14 +52,14 @@ describe('cliArgsParseTransformer', () => {
   });
 
   describe('--only test alias expansion', () => {
-    it('VALID: {args: ["--only", "test"]} => expands test to unit and e2e', () => {
+    it('VALID: {args: ["--only", "test"]} => expands test to unit, integration, and e2e', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
         args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test' })],
       });
 
-      expect(result).toStrictEqual({ only: ['unit', 'e2e'] });
+      expect(result).toStrictEqual({ only: ['unit', 'integration', 'e2e'] });
     });
 
     it('VALID: {args: ["--only", "test,lint"]} => expands test and keeps lint', () => {
@@ -69,7 +69,7 @@ describe('cliArgsParseTransformer', () => {
         args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test,lint' })],
       });
 
-      expect(result).toStrictEqual({ only: ['unit', 'e2e', 'lint'] });
+      expect(result).toStrictEqual({ only: ['unit', 'integration', 'e2e', 'lint'] });
     });
 
     it('VALID: {args: ["--only", "test,e2e"]} => deduplicates e2e after expansion', () => {
@@ -79,7 +79,7 @@ describe('cliArgsParseTransformer', () => {
         args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test,e2e' })],
       });
 
-      expect(result).toStrictEqual({ only: ['unit', 'e2e'] });
+      expect(result).toStrictEqual({ only: ['unit', 'integration', 'e2e'] });
     });
 
     it('VALID: {args: ["--only", "unit"]} => returns unit without expansion', () => {
@@ -90,6 +90,16 @@ describe('cliArgsParseTransformer', () => {
       });
 
       expect(result).toStrictEqual({ only: ['unit'] });
+    });
+
+    it('VALID: {args: ["--only", "integration"]} => returns integration without expansion', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'integration' })],
+      });
+
+      expect(result).toStrictEqual({ only: ['integration'] });
     });
   });
 
@@ -160,6 +170,83 @@ describe('cliArgsParseTransformer', () => {
       });
 
       expect(result).toStrictEqual({});
+    });
+  });
+
+  describe('flags after -- are passthrough', () => {
+    it('VALID: {--only test -- --only lint} => --only lint treated as passthrough, not parsed', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'test' }),
+          CliArgStub({ value: '--' }),
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'lint' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        only: ['unit', 'integration', 'e2e'],
+        passthrough: ['--only', 'lint'],
+      });
+    });
+  });
+
+  describe('all flags combined', () => {
+    it('VALID: {--only test --changed --verbose -- file.ts} => returns complete config', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'test' }),
+          CliArgStub({ value: '--changed' }),
+          CliArgStub({ value: '--verbose' }),
+          CliArgStub({ value: '--' }),
+          CliArgStub({ value: 'packages/hooks/src/foo.test.ts' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        only: ['unit', 'integration', 'e2e'],
+        changed: true,
+        verbose: true,
+        passthrough: ['packages/hooks/src/foo.test.ts'],
+      });
+    });
+  });
+
+  describe('deduplication', () => {
+    it('VALID: {--only test --only test} => deduplicates identical values', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'test' }),
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'test' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit', 'integration', 'e2e'] });
+    });
+
+    it('VALID: {--only unit --only test} => deduplicates unit from test expansion', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'unit' }),
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'test' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit', 'integration', 'e2e'] });
     });
   });
 

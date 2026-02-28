@@ -21,6 +21,12 @@ describe('checkTypeContract', () => {
       expect(result).toBe('unit');
     });
 
+    it('VALID: {value: "integration"} => parses integration', () => {
+      const result = checkTypeContract.parse('integration');
+
+      expect(result).toBe('integration');
+    });
+
     it('VALID: {value: "e2e"} => parses e2e', () => {
       const result = checkTypeContract.parse('e2e');
 

@@ -27,7 +27,6 @@
   "devDependencies": {
     "@dungeonmaster/testing": "*",
     "@types/node": "^20.0.0",
-    "jest": "^29.0.0",
     "typescript": "^5.3.0"
   },
   "publishConfig": {

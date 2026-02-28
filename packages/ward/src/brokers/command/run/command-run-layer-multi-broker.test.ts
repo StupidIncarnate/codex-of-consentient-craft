@@ -372,6 +372,136 @@ describe('commandRunLayerMultiBroker', () => {
       ]);
     });
 
+    it('VALID: {passthrough is bare package path} => child spawned with no file scope', async () => {
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: {
+                  name: '@dungeonmaster/hooks',
+                  path: '/home/user/project/packages/hooks',
+                },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 10,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({ packages: [{ subResultContent: subResult }] });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+      const config = WardConfigStub({
+        only: ['lint'],
+        passthrough: ['packages/hooks'],
+      });
+
+      await commandRunLayerMultiBroker({
+        config,
+        projectFolders: [wardFolder, hooksFolder],
+        rootPath,
+      });
+
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([['run', '--only', 'lint']]);
+    });
+
+    it('VALID: {mixed package path and file path for different packages} => package gets no file scope, file package gets file scope', async () => {
+      const wardSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: {
+                  name: '@dungeonmaster/ward',
+                  path: '/home/user/project/packages/ward',
+                },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 5,
+              },
+            ],
+          },
+        ],
+      });
+      const hooksSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: {
+                  name: '@dungeonmaster/hooks',
+                  path: '/home/user/project/packages/hooks',
+                },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 10,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        packages: [{ subResultContent: hooksSubResult }, { subResultContent: wardSubResult }],
+      });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const config = WardConfigStub({
+        only: ['lint'],
+        passthrough: ['packages/hooks', 'packages/ward/src/foo.test.ts'],
+      });
+
+      await commandRunLayerMultiBroker({
+        config,
+        projectFolders: [hooksFolder, wardFolder],
+        rootPath,
+      });
+
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([
+        ['run', '--only', 'lint'],
+        ['run', '--only', 'lint', '--', 'src/foo.test.ts'],
+      ]);
+    });
+
     it('VALID: {no passthrough, 2 packages} => all packages spawned as before', async () => {
       const wardSubResult = JSON.stringify({
         runId: '1739625600000-a38e',

@@ -21,6 +21,7 @@ import { checkResultBuildTransformer } from '../../../transformers/check-result-
 import { checkRunLintBroker } from '../../check-run/lint/check-run-lint-broker';
 import { checkRunTypecheckBroker } from '../../check-run/typecheck/check-run-typecheck-broker';
 import { checkRunUnitBroker } from '../../check-run/unit/check-run-unit-broker';
+import { checkRunIntegrationBroker } from '../../check-run/integration/check-run-integration-broker';
 import { checkRunE2eBroker } from '../../check-run/e2e/check-run-e2e-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
 import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
@@ -29,6 +30,7 @@ const CHECK_RUNNERS = {
   lint: checkRunLintBroker,
   typecheck: checkRunTypecheckBroker,
   unit: checkRunUnitBroker,
+  integration: checkRunIntegrationBroker,
   e2e: checkRunE2eBroker,
 } as const;
 
