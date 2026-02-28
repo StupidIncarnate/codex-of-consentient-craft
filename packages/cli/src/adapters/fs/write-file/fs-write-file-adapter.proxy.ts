@@ -1,14 +1,13 @@
-import { writeFile } from 'fs/promises';
+jest.mock('fs/promises');
 
-jest.mock('fs/promises', () => ({
-  writeFile: jest.fn(),
-}));
+import { writeFile } from 'fs/promises';
 
 export const fsWriteFileAdapterProxy = (): {
   succeeds: () => void;
   throws: (params: { error: Error }) => void;
   getWrittenContent: () => unknown;
   getWrittenPath: () => unknown;
+  getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const mock = jest.mocked(writeFile);
 
@@ -26,19 +25,21 @@ export const fsWriteFileAdapterProxy = (): {
     getWrittenContent: (): unknown => {
       const { calls } = mock.mock;
       const lastCall = calls[calls.length - 1];
-      if (!lastCall) {
-        return undefined;
-      }
+      if (!lastCall) return undefined;
       return lastCall[1];
     },
 
     getWrittenPath: (): unknown => {
       const { calls } = mock.mock;
       const lastCall = calls[calls.length - 1];
-      if (!lastCall) {
-        return undefined;
-      }
+      if (!lastCall) return undefined;
       return lastCall[0];
     },
+
+    getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
+      mock.mock.calls.map((call) => ({
+        path: call[0],
+        content: call[1],
+      })),
   };
 };

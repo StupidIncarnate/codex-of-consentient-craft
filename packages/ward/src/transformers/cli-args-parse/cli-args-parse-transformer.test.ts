@@ -34,6 +34,21 @@ describe('cliArgsParseTransformer', () => {
 
       expect(result).toStrictEqual({ only: ['lint', 'typecheck'] });
     });
+
+    it('VALID: {args: ["--only", "lint", "--only", "typecheck"]} => accumulates repeated --only flags', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'lint' }),
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'typecheck' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({ only: ['lint', 'typecheck'] });
+    });
   });
 
   describe('--only test alias expansion', () => {

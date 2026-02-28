@@ -4,8 +4,8 @@ import { InstallWriteFilesResponder } from './install-write-files-responder';
 
 export const InstallWriteFilesResponderProxy = (): {
   callResponder: typeof InstallWriteFilesResponder;
-  getWrittenFiles: () => ReadonlyArray<{ path: unknown; content: unknown }>;
-  getCreatedDirs: () => ReadonlyArray<unknown>;
+  getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
+  getCreatedDirs: () => readonly unknown[];
 } => {
   pathJoinAdapterProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
@@ -14,9 +14,9 @@ export const InstallWriteFilesResponderProxy = (): {
   return {
     callResponder: InstallWriteFilesResponder,
 
-    getWrittenFiles: (): ReadonlyArray<{ path: unknown; content: unknown }> =>
+    getWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
       writeFileProxy.getAllWrittenFiles(),
 
-    getCreatedDirs: (): ReadonlyArray<unknown> => mkdirProxy.getCreatedDirs(),
+    getCreatedDirs: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
   };
 };

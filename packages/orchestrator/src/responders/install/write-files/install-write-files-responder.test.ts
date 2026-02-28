@@ -18,6 +18,7 @@ describe('InstallWriteFilesResponder', () => {
       });
 
       const createdDirs = proxy.getCreatedDirs();
+
       expect(createdDirs[0]).toBe('/project/.claude/commands');
     });
 
@@ -32,6 +33,7 @@ describe('InstallWriteFilesResponder', () => {
       });
 
       const createdDirs = proxy.getCreatedDirs();
+
       expect(createdDirs[1]).toBe('/project/.claude/agents');
     });
   });
@@ -48,6 +50,7 @@ describe('InstallWriteFilesResponder', () => {
       });
 
       const writtenFiles = proxy.getWrittenFiles();
+
       expect(writtenFiles[0]).toStrictEqual({
         path: '/project/.claude/commands/quest.md',
         content: chaoswhispererPromptStatics.prompt.template,
@@ -65,6 +68,7 @@ describe('InstallWriteFilesResponder', () => {
       });
 
       const writtenFiles = proxy.getWrittenFiles();
+
       expect(writtenFiles[1]).toStrictEqual({
         path: '/project/.claude/commands/quest:start.md',
         content: questStartPromptStatics.prompt.template,
@@ -82,6 +86,7 @@ describe('InstallWriteFilesResponder', () => {
       });
 
       const writtenFiles = proxy.getWrittenFiles();
+
       expect(writtenFiles[2]).toStrictEqual({
         path: '/project/.claude/agents/finalizer-quest-agent.md',
         content: finalizerQuestAgentPromptStatics.prompt.template,
@@ -99,6 +104,7 @@ describe('InstallWriteFilesResponder', () => {
       });
 
       const writtenFiles = proxy.getWrittenFiles();
+
       expect(writtenFiles[3]).toStrictEqual({
         path: '/project/.claude/agents/quest-gap-reviewer.md',
         content: gapReviewerAgentPromptStatics.prompt.template,

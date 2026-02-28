@@ -32,7 +32,8 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
     if (arg === '--only' && args[i + 1]) {
       const raw = String(args[i + 1]).split(',');
       const expanded = raw.flatMap((value) => (value === 'test' ? ['unit', 'e2e'] : [value]));
-      const unique = [...new Set(expanded)];
+      const previous = parsed.only ?? [];
+      const unique = [...new Set([...previous, ...expanded])];
       parsed.only = unique.map((value) => checkTypeContract.parse(value));
       i++;
     }
