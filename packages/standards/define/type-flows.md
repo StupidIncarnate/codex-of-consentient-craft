@@ -25,10 +25,17 @@ flows/
 - **No proxies:** Flows do NOT use `.proxy.ts` files. Flows are routing/wiring only and should be tested as integration.
 - **Pattern:** flows/[domain]/[domain]-flow.ts(x)
 
+**Import Rules:**
+
+- Can import from: `responders/`
+- Whitelisted npm packages: `hono`, `react-router-dom`, `express` (routing frameworks only)
+- Cannot import from: `adapters/`, `brokers/`, `state/`, `transformers/`, `guards/`, `widgets/`, `bindings/`,
+  `middleware/`, or any non-whitelisted npm package
+
 **Constraints:**
 
 - **Frontend:** Use react-router-dom Route/Routes
-- **Backend:** Use express.Router
+- **Backend:** Use hono or express.Router
 - **Package:** Entry files that compose public API
 
 **Example:**

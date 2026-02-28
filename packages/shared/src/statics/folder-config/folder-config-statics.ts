@@ -111,7 +111,7 @@ export const folderConfigStatics = {
     exportCase: 'PascalCase',
     folderDepth: 1,
     folderPattern: 'flows/[domain]/[domain]-flow.tsx',
-    allowedImports: ['responders/'],
+    allowedImports: ['responders/', 'hono', 'react-router-dom', 'express'],
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,
