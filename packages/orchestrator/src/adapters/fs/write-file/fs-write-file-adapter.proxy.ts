@@ -7,6 +7,7 @@ export const fsWriteFileAdapterProxy = (): {
   throws: (params: { error: Error }) => void;
   getWrittenContent: () => unknown;
   getWrittenPath: () => unknown;
+  getAllWrittenFiles: () => ReadonlyArray<{ path: unknown; content: unknown }>;
 } => {
   const mock = jest.mocked(writeFile);
 
@@ -34,5 +35,11 @@ export const fsWriteFileAdapterProxy = (): {
       if (!lastCall) return undefined;
       return lastCall[0];
     },
+
+    getAllWrittenFiles: (): ReadonlyArray<{ path: unknown; content: unknown }> =>
+      mock.mock.calls.map((call) => ({
+        path: call[0],
+        content: call[1],
+      })),
   };
 };

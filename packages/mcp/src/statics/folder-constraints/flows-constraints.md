@@ -4,10 +4,13 @@
 flows/
   user/
     user-flow.tsx        # Frontend: React Router
-    user-flow.test.ts
+    user-flow.integration.test.ts
   api/
     api-flow.ts          # Backend: Express Router
-    api-flow.test.ts
+    api-flow.integration.test.ts
+  install/
+    install-flow.ts      # Package: delegates to responder
+    install-flow.integration.test.ts
 ```
 
 **THREE TYPES OF FLOWS:**
@@ -53,6 +56,53 @@ router.get('/users/:id', async (req, res, next) => {
 });
 
 export const UserFlow = router;
+```
+
+**TESTING (ESLint Enforced):**
+
+Flows use `.integration.test.ts` (NOT `.test.ts`). This is enforced by ESLint rule
+`@dungeonmaster/enforce-implementation-colocation`.
+
+Flows do NOT use `.proxy.ts` files. Integration tests run real code through the full flow → responder → adapter chain.
+
+**TEST EXAMPLE:**
+
+```typescript
+// flows/install/install-flow.integration.test.ts
+import {installTestbedCreateBroker, BaseNameStub, RelativePathStub} from '@dungeonmaster/testing';
+import {FilePathStub} from '@dungeonmaster/shared/contracts';
+import {InstallFlow} from './install-flow';
+
+describe('InstallFlow', () => {
+    describe('delegation to responder', () => {
+        it('VALID: {context} => delegates to responder and returns install result', async () => {
+            const testbed = installTestbedCreateBroker({
+                baseName: BaseNameStub({value: 'flow-delegation'}),
+            });
+
+            const result = await InstallFlow({
+                context: {
+                    targetProjectRoot: FilePathStub({value: testbed.guildPath}),
+                    dungeonmasterRoot: FilePathStub({value: testbed.dungeonmasterPath}),
+                },
+            });
+
+            const questContent = testbed.readFile({
+                relativePath: RelativePathStub({value: '.claude/commands/quest.md'}),
+            });
+
+            testbed.cleanup();
+
+            expect(result).toStrictEqual({
+                packageName: '@dungeonmaster/orchestrator',
+                success: true,
+                action: 'created',
+                message: 'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
+            });
+            expect(questContent).toMatch(/ChaosWhisperer/u);
+        });
+    });
+});
 ```
 
 **EXAMPLES:**

@@ -86,14 +86,14 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
             return;
           }
 
-          // Exception: Test files and stub files can import .stub.ts files from @dungeonmaster/shared/contracts
+          // Exception: Test files and stub files can import from @dungeonmaster/shared/contracts
+          // Test files need stubs (exported via barrel) and stub files need other stubs
           const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
           const isCurrentFileStub = isStubFileGuard({ filename: ctx.filename ?? '' });
-          const isImportedFileStub = isStubFileGuard({ filename: importSource });
           const isFromContracts = sharedFolderType === 'contracts';
 
-          if ((isTestFile || isCurrentFileStub) && isImportedFileStub && isFromContracts) {
-            // Allow test files and stub files to import stubs from @dungeonmaster/shared/contracts
+          if ((isTestFile || isCurrentFileStub) && isFromContracts) {
+            // Allow test files and stub files to import from @dungeonmaster/shared/contracts
             return;
           }
 
@@ -273,6 +273,24 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
             // Check if the import source matches the allowed package name
             return importSource === allowed || importSource.startsWith(`${allowed}/`);
           });
+
+          // Exception: Test files can import @dungeonmaster/testing (workspace test infrastructure)
+          // but NOT contracts — those must come from @dungeonmaster/shared/contracts
+          const isTestFileForExternal = isTestFileGuard({ filename: ctx.filename ?? '' });
+          const isDungeonmasterTesting =
+            importSource === '@dungeonmaster/testing' ||
+            importSource.startsWith('@dungeonmaster/testing/');
+
+          if (isTestFileForExternal && isDungeonmasterTesting) {
+            const importsContract = node.specifiers?.some((specifier) => {
+              const name = specifier.imported?.name;
+              return typeof name === 'string' && name.endsWith('Contract');
+            });
+
+            if (!importsContract) {
+              return;
+            }
+          }
 
           if (!canImportExternal && !isSpecificPackageAllowed) {
             ctx.report({

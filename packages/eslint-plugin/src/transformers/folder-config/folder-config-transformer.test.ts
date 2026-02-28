@@ -39,13 +39,7 @@ describe('folderConfigTransformer', () => {
       const result = folderConfigTransformer({ folderType: 'startup' });
 
       expect(result).toStrictEqual(folderConfigStatics.startup);
-      expect(result!.allowedImports).toStrictEqual([
-        'flows/',
-        'contracts/',
-        'statics/',
-        'errors/',
-        'node_modules',
-      ]);
+      expect(result!.allowedImports).toStrictEqual(['flows/', 'contracts/', 'statics/', 'errors/']);
     });
   });
 

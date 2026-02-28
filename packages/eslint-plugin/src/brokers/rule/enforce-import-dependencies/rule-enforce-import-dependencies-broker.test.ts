@@ -112,7 +112,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/guards/validation/validation-guard.spec.ts',
     },
 
-    // Test files can import .stub.ts files from @dungeonmaster/shared/contracts
+    // Test files can import from @dungeonmaster/shared/contracts (barrel exports include stubs)
     {
       code: 'import { FilePathStub } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/brokers/config/load/config-load-broker.test.ts',
@@ -120,6 +120,11 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
     {
       code: 'import { AbsoluteFilePathStub } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/adapters/path/path-dirname.test.ts',
+    },
+    // Test files in folders that normally can't import contracts can still import from @dungeonmaster/shared/contracts
+    {
+      code: 'import { FilePathStub } from "@dungeonmaster/shared/contracts";',
+      filename: '/project/src/flows/install/install-flow.integration.test.ts',
     },
 
     // Stub files can import other stubs from @dungeonmaster/shared/contracts
@@ -281,14 +286,10 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/contracts/user/user.stub.ts',
     },
 
-    // Startup can import flows, contracts, statics, errors, and npm packages
+    // Startup can import flows, contracts, statics, errors (no npm packages)
     {
       code: 'import { userFlow } from "../flows/user/user-flow";',
       filename: '/project/src/startup/index.ts',
-    },
-    {
-      code: 'import express from "express";',
-      filename: '/project/src/startup/server.ts',
     },
     {
       code: 'import { serverPortStatics } from "../statics/server-port/server-port-statics";',
@@ -431,6 +432,25 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
     {
       code: 'import { something } from "../../../node_modules/package";',
       filename: '/project/scripts/build.ts',
+    },
+
+    // Test files can import @dungeonmaster/testing (workspace test infrastructure)
+    {
+      code: 'import { installTestbedCreateBroker } from "@dungeonmaster/testing";',
+      filename: '/project/src/startup/start-install.integration.test.ts',
+    },
+    {
+      code: 'import { BaseNameStub } from "@dungeonmaster/testing";',
+      filename:
+        '/project/src/responders/install/write-files/install-write-files-responder.integration.test.ts',
+    },
+    {
+      code: 'import { StartEndpointMock } from "@dungeonmaster/testing";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.test.ts',
+    },
+    {
+      code: 'import { RelativePathStub } from "@dungeonmaster/testing/dist/contracts/relative-path/relative-path.stub";',
+      filename: '/project/src/guards/auth/auth-guard.test.ts',
     },
 
     // Proxy files are exempt from import restrictions (have their own proxy rules)
@@ -1092,6 +1112,56 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       errors: [
         {
           messageId: 'forbiddenSharedRootImport',
+        },
+      ],
+    },
+
+    // Cannot import contracts from @dungeonmaster/testing
+    {
+      code: 'import { FilePathContract } from "@dungeonmaster/testing";',
+      filename: '/project/src/flows/install/install-flow.integration.test.ts',
+      errors: [{ messageId: 'forbiddenExternalImport' }],
+    },
+
+    // Startup cannot import npm packages
+    {
+      code: 'import express from "express";',
+      filename: '/project/src/startup/server.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'startup',
+            packageName: 'express',
+          },
+        },
+      ],
+    },
+
+    // Non-test files cannot import @dungeonmaster/testing
+    {
+      code: 'import { installTestbedCreateBroker } from "@dungeonmaster/testing";',
+      filename: '/project/src/startup/start-install.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'startup',
+            packageName: '@dungeonmaster/testing',
+          },
+        },
+      ],
+    },
+    {
+      code: 'import { BaseNameStub } from "@dungeonmaster/testing";',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'brokers',
+            packageName: '@dungeonmaster/testing',
+          },
         },
       ],
     },

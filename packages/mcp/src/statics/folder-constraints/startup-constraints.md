@@ -41,50 +41,8 @@ Startup files use `.integration.test.ts` (NOT `.test.ts`).
 
 **Why?** Startup wires up the entire app - that's integration testing. Everything else is unit tested.
 
-**INTEGRATION TEST PROXIES (Startup Only):**
-
-**When complex setup is needed** (spawning processes, creating clients, managing async resources), startup integration
-tests can use a colocated proxy:
-
-```typescript
-// startup/start-mcp-server.proxy.ts
-import {JsonRpcResponseStub} from '../contracts/json-rpc-response/json-rpc-response.stub';
-import {McpServerClientStub} from '../contracts/mcp-server-client/mcp-server-client.stub';
-
-type McpServerClient = ReturnType<typeof McpServerClientStub>;
-type JsonRpcResponse = ReturnType<typeof JsonRpcResponseStub>;
-
-// Startup folder uses PascalCase for exports
-export const StartMcpServerProxy = (): {
-    createClient: () => Promise<McpServerClient>;
-} => {
-    const createClient = async (): Promise<McpServerClient> => {
-        // Complex setup: spawn process, setup listeners, etc.
-        const serverProcess = spawn('npx', ['tsx', serverEntryPoint], {...});
-
-        // Return contract-compliant object with methods
-        return {
-            process: serverProcess,
-            sendRequest: async (request) => { /* ... */
-            },
-            close: async () => { /* ... */
-            },
-        };
-    };
-
-    return {createClient};
-};
-```
-
-**Key principles for integration proxies:**
-
-- Extract types via `ReturnType<typeof Stub>` - never import from contracts
-- Service objects with methods (clients, connections) ARE contracts
-- Use statics for magic numbers (timeouts, delays)
-- Avoid `let` - use const objects with mutable properties: `const state = { value: '' }`
-- Proxies CAN have nested functions - the create-per-test pattern requires returning objects with helper methods
-
-**All core testing principles apply:** No hooks, no conditionals, branded types everywhere, types from stubs.
+Startup files do NOT use `.proxy.ts` files. This is enforced by ESLint — creating a proxy file for a startup will cause
+a lint error.
 
 **ENTRY POINTS PATTERN:**
 
@@ -193,71 +151,38 @@ export const StartQueueWorker = async (): Promise<void> => {
 **INTEGRATION TEST EXAMPLE:**
 
 ```typescript
-// startup/start-mcp-server.integration.test.ts
-import {StartMcpServer} from './start-mcp-server';
-import {StartMcpServerProxy} from './start-mcp-server.proxy';
-import {JsonRpcRequestStub} from '../contracts/json-rpc-request/json-rpc-request.stub';
-import {JsonRpcResponseStub} from '../contracts/json-rpc-response/json-rpc-response.stub';
-import {RpcIdStub} from '../contracts/rpc-id/rpc-id.stub';
-import {RpcMethodStub} from '../contracts/rpc-method/rpc-method.stub';
+// startup/start-install.integration.test.ts
+import {installTestbedCreateBroker, BaseNameStub, RelativePathStub} from '@dungeonmaster/testing';
+import {FilePathStub} from '@dungeonmaster/shared/contracts';
+import {StartInstall} from './start-install';
 
-type JsonRpcRequest = ReturnType<typeof JsonRpcRequestStub>;
-type JsonRpcResponse = ReturnType<typeof JsonRpcResponseStub>;
-type RpcId = ReturnType<typeof RpcIdStub>;
-type RpcMethod = ReturnType<typeof RpcMethodStub>;
-
-describe('StartMcpServer', () => {
-    describe('with valid server startup', () => {
-        it('VALID: {} => starts server and responds to tools/list request', async () => {
-            const proxy = StartMcpServerProxy();
-            const client = await proxy.createClient();
-
-            const requestId = RpcIdStub({value: 1});
-            const request = JsonRpcRequestStub({
-                id: requestId,
-                method: RpcMethodStub({value: 'tools/list'}),
-                params: {},
+describe('StartInstall', () => {
+    describe('wiring to install flow', () => {
+        it('VALID: {context} => delegates to flow and returns install result with all files created', async () => {
+            const testbed = installTestbedCreateBroker({
+                baseName: BaseNameStub({value: 'startup-wiring'}),
             });
 
-            const response = await client.sendRequest(request);
-
-            expect(response).toStrictEqual(JsonRpcResponseStub({
-                id: requestId,
-                result: {
-                    tools: expect.any(Array),
+            const result = await StartInstall({
+                context: {
+                    targetProjectRoot: FilePathStub({value: testbed.guildPath}),
+                    dungeonmasterRoot: FilePathStub({value: testbed.dungeonmasterPath}),
                 },
-            }));
-
-            await client.close();
-        });
-
-        it('VALID: {method: "tools/call"} => executes tool and returns result', async () => {
-            const proxy = StartMcpServerProxy();
-            const client = await proxy.createClient();
-
-            const requestId = RpcIdStub({value: 2});
-            const request = JsonRpcRequestStub({
-                id: requestId,
-                method: RpcMethodStub({value: 'tools/call'}),
-                params: {name: 'get-architecture', arguments: {}},
             });
 
-            const response = await client.sendRequest(request);
+            const questContent = testbed.readFile({
+                relativePath: RelativePathStub({value: '.claude/commands/quest.md'}),
+            });
 
-            expect(response).toStrictEqual(JsonRpcResponseStub({
-                id: requestId,
-                result: {content: expect.any(String)},
-            }));
+            testbed.cleanup();
 
-            await client.close();
-        });
-    });
-
-    describe('with server startup failure', () => {
-        it('ERROR: {invalid spawn path} => throws error during client creation', async () => {
-            const proxy = StartMcpServerProxy();
-
-            await expect(proxy.createClient()).rejects.toThrow(/spawn.*failed/iu);
+            expect(result).toStrictEqual({
+                packageName: '@dungeonmaster/orchestrator',
+                success: true,
+                action: 'created',
+                message: 'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
+            });
+            expect(questContent).toMatch(/ChaosWhisperer/u);
         });
     });
 });

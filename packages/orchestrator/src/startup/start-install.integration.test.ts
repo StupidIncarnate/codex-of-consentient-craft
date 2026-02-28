@@ -1,16 +1,12 @@
-/**
- * PURPOSE: Integration tests for orchestrator StartInstall
- */
-
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { StartInstall } from './start-install';
 
-describe('start-install integration', () => {
-  describe('StartInstall', () => {
-    it('VALID: {context: no existing commands} => creates commands directory with quest.md and quest:start.md, and agents directory with all agent files', async () => {
+describe('StartInstall', () => {
+  describe('wiring to install flow', () => {
+    it('VALID: {context} => delegates to flow and returns install result with all files created', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'create-commands' }),
+        baseName: BaseNameStub({ value: 'startup-wiring' }),
       });
 
       const result = await StartInstall({
@@ -20,6 +16,21 @@ describe('start-install integration', () => {
         },
       });
 
+      const questContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: '.claude/commands/quest.md' }),
+      });
+      const questStartContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: '.claude/commands/quest:start.md' }),
+      });
+      const questFinalizerContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: '.claude/agents/finalizer-quest-agent.md' }),
+      });
+      const questGapReviewerContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: '.claude/agents/quest-gap-reviewer.md' }),
+      });
+
+      testbed.cleanup();
+
       expect(result).toStrictEqual({
         packageName: '@dungeonmaster/orchestrator',
         success: true,
@@ -27,160 +38,10 @@ describe('start-install integration', () => {
         message:
           'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
       });
-
-      const questContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/quest.md' }),
-      });
-
-      const questStartContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/quest:start.md' }),
-      });
-
-      const questFinalizerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/agents/finalizer-quest-agent.md' }),
-      });
-
-      const questGapReviewerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/agents/quest-gap-reviewer.md' }),
-      });
-
-      testbed.cleanup();
-
       expect(questContent).toMatch(/ChaosWhisperer/u);
-      expect(questContent).toMatch(/BDD/u);
       expect(questStartContent).toMatch(/monitoring quest execution/u);
-      expect(questStartContent).toMatch(/list-quests/u);
       expect(questFinalizerContent).toMatch(/Quest Finalizer/u);
-      expect(questFinalizerContent).toMatch(/verify-quest/u);
       expect(questGapReviewerContent).toMatch(/Staff Engineer/u);
-      expect(questGapReviewerContent).toMatch(/gap analysis/u);
-    });
-
-    it('VALID: {context: existing .claude directory} => creates commands and agents subdirectories', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'existing-claude-dir' }),
-      });
-
-      // testbed already creates .claude directory automatically
-
-      const result = await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
-      });
-
-      expect(result).toStrictEqual({
-        packageName: '@dungeonmaster/orchestrator',
-        success: true,
-        action: 'created',
-        message:
-          'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
-      });
-
-      const questContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/quest.md' }),
-      });
-
-      testbed.cleanup();
-
-      expect(questContent).toMatch(/ChaosWhisperer/u);
-    });
-
-    it('VALID: {context: quest.md content} => contains chaoswhisperer prompt template', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'quest-content' }),
-      });
-
-      await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
-      });
-
-      const questContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/quest.md' }),
-      });
-
-      testbed.cleanup();
-
-      expect(questContent).toMatch(/Socratic dialogue/u);
-      expect(questContent).toMatch(/get-quest/u);
-      expect(questContent).toMatch(/modify-quest/u);
-      expect(questContent).toMatch(/EXECUTION PROTOCOL/u);
-    });
-
-    it('VALID: {context: quest:start.md content} => contains quest start prompt template', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'quest-start-content' }),
-      });
-
-      await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
-      });
-
-      const questStartContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/quest:start.md' }),
-      });
-
-      testbed.cleanup();
-
-      expect(questStartContent).toMatch(/list-quests/u);
-      expect(questStartContent).toMatch(/get-quest-status/u);
-      expect(questStartContent).toMatch(/pathseeker/iu);
-      expect(questStartContent).toMatch(/codeweaver/iu);
-    });
-
-    it('VALID: {context: finalizer-quest-agent.md content} => contains finalizer agent prompt template', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'finalizer-quest-agent-content' }),
-      });
-
-      await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
-      });
-
-      const questFinalizerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/agents/finalizer-quest-agent.md' }),
-      });
-
-      testbed.cleanup();
-
-      expect(questFinalizerContent).toMatch(/Quest Finalizer/u);
-      expect(questFinalizerContent).toMatch(/verify-quest/u);
-      expect(questFinalizerContent).toMatch(/Deterministic Checks/u);
-      expect(questFinalizerContent).toMatch(/Trace the Narrative/u);
-    });
-
-    it('VALID: {context: quest-gap-reviewer.md content} => contains gap reviewer agent prompt template', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'quest-gap-reviewer-content' }),
-      });
-
-      await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
-      });
-
-      const questGapReviewerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/agents/quest-gap-reviewer.md' }),
-      });
-
-      testbed.cleanup();
-
-      expect(questGapReviewerContent).toMatch(/Staff Engineer/u);
-      expect(questGapReviewerContent).toMatch(/gap analysis/u);
-      expect(questGapReviewerContent).toMatch(/Review Requirements/u);
-      expect(questGapReviewerContent).toMatch(/Critical Issues/u);
     });
   });
 });

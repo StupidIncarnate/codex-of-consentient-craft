@@ -14,6 +14,7 @@ jest.mock('fs/promises');
 export const fsMkdirAdapterProxy = (): {
   succeeds: ({ filepath }: { filepath: FilePath }) => void;
   throws: ({ filepath, error }: { filepath: FilePath; error: Error }) => void;
+  getCreatedDirs: () => ReadonlyArray<unknown>;
 } => {
   const mockMkdir = jest.mocked(mkdir);
 
@@ -26,5 +27,7 @@ export const fsMkdirAdapterProxy = (): {
     throws: ({ filepath: _filepath, error }: { filepath: FilePath; error: Error }): void => {
       mockMkdir.mockRejectedValueOnce(error);
     },
+    getCreatedDirs: (): ReadonlyArray<unknown> =>
+      mockMkdir.mock.calls.map((call) => call[0]),
   };
 };
