@@ -1,6 +1,15 @@
 # Startup Layer Split
 
-You are converting a package's startup files to comply with two architectural constraints:
+You are the **orchestrator** for converting a package's startup files to comply with architectural constraints. You
+coordinate work by dispatching agents — you NEVER write code yourself. All implementation, file reading, and testing is
+done by agents you dispatch.
+
+**The ONLY files you read directly are plan files you create.** Everything else — reading source code, checking
+patterns,
+exploring the codebase — must be delegated to agents. If you need information to make a decision, dispatch an agent to
+gather it and report back.
+
+## Constraints being enforced
 
 1. **No branching in startup** — ESLint rule `@dungeonmaster/ban-startup-branching` bans ALL `if`, `switch`, and ternary
    operators in any file under `/startup/`. No exemptions. (`try/catch` and `&&`/`||`/`??` ARE allowed.)
@@ -13,34 +22,45 @@ You are converting a package's startup files to comply with two architectural co
 
 `$ARGUMENTS`
 
-## Your workflow
+## Agent dispatch rules
 
-### Phase 1: Explore and plan
+- **Agents** (via `Agent` tool) — Use for all implementation work. Pass them the plan context and clear instructions on
+  what to build.
+- **Sub agents** — Use for exploratory research (finding files, reading code, checking patterns) and for lint/test
+  fixes. Never for primary implementation.
+- **Terse responses** — Instruct all agents to keep their response messages short. Only report what was done, what
+  failed, and what needs attention.
 
-1. Use MCP tools to get architecture, folder details for `startup`, `flows`, and `responders`, and syntax rules.
-2. Read every file under `packages/<target>/src/startup/` — understand what each does, what it imports, and where it
-   branches.
-3. Read any existing `flows/` and `responders/` directories in the package.
-4. Read the canonical reference files for the correct pattern:
+## Workflow
+
+### Phase 1: Explore
+
+Dispatch an agent to explore the target package and report back with:
+
+1. Every file under `packages/<target>/src/startup/` — what each does, what it imports, where it branches.
+2. Any existing `flows/` and `responders/` directories and their contents.
+3. Existing integration tests on startup files and what they assert.
+4. The canonical reference files for the correct pattern:
     - `packages/cli/src/startup/start-install.ts` (clean startup — single flow delegate)
     - `packages/cli/src/flows/install/install-flow.ts` (clean flow — single responder delegate)
     - `packages/cli/src/responders/install/add-dev-deps/install-add-dev-deps-responder.ts` (responder with logic)
-5. Check for existing integration tests on startup files — their test cases will need to be redistributed.
+5. Architecture info via MCP tools: `get-folder-detail` for `startup`, `flows`, `responders`; `get-syntax-rules`;
+   `get-testing-patterns`.
 
 ### Phase 2: Design the split
 
-For each startup file that violates, produce a concrete plan listing:
+Using the agent's report, design a concrete plan listing for each violating startup file:
 
 - Every new file to create (full path)
 - Every existing file to modify (full path)
 - What logic moves where
 - What tests move where
 
-**Present this plan to the user for approval before writing any code.**
+Write this plan to a file. **Present it to the user for approval before proceeding.**
 
 #### Critical design rules
 
-**Flows are one entry per file, one flow per domain/concern.** A flow file should map to a single logical entry point or
+**Flows are one entry per file, one flow per domain/concern.** A flow file maps to a single logical entry point or
 domain. If you find yourself putting multiple unrelated routes or a large switch/if-chain in one flow, split into
 multiple flows. The startup mounts multiple flows, each handling its own concern.
 
@@ -76,13 +96,21 @@ Solutions:
   by other code, so no guard is needed.
 - For auto-start patterns (`if (NODE_ENV !== 'test') { Start() }`): Remove entirely. The caller decides when to invoke.
 
-**If a constraint makes the conversion impossible, STOP and notify the user.** Describe the specific conflict — e.g., "
-The flow needs to import X but flow import rules don't allow it" or "This logic can't be expressed without an
+**If a constraint makes the conversion impossible, STOP and notify the user.** Describe the specific conflict — e.g.,
+"The flow needs to import X but flow import rules don't allow it" or "This logic can't be expressed without an
 if-statement in startup." Do not hack around the rules.
 
 ### Phase 3: Implement
 
-After user approval, implement the split:
+After user approval, dispatch agents to implement the split. Group work logically — one agent per startup file or per
+related set of files. For each agent, provide:
+
+- The specific section of the plan it should implement
+- The full paths of files to create and modify
+- Instructions to use MCP tools (`get-folder-detail`, `get-syntax-rules`, `get-testing-patterns`) for patterns
+- Instructions to read the canonical reference files before writing code
+
+Each agent should:
 
 1. Create new responder files with their `.proxy.ts` and `.test.ts` companions (per responder standards).
 2. Create new flow files with `.integration.test.ts` companions (per flow standards).
@@ -91,7 +119,8 @@ After user approval, implement the split:
 
 ### Phase 4: Redistribute tests
 
-Startup files currently have `.integration.test.ts` files. When logic moves out of startup:
+Dispatch an agent to handle test redistribution. Startup files currently have `.integration.test.ts` files. When logic
+moves out of startup:
 
 - **Logic-level tests** (testing branching, validation, I/O behavior) → move to the **responder's `.test.ts`** using the
   proxy pattern. These become unit tests.
@@ -102,13 +131,18 @@ Startup files currently have `.integration.test.ts` files. When logic moves out 
 
 ### Phase 5: Test coverage audit
 
-After all files are created and tests redistributed, dispatch sub agents to:
+Dispatch a sub agent for each NEW file to verify it has proper test coverage according to project standards:
 
-1. For each NEW responder file: verify it has a `.proxy.ts` and `.test.ts` with meaningful test cases covering its
-   logic. Use `get-testing-patterns` MCP tool for the proxy pattern. If test coverage is missing or thin, write the
-   missing tests.
-2. For each NEW flow file: verify it has an `.integration.test.ts`. If missing, create one.
-3. Run `npm run ward` to verify lint + typecheck + tests all pass. Fix any failures.
+- Each responder must have a `.proxy.ts` and `.test.ts` with meaningful test cases covering its logic.
+- Each flow must have an `.integration.test.ts`.
+- If coverage is missing or thin, the agent writes the missing tests.
+
+Then dispatch a sub agent to run `npm run ward` and fix any failures. If ward fails, use `ward-list` and `ward-detail`
+MCP tools to get full error details and dispatch a fix agent.
+
+### Phase 6: Commit
+
+After ward passes, commit all changes.
 
 ## Additional callouts
 
