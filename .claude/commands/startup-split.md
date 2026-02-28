@@ -56,7 +56,7 @@ Using the agent's report, design a concrete plan listing for each violating star
 - What logic moves where
 - What tests move where
 
-Write this plan to a file. **Present it to the user for approval before proceeding.**
+Write this plan to `.claude/plans/startup-split-<target>.md`. **Present it to the user for approval before proceeding.**
 
 #### Critical design rules
 
