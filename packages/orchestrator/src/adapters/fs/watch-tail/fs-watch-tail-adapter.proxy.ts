@@ -45,7 +45,9 @@ export const fsWatchTailAdapterProxy = (): {
   });
 
   mockCreateInterface.mockImplementation(() => {
-    const rlEmitter = new EventEmitter();
+    const rlEmitter = Object.assign(new EventEmitter(), {
+      close: jest.fn(),
+    });
     const batch = pendingLinesBatches.shift();
     const lines = Array.isArray(batch) ? batch : [];
 

@@ -5,9 +5,8 @@ coordinate work by dispatching agents — you NEVER write code yourself. All imp
 done by agents you dispatch.
 
 **The ONLY files you read directly are plan files you create.** Everything else — reading source code, checking
-patterns,
-exploring the codebase — must be delegated to agents. If you need information to make a decision, dispatch an agent to
-gather it and report back.
+patterns, exploring the codebase — must be delegated to agents. If you need information to make a decision, dispatch an
+agent to gather it and report back.
 
 ## Constraints being enforced
 
@@ -31,6 +30,18 @@ gather it and report back.
 - **Terse responses** — Instruct all agents to keep their response messages short. Only report what was done, what
   failed, and what needs attention.
 
+## MANDATORY: Read standards before designing
+
+Before designing ANY split, you MUST have your exploration agent use these MCP tools and report back:
+
+- `get-folder-detail` for `startup`, `flows`, and `responders` — these contain naming conventions, import rules, test
+  requirements, and code examples
+- `get-syntax-rules` — universal conventions for exports, types, destructuring
+- `get-testing-patterns` — proxy pattern, mock boundaries, assertion rules
+
+**Do not design based on assumptions.** The standards contain specific rules about folder depth, file naming, import
+restrictions, proxy requirements, and test file types. Read them first.
+
 ## Workflow
 
 ### Phase 1: Explore
@@ -41,9 +52,9 @@ Dispatch an agent to explore the target package and report back with:
 2. Any existing `flows/` and `responders/` directories and their contents.
 3. Existing integration tests on startup files and what they assert.
 4. The canonical reference files for the correct pattern:
-    - `packages/cli/src/startup/start-install.ts` (clean startup — single flow delegate)
-    - `packages/cli/src/flows/install/install-flow.ts` (clean flow — single responder delegate)
-    - `packages/cli/src/responders/install/add-dev-deps/install-add-dev-deps-responder.ts` (responder with logic)
+   - `packages/cli/src/startup/start-install.ts` (clean startup — single flow delegate)
+   - `packages/cli/src/flows/install/install-flow.ts` (clean flow — single responder delegate)
+   - `packages/cli/src/responders/install/add-dev-deps/install-add-dev-deps-responder.ts` (responder with logic)
 5. Architecture info via MCP tools: `get-folder-detail` for `startup`, `flows`, `responders`; `get-syntax-rules`;
    `get-testing-patterns`.
 
@@ -59,6 +70,16 @@ Using the agent's report, design a concrete plan listing for each violating star
 Write this plan to `.claude/plans/startup-split-<target>.md`. **Present it to the user for approval before proceeding.**
 
 #### Critical design rules
+
+**Everything is a route.** HTTP endpoints, MCP tool calls, CLI subcommands, queue job types, hook event types — these
+are ALL forms of routing. They all follow the same pattern: startup → flow → responder.
+
+- HTTP `GET /api/guilds` → `flows/guild/guild-flow.ts` → `GuildListResponder`
+- MCP tool `discover` → `flows/discover/discover-flow.ts` → `DiscoverResponder`
+- CLI command `init` → `flows/init/init-flow.ts` → `InitResponder`
+- Hook event `pre-edit` → `flows/pre-edit/pre-edit-flow.ts` → `PreEditResponder`
+
+Do NOT treat non-HTTP routing as a special case. The pattern is identical regardless of transport.
 
 **Flows are one entry per file, one flow per domain/concern.** A flow file maps to a single logical entry point or
 domain. If you find yourself putting multiple unrelated routes or a large switch/if-chain in one flow, split into
@@ -79,6 +100,29 @@ NOT:
 flows/server/server-flow.ts    → one mega-flow with all 18 routes ← WRONG
 ```
 
+Example — an MCP server with architecture, quest, and ward tools:
+
+```
+startup/start-mcp-server.ts             → mounts ArchitectureFlow, QuestFlow, WardFlow, etc.
+flows/architecture/architecture-flow.ts → wires architecture tool calls to responders
+flows/quest/quest-flow.ts               → wires quest tool calls to responders
+flows/ward/ward-flow.ts                 → wires ward tool calls to responders
+```
+
+NOT:
+
+```
+flows/mcp-server/mcp-server-flow.ts     → one mega-flow dispatching all 17 tools ← WRONG
+```
+
+**Flows do routing ONLY.** A flow maps inputs to responders. It does NOT:
+
+- Create servers or transports (that's adapter territory)
+- Initialize state (that's a responder or broker concern)
+- Define tool schemas or register handlers (that's wiring that belongs in the flow, but the schema definitions
+  themselves come from contracts)
+- Contain business logic of any kind
+
 **Flows CAN contain branching.** The lint rule only targets `startup/` files. Flows can have `if`/`switch`/ternary for
 routing logic. This is their purpose — they route to responders.
 
@@ -86,6 +130,16 @@ routing logic. This is their purpose — they route to responders.
 `express` — these are the routing frameworks flows use to wire routes to responders. Flows CANNOT import arbitrary npm
 packages. If a flow needs other npm functionality, it must go through a responder → adapter chain. Check
 `folder-config-statics.ts` for the current whitelist if unsure.
+
+**Do NOT whitelist additional npm packages for flows without user approval.** If you believe a package needs
+whitelisting (e.g., an MCP SDK, a queue framework), flag it to the user as a constraint conflict. Do not modify
+`folder-config-statics.ts` yourself. The user will decide whether to whitelist it or restructure the code to work
+through adapters instead.
+
+**Server/transport creation belongs in adapters.** Creating an HTTP server (Hono), an MCP server
+(`@modelcontextprotocol/sdk`), a queue connection, or any transport is I/O — it wraps an npm package and belongs in
+`adapters/`. The startup or a responder calls the adapter to get the server object, then passes it to flows for route
+wiring.
 
 **`isMain` / self-invocation guards must be removed from startup files.** These are `if` statements and will fail lint.
 Solutions:
@@ -137,9 +191,8 @@ Dispatch a sub agent for each NEW file to verify it has proper test coverage acc
 - Each flow must have an `.integration.test.ts`.
 - If coverage is missing or thin, the agent writes the missing tests.
 
-Then dispatch a sub agent to run `npm run ward --workspace=@dungeonmaster/<target>` (scoped to this package only) and
-fix any failures. If ward fails, use `ward-list` and `ward-detail` MCP tools to get full error details and dispatch a
-fix agent.
+Then dispatch a sub agent to run `npm run ward -- -- packages/<target>` (scoped to this package only) and fix any
+failures. If ward fails, use `ward-list` and `ward-detail` MCP tools to get full error details and dispatch a fix agent.
 
 ### Phase 6: Commit
 
