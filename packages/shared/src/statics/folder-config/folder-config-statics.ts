@@ -121,6 +121,8 @@ export const folderConfigStatics = {
       'hono',
       'react-router-dom',
       'express',
+      '@modelcontextprotocol/sdk',
+      'zod-to-json-schema',
     ],
     disallowAdhocTypes: true,
     requireProxy: false,
