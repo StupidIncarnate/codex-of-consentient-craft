@@ -49,13 +49,16 @@ restrictions, proxy requirements, and test file types. Read them first.
 Dispatch an agent to explore the target package and report back with:
 
 1. Every file under `packages/<target>/src/startup/` — what each does, what it imports, where it branches.
-2. Any existing `flows/` and `responders/` directories and their contents.
-3. Existing integration tests on startup files and what they assert.
-4. The canonical reference files for the correct pattern:
+2. The `package.json` `bin` field — which startup files are used as CLI binaries (these need thin entry files at
+   `{packageRoot}/bin/`).
+3. Any existing `flows/`, `responders/`, and `bin/` directories and their contents.
+4. Existing integration tests on startup files and what they assert.
+5. The canonical reference files for the correct pattern:
    - `packages/cli/src/startup/start-install.ts` (clean startup — single flow delegate)
    - `packages/cli/src/flows/install/install-flow.ts` (clean flow — single responder delegate)
    - `packages/cli/src/responders/install/add-dev-deps/install-add-dev-deps-responder.ts` (responder with logic)
-5. Architecture info via MCP tools: `get-folder-detail` for `startup`, `flows`, `responders`; `get-syntax-rules`;
+   - `packages/cli/bin/cli-entry.ts` (thin bin entry — imports startup and calls it)
+6. Architecture info via MCP tools: `get-folder-detail` for `startup`, `flows`, `responders`; `get-syntax-rules`;
    `get-testing-patterns`.
 
 ### Phase 2: Design the split
@@ -144,8 +147,9 @@ wiring.
 **`isMain` / self-invocation guards must be removed from startup files.** These are `if` statements and will fail lint.
 Solutions:
 
-- For CLI binaries: Create a thin entry file (e.g., `src/bin/cli-entry.ts`) that imports and calls the startup function.
-  Update the build config to bundle the entry file instead. The startup file becomes a pure export.
+- For CLI binaries: Create a thin entry file at `{packageRoot}/bin/` (outside `src/`, so ESLint folder rules don't
+  apply). E.g., `bin/cli-entry.ts` imports and calls the startup function. Update `package.json` bin entry and
+  `tsconfig.json` include to add `bin/**/*`. The startup file becomes a pure export.
 - For hook scripts (always invoked directly by Claude Code): Remove the guard entirely — these files are never imported
   by other code, so no guard is needed.
 - For auto-start patterns (`if (NODE_ENV !== 'test') { Start() }`): Remove entirely. The caller decides when to invoke.

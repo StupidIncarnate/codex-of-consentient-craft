@@ -27,6 +27,9 @@ flows/
       forbids `.test.ts` for flow files
 - **No proxies:** Flows do NOT use `.proxy.ts` files. Flows are routing/wiring only and should be tested as integration.
 - **Pattern:** flows/[domain]/[domain]-flow.ts(x)
+- **Integration tests must test full hookup.** Flow tests verify the complete delegation chain — startup → flow →
+  responder — with real code running end-to-end. Use `installTestbedCreateBroker` from `@dungeonmaster/testing` for
+  filesystem isolation. Tests that only assert `typeof Flow === 'function'` are worthless and not acceptable.
 
 **Import Rules:**
 
