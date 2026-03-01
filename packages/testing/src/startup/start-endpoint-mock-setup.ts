@@ -6,18 +6,18 @@
  * '<rootDir>/../../packages/testing/src/startup/start-endpoint-mock-setup.ts'
  */
 
-import { mswServerAdapter } from '../adapters/msw/server/msw-server-adapter';
+import { EndpointMockSetupFlow } from '../flows/endpoint-mock-setup/endpoint-mock-setup-flow';
 
-const server = mswServerAdapter();
+const lifecycle = EndpointMockSetupFlow();
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'error' });
+  lifecycle.listen();
 });
 
 afterEach(() => {
-  server.resetHandlers();
+  lifecycle.resetHandlers();
 });
 
 afterAll(() => {
-  server.close();
+  lifecycle.close();
 });
