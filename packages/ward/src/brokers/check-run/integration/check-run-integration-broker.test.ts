@@ -22,6 +22,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -65,6 +66,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -95,6 +97,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -134,6 +137,34 @@ describe('checkRunIntegrationBroker', () => {
         '--findRelatedTests',
         'src/index.ts',
       ]);
+    });
+  });
+
+  describe('skip on zero discovered', () => {
+    it('VALID: {no integration test files discovered} => returns skip result without spawning jest', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupNoTestFiles();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no test files discovered',
+            exitCode: 0,
+          }),
+        }),
+      );
     });
   });
 });

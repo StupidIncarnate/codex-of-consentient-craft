@@ -21,6 +21,7 @@ import { checkCommandsStatics } from '../../../statics/check-commands/check-comm
 import { eslintJsonParseTransformer } from '../../../transformers/eslint-json-parse/eslint-json-parse-transformer';
 import { extractJsonArrayTransformer } from '../../../transformers/extract-json-array/extract-json-array-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
+import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 
 export const checkRunLintBroker = async ({
   projectFolder,
@@ -29,10 +30,10 @@ export const checkRunLintBroker = async ({
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
 }): Promise<ProjectResult> => {
-  const { bin, args } = checkCommandsStatics.lint;
-  const finalArgs = fileList.length > 0 ? [...args.slice(0, -1), ...fileList] : [...args];
-
+  const { bin, args, discoverPatterns } = checkCommandsStatics.lint;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const discoveredCount = fsGlobSyncAdapter({ patterns: discoverPatterns, cwd });
+  const finalArgs = fileList.length > 0 ? [...args.slice(0, -1), ...fileList] : [...args];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({
@@ -73,6 +74,7 @@ export const checkRunLintBroker = async ({
     errors,
     testFailures: [],
     filesCount,
+    discoveredCount,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

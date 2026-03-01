@@ -436,4 +436,102 @@ describe('resultToSummaryTransformer', () => {
       );
     });
   });
+
+  describe('discovery counts', () => {
+    it('VALID: {wardResult: lint pass with discoveredCount matching} => includes discovered count', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 100,
+                discoveredCount: 100,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (100 files passed/0 files failed, 100 discovered)',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: integration 0 files run but 12 discovered} => shows DISCOVERY MISMATCH', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'integration',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'hooks', path: '/p/hooks' },
+                status: 'fail',
+                filesCount: 0,
+                discoveredCount: 12,
+                errors: [],
+                testFailures: [],
+                rawOutput: { stdout: 'Jest crashed', stderr: '', exitCode: 1 },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nintegration: WARN  0 files run, 12 discovered  DISCOVERY MISMATCH\n\n--- integration ---\nhooks\n  (crash) Jest crashed',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: unit pass with mismatch} => shows DISCOVERY MISMATCH after pass line', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 5,
+                discoveredCount: 10,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed, 10 discovered)  DISCOVERY MISMATCH',
+        }),
+      );
+    });
+  });
 });

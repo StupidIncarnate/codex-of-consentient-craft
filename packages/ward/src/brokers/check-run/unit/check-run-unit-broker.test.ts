@@ -22,6 +22,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -65,6 +66,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -95,6 +97,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -158,6 +161,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -204,6 +208,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -249,6 +254,34 @@ describe('checkRunUnitBroker', () => {
         '--findRelatedTests',
         'src/index.ts',
       ]);
+    });
+  });
+
+  describe('skip on zero discovered', () => {
+    it('VALID: {no test files discovered} => returns skip result without spawning jest', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupNoTestFiles();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no test files discovered',
+            exitCode: 0,
+          }),
+        }),
+      );
     });
   });
 });

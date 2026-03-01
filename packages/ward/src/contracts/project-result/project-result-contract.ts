@@ -20,6 +20,7 @@ export const projectResultContract = z.object({
   testFailures: z.array(testFailureContract),
   rawOutput: rawOutputContract.default({ stdout: '', stderr: '', exitCode: 0 }),
   filesCount: z.number().int().nonnegative().brand<'FilesCount'>().default(0),
+  discoveredCount: z.number().int().nonnegative().brand<'DiscoveredCount'>().default(0),
 });
 
 export type ProjectResult = z.infer<typeof projectResultContract>;

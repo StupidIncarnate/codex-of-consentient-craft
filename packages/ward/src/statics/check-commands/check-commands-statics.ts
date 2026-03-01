@@ -1,13 +1,21 @@
 /**
- * PURPOSE: Maps each check type to its binary name and arguments
+ * PURPOSE: Maps each check type to its binary name, arguments, and file discovery patterns
  *
  * USAGE:
  * const {bin, args} = checkCommandsStatics.lint;
  * // Returns: {bin: 'eslint', args: ['--fix', '--format', 'json', '.']}
  */
 export const checkCommandsStatics = {
-  lint: { bin: 'eslint', args: ['--fix', '--format', 'json', '.'] },
-  typecheck: { bin: 'tsc', args: ['--noEmit', '--listFiles'] },
+  lint: {
+    bin: 'eslint',
+    args: ['--fix', '--format', 'json', '.'],
+    discoverPatterns: ['src/**/*.ts', 'src/**/*.tsx'],
+  },
+  typecheck: {
+    bin: 'tsc',
+    args: ['--noEmit', '--listFiles'],
+    discoverPatterns: ['src/**/*.ts', 'src/**/*.tsx'],
+  },
   unit: {
     bin: 'jest',
     args: [
@@ -18,6 +26,8 @@ export const checkCommandsStatics = {
       '--testPathIgnorePatterns',
       '\\.integration\\.test\\.ts$',
     ],
+    discoverPatterns: ['src/**/*.test.ts', 'bin/**/*.test.ts'],
+    excludePatterns: ['**/*.integration.test.ts'],
   },
   integration: {
     bin: 'jest',
@@ -29,9 +39,11 @@ export const checkCommandsStatics = {
       '--testPathPatterns',
       '\\.integration\\.test\\.ts$',
     ],
+    discoverPatterns: ['src/**/*.integration.test.ts', 'bin/**/*.integration.test.ts'],
   },
   e2e: {
     bin: 'playwright',
     args: ['test', '--reporter=json'],
+    discoverPatterns: ['tests/e2e/**/*.spec.ts', 'e2e/**/*.spec.ts'],
   },
 } as const;

@@ -52,9 +52,6 @@ export const commandRunLayerMultiBroker = async ({
   const checkTypes = config.only ?? [...allCheckTypesStatics];
   const hasPassthrough = Array.isArray(config.passthrough) && config.passthrough.length > 0;
 
-  const CHECK_PAD = 12;
-  const NAME_PAD = 20;
-
   const filteredFolders =
     hasPassthrough && config.passthrough
       ? projectFolders.filter((folder) =>
@@ -115,29 +112,6 @@ export const commandRunLayerMultiBroker = async ({
         rootPath: pkgRootPath,
         ...(childRunId === null ? {} : { runId: childRunId }),
       });
-
-      if (result !== null) {
-        for (const check of result.checks) {
-          if (check.status === 'skip') {
-            continue;
-          }
-
-          const failCount = check.projectResults.reduce(
-            (sum, pr) => sum + pr.errors.length + pr.testFailures.length,
-            0,
-          );
-          const filesCount = check.projectResults.reduce((sum, pr) => sum + pr.filesCount, 0);
-          const statusLabel = check.status === 'pass' ? 'PASS' : 'FAIL';
-          const detail =
-            failCount > 0
-              ? `${String(filesCount)} files, ${String(failCount)} errors`
-              : `${String(filesCount)} files`;
-
-          process.stderr.write(
-            `${check.checkType.padEnd(CHECK_PAD)}${folder.name.padEnd(NAME_PAD)} ${statusLabel}  ${detail}\n`,
-          );
-        }
-      }
 
       return result;
     },

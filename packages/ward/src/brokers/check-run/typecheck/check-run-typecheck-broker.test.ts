@@ -28,6 +28,7 @@ describe('checkRunTypecheckBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -59,6 +60,7 @@ describe('checkRunTypecheckBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'fail',
           errors: [
@@ -93,6 +95,7 @@ describe('checkRunTypecheckBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -147,6 +150,7 @@ describe('checkRunTypecheckBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'pass',
           errors: [],

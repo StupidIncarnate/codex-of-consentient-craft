@@ -50,6 +50,7 @@ describe('commandRunLayerMultiBroker', () => {
               errors: [],
               testFailures: [],
               filesCount: 5,
+              discoveredCount: 0,
               rawOutput: { stdout: '', stderr: '', exitCode: 0 },
             },
           ],
@@ -80,7 +81,7 @@ describe('commandRunLayerMultiBroker', () => {
   });
 
   describe('progress output', () => {
-    it('VALID: {one package, lint passes} => writes PASS progress line to stderr', async () => {
+    it('VALID: {one package, lint passes} => no duplicate progress lines from parent', async () => {
       const subResult = JSON.stringify({
         runId: '1739625600000-a38e',
         timestamp: 1739625600000,
@@ -108,96 +109,6 @@ describe('commandRunLayerMultiBroker', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const projectFolders = [ProjectFolderStub()];
       const config = WardConfigStub({ only: ['lint'] });
-
-      await commandRunLayerMultiBroker({ config, projectFolders, rootPath });
-
-      expect(proxy.getStderrCalls()).toStrictEqual([
-        'lint        ward                 PASS  5 files\n',
-      ]);
-    });
-
-    it('VALID: {one package, lint fails with errors} => writes FAIL progress line with error count to stderr', async () => {
-      const subResult = JSON.stringify({
-        runId: '1739625600000-a38e',
-        timestamp: 1739625600000,
-        filters: {},
-        checks: [
-          {
-            checkType: 'lint',
-            status: 'fail',
-            projectResults: [
-              {
-                projectFolder: { name: '@dungeonmaster/ward', path: '/project/packages/ward' },
-                status: 'fail',
-                errors: [
-                  {
-                    filePath: '/project/packages/ward/src/a.ts',
-                    line: 1,
-                    column: 1,
-                    message: 'err',
-                    rule: 'r',
-                    severity: 'error',
-                  },
-                  {
-                    filePath: '/project/packages/ward/src/b.ts',
-                    line: 2,
-                    column: 1,
-                    message: 'err2',
-                    rule: 'r',
-                    severity: 'error',
-                  },
-                ],
-                testFailures: [],
-                filesCount: 5,
-              },
-            ],
-          },
-        ],
-      });
-
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupSpawnAndLoad({ packageCount: 1, subResultContent: subResult });
-
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const projectFolders = [ProjectFolderStub()];
-      const config = WardConfigStub({ only: ['lint'] });
-
-      await commandRunLayerMultiBroker({ config, projectFolders, rootPath });
-
-      expect(proxy.getStderrCalls()).toStrictEqual([
-        'lint        ward                 FAIL  5 files, 2 errors\n',
-      ]);
-    });
-
-    it('VALID: {one package, e2e skips} => does not write progress line for skipped check', async () => {
-      const subResult = JSON.stringify({
-        runId: '1739625600000-a38e',
-        timestamp: 1739625600000,
-        filters: {},
-        checks: [
-          {
-            checkType: 'e2e',
-            status: 'skip',
-            projectResults: [
-              {
-                projectFolder: { name: '@dungeonmaster/ward', path: '/project/packages/ward' },
-                status: 'skip',
-                errors: [],
-                testFailures: [],
-                filesCount: 0,
-                rawOutput: { stdout: '', stderr: 'no playwright.config.ts', exitCode: 0 },
-              },
-            ],
-          },
-        ],
-      });
-
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupSpawnAndLoad({ packageCount: 1, subResultContent: subResult });
-
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const projectFolders = [ProjectFolderStub()];
-      const config = WardConfigStub({ only: ['e2e'] });
 
       await commandRunLayerMultiBroker({ config, projectFolders, rootPath });
 

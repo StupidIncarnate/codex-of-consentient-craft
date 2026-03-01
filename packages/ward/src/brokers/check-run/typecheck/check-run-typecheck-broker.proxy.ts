@@ -4,6 +4,7 @@ import {
 } from '@dungeonmaster/shared/testing';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
+import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 
 export const checkRunTypecheckBrokerProxy = (): {
@@ -13,6 +14,7 @@ export const checkRunTypecheckBrokerProxy = (): {
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
+  fsGlobSyncAdapterProxy();
   const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });

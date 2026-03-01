@@ -1,6 +1,7 @@
 import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
+import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 
 export const checkRunIntegrationBrokerProxy = (): {
@@ -10,9 +11,11 @@ export const checkRunIntegrationBrokerProxy = (): {
   setupFailWithBadOutput: () => void;
   setupPassWithStderr: (params: { stdout: string; stderr: string }) => void;
   setupFailWithStderr: (params: { stdout: string; stderr: string }) => void;
+  setupNoTestFiles: () => void;
   getSpawnedArgs: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
+  const globProxy = fsGlobSyncAdapterProxy();
   const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
@@ -54,6 +57,10 @@ export const checkRunIntegrationBrokerProxy = (): {
     setupFailWithStderr: ({ stdout, stderr }: { stdout: string; stderr: string }): void => {
       binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr });
+    },
+
+    setupNoTestFiles: (): void => {
+      globProxy.returnsEmpty();
     },
 
     getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),

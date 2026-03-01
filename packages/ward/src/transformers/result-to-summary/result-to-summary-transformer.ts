@@ -33,19 +33,27 @@ export const resultToSummaryTransformer = ({
 
     const label = `${check.checkType}:`.padEnd(CHECK_TYPE_PAD);
     const totalFiles = check.projectResults.reduce((sum, pr) => sum + pr.filesCount, 0);
+    const totalDiscovered = check.projectResults.reduce((sum, pr) => sum + pr.discoveredCount, 0);
     const totalFailingFiles = check.projectResults.reduce(
       (sum, pr) => sum + countFailingFilesTransformer({ projectResult: pr }),
       0,
     );
     const fileBreakdown = `${String(totalFiles - totalFailingFiles)} files passed/${String(totalFailingFiles)} files failed`;
+    const discoveredPart = totalDiscovered > 0 ? `, ${String(totalDiscovered)} discovered` : '';
+    const mismatchPart =
+      totalDiscovered > 0 && totalDiscovered !== totalFiles ? '  DISCOVERY MISMATCH' : '';
 
     if (totalFiles === 0) {
-      return [`${label} WARN  0 files run`];
+      const zeroDiscoveredPart =
+        totalDiscovered > 0 ? `, ${String(totalDiscovered)} discovered  DISCOVERY MISMATCH` : '';
+      return [`${label} WARN  0 files run${zeroDiscoveredPart}`];
     }
 
     if (check.status === 'pass') {
       const passCount = check.projectResults.filter((pr) => pr.status === 'pass').length;
-      return [`${label} PASS  ${String(passCount)} packages (${fileBreakdown})`];
+      return [
+        `${label} PASS  ${String(passCount)} packages (${fileBreakdown}${discoveredPart})${mismatchPart}`,
+      ];
     }
 
     const totalPackages = check.projectResults.length;
@@ -59,7 +67,9 @@ export const resultToSummaryTransformer = ({
         return `${pr.projectFolder.name} (${String(failureCount)})`;
       });
     const failPart = failingNames.length > 0 ? `  ${failingNames.join(', ')}` : '';
-    return [`${label} FAIL  ${String(totalPackages)} packages (${fileBreakdown})${failPart}`];
+    return [
+      `${label} FAIL  ${String(totalPackages)} packages (${fileBreakdown}${discoveredPart})${failPart}${mismatchPart}`,
+    ];
   });
 
   const detailLines = wardResult.checks.flatMap((check) => {

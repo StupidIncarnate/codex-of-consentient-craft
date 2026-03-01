@@ -27,6 +27,7 @@ import type { GitRelativePath } from '../../../contracts/git-relative-path/git-r
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { tscOutputParseTransformer } from '../../../transformers/tsc-output-parse/tsc-output-parse-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
+import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 
 export const checkRunTypecheckBroker = async ({
   projectFolder,
@@ -51,8 +52,9 @@ export const checkRunTypecheckBroker = async ({
     });
   }
 
-  const { bin, args } = checkCommandsStatics.typecheck;
+  const { bin, args, discoverPatterns } = checkCommandsStatics.typecheck;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const discoveredCount = fsGlobSyncAdapter({ patterns: discoverPatterns, cwd });
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({
@@ -92,6 +94,7 @@ export const checkRunTypecheckBroker = async ({
     errors,
     testFailures: [],
     filesCount,
+    discoveredCount,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

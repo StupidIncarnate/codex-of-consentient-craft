@@ -72,10 +72,15 @@ export const commandRunLayerSingleBroker = async ({
       } else {
         const failCount = projectResult.errors.length + projectResult.testFailures.length;
         const statusLabel = projectResult.status === 'pass' ? 'PASS' : 'FAIL';
+        const mismatch =
+          Number(projectResult.discoveredCount) > 0 &&
+          Number(projectResult.discoveredCount) !== Number(projectResult.filesCount)
+            ? '  DISCOVERY MISMATCH'
+            : '';
         const detail =
           failCount > 0
-            ? `${String(projectResult.filesCount)} files, ${String(failCount)} errors`
-            : `${String(projectResult.filesCount)} files`;
+            ? `${String(projectResult.filesCount)} files, ${String(failCount)} errors, ${String(projectResult.discoveredCount)} discovered${mismatch}`
+            : `${String(projectResult.filesCount)} files, ${String(projectResult.discoveredCount)} discovered${mismatch}`;
 
         process.stderr.write(
           `\x1b[K${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} ${statusLabel}  ${detail}\n`,

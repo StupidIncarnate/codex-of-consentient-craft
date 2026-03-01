@@ -21,6 +21,7 @@ import { checkCommandsStatics } from '../../../statics/check-commands/check-comm
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
+import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 
 export const checkRunUnitBroker = async ({
   projectFolder,
@@ -29,11 +30,32 @@ export const checkRunUnitBroker = async ({
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
 }): Promise<ProjectResult> => {
-  const { bin, args } = checkCommandsStatics.unit;
+  const { bin, args, discoverPatterns, excludePatterns } = checkCommandsStatics.unit;
+  const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const discoveredCount = fsGlobSyncAdapter({
+    patterns: discoverPatterns,
+    cwd,
+    exclude: excludePatterns,
+  });
+
+  if (discoveredCount === 0) {
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'skip',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      discoveredCount: 0,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: 'no test files discovered',
+        exitCode: exitCodeContract.parse(0),
+      }),
+    });
+  }
+
   const finalArgs =
     fileList.length > 0 ? [...args, '--runInBand', '--findRelatedTests', ...fileList] : [...args];
-
-  const cwd = absoluteFilePathContract.parse(projectFolder.path);
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({
@@ -77,6 +99,7 @@ export const checkRunUnitBroker = async ({
     errors: [],
     testFailures,
     filesCount,
+    discoveredCount,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

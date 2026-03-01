@@ -28,6 +28,7 @@ import { checkCommandsStatics } from '../../../statics/check-commands/check-comm
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { playwrightJsonParseTransformer } from '../../../transformers/playwright-json-parse/playwright-json-parse-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
+import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 
 export const checkRunE2eBroker = async ({
   projectFolder,
@@ -52,9 +53,10 @@ export const checkRunE2eBroker = async ({
     });
   }
 
-  const { bin, args } = checkCommandsStatics.e2e;
-  const finalArgs = fileList.length > 0 ? [...args, ...fileList] : [...args];
+  const { bin, args, discoverPatterns } = checkCommandsStatics.e2e;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const discoveredCount = fsGlobSyncAdapter({ patterns: discoverPatterns, cwd });
+  const finalArgs = fileList.length > 0 ? [...args, ...fileList] : [...args];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({
@@ -97,6 +99,7 @@ export const checkRunE2eBroker = async ({
     errors: [],
     testFailures,
     filesCount,
+    discoveredCount,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

@@ -36,7 +36,7 @@ describe('commandRunLayerSingleBroker', () => {
 
       expect(proxy.getStderrCalls()).toStrictEqual([
         'lint        ward                 running...\r',
-        '\x1b[Klint        ward                 PASS  0 files\n',
+        '\x1b[Klint        ward                 PASS  0 files, 2 discovered  DISCOVERY MISMATCH\n',
       ]);
     });
 
@@ -63,7 +63,7 @@ describe('commandRunLayerSingleBroker', () => {
 
       expect(proxy.getStderrCalls()).toStrictEqual([
         'lint        ward                 running...\r',
-        '\x1b[Klint        ward                 FAIL  1 files, 1 errors\n',
+        '\x1b[Klint        ward                 FAIL  1 files, 1 errors, 2 discovered  DISCOVERY MISMATCH\n',
       ]);
     });
 

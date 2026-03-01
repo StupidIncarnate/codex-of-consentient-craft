@@ -21,6 +21,7 @@ describe('checkRunLintBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -46,6 +47,7 @@ describe('checkRunLintBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -78,6 +80,7 @@ describe('checkRunLintBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
+          discoveredCount: 2,
           projectFolder,
           status: 'fail',
           errors: [

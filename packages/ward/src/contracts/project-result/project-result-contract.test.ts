@@ -13,6 +13,7 @@ describe('projectResultContract', () => {
         testFailures: [],
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
         filesCount: 0,
+        discoveredCount: 0,
       });
     });
 
@@ -48,6 +49,7 @@ describe('projectResultContract', () => {
         testFailures: [],
         rawOutput: { stdout: '', stderr: 'Error', exitCode: 1 },
         filesCount: 0,
+        discoveredCount: 0,
       });
     });
 
@@ -78,6 +80,7 @@ describe('projectResultContract', () => {
         ],
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
         filesCount: 0,
+        discoveredCount: 0,
       });
     });
 
@@ -91,6 +94,7 @@ describe('projectResultContract', () => {
         testFailures: [],
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
         filesCount: 0,
+        discoveredCount: 0,
       });
     });
   });
@@ -112,6 +116,26 @@ describe('projectResultContract', () => {
       const result = projectResultContract.parse(ProjectResultStub({ filesCount: 42 }));
 
       expect(result.filesCount).toBe(42);
+    });
+  });
+
+  describe('discoveredCount defaults', () => {
+    it('VALID: {discoveredCount omitted} => defaults to 0', () => {
+      const result = projectResultContract.parse({
+        projectFolder: { name: 'ward', path: '/path' },
+        status: 'pass',
+        errors: [],
+        testFailures: [],
+        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+      });
+
+      expect(result.discoveredCount).toBe(0);
+    });
+
+    it('VALID: {discoveredCount provided} => preserves value', () => {
+      const result = projectResultContract.parse(ProjectResultStub({ discoveredCount: 15 }));
+
+      expect(result.discoveredCount).toBe(15);
     });
   });
 
@@ -157,6 +181,7 @@ describe('projectResultContract', () => {
         testFailures: [],
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
         filesCount: 0,
+        discoveredCount: 0,
       });
     });
   });
