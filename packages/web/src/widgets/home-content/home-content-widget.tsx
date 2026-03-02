@@ -2,7 +2,7 @@
  * PURPOSE: Renders the home screen content with guild selection and session list inside the shared map frame
  *
  * USAGE:
- * <HomeContentLayerWidget />
+ * <HomeContentWidget />
  * // Renders guild list sidebar + session list, used as the "/" route content
  */
 
@@ -25,7 +25,7 @@ import { GuildSessionListWidget } from '../guild-session-list/guild-session-list
 
 type InternalView = 'main' | 'new-guild';
 
-export const HomeContentLayerWidget = (): React.JSX.Element => {
+export const HomeContentWidget = (): React.JSX.Element => {
   const navigate = useNavigate();
   const [internalView, setInternalView] = useState<InternalView>('main');
   const [selectedGuildId, setSelectedGuildId] = useState<GuildId | null>(null);

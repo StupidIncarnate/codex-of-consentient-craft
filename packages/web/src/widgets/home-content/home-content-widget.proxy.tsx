@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Test proxy for HomeContentLayerWidget - sets up mocks for guilds, sessions, and guild creation
+ * PURPOSE: Test proxy for HomeContentWidget - sets up mocks for guilds, sessions, and guild creation
  *
  * USAGE:
- * const proxy = HomeContentLayerWidgetProxy();
+ * const proxy = HomeContentWidgetProxy();
  * proxy.setupGuilds({ guilds: [] });
  */
 
@@ -26,7 +26,7 @@ type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
 
-export const HomeContentLayerWidgetProxy = (): {
+export const HomeContentWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
   setupGuildsError: () => void;
   setupCreateGuild: (params: { id: GuildId }) => void;

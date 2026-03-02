@@ -3,7 +3,7 @@
  */
 
 import { waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import {
   GuildIdStub,
   GuildListItemStub,
@@ -12,6 +12,8 @@ import {
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
+import { HomeContentWidget } from '../home-content/home-content-widget';
+import { QuestChatWidget } from '../quest-chat/quest-chat-widget';
 import { AppWidget } from './app-widget';
 import { AppWidgetProxy } from './app-widget.proxy';
 
@@ -19,7 +21,15 @@ const renderApp = (): void => {
   mantineRenderAdapter({
     ui: (
       <MemoryRouter initialEntries={['/']}>
-        <AppWidget />
+        <Routes>
+          <Route element={<AppWidget />}>
+            <Route path="/" element={<HomeContentWidget />} />
+            <Route path="/:guildSlug/session" element={<QuestChatWidget />} />
+            <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
+            <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
+          </Route>
+        </Routes>
       </MemoryRouter>
     ),
   });

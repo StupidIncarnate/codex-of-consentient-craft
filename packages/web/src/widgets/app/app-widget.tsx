@@ -6,7 +6,7 @@
  * // Renders the full Dungeonmaster web UI with routes for guild selection (/), guild chat (/:guildSlug/quest), and quest chat (/:guildSlug/quest/:questSlug)
  */
 
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 import { Box, Center } from '@mantine/core';
 
@@ -17,8 +17,6 @@ import { isSessionRouteGuard } from '../../guards/is-session-route/is-session-ro
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
-import { QuestChatWidget } from '../quest-chat/quest-chat-widget';
-import { HomeContentLayerWidget } from './home-content-layer-widget';
 
 const TRANSITION_DURATION = '0.4s';
 const TRANSITION_EASING = 'ease-out';
@@ -85,13 +83,7 @@ export const AppWidget = (): React.JSX.Element => {
           }}
         >
           <MapFrameWidget maxWidth={isQuestRoute ? unrestrictedMaxWidth : defaultMaxWidth}>
-            <Routes>
-              <Route path="/" element={<HomeContentLayerWidget />} />
-              <Route path="/:guildSlug/session" element={<QuestChatWidget />} />
-              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
-              <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
-              <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
-            </Routes>
+            <Outlet />
           </MapFrameWidget>
         </div>
       </div>

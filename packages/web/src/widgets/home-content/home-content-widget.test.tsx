@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Tests for HomeContentLayerWidget - guild selection and session list rendering
+ * PURPOSE: Tests for HomeContentWidget - guild selection and session list rendering
  */
 
 import { waitFor } from '@testing-library/react';
@@ -8,13 +8,13 @@ import { GuildIdStub, GuildListItemStub } from '@dungeonmaster/shared/contracts'
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
-import { HomeContentLayerWidget } from './home-content-layer-widget';
-import { HomeContentLayerWidgetProxy } from './home-content-layer-widget.proxy';
+import { HomeContentWidget } from './home-content-widget';
+import { HomeContentWidgetProxy } from './home-content-widget.proxy';
 
-describe('HomeContentLayerWidget', () => {
+describe('HomeContentWidget', () => {
   describe('empty state', () => {
     it('VALID: {no guilds} => shows NEW GUILD form', async () => {
-      const proxy = HomeContentLayerWidgetProxy();
+      const proxy = HomeContentWidgetProxy();
 
       proxy.setupGuilds({ guilds: [] });
 
@@ -23,7 +23,7 @@ describe('HomeContentLayerWidget', () => {
           mantineRenderAdapter({
             ui: (
               <MemoryRouter>
-                <HomeContentLayerWidget />
+                <HomeContentWidget />
               </MemoryRouter>
             ),
           });
@@ -41,7 +41,7 @@ describe('HomeContentLayerWidget', () => {
 
   describe('guild list view', () => {
     it('VALID: {guilds loaded} => shows guild items', async () => {
-      const proxy = HomeContentLayerWidgetProxy();
+      const proxy = HomeContentWidgetProxy();
       const guild = GuildListItemStub({ name: 'Guild One' });
       const guilds = [guild];
 
@@ -52,7 +52,7 @@ describe('HomeContentLayerWidget', () => {
           mantineRenderAdapter({
             ui: (
               <MemoryRouter>
-                <HomeContentLayerWidget />
+                <HomeContentWidget />
               </MemoryRouter>
             ),
           });
@@ -68,7 +68,7 @@ describe('HomeContentLayerWidget', () => {
     });
 
     it('VALID: {no guild selected} => shows select a guild message', async () => {
-      const proxy = HomeContentLayerWidgetProxy();
+      const proxy = HomeContentWidgetProxy();
       const guilds = [GuildListItemStub({ name: 'My Guild' })];
 
       proxy.setupGuilds({ guilds });
@@ -78,7 +78,7 @@ describe('HomeContentLayerWidget', () => {
           mantineRenderAdapter({
             ui: (
               <MemoryRouter>
-                <HomeContentLayerWidget />
+                <HomeContentWidget />
               </MemoryRouter>
             ),
           });
@@ -96,7 +96,7 @@ describe('HomeContentLayerWidget', () => {
 
   describe('guild creation', () => {
     it('VALID: {empty state, type name, CREATE} => guild appears', async () => {
-      const proxy = HomeContentLayerWidgetProxy();
+      const proxy = HomeContentWidgetProxy();
       const guildId = GuildIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const createdGuild = GuildListItemStub({
         id: guildId,
@@ -110,7 +110,7 @@ describe('HomeContentLayerWidget', () => {
           mantineRenderAdapter({
             ui: (
               <MemoryRouter>
-                <HomeContentLayerWidget />
+                <HomeContentWidget />
               </MemoryRouter>
             ),
           });
