@@ -33,10 +33,11 @@ flows/
 
 **Import Rules:**
 
-- Can import from: `responders/`, `contracts/`, `transformers/`, `guards/`, `statics/`, `errors/`
+- Can import from: `flows/`, `responders/`, `contracts/`, `transformers/`, `guards/`, `statics/`, `errors/`
 - Whitelisted npm packages: `hono`, `react-router-dom`, `express` (routing frameworks only)
 - Cannot import from: `adapters/`, `brokers/`, `state/`, `widgets/`, `bindings/`, `middleware/`, or any
   non-whitelisted npm package
+- **Flows can import other flows** for composition — a parent flow assembles child flows into a unified routing tree
 
 **Everything is a route.** HTTP endpoints, MCP tool calls, CLI subcommands, hook events, queue job types — all forms
 of routing. They all follow the same pattern: startup → flow → responder.
@@ -127,4 +128,51 @@ import {InitResponder} from '../../responders/cli/init/cli-init-responder';
 export const CliInitFlow = async ({args}: {args: readonly string[]}): Promise<void> => {
     await InitResponder({args});
 };
+```
+
+**Flow Composition — Parent flows assembling child flows:**
+
+Flows can import other flows to compose routing trees. A parent flow assembles domain-specific child flows into a
+unified structure. Each child flow owns its domain's routes; the parent flow handles top-level wiring.
+
+```tsx
+// flows/app/app-flow.tsx (Frontend — parent flow composing child flows)
+import {Routes, Route} from 'react-router-dom';
+import {HomeFlow} from '../home/home-flow';
+import {QuestChatFlow} from '../quest-chat/quest-chat-flow';
+import {AppLayoutResponder} from '../../responders/app/layout/app-layout-responder';
+
+export const AppFlow = (): React.JSX.Element => (
+    <Routes>
+        <Route element={<AppLayoutResponder/>}>
+            {HomeFlow()}
+            {QuestChatFlow()}
+        </Route>
+    </Routes>
+);
+```
+
+```tsx
+// flows/home/home-flow.tsx (Frontend — child flow returning Route elements)
+import {Route} from 'react-router-dom';
+import {AppHomeResponder} from '../../responders/app/home/app-home-responder';
+
+export const HomeFlow = (): React.JSX.Element => (
+    <Route path="/" element={<AppHomeResponder/>}/>
+);
+```
+
+```ts
+// flows/server/server-flow.ts (Backend — parent flow composing Hono sub-routers)
+import {Hono} from 'hono';
+import {GuildFlow} from '../guild/guild-flow';
+import {QuestFlow} from '../quest/quest-flow';
+import {SessionFlow} from '../session/session-flow';
+
+const app = new Hono();
+app.route('/api/guilds', GuildFlow);
+app.route('/api/quests', QuestFlow);
+app.route('/api/sessions', SessionFlow);
+
+export const ServerFlow = app;
 ```

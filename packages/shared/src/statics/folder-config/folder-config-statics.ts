@@ -117,6 +117,7 @@ export const folderConfigStatics = {
       'guards/',
       'statics/',
       'errors/',
+      'flows/',
       'responders/',
       'hono',
       'react-router-dom',
