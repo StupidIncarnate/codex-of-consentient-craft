@@ -418,7 +418,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/middleware/cors/cors-middleware.ts',
     },
 
-    // Flows (depth 1) can import from responders, hono, react-router-dom, express
+    // Flows (depth 1) can import from contracts, transformers, guards, statics, errors, flows, responders, hono, react-router-dom, express, @modelcontextprotocol/sdk, zod-to-json-schema
     {
       code: 'import { UserProfileResponder } from "../../responders/user/profile/user-profile-responder";',
       filename: '/project/src/flows/user/user-flow.tsx',
@@ -434,6 +434,10 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
     {
       code: 'import { BrowserRouter } from "react-router-dom";',
       filename: '/project/src/flows/app/app-flow.tsx',
+    },
+    {
+      code: 'import { userContract } from "../../contracts/user/user-contract";',
+      filename: '/project/src/flows/validation/validation-flow.ts',
     },
 
     // Files not in src/ folder should be ignored
@@ -1042,7 +1046,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       ],
     },
 
-    // Flows cannot import from folders other than responders (npm packages hono, react-router-dom, express are allowed)
+    // Flows cannot import from folders other than contracts, transformers, guards, statics, errors, flows, responders (npm packages hono, react-router-dom, express, @modelcontextprotocol/sdk, zod-to-json-schema are allowed)
     {
       code: 'import { userFetchBroker } from "../../brokers/user/fetch/user-fetch-broker";',
       filename: '/project/src/flows/api/api-flow.ts',
@@ -1052,7 +1056,8 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'flows',
             importedFolder: 'brokers',
-            allowed: 'responders/, hono, react-router-dom, express',
+            allowed:
+              'contracts/, transformers/, guards/, statics/, errors/, flows/, responders/, hono, react-router-dom, express, @modelcontextprotocol/sdk, zod-to-json-schema',
           },
         },
       ],
@@ -1066,21 +1071,8 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'flows',
             importedFolder: 'widgets',
-            allowed: 'responders/, hono, react-router-dom, express',
-          },
-        },
-      ],
-    },
-    {
-      code: 'import { userContract } from "../../contracts/user/user-contract";',
-      filename: '/project/src/flows/validation/validation-flow.ts',
-      errors: [
-        {
-          messageId: 'forbiddenImport',
-          data: {
-            folderType: 'flows',
-            importedFolder: 'contracts',
-            allowed: 'responders/, hono, react-router-dom, express',
+            allowed:
+              'contracts/, transformers/, guards/, statics/, errors/, flows/, responders/, hono, react-router-dom, express, @modelcontextprotocol/sdk, zod-to-json-schema',
           },
         },
       ],

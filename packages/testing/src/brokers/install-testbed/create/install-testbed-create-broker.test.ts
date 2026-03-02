@@ -27,10 +27,11 @@ describe('installTestbedCreateBroker', () => {
         baseDir: FilePathStub({ value: customBaseDir }),
       });
 
-      expect(testbed.guildPath).toMatch(/^\/tmp\/custom-base-test\/custom-base-[a-f0-9]{8}$/u);
-
+      const { guildPath } = testbed;
       testbed.cleanup();
       fsRmAdapter({ filePath: customBaseDir, recursive: true, force: true });
+
+      expect(guildPath).toMatch(/^\/tmp\/custom-base-test\/custom-base-[a-f0-9]{8}$/u);
     });
   });
 

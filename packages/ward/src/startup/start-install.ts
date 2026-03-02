@@ -9,5 +9,8 @@
 import type { InstallContext, InstallResult } from '@dungeonmaster/shared/contracts';
 import { InstallFlow } from '../flows/install/install-flow';
 
-export const StartInstall = async ({ context }: { context: InstallContext }): Promise<InstallResult> =>
-  InstallFlow({ context });
+export const StartInstall = async ({
+  context,
+}: {
+  context: InstallContext;
+}): Promise<InstallResult> => InstallFlow({ context });

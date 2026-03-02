@@ -141,12 +141,12 @@ describe('EslintPluginCreateResponder', () => {
       expect(typeof test.rules).toBe('object');
     });
 
-    it('VALID: {} => returns fileOverrides with 5 override configs', () => {
+    it('VALID: {} => returns fileOverrides with 6 override configs', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
       const { fileOverrides } = plugin.configs.dungeonmaster;
 
-      expect(fileOverrides).toHaveLength(5);
+      expect(fileOverrides).toHaveLength(6);
     });
 
     it('VALID: {} => returns fileOverrides with proxy files override', () => {
@@ -218,6 +218,21 @@ describe('EslintPluginCreateResponder', () => {
         files: ['**/startup/*.e2e.test.ts', '**/startup/*.integration.test.ts'],
         rules: {
           'jest/no-hooks': 'off',
+        },
+      });
+    });
+
+    it('VALID: {} => returns fileOverrides with startup start files override', () => {
+      const proxy = EslintPluginCreateResponderProxy();
+      const plugin = proxy.callResponder();
+      const { fileOverrides } = plugin.configs.dungeonmaster;
+      const [, , , , , startupStartOverride] = fileOverrides;
+
+      expect(startupStartOverride).toStrictEqual({
+        files: ['**/startup/start-*.ts'],
+        ignores: ['**/*.test.ts'],
+        rules: {
+          '@typescript-eslint/no-unused-expressions': ['error', { allowShortCircuit: true }],
         },
       });
     });
