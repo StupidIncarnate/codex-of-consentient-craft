@@ -7,9 +7,9 @@
  */
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { RunId } from '@dungeonmaster/ward/dist/contracts/run-id/run-id-contract';
-import * as WardStorage from '@dungeonmaster/ward/dist/brokers/storage/load/storage-load-broker';
-import * as WardListTransformer from '@dungeonmaster/ward/dist/transformers/result-to-list/result-to-list-transformer';
+import type { RunId } from '@dungeonmaster/ward/dist/src/contracts/run-id/run-id-contract';
+import * as WardStorage from '@dungeonmaster/ward/dist/src/brokers/storage/load/storage-load-broker';
+import * as WardListTransformer from '@dungeonmaster/ward/dist/src/transformers/result-to-list/result-to-list-transformer';
 
 import {
   contentTextContract,

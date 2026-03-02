@@ -16,10 +16,14 @@ import {
   projectResultContract,
   type ProjectResult,
 } from '../../../contracts/project-result/project-result-contract';
-import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
+import {
+  gitRelativePathContract,
+  type GitRelativePath,
+} from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
+import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 
@@ -32,7 +36,7 @@ export const checkRunUnitBroker = async ({
 }): Promise<ProjectResult> => {
   const { bin, args, discoverPatterns, excludePatterns } = checkCommandsStatics.unit;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
-  const discoveredCount = fsGlobSyncAdapter({
+  const { discoveredCount, discoveredFiles } = fsGlobSyncAdapter({
     patterns: discoverPatterns,
     cwd,
     exclude: excludePatterns,
@@ -70,6 +74,7 @@ export const checkRunUnitBroker = async ({
   let testFailures: ReturnType<typeof jestJsonParseTransformer> = [];
   let resolvedStatus = status;
   let filesCount = 0;
+  const processedFiles: GitRelativePath[] = [];
 
   if (status === 'fail') {
     try {
@@ -89,9 +94,28 @@ export const checkRunUnitBroker = async ({
         filesCount = count;
       }
     }
+    if (typeof parsed === 'object' && parsed !== null && 'testResults' in parsed) {
+      const testResults: unknown = Reflect.get(parsed, 'testResults');
+      if (Array.isArray(testResults)) {
+        for (const tr of testResults) {
+          if (typeof tr === 'object' && tr !== null && 'name' in tr) {
+            const name: unknown = Reflect.get(tr, 'name');
+            if (typeof name === 'string' && name.length > 0) {
+              processedFiles.push(gitRelativePathContract.parse(name));
+            }
+          }
+        }
+      }
+    }
   } catch {
     // non-JSON output, filesCount stays 0
   }
+
+  const { onlyDiscovered, onlyProcessed } = discoveryDiffTransformer({
+    discoveredFiles,
+    processedFiles,
+    cwd,
+  });
 
   return projectResultContract.parse({
     projectFolder,
@@ -100,6 +124,8 @@ export const checkRunUnitBroker = async ({
     testFailures,
     filesCount,
     discoveredCount,
+    onlyDiscovered,
+    onlyProcessed,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

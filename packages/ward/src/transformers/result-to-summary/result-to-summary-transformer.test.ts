@@ -533,5 +533,37 @@ describe('resultToSummaryTransformer', () => {
         }),
       );
     });
+
+    it('VALID: {wardResult: lint mismatch with diff files} => shows diff file paths after DISCOVERY MISMATCH', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'hooks', path: '/p/hooks' },
+                status: 'pass',
+                filesCount: 286,
+                discoveredCount: 285,
+                onlyProcessed: ['@types/error-cause.d.ts'],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (286 files passed/0 files failed, 285 discovered)  DISCOVERY MISMATCH\n  only processed: @types/error-cause.d.ts',
+        }),
+      );
+    });
   });
 });

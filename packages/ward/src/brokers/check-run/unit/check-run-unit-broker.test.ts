@@ -27,6 +27,7 @@ describe('checkRunUnitBroker', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({
             stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
             stderr: '',
@@ -77,6 +78,8 @@ describe('checkRunUnitBroker', () => {
               message: 'Expected true to be false',
             }),
           ],
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.test.ts'],
           rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 1 }),
         }),
       );
@@ -102,6 +105,7 @@ describe('checkRunUnitBroker', () => {
           status: 'fail',
           errors: [],
           testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({
             stdout: 'not valid json \x1b[31m',
             stderr: '',
@@ -167,6 +171,7 @@ describe('checkRunUnitBroker', () => {
           errors: [],
           testFailures: [],
           filesCount: expectedSuiteCount,
+          onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({
             stdout: `${jestOutput}ts-jest[ts-compiler] (WARN) Unable to process file, falling back to original content`,
             stderr: '',
@@ -219,6 +224,8 @@ describe('checkRunUnitBroker', () => {
               message: 'Expected true to be false',
             }),
           ],
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.test.ts'],
           rawOutput: RawOutputStub({
             stdout: `${jestOutput}${stderrText}`,
             stderr: '',

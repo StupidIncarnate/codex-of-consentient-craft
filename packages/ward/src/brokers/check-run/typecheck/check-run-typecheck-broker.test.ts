@@ -12,10 +12,10 @@ describe('checkRunTypecheckBroker', () => {
     it('VALID: {tsc exits 0 with listFiles output} => returns pass result with filesCount', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
       const listFilesOutput = [
-        '/project/node_modules/typescript/lib/lib.es5.d.ts',
-        '/project/src/index.ts',
-        '/project/src/utils.ts',
-        '/project/src/types.ts',
+        '/home/user/project/packages/ward/node_modules/typescript/lib/lib.es5.d.ts',
+        '/home/user/project/packages/ward/src/index.ts',
+        '/home/user/project/packages/ward/src/utils.ts',
+        '/home/user/project/packages/ward/src/types.ts',
       ].join('\n');
       proxy.setupPass({ stdout: listFilesOutput });
 
@@ -28,12 +28,14 @@ describe('checkRunTypecheckBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 2,
+          discoveredCount: 3,
           projectFolder,
           status: 'pass',
           errors: [],
           testFailures: [],
           filesCount: 3,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.ts', 'src/utils.ts', 'src/types.ts'],
           rawOutput: RawOutputStub({ stdout: listFilesOutput, exitCode: 0 }),
         }),
       );
@@ -44,9 +46,9 @@ describe('checkRunTypecheckBroker', () => {
     it('VALID: {tsc exits 1 with errors and listFiles} => returns fail result with parsed errors and filesCount', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
       const tscOutput = [
-        '/project/node_modules/typescript/lib/lib.es5.d.ts',
-        '/project/src/index.ts',
-        '/project/src/utils.ts',
+        '/home/user/project/packages/ward/node_modules/typescript/lib/lib.es5.d.ts',
+        '/home/user/project/packages/ward/src/index.ts',
+        '/home/user/project/packages/ward/src/utils.ts',
         'src/index.ts(10,5): error TS2345: Argument mismatch.',
       ].join('\n');
       proxy.setupFail({ stdout: tscOutput });
@@ -60,7 +62,7 @@ describe('checkRunTypecheckBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 2,
+          discoveredCount: 3,
           projectFolder,
           status: 'fail',
           errors: [
@@ -74,6 +76,8 @@ describe('checkRunTypecheckBroker', () => {
           ],
           testFailures: [],
           filesCount: 2,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.ts', 'src/utils.ts'],
           rawOutput: RawOutputStub({ stdout: tscOutput, stderr: '', exitCode: 1 }),
         }),
       );
@@ -95,12 +99,13 @@ describe('checkRunTypecheckBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 2,
+          discoveredCount: 3,
           projectFolder,
           status: 'fail',
           errors: [],
           testFailures: [],
           filesCount: 0,
+          onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({ stdout: tscOutput, stderr: '', exitCode: 1 }),
         }),
       );
@@ -136,7 +141,7 @@ describe('checkRunTypecheckBroker', () => {
     it('VALID: {tsc fails but errors not in file list} => returns pass after filtering', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
       const tscOutput = [
-        '/project/src/index.ts',
+        '/home/user/project/packages/ward/src/index.ts',
         'src/other.ts(5,1): error TS2345: Type mismatch.',
       ].join('\n');
       proxy.setupFail({ stdout: tscOutput });
@@ -150,12 +155,14 @@ describe('checkRunTypecheckBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 2,
+          discoveredCount: 3,
           projectFolder,
           status: 'pass',
           errors: [],
           testFailures: [],
           filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.ts'],
           rawOutput: RawOutputStub({ stdout: tscOutput, stderr: '', exitCode: 1 }),
         }),
       );

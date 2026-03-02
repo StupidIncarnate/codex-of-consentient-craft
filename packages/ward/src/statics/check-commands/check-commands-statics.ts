@@ -9,12 +9,12 @@ export const checkCommandsStatics = {
   lint: {
     bin: 'eslint',
     args: ['--fix', '--format', 'json', '.'],
-    discoverPatterns: ['src/**/*.ts', 'src/**/*.tsx'],
+    discoverPatterns: ['src/**/*.ts', 'src/**/*.tsx', 'bin/**/*.ts', '*.ts', '*.js'],
   },
   typecheck: {
     bin: 'tsc',
     args: ['--noEmit', '--listFiles'],
-    discoverPatterns: ['src/**/*.ts', 'src/**/*.tsx'],
+    discoverPatterns: ['src/**/*.ts', 'src/**/*.tsx', 'bin/**/*.ts'],
   },
   unit: {
     bin: 'jest',

@@ -1,35 +1,75 @@
+import { spawn, execSync } from 'child_process';
+import { existsSync } from 'fs';
+import path from 'path';
+
 import { StartWard } from './start-ward';
-import { StartWardProxy } from './start-ward.proxy';
 
-describe('start-ward integration', () => {
-  describe('StartWard', () => {
-    it('ERROR: {args: ["node", "ward", "unknown-command"]} => writes unknown command error to stderr', async () => {
-      const proxy = StartWardProxy();
-      proxy.setupCwd({ cwd: '/tmp/ward-unknown-cmd' });
+const REPO_ROOT = path.resolve(__dirname, '../../../..');
+const WARD_BIN = path.resolve(REPO_ROOT, 'packages/ward/dist/src/startup/start-ward.js');
 
-      await StartWard({ args: ['node', 'ward', 'unknown-command'] });
+const POLL_MS = 100;
+const SLEEP_MS = 1000;
+const PROCESS_TIMEOUT_MS = 30_000;
+const MAX_RSS_KB = 307_200;
+const EXEC_TIMEOUT_MS = 2000;
 
-      expect(process.stderr.write).toHaveBeenCalledWith('Unknown command: unknown-command\n');
+describe('StartWard', () => {
+  describe('delegation to ward flow', () => {
+    it('VALID: {args: ["node", "ward", "unknown-command"]} => completes without throwing for unknown command', async () => {
+      await expect(
+        StartWard({ args: ['node', 'ward', 'unknown-command'] }),
+      ).resolves.toBeUndefined();
     });
+  });
 
-    it('ERROR: {args: ["node", "ward", "detail"]} => writes usage error when missing args', async () => {
-      const proxy = StartWardProxy();
-      proxy.setupCwd({ cwd: '/tmp/ward-detail-noargs' });
+  describe('memory ceiling', () => {
+    it('SAFETY: {--only lint, all packages} => RSS stays under 300MB', async () => {
+      expect(existsSync(WARD_BIN)).toBe(true);
 
-      await StartWard({ args: ['node', 'ward', 'detail'] });
+      const wardProcess = spawn('node', [WARD_BIN, 'run', '--only', 'lint'], {
+        cwd: REPO_ROOT,
+        stdio: 'ignore',
+        detached: true,
+      });
 
-      expect(process.stderr.write).toHaveBeenCalledWith(
-        'Usage: ward detail <run-id> <file-path> [--verbose]\n',
-      );
-    });
+      const pid = wardProcess.pid!;
+      let maxRssKb = 0;
 
-    it('ERROR: {args: ["node", "ward", "raw"]} => writes usage error when missing args', async () => {
-      const proxy = StartWardProxy();
-      proxy.setupCwd({ cwd: '/tmp/ward-raw-noargs' });
+      await new Promise<void>((resolve) => {
+        const interval = setInterval(() => {
+          try {
+            const result = execSync(`ps -o rss= -p ${String(pid)}`, {
+              encoding: 'utf-8',
+              timeout: EXEC_TIMEOUT_MS,
+            });
+            const rss = parseInt(result.trim(), 10);
+            maxRssKb = Math.max(maxRssKb, rss);
+          } catch {
+            // Process may have exited
+          }
+        }, POLL_MS);
 
-      await StartWard({ args: ['node', 'ward', 'raw'] });
+        wardProcess.on('exit', () => {
+          clearInterval(interval);
+          resolve();
+        });
 
-      expect(process.stderr.write).toHaveBeenCalledWith('Usage: ward raw <run-id> <check-type>\n');
-    });
+        setTimeout(() => {
+          clearInterval(interval);
+          try {
+            process.kill(-pid, 'SIGKILL');
+          } catch {
+            // Process may have already exited
+          }
+          resolve();
+        }, PROCESS_TIMEOUT_MS);
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, SLEEP_MS);
+      });
+
+      expect(maxRssKb).toBeLessThan(MAX_RSS_KB);
+    }, 60_000);
   });
 });

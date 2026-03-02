@@ -57,6 +57,8 @@ describe('checkResultContract', () => {
             testFailures: [],
             filesCount: 0,
             discoveredCount: 0,
+            onlyDiscovered: [],
+            onlyProcessed: [],
             rawOutput: { stdout: '', stderr: 'error', exitCode: 1 },
           },
         ],

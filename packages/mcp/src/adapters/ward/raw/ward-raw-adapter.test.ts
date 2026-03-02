@@ -1,8 +1,8 @@
-import { WardResultStub } from '@dungeonmaster/ward/dist/contracts/ward-result/ward-result.stub';
-import { CheckResultStub } from '@dungeonmaster/ward/dist/contracts/check-result/check-result.stub';
-import { ProjectResultStub } from '@dungeonmaster/ward/dist/contracts/project-result/project-result.stub';
-import { RunIdStub } from '@dungeonmaster/ward/dist/contracts/run-id/run-id.stub';
-import { CheckTypeStub } from '@dungeonmaster/ward/dist/contracts/check-type/check-type.stub';
+import { WardResultStub } from '@dungeonmaster/ward/dist/src/contracts/ward-result/ward-result.stub';
+import { CheckResultStub } from '@dungeonmaster/ward/dist/src/contracts/check-result/check-result.stub';
+import { ProjectResultStub } from '@dungeonmaster/ward/dist/src/contracts/project-result/project-result.stub';
+import { RunIdStub } from '@dungeonmaster/ward/dist/src/contracts/run-id/run-id.stub';
+import { CheckTypeStub } from '@dungeonmaster/ward/dist/src/contracts/check-type/check-type.stub';
 
 import { wardRawAdapter } from './ward-raw-adapter';
 import { wardRawAdapterProxy } from './ward-raw-adapter.proxy';

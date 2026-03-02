@@ -6,10 +6,10 @@
  * proxy.setupStorageReturns({ wardResult: WardResultStub() });
  */
 
-import * as WardStorage from '@dungeonmaster/ward/dist/brokers/storage/load/storage-load-broker';
-import type { WardResult } from '@dungeonmaster/ward/dist/contracts/ward-result/ward-result-contract';
+import * as WardStorage from '@dungeonmaster/ward/dist/src/brokers/storage/load/storage-load-broker';
+import type { WardResult } from '@dungeonmaster/ward/dist/src/contracts/ward-result/ward-result-contract';
 
-jest.mock('@dungeonmaster/ward/dist/brokers/storage/load/storage-load-broker');
+jest.mock('@dungeonmaster/ward/dist/src/brokers/storage/load/storage-load-broker');
 
 export const wardRawAdapterProxy = (): {
   setupStorageReturns: (params: { wardResult: WardResult | null }) => void;

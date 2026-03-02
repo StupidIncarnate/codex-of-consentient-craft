@@ -14,6 +14,7 @@ import type { WardSummary } from '../../contracts/ward-summary/ward-summary-cont
 import { wardSummaryContract } from '../../contracts/ward-summary/ward-summary-contract';
 import { toCwdRelativePathTransformer } from '../to-cwd-relative-path/to-cwd-relative-path-transformer';
 import { countFailingFilesTransformer } from '../count-failing-files/count-failing-files-transformer';
+import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/discovery-diff-display-transformer';
 
 const CHECK_TYPE_PAD = 10;
 
@@ -40,19 +41,31 @@ export const resultToSummaryTransformer = ({
     );
     const fileBreakdown = `${String(totalFiles - totalFailingFiles)} files passed/${String(totalFailingFiles)} files failed`;
     const discoveredPart = totalDiscovered > 0 ? `, ${String(totalDiscovered)} discovered` : '';
-    const mismatchPart =
-      totalDiscovered > 0 && totalDiscovered !== totalFiles ? '  DISCOVERY MISMATCH' : '';
+    const hasMismatch = totalDiscovered > 0 && totalDiscovered !== totalFiles;
+    const mismatchPart = hasMismatch ? '  DISCOVERY MISMATCH' : '';
+
+    const allOnlyDiscovered = check.projectResults.flatMap((pr) => pr.onlyDiscovered);
+    const allOnlyProcessed = check.projectResults.flatMap((pr) => pr.onlyProcessed);
+
+    const MAX_DIFF_SUMMARY = 10;
+    const diffPart = discoveryDiffDisplayTransformer({
+      hasMismatch,
+      onlyProcessed: allOnlyProcessed,
+      onlyDiscovered: allOnlyDiscovered,
+      maxDisplay: MAX_DIFF_SUMMARY,
+    });
 
     if (totalFiles === 0) {
       const zeroDiscoveredPart =
         totalDiscovered > 0 ? `, ${String(totalDiscovered)} discovered  DISCOVERY MISMATCH` : '';
-      return [`${label} WARN  0 files run${zeroDiscoveredPart}`];
+      const zeroDiffPart = totalDiscovered > 0 ? diffPart : '';
+      return [`${label} WARN  0 files run${zeroDiscoveredPart}${zeroDiffPart}`];
     }
 
     if (check.status === 'pass') {
       const passCount = check.projectResults.filter((pr) => pr.status === 'pass').length;
       return [
-        `${label} PASS  ${String(passCount)} packages (${fileBreakdown}${discoveredPart})${mismatchPart}`,
+        `${label} PASS  ${String(passCount)} packages (${fileBreakdown}${discoveredPart})${mismatchPart}${diffPart}`,
       ];
     }
 
@@ -68,7 +81,7 @@ export const resultToSummaryTransformer = ({
       });
     const failPart = failingNames.length > 0 ? `  ${failingNames.join(', ')}` : '';
     return [
-      `${label} FAIL  ${String(totalPackages)} packages (${fileBreakdown}${discoveredPart})${failPart}${mismatchPart}`,
+      `${label} FAIL  ${String(totalPackages)} packages (${fileBreakdown}${discoveredPart})${failPart}${mismatchPart}${diffPart}`,
     ];
   });
 

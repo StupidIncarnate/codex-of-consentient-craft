@@ -1,6 +1,6 @@
-import { WardResultStub } from '@dungeonmaster/ward/dist/contracts/ward-result/ward-result.stub';
-import { WardErrorListStub } from '@dungeonmaster/ward/dist/contracts/ward-error-list/ward-error-list.stub';
-import { RunIdStub } from '@dungeonmaster/ward/dist/contracts/run-id/run-id.stub';
+import { WardResultStub } from '@dungeonmaster/ward/dist/src/contracts/ward-result/ward-result.stub';
+import { WardErrorListStub } from '@dungeonmaster/ward/dist/src/contracts/ward-error-list/ward-error-list.stub';
+import { RunIdStub } from '@dungeonmaster/ward/dist/src/contracts/run-id/run-id.stub';
 
 import { wardListAdapter } from './ward-list-adapter';
 import { wardListAdapterProxy } from './ward-list-adapter.proxy';

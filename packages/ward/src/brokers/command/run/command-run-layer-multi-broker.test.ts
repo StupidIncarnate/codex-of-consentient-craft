@@ -51,6 +51,8 @@ describe('commandRunLayerMultiBroker', () => {
               testFailures: [],
               filesCount: 5,
               discoveredCount: 0,
+              onlyDiscovered: [],
+              onlyProcessed: [],
               rawOutput: { stdout: '', stderr: '', exitCode: 0 },
             },
           ],

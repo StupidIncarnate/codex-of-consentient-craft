@@ -72,11 +72,10 @@ export const commandRunLayerSingleBroker = async ({
       } else {
         const failCount = projectResult.errors.length + projectResult.testFailures.length;
         const statusLabel = projectResult.status === 'pass' ? 'PASS' : 'FAIL';
-        const mismatch =
+        const hasMismatch =
           Number(projectResult.discoveredCount) > 0 &&
-          Number(projectResult.discoveredCount) !== Number(projectResult.filesCount)
-            ? '  DISCOVERY MISMATCH'
-            : '';
+          Number(projectResult.discoveredCount) !== Number(projectResult.filesCount);
+        const mismatch = hasMismatch ? '  DISCOVERY MISMATCH' : '';
         const detail =
           failCount > 0
             ? `${String(projectResult.filesCount)} files, ${String(failCount)} errors, ${String(projectResult.discoveredCount)} discovered${mismatch}`
@@ -85,6 +84,23 @@ export const commandRunLayerSingleBroker = async ({
         process.stderr.write(
           `\x1b[K${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} ${statusLabel}  ${detail}\n`,
         );
+
+        if (hasMismatch) {
+          const MAX_DIFF_DISPLAY = 10;
+          const indent = '  ';
+          if (projectResult.onlyProcessed.length > 0) {
+            const shown = projectResult.onlyProcessed.slice(0, MAX_DIFF_DISPLAY);
+            const remaining = projectResult.onlyProcessed.length - shown.length;
+            const suffix = remaining > 0 ? `\n${indent}  ... and ${String(remaining)} more` : '';
+            process.stderr.write(`${indent}only processed: ${shown.join(`, `)}${suffix}\n`);
+          }
+          if (projectResult.onlyDiscovered.length > 0) {
+            const shown = projectResult.onlyDiscovered.slice(0, MAX_DIFF_DISPLAY);
+            const remaining = projectResult.onlyDiscovered.length - shown.length;
+            const suffix = remaining > 0 ? `\n${indent}  ... and ${String(remaining)} more` : '';
+            process.stderr.write(`${indent}only discovered: ${shown.join(`, `)}${suffix}\n`);
+          }
+        }
       }
 
       return [...acc, checkResultBuildTransformer({ checkType, projectResults: [projectResult] })];

@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "description": "Structured lint/typecheck/test runner with tiered drill-down output",
   "bin": {
-    "dungeonmaster-ward": "./dist/startup/start-ward.js"
+    "dungeonmaster-ward": "./dist/bin/ward-entry.js"
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
+    "postbuild": "chmod +x dist/src/startup/*.js dist/bin/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
     "test": "dungeonmaster-ward run --only test",
     "lint": "dungeonmaster-ward run --only lint",
@@ -15,6 +15,7 @@
     "ward": "dungeonmaster-ward run"
   },
   "files": [
+    "bin/",
     "dist/",
     "src/",
     "README.md"

@@ -1,6 +1,6 @@
-import { WardResultStub } from '@dungeonmaster/ward/dist/contracts/ward-result/ward-result.stub';
-import { WardFileDetailStub } from '@dungeonmaster/ward/dist/contracts/ward-file-detail/ward-file-detail.stub';
-import { RunIdStub } from '@dungeonmaster/ward/dist/contracts/run-id/run-id.stub';
+import { WardResultStub } from '@dungeonmaster/ward/dist/src/contracts/ward-result/ward-result.stub';
+import { WardFileDetailStub } from '@dungeonmaster/ward/dist/src/contracts/ward-file-detail/ward-file-detail.stub';
+import { RunIdStub } from '@dungeonmaster/ward/dist/src/contracts/run-id/run-id.stub';
 
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 

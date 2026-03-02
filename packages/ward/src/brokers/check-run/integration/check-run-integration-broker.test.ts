@@ -27,6 +27,7 @@ describe('checkRunIntegrationBroker', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({
             stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
             stderr: '',
@@ -77,6 +78,8 @@ describe('checkRunIntegrationBroker', () => {
               message: 'Expected true to be false',
             }),
           ],
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.integration.test.ts'],
           rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 1 }),
         }),
       );
@@ -102,6 +105,7 @@ describe('checkRunIntegrationBroker', () => {
           status: 'fail',
           errors: [],
           testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({
             stdout: 'not valid json \x1b[31m',
             stderr: '',

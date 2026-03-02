@@ -7,9 +7,9 @@
  */
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { RunId } from '@dungeonmaster/ward/dist/contracts/run-id/run-id-contract';
-import type { CheckType } from '@dungeonmaster/ward/dist/contracts/check-type/check-type-contract';
-import * as WardStorage from '@dungeonmaster/ward/dist/brokers/storage/load/storage-load-broker';
+import type { RunId } from '@dungeonmaster/ward/dist/src/contracts/run-id/run-id-contract';
+import type { CheckType } from '@dungeonmaster/ward/dist/src/contracts/check-type/check-type-contract';
+import * as WardStorage from '@dungeonmaster/ward/dist/src/brokers/storage/load/storage-load-broker';
 
 import {
   contentTextContract,

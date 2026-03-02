@@ -55,6 +55,7 @@ describe('checkRunE2eBroker', () => {
           status: 'pass',
           errors: [],
           testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({
             stdout: '{"suites":[],"errors":[]}',
             stderr: '',
@@ -111,6 +112,8 @@ describe('checkRunE2eBroker', () => {
             }),
           ],
           filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['login.spec.ts'],
           rawOutput: RawOutputStub({ stdout: playwrightOutput, stderr: '', exitCode: 1 }),
         }),
       );
@@ -136,6 +139,7 @@ describe('checkRunE2eBroker', () => {
           status: 'fail',
           errors: [],
           testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({
             stdout: 'not valid json \x1b[31m',
             stderr: '',

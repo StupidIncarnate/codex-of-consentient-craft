@@ -6,13 +6,13 @@
  * proxy.setupStorageReturns({ wardResult: WardResultStub() });
  */
 
-import * as WardStorage from '@dungeonmaster/ward/dist/brokers/storage/load/storage-load-broker';
-import * as WardListTransformer from '@dungeonmaster/ward/dist/transformers/result-to-list/result-to-list-transformer';
-import type { WardResult } from '@dungeonmaster/ward/dist/contracts/ward-result/ward-result-contract';
-import type { WardErrorList } from '@dungeonmaster/ward/dist/contracts/ward-error-list/ward-error-list-contract';
+import * as WardStorage from '@dungeonmaster/ward/dist/src/brokers/storage/load/storage-load-broker';
+import * as WardListTransformer from '@dungeonmaster/ward/dist/src/transformers/result-to-list/result-to-list-transformer';
+import type { WardResult } from '@dungeonmaster/ward/dist/src/contracts/ward-result/ward-result-contract';
+import type { WardErrorList } from '@dungeonmaster/ward/dist/src/contracts/ward-error-list/ward-error-list-contract';
 
-jest.mock('@dungeonmaster/ward/dist/brokers/storage/load/storage-load-broker');
-jest.mock('@dungeonmaster/ward/dist/transformers/result-to-list/result-to-list-transformer');
+jest.mock('@dungeonmaster/ward/dist/src/brokers/storage/load/storage-load-broker');
+jest.mock('@dungeonmaster/ward/dist/src/transformers/result-to-list/result-to-list-transformer');
 
 export const wardListAdapterProxy = (): {
   setupStorageReturns: (params: { wardResult: WardResult | null }) => void;

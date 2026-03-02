@@ -14,6 +14,8 @@ describe('projectResultContract', () => {
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
         filesCount: 0,
         discoveredCount: 0,
+        onlyDiscovered: [],
+        onlyProcessed: [],
       });
     });
 
@@ -50,6 +52,8 @@ describe('projectResultContract', () => {
         rawOutput: { stdout: '', stderr: 'Error', exitCode: 1 },
         filesCount: 0,
         discoveredCount: 0,
+        onlyDiscovered: [],
+        onlyProcessed: [],
       });
     });
 
@@ -81,6 +85,8 @@ describe('projectResultContract', () => {
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
         filesCount: 0,
         discoveredCount: 0,
+        onlyDiscovered: [],
+        onlyProcessed: [],
       });
     });
 
@@ -95,6 +101,8 @@ describe('projectResultContract', () => {
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
         filesCount: 0,
         discoveredCount: 0,
+        onlyDiscovered: [],
+        onlyProcessed: [],
       });
     });
   });
@@ -182,7 +190,53 @@ describe('projectResultContract', () => {
         rawOutput: { stdout: '', stderr: '', exitCode: 0 },
         filesCount: 0,
         discoveredCount: 0,
+        onlyDiscovered: [],
+        onlyProcessed: [],
       });
+    });
+  });
+
+  describe('onlyDiscovered defaults', () => {
+    it('VALID: {onlyDiscovered omitted} => defaults to empty array', () => {
+      const result = projectResultContract.parse({
+        projectFolder: { name: 'ward', path: '/path' },
+        status: 'pass',
+        errors: [],
+        testFailures: [],
+        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+      });
+
+      expect(result.onlyDiscovered).toStrictEqual([]);
+    });
+
+    it('VALID: {onlyDiscovered provided} => preserves value', () => {
+      const result = projectResultContract.parse(
+        ProjectResultStub({ onlyDiscovered: ['src/extra.ts'] }),
+      );
+
+      expect(result.onlyDiscovered).toStrictEqual(['src/extra.ts']);
+    });
+  });
+
+  describe('onlyProcessed defaults', () => {
+    it('VALID: {onlyProcessed omitted} => defaults to empty array', () => {
+      const result = projectResultContract.parse({
+        projectFolder: { name: 'ward', path: '/path' },
+        status: 'pass',
+        errors: [],
+        testFailures: [],
+        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+      });
+
+      expect(result.onlyProcessed).toStrictEqual([]);
+    });
+
+    it('VALID: {onlyProcessed provided} => preserves value', () => {
+      const result = projectResultContract.parse(
+        ProjectResultStub({ onlyProcessed: ['@types/error-cause.d.ts'] }),
+      );
+
+      expect(result.onlyProcessed).toStrictEqual(['@types/error-cause.d.ts']);
     });
   });
 });
