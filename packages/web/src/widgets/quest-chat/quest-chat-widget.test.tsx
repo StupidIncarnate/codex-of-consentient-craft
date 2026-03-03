@@ -227,6 +227,42 @@ describe('QuestChatWidget', () => {
   });
 
   describe('spec panel', () => {
+    it('VALID: {quest with empty spec via route state} => renders spec panel in right panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-empty-spec',
+        requirements: [],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-empty-spec', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+    });
+
     it('VALID: {quest has requirements via route state} => renders spec panel in right panel', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });

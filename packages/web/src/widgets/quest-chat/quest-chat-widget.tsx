@@ -114,13 +114,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
   const pendingQuestion = pendingClarification ?? entryBasedQuestion;
 
-  const questWithContent =
-    questData !== null &&
-    (questData.requirements.length > 0 ||
-      questData.observables.length > 0 ||
-      questData.flows.length > 0)
-      ? questData
-      : null;
+  const questWithContent = questData;
 
   return (
     <Box
