@@ -13,7 +13,7 @@ export default defineConfig({
     host: hostname,
     proxy: {
       '/api': `http://${hostname}:${basePort}`,
-      '/ws': {
+      '^/ws$': {
         target: `ws://${hostname}:${basePort}`,
         ws: true,
       },

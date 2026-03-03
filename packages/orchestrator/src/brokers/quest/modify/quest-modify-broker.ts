@@ -14,7 +14,7 @@
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { questPersistBroker } from '../persist/quest-persist-broker';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { modifyQuestResultContract } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
@@ -127,7 +127,7 @@ export const questModifyBroker = async ({
 
     // Write updated quest back to quest.json
     const questJson = fileContentsContract.parse(JSON.stringify(quest, null, JSON_INDENT_SPACES));
-    await fsWriteFileAdapter({ filePath: questFilePath, contents: questJson });
+    await questPersistBroker({ questFilePath, contents: questJson, questId: validated.questId });
 
     return modifyQuestResultContract.parse({
       success: true,

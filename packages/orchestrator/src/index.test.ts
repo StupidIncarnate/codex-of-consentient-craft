@@ -25,6 +25,7 @@ describe('orchestrator', () => {
       'questListBroker',
       'questLoadBroker',
       'questModifyBroker',
+      'questOutboxWatchBroker',
       'questSectionContract',
       'questStageContract',
       'questUpdateStepBroker',

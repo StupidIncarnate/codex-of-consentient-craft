@@ -20,6 +20,7 @@ import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-no
 import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';
 import { orchestratorEventsOnAdapter } from '../../../adapters/orchestrator/events-on/orchestrator-events-on-adapter';
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
+import { orchestratorOutboxWatchAdapter } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter';
 import { orchestratorReplayChatHistoryAdapter } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter';
 import { orchestratorStopAllChatsAdapter } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
@@ -158,6 +159,30 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
       }
     }
   }, FLUSH_INTERVAL_MS);
+
+  orchestratorOutboxWatchAdapter({
+    onQuestChanged: ({ questId }) => {
+      orchestratorLoadQuestAdapter({ questId })
+        .then((quest) => {
+          wsEventRelayBroadcastBroker({
+            clients,
+            message: wsMessageContract.parse({
+              type: 'quest-modified',
+              payload: { questId, quest },
+              timestamp: isoTimestampContract.parse(new Date().toISOString()),
+            }),
+          });
+        })
+        .catch(() => {
+          processDevLogAdapter({ message: `Outbox quest load failed for ${questId}` });
+        });
+    },
+    onError: ({ error }) => {
+      processDevLogAdapter({ message: `Outbox watch error: ${String(error)}` });
+    },
+  }).catch(() => {
+    processDevLogAdapter({ message: 'Outbox watcher failed to start' });
+  });
 
   process.on('SIGTERM', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });

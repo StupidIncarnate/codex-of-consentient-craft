@@ -1,11 +1,12 @@
 import { Hono } from 'hono';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { honoCreateNodeWebSocketAdapterProxy } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.proxy';
 import { honoServeAdapterProxy } from '../../../adapters/hono/serve/hono-serve-adapter.proxy';
 import { orchestratorEventsOnAdapterProxy } from '../../../adapters/orchestrator/events-on/orchestrator-events-on-adapter.proxy';
 import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter.proxy';
+import { orchestratorOutboxWatchAdapterProxy } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter.proxy';
 import { orchestratorReplayChatHistoryAdapterProxy } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter.proxy';
 import { orchestratorStopAllChatsAdapterProxy } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
@@ -27,12 +28,17 @@ export const ServerInitResponderProxy = (): {
   setupReplaySuccess: () => void;
   setupReplayFailure: (params: { error: Error }) => void;
   getCapturedEventHandler: (params: { type: OrchestrationEventType }) => EventHandler | undefined;
+  getOutboxWatchCallbacks: () => {
+    onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
+    onError: ((args: { error: unknown }) => void) | undefined;
+  };
 } => {
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
   honoServeAdapterProxy();
   const eventsOnProxy = orchestratorEventsOnAdapterProxy();
   const loadQuestProxy = orchestratorLoadQuestAdapterProxy();
   const replayProxy = orchestratorReplayChatHistoryAdapterProxy();
+  const outboxWatchProxy = orchestratorOutboxWatchAdapterProxy();
   orchestratorStopAllChatsAdapterProxy();
   processDevLogAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();
@@ -68,5 +74,9 @@ export const ServerInitResponderProxy = (): {
     }: {
       type: OrchestrationEventType;
     }): EventHandler | undefined => eventsOnProxy.getCapturedHandler({ type }),
+    getOutboxWatchCallbacks: (): {
+      onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
+      onError: ((args: { error: unknown }) => void) | undefined;
+    } => outboxWatchProxy.getCapturedCallbacks(),
   };
 };

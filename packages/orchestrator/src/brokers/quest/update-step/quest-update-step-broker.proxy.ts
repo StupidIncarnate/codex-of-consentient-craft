@@ -1,5 +1,7 @@
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
+
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
 
 export const questUpdateStepBrokerProxy = (): {
   setupQuestRead: (params: { questJson: string }) => void;
@@ -10,7 +12,7 @@ export const questUpdateStepBrokerProxy = (): {
   getQuestWrittenPath: () => unknown;
 } => {
   const fsReadFileProxy = fsReadFileAdapterProxy();
-  const fsWriteFileProxy = fsWriteFileAdapterProxy();
+  const persistProxy = questPersistBrokerProxy();
 
   return {
     setupQuestRead: ({ questJson }: { questJson: string }): void => {
@@ -20,12 +22,15 @@ export const questUpdateStepBrokerProxy = (): {
       fsReadFileProxy.rejects({ error });
     },
     setupQuestWriteSuccess: (): void => {
-      fsWriteFileProxy.succeeds();
+      persistProxy.setupPersist({
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
+      });
     },
     setupQuestWriteError: ({ error }: { error: Error }): void => {
-      fsWriteFileProxy.throws({ error });
+      persistProxy.setupWriteFailure({ error });
     },
-    getQuestWrittenContent: (): unknown => fsWriteFileProxy.getWrittenContent(),
-    getQuestWrittenPath: (): unknown => fsWriteFileProxy.getWrittenPath(),
+    getQuestWrittenContent: (): unknown => persistProxy.getWrittenContent(),
+    getQuestWrittenPath: (): unknown => persistProxy.getWrittenPath(),
   };
 };

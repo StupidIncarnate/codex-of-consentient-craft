@@ -11,10 +11,11 @@ import {
   questContract,
   fileContentsContract,
   filePathContract,
+  questIdContract,
 } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { questPersistBroker } from '../persist/quest-persist-broker';
 import { addQuestInputContract } from '../../../contracts/add-quest-input/add-quest-input-contract';
 import type { AddQuestInput } from '../../../contracts/add-quest-input/add-quest-input-contract';
 import { addQuestResultContract } from '../../../contracts/add-quest-result/add-quest-result-contract';
@@ -68,7 +69,11 @@ export const questAddBroker = async ({
     // Write quest.json file
     const questFilePath = pathJoinAdapter({ paths: [questFolderPath, QUEST_FILE_NAME] });
     const questJson = fileContentsContract.parse(JSON.stringify(quest, null, JSON_INDENT_SPACES));
-    await fsWriteFileAdapter({ filePath: questFilePath, contents: questJson });
+    await questPersistBroker({
+      questFilePath,
+      contents: questJson,
+      questId: questIdContract.parse(questId),
+    });
 
     return addQuestResultContract.parse({
       success: true,

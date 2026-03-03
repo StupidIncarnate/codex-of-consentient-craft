@@ -7,7 +7,7 @@ const CI_RETRIES = 2;
 
 const TEST_PORT = environmentStatics.testPort;
 const TEST_HOME = process.env.DUNGEONMASTER_HOME ?? path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
-const FAKE_CLAUDE_CLI = path.resolve('e2e/web/harness/claude-mock/bin/claude');
+const FAKE_CLAUDE_CLI = path.resolve(__dirname, 'e2e/web/harness/claude-mock/bin/claude');
 const FAKE_CLAUDE_QUEUE_DIR = path.join(TEST_HOME, 'claude-queue');
 const REAL_HOME = os.homedir();
 

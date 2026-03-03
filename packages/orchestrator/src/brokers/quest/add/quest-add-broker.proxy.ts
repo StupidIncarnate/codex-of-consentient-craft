@@ -10,7 +10,7 @@ import { pathJoinAdapterProxy, fsMkdirAdapterProxy } from '@dungeonmaster/shared
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
 import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-resolve-quests-path-broker.proxy';
 
 export const questAddBrokerProxy = (): {
@@ -24,7 +24,7 @@ export const questAddBrokerProxy = (): {
 } => {
   const resolveQuestsPathProxy = questResolveQuestsPathBrokerProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
-  const writeFileProxy = fsWriteFileAdapterProxy();
+  const persistProxy = questPersistBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
 
   return {
@@ -54,8 +54,11 @@ export const questAddBrokerProxy = (): {
       // Mock mkdir for quest folder
       mkdirProxy.succeeds({ filepath: questFolderPath });
 
-      // Mock file write
-      writeFileProxy.succeeds();
+      // Mock persist (write + outbox)
+      persistProxy.setupPersist({
+        homePath,
+        outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
+      });
     },
 
     setupQuestCreationFailure: ({
@@ -76,6 +79,6 @@ export const questAddBrokerProxy = (): {
       mkdirProxy.throws({ filepath: questsFolderPath, error });
     },
 
-    getWrittenContent: (): unknown => writeFileProxy.getWrittenContent(),
+    getWrittenContent: (): unknown => persistProxy.getWrittenContent(),
   };
 };

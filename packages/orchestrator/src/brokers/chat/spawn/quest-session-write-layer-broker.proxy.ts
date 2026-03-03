@@ -7,7 +7,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { questPersistBrokerProxy } from '../../quest/persist/quest-persist-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
 
 const GUILD_UUID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
@@ -22,7 +22,7 @@ export const questSessionWriteLayerBrokerProxy = (): {
   const findProxy = questFindQuestPathBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
-  const writeFileProxy = fsWriteFileAdapterProxy();
+  const persistProxy = questPersistBrokerProxy();
 
   return {
     setupQuestWrite: ({
@@ -67,8 +67,11 @@ export const questSessionWriteLayerBrokerProxy = (): {
       // questSessionWriteLayerBroker: readFile(questFilePath) -> quest contents
       readFileProxy.resolves({ content: questContents });
 
-      // questSessionWriteLayerBroker: writeFile(questFilePath, updated) -> success
-      writeFileProxy.succeeds();
+      // questSessionWriteLayerBroker: persist(questFilePath, updated, questId) -> success
+      persistProxy.setupPersist({
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
+      });
     },
 
     setupReadFailure: ({ questId, error }: { questId: string; error: Error }): void => {
@@ -149,7 +152,7 @@ export const questSessionWriteLayerBrokerProxy = (): {
       readFileProxy.resolves({ content: '{invalid json!!!' });
     },
 
-    getWrittenContent: (): unknown => writeFileProxy.getWrittenContent(),
-    getWrittenPath: (): unknown => writeFileProxy.getWrittenPath(),
+    getWrittenContent: (): unknown => persistProxy.getWrittenContent(),
+    getWrittenPath: (): unknown => persistProxy.getWrittenPath(),
   };
 };

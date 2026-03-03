@@ -14,8 +14,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { questStatics } from '../../../statics/quest/quest-statics';
+import { questPersistBroker } from '../persist/quest-persist-broker';
 
 export const questUpdateStepBroker = async ({
   questFilePath,
@@ -46,5 +46,5 @@ export const questUpdateStepBroker = async ({
   const updatedContents = fileContentsContract.parse(
     JSON.stringify(quest, null, questStatics.json.indentSpaces),
   );
-  await fsWriteFileAdapter({ filePath: questFilePath, contents: updatedContents });
+  await questPersistBroker({ questFilePath, contents: updatedContents, questId: quest.id });
 };

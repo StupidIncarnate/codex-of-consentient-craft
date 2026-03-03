@@ -11,7 +11,7 @@ import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { questPersistBroker } from '../../quest/persist/quest-persist-broker';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 
 const QUEST_FILE_NAME = 'quest.json';
@@ -39,5 +39,5 @@ export const questSessionWriteLayerBroker = async ({
   const updatedContents = fileContentsContract.parse(
     JSON.stringify(updated, null, JSON_INDENT_SPACES),
   );
-  await fsWriteFileAdapter({ filePath: questFilePath, contents: updatedContents });
+  await questPersistBroker({ questFilePath, contents: updatedContents, questId });
 };

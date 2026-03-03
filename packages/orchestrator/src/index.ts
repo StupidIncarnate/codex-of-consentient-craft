@@ -10,6 +10,7 @@ export { questLoadBroker } from './brokers/quest/load/quest-load-broker';
 export { questModifyBroker } from './brokers/quest/modify/quest-modify-broker';
 export { questUpdateStepBroker } from './brokers/quest/update-step/quest-update-step-broker';
 export { questVerifyBroker } from './brokers/quest/verify/quest-verify-broker';
+export { questOutboxWatchBroker } from './brokers/quest/outbox-watch/quest-outbox-watch-broker';
 
 // Quest contracts - exported for use by other packages
 export { addQuestInputContract } from './contracts/add-quest-input/add-quest-input-contract';
