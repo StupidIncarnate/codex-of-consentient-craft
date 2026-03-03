@@ -116,6 +116,8 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
   const eventTypes = orchestrationEventTypeContract.options;
   for (const type of eventTypes) {
     if (type === 'agent-output') continue;
+    if (type === 'quest-modified') continue;
+    if (type === 'quest-created') continue;
 
     orchestratorEventsOnAdapter({
       type,

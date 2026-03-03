@@ -54,6 +54,19 @@ All formatting and gating lives in one place:
 
 To change the prefix, add timestamps, or route logs elsewhere, modify that single file.
 
+## Quest Event Relay
+
+The server has two WS broadcast paths — they handle different event tiers:
+
+| Path | Events | Source |
+|------|--------|--------|
+| **Outbox watcher** (`orchestratorOutboxWatchAdapter`) | `quest-modified`, `quest-created` | Tails `event-outbox.jsonl`, loads full quest, broadcasts to all WS clients |
+| **In-memory relay** (`orchestratorEventsOnAdapter` loop) | `chat-output`, `chat-complete`, `clarification-request`, etc. | Subscribes to `orchestrationEventsState` in-process events |
+
+The relay loop explicitly skips `quest-modified`, `quest-created`, and `agent-output` — those are handled by the outbox watcher (or not relayed at all for agent-output).
+
+**Do NOT** add quest mutation events to the in-memory relay. All quest mutations go through the file outbox for cross-process support.
+
 ## Dual-Homedir Pattern
 
 The server uses two different homedir adapters for two distinct storage locations:

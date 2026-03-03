@@ -130,6 +130,25 @@ Agents communicate via `signal-back` MCP tool:
 - **`partially-complete`** — respawn with `continuationPoint` context
 - **`needs-role-followup`** — spawn `targetRole` agent (usually spiritmender), depth-limited
 
+## Quest Event Notification (Two-Tier Model)
+
+Quest mutations use a **file outbox** for cross-process notification. Transient chat events stay on the in-memory bus.
+
+| Tier | Events | Mechanism |
+|------|--------|-----------|
+| **Persistent mutations** | quest-modified, quest-created | File outbox (`event-outbox.jsonl`) — automatic via `questPersistBroker` |
+| **Transient streams** | chat-output, chat-complete, clarification-request, quest-session-linked, etc. | In-memory `orchestrationEventsState` bus |
+
+**How it works:**
+- All 4 quest mutation brokers write through `questPersistBroker` (file write + outbox append)
+- `questOutboxWatchBroker` tails the outbox file and fires callbacks on new lines
+- Server starts the watcher at init and broadcasts `quest-modified` WS messages
+
+**Rules:**
+- NEVER emit `quest-modified` or `quest-created` on `orchestrationEventsState` — those go through the outbox only
+- NEVER call `fsWriteFileAdapter` directly for quest files — always use `questPersistBroker`
+- Transient chat events stay on in-memory bus (single-process, high-frequency)
+
 ## User-Invoked Skills
 
 | Skill          | Purpose                                                            |
