@@ -218,12 +218,12 @@ test.describe('Quest WS Update', () => {
 
     // Navigate to the guild session page WITHOUT a sessionId — this is a new chat
     await page.goto(`/${urlSlug}/session`);
-    await page.waitForResponse(
-      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-    );
+    await page.waitForResponse((r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK);
 
     // Initially there's no quest, so we should see the awaiting placeholder
-    await expect(page.getByText('Awaiting quest activity...')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByText('Awaiting quest activity...')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
 
     // Send a message — this triggers the /api/sessions/new endpoint which:
     // 1. Creates a quest via questAddBroker (empty, no requirements)
@@ -273,6 +273,8 @@ test.describe('Quest WS Update', () => {
     // useQuestEventsBinding ignores quest-modified, spec panel stays stuck on "Awaiting..."
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
     await expect(page.getByText('Awaiting quest activity...')).not.toBeVisible();
-    await expect(page.getByText('Race Condition Requirement')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByText('Race Condition Requirement')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
   });
 });
