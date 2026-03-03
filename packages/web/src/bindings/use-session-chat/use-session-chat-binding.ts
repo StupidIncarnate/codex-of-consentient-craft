@@ -52,6 +52,7 @@ export const useSessionChatBinding = ({
   } | null>(null);
   const sessionIdRef = useRef<SessionId | null>(initialSessionId ?? null);
   const chatProcessIdRef = useRef<ProcessId | null>(null);
+  const pendingLinkEventsRef = useRef<{ chatProcessId: ProcessId; questId: QuestId }[]>([]);
   const wsRef = useRef<{ close: () => void; send: (data: Record<string, unknown>) => void } | null>(
     null,
   );
@@ -144,8 +145,18 @@ export const useSessionChatBinding = ({
       const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');
       const rawQuestId: unknown = Reflect.get(payload, 'questId');
 
-      if (rawChatProcessId !== chatProcessIdRef.current) return;
+      if (typeof rawChatProcessId !== 'string' || rawChatProcessId.length === 0) return;
       if (typeof rawQuestId !== 'string' || rawQuestId.length === 0) return;
+
+      if (chatProcessIdRef.current === null) {
+        pendingLinkEventsRef.current.push({
+          chatProcessId: rawChatProcessId as ProcessId,
+          questId: rawQuestId as QuestId,
+        });
+        return;
+      }
+
+      if (rawChatProcessId !== chatProcessIdRef.current) return;
 
       setLinkedQuestId(rawQuestId as QuestId);
     }
@@ -237,6 +248,15 @@ export const useSessionChatBinding = ({
       })
         .then(({ chatProcessId }) => {
           chatProcessIdRef.current = chatProcessId;
+
+          const buffered = pendingLinkEventsRef.current;
+          pendingLinkEventsRef.current = [];
+
+          for (const event of buffered) {
+            if (event.chatProcessId === chatProcessId) {
+              setLinkedQuestId(event.questId);
+            }
+          }
         })
         .catch((err: unknown) => {
           setIsStreaming(false);

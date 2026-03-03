@@ -46,7 +46,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     guildId: resolvedGuildId,
   });
 
-  const { data: sessionList } = useSessionListBinding({
+  const { data: sessionList, refresh: refreshSessionList } = useSessionListBinding({
     guildId: resolvedGuildId,
   });
 
@@ -100,12 +100,13 @@ export const QuestChatWidget = (): React.JSX.Element => {
   useEffect(() => {
     if (prevIsStreamingRef.current && !isStreaming) {
       refreshGuild().catch(() => undefined);
+      refreshSessionList().catch(() => undefined);
       if (sessionQuestId) {
         requestRefresh();
       }
     }
     prevIsStreamingRef.current = isStreaming;
-  }, [isStreaming, refreshGuild, requestRefresh, sessionQuestId]);
+  }, [isStreaming, refreshGuild, refreshSessionList, requestRefresh, sessionQuestId]);
 
   const entryBasedQuestion = hasPendingQuestionGuard({ entries })
     ? extractAskUserQuestionTransformer({ entries })

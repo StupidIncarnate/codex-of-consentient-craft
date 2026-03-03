@@ -8,12 +8,16 @@ import {
   createGuild,
   createSessionFile,
   cleanSessionDirectory,
+  queueClaudeResponse,
+  clearClaudeQueue,
+  SimpleTextResponseStub,
 } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-ws-update';
 const JSON_INDENT = 2;
 const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
+const CHAT_TIMEOUT = 15_000;
 
 /**
  * Writes a quest.json with NO content (empty requirements/flows/observables)
@@ -56,6 +60,7 @@ const createEmptyQuestFile = ({
 test.describe('Quest WS Update', () => {
   test.beforeEach(async ({ request }) => {
     await cleanGuilds(request);
+    clearClaudeQueue();
     mkdirSync(GUILD_PATH, { recursive: true });
     cleanSessionDirectory({ guildPath: GUILD_PATH });
   });
@@ -191,5 +196,83 @@ test.describe('Quest WS Update', () => {
 
     // The new requirement should appear via WS update without page refresh
     await expect(page.getByText('Live WS Requirement')).toBeVisible({ timeout: PANEL_TIMEOUT });
+  });
+
+  test('spec panel appears when quest is linked mid-chat via quest-session-linked WS event', async ({
+    page,
+    request,
+  }) => {
+    const guild = await createGuild(request, {
+      name: 'Quest Link Race Guild',
+      path: GUILD_PATH,
+    });
+
+    const urlSlug = String(guild.urlSlug ?? guild.name)
+      .toLowerCase()
+      .replace(/\s+/gu, '-');
+
+    // Queue a Claude response for the new-session flow.
+    // The sessionId must be unique; the fake CLI writes a JSONL file using it.
+    const sessionId = `e2e-session-link-race-${Date.now()}`;
+    queueClaudeResponse(SimpleTextResponseStub({ sessionId, text: 'Quest created successfully' }));
+
+    // Navigate to the guild session page WITHOUT a sessionId — this is a new chat
+    await page.goto(`/${urlSlug}/session`);
+    await page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
+
+    // Initially there's no quest, so we should see the awaiting placeholder
+    await expect(page.getByText('Awaiting quest activity...')).toBeVisible({ timeout: PANEL_TIMEOUT });
+
+    // Send a message — this triggers the /api/sessions/new endpoint which:
+    // 1. Creates a quest via questAddBroker (empty, no requirements)
+    // 2. Emits quest-session-linked WS event with chatProcessId
+    // 3. Spawns fake CLI
+    // 4. Returns { chatProcessId } in HTTP response
+    // The race condition: quest-session-linked arrives BEFORE chatProcessId is set on the client
+    await page.getByTestId('CHAT_INPUT').fill('Build a login feature');
+    await page.getByTestId('SEND_BUTTON').click();
+
+    // Wait for the chat response to stream through (confirms fake CLI ran)
+    await expect(page.getByText('Quest created successfully')).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+
+    // The server created a quest during the chat flow. Find it via the API
+    // so we can PATCH it with requirements.
+    const guildId = String(guild.id);
+    const questsResponse = await request.get(`/api/quests?guildId=${guildId}`);
+    const quests = await questsResponse.json();
+    const createdQuest = quests[0];
+    const questId = String(createdQuest.id);
+
+    // PATCH the quest to add a requirement and advance status — this triggers quest-modified WS broadcast.
+    // Status must be at least 'flows_approved' for the requirements section to be visible.
+    // If quest-session-linked was handled correctly, the client knows the questId and
+    // useQuestEventsBinding is subscribed to updates for it.
+    const requirementId = crypto.randomUUID();
+    await request.patch(`/api/quests/${questId}`, {
+      data: {
+        status: 'flows_approved',
+        requirements: [
+          {
+            id: requirementId,
+            name: 'Race Condition Requirement',
+            description: 'Added after chat to verify quest-session-linked was buffered',
+            scope: 'packages/web',
+            status: 'approved',
+          },
+        ],
+      },
+    });
+
+    // If the fix works: quest-session-linked was buffered and replayed when chatProcessId arrived,
+    // so linkedQuestId is set, useQuestEventsBinding received quest-modified, spec panel shows.
+    // If the bug is present: quest-session-linked was dropped, linkedQuestId is null,
+    // useQuestEventsBinding ignores quest-modified, spec panel stays stuck on "Awaiting..."
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByText('Awaiting quest activity...')).not.toBeVisible();
+    await expect(page.getByText('Race Condition Requirement')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 });
