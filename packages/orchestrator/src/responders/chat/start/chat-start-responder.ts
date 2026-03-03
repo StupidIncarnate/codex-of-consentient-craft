@@ -38,16 +38,34 @@ export const ChatStartResponder = async ({
     if (pending) {
       pendingClarificationState.removeForSession({ sessionId });
       try {
+        const answerLines = message.split('\n');
+        const answerByHeader = Object.create(null) as Record<never, never>;
+        for (const line of answerLines) {
+          const colonIndex = line.indexOf(':');
+          if (colonIndex > 0) {
+            const header = line.slice(0, colonIndex).trim();
+            const value = line.slice(colonIndex + 1).trim();
+            (answerByHeader as Record<typeof header, typeof value>)[header] = value;
+          }
+        }
+
+        const timestamp = new Date().toISOString();
+        const clarifications = pending.questions.map((question) => {
+          const headerKey = String(question.header);
+          const matched = (
+            answerByHeader as Record<typeof headerKey, typeof headerKey | undefined>
+          )[headerKey];
+          return {
+            id: crypto.randomUUID(),
+            questions: [question],
+            answer: matched ?? message,
+            timestamp,
+          };
+        });
+
         const clarificationInput = modifyQuestInputContract.parse({
           questId: pending.questId,
-          clarifications: [
-            {
-              id: crypto.randomUUID(),
-              questions: pending.questions,
-              answer: message,
-              timestamp: new Date().toISOString(),
-            },
-          ],
+          clarifications,
         });
         process.stderr.write(
           `[CLARIFICATION-DEBUG] modifyQuestInput parsed OK, saving clarification\n`,
