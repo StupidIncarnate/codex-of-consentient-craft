@@ -77,4 +77,15 @@ export const questGateSectionsStatics = {
     complete: 'SPEC APPROVED',
     abandoned: 'SPEC APPROVED',
   },
+  nextApprovalStatus: {
+    created: 'flows_approved',
+    pending: 'flows_approved',
+    flows_approved: 'requirements_approved',
+    requirements_approved: 'approved',
+    approved: null,
+    in_progress: null,
+    blocked: null,
+    complete: null,
+    abandoned: null,
+  },
 } as const;

@@ -21,7 +21,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ title: 'Add Authentication' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Add Authentication');
@@ -32,7 +32,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       const buttons = screen.getAllByTestId('PIXEL_BTN');
@@ -41,18 +41,19 @@ describe('QuestSpecPanelWidget', () => {
       expect(buttonTexts).toStrictEqual(['APPROVE', 'MODIFY']);
     });
 
-    it('VALID: {click APPROVE} => calls onRefresh', async () => {
+    it('VALID: {click APPROVE, status: created} => calls onModify with flows_approved status', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub();
-      const onRefresh = jest.fn();
+      const quest: Quest = QuestStub({ status: 'created' });
+      const onModify = jest.fn();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={onRefresh} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
       });
 
       await proxy.clickApprove();
 
-      expect(onRefresh).toHaveBeenCalledTimes(1);
+      expect(onModify).toHaveBeenCalledTimes(1);
+      expect(onModify).toHaveBeenCalledWith({ modifications: { status: 'flows_approved' } });
     });
   });
 
@@ -62,7 +63,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'created' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('FLOW APPROVAL');
@@ -73,7 +74,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'pending' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('FLOW APPROVAL');
@@ -84,7 +85,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'flows_approved' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('REQUIREMENTS APPROVAL');
@@ -95,7 +96,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'requirements_approved' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('OBSERVABLES APPROVAL');
@@ -106,7 +107,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'approved' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('SPEC APPROVED');
@@ -117,7 +118,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       await proxy.clickModify();
@@ -134,7 +135,7 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('USER_REQUEST_SECTION')).toBeInTheDocument();
@@ -146,7 +147,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.queryByTestId('USER_REQUEST_SECTION')).toBeNull();
@@ -164,7 +165,7 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -179,7 +180,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'pending' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -199,7 +200,7 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -214,7 +215,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'requirements_approved' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -229,7 +230,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -254,7 +255,7 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('CLARIFICATIONS_LAYER')).toBeInTheDocument();
@@ -266,7 +267,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'created', clarifications: [] });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('CLARIFICATIONS_LAYER')).toBeInTheDocument();
@@ -279,7 +280,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       await proxy.clickModify();
@@ -296,7 +297,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'requirements_approved' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       await proxy.clickModify();
@@ -311,7 +312,7 @@ describe('QuestSpecPanelWidget', () => {
       const onModify = jest.fn();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
       });
 
       await proxy.clickModify();
@@ -327,7 +328,7 @@ describe('QuestSpecPanelWidget', () => {
       const onModify = jest.fn();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
       });
 
       await proxy.clickModify();
@@ -352,7 +353,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ title: 'Original Title' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       await proxy.clickModify();
@@ -372,7 +373,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ title: 'Original Title' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       await proxy.clickModify();
@@ -396,7 +397,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ title: 'My Quest' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       await proxy.clickModify();
@@ -419,7 +420,7 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('REQUIREMENTS_LAYER')).toBeInTheDocument();
@@ -438,7 +439,7 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByText('Use JWT')).toBeInTheDocument();
@@ -451,7 +452,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ requirements: [], designDecisions: [] });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onRefresh={jest.fn()} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
       expect(screen.getByTestId('QUEST_SPEC_PANEL')).toBeInTheDocument();
@@ -468,8 +469,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
-            onRefresh={jest.fn()}
-            externalUpdatePending={true}
+                        externalUpdatePending={true}
             onDismissUpdate={jest.fn()}
           />
         ),
@@ -490,8 +490,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
-            onRefresh={jest.fn()}
-            externalUpdatePending={true}
+                        externalUpdatePending={true}
             onDismissUpdate={onDismissUpdate}
           />
         ),
@@ -519,8 +518,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
-            onRefresh={jest.fn()}
-            externalUpdatePending={true}
+                        externalUpdatePending={true}
             onDismissUpdate={onDismissUpdate}
           />
         ),
@@ -548,8 +546,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
-            onRefresh={jest.fn()}
-            externalUpdatePending={true}
+                        externalUpdatePending={true}
             onDismissUpdate={onDismissUpdate}
           />
         ),

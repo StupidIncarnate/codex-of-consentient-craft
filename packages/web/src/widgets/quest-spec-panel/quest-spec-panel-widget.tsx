@@ -2,7 +2,7 @@
  * PURPOSE: Renders the quest spec panel with title bar, scrollable content area, and action bar for editing/approving quest specs
  *
  * USAGE:
- * <QuestSpecPanelWidget quest={quest} onModify={handleModify} onRefresh={handleRefresh} />
+ * <QuestSpecPanelWidget quest={quest} onModify={handleModify} />
  * // Renders panel with gated sections, user request display, and edit/approve controls
  */
 
@@ -21,6 +21,7 @@ import type { GateSectionKey } from '../../contracts/gate-section-key/gate-secti
 import { isGateSectionVisibleGuard } from '../../guards/is-gate-section-visible/is-gate-section-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { questGateSectionsStatics } from '../../statics/quest-gate-sections/quest-gate-sections-statics';
+
 import { FormInputWidget } from '../form-input/form-input-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { ClarificationsLayerWidget } from './clarifications-layer-widget';
@@ -49,7 +50,6 @@ const CONTRACTS_SECTION = 'contracts' as GateSectionKey;
 export interface QuestSpecPanelWidgetProps {
   quest: Quest;
   onModify: (params: { modifications: Record<string, unknown> }) => void;
-  onRefresh: () => void;
   externalUpdatePending?: boolean;
   onDismissUpdate?: () => void;
 }
@@ -57,7 +57,6 @@ export interface QuestSpecPanelWidgetProps {
 export const QuestSpecPanelWidget = ({
   quest,
   onModify,
-  onRefresh,
   externalUpdatePending,
   onDismissUpdate,
 }: QuestSpecPanelWidgetProps): React.JSX.Element => {
@@ -276,7 +275,10 @@ export const QuestSpecPanelWidget = ({
               <PixelBtnWidget
                 label={APPROVE_LABEL}
                 onClick={() => {
-                  onRefresh();
+                  const nextStatus = questGateSectionsStatics.nextApprovalStatus[quest.status];
+                  if (nextStatus) {
+                    onModify({ modifications: { status: nextStatus } });
+                  }
                 }}
               />
               <PixelBtnWidget

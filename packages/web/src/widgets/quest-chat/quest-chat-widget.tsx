@@ -184,9 +184,6 @@ export const QuestChatWidget = (): React.JSX.Element => {
                   })
                   .catch(() => undefined);
               }}
-              onRefresh={(): void => {
-                requestRefresh();
-              }}
               externalUpdatePending={externalUpdatePending}
               onDismissUpdate={() => {
                 setExternalUpdatePending(false);
