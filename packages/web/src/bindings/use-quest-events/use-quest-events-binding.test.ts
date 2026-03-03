@@ -1,4 +1,9 @@
-import { ProcessIdStub, QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  GuildIdStub,
+  QuestIdStub,
+  QuestStub,
+  SessionIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
@@ -8,13 +13,15 @@ import { useQuestEventsBindingProxy } from './use-quest-events-binding.proxy';
 
 describe('useQuestEventsBinding', () => {
   describe('quest-modified matching', () => {
-    it('VALID: {quest-modified for matching questId} => sets questData', () => {
+    it('VALID: {quest-modified} => sets questData and tracks questId from first response', () => {
       const proxy = useQuestEventsBindingProxy();
+      const sessionId = SessionIdStub({ value: 'session-1' });
+      const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'my-quest' });
       const quest = QuestStub({ id: questId });
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestEventsBinding({ questId, chatProcessId: null }),
+        renderCallback: () => useQuestEventsBinding({ sessionId, guildId }),
       });
 
       testingLibraryActAdapter({
@@ -34,12 +41,26 @@ describe('useQuestEventsBinding', () => {
   });
 
   describe('quest-modified non-matching', () => {
-    it('VALID: {quest-modified for different questId} => does not set questData', () => {
+    it('VALID: {quest-modified for different questId after first} => does not set questData', () => {
       const proxy = useQuestEventsBindingProxy();
-      const questId = QuestIdStub({ value: 'my-quest' });
+      const sessionId = SessionIdStub({ value: 'session-1' });
+      const guildId = GuildIdStub();
+      const quest = QuestStub({ id: QuestIdStub({ value: 'my-quest' }) });
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestEventsBinding({ questId, chatProcessId: null }),
+        renderCallback: () => useQuestEventsBinding({ sessionId, guildId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'my-quest', quest },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
       });
 
       testingLibraryActAdapter({
@@ -57,117 +78,36 @@ describe('useQuestEventsBinding', () => {
         },
       });
 
-      expect(result.current.questData).toBeNull();
-    });
-  });
-
-  describe('quest-data-request on mount', () => {
-    it('VALID: {questId provided on mount} => sends quest-data-request', () => {
-      const proxy = useQuestEventsBindingProxy();
-      const questId = QuestIdStub({ value: 'my-quest' });
-
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestEventsBinding({ questId, chatProcessId: null }),
-      });
-
-      const sentMessages = proxy.getSentMessages();
-
-      expect(sentMessages).toStrictEqual([{ type: 'quest-data-request', questId: 'my-quest' }]);
-    });
-
-    it('EMPTY: {questId is null on mount} => does not send quest-data-request', () => {
-      const proxy = useQuestEventsBindingProxy();
-
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestEventsBinding({ questId: null, chatProcessId: null }),
-      });
-
-      const sentMessages = proxy.getSentMessages();
-
-      expect(sentMessages).toStrictEqual([]);
-    });
-  });
-
-  describe('quest-session-linked', () => {
-    it('VALID: {quest-session-linked with matching chatProcessId} => stores questId and sends quest-data-request', () => {
-      const proxy = useQuestEventsBindingProxy();
-      const chatProcessId = ProcessIdStub({ value: 'proc-1' });
-
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestEventsBinding({ questId: null, chatProcessId }),
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.receiveWsMessage({
-            data: JSON.stringify({
-              type: 'quest-session-linked',
-              payload: { chatProcessId: 'proc-1', questId: 'linked-quest' },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
-      });
-
-      const sentMessages = proxy.getSentMessages();
-
-      expect(sentMessages).toStrictEqual([{ type: 'quest-data-request', questId: 'linked-quest' }]);
-    });
-
-    it('VALID: {quest-session-linked then quest-modified} => sets questData for linked questId', () => {
-      const proxy = useQuestEventsBindingProxy();
-      const chatProcessId = ProcessIdStub({ value: 'proc-1' });
-      const quest = QuestStub({ id: QuestIdStub({ value: 'linked-quest' }) });
-
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestEventsBinding({ questId: null, chatProcessId }),
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.receiveWsMessage({
-            data: JSON.stringify({
-              type: 'quest-session-linked',
-              payload: { chatProcessId: 'proc-1', questId: 'linked-quest' },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.receiveWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'linked-quest', quest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
-      });
-
       expect(result.current.questData).toStrictEqual(quest);
     });
+  });
 
-    it('EDGE: {quest-session-linked with non-matching chatProcessId} => ignores message', () => {
+  describe('quest-by-session-request on mount', () => {
+    it('VALID: {sessionId and guildId provided on mount} => sends quest-by-session-request', () => {
       const proxy = useQuestEventsBindingProxy();
-      const chatProcessId = ProcessIdStub({ value: 'proc-1' });
+      const sessionId = SessionIdStub({ value: 'session-1' });
+      const guildId = GuildIdStub();
 
       testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestEventsBinding({ questId: null, chatProcessId }),
+        renderCallback: () => useQuestEventsBinding({ sessionId, guildId }),
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.receiveWsMessage({
-            data: JSON.stringify({
-              type: 'quest-session-linked',
-              payload: { chatProcessId: 'different-proc', questId: 'linked-quest' },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
+      const sentMessages = proxy.getSentMessages();
+
+      expect(sentMessages).toStrictEqual([
+        {
+          type: 'quest-by-session-request',
+          sessionId: 'session-1',
+          guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         },
+      ]);
+    });
+
+    it('EMPTY: {sessionId is null on mount} => does not send quest-by-session-request', () => {
+      const proxy = useQuestEventsBindingProxy();
+
+      testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestEventsBinding({ sessionId: null, guildId: null }),
       });
 
       const sentMessages = proxy.getSentMessages();
@@ -181,7 +121,7 @@ describe('useQuestEventsBinding', () => {
       const proxy = useQuestEventsBindingProxy();
 
       const { unmount } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestEventsBinding({ questId: null, chatProcessId: null }),
+        renderCallback: () => useQuestEventsBinding({ sessionId: null, guildId: null }),
       });
 
       const closeMock = proxy.getSocketClose();
@@ -201,10 +141,11 @@ describe('useQuestEventsBinding', () => {
   describe('invalid messages', () => {
     it('EDGE: {invalid WS message} => does not set questData', () => {
       const proxy = useQuestEventsBindingProxy();
-      const questId = QuestIdStub({ value: 'my-quest' });
+      const sessionId = SessionIdStub({ value: 'session-1' });
+      const guildId = GuildIdStub();
 
       const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestEventsBinding({ questId, chatProcessId: null }),
+        renderCallback: () => useQuestEventsBinding({ sessionId, guildId }),
       });
 
       testingLibraryActAdapter({

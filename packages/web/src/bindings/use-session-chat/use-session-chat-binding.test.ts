@@ -25,7 +25,7 @@ describe('useSessionChatBinding', () => {
         entries: [],
         isStreaming: false,
         currentSessionId: null,
-        linkedQuestId: null,
+
         chatProcessId: null,
         pendingClarification: null,
         sendMessage: expect.any(Function),
@@ -964,86 +964,6 @@ describe('useSessionChatBinding', () => {
     });
   });
 
-  describe('WebSocket quest-session-linked handling', () => {
-    it('VALID: {quest-session-linked with matching chatProcessId} => sets linkedQuestId', async () => {
-      const proxy = useSessionChatBindingProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
-      const message = UserInputStub({ value: 'Hello' });
-
-      proxy.setupSessionNew({ chatProcessId });
-
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionChatBinding({ guildId }),
-      });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          result.current.sendMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.receiveWsMessage({
-            data: JSON.stringify({
-              type: 'quest-session-linked',
-              payload: {
-                chatProcessId: 'chat-proc-1',
-                questId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
-      });
-
-      expect(result.current.linkedQuestId).toBe('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
-    });
-
-    it('EDGE: {quest-session-linked with non-matching chatProcessId} => does not set linkedQuestId', async () => {
-      const proxy = useSessionChatBindingProxy();
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
-      const message = UserInputStub({ value: 'Hello' });
-
-      proxy.setupSessionNew({ chatProcessId });
-
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionChatBinding({ guildId }),
-      });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          result.current.sendMessage({ message });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.receiveWsMessage({
-            data: JSON.stringify({
-              type: 'quest-session-linked',
-              payload: {
-                chatProcessId: 'different-proc',
-                questId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
-      });
-
-      expect(result.current.linkedQuestId).toBeNull();
-    });
-  });
-
   describe('error handling', () => {
     it('ERROR: {broker fails} => sets isStreaming false and appends error entry', async () => {
       const proxy = useSessionChatBindingProxy();
@@ -1097,7 +1017,7 @@ describe('useSessionChatBinding', () => {
         entries: [],
         isStreaming: false,
         currentSessionId: null,
-        linkedQuestId: null,
+
         chatProcessId: null,
         pendingClarification: null,
         sendMessage: expect.any(Function),

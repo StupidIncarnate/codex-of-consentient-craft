@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { honoCreateNodeWebSocketAdapterProxy } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.proxy';
 import { honoServeAdapterProxy } from '../../../adapters/hono/serve/hono-serve-adapter.proxy';
 import { orchestratorEventsOnAdapterProxy } from '../../../adapters/orchestrator/events-on/orchestrator-events-on-adapter.proxy';
+import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
 import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter.proxy';
 import { orchestratorOutboxWatchAdapterProxy } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter.proxy';
 import { orchestratorReplayChatHistoryAdapterProxy } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter.proxy';
@@ -16,6 +17,7 @@ import { agentOutputBufferStateProxy } from '../../../state/agent-output-buffer/
 import { ServerInitResponder } from './server-init-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
+type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type EventHandler = (args: { processId: ProcessId; payload: Record<string, unknown> }) => void;
 
 export const ServerInitResponderProxy = (): {
@@ -25,6 +27,7 @@ export const ServerInitResponderProxy = (): {
   simulateDisconnect: (params: { ws: WsClient }) => void;
   setupLoadQuestSuccess: (params: { quest: Quest }) => void;
   setupLoadQuestFailure: (params: { error: Error }) => void;
+  setupListQuestsSuccess: (params: { quests: QuestListItem[] }) => void;
   setupReplaySuccess: () => void;
   setupReplayFailure: (params: { error: Error }) => void;
   getCapturedEventHandler: (params: { type: OrchestrationEventType }) => EventHandler | undefined;
@@ -36,6 +39,7 @@ export const ServerInitResponderProxy = (): {
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
   honoServeAdapterProxy();
   const eventsOnProxy = orchestratorEventsOnAdapterProxy();
+  const listQuestsProxy = orchestratorListQuestsAdapterProxy();
   const loadQuestProxy = orchestratorLoadQuestAdapterProxy();
   const replayProxy = orchestratorReplayChatHistoryAdapterProxy();
   const outboxWatchProxy = orchestratorOutboxWatchAdapterProxy();
@@ -62,6 +66,9 @@ export const ServerInitResponderProxy = (): {
     },
     setupLoadQuestFailure: ({ error }: { error: Error }): void => {
       loadQuestProxy.throws({ error });
+    },
+    setupListQuestsSuccess: ({ quests }: { quests: QuestListItem[] }): void => {
+      listQuestsProxy.returns({ quests });
     },
     setupReplaySuccess: (): void => {
       replayProxy.setupSuccess();

@@ -19,6 +19,7 @@ import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
 import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';
 import { orchestratorEventsOnAdapter } from '../../../adapters/orchestrator/events-on/orchestrator-events-on-adapter';
+import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
 import { orchestratorOutboxWatchAdapter } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter';
 import { orchestratorReplayChatHistoryAdapter } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter';
@@ -85,6 +86,32 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
               })
               .catch(() => {
                 processDevLogAdapter({ message: `quest-data-request failed for ${questId}` });
+              });
+          }
+
+          if (type === 'quest-by-session-request') {
+            const sessionId = sessionIdContract.parse(Reflect.get(raw, 'sessionId'));
+            const guildId = guildIdContract.parse(Reflect.get(raw, 'guildId'));
+
+            orchestratorListQuestsAdapter({ guildId })
+              .then(async (quests) => {
+                const match = quests.find((q) => q.activeSessionId === sessionId);
+
+                if (!match) return;
+
+                return orchestratorLoadQuestAdapter({ questId: match.id }).then((quest) => {
+                  const message = wsMessageContract.parse({
+                    type: 'quest-modified',
+                    payload: { questId: match.id, quest },
+                    timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                  });
+                  (_ws as WsClient).send(JSON.stringify(message));
+                });
+              })
+              .catch(() => {
+                processDevLogAdapter({
+                  message: `quest-by-session-request failed for session ${sessionId}`,
+                });
               });
           }
         } catch {

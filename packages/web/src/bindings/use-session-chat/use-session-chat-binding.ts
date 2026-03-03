@@ -7,13 +7,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type {
-  GuildId,
-  ProcessId,
-  QuestId,
-  SessionId,
-  UserInput,
-} from '@dungeonmaster/shared/contracts';
+import type { GuildId, ProcessId, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
@@ -35,7 +29,6 @@ export const useSessionChatBinding = ({
   entries: ChatEntry[];
   isStreaming: boolean;
   currentSessionId: SessionId | null;
-  linkedQuestId: QuestId | null;
   chatProcessId: ProcessId | null;
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
   sendMessage: (params: { message: UserInput }) => void;
@@ -46,13 +39,11 @@ export const useSessionChatBinding = ({
   const [currentSessionId, setCurrentSessionId] = useState<SessionId | null>(
     initialSessionId ?? null,
   );
-  const [linkedQuestId, setLinkedQuestId] = useState<QuestId | null>(null);
   const [pendingClarification, setPendingClarification] = useState<{
     questions: AskUserQuestionItem[];
   } | null>(null);
   const sessionIdRef = useRef<SessionId | null>(initialSessionId ?? null);
   const chatProcessIdRef = useRef<ProcessId | null>(null);
-  const pendingLinkEventsRef = useRef<{ chatProcessId: ProcessId; questId: QuestId }[]>([]);
   const wsRef = useRef<{ close: () => void; send: (data: Record<string, unknown>) => void } | null>(
     null,
   );
@@ -138,27 +129,6 @@ export const useSessionChatBinding = ({
           return entry;
         }),
       );
-    }
-
-    if (parsed.data.type === 'quest-session-linked') {
-      const { payload } = parsed.data;
-      const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');
-      const rawQuestId: unknown = Reflect.get(payload, 'questId');
-
-      if (typeof rawChatProcessId !== 'string' || rawChatProcessId.length === 0) return;
-      if (typeof rawQuestId !== 'string' || rawQuestId.length === 0) return;
-
-      if (chatProcessIdRef.current === null) {
-        pendingLinkEventsRef.current.push({
-          chatProcessId: rawChatProcessId as ProcessId,
-          questId: rawQuestId as QuestId,
-        });
-        return;
-      }
-
-      if (rawChatProcessId !== chatProcessIdRef.current) return;
-
-      setLinkedQuestId(rawQuestId as QuestId);
     }
   }, []);
 
@@ -248,15 +218,6 @@ export const useSessionChatBinding = ({
       })
         .then(({ chatProcessId }) => {
           chatProcessIdRef.current = chatProcessId;
-
-          const buffered = pendingLinkEventsRef.current;
-          pendingLinkEventsRef.current = [];
-
-          for (const event of buffered) {
-            if (event.chatProcessId === chatProcessId) {
-              setLinkedQuestId(event.questId);
-            }
-          }
         })
         .catch((err: unknown) => {
           setIsStreaming(false);
@@ -288,7 +249,6 @@ export const useSessionChatBinding = ({
     entries,
     isStreaming,
     currentSessionId,
-    linkedQuestId,
     chatProcessId: chatProcessIdRef.current,
     pendingClarification,
     sendMessage,

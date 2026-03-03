@@ -33,12 +33,13 @@ const createMockSocket = (): MockSocket => {
 export const websocketConnectAdapterProxy = (): {
   receiveMessage: (params: { data: string }) => void;
   triggerClose: () => void;
+  triggerReconnect: () => void;
   getSocket: () => MockSocket;
   getSentMessages: () => unknown[];
 } => {
   const state: { sockets: MockSocket[] } = { sockets: [] };
 
-  jest.spyOn(globalThis, 'setTimeout');
+  const setTimeoutSpy = jest.spyOn(globalThis, 'setTimeout');
 
   jest.spyOn(globalThis as never, 'WebSocket').mockImplementation((() => {
     const socket = createMockSocket();
@@ -61,6 +62,14 @@ export const websocketConnectAdapterProxy = (): {
       const lastSocket = state.sockets[state.sockets.length - 1];
       if (lastSocket?.onclose) {
         lastSocket.onclose();
+      }
+    },
+
+    triggerReconnect: () => {
+      const calls = setTimeoutSpy.mock.calls as unknown as [() => void][];
+      const lastCall = calls[calls.length - 1];
+      if (lastCall) {
+        lastCall[0]();
       }
     },
 

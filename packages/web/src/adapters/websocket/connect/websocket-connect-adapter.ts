@@ -39,7 +39,7 @@ export const websocketConnectAdapter = ({
   socket.onclose = (): void => {
     if (shouldReconnect) {
       globalThis.setTimeout(() => {
-        websocketConnectAdapter({ url, onMessage });
+        websocketConnectAdapter({ url, onMessage, ...(onOpen ? { onOpen } : {}) });
       }, RECONNECT_DELAY_MS);
     }
   };

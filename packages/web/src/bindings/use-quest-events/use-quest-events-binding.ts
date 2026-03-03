@@ -1,13 +1,13 @@
 /**
- * PURPOSE: React hook that owns quest state from WebSocket events, subscribing to quest-modified and quest-session-linked messages
+ * PURPOSE: React hook that owns quest state from WebSocket events, subscribing to quest-modified messages by session
  *
  * USAGE:
- * const {questData} = useQuestEventsBinding({questId, chatProcessId});
+ * const {questData} = useQuestEventsBinding({sessionId, guildId});
  * // Returns {questData: Quest | null} updated in real-time via WS
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { ProcessId, Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, Quest, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 import { questContract, wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
@@ -15,32 +15,34 @@ import { websocketConnectAdapter } from '../../adapters/websocket/connect/websoc
 type WsConnection = ReturnType<typeof websocketConnectAdapter>;
 
 export const useQuestEventsBinding = ({
-  questId,
-  chatProcessId,
+  sessionId,
+  guildId,
 }: {
-  questId: QuestId | null;
-  chatProcessId: ProcessId | null;
+  sessionId: SessionId | null;
+  guildId: GuildId | null;
 }): { questData: Quest | null; requestRefresh: () => void } => {
   const [questData, setQuestData] = useState<Quest | null>(null);
-  const questIdRef = useRef<QuestId | null>(questId);
-  const chatProcessIdRef = useRef<ProcessId | null>(chatProcessId);
+  const sessionIdRef = useRef<SessionId | null>(sessionId);
+  const guildIdRef = useRef<GuildId | null>(guildId);
   const connectionRef = useRef<WsConnection | null>(null);
-  const hasSentRequestRef = useRef<QuestId | null>(null);
+  const hasSentRequestRef = useRef(false);
+  const questIdRef = useRef<QuestId | null>(null);
 
-  questIdRef.current = questId;
-  chatProcessIdRef.current = chatProcessId;
+  sessionIdRef.current = sessionId;
+  guildIdRef.current = guildId;
 
   useEffect(() => {
     const connection = websocketConnectAdapter({
       url: `ws://${globalThis.location.host}/ws`,
       onOpen: (): void => {
-        if (questIdRef.current && hasSentRequestRef.current !== questIdRef.current) {
+        if (sessionIdRef.current && guildIdRef.current && !hasSentRequestRef.current) {
           const sent = connectionRef.current?.send({
-            type: 'quest-data-request',
-            questId: questIdRef.current,
+            type: 'quest-by-session-request',
+            sessionId: sessionIdRef.current,
+            guildId: guildIdRef.current,
           });
           if (sent) {
-            hasSentRequestRef.current = questIdRef.current;
+            hasSentRequestRef.current = true;
           }
         }
       },
@@ -50,6 +52,13 @@ export const useQuestEventsBinding = ({
 
         if (parsed.data.type === 'quest-modified') {
           const payloadQuestId: unknown = Reflect.get(parsed.data.payload, 'questId');
+
+          if (questIdRef.current === null) {
+            if (typeof payloadQuestId === 'string') {
+              questIdRef.current = payloadQuestId as QuestId;
+            }
+          }
+
           if (payloadQuestId === questIdRef.current) {
             const rawQuest: unknown = Reflect.get(parsed.data.payload, 'quest');
             const questParsed = questContract.safeParse(rawQuest);
@@ -58,54 +67,49 @@ export const useQuestEventsBinding = ({
             }
           }
         }
-
-        if (parsed.data.type === 'quest-session-linked') {
-          const payloadChatProcessId: unknown = Reflect.get(parsed.data.payload, 'chatProcessId');
-          if (payloadChatProcessId === chatProcessIdRef.current) {
-            const payloadQuestId: unknown = Reflect.get(parsed.data.payload, 'questId');
-            if (typeof payloadQuestId === 'string') {
-              questIdRef.current = payloadQuestId as QuestId;
-              connection.send({
-                type: 'quest-data-request',
-                questId: payloadQuestId,
-              });
-              hasSentRequestRef.current = payloadQuestId as QuestId;
-            }
-          }
-        }
       },
     });
 
     connectionRef.current = connection;
 
-    if (questIdRef.current && hasSentRequestRef.current !== questIdRef.current) {
-      const sent = connection.send({ type: 'quest-data-request', questId: questIdRef.current });
+    if (sessionIdRef.current && guildIdRef.current && !hasSentRequestRef.current) {
+      const sent = connection.send({
+        type: 'quest-by-session-request',
+        sessionId: sessionIdRef.current,
+        guildId: guildIdRef.current,
+      });
       if (sent) {
-        hasSentRequestRef.current = questIdRef.current;
+        hasSentRequestRef.current = true;
       }
     }
 
     return (): void => {
       connectionRef.current = null;
-      hasSentRequestRef.current = null;
+      hasSentRequestRef.current = false;
+      questIdRef.current = null;
       connection.close();
     };
   }, []);
 
   useEffect(() => {
-    if (questId && hasSentRequestRef.current !== questId) {
-      const sent = connectionRef.current?.send({ type: 'quest-data-request', questId });
+    if (sessionId && guildId && !hasSentRequestRef.current) {
+      const sent = connectionRef.current?.send({
+        type: 'quest-by-session-request',
+        sessionId,
+        guildId,
+      });
       if (sent) {
-        hasSentRequestRef.current = questId;
+        hasSentRequestRef.current = true;
       }
     }
-  }, [questId]);
+  }, [sessionId, guildId]);
 
   const requestRefresh = useCallback((): void => {
-    if (questIdRef.current) {
+    if (sessionIdRef.current && guildIdRef.current) {
       connectionRef.current?.send({
-        type: 'quest-data-request',
-        questId: questIdRef.current,
+        type: 'quest-by-session-request',
+        sessionId: sessionIdRef.current,
+        guildId: guildIdRef.current,
       });
     }
   }, []);

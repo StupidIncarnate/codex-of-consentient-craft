@@ -261,6 +261,8 @@ describe('QuestChatWidget', () => {
       await waitFor(() => {
         expect(proxy.hasSpecPanel()).toBe(true);
       });
+
+      expect(proxy.hasSpecPanel()).toBe(true);
     });
 
     it('VALID: {quest has requirements via route state} => renders spec panel in right panel', async () => {

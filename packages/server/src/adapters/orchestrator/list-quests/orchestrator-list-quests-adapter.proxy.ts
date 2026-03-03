@@ -1,4 +1,18 @@
-jest.mock('@dungeonmaster/orchestrator');
+jest.mock('@dungeonmaster/orchestrator', () => ({
+  ...jest.requireActual('@dungeonmaster/orchestrator'),
+  StartOrchestrator: {
+    listQuests: jest.fn(),
+    loadQuest: jest.fn(),
+    replayChatHistory: jest.fn(),
+    stopAllChats: jest.fn(),
+  },
+  orchestrationEventsState: {
+    on: jest.fn(),
+    off: jest.fn(),
+    emit: jest.fn(),
+    removeAllListeners: jest.fn(),
+  },
+}));
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts';

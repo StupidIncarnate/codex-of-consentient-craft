@@ -2,6 +2,7 @@ import {
   GuildIdStub,
   ProcessIdStub,
   QuestIdStub,
+  QuestListItemStub,
   QuestStub,
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -57,6 +58,67 @@ describe('ServerInitResponder', () => {
       });
 
       expect(client.send).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('websocket onMessage quest-by-session-request', () => {
+    it('VALID: {type: quest-by-session-request, matching session} => loads quest and sends ws message', async () => {
+      const proxy = ServerInitResponderProxy();
+      const sessionId = SessionIdStub({ value: 'session-abc' });
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'matched-quest' });
+      const quest = QuestStub({ id: questId });
+
+      proxy.setupListQuestsSuccess({
+        quests: [QuestListItemStub({ id: questId, activeSessionId: sessionId })],
+      });
+      proxy.setupLoadQuestSuccess({ quest });
+      proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({
+          type: 'quest-by-session-request',
+          sessionId,
+          guildId,
+        }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      expect(client.send).toHaveBeenCalledTimes(1);
+    });
+
+    it('EDGE: {type: quest-by-session-request, no matching session} => does not send ws message', async () => {
+      const proxy = ServerInitResponderProxy();
+      const sessionId = SessionIdStub({ value: 'session-no-match' });
+      const guildId = GuildIdStub();
+
+      proxy.setupListQuestsSuccess({
+        quests: [QuestListItemStub({ activeSessionId: SessionIdStub({ value: 'other-session' }) })],
+      });
+      proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({
+          type: 'quest-by-session-request',
+          sessionId,
+          guildId,
+        }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      expect(client.send).not.toHaveBeenCalled();
     });
   });
 

@@ -469,7 +469,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
-                        externalUpdatePending={true}
+            externalUpdatePending={true}
             onDismissUpdate={jest.fn()}
           />
         ),
@@ -490,7 +490,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
-                        externalUpdatePending={true}
+            externalUpdatePending={true}
             onDismissUpdate={onDismissUpdate}
           />
         ),
@@ -518,7 +518,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
-                        externalUpdatePending={true}
+            externalUpdatePending={true}
             onDismissUpdate={onDismissUpdate}
           />
         ),
@@ -546,7 +546,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
-                        externalUpdatePending={true}
+            externalUpdatePending={true}
             onDismissUpdate={onDismissUpdate}
           />
         ),

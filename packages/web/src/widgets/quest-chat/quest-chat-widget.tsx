@@ -7,11 +7,11 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { Box, Text } from '@mantine/core';
 
-import type { QuestId, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
+import type { SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 
 import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
@@ -29,10 +29,8 @@ import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widge
 export const QuestChatWidget = (): React.JSX.Element => {
   const params = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const { guildSlug } = params;
   const sessionId = (params.sessionId as SessionId | undefined) ?? null;
-  const routeQuestId = (location.state as { questId?: QuestId } | null)?.questId ?? null;
   const { colors } = emberDepthsThemeStatics;
   const prevIsStreamingRef = useRef(false);
 
@@ -46,34 +44,19 @@ export const QuestChatWidget = (): React.JSX.Element => {
     guildId: resolvedGuildId,
   });
 
-  const { data: sessionList, refresh: refreshSessionList } = useSessionListBinding({
+  const { refresh: refreshSessionList } = useSessionListBinding({
     guildId: resolvedGuildId,
   });
 
-  const {
-    entries,
-    isStreaming,
-    currentSessionId,
-    linkedQuestId,
-    chatProcessId,
-    pendingClarification,
-    sendMessage,
-    stopChat,
-  } = useSessionChatBinding({
-    guildId: resolvedGuildId,
-    sessionId,
-  });
-
-  const sessionQuestId =
-    routeQuestId ??
-    linkedQuestId ??
-    (sessionId === null
-      ? null
-      : (sessionList.find((s) => s.sessionId === sessionId)?.questId ?? null));
+  const { entries, isStreaming, currentSessionId, pendingClarification, sendMessage, stopChat } =
+    useSessionChatBinding({
+      guildId: resolvedGuildId,
+      sessionId,
+    });
 
   const { questData, requestRefresh } = useQuestEventsBinding({
-    questId: sessionQuestId,
-    chatProcessId,
+    sessionId: currentSessionId ?? sessionId,
+    guildId: resolvedGuildId,
   });
 
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
@@ -101,12 +84,10 @@ export const QuestChatWidget = (): React.JSX.Element => {
     if (prevIsStreamingRef.current && !isStreaming) {
       refreshGuild().catch(() => undefined);
       refreshSessionList().catch(() => undefined);
-      if (sessionQuestId) {
-        requestRefresh();
-      }
+      requestRefresh();
     }
     prevIsStreamingRef.current = isStreaming;
-  }, [isStreaming, refreshGuild, refreshSessionList, requestRefresh, sessionQuestId]);
+  }, [isStreaming, refreshGuild, refreshSessionList, requestRefresh]);
 
   const entryBasedQuestion = hasPendingQuestionGuard({ entries })
     ? extractAskUserQuestionTransformer({ entries })

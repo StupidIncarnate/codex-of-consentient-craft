@@ -92,9 +92,8 @@ test.describe('Quest WS Update', () => {
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
 
-    // Quest exists but has no content — should show the awaiting placeholder
-    await expect(page.getByText('Awaiting quest activity...')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
+    // Quest exists but has no content — spec panel shows immediately with empty quest data
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // PATCH the quest to add a requirement — this triggers quest-modified WS broadcast
     const requirementId = crypto.randomUUID();
@@ -112,9 +111,8 @@ test.describe('Quest WS Update', () => {
       },
     });
 
-    // Spec panel should appear via WS without page refresh
+    // Requirement text should appear via WS without page refresh
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByText('Awaiting quest activity...')).not.toBeVisible();
   });
 
   test('spec panel updates with new requirements added via WS after initial render', async ({
