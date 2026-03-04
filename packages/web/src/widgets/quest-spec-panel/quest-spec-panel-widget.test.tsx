@@ -48,7 +48,10 @@ describe('QuestSpecPanelWidget', () => {
       await proxy.clickApprove();
 
       expect(onModify).toHaveBeenCalledTimes(1);
-      expect(onModify).toHaveBeenCalledWith({ modifications: { status: 'flows_approved' } });
+      expect(onModify).toHaveBeenCalledWith({
+        modifications: { status: 'flows_approved' },
+        action: 'approve',
+      });
     });
   });
 
@@ -281,7 +284,7 @@ describe('QuestSpecPanelWidget', () => {
       await proxy.clickSubmit();
 
       expect(onModify).toHaveBeenCalledTimes(1);
-      expect(onModify).toHaveBeenCalledWith({ modifications: {} });
+      expect(onModify).toHaveBeenCalledWith({ modifications: {}, action: 'submit' });
     });
 
     it('VALID: {edit title then SUBMIT} => calls onModify with title modification', async () => {

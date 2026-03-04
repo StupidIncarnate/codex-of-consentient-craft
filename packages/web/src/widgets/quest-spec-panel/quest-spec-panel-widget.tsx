@@ -48,7 +48,10 @@ const CONTRACTS_SECTION = 'contracts' as GateSectionKey;
 
 export interface QuestSpecPanelWidgetProps {
   quest: Quest;
-  onModify: (params: { modifications: Record<string, unknown> }) => void;
+  onModify: (params: {
+    modifications: Record<string, unknown>;
+    action: 'submit' | 'approve';
+  }) => void;
   externalUpdatePending?: boolean;
   onDismissUpdate?: () => void;
 }
@@ -254,7 +257,7 @@ export const QuestSpecPanelWidget = ({
                 label={SUBMIT_LABEL}
                 onClick={() => {
                   setEditing(false);
-                  onModify({ modifications: draftModifications });
+                  onModify({ modifications: draftModifications, action: 'submit' });
                 }}
               />
               <PixelBtnWidget
@@ -273,7 +276,7 @@ export const QuestSpecPanelWidget = ({
                 onClick={() => {
                   const nextStatus = questGateSectionsStatics.nextApprovalStatus[quest.status];
                   if (nextStatus) {
-                    onModify({ modifications: { status: nextStatus } });
+                    onModify({ modifications: { status: nextStatus }, action: 'approve' });
                   }
                 }}
               />
