@@ -50,7 +50,7 @@ requirements, observables, contracts, etc. Do NOT re-output quest data (diagrams
 already sees it. Instead, provide brief summaries referencing items by name and ask focused questions.
 
 **ALWAYS do these things:**
-- ALWAYS use the \`mcp__dungeonmaster__ask-user-question\` MCP tool to ask the user clarifying questions. They will be automatically saved on the quest for context.
+- ALWAYS use the \`mcp__dungeonmaster__ask-user-question\` MCP tool to ask the user clarifying questions about requirements. However, you don't need to use the tool to ask the user if they approve a stage or not. Under that circumstance, just output "Does this look good for [phase] approval?". 
 
 **NEVER do these things:**
 - NEVER enter plan mode or write implementation plans
