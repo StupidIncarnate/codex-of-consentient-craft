@@ -5,22 +5,23 @@
  * This is the only adapter that mocks itself rather than an underlying package.
  * Mocks barrel export for cross-package consumers.
  *
- * WHY jest.mock INSIDE FUNCTION: Placing jest.mock at module level causes side effects
- * when this proxy is loaded via the testing barrel from compiled dist. The transformer
- * still extracts jest.mock from function bodies for hoisting into test files.
+ * WHY jest.mock AT MODULE LEVEL: The proxy-mock-transformer only extracts module-level
+ * jest.mock() calls for hoisting into test files. Placing jest.mock inside a function
+ * body means it never gets hoisted, so the real adapter runs and causes side effects
+ * (e.g., actually importing @dungeonmaster/server and starting a real HTTP server).
  */
 import type { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+
+jest.mock('@dungeonmaster/shared/adapters', () => ({
+  ...jest.requireActual('@dungeonmaster/shared/adapters'),
+  runtimeDynamicImportAdapter: jest.fn(),
+}));
 
 export const runtimeDynamicImportAdapterProxy = ({
   module,
 }: {
   module: unknown;
 }): Record<PropertyKey, never> => {
-  jest.mock('@dungeonmaster/shared/adapters', () => ({
-    ...jest.requireActual('@dungeonmaster/shared/adapters'),
-    runtimeDynamicImportAdapter: jest.fn(),
-  }));
-
   const adapters = jest.requireMock<{
     runtimeDynamicImportAdapter: typeof runtimeDynamicImportAdapter;
   }>('@dungeonmaster/shared/adapters');

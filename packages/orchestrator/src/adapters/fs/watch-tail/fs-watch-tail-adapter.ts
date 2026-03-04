@@ -51,6 +51,13 @@ export const fsWatchTailAdapter = ({
       }
     });
 
+    rl.on('error', (rlError) => {
+      reading = false;
+      if (!stopped) {
+        onError({ error: rlError });
+      }
+    });
+
     rl.on('close', () => {
       try {
         position = statSync(filePath).size;

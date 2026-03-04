@@ -24,10 +24,10 @@ export const checkCommandsStatics = {
       '--forceExit',
       '--detectOpenHandles',
       '--testPathIgnorePatterns',
-      '\\.integration\\.test\\.ts$',
+      '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
     ],
     discoverPatterns: ['src/**/*.test.ts', 'bin/**/*.test.ts'],
-    excludePatterns: ['**/*.integration.test.ts'],
+    excludePatterns: ['**/*.integration.test.ts', '**/*.e2e.test.ts'],
   },
   integration: {
     bin: 'jest',

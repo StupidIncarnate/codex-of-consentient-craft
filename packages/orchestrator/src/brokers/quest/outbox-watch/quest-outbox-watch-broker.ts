@@ -10,7 +10,7 @@
  * stop();
  */
 
-import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
+import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, QuestId } from '@dungeonmaster/shared/contracts';
@@ -26,7 +26,7 @@ export const questOutboxWatchBroker = async ({
   onQuestChanged: (args: { questId: QuestId }) => void;
   onError: (args: { error: unknown }) => void;
 }): Promise<{ stop: () => void }> => {
-  const { homePath } = dungeonmasterHomeFindBroker();
+  const { homePath } = await dungeonmasterHomeEnsureBroker();
 
   const outboxPath = pathJoinAdapter({
     paths: [homePath, 'event-outbox.jsonl'],

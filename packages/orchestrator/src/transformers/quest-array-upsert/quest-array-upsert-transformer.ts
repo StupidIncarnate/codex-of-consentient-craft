@@ -17,7 +17,6 @@ import type {
   DesignDecision,
   Flow,
   Observable,
-  QuestClarification,
   QuestContractEntry,
   Requirement,
   ToolingRequirement,
@@ -31,8 +30,7 @@ type QuestArrayItem =
   | Requirement
   | DesignDecision
   | QuestContractEntry
-  | Flow
-  | QuestClarification;
+  | Flow;
 
 export const questArrayUpsertTransformer = <T extends QuestArrayItem>({
   existing,

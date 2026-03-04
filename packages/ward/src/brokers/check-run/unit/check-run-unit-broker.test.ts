@@ -256,7 +256,7 @@ describe('checkRunUnitBroker', () => {
         '--forceExit',
         '--detectOpenHandles',
         '--testPathIgnorePatterns',
-        '\\.integration\\.test\\.ts$',
+        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
         '--runInBand',
         '--findRelatedTests',
         'src/index.ts',

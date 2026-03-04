@@ -21,44 +21,57 @@ export const typescriptAstToMockCallsAdapter = ({
 }): MockCall[] => {
   const tsSourceFile = sourceFile as unknown as ts.SourceFile;
   const mockCalls: MockCall[] = [];
-  const nodesToVisit: ts.Node[] = [tsSourceFile];
 
-  while (nodesToVisit.length > 0) {
-    const node = nodesToVisit.pop();
-    if (!node) {
-      continue;
+  // Only extract module-level jest.mock() calls (direct children of source file statements).
+  // jest.mock() calls inside function bodies are intentionally scoped and must NOT be hoisted,
+  // as hoisting them can cause side effects (e.g., jest.requireActual loading real modules
+  // before other mocks are registered).
+  for (const statement of tsSourceFile.statements) {
+    const nodesToVisit: ts.Node[] = [];
+
+    // For expression statements (e.g., `jest.mock('os');`), check the expression directly
+    if (ts.isExpressionStatement(statement)) {
+      nodesToVisit.push(statement.expression);
     }
 
-    if (
-      ts.isCallExpression(node) &&
-      ts.isPropertyAccessExpression(node.expression) &&
-      ts.isIdentifier(node.expression.expression) &&
-      node.expression.expression.text === 'jest' &&
-      ts.isIdentifier(node.expression.name) &&
-      node.expression.name.text === 'mock'
-    ) {
-      const [firstArg, secondArg] = node.arguments;
-      if (firstArg && ts.isStringLiteral(firstArg)) {
-        const moduleName = moduleNameContract.parse(firstArg.text);
-
-        let factoryText: ReturnType<typeof factoryFunctionTextContract.parse> | null = null;
-        if (secondArg) {
-          factoryText = factoryFunctionTextContract.parse(secondArg.getText(tsSourceFile));
+    // Also check variable declarations at module level that might contain jest.mock
+    // (e.g., `const x = jest.mock(...)`) - though this is rare
+    if (ts.isVariableStatement(statement)) {
+      for (const decl of statement.declarationList.declarations) {
+        if (decl.initializer) {
+          nodesToVisit.push(decl.initializer);
         }
-
-        mockCalls.push(
-          mockCallContract.parse({
-            moduleName,
-            factory: factoryText,
-            sourceFile: sourceFileNameContract.parse(tsSourceFile.fileName),
-          }),
-        );
       }
     }
 
-    ts.forEachChild(node, (child: ts.Node) => {
-      nodesToVisit.push(child);
-    });
+    for (const node of nodesToVisit) {
+      if (
+        ts.isCallExpression(node) &&
+        ts.isPropertyAccessExpression(node.expression) &&
+        ts.isIdentifier(node.expression.expression) &&
+        node.expression.expression.text === 'jest' &&
+        ts.isIdentifier(node.expression.name) &&
+        node.expression.name.text === 'mock'
+      ) {
+        const [firstArg, secondArg] = node.arguments;
+        if (firstArg && ts.isStringLiteral(firstArg)) {
+          const moduleName = moduleNameContract.parse(firstArg.text);
+
+          let factoryText: ReturnType<typeof factoryFunctionTextContract.parse> | null = null;
+          if (secondArg) {
+            factoryText = factoryFunctionTextContract.parse(secondArg.getText(tsSourceFile));
+          }
+
+          mockCalls.push(
+            mockCallContract.parse({
+              moduleName,
+              factory: factoryText,
+              sourceFile: sourceFileNameContract.parse(tsSourceFile.fileName),
+            }),
+          );
+        }
+      }
+    }
   }
 
   return mockCalls;

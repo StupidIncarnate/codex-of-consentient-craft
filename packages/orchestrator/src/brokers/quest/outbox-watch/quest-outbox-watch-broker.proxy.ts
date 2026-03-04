@@ -1,5 +1,5 @@
 import {
-  dungeonmasterHomeFindBrokerProxy,
+  dungeonmasterHomeEnsureBrokerProxy,
   pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
@@ -13,7 +13,7 @@ export const questOutboxWatchBrokerProxy = (): {
   setupLines: (params: { lines: readonly string[] }) => void;
   triggerWatchError: (params: { error: Error }) => void;
 } => {
-  const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
+  const homeEnsureProxy = dungeonmasterHomeEnsureBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const writeFileProxy = fsWriteFileAdapterProxy();
   const watchTailProxy = fsWatchTailAdapterProxy();
@@ -28,7 +28,11 @@ export const questOutboxWatchBrokerProxy = (): {
       homePath: FilePath;
       outboxPath: FilePath;
     }): void => {
-      homeFindProxy.setupHomePath({ homeDir, homePath });
+      homeEnsureProxy.setupEnsureSuccess({
+        homeDir,
+        homePath,
+        guildsPath: homePath,
+      });
       pathJoinProxy.returns({ result: outboxPath });
       writeFileProxy.succeeds();
     },

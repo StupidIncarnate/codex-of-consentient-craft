@@ -35,10 +35,11 @@ test.describe('Chat Smoke', () => {
     await input.fill('Hello Claude');
     await page.getByTestId('SEND_BUTTON').click();
 
-    // User message should appear
-    await expect(page.getByText('Hello Claude')).toBeVisible();
+    // User message should appear in the chat panel
+    const chatPanel = page.getByTestId('CHAT_PANEL');
+    await expect(chatPanel.getByText('Hello Claude')).toBeVisible();
 
     // Wait for Claude response to appear
-    await expect(page.getByText('I can help with that!')).toBeVisible({ timeout: 15_000 });
+    await expect(chatPanel.getByText('I can help with that!')).toBeVisible({ timeout: 15_000 });
   });
 });

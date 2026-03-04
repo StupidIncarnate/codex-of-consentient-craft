@@ -142,11 +142,12 @@ test.describe('Chat Advanced Features', () => {
     await page.getByTestId('CHAT_INPUT').fill('My unique message text');
     await page.getByTestId('SEND_BUTTON').click();
 
-    // User's own message should appear in the chat
-    await expect(page.getByText('My unique message text')).toBeVisible({
+    // User's own message should appear in the chat panel
+    const chatPanel = page.getByTestId('CHAT_PANEL');
+    await expect(chatPanel.getByText('My unique message text')).toBeVisible({
       timeout: USER_MSG_TIMEOUT,
     });
     // Claude response also appears
-    await expect(page.getByText('Got it!')).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(chatPanel.getByText('Got it!')).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
 });

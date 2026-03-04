@@ -133,11 +133,12 @@ test.describe('Unified JSONL Pipeline', () => {
     await page.getByTestId('CHAT_INPUT').fill('Stream test message');
     await page.getByTestId('SEND_BUTTON').click();
 
-    // User message renders (confirms user entries go through processor)
-    await expect(page.getByText('Stream test message')).toBeVisible({ timeout: CHAT_TIMEOUT });
+    // User message renders in the chat panel (confirms user entries go through processor)
+    const chatPanel = page.getByTestId('CHAT_PANEL');
+    await expect(chatPanel.getByText('Stream test message')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
     // Assistant response renders (confirms chat-output WS events deliver streamed entries)
-    await expect(page.getByText('Streamed through processor')).toBeVisible({
+    await expect(chatPanel.getByText('Streamed through processor')).toBeVisible({
       timeout: CHAT_TIMEOUT,
     });
   });
