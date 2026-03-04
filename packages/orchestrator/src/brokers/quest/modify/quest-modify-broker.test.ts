@@ -1,4 +1,9 @@
-import { FlowStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  FlowStub,
+  ObservableStub,
+  QuestStub,
+  RequirementStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
 import { questModifyBroker } from './quest-modify-broker';
@@ -186,7 +191,12 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, status: "flows_approved"} with quest at "created" => sets status on quest', async () => {
       const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', status: 'created' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'created',
+        flows: [FlowStub()],
+      });
 
       proxy.setupQuestFound({ quest });
 
@@ -202,7 +212,12 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, status: "requirements_approved"} with quest at "flows_approved" => sets status on quest', async () => {
       const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', status: 'flows_approved' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        requirements: [RequirementStub()],
+      });
 
       proxy.setupQuestFound({ quest });
 
@@ -301,6 +316,97 @@ describe('questModifyBroker', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toMatch(/Invalid status transition/u);
+    });
+  });
+
+  describe('missing gate content', () => {
+    it('ERROR: {status: "flows_approved"} with empty flows => returns missing content error', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'created',
+        flows: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'flows_approved',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/Missing required content for transition to flows_approved/u);
+    });
+
+    it('ERROR: {status: "requirements_approved"} with empty requirements => returns missing content error', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        requirements: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'requirements_approved',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(
+        /Missing required content for transition to requirements_approved/u,
+      );
+    });
+
+    it('ERROR: {status: "approved"} with empty observables => returns missing content error', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'requirements_approved',
+        observables: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'approved',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/Missing required content for transition to approved/u);
+    });
+
+    it('VALID: {status: "approved"} with non-empty observables => succeeds', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'requirements_approved',
+        observables: [ObservableStub()],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'approved',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
     });
   });
 });

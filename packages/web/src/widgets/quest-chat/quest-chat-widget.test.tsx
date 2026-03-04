@@ -6,8 +6,10 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import {
+  FlowStub,
   GuildListItemStub,
   GuildStub,
+  ObservableStub,
   QuestStub,
   RequirementStub,
   SessionListItemStub,
@@ -513,6 +515,7 @@ describe('QuestChatWidget', () => {
       const quest = QuestStub({
         id: 'chat-approve-1',
         status: 'created',
+        flows: [FlowStub()],
         requirements: [RequirementStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
@@ -612,6 +615,7 @@ describe('QuestChatWidget', () => {
         id: 'chat-approve-3',
         status: 'requirements_approved',
         requirements: [RequirementStub()],
+        observables: [ObservableStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
 

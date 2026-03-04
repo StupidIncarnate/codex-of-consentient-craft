@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { Box, Group, Stack, Text } from '@mantine/core';
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
+import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
@@ -272,19 +273,25 @@ export const QuestSpecPanelWidget = ({
             </>
           ) : (
             <>
-              <PixelBtnWidget
-                label={APPROVE_LABEL}
-                onClick={() => {
-                  const nextStatus = questGateSectionsStatics.nextApprovalStatus[quest.status];
-                  if (nextStatus) {
-                    onModify({
-                      modifications: { status: nextStatus },
-                      action: 'approve',
-                      nextStatus,
-                    });
-                  }
-                }}
-              />
+              {(() => {
+                const nextApproval = questGateSectionsStatics.nextApprovalStatus[quest.status];
+                if (!nextApproval) {
+                  return null;
+                }
+                return (
+                  <PixelBtnWidget
+                    label={APPROVE_LABEL}
+                    disabled={!hasQuestGateContentGuard({ quest, nextStatus: nextApproval })}
+                    onClick={() => {
+                      onModify({
+                        modifications: { status: nextApproval },
+                        action: 'approve',
+                        nextStatus: nextApproval,
+                      });
+                    }}
+                  />
+                );
+              })()}
               <PixelBtnWidget
                 label={MODIFY_LABEL}
                 variant={GHOST_VARIANT}

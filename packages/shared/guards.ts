@@ -9,3 +9,4 @@
 // Subpath export entry for @dungeonmaster/shared/guards
 
 export * from './src/guards/is-key-of/is-key-of-guard';
+export * from './src/guards/has-quest-gate-content/has-quest-gate-content-guard';

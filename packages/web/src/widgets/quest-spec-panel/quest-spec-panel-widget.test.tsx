@@ -1,7 +1,13 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { QuestStub, RequirementStub, DesignDecisionStub } from '@dungeonmaster/shared/contracts';
+import {
+  QuestStub,
+  RequirementStub,
+  DesignDecisionStub,
+  FlowStub,
+  ObservableStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestSpecPanelWidget } from './quest-spec-panel-widget';
@@ -22,9 +28,12 @@ describe('QuestSpecPanelWidget', () => {
       expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Add Authentication');
     });
 
-    it('VALID: {quest} => renders APPROVE and MODIFY buttons', () => {
+    it('VALID: {quest with approvable status} => renders APPROVE and MODIFY buttons', () => {
       QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub();
+      const quest: Quest = QuestStub({
+        status: 'created',
+        flows: [FlowStub()],
+      });
 
       mantineRenderAdapter({
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
@@ -36,9 +45,26 @@ describe('QuestSpecPanelWidget', () => {
       expect(buttonTexts).toStrictEqual(['APPROVE', 'MODIFY']);
     });
 
-    it('VALID: {click APPROVE, status: created} => calls onModify with flows_approved status', async () => {
+    it('VALID: {quest with terminal status} => renders only MODIFY button', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'approved' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const buttonTexts = buttons.map((button) => button.textContent);
+
+      expect(buttonTexts).toStrictEqual(['MODIFY']);
+    });
+
+    it('VALID: {click APPROVE, status: created, has flows} => calls onModify with flows_approved status', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'created' });
+      const quest: Quest = QuestStub({
+        status: 'created',
+        flows: [FlowStub()],
+      });
       const onModify = jest.fn();
 
       mantineRenderAdapter({
@@ -55,9 +81,12 @@ describe('QuestSpecPanelWidget', () => {
       });
     });
 
-    it('VALID: {click APPROVE, status: pending} => calls onModify with flows_approved status', async () => {
+    it('VALID: {click APPROVE, status: pending, has flows} => calls onModify with flows_approved status', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'pending' });
+      const quest: Quest = QuestStub({
+        status: 'pending',
+        flows: [FlowStub()],
+      });
       const onModify = jest.fn();
 
       mantineRenderAdapter({
@@ -74,9 +103,12 @@ describe('QuestSpecPanelWidget', () => {
       });
     });
 
-    it('VALID: {click APPROVE, status: flows_approved} => calls onModify with requirements_approved status', async () => {
+    it('VALID: {click APPROVE, status: flows_approved, has requirements} => calls onModify with requirements_approved status', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'flows_approved' });
+      const quest: Quest = QuestStub({
+        status: 'flows_approved',
+        requirements: [RequirementStub()],
+      });
       const onModify = jest.fn();
 
       mantineRenderAdapter({
@@ -93,9 +125,12 @@ describe('QuestSpecPanelWidget', () => {
       });
     });
 
-    it('VALID: {click APPROVE, status: requirements_approved} => calls onModify with approved status', async () => {
+    it('VALID: {click APPROVE, status: requirements_approved, has observables} => calls onModify with approved status', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'requirements_approved' });
+      const quest: Quest = QuestStub({
+        status: 'requirements_approved',
+        observables: [ObservableStub()],
+      });
       const onModify = jest.fn();
 
       mantineRenderAdapter({
@@ -112,18 +147,128 @@ describe('QuestSpecPanelWidget', () => {
       });
     });
 
-    it('VALID: {click APPROVE, status: approved} => does not call onModify', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
+    it('VALID: {status: approved} => APPROVE button is hidden', () => {
+      QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'approved' });
-      const onModify = jest.fn();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
-      await proxy.clickApprove();
+      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
 
-      expect(onModify).toHaveBeenCalledTimes(0);
+      expect(approveButton).toBeUndefined();
+    });
+  });
+
+  describe('approve gate content guard', () => {
+    it('VALID: {status: created, flows: [flow]} => APPROVE is enabled', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'created',
+        flows: [FlowStub()],
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
+
+      expect(approveButton?.style.opacity).toBe('1');
+      expect(approveButton?.style.pointerEvents).toBe('auto');
+    });
+
+    it('VALID: {status: created, flows: []} => APPROVE is disabled', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'created',
+        flows: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
+
+      expect(approveButton?.style.opacity).toBe('0.4');
+      expect(approveButton?.style.pointerEvents).toBe('none');
+    });
+
+    it('VALID: {status: flows_approved, requirements: []} => APPROVE is disabled', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'flows_approved',
+        requirements: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
+
+      expect(approveButton?.style.opacity).toBe('0.4');
+      expect(approveButton?.style.pointerEvents).toBe('none');
+    });
+
+    it('VALID: {status: flows_approved, requirements: [req]} => APPROVE is enabled', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'flows_approved',
+        requirements: [RequirementStub()],
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
+
+      expect(approveButton?.style.opacity).toBe('1');
+      expect(approveButton?.style.pointerEvents).toBe('auto');
+    });
+
+    it('VALID: {status: requirements_approved, observables: []} => APPROVE is disabled', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'requirements_approved',
+        observables: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
+
+      expect(approveButton?.style.opacity).toBe('0.4');
+      expect(approveButton?.style.pointerEvents).toBe('none');
+    });
+
+    it('VALID: {status: requirements_approved, observables: [obs]} => APPROVE is enabled', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'requirements_approved',
+        observables: [ObservableStub()],
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
+
+      expect(approveButton?.style.opacity).toBe('1');
+      expect(approveButton?.style.pointerEvents).toBe('auto');
     });
   });
 

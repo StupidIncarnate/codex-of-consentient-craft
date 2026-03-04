@@ -19,6 +19,7 @@ import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { modifyQuestResultContract } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
 import type { ModifyQuestResult } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
+import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
@@ -110,6 +111,18 @@ export const questModifyBroker = async ({
         return modifyQuestResultContract.parse({
           success: false,
           error: `Invalid status transition: ${quest.status} -> ${validated.status}`,
+        });
+      }
+
+      const hasRequiredContent = hasQuestGateContentGuard({
+        quest,
+        nextStatus: validated.status,
+      });
+
+      if (!hasRequiredContent) {
+        return modifyQuestResultContract.parse({
+          success: false,
+          error: `Missing required content for transition to ${validated.status}`,
         });
       }
 
