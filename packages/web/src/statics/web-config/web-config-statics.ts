@@ -15,8 +15,6 @@ export const webConfigStatics = {
       directoriesBrowse: '/api/directories/browse',
       quests: '/api/quests',
       questById: '/api/quests/:questId',
-      questStart: '/api/quests/:questId/start',
-      questVerify: '/api/quests/:questId/verify',
       guildSessions: '/api/guilds/:guildId/sessions',
       sessionChat: '/api/sessions/:sessionId/chat',
       sessionChatStop: '/api/sessions/:sessionId/chat/:chatProcessId/stop',

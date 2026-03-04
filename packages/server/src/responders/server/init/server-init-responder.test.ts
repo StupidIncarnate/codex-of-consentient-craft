@@ -36,31 +36,6 @@ describe('ServerInitResponder', () => {
     });
   });
 
-  describe('websocket onMessage quest-data-request', () => {
-    it('VALID: {type: quest-data-request} => calls orchestratorLoadQuestAdapter and sends ws message', async () => {
-      const proxy = ServerInitResponderProxy();
-      const quest = QuestStub();
-      proxy.setupLoadQuestSuccess({ quest });
-      proxy.callResponder();
-
-      const client = WsClientStub();
-      proxy.simulateConnection({ client });
-      proxy.simulateMessage({
-        data: JSON.stringify({
-          type: 'quest-data-request',
-          questId: QuestIdStub(),
-        }),
-        ws: client,
-      });
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 10);
-      });
-
-      expect(client.send).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('websocket onMessage quest-by-session-request', () => {
     it('VALID: {type: quest-by-session-request, matching session} => loads quest and sends ws message', async () => {
       const proxy = ServerInitResponderProxy();

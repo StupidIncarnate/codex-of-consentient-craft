@@ -10,7 +10,6 @@ import {
   guildIdContract,
   orchestrationEventTypeContract,
   processIdContract,
-  questIdContract,
   sessionIdContract,
   wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
@@ -70,23 +69,6 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
                 processDevLogAdapter({ message: 'replay-history failed' });
               },
             );
-          }
-
-          if (type === 'quest-data-request') {
-            const questId = questIdContract.parse(Reflect.get(raw, 'questId'));
-
-            orchestratorLoadQuestAdapter({ questId })
-              .then((quest) => {
-                const message = wsMessageContract.parse({
-                  type: 'quest-modified',
-                  payload: { questId, quest },
-                  timestamp: isoTimestampContract.parse(new Date().toISOString()),
-                });
-                (_ws as WsClient).send(JSON.stringify(message));
-              })
-              .catch(() => {
-                processDevLogAdapter({ message: `quest-data-request failed for ${questId}` });
-              });
           }
 
           if (type === 'quest-by-session-request') {
