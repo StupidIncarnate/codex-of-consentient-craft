@@ -24,7 +24,6 @@ import { questGateSectionsStatics } from '../../statics/quest-gate-sections/ques
 
 import { FormInputWidget } from '../form-input/form-input-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
-import { ClarificationsLayerWidget } from './clarifications-layer-widget';
 import { ContractsLayerWidget } from './contracts-layer-widget';
 import { DesignDecisionsLayerWidget } from './design-decisions-layer-widget';
 import { FlowsLayerWidget } from './flows-layer-widget';
@@ -78,7 +77,6 @@ export const QuestSpecPanelWidget = ({
   const draftObservables = draftModifications.observables ?? quest.observables;
   const draftContracts = draftModifications.contracts ?? quest.contracts;
   const draftTooling = draftModifications.toolingRequirements ?? quest.toolingRequirements;
-  const draftClarifications = quest.clarifications;
 
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="QUEST_SPEC_PANEL">
@@ -241,8 +239,6 @@ export const QuestSpecPanelWidget = ({
             }}
           />
         ) : null}
-
-        <ClarificationsLayerWidget clarifications={draftClarifications} />
       </Box>
       <Box
         style={{

@@ -11,8 +11,6 @@ import type { GuildId, ProcessId, QuestId, SessionId } from '@dungeonmaster/shar
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { chatSubagentTailBroker } from '../../../brokers/chat/subagent-tail/chat-subagent-tail-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
-import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
-import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import { chatProcessState } from '../../../state/chat-process/chat-process-state';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
@@ -37,57 +35,6 @@ export const ChatStartResponder = async ({
     );
     if (pending) {
       pendingClarificationState.removeForSession({ sessionId });
-      try {
-        const answerLines = message.split('\n');
-        const answerByHeader = Object.create(null) as Record<never, never>;
-        for (const line of answerLines) {
-          const colonIndex = line.indexOf(':');
-          if (colonIndex > 0) {
-            const header = line.slice(0, colonIndex).trim();
-            const value = line.slice(colonIndex + 1).trim();
-            (answerByHeader as Record<typeof header, typeof value>)[header] = value;
-          }
-        }
-
-        const timestamp = new Date().toISOString();
-        const clarifications = pending.questions.map((question) => {
-          const headerKey = String(question.header);
-          const matched = (
-            answerByHeader as Record<typeof headerKey, typeof headerKey | undefined>
-          )[headerKey];
-          return {
-            id: crypto.randomUUID(),
-            questions: [question],
-            answer: matched ?? message,
-            timestamp,
-          };
-        });
-
-        const clarificationInput = modifyQuestInputContract.parse({
-          questId: pending.questId,
-          clarifications,
-        });
-        process.stderr.write(
-          `[CLARIFICATION-DEBUG] modifyQuestInput parsed OK, saving clarification\n`,
-        );
-        questModifyBroker({
-          input: clarificationInput,
-        })
-          .then(() => {
-            process.stderr.write(
-              `[CLARIFICATION-DEBUG] clarification saved to quest successfully\n`,
-            );
-          })
-          .catch((error: unknown) => {
-            process.stderr.write(
-              `[CLARIFICATION-DEBUG] FAILED to save clarification: ${error instanceof Error ? error.message : String(error)}\n`,
-            );
-          });
-      } catch (parseError: unknown) {
-        process.stderr.write(
-          `[CLARIFICATION-DEBUG] PARSE ERROR: ${parseError instanceof Error ? parseError.message : String(parseError)}\n`,
-        );
-      }
     }
   }
 

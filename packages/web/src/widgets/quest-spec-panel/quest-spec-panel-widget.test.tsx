@@ -1,12 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import {
-  QuestStub,
-  RequirementStub,
-  DesignDecisionStub,
-  QuestClarificationStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestStub, RequirementStub, DesignDecisionStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestSpecPanelWidget } from './quest-spec-panel-widget';
@@ -238,39 +233,6 @@ describe('QuestSpecPanelWidget', () => {
       expect(screen.getByTestId('REQUIREMENTS_LAYER')).toBeInTheDocument();
       expect(screen.getByTestId('OBSERVABLES_LAYER')).toBeInTheDocument();
       expect(screen.getByTestId('CONTRACTS_LAYER')).toBeInTheDocument();
-    });
-  });
-
-  describe('clarifications', () => {
-    it('VALID: {quest with clarifications} => renders clarifications layer (always visible)', () => {
-      QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'created',
-        clarifications: [
-          QuestClarificationStub({
-            id: 'b23bc10b-58cc-4372-a567-0e02b2c3d479',
-            answer: 'Use REST API',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      expect(screen.getByTestId('CLARIFICATIONS_LAYER')).toBeInTheDocument();
-      expect(screen.getByText('Use REST API')).toBeInTheDocument();
-    });
-
-    it('EMPTY: {quest with empty clarifications} => still renders clarifications layer', () => {
-      QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'created', clarifications: [] });
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      expect(screen.getByTestId('CLARIFICATIONS_LAYER')).toBeInTheDocument();
     });
   });
 

@@ -100,13 +100,6 @@ export const questModifyBroker = async ({
       });
     }
 
-    if (validated.clarifications) {
-      quest.clarifications = questArrayUpsertTransformer({
-        existing: quest.clarifications,
-        updates: validated.clarifications,
-      });
-    }
-
     if (validated.status) {
       const isValidTransition = questHasValidStatusTransitionGuard({
         currentStatus: quest.status,

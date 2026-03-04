@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 
 import { FormInputWidgetProxy } from '../form-input/form-input-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
-import { ClarificationsLayerWidgetProxy } from './clarifications-layer-widget.proxy';
 import { ContractsLayerWidgetProxy } from './contracts-layer-widget.proxy';
 import { DesignDecisionsLayerWidgetProxy } from './design-decisions-layer-widget.proxy';
 import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
@@ -21,7 +20,6 @@ export const QuestSpecPanelWidgetProxy = (): {
 } => {
   FormInputWidgetProxy();
   PixelBtnWidgetProxy();
-  ClarificationsLayerWidgetProxy();
   ContractsLayerWidgetProxy();
   DesignDecisionsLayerWidgetProxy();
   FlowsLayerWidgetProxy();

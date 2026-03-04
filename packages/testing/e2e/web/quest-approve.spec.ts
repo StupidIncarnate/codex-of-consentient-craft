@@ -54,7 +54,6 @@ const createQuestFile = ({
         requirementIds: [],
       },
     ],
-    clarifications: [],
   };
 
   writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
