@@ -126,3 +126,8 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 
 **When ward fails:** The run output shows a summary with truncated errors. Use the MCP tool `ward-list` with the
 run ID shown at the bottom to get full details — especially jest diffs for test failures.
+
+**Zero tolerance for ward failures:** NEVER assume a failure is "pre-existing" or "unrelated" to your changes. Every
+ward failure must be investigated and fixed before a task is complete. Ward must be fully green. Failures that look
+unrelated are often caused by transitive effects (stale dist builds, proxy chain breakage, cache invalidation, or
+side-effect imports exposed by type changes). Always trace the full dependency chain.
