@@ -158,7 +158,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
           <Box style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <QuestSpecPanelWidget
               quest={questWithContent}
-              onModify={({ modifications, action }): void => {
+              onModify={({ modifications, action, nextStatus }): void => {
                 questModifyBroker({ questId: questWithContent.id, modifications })
                   .then(() => {
                     setExternalUpdatePending(false);
@@ -167,8 +167,20 @@ export const QuestChatWidget = (): React.JSX.Element => {
                         message:
                           "I've modified the quest spec. Please review my changes." as UserInput,
                       });
-                    } else {
-                      sendMessage({ message: 'Approved. Proceed to the next stage.' as UserInput });
+                    } else if (nextStatus === 'flows_approved') {
+                      sendMessage({
+                        message: 'Flows approved. Proceed to requirements.' as UserInput,
+                      });
+                    } else if (nextStatus === 'requirements_approved') {
+                      sendMessage({
+                        message:
+                          'Requirements approved. Proceed to observables and contracts.' as UserInput,
+                      });
+                    } else if (nextStatus === 'approved') {
+                      sendMessage({
+                        message:
+                          'Observables and contracts approved. Spec is fully approved.' as UserInput,
+                      });
                     }
                   })
                   .catch(() => undefined);

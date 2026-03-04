@@ -53,6 +53,8 @@ export const QuestChatWidgetProxy = (): {
   getClarifyQuestionText: () => HTMLElement['textContent'];
   getClarifyOptionLabels: () => HTMLElement['textContent'][];
   clickClarifyOption: (params: { label: AskUserQuestionOption['label'] }) => Promise<void>;
+  clickApprove: () => Promise<void>;
+  setupModify: () => void;
 } => {
   const guildsBindingProxy = useGuildsBindingProxy();
   const sessionListProxy = useSessionListBindingProxy();
@@ -61,8 +63,8 @@ export const QuestChatWidgetProxy = (): {
   const chatBindingProxy = useSessionChatBindingProxy();
   ChatPanelWidgetProxy();
   QuestClarifyPanelWidgetProxy();
-  QuestSpecPanelWidgetProxy();
-  questModifyBrokerProxy();
+  const specPanelProxy = QuestSpecPanelWidgetProxy();
+  const modifyProxy = questModifyBrokerProxy();
 
   return {
     setupChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
@@ -126,6 +128,12 @@ export const QuestChatWidgetProxy = (): {
       if (target) {
         await userEvent.click(target);
       }
+    },
+    clickApprove: async (): Promise<void> => {
+      await specPanelProxy.clickApprove();
+    },
+    setupModify: (): void => {
+      modifyProxy.setupModify();
     },
   };
 };

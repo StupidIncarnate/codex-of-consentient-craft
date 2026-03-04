@@ -51,7 +51,79 @@ describe('QuestSpecPanelWidget', () => {
       expect(onModify).toHaveBeenCalledWith({
         modifications: { status: 'flows_approved' },
         action: 'approve',
+        nextStatus: 'flows_approved',
       });
+    });
+
+    it('VALID: {click APPROVE, status: pending} => calls onModify with flows_approved status', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'pending' });
+      const onModify = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
+      });
+
+      await proxy.clickApprove();
+
+      expect(onModify).toHaveBeenCalledTimes(1);
+      expect(onModify).toHaveBeenCalledWith({
+        modifications: { status: 'flows_approved' },
+        action: 'approve',
+        nextStatus: 'flows_approved',
+      });
+    });
+
+    it('VALID: {click APPROVE, status: flows_approved} => calls onModify with requirements_approved status', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'flows_approved' });
+      const onModify = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
+      });
+
+      await proxy.clickApprove();
+
+      expect(onModify).toHaveBeenCalledTimes(1);
+      expect(onModify).toHaveBeenCalledWith({
+        modifications: { status: 'requirements_approved' },
+        action: 'approve',
+        nextStatus: 'requirements_approved',
+      });
+    });
+
+    it('VALID: {click APPROVE, status: requirements_approved} => calls onModify with approved status', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'requirements_approved' });
+      const onModify = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
+      });
+
+      await proxy.clickApprove();
+
+      expect(onModify).toHaveBeenCalledTimes(1);
+      expect(onModify).toHaveBeenCalledWith({
+        modifications: { status: 'approved' },
+        action: 'approve',
+        nextStatus: 'approved',
+      });
+    });
+
+    it('VALID: {click APPROVE, status: approved} => does not call onModify', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'approved' });
+      const onModify = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
+      });
+
+      await proxy.clickApprove();
+
+      expect(onModify).toHaveBeenCalledTimes(0);
     });
   });
 

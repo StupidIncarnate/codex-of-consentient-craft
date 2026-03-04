@@ -2,7 +2,7 @@
  * PURPOSE: Tests for QuestChatWidget - split panel layout with chat and activity
  */
 
-import { act, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import {
@@ -503,6 +503,157 @@ describe('QuestChatWidget', () => {
       });
 
       expect(proxy.hasSpecPanel()).toBe(true);
+    });
+  });
+
+  describe('approval messages', () => {
+    it('VALID: {click APPROVE, status: created} => sends flows approved message', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-approve-1',
+        status: 'created',
+        requirements: [RequirementStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupModify();
+      proxy.setupChat({ chatProcessId: 'proc-approve-1' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-approve-1', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      await proxy.clickApprove();
+
+      await waitFor(() => {
+        expect(screen.getByText('Flows approved. Proceed to requirements.')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Flows approved. Proceed to requirements.')).toBeInTheDocument();
+    });
+
+    it('VALID: {click APPROVE, status: flows_approved} => sends requirements approved message', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-approve-2',
+        status: 'flows_approved',
+        requirements: [RequirementStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupModify();
+      proxy.setupChat({ chatProcessId: 'proc-approve-2' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-approve-2', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      await proxy.clickApprove();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Requirements approved. Proceed to observables and contracts.'),
+        ).toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText('Requirements approved. Proceed to observables and contracts.'),
+      ).toBeInTheDocument();
+    });
+
+    it('VALID: {click APPROVE, status: requirements_approved} => sends fully approved message', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-approve-3',
+        status: 'requirements_approved',
+        requirements: [RequirementStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupModify();
+      proxy.setupChat({ chatProcessId: 'proc-approve-3' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-approve-3', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      await proxy.clickApprove();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Observables and contracts approved. Spec is fully approved.'),
+        ).toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText('Observables and contracts approved. Spec is fully approved.'),
+      ).toBeInTheDocument();
     });
   });
 

@@ -51,6 +51,7 @@ export interface QuestSpecPanelWidgetProps {
   onModify: (params: {
     modifications: Record<string, unknown>;
     action: 'submit' | 'approve';
+    nextStatus?: string;
   }) => void;
   externalUpdatePending?: boolean;
   onDismissUpdate?: () => void;
@@ -276,7 +277,11 @@ export const QuestSpecPanelWidget = ({
                 onClick={() => {
                   const nextStatus = questGateSectionsStatics.nextApprovalStatus[quest.status];
                   if (nextStatus) {
-                    onModify({ modifications: { status: nextStatus }, action: 'approve' });
+                    onModify({
+                      modifications: { status: nextStatus },
+                      action: 'approve',
+                      nextStatus,
+                    });
                   }
                 }}
               />
