@@ -3,23 +3,14 @@
  *
  * USAGE:
  * questStageMappingStatics.stages.spec;
- * // Returns ['requirements', 'designDecisions', 'contracts', 'contexts', 'observables', 'toolingRequirements']
+ * // Returns ['flows', 'designDecisions', 'contracts', 'toolingRequirements']
  */
 
 export const questStageMappingStatics = {
   stages: {
-    spec: [
-      'requirements',
-      'designDecisions',
-      'contracts',
-      'contexts',
-      'observables',
-      'toolingRequirements',
-      'flows',
-    ],
-    'spec-decisions': ['requirements', 'designDecisions', 'contracts', 'toolingRequirements'],
-    'spec-bdd': ['contexts', 'observables', 'contracts'],
-    'spec-flows': ['requirements', 'designDecisions', 'flows', 'contracts'],
-    implementation: ['steps', 'contracts'],
+    spec: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
+    'spec-flows': ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
+    'spec-obs': ['flows', 'contracts', 'toolingRequirements'],
+    implementation: ['steps', 'contracts', 'toolingRequirements'],
   },
 } as const;

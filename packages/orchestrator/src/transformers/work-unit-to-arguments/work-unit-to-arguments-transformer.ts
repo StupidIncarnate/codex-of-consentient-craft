@@ -18,7 +18,7 @@ export const workUnitToArgumentsTransformer = ({
 }): ContentText => {
   switch (workUnit.role) {
     case 'codeweaver': {
-      const { step, questId, relatedContracts, relatedObservables, relatedRequirements } = workUnit;
+      const { step, questId, relatedContracts, relatedObservables } = workUnit;
       const parts: ContentText[] = [
         contentTextContract.parse(`Step: ${step.name}`),
         contentTextContract.parse(`Description: ${step.description}`),
@@ -57,37 +57,12 @@ export const workUnitToArgumentsTransformer = ({
       if (relatedObservables.length > 0) {
         parts.push(contentTextContract.parse('Related Observables:'));
         for (const observable of relatedObservables) {
-          parts.push(contentTextContract.parse(`  - Trigger: ${observable.trigger}`));
-          if (observable.verification.length > 0) {
-            parts.push(contentTextContract.parse('    Verification:'));
-            for (const verificationStep of observable.verification) {
-              const targetSuffix =
-                verificationStep.target === undefined ? '' : ` ${verificationStep.target}`;
-              const valueSuffix =
-                verificationStep.value === undefined ? '' : ` = ${verificationStep.value}`;
-              const conditionSuffix =
-                verificationStep.condition === undefined ? '' : ` [${verificationStep.condition}]`;
-              const typeSuffix =
-                verificationStep.type === undefined ? '' : ` (${verificationStep.type})`;
-              parts.push(
-                contentTextContract.parse(
-                  `      - ${verificationStep.action}${targetSuffix}${valueSuffix}${conditionSuffix}${typeSuffix}`,
-                ),
-              );
-            }
+          parts.push(contentTextContract.parse(`  GIVEN: ${observable.given}`));
+          parts.push(contentTextContract.parse(`  WHEN: ${observable.when}`));
+          parts.push(contentTextContract.parse('  THEN:'));
+          for (const outcome of observable.then) {
+            parts.push(contentTextContract.parse(`    - ${outcome.description} (${outcome.type})`));
           }
-          for (const outcome of observable.outcomes) {
-            parts.push(contentTextContract.parse(`    - ${outcome.type}: ${outcome.description}`));
-          }
-        }
-      }
-
-      if (relatedRequirements.length > 0) {
-        parts.push(contentTextContract.parse('Related Requirements:'));
-        for (const requirement of relatedRequirements) {
-          parts.push(
-            contentTextContract.parse(`  - ${requirement.name}: ${requirement.description}`),
-          );
         }
       }
 
@@ -97,45 +72,20 @@ export const workUnitToArgumentsTransformer = ({
     }
 
     case 'siegemaster': {
-      const { questId: siegeQuestId, observables, contexts } = workUnit;
+      const { questId: siegeQuestId, observables } = workUnit;
       const siegeParts: ContentText[] = [contentTextContract.parse(`Quest ID: ${siegeQuestId}`)];
 
       if (observables.length > 0) {
         siegeParts.push(contentTextContract.parse('Observables:'));
         for (const observable of observables) {
-          siegeParts.push(
-            contentTextContract.parse(`  - [${observable.contextId}] ${observable.trigger}`),
-          );
-          if (observable.verification.length > 0) {
-            siegeParts.push(contentTextContract.parse('    Verification:'));
-            for (const verificationStep of observable.verification) {
-              const targetSuffix =
-                verificationStep.target === undefined ? '' : ` ${verificationStep.target}`;
-              const valueSuffix =
-                verificationStep.value === undefined ? '' : ` = ${verificationStep.value}`;
-              const conditionSuffix =
-                verificationStep.condition === undefined ? '' : ` [${verificationStep.condition}]`;
-              const typeSuffix =
-                verificationStep.type === undefined ? '' : ` (${verificationStep.type})`;
-              siegeParts.push(
-                contentTextContract.parse(
-                  `      - ${verificationStep.action}${targetSuffix}${valueSuffix}${conditionSuffix}${typeSuffix}`,
-                ),
-              );
-            }
-          }
-          for (const outcome of observable.outcomes) {
+          siegeParts.push(contentTextContract.parse(`  GIVEN: ${observable.given}`));
+          siegeParts.push(contentTextContract.parse(`  WHEN: ${observable.when}`));
+          siegeParts.push(contentTextContract.parse('  THEN:'));
+          for (const outcome of observable.then) {
             siegeParts.push(
-              contentTextContract.parse(`    - ${outcome.type}: ${outcome.description}`),
+              contentTextContract.parse(`    - ${outcome.description} (${outcome.type})`),
             );
           }
-        }
-      }
-
-      if (contexts.length > 0) {
-        siegeParts.push(contentTextContract.parse('Contexts:'));
-        for (const context of contexts) {
-          siegeParts.push(contentTextContract.parse(`  - ${context.name}: ${context.description}`));
         }
       }
 

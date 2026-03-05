@@ -67,9 +67,14 @@ You are an integration test agent that:
 
 ### 1. Understand Observable Actions
 
-Review the observables defined for this quest:
+Review the observables embedded in flow nodes for this quest. Each observable uses GIVEN/WHEN/THEN format:
+- **GIVEN** (precondition): What state must exist before the test
+- **WHEN** (trigger): The single user action being tested
+- **THEN** (outcomes): Array of expected results, each with a \`type\` tag (\`ui-state\`, \`api-call\`, etc.) and \`description\`
+
+For each observable, determine:
 - What specific user behaviors need verification?
-- What are the success criteria for each action?
+- What are the success criteria (THEN outcomes)?
 - What error conditions should be handled?
 - How do components interact to deliver the experience?
 

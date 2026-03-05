@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Upserts data into an existing quest (contexts, observables, steps, toolingRequirements)
+ * PURPOSE: Upserts data into an existing quest (steps, toolingRequirements, contracts, flows, designDecisions)
  *
  * USAGE:
- * const result = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', contexts: [...] }) });
+ * const result = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', flows: [...] }) });
  * // Returns: { success: true } or { success: false, error: 'Quest not found' }
  *
  * UPSERT SEMANTICS:
@@ -45,31 +45,10 @@ export const questModifyBroker = async ({
     const loadedQuest = await questLoadBroker({ questFilePath });
     const quest = { ...loadedQuest };
 
-    if (validated.requirements) {
-      quest.requirements = questArrayUpsertTransformer({
-        existing: quest.requirements,
-        updates: validated.requirements,
-      });
-    }
-
     if (validated.designDecisions) {
       quest.designDecisions = questArrayUpsertTransformer({
         existing: quest.designDecisions,
         updates: validated.designDecisions,
-      });
-    }
-
-    if (validated.contexts) {
-      quest.contexts = questArrayUpsertTransformer({
-        existing: quest.contexts,
-        updates: validated.contexts,
-      });
-    }
-
-    if (validated.observables) {
-      quest.observables = questArrayUpsertTransformer({
-        existing: quest.observables,
-        updates: validated.observables,
       });
     }
 

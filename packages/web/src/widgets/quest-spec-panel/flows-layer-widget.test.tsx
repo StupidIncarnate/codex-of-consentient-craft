@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { FlowStub } from '@dungeonmaster/shared/contracts';
+import { FlowStub, FlowNodeStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { FlowsLayerWidget } from './flows-layer-widget';
@@ -45,9 +45,35 @@ describe('FlowsLayerWidget', () => {
       );
     });
 
-    it('VALID: {flows: [flow with diagram]} => renders mermaid diagram container', () => {
+    it('VALID: {flows: [flow with scope]} => renders flow scope in dim text', () => {
       FlowsLayerWidgetProxy();
-      const flow = FlowStub({ diagram: 'graph TD; A-->B' });
+      const flow = FlowStub({ scope: 'packages/web' as never });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('FLOW_SCOPE').textContent).toBe('packages/web');
+    });
+
+    it('VALID: {flows: [flow without scope]} => does not render scope element', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub();
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.queryByTestId('FLOW_SCOPE')).toBeNull();
+    });
+
+    it('VALID: {flows: [flow with nodes]} => renders mermaid diagram from flowToMermaidTransformer', () => {
+      FlowsLayerWidgetProxy();
+      const node = FlowNodeStub({ id: 'login-page', label: 'Login', type: 'state' });
+      const flow = FlowStub({
+        nodes: [node],
+        edges: [],
+      });
 
       mantineRenderAdapter({
         ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
@@ -55,6 +81,17 @@ describe('FlowsLayerWidget', () => {
 
       expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
       expect(screen.getByTestId('MERMAID_CONTAINER')).toBeInTheDocument();
+    });
+
+    it('VALID: {flows: [flow with empty nodes]} => does not render mermaid diagram', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ nodes: [], edges: [] });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeNull();
     });
 
     it('EMPTY: {flows: []} => renders section with FLOWS header', () => {

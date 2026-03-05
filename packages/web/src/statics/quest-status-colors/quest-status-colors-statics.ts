@@ -11,7 +11,6 @@ export const questStatusColorsStatics = {
     created: 'gray',
     pending: 'yellow',
     proposed: 'yellow',
-    requirements_approved: 'indigo',
     approved: 'green',
     deferred: 'gray',
     ready: 'blue',

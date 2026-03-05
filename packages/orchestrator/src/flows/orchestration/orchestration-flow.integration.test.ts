@@ -1,12 +1,12 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
+  FlowNodeStub,
+  FlowObservableStub,
   FlowStub,
   GuildNameStub,
   GuildPathStub,
-  ObservableStub,
   ProcessIdStub,
   QuestIdStub,
-  RequirementStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';
@@ -76,27 +76,19 @@ describe('OrchestrationFlow', () => {
 
       await QuestModifyResponder({
         questId,
-        input: ModifyQuestInputStub({ questId, flows: [FlowStub()] }),
+        input: ModifyQuestInputStub({
+          questId,
+          flows: [
+            FlowStub({
+              nodes: [FlowNodeStub({ observables: [FlowObservableStub()] })],
+            }),
+          ],
+        }),
       });
 
       await QuestModifyResponder({
         questId,
         input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, requirements: [RequirementStub()] }),
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'requirements_approved' }),
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, observables: [ObservableStub()] }),
       });
 
       await QuestModifyResponder({

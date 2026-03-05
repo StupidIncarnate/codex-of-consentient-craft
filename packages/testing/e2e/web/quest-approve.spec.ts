@@ -37,10 +37,7 @@ const createQuestFile = ({
     status,
     createdAt: new Date().toISOString(),
     questCreatedSessionBy: sessionId,
-    requirements: [],
     designDecisions: [],
-    contexts: [],
-    observables: [],
     steps: [],
     toolingRequirements: [],
     contracts: [],
@@ -48,10 +45,13 @@ const createQuestFile = ({
       {
         id: crypto.randomUUID(),
         name: 'Test Flow',
-        diagram: 'graph TD\n  A-->B',
         entryPoint: 'A',
         exitPoints: ['B'],
-        requirementIds: [],
+        nodes: [
+          { id: 'A', label: 'Start', type: 'state', observables: [] },
+          { id: 'B', label: 'End', type: 'terminal', observables: [] },
+        ],
+        edges: [{ from: 'A', to: 'B' }],
       },
     ],
   };

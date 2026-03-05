@@ -20,7 +20,7 @@ const PANEL_TIMEOUT = 10_000;
 const CHAT_TIMEOUT = 15_000;
 
 /**
- * Writes a quest.json with NO content (empty requirements/flows/observables)
+ * Writes a quest.json with NO content (empty flows/designDecisions)
  * so the spec panel shows "Awaiting quest activity..." even though the quest exists.
  */
 const createEmptyQuestFile = ({
@@ -44,10 +44,7 @@ const createEmptyQuestFile = ({
     status: 'created',
     createdAt: new Date().toISOString(),
     questCreatedSessionBy: sessionId,
-    requirements: [],
     designDecisions: [],
-    contexts: [],
-    observables: [],
     steps: [],
     toolingRequirements: [],
     contracts: [],
@@ -95,27 +92,27 @@ test.describe('Quest WS Update', () => {
     // Quest exists but has no content — spec panel shows immediately with empty quest data
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // PATCH the quest to add a requirement — this triggers quest-modified WS broadcast
-    const requirementId = crypto.randomUUID();
+    // PATCH the quest to add a flow — this triggers quest-modified WS broadcast
     await request.patch(`/api/quests/${questId}`, {
       data: {
-        requirements: [
+        flows: [
           {
-            id: requirementId,
-            name: 'WS Live Requirement',
-            description: 'Requirement added after page load to test WS update',
-            scope: 'packages/web',
-            status: 'approved',
+            id: crypto.randomUUID(),
+            name: 'WS Live Flow',
+            entryPoint: 'Start',
+            exitPoints: ['End'],
+            nodes: [],
+            edges: [],
           },
         ],
       },
     });
 
-    // Requirement text should appear via WS without page refresh
+    // Flow should appear via WS without page refresh
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 
-  test('spec panel updates with new requirements added via WS after initial render', async ({
+  test('spec panel updates with new flows added via WS after initial render', async ({
     page,
     request,
   }) => {
@@ -129,14 +126,13 @@ test.describe('Quest WS Update', () => {
       userMessage: 'Build the feature',
     });
 
-    // Create quest with one requirement so the spec panel renders immediately
+    // Create quest with one flow so the spec panel renders immediately
     const questId = crypto.randomUUID();
     const homeDir = os.homedir();
     const questFolder = '001-e2e-ws-incremental';
     const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
     mkdirSync(questDir, { recursive: true });
 
-    const initialRequirementId = crypto.randomUUID();
     const quest = {
       id: questId,
       folder: questFolder,
@@ -144,22 +140,20 @@ test.describe('Quest WS Update', () => {
       status: 'approved',
       createdAt: new Date().toISOString(),
       questCreatedSessionBy: sessionId,
-      requirements: [
-        {
-          id: initialRequirementId,
-          name: 'Initial Requirement',
-          description: 'Present before page load',
-          scope: 'packages/web',
-          status: 'approved',
-        },
-      ],
       designDecisions: [],
-      contexts: [],
-      observables: [],
       steps: [],
       toolingRequirements: [],
       contracts: [],
-      flows: [],
+      flows: [
+        {
+          id: crypto.randomUUID(),
+          name: 'Initial Flow',
+          entryPoint: 'Start',
+          exitPoints: ['End'],
+          nodes: [],
+          edges: [],
+        },
+      ],
     };
     writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
 
@@ -172,28 +166,28 @@ test.describe('Quest WS Update', () => {
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
 
-    // Spec panel should be visible with the initial requirement
+    // Spec panel should be visible with the initial flow
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByText('Initial Requirement')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByText('Initial Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // PATCH the quest to add a second requirement via WS broadcast
-    const secondRequirementId = crypto.randomUUID();
+    // PATCH the quest to add a second flow via WS broadcast
     await request.patch(`/api/quests/${questId}`, {
       data: {
-        requirements: [
+        flows: [
           {
-            id: secondRequirementId,
-            name: 'Live WS Requirement',
-            description: 'Added after page load via PATCH',
-            scope: 'packages/web',
-            status: 'approved',
+            id: crypto.randomUUID(),
+            name: 'Live WS Flow',
+            entryPoint: 'Begin',
+            exitPoints: ['Finish'],
+            nodes: [],
+            edges: [],
           },
         ],
       },
     });
 
-    // The new requirement should appear via WS update without page refresh
-    await expect(page.getByText('Live WS Requirement')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    // The new flow should appear via WS update without page refresh
+    await expect(page.getByText('Live WS Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 
   test('spec panel appears when quest is linked mid-chat via quest-session-linked WS event', async ({
@@ -224,7 +218,7 @@ test.describe('Quest WS Update', () => {
     });
 
     // Send a message — this triggers the /api/sessions/new endpoint which:
-    // 1. Creates a quest via questAddBroker (empty, no requirements)
+    // 1. Creates a quest via questAddBroker (empty, no flows)
     // 2. Emits quest-session-linked WS event with chatProcessId
     // 3. Spawns fake CLI
     // 4. Returns { chatProcessId } in HTTP response
@@ -238,28 +232,27 @@ test.describe('Quest WS Update', () => {
     });
 
     // The server created a quest during the chat flow. Find it via the API
-    // so we can PATCH it with requirements.
+    // so we can PATCH it with flows.
     const guildId = String(guild.id);
     const questsResponse = await request.get(`/api/quests?guildId=${guildId}`);
     const quests = await questsResponse.json();
     const createdQuest = quests[0];
     const questId = String(createdQuest.id);
 
-    // PATCH the quest to add a requirement and advance status — this triggers quest-modified WS broadcast.
-    // Status must be at least 'flows_approved' for the requirements section to be visible.
+    // PATCH the quest to add a flow and advance status — this triggers quest-modified WS broadcast.
     // If quest-session-linked was handled correctly, the client knows the questId and
     // useQuestEventsBinding is subscribed to updates for it.
-    const requirementId = crypto.randomUUID();
     await request.patch(`/api/quests/${questId}`, {
       data: {
         status: 'flows_approved',
-        requirements: [
+        flows: [
           {
-            id: requirementId,
-            name: 'Race Condition Requirement',
-            description: 'Added after chat to verify quest-session-linked was buffered',
-            scope: 'packages/web',
-            status: 'approved',
+            id: crypto.randomUUID(),
+            name: 'Race Condition Flow',
+            entryPoint: 'Start',
+            exitPoints: ['End'],
+            nodes: [],
+            edges: [],
           },
         ],
       },
@@ -271,7 +264,7 @@ test.describe('Quest WS Update', () => {
     // useQuestEventsBinding ignores quest-modified, spec panel stays stuck on "Awaiting..."
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
     await expect(page.getByText('Awaiting quest activity...')).not.toBeVisible();
-    await expect(page.getByText('Race Condition Requirement')).toBeVisible({
+    await expect(page.getByText('Race Condition Flow')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
   });

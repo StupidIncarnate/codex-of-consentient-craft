@@ -11,9 +11,6 @@ import { z } from 'zod';
 export const gateSectionKeyContract = z.enum([
   'flows',
   'designDecisions',
-  'requirements',
-  'contexts',
-  'observables',
   'contracts',
   'toolingRequirements',
 ]);

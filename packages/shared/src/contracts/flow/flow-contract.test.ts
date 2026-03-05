@@ -1,3 +1,5 @@
+import { FlowEdgeStub } from '../flow-edge/flow-edge.stub';
+import { FlowNodeStub } from '../flow-node/flow-node.stub';
 import { flowContract } from './flow-contract';
 import { FlowStub } from './flow.stub';
 
@@ -9,25 +11,31 @@ describe('flowContract', () => {
       expect(flow).toStrictEqual({
         id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Login Flow',
-        requirementIds: [],
-        diagram: 'graph TD; A[Start] --> B[Login Page] --> C[Dashboard]',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
+        nodes: [],
+        edges: [],
       });
     });
 
-    it('VALID: {with requirementIds} => parses with requirement references', () => {
-      const flow = FlowStub({
-        requirementIds: [
-          'b12ac10b-58cc-4372-a567-0e02b2c3d479',
-          'a11ac10b-58cc-4372-a567-0e02b2c3d479',
-        ],
-      });
+    it('VALID: {with scope} => parses with scope', () => {
+      const flow = FlowStub({ scope: 'Authentication module' });
 
-      expect(flow.requirementIds).toStrictEqual([
-        'b12ac10b-58cc-4372-a567-0e02b2c3d479',
-        'a11ac10b-58cc-4372-a567-0e02b2c3d479',
-      ]);
+      expect(flow.scope).toBe('Authentication module');
+    });
+
+    it('VALID: {with nodes} => parses with nodes array', () => {
+      const node = FlowNodeStub();
+      const flow = FlowStub({ nodes: [node] });
+
+      expect(flow.nodes).toStrictEqual([node]);
+    });
+
+    it('VALID: {with edges} => parses with edges array', () => {
+      const edge = FlowEdgeStub();
+      const flow = FlowStub({ edges: [edge] });
+
+      expect(flow.edges).toStrictEqual([edge]);
     });
 
     it('VALID: {multiple exitPoints} => parses with multiple exits', () => {
@@ -38,16 +46,22 @@ describe('flowContract', () => {
       expect(flow.exitPoints).toStrictEqual(['/dashboard', '/error', '/logout']);
     });
 
-    it('VALID: {without requirementIds field} => backward compat defaults to empty array', () => {
+    it('VALID: {without nodes field} => backward compat defaults to empty array', () => {
       const result = flowContract.parse({
         id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Login Flow',
-        diagram: 'graph TD; A-->B',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
       });
 
-      expect(result.requirementIds).toStrictEqual([]);
+      expect(result).toStrictEqual({
+        id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'Login Flow',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
+        nodes: [],
+        edges: [],
+      });
     });
   });
 
@@ -57,7 +71,6 @@ describe('flowContract', () => {
         flowContract.parse({
           id: 'bad',
           name: 'Login Flow',
-          diagram: 'graph TD; A-->B',
           entryPoint: '/login',
           exitPoints: ['/dashboard'],
         });
@@ -69,19 +82,6 @@ describe('flowContract', () => {
         flowContract.parse({
           id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
           name: '',
-          diagram: 'graph TD; A-->B',
-          entryPoint: '/login',
-          exitPoints: ['/dashboard'],
-        });
-      }).toThrow(/String must contain at least 1 character/u);
-    });
-
-    it('INVALID_DIAGRAM: {diagram: ""} => throws validation error', () => {
-      expect(() => {
-        flowContract.parse({
-          id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
-          name: 'Login Flow',
-          diagram: '',
           entryPoint: '/login',
           exitPoints: ['/dashboard'],
         });
@@ -93,24 +93,10 @@ describe('flowContract', () => {
         flowContract.parse({
           id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
           name: 'Login Flow',
-          diagram: 'graph TD; A-->B',
           entryPoint: '',
           exitPoints: ['/dashboard'],
         });
       }).toThrow(/String must contain at least 1 character/u);
-    });
-
-    it('INVALID_REQUIREMENT_IDS: {requirementIds: ["bad"]} => throws validation error', () => {
-      expect(() => {
-        flowContract.parse({
-          id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
-          name: 'Login Flow',
-          requirementIds: ['bad'],
-          diagram: 'graph TD; A-->B',
-          entryPoint: '/login',
-          exitPoints: ['/dashboard'],
-        });
-      }).toThrow(/Invalid uuid/u);
     });
 
     it('INVALID: {missing required fields} => throws validation error', () => {

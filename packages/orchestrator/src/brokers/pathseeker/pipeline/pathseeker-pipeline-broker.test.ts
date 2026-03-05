@@ -15,33 +15,6 @@ describe('pathseekerPipelineBroker', () => {
 
       const quest = QuestStub({
         id: questId,
-        requirements: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Auth',
-            description: 'User auth',
-            scope: 'packages/api',
-            status: 'approved',
-          },
-        ],
-        contexts: [
-          {
-            id: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'LoginPage',
-            description: 'Login page',
-            locator: { page: '/login', section: 'main' },
-          },
-        ],
-        observables: [
-          {
-            id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-            contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            requirementId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            trigger: 'User submits login form',
-            dependsOn: [],
-            outcomes: [],
-          },
-        ],
         steps: [
           {
             id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -62,10 +35,24 @@ describe('pathseekerPipelineBroker', () => {
           {
             id: 'd47ac10b-58cc-4372-a567-0e02b2c3d479',
             name: 'Login Flow',
-            requirementIds: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
-            diagram: 'graph TD; A[Start] --> B[Login] --> C[Dashboard]',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
+            nodes: [
+              {
+                id: 'login-page',
+                label: 'Login Page',
+                type: 'state',
+                observables: [
+                  {
+                    id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
+                    given: 'user is on the login page',
+                    when: 'user submits login form',
+                    then: [{ type: 'ui-state', description: 'redirects to dashboard' }],
+                  },
+                ],
+              },
+            ],
+            edges: [],
           },
         ],
       });

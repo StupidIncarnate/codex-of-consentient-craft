@@ -5,19 +5,20 @@ describe('designDecisionContract', () => {
   it('VALID: {all fields} => parses successfully', () => {
     const decision = DesignDecisionStub();
 
-    expect(decision.id).toBe('c23bc10b-58cc-4372-a567-0e02b2c3d479');
-    expect(decision.title).toBe('Use JWT for authentication tokens');
-    expect(decision.rationale).toBe('JWT allows stateless auth with built-in expiration');
-    expect(decision.relatedRequirements).toStrictEqual([]);
+    expect(decision).toStrictEqual({
+      id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+      title: 'Use JWT for authentication tokens',
+      rationale: 'JWT allows stateless auth with built-in expiration',
+      relatedNodeIds: [],
+    });
   });
 
-  it('VALID: {with relatedRequirements} => parses with requirement IDs', () => {
+  it('VALID: {with relatedNodeIds} => parses with flow node IDs', () => {
     const decision = DesignDecisionStub({
-      relatedRequirements: ['b12ac10b-58cc-4372-a567-0e02b2c3d479'],
+      relatedNodeIds: ['login-page', 'auth-check'],
     });
 
-    expect(decision.relatedRequirements).toHaveLength(1);
-    expect(decision.relatedRequirements[0]).toBe('b12ac10b-58cc-4372-a567-0e02b2c3d479');
+    expect(decision.relatedNodeIds).toStrictEqual(['login-page', 'auth-check']);
   });
 
   it('INVALID_TITLE: {title: ""} => throws validation error', () => {
@@ -26,7 +27,7 @@ describe('designDecisionContract', () => {
         id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
         title: '',
         rationale: 'reason',
-        relatedRequirements: [],
+        relatedNodeIds: [],
       });
     }).toThrow(/too_small/u);
   });
@@ -37,19 +38,19 @@ describe('designDecisionContract', () => {
         id: 'not-uuid',
         title: 'Title',
         rationale: 'reason',
-        relatedRequirements: [],
+        relatedNodeIds: [],
       });
     }).toThrow(/Invalid uuid/u);
   });
 
-  it('INVALID_RELATED: {relatedRequirements: ["not-uuid"]} => throws validation error', () => {
+  it('INVALID_RELATED: {relatedNodeIds: ["Bad-Id"]} => throws validation error', () => {
     expect(() => {
       return designDecisionContract.parse({
         id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
         title: 'Title',
         rationale: 'reason',
-        relatedRequirements: ['not-uuid'],
+        relatedNodeIds: ['Bad-Id'],
       });
-    }).toThrow(/Invalid uuid/u);
+    }).toThrow(/invalid_string/u);
   });
 });

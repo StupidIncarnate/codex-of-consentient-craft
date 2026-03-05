@@ -39,22 +39,20 @@ const createQuestFile = ({
     status: 'approved',
     createdAt: new Date().toISOString(),
     questCreatedSessionBy: sessionId,
-    requirements: [
-      {
-        id: crypto.randomUUID(),
-        name: 'Test Requirement',
-        description: 'A requirement for e2e testing',
-        scope: 'packages/web',
-        status: 'approved',
-      },
-    ],
     designDecisions: [],
-    contexts: [],
-    observables: [],
     steps: [],
     toolingRequirements: [],
     contracts: [],
-    flows: [],
+    flows: [
+      {
+        id: crypto.randomUUID(),
+        name: 'Test Flow',
+        entryPoint: 'Start',
+        exitPoints: ['End'],
+        nodes: [],
+        edges: [],
+      },
+    ],
   };
 
   writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));

@@ -23,18 +23,9 @@ describe('isGateSectionVisibleGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {status: created, section: requirements} => returns false', () => {
+    it('VALID: {status: created, section: contracts} => returns false', () => {
       const status = QuestStatusStub({ value: 'created' });
-      const section = GateSectionKeyStub({ value: 'requirements' });
-
-      const result = isGateSectionVisibleGuard({ status, section });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {status: created, section: observables} => returns false', () => {
-      const status = QuestStatusStub({ value: 'created' });
-      const section = GateSectionKeyStub({ value: 'observables' });
+      const section = GateSectionKeyStub({ value: 'contracts' });
 
       const result = isGateSectionVisibleGuard({ status, section });
 
@@ -63,9 +54,9 @@ describe('isGateSectionVisibleGuard', () => {
   });
 
   describe('flows_approved status', () => {
-    it('VALID: {status: flows_approved, section: requirements} => returns true', () => {
+    it('VALID: {status: flows_approved, section: contracts} => returns true', () => {
       const status = QuestStatusStub({ value: 'flows_approved' });
-      const section = GateSectionKeyStub({ value: 'requirements' });
+      const section = GateSectionKeyStub({ value: 'contracts' });
 
       const result = isGateSectionVisibleGuard({ status, section });
 
@@ -81,46 +72,8 @@ describe('isGateSectionVisibleGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {status: flows_approved, section: observables} => returns false', () => {
+    it('VALID: {status: flows_approved, section: toolingRequirements} => returns true', () => {
       const status = QuestStatusStub({ value: 'flows_approved' });
-      const section = GateSectionKeyStub({ value: 'observables' });
-
-      const result = isGateSectionVisibleGuard({ status, section });
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('requirements_approved status', () => {
-    it('VALID: {status: requirements_approved, section: contexts} => returns true', () => {
-      const status = QuestStatusStub({ value: 'requirements_approved' });
-      const section = GateSectionKeyStub({ value: 'contexts' });
-
-      const result = isGateSectionVisibleGuard({ status, section });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {status: requirements_approved, section: observables} => returns true', () => {
-      const status = QuestStatusStub({ value: 'requirements_approved' });
-      const section = GateSectionKeyStub({ value: 'observables' });
-
-      const result = isGateSectionVisibleGuard({ status, section });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {status: requirements_approved, section: contracts} => returns true', () => {
-      const status = QuestStatusStub({ value: 'requirements_approved' });
-      const section = GateSectionKeyStub({ value: 'contracts' });
-
-      const result = isGateSectionVisibleGuard({ status, section });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {status: requirements_approved, section: toolingRequirements} => returns true', () => {
-      const status = QuestStatusStub({ value: 'requirements_approved' });
       const section = GateSectionKeyStub({ value: 'toolingRequirements' });
 
       const result = isGateSectionVisibleGuard({ status, section });
@@ -139,9 +92,9 @@ describe('isGateSectionVisibleGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {status: in_progress, section: observables} => returns true', () => {
+    it('VALID: {status: in_progress, section: contracts} => returns true', () => {
       const status = QuestStatusStub({ value: 'in_progress' });
-      const section = GateSectionKeyStub({ value: 'observables' });
+      const section = GateSectionKeyStub({ value: 'contracts' });
 
       const result = isGateSectionVisibleGuard({ status, section });
 

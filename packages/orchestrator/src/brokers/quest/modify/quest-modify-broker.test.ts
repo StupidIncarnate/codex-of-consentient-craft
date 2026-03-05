@@ -1,8 +1,8 @@
 import {
+  FlowNodeStub,
+  FlowObservableStub,
   FlowStub,
-  ObservableStub,
   QuestStub,
-  RequirementStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
@@ -11,63 +11,6 @@ import { questModifyBrokerProxy } from './quest-modify-broker.proxy';
 
 describe('questModifyBroker', () => {
   describe('successful modification', () => {
-    it('VALID: {questId, contexts: [new]} => adds new context', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', contexts: [] });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        contexts: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Admin Page',
-            description: 'User admin section',
-            locator: { page: '/admin' },
-          },
-        ],
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-    });
-
-    it('VALID: {questId, contexts: [existing]} => updates existing context', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        contexts: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Old Name',
-            description: 'Old description',
-            locator: { page: '/old' },
-          },
-        ],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        contexts: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'New Name',
-            description: 'New description',
-            locator: { page: '/new' },
-          },
-        ],
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-    });
-
     it('VALID: {questId, steps: [new]} => adds new step', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', steps: [] });
@@ -86,30 +29,6 @@ describe('questModifyBroker', () => {
             filesToCreate: [],
             filesToModify: [],
             status: 'pending',
-          },
-        ],
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-    });
-
-    it('VALID: {questId, requirements: [new]} => adds new requirement', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', requirements: [] });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        requirements: [
-          {
-            id: 'b12ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'CLI Interactive Mode',
-            description: 'Support interactive CLI prompts',
-            scope: 'packages/cli',
-            status: 'proposed',
           },
         ],
       });
@@ -162,7 +81,7 @@ describe('questModifyBroker', () => {
             id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
             title: 'Use JWT for auth',
             rationale: 'Stateless authentication',
-            relatedRequirements: [],
+            relatedNodeIds: [],
           },
         ],
       });
@@ -210,20 +129,24 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
-    it('VALID: {questId, status: "requirements_approved"} with quest at "flows_approved" => sets status on quest', async () => {
+    it('VALID: {questId, status: "approved"} with quest at "flows_approved" with observables in flow nodes => sets status on quest', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'flows_approved',
-        requirements: [RequirementStub()],
+        flows: [
+          FlowStub({
+            nodes: [FlowNodeStub({ observables: [FlowObservableStub()] })],
+          }),
+        ],
       });
 
       proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        status: 'requirements_approved',
+        status: 'approved',
       });
 
       const result = await questModifyBroker({ input });
@@ -236,14 +159,6 @@ describe('questModifyBroker', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        contexts: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Existing',
-            description: 'Existing context',
-            locator: { page: '/existing' },
-          },
-        ],
       });
 
       proxy.setupQuestFound({ quest });
@@ -284,23 +199,6 @@ describe('questModifyBroker', () => {
   });
 
   describe('invalid status transitions', () => {
-    it('ERROR: {status: "requirements_approved"} with quest at "created" => returns invalid transition error', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', status: 'created' });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        status: 'requirements_approved',
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/Invalid status transition/u);
-    });
-
     it('ERROR: {status: "approved"} with quest at "created" => returns invalid transition error', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', status: 'created' });
@@ -310,6 +208,23 @@ describe('questModifyBroker', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
         status: 'approved',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/Invalid status transition/u);
+    });
+
+    it('ERROR: {status: "in_progress"} with quest at "created" => returns invalid transition error', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', status: 'created' });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'in_progress',
       });
 
       const result = await questModifyBroker({ input });
@@ -342,37 +257,13 @@ describe('questModifyBroker', () => {
       expect(result.error).toMatch(/Missing required content for transition to flows_approved/u);
     });
 
-    it('ERROR: {status: "requirements_approved"} with empty requirements => returns missing content error', async () => {
+    it('ERROR: {status: "approved"} with empty flows => returns missing content error', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'flows_approved',
-        requirements: [],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        status: 'requirements_approved',
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(
-        /Missing required content for transition to requirements_approved/u,
-      );
-    });
-
-    it('ERROR: {status: "approved"} with empty observables => returns missing content error', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'requirements_approved',
-        observables: [],
+        flows: [],
       });
 
       proxy.setupQuestFound({ quest });
@@ -386,27 +277,6 @@ describe('questModifyBroker', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toMatch(/Missing required content for transition to approved/u);
-    });
-
-    it('VALID: {status: "approved"} with non-empty observables => succeeds', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'requirements_approved',
-        observables: [ObservableStub()],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        status: 'approved',
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
     });
   });
 });

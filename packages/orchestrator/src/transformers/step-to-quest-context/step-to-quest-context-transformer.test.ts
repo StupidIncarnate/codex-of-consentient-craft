@@ -1,9 +1,10 @@
 import {
   DependencyStepStub,
-  ObservableStub,
+  FlowStub,
+  FlowNodeStub,
+  FlowObservableStub,
   QuestContractEntryStub,
   QuestStub,
-  RequirementStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { stepToQuestContextTransformer } from './step-to-quest-context-transformer';
@@ -24,8 +25,7 @@ describe('stepToQuestContextTransformer', () => {
             name: 'UserProfile',
           }),
         ],
-        observables: [],
-        requirements: [],
+        flows: [],
       });
 
       const result = stepToQuestContextTransformer({ step, quest });
@@ -33,7 +33,6 @@ describe('stepToQuestContextTransformer', () => {
       expect(result).toStrictEqual({
         relatedContracts: [contract],
         relatedObservables: [],
-        relatedRequirements: [],
       });
     });
 
@@ -45,8 +44,7 @@ describe('stepToQuestContextTransformer', () => {
       });
       const quest = QuestStub({
         contracts: [contract],
-        observables: [],
-        requirements: [],
+        flows: [],
       });
 
       const result = stepToQuestContextTransformer({ step, quest });
@@ -54,7 +52,6 @@ describe('stepToQuestContextTransformer', () => {
       expect(result).toStrictEqual({
         relatedContracts: [contract],
         relatedObservables: [],
-        relatedRequirements: [],
       });
     });
 
@@ -73,8 +70,7 @@ describe('stepToQuestContextTransformer', () => {
       });
       const quest = QuestStub({
         contracts: [inputContract, outputContract],
-        observables: [],
-        requirements: [],
+        flows: [],
       });
 
       const result = stepToQuestContextTransformer({ step, quest });
@@ -82,49 +78,28 @@ describe('stepToQuestContextTransformer', () => {
       expect(result).toStrictEqual({
         relatedContracts: [inputContract, outputContract],
         relatedObservables: [],
-        relatedRequirements: [],
       });
     });
   });
 
   describe('observable matching', () => {
-    it('VALID: {step with observablesSatisfied matching quest observables} => returns matched observables', () => {
-      const observable = ObservableStub({ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+    it('VALID: {step with observablesSatisfied matching flow node observables} => returns matched observables', () => {
+      const observable = FlowObservableStub({ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+      const otherObservable = FlowObservableStub({ id: 'b1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({
         observablesSatisfied: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'],
       });
       const quest = QuestStub({
         contracts: [],
-        observables: [observable, ObservableStub({ id: 'b1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' })],
-        requirements: [],
-      });
-
-      const result = stepToQuestContextTransformer({ step, quest });
-
-      expect(result).toStrictEqual({
-        relatedContracts: [],
-        relatedObservables: [observable],
-        relatedRequirements: [],
-      });
-    });
-  });
-
-  describe('requirement matching via observables', () => {
-    it('VALID: {observable with requirementId} => returns matched requirements', () => {
-      const requirement = RequirementStub({ id: 'b12ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const observable = ObservableStub({
-        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-        requirementId: 'b12ac10b-58cc-4372-a567-0e02b2c3d479',
-      });
-      const step = DependencyStepStub({
-        observablesSatisfied: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'],
-      });
-      const quest = QuestStub({
-        contracts: [],
-        observables: [observable],
-        requirements: [
-          requirement,
-          RequirementStub({ id: 'c12ac10b-58cc-4372-a567-0e02b2c3d479', name: 'Other' }),
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                observables: [observable, otherObservable],
+              }),
+            ],
+          }),
         ],
       });
 
@@ -133,29 +108,37 @@ describe('stepToQuestContextTransformer', () => {
       expect(result).toStrictEqual({
         relatedContracts: [],
         relatedObservables: [observable],
-        relatedRequirements: [requirement],
       });
     });
 
-    it('VALID: {observable without requirementId} => returns no requirements', () => {
-      const observable = ObservableStub({
-        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-      });
+    it('VALID: {observables spread across multiple flows and nodes} => returns matched from all', () => {
+      const obs1 = FlowObservableStub({ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+      const obs2 = FlowObservableStub({ id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e' });
       const step = DependencyStepStub({
-        observablesSatisfied: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'],
+        observablesSatisfied: [
+          'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+          'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
+        ],
       });
       const quest = QuestStub({
         contracts: [],
-        observables: [observable],
-        requirements: [RequirementStub()],
+        flows: [
+          FlowStub({
+            id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+            nodes: [FlowNodeStub({ id: 'login-page', observables: [obs1] })],
+          }),
+          FlowStub({
+            id: 'd23bd10b-58cc-4372-a567-0e02b2c3d479',
+            nodes: [FlowNodeStub({ id: 'dashboard', observables: [obs2] })],
+          }),
+        ],
       });
 
       const result = stepToQuestContextTransformer({ step, quest });
 
       expect(result).toStrictEqual({
         relatedContracts: [],
-        relatedObservables: [observable],
-        relatedRequirements: [],
+        relatedObservables: [obs1, obs2],
       });
     });
   });
@@ -169,8 +152,16 @@ describe('stepToQuestContextTransformer', () => {
       });
       const quest = QuestStub({
         contracts: [QuestContractEntryStub()],
-        observables: [ObservableStub()],
-        requirements: [RequirementStub()],
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                observables: [FlowObservableStub()],
+              }),
+            ],
+          }),
+        ],
       });
 
       const result = stepToQuestContextTransformer({ step, quest });
@@ -178,11 +169,10 @@ describe('stepToQuestContextTransformer', () => {
       expect(result).toStrictEqual({
         relatedContracts: [],
         relatedObservables: [],
-        relatedRequirements: [],
       });
     });
 
-    it('EMPTY: {quest with empty arrays} => returns all empty arrays', () => {
+    it('EMPTY: {quest with empty flows} => returns all empty arrays', () => {
       const step = DependencyStepStub({
         inputContracts: ['LoginCredentials'],
         outputContracts: ['AuthToken'],
@@ -190,8 +180,7 @@ describe('stepToQuestContextTransformer', () => {
       });
       const quest = QuestStub({
         contracts: [],
-        observables: [],
-        requirements: [],
+        flows: [],
       });
 
       const result = stepToQuestContextTransformer({ step, quest });
@@ -199,7 +188,6 @@ describe('stepToQuestContextTransformer', () => {
       expect(result).toStrictEqual({
         relatedContracts: [],
         relatedObservables: [],
-        relatedRequirements: [],
       });
     });
   });

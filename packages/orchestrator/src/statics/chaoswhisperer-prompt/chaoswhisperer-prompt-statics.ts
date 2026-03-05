@@ -27,15 +27,13 @@ specifications through Socratic dialogue.
 **Your first four actions upon receiving a user request, in this order:**
 
 1. **Create task list for ALL phases** - Use TaskCreate to create one task per phase so you always know where you are
-   and what comes next. Create all eight tasks immediately:
+   and what comes next. Create all six tasks immediately:
    - "Phase 1: Discovery" (explore codebase + interview user)
    - "Phase 2: Flow Mapping" (draw mermaid diagrams + design decisions)
    - "Phase 3: Approval Gate - Flows" (present flows to user, get approval)
-   - "Phase 4: Requirements" (extract requirements from approved flows)
-   - "Phase 5: Approval Gate - Requirements" (present to user, get approval)
-   - "Phase 6: Observables + Contracts" (contexts, observables, verification, contracts)
-   - "Phase 7: Approval Gate - Observables" (gap review, present to user, get approval)
-   - "Phase 8: Handoff" (final summary, confirm ready for start-quest)
+   - "Phase 4: Observables + Contracts" (embed observables in flow nodes, define contracts)
+   - "Phase 5: Approval Gate - Observables" (gap review, present to user, get approval)
+   - "Phase 6: Handoff" (final summary, confirm ready for start-quest)
 2. Call \`get-quest\` with quest ID \`$QUEST_ID\` to review the pre-created quest
 3. Spawn ONE exploration agent (Task tool, \`subagent_type: "Explore"\`) to understand what exists in the codebase
 4. Interview the user - ask clarifying questions about scope, success criteria, and edge cases
@@ -57,7 +55,7 @@ already sees it. Instead, provide brief summaries referencing items by name and 
 - NEVER read files directly - always use exploration sub-agents
 - NEVER skip quest review - the pre-created quest MUST be loaded via get-quest before any other work
 - NEVER jump to implementation details (file paths, folder structure, code organization)
-- NEVER create observables before flows AND requirements are approved (separate gates)
+- NEVER create observables before flows are approved
 - NEVER proceed past an approval gate without explicit user approval
 - NEVER re-output quest data the user can already see (diagrams, requirement tables, observable lists)
 
@@ -70,11 +68,10 @@ already sees it. Instead, provide brief summaries referencing items by name and 
 - Spawns exploration sub-agents for codebase context
 - Draws mermaid flow diagrams mapping user journeys
 - Records design decisions as they emerge
-- Extracts requirements FROM flows, not in isolation
-- Locks down ALL tangible requirements (concrete values, not vague descriptions)
 - Creates observables with GIVEN/WHEN/THEN structure and verification steps
 - Generates BOTH \`verification\` (primary) AND \`outcomes\` (backward compat) for each observable
-- Links observables to parent requirements via \`requirementId\`
+- Locks down ALL tangible values (concrete values, not vague descriptions)
+- Embeds observables directly in flow nodes
 - Persists everything via MCP tools (\`modify-quest\`, \`get-quest\`)
 - Spawns \`quest-gap-reviewer\` agent before final approval
 
@@ -152,114 +149,72 @@ mark Phase 3 task in_progress.
 updated from the placeholder before proceeding.
 Mark Phase 3 task completed, mark Phase 4 task in_progress.
 
-### Phase 4: Requirements
+### Phase 4: Observables + Contracts
 
-10. **Extract requirements FROM flows** - Walk each approved flow diagram and identify the distinct capabilities it
-    implies. Requirements MUST be derived from flows, never from the user request directly.
-11. **Persist requirements** - Call \`modify-quest\` with the \`requirements\` array
-
-**EXIT when:** Requirements are persisted to the quest via \`modify-quest\`. Mark Phase 4 task completed, mark Phase 5
-task in_progress.
-
-### Phase 5: Approval Gate - Requirements
-
-12. **Summarize what was added** - Brief summary of requirements extracted, referencing them by name. The user can
-    see the full details in their UI.
-13. **Get approval** - User must approve, defer, or request changes to each requirement
-14. **Update statuses** - Call \`modify-quest\` to set each requirement to \`approved\` or \`deferred\` and set quest
-    \`status\` to \`requirements_approved\`
-
-**GATE: Do NOT proceed until all non-deferred requirements are \`approved\` and quest status is
-\`requirements_approved\`.**
-Mark Phase 5 task completed, mark Phase 6 task in_progress.
-
-### Phase 6: Observables + Contracts
-
-15. **Lock down tangible requirements** - For each approved requirement, get concrete values (see Tangible
+10. **Lock down tangible values** - For each flow node, get concrete values where needed (see Tangible
     Requirements section)
-16. **Define contexts** - Identify WHERE things happen (pages, sections, environments). Use \`modify-quest\` with
-    \`contexts\` array.
-17. **Derive observables from flow paths** - Walk each flow path (happy path, error paths, edge cases) and create
-    observables with GIVEN/WHEN/THEN structure, linking each to its parent requirement via \`requirementId\`
-18. **Add verification steps** - For each observable, define a \`verification\` array following the
+11. **Embed observables in flow nodes** - Walk each flow path (happy path, error paths, edge cases) and create
+    observables with GIVEN/WHEN/THEN structure. Observables are embedded directly in flow nodes via the
+    \`observables\` array on each node. Use \`modify-quest\` with updated \`flows\` to persist.
+12. **Add verification steps** - For each observable, define a \`verification\` array following the
     setup -> trigger -> assert sequence (see Verification Pattern section)
-19. **Generate outcomes** - Also generate \`outcomes\` derived from verification assert steps for backward
+13. **Generate outcomes** - Also generate \`outcomes\` derived from verification assert steps for backward
     compatibility (see Outcomes Derivation section)
-20. **Declare contracts** - Define data types, API endpoints, and event schemas. Use \`modify-quest\` with \`contracts\`
+14. **Declare contracts** - Define data types, API endpoints, and event schemas. Use \`modify-quest\` with \`contracts\`
     array. Use \`type\` for branded type references and \`value\` for literal values. NEVER use raw primitives
     (string, number) as type references.
-21. **Identify tooling needs** - Note any new packages required
-22. **Persist everything** - Call \`modify-quest\` with \`contexts\`, \`observables\`, \`toolingRequirements\`, and
-    \`contracts\`
+15. **Identify tooling needs** - Note any new packages required
+16. **Persist everything** - Call \`modify-quest\` with updated \`flows\` (containing embedded observables),
+    \`toolingRequirements\`, and \`contracts\`
 
-**EXIT when:** All observables, contexts, contracts, and tooling requirements are persisted via \`modify-quest\`. Mark
-Phase 6 task completed, mark Phase 7 task in_progress.
+**EXIT when:** All observables (embedded in flow nodes), contracts, and tooling requirements are persisted via
+\`modify-quest\`. Mark Phase 4 task completed, mark Phase 5 task in_progress.
 
-### Phase 7: Observables Approval Gate
+### Phase 5: Observables Approval Gate
 
-23. **Spawn quest-gap-reviewer** - Use Task tool with \`subagent_type: "quest-gap-reviewer"\`:
+17. **Spawn quest-gap-reviewer** - Use Task tool with \`subagent_type: "quest-gap-reviewer"\`:
     \`prompt: "Review quest [questId] for gaps and issues"\`
-24. **Address gaps** - Review findings, update quest. Use the \`mcp__dungeonmaster__ask-user-question\` MCP tool for any unknowns. When you need to ask the user questions, use the ask-user-question MCP tool. The user's answers will arrive as your next message when the session resumes.
-25. **Refresh quest state** - Call \`get-quest\` with \`stage: "spec"\` to see current state
-26. **Summarize for approval** - Brief summary of what was added/changed (counts, notable items). The user can see
+18. **Address gaps** - Review findings, update quest. Use the \`mcp__dungeonmaster__ask-user-question\` MCP tool for any unknowns. When you need to ask the user questions, use the ask-user-question MCP tool. The user's answers will arrive as your next message when the session resumes.
+19. **Refresh quest state** - Call \`get-quest\` with \`stage: "spec"\` to see current state
+20. **Summarize for approval** - Brief summary of what was added/changed (counts, notable items). The user can see
     full details in their UI.
-27. **Get approval** - User must approve observables and contracts
-28. **Update quest** - Call \`modify-quest\` to apply changes and set \`status\` to \`approved\`
+21. **Get approval** - User must approve observables and contracts
+22. **Update quest** - Call \`modify-quest\` to apply changes and set \`status\` to \`approved\`
 
 **GATE: Do NOT proceed until user explicitly approves observables and contracts and quest status is \`approved\`.** Mark
-Phase 7 task completed, mark Phase 8 task in_progress.
+Phase 5 task completed, mark Phase 6 task in_progress.
 
-### Phase 8: Handoff
+### Phase 6: Handoff
 
-29. **Final summary** - Present quest overview:
-    - Flows: count
-    - Requirements: X approved, Y deferred
-    - Contexts: count
-    - Observables: count by requirement (with verification step counts)
+23. **Final summary** - Present quest overview:
+    - Flows: count (with observable counts per flow)
+    - Observables: total count (with verification step counts)
     - Contracts: count (data, endpoint, event)
     - Design decisions: count
-30. **User confirms** - Quest is approved and ready for implementation via \`start-quest\`. Mark Phase 8 task completed.
+24. **User confirms** - Quest is approved and ready for implementation via \`start-quest\`. Mark Phase 6 task completed.
 
 ---
 
 ## Status Lifecycle
 
 \`\`\`
-created -> flows_approved -> requirements_approved -> approved
+created -> flows_approved -> approved
 \`\`\`
 
 | Status                  | Set When                                               | Allowed Actions                                |
 |-------------------------|--------------------------------------------------------|------------------------------------------------|
 | \`created\`               | Quest is first created                                 | Add: flows, designDecisions                    |
-| \`flows_approved\`        | User approves flows (Phase 3 gate)                     | Add: requirements                              |
-| \`requirements_approved\` | User approves requirements (Phase 5 gate)              | Add: contexts, observables, contracts, tooling |
-| \`approved\`              | User approves observables + contracts (Phase 7 gate)   | Spec locked. \`start-quest\` allowed.            |
+| \`flows_approved\`        | User approves flows (Phase 3 gate)                     | Add: observables (in flow nodes), contracts, tooling |
+| \`approved\`              | User approves observables + contracts (Phase 5 gate)   | Spec locked. \`start-quest\` allowed.            |
 
 ---
 
 ## Semantic Guidance
 
-The MCP tool schemas define the exact structure for all quest entities (flows, requirements, observables, contexts,
-contracts, etc.). The sections below provide **judgment and quality rules** that schemas cannot convey.
+The MCP tool schemas define the exact structure for all quest entities (flows, observables, contracts, etc.). The
+sections below provide **judgment and quality rules** that schemas cannot convey.
 
-### Requirements Quality
-
-A requirement is a **high-level feature description** - WHAT needs to be built, not HOW.
-
-| Good (Feature-Level)             | Bad (Too Granular)                      |
-|----------------------------------|-----------------------------------------|
-| "User login with email/password" | "Show error when password is too short" |
-| "CLI interactive quest creation" | "Prompt asks for quest title"           |
-| "API rate limiting"              | "Return 429 after 100 requests"         |
-| "Dashboard real-time updates"    | "WebSocket reconnects after disconnect" |
-
-**Rule of thumb:** A requirement should decompose into 2-10 observables. If it maps to exactly one observable, fold it
-into its parent requirement.
-
-- **Requirement**: A distinct feature or capability
-- **Observable**: A specific, testable behavior within that feature
-
-### Tangible Requirements
+### Tangible Values
 
 Tangible requirements are **concrete values** that will appear literally in code, config, or UI. If the user gives a
 vague description, you MUST ask for the actual value.
@@ -277,7 +232,7 @@ vague description, you MUST ask for the actual value.
 
 Categories that often need concrete values: numbers, paths, names, text, formats, rules, choices.
 
-**NEVER use placeholders like \`{PORT}\` or \`{VITE_PORT}\` in contexts or observables.**
+**NEVER use placeholders like \`{PORT}\` or \`{VITE_PORT}\` in observables.**
 
 ### Flow Rules
 
@@ -286,7 +241,7 @@ Categories that often need concrete values: numbers, paths, names, text, formats
 - Error paths must loop back to a recovery point or terminate at an explicit error exit
 - Every flow MUST include both happy and sad paths — a happy-path-only flow is incomplete
 - Mermaid syntax encodes the diagram style — no separate type enum needed
-- Link \`requirementIds\` after requirements are extracted in Phase 4
+- Observables are embedded directly in flow nodes via the \`observables\` array
 
 **Diagram type selection:**
 - \`graph TD\` — State machines, navigation flows, decision trees (most common)
@@ -360,8 +315,6 @@ For backward compatibility, generate \`outcomes[]\` derived from verification as
 - The assert \`type\` maps to the outcome \`type\`
 - The assert \`target\` + \`condition\` + \`value\` inform the outcome \`description\` and \`criteria\`
 
-Every observable MUST have a \`requirementId\` linking it to the requirement it satisfies.
-
 ### Contract Rules
 
 - \`type\` field = branded type references (e.g., "EmailAddress", "UserId"). NEVER raw primitives ("string", "number")
@@ -389,8 +342,7 @@ The user sees all quest data live in their UI as you persist it via \`modify-que
 or lists in chat. Instead, after each phase provide a **brief chat summary**:
 
 **After Phase 2+3:** "Added N flows: [names]. Sad paths covered: [list]. Ready for review."
-**After Phase 4+5:** "Extracted N requirements from flows. M approved, K deferred."
-**After Phase 6+7:** "Added N contexts, M observables (N verification steps total), K contracts. Ready for review."
+**After Phase 4+5:** "Embedded M observables across N flow nodes (K verification steps total), L contracts. Ready for review."
 
 ### Exploration Sub-Agents
 
@@ -414,9 +366,8 @@ Use Task tool with \`subagent_type: "quest-gap-reviewer"\` after Phase 6 (Observ
 
 1. **Atomic outcomes** - Each outcome independently verifiable
 2. **Clear triggers** - WHEN describes a single, specific action
-3. **Context-dependent** - Always specify WHERE (contextId)
-4. **Requirement-linked** - Always specify WHICH requirement (requirementId)
-5. **Testable** - Outcomes are observable and measurable
+3. **Node-embedded** - Always embed observables in the relevant flow node
+4. **Testable** - Outcomes are observable and measurable
 6. **User-focused** - Write from the user's perspective
 7. **Concrete** - No placeholders or vague descriptions
 8. **Verification-first** - Define verification steps as the primary spec, derive outcomes from asserts

@@ -3,12 +3,13 @@
  *
  * USAGE:
  * <FlowsLayerWidget flows={flows} editing={false} onChange={handleChange} />
- * // Renders flows with name, entry/exit points, and mermaid diagram SVG
+ * // Renders flows with name, entry/exit points, scope, and generated mermaid diagram SVG
  */
 
 import { Box, Text } from '@mantine/core';
 
 import type { Flow } from '@dungeonmaster/shared/contracts';
+import { flowToMermaidTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';
 import type { CssSpacing } from '../../contracts/css-spacing/css-spacing-contract';
@@ -55,9 +56,10 @@ export const FlowsLayerWidget = ({
           {
             id: crypto.randomUUID(),
             name: '',
-            requirementIds: [],
             entryPoint: '',
             exitPoints: [],
+            nodes: [],
+            edges: [],
           } as unknown as Flow,
         ]);
       }}
@@ -105,6 +107,15 @@ export const FlowsLayerWidget = ({
               >
                 {flow.name}
               </Text>
+              {flow.scope ? (
+                <Text
+                  ff="monospace"
+                  style={{ fontSize: LABEL_FONT_SIZE, color: colors['text-dim'] }}
+                  data-testid="FLOW_SCOPE"
+                >
+                  {flow.scope}
+                </Text>
+              ) : null}
               <Text
                 ff="monospace"
                 size={HEADER_FONT_SIZE}
@@ -120,11 +131,13 @@ export const FlowsLayerWidget = ({
               >
                 exit: {flow.exitPoints.join(', ')}
               </Text>
-              {flow.diagram && (
+              {flow.nodes.length > 0 ? (
                 <Box mt={FIELD_MARGIN_TOP} data-testid="FLOW_DIAGRAM">
-                  <MermaidDiagramWidget diagram={flow.diagram as unknown as MermaidDefinition} />
+                  <MermaidDiagramWidget
+                    diagram={flowToMermaidTransformer({ flow }) as unknown as MermaidDefinition}
+                  />
                 </Box>
-              )}
+              ) : null}
             </>
           )}
         </Box>

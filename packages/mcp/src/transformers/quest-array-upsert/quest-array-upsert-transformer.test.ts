@@ -1,64 +1,58 @@
-import { ContextStub, RequirementStub } from '@dungeonmaster/shared/contracts';
+import { FlowStub } from '@dungeonmaster/shared/contracts';
 
 import { questArrayUpsertTransformer } from './quest-array-upsert-transformer';
 
-type Context = ReturnType<typeof ContextStub>;
-type Requirement = ReturnType<typeof RequirementStub>;
+type Flow = ReturnType<typeof FlowStub>;
 
 describe('questArrayUpsertTransformer', () => {
   describe('adding new items', () => {
-    it('VALID: {requirement items} => upserts requirement types', () => {
-      const existing: Requirement[] = [];
-      const newRequirement = RequirementStub({
+    it('VALID: {flow items} => upserts flow types', () => {
+      const existing: Flow[] = [];
+      const newFlow = FlowStub({
         id: 'b12ac10b-58cc-4372-a567-0e02b2c3d479',
-        name: 'CLI Interactive Mode',
-        description: 'Support interactive CLI prompts',
-        scope: 'packages/cli',
+        name: 'Login Flow',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
       });
-      const updates = [newRequirement];
+      const updates = [newFlow];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
       expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('CLI Interactive Mode');
+      expect(result[0]?.name).toBe('Login Flow');
     });
 
     it('VALID: {existing: [], updates: [item]} => adds new item', () => {
-      const existing: Context[] = [];
-      const newContext = ContextStub({
+      const existing: Flow[] = [];
+      const newFlow = FlowStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'New Item',
-        description: 'A new item',
-        locator: { page: '/new' },
+        entryPoint: '/new',
+        exitPoints: ['/done'],
       });
-      const updates = [newContext];
+      const updates = [newFlow];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toStrictEqual({
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        name: 'New Item',
-        description: 'A new item',
-        locator: { page: '/new' },
-      });
+      expect(result[0]?.name).toBe('New Item');
     });
 
     it('VALID: {existing: [item1], updates: [item2]} => adds without modifying existing', () => {
-      const existingContext = ContextStub({
+      const existingFlow = FlowStub({
         id: '11111111-1111-1111-1111-111111111111',
         name: 'Existing',
-        description: 'Existing item',
-        locator: { page: '/existing' },
+        entryPoint: '/existing',
+        exitPoints: ['/done'],
       });
-      const newContext = ContextStub({
+      const newFlow = FlowStub({
         id: '22222222-2222-2222-2222-222222222222',
         name: 'New',
-        description: 'New item',
-        locator: { page: '/new' },
+        entryPoint: '/new',
+        exitPoints: ['/done'],
       });
-      const existing = [existingContext];
-      const updates = [newContext];
+      const existing = [existingFlow];
+      const updates = [newFlow];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
@@ -70,84 +64,80 @@ describe('questArrayUpsertTransformer', () => {
 
   describe('updating existing items', () => {
     it('VALID: {existing: [item], updates: [same id, different values]} => updates item', () => {
-      const existingContext = ContextStub({
+      const existingFlow = FlowStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Old Name',
-        description: 'Old description',
-        locator: { page: '/old' },
+        entryPoint: '/old',
+        exitPoints: ['/done'],
       });
-      const updatedContext = ContextStub({
+      const updatedFlow = FlowStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'New Name',
-        description: 'New description',
-        locator: { page: '/new' },
+        entryPoint: '/new',
+        exitPoints: ['/updated'],
       });
-      const existing = [existingContext];
-      const updates = [updatedContext];
+      const existing = [existingFlow];
+      const updates = [updatedFlow];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toStrictEqual({
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        name: 'New Name',
-        description: 'New description',
-        locator: { page: '/new' },
-      });
+      expect(result[0]?.name).toBe('New Name');
+      expect(result[0]?.entryPoint).toBe('/new');
     });
 
     it('VALID: {partial update} => merges fields', () => {
-      const existingContext = ContextStub({
+      const existingFlow = FlowStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Original Name',
-        description: 'Original description',
-        locator: { page: '/original' },
+        entryPoint: '/original',
+        exitPoints: ['/done'],
       });
-      const updatedContext = ContextStub({
+      const updatedFlow = FlowStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Updated Name',
-        description: 'Original description',
-        locator: { page: '/original' },
+        entryPoint: '/original',
+        exitPoints: ['/done'],
       });
-      const existing = [existingContext];
-      const updates = [updatedContext];
+      const existing = [existingFlow];
+      const updates = [updatedFlow];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
       expect(result).toHaveLength(1);
       expect(result[0]?.name).toBe('Updated Name');
-      expect(result[0]?.description).toBe('Original description');
+      expect(result[0]?.entryPoint).toBe('/original');
     });
   });
 
   describe('mixed operations', () => {
     it('VALID: {existing: [a, b], updates: [a updated, c new]} => updates a, keeps b, adds c', () => {
-      const contextA = ContextStub({
+      const flowA = FlowStub({
         id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
         name: 'Item A',
-        description: 'A',
-        locator: { page: '/a' },
+        entryPoint: '/a',
+        exitPoints: ['/done'],
       });
-      const contextB = ContextStub({
+      const flowB = FlowStub({
         id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         name: 'Item B',
-        description: 'B',
-        locator: { page: '/b' },
+        entryPoint: '/b',
+        exitPoints: ['/done'],
       });
-      const contextAUpdated = ContextStub({
+      const flowAUpdated = FlowStub({
         id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
         name: 'Item A Updated',
-        description: 'A updated',
-        locator: { page: '/a-updated' },
+        entryPoint: '/a-updated',
+        exitPoints: ['/done'],
       });
-      const contextC = ContextStub({
+      const flowC = FlowStub({
         id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
         name: 'Item C',
-        description: 'C',
-        locator: { page: '/c' },
+        entryPoint: '/c',
+        exitPoints: ['/done'],
       });
-      const existing = [contextA, contextB];
-      const updates = [contextAUpdated, contextC];
+      const existing = [flowA, flowB];
+      const updates = [flowAUpdated, flowC];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
@@ -160,8 +150,8 @@ describe('questArrayUpsertTransformer', () => {
 
   describe('edge cases', () => {
     it('EMPTY: {existing: [], updates: []} => returns empty array', () => {
-      const existing: Context[] = [];
-      const updates: Context[] = [];
+      const existing: Flow[] = [];
+      const updates: Flow[] = [];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
@@ -169,14 +159,14 @@ describe('questArrayUpsertTransformer', () => {
     });
 
     it('VALID: {existing: [items], updates: []} => returns existing unchanged', () => {
-      const existingContext = ContextStub({
+      const existingFlow = FlowStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Existing',
-        description: 'Existing item',
-        locator: { page: '/existing' },
+        entryPoint: '/existing',
+        exitPoints: ['/done'],
       });
-      const existing = [existingContext];
-      const updates: Context[] = [];
+      const existing = [existingFlow];
+      const updates: Flow[] = [];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 

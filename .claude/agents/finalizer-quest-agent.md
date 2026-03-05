@@ -14,7 +14,7 @@ a quest after PathSeeker has created its steps. You work autonomously and produc
 Use MCP tools to interact with the dungeonmaster server:
 
 - **Get quest:** `get-quest` tool with `{ questId: "QUEST_ID" }`
-- **Get quest (staged):** `get-quest` tool with `{ questId: "QUEST_ID", stage: "spec-decisions" }`
+- **Get quest (staged):** `get-quest` tool with `{ questId: "QUEST_ID", stage: "spec-flows" }`
 - **Verify quest:** `verify-quest` tool with `{ questId: "QUEST_ID" }`
 - **Discover code:** `discover` tool with `{ type: "files", search: "..." }`
 
@@ -28,13 +28,13 @@ Call the verify-quest endpoint with the provided quest ID. This runs 11 integrit
 - Dependency Integrity
 - No Circular Dependencies
 - No Orphan Steps
-- Valid Context References
-- Valid Requirement References
 - File Companion Completeness
 - No Raw Primitives in Contracts
 - Step Contract Declarations
 - Valid Contract References
 - Step Export Names
+- Valid Flow References
+- Node Observable Coverage
 
 If any checks fail, report them immediately in the Critical Issues section. These are structural problems that MUST be
 fixed before implementation.
@@ -43,20 +43,20 @@ fixed before implementation.
 
 Fetch the quest in stages to manage context size:
 
-**Fetch 1:** `GET /api/quests/QUEST_ID?stage=spec-decisions`
+**Fetch 1:** `get-quest` tool with `{ questId: "QUEST_ID", stage: "spec-flows" }`
 
-- Record all requirement IDs, names, and scopes
+- Record all flows with their nodes, edges, and entry/exit points
 - Record all design decisions
 - Record all contract entries (names, kinds, properties)
 - Record all tooling requirements
 
-**Fetch 2:** `GET /api/quests/QUEST_ID?stage=spec-bdd`
+**Fetch 2:** `get-quest` tool with `{ questId: "QUEST_ID", stage: "spec-obs" }`
 
-- Record all context IDs and locators
-- Record all observables with their triggers, outcomes, and requirement links
+- Record all observables embedded in flow nodes (GIVEN/WHEN/THEN format)
+- Note which nodes have observables and which don't
 - Contracts are included again for cross-referencing
 
-**Fetch 3:** `GET /api/quests/QUEST_ID?stage=implementation`
+**Fetch 3:** `get-quest` tool with `{ questId: "QUEST_ID", stage: "implementation" }`
 
 - Record all steps with their descriptions, file operations, and dependencies
 - Contracts are included again for contract reference validation
@@ -65,12 +65,13 @@ Fetch the quest in stages to manage context size:
 
 Verify the logical flow from user intent to implementation:
 
-1. **User request -> Requirements**: Does each requirement clearly trace back to the original user request?
-2. **Requirements -> Observables**: Does every requirement have observables? Are there orphaned observables?
-3. **Observables -> Steps**: Does every observable get satisfied by at least one step?
-4. **Steps -> Files**: Do the files listed in steps make sense for what the step claims to do?
-5. **Contracts -> Steps**: Do step inputContracts/outputContracts reference contracts that make sense for what the step
+1. **Flow nodes -> Observables**: Do flow nodes have observables where behavior needs verification? Are there nodes
+   that should have observables but don't?
+2. **Observables -> Steps**: Does every observable get satisfied by at least one step via `observablesSatisfied`?
+3. **Steps -> Files**: Do the files listed in steps make sense for what the step claims to do?
+4. **Contracts -> Steps**: Do step inputContracts/outputContracts reference contracts that make sense for what the step
    does? Does a step claiming to "validate credentials" actually list LoginCredentials in its inputContracts?
+5. **Flow edges -> Completeness**: Do edges cover both happy and sad paths through the flow graph?
 
 ### Step 4: Check Step Descriptions for Implementer Clarity
 
@@ -114,20 +115,20 @@ Identify anything an implementer would have to guess at:
 | Dependency Integrity | PASS/FAIL | [details] |
 | No Circular Deps | PASS/FAIL | [details] |
 | No Orphan Steps | PASS/FAIL | [details] |
-| Valid Context Refs | PASS/FAIL | [details] |
-| Valid Requirement Refs | PASS/FAIL | [details] |
 | File Companions | PASS/FAIL | [details] |
 | No Raw Primitives | PASS/FAIL | [details] |
 | Step Contract Decl | PASS/FAIL | [details] |
 | Valid Contract Refs | PASS/FAIL | [details] |
 | Step Export Names | PASS/FAIL | [details] |
+| Valid Flow Refs | PASS/FAIL | [details] |
+| Node Observable Coverage | PASS/FAIL | [details] |
 
 ### Critical Issues (Must Fix)
 
 Issues that will block or break implementation.
 
 1. **[Issue Title]**
-    - Location: [step/observable/requirement ID]
+    - Location: [step/flow/node/observable ID]
     - Problem: [What's wrong]
     - Impact: [What will go wrong]
     - Suggestion: [How to fix]
@@ -137,7 +138,7 @@ Issues that will block or break implementation.
 Issues that may cause confusion or rework.
 
 1. **[Issue Title]**
-    - Location: [step/observable/requirement ID]
+    - Location: [step/flow/node/observable ID]
     - Problem: [What's concerning]
     - Suggestion: [How to address]
 

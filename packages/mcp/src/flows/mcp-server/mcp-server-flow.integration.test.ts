@@ -442,7 +442,7 @@ describe('McpServerFlow', () => {
       expect(getResultData.quest!.id).toBe(questId);
     });
 
-    it('VALID: modify-quest => get-quest => retrieves modified quest with new context', async () => {
+    it('VALID: modify-quest => get-quest => retrieves modified quest with new design decision', async () => {
       const client = await createMcpClient();
 
       const questId = 'modify-flow-quest';
@@ -478,12 +478,12 @@ describe('McpServerFlow', () => {
           name: 'modify-quest',
           arguments: {
             questId,
-            contexts: [
+            designDecisions: [
               {
                 id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
-                name: 'Test Context',
-                description: 'Added via modify-quest',
-                locator: { section: 'testing', page: 'integration' },
+                title: 'Use JWT for auth',
+                rationale: 'Added via modify-quest',
+                relatedNodeIds: [],
               },
             ],
           },
@@ -520,12 +520,12 @@ describe('McpServerFlow', () => {
       expect(modifyResultData.success).toBe(true);
       expect(getResponse.error).toBeUndefined();
       expect(getResultData.success).toBe(true);
-      expect(getResultData.quest!.contexts).toStrictEqual([
+      expect(getResultData.quest!.designDecisions).toStrictEqual([
         {
           id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
-          name: 'Test Context',
-          description: 'Added via modify-quest',
-          locator: { section: 'testing', page: 'integration' },
+          title: 'Use JWT for auth',
+          rationale: 'Added via modify-quest',
+          relatedNodeIds: [],
         },
       ]);
     });

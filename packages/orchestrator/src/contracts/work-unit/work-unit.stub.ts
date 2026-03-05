@@ -1,12 +1,10 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import {
   AbsoluteFilePathStub,
-  ContextStub,
   DependencyStepStub,
-  ObservableStub,
+  FlowObservableStub,
   QuestContractEntryStub,
   QuestIdStub,
-  RequirementStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { workUnitContract } from './work-unit-contract';
@@ -25,8 +23,7 @@ export const CodeweaverWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}
     step: DependencyStepStub(),
     questId: QuestIdStub({ value: 'add-auth' }),
     relatedContracts: [QuestContractEntryStub()],
-    relatedObservables: [ObservableStub()],
-    relatedRequirements: [RequirementStub()],
+    relatedObservables: [FlowObservableStub()],
     ...props,
   });
 
@@ -48,8 +45,7 @@ export const SiegemasterWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {
   workUnitContract.parse({
     role: 'siegemaster',
     questId: QuestIdStub({ value: 'add-auth' }),
-    observables: [ObservableStub()],
-    contexts: [ContextStub()],
+    observables: [FlowObservableStub()],
     ...props,
   });
 

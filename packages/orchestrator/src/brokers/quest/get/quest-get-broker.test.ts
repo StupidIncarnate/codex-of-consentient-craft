@@ -1,4 +1,9 @@
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  FlowNodeStub,
+  FlowObservableStub,
+  FlowStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { GetQuestInputStub } from '../../../contracts/get-quest-input/get-quest-input.stub';
 import { questGetBroker } from './quest-get-broker';
@@ -46,23 +51,10 @@ describe('questGetBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         title: 'Add Authentication',
-        requirements: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Auth',
-            description: 'User auth',
-            scope: 'packages/api',
-            status: 'approved',
-          },
-        ],
-        observables: [
-          {
-            id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-            contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            trigger: 'User submits login form',
-            dependsOn: [],
-            outcomes: [],
-          },
+        flows: [
+          FlowStub({
+            nodes: [FlowNodeStub({ observables: [FlowObservableStub()] })],
+          }),
         ],
         steps: [
           {
@@ -84,24 +76,10 @@ describe('questGetBroker', () => {
       const result = await questGetBroker({ input });
 
       expect(result.success).toBe(true);
-      expect(result.quest?.requirements).toStrictEqual([
-        {
-          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          name: 'Auth',
-          description: 'User auth',
-          scope: 'packages/api',
-          status: 'approved',
-        },
-      ]);
-      expect(result.quest?.observables).toStrictEqual([
-        {
-          id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-          contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-          trigger: 'User submits login form',
-          dependsOn: [],
-          outcomes: [],
-          verification: [],
-        },
+      expect(result.quest?.flows).toStrictEqual([
+        FlowStub({
+          nodes: [FlowNodeStub({ observables: [FlowObservableStub()] })],
+        }),
       ]);
       expect(result.quest?.steps).toStrictEqual([]);
       expect(result.quest?.executionLog).toStrictEqual([]);
@@ -113,15 +91,7 @@ describe('questGetBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         title: 'Add Authentication',
-        requirements: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Auth',
-            description: 'User auth',
-            scope: 'packages/api',
-            status: 'approved',
-          },
-        ],
+        flows: [FlowStub()],
         steps: [
           {
             id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -142,7 +112,7 @@ describe('questGetBroker', () => {
       const result = await questGetBroker({ input });
 
       expect(result.success).toBe(true);
-      expect(result.quest?.requirements).toStrictEqual([]);
+      expect(result.quest?.flows).toStrictEqual([]);
       expect(result.quest?.steps).toStrictEqual([
         {
           id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -165,15 +135,7 @@ describe('questGetBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         title: 'Add Authentication',
-        requirements: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Auth',
-            description: 'User auth',
-            scope: 'packages/api',
-            status: 'approved',
-          },
-        ],
+        flows: [FlowStub()],
       });
 
       proxy.setupQuestFound({ quest });
@@ -182,15 +144,7 @@ describe('questGetBroker', () => {
       const result = await questGetBroker({ input });
 
       expect(result.success).toBe(true);
-      expect(result.quest?.requirements).toStrictEqual([
-        {
-          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          name: 'Auth',
-          description: 'User auth',
-          scope: 'packages/api',
-          status: 'approved',
-        },
-      ]);
+      expect(result.quest?.flows).toStrictEqual([FlowStub()]);
     });
   });
 

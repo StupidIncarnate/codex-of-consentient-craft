@@ -1,13 +1,10 @@
 import {
   AbsoluteFilePathStub,
-  ContextStub,
   DependencyStepStub,
   ErrorMessageStub,
-  ObservableStub,
+  FlowObservableStub,
   QuestContractEntryStub,
   QuestIdStub,
-  RequirementStub,
-  VerificationStepStub,
 } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -32,7 +29,6 @@ describe('workUnitToArgumentsTransformer', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [],
         relatedObservables: [],
-        relatedRequirements: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
@@ -54,7 +50,6 @@ describe('workUnitToArgumentsTransformer', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [],
         relatedObservables: [],
-        relatedRequirements: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
@@ -75,7 +70,6 @@ describe('workUnitToArgumentsTransformer', () => {
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [],
-        relatedRequirements: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
@@ -96,7 +90,6 @@ describe('workUnitToArgumentsTransformer', () => {
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [],
-        relatedRequirements: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
@@ -121,7 +114,6 @@ describe('workUnitToArgumentsTransformer', () => {
           }),
         ],
         relatedObservables: [],
-        relatedRequirements: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
@@ -148,7 +140,6 @@ describe('workUnitToArgumentsTransformer', () => {
           }),
         ],
         relatedObservables: [],
-        relatedRequirements: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
@@ -173,7 +164,6 @@ describe('workUnitToArgumentsTransformer', () => {
           }),
         ],
         relatedObservables: [],
-        relatedRequirements: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
@@ -198,7 +188,6 @@ describe('workUnitToArgumentsTransformer', () => {
           }),
         ],
         relatedObservables: [],
-        relatedRequirements: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
@@ -206,7 +195,7 @@ describe('workUnitToArgumentsTransformer', () => {
       expect(result).toMatch(/ {4}- id$/mu);
     });
 
-    it('VALID: {codeweaver with related observables} => includes observable details', () => {
+    it('VALID: {codeweaver with related observables} => includes GIVEN/WHEN/THEN format', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Step',
@@ -217,100 +206,25 @@ describe('workUnitToArgumentsTransformer', () => {
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [
-          ObservableStub({
-            trigger: 'User clicks login',
-            outcomes: [{ type: 'api-call', description: 'POST /auth/login', criteria: {} }],
-          }),
-        ],
-        relatedRequirements: [],
-      });
-
-      const result = workUnitToArgumentsTransformer({ workUnit });
-
-      expect(result).toMatch(
-        /Related Observables:\n {2}- Trigger: User clicks login\n {4}- api-call: POST \/auth\/login/u,
-      );
-    });
-
-    it('VALID: {codeweaver with observable verification steps} => includes verification details', () => {
-      const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Step',
-          description: 'Desc',
-          filesToCreate: [],
-          filesToModify: [],
-        }),
-        questId: QuestIdStub({ value: 'quest-1' }),
-        relatedContracts: [],
-        relatedObservables: [
-          ObservableStub({
-            trigger: 'User clicks login',
-            outcomes: [{ type: 'ui-state', description: 'Redirected to /dashboard', criteria: {} }],
-            verification: [
-              VerificationStepStub({
-                action: 'navigate',
-                target: '/login',
-                value: undefined,
-                condition: undefined,
-                type: undefined,
-              }),
-              VerificationStepStub({
-                action: 'click',
-                target: 'submit button',
-                value: undefined,
-                condition: undefined,
-                type: undefined,
-              }),
-              VerificationStepStub({
-                action: 'assert',
-                target: 'window.location',
-                value: '/dashboard',
-                condition: 'equals',
-                type: 'ui-state',
-              }),
+          FlowObservableStub({
+            given: 'user is on the login page',
+            when: 'user submits valid credentials',
+            then: [
+              { type: 'api-call', description: 'POST /auth/login' },
+              { type: 'ui-state', description: 'redirects to dashboard' },
             ],
           }),
         ],
-        relatedRequirements: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Verification:/u);
-      expect(result).toMatch(/ {6}- navigate \/login$/mu);
-      expect(result).toMatch(/ {6}- click submit button$/mu);
       expect(result).toMatch(
-        / {6}- assert window\.location = \/dashboard \[equals\] \(ui-state\)$/mu,
+        /Related Observables:\n {2}GIVEN: user is on the login page\n {2}WHEN: user submits valid credentials\n {2}THEN:\n {4}- POST \/auth\/login \(api-call\)\n {4}- redirects to dashboard \(ui-state\)/u,
       );
     });
 
-    it('VALID: {codeweaver with observable without verification} => omits verification section', () => {
-      const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Step',
-          description: 'Desc',
-          filesToCreate: [],
-          filesToModify: [],
-        }),
-        questId: QuestIdStub({ value: 'quest-1' }),
-        relatedContracts: [],
-        relatedObservables: [
-          ObservableStub({
-            trigger: 'User clicks login',
-            outcomes: [{ type: 'api-call', description: 'POST /auth/login', criteria: {} }],
-            verification: [],
-          }),
-        ],
-        relatedRequirements: [],
-      });
-
-      const result = workUnitToArgumentsTransformer({ workUnit });
-
-      expect(result).not.toMatch(/Verification:/u);
-      expect(result).toMatch(/api-call: POST \/auth\/login/u);
-    });
-
-    it('VALID: {codeweaver with related requirements} => includes requirement details', () => {
+    it('VALID: {codeweaver with empty relatedObservables} => omits observables section', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Step',
@@ -321,29 +235,25 @@ describe('workUnitToArgumentsTransformer', () => {
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [],
-        relatedRequirements: [
-          RequirementStub({ name: 'Auth Support', description: 'Add authentication' }),
-        ],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Related Requirements:\n {2}- Auth Support: Add authentication/u);
+      expect(result).not.toMatch(/Related Observables:/u);
     });
   });
 
   describe('siegemaster role', () => {
-    it('VALID: {siegemaster with observables and contexts} => returns formatted quest context', () => {
+    it('VALID: {siegemaster with observables} => returns formatted GIVEN/WHEN/THEN', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'verify-quest' }),
         observables: [
-          ObservableStub({
-            contextId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            trigger: 'User submits form',
-            outcomes: [{ type: 'ui-state', description: 'Shows success message', criteria: {} }],
+          FlowObservableStub({
+            given: 'user is on login page',
+            when: 'user submits form',
+            then: [{ type: 'ui-state', description: 'Shows success message' }],
           }),
         ],
-        contexts: [ContextStub({ name: 'Login Page', description: 'Main login form' })],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
@@ -351,62 +261,17 @@ describe('workUnitToArgumentsTransformer', () => {
       expect(result).toBe(
         'Quest ID: verify-quest\n' +
           'Observables:\n' +
-          '  - [f47ac10b-58cc-4372-a567-0e02b2c3d479] User submits form\n' +
-          '    - ui-state: Shows success message\n' +
-          'Contexts:\n' +
-          '  - Login Page: Main login form',
+          '  GIVEN: user is on login page\n' +
+          '  WHEN: user submits form\n' +
+          '  THEN:\n' +
+          '    - Shows success message (ui-state)',
       );
     });
 
-    it('VALID: {siegemaster with observable verification steps} => includes verification details', () => {
-      const workUnit = SiegemasterWorkUnitStub({
-        questId: QuestIdStub({ value: 'verify-quest' }),
-        observables: [
-          ObservableStub({
-            contextId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            trigger: 'User submits form',
-            outcomes: [{ type: 'ui-state', description: 'Shows success message', criteria: {} }],
-            verification: [
-              VerificationStepStub({
-                action: 'fill',
-                target: 'name input',
-                value: 'John',
-                condition: undefined,
-                type: undefined,
-              }),
-              VerificationStepStub({
-                action: 'click',
-                target: 'submit',
-                value: undefined,
-                condition: undefined,
-                type: undefined,
-              }),
-              VerificationStepStub({
-                action: 'assert',
-                target: 'toast',
-                value: 'Success',
-                condition: 'contains',
-                type: 'ui-state',
-              }),
-            ],
-          }),
-        ],
-        contexts: [ContextStub({ name: 'Form Page', description: 'Main form' })],
-      });
-
-      const result = workUnitToArgumentsTransformer({ workUnit });
-
-      expect(result).toMatch(/Verification:/u);
-      expect(result).toMatch(/ {6}- fill name input = John$/mu);
-      expect(result).toMatch(/ {6}- click submit$/mu);
-      expect(result).toMatch(/ {6}- assert toast = Success \[contains\] \(ui-state\)$/mu);
-    });
-
-    it('VALID: {siegemaster with empty observables and contexts} => returns quest ID only', () => {
+    it('VALID: {siegemaster with empty observables} => returns quest ID only', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'empty-quest' }),
         observables: [],
-        contexts: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });

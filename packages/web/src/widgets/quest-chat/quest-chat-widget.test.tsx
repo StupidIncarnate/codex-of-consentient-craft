@@ -9,9 +9,7 @@ import {
   FlowStub,
   GuildListItemStub,
   GuildStub,
-  ObservableStub,
   QuestStub,
-  RequirementStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -234,7 +232,6 @@ describe('QuestChatWidget', () => {
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-empty-spec',
-        requirements: [],
       });
       const guildDetail = GuildStub({ id: guild.id });
 
@@ -267,12 +264,12 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasSpecPanel()).toBe(true);
     });
 
-    it('VALID: {quest has requirements via route state} => renders spec panel in right panel', async () => {
+    it('VALID: {quest with flows via route state} => renders spec panel in right panel', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-q6',
-        requirements: [RequirementStub()],
+        flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
 
@@ -305,12 +302,12 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasActivityPlaceholder()).toBe(true);
     });
 
-    it('VALID: {quest has requirements via route state} => spec panel receives quest data', async () => {
+    it('VALID: {quest with flows via route state} => spec panel receives quest data', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-q7',
-        requirements: [RequirementStub()],
+        flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
 
@@ -343,12 +340,12 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasSpecPanel()).toBe(true);
     });
 
-    it('VALID: {quest with requirements via session list fallback, no route state} => renders spec panel', async () => {
+    it('VALID: {quest with flows via session list fallback, no route state} => renders spec panel', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-fallback',
-        requirements: [RequirementStub()],
+        flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
       const session = SessionListItemStub({
@@ -390,7 +387,7 @@ describe('QuestChatWidget', () => {
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-q8',
-        requirements: [RequirementStub()],
+        flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
 
@@ -469,12 +466,12 @@ describe('QuestChatWidget', () => {
   });
 
   describe('external update props', () => {
-    it('VALID: {quest with requirements} => spec panel receives externalUpdatePending and onDismissUpdate', async () => {
+    it('VALID: {quest with flows} => spec panel receives externalUpdatePending and onDismissUpdate', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-q9',
-        requirements: [RequirementStub()],
+        flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
 
@@ -516,7 +513,6 @@ describe('QuestChatWidget', () => {
         id: 'chat-approve-1',
         status: 'created',
         flows: [FlowStub()],
-        requirements: [RequirementStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
 
@@ -551,19 +547,23 @@ describe('QuestChatWidget', () => {
       await proxy.clickApprove();
 
       await waitFor(() => {
-        expect(screen.getByText('Flows approved. Proceed to requirements.')).toBeInTheDocument();
+        expect(
+          screen.getByText('Flows approved. Proceed to observables and contracts.'),
+        ).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Flows approved. Proceed to requirements.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Flows approved. Proceed to observables and contracts.'),
+      ).toBeInTheDocument();
     });
 
-    it('VALID: {click APPROVE, status: flows_approved} => sends requirements approved message', async () => {
+    it('VALID: {click APPROVE, status: flows_approved} => sends fully approved message', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-approve-2',
         status: 'flows_approved',
-        requirements: [RequirementStub()],
+        flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
 
@@ -578,58 +578,6 @@ describe('QuestChatWidget', () => {
           <MemoryRouter
             initialEntries={[
               { pathname: '/test-guild/session/chat-approve-2', state: { questId: quest.id } },
-            ]}
-          >
-            <Routes>
-              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
-            </Routes>
-          </MemoryRouter>
-        ),
-      });
-
-      act(() => {
-        proxy.setupQuest({ quest });
-      });
-
-      await waitFor(() => {
-        expect(proxy.hasSpecPanel()).toBe(true);
-      });
-
-      await proxy.clickApprove();
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Requirements approved. Proceed to observables and contracts.'),
-        ).toBeInTheDocument();
-      });
-
-      expect(
-        screen.getByText('Requirements approved. Proceed to observables and contracts.'),
-      ).toBeInTheDocument();
-    });
-
-    it('VALID: {click APPROVE, status: requirements_approved} => sends fully approved message', async () => {
-      const proxy = QuestChatWidgetProxy();
-      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
-      const quest = QuestStub({
-        id: 'chat-approve-3',
-        status: 'requirements_approved',
-        requirements: [RequirementStub()],
-        observables: [ObservableStub()],
-      });
-      const guildDetail = GuildStub({ id: guild.id });
-
-      proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
-      proxy.setupModify();
-      proxy.setupChat({ chatProcessId: 'proc-approve-3' as never });
-
-      mantineRenderAdapter({
-        ui: (
-          <MemoryRouter
-            initialEntries={[
-              { pathname: '/test-guild/session/chat-approve-3', state: { questId: quest.id } },
             ]}
           >
             <Routes>

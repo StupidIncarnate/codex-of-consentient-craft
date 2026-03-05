@@ -1,35 +1,44 @@
 import {
   QuestStub,
-  ContextStub,
-  ContextIdStub,
-  ObservableStub,
-  ObservableIdStub,
   DependencyStepStub,
-  RequirementStub,
-  RequirementIdStub,
   StepIdStub,
   QuestContractEntryStub,
   QuestContractPropertyStub,
   ContractNameStub,
   FlowStub,
+  FlowNodeStub,
+  FlowEdgeStub,
+  FlowObservableStub,
+  ObservableIdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questVerifyTransformer } from './quest-verify-transformer';
 
 describe('questVerifyTransformer', () => {
   describe('all checks pass', () => {
-    it('VALID: {well-formed quest with contracts and refs} => all checks pass', () => {
-      const ctxId = ContextIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const reqId = RequirementIdStub({ value: 'a47ac10b-58cc-4372-a567-0e02b2c3d479' });
+    it('VALID: {well-formed quest with flows, nodes, observables, contracts} => all 11 checks pass', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const stepId = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
       const contractName = ContractNameStub({ value: 'IsValid' });
 
       const quest = QuestStub({
-        contexts: [ContextStub({ id: ctxId })],
-        requirements: [RequirementStub({ id: reqId, status: 'approved' })],
-        observables: [ObservableStub({ id: obsId, contextId: ctxId, requirementId: reqId })],
-        flows: [FlowStub({ requirementIds: [reqId] })],
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                type: 'terminal',
+                observables: [FlowObservableStub({ id: obsId })],
+              }),
+              FlowNodeStub({
+                id: 'dashboard',
+                type: 'state',
+                observables: [],
+              }),
+            ],
+            edges: [FlowEdgeStub({ from: 'login-page', to: 'dashboard' })],
+          }),
+        ],
         contracts: [
           QuestContractEntryStub({
             name: contractName,
@@ -76,16 +85,6 @@ describe('questVerifyTransformer', () => {
           details: 'All 1 steps satisfy at least one observable',
         },
         {
-          name: 'Valid Context References',
-          passed: true,
-          details: 'All observable contextId references point to existing contexts',
-        },
-        {
-          name: 'Valid Requirement References',
-          passed: true,
-          details: 'All observable requirementId references point to existing requirements',
-        },
-        {
           name: 'File Companion Completeness',
           passed: true,
           details: 'All implementation files have required companion files (test, proxy, stub)',
@@ -113,12 +112,12 @@ describe('questVerifyTransformer', () => {
         {
           name: 'Valid Flow References',
           passed: true,
-          details: 'All flow requirementIds reference existing requirements',
+          details: 'All flow edge references point to existing nodes',
         },
         {
-          name: 'Flow Coverage',
+          name: 'Node Observable Coverage',
           passed: true,
-          details: 'All approved requirements covered by flows',
+          details: 'All terminal nodes have at least one observable',
         },
       ]);
     });
@@ -126,12 +125,20 @@ describe('questVerifyTransformer', () => {
 
   describe('observable coverage fails', () => {
     it('INVALID_COVERAGE: {observable not covered by any step} => observable coverage fails', () => {
-      const ctxId = ContextIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
 
       const quest = QuestStub({
-        contexts: [ContextStub({ id: ctxId })],
-        observables: [ObservableStub({ id: obsId, contextId: ctxId })],
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                type: 'terminal',
+                observables: [FlowObservableStub({ id: obsId })],
+              }),
+            ],
+          }),
+        ],
         steps: [
           DependencyStepStub({
             observablesSatisfied: [],
@@ -153,14 +160,22 @@ describe('questVerifyTransformer', () => {
 
   describe('circular dependency detected', () => {
     it('INVALID_CYCLE: {steps with circular deps} => circular deps check fails', () => {
-      const ctxId = ContextIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const stepId1 = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
       const stepId2 = StepIdStub({ value: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c' });
 
       const quest = QuestStub({
-        contexts: [ContextStub({ id: ctxId })],
-        observables: [ObservableStub({ id: obsId, contextId: ctxId })],
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                type: 'terminal',
+                observables: [FlowObservableStub({ id: obsId })],
+              }),
+            ],
+          }),
+        ],
         steps: [
           DependencyStepStub({
             id: stepId1,
@@ -192,10 +207,8 @@ describe('questVerifyTransformer', () => {
   describe('empty quest', () => {
     it('VALID: {quest with empty arrays} => all checks pass', () => {
       const quest = QuestStub({
-        contexts: [],
-        observables: [],
+        flows: [],
         steps: [],
-        requirements: [],
       });
 
       const result = questVerifyTransformer({ quest });
@@ -206,12 +219,20 @@ describe('questVerifyTransformer', () => {
 
   describe('missing file companions', () => {
     it('INVALID_COMPANION: {broker without proxy} => file companions fails', () => {
-      const ctxId = ContextIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
 
       const quest = QuestStub({
-        contexts: [ContextStub({ id: ctxId })],
-        observables: [ObservableStub({ id: obsId, contextId: ctxId })],
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                type: 'terminal',
+                observables: [FlowObservableStub({ id: obsId })],
+              }),
+            ],
+          }),
+        ],
         steps: [
           DependencyStepStub({
             observablesSatisfied: [obsId],
@@ -224,7 +245,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , companionCheck] = questVerifyTransformer({ quest });
+      const [, , , , companionCheck] = questVerifyTransformer({ quest });
 
       expect(companionCheck).toStrictEqual({
         name: 'File Companion Completeness',
@@ -244,7 +265,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , primitivesCheck] = questVerifyTransformer({ quest });
+      const [, , , , , primitivesCheck] = questVerifyTransformer({ quest });
 
       expect(primitivesCheck).toStrictEqual({
         name: 'No Raw Primitives in Contracts',
@@ -268,7 +289,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , contractRefsCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , contractRefsCheck] = questVerifyTransformer({ quest });
 
       expect(contractRefsCheck).toStrictEqual({
         name: 'Step Contract Declarations',
@@ -293,7 +314,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , , validContractRefsCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , validContractRefsCheck] = questVerifyTransformer({ quest });
 
       expect(validContractRefsCheck).toStrictEqual({
         name: 'Valid Contract References',
@@ -315,7 +336,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , , , exportNameCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , , exportNameCheck] = questVerifyTransformer({ quest });
 
       expect(exportNameCheck).toStrictEqual({
         name: 'Step Export Names',
@@ -326,40 +347,48 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('invalid flow references', () => {
-    it('INVALID_FLOW_REF: {flow references non-existent requirement} => valid flow references fails', () => {
-      const reqId = RequirementIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const invalidReqId = RequirementIdStub({ value: 'aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee' });
-
+    it('INVALID_FLOW_REF: {edge references non-existent node} => valid flow references fails', () => {
       const quest = QuestStub({
-        requirements: [RequirementStub({ id: reqId })],
-        flows: [FlowStub({ requirementIds: [invalidReqId] })],
+        flows: [
+          FlowStub({
+            nodes: [FlowNodeStub({ id: 'login-page' })],
+            edges: [FlowEdgeStub({ from: 'login-page', to: 'non-existent' })],
+          }),
+        ],
       });
 
-      const [, , , , , , , , , , , flowRefsCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , , , flowRefsCheck] = questVerifyTransformer({ quest });
 
       expect(flowRefsCheck).toStrictEqual({
         name: 'Valid Flow References',
         passed: false,
-        details: 'Some flows reference non-existent requirement IDs',
+        details: 'Some flow edges reference non-existent node IDs',
       });
     });
   });
 
-  describe('flow coverage fails', () => {
-    it('INVALID_FLOW_COVERAGE: {approved requirement not covered by any flow} => flow coverage fails', () => {
-      const reqId = RequirementIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-
+  describe('node observable coverage fails', () => {
+    it('INVALID_NODE_COVERAGE: {terminal node without observables} => node observable coverage fails', () => {
       const quest = QuestStub({
-        requirements: [RequirementStub({ id: reqId, status: 'approved' })],
-        flows: [FlowStub({ requirementIds: [] })],
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'success',
+                type: 'terminal',
+                observables: [],
+              }),
+            ],
+          }),
+        ],
       });
 
-      const [, , , , , , , , , , , , flowCoverageCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , , , , nodeCoverageCheck] = questVerifyTransformer({ quest });
 
-      expect(flowCoverageCheck).toStrictEqual({
-        name: 'Flow Coverage',
+      expect(nodeCoverageCheck).toStrictEqual({
+        name: 'Node Observable Coverage',
         passed: false,
-        details: 'Not all approved requirements are covered by flows',
+        details: 'Some terminal nodes are missing observables',
       });
     });
   });

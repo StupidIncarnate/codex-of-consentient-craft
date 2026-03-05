@@ -3,12 +3,6 @@ import { QuestSectionStub } from './quest-section.stub';
 
 describe('questSectionContract', () => {
   describe('valid sections', () => {
-    it('VALID: {value: "requirements"} => parses successfully', () => {
-      const result = questSectionContract.parse(QuestSectionStub({ value: 'requirements' }));
-
-      expect(result).toBe('requirements');
-    });
-
     it('VALID: {value: "designDecisions"} => parses successfully', () => {
       const result = questSectionContract.parse(QuestSectionStub({ value: 'designDecisions' }));
 
@@ -19,18 +13,6 @@ describe('questSectionContract', () => {
       const result = questSectionContract.parse(QuestSectionStub({ value: 'contracts' }));
 
       expect(result).toBe('contracts');
-    });
-
-    it('VALID: {value: "contexts"} => parses successfully', () => {
-      const result = questSectionContract.parse(QuestSectionStub({ value: 'contexts' }));
-
-      expect(result).toBe('contexts');
-    });
-
-    it('VALID: {value: "observables"} => parses successfully', () => {
-      const result = questSectionContract.parse(QuestSectionStub({ value: 'observables' }));
-
-      expect(result).toBe('observables');
     });
 
     it('VALID: {value: "steps"} => parses successfully', () => {
@@ -60,7 +42,7 @@ describe('questSectionContract', () => {
     it('VALID: {default stub} => parses with default value', () => {
       const result = questSectionContract.parse(QuestSectionStub());
 
-      expect(result).toBe('requirements');
+      expect(result).toBe('designDecisions');
     });
   });
 
@@ -74,6 +56,24 @@ describe('questSectionContract', () => {
     it('INVALID_SECTION: {value: ""} => throws validation error', () => {
       expect(() => {
         return questSectionContract.parse('');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID_SECTION: {value: "requirements"} => throws validation error (removed section)', () => {
+      expect(() => {
+        return questSectionContract.parse('requirements');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID_SECTION: {value: "contexts"} => throws validation error (removed section)', () => {
+      expect(() => {
+        return questSectionContract.parse('contexts');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID_SECTION: {value: "observables"} => throws validation error (removed section)', () => {
+      expect(() => {
+        return questSectionContract.parse('observables');
       }).toThrow(/Invalid enum value/u);
     });
   });

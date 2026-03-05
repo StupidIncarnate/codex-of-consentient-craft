@@ -3,7 +3,7 @@
  *
  * USAGE:
  * <DesignDecisionsLayerWidget designDecisions={decisions} editing={false} onChange={handleChange} />
- * // Renders design decisions with title, rationale, and related requirements tags
+ * // Renders design decisions with title, rationale, and related node IDs tags
  */
 
 import { Box, Text } from '@mantine/core';
@@ -22,7 +22,7 @@ import { FormTagListWidget } from '../form-tag-list/form-tag-list-widget';
 import { PlanSectionWidget } from '../plan-section/plan-section-widget';
 
 const DESIGN_DECISIONS_LABEL = 'DESIGN DECISIONS' as SectionLabel;
-const REQS_TAG_LABEL = 'reqs' as SectionLabel;
+const NODES_TAG_LABEL = 'nodes' as SectionLabel;
 const TITLE_PLACEHOLDER = 'Title' as FormPlaceholder;
 const RATIONALE_PLACEHOLDER = 'Rationale' as FormPlaceholder;
 const FIELD_MARGIN_TOP_PX = 2;
@@ -55,7 +55,7 @@ export const DesignDecisionsLayerWidget = ({
             id: crypto.randomUUID(),
             title: '',
             rationale: '',
-            relatedRequirements: [],
+            relatedNodeIds: [],
           } as unknown as DesignDecision,
         ]);
       }}
@@ -93,8 +93,8 @@ export const DesignDecisionsLayerWidget = ({
                 color={DIM_COLOR}
               />
               <FormTagListWidget
-                label={REQS_TAG_LABEL}
-                items={decision.relatedRequirements as unknown as TagItem[]}
+                label={NODES_TAG_LABEL}
+                items={decision.relatedNodeIds as unknown as TagItem[]}
               />
             </>
           ) : (
@@ -117,8 +117,8 @@ export const DesignDecisionsLayerWidget = ({
                 {decision.rationale}
               </Text>
               <FormTagListWidget
-                label={REQS_TAG_LABEL}
-                items={decision.relatedRequirements as unknown as TagItem[]}
+                label={NODES_TAG_LABEL}
+                items={decision.relatedNodeIds as unknown as TagItem[]}
               />
             </>
           )}

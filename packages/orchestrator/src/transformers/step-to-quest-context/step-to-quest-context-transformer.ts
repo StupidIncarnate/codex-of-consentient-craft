@@ -1,17 +1,16 @@
 /**
- * PURPOSE: Extracts related contracts, observables, and requirements from a quest for a given step
+ * PURPOSE: Extracts related contracts and observables from a quest for a given step
  *
  * USAGE:
  * const context = stepToQuestContextTransformer({ step, quest });
- * // Returns { relatedContracts, relatedObservables, relatedRequirements } filtered subsets
+ * // Returns { relatedContracts, relatedObservables } filtered subsets
  */
 
 import type {
   DependencyStep,
-  Observable,
+  FlowObservable,
   Quest,
   QuestContractEntry,
-  Requirement,
 } from '@dungeonmaster/shared/contracts';
 
 export const stepToQuestContextTransformer = ({
@@ -22,8 +21,7 @@ export const stepToQuestContextTransformer = ({
   quest: Quest;
 }): {
   relatedContracts: QuestContractEntry[];
-  relatedObservables: Observable[];
-  relatedRequirements: Requirement[];
+  relatedObservables: FlowObservable[];
 } => {
   const contractNames = new Set([...step.inputContracts, ...step.outputContracts]);
 
@@ -31,28 +29,16 @@ export const stepToQuestContextTransformer = ({
 
   const observableIds = new Set(step.observablesSatisfied);
 
-  const relatedObservables = quest.observables.filter((observable) =>
+  const allObservables = quest.flows.flatMap((flow) =>
+    flow.nodes.flatMap((node) => node.observables),
+  );
+
+  const relatedObservables = allObservables.filter((observable) =>
     observableIds.has(observable.id),
-  );
-
-  const requirementIds = new Set(
-    relatedObservables
-      .filter(
-        (
-          observable,
-        ): observable is Observable & { requirementId: NonNullable<Observable['requirementId']> } =>
-          observable.requirementId !== undefined,
-      )
-      .map((observable) => observable.requirementId),
-  );
-
-  const relatedRequirements = quest.requirements.filter((requirement) =>
-    requirementIds.has(requirement.id),
   );
 
   return {
     relatedContracts,
     relatedObservables,
-    relatedRequirements,
   };
 };

@@ -116,23 +116,21 @@ export const siegemasterPhaseLayerBroker = async ({
 
   const quest = await questLoadBroker({ questFilePath });
 
-  if (quest.observables.length === 0) {
+  const allObservables = quest.flows.flatMap((flow) =>
+    flow.nodes.flatMap((node) => node.observables),
+  );
+
+  if (allObservables.length === 0) {
     return;
   }
 
-  const contextMap = new Map(quest.contexts.map((context) => [context.id, context]));
-
-  const workUnits: WorkUnit[] = quest.observables.map((observable) => {
-    const matchingContext = contextMap.get(observable.contextId);
-    const contexts = matchingContext === undefined ? [] : [matchingContext];
-
-    return workUnitContract.parse({
+  const workUnits: WorkUnit[] = allObservables.map((observable) =>
+    workUnitContract.parse({
       role: 'siegemaster',
       questId,
       observables: [observable],
-      contexts,
-    });
-  });
+    }),
+  );
 
   const maxConcurrent = maxConcurrentContract.parse(CONCURRENT_LIMIT);
   const timeoutMs = timeoutMsContract.parse(TIMEOUT_MS);

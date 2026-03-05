@@ -9,10 +9,16 @@ describe('gateSectionKeyContract', () => {
       expect(result).toBe('flows');
     });
 
-    it('VALID: {value: "observables"} => parses observables key', () => {
-      const result = gateSectionKeyContract.parse('observables');
+    it('VALID: {value: "designDecisions"} => parses designDecisions key', () => {
+      const result = gateSectionKeyContract.parse('designDecisions');
 
-      expect(result).toBe('observables');
+      expect(result).toBe('designDecisions');
+    });
+
+    it('VALID: {value: "contracts"} => parses contracts key', () => {
+      const result = gateSectionKeyContract.parse('contracts');
+
+      expect(result).toBe('contracts');
     });
 
     it('VALID: {value: "toolingRequirements"} => parses tooling key', () => {
@@ -27,6 +33,14 @@ describe('gateSectionKeyContract', () => {
       expect(() => gateSectionKeyContract.parse('unknown')).toThrow(/Invalid enum value/u);
     });
 
+    it('INVALID_VALUE: {value: "requirements"} => throws for removed key', () => {
+      expect(() => gateSectionKeyContract.parse('requirements')).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID_VALUE: {value: "observables"} => throws for removed key', () => {
+      expect(() => gateSectionKeyContract.parse('observables')).toThrow(/Invalid enum value/u);
+    });
+
     it('EMPTY: {value: null} => throws for null', () => {
       expect(() => gateSectionKeyContract.parse(null)).toThrow(/received null/u);
     });
@@ -39,10 +53,10 @@ describe('gateSectionKeyContract', () => {
       expect(result).toBe('flows');
     });
 
-    it('VALID: {value: "requirements"} => creates key with custom value', () => {
-      const result = GateSectionKeyStub({ value: 'requirements' });
+    it('VALID: {value: "contracts"} => creates key with custom value', () => {
+      const result = GateSectionKeyStub({ value: 'contracts' });
 
-      expect(result).toBe('requirements');
+      expect(result).toBe('contracts');
     });
   });
 });

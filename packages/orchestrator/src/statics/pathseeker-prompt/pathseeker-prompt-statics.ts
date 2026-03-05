@@ -6,7 +6,7 @@
  * // Returns the PathSeeker agent prompt template
  *
  * The prompt in this module is used to spawn a Claude CLI subprocess that:
- * 1. Reads quest spec defined by ChaosWhisperer (requirements, contracts, contexts, observables, etc.)
+ * 1. Reads quest spec defined by ChaosWhisperer (flows with nodes/edges/observables, contracts, etc.)
  * 2. Examines the repository using HTTP API discover endpoints
  * 3. Maps observables to concrete files
  * 4. Creates dependency steps that link directly to observables via observablesSatisfied
@@ -41,8 +41,7 @@ build, what inputs it needs, and what outputs it produces to accomplish the ques
 ## What You Do NOT Do
 
 - Interact with users or ask clarifying questions
-- Define contexts (WHERE) - ChaosWhisperer does this
-- Create or modify observables - ChaosWhisperer does this
+- Create or modify flows or observables - ChaosWhisperer does this
 - Write implementation code
 
 ## Workflow
@@ -68,10 +67,9 @@ Use the \`get-quest\` tool to retrieve the quest specification:
 
 Understand:
 
-- What requirements exist and which are approved (only map observables for approved requirements)
+- What flows exist and their structure (nodes, edges, entry/exit points)
+- What observables are embedded in flow nodes (each has \`given/when/then\` format)
 - What contracts are declared (the shared type dictionary - data types, endpoints, events that steps will reference)
-- What contexts exist (environments, pages)
-- What observables need to be satisfied (each should have a \`requirementId\` linking to its parent requirement)
 - What tooling requirements were identified
 
 ### Step 3: Discover Existing Code
@@ -114,10 +112,10 @@ For each observable, determine:
 - File naming based on project conventions (from folder details)
 - All required companion files
 - **What npm packages are needed** - JWT libraries, validation libraries, adapters for external services, etc.
-- **Verification steps** - Use the observable's \`verification\` array (assert \`type\` tags like \`ui-state\`, \`api-call\`,
-  \`file-exists\`, \`process-state\`) alongside \`outcomes\` to decide which files to create. Assert type tags indicate
-  the category of verification needed and inform file type selection (e.g., \`api-call\` asserts suggest adapter/broker
-  files, \`ui-state\` asserts suggest widget/component files).
+- **Observable outcomes** - Use the observable's \`then\` array (each outcome has a \`type\` tag like \`ui-state\`, \`api-call\`,
+  \`file-exists\`, \`process-state\` and a \`description\`) to decide which files to create. Type tags indicate the category
+  of verification needed and inform file type selection (e.g., \`api-call\` outcomes suggest adapter/broker files,
+  \`ui-state\` outcomes suggest widget/component files).
 
 ### Step 6: Create Detailed Steps
 

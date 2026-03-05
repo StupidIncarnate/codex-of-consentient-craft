@@ -19,14 +19,6 @@ describe('questStatusContract', () => {
       expect(result).toBe('flows_approved');
     });
 
-    it('VALID: requirements_approved => parses successfully', () => {
-      const status = QuestStatusStub({ value: 'requirements_approved' });
-
-      const result = questStatusContract.parse(status);
-
-      expect(result).toBe('requirements_approved');
-    });
-
     it('VALID: approved => parses successfully', () => {
       const status = QuestStatusStub({ value: 'approved' });
 
@@ -80,6 +72,12 @@ describe('questStatusContract', () => {
     it('INVALID: unknown status => throws validation error', () => {
       expect(() => {
         questStatusContract.parse('invalid_status');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: requirements_approved => throws validation error (removed status)', () => {
+      expect(() => {
+        questStatusContract.parse('requirements_approved');
       }).toThrow(/Invalid enum value/u);
     });
   });

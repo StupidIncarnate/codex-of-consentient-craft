@@ -20,11 +20,11 @@ export const getQuestInputContract = z
         [
           'Optional pipeline stage to filter sections. Omit to return all sections. Excluded sections return as empty arrays.',
           'Stage values:',
-          '- "spec": requirements, designDecisions, contracts, contexts, observables, toolingRequirements',
-          '- "spec-decisions": requirements, designDecisions, contracts, toolingRequirements',
-          '- "spec-bdd": contexts, observables, contracts',
-          '- "implementation": steps, contracts',
-          'Contracts are included in every stage as the shared type dictionary.',
+          '- "spec": flows, designDecisions, contracts, toolingRequirements',
+          '- "spec-flows": flows, designDecisions, contracts, toolingRequirements',
+          '- "spec-obs": flows, contracts, toolingRequirements',
+          '- "implementation": steps, contracts, toolingRequirements',
+          'Contracts and toolingRequirements are included in every stage.',
         ].join(' '),
       )
       .optional(),

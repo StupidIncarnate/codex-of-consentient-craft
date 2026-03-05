@@ -15,11 +15,9 @@ import { questHasDependencyIntegrityGuard } from '../../guards/quest-has-depende
 import { questHasFileCompanionsGuard } from '../../guards/quest-has-file-companions/quest-has-file-companions-guard';
 import { questHasNoCircularDepsGuard } from '../../guards/quest-has-no-circular-deps/quest-has-no-circular-deps-guard';
 import { questHasNoOrphanStepsGuard } from '../../guards/quest-has-no-orphan-steps/quest-has-no-orphan-steps-guard';
+import { questHasNodeCoverageGuard } from '../../guards/quest-has-node-coverage/quest-has-node-coverage-guard';
 import { questHasObservableCoverageGuard } from '../../guards/quest-has-observable-coverage/quest-has-observable-coverage-guard';
-import { questHasValidContextRefsGuard } from '../../guards/quest-has-valid-context-refs/quest-has-valid-context-refs-guard';
-import { questHasValidRequirementRefsGuard } from '../../guards/quest-has-valid-requirement-refs/quest-has-valid-requirement-refs-guard';
 import { questStepHasContractRefsGuard } from '../../guards/quest-step-has-contract-refs/quest-step-has-contract-refs-guard';
-import { questHasFlowCoverageGuard } from '../../guards/quest-has-flow-coverage/quest-has-flow-coverage-guard';
 import { questHasValidFlowRefsGuard } from '../../guards/quest-has-valid-flow-refs/quest-has-valid-flow-refs-guard';
 import { questStepHasExportNameGuard } from '../../guards/quest-step-has-export-name/quest-step-has-export-name-guard';
 import { questStepHasValidContractRefsGuard } from '../../guards/quest-step-has-valid-contract-refs/quest-step-has-valid-contract-refs-guard';
@@ -29,8 +27,12 @@ type Quest = ReturnType<typeof QuestStub>;
 export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuestCheck[] => {
   const checks: VerifyQuestCheck[] = [];
 
+  const allObservableCount = quest.flows.flatMap((flow) =>
+    flow.nodes.flatMap((node) => node.observables),
+  ).length;
+
   const observableCoverage = questHasObservableCoverageGuard({
-    observables: quest.observables,
+    flows: quest.flows,
     steps: quest.steps,
   });
   checks.push(
@@ -38,7 +40,7 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
       name: 'Observable Coverage',
       passed: observableCoverage,
       details: observableCoverage
-        ? `All ${String(quest.observables.length)} observables covered by steps`
+        ? `All ${String(allObservableCount)} observables covered by steps`
         : `Some observables not covered by any step's observablesSatisfied`,
     }),
   );
@@ -73,34 +75,6 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
       details: noOrphanSteps
         ? `All ${String(quest.steps.length)} steps satisfy at least one observable`
         : 'Some steps have empty observablesSatisfied arrays',
-    }),
-  );
-
-  const validContextRefs = questHasValidContextRefsGuard({
-    observables: quest.observables,
-    contexts: quest.contexts,
-  });
-  checks.push(
-    verifyQuestCheckContract.parse({
-      name: 'Valid Context References',
-      passed: validContextRefs,
-      details: validContextRefs
-        ? 'All observable contextId references point to existing contexts'
-        : 'Some observables reference non-existent context IDs',
-    }),
-  );
-
-  const validRequirementRefs = questHasValidRequirementRefsGuard({
-    observables: quest.observables,
-    requirements: quest.requirements,
-  });
-  checks.push(
-    verifyQuestCheckContract.parse({
-      name: 'Valid Requirement References',
-      passed: validRequirementRefs,
-      details: validRequirementRefs
-        ? 'All observable requirementId references point to existing requirements'
-        : 'Some observables reference non-existent requirement IDs',
     }),
   );
 
@@ -172,29 +146,27 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
 
   const validFlowRefs = questHasValidFlowRefsGuard({
     flows: quest.flows,
-    requirements: quest.requirements,
   });
   checks.push(
     verifyQuestCheckContract.parse({
       name: 'Valid Flow References',
       passed: validFlowRefs,
       details: validFlowRefs
-        ? 'All flow requirementIds reference existing requirements'
-        : 'Some flows reference non-existent requirement IDs',
+        ? 'All flow edge references point to existing nodes'
+        : 'Some flow edges reference non-existent node IDs',
     }),
   );
 
-  const flowCoverage = questHasFlowCoverageGuard({
+  const nodeCoverage = questHasNodeCoverageGuard({
     flows: quest.flows,
-    requirements: quest.requirements,
   });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'Flow Coverage',
-      passed: flowCoverage,
-      details: flowCoverage
-        ? 'All approved requirements covered by flows'
-        : 'Not all approved requirements are covered by flows',
+      name: 'Node Observable Coverage',
+      passed: nodeCoverage,
+      details: nodeCoverage
+        ? 'All terminal nodes have at least one observable'
+        : 'Some terminal nodes are missing observables',
     }),
   );
 

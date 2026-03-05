@@ -169,12 +169,8 @@ export const QuestChatWidget = (): React.JSX.Element => {
                       });
                     } else if (nextStatus === 'flows_approved') {
                       sendMessage({
-                        message: 'Flows approved. Proceed to requirements.' as UserInput,
-                      });
-                    } else if (nextStatus === 'requirements_approved') {
-                      sendMessage({
                         message:
-                          'Requirements approved. Proceed to observables and contracts.' as UserInput,
+                          'Flows approved. Proceed to observables and contracts.' as UserInput,
                       });
                     } else if (nextStatus === 'approved') {
                       sendMessage({

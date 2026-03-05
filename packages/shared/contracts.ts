@@ -105,9 +105,6 @@ export * from './src/contracts/install-context/install-context.stub';
 export * from './src/contracts/quest-id/quest-id-contract';
 export * from './src/contracts/quest-id/quest-id.stub';
 
-export * from './src/contracts/context-id/context-id-contract';
-export * from './src/contracts/context-id/context-id.stub';
-
 export * from './src/contracts/observable-id/observable-id-contract';
 export * from './src/contracts/observable-id/observable-id.stub';
 
@@ -120,38 +117,38 @@ export * from './src/contracts/session-id/session-id.stub';
 export * from './src/contracts/tooling-requirement-id/tooling-requirement-id-contract';
 export * from './src/contracts/tooling-requirement-id/tooling-requirement-id.stub';
 
-export * from './src/contracts/requirement-id/requirement-id-contract';
-export * from './src/contracts/requirement-id/requirement-id.stub';
-
 export * from './src/contracts/design-decision-id/design-decision-id-contract';
 export * from './src/contracts/design-decision-id/design-decision-id.stub';
 
 export * from './src/contracts/flow-id/flow-id-contract';
 export * from './src/contracts/flow-id/flow-id.stub';
 
-// Verification Step Contracts
-export * from './src/contracts/verification-step/verification-step-contract';
-export * from './src/contracts/verification-step/verification-step.stub';
-
 // Flow Contracts
 export * from './src/contracts/flow/flow-contract';
 export * from './src/contracts/flow/flow.stub';
 
-// Context & Observable Contracts (Wave 1)
-export * from './src/contracts/context-locator/context-locator-contract';
-export * from './src/contracts/context-locator/context-locator.stub';
-
+// Outcome Type Contracts
 export * from './src/contracts/outcome-type/outcome-type-contract';
 export * from './src/contracts/outcome-type/outcome-type.stub';
 
-export * from './src/contracts/context/context-contract';
-export * from './src/contracts/context/context.stub';
+// Flow Graph Contracts
+export * from './src/contracts/flow-node-id/flow-node-id-contract';
+export * from './src/contracts/flow-node-id/flow-node-id.stub';
 
-export * from './src/contracts/observable/observable-contract';
-export * from './src/contracts/observable/observable.stub';
+export * from './src/contracts/flow-node-type/flow-node-type-contract';
+export * from './src/contracts/flow-node-type/flow-node-type.stub';
 
-export * from './src/contracts/requirement/requirement-contract';
-export * from './src/contracts/requirement/requirement.stub';
+export * from './src/contracts/flow-observable/flow-observable-contract';
+export * from './src/contracts/flow-observable/flow-observable.stub';
+
+export * from './src/contracts/flow-node/flow-node-contract';
+export * from './src/contracts/flow-node/flow-node.stub';
+
+export * from './src/contracts/flow-edge-ref/flow-edge-ref-contract';
+export * from './src/contracts/flow-edge-ref/flow-edge-ref.stub';
+
+export * from './src/contracts/flow-edge/flow-edge-contract';
+export * from './src/contracts/flow-edge/flow-edge.stub';
 
 export * from './src/contracts/design-decision/design-decision-contract';
 export * from './src/contracts/design-decision/design-decision.stub';

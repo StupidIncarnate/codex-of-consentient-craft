@@ -1,7 +1,5 @@
-import { ContextStub } from '../context/context.stub';
 import { DependencyStepStub } from '../dependency-step/dependency-step.stub';
 import { FlowStub } from '../flow/flow.stub';
-import { ObservableStub } from '../observable/observable.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
 import { questContract } from './quest-contract';
@@ -21,10 +19,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         executionLog: [],
-        requirements: [],
         designDecisions: [],
-        contexts: [],
-        observables: [],
         steps: [],
         toolingRequirements: [],
         contracts: [],
@@ -54,28 +49,6 @@ describe('questContract', () => {
 
       expect(result.status).toBe('abandoned');
       expect(result.abandonReason).toBe('Requirements changed');
-    });
-
-    it('VALID: quest with contexts => parses successfully', () => {
-      const context = ContextStub();
-      const quest = QuestStub({
-        contexts: [context],
-      });
-
-      const result = questContract.parse(quest);
-
-      expect(result.contexts).toStrictEqual([context]);
-    });
-
-    it('VALID: quest with observables => parses successfully', () => {
-      const observable = ObservableStub();
-      const quest = QuestStub({
-        observables: [observable],
-      });
-
-      const result = questContract.parse(quest);
-
-      expect(result.observables).toStrictEqual([observable]);
     });
 
     it('VALID: quest with steps => parses successfully', () => {
@@ -130,8 +103,6 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         executionLog: [],
-        contexts: [],
-        observables: [],
         steps: [],
         toolingRequirements: [],
       });
@@ -147,8 +118,6 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         executionLog: [],
-        contexts: [],
-        observables: [],
         steps: [],
         toolingRequirements: [],
       });

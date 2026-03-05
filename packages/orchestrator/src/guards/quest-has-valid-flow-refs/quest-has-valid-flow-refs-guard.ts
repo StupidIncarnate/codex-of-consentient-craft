@@ -1,23 +1,16 @@
 /**
- * PURPOSE: Validates that all flow requirementIds point to existing requirements in the quest
+ * PURPOSE: Validates that all flow edge from/to references point to existing node IDs within the same flow
  *
  * USAGE:
- * questHasValidFlowRefsGuard({flows, requirements});
- * // Returns true if all flow requirementIds reference existing requirement IDs, false otherwise
+ * questHasValidFlowRefsGuard({flows});
+ * // Returns true if all edge refs are valid node IDs or cross-flow refs, false otherwise
  */
-import type { FlowStub, RequirementStub } from '@dungeonmaster/shared/contracts';
+import type { FlowStub } from '@dungeonmaster/shared/contracts';
 
 type Flow = ReturnType<typeof FlowStub>;
-type Requirement = ReturnType<typeof RequirementStub>;
 
-export const questHasValidFlowRefsGuard = ({
-  flows,
-  requirements,
-}: {
-  flows?: Flow[];
-  requirements?: Requirement[];
-}): boolean => {
-  if (!flows || !requirements) {
+export const questHasValidFlowRefsGuard = ({ flows }: { flows?: Flow[] }): boolean => {
+  if (!flows) {
     return false;
   }
 
@@ -25,7 +18,17 @@ export const questHasValidFlowRefsGuard = ({
     return true;
   }
 
-  const requirementIds = new Set(requirements.map((req) => req.id));
+  return flows.every((flow) => {
+    const nodeIds = new Set(flow.nodes.map((node) => String(node.id)));
 
-  return flows.every((flow) => flow.requirementIds.every((reqId) => requirementIds.has(reqId)));
+    return flow.edges.every((edge) => {
+      const fromRef = String(edge.from);
+      const toRef = String(edge.to);
+
+      const fromValid = fromRef.includes(':') || nodeIds.has(fromRef);
+      const toValid = toRef.includes(':') || nodeIds.has(toRef);
+
+      return fromValid && toValid;
+    });
+  });
 };

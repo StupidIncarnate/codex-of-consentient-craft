@@ -33,31 +33,31 @@ describe('getQuestInputContract', () => {
       });
     });
 
-    it('VALID: {questId with spec-decisions stage} => parses successfully', () => {
+    it('VALID: {questId with spec-flows stage} => parses successfully', () => {
       const input = GetQuestInputStub({
         questId: 'add-auth',
-        stage: 'spec-decisions',
+        stage: 'spec-flows',
       });
 
       const result = getQuestInputContract.parse(input);
 
       expect(result).toStrictEqual({
         questId: 'add-auth',
-        stage: 'spec-decisions',
+        stage: 'spec-flows',
       });
     });
 
-    it('VALID: {questId with spec-bdd stage} => parses successfully', () => {
+    it('VALID: {questId with spec-obs stage} => parses successfully', () => {
       const input = GetQuestInputStub({
         questId: 'add-auth',
-        stage: 'spec-bdd',
+        stage: 'spec-obs',
       });
 
       const result = getQuestInputContract.parse(input);
 
       expect(result).toStrictEqual({
         questId: 'add-auth',
-        stage: 'spec-bdd',
+        stage: 'spec-obs',
       });
     });
 
@@ -100,6 +100,18 @@ describe('getQuestInputContract', () => {
     it('INVALID_STAGE: {stage with invalid value} => throws validation error', () => {
       expect(() => {
         return getQuestInputContract.parse({ questId: 'add-auth', stage: 'invalid' });
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID_STAGE: {stage: "spec-decisions"} => throws validation error (removed stage)', () => {
+      expect(() => {
+        return getQuestInputContract.parse({ questId: 'add-auth', stage: 'spec-decisions' });
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID_STAGE: {stage: "spec-bdd"} => throws validation error (removed stage)', () => {
+      expect(() => {
+        return getQuestInputContract.parse({ questId: 'add-auth', stage: 'spec-bdd' });
       }).toThrow(/Invalid enum value/u);
     });
   });

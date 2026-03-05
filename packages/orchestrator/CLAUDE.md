@@ -10,17 +10,15 @@
   ├─ Phase 1: Discovery ──────── explore codebase, interview user
   ├─ Phase 2: Flow Mapping ────── mermaid diagrams (mandatory)
   ├─ Gate #1: User approves flows
-  ├─ Phase 4: Requirements ────── derived FROM approved flows
-  ├─ Gate #2: User approves requirements
-  ├─ Phase 6: Observables ─────── derived from flow paths, with verification steps
-  ├─ Gate #3: User approves observables + contracts
+  ├─ Phase 4: Observables ─────── embedded in flow nodes, with verification steps
+  ├─ Gate #2: User approves observables + contracts
   │
   ▼
 /quest:start ──► start-quest MCP
   │
   ▼
 PathSeeker (1) ◄── retry (max 3, on verify failure)
-  ├─ verify-quest ──── 13 integrity checks
+  ├─ verify-quest ──── 11 integrity checks
   ├─ finalizer-quest-agent ── semantic review
   │
   ▼
@@ -48,22 +46,21 @@ Complete
 ## Quest Status Lifecycle
 
 ```
-created ──► flows_approved ──► requirements_approved ──► approved ──► in_progress ──► complete
-                                                                          │
-                                                                          ├──► blocked
-                                                                          └──► abandoned
+created ──► flows_approved ──► approved ──► in_progress ──► complete
+                                                 │
+                                                 ├──► blocked
+                                                 └──► abandoned
 ```
 
-| Status                  | Set By                                                    | Gate                                               |
-|-------------------------|-----------------------------------------------------------|----------------------------------------------------|
-| `created`               | `add-quest`                                               | Can add: flows, designDecisions                    |
-| `flows_approved`        | ChaosWhisperer after user approves flows (Gate #1)        | Can add: requirements                              |
-| `requirements_approved` | ChaosWhisperer after user approves requirements (Gate #2) | Can add: contexts, observables, contracts, tooling |
-| `approved`              | ChaosWhisperer after user approves observables (Gate #3)  | Spec locked. `start-quest` allowed.                |
-| `in_progress`           | `start-quest`                                             | Steps can be added/modified                        |
-| `blocked`               | Pipeline blocker                                          | Execution paused                                   |
-| `complete`              | All phases pass                                           | Terminal                                           |
-| `abandoned`             | User abandons                                             | Terminal                                           |
+| Status           | Set By                                                    | Gate                                                      |
+|------------------|-----------------------------------------------------------|-----------------------------------------------------------|
+| `created`        | `add-quest`                                               | Can add: flows, designDecisions                           |
+| `flows_approved` | ChaosWhisperer after user approves flows (Gate #1)        | Can add: observables (in flow nodes), contracts, tooling  |
+| `approved`       | ChaosWhisperer after user approves observables (Gate #2)  | Spec locked. `start-quest` allowed.                       |
+| `in_progress`    | `start-quest`                                             | Steps can be added/modified                               |
+| `blocked`        | Pipeline blocker                                          | Execution paused                                          |
+| `complete`       | All phases pass                                           | Terminal                                                  |
+| `abandoned`      | User abandons                                             | Terminal                                                  |
 
 ## Flows (Mermaid Diagrams)
 
@@ -71,46 +68,44 @@ Flows are mermaid diagrams that force the LLM to think through connected state t
 Every node must have an entry and exit — this surfaces missing "glue" (loading states, error recovery, navigation
 transitions) that isolated requirements miss.
 
-- Flows come FIRST, requirements are derived FROM them
+- Flows come FIRST, observables are embedded directly in flow nodes
 - No type enum — the mermaid syntax itself encodes the diagram style (`graph TD`, `sequenceDiagram`, etc.)
-- `requirementIds` defaults to `[]` because flows are created before requirements exist; backfilled later
-- Flows are mandatory — every quest must have flows before requirements can be extracted
+- Flows have `nodes: FlowNode[]` and `edges: FlowEdge[]`; each node has optional `observables: FlowObservable[]`
+- Flows are mandatory — every quest must have flows before observables can be defined
 - The `quest-has-flow-coverage` guard is hard (blocks verification on failure)
 
-## Enhanced Observables (Verification Steps)
+## Observables (GIVEN/WHEN/THEN)
 
-Each observable carries a `verification` array — an ordered sequence of steps that serves as BOTH the description of
-what should happen AND the executable verification plan. No separate scenarios or playbook layers.
+Observables are embedded directly in flow nodes at `flows[].nodes[].observables[]`. Each uses a BDD-style format:
 
 ```
-verification: [
-  { action: "navigate", target: "/page" },        ← setup
-  { action: "click",    target: "Button" },        ← setup
-  { action: "fill",     target: "Name field", value: "Test" },  ← setup
-  { action: "click",    target: "Submit" },        ← trigger
-  { action: "assert",   condition: "Spinner visible", type: "ui-state" },  ← assert
-  { action: "assert",   condition: "POST /api/x called", type: "api-call" },  ← assert
-]
+{
+  id: "observable-uuid",
+  given: "user is on /login page with empty form",
+  when: "user submits valid credentials",
+  then: [
+    { type: "api-call", description: "POST /api/auth/login called with credentials" },
+    { type: "ui-state", description: "redirected to /dashboard" }
+  ]
+}
 ```
 
 Three consumers read different parts:
 
-- **User** reads trigger + assert conditions (human-readable QA checklist)
-- **PathSeeker** reads assert `type` tags (file planning: ui-state → widgets, api-call → responders)
-- **Siegemaster** executes the full sequence (automated verification)
-
-During transition, ChaosWhisperer generates BOTH `verification` (primary) and `outcomes` (backward compat).
-The `workUnitToArgumentsTransformer` reads both when feeding agents.
+- **User** reads given/when/then as a human-readable acceptance criteria checklist
+- **PathSeeker** reads `then[].type` tags (file planning: ui-state -> widgets, api-call -> responders)
+- **Siegemaster** uses the full observable to create integration tests
 
 ## Quest Stages
 
-| Stage        | Sections Included                               |
-|--------------|-------------------------------------------------|
-| `spec`       | requirements, designDecisions, flows, contracts |
-| `spec-flows` | requirements, designDecisions, flows, contracts |
-| `full`       | all sections                                    |
+| Stage            | Sections Included                                         |
+|------------------|-----------------------------------------------------------|
+| `spec`           | flows (with observables), designDecisions, contracts, tooling |
+| `spec-flows`     | flows (nodes/edges only, no observables), designDecisions, contracts, tooling |
+| `spec-obs`       | flows (observables only), contracts, tooling              |
+| `implementation` | steps, contracts, tooling                                 |
 
-Use `?stage=spec-flows` to get flow-focused filtered view of a quest.
+Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=spec-obs` to get observables without flow structure.
 
 ## Agent Roles
 
@@ -153,7 +148,7 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 
 | Skill          | Purpose                                                            |
 |----------------|--------------------------------------------------------------------|
-| `/quest`       | ChaosWhisperer — BDD spec creation with three human approval gates |
+| `/quest`       | ChaosWhisperer — BDD spec creation with two human approval gates   |
 | `/quest:start` | Start execution, poll progress                                     |
 | `/test`        | Write unit tests for existing code                                 |
 | `/tegrity`     | Fix lint + type errors iteratively                                 |

@@ -28,8 +28,6 @@ import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { ContractsLayerWidget } from './contracts-layer-widget';
 import { DesignDecisionsLayerWidget } from './design-decisions-layer-widget';
 import { FlowsLayerWidget } from './flows-layer-widget';
-import { ObservablesLayerWidget } from './observables-layer-widget';
-import { RequirementsLayerWidget } from './requirements-layer-widget';
 
 const APPROVE_LABEL = 'APPROVE' as ButtonLabel;
 const MODIFY_LABEL = 'MODIFY' as ButtonLabel;
@@ -43,8 +41,6 @@ const TITLE_BAR_STYLE_BASE = { padding: '8px 16px' };
 const ACTION_BAR_STYLE_BASE = { padding: 12, flexShrink: 0 };
 const HEADER_FONT_SIZE = 'xs' as const;
 
-const REQUIREMENTS_SECTION = 'requirements' as GateSectionKey;
-const OBSERVABLES_SECTION = 'observables' as GateSectionKey;
 const CONTRACTS_SECTION = 'contracts' as GateSectionKey;
 
 export interface QuestSpecPanelWidgetProps {
@@ -75,11 +71,8 @@ export const QuestSpecPanelWidget = ({
   }, [externalUpdatePending, editing, onDismissUpdate]);
 
   const draftTitle = draftModifications.title ?? quest.title;
-  const draftRequirements = draftModifications.requirements ?? quest.requirements;
   const draftDesignDecisions = draftModifications.designDecisions ?? quest.designDecisions;
   const draftFlows = draftModifications.flows ?? quest.flows;
-  const draftContexts = draftModifications.contexts ?? quest.contexts;
-  const draftObservables = draftModifications.observables ?? quest.observables;
   const draftContracts = draftModifications.contracts ?? quest.contracts;
   const draftTooling = draftModifications.toolingRequirements ?? quest.toolingRequirements;
 
@@ -201,34 +194,6 @@ export const QuestSpecPanelWidget = ({
             }));
           }}
         />
-
-        {isGateSectionVisibleGuard({ status: quest.status, section: REQUIREMENTS_SECTION }) ? (
-          <RequirementsLayerWidget
-            requirements={draftRequirements}
-            editing={editing}
-            onChange={(payload) => {
-              setDraftModifications((prev) => ({
-                ...prev,
-                requirements: payload.requirements,
-              }));
-            }}
-          />
-        ) : null}
-
-        {isGateSectionVisibleGuard({ status: quest.status, section: OBSERVABLES_SECTION }) ? (
-          <ObservablesLayerWidget
-            contexts={draftContexts}
-            observables={draftObservables}
-            editing={editing}
-            onChange={(payload) => {
-              setDraftModifications((prev) => ({
-                ...prev,
-                contexts: payload.contexts,
-                observables: payload.observables,
-              }));
-            }}
-          />
-        ) : null}
 
         {isGateSectionVisibleGuard({ status: quest.status, section: CONTRACTS_SECTION }) ? (
           <ContractsLayerWidget

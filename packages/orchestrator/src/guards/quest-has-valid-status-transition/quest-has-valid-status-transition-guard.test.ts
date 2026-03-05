@@ -13,18 +13,9 @@ describe('questHasValidStatusTransitionGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {flows_approved -> requirements_approved} => returns true', () => {
+    it('VALID: {flows_approved -> approved} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
         currentStatus: QuestStatusStub({ value: 'flows_approved' }),
-        nextStatus: QuestStatusStub({ value: 'requirements_approved' }),
-      });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {requirements_approved -> approved} => returns true', () => {
-      const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'requirements_approved' }),
         nextStatus: QuestStatusStub({ value: 'approved' }),
       });
 
@@ -87,19 +78,19 @@ describe('questHasValidStatusTransitionGuard', () => {
   });
 
   describe('invalid transitions', () => {
-    it('INVALID: {created -> requirements_approved} => returns false (skips flows_approved)', () => {
+    it('INVALID: {created -> approved} => returns false (skips flows_approved)', () => {
       const result = questHasValidStatusTransitionGuard({
         currentStatus: QuestStatusStub({ value: 'created' }),
-        nextStatus: QuestStatusStub({ value: 'requirements_approved' }),
+        nextStatus: QuestStatusStub({ value: 'approved' }),
       });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID: {created -> approved} => returns false (skips two steps)', () => {
+    it('INVALID: {created -> in_progress} => returns false (skips multiple steps)', () => {
       const result = questHasValidStatusTransitionGuard({
         currentStatus: QuestStatusStub({ value: 'created' }),
-        nextStatus: QuestStatusStub({ value: 'approved' }),
+        nextStatus: QuestStatusStub({ value: 'in_progress' }),
       });
 
       expect(result).toBe(false);
@@ -118,15 +109,6 @@ describe('questHasValidStatusTransitionGuard', () => {
       const result = questHasValidStatusTransitionGuard({
         currentStatus: QuestStatusStub({ value: 'abandoned' }),
         nextStatus: QuestStatusStub({ value: 'created' }),
-      });
-
-      expect(result).toBe(false);
-    });
-
-    it('INVALID: {flows_approved -> approved} => returns false (skips requirements_approved)', () => {
-      const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'flows_approved' }),
-        nextStatus: QuestStatusStub({ value: 'approved' }),
       });
 
       expect(result).toBe(false);

@@ -22,7 +22,7 @@ const CHAT_TIMEOUT = 15_000;
 const PANEL_TIMEOUT = 10_000;
 
 /**
- * Writes a quest.json to disk with requirements populated so the spec panel renders.
+ * Writes a quest.json to disk with flows populated so the spec panel renders.
  * Uses a 001- prefixed folder so questListBroker's isQuestFolderGuard allows it.
  */
 const createQuestFile = ({
@@ -46,29 +46,27 @@ const createQuestFile = ({
     status: 'approved',
     createdAt: new Date().toISOString(),
     questCreatedSessionBy: sessionId,
-    requirements: [
-      {
-        id: crypto.randomUUID(),
-        name: 'Dual Panel Requirement',
-        description: 'A requirement for dual-panel e2e testing',
-        scope: 'packages/web',
-        status: 'approved',
-      },
-    ],
     designDecisions: [],
-    contexts: [],
-    observables: [],
     steps: [],
     toolingRequirements: [],
     contracts: [],
-    flows: [],
+    flows: [
+      {
+        id: crypto.randomUUID(),
+        name: 'Dual Panel Flow',
+        entryPoint: 'Start',
+        exitPoints: ['End'],
+        nodes: [],
+        edges: [],
+      },
+    ],
   };
 
   writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
 };
 
 /**
- * Writes a quest.json with requirements AND flows so the spec panel renders
+ * Writes a quest.json with flows so the spec panel renders
  * during history replay tests. Uses a 002- prefixed folder to avoid collisions.
  */
 const createQuestFileWithFlows = ({
@@ -92,18 +90,7 @@ const createQuestFileWithFlows = ({
     status: 'approved',
     createdAt: new Date().toISOString(),
     questCreatedSessionBy: sessionId,
-    requirements: [
-      {
-        id: crypto.randomUUID(),
-        name: 'History Replay Requirement',
-        description: 'A requirement for history replay e2e testing',
-        scope: 'packages/web',
-        status: 'approved',
-      },
-    ],
     designDecisions: [],
-    contexts: [],
-    observables: [],
     steps: [],
     toolingRequirements: [],
     contracts: [],
@@ -111,10 +98,17 @@ const createQuestFileWithFlows = ({
       {
         id: crypto.randomUUID(),
         name: 'Main Flow',
-        diagram: 'User -> System -> Database',
         entryPoint: 'User request',
         exitPoints: ['Success response'],
-        requirementIds: [],
+        nodes: [
+          { id: 'user-req', label: 'User Request', type: 'state', observables: [] },
+          { id: 'system', label: 'System', type: 'action', observables: [] },
+          { id: 'database', label: 'Database', type: 'action', observables: [] },
+        ],
+        edges: [
+          { from: 'user-req', to: 'system' },
+          { from: 'system', to: 'database' },
+        ],
       },
     ],
   };
@@ -365,8 +359,8 @@ test.describe('Quest Dual Panel', () => {
     // The "Awaiting quest activity..." placeholder should NOT be visible
     await expect(page.getByText('Awaiting quest activity...')).not.toBeVisible();
 
-    // Quest requirement name should be visible in the spec panel
-    await expect(page.getByText('Dual Panel Requirement')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    // Quest flow name should be visible in the spec panel
+    await expect(page.getByText('Dual Panel Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 
   test('history replay of session with answered clarification does not show clarify panel', async ({
@@ -409,7 +403,7 @@ test.describe('Quest Dual Panel', () => {
     // Bug A: clarify panel must NOT be visible — the question was already answered in history
     await expect(page.getByTestId('QUEST_CLARIFY_PANEL')).not.toBeVisible();
 
-    // Spec panel should be visible since the quest has requirements and flows
+    // Spec panel should be visible since the quest has flows
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 

@@ -13,32 +13,6 @@ describe('modifyQuestInputContract', () => {
       expect(result).toStrictEqual({ questId: 'add-auth' });
     });
 
-    it('VALID: {questId, contexts} => parses with contexts array', () => {
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        contexts: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Admin Page',
-            description: 'User admin section',
-            locator: { page: '/admin' },
-          },
-        ],
-      });
-
-      const result = modifyQuestInputContract.parse(input);
-
-      expect(result.questId).toBe('add-auth');
-      expect(result.contexts).toStrictEqual([
-        {
-          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          name: 'Admin Page',
-          description: 'User admin section',
-          locator: { page: '/admin' },
-        },
-      ]);
-    });
-
     it('VALID: {questId, contracts} => parses with contracts array', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -95,13 +69,13 @@ describe('modifyQuestInputContract', () => {
     it('VALID: {questId, status} => parses with status field', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        status: 'requirements_approved',
+        status: 'approved',
       });
 
       const result = modifyQuestInputContract.parse(input);
 
       expect(result.questId).toBe('add-auth');
-      expect(result.status).toBe('requirements_approved');
+      expect(result.status).toBe('approved');
     });
 
     it('VALID: {questId, steps} => parses with steps array', () => {
@@ -124,7 +98,46 @@ describe('modifyQuestInputContract', () => {
       const result = modifyQuestInputContract.parse(input);
 
       expect(result.questId).toBe('add-auth');
-      expect(result.steps).toHaveLength(1);
+      expect(result.steps).toStrictEqual([
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'Create API',
+          description: 'Create authentication API',
+          observablesSatisfied: [],
+          dependsOn: [],
+          filesToCreate: [],
+          filesToModify: [],
+          status: 'pending',
+          inputContracts: [],
+          outputContracts: [],
+        },
+      ]);
+    });
+
+    it('VALID: {questId, designDecisions} => parses with design decisions array', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        designDecisions: [
+          {
+            id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+            title: 'Use JWT for auth',
+            rationale: 'Stateless authentication',
+            relatedNodeIds: [],
+          },
+        ],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.questId).toBe('add-auth');
+      expect(result.designDecisions).toStrictEqual([
+        {
+          id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+          title: 'Use JWT for auth',
+          rationale: 'Stateless authentication',
+          relatedNodeIds: [],
+        },
+      ]);
     });
   });
 

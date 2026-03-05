@@ -1,4 +1,11 @@
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  QuestStub,
+  FlowStub,
+  FlowNodeStub,
+  FlowObservableStub,
+  DesignDecisionStub,
+  QuestContractEntryStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { questSectionFilterTransformer } from './quest-section-filter-transformer';
 
@@ -14,39 +21,24 @@ describe('questSectionFilterTransformer', () => {
   });
 
   describe('single section filter', () => {
-    it('VALID: {sections: ["requirements"]} => returns only requirements populated', () => {
+    it('VALID: {sections: ["flows"]} => returns only flows populated', () => {
       const quest = QuestStub({
-        requirements: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Auth',
-            description: 'User auth',
-            scope: 'packages/api',
-            status: 'approved',
-          },
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                observables: [FlowObservableStub()],
+              }),
+            ],
+          }),
         ],
-        contexts: [
-          {
-            id: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'LoginPage',
-            description: 'Login page',
-            locator: { page: '/login', section: 'main' },
-          },
-        ],
-        observables: [
-          {
-            id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-            contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            trigger: 'User submits login form',
-            dependsOn: [],
-            outcomes: [],
-          },
-        ],
+        designDecisions: [DesignDecisionStub()],
       });
 
       const result = questSectionFilterTransformer({
         quest,
-        sections: ['requirements'],
+        sections: ['flows'],
       });
 
       expect(result).toStrictEqual({
@@ -56,50 +48,33 @@ describe('questSectionFilterTransformer', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         executionLog: [],
-        requirements: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Auth',
-            description: 'User auth',
-            scope: 'packages/api',
-            status: 'approved',
-          },
-        ],
         designDecisions: [],
         contracts: [],
-        contexts: [],
-        observables: [],
         steps: [],
         toolingRequirements: [],
-        flows: [],
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                observables: [FlowObservableStub()],
+              }),
+            ],
+          }),
+        ],
       });
     });
 
-    it('VALID: {sections: ["observables"]} => returns only observables populated', () => {
+    it('VALID: {sections: ["designDecisions"]} => returns only designDecisions populated', () => {
+      const decision = DesignDecisionStub();
       const quest = QuestStub({
-        requirements: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Auth',
-            description: 'User auth',
-            scope: 'packages/api',
-            status: 'approved',
-          },
-        ],
-        observables: [
-          {
-            id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-            contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            trigger: 'User submits login form',
-            dependsOn: [],
-            outcomes: [],
-          },
-        ],
+        designDecisions: [decision],
+        flows: [FlowStub()],
       });
 
       const result = questSectionFilterTransformer({
         quest,
-        sections: ['observables'],
+        sections: ['designDecisions'],
       });
 
       expect(result).toStrictEqual({
@@ -109,20 +84,8 @@ describe('questSectionFilterTransformer', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         executionLog: [],
-        requirements: [],
-        designDecisions: [],
+        designDecisions: [decision],
         contracts: [],
-        contexts: [],
-        observables: [
-          {
-            id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-            contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            trigger: 'User submits login form',
-            dependsOn: [],
-            outcomes: [],
-            verification: [],
-          },
-        ],
         steps: [],
         toolingRequirements: [],
         flows: [],
@@ -131,39 +94,18 @@ describe('questSectionFilterTransformer', () => {
   });
 
   describe('multiple section filter', () => {
-    it('VALID: {sections: ["requirements", "observables"]} => returns both populated', () => {
+    it('VALID: {sections: ["flows", "contracts"]} => returns both populated', () => {
+      const contract = QuestContractEntryStub();
+      const flow = FlowStub();
       const quest = QuestStub({
-        requirements: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Auth',
-            description: 'User auth',
-            scope: 'packages/api',
-            status: 'approved',
-          },
-        ],
-        observables: [
-          {
-            id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-            contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            trigger: 'User submits login form',
-            dependsOn: [],
-            outcomes: [],
-          },
-        ],
-        contexts: [
-          {
-            id: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'LoginPage',
-            description: 'Login page',
-            locator: { page: '/login', section: 'main' },
-          },
-        ],
+        flows: [flow],
+        contracts: [contract],
+        designDecisions: [DesignDecisionStub()],
       });
 
       const result = questSectionFilterTransformer({
         quest,
-        sections: ['requirements', 'observables'],
+        sections: ['flows', 'contracts'],
       });
 
       expect(result).toStrictEqual({
@@ -173,31 +115,11 @@ describe('questSectionFilterTransformer', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         executionLog: [],
-        requirements: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Auth',
-            description: 'User auth',
-            scope: 'packages/api',
-            status: 'approved',
-          },
-        ],
         designDecisions: [],
-        contracts: [],
-        contexts: [],
-        observables: [
-          {
-            id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-            contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            trigger: 'User submits login form',
-            dependsOn: [],
-            outcomes: [],
-            verification: [],
-          },
-        ],
+        contracts: [contract],
         steps: [],
         toolingRequirements: [],
-        flows: [],
+        flows: [flow],
       });
     });
   });
@@ -205,15 +127,7 @@ describe('questSectionFilterTransformer', () => {
   describe('empty sections array', () => {
     it('VALID: {sections: []} => returns all sections as empty arrays', () => {
       const quest = QuestStub({
-        requirements: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            name: 'Auth',
-            description: 'User auth',
-            scope: 'packages/api',
-            status: 'approved',
-          },
-        ],
+        flows: [FlowStub()],
       });
 
       const result = questSectionFilterTransformer({
@@ -228,11 +142,8 @@ describe('questSectionFilterTransformer', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         executionLog: [],
-        requirements: [],
         designDecisions: [],
         contracts: [],
-        contexts: [],
-        observables: [],
         steps: [],
         toolingRequirements: [],
         flows: [],
@@ -241,7 +152,7 @@ describe('questSectionFilterTransformer', () => {
   });
 
   describe('metadata preservation', () => {
-    it('VALID: {sections: ["requirements"]} => preserves all metadata fields', () => {
+    it('VALID: {sections: ["flows"]} => preserves all metadata fields', () => {
       const quest = QuestStub({
         id: 'my-quest',
         folder: '001-my-quest',
@@ -254,7 +165,7 @@ describe('questSectionFilterTransformer', () => {
 
       const result = questSectionFilterTransformer({
         quest,
-        sections: ['requirements'],
+        sections: ['flows'],
       });
 
       expect(result).toStrictEqual({
@@ -266,11 +177,8 @@ describe('questSectionFilterTransformer', () => {
         updatedAt: '2024-01-16T10:00:00.000Z',
         userRequest: 'Build something',
         executionLog: [],
-        requirements: [],
         designDecisions: [],
         contracts: [],
-        contexts: [],
-        observables: [],
         steps: [],
         toolingRequirements: [],
         flows: [],
@@ -279,34 +187,18 @@ describe('questSectionFilterTransformer', () => {
   });
 
   describe('immutability', () => {
-    it('VALID: {sections: ["requirements"]} => does not mutate original quest', () => {
+    it('VALID: {sections: ["flows"]} => does not mutate original quest', () => {
+      const flow = FlowStub();
       const quest = QuestStub({
-        observables: [
-          {
-            id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-            contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-            trigger: 'User submits login form',
-            dependsOn: [],
-            outcomes: [],
-          },
-        ],
+        flows: [flow],
       });
 
       questSectionFilterTransformer({
         quest,
-        sections: ['requirements'],
+        sections: ['designDecisions'],
       });
 
-      expect(quest.observables).toStrictEqual([
-        {
-          id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-          contextId: 'a47ac10b-58cc-4372-a567-0e02b2c3d479',
-          trigger: 'User submits login form',
-          dependsOn: [],
-          outcomes: [],
-          verification: [],
-        },
-      ]);
+      expect(quest.flows).toStrictEqual([flow]);
     });
   });
 });

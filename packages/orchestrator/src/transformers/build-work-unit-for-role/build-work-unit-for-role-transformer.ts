@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const workUnit = buildWorkUnitForRoleTransformer({ role: 'codeweaver', step, quest });
- * // Returns CodeweaverWorkUnit { role: 'codeweaver', step, questId, relatedContracts, relatedObservables, relatedRequirements }
+ * // Returns CodeweaverWorkUnit { role: 'codeweaver', step, questId, relatedContracts, relatedObservables }
  */
 
 import type { DependencyStep, Quest } from '@dungeonmaster/shared/contracts';
@@ -25,8 +25,10 @@ export const buildWorkUnitForRoleTransformer = ({
 }): WorkUnit => {
   switch (role) {
     case 'codeweaver': {
-      const { relatedContracts, relatedObservables, relatedRequirements } =
-        stepToQuestContextTransformer({ step, quest });
+      const { relatedContracts, relatedObservables } = stepToQuestContextTransformer({
+        step,
+        quest,
+      });
 
       return workUnitContract.parse({
         role: 'codeweaver',
@@ -34,26 +36,20 @@ export const buildWorkUnitForRoleTransformer = ({
         questId: quest.id,
         relatedContracts,
         relatedObservables,
-        relatedRequirements,
       });
     }
 
     case 'siegemaster': {
       const observableIds = new Set(step.observablesSatisfied);
 
-      const observables = quest.observables.filter((observable) =>
-        observableIds.has(observable.id),
-      );
-
-      const contextIds = new Set(observables.map((observable) => observable.contextId));
-
-      const contexts = quest.contexts.filter((context) => contextIds.has(context.id));
+      const observables = quest.flows
+        .flatMap((flow) => flow.nodes.flatMap((node) => node.observables))
+        .filter((observable) => observableIds.has(observable.id));
 
       return workUnitContract.parse({
         role: 'siegemaster',
         questId: quest.id,
         observables,
-        contexts,
       });
     }
 

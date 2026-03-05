@@ -9,7 +9,6 @@
 export const questGateContentRequirementsStatics = {
   gates: {
     flows_approved: ['flows'],
-    requirements_approved: ['requirements'],
-    approved: ['observables'],
+    approved: ['flows'],
   },
 } as const;

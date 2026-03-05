@@ -27,3 +27,6 @@ export * from './src/transformers/claude-project-path-encoder/claude-project-pat
 
 // Strip JSONL Suffix
 export * from './src/transformers/strip-jsonl-suffix/strip-jsonl-suffix-transformer';
+
+// Flow to Mermaid
+export * from './src/transformers/flow-to-mermaid/flow-to-mermaid-transformer';

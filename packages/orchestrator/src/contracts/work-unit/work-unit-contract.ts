@@ -9,13 +9,11 @@
 import { z } from 'zod';
 import {
   absoluteFilePathContract,
-  contextContract,
   dependencyStepContract,
   errorMessageContract,
-  observableContract,
+  flowObservableContract,
   questContractEntryContract,
   questIdContract,
-  requirementContract,
 } from '@dungeonmaster/shared/contracts';
 
 const pathseekerWorkUnitContract = z.object({
@@ -28,8 +26,7 @@ const codeweaverWorkUnitContract = z.object({
   step: dependencyStepContract,
   questId: questIdContract,
   relatedContracts: z.array(questContractEntryContract),
-  relatedObservables: z.array(observableContract),
-  relatedRequirements: z.array(requirementContract),
+  relatedObservables: z.array(flowObservableContract),
 });
 
 const spiritmenderWorkUnitContract = z.object({
@@ -41,8 +38,7 @@ const spiritmenderWorkUnitContract = z.object({
 const siegemasterWorkUnitContract = z.object({
   role: z.literal('siegemaster'),
   questId: questIdContract,
-  observables: z.array(observableContract),
-  contexts: z.array(contextContract),
+  observables: z.array(flowObservableContract),
 });
 
 const lawbringerWorkUnitContract = z.object({

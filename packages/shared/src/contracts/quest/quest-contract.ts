@@ -8,15 +8,12 @@
 
 import { z } from 'zod';
 
-import { contextContract } from '../context/context-contract';
 import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
 import { executionLogEntryContract } from '../execution-log-entry/execution-log-entry-contract';
-import { observableContract } from '../observable/observable-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
-import { requirementContract } from '../requirement/requirement-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 
 export const questContract = z.object({
@@ -33,28 +30,10 @@ export const questContract = z.object({
     .describe(
       'Operational log of quest execution events. Not included in any stage filter - only available via full quest retrieval',
     ),
-  requirements: z
-    .array(requirementContract)
-    .default([])
-    .describe(
-      'High-level feature descriptions with approval status. Each decomposes into 2-10 observables',
-    ),
   designDecisions: z
     .array(designDecisionContract)
     .default([])
     .describe('Architectural choices and rationale that emerged during requirements capture'),
-  contexts: z
-    .array(contextContract)
-    .default([])
-    .describe(
-      'Reusable environments WHERE things happen - pages, sections, environments. Referenced by observables via contextId',
-    ),
-  observables: z
-    .array(observableContract)
-    .default([])
-    .describe(
-      'BDD acceptance criteria structured as GIVEN (contextId) / WHEN (trigger) / THEN (outcomes). Each links to a requirement via requirementId',
-    ),
   steps: z
     .array(dependencyStepContract)
     .default([])
@@ -74,9 +53,7 @@ export const questContract = z.object({
   flows: z
     .array(flowContract)
     .default([])
-    .describe(
-      'User journey sequences linking requirements to entry/exit points with mermaid diagrams',
-    ),
+    .describe('User journey sequences with nodes, edges, and embedded observables'),
   questCreatedSessionBy: z.string().brand<'SessionId'>().optional(),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),

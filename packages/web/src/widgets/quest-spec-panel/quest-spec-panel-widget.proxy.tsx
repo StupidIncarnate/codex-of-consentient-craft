@@ -6,8 +6,6 @@ import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { ContractsLayerWidgetProxy } from './contracts-layer-widget.proxy';
 import { DesignDecisionsLayerWidgetProxy } from './design-decisions-layer-widget.proxy';
 import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
-import { ObservablesLayerWidgetProxy } from './observables-layer-widget.proxy';
-import { RequirementsLayerWidgetProxy } from './requirements-layer-widget.proxy';
 
 export const QuestSpecPanelWidgetProxy = (): {
   clickModify: () => Promise<void>;
@@ -23,8 +21,6 @@ export const QuestSpecPanelWidgetProxy = (): {
   ContractsLayerWidgetProxy();
   DesignDecisionsLayerWidgetProxy();
   FlowsLayerWidgetProxy();
-  ObservablesLayerWidgetProxy();
-  RequirementsLayerWidgetProxy();
 
   return {
     clickModify: async (): Promise<void> => {

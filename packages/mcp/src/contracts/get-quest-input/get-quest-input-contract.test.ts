@@ -33,20 +33,20 @@ describe('getQuestInputContract', () => {
       });
     });
 
-    it('VALID: {questId with spec-decisions stage} => parses successfully', () => {
-      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'spec-decisions' });
+    it('VALID: {questId with spec-flows stage} => parses successfully', () => {
+      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'spec-flows' });
 
       const result = getQuestInputContract.parse(input);
 
-      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-decisions' });
+      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-flows' });
     });
 
-    it('VALID: {questId with spec-bdd stage} => parses successfully', () => {
-      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'spec-bdd' });
+    it('VALID: {questId with spec-obs stage} => parses successfully', () => {
+      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'spec-obs' });
 
       const result = getQuestInputContract.parse(input);
 
-      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-bdd' });
+      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-obs' });
     });
 
     it('VALID: {questId with implementation stage} => parses successfully', () => {

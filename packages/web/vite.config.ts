@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 const sharedSubpaths = readdirSync(resolve(__dirname, '../shared'))
-  .filter((file) => file.endsWith('.ts') && !file.endsWith('.d.ts'))
+  .filter((file) => file.endsWith('.ts') && !file.endsWith('.d.ts') && file !== 'index.ts')
   .map((file) => `@dungeonmaster/shared/${file.replace('.ts', '')}`);
 
 const basePort = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;

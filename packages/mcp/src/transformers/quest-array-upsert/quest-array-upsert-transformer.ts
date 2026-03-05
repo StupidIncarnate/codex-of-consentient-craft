@@ -12,21 +12,13 @@
  */
 
 import type {
-  Context,
   DependencyStep,
   DesignDecision,
-  Observable,
-  Requirement,
+  Flow,
   ToolingRequirement,
 } from '@dungeonmaster/shared/contracts';
 
-type QuestArrayItem =
-  | Context
-  | Observable
-  | DependencyStep
-  | ToolingRequirement
-  | Requirement
-  | DesignDecision;
+type QuestArrayItem = DependencyStep | ToolingRequirement | DesignDecision | Flow;
 
 export const questArrayUpsertTransformer = <T extends QuestArrayItem>({
   existing,

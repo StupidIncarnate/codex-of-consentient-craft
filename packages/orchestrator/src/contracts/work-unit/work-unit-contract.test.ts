@@ -1,12 +1,10 @@
 import {
   AbsoluteFilePathStub,
-  ContextStub,
   DependencyStepStub,
   ErrorMessageStub,
-  ObservableStub,
+  FlowObservableStub,
   QuestContractEntryStub,
   QuestIdStub,
-  RequirementStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { workUnitContract } from './work-unit-contract';
@@ -46,12 +44,11 @@ describe('workUnitContract', () => {
   });
 
   describe('codeweaver work unit', () => {
-    it('VALID: {role: codeweaver, step, questId, relatedContracts, relatedObservables, relatedRequirements} => parses successfully', () => {
+    it('VALID: {role: codeweaver, step, questId, relatedContracts, relatedObservables} => parses successfully', () => {
       const step = DependencyStepStub();
       const questId = QuestIdStub({ value: 'add-auth' });
       const relatedContracts = [QuestContractEntryStub()];
-      const relatedObservables = [ObservableStub()];
-      const relatedRequirements = [RequirementStub()];
+      const relatedObservables = [FlowObservableStub()];
 
       const result = workUnitContract.parse({
         role: 'codeweaver',
@@ -59,7 +56,6 @@ describe('workUnitContract', () => {
         questId,
         relatedContracts,
         relatedObservables,
-        relatedRequirements,
       });
 
       expect(result).toStrictEqual({
@@ -68,7 +64,6 @@ describe('workUnitContract', () => {
         questId,
         relatedContracts,
         relatedObservables,
-        relatedRequirements,
       });
     });
 
@@ -80,8 +75,7 @@ describe('workUnitContract', () => {
         step: DependencyStepStub(),
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [QuestContractEntryStub()],
-        relatedObservables: [ObservableStub()],
-        relatedRequirements: [RequirementStub()],
+        relatedObservables: [FlowObservableStub()],
       });
     });
 
@@ -89,7 +83,6 @@ describe('workUnitContract', () => {
       const stub = CodeweaverWorkUnitStub({
         relatedContracts: [],
         relatedObservables: [],
-        relatedRequirements: [],
       });
 
       expect(stub).toStrictEqual({
@@ -98,7 +91,6 @@ describe('workUnitContract', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [],
         relatedObservables: [],
-        relatedRequirements: [],
       });
     });
   });
@@ -209,23 +201,20 @@ describe('workUnitContract', () => {
   });
 
   describe('siegemaster work unit', () => {
-    it('VALID: {role: siegemaster, questId, observables, contexts} => parses successfully', () => {
+    it('VALID: {role: siegemaster, questId, observables} => parses successfully', () => {
       const questId = QuestIdStub({ value: 'add-auth' });
-      const observables = [ObservableStub()];
-      const contexts = [ContextStub()];
+      const observables = [FlowObservableStub()];
 
       const result = workUnitContract.parse({
         role: 'siegemaster',
         questId,
         observables,
-        contexts,
       });
 
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId,
         observables,
-        contexts,
       });
     });
 
@@ -235,24 +224,21 @@ describe('workUnitContract', () => {
       expect(stub).toStrictEqual({
         role: 'siegemaster',
         questId: QuestIdStub({ value: 'add-auth' }),
-        observables: [ObservableStub()],
-        contexts: [ContextStub()],
+        observables: [FlowObservableStub()],
       });
     });
 
-    it('EDGE: {siegemaster with empty observables and contexts} => parses successfully', () => {
+    it('EDGE: {siegemaster with empty observables} => parses successfully', () => {
       const result = workUnitContract.parse({
         role: 'siegemaster',
         questId: QuestIdStub({ value: 'add-auth' }),
         observables: [],
-        contexts: [],
       });
 
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId: QuestIdStub({ value: 'add-auth' }),
         observables: [],
-        contexts: [],
       });
     });
   });

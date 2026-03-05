@@ -44,10 +44,10 @@ describe('DesignDecisionsLayerWidget', () => {
       expect(screen.getByTestId('DECISION_RATIONALE').textContent).toBe('Stateless auth');
     });
 
-    it('VALID: {designDecisions: [dec with relatedRequirements]} => renders tag list', () => {
+    it('VALID: {designDecisions: [dec with relatedNodeIds]} => renders tag list', () => {
       DesignDecisionsLayerWidgetProxy();
       const decision = DesignDecisionStub({
-        relatedRequirements: ['a12ac10b-58cc-4372-a567-0e02b2c3d479'],
+        relatedNodeIds: ['login-page'],
       });
 
       mantineRenderAdapter({
