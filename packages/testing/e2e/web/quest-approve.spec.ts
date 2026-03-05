@@ -45,13 +45,13 @@ const createQuestFile = ({
       {
         id: crypto.randomUUID(),
         name: 'Test Flow',
-        entryPoint: 'A',
-        exitPoints: ['B'],
+        entryPoint: 'start',
+        exitPoints: ['end'],
         nodes: [
-          { id: 'A', label: 'Start', type: 'state', observables: [] },
-          { id: 'B', label: 'End', type: 'terminal', observables: [] },
+          { id: 'start', label: 'Start', type: 'state', observables: [] },
+          { id: 'end', label: 'End', type: 'terminal', observables: [] },
         ],
-        edges: [{ from: 'A', to: 'B' }],
+        edges: [{ from: 'start', to: 'end' }],
       },
     ],
   };
