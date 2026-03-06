@@ -16,6 +16,7 @@ describe('panzoomCreateAdapter', () => {
         minScale: 0.1,
         step: 0.3,
         startScale: 0.7,
+        origin: '0 0',
       });
     });
   });
