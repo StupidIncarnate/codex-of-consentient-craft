@@ -8,8 +8,6 @@ describe('flowObservableContract', () => {
 
       expect(observable).toStrictEqual({
         id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-        given: 'user is on the login page',
-        when: 'user submits valid credentials',
         then: [
           {
             type: 'ui-state',
@@ -59,41 +57,15 @@ describe('flowObservableContract', () => {
       expect(() => {
         flowObservableContract.parse({
           id: 'bad',
-          given: 'user is logged in',
-          when: 'clicks button',
           then: [],
         });
       }).toThrow(/Invalid uuid/u);
-    });
-
-    it('INVALID_GIVEN: {given: ""} => throws validation error', () => {
-      expect(() => {
-        flowObservableContract.parse({
-          id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-          given: '',
-          when: 'clicks button',
-          then: [],
-        });
-      }).toThrow(/too_small/u);
-    });
-
-    it('INVALID_WHEN: {when: ""} => throws validation error', () => {
-      expect(() => {
-        flowObservableContract.parse({
-          id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-          given: 'user is logged in',
-          when: '',
-          then: [],
-        });
-      }).toThrow(/too_small/u);
     });
 
     it('INVALID_THEN_TYPE: {then: [{type: "invalid"}]} => throws validation error', () => {
       expect(() => {
         flowObservableContract.parse({
           id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-          given: 'user is logged in',
-          when: 'clicks button',
           then: [{ type: 'invalid', description: 'test' }],
         });
       }).toThrow(/Invalid enum value/u);

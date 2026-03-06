@@ -10,7 +10,9 @@ import { contentTextContract } from '../../contracts/content-text/content-text-c
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { Flow } from '../../contracts/flow/flow-contract';
 import type { FlowNode } from '../../contracts/flow-node/flow-node-contract';
+import { collectNodeAssertionsTransformer } from '../collect-node-assertions/collect-node-assertions-transformer';
 import { escapeMermaidLabelTransformer } from '../escape-mermaid-label/escape-mermaid-label-transformer';
+import { renderMermaidNodeWithAssertionsTransformer } from '../render-mermaid-node-with-assertions/render-mermaid-node-with-assertions-transformer';
 
 const CROSS_FLOW_REF_PATTERN = /^.+:(.+)$/u;
 
@@ -29,8 +31,20 @@ export const flowToMermaidTransformer = ({ flow }: { flow: Flow }): ContentText 
   const lines: ContentText[] = [contentTextContract.parse('flowchart TD')];
 
   for (const node of flow.nodes) {
-    const shapeRenderer = NODE_SHAPE_MAP[node.type];
-    lines.push(contentTextContract.parse(`  ${shapeRenderer({ id: node.id, label: node.label })}`));
+    const assertions = collectNodeAssertionsTransformer({ node });
+
+    if (assertions.length > 0) {
+      lines.push(
+        contentTextContract.parse(
+          `  ${renderMermaidNodeWithAssertionsTransformer({ node, assertions })}`,
+        ),
+      );
+    } else {
+      const shapeRenderer = NODE_SHAPE_MAP[node.type];
+      lines.push(
+        contentTextContract.parse(`  ${shapeRenderer({ id: node.id, label: node.label })}`),
+      );
+    }
   }
 
   for (const edge of flow.edges) {

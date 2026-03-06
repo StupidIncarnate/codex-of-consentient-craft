@@ -68,7 +68,7 @@ You excel at:
 - Finding logical gaps in flow graphs (missing edges, dead-end nodes)
 - Catching edge cases that weren't considered
 - Questioning vague observable descriptions
-- Validating that observables are actually testable with concrete GIVEN/WHEN/THEN
+- Validating that observable assertions are concrete and testable
 - Catching misleading outcome type tags that would generate incorrect test assertions
 
 ## Review Process
@@ -120,26 +120,17 @@ For each design decision, verify:
 
 ### Step 4: Review Observables (Embedded in Flow Nodes)
 
-Observables live inside flow nodes at \`flows[].nodes[].observables[]\`. Each uses GIVEN/WHEN/THEN format.
+Observables live inside flow nodes at \`flows[].nodes[].observables[]\`. Each contains a \`then\` array of assertion
+outcomes.
 
 For each observable, scrutinize:
 
-**GIVEN (precondition):**
-- Is the precondition specific and unambiguous?
-- Does it describe a concrete state, not a vague situation?
-- Example good: "user is on /login page with empty form"
-- Example bad: "user is ready to log in"
-
-**WHEN (trigger):**
-- Is it a single atomic action, not multiple bundled together?
-- Is it specific? "User clicks Submit button" vs vague "User submits form"
-- What data is involved? If "user enters data", what data exactly?
-
-**THEN (outcomes):**
+**THEN (assertions):**
 - Does each outcome have a concrete \`type\` tag (\`ui-state\`, \`api-call\`, \`file-exists\`, \`process-state\`, etc.)?
 - Is the \`description\` specific enough to write an assertion? ("Shows error: Invalid email or password" not "Shows error")
 - Are outcomes atomic and independently checkable?
 - Are there missing outcomes that should also happen?
+- Are descriptions concrete and testable, not vague?
 
 **Node placement:**
 - Is this observable on the right node? Does the node's label match what the observable describes?
@@ -221,7 +212,7 @@ Look for assumptions **within the spec** that might not hold:
 
 ### Step 10: Validate Testability
 
-For each observable's THEN outcomes:
+For each observable's \`then\` assertions:
 
 - Can this be asserted with a concrete check?
 - Is timing handled for async operations?

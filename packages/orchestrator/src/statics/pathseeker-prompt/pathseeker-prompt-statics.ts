@@ -68,7 +68,7 @@ Use the \`get-quest\` tool to retrieve the quest specification:
 Understand:
 
 - What flows exist and their structure (nodes, edges, entry/exit points)
-- What observables are embedded in flow nodes (each has \`given/when/then\` format)
+- What observables are embedded in flow nodes (each has a \`then\` array of assertion outcomes)
 - What contracts are declared (the shared type dictionary - data types, endpoints, events that steps will reference)
 - What tooling requirements were identified
 

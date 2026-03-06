@@ -8,8 +8,6 @@ export const FlowObservableStub = ({
 }: StubArgument<FlowObservable> = {}): FlowObservable =>
   flowObservableContract.parse({
     id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-    given: 'user is on the login page',
-    when: 'user submits valid credentials',
     then: [
       {
         type: 'ui-state',

@@ -23,6 +23,7 @@ export const mermaidRenderAdapter = async ({
   if (!initialized) {
     mermaid.initialize({
       startOnLoad: false,
+      securityLevel: 'loose',
       theme: 'dark',
       themeVariables: {
         darkMode: true,

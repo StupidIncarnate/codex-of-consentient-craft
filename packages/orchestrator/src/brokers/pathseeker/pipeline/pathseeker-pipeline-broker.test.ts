@@ -45,8 +45,6 @@ describe('pathseekerPipelineBroker', () => {
                 observables: [
                   {
                     id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-                    given: 'user is on the login page',
-                    when: 'user submits login form',
                     then: [{ type: 'ui-state', description: 'redirects to dashboard' }],
                   },
                 ],

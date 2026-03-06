@@ -8,7 +8,7 @@
  * The prompt in this module is used to spawn a Claude CLI subprocess that:
  * 1. Engages in Socratic dialogue to understand user requirements
  * 2. Creates structured flow graphs (nodes + edges) mapping user journeys
- * 3. Embeds observables (GIVEN/WHEN/THEN) directly in flow nodes
+ * 3. Embeds observables (assertions) directly in flow nodes
  * 4. Calls MCP tools to persist quests
  */
 
@@ -67,7 +67,7 @@ it. Instead, provide brief summaries referencing items by name and ask focused q
 - Spawns exploration sub-agents for codebase context
 - Creates structured flow graphs with typed nodes and labeled edges
 - Records design decisions as they emerge
-- Embeds observables with GIVEN/WHEN/THEN structure directly in flow nodes
+- Embeds observables with assertion outcomes directly in flow nodes
 - Locks down ALL tangible values (concrete values, not vague descriptions)
 - Persists everything via MCP tools (\`modify-quest\`, \`get-quest\`)
 - Spawns \`quest-gap-reviewer\` agent before final approval
@@ -160,11 +160,9 @@ Mark Phase 3 task completed, mark Phase 4 task in_progress.
 12. **Lock down tangible values** - For each flow node, get concrete values where needed (see Tangible
     Requirements section)
 13. **Embed observables in flow nodes** - Walk each flow path (happy path, error paths, edge cases) and create
-    observables with GIVEN/WHEN/THEN structure. Each observable has:
+    observables as assertion sets. Each observable has:
     - \`id\`: UUID
-    - \`given\`: precondition description (e.g., "user is on /login page with empty form")
-    - \`when\`: trigger action (e.g., "user submits valid credentials")
-    - \`then\`: array of expected outcomes, each with:
+    - \`then\`: array of expected outcomes (assertions), each with:
       - \`type\`: outcome type tag (\`ui-state\`, \`api-call\`, \`file-exists\`, \`process-state\`, \`log-output\`,
         \`environment\`, \`performance\`, \`cache-state\`, \`db-query\`, \`queue-message\`, \`external-api\`, \`custom\`)
       - \`description\`: concrete, testable outcome description
@@ -336,15 +334,14 @@ observables show as red in the diagram — a visual gap indicator. Phase 2 leave
 - Overly abstract nodes ("Process data") instead of concrete actions ("Parse JSON response")
 - Using raw mermaid text instead of structured nodes/edges — the system generates mermaid automatically
 
-### Observable Format (GIVEN/WHEN/THEN)
+### Observable Format
 
-Observables use a BDD-style format embedded directly in flow nodes:
+Observables are assertion sets embedded directly in flow nodes. Each observable contains a \`then\` array of concrete,
+testable outcomes:
 
 \`\`\`json
 {
   "id": "uuid",
-  "given": "user is on /login page with empty form",
-  "when": "user submits valid credentials",
   "then": [
     { "type": "api-call", "description": "POST /api/auth/login called with credentials" },
     { "type": "ui-state", "description": "redirected to /dashboard" }
@@ -420,12 +417,11 @@ Use Task tool with \`subagent_type: "quest-gap-reviewer"\` after Phase 4 (Observ
 ### Observable Quality Guidelines
 
 1. **Atomic outcomes** - Each \`then\` entry independently verifiable
-2. **Clear triggers** - \`when\` describes a single, specific action
-3. **Node-embedded** - Always embed observables in the relevant flow node
-4. **Testable** - Outcomes are observable and measurable
-5. **User-focused** - Write from the user's perspective
-6. **Concrete** - No placeholders or vague descriptions
-7. **Typed** - Every \`then\` entry has a \`type\` tag for PathSeeker file planning
+2. **Node-embedded** - Always embed observables in the relevant flow node
+3. **Testable** - Outcomes are observable and measurable
+4. **User-focused** - Write from the user's perspective
+5. **Concrete** - No placeholders or vague descriptions
+6. **Typed** - Every \`then\` entry has a \`type\` tag for PathSeeker file planning
 
 ---
 

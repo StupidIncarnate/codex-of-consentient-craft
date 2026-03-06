@@ -42,8 +42,6 @@ describe('questVerifyBroker', () => {
                 observables: [
                   {
                     id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-                    given: 'user is on the login page',
-                    when: 'user submits login form',
                     then: [{ type: 'ui-state', description: 'redirects to dashboard' }],
                   },
                 ],
@@ -90,8 +88,6 @@ describe('questVerifyBroker', () => {
                 observables: [
                   {
                     id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-                    given: 'user is on the page',
-                    when: 'user triggers bug',
                     then: [{ type: 'ui-state', description: 'bug is triggered' }],
                   },
                 ],

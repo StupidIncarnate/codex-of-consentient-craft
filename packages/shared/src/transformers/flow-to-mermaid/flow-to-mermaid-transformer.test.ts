@@ -279,7 +279,7 @@ describe('flowToMermaidTransformer', () => {
   });
 
   describe('node styling', () => {
-    it('VALID: node with observables => green style', () => {
+    it('VALID: node with observables => green style and assertions in label', () => {
       const flow = FlowStub({
         nodes: [
           FlowNodeStub({
@@ -297,7 +297,7 @@ describe('flowToMermaidTransformer', () => {
       expect(result).toBe(
         [
           'flowchart TD',
-          '  login-page[Login Page]',
+          '  login-page["<b>Login Page</b><br/><small>· redirects to dashboard</small>"]',
           '  style login-page fill:#2d6a4f,color:#fff',
         ].join('\n'),
       );
@@ -373,7 +373,7 @@ describe('flowToMermaidTransformer', () => {
       expect(result).toBe(
         [
           'flowchart TD',
-          '  login-page[Login Page]',
+          '  login-page["<b>Login Page</b><br/><small>· redirects to dashboard</small>"]',
           '  style login-page fill:#2d6a4f,color:#fff',
           '  click login-page href "https://figma.com/design/123" _blank',
         ].join('\n'),
@@ -398,8 +398,103 @@ describe('flowToMermaidTransformer', () => {
       expect(result).toBe(
         [
           'flowchart TD',
-          '  login-page[Login Page]',
+          '  login-page["<b>Login Page</b><br/><small>· redirects to dashboard</small>"]',
           '  style login-page fill:#2d6a4f,color:#fff',
+        ].join('\n'),
+      );
+    });
+  });
+
+  describe('assertion rendering', () => {
+    it('VALID: node with observables => renders assertions in label', () => {
+      const flow = FlowStub({
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page',
+            label: 'Login Page',
+            type: 'state',
+            observables: [
+              FlowObservableStub({
+                then: [
+                  { type: 'ui-state', description: 'shows login form' },
+                  { type: 'ui-state', description: 'disables submit button' },
+                ],
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(
+        [
+          'flowchart TD',
+          '  login-page["<b>Login Page</b><br/><small>· shows login form</small><br/><small>· disables submit button</small>"]',
+          '  style login-page fill:#2d6a4f,color:#fff',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: long assertion description => truncated at 60 chars', () => {
+      const longDescription = 'a'.repeat(61);
+      const flow = FlowStub({
+        nodes: [
+          FlowNodeStub({
+            id: 'page',
+            label: 'Page',
+            type: 'state',
+            observables: [
+              FlowObservableStub({
+                then: [{ type: 'ui-state', description: longDescription }],
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(
+        [
+          'flowchart TD',
+          `  page["<b>Page</b><br/><small>· ${'a'.repeat(60)}...</small>"]`,
+          '  style page fill:#2d6a4f,color:#fff',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: multiple observables on one node => flattens all then entries', () => {
+      const flow = FlowStub({
+        nodes: [
+          FlowNodeStub({
+            id: 'dashboard',
+            label: 'Dashboard',
+            type: 'state',
+            observables: [
+              FlowObservableStub({
+                id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+                then: [{ type: 'ui-state', description: 'shows welcome message' }],
+              }),
+              FlowObservableStub({
+                id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
+                then: [{ type: 'ui-state', description: 'loads user data' }],
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(
+        [
+          'flowchart TD',
+          '  dashboard["<b>Dashboard</b><br/><small>· shows welcome message</small><br/><small>· loads user data</small>"]',
+          '  style dashboard fill:#2d6a4f,color:#fff',
         ].join('\n'),
       );
     });
@@ -440,9 +535,9 @@ describe('flowToMermaidTransformer', () => {
         [
           'flowchart TD',
           '  start[Start]',
-          '  check-auth{Authenticated?}',
+          '  check-auth{"<b>Authenticated?</b><br/><small>· redirects to dashboard</small>"}',
           '  login(Login)',
-          '  dashboard[Dashboard]',
+          '  dashboard["<b>Dashboard</b><br/><small>· redirects to dashboard</small>"]',
           '  error((Error))',
           '  start --> check-auth',
           '  check-auth -->|yes| dashboard',

@@ -57,9 +57,7 @@ export const workUnitToArgumentsTransformer = ({
       if (relatedObservables.length > 0) {
         parts.push(contentTextContract.parse('Related Observables:'));
         for (const observable of relatedObservables) {
-          parts.push(contentTextContract.parse(`  GIVEN: ${observable.given}`));
-          parts.push(contentTextContract.parse(`  WHEN: ${observable.when}`));
-          parts.push(contentTextContract.parse('  THEN:'));
+          parts.push(contentTextContract.parse('  Assertions:'));
           for (const outcome of observable.then) {
             parts.push(contentTextContract.parse(`    - ${outcome.description} (${outcome.type})`));
           }
@@ -78,9 +76,7 @@ export const workUnitToArgumentsTransformer = ({
       if (observables.length > 0) {
         siegeParts.push(contentTextContract.parse('Observables:'));
         for (const observable of observables) {
-          siegeParts.push(contentTextContract.parse(`  GIVEN: ${observable.given}`));
-          siegeParts.push(contentTextContract.parse(`  WHEN: ${observable.when}`));
-          siegeParts.push(contentTextContract.parse('  THEN:'));
+          siegeParts.push(contentTextContract.parse('  Assertions:'));
           for (const outcome of observable.then) {
             siegeParts.push(
               contentTextContract.parse(`    - ${outcome.description} (${outcome.type})`),

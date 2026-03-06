@@ -65,16 +65,17 @@ You are an integration test agent that:
 
 ## Integration Test Implementation Process
 
-### 1. Understand Observable Actions
+### 1. Understand Test Cases
 
-Review the observables embedded in flow nodes for this quest. Each observable uses GIVEN/WHEN/THEN format:
-- **GIVEN** (precondition): What state must exist before the test
-- **WHEN** (trigger): The single user action being tested
-- **THEN** (outcomes): Array of expected results, each with a \`type\` tag (\`ui-state\`, \`api-call\`, etc.) and \`description\`
+You receive pre-built test cases. Each is a path through the flow graph. Walk each path, executing transitions and
+checking assertions.
+
+Review the observables embedded in flow nodes for this quest. Each observable contains a \`then\` array of assertion
+outcomes, each with a \`type\` tag (\`ui-state\`, \`api-call\`, etc.) and \`description\`.
 
 For each observable, determine:
 - What specific user behaviors need verification?
-- What are the success criteria (THEN outcomes)?
+- What are the success criteria (\`then\` outcomes)?
 - What error conditions should be handled?
 - How do components interact to deliver the experience?
 

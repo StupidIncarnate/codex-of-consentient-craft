@@ -195,7 +195,7 @@ describe('workUnitToArgumentsTransformer', () => {
       expect(result).toMatch(/ {4}- id$/mu);
     });
 
-    it('VALID: {codeweaver with related observables} => includes GIVEN/WHEN/THEN format', () => {
+    it('VALID: {codeweaver with related observables} => includes assertions format', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Step',
@@ -207,8 +207,6 @@ describe('workUnitToArgumentsTransformer', () => {
         relatedContracts: [],
         relatedObservables: [
           FlowObservableStub({
-            given: 'user is on the login page',
-            when: 'user submits valid credentials',
             then: [
               { type: 'api-call', description: 'POST /auth/login' },
               { type: 'ui-state', description: 'redirects to dashboard' },
@@ -220,7 +218,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toMatch(
-        /Related Observables:\n {2}GIVEN: user is on the login page\n {2}WHEN: user submits valid credentials\n {2}THEN:\n {4}- POST \/auth\/login \(api-call\)\n {4}- redirects to dashboard \(ui-state\)/u,
+        /Related Observables:\n {2}Assertions:\n {4}- POST \/auth\/login \(api-call\)\n {4}- redirects to dashboard \(ui-state\)/u,
       );
     });
 
@@ -244,13 +242,11 @@ describe('workUnitToArgumentsTransformer', () => {
   });
 
   describe('siegemaster role', () => {
-    it('VALID: {siegemaster with observables} => returns formatted GIVEN/WHEN/THEN', () => {
+    it('VALID: {siegemaster with observables} => returns formatted assertions', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'verify-quest' }),
         observables: [
           FlowObservableStub({
-            given: 'user is on login page',
-            when: 'user submits form',
             then: [{ type: 'ui-state', description: 'Shows success message' }],
           }),
         ],
@@ -261,9 +257,7 @@ describe('workUnitToArgumentsTransformer', () => {
       expect(result).toBe(
         'Quest ID: verify-quest\n' +
           'Observables:\n' +
-          '  GIVEN: user is on login page\n' +
-          '  WHEN: user submits form\n' +
-          '  THEN:\n' +
+          '  Assertions:\n' +
           '    - Shows success message (ui-state)',
       );
     });

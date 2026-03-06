@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Defines the FlowObservable structure for BDD-style acceptance criteria embedded in flow nodes
+ * PURPOSE: Defines the FlowObservable structure for outcome-based acceptance criteria embedded in flow nodes
  *
  * USAGE:
- * flowObservableContract.parse({id: 'uuid', given: 'user is logged in', when: 'clicks button', then: [{type: 'ui-state', description: 'shows dialog'}]});
+ * flowObservableContract.parse({id: 'uuid', then: [{type: 'ui-state', description: 'shows dialog'}]});
  * // Returns: FlowObservable object
  */
 
@@ -18,8 +18,6 @@ const flowOutcomeContract = z.object({
 
 export const flowObservableContract = z.object({
   id: observableIdContract,
-  given: z.string().min(1).brand<'GivenDescription'>(),
-  when: z.string().min(1).brand<'WhenDescription'>(),
   then: z.array(flowOutcomeContract),
   designRef: z.string().brand<'DesignRef'>().optional(),
   verificationStatus: z.enum(['pending', 'verified', 'failed']).optional(),
