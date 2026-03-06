@@ -10,7 +10,7 @@ describe('agentSlotContract', () => {
       const result = agentSlotContract.parse(agentSlot);
 
       expect(result).toStrictEqual({
-        stepId: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+        stepId: 'create-login-api',
         sessionId: 'session-test-123',
         process: {
           kill: expect.any(Function),
@@ -21,12 +21,12 @@ describe('agentSlotContract', () => {
     });
 
     it('VALID: {custom stepId} => parses with overridden stepId', () => {
-      const agentSlot = AgentSlotStub({ stepId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const agentSlot = AgentSlotStub({ stepId: 'setup-database' as never });
 
       const result = agentSlotContract.parse(agentSlot);
 
       expect(result).toStrictEqual({
-        stepId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+        stepId: 'setup-database',
         sessionId: 'session-test-123',
         process: {
           kill: expect.any(Function),
@@ -42,7 +42,7 @@ describe('agentSlotContract', () => {
       const result = agentSlotContract.parse(agentSlot);
 
       expect(result).toStrictEqual({
-        stepId: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+        stepId: 'create-login-api',
         sessionId: 'custom-session-456',
         process: {
           kill: expect.any(Function),
@@ -58,7 +58,7 @@ describe('agentSlotContract', () => {
       const result = agentSlotContract.parse(agentSlot);
 
       expect(result).toStrictEqual({
-        stepId: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+        stepId: 'create-login-api',
         sessionId: 'session-test-123',
         process: {
           kill: expect.any(Function),
@@ -75,7 +75,7 @@ describe('agentSlotContract', () => {
       const result = agentSlotContract.parse(agentSlot);
 
       expect(result).toStrictEqual({
-        stepId: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+        stepId: 'create-login-api',
         sessionId: 'session-test-123',
         process: {
           kill: expect.any(Function),
@@ -88,12 +88,12 @@ describe('agentSlotContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_STEP_ID: {non-uuid string} => throws validation error', () => {
-      expect(() => AgentSlotStub({ stepId: 'not-a-uuid' as never })).toThrow(/Invalid uuid/u);
+    it('INVALID_STEP_ID: {uppercase string} => throws validation error', () => {
+      expect(() => AgentSlotStub({ stepId: 'INVALID_STEP' as never })).toThrow(/invalid_string/u);
     });
 
     it('INVALID_STEP_ID: {empty string} => throws validation error', () => {
-      expect(() => AgentSlotStub({ stepId: '' as never })).toThrow(/Invalid uuid/u);
+      expect(() => AgentSlotStub({ stepId: '' as never })).toThrow(/too_small/u);
     });
 
     it('INVALID_SESSION_ID: {non-string value} => throws validation error', () => {
@@ -133,7 +133,7 @@ describe('agentSlotContract', () => {
     it('INVALID_PROCESS: {missing kill method} => throws validation error', () => {
       expect(() =>
         agentSlotContract.parse({
-          stepId: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+          stepId: 'create-login-api',
           sessionId: 'test-session',
           process: { waitForExit: async () => Promise.resolve() },
           startedAt: '2024-01-15T10:00:00.000Z',
@@ -144,7 +144,7 @@ describe('agentSlotContract', () => {
     it('INVALID_PROCESS: {missing waitForExit method} => throws validation error', () => {
       expect(() =>
         agentSlotContract.parse({
-          stepId: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+          stepId: 'create-login-api',
           sessionId: 'test-session',
           process: { kill: () => true },
           startedAt: '2024-01-15T10:00:00.000Z',

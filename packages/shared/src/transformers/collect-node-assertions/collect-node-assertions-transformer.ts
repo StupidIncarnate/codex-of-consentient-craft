@@ -13,12 +13,10 @@ import type { FlowNode } from '../../contracts/flow-node/flow-node-contract';
 const ASSERTION_MAX_LENGTH = 200;
 
 export const collectNodeAssertionsTransformer = ({ node }: { node: FlowNode }): ContentText[] =>
-  node.observables.flatMap((observable) =>
-    observable.then.map((outcome) =>
-      contentTextContract.parse(
-        String(outcome.description).length > ASSERTION_MAX_LENGTH
-          ? `${String(outcome.description).slice(0, ASSERTION_MAX_LENGTH)}...`
-          : String(outcome.description),
-      ),
+  node.observables.map((observable) =>
+    contentTextContract.parse(
+      String(observable.description).length > ASSERTION_MAX_LENGTH
+        ? `${String(observable.description).slice(0, ASSERTION_MAX_LENGTH)}...`
+        : String(observable.description),
     ),
   );

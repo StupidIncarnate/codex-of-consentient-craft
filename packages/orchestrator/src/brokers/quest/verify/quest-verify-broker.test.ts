@@ -14,10 +14,10 @@ describe('questVerifyBroker', () => {
         title: 'Add Authentication',
         steps: [
           {
-            id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
+            id: 'create-login-broker',
             name: 'Create login broker',
             description: 'Create login broker',
-            observablesSatisfied: ['b47ac10b-58cc-4372-a567-0e02b2c3d479'],
+            observablesSatisfied: ['redirects-to-dashboard'],
             dependsOn: [],
             filesToCreate: [
               'packages/api/src/guards/has-auth/has-auth-guard.ts',
@@ -30,7 +30,7 @@ describe('questVerifyBroker', () => {
         ],
         flows: [
           {
-            id: 'd47ac10b-58cc-4372-a567-0e02b2c3d479',
+            id: 'login-flow',
             name: 'Login Flow',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
@@ -41,8 +41,9 @@ describe('questVerifyBroker', () => {
                 type: 'state',
                 observables: [
                   {
-                    id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-                    then: [{ type: 'ui-state', description: 'redirects to dashboard' }],
+                    id: 'redirects-to-dashboard',
+                    type: 'ui-state',
+                    description: 'redirects to dashboard',
                   },
                 ],
               },
@@ -53,7 +54,7 @@ describe('questVerifyBroker', () => {
                 observables: [],
               },
             ],
-            edges: [{ from: 'login-page', to: 'dashboard' }],
+            edges: [{ id: 'login-to-dashboard', from: 'login-page', to: 'dashboard' }],
           },
         ],
       });
@@ -76,7 +77,7 @@ describe('questVerifyBroker', () => {
         title: 'Fix Bug',
         flows: [
           {
-            id: 'd47ac10b-58cc-4372-a567-0e02b2c3d479',
+            id: 'bug-flow',
             name: 'Bug Flow',
             entryPoint: '/bug',
             exitPoints: ['/fixed'],
@@ -87,8 +88,9 @@ describe('questVerifyBroker', () => {
                 type: 'state',
                 observables: [
                   {
-                    id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-                    then: [{ type: 'ui-state', description: 'bug is triggered' }],
+                    id: 'bug-is-triggered',
+                    type: 'ui-state',
+                    description: 'bug is triggered',
                   },
                 ],
               },
@@ -98,7 +100,7 @@ describe('questVerifyBroker', () => {
         ],
         steps: [
           {
-            id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
+            id: 'fix-the-bug',
             name: 'Fix the bug',
             description: 'Fix the bug',
             observablesSatisfied: [],

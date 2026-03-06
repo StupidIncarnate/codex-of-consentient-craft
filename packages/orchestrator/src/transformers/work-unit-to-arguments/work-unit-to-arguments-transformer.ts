@@ -57,10 +57,9 @@ export const workUnitToArgumentsTransformer = ({
       if (relatedObservables.length > 0) {
         parts.push(contentTextContract.parse('Related Observables:'));
         for (const observable of relatedObservables) {
-          parts.push(contentTextContract.parse('  Assertions:'));
-          for (const outcome of observable.then) {
-            parts.push(contentTextContract.parse(`    - ${outcome.description} (${outcome.type})`));
-          }
+          parts.push(
+            contentTextContract.parse(`    - ${observable.description} (${observable.type})`),
+          );
         }
       }
 
@@ -76,12 +75,9 @@ export const workUnitToArgumentsTransformer = ({
       if (observables.length > 0) {
         siegeParts.push(contentTextContract.parse('Observables:'));
         for (const observable of observables) {
-          siegeParts.push(contentTextContract.parse('  Assertions:'));
-          for (const outcome of observable.then) {
-            siegeParts.push(
-              contentTextContract.parse(`    - ${outcome.description} (${outcome.type})`),
-            );
-          }
+          siegeParts.push(
+            contentTextContract.parse(`    - ${observable.description} (${observable.type})`),
+          );
         }
       }
 

@@ -17,10 +17,10 @@ describe('pathseekerPipelineBroker', () => {
         id: questId,
         steps: [
           {
-            id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
+            id: 'create-login-broker',
             name: 'Create login broker',
             description: 'Create login broker',
-            observablesSatisfied: ['b47ac10b-58cc-4372-a567-0e02b2c3d479'],
+            observablesSatisfied: ['redirects-to-dashboard'],
             dependsOn: [],
             filesToCreate: [
               'packages/api/src/guards/has-auth/has-auth-guard.ts',
@@ -33,7 +33,7 @@ describe('pathseekerPipelineBroker', () => {
         ],
         flows: [
           {
-            id: 'd47ac10b-58cc-4372-a567-0e02b2c3d479',
+            id: 'login-flow',
             name: 'Login Flow',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
@@ -44,8 +44,9 @@ describe('pathseekerPipelineBroker', () => {
                 type: 'state',
                 observables: [
                   {
-                    id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-                    then: [{ type: 'ui-state', description: 'redirects to dashboard' }],
+                    id: 'redirects-to-dashboard',
+                    type: 'ui-state',
+                    description: 'redirects to dashboard',
                   },
                 ],
               },
@@ -56,7 +57,7 @@ describe('pathseekerPipelineBroker', () => {
                 observables: [],
               },
             ],
-            edges: [{ from: 'login-page', to: 'dashboard' }],
+            edges: [{ id: 'login-to-dashboard', from: 'login-page', to: 'dashboard' }],
           },
         ],
       });

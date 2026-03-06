@@ -160,12 +160,11 @@ Mark Phase 3 task completed, mark Phase 4 task in_progress.
 12. **Lock down tangible values** - For each flow node, get concrete values where needed (see Tangible
     Requirements section)
 13. **Embed observables in flow nodes** - Walk each flow path (happy path, error paths, edge cases) and create
-    observables as assertion sets. Each observable has:
-    - \`id\`: UUID
-    - \`then\`: array of expected outcomes (assertions), each with:
-      - \`type\`: outcome type tag (\`ui-state\`, \`api-call\`, \`file-exists\`, \`process-state\`, \`log-output\`,
-        \`environment\`, \`performance\`, \`cache-state\`, \`db-query\`, \`queue-message\`, \`external-api\`, \`custom\`)
-      - \`description\`: concrete, testable outcome description
+    observables as flat assertions. Each observable has:
+    - \`id\`: kebab-case string (e.g., \`check-login-api-called\`)
+    - \`type\`: outcome type tag (\`ui-state\`, \`api-call\`, \`file-exists\`, \`process-state\`, \`log-output\`,
+      \`environment\`, \`performance\`, \`cache-state\`, \`db-query\`, \`queue-message\`, \`external-api\`, \`custom\`)
+    - \`description\`: concrete, testable outcome description
     - \`designRef\` (optional): reference to a design decision
     Observables are embedded directly in flow nodes via the \`observables\` array on each node.
     Use \`modify-quest\` with updated \`flows\` to persist.
@@ -257,9 +256,17 @@ data. You NEVER write raw mermaid — you define nodes and edges.
 Regex: \`^[a-z][a-z0-9]*(-[a-z0-9]+)*$\`
 
 **Edge rules:**
+- Every edge MUST have an \`id\` field (kebab-case, e.g., \`form-to-submit\`, \`validate-invalid\`)
 - Every node must have at least one incoming or outgoing edge (except entry/exit)
 - Use \`label\` on edges for branch conditions (e.g., "yes"/"no", "valid"/"invalid", "200"/"401")
 - Cross-flow references use \`"flowId:nodeId"\` format in the \`from\` or \`to\` field
+
+**Deep upsert:** \`modify-quest\` supports deep recursive upsert. You only need to send the nested path you're changing,
+not the entire structure. For example, to add an observable to a single node, send only that flow with that node — you
+don't need to echo all other flows/nodes.
+
+**Deleting entities:** Set \`_delete: true\` on any entity with an \`id\` to remove it. Works on flows, nodes, edges,
+observables, contracts, design decisions, etc.
 
 **Terminal node rule:** Every \`terminal\` node MUST eventually have at least one observable. Terminal nodes without
 observables show as red in the diagram — a visual gap indicator. Phase 2 leaves them empty; Phase 4 fills them in.
@@ -287,13 +294,13 @@ observables show as red in the diagram — a visual gap indicator. Phase 2 leave
     { "id": "forgot-password", "label": "Link to /forgot-password", "type": "terminal" }
   ],
   "edges": [
-    { "from": "login-form", "to": "submit-creds" },
-    { "from": "submit-creds", "to": "server-validates" },
-    { "from": "server-validates", "to": "set-cookie", "label": "valid" },
-    { "from": "server-validates", "to": "show-error", "label": "invalid" },
-    { "from": "set-cookie", "to": "dashboard" },
-    { "from": "show-error", "to": "login-form" },
-    { "from": "login-form", "to": "forgot-password", "label": "clicks forgot" }
+    { "id": "form-to-submit", "from": "login-form", "to": "submit-creds" },
+    { "id": "submit-to-validate", "from": "submit-creds", "to": "server-validates" },
+    { "id": "validate-valid", "from": "server-validates", "to": "set-cookie", "label": "valid" },
+    { "id": "validate-invalid", "from": "server-validates", "to": "show-error", "label": "invalid" },
+    { "id": "cookie-to-dashboard", "from": "set-cookie", "to": "dashboard" },
+    { "id": "error-to-form", "from": "show-error", "to": "login-form" },
+    { "id": "form-to-forgot", "from": "login-form", "to": "forgot-password", "label": "clicks forgot" }
   ]
 }
 \`\`\`
@@ -315,14 +322,14 @@ observables show as red in the diagram — a visual gap indicator. Phase 2 leave
     { "id": "done", "label": "Config files written", "type": "terminal" }
   ],
   "edges": [
-    { "from": "run-init", "to": "check-package-json" },
-    { "from": "check-package-json", "to": "no-package-json", "label": "no" },
-    { "from": "check-package-json", "to": "check-config", "label": "yes" },
-    { "from": "check-config", "to": "prompt-overwrite", "label": "yes" },
-    { "from": "check-config", "to": "write-config", "label": "no" },
-    { "from": "prompt-overwrite", "to": "abort", "label": "no" },
-    { "from": "prompt-overwrite", "to": "write-config", "label": "yes" },
-    { "from": "write-config", "to": "done" }
+    { "id": "init-to-check-pkg", "from": "run-init", "to": "check-package-json" },
+    { "id": "no-pkg-json", "from": "check-package-json", "to": "no-package-json", "label": "no" },
+    { "id": "has-pkg-json", "from": "check-package-json", "to": "check-config", "label": "yes" },
+    { "id": "config-exists", "from": "check-config", "to": "prompt-overwrite", "label": "yes" },
+    { "id": "no-config", "from": "check-config", "to": "write-config", "label": "no" },
+    { "id": "overwrite-no", "from": "prompt-overwrite", "to": "abort", "label": "no" },
+    { "id": "overwrite-yes", "from": "prompt-overwrite", "to": "write-config", "label": "yes" },
+    { "id": "write-to-done", "from": "write-config", "to": "done" }
   ]
 }
 \`\`\`
@@ -336,20 +343,27 @@ observables show as red in the diagram — a visual gap indicator. Phase 2 leave
 
 ### Observable Format
 
-Observables are assertion sets embedded directly in flow nodes. Each observable contains a \`then\` array of concrete,
-testable outcomes:
+Observables are flat assertions embedded directly in flow nodes. Each observable is a single testable outcome:
 
 \`\`\`json
 {
-  "id": "uuid",
-  "then": [
-    { "type": "api-call", "description": "POST /api/auth/login called with credentials" },
-    { "type": "ui-state", "description": "redirected to /dashboard" }
-  ]
+  "id": "check-login-api-called",
+  "type": "api-call",
+  "description": "POST /api/auth/login called with credentials"
 }
 \`\`\`
 
-**Outcome \`type\` tags** (used by PathSeeker for file planning):
+Multiple observables per node example:
+\`\`\`json
+"observables": [
+  { "id": "check-login-api-called", "type": "api-call", "description": "POST /api/auth/login called with credentials" },
+  { "id": "check-redirect-dashboard", "type": "ui-state", "description": "redirected to /dashboard" }
+]
+\`\`\`
+
+**Observable IDs** must be kebab-case (e.g., \`check-login-api-called\`, \`verify-cookie-set\`).
+
+**\`type\` tags** (used by PathSeeker for file planning):
 - \`ui-state\` — Visual/DOM changes (→ widgets)
 - \`api-call\` — HTTP requests/responses (→ responders, adapters)
 - \`file-exists\` — File system changes (→ brokers)
@@ -363,7 +377,7 @@ testable outcomes:
 - \`external-api\` — Third-party API interactions
 - \`custom\` — Anything else
 
-**Each \`then\` entry must be independently verifiable.** If an outcome has two parts, split them into separate entries.
+**Each observable must be independently verifiable.** If an outcome has two parts, split them into separate observables.
 
 ### Contract Rules
 
@@ -416,12 +430,12 @@ Use Task tool with \`subagent_type: "quest-gap-reviewer"\` after Phase 4 (Observ
 
 ### Observable Quality Guidelines
 
-1. **Atomic outcomes** - Each \`then\` entry independently verifiable
+1. **Atomic outcomes** - Each observable is a single independently verifiable assertion
 2. **Node-embedded** - Always embed observables in the relevant flow node
 3. **Testable** - Outcomes are observable and measurable
 4. **User-focused** - Write from the user's perspective
 5. **Concrete** - No placeholders or vague descriptions
-6. **Typed** - Every \`then\` entry has a \`type\` tag for PathSeeker file planning
+6. **Typed** - Every observable has a \`type\` tag for PathSeeker file planning
 
 ---
 

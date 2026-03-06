@@ -8,10 +8,12 @@
 
 import { z } from 'zod';
 
+import { stepIdContract } from '@dungeonmaster/shared/contracts';
+
 import { killableProcessContract } from '../killable-process/killable-process-contract';
 
 export const agentSlotContract = z.object({
-  stepId: z.string().uuid().brand<'StepId'>(),
+  stepId: stepIdContract,
   sessionId: z.string().brand<'SessionId'>(),
   process: killableProcessContract,
   startedAt: z.string().datetime().brand<'IsoTimestamp'>(),

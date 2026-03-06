@@ -147,6 +147,9 @@ export * from './src/contracts/flow-node/flow-node.stub';
 export * from './src/contracts/flow-edge-ref/flow-edge-ref-contract';
 export * from './src/contracts/flow-edge-ref/flow-edge-ref.stub';
 
+export * from './src/contracts/flow-edge-id/flow-edge-id-contract';
+export * from './src/contracts/flow-edge-id/flow-edge-id.stub';
+
 export * from './src/contracts/flow-edge/flow-edge-contract';
 export * from './src/contracts/flow-edge/flow-edge.stub';
 
@@ -181,6 +184,9 @@ export * from './src/contracts/quest-contract-status/quest-contract-status.stub'
 
 export * from './src/contracts/quest-contract-property/quest-contract-property-contract';
 export * from './src/contracts/quest-contract-property/quest-contract-property.stub';
+
+export * from './src/contracts/quest-contract-entry-id/quest-contract-entry-id-contract';
+export * from './src/contracts/quest-contract-entry-id/quest-contract-entry-id.stub';
 
 export * from './src/contracts/quest-contract-entry/quest-contract-entry-contract';
 export * from './src/contracts/quest-contract-entry/quest-contract-entry.stub';

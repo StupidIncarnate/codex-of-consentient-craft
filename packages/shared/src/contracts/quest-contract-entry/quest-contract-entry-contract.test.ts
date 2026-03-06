@@ -7,7 +7,7 @@ describe('questContractEntryContract', () => {
       const entry = QuestContractEntryStub();
 
       expect(entry).toStrictEqual({
-        id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'login-credentials',
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
@@ -23,7 +23,7 @@ describe('questContractEntryContract', () => {
 
     it('VALID: {all fields including source and multiple properties} => parses full entry', () => {
       const entry = QuestContractEntryStub({
-        id: 'b58dc20c-69dd-5483-b678-1f13c3d4e590',
+        id: 'user-profile',
         name: 'UserProfile',
         kind: 'data',
         status: 'modified',
@@ -50,7 +50,7 @@ describe('questContractEntryContract', () => {
       });
 
       expect(entry).toStrictEqual({
-        id: 'b58dc20c-69dd-5483-b678-1f13c3d4e590',
+        id: 'user-profile',
         name: 'UserProfile',
         kind: 'data',
         status: 'modified',
@@ -111,7 +111,7 @@ describe('questContractEntryContract', () => {
       });
 
       expect(entry).toStrictEqual({
-        id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'login-credentials',
         name: 'ShippingAddress',
         kind: 'data',
         status: 'new',
@@ -174,7 +174,7 @@ describe('questContractEntryContract', () => {
       });
 
       expect(entry).toStrictEqual({
-        id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'login-credentials',
         name: 'AuthLoginEndpoint',
         kind: 'endpoint',
         status: 'new',
@@ -209,7 +209,7 @@ describe('questContractEntryContract', () => {
       const result = questContractEntryContract.parse(entry);
 
       expect(result).toStrictEqual({
-        id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'login-credentials',
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
@@ -225,22 +225,22 @@ describe('questContractEntryContract', () => {
   });
 
   describe('invalid entries', () => {
-    it('INVALID_ID: {id: "not-a-uuid"} => throws validation error', () => {
+    it('INVALID_ID: {id: "Not-Valid"} => throws validation error', () => {
       expect(() => {
         return questContractEntryContract.parse({
-          id: 'not-a-uuid',
+          id: 'Not-Valid',
           name: 'ValidName',
           kind: 'data',
           status: 'new',
           properties: [{ name: 'field' }],
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/invalid_string/u);
     });
 
     it('INVALID_NAME: {name: ""} => throws validation error', () => {
       expect(() => {
         return questContractEntryContract.parse({
-          id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+          id: 'valid-id',
           name: '',
           kind: 'data',
           status: 'new',
@@ -257,7 +257,7 @@ describe('questContractEntryContract', () => {
       });
 
       expect(entry).toStrictEqual({
-        id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'login-credentials',
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
@@ -269,7 +269,7 @@ describe('questContractEntryContract', () => {
       const entry = QuestContractEntryStub();
 
       expect(entry).toStrictEqual({
-        id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'login-credentials',
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',

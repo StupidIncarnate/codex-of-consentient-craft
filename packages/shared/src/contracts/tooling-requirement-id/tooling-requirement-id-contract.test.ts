@@ -2,27 +2,33 @@ import { toolingRequirementIdContract } from './tooling-requirement-id-contract'
 import { ToolingRequirementIdStub } from './tooling-requirement-id.stub';
 
 describe('toolingRequirementIdContract', () => {
-  it('VALID: {value: uuid} => parses successfully', () => {
-    const id = ToolingRequirementIdStub({ value: 'd4e5f6a7-b8c9-4d0e-a1f2-3b4c5d6e7f8a' });
+  it('VALID: {value: kebab-case} => parses successfully', () => {
+    const id = ToolingRequirementIdStub({ value: 'pg-driver' });
 
-    expect(id).toBe('d4e5f6a7-b8c9-4d0e-a1f2-3b4c5d6e7f8a');
+    expect(id).toBe('pg-driver');
   });
 
-  it('VALID: {default value} => uses default uuid', () => {
+  it('VALID: {default value} => uses default kebab-case', () => {
     const id = ToolingRequirementIdStub();
 
-    expect(id).toBe('d4e5f6a7-b8c9-4d0e-a1f2-3b4c5d6e7f8a');
+    expect(id).toBe('pg-driver');
   });
 
-  it('INVALID_ID: {value: "not-a-uuid"} => throws validation error', () => {
+  it('VALID: {single word} => parses successfully', () => {
+    const id = ToolingRequirementIdStub({ value: 'jest' });
+
+    expect(id).toBe('jest');
+  });
+
+  it('INVALID_ID: {value: "Not-Kebab"} => throws validation error', () => {
     expect(() => {
-      return toolingRequirementIdContract.parse('not-a-uuid');
-    }).toThrow(/Invalid uuid/u);
+      return toolingRequirementIdContract.parse('Not-Kebab');
+    }).toThrow(/invalid_string/u);
   });
 
   it('INVALID_ID: {value: ""} => throws validation error', () => {
     expect(() => {
       return toolingRequirementIdContract.parse('');
-    }).toThrow(/Invalid uuid/u);
+    }).toThrow(/too_small/u);
   });
 });

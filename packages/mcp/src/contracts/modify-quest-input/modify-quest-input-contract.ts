@@ -16,27 +16,29 @@ import {
   toolingRequirementContract,
 } from '@dungeonmaster/shared/contracts';
 
+const deletableContract = z.object({ _delete: z.boolean().optional() });
+
 export const modifyQuestInputContract = z
   .object({
     questId: z.string().min(1).describe('The ID of the quest to modify').brand<'QuestId'>(),
     designDecisions: z
-      .array(designDecisionContract)
+      .array(designDecisionContract.and(deletableContract))
       .describe('Design decisions to upsert (existing ID updates, new ID adds)')
       .optional(),
     steps: z
-      .array(dependencyStepContract)
+      .array(dependencyStepContract.and(deletableContract))
       .describe('Dependency steps to upsert (existing ID updates, new ID adds)')
       .optional(),
     toolingRequirements: z
-      .array(toolingRequirementContract)
+      .array(toolingRequirementContract.and(deletableContract))
       .describe('Tooling requirements to upsert (existing ID updates, new ID adds)')
       .optional(),
     contracts: z
-      .array(questContractEntryContract)
+      .array(questContractEntryContract.and(deletableContract))
       .describe('Contracts to upsert (existing ID updates, new ID adds)')
       .optional(),
     flows: z
-      .array(flowContract)
+      .array(flowContract.and(deletableContract))
       .describe('Flows to upsert (existing ID updates, new ID adds)')
       .optional(),
     status: questStatusContract.describe('Lifecycle gate transition status').optional(),

@@ -1,32 +1,22 @@
 /**
- * PURPOSE: Upserts items into an existing array based on ID matching
+ * PURPOSE: Deep recursive upsert of items into an existing array based on ID matching
  *
  * USAGE:
- * questArrayUpsertTransformer({ existing: [{id: '1', name: 'A'}], updates: [{id: '1', name: 'B'}, {id: '2', name: 'C'}] });
- * // Returns: [{id: '1', name: 'B'}, {id: '2', name: 'C'}]
+ * questArrayUpsertTransformer({ existing: [{id: '1', name: 'A', nodes: [{id: 'n1'}]}], updates: [{id: '1', nodes: [{id: 'n2'}]}] });
+ * // Returns: [{id: '1', name: 'A', nodes: [{id: 'n1'}, {id: 'n2'}]}]
  *
  * UPSERT SEMANTICS:
- * - Items with existing ID => update (merge fields)
- * - Items with new ID => add to array
- * - Items in existing but not in updates => unchanged (no deletions)
+ * - Items with _delete: true => removed from result
+ * - Items with existing ID => deep merge (scalar overwrite, id-arrays recurse, other arrays replace)
+ * - Items with new ID => appended
+ * - Items in existing but not in updates => unchanged
  */
 
-import type {
-  DependencyStep,
-  DesignDecision,
-  Flow,
-  QuestContractEntry,
-  ToolingRequirement,
-} from '@dungeonmaster/shared/contracts';
+import type { ItemWithId } from '../../contracts/item-with-id/item-with-id-contract';
 
-type QuestArrayItem =
-  | DependencyStep
-  | ToolingRequirement
-  | DesignDecision
-  | QuestContractEntry
-  | Flow;
+import { questItemDeepMergeTransformer } from '../quest-item-deep-merge/quest-item-deep-merge-transformer';
 
-export const questArrayUpsertTransformer = <T extends QuestArrayItem>({
+export const questArrayUpsertTransformer = <T extends ItemWithId>({
   existing,
   updates,
 }: {
@@ -36,9 +26,20 @@ export const questArrayUpsertTransformer = <T extends QuestArrayItem>({
   const result = [...existing];
 
   for (const update of updates) {
+    if (update._delete === true) {
+      const deleteIndex = result.findIndex((item) => item.id === update.id);
+      if (deleteIndex >= 0) {
+        result.splice(deleteIndex, 1);
+      }
+      continue;
+    }
+
     const existingIndex = result.findIndex((item) => item.id === update.id);
     if (existingIndex >= 0) {
-      result[existingIndex] = { ...result[existingIndex], ...update };
+      result[existingIndex] = questItemDeepMergeTransformer({
+        existing: result[existingIndex] as ItemWithId,
+        update: update as ItemWithId,
+      }) as T;
     } else {
       result.push(update);
     }

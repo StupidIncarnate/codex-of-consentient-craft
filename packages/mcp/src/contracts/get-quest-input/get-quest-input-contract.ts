@@ -19,6 +19,12 @@ export const getQuestInputContract = z
         'Optional pipeline stage to filter sections. Omit to return all sections. Excluded sections return as empty arrays.',
       )
       .optional(),
+    format: z
+      .enum(['json', 'text'])
+      .describe(
+        'Output format. "json" returns the quest as JSON (default). "text" returns a human-readable text display with flow graphs.',
+      )
+      .default('json'),
   })
   .brand<'GetQuestInput'>();
 

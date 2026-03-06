@@ -11,6 +11,7 @@ import {
   processIdContract,
   guildIdContract,
 } from '@dungeonmaster/shared/contracts';
+import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
 import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
@@ -34,14 +35,28 @@ export const QuestHandleResponder = async ({
   if (tool === 'get-quest') {
     const questIdRaw: unknown = Reflect.get(args, 'questId');
     const stageRaw: unknown = Reflect.get(args, 'stage');
+    const formatRaw: unknown = Reflect.get(args, 'format');
     const questId = String(questIdRaw);
     const stage = typeof stageRaw === 'string' ? stageRaw : undefined;
+    const format = formatRaw === 'text' ? 'text' : 'json';
 
     try {
       const result = await orchestratorGetQuestAdapter({
         questId,
         ...(stage && { stage }),
       });
+
+      if (format === 'text' && result.success && result.quest) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: questToTextDisplayTransformer({ quest: result.quest }),
+            },
+          ],
+        };
+      }
+
       return {
         content: [
           {

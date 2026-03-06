@@ -9,7 +9,7 @@ describe('flowContract', () => {
       const flow = FlowStub();
 
       expect(flow).toStrictEqual({
-        id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'login-flow',
         name: 'Login Flow',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
@@ -48,14 +48,14 @@ describe('flowContract', () => {
 
     it('VALID: {without nodes field} => backward compat defaults to empty array', () => {
       const result = flowContract.parse({
-        id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'login-flow',
         name: 'Login Flow',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
       });
 
       expect(result).toStrictEqual({
-        id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'login-flow',
         name: 'Login Flow',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
@@ -66,21 +66,21 @@ describe('flowContract', () => {
   });
 
   describe('invalid flows', () => {
-    it('INVALID_ID: {id: "bad"} => throws validation error', () => {
+    it('INVALID_ID: {id: "Bad"} => throws validation error', () => {
       expect(() => {
         flowContract.parse({
-          id: 'bad',
+          id: 'Bad',
           name: 'Login Flow',
           entryPoint: '/login',
           exitPoints: ['/dashboard'],
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/invalid_string/u);
     });
 
     it('INVALID_NAME: {name: ""} => throws validation error', () => {
       expect(() => {
         flowContract.parse({
-          id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+          id: 'login-flow',
           name: '',
           entryPoint: '/login',
           exitPoints: ['/dashboard'],
@@ -91,7 +91,7 @@ describe('flowContract', () => {
     it('INVALID_ENTRY_POINT: {entryPoint: ""} => throws validation error', () => {
       expect(() => {
         flowContract.parse({
-          id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+          id: 'login-flow',
           name: 'Login Flow',
           entryPoint: '',
           exitPoints: ['/dashboard'],

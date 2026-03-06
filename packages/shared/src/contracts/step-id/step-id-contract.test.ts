@@ -2,27 +2,33 @@ import { stepIdContract } from './step-id-contract';
 import { StepIdStub } from './step-id.stub';
 
 describe('stepIdContract', () => {
-  it('VALID: {value: uuid} => parses successfully', () => {
-    const id = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
+  it('VALID: {value: kebab-case} => parses successfully', () => {
+    const id = StepIdStub({ value: 'create-login-api' });
 
-    expect(id).toBe('e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b');
+    expect(id).toBe('create-login-api');
   });
 
-  it('VALID: {default value} => uses default uuid', () => {
+  it('VALID: {default value} => uses default kebab-case', () => {
     const id = StepIdStub();
 
-    expect(id).toBe('e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b');
+    expect(id).toBe('create-login-api');
   });
 
-  it('INVALID_ID: {value: "not-a-uuid"} => throws validation error', () => {
+  it('VALID: {single word} => parses successfully', () => {
+    const id = StepIdStub({ value: 'setup' });
+
+    expect(id).toBe('setup');
+  });
+
+  it('INVALID_ID: {value: "Not-Kebab"} => throws validation error', () => {
     expect(() => {
-      return stepIdContract.parse('not-a-uuid');
-    }).toThrow(/Invalid uuid/u);
+      return stepIdContract.parse('Not-Kebab');
+    }).toThrow(/invalid_string/u);
   });
 
   it('INVALID_ID: {value: ""} => throws validation error', () => {
     expect(() => {
       return stepIdContract.parse('');
-    }).toThrow(/Invalid uuid/u);
+    }).toThrow(/too_small/u);
   });
 });

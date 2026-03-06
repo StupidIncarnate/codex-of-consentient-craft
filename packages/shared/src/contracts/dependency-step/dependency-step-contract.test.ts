@@ -4,10 +4,10 @@ import { DependencyStepStub } from './dependency-step.stub';
 describe('dependencyStepContract', () => {
   it('VALID: {complete step} => parses successfully', () => {
     const step = DependencyStepStub({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      id: 'create-user-api',
       name: 'Create user API endpoint',
       description: 'Implement the REST endpoint for user creation',
-      observablesSatisfied: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'],
+      observablesSatisfied: ['login-redirects-to-dashboard'],
       dependsOn: [],
       filesToCreate: ['src/routes/users.ts'],
       filesToModify: ['src/routes/index.ts'],
@@ -15,10 +15,10 @@ describe('dependencyStepContract', () => {
     });
 
     expect(step).toStrictEqual({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      id: 'create-user-api',
       name: 'Create user API endpoint',
       description: 'Implement the REST endpoint for user creation',
-      observablesSatisfied: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'],
+      observablesSatisfied: ['login-redirects-to-dashboard'],
       dependsOn: [],
       filesToCreate: ['src/routes/users.ts'],
       filesToModify: ['src/routes/index.ts'],
@@ -37,7 +37,7 @@ describe('dependencyStepContract', () => {
     });
 
     expect(step).toStrictEqual({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      id: 'create-login-api',
       name: 'Test Step',
       description: 'A test dependency step',
       observablesSatisfied: [],
@@ -52,15 +52,15 @@ describe('dependencyStepContract', () => {
 
   it('VALID: {multiple dependsOn} => parses step dependencies', () => {
     const step = DependencyStepStub({
-      dependsOn: ['b8c9d0e1-f2a3-4b4c-d5e6-7f8a9b0c1d2e', 'c9d0e1f2-a3b4-4c5d-e6f7-8a9b0c1d2e3f'],
+      dependsOn: ['setup-database', 'create-schema'],
     });
 
     expect(step).toStrictEqual({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      id: 'create-login-api',
       name: 'Test Step',
       description: 'A test dependency step',
       observablesSatisfied: [],
-      dependsOn: ['b8c9d0e1-f2a3-4b4c-d5e6-7f8a9b0c1d2e', 'c9d0e1f2-a3b4-4c5d-e6f7-8a9b0c1d2e3f'],
+      dependsOn: ['setup-database', 'create-schema'],
       filesToCreate: [],
       filesToModify: [],
       status: 'pending',
@@ -76,7 +76,7 @@ describe('dependencyStepContract', () => {
     });
 
     expect(step).toStrictEqual({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      id: 'create-login-api',
       name: 'Test Step',
       description: 'A test dependency step',
       observablesSatisfied: [],
@@ -93,7 +93,7 @@ describe('dependencyStepContract', () => {
     const step = DependencyStepStub();
 
     expect(step).toStrictEqual({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      id: 'create-login-api',
       name: 'Test Step',
       description: 'A test dependency step',
       observablesSatisfied: [],
@@ -152,7 +152,7 @@ describe('dependencyStepContract', () => {
     });
 
     expect(step).toStrictEqual({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      id: 'create-login-api',
       name: 'Test Step',
       description: 'A test dependency step',
       observablesSatisfied: [],
@@ -167,7 +167,7 @@ describe('dependencyStepContract', () => {
 
   it('VALID: {without new fields} => backward compat defaults to empty arrays and no exportName', () => {
     const step = dependencyStepContract.parse({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      id: 'legacy-step',
       name: 'Legacy Step',
       description: 'A step without new fields',
       observablesSatisfied: [],
@@ -178,7 +178,7 @@ describe('dependencyStepContract', () => {
     });
 
     expect(step).toStrictEqual({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      id: 'legacy-step',
       name: 'Legacy Step',
       description: 'A step without new fields',
       observablesSatisfied: [],
@@ -198,7 +198,7 @@ describe('dependencyStepContract', () => {
     });
 
     expect(step).toStrictEqual({
-      id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+      id: 'create-login-api',
       name: 'Test Step',
       description: 'A test dependency step',
       observablesSatisfied: [],
@@ -211,10 +211,10 @@ describe('dependencyStepContract', () => {
     });
   });
 
-  it('INVALID_ID: {id: "bad"} => throws validation error', () => {
+  it('INVALID_ID: {id: "Bad-Id"} => throws validation error', () => {
     const parseInvalidId = (): unknown =>
       dependencyStepContract.parse({
-        id: 'bad',
+        id: 'Bad-Id',
         name: 'Test',
         description: 'Test',
         observablesSatisfied: [],
@@ -224,13 +224,13 @@ describe('dependencyStepContract', () => {
         status: 'pending',
       });
 
-    expect(parseInvalidId).toThrow(/Invalid uuid/u);
+    expect(parseInvalidId).toThrow(/invalid_string/u);
   });
 
   it('INVALID_NAME: {name: ""} => throws validation error', () => {
     const parseEmptyName = (): unknown =>
       dependencyStepContract.parse({
-        id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+        id: 'valid-step',
         name: '',
         description: 'Test',
         observablesSatisfied: [],
@@ -243,42 +243,42 @@ describe('dependencyStepContract', () => {
     expect(parseEmptyName).toThrow(/String must contain at least 1 character/u);
   });
 
-  it('INVALID_OBSERVABLES: {observablesSatisfied: ["bad"]} => throws validation error', () => {
+  it('INVALID_OBSERVABLES: {observablesSatisfied: ["Bad"]} => throws validation error', () => {
     const parseInvalidObservables = (): unknown =>
       dependencyStepContract.parse({
-        id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+        id: 'valid-step',
         name: 'Test',
         description: 'Test',
-        observablesSatisfied: ['bad'],
+        observablesSatisfied: ['Bad'],
         dependsOn: [],
         filesToCreate: [],
         filesToModify: [],
         status: 'pending',
       });
 
-    expect(parseInvalidObservables).toThrow(/Invalid uuid/u);
+    expect(parseInvalidObservables).toThrow(/invalid_string/u);
   });
 
-  it('INVALID_DEPENDS_ON: {dependsOn: ["bad"]} => throws validation error', () => {
+  it('INVALID_DEPENDS_ON: {dependsOn: ["Bad"]} => throws validation error', () => {
     const parseInvalidDependsOn = (): unknown =>
       dependencyStepContract.parse({
-        id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+        id: 'valid-step',
         name: 'Test',
         description: 'Test',
         observablesSatisfied: [],
-        dependsOn: ['bad'],
+        dependsOn: ['Bad'],
         filesToCreate: [],
         filesToModify: [],
         status: 'pending',
       });
 
-    expect(parseInvalidDependsOn).toThrow(/Invalid uuid/u);
+    expect(parseInvalidDependsOn).toThrow(/invalid_string/u);
   });
 
   it('INVALID_STATUS: {status: "invalid"} => throws validation error', () => {
     const parseInvalidStatus = (): unknown =>
       dependencyStepContract.parse({
-        id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+        id: 'valid-step',
         name: 'Test',
         description: 'Test',
         observablesSatisfied: [],

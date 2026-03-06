@@ -207,10 +207,14 @@ describe('workUnitToArgumentsTransformer', () => {
         relatedContracts: [],
         relatedObservables: [
           FlowObservableStub({
-            then: [
-              { type: 'api-call', description: 'POST /auth/login' },
-              { type: 'ui-state', description: 'redirects to dashboard' },
-            ],
+            id: 'post-auth-login',
+            type: 'api-call',
+            description: 'POST /auth/login',
+          }),
+          FlowObservableStub({
+            id: 'redirects-to-dashboard',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
           }),
         ],
       });
@@ -218,7 +222,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toMatch(
-        /Related Observables:\n {2}Assertions:\n {4}- POST \/auth\/login \(api-call\)\n {4}- redirects to dashboard \(ui-state\)/u,
+        /Related Observables:\n {4}- POST \/auth\/login \(api-call\)\n {4}- redirects to dashboard \(ui-state\)/u,
       );
     });
 
@@ -247,7 +251,9 @@ describe('workUnitToArgumentsTransformer', () => {
         questId: QuestIdStub({ value: 'verify-quest' }),
         observables: [
           FlowObservableStub({
-            then: [{ type: 'ui-state', description: 'Shows success message' }],
+            id: 'shows-success-message',
+            type: 'ui-state',
+            description: 'Shows success message',
           }),
         ],
       });
@@ -255,10 +261,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe(
-        'Quest ID: verify-quest\n' +
-          'Observables:\n' +
-          '  Assertions:\n' +
-          '    - Shows success message (ui-state)',
+        'Quest ID: verify-quest\nObservables:\n    - Shows success message (ui-state)',
       );
     });
 

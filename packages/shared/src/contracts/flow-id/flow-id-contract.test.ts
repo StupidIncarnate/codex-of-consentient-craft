@@ -2,27 +2,33 @@ import { flowIdContract } from './flow-id-contract';
 import { FlowIdStub } from './flow-id.stub';
 
 describe('flowIdContract', () => {
-  it('VALID: {value: uuid} => parses successfully', () => {
-    const id = FlowIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+  it('VALID: {value: kebab-case} => parses successfully', () => {
+    const id = FlowIdStub({ value: 'login-flow' });
 
-    expect(id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    expect(id).toBe('login-flow');
   });
 
-  it('VALID: {default value} => uses default uuid', () => {
+  it('VALID: {default value} => uses default kebab-case', () => {
     const id = FlowIdStub();
 
-    expect(id).toBe('c23bd10b-58cc-4372-a567-0e02b2c3d479');
+    expect(id).toBe('login-flow');
   });
 
-  it('INVALID_ID: {value: "not-a-uuid"} => throws validation error', () => {
+  it('VALID: {single word} => parses successfully', () => {
+    const id = FlowIdStub({ value: 'login' });
+
+    expect(id).toBe('login');
+  });
+
+  it('INVALID_ID: {value: "Not-Kebab"} => throws validation error', () => {
     expect(() => {
-      return flowIdContract.parse('not-a-uuid');
-    }).toThrow(/Invalid uuid/u);
+      return flowIdContract.parse('Not-Kebab');
+    }).toThrow(/invalid_string/u);
   });
 
   it('INVALID_ID: {value: ""} => throws validation error', () => {
     expect(() => {
       return flowIdContract.parse('');
-    }).toThrow(/Invalid uuid/u);
+    }).toThrow(/too_small/u);
   });
 });

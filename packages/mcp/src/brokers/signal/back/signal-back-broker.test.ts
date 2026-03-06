@@ -185,9 +185,9 @@ describe('signalBackBroker', () => {
 
       expect(() =>
         signalBackBroker({
-          input: { signal: 'complete', stepId: 'not-a-uuid', summary: 'Test' } as never,
+          input: { signal: 'complete', stepId: 'INVALID', summary: 'Test' } as never,
         }),
-      ).toThrow(/Invalid uuid/u);
+      ).toThrow(/invalid_string/u);
     });
   });
 });

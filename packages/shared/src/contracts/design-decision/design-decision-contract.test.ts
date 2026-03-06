@@ -6,7 +6,7 @@ describe('designDecisionContract', () => {
     const decision = DesignDecisionStub();
 
     expect(decision).toStrictEqual({
-      id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+      id: 'use-jwt-auth',
       title: 'Use JWT for authentication tokens',
       rationale: 'JWT allows stateless auth with built-in expiration',
       relatedNodeIds: [],
@@ -24,7 +24,7 @@ describe('designDecisionContract', () => {
   it('INVALID_TITLE: {title: ""} => throws validation error', () => {
     expect(() => {
       return designDecisionContract.parse({
-        id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'use-jwt-auth',
         title: '',
         rationale: 'reason',
         relatedNodeIds: [],
@@ -32,21 +32,21 @@ describe('designDecisionContract', () => {
     }).toThrow(/too_small/u);
   });
 
-  it('INVALID_ID: {id: "not-uuid"} => throws validation error', () => {
+  it('INVALID_ID: {id: "Not-Valid"} => throws validation error', () => {
     expect(() => {
       return designDecisionContract.parse({
-        id: 'not-uuid',
+        id: 'Not-Valid',
         title: 'Title',
         rationale: 'reason',
         relatedNodeIds: [],
       });
-    }).toThrow(/Invalid uuid/u);
+    }).toThrow(/invalid_string/u);
   });
 
   it('INVALID_RELATED: {relatedNodeIds: ["Bad-Id"]} => throws validation error', () => {
     expect(() => {
       return designDecisionContract.parse({
-        id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+        id: 'use-jwt-auth',
         title: 'Title',
         rationale: 'reason',
         relatedNodeIds: ['Bad-Id'],

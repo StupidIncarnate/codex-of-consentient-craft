@@ -35,8 +35,8 @@ describe('flowToTestCasesTransformer', () => {
       const flow = FlowStub({
         nodes: [nodeA, nodeB, nodeC],
         edges: [
-          FlowEdgeStub({ from: 'start', to: 'middle', label: 'next' }),
-          FlowEdgeStub({ from: 'middle', to: 'end-state', label: 'done' }),
+          FlowEdgeStub({ id: 'start-to-middle', from: 'start', to: 'middle', label: 'next' }),
+          FlowEdgeStub({ id: 'middle-to-end', from: 'middle', to: 'end-state', label: 'done' }),
         ],
       });
 
@@ -82,9 +82,9 @@ describe('flowToTestCasesTransformer', () => {
       const flow = FlowStub({
         nodes: [nodeA, nodeB, nodeC, nodeD],
         edges: [
-          FlowEdgeStub({ from: 'start', to: 'check', label: 'proceed' }),
-          FlowEdgeStub({ from: 'check', to: 'success-end', label: 'yes' }),
-          FlowEdgeStub({ from: 'check', to: 'failure-end', label: 'no' }),
+          FlowEdgeStub({ id: 'start-to-check', from: 'start', to: 'check', label: 'proceed' }),
+          FlowEdgeStub({ id: 'check-to-success', from: 'check', to: 'success-end', label: 'yes' }),
+          FlowEdgeStub({ id: 'check-to-failure', from: 'check', to: 'failure-end', label: 'no' }),
         ],
       });
 
@@ -151,22 +151,34 @@ describe('flowToTestCasesTransformer', () => {
     });
 
     it('VALID: {nodes with observables} => collects assertions from nodes along path', () => {
-      const observable = FlowObservableStub({
-        then: [
-          { type: 'ui-state', description: 'shows login form' },
-          { type: 'api-call', description: 'validates credentials' },
-        ],
-      });
       const nodeA = FlowNodeStub({
         id: 'login-page',
         label: 'Login Page',
         type: 'state',
-        observables: [observable],
+        observables: [
+          FlowObservableStub({
+            id: 'shows-login-form',
+            type: 'ui-state',
+            description: 'shows login form',
+          }),
+          FlowObservableStub({
+            id: 'validates-credentials',
+            type: 'api-call',
+            description: 'validates credentials',
+          }),
+        ],
       });
       const nodeB = FlowNodeStub({ id: 'end-state', label: 'End', type: 'terminal' });
       const flow = FlowStub({
         nodes: [nodeA, nodeB],
-        edges: [FlowEdgeStub({ from: 'login-page', to: 'end-state', label: 'submit' })],
+        edges: [
+          FlowEdgeStub({
+            id: 'login-to-end',
+            from: 'login-page',
+            to: 'end-state',
+            label: 'submit',
+          }),
+        ],
       });
 
       const result = flowToTestCasesTransformer({ flow, generateId: createIdGenerator() });
@@ -243,9 +255,9 @@ describe('flowToTestCasesTransformer', () => {
       const flow = FlowStub({
         nodes: [nodeEntry, nodeA, nodeB],
         edges: [
-          FlowEdgeStub({ from: 'entry', to: 'node-a', label: 'start' }),
-          FlowEdgeStub({ from: 'node-a', to: 'node-b', label: 'forward' }),
-          FlowEdgeStub({ from: 'node-b', to: 'node-a', label: 'back' }),
+          FlowEdgeStub({ id: 'entry-to-a', from: 'entry', to: 'node-a', label: 'start' }),
+          FlowEdgeStub({ id: 'a-to-b', from: 'node-a', to: 'node-b', label: 'forward' }),
+          FlowEdgeStub({ id: 'b-to-a', from: 'node-b', to: 'node-a', label: 'back' }),
         ],
       });
 
@@ -288,7 +300,14 @@ describe('flowToTestCasesTransformer', () => {
       const nodeB = FlowNodeStub({ id: 'end-state', label: 'End', type: 'terminal' });
       const flow = FlowStub({
         nodes: [nodeA, nodeB],
-        edges: [FlowEdgeStub({ from: 'start', to: 'end-state', label: 'custom-transition' })],
+        edges: [
+          FlowEdgeStub({
+            id: 'start-to-end',
+            from: 'start',
+            to: 'end-state',
+            label: 'custom-transition',
+          }),
+        ],
       });
 
       const result = flowToTestCasesTransformer({ flow, generateId: createIdGenerator() });

@@ -17,7 +17,7 @@ describe('executionLogEntryContract', () => {
     it('VALID: entry with all fields => parses successfully', () => {
       const entry = ExecutionLogEntryStub({
         report: '002-codeweaver-report.json',
-        stepId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        stepId: 'create-login-api',
         timestamp: '2024-01-15T12:00:00.000Z',
         agentType: 'codeweaver',
         isRecovery: true,
@@ -26,7 +26,7 @@ describe('executionLogEntryContract', () => {
       const result = executionLogEntryContract.parse(entry);
 
       expect(result.report).toBe('002-codeweaver-report.json');
-      expect(result.stepId).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      expect(result.stepId).toBe('create-login-api');
       expect(result.agentType).toBe('codeweaver');
       expect(result.isRecovery).toBe(true);
     });
@@ -50,14 +50,14 @@ describe('executionLogEntryContract', () => {
       }).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID: invalid stepId uuid => throws validation error', () => {
+    it('INVALID: invalid stepId format => throws validation error', () => {
       expect(() => {
         executionLogEntryContract.parse({
           report: '001-report.json',
           timestamp: '2024-01-15T10:00:00.000Z',
-          stepId: 'not-a-uuid',
+          stepId: 'INVALID_STEP',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/invalid_string/u);
     });
   });
 });

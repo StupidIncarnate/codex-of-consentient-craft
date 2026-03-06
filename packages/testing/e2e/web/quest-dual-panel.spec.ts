@@ -106,8 +106,8 @@ const createQuestFileWithFlows = ({
           { id: 'database', label: 'Database', type: 'action', observables: [] },
         ],
         edges: [
-          { from: 'user-req', to: 'system' },
-          { from: 'system', to: 'database' },
+          { id: 'user-req-to-system', from: 'user-req', to: 'system' },
+          { id: 'system-to-database', from: 'system', to: 'database' },
         ],
       },
     ],

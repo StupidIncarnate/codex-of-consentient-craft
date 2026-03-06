@@ -1,13 +1,17 @@
 /**
- * PURPOSE: Defines the branded UUID type for DependencyStep identifiers
+ * PURPOSE: Defines the branded kebab-case type for DependencyStep identifiers
  *
  * USAGE:
- * stepIdContract.parse('e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b');
+ * stepIdContract.parse('create-login-api');
  * // Returns: StepId branded string
  */
 
 import { z } from 'zod';
 
-export const stepIdContract = z.string().uuid().brand<'StepId'>();
+export const stepIdContract = z
+  .string()
+  .min(1)
+  .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
+  .brand<'StepId'>();
 
 export type StepId = z.infer<typeof stepIdContract>;

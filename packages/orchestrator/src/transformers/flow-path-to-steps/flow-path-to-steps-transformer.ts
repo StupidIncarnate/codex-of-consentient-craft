@@ -24,12 +24,10 @@ export const flowPathToStepsTransformer = ({
   path.map((step) => {
     const node = nodeMap.get(step.nodeId);
 
-    const assertions = (node?.observables ?? []).flatMap((observable) =>
-      observable.then.map((outcome) => ({
-        type: outcome.type,
-        description: outcome.description,
-      })),
-    );
+    const assertions = (node?.observables ?? []).map((observable) => ({
+      type: observable.type,
+      description: observable.description,
+    }));
 
     return testCaseStepContract.parse({
       nodeId: step.nodeId,

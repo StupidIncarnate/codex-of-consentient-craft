@@ -15,7 +15,7 @@ describe('collectNodeAssertionsTransformer', () => {
   });
 
   describe('node with single observable', () => {
-    it('VALID: {observables: [1 then entry]} => returns single assertion', () => {
+    it('VALID: {observables: [1 observable]} => returns single assertion', () => {
       const node = FlowNodeStub({
         observables: [FlowObservableStub()],
       });
@@ -27,19 +27,23 @@ describe('collectNodeAssertionsTransformer', () => {
   });
 
   describe('node with multiple observables', () => {
-    it('VALID: {observables: [2 observables]} => flattens all then entries', () => {
+    it('VALID: {observables: [3 observables]} => returns all descriptions', () => {
       const node = FlowNodeStub({
         observables: [
           FlowObservableStub({
-            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-            then: [
-              { type: 'ui-state', description: 'shows login form' },
-              { type: 'ui-state', description: 'disables submit button' },
-            ],
+            id: 'shows-login-form',
+            type: 'ui-state',
+            description: 'shows login form',
           }),
           FlowObservableStub({
-            id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
-            then: [{ type: 'ui-state', description: 'displays error banner' }],
+            id: 'disables-submit-button',
+            type: 'ui-state',
+            description: 'disables submit button',
+          }),
+          FlowObservableStub({
+            id: 'displays-error-banner',
+            type: 'ui-state',
+            description: 'displays error banner',
           }),
         ],
       });
@@ -60,7 +64,7 @@ describe('collectNodeAssertionsTransformer', () => {
       const node = FlowNodeStub({
         observables: [
           FlowObservableStub({
-            then: [{ type: 'ui-state', description: longText }],
+            description: longText,
           }),
         ],
       });
@@ -75,7 +79,7 @@ describe('collectNodeAssertionsTransformer', () => {
       const node = FlowNodeStub({
         observables: [
           FlowObservableStub({
-            then: [{ type: 'ui-state', description: exactText }],
+            description: exactText,
           }),
         ],
       });

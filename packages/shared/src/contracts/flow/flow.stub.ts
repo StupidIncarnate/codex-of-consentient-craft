@@ -5,7 +5,7 @@ import type { Flow } from './flow-contract';
 
 export const FlowStub = ({ ...props }: StubArgument<Flow> = {}): Flow =>
   flowContract.parse({
-    id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+    id: 'login-flow',
     name: 'Login Flow',
     entryPoint: '/login',
     exitPoints: ['/dashboard'],

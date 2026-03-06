@@ -8,9 +8,11 @@
 
 import { z } from 'zod';
 
+import { stepIdContract } from '../step-id/step-id-contract';
+
 export const executionLogEntryContract = z.object({
   report: z.string().brand<'ReportFilename'>(),
-  stepId: z.string().uuid().brand<'StepId'>().optional(),
+  stepId: stepIdContract.optional(),
   timestamp: z.string().datetime().brand<'IsoTimestamp'>(),
   agentType: z.string().brand<'AgentType'>().optional(),
   isRecovery: z.boolean().optional(),

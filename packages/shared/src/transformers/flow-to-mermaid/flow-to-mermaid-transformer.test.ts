@@ -140,7 +140,7 @@ describe('flowToMermaidTransformer', () => {
           FlowNodeStub({ id: 'start', label: 'Start', type: 'state' }),
           FlowNodeStub({ id: 'end', label: 'End', type: 'terminal' }),
         ],
-        edges: [FlowEdgeStub({ from: 'start', to: 'end' })],
+        edges: [FlowEdgeStub({ id: 'start-to-end', from: 'start', to: 'end' })],
       });
 
       const result = flowToMermaidTransformer({ flow });
@@ -162,7 +162,7 @@ describe('flowToMermaidTransformer', () => {
           FlowNodeStub({ id: 'check', label: 'Check', type: 'decision' }),
           FlowNodeStub({ id: 'ok', label: 'OK', type: 'state' }),
         ],
-        edges: [FlowEdgeStub({ from: 'check', to: 'ok', label: 'yes' })],
+        edges: [FlowEdgeStub({ id: 'check-to-ok', from: 'check', to: 'ok', label: 'yes' })],
       });
 
       const result = flowToMermaidTransformer({ flow });
@@ -179,7 +179,12 @@ describe('flowToMermaidTransformer', () => {
           FlowNodeStub({ id: 'delete-failed', label: 'Delete Failed', type: 'terminal' }),
         ],
         edges: [
-          FlowEdgeStub({ from: 'api-result', to: 'delete-failed', label: 'Error (404/500)' }),
+          FlowEdgeStub({
+            id: 'api-to-fail',
+            from: 'api-result',
+            to: 'delete-failed',
+            label: 'Error (404/500)',
+          }),
         ],
       });
 
@@ -202,7 +207,7 @@ describe('flowToMermaidTransformer', () => {
           FlowNodeStub({ id: 'check', label: 'Check', type: 'decision' }),
           FlowNodeStub({ id: 'next', label: 'Next', type: 'state' }),
         ],
-        edges: [FlowEdgeStub({ from: 'check', to: 'next', label: 'yes|no' })],
+        edges: [FlowEdgeStub({ id: 'check-to-next', from: 'check', to: 'next', label: 'yes|no' })],
       });
 
       const result = flowToMermaidTransformer({ flow });
@@ -220,7 +225,9 @@ describe('flowToMermaidTransformer', () => {
           FlowNodeStub({ id: 'check', label: 'Check', type: 'decision' }),
           FlowNodeStub({ id: 'next', label: 'Next', type: 'state' }),
         ],
-        edges: [FlowEdgeStub({ from: 'check', to: 'next', label: 'status "OK"' })],
+        edges: [
+          FlowEdgeStub({ id: 'check-to-next', from: 'check', to: 'next', label: 'status "OK"' }),
+        ],
       });
 
       const result = flowToMermaidTransformer({ flow });
@@ -266,8 +273,9 @@ describe('flowToMermaidTransformer', () => {
         nodes: [FlowNodeStub({ id: 'start', label: 'Start', type: 'state' })],
         edges: [
           FlowEdgeStub({
+            id: 'start-to-target',
             from: 'start',
-            to: 'c23bd10b-58cc-4372-a567-0e02b2c3d479:target-node',
+            to: 'login-flow:target-node',
           }),
         ],
       });
@@ -406,7 +414,7 @@ describe('flowToMermaidTransformer', () => {
   });
 
   describe('assertion rendering', () => {
-    it('VALID: node with observables => renders assertions in label', () => {
+    it('VALID: node with multiple observables => renders all descriptions in label', () => {
       const flow = FlowStub({
         nodes: [
           FlowNodeStub({
@@ -415,10 +423,14 @@ describe('flowToMermaidTransformer', () => {
             type: 'state',
             observables: [
               FlowObservableStub({
-                then: [
-                  { type: 'ui-state', description: 'shows login form' },
-                  { type: 'ui-state', description: 'disables submit button' },
-                ],
+                id: 'shows-login-form',
+                type: 'ui-state',
+                description: 'shows login form',
+              }),
+              FlowObservableStub({
+                id: 'disables-submit-button',
+                type: 'ui-state',
+                description: 'disables submit button',
               }),
             ],
           }),
@@ -447,7 +459,7 @@ describe('flowToMermaidTransformer', () => {
             type: 'state',
             observables: [
               FlowObservableStub({
-                then: [{ type: 'ui-state', description: longDescription }],
+                description: longDescription,
               }),
             ],
           }),
@@ -466,7 +478,7 @@ describe('flowToMermaidTransformer', () => {
       );
     });
 
-    it('VALID: multiple observables on one node => flattens all then entries', () => {
+    it('VALID: multiple observables on one node => renders all descriptions', () => {
       const flow = FlowStub({
         nodes: [
           FlowNodeStub({
@@ -475,12 +487,14 @@ describe('flowToMermaidTransformer', () => {
             type: 'state',
             observables: [
               FlowObservableStub({
-                id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-                then: [{ type: 'ui-state', description: 'shows welcome message' }],
+                id: 'shows-welcome-message',
+                type: 'ui-state',
+                description: 'shows welcome message',
               }),
               FlowObservableStub({
-                id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
-                then: [{ type: 'ui-state', description: 'loads user data' }],
+                id: 'loads-user-data',
+                type: 'ui-state',
+                description: 'loads user data',
               }),
             ],
           }),
@@ -521,11 +535,16 @@ describe('flowToMermaidTransformer', () => {
           FlowNodeStub({ id: 'error', label: 'Error', type: 'terminal' }),
         ],
         edges: [
-          FlowEdgeStub({ from: 'start', to: 'check-auth' }),
-          FlowEdgeStub({ from: 'check-auth', to: 'dashboard', label: 'yes' }),
-          FlowEdgeStub({ from: 'check-auth', to: 'login', label: 'no' }),
-          FlowEdgeStub({ from: 'login', to: 'dashboard' }),
-          FlowEdgeStub({ from: 'login', to: 'error', label: 'fail' }),
+          FlowEdgeStub({ id: 'start-to-check', from: 'start', to: 'check-auth' }),
+          FlowEdgeStub({
+            id: 'check-to-dashboard',
+            from: 'check-auth',
+            to: 'dashboard',
+            label: 'yes',
+          }),
+          FlowEdgeStub({ id: 'check-to-login', from: 'check-auth', to: 'login', label: 'no' }),
+          FlowEdgeStub({ id: 'login-to-dashboard', from: 'login', to: 'dashboard' }),
+          FlowEdgeStub({ id: 'login-to-error', from: 'login', to: 'error', label: 'fail' }),
         ],
       });
 

@@ -203,13 +203,13 @@ describe('streamSignalContract', () => {
       ).toThrow(/Required/u);
     });
 
-    it('INVALID_STEP_ID: {stepId: "not-a-uuid"} => throws for invalid UUID format', () => {
+    it('INVALID_STEP_ID: {stepId: "INVALID"} => throws for invalid step ID format', () => {
       expect(() =>
         streamSignalContract.parse({
           signal: 'complete',
-          stepId: 'not-a-uuid',
+          stepId: 'INVALID',
         }),
-      ).toThrow(/Invalid uuid/u);
+      ).toThrow(/invalid_string/u);
     });
 
     it('INVALID_SUMMARY: {summary: ""} => throws for empty summary', () => {

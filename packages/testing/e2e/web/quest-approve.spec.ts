@@ -51,7 +51,7 @@ const createQuestFile = ({
           { id: 'start', label: 'Start', type: 'state', observables: [] },
           { id: 'end', label: 'End', type: 'terminal', observables: [] },
         ],
-        edges: [{ from: 'start', to: 'end' }],
+        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
       },
     ],
   };

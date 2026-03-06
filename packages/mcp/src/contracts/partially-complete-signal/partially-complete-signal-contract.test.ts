@@ -5,7 +5,7 @@ import { StepIdStub } from '@dungeonmaster/shared/contracts';
 describe('partiallyCompleteSignalContract', () => {
   describe('valid inputs', () => {
     it('VALID: {signal: "partially-complete", stepId, progress, continuationPoint} => parses successfully', () => {
-      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const stepId = StepIdStub({ value: 'create-login-api' });
       const input = PartiallyCompleteSignalStub({
         stepId,
         progress: 'Completed 75%',
@@ -16,7 +16,7 @@ describe('partiallyCompleteSignalContract', () => {
 
       expect(result).toStrictEqual({
         signal: 'partially-complete',
-        stepId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        stepId: 'create-login-api',
         progress: 'Completed 75%',
         continuationPoint: 'Resume at step 4',
       });
@@ -48,15 +48,15 @@ describe('partiallyCompleteSignalContract', () => {
       }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID_STEP_ID: {stepId: "not-uuid"} => throws validation error', () => {
+    it('INVALID_STEP_ID: {stepId: "INVALID"} => throws validation error', () => {
       expect(() => {
         partiallyCompleteSignalContract.parse({
           signal: 'partially-complete',
-          stepId: 'not-a-uuid',
+          stepId: 'INVALID',
           progress: 'Test progress',
           continuationPoint: 'Test continuation',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/invalid_string/u);
     });
 
     it('INVALID_PROGRESS: {progress: ""} => throws validation error', () => {

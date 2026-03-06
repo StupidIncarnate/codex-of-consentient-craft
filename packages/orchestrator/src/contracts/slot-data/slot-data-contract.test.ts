@@ -7,7 +7,7 @@ import { SlotDataStub } from './slot-data.stub';
 describe('slotDataContract', () => {
   describe('valid slot data', () => {
     it('VALID: {stepId, sessionId, startedAt} => parses successfully', () => {
-      const stepId = StepIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const stepId = StepIdStub({ value: 'setup-database' });
       const sessionId = SessionIdStub({ value: 'session-abc' });
       const startedAt = IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' });
 
@@ -34,17 +34,17 @@ describe('slotDataContract', () => {
   });
 
   describe('invalid slot data', () => {
-    it('INVALID_STEP_ID: {stepId: "not-a-uuid"} => throws Invalid uuid', () => {
+    it('INVALID_STEP_ID: {stepId: "INVALID"} => throws invalid_string', () => {
       const sessionId = SessionIdStub();
       const startedAt = IsoTimestampStub();
 
       expect(() =>
         slotDataContract.parse({
-          stepId: 'not-a-uuid',
+          stepId: 'INVALID',
           sessionId,
           startedAt,
         }),
-      ).toThrow(/Invalid uuid/u);
+      ).toThrow(/invalid_string/u);
     });
 
     it('INVALID_SESSION_ID: {sessionId: ""} => throws too_small', () => {

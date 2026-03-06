@@ -6,9 +6,10 @@
  * // Returns: { success: true } or { success: false, error: 'Quest not found' }
  *
  * UPSERT SEMANTICS:
- * - Items with existing ID in quest => update (merge fields)
+ * - Items with _delete: true => removed from quest
+ * - Items with existing ID in quest => deep merge (scalar overwrite, id-arrays recurse)
  * - Items with new ID => add to array
- * - Items in quest but not in input => unchanged (no deletions)
+ * - Items in quest but not in input => unchanged
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -22,6 +23,8 @@ import type { ModifyQuestResult } from '../../../contracts/modify-quest-result/m
 import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
+import { questDuplicateIdMessageTransformer } from '../../../transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer';
+import { questHasUniqueSiblingIdsGuard } from '../../../guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
 
@@ -35,6 +38,16 @@ export const questModifyBroker = async ({
 }): Promise<ModifyQuestResult> => {
   try {
     const validated = modifyQuestInputContract.parse(input);
+
+    // Validate no duplicate IDs within incoming arrays
+    const hasUniqueIds = questHasUniqueSiblingIdsGuard({ updates: validated });
+    if (!hasUniqueIds) {
+      const duplicateError = questDuplicateIdMessageTransformer({ updates: validated });
+      return modifyQuestResultContract.parse({
+        success: false,
+        error: duplicateError ?? 'Duplicate IDs found in input',
+      });
+    }
 
     const { questPath } = await questFindQuestPathBroker({ questId: validated.questId });
 

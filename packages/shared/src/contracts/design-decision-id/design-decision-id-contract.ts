@@ -1,13 +1,17 @@
 /**
- * PURPOSE: Defines the branded UUID type for DesignDecision identifiers
+ * PURPOSE: Defines the branded kebab-case type for DesignDecision identifiers
  *
  * USAGE:
- * designDecisionIdContract.parse('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+ * designDecisionIdContract.parse('use-jwt-auth');
  * // Returns: DesignDecisionId branded string
  */
 
 import { z } from 'zod';
 
-export const designDecisionIdContract = z.string().uuid().brand<'DesignDecisionId'>();
+export const designDecisionIdContract = z
+  .string()
+  .min(1)
+  .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
+  .brand<'DesignDecisionId'>();
 
 export type DesignDecisionId = z.infer<typeof designDecisionIdContract>;

@@ -5,7 +5,7 @@
  * flowEdgeRefContract.parse('login-page');
  * // Returns: FlowEdgeRef branded string
  *
- * flowEdgeRefContract.parse('c23bd10b-58cc-4372-a567-0e02b2c3d479:start');
+ * flowEdgeRefContract.parse('login-flow:start');
  * // Returns: FlowEdgeRef for cross-flow reference
  */
 

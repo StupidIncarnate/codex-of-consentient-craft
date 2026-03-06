@@ -14,3 +14,4 @@ export * from './src/statics/quests-folder/quests-folder-statics';
 export * from './src/statics/dungeonmaster-home/dungeonmaster-home-statics';
 export * from './src/statics/environment/environment-statics';
 export * from './src/statics/quest-gate-content-requirements/quest-gate-content-requirements-statics';
+export * from './src/statics/text-display-symbols/text-display-symbols-statics';

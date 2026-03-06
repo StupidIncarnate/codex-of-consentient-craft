@@ -31,7 +31,7 @@ describe('siegemasterPhaseLayerBroker', () => {
           contracts: [],
           flows: [
             {
-              id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+              id: 'login-flow',
               name: 'Login Flow',
               entryPoint: '/login',
               exitPoints: ['/dashboard'],
@@ -42,10 +42,9 @@ describe('siegemasterPhaseLayerBroker', () => {
                   type: 'state',
                   observables: [
                     {
-                      id: 'b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e',
-                      given: 'user is on the login page',
-                      when: 'user submits login form',
-                      then: [{ type: 'ui-state', description: 'redirects to dashboard' }],
+                      id: 'redirects-to-dashboard',
+                      type: 'ui-state',
+                      description: 'redirects to dashboard',
                     },
                   ],
                 },
@@ -55,10 +54,9 @@ describe('siegemasterPhaseLayerBroker', () => {
                   type: 'state',
                   observables: [
                     {
-                      id: 'c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f',
-                      given: 'user is on the dashboard',
-                      when: 'user views dashboard',
-                      then: [{ type: 'ui-state', description: 'shows user data' }],
+                      id: 'shows-user-data',
+                      type: 'ui-state',
+                      description: 'shows user data',
                     },
                   ],
                 },
@@ -100,7 +98,7 @@ describe('siegemasterPhaseLayerBroker', () => {
           contracts: [],
           flows: [
             {
-              id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+              id: 'login-flow',
               name: 'Login Flow',
               entryPoint: '/login',
               exitPoints: ['/dashboard'],
@@ -111,10 +109,9 @@ describe('siegemasterPhaseLayerBroker', () => {
                   type: 'state',
                   observables: [
                     {
-                      id: 'b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e',
-                      given: 'user is on the login page',
-                      when: 'user submits login form',
-                      then: [{ type: 'ui-state', description: 'redirects to dashboard' }],
+                      id: 'redirects-to-dashboard',
+                      type: 'ui-state',
+                      description: 'redirects to dashboard',
                     },
                   ],
                 },
@@ -156,7 +153,7 @@ describe('siegemasterPhaseLayerBroker', () => {
           contracts: [],
           flows: [
             {
-              id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+              id: 'login-flow',
               name: 'Login Flow',
               entryPoint: '/login',
               exitPoints: ['/dashboard'],
@@ -167,10 +164,9 @@ describe('siegemasterPhaseLayerBroker', () => {
                   type: 'state',
                   observables: [
                     {
-                      id: 'b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e',
-                      given: 'user is on the login page',
-                      when: 'user submits login form',
-                      then: [{ type: 'ui-state', description: 'redirects to dashboard' }],
+                      id: 'redirects-to-dashboard',
+                      type: 'ui-state',
+                      description: 'redirects to dashboard',
                     },
                   ],
                 },
@@ -212,7 +208,7 @@ describe('siegemasterPhaseLayerBroker', () => {
           contracts: [],
           flows: [
             {
-              id: 'c23bd10b-58cc-4372-a567-0e02b2c3d479',
+              id: 'login-flow',
               name: 'Login Flow',
               entryPoint: '/login',
               exitPoints: ['/dashboard'],

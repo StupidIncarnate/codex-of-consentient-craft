@@ -2,23 +2,20 @@
  * PURPOSE: Defines a contract entry within a quest, representing a data contract, endpoint, or event schema
  *
  * USAGE:
- * questContractEntryContract.parse({id: 'uuid', name: 'LoginCredentials', kind: 'data', status: 'new', properties: [{name: 'email'}]});
+ * questContractEntryContract.parse({id: 'login-credentials', name: 'LoginCredentials', kind: 'data', status: 'new', properties: [{name: 'email'}]});
  * // Returns: QuestContractEntry object with branded fields and validated sub-contracts
  */
 
 import { z } from 'zod';
 
 import { contractNameContract } from '../contract-name/contract-name-contract';
+import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
 import { questContractKindContract } from '../quest-contract-kind/quest-contract-kind-contract';
 import { questContractPropertyContract } from '../quest-contract-property/quest-contract-property-contract';
 import { questContractStatusContract } from '../quest-contract-status/quest-contract-status-contract';
 
 export const questContractEntryContract = z.object({
-  id: z
-    .string()
-    .uuid()
-    .brand<'QuestContractEntryId'>()
-    .describe('Unique identifier for this contract entry'),
+  id: questContractEntryIdContract.describe('Unique identifier for this contract entry'),
   name: contractNameContract.describe(
     'Contract name referenced by steps in inputContracts/outputContracts (e.g., "LoginCredentials", "AuthLoginEndpoint")',
   ),

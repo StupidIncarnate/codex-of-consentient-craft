@@ -5,7 +5,7 @@ import type { AgentSlot } from './agent-slot-contract';
 
 export const AgentSlotStub = ({ ...props }: StubArgument<AgentSlot> = {}): AgentSlot =>
   agentSlotContract.parse({
-    stepId: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+    stepId: 'create-login-api',
     sessionId: 'session-test-123',
     process: {
       kill: () => true,

@@ -30,18 +30,23 @@ describe('flowPathToStepsTransformer', () => {
       ]);
     });
 
-    it('VALID: {node with observables} => flattens assertions from then[]', () => {
-      const observable = FlowObservableStub({
-        then: [
-          { type: 'ui-state', description: 'shows dashboard' },
-          { type: 'api-call', description: 'fetches user data' },
-        ],
-      });
+    it('VALID: {node with observables} => collects assertions from observables', () => {
       const node = FlowNodeStub({
         id: 'dashboard',
         label: 'Dashboard',
         type: 'state',
-        observables: [observable],
+        observables: [
+          FlowObservableStub({
+            id: 'shows-dashboard',
+            type: 'ui-state',
+            description: 'shows dashboard',
+          }),
+          FlowObservableStub({
+            id: 'fetches-user-data',
+            type: 'api-call',
+            description: 'fetches user data',
+          }),
+        ],
       });
       const nodeMap = new Map<FlowNodeId, FlowNode>([[node.id, node]]);
 
@@ -64,14 +69,16 @@ describe('flowPathToStepsTransformer', () => {
       ]);
     });
 
-    it('VALID: {multiple observables} => flattens all assertions', () => {
+    it('VALID: {multiple observables} => collects all assertions', () => {
       const obs1 = FlowObservableStub({
-        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-        then: [{ type: 'ui-state', description: 'shows form' }],
+        id: 'shows-form',
+        type: 'ui-state',
+        description: 'shows form',
       });
       const obs2 = FlowObservableStub({
-        id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
-        then: [{ type: 'api-call', description: 'validates input' }],
+        id: 'validates-input',
+        type: 'api-call',
+        description: 'validates input',
       });
       const node = FlowNodeStub({
         id: 'form-page',

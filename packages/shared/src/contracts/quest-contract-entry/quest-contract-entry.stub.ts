@@ -7,7 +7,7 @@ export const QuestContractEntryStub = ({
   ...props
 }: StubArgument<QuestContractEntry> = {}): QuestContractEntry =>
   questContractEntryContract.parse({
-    id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+    id: 'login-credentials',
     name: 'LoginCredentials',
     kind: 'data',
     status: 'new',

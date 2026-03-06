@@ -7,13 +7,9 @@ describe('flowObservableContract', () => {
       const observable = FlowObservableStub();
 
       expect(observable).toStrictEqual({
-        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-        then: [
-          {
-            type: 'ui-state',
-            description: 'redirects to dashboard',
-          },
-        ],
+        id: 'login-redirects-to-dashboard',
+        type: 'ui-state',
+        description: 'redirects to dashboard',
       });
     });
 
@@ -37,36 +33,34 @@ describe('flowObservableContract', () => {
       expect(observable.verificationNotes).toBe('Verified via integration test');
     });
 
-    it('VALID: {multiple then outcomes} => parses with multiple outcomes', () => {
+    it('VALID: {api-call type} => parses different outcome type', () => {
       const observable = FlowObservableStub({
-        then: [
-          { type: 'ui-state', description: 'shows success message' },
-          { type: 'api-call', description: 'sends auth token to server' },
-        ],
+        type: 'api-call',
+        description: 'sends auth token to server',
       });
 
-      expect(observable.then).toStrictEqual([
-        { type: 'ui-state', description: 'shows success message' },
-        { type: 'api-call', description: 'sends auth token to server' },
-      ]);
+      expect(observable.type).toBe('api-call');
+      expect(observable.description).toBe('sends auth token to server');
     });
   });
 
   describe('invalid flow observables', () => {
-    it('INVALID_ID: {id: "bad"} => throws validation error', () => {
+    it('INVALID_ID: {id: "Bad"} => throws validation error', () => {
       expect(() => {
         flowObservableContract.parse({
-          id: 'bad',
-          then: [],
+          id: 'Bad',
+          type: 'ui-state',
+          description: 'test',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_THEN_TYPE: {then: [{type: "invalid"}]} => throws validation error', () => {
+    it('INVALID_TYPE: {type: "invalid"} => throws validation error', () => {
       expect(() => {
         flowObservableContract.parse({
-          id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-          then: [{ type: 'invalid', description: 'test' }],
+          id: 'valid-id',
+          type: 'invalid',
+          description: 'test',
         });
       }).toThrow(/Invalid enum value/u);
     });

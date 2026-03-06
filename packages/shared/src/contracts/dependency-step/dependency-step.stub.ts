@@ -7,7 +7,7 @@ export const DependencyStepStub = ({
   ...props
 }: StubArgument<DependencyStep> = {}): DependencyStep =>
   dependencyStepContract.parse({
-    id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+    id: 'create-login-api',
     name: 'Test Step',
     description: 'A test dependency step',
     observablesSatisfied: [],

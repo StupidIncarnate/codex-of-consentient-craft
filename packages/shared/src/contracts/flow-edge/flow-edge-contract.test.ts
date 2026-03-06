@@ -3,10 +3,11 @@ import { FlowEdgeStub } from './flow-edge.stub';
 
 describe('flowEdgeContract', () => {
   describe('valid edges', () => {
-    it('VALID: {from, to} => parses successfully', () => {
+    it('VALID: {id, from, to} => parses successfully', () => {
       const edge = FlowEdgeStub();
 
       expect(edge).toStrictEqual({
+        id: 'login-to-dashboard',
         from: 'login-page',
         to: 'dashboard',
       });
@@ -16,6 +17,7 @@ describe('flowEdgeContract', () => {
       const edge = FlowEdgeStub({ label: 'on success' });
 
       expect(edge).toStrictEqual({
+        id: 'login-to-dashboard',
         from: 'login-page',
         to: 'dashboard',
         label: 'on success',
@@ -24,12 +26,13 @@ describe('flowEdgeContract', () => {
 
     it('VALID: {cross-flow refs} => parses cross-flow edge', () => {
       const edge = FlowEdgeStub({
-        from: 'c23bd10b-58cc-4372-a567-0e02b2c3d479:end',
-        to: 'd34ce21c-69dd-5483-b678-1f13c3d4e590:start',
+        id: 'cross-flow-edge',
+        from: 'login-flow:end',
+        to: 'dashboard-flow:start',
       });
 
-      expect(edge.from).toBe('c23bd10b-58cc-4372-a567-0e02b2c3d479:end');
-      expect(edge.to).toBe('d34ce21c-69dd-5483-b678-1f13c3d4e590:start');
+      expect(edge.from).toBe('login-flow:end');
+      expect(edge.to).toBe('dashboard-flow:start');
     });
   });
 
@@ -37,6 +40,7 @@ describe('flowEdgeContract', () => {
     it('INVALID_FROM: {from: ""} => throws validation error', () => {
       expect(() => {
         flowEdgeContract.parse({
+          id: 'test-edge',
           from: '',
           to: 'dashboard',
         });
@@ -46,6 +50,7 @@ describe('flowEdgeContract', () => {
     it('INVALID_TO: {to: ""} => throws validation error', () => {
       expect(() => {
         flowEdgeContract.parse({
+          id: 'test-edge',
           from: 'login-page',
           to: '',
         });
