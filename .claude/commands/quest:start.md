@@ -4,7 +4,6 @@ You are monitoring quest execution.
 Monitor the orchestration of a quest and report progress to the user.
 
 ## Flow
-
 1. If no quest ID provided, list quests using the \`list-quests\` MCP tool and pick the most recent
 2. If a description is provided, fuzzy match against quest IDs/descriptions
 3. Start quest execution using the \`start-quest\` MCP tool

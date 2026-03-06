@@ -34,7 +34,7 @@ const controlStyles = {
 };
 
 const DIAGRAM_STYLE_TAG =
-  '<style>.flowchart-link { stroke-width: 2px !important; } .marker { stroke-width: 1px; }</style>';
+  '<style>.flowchart-link { stroke-width: 2px !important; } .marker { stroke-width: 1px; } .node foreignObject > div { text-align: left !important; max-width: 600px !important; white-space: normal !important; }</style>';
 
 export const MermaidDiagramWidget = ({ diagram }: MermaidDiagramWidgetProps): React.JSX.Element => {
   const inlineContainerRef = useRef<HTMLDivElement>(null);
@@ -80,6 +80,13 @@ export const MermaidDiagramWidget = ({ diagram }: MermaidDiagramWidgetProps): Re
     const instance = panzoomCreateAdapter({ element: inlineContainerRef.current });
     inlinePanzoomRef.current = instance;
 
+    const scrollContainer = inlineContainerRef.current.closest('[data-testid="MERMAID_CONTAINER"]');
+    if (scrollContainer) {
+      requestAnimationFrame(() => {
+        scrollContainer.scrollTop = 0;
+      });
+    }
+
     return () => {
       instance.destroy();
       inlinePanzoomRef.current = null;
@@ -112,8 +119,10 @@ export const MermaidDiagramWidget = ({ diagram }: MermaidDiagramWidgetProps): Re
   return (
     <>
       <Box style={{ position: 'relative' }}>
-        <Box data-testid="MERMAID_CONTAINER" style={{ maxHeight: MAX_HEIGHT, overflow: 'hidden' }}>
-          <Box ref={inlineContainerRef} />
+        <Box data-testid="MERMAID_CONTAINER" style={{ maxHeight: MAX_HEIGHT, overflow: 'auto' }}>
+          <Box>
+            <Box ref={inlineContainerRef} />
+          </Box>
         </Box>
         {svgContent ? (
           <Group gap={4} style={{ position: 'absolute', bottom: 8, right: 8 }}>

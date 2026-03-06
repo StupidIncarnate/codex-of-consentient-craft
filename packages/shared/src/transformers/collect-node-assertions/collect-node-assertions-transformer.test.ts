@@ -55,8 +55,8 @@ describe('collectNodeAssertionsTransformer', () => {
   });
 
   describe('truncation', () => {
-    it('VALID: {description: 61+ chars} => truncates at 60 with ellipsis', () => {
-      const longText = 'a'.repeat(61);
+    it('VALID: {description: 201+ chars} => truncates at 200 with ellipsis', () => {
+      const longText = 'a'.repeat(201);
       const node = FlowNodeStub({
         observables: [
           FlowObservableStub({
@@ -67,11 +67,11 @@ describe('collectNodeAssertionsTransformer', () => {
 
       const result = collectNodeAssertionsTransformer({ node });
 
-      expect(result).toStrictEqual([`${'a'.repeat(60)}...`]);
+      expect(result).toStrictEqual([`${'a'.repeat(200)}...`]);
     });
 
-    it('VALID: {description: exactly 60 chars} => returns unchanged', () => {
-      const exactText = 'a'.repeat(60);
+    it('VALID: {description: exactly 200 chars} => returns unchanged', () => {
+      const exactText = 'a'.repeat(200);
       const node = FlowNodeStub({
         observables: [
           FlowObservableStub({

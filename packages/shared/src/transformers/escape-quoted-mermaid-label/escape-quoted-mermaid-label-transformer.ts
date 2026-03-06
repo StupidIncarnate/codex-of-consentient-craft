@@ -27,7 +27,7 @@ const MERMAID_SPECIAL_CHARS = /[()[\]{}|"]/gu;
 export const escapeQuotedMermaidLabelTransformer = ({
   label,
 }: {
-  label: FlowNode['label'] | NonNullable<FlowEdge['label']>;
+  label: FlowNode['label'] | NonNullable<FlowEdge['label']> | ContentText;
 }): ContentText =>
   contentTextContract.parse(
     label.replace(MERMAID_SPECIAL_CHARS, (char) =>

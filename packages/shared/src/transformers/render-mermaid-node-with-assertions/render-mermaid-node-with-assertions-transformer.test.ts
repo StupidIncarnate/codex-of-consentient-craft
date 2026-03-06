@@ -78,4 +78,28 @@ describe('renderMermaidNodeWithAssertionsTransformer', () => {
       );
     });
   });
+
+  describe('assertions with special characters', () => {
+    it('VALID: {assertion with quotes} => escapes quotes in assertion text', () => {
+      const node = FlowNodeStub({ id: 'confirm', label: 'Confirmation dialog', type: 'state' });
+      const assertions = [ContentTextStub({ value: 'modal has title "Delete Quest"' })];
+
+      const result = renderMermaidNodeWithAssertionsTransformer({ node, assertions });
+
+      expect(result).toBe(
+        'confirm["<b>Confirmation dialog</b><br/><small>· modal has title &quot;Delete Quest&quot;</small>"]',
+      );
+    });
+
+    it('VALID: {assertion with brackets and pipes} => escapes mermaid special chars', () => {
+      const node = FlowNodeStub({ id: 'display', label: 'Show output', type: 'state' });
+      const assertions = [ContentTextStub({ value: 'shows [error] with {details} | retry' })];
+
+      const result = renderMermaidNodeWithAssertionsTransformer({ node, assertions });
+
+      expect(result).toBe(
+        'display["<b>Show output</b><br/><small>· shows #91;error#93; with #123;details#125; #124; retry</small>"]',
+      );
+    });
+  });
 });

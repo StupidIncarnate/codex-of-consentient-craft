@@ -10,7 +10,7 @@ import { contentTextContract } from '../../contracts/content-text/content-text-c
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { FlowNode } from '../../contracts/flow-node/flow-node-contract';
 
-const ASSERTION_MAX_LENGTH = 60;
+const ASSERTION_MAX_LENGTH = 200;
 
 export const collectNodeAssertionsTransformer = ({ node }: { node: FlowNode }): ContentText[] =>
   node.observables.flatMap((observable) =>

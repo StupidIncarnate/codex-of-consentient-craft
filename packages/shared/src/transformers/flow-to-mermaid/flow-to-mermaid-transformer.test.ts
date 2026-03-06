@@ -437,8 +437,8 @@ describe('flowToMermaidTransformer', () => {
       );
     });
 
-    it('VALID: long assertion description => truncated at 60 chars', () => {
-      const longDescription = 'a'.repeat(61);
+    it('VALID: long assertion description => truncated at 200 chars', () => {
+      const longDescription = 'a'.repeat(201);
       const flow = FlowStub({
         nodes: [
           FlowNodeStub({
@@ -460,7 +460,7 @@ describe('flowToMermaidTransformer', () => {
       expect(result).toBe(
         [
           'flowchart TD',
-          `  page["<b>Page</b><br/><small>· ${'a'.repeat(60)}...</small>"]`,
+          `  page["<b>Page</b><br/><small>· ${'a'.repeat(200)}...</small>"]`,
           '  style page fill:#2d6a4f,color:#fff',
         ].join('\n'),
       );

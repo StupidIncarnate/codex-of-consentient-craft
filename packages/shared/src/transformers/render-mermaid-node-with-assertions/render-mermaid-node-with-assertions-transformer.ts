@@ -28,7 +28,10 @@ export const renderMermaidNodeWithAssertionsTransformer = ({
   const delimiters = SHAPE_DELIMITERS[node.type];
   const escapedLabel = escapeQuotedMermaidLabelTransformer({ label: node.label });
   const assertionLines = assertions
-    .map((assertion) => `<br/><small>· ${assertion}</small>`)
+    .map(
+      (assertion) =>
+        `<br/><small>· ${escapeQuotedMermaidLabelTransformer({ label: assertion })}</small>`,
+    )
     .join('');
 
   return contentTextContract.parse(

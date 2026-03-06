@@ -1,8 +1,10 @@
 import {
+  AssistantTextStreamLineStub,
   GuildStub,
   GuildConfigStub,
   GuildIdStub,
   SessionIdStub,
+  UserTextArrayStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
@@ -279,6 +281,69 @@ describe('chatHistoryReplayBroker', () => {
           toolUseResult: { agentId: 'agent-patch' },
           source: 'session',
           agentId: 'agent-patch',
+        },
+      ]);
+    });
+
+    it('VALID: {subagent messages between session messages} => emits entries in chronological order', async () => {
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-interleave' });
+      const guild = GuildStub({
+        id: guildId,
+        path: '/home/user/my-project',
+      });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const userBefore = UserTextArrayStreamLineStub({
+        message: { role: 'user', content: [{ type: 'text', text: 'before' }] },
+      });
+      const assistantAfter = AssistantTextStreamLineStub({
+        message: { role: 'assistant', content: [{ type: 'text', text: 'after' }] },
+      });
+      const assistantMiddle = AssistantTextStreamLineStub({
+        message: { role: 'assistant', content: [{ type: 'text', text: 'middle' }] },
+      });
+
+      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupMainSession({
+        content: [
+          JSON.stringify({ ...userBefore, timestamp: '2025-01-01T00:00:00Z' }),
+          JSON.stringify({ ...assistantAfter, timestamp: '2025-01-01T00:00:10Z' }),
+        ].join('\n'),
+      });
+      proxy.setupSubagentDir({ files: [FileNameStub({ value: 'agent-mid.jsonl' })] });
+      proxy.setupSubagentFile({
+        content: JSON.stringify({ ...assistantMiddle, timestamp: '2025-01-01T00:00:05Z' }),
+      });
+
+      const entries: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        onEntry: ({ entry }) => {
+          entries.push(entry);
+        },
+        onPatch: () => {},
+      });
+
+      expect(entries).toStrictEqual([
+        {
+          ...userBefore,
+          timestamp: '2025-01-01T00:00:00Z',
+          source: 'session',
+        },
+        {
+          ...assistantMiddle,
+          timestamp: '2025-01-01T00:00:05Z',
+          source: 'subagent',
+          agentId: 'agent-mid',
+        },
+        {
+          ...assistantAfter,
+          timestamp: '2025-01-01T00:00:10Z',
+          source: 'session',
         },
       ]);
     });

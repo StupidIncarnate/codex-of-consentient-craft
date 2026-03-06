@@ -25,6 +25,11 @@ export const mermaidRenderAdapter = async ({
       startOnLoad: false,
       securityLevel: 'loose',
       theme: 'dark',
+      flowchart: {
+        useMaxWidth: false,
+        wrappingWidth: 600,
+        htmlLabels: true,
+      },
       themeVariables: {
         darkMode: true,
         background: '#1a110d',
@@ -34,6 +39,7 @@ export const mermaidRenderAdapter = async ({
         secondaryColor: '#2a1a14',
         tertiaryColor: '#0d0907',
       },
+      themeCSS: '.node foreignObject > div { max-width: 600px !important; }',
     });
     initialized = true;
   }
