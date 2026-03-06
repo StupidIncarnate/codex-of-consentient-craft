@@ -68,6 +68,69 @@ describe('flowToMermaidTransformer', () => {
         ['flowchart TD', '  end((End))', '  style end fill:#c92a2a,color:#fff'].join('\n'),
       );
     });
+
+    it('VALID: {type: terminal, label with parens} => escapes parentheses in label', () => {
+      const flow = FlowStub({
+        nodes: [
+          FlowNodeStub({
+            id: 'delete-failed',
+            label: 'Delete failed (error displayed)',
+            type: 'terminal',
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(
+        [
+          'flowchart TD',
+          '  delete-failed((Delete failed #40;error displayed#41;))',
+          '  style delete-failed fill:#c92a2a,color:#fff',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {type: action, label with parens} => escapes parentheses in label', () => {
+      const flow = FlowStub({
+        nodes: [
+          FlowNodeStub({
+            id: 'call-api',
+            label: 'Call API (retry)',
+            type: 'action',
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(
+        [
+          'flowchart TD',
+          '  call-api(Call API #40;retry#41;)',
+          '  style call-api fill:#1971c2,color:#fff',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {type: decision, label with braces} => escapes braces in label', () => {
+      const flow = FlowStub({
+        nodes: [
+          FlowNodeStub({
+            id: 'check-config',
+            label: 'Config {valid}?',
+            type: 'decision',
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(['flowchart TD', '  check-config{Config #123;valid#125;?}'].join('\n'));
+    });
   });
 
   describe('edge rendering', () => {
@@ -106,6 +169,95 @@ describe('flowToMermaidTransformer', () => {
 
       expect(result).toBe(
         ['flowchart TD', '  check{Check}', '  ok[OK]', '  check -->|yes| ok'].join('\n'),
+      );
+    });
+
+    it('VALID: {from, to, label with parens} => escapes parentheses in edge label', () => {
+      const flow = FlowStub({
+        nodes: [
+          FlowNodeStub({ id: 'api-result', label: 'API Result', type: 'decision' }),
+          FlowNodeStub({ id: 'delete-failed', label: 'Delete Failed', type: 'terminal' }),
+        ],
+        edges: [
+          FlowEdgeStub({ from: 'api-result', to: 'delete-failed', label: 'Error (404/500)' }),
+        ],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(
+        [
+          'flowchart TD',
+          '  api-result{API Result}',
+          '  delete-failed((Delete Failed))',
+          '  api-result -->|Error #40;404/500#41;| delete-failed',
+          '  style delete-failed fill:#c92a2a,color:#fff',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {from, to, label with pipe} => escapes pipe in edge label', () => {
+      const flow = FlowStub({
+        nodes: [
+          FlowNodeStub({ id: 'check', label: 'Check', type: 'decision' }),
+          FlowNodeStub({ id: 'next', label: 'Next', type: 'state' }),
+        ],
+        edges: [FlowEdgeStub({ from: 'check', to: 'next', label: 'yes|no' })],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(
+        ['flowchart TD', '  check{Check}', '  next[Next]', '  check -->|yes#124;no| next'].join(
+          '\n',
+        ),
+      );
+    });
+
+    it('VALID: {from, to, label with quotes} => escapes quotes in edge label', () => {
+      const flow = FlowStub({
+        nodes: [
+          FlowNodeStub({ id: 'check', label: 'Check', type: 'decision' }),
+          FlowNodeStub({ id: 'next', label: 'Next', type: 'state' }),
+        ],
+        edges: [FlowEdgeStub({ from: 'check', to: 'next', label: 'status "OK"' })],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(
+        [
+          'flowchart TD',
+          '  check{Check}',
+          '  next[Next]',
+          '  check -->|status #34;OK#34;| next',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {node label with pipe} => escapes pipe in node label', () => {
+      const flow = FlowStub({
+        nodes: [FlowNodeStub({ id: 'choice', label: 'A|B', type: 'state' })],
+        edges: [],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(['flowchart TD', '  choice[A#124;B]'].join('\n'));
+    });
+
+    it('VALID: {node label with quotes} => escapes quotes in node label', () => {
+      const flow = FlowStub({
+        nodes: [FlowNodeStub({ id: 'msg', label: 'Show "error"', type: 'action' })],
+        edges: [],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(
+        ['flowchart TD', '  msg(Show #34;error#34;)', '  style msg fill:#1971c2,color:#fff'].join(
+          '\n',
+        ),
       );
     });
 

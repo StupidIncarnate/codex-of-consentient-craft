@@ -16,7 +16,7 @@ import { questVerifyTransformer } from './quest-verify-transformer';
 
 describe('questVerifyTransformer', () => {
   describe('all checks pass', () => {
-    it('VALID: {well-formed quest with flows, nodes, observables, contracts} => all 11 checks pass', () => {
+    it('VALID: {well-formed quest with flows, nodes, observables, contracts} => all 12 checks pass', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const stepId = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
       const contractName = ContractNameStub({ value: 'IsValid' });
@@ -113,6 +113,11 @@ describe('questVerifyTransformer', () => {
           name: 'Valid Flow References',
           passed: true,
           details: 'All flow edge references point to existing nodes',
+        },
+        {
+          name: 'No Orphan Flow Nodes',
+          passed: true,
+          details: 'All flow nodes are connected to at least one edge',
         },
         {
           name: 'Node Observable Coverage',
@@ -367,6 +372,31 @@ describe('questVerifyTransformer', () => {
     });
   });
 
+  describe('orphan flow nodes', () => {
+    it('INVALID_ORPHAN: {node with no edges} => orphan flow nodes check fails', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({ id: 'connected-a' }),
+              FlowNodeStub({ id: 'connected-b' }),
+              FlowNodeStub({ id: 'orphan-node', type: 'terminal' }),
+            ],
+            edges: [FlowEdgeStub({ from: 'connected-a', to: 'connected-b' })],
+          }),
+        ],
+      });
+
+      const [, , , , , , , , , , orphanCheck] = questVerifyTransformer({ quest });
+
+      expect(orphanCheck).toStrictEqual({
+        name: 'No Orphan Flow Nodes',
+        passed: false,
+        details: 'Some flow nodes have no edges connecting to or from them',
+      });
+    });
+  });
+
   describe('node observable coverage fails', () => {
     it('INVALID_NODE_COVERAGE: {terminal node without observables} => node observable coverage fails', () => {
       const quest = QuestStub({
@@ -383,7 +413,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , , , nodeCoverageCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , , , , , nodeCoverageCheck] = questVerifyTransformer({ quest });
 
       expect(nodeCoverageCheck).toStrictEqual({
         name: 'Node Observable Coverage',

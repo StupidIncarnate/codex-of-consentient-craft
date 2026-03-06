@@ -18,6 +18,7 @@ import { questHasNoOrphanStepsGuard } from '../../guards/quest-has-no-orphan-ste
 import { questHasNodeCoverageGuard } from '../../guards/quest-has-node-coverage/quest-has-node-coverage-guard';
 import { questHasObservableCoverageGuard } from '../../guards/quest-has-observable-coverage/quest-has-observable-coverage-guard';
 import { questStepHasContractRefsGuard } from '../../guards/quest-step-has-contract-refs/quest-step-has-contract-refs-guard';
+import { questHasNoOrphanFlowNodesGuard } from '../../guards/quest-has-no-orphan-flow-nodes/quest-has-no-orphan-flow-nodes-guard';
 import { questHasValidFlowRefsGuard } from '../../guards/quest-has-valid-flow-refs/quest-has-valid-flow-refs-guard';
 import { questStepHasExportNameGuard } from '../../guards/quest-step-has-export-name/quest-step-has-export-name-guard';
 import { questStepHasValidContractRefsGuard } from '../../guards/quest-step-has-valid-contract-refs/quest-step-has-valid-contract-refs-guard';
@@ -154,6 +155,19 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
       details: validFlowRefs
         ? 'All flow edge references point to existing nodes'
         : 'Some flow edges reference non-existent node IDs',
+    }),
+  );
+
+  const noOrphanFlowNodes = questHasNoOrphanFlowNodesGuard({
+    flows: quest.flows,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: 'No Orphan Flow Nodes',
+      passed: noOrphanFlowNodes,
+      details: noOrphanFlowNodes
+        ? 'All flow nodes are connected to at least one edge'
+        : 'Some flow nodes have no edges connecting to or from them',
     }),
   );
 

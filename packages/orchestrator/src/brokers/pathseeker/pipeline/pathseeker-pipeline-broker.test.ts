@@ -51,8 +51,14 @@ describe('pathseekerPipelineBroker', () => {
                   },
                 ],
               },
+              {
+                id: 'dashboard',
+                label: 'Dashboard',
+                type: 'state',
+                observables: [],
+              },
             ],
-            edges: [],
+            edges: [{ from: 'login-page', to: 'dashboard' }],
           },
         ],
       });

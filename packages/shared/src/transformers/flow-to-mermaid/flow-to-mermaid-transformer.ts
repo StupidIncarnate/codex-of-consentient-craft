@@ -9,14 +9,20 @@
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { Flow } from '../../contracts/flow/flow-contract';
+import type { FlowNode } from '../../contracts/flow-node/flow-node-contract';
+import { escapeMermaidLabelTransformer } from '../escape-mermaid-label/escape-mermaid-label-transformer';
 
 const CROSS_FLOW_REF_PATTERN = /^.+:(.+)$/u;
 
 const NODE_SHAPE_MAP = {
-  decision: ({ id, label }: { id: string; label: string }) => `${id}{${label}}`,
-  state: ({ id, label }: { id: string; label: string }) => `${id}[${label}]`,
-  action: ({ id, label }: { id: string; label: string }) => `${id}(${label})`,
-  terminal: ({ id, label }: { id: string; label: string }) => `${id}((${label}))`,
+  decision: ({ id, label }: Pick<FlowNode, 'id' | 'label'>) =>
+    `${id}{${escapeMermaidLabelTransformer({ label })}}`,
+  state: ({ id, label }: Pick<FlowNode, 'id' | 'label'>) =>
+    `${id}[${escapeMermaidLabelTransformer({ label })}]`,
+  action: ({ id, label }: Pick<FlowNode, 'id' | 'label'>) =>
+    `${id}(${escapeMermaidLabelTransformer({ label })})`,
+  terminal: ({ id, label }: Pick<FlowNode, 'id' | 'label'>) =>
+    `${id}((${escapeMermaidLabelTransformer({ label })}))`,
 } as const;
 
 export const flowToMermaidTransformer = ({ flow }: { flow: Flow }): ContentText => {
@@ -36,7 +42,11 @@ export const flowToMermaidTransformer = ({ flow }: { flow: Flow }): ContentText 
     if (edge.label === undefined) {
       lines.push(contentTextContract.parse(`  ${from} --> ${to}`));
     } else {
-      lines.push(contentTextContract.parse(`  ${from} -->|${edge.label}| ${to}`));
+      lines.push(
+        contentTextContract.parse(
+          `  ${from} -->|${escapeMermaidLabelTransformer({ label: edge.label })}| ${to}`,
+        ),
+      );
     }
   }
 

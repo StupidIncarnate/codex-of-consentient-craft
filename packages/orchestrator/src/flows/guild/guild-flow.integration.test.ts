@@ -276,12 +276,14 @@ describe('GuildFlow', () => {
       setupGuildHome(testbed.guildPath);
 
       const guildId = GuildIdStub({ value: '00000000-0000-0000-0000-000000000000' });
-      const rejection = GuildFlow.get({ guildId });
+      const errorMessage = await GuildFlow.get({ guildId }).catch(
+        (thrown: unknown) => (thrown as Error).message,
+      );
 
       testbed.cleanup();
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
-      await expect(rejection).rejects.toThrow(/Guild not found/u);
+      expect(errorMessage).toMatch(/Guild not found/u);
     });
 
     it('ERROR: {guildId: nonexistent} => remove throws guild not found', async () => {
@@ -292,12 +294,14 @@ describe('GuildFlow', () => {
       setupGuildHome(testbed.guildPath);
 
       const guildId = GuildIdStub({ value: '00000000-0000-0000-0000-000000000000' });
-      const rejection = GuildFlow.remove({ guildId });
+      const errorMessage = await GuildFlow.remove({ guildId }).catch(
+        (thrown: unknown) => (thrown as Error).message,
+      );
 
       testbed.cleanup();
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
-      await expect(rejection).rejects.toThrow(/Guild not found/u);
+      expect(errorMessage).toMatch(/Guild not found/u);
     });
 
     it('ERROR: {guildId: nonexistent} => update throws guild not found', async () => {
@@ -308,12 +312,14 @@ describe('GuildFlow', () => {
       setupGuildHome(testbed.guildPath);
 
       const guildId = GuildIdStub({ value: '00000000-0000-0000-0000-000000000000' });
-      const rejection = GuildFlow.update({ guildId });
+      const errorMessage = await GuildFlow.update({ guildId }).catch(
+        (thrown: unknown) => (thrown as Error).message,
+      );
 
       testbed.cleanup();
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
-      await expect(rejection).rejects.toThrow(/Guild not found/u);
+      expect(errorMessage).toMatch(/Guild not found/u);
     });
 
     it('ERROR: {duplicate path} => add throws duplicate path error', async () => {
@@ -330,15 +336,15 @@ describe('GuildFlow', () => {
         path,
       });
 
-      const rejection = GuildFlow.add({
+      const errorMessage = await GuildFlow.add({
         name: GuildNameStub({ value: 'Second Guild' }),
         path,
-      });
+      }).catch((thrown: unknown) => (thrown as Error).message);
 
       testbed.cleanup();
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
-      await expect(rejection).rejects.toThrow(
+      expect(errorMessage).toMatch(
         /A guild with path \/home\/user\/duplicate-path already exists/u,
       );
     });

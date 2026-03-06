@@ -48,8 +48,14 @@ describe('questVerifyBroker', () => {
                   },
                 ],
               },
+              {
+                id: 'dashboard',
+                label: 'Dashboard',
+                type: 'state',
+                observables: [],
+              },
             ],
-            edges: [],
+            edges: [{ from: 'login-page', to: 'dashboard' }],
           },
         ],
       });
@@ -60,7 +66,7 @@ describe('questVerifyBroker', () => {
       const result = await questVerifyBroker({ input });
 
       expect(result.success).toBe(true);
-      expect(result.checks).toHaveLength(11);
+      expect(result.checks).toHaveLength(12);
       expect(result.checks.every((check) => check.passed)).toBe(true);
     });
 
@@ -114,7 +120,7 @@ describe('questVerifyBroker', () => {
       const result = await questVerifyBroker({ input });
 
       expect(result.success).toBe(false);
-      expect(result.checks).toHaveLength(11);
+      expect(result.checks).toHaveLength(12);
       expect(result.checks.some((check) => !check.passed)).toBe(true);
     });
   });
