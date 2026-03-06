@@ -101,6 +101,116 @@ describe('questItemDeepMergeTransformer', () => {
     });
   });
 
+  describe('omitted sibling arrays preserved', () => {
+    it('VALID: {update has nodes but no edges key} => preserves existing edges', () => {
+      const existingNode = FlowNodeStub({ id: 'n1', label: 'Node 1' });
+      const existingEdge = FlowEdgeStub({ id: 'e1', from: 'n1', to: 'n2' });
+      const newNode = FlowNodeStub({ id: 'n2', label: 'Node 2' });
+      const existing = FlowStub({ id: 'flow-a', nodes: [existingNode], edges: [existingEdge] });
+      const update = FlowStub({ id: 'flow-a', nodes: [newNode] });
+      Reflect.deleteProperty(update, 'edges');
+
+      const result = questItemDeepMergeTransformer({ existing, update });
+
+      const { nodes, edges } = result as Flow;
+
+      expect(nodes).toHaveLength(2);
+      expect(nodes[0]?.id).toBe('n1');
+      expect(nodes[1]?.id).toBe('n2');
+      expect(edges).toHaveLength(1);
+      expect(edges[0]?.id).toBe('e1');
+    });
+
+    it('VALID: {update has edges but no nodes key} => preserves existing nodes', () => {
+      const existingNode = FlowNodeStub({ id: 'n1', label: 'Node 1' });
+      const existingEdge = FlowEdgeStub({ id: 'e1', from: 'n1', to: 'n2' });
+      const newEdge = FlowEdgeStub({ id: 'e2', from: 'n2', to: 'n3' });
+      const existing = FlowStub({ id: 'flow-a', nodes: [existingNode], edges: [existingEdge] });
+      const update = FlowStub({ id: 'flow-a', edges: [newEdge] });
+      Reflect.deleteProperty(update, 'nodes');
+
+      const result = questItemDeepMergeTransformer({ existing, update });
+
+      const { nodes, edges } = result as Flow;
+
+      expect(nodes).toHaveLength(1);
+      expect(nodes[0]?.id).toBe('n1');
+      expect(edges).toHaveLength(2);
+      expect(edges[0]?.id).toBe('e1');
+      expect(edges[1]?.id).toBe('e2');
+    });
+
+    it('VALID: {update node without observables key} => preserves existing observables', () => {
+      const existingObs = FlowObservableStub({ id: 'obs-1', description: 'Existing' });
+      const existingNode = FlowNodeStub({
+        id: 'n1',
+        label: 'Old Label',
+        observables: [existingObs],
+      });
+      const existing = FlowStub({ id: 'flow-a', nodes: [existingNode] });
+      const update = FlowStub({
+        id: 'flow-a',
+        nodes: [FlowNodeStub({ id: 'n1', label: 'New Label' })],
+      });
+      Reflect.deleteProperty(update, 'edges');
+      Reflect.deleteProperty(update.nodes[0] as Record<PropertyKey, unknown>, 'observables');
+
+      const result = questItemDeepMergeTransformer({ existing, update });
+
+      const { nodes } = result as Flow;
+
+      expect(nodes).toHaveLength(1);
+      expect(nodes[0]?.label).toBe('New Label');
+      expect(nodes[0]?.observables).toHaveLength(1);
+      expect(nodes[0]?.observables[0]?.id).toBe('obs-1');
+    });
+  });
+
+  describe('empty array preserves existing', () => {
+    it('VALID: {update has empty nodes array} => existing nodes preserved', () => {
+      const existingNode = FlowNodeStub({ id: 'n1', label: 'Node 1' });
+      const existing = FlowStub({ id: 'flow-a', nodes: [existingNode] });
+      const update = FlowStub({ id: 'flow-a', nodes: [] });
+
+      const result = questItemDeepMergeTransformer({ existing, update });
+
+      const { nodes } = result as Flow;
+
+      expect(nodes).toStrictEqual([existingNode]);
+    });
+  });
+
+  describe('partial scalar update preserves other fields', () => {
+    it('VALID: {update has only id and name} => all other existing fields preserved', () => {
+      const existingNode = FlowNodeStub({ id: 'n1', label: 'Node 1' });
+      const existingEdge = FlowEdgeStub({ id: 'e1', from: 'n1', to: 'n2' });
+      const existing = FlowStub({
+        id: 'flow-a',
+        name: 'Old Name',
+        entryPoint: '/old',
+        exitPoints: ['/exit'],
+        nodes: [existingNode],
+        edges: [existingEdge],
+      });
+      const update = FlowStub({ id: 'flow-a', name: 'New Name' });
+      Reflect.deleteProperty(update, 'entryPoint');
+      Reflect.deleteProperty(update, 'exitPoints');
+      Reflect.deleteProperty(update, 'nodes');
+      Reflect.deleteProperty(update, 'edges');
+
+      const result = questItemDeepMergeTransformer({ existing, update });
+
+      expect(result).toStrictEqual({
+        id: 'flow-a',
+        name: 'New Name',
+        entryPoint: '/old',
+        exitPoints: ['/exit'],
+        nodes: [existingNode],
+        edges: [existingEdge],
+      });
+    });
+  });
+
   describe('edge upsert', () => {
     it('VALID: {update adds edge} => appends to edges array', () => {
       const existingEdge = FlowEdgeStub({ id: 'e1', from: 'n1', to: 'n2' });

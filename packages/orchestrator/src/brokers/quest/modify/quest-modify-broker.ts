@@ -89,7 +89,7 @@ export const questModifyBroker = async ({
     if (validated.flows) {
       quest.flows = questArrayUpsertTransformer({
         existing: quest.flows,
-        updates: validated.flows,
+        updates: validated.flows as typeof quest.flows,
       });
     }
 

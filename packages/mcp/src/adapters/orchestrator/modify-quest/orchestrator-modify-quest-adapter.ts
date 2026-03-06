@@ -7,7 +7,9 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { ModifyQuestInput, ModifyQuestResult } from '@dungeonmaster/orchestrator';
+import type { ModifyQuestResult } from '@dungeonmaster/orchestrator';
+
+import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 
 export const orchestratorModifyQuestAdapter = async ({
   questId,
@@ -15,4 +17,4 @@ export const orchestratorModifyQuestAdapter = async ({
 }: {
   questId: string;
   input: ModifyQuestInput;
-}): Promise<ModifyQuestResult> => StartOrchestrator.modifyQuest({ questId, input });
+}): Promise<ModifyQuestResult> => StartOrchestrator.modifyQuest({ questId, input: input as never });

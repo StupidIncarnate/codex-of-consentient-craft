@@ -26,6 +26,13 @@ export const questItemDeepMergeTransformer = ({
   const merged: ItemWithId = { ...existing };
 
   for (const key of Object.keys(update)) {
+    if (
+      update[key] === undefined ||
+      (Array.isArray(update[key]) && (update[key] as unknown[]).length === 0)
+    ) {
+      continue;
+    }
+
     const updateParams = { value: update[key] };
     const existingParams = { value: existing[key] };
 

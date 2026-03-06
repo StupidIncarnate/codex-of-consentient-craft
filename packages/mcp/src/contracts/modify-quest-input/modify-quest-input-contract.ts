@@ -11,12 +11,27 @@ import {
   dependencyStepContract,
   designDecisionContract,
   flowContract,
+  flowEdgeContract,
+  flowNodeContract,
+  flowObservableContract,
   questContractEntryContract,
   questStatusContract,
   toolingRequirementContract,
 } from '@dungeonmaster/shared/contracts';
 
 const deletableContract = z.object({ _delete: z.boolean().optional() });
+
+const deletableObservableContract = flowObservableContract.and(deletableContract);
+const deletableNodeContract = flowNodeContract
+  .extend({ observables: z.array(deletableObservableContract).optional() })
+  .and(deletableContract);
+const deletableEdgeContract = flowEdgeContract.and(deletableContract);
+const deletableFlowContract = flowContract
+  .extend({
+    nodes: z.array(deletableNodeContract).optional(),
+    edges: z.array(deletableEdgeContract).optional(),
+  })
+  .and(deletableContract);
 
 export const modifyQuestInputContract = z
   .object({
@@ -38,7 +53,7 @@ export const modifyQuestInputContract = z
       .describe('Contracts to upsert (existing ID updates, new ID adds)')
       .optional(),
     flows: z
-      .array(flowContract.and(deletableContract))
+      .array(deletableFlowContract)
       .describe('Flows to upsert (existing ID updates, new ID adds)')
       .optional(),
     status: questStatusContract.describe('Lifecycle gate transition status').optional(),
