@@ -21,6 +21,7 @@ const PANZOOM_OPTIONS = {
   minScale: 0.1,
   step: 0.3,
   startScale: 0.7,
+  origin: '0 0',
 };
 
 export const panzoomCreateAdapter = ({ element }: { element: HTMLElement }): PanzoomInstance => {
