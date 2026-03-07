@@ -30,39 +30,39 @@ describe('renderMermaidNodeWithAssertionsTransformer', () => {
   });
 
   describe('decision nodes', () => {
-    it('VALID: {type: decision, 1 assertion} => renders quoted label with braces', () => {
+    it('VALID: {type: decision, 1 assertion} => renders as rectangle to avoid oversized shapes', () => {
       const node = FlowNodeStub({ id: 'check-auth', label: 'Authenticated?', type: 'decision' });
       const assertions = [ContentTextStub({ value: 'checks session token' })];
 
       const result = renderMermaidNodeWithAssertionsTransformer({ node, assertions });
 
       expect(result).toBe(
-        'check-auth{"<b>Authenticated?</b><br/><small>· checks session token</small>"}',
+        'check-auth["<b>Authenticated?</b><br/><small>· checks session token</small>"]',
       );
     });
   });
 
   describe('action nodes', () => {
-    it('VALID: {type: action, 1 assertion} => renders quoted label with parens', () => {
+    it('VALID: {type: action, 1 assertion} => renders as rectangle to avoid oversized shapes', () => {
       const node = FlowNodeStub({ id: 'submit-form', label: 'Submit Form', type: 'action' });
       const assertions = [ContentTextStub({ value: 'sends POST request' })];
 
       const result = renderMermaidNodeWithAssertionsTransformer({ node, assertions });
 
       expect(result).toBe(
-        'submit-form("<b>Submit Form</b><br/><small>· sends POST request</small>")',
+        'submit-form["<b>Submit Form</b><br/><small>· sends POST request</small>"]',
       );
     });
   });
 
   describe('terminal nodes', () => {
-    it('VALID: {type: terminal, 1 assertion} => renders quoted label with double parens', () => {
+    it('VALID: {type: terminal, 1 assertion} => renders as rectangle to avoid oversized shapes', () => {
       const node = FlowNodeStub({ id: 'end', label: 'End', type: 'terminal' });
       const assertions = [ContentTextStub({ value: 'session cleaned up' })];
 
       const result = renderMermaidNodeWithAssertionsTransformer({ node, assertions });
 
-      expect(result).toBe('end(("<b>End</b><br/><small>· session cleaned up</small>"))');
+      expect(result).toBe('end["<b>End</b><br/><small>· session cleaned up</small>"]');
     });
   });
 

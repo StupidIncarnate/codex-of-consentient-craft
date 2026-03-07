@@ -154,6 +154,22 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
+    it('VALID: {questId, title} => updates quest title', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', title: 'Old Title' });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        title: 'New Title',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
     it('VALID: {questId only} => updates updatedAt', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({

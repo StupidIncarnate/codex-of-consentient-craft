@@ -554,7 +554,7 @@ describe('flowToMermaidTransformer', () => {
         [
           'flowchart TD',
           '  start[Start]',
-          '  check-auth{"<b>Authenticated?</b><br/><small>· redirects to dashboard</small>"}',
+          '  check-auth["<b>Authenticated?</b><br/><small>· redirects to dashboard</small>"]',
           '  login(Login)',
           '  dashboard["<b>Dashboard</b><br/><small>· redirects to dashboard</small>"]',
           '  error((Error))',

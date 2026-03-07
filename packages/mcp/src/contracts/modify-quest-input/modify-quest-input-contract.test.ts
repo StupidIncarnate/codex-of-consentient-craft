@@ -115,6 +115,18 @@ describe('modifyQuestInputContract', () => {
       ]);
     });
 
+    it('VALID: {questId, title} => parses with title', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        title: 'New Quest Title',
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.questId).toBe('add-auth');
+      expect(result.title).toBe('New Quest Title');
+    });
+
     it('VALID: {questId, designDecisions} => parses with design decisions array', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -159,10 +171,13 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.flows![0]!.nodes).toStrictEqual([
-        { id: 'n1', label: 'Login', type: 'state', observables: [] },
-      ]);
-      expect(result.flows![0]!.edges).toBeUndefined();
+      expect(result.flows![0]).toStrictEqual({
+        id: 'flow-a',
+        name: 'Auth Flow',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
+        nodes: [{ id: 'n1', label: 'Login', type: 'state', observables: [] }],
+      });
     });
 
     it('VALID: {flow with edges but no nodes} => nodes is undefined', () => {
@@ -181,8 +196,13 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.flows![0]!.edges).toStrictEqual([{ id: 'e1', from: 'n1', to: 'n2' }]);
-      expect(result.flows![0]!.nodes).toBeUndefined();
+      expect(result.flows![0]).toStrictEqual({
+        id: 'flow-a',
+        name: 'Auth Flow',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
+        edges: [{ id: 'e1', from: 'n1', to: 'n2' }],
+      });
     });
 
     it('VALID: {node with no observables} => observables is undefined', () => {
@@ -201,7 +221,13 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.flows![0]!.nodes![0]!.observables).toBeUndefined();
+      expect(result.flows![0]).toStrictEqual({
+        id: 'flow-a',
+        name: 'Auth Flow',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
+        nodes: [{ id: 'n1', label: 'Login', type: 'state' }],
+      });
     });
 
     it('VALID: {node with observable with _delete: true} => _delete preserved', () => {
@@ -234,7 +260,22 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.flows![0]!.nodes![0]!.observables![0]!._delete).toBe(true);
+      expect(result.flows![0]).toStrictEqual({
+        id: 'flow-a',
+        name: 'Auth Flow',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
+        nodes: [
+          {
+            id: 'n1',
+            label: 'Login',
+            type: 'state',
+            observables: [
+              { id: 'obs-1', type: 'ui-state', description: 'shows login', _delete: true },
+            ],
+          },
+        ],
+      });
     });
 
     it('VALID: {edge with _delete: true} => _delete preserved', () => {
@@ -253,7 +294,174 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.flows![0]!.edges![0]!._delete).toBe(true);
+      expect(result.flows![0]).toStrictEqual({
+        id: 'flow-a',
+        name: 'Auth Flow',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
+        edges: [{ id: 'e1', from: 'n1', to: 'n2', _delete: true }],
+      });
+    });
+  });
+
+  describe('delete-only entities require only id', () => {
+    it('VALID: {observable with _delete: true, id only} => parses without type/description', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'flow-a',
+            name: 'Auth Flow',
+            entryPoint: '/login',
+            exitPoints: ['/dashboard'],
+            nodes: [
+              {
+                id: 'n1',
+                label: 'Login',
+                type: 'state',
+                observables: [{ id: 'obs-1', _delete: true }],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.flows![0]).toStrictEqual({
+        id: 'flow-a',
+        name: 'Auth Flow',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
+        nodes: [
+          {
+            id: 'n1',
+            label: 'Login',
+            type: 'state',
+            observables: [{ id: 'obs-1', _delete: true }],
+          },
+        ],
+      });
+    });
+
+    it('VALID: {node with _delete: true, id only} => parses without label/type', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'flow-a',
+            name: 'Auth Flow',
+            entryPoint: '/login',
+            exitPoints: ['/dashboard'],
+            nodes: [{ id: 'n1', _delete: true }],
+          },
+        ],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.flows![0]).toStrictEqual({
+        id: 'flow-a',
+        name: 'Auth Flow',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
+        nodes: [{ id: 'n1', _delete: true }],
+      });
+    });
+
+    it('VALID: {edge with _delete: true, id only} => parses without from/to', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'flow-a',
+            name: 'Auth Flow',
+            entryPoint: '/login',
+            exitPoints: ['/dashboard'],
+            edges: [{ id: 'e1', _delete: true }],
+          },
+        ],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.flows![0]).toStrictEqual({
+        id: 'flow-a',
+        name: 'Auth Flow',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
+        edges: [{ id: 'e1', _delete: true }],
+      });
+    });
+
+    it('VALID: {flow with _delete: true, id only} => parses without name/entryPoint/exitPoints', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [{ id: 'flow-a', _delete: true }],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.flows![0]).toStrictEqual({
+        id: 'flow-a',
+        _delete: true,
+      });
+    });
+
+    it('VALID: {designDecision with _delete: true, id only} => parses without title/rationale', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        designDecisions: [{ id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.designDecisions![0]).toStrictEqual({
+        id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+        _delete: true,
+      });
+    });
+
+    it('VALID: {step with _delete: true, id only} => parses without name/description/status', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        steps: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.steps![0]).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        _delete: true,
+      });
+    });
+
+    it('VALID: {toolingRequirement with _delete: true, id only} => parses without name/packageName', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        toolingRequirements: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.toolingRequirements![0]).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        _delete: true,
+      });
+    });
+
+    it('VALID: {contract with _delete: true, id only} => parses without name/kind/status/properties', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        contracts: [{ id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.contracts![0]).toStrictEqual({
+        id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+        _delete: true,
+      });
     });
   });
 

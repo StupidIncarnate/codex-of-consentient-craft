@@ -66,12 +66,12 @@ describe('MermaidDiagramWidget', () => {
     });
   });
 
-  describe('fullscreen', () => {
-    it('VALID: {fullscreen clicked} => opens modal with diagram', async () => {
+  describe('expand toggle', () => {
+    it('VALID: {fullscreen clicked} => removes max height constraint from container', async () => {
       const user = userEvent.setup();
       const proxy = MermaidDiagramWidgetProxy();
       const diagram = MermaidDefinitionStub({ value: 'graph TD; A-->B' });
-      const svg = SvgMarkupStub({ value: '<svg><text>fullscreen-diagram</text></svg>' });
+      const svg = SvgMarkupStub({ value: '<svg><text>diagram</text></svg>' });
 
       proxy.setupRender({ svg });
 
@@ -81,18 +81,16 @@ describe('MermaidDiagramWidget', () => {
         expect(screen.getByTestId('FULLSCREEN_BUTTON')).toBeInTheDocument();
       });
 
+      const container = screen.getByTestId('MERMAID_CONTAINER');
+
+      expect(container.style.maxHeight).toBe('400px');
+
       await user.click(screen.getByTestId('FULLSCREEN_BUTTON'));
 
-      await waitFor(() => {
-        expect(screen.getByTestId('MODAL_DIAGRAM_CONTAINER')).toBeInTheDocument();
-      });
-
-      const modalContainer = screen.getByTestId('MODAL_DIAGRAM_CONTAINER');
-
-      expect(modalContainer.innerHTML.length).toBeGreaterThan(0);
+      expect(container.style.maxHeight).toBe('');
     });
 
-    it('VALID: {modal close clicked} => closes modal', async () => {
+    it('VALID: {fullscreen clicked twice} => restores max height constraint', async () => {
       const user = userEvent.setup();
       const proxy = MermaidDiagramWidgetProxy();
       const diagram = MermaidDefinitionStub({ value: 'graph TD; A-->B' });
@@ -107,18 +105,11 @@ describe('MermaidDiagramWidget', () => {
       });
 
       await user.click(screen.getByTestId('FULLSCREEN_BUTTON'));
+      await user.click(screen.getByTestId('FULLSCREEN_BUTTON'));
 
-      await waitFor(() => {
-        expect(screen.getByTestId('MODAL_CLOSE_BUTTON')).toBeInTheDocument();
-      });
+      const container = screen.getByTestId('MERMAID_CONTAINER');
 
-      await user.click(screen.getByTestId('MODAL_CLOSE_BUTTON'));
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('MODAL_DIAGRAM_CONTAINER')).not.toBeInTheDocument();
-      });
-
-      expect(screen.queryByTestId('MODAL_DIAGRAM_CONTAINER')).not.toBeInTheDocument();
+      expect(container.style.maxHeight).toBe('400px');
     });
   });
 

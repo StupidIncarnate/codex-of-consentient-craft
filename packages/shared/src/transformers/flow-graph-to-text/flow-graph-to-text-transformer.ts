@@ -130,7 +130,9 @@ export const flowGraphToTextTransformer = ({ flow }: { flow: Flow }): ContentTex
         } else {
           const labelPart = edge.label ? `"${String(edge.label)}" ` : '';
           lines.push(
-            contentTextContract.parse(`${indent}${SYM.indent}${SYM.rightArrow}${labelPart}`),
+            contentTextContract.parse(
+              `${indent}${SYM.indent}${SYM.rightArrow}${labelPart}[#${String(toId)}]`,
+            ),
           );
           childrenToVisit.push({ nodeId: toId, depth: depth + DEPTH_INCREMENT });
         }

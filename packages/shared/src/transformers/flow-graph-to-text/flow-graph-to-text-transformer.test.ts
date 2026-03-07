@@ -42,7 +42,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#login-page] Login (state)',
-        '  \u2192',
+        '  \u2192[#dashboard]',
         '  [#dashboard] Dashboard (state)',
         '    (terminal)',
       ]);
@@ -71,7 +71,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#check] Check (decision)',
-        '  \u2192"yes" ',
+        '  \u2192"yes" [#success]',
         '  [#success] Success (terminal)',
         '    (terminal)',
       ]);
@@ -96,7 +96,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#start] Start (state)',
-        '  \u2192',
+        '  \u2192[#middle]',
         '  [#middle] Middle (action)',
         '    \u2192 [#start] \u21A9',
       ]);
@@ -123,7 +123,7 @@ describe('flowGraphToTextTransformer', () => {
       expect(result[0]).toBe('[#a] A (state)');
       expect(result).toStrictEqual([
         '[#a] A (state)',
-        '  \u2192',
+        '  \u2192[#c]',
         '  [#c] C (state) \u2190 MERGE',
         '    (terminal)',
         '[#b] B (state)',

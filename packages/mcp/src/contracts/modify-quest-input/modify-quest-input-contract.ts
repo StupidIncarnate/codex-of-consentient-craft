@@ -10,46 +10,86 @@ import { z } from 'zod';
 import {
   dependencyStepContract,
   designDecisionContract,
+  designDecisionIdContract,
   flowContract,
   flowEdgeContract,
+  flowEdgeIdContract,
+  flowIdContract,
   flowNodeContract,
+  flowNodeIdContract,
   flowObservableContract,
+  observableIdContract,
   questContractEntryContract,
+  questContractEntryIdContract,
   questStatusContract,
+  stepIdContract,
   toolingRequirementContract,
+  toolingRequirementIdContract,
 } from '@dungeonmaster/shared/contracts';
 
-const deletableContract = z.object({ _delete: z.boolean().optional() });
+const deleteMarker = z.literal(true);
 
-const deletableObservableContract = flowObservableContract.and(deletableContract);
-const deletableNodeContract = flowNodeContract
-  .extend({ observables: z.array(deletableObservableContract).optional() })
-  .and(deletableContract);
-const deletableEdgeContract = flowEdgeContract.and(deletableContract);
-const deletableFlowContract = flowContract
-  .extend({
+const deletableObservableContract = z.union([
+  flowObservableContract.extend({ _delete: z.boolean().optional() }),
+  z.object({ id: observableIdContract, _delete: deleteMarker }),
+]);
+const deletableNodeContract = z.union([
+  flowNodeContract.extend({
+    observables: z.array(deletableObservableContract).optional(),
+    _delete: z.boolean().optional(),
+  }),
+  z.object({ id: flowNodeIdContract, _delete: deleteMarker }),
+]);
+const deletableEdgeContract = z.union([
+  flowEdgeContract.extend({ _delete: z.boolean().optional() }),
+  z.object({ id: flowEdgeIdContract, _delete: deleteMarker }),
+]);
+const deletableFlowContract = z.union([
+  flowContract.extend({
     nodes: z.array(deletableNodeContract).optional(),
     edges: z.array(deletableEdgeContract).optional(),
-  })
-  .and(deletableContract);
+    _delete: z.boolean().optional(),
+  }),
+  z.object({ id: flowIdContract, _delete: deleteMarker }),
+]);
 
 export const modifyQuestInputContract = z
   .object({
     questId: z.string().min(1).describe('The ID of the quest to modify').brand<'QuestId'>(),
     designDecisions: z
-      .array(designDecisionContract.and(deletableContract))
+      .array(
+        z.union([
+          designDecisionContract.extend({ _delete: z.boolean().optional() }),
+          z.object({ id: designDecisionIdContract, _delete: deleteMarker }),
+        ]),
+      )
       .describe('Design decisions to upsert (existing ID updates, new ID adds)')
       .optional(),
     steps: z
-      .array(dependencyStepContract.and(deletableContract))
+      .array(
+        z.union([
+          dependencyStepContract.extend({ _delete: z.boolean().optional() }),
+          z.object({ id: stepIdContract, _delete: deleteMarker }),
+        ]),
+      )
       .describe('Dependency steps to upsert (existing ID updates, new ID adds)')
       .optional(),
     toolingRequirements: z
-      .array(toolingRequirementContract.and(deletableContract))
+      .array(
+        z.union([
+          toolingRequirementContract.extend({ _delete: z.boolean().optional() }),
+          z.object({ id: toolingRequirementIdContract, _delete: deleteMarker }),
+        ]),
+      )
       .describe('Tooling requirements to upsert (existing ID updates, new ID adds)')
       .optional(),
     contracts: z
-      .array(questContractEntryContract.and(deletableContract))
+      .array(
+        z.union([
+          questContractEntryContract.extend({ _delete: z.boolean().optional() }),
+          z.object({ id: questContractEntryIdContract, _delete: deleteMarker }),
+        ]),
+      )
       .describe('Contracts to upsert (existing ID updates, new ID adds)')
       .optional(),
     flows: z
@@ -57,6 +97,7 @@ export const modifyQuestInputContract = z
       .describe('Flows to upsert (existing ID updates, new ID adds)')
       .optional(),
     status: questStatusContract.describe('Lifecycle gate transition status').optional(),
+    title: z.string().min(1).describe('New title for the quest').optional(),
   })
   .brand<'ModifyQuestInput'>();
 

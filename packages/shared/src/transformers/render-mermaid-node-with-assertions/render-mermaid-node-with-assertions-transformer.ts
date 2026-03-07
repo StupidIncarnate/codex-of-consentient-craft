@@ -25,7 +25,7 @@ export const renderMermaidNodeWithAssertionsTransformer = ({
   node: FlowNode;
   assertions: ContentText[];
 }): ContentText => {
-  const delimiters = SHAPE_DELIMITERS[node.type];
+  const delimiters = SHAPE_DELIMITERS.state;
   const escapedLabel = escapeQuotedMermaidLabelTransformer({ label: node.label });
   const assertionLines = assertions
     .map(

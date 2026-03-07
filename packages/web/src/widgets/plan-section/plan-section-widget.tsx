@@ -57,7 +57,7 @@ export const PlanSectionWidget = <T,>({
               icon
             />
           )}
-          <Box style={{ flex: 1 }}>{renderItem(item, index)}</Box>
+          <Box style={{ flex: 1, minWidth: 0 }}>{renderItem(item, index)}</Box>
         </Group>
       ))}
     </Stack>

@@ -61,28 +61,28 @@ export const questModifyBroker = async ({
     if (validated.designDecisions) {
       quest.designDecisions = questArrayUpsertTransformer({
         existing: quest.designDecisions,
-        updates: validated.designDecisions,
+        updates: validated.designDecisions as typeof quest.designDecisions,
       });
     }
 
     if (validated.steps) {
       quest.steps = questArrayUpsertTransformer({
         existing: quest.steps,
-        updates: validated.steps,
+        updates: validated.steps as typeof quest.steps,
       });
     }
 
     if (validated.toolingRequirements) {
       quest.toolingRequirements = questArrayUpsertTransformer({
         existing: quest.toolingRequirements,
-        updates: validated.toolingRequirements,
+        updates: validated.toolingRequirements as typeof quest.toolingRequirements,
       });
     }
 
     if (validated.contracts) {
       quest.contracts = questArrayUpsertTransformer({
         existing: quest.contracts,
-        updates: validated.contracts,
+        updates: validated.contracts as typeof quest.contracts,
       });
     }
 
@@ -91,6 +91,10 @@ export const questModifyBroker = async ({
         existing: quest.flows,
         updates: validated.flows as typeof quest.flows,
       });
+    }
+
+    if (validated.title) {
+      quest.title = validated.title as typeof quest.title;
     }
 
     if (validated.status) {
