@@ -9,6 +9,7 @@ export const GuildSessionListWidgetProxy = (): {
   isSessionVisible: (params: { testId: string }) => boolean;
   hasQuestBadge: (params: { testId: string }) => boolean;
   getQuestBadgeText: (params: { testId: string }) => HTMLElement['textContent'];
+  getSessionDisplayText: (params: { testId: string }) => HTMLElement['textContent'];
   getStatusText: (params: { testId: string }) => HTMLElement['textContent'];
   getStatusColor: (params: { testId: string }) => CSSStyleDeclaration['color'];
   getFilterValue: () => HTMLInputElement['value'] | null;
@@ -28,6 +29,14 @@ export const GuildSessionListWidgetProxy = (): {
     getQuestBadgeText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
       const element = screen.queryByTestId(testId);
       return element?.textContent ?? null;
+    },
+    getSessionDisplayText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+      const element = screen.queryByTestId(testId);
+      if (!element) {
+        return null;
+      }
+      const span = element.querySelector('span');
+      return span?.textContent ?? null;
     },
     getStatusText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
       const element = screen.queryByTestId(testId);

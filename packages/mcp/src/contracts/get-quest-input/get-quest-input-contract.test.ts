@@ -8,7 +8,7 @@ describe('getQuestInputContract', () => {
 
       const result = getQuestInputContract.parse(input);
 
-      expect(result).toStrictEqual({ questId: 'add-auth', format: 'json' });
+      expect(result).toStrictEqual({ questId: 'add-auth', format: 'text' });
     });
 
     it('VALID: {questId: "test-quest"} => parses with default stub value', () => {
@@ -16,7 +16,7 @@ describe('getQuestInputContract', () => {
 
       const result = getQuestInputContract.parse(input);
 
-      expect(result).toStrictEqual({ questId: 'test-quest', format: 'json' });
+      expect(result).toStrictEqual({ questId: 'test-quest', format: 'text' });
     });
 
     it('VALID: {questId with stage} => parses with stage value', () => {
@@ -30,7 +30,7 @@ describe('getQuestInputContract', () => {
       expect(result).toStrictEqual({
         questId: 'add-auth',
         stage: 'spec',
-        format: 'json',
+        format: 'text',
       });
     });
 
@@ -39,7 +39,7 @@ describe('getQuestInputContract', () => {
 
       const result = getQuestInputContract.parse(input);
 
-      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-flows', format: 'json' });
+      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-flows', format: 'text' });
     });
 
     it('VALID: {questId with spec-obs stage} => parses successfully', () => {
@@ -47,7 +47,7 @@ describe('getQuestInputContract', () => {
 
       const result = getQuestInputContract.parse(input);
 
-      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-obs', format: 'json' });
+      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-obs', format: 'text' });
     });
 
     it('VALID: {questId with implementation stage} => parses successfully', () => {
@@ -58,7 +58,7 @@ describe('getQuestInputContract', () => {
       expect(result).toStrictEqual({
         questId: 'add-auth',
         stage: 'implementation',
-        format: 'json',
+        format: 'text',
       });
     });
 
@@ -67,7 +67,7 @@ describe('getQuestInputContract', () => {
 
       const result = getQuestInputContract.parse(input);
 
-      expect(result).toStrictEqual({ questId: 'add-auth', format: 'json' });
+      expect(result).toStrictEqual({ questId: 'add-auth', format: 'text' });
     });
   });
 

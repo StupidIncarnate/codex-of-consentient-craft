@@ -38,7 +38,7 @@ export const QuestHandleResponder = async ({
     const formatRaw: unknown = Reflect.get(args, 'format');
     const questId = String(questIdRaw);
     const stage = typeof stageRaw === 'string' ? stageRaw : undefined;
-    const format = formatRaw === 'text' ? 'text' : 'json';
+    const format = formatRaw === 'json' ? 'json' : 'text';
 
     try {
       const result = await orchestratorGetQuestAdapter({

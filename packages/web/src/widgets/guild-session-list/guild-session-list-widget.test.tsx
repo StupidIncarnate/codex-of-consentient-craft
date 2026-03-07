@@ -75,9 +75,7 @@ describe('GuildSessionListWidget', () => {
       });
 
       expect(proxy.hasQuestBadge({ testId: `SESSION_QUEST_BADGE_${sessionId}` })).toBe(true);
-      expect(proxy.getQuestBadgeText({ testId: `SESSION_QUEST_BADGE_${sessionId}` })).toBe(
-        'Deploy Feature',
-      );
+      expect(proxy.getQuestBadgeText({ testId: `SESSION_QUEST_BADGE_${sessionId}` })).toBe('QUEST');
     });
 
     it('VALID: {session without questTitle} => does not show quest badge', () => {
@@ -392,6 +390,64 @@ describe('GuildSessionListWidget', () => {
       await proxy.clickAddButton();
 
       expect(onAdd).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('display text', () => {
+    it('VALID: {session with questTitle} => displays quest title instead of summary', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'quest-display' });
+      const session = SessionListItemStub({
+        sessionId,
+        summary: 'Fix the login bug' as never,
+        questTitle: 'Deploy Feature' as never,
+        questId: 'quest-abc' as never,
+      });
+      const filter = SessionFilterStub();
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            sessions={[session]}
+            loading={false}
+            filter={filter}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onAdd={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.getSessionDisplayText({ testId: `SESSION_ITEM_${sessionId}` })).toBe(
+        'Deploy Feature',
+      );
+    });
+
+    it('VALID: {session without questTitle} => displays summary', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'no-quest-display' });
+      const session = SessionListItemStub({
+        sessionId,
+        summary: 'Fix the login bug' as never,
+      });
+      const filter = SessionFilterStub();
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            sessions={[session]}
+            loading={false}
+            filter={filter}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onAdd={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.getSessionDisplayText({ testId: `SESSION_ITEM_${sessionId}` })).toBe(
+        'Fix the login bug',
+      );
     });
   });
 

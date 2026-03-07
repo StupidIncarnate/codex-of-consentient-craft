@@ -106,7 +106,7 @@ export const GuildSessionListWidget = ({
               gap: 12,
             }}
           >
-            <span>{session.summary ?? 'Untitled session'}</span>
+            <span>{session.questTitle ?? session.summary ?? 'Untitled session'}</span>
             <Group gap={6}>
               {session.questTitle ? (
                 <Badge
@@ -114,7 +114,7 @@ export const GuildSessionListWidget = ({
                   variant="outline"
                   data-testid={`SESSION_QUEST_BADGE_${session.sessionId}`}
                 >
-                  {session.questTitle}
+                  QUEST
                 </Badge>
               ) : null}
               {session.questStatus ? (

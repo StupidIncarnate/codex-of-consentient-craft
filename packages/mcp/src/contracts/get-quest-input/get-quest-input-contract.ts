@@ -22,9 +22,9 @@ export const getQuestInputContract = z
     format: z
       .enum(['json', 'text'])
       .describe(
-        'Output format. "json" returns the quest as JSON (default). "text" returns a human-readable text display with flow graphs.',
+        'Output format. "text" returns a human-readable text display with flow graphs (default). "json" returns the quest as JSON.',
       )
-      .default('json'),
+      .default('text'),
   })
   .brand<'GetQuestInput'>();
 
