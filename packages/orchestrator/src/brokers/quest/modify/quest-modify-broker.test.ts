@@ -108,7 +108,7 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
-    it('VALID: {questId, status: "flows_approved"} with quest at "created" => sets status on quest', async () => {
+    it('VALID: {questId, status: "explore_flows"} with quest at "created" => sets status on quest', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({
         id: 'add-auth',
@@ -121,7 +121,7 @@ describe('questModifyBroker', () => {
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        status: 'flows_approved',
+        status: 'explore_flows',
       });
 
       const result = await questModifyBroker({ input });
@@ -129,7 +129,7 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
-    it('VALID: {questId, status: "approved"} with quest at "flows_approved" with observables in flow nodes => sets status on quest', async () => {
+    it('VALID: {questId, status: "explore_observables"} with quest at "flows_approved" with observables in flow nodes => sets status on quest', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({
         id: 'add-auth',
@@ -146,7 +146,7 @@ describe('questModifyBroker', () => {
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        status: 'approved',
+        status: 'explore_observables',
       });
 
       const result = await questModifyBroker({ input });
@@ -256,7 +256,7 @@ describe('questModifyBroker', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        status: 'created',
+        status: 'review_flows',
         flows: [],
       });
 
@@ -278,7 +278,7 @@ describe('questModifyBroker', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        status: 'flows_approved',
+        status: 'review_observables',
         flows: [],
       });
 

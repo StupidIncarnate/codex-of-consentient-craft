@@ -11,12 +11,44 @@ describe('questStatusContract', () => {
       expect(result).toBe('created');
     });
 
+    it('VALID: explore_flows => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'explore_flows' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('explore_flows');
+    });
+
+    it('VALID: review_flows => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'review_flows' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('review_flows');
+    });
+
     it('VALID: flows_approved => parses successfully', () => {
       const status = QuestStatusStub({ value: 'flows_approved' });
 
       const result = questStatusContract.parse(status);
 
       expect(result).toBe('flows_approved');
+    });
+
+    it('VALID: explore_observables => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'explore_observables' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('explore_observables');
+    });
+
+    it('VALID: review_observables => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'review_observables' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('review_observables');
     });
 
     it('VALID: approved => parses successfully', () => {

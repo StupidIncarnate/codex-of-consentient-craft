@@ -82,6 +82,95 @@ describe('isGateSectionVisibleGuard', () => {
     });
   });
 
+  describe('explore_flows status', () => {
+    it('VALID: {status: explore_flows, section: flows} => returns true', () => {
+      const status = QuestStatusStub({ value: 'explore_flows' });
+      const section = GateSectionKeyStub({ value: 'flows' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: explore_flows, section: designDecisions} => returns true', () => {
+      const status = QuestStatusStub({ value: 'explore_flows' });
+      const section = GateSectionKeyStub({ value: 'designDecisions' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: explore_flows, section: contracts} => returns false', () => {
+      const status = QuestStatusStub({ value: 'explore_flows' });
+      const section = GateSectionKeyStub({ value: 'contracts' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('review_flows status', () => {
+    it('VALID: {status: review_flows, section: flows} => returns true', () => {
+      const status = QuestStatusStub({ value: 'review_flows' });
+      const section = GateSectionKeyStub({ value: 'flows' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: review_flows, section: contracts} => returns false', () => {
+      const status = QuestStatusStub({ value: 'review_flows' });
+      const section = GateSectionKeyStub({ value: 'contracts' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('explore_observables status', () => {
+    it('VALID: {status: explore_observables, section: contracts} => returns true', () => {
+      const status = QuestStatusStub({ value: 'explore_observables' });
+      const section = GateSectionKeyStub({ value: 'contracts' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: explore_observables, section: flows} => returns true', () => {
+      const status = QuestStatusStub({ value: 'explore_observables' });
+      const section = GateSectionKeyStub({ value: 'flows' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('review_observables status', () => {
+    it('VALID: {status: review_observables, section: contracts} => returns true', () => {
+      const status = QuestStatusStub({ value: 'review_observables' });
+      const section = GateSectionKeyStub({ value: 'contracts' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: review_observables, section: toolingRequirements} => returns true', () => {
+      const status = QuestStatusStub({ value: 'review_observables' });
+      const section = GateSectionKeyStub({ value: 'toolingRequirements' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+  });
+
   describe('approved and beyond', () => {
     it('VALID: {status: approved, section: toolingRequirements} => returns true', () => {
       const status = QuestStatusStub({ value: 'approved' });

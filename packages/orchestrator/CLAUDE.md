@@ -46,21 +46,25 @@ Complete
 ## Quest Status Lifecycle
 
 ```
-created ──► flows_approved ──► approved ──► in_progress ──► complete
-                                                 │
-                                                 ├──► blocked
-                                                 └──► abandoned
+created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► in_progress ──► complete
+                                    │                                                          │                                    │
+                                    └──► explore_flows (back)                                   └──► explore_observables (back)      ├──► blocked
+                                                                                                                                    └──► abandoned
 ```
 
-| Status           | Set By                                                    | Gate                                                      |
-|------------------|-----------------------------------------------------------|-----------------------------------------------------------|
-| `created`        | `add-quest`                                               | Can add: flows, designDecisions                           |
-| `flows_approved` | ChaosWhisperer after user approves flows (Gate #1)        | Can add: observables (in flow nodes), contracts, tooling  |
-| `approved`       | ChaosWhisperer after user approves observables (Gate #2)  | Spec locked. `start-quest` allowed.                       |
-| `in_progress`    | `start-quest`                                             | Steps can be added/modified                               |
-| `blocked`        | Pipeline blocker                                          | Execution paused                                          |
-| `complete`       | All phases pass                                           | Terminal                                                  |
-| `abandoned`      | User abandons                                             | Terminal                                                  |
+| Status                | Set By                                                    | Gate                                                      |
+|-----------------------|-----------------------------------------------------------|-----------------------------------------------------------|
+| `created`             | `add-quest`                                               | ChaosWhisperer starting up                                |
+| `explore_flows`       | ChaosWhisperer (Phase 1 exit)                             | Can add: flows, designDecisions                           |
+| `review_flows`        | ChaosWhisperer (Phase 2 exit)                             | User reviews flows, APPROVE button visible                |
+| `flows_approved`      | User approves flows (Gate #1)                             | Can add: observables (in flow nodes), contracts, tooling  |
+| `explore_observables` | ChaosWhisperer (Phase 4 entry)                            | Can add: observables, contracts, tooling                  |
+| `review_observables`  | ChaosWhisperer (Phase 4 exit)                             | User reviews observables, APPROVE button visible          |
+| `approved`            | User approves observables (Gate #2)                       | Spec locked. `start-quest` allowed.                       |
+| `in_progress`         | `start-quest`                                             | Steps can be added/modified                               |
+| `blocked`             | Pipeline blocker                                          | Execution paused                                          |
+| `complete`            | All phases pass                                           | Terminal                                                  |
+| `abandoned`           | User abandons                                             | Terminal                                                  |
 
 ## Flows (Mermaid Diagrams)
 

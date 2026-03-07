@@ -76,6 +76,11 @@ describe('OrchestrationFlow', () => {
 
       await QuestModifyResponder({
         questId,
+        input: ModifyQuestInputStub({ questId, status: 'explore_flows' }),
+      });
+
+      await QuestModifyResponder({
+        questId,
         input: ModifyQuestInputStub({
           questId,
           flows: [
@@ -88,7 +93,22 @@ describe('OrchestrationFlow', () => {
 
       await QuestModifyResponder({
         questId,
+        input: ModifyQuestInputStub({ questId, status: 'review_flows' }),
+      });
+
+      await QuestModifyResponder({
+        questId,
         input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
+      });
+
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'explore_observables' }),
+      });
+
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'review_observables' }),
       });
 
       await QuestModifyResponder({

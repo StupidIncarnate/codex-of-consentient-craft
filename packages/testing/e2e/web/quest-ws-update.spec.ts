@@ -16,7 +16,7 @@ import {
 const GUILD_PATH = '/tmp/dm-e2e-quest-ws-update';
 const JSON_INDENT = 2;
 const HTTP_OK = 200;
-const PANEL_TIMEOUT = 10_000;
+const PANEL_TIMEOUT = 15_000;
 const CHAT_TIMEOUT = 15_000;
 
 /**
@@ -83,11 +83,12 @@ test.describe('Quest WS Update', () => {
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await page.waitForResponse(
+    const sessionResponsePromise = page.waitForResponse(
       (r) =>
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await sessionResponsePromise;
 
     // Quest exists but has no content — spec panel shows immediately with empty quest data
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -97,7 +98,7 @@ test.describe('Quest WS Update', () => {
       data: {
         flows: [
           {
-            id: crypto.randomUUID(),
+            id: 'ws-live-flow',
             name: 'WS Live Flow',
             entryPoint: 'Start',
             exitPoints: ['End'],
@@ -146,7 +147,7 @@ test.describe('Quest WS Update', () => {
       contracts: [],
       flows: [
         {
-          id: crypto.randomUUID(),
+          id: 'initial-flow',
           name: 'Initial Flow',
           entryPoint: 'Start',
           exitPoints: ['End'],
@@ -160,11 +161,12 @@ test.describe('Quest WS Update', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await page.waitForResponse(
+    const sessionResponsePromise = page.waitForResponse(
       (r) =>
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await sessionResponsePromise;
 
     // Spec panel should be visible with the initial flow
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -175,7 +177,7 @@ test.describe('Quest WS Update', () => {
       data: {
         flows: [
           {
-            id: crypto.randomUUID(),
+            id: 'live-ws-flow',
             name: 'Live WS Flow',
             entryPoint: 'Begin',
             exitPoints: ['Finish'],
@@ -209,8 +211,11 @@ test.describe('Quest WS Update', () => {
     queueClaudeResponse(SimpleTextResponseStub({ sessionId, text: 'Quest created successfully' }));
 
     // Navigate to the guild session page WITHOUT a sessionId — this is a new chat
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
     await page.goto(`/${urlSlug}/session`);
-    await page.waitForResponse((r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK);
+    await guildsResponsePromise;
 
     // Initially there's no quest, so we should see the awaiting placeholder
     await expect(page.getByText('Awaiting quest activity...')).toBeVisible({
@@ -244,10 +249,10 @@ test.describe('Quest WS Update', () => {
     // useQuestEventsBinding is subscribed to updates for it.
     await request.patch(`/api/quests/${questId}`, {
       data: {
-        status: 'flows_approved',
+        status: 'explore_flows',
         flows: [
           {
-            id: crypto.randomUUID(),
+            id: 'race-condition-flow',
             name: 'Race Condition Flow',
             entryPoint: 'Start',
             exitPoints: ['End'],

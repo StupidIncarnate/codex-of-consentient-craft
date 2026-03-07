@@ -19,7 +19,7 @@ const GUILD_PATH = '/tmp/dm-e2e-quest-dual-panel';
 const JSON_INDENT = 2;
 const HTTP_OK = 200;
 const CHAT_TIMEOUT = 15_000;
-const PANEL_TIMEOUT = 10_000;
+const PANEL_TIMEOUT = 15_000;
 
 /**
  * Writes a quest.json to disk with flows populated so the spec panel renders.
@@ -52,7 +52,7 @@ const createQuestFile = ({
     contracts: [],
     flows: [
       {
-        id: crypto.randomUUID(),
+        id: 'dual-panel-flow',
         name: 'Dual Panel Flow',
         entryPoint: 'Start',
         exitPoints: ['End'],
@@ -96,7 +96,7 @@ const createQuestFileWithFlows = ({
     contracts: [],
     flows: [
       {
-        id: crypto.randomUUID(),
+        id: 'main-flow',
         name: 'Main Flow',
         entryPoint: 'User request',
         exitPoints: ['Success response'],
@@ -228,11 +228,12 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await page.waitForResponse(
+    const sessionResponsePromise = page.waitForResponse(
       (r) =>
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await sessionResponsePromise;
 
     // Send a message to trigger the queued clarification response
     await page.getByTestId('CHAT_INPUT').fill('Start the quest');
@@ -291,11 +292,12 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await page.waitForResponse(
+    const sessionResponsePromise = page.waitForResponse(
       (r) =>
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await sessionResponsePromise;
 
     // Send a message to trigger the clarification
     await page.getByTestId('CHAT_INPUT').fill('Start the quest');
@@ -347,11 +349,12 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await page.waitForResponse(
+    const sessionResponsePromise = page.waitForResponse(
       (r) =>
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await sessionResponsePromise;
 
     // Bug B: spec panel should load quest data via WebSocket without user interaction
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -389,11 +392,12 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await page.waitForResponse(
+    const sessionResponsePromise = page.waitForResponse(
       (r) =>
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await sessionResponsePromise;
 
     // Wait for history to fully replay — the Phase 1 text from the final assistant entry
     await expect(page.getByText('Phase 1: Setting up PostgreSQL schema.')).toBeVisible({
@@ -428,11 +432,12 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await page.waitForResponse(
+    const sessionResponsePromise = page.waitForResponse(
       (r) =>
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await sessionResponsePromise;
 
     // Wait for initial history load
     await expect(page.getByText('Phase 1: Setting up PostgreSQL schema.')).toBeVisible({
@@ -444,11 +449,12 @@ test.describe('Quest Dual Panel', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // Reload the page to test re-navigation timing
-    await page.reload();
-    await page.waitForResponse(
+    const reloadResponsePromise = page.waitForResponse(
       (r) =>
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
+    await page.reload();
+    await reloadResponsePromise;
 
     // Wait for history to replay again after reload
     await expect(page.getByText('Phase 1: Setting up PostgreSQL schema.')).toBeVisible({

@@ -15,7 +15,7 @@ describe('QuestHandleResponder', () => {
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
-        args: { questId: 'test-quest-id' },
+        args: { questId: 'test-quest-id', format: 'json' },
       });
 
       expect(result).toStrictEqual({
@@ -35,7 +35,7 @@ describe('QuestHandleResponder', () => {
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
-        args: { questId: 'test-quest-id', stage: 'spec' },
+        args: { questId: 'test-quest-id', stage: 'spec', format: 'json' },
       });
 
       expect(result).toStrictEqual({

@@ -506,12 +506,12 @@ describe('QuestChatWidget', () => {
   });
 
   describe('approval messages', () => {
-    it('VALID: {click APPROVE, status: created} => sends flows approved message', async () => {
+    it('VALID: {click APPROVE, status: review_flows} => sends flows approved message', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-approve-1',
-        status: 'created',
+        status: 'review_flows',
         flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
@@ -557,12 +557,12 @@ describe('QuestChatWidget', () => {
       ).toBeInTheDocument();
     });
 
-    it('VALID: {click APPROVE, status: flows_approved} => sends fully approved message', async () => {
+    it('VALID: {click APPROVE, status: review_observables} => sends fully approved message', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-approve-2',
-        status: 'flows_approved',
+        status: 'review_observables',
         flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });

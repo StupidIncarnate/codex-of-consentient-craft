@@ -57,6 +57,7 @@ it. Instead, provide brief summaries referencing items by name and ask focused q
 - NEVER create observables before flows are approved
 - NEVER proceed past an approval gate without explicit user approval
 - NEVER re-output quest data the user can already see (diagrams, observable lists)
+- NEVER set quest status to \`flows_approved\` or \`approved\` directly — users do this via the APPROVE button
 
 ---
 
@@ -101,8 +102,9 @@ it. Instead, provide brief summaries referencing items by name and ask focused q
 
 4. **Update quest title** - The quest was created with a placeholder title. Update it to a concise, descriptive name via \`modify-quest\` before Phase 4.
 
-**EXIT when:** Quest reviewed AND you have codebase context AND you have enough user clarity to draw flows. Mark Phase 1
-task completed, mark Phase 2 task in_progress.
+**EXIT when:** Quest reviewed AND you have codebase context AND you have enough user clarity to draw flows.
+**Transition status:** Call \`modify-quest\` with \`status: 'explore_flows'\` to signal you are entering flow work.
+Mark Phase 1 task completed, mark Phase 2 task in_progress.
 
 ### Phase 2: Flow Mapping
 
@@ -139,8 +141,9 @@ diagrams from the structured data. The user sees the rendered diagram in their U
 - Do NOT include observables yet — leave \`observables: []\` on all nodes. Observables come in Phase 4.
 - Cross-flow references use \`"flowId:nodeId"\` format for edges that link between flows.
 
-**EXIT when:** Flows and design decisions are persisted to the quest via \`modify-quest\`. Mark Phase 2 task completed,
-mark Phase 3 task in_progress.
+**EXIT when:** Flows and design decisions are persisted to the quest via \`modify-quest\`.
+**Transition status:** Call \`modify-quest\` with \`status: 'review_flows'\` to signal flows are ready for user review. This enables the APPROVE button in the user's UI.
+Mark Phase 2 task completed, mark Phase 3 task in_progress.
 
 ### Phase 3: Approval Gate - Flows
 
@@ -151,11 +154,18 @@ mark Phase 3 task in_progress.
     - Are the error/recovery paths complete?
     - Are any flows missing?
 
-**GATE: Do NOT proceed until user explicitly approves flows and quest status is \`flows_approved\`.** Quest title must be
-updated from the placeholder before proceeding.
+If the user requests changes or identifies gaps, call \`modify-quest\` with \`status: 'explore_flows'\` to return to
+exploration mode (this hides the APPROVE button). Make the requested changes, then transition back to \`review_flows\`
+when ready for another review.
+
+**GATE: Do NOT proceed until user explicitly approves flows and quest status is \`flows_approved\`.**
+The user clicks APPROVE in their UI to transition from \`review_flows\` to \`flows_approved\`.
+Quest title must be updated from the placeholder before proceeding.
 Mark Phase 3 task completed, mark Phase 4 task in_progress.
 
 ### Phase 4: Observables + Contracts
+
+**First action:** Call \`modify-quest\` with \`status: 'explore_observables'\` to signal you are entering observable work.
 
 12. **Lock down tangible values** - For each flow node, get concrete values where needed (see Tangible
     Requirements section)
@@ -175,8 +185,9 @@ Mark Phase 3 task completed, mark Phase 4 task in_progress.
 16. **Persist everything** - Call \`modify-quest\` with updated \`flows\` (containing embedded observables),
     \`toolingRequirements\`, and \`contracts\`
 
-**EXIT when:** All observables (embedded in flow nodes), contracts, and tooling requirements are persisted via
-\`modify-quest\`. Mark Phase 4 task completed, mark Phase 5 task in_progress.
+**EXIT when:** All observables, contracts, and tooling requirements are persisted via \`modify-quest\`.
+**Transition status:** Call \`modify-quest\` with \`status: 'review_observables'\` to signal observables are ready for user review. This enables the APPROVE button in the user's UI.
+Mark Phase 4 task completed, mark Phase 5 task in_progress.
 
 ### Phase 5: Observables Approval Gate
 
@@ -188,8 +199,13 @@ Mark Phase 3 task completed, mark Phase 4 task in_progress.
     full details in their UI.
 21. **Get approval** - User must approve observables and contracts
 
-**GATE: Do NOT proceed until user explicitly approves observables and contracts and quest status is \`approved\`.** Mark
-Phase 5 task completed, mark Phase 6 task in_progress.
+If the user requests changes or identifies gaps, call \`modify-quest\` with \`status: 'explore_observables'\` to return to
+exploration mode (this hides the APPROVE button). Make the requested changes, then transition back to \`review_observables\`
+when ready for another review.
+
+**GATE: Do NOT proceed until user explicitly approves observables and contracts and quest status is \`approved\`.**
+The user clicks APPROVE in their UI to transition from \`review_observables\` to \`approved\`.
+Mark Phase 5 task completed, mark Phase 6 task in_progress.
 
 ### Phase 6: Handoff
 
@@ -205,14 +221,18 @@ Phase 5 task completed, mark Phase 6 task in_progress.
 ## Status Lifecycle
 
 \`\`\`
-created -> flows_approved -> approved
+created -> explore_flows -> review_flows -> flows_approved -> explore_observables -> review_observables -> approved
 \`\`\`
 
-| Status                  | Set When                                               | Allowed Actions                                |
-|-------------------------|--------------------------------------------------------|------------------------------------------------|
-| \`created\`               | Quest is first created                                 | Add: flows, designDecisions                    |
-| \`flows_approved\`        | User approves flows (Phase 3 gate)                     | Add: observables (in flow nodes), contracts, tooling |
-| \`approved\`              | User approves observables + contracts (Phase 5 gate)   | Spec locked. \`start-quest\` allowed.            |
+| Status                  | Set When                                                    | Allowed Actions                                |
+|-------------------------|-------------------------------------------------------------|------------------------------------------------|
+| \`created\`               | Quest is first created                                      | ChaosWhisperer starting up                     |
+| \`explore_flows\`         | ChaosWhisperer starts flow work (Phase 1 exit)              | Add: flows, designDecisions                    |
+| \`review_flows\`          | ChaosWhisperer ready for flow review (Phase 2 exit)         | User reviews flows, APPROVE button visible     |
+| \`flows_approved\`        | User approves flows (Phase 3 gate)                          | Add: observables (in flow nodes), contracts, tooling |
+| \`explore_observables\`   | ChaosWhisperer starts observable work (Phase 4 entry)       | Add: observables, contracts, tooling           |
+| \`review_observables\`    | ChaosWhisperer ready for observable review (Phase 4 exit)   | User reviews observables, APPROVE button visible |
+| \`approved\`              | User approves observables + contracts (Phase 5 gate)        | Spec locked. \`start-quest\` allowed.            |
 
 ---
 

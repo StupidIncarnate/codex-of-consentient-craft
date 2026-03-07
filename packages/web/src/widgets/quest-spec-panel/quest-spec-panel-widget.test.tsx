@@ -25,7 +25,7 @@ describe('QuestSpecPanelWidget', () => {
     it('VALID: {quest with approvable status} => renders APPROVE and MODIFY buttons', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
-        status: 'created',
+        status: 'review_flows',
         flows: [FlowStub()],
       });
 
@@ -53,54 +53,49 @@ describe('QuestSpecPanelWidget', () => {
       expect(buttonTexts).toStrictEqual(['MODIFY']);
     });
 
-    it('VALID: {click APPROVE, status: created, has flows} => calls onModify with flows_approved status', async () => {
+    it('VALID: {click APPROVE, status: review_flows, has flows} => calls onModify with flows_approved status', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        flows: [FlowStub()],
+      });
+      const onModify = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
+      });
+
+      await proxy.clickApprove();
+
+      expect(onModify).toHaveBeenCalledTimes(1);
+      expect(onModify).toHaveBeenCalledWith({
+        modifications: { status: 'flows_approved' },
+        action: 'approve',
+        nextStatus: 'flows_approved',
+      });
+    });
+
+    it('VALID: {status: created} => no APPROVE button (non-approvable status)', () => {
+      QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'created',
         flows: [FlowStub()],
       });
-      const onModify = jest.fn();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
-      await proxy.clickApprove();
+      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
 
-      expect(onModify).toHaveBeenCalledTimes(1);
-      expect(onModify).toHaveBeenCalledWith({
-        modifications: { status: 'flows_approved' },
-        action: 'approve',
-        nextStatus: 'flows_approved',
-      });
+      expect(approveButton).toBeUndefined();
     });
 
-    it('VALID: {click APPROVE, status: pending, has flows} => calls onModify with flows_approved status', async () => {
+    it('VALID: {click APPROVE, status: review_observables, has flows} => calls onModify with approved status', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
-        status: 'pending',
-        flows: [FlowStub()],
-      });
-      const onModify = jest.fn();
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
-      });
-
-      await proxy.clickApprove();
-
-      expect(onModify).toHaveBeenCalledTimes(1);
-      expect(onModify).toHaveBeenCalledWith({
-        modifications: { status: 'flows_approved' },
-        action: 'approve',
-        nextStatus: 'flows_approved',
-      });
-    });
-
-    it('VALID: {click APPROVE, status: flows_approved, has flows} => calls onModify with approved status', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'flows_approved',
+        status: 'review_observables',
         flows: [FlowStub()],
       });
       const onModify = jest.fn();
@@ -135,10 +130,10 @@ describe('QuestSpecPanelWidget', () => {
   });
 
   describe('approve gate content guard', () => {
-    it('VALID: {status: created, flows: [flow]} => APPROVE is enabled', () => {
+    it('VALID: {status: review_flows, flows: [flow]} => APPROVE is enabled', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
-        status: 'created',
+        status: 'review_flows',
         flows: [FlowStub()],
       });
 
@@ -153,10 +148,10 @@ describe('QuestSpecPanelWidget', () => {
       expect(approveButton?.style.pointerEvents).toBe('auto');
     });
 
-    it('VALID: {status: created, flows: []} => APPROVE is disabled', () => {
+    it('VALID: {status: review_flows, flows: []} => APPROVE is disabled', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
-        status: 'created',
+        status: 'review_flows',
         flows: [],
       });
 
@@ -171,10 +166,10 @@ describe('QuestSpecPanelWidget', () => {
       expect(approveButton?.style.pointerEvents).toBe('none');
     });
 
-    it('VALID: {status: flows_approved, flows: [flow]} => APPROVE is enabled', () => {
+    it('VALID: {status: review_observables, flows: [flow]} => APPROVE is enabled', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
-        status: 'flows_approved',
+        status: 'review_observables',
         flows: [FlowStub()],
       });
 
@@ -189,10 +184,10 @@ describe('QuestSpecPanelWidget', () => {
       expect(approveButton?.style.pointerEvents).toBe('auto');
     });
 
-    it('VALID: {status: flows_approved, flows: []} => APPROVE is disabled', () => {
+    it('VALID: {status: review_observables, flows: []} => APPROVE is disabled', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
-        status: 'flows_approved',
+        status: 'review_observables',
         flows: [],
       });
 
@@ -209,7 +204,7 @@ describe('QuestSpecPanelWidget', () => {
   });
 
   describe('dynamic header', () => {
-    it('VALID: {status: created} => renders FLOW APPROVAL header', () => {
+    it('VALID: {status: created} => renders QUEST CREATED header', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'created' });
 
@@ -217,12 +212,34 @@ describe('QuestSpecPanelWidget', () => {
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
-      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('FLOW APPROVAL');
+      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('QUEST CREATED');
     });
 
-    it('VALID: {status: pending} => renders FLOW APPROVAL header', () => {
+    it('VALID: {status: pending} => renders QUEST CREATED header', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'pending' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('QUEST CREATED');
+    });
+
+    it('VALID: {status: explore_flows} => renders EXPLORING FLOWS header', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'explore_flows' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('EXPLORING FLOWS');
+    });
+
+    it('VALID: {status: review_flows} => renders FLOW APPROVAL header', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_flows' });
 
       mantineRenderAdapter({
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
@@ -231,9 +248,31 @@ describe('QuestSpecPanelWidget', () => {
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('FLOW APPROVAL');
     });
 
-    it('VALID: {status: flows_approved} => renders OBSERVABLES APPROVAL header', () => {
+    it('VALID: {status: flows_approved} => renders FLOWS APPROVED header', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'flows_approved' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('FLOWS APPROVED');
+    });
+
+    it('VALID: {status: explore_observables} => renders EXPLORING OBSERVABLES header', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'explore_observables' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('EXPLORING OBSERVABLES');
+    });
+
+    it('VALID: {status: review_observables} => renders OBSERVABLES APPROVAL header', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_observables' });
 
       mantineRenderAdapter({
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
@@ -323,11 +362,63 @@ describe('QuestSpecPanelWidget', () => {
       expect(screen.queryByTestId('CONTRACTS_LAYER')).toBeNull();
     });
 
+    it('VALID: {status: explore_flows} => shows flows and design decisions, hides contracts', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'explore_flows' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+      expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
+      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBeNull();
+    });
+
+    it('VALID: {status: review_flows} => shows flows and design decisions, hides contracts', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_flows' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+      expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
+      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBeNull();
+    });
+
     it('VALID: {status: flows_approved} => shows flows, design decisions, and contracts', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'flows_approved',
       });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+      expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
+      expect(screen.getByTestId('CONTRACTS_LAYER')).toBeInTheDocument();
+    });
+
+    it('VALID: {status: explore_observables} => shows flows, design decisions, and contracts', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'explore_observables' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+      expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
+      expect(screen.getByTestId('CONTRACTS_LAYER')).toBeInTheDocument();
+    });
+
+    it('VALID: {status: review_observables} => shows flows, design decisions, and contracts', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_observables' });
 
       mantineRenderAdapter({
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
@@ -381,7 +472,7 @@ describe('QuestSpecPanelWidget', () => {
       await proxy.clickModify();
       await proxy.clickCancel();
 
-      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('OBSERVABLES APPROVAL');
+      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('FLOWS APPROVED');
     });
 
     it('VALID: {click MODIFY then SUBMIT without edits} => calls onModify with empty modifications', async () => {

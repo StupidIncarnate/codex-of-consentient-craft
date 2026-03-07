@@ -43,7 +43,7 @@ const createQuestFile = ({
     contracts: [],
     flows: [
       {
-        id: crypto.randomUUID(),
+        id: 'test-flow',
         name: 'Test Flow',
         entryPoint: 'start',
         exitPoints: ['end'],
@@ -78,16 +78,17 @@ test.describe('Quest Approve Button', () => {
     });
 
     const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'created' });
+    createQuestFile({ guildId, questId, sessionId, status: 'review_flows' });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await page.waitForResponse(
+    const sessionResponsePromise = page.waitForResponse(
       (r) =>
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await sessionResponsePromise;
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByTestId('PANEL_HEADER')).toHaveText('FLOW APPROVAL');

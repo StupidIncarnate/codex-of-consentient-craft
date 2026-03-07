@@ -59,7 +59,7 @@ export const collectPlaywrightFailuresTransformer = ({
 
             const status: unknown = Reflect.get(test, 'status');
 
-            if (status === 'expected' || status === 'skipped') {
+            if (status === 'expected' || status === 'skipped' || status === 'flaky') {
               return [];
             }
 

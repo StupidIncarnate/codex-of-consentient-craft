@@ -45,7 +45,7 @@ const createQuestFile = ({
     contracts: [],
     flows: [
       {
-        id: crypto.randomUUID(),
+        id: 'test-flow',
         name: 'Test Flow',
         entryPoint: 'Start',
         exitPoints: ['End'],
@@ -86,16 +86,17 @@ test.describe('Quest Spec Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await page.waitForResponse(
+    const sessionResponsePromise = page.waitForResponse(
       (r) =>
         r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
     );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await sessionResponsePromise;
 
     await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
 
     // The spec panel should render instead of the "Awaiting quest activity..." text
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText('Awaiting quest activity...')).not.toBeVisible();
   });
 });

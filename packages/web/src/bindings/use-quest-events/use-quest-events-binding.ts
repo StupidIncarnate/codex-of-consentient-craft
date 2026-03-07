@@ -51,6 +51,19 @@ export const useQuestEventsBinding = ({
         if (!parsed.success) return;
 
         if (parsed.data.type === 'quest-modified') {
+          const rawQuest: unknown = Reflect.get(parsed.data.payload, 'quest');
+          const questParsed = questContract.safeParse(rawQuest);
+          if (!questParsed.success) return;
+
+          const questSession: unknown = questParsed.data.questCreatedSessionBy;
+          if (
+            sessionIdRef.current &&
+            typeof questSession === 'string' &&
+            questSession !== sessionIdRef.current
+          ) {
+            return;
+          }
+
           const payloadQuestId: unknown = Reflect.get(parsed.data.payload, 'questId');
 
           if (questIdRef.current === null) {
@@ -59,13 +72,11 @@ export const useQuestEventsBinding = ({
             }
           }
 
-          if (payloadQuestId === questIdRef.current) {
-            const rawQuest: unknown = Reflect.get(parsed.data.payload, 'quest');
-            const questParsed = questContract.safeParse(rawQuest);
-            if (questParsed.success) {
-              setQuestData(questParsed.data);
-            }
+          if (questIdRef.current !== null && payloadQuestId !== questIdRef.current) {
+            return;
           }
+
+          setQuestData(questParsed.data);
         }
       },
     });
@@ -103,6 +114,25 @@ export const useQuestEventsBinding = ({
       }
     }
   }, [sessionId, guildId]);
+
+  useEffect(() => {
+    if (questData !== null) return undefined;
+
+    const retryIntervalMs = 1000;
+    const intervalId = globalThis.setInterval(() => {
+      if (sessionIdRef.current && guildIdRef.current && connectionRef.current) {
+        connectionRef.current.send({
+          type: 'quest-by-session-request',
+          sessionId: sessionIdRef.current,
+          guildId: guildIdRef.current,
+        });
+      }
+    }, retryIntervalMs);
+
+    return (): void => {
+      globalThis.clearInterval(intervalId);
+    };
+  }, [questData]);
 
   const requestRefresh = useCallback((): void => {
     if (sessionIdRef.current && guildIdRef.current) {

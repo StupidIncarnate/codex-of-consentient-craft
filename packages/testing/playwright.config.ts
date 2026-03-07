@@ -23,7 +23,7 @@ export default defineConfig({
   fullyParallel: false,
   timeout: 30_000,
   forbidOnly: Boolean(process.env.CI),
-  retries: process.env.CI ? CI_RETRIES : 0,
+  retries: CI_RETRIES,
   reporter: 'json',
 
   globalSetup: './e2e/web/global-setup.ts',

@@ -424,6 +424,7 @@ describe('McpServerFlow', () => {
           name: 'get-quest',
           arguments: {
             questId,
+            format: 'json',
           },
         },
       });
@@ -503,6 +504,7 @@ describe('McpServerFlow', () => {
           name: 'get-quest',
           arguments: {
             questId,
+            format: 'json',
           },
         },
       });

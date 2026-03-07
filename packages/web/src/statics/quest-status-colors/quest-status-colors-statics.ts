@@ -10,6 +10,11 @@ export const questStatusColorsStatics = {
   status: {
     created: 'gray',
     pending: 'yellow',
+    explore_flows: 'cyan',
+    review_flows: 'yellow',
+    flows_approved: 'green',
+    explore_observables: 'cyan',
+    review_observables: 'yellow',
     proposed: 'yellow',
     approved: 'green',
     deferred: 'gray',
