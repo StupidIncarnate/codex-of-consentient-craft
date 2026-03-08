@@ -7,11 +7,11 @@
   ├─ Explore agents ────── codebase research (read-only)
   ├─ quest-gap-reviewer ── spec validation (read-only)
   │
-  ├─ Phase 1: Discovery ──────── explore codebase, interview user
-  ├─ Phase 2: Flow Mapping ────── mermaid diagrams (mandatory)
-  ├─ Gate #1: User approves flows
-  ├─ Phase 4: Observables ─────── embedded in flow nodes, with verification steps
-  ├─ Gate #2: User approves observables + contracts
+  ├─ Phase 1: Discovery ──────── explore codebase, interview user → status: explore_flows
+  ├─ Phase 2: Flow Mapping ────── mermaid diagrams (mandatory) → status: review_flows
+  ├─ Phase 3: Gate #1 ─────────── user approves flows → status: flows_approved
+  ├─ Phase 4: Observables ─────── embedded in flow nodes → status: explore_observables → review_observables
+  ├─ Phase 5: Gate #2 ─────────── user approves observables + contracts → status: approved
   │
   ▼
 /quest:start ──► start-quest MCP
