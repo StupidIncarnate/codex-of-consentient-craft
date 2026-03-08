@@ -232,6 +232,7 @@ describe('QuestChatWidget', () => {
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-empty-spec',
+        status: 'review_flows',
       });
       const guildDetail = GuildStub({ id: guild.id });
 
@@ -269,6 +270,7 @@ describe('QuestChatWidget', () => {
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-q6',
+        status: 'review_flows',
         flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
@@ -307,6 +309,7 @@ describe('QuestChatWidget', () => {
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-q7',
+        status: 'review_flows',
         flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
@@ -345,6 +348,7 @@ describe('QuestChatWidget', () => {
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-fallback',
+        status: 'review_flows',
         flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
@@ -387,6 +391,7 @@ describe('QuestChatWidget', () => {
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-q8',
+        status: 'review_flows',
         flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
@@ -471,6 +476,7 @@ describe('QuestChatWidget', () => {
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-q9',
+        status: 'review_flows',
         flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
@@ -630,6 +636,89 @@ describe('QuestChatWidget', () => {
       });
 
       expect(proxy.hasChatPanel()).toBe(true);
+    });
+  });
+
+  describe('execution phase layout', () => {
+    it('VALID: {quest with in_progress status} => renders execution panel in left and dumpster raccoon in right', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-exec-1',
+        status: 'in_progress',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-exec-1', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      expect(proxy.hasDumpsterRaccoon()).toBe(true);
+      expect(proxy.hasChatPanel()).toBe(false);
+      expect(proxy.hasSpecPanel()).toBe(false);
+    });
+
+    it('VALID: {quest with non-execution status} => renders chat panel and spec panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-noexec-1',
+        status: 'review_flows',
+        flows: [FlowStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-noexec-1', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      expect(proxy.hasChatPanel()).toBe(true);
+      expect(proxy.hasExecutionPanel()).toBe(false);
+      expect(proxy.hasDumpsterRaccoon()).toBe(false);
     });
   });
 });

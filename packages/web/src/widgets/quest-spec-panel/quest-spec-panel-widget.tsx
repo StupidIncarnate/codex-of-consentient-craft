@@ -45,13 +45,14 @@ const CONTRACTS_SECTION = 'contracts' as GateSectionKey;
 
 export interface QuestSpecPanelWidgetProps {
   quest: Quest;
-  onModify: (params: {
+  onModify?: (params: {
     modifications: Record<string, unknown>;
     action: 'submit' | 'approve';
     nextStatus?: string;
   }) => void;
   externalUpdatePending?: boolean;
   onDismissUpdate?: () => void;
+  readOnly?: boolean;
 }
 
 export const QuestSpecPanelWidget = ({
@@ -59,6 +60,7 @@ export const QuestSpecPanelWidget = ({
   onModify,
   externalUpdatePending,
   onDismissUpdate,
+  readOnly,
 }: QuestSpecPanelWidgetProps): React.JSX.Element => {
   const [editing, setEditing] = useState(false);
   const [draftModifications, setDraftModifications] = useState<Partial<Quest>>({});
@@ -210,65 +212,71 @@ export const QuestSpecPanelWidget = ({
           />
         ) : null}
       </Box>
-      <Box
-        style={{
-          ...ACTION_BAR_STYLE_BASE,
-          borderTop: `1px solid ${colors.border}`,
-        }}
-        data-testid="ACTION_BAR"
-      >
-        <Group gap="xs">
-          {editing ? (
-            <>
-              <PixelBtnWidget
-                label={SUBMIT_LABEL}
-                onClick={() => {
-                  setEditing(false);
-                  onModify({ modifications: draftModifications, action: 'submit' });
-                }}
-              />
-              <PixelBtnWidget
-                label={CANCEL_LABEL}
-                variant={GHOST_VARIANT}
-                onClick={() => {
-                  setEditing(false);
-                  setDraftModifications({});
-                }}
-              />
-            </>
-          ) : (
-            <>
-              {(() => {
-                const nextApproval = questGateSectionsStatics.nextApprovalStatus[quest.status];
-                if (!nextApproval) {
-                  return null;
-                }
-                return (
-                  <PixelBtnWidget
-                    label={APPROVE_LABEL}
-                    disabled={!hasQuestGateContentGuard({ quest, nextStatus: nextApproval })}
-                    onClick={() => {
-                      onModify({
-                        modifications: { status: nextApproval },
-                        action: 'approve',
-                        nextStatus: nextApproval,
-                      });
-                    }}
-                  />
-                );
-              })()}
-              <PixelBtnWidget
-                label={MODIFY_LABEL}
-                variant={GHOST_VARIANT}
-                onClick={() => {
-                  setDraftModifications({});
-                  setEditing(true);
-                }}
-              />
-            </>
-          )}
-        </Group>
-      </Box>
+      {readOnly ? null : (
+        <Box
+          style={{
+            ...ACTION_BAR_STYLE_BASE,
+            borderTop: `1px solid ${colors.border}`,
+          }}
+          data-testid="ACTION_BAR"
+        >
+          <Group gap="xs">
+            {editing ? (
+              <>
+                <PixelBtnWidget
+                  label={SUBMIT_LABEL}
+                  onClick={() => {
+                    setEditing(false);
+                    if (onModify) {
+                      onModify({ modifications: draftModifications, action: 'submit' });
+                    }
+                  }}
+                />
+                <PixelBtnWidget
+                  label={CANCEL_LABEL}
+                  variant={GHOST_VARIANT}
+                  onClick={() => {
+                    setEditing(false);
+                    setDraftModifications({});
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                {(() => {
+                  const nextApproval = questGateSectionsStatics.nextApprovalStatus[quest.status];
+                  if (!nextApproval) {
+                    return null;
+                  }
+                  return (
+                    <PixelBtnWidget
+                      label={APPROVE_LABEL}
+                      disabled={!hasQuestGateContentGuard({ quest, nextStatus: nextApproval })}
+                      onClick={() => {
+                        if (onModify) {
+                          onModify({
+                            modifications: { status: nextApproval },
+                            action: 'approve',
+                            nextStatus: nextApproval,
+                          });
+                        }
+                      }}
+                    />
+                  );
+                })()}
+                <PixelBtnWidget
+                  label={MODIFY_LABEL}
+                  variant={GHOST_VARIANT}
+                  onClick={() => {
+                    setDraftModifications({});
+                    setEditing(true);
+                  }}
+                />
+              </>
+            )}
+          </Group>
+        </Box>
+      )}
     </Stack>
   );
 };

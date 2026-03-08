@@ -26,8 +26,11 @@ import { isDesignStartVisibleGuard } from '../../guards/is-design-start-visible/
 import { isDesignTabVisibleGuard } from '../../guards/is-design-tab-visible/is-design-tab-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
+import { isExecutionPhaseGuard } from '../../guards/is-execution-phase/is-execution-phase-guard';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { DesignPanelWidget } from '../design-panel/design-panel-widget';
+import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
+import { ExecutionPanelWidget } from '../execution-panel/execution-panel-widget';
 import { QuestClarifyPanelWidget } from '../quest-clarify-panel/quest-clarify-panel-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 
@@ -102,6 +105,45 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const pendingQuestion = pendingClarification ?? entryBasedQuestion;
 
   const questWithContent = questData;
+
+  if (questData && isExecutionPhaseGuard({ status: questData.status })) {
+    return (
+      <Box
+        data-testid="QUEST_CHAT"
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
+        <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          {questWithContent ? <ExecutionPanelWidget quest={questWithContent} /> : null}
+        </Box>
+
+        <div
+          data-testid="QUEST_CHAT_DIVIDER"
+          style={{
+            width: 1,
+            backgroundColor: colors.border,
+            alignSelf: 'stretch',
+          }}
+        />
+
+        <Box
+          data-testid="QUEST_CHAT_ACTIVITY"
+          style={{
+            flex: 1,
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <DumpsterRaccoonWidget />
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box

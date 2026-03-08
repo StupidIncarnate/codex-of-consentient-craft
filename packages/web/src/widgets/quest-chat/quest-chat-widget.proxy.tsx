@@ -28,6 +28,8 @@ import { designStartBrokerProxy } from '../../brokers/design/start/design-start-
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { DesignPanelWidgetProxy } from '../design-panel/design-panel-widget.proxy';
+import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
+import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
 import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 
@@ -66,6 +68,8 @@ export const QuestChatWidgetProxy = (): {
   clickStartDesign: () => Promise<void>;
   setupDesignStart: (params: { port: Quest['designPort'] }) => void;
   setupDesignSession: (params: { chatProcessId: ProcessId }) => void;
+  hasExecutionPanel: () => boolean;
+  hasDumpsterRaccoon: () => boolean;
 } => {
   const guildsBindingProxy = useGuildsBindingProxy();
   const sessionListProxy = useSessionListBindingProxy();
@@ -79,6 +83,8 @@ export const QuestChatWidgetProxy = (): {
   const designStartProxy = designStartBrokerProxy();
   const designSessionProxy = designSessionBrokerProxy();
   DesignPanelWidgetProxy();
+  DumpsterRaccoonWidgetProxy();
+  ExecutionPanelWidgetProxy();
 
   return {
     setupChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
@@ -178,5 +184,7 @@ export const QuestChatWidgetProxy = (): {
     setupDesignSession: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
       designSessionProxy.setupSession({ chatProcessId });
     },
+    hasExecutionPanel: (): boolean => screen.queryByTestId('execution-panel-widget') !== null,
+    hasDumpsterRaccoon: (): boolean => screen.queryByTestId('dumpster-raccoon-widget') !== null,
   };
 };

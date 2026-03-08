@@ -611,6 +611,45 @@ describe('QuestSpecPanelWidget', () => {
     });
   });
 
+  describe('readOnly mode', () => {
+    it('VALID: {readOnly: true} => hides action bar', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_flows' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
+      });
+
+      expect(screen.queryByTestId('ACTION_BAR')).toBeNull();
+    });
+
+    it('VALID: {readOnly: false} => shows action bar', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_flows' });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} readOnly={false} onModify={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('ACTION_BAR')).toBeInTheDocument();
+    });
+
+    it('VALID: {readOnly: true} => still renders quest title and content', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        title: 'Read Only Quest',
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
+      });
+
+      expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Read Only Quest');
+      expect(screen.getByTestId('QUEST_SPEC_PANEL')).toBeInTheDocument();
+    });
+  });
+
   describe('external update banner', () => {
     it('VALID: {editing + externalUpdatePending} => shows update banner', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
