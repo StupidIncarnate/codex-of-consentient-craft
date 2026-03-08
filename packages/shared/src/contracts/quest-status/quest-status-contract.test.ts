@@ -59,6 +59,30 @@ describe('questStatusContract', () => {
       expect(result).toBe('approved');
     });
 
+    it('VALID: explore_design => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'explore_design' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('explore_design');
+    });
+
+    it('VALID: review_design => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'review_design' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('review_design');
+    });
+
+    it('VALID: design_approved => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'design_approved' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('design_approved');
+    });
+
     it('VALID: pending => parses successfully', () => {
       const status = QuestStatusStub({ value: 'pending' });
 

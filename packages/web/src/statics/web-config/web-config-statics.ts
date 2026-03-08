@@ -20,6 +20,9 @@ export const webConfigStatics = {
       sessionChatStop: '/api/sessions/:sessionId/chat/:chatProcessId/stop',
       sessionChatHistory: '/api/sessions/:sessionId/chat/history',
       processStatus: '/api/process/:processId',
+      designStart: '/api/quests/:questId/design/start',
+      designStop: '/api/quests/:questId/design/stop',
+      designSession: '/api/quests/:questId/design/session',
     },
   },
   polling: {

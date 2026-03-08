@@ -29,7 +29,7 @@ export const OrchestrationStartResponder = async ({
     throw new Error(`Quest not found: ${questId}`);
   }
 
-  if (result.quest.status !== 'approved') {
+  if (result.quest.status !== 'approved' && result.quest.status !== 'design_approved') {
     throw new Error(
       `Quest must be approved before starting. Current status: ${result.quest.status}`,
     );

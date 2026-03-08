@@ -54,6 +54,22 @@ export const questContract = z.object({
     .array(flowContract)
     .default([])
     .describe('User journey sequences with nodes, edges, and embedded observables'),
+  needsDesign: z
+    .boolean()
+    .default(false)
+    .describe('Whether quest requires UI design phase before implementation'),
+  designPort: z
+    .number()
+    .int()
+    .positive()
+    .brand<'DesignPort'>()
+    .optional()
+    .describe('Port of per-quest Vite design sandbox'),
+  designSessionBy: z
+    .string()
+    .brand<'SessionId'>()
+    .optional()
+    .describe('Session ID of the Glyphsmith design session'),
   questCreatedSessionBy: z.string().brand<'SessionId'>().optional(),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),

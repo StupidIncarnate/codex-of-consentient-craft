@@ -44,6 +44,26 @@ describe('hasQuestGateContentGuard', () => {
     });
   });
 
+  describe('design_approved gate', () => {
+    it('VALID: {quest with flows, nextStatus: design_approved} => returns true', () => {
+      const quest = QuestStub({ flows: [FlowStub()] });
+      const nextStatus = QuestStatusStub({ value: 'design_approved' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(true);
+    });
+
+    it('INVALID_FLOWS: {quest with empty flows, nextStatus: design_approved} => returns false', () => {
+      const quest = QuestStub({ flows: [] });
+      const nextStatus = QuestStatusStub({ value: 'design_approved' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(false);
+    });
+  });
+
   describe('non-gated transitions', () => {
     it('VALID: {nextStatus: in_progress} => returns true', () => {
       const quest = QuestStub();
@@ -66,6 +86,24 @@ describe('hasQuestGateContentGuard', () => {
     it('VALID: {nextStatus: pending} => returns true', () => {
       const quest = QuestStub();
       const nextStatus = QuestStatusStub({ value: 'pending' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {nextStatus: explore_design} => returns true', () => {
+      const quest = QuestStub();
+      const nextStatus = QuestStatusStub({ value: 'explore_design' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {nextStatus: review_design} => returns true', () => {
+      const quest = QuestStub();
+      const nextStatus = QuestStatusStub({ value: 'review_design' });
 
       const result = hasQuestGateContentGuard({ quest, nextStatus });
 

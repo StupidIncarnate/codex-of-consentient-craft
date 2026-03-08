@@ -24,6 +24,7 @@ describe('questContract', () => {
         toolingRequirements: [],
         contracts: [],
         flows: [],
+        needsDesign: false,
       });
     });
 
@@ -93,6 +94,44 @@ describe('questContract', () => {
       const result = questContract.parse(quest);
 
       expect(result.flows).toStrictEqual([flow]);
+    });
+
+    it('VALID: needsDesign defaults to false => parses successfully', () => {
+      const quest = QuestStub();
+
+      const result = questContract.parse(quest);
+
+      expect(result.needsDesign).toBe(false);
+    });
+
+    it('VALID: designPort is optional => parses without it', () => {
+      const quest = QuestStub();
+
+      const result = questContract.parse(quest);
+
+      expect(result.designPort).toBeUndefined();
+    });
+
+    it('VALID: designSessionBy is optional => parses without it', () => {
+      const quest = QuestStub();
+
+      const result = questContract.parse(quest);
+
+      expect(result.designSessionBy).toBeUndefined();
+    });
+
+    it('VALID: quest with design fields => parses successfully', () => {
+      const quest = QuestStub({
+        needsDesign: true,
+        designPort: 5173,
+        designSessionBy: 'session-123',
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.needsDesign).toBe(true);
+      expect(result.designPort).toBe(5173);
+      expect(result.designSessionBy).toBe('session-123');
     });
 
     it('VALID: quest without flows field => backward compat defaults to empty array', () => {

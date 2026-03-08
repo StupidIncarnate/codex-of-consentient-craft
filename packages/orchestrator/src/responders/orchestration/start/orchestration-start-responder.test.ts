@@ -35,6 +35,17 @@ describe('OrchestrationStartResponder', () => {
         /Quest must be approved before starting\. Current status: created/u,
       );
     });
+
+    it('VALID: {questId with design_approved quest} => returns processId', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'design_approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    });
   });
 
   describe('state registration', () => {

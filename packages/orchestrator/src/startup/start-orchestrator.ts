@@ -35,6 +35,7 @@ import { ChatReplayFlow } from '../flows/chat-replay/chat-replay-flow';
 import { ChatStartFlow } from '../flows/chat-start/chat-start-flow';
 import { ChatStopFlow } from '../flows/chat-stop/chat-stop-flow';
 import { ChatStopAllFlow } from '../flows/chat-stop-all/chat-stop-all-flow';
+import { DesignChatStartFlow } from '../flows/design-chat-start/design-chat-start-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
@@ -141,4 +142,15 @@ export const StartOrchestrator = {
     chatProcessId?: ProcessId;
   }): Promise<void> =>
     ChatReplayFlow({ sessionId, guildId, ...(chatProcessId && { chatProcessId }) }),
+
+  // Design chat methods
+  startDesignChat: async ({
+    questId,
+    guildId,
+    message,
+  }: {
+    questId: QuestId;
+    guildId: GuildId;
+    message: string;
+  }): Promise<{ chatProcessId: ProcessId }> => DesignChatStartFlow({ questId, guildId, message }),
 };

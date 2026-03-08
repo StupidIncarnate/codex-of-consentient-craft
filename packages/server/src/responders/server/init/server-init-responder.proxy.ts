@@ -14,6 +14,7 @@ import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-rela
 import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { agentOutputBufferStateProxy } from '../../../state/agent-output-buffer/agent-output-buffer-state.proxy';
+import { designProcessStateProxy } from '../../../state/design-process/design-process-state.proxy';
 import { ServerInitResponder } from './server-init-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -47,6 +48,7 @@ export const ServerInitResponderProxy = (): {
   processDevLogAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();
   agentOutputBufferStateProxy();
+  designProcessStateProxy();
 
   return {
     callResponder: (): void => {

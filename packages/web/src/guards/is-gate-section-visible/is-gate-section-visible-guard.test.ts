@@ -171,6 +171,66 @@ describe('isGateSectionVisibleGuard', () => {
     });
   });
 
+  describe('explore_design status', () => {
+    it('VALID: {status: explore_design, section: flows} => returns true', () => {
+      const status = QuestStatusStub({ value: 'explore_design' });
+      const section = GateSectionKeyStub({ value: 'flows' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: explore_design, section: contracts} => returns true', () => {
+      const status = QuestStatusStub({ value: 'explore_design' });
+      const section = GateSectionKeyStub({ value: 'contracts' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('review_design status', () => {
+    it('VALID: {status: review_design, section: flows} => returns true', () => {
+      const status = QuestStatusStub({ value: 'review_design' });
+      const section = GateSectionKeyStub({ value: 'flows' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: review_design, section: toolingRequirements} => returns true', () => {
+      const status = QuestStatusStub({ value: 'review_design' });
+      const section = GateSectionKeyStub({ value: 'toolingRequirements' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('design_approved status', () => {
+    it('VALID: {status: design_approved, section: contracts} => returns true', () => {
+      const status = QuestStatusStub({ value: 'design_approved' });
+      const section = GateSectionKeyStub({ value: 'contracts' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: design_approved, section: toolingRequirements} => returns true', () => {
+      const status = QuestStatusStub({ value: 'design_approved' });
+      const section = GateSectionKeyStub({ value: 'toolingRequirements' });
+
+      const result = isGateSectionVisibleGuard({ status, section });
+
+      expect(result).toBe(true);
+    });
+  });
+
   describe('approved and beyond', () => {
     it('VALID: {status: approved, section: toolingRequirements} => returns true', () => {
       const status = QuestStatusStub({ value: 'approved' });

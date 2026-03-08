@@ -85,6 +85,51 @@ describe('questHasValidStatusTransitionGuard', () => {
       expect(result).toBe(true);
     });
 
+    it('VALID: {approved -> explore_design} => returns true', () => {
+      const result = questHasValidStatusTransitionGuard({
+        currentStatus: QuestStatusStub({ value: 'approved' }),
+        nextStatus: QuestStatusStub({ value: 'explore_design' }),
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {explore_design -> review_design} => returns true', () => {
+      const result = questHasValidStatusTransitionGuard({
+        currentStatus: QuestStatusStub({ value: 'explore_design' }),
+        nextStatus: QuestStatusStub({ value: 'review_design' }),
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {review_design -> design_approved} => returns true', () => {
+      const result = questHasValidStatusTransitionGuard({
+        currentStatus: QuestStatusStub({ value: 'review_design' }),
+        nextStatus: QuestStatusStub({ value: 'design_approved' }),
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {review_design -> explore_design} => returns true (back-to-explore)', () => {
+      const result = questHasValidStatusTransitionGuard({
+        currentStatus: QuestStatusStub({ value: 'review_design' }),
+        nextStatus: QuestStatusStub({ value: 'explore_design' }),
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {design_approved -> in_progress} => returns true', () => {
+      const result = questHasValidStatusTransitionGuard({
+        currentStatus: QuestStatusStub({ value: 'design_approved' }),
+        nextStatus: QuestStatusStub({ value: 'in_progress' }),
+      });
+
+      expect(result).toBe(true);
+    });
+
     it('VALID: {in_progress -> complete} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
         currentStatus: QuestStatusStub({ value: 'in_progress' }),
@@ -172,6 +217,24 @@ describe('questHasValidStatusTransitionGuard', () => {
       const result = questHasValidStatusTransitionGuard({
         currentStatus: QuestStatusStub({ value: 'complete' }),
         nextStatus: QuestStatusStub({ value: 'in_progress' }),
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {explore_design -> in_progress} => returns false (skips review/approval)', () => {
+      const result = questHasValidStatusTransitionGuard({
+        currentStatus: QuestStatusStub({ value: 'explore_design' }),
+        nextStatus: QuestStatusStub({ value: 'in_progress' }),
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {design_approved -> explore_design} => returns false (cannot go back after approval)', () => {
+      const result = questHasValidStatusTransitionGuard({
+        currentStatus: QuestStatusStub({ value: 'design_approved' }),
+        nextStatus: QuestStatusStub({ value: 'explore_design' }),
       });
 
       expect(result).toBe(false);

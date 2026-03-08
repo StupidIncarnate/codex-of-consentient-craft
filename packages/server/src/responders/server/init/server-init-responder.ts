@@ -30,6 +30,7 @@ import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-times
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { agentOutputBufferState } from '../../../state/agent-output-buffer/agent-output-buffer-state';
+import { designProcessState } from '../../../state/design-process/design-process-state';
 
 type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
 
@@ -198,11 +199,13 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
   process.on('SIGTERM', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
     orchestratorStopAllChatsAdapter();
+    designProcessState.stopAll();
     process.exit(0);
   });
   process.on('SIGINT', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGINT)' });
     orchestratorStopAllChatsAdapter();
+    designProcessState.stopAll();
     process.exit(0);
   });
 };

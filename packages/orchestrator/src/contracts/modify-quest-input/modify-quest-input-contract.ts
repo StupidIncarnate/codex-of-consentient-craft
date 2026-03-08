@@ -98,6 +98,13 @@ export const modifyQuestInputContract = z
       .optional(),
     status: questStatusContract.describe('Lifecycle gate transition status').optional(),
     title: z.string().min(1).describe('New title for the quest').optional(),
+    designPort: z
+      .number()
+      .int()
+      .positive()
+      .brand<'DesignPort'>()
+      .describe('Port of per-quest Vite design sandbox')
+      .optional(),
   })
   .brand<'ModifyQuestInput'>();
 

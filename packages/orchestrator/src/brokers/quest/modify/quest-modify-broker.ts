@@ -97,6 +97,10 @@ export const questModifyBroker = async ({
       quest.title = validated.title as typeof quest.title;
     }
 
+    if (validated.designPort !== undefined) {
+      quest.designPort = validated.designPort as typeof quest.designPort;
+    }
+
     if (validated.status) {
       const isValidTransition = questHasValidStatusTransitionGuard({
         currentStatus: quest.status,

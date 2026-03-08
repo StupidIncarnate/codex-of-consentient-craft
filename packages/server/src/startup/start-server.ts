@@ -6,6 +6,7 @@
  * // Starts HTTP server with guild, quest, process, session, directory, health endpoints and WebSocket event relay
  */
 
+import { DesignFlow } from '../flows/design/design-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
 import { ProcessFlow } from '../flows/process/process-flow';
@@ -23,6 +24,7 @@ export const StartServer = (): void => {
       SessionFlow(),
       DirectoryFlow(),
       HealthFlow(),
+      DesignFlow(),
     ],
   });
 };

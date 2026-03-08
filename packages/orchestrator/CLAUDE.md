@@ -47,9 +47,13 @@ Complete
 
 ```
 created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► in_progress ──► complete
-                                    │                                                          │                                    │
-                                    └──► explore_flows (back)                                   └──► explore_observables (back)      ├──► blocked
-                                                                                                                                    └──► abandoned
+                                    │                                                          │                                │       │
+                                    └──► explore_flows (back)                                   └──► explore_observables (back)  │       ├──► blocked
+                                                                                                                                │       └──► abandoned
+                                                                                                                                ▼
+                                                                                                                         explore_design ──► review_design ──► design_approved ──► in_progress
+                                                                                                                                                   │
+                                                                                                                                                   └──► explore_design (back)
 ```
 
 | Status                | Set By                                                    | Gate                                                      |
@@ -60,7 +64,10 @@ created ──► explore_flows ──► review_flows ──► flows_approved 
 | `flows_approved`      | User approves flows (Gate #1)                             | Can add: observables (in flow nodes), contracts, tooling  |
 | `explore_observables` | ChaosWhisperer (Phase 4 entry)                            | Can add: observables, contracts, tooling                  |
 | `review_observables`  | ChaosWhisperer (Phase 4 exit)                             | User reviews observables, APPROVE button visible          |
-| `approved`            | User approves observables (Gate #2)                       | Spec locked. `start-quest` allowed.                       |
+| `approved`            | User approves observables (Gate #2)                       | Spec locked. `start-quest` or `explore_design` allowed.   |
+| `explore_design`      | Glyphsmith starts design work                             | Create prototypes, iterate on designs                     |
+| `review_design`       | Glyphsmith ready for design review                        | User reviews designs, APPROVE button visible              |
+| `design_approved`     | User approves designs                                     | Design locked. `start-quest` allowed.                     |
 | `in_progress`         | `start-quest`                                             | Steps can be added/modified                               |
 | `blocked`             | Pipeline blocker                                          | Execution paused                                          |
 | `complete`            | All phases pass                                           | Terminal                                                  |
@@ -115,6 +122,7 @@ Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=s
 
 | Role         | Phase         | Spawned By                        | Signals                                           |
 |--------------|---------------|-----------------------------------|---------------------------------------------------|
+| Glyphsmith   | design        | startDesignChat                   | N/A (design prototype)                            |
 | PathSeeker   | pathseeker    | start-quest                       | N/A (process exit)                                |
 | Codeweaver   | codeweaver    | slot manager                      | complete, partially-complete, needs-role-followup |
 | Spiritmender | ward / nested | ward phase or needs-role-followup | complete, needs-role-followup                     |

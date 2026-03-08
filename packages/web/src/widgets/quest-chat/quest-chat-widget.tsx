@@ -18,11 +18,16 @@ import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestEventsBinding } from '../../bindings/use-quest-events/use-quest-events-binding';
 import { useSessionChatBinding } from '../../bindings/use-session-chat/use-session-chat-binding';
 import { useSessionListBinding } from '../../bindings/use-session-list/use-session-list-binding';
+import { designSessionBroker } from '../../brokers/design/session/design-session-broker';
+import { designStartBroker } from '../../brokers/design/start/design-start-broker';
+import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
+import { isDesignStartVisibleGuard } from '../../guards/is-design-start-visible/is-design-start-visible-guard';
+import { isDesignTabVisibleGuard } from '../../guards/is-design-tab-visible/is-design-tab-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
-import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
+import { DesignPanelWidget } from '../design-panel/design-panel-widget';
 import { QuestClarifyPanelWidget } from '../quest-clarify-panel/quest-clarify-panel-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 
@@ -59,6 +64,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     guildId: resolvedGuildId,
   });
 
+  const [activeTab, setActiveTab] = useState<'spec' | 'design'>('spec');
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
   const prevQuestDataRef = useRef(questData);
 
@@ -156,36 +162,136 @@ export const QuestChatWidget = (): React.JSX.Element => {
           </Text>
         ) : (
           <Box style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <QuestSpecPanelWidget
-              quest={questWithContent}
-              onModify={({ modifications, action, nextStatus }): void => {
-                questModifyBroker({ questId: questWithContent.id, modifications })
-                  .then(() => {
-                    setExternalUpdatePending(false);
-                    if (action === 'submit') {
-                      sendMessage({
-                        message:
-                          "I've modified the quest spec. Please review my changes." as UserInput,
-                      });
-                    } else if (nextStatus === 'flows_approved') {
-                      sendMessage({
-                        message:
-                          'Flows approved. Proceed to observables and contracts.' as UserInput,
-                      });
-                    } else if (nextStatus === 'approved') {
-                      sendMessage({
-                        message:
-                          'Observables and contracts approved. Spec is fully approved.' as UserInput,
-                      });
-                    }
-                  })
-                  .catch(() => undefined);
-              }}
-              externalUpdatePending={externalUpdatePending}
-              onDismissUpdate={() => {
-                setExternalUpdatePending(false);
-              }}
-            />
+            {isDesignTabVisibleGuard({ status: questWithContent.status }) && (
+              <Box
+                data-testid="DESIGN_TAB_BAR"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  borderBottom: `1px solid ${colors.border}`,
+                }}
+              >
+                <Box
+                  data-testid="TAB_SPEC"
+                  onClick={() => {
+                    setActiveTab('spec');
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    borderBottom:
+                      activeTab === 'spec'
+                        ? `2px solid ${colors.primary}`
+                        : '2px solid transparent',
+                    color: activeTab === 'spec' ? colors.primary : colors['text-dim'],
+                  }}
+                >
+                  <Text ff="monospace" size="xs">
+                    SPEC
+                  </Text>
+                </Box>
+                <Box
+                  data-testid="TAB_DESIGN"
+                  onClick={() => {
+                    setActiveTab('design');
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    borderBottom:
+                      activeTab === 'design'
+                        ? `2px solid ${colors.primary}`
+                        : '2px solid transparent',
+                    color: activeTab === 'design' ? colors.primary : colors['text-dim'],
+                  }}
+                >
+                  <Text ff="monospace" size="xs">
+                    DESIGN
+                  </Text>
+                </Box>
+              </Box>
+            )}
+
+            {isDesignStartVisibleGuard({ quest: questWithContent }) && (
+              <Box
+                data-testid="DESIGN_START_ACTION"
+                style={{
+                  padding: '8px 16px',
+                  borderBottom: `1px solid ${colors.border}`,
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <Box
+                  data-testid="DESIGN_START_BUTTON"
+                  onClick={() => {
+                    designStartBroker({ questId: questWithContent.id })
+                      .then(async ({ port }) => {
+                        if (resolvedGuildId && port) {
+                          return designSessionBroker({
+                            questId: questWithContent.id,
+                            guildId: resolvedGuildId,
+                            message: 'Begin design prototyping' as UserInput,
+                          });
+                        }
+                        return undefined;
+                      })
+                      .catch(() => undefined);
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: colors.primary,
+                    color: colors['bg-deep'],
+                    cursor: 'pointer',
+                    borderRadius: 4,
+                  }}
+                >
+                  <Text ff="monospace" size="xs">
+                    START DESIGN
+                  </Text>
+                </Box>
+              </Box>
+            )}
+
+            {activeTab === 'design' &&
+            isDesignTabVisibleGuard({ status: questWithContent.status }) ? (
+              <DesignPanelWidget designPort={questWithContent.designPort} />
+            ) : (
+              <QuestSpecPanelWidget
+                quest={questWithContent}
+                onModify={({ modifications, action, nextStatus }): void => {
+                  questModifyBroker({ questId: questWithContent.id, modifications })
+                    .then(() => {
+                      setExternalUpdatePending(false);
+                      if (action === 'submit') {
+                        sendMessage({
+                          message:
+                            "I've modified the quest spec. Please review my changes." as UserInput,
+                        });
+                      } else if (nextStatus === 'flows_approved') {
+                        sendMessage({
+                          message:
+                            'Flows approved. Proceed to observables and contracts.' as UserInput,
+                        });
+                      } else if (nextStatus === 'approved') {
+                        sendMessage({
+                          message:
+                            'Observables and contracts approved. Spec is fully approved.' as UserInput,
+                        });
+                      } else if (nextStatus === 'design_approved') {
+                        sendMessage({
+                          message: 'Design approved. Proceed to implementation.' as UserInput,
+                        });
+                      }
+                    })
+                    .catch(() => undefined);
+                }}
+                externalUpdatePending={externalUpdatePending}
+                onDismissUpdate={() => {
+                  setExternalUpdatePending(false);
+                }}
+              />
+            )}
           </Box>
         )}
       </Box>

@@ -1,0 +1,74 @@
+/**
+ * PURPOSE: Template strings for generating a minimal Vite + React + Mantine scaffold per quest
+ *
+ * USAGE:
+ * designScaffoldTemplateStatics.files.packageJson;
+ * // Returns package.json template string for a design sandbox
+ */
+
+export const designScaffoldTemplateStatics = {
+  files: {
+    packageJson: [
+      '{',
+      '  "name": "design-sandbox",',
+      '  "private": true,',
+      '  "type": "module",',
+      '  "scripts": {',
+      '    "dev": "vite"',
+      '  },',
+      '  "dependencies": {',
+      '    "react": "^18.2.0",',
+      '    "react-dom": "^18.2.0",',
+      '    "@mantine/core": "^7.0.0",',
+      '    "@mantine/hooks": "^7.0.0"',
+      '  },',
+      '  "devDependencies": {',
+      '    "vite": "^5.0.0",',
+      '    "@vitejs/plugin-react": "^4.0.0"',
+      '  }',
+      '}',
+    ].join('\n'),
+    viteConfig: [
+      "import { defineConfig } from 'vite';",
+      "import react from '@vitejs/plugin-react';",
+      '',
+      'export default defineConfig({',
+      '  plugins: [react()],',
+      '  server: {',
+      '    port: __PORT__,',
+      '  },',
+      '});',
+    ].join('\n'),
+    indexHtml: [
+      '<!doctype html>',
+      '<html lang="en">',
+      '  <head>',
+      '    <meta charset="UTF-8" />',
+      '    <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+      '    <title>Design Sandbox</title>',
+      '  </head>',
+      '  <body>',
+      '    <div id="root"></div>',
+      '    <script type="module" src="/main.jsx"></script>',
+      '  </body>',
+      '</html>',
+    ].join('\n'),
+    mainJsx: [
+      "import React from 'react';",
+      "import { createRoot } from 'react-dom/client';",
+      "import { MantineProvider } from '@mantine/core';",
+      '',
+      'const App = () => (',
+      '  <MantineProvider>',
+      '    <div style={{ padding: 20 }}>',
+      '      <h1>Design Sandbox</h1>',
+      '      <p>Start building your design here.</p>',
+      '    </div>',
+      '  </MantineProvider>',
+      ');',
+      '',
+      "const root = createRoot(document.getElementById('root'));",
+      'root.render(<App />);',
+    ].join('\n'),
+  },
+} as const;

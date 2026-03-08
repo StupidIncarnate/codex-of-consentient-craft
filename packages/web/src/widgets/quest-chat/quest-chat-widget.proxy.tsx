@@ -23,8 +23,11 @@ import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-bind
 import { useQuestEventsBindingProxy } from '../../bindings/use-quest-events/use-quest-events-binding.proxy';
 import { useSessionChatBindingProxy } from '../../bindings/use-session-chat/use-session-chat-binding.proxy';
 import { useSessionListBindingProxy } from '../../bindings/use-session-list/use-session-list-binding.proxy';
+import { designSessionBrokerProxy } from '../../brokers/design/session/design-session-broker.proxy';
+import { designStartBrokerProxy } from '../../brokers/design/start/design-start-broker.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
+import { DesignPanelWidgetProxy } from '../design-panel/design-panel-widget.proxy';
 import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 
@@ -55,6 +58,14 @@ export const QuestChatWidgetProxy = (): {
   clickClarifyOption: (params: { label: AskUserQuestionOption['label'] }) => Promise<void>;
   clickApprove: () => Promise<void>;
   setupModify: () => void;
+  hasDesignTabBar: () => boolean;
+  hasDesignStartButton: () => boolean;
+  hasDesignPanel: () => boolean;
+  clickDesignTab: () => Promise<void>;
+  clickSpecTab: () => Promise<void>;
+  clickStartDesign: () => Promise<void>;
+  setupDesignStart: (params: { port: Quest['designPort'] }) => void;
+  setupDesignSession: (params: { chatProcessId: ProcessId }) => void;
 } => {
   const guildsBindingProxy = useGuildsBindingProxy();
   const sessionListProxy = useSessionListBindingProxy();
@@ -65,6 +76,9 @@ export const QuestChatWidgetProxy = (): {
   QuestClarifyPanelWidgetProxy();
   const specPanelProxy = QuestSpecPanelWidgetProxy();
   const modifyProxy = questModifyBrokerProxy();
+  const designStartProxy = designStartBrokerProxy();
+  const designSessionProxy = designSessionBrokerProxy();
+  DesignPanelWidgetProxy();
 
   return {
     setupChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
@@ -134,6 +148,35 @@ export const QuestChatWidgetProxy = (): {
     },
     setupModify: (): void => {
       modifyProxy.setupModify();
+    },
+    hasDesignTabBar: (): boolean => screen.queryByTestId('DESIGN_TAB_BAR') !== null,
+    hasDesignStartButton: (): boolean => screen.queryByTestId('DESIGN_START_BUTTON') !== null,
+    hasDesignPanel: (): boolean =>
+      screen.queryByTestId('DESIGN_IFRAME') !== null ||
+      screen.queryByTestId('DESIGN_PANEL_PLACEHOLDER') !== null,
+    clickDesignTab: async (): Promise<void> => {
+      const tab = screen.queryByTestId('TAB_DESIGN');
+      if (tab) {
+        await userEvent.click(tab);
+      }
+    },
+    clickSpecTab: async (): Promise<void> => {
+      const tab = screen.queryByTestId('TAB_SPEC');
+      if (tab) {
+        await userEvent.click(tab);
+      }
+    },
+    clickStartDesign: async (): Promise<void> => {
+      const button = screen.queryByTestId('DESIGN_START_BUTTON');
+      if (button) {
+        await userEvent.click(button);
+      }
+    },
+    setupDesignStart: ({ port }: { port: Quest['designPort'] }): void => {
+      designStartProxy.setupStart({ port });
+    },
+    setupDesignSession: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
+      designSessionProxy.setupSession({ chatProcessId });
     },
   };
 };
