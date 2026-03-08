@@ -135,9 +135,7 @@ function Shell() {
         {page === 'quest' && (
           <QuestDetailPage scenario={scenario} onBack={() => setPage('landing')} />
         )}
-        {page === 'execute' && (
-          <ExecuteQuestPage scenario={scenario} />
-        )}
+        {page === 'execute' && <ExecuteQuestPage scenario={scenario} />}
         {page === 'colors' && <ColorSchemePage />}
       </div>
     </>
