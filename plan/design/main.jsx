@@ -5,11 +5,12 @@ import '@mantine/core/styles.css';
 import { ThemeProvider, useTheme, schemes } from './themes.jsx';
 import { LandingPage } from './pages/landing.jsx';
 import { ColorSchemePage } from './pages/color-scheme.jsx';
-import { QuestDetailPage } from './pages/quest-detail.jsx';
+import { QuestDetailPage, ExecuteQuestPage } from './pages/quest-detail.jsx';
 
 const pages = [
   { id: 'landing', label: 'App' },
-  { id: 'quest', label: 'Quest' },
+  { id: 'quest', label: 'Define Quest' },
+  { id: 'execute', label: 'Execute Quest' },
   { id: 'colors', label: 'Design' },
 ];
 
@@ -27,6 +28,11 @@ const scenarios = {
     { value: 'obs-approve', label: 'Obs Approve' },
     { value: 'obs-edit', label: 'Obs Editing' },
     { value: 'design-proto', label: 'Design Proto' },
+  ],
+  execute: [
+    { value: 'exec-planning', label: 'Planning' },
+    { value: 'exec-running', label: 'Running' },
+    { value: 'exec-adhoc', label: 'Ad-hoc Spawn' },
   ],
   colors: [],
 };
@@ -128,6 +134,9 @@ function Shell() {
         )}
         {page === 'quest' && (
           <QuestDetailPage scenario={scenario} onBack={() => setPage('landing')} />
+        )}
+        {page === 'execute' && (
+          <ExecuteQuestPage scenario={scenario} />
         )}
         {page === 'colors' && <ColorSchemePage />}
       </div>

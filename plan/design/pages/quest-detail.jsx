@@ -3,6 +3,7 @@ import { Box, Group, Stack, Text, UnstyledButton, ScrollArea } from '@mantine/co
 import { PixelSprite } from '../components/pixel-sprite.jsx';
 import { fireballPixels } from '../sprites/fireball.jsx';
 import { raccoonWizardPixels } from '../sprites/raccoon-wizard.jsx';
+import { dumpsterFireFrameA, dumpsterFireFrameB } from '../sprites/dumpster-fire.jsx';
 import { useTheme } from '../themes.jsx';
 
 const logo = `
@@ -1270,6 +1271,915 @@ function RightPanel({ scenario, theme }) {
 }
 
 // --- Main page ---
+
+// --- Execution View ---
+
+const ROLE_COLORS = {
+  pathseeker: 'primary',
+  codeweaver: 'primary',
+  ward: 'warning',
+  spiritmender: 'primary',
+  siegemaster: 'primary',
+  lawbringer: 'primary',
+};
+
+const STATUS_CONFIG = {
+  queued: { label: 'QUEUED', color: 'text-dim', symbol: '···' },
+  pending: { label: 'PENDING', color: 'text-dim', symbol: '···' },
+  in_progress: { label: 'RUNNING', color: 'primary', symbol: '▶' },
+  complete: { label: 'DONE', color: 'success', symbol: '✓' },
+  failed: { label: 'FAILED', color: 'danger', symbol: '✗' },
+  partially_complete: { label: 'PARTIAL', color: 'warning', symbol: '◇' },
+};
+
+const MOCK_EXEC_PLANNING = {
+  phase: 'pathseeker',
+  completed: 0,
+  total: 0,
+  steps: [],
+  pathseekerMessages: [
+    { from: 'pathseeker', text: 'Analyzing quest spec and dependency graph...' },
+    { from: 'pathseeker', type: 'tool', text: 'Reading packages/server/src/adapters/...' },
+    { from: 'pathseeker', text: 'Found existing Hono server with middleware pattern. Mapping dependencies...' },
+    { from: 'pathseeker', type: 'tool', text: 'Reading packages/shared/src/contracts/...' },
+    {
+      from: 'pathseeker',
+      text: "I've identified 8 implementation steps across 3 dependency tiers. Building the DAG now...",
+    },
+  ],
+};
+
+const MOCK_EXEC_RUNNING_STEPS = [
+  {
+    id: 's1',
+    order: 1,
+    name: 'Create login-credentials contract',
+    role: 'codeweaver',
+    status: 'complete',
+    files: ['login-credentials-contract.ts'],
+    dependsOn: [],
+  },
+  {
+    id: 's2',
+    order: 2,
+    name: 'Create auth-token-pair contract',
+    role: 'codeweaver',
+    status: 'complete',
+    files: ['auth-token-pair-contract.ts'],
+    dependsOn: [],
+  },
+  {
+    id: 's3',
+    order: 3,
+    name: 'Create jwt-sign adapter',
+    role: 'codeweaver',
+    status: 'complete',
+    files: ['jwt-sign-adapter.ts', 'jwt-sign-adapter.test.ts'],
+    dependsOn: [],
+  },
+  {
+    id: 's4',
+    order: 4,
+    name: 'Create auth-login broker',
+    role: 'codeweaver',
+    status: 'in_progress',
+    files: ['auth-login-broker.ts', 'auth-login-broker.test.ts'],
+    dependsOn: ['s1', 's3'],
+    messages: [
+      {
+        from: 'codeweaver',
+        text: 'Creating the auth login broker. This composes the jwt-sign adapter with the user-fetch broker to validate credentials and issue tokens.',
+      },
+      { from: 'codeweaver', type: 'tool', text: 'Writing brokers/auth/login/auth-login-broker.ts' },
+    ],
+  },
+  {
+    id: 's5',
+    order: 5,
+    name: 'Create auth-refresh broker',
+    role: 'codeweaver',
+    status: 'in_progress',
+    files: ['auth-refresh-broker.ts'],
+    dependsOn: ['s2', 's3'],
+  },
+  {
+    id: 's6',
+    order: 6,
+    name: 'Create auth middleware',
+    role: 'codeweaver',
+    status: 'in_progress',
+    files: ['auth-middleware.ts'],
+    dependsOn: ['s3'],
+  },
+  {
+    id: 's7',
+    order: 7,
+    name: 'Create login responder',
+    role: 'codeweaver',
+    status: 'queued',
+    files: ['auth-login-responder.ts'],
+    dependsOn: ['s4'],
+  },
+  {
+    id: 's8',
+    order: 8,
+    name: 'Create refresh responder',
+    role: 'codeweaver',
+    status: 'pending',
+    files: ['auth-refresh-responder.ts'],
+    dependsOn: ['s5', 's6'],
+  },
+];
+
+const MOCK_EXEC_RUNNING = {
+  phase: 'codeweaver',
+  completed: 3,
+  total: 8,
+  concurrent: { active: 3, max: 3 },
+  steps: MOCK_EXEC_RUNNING_STEPS,
+};
+
+const MOCK_EXEC_ADHOC = {
+  phase: 'codeweaver',
+  completed: 3,
+  total: 8,
+  concurrent: { active: 2, max: 3 },
+  steps: [
+    ...MOCK_EXEC_RUNNING_STEPS.slice(0, 3),
+    { ...MOCK_EXEC_RUNNING_STEPS[3], status: 'partially_complete', messages: undefined },
+    {
+      id: 's4a',
+      order: '4a',
+      name: 'Fix auth-login broker',
+      role: 'spiritmender',
+      status: 'in_progress',
+      files: ['auth-login-broker.ts'],
+      dependsOn: ['s4'],
+      isAdhoc: true,
+      messages: [
+        {
+          from: 'spiritmender',
+          text: 'The auth-login broker has a type error in the return type. The broker returns Promise<AuthToken> but the contract expects AuthTokenPair. Fixing the return shape now.',
+        },
+        { from: 'spiritmender', type: 'tool', text: 'Editing brokers/auth/login/auth-login-broker.ts' },
+      ],
+    },
+    ...MOCK_EXEC_RUNNING_STEPS.slice(4),
+  ],
+};
+
+function FloorHeader({ label, theme, concurrent }) {
+  return (
+    <Group
+      gap={4}
+      align="center"
+      mt="sm"
+      mb={6}
+      style={{ overflow: 'hidden' }}
+    >
+      <Text ff="monospace" style={{ fontSize: 10, color: theme.colors['text-dim'], flexShrink: 0 }}>
+        ──
+      </Text>
+      <Text
+        ff="monospace"
+        style={{ fontSize: 10, color: theme.colors['primary'], flexShrink: 0, fontWeight: 600 }}
+      >
+        {label}
+      </Text>
+      <Text
+        ff="monospace"
+        style={{
+          fontSize: 10,
+          color: theme.colors['text-dim'],
+          flex: 1,
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        ──────────────────────────────────────────
+      </Text>
+      {concurrent && (
+        <Text
+          ff="monospace"
+          style={{ fontSize: 10, color: theme.colors['text-dim'], flexShrink: 0 }}
+        >
+          Concurrent: {concurrent.active}/{concurrent.max}
+        </Text>
+      )}
+    </Group>
+  );
+}
+
+function ExecutionStatusBar({ theme, completed, total, phase }) {
+  return (
+    <Group
+      justify="space-between"
+      px={12}
+      py={6}
+      style={{ borderBottom: `1px solid ${theme.colors['border']}` }}
+    >
+      <Text ff="monospace" size="xs" fw={600} style={{ color: theme.colors['primary'] }}>
+        EXECUTION
+      </Text>
+      <Text ff="monospace" size="xs" fw={600} style={{ color: theme.colors['text-dim'] }}>
+        {phase === 'pathseeker' ? 'PLANNING' : `${completed}/${total} COMPLETE`}
+      </Text>
+    </Group>
+  );
+}
+
+function ExecutionMessage({ msg, theme, roleColor }) {
+  const isTool = msg.type === 'tool';
+  const color = isTool ? theme.colors['text-dim'] : theme.colors[roleColor];
+  return (
+    <Box
+      style={{
+        padding: '4px 8px',
+        borderLeft: `2px solid ${color}`,
+        marginBottom: 4,
+      }}
+    >
+      <Text
+        ff="monospace"
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          color,
+          marginBottom: 1,
+        }}
+      >
+        {isTool ? 'TOOL CALL' : msg.from.toUpperCase()}
+      </Text>
+      <Text
+        ff="monospace"
+        style={{
+          fontSize: 11,
+          color: isTool ? theme.colors['text-dim'] : theme.colors['text'],
+          fontStyle: isTool ? 'italic' : 'normal',
+        }}
+      >
+        {msg.text}
+      </Text>
+    </Box>
+  );
+}
+
+function StreamingBar({ theme }) {
+  return (
+    <Box
+      style={{
+        padding: '4px 8px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+      }}
+    >
+      <Text
+        ff="monospace"
+        style={{
+          fontSize: 10,
+          color: theme.colors['text-dim'],
+          animation: 'pulse 1.5s ease-in-out infinite',
+        }}
+      >
+        {'░'.repeat(20)} streaming...
+      </Text>
+    </Box>
+  );
+}
+
+function ExecutionRow({ step, theme, expanded, onToggle }) {
+  const statusCfg = STATUS_CONFIG[step.status] || STATUS_CONFIG.pending;
+  const roleColor = ROLE_COLORS[step.role] || 'text';
+  const isExpandable = step.status === 'in_progress' || step.status === 'complete' ||
+    step.status === 'partially_complete' || step.status === 'failed';
+  const orderDisplay = typeof step.order === 'number'
+    ? String(step.order).padStart(2, '0')
+    : typeof step.order === 'string'
+      ? step.order.padStart(3, '0')
+      : '--';
+
+  return (
+    <Box
+      mb={2}
+      style={{
+        borderLeft: step.isAdhoc
+          ? `2px dashed ${theme.colors['warning']}`
+          : '2px solid transparent',
+        paddingLeft: step.isAdhoc ? 4 : 0,
+      }}
+    >
+      {/* Row header */}
+      <UnstyledButton
+        onClick={isExpandable ? onToggle : undefined}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '3px 4px',
+          cursor: isExpandable ? 'pointer' : 'default',
+          borderRadius: 2,
+          backgroundColor: expanded ? theme.colors['bg-raised'] : 'transparent',
+        }}
+      >
+        {/* Chevron / dots */}
+        <Text
+          ff="monospace"
+          style={{
+            fontSize: 10,
+            color: isExpandable
+              ? theme.colors[roleColor]
+              : theme.colors['text-dim'],
+            width: 14,
+            flexShrink: 0,
+            textAlign: 'center',
+          }}
+        >
+          {isExpandable ? (expanded ? '▾' : '▸') : '···'}
+        </Text>
+
+        {/* Order number */}
+        <Text
+          ff="monospace"
+          style={{
+            fontSize: 10,
+            color: step.isAdhoc ? theme.colors['warning'] : theme.colors['text-dim'],
+            width: 24,
+            flexShrink: 0,
+          }}
+        >
+          {orderDisplay}
+        </Text>
+
+        {/* Role badge */}
+        <Text
+          ff="monospace"
+          style={{
+            fontSize: 10,
+            color: theme.colors[roleColor],
+            fontWeight: 600,
+            flexShrink: 0,
+          }}
+        >
+          [{step.role.toUpperCase()}]
+        </Text>
+
+        {/* Step name */}
+        <Text
+          ff="monospace"
+          style={{
+            fontSize: 11,
+            color: theme.colors['text'],
+            flex: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {step.name}
+        </Text>
+
+        {/* AD-HOC tag */}
+        {step.isAdhoc && (
+          <Text
+            ff="monospace"
+            style={{
+              fontSize: 9,
+              color: theme.colors['warning'],
+              fontWeight: 600,
+              flexShrink: 0,
+              border: `1px solid ${theme.colors['warning']}`,
+              borderRadius: 2,
+              padding: '0 3px',
+            }}
+          >
+            AD-HOC
+          </Text>
+        )}
+
+        {/* Status badge */}
+        <Text
+          ff="monospace"
+          style={{
+            fontSize: 10,
+            color: theme.colors[statusCfg.color],
+            fontWeight: 600,
+            flexShrink: 0,
+          }}
+        >
+          {statusCfg.label}
+        </Text>
+      </UnstyledButton>
+
+      {/* Subtitle: files or dependency info */}
+      {!expanded && (
+        <Text
+          ff="monospace"
+          style={{
+            fontSize: 9,
+            color: theme.colors['text-dim'],
+            paddingLeft: 44,
+            marginTop: -1,
+          }}
+        >
+          {step.status === 'queued' && step.dependsOn?.length > 0
+            ? `└─ waiting for slot (depends on: ${step.dependsOn.map((d) => d.replace('s', '')).join(', ')})`
+            : step.status === 'pending' && step.dependsOn?.length > 0
+              ? `└─ depends on: ${step.dependsOn.map((d) => d.replace('s', '')).join(', ')}`
+              : step.files?.length > 0
+                ? `└─ ${step.files.join(', ')}`
+                : ''}
+        </Text>
+      )}
+
+      {/* Expanded content: LLM messages */}
+      {expanded && (
+        <Box
+          style={{
+            margin: '4px 0 4px 20px',
+            padding: 8,
+            backgroundColor: theme.colors['bg-surface'],
+            border: `1px solid ${theme.colors['border']}`,
+            borderRadius: 2,
+          }}
+        >
+          {step.messages?.map((msg, i) => (
+            <ExecutionMessage key={i} msg={msg} theme={theme} roleColor={roleColor} />
+          ))}
+          {step.status === 'in_progress' && <StreamingBar theme={theme} />}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+function DumpsterRaccoonPlaceholder({ theme }) {
+  const [flipped, setFlipped] = useState(false);
+  const [flameFrame, setFlameFrame] = useState(false);
+  React.useEffect(() => {
+    const id = setInterval(() => setFlipped((f) => !f), 2500);
+    return () => clearInterval(id);
+  }, []);
+  React.useEffect(() => {
+    const id = setInterval(() => setFlameFrame((f) => !f), 300);
+    return () => clearInterval(id);
+  }, []);
+
+  const d = theme.colors['text-dim'];
+
+  return (
+    <Box
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: theme.colors['bg-surface'],
+        gap: 8,
+      }}
+    >
+      <Group gap={0} align="flex-end">
+        {/* Raccoon */}
+        <Box style={{ position: 'relative', zIndex: 1, marginRight: 12 }}>
+          <PixelSprite pixels={raccoonWizardPixels} scale={8} width={21} height={15} flip={flipped} />
+        </Box>
+        {/* Dumpster fire */}
+        <PixelSprite pixels={flameFrame ? dumpsterFireFrameB : dumpsterFireFrameA} scale={6} width={20} height={22} />
+      </Group>
+      <Text ff="monospace" style={{ fontSize: 11, color: d, marginTop: 8 }}>
+        Loading dumpster dungeon visuals...
+      </Text>
+    </Box>
+  );
+}
+
+function ExecutionPanel({ theme, scenario }) {
+  const [expandedId, setExpandedId] = useState(null);
+  const data =
+    scenario === 'exec-planning'
+      ? MOCK_EXEC_PLANNING
+      : scenario === 'exec-adhoc'
+        ? MOCK_EXEC_ADHOC
+        : MOCK_EXEC_RUNNING;
+
+  // Auto-expand the first running step or pathseeker
+  React.useEffect(() => {
+    if (scenario === 'exec-planning') {
+      setExpandedId('pathseeker');
+    } else {
+      const firstRunning = data.steps.find((s) => s.status === 'in_progress');
+      setExpandedId(firstRunning?.id || null);
+    }
+  }, [scenario]);
+
+  const toggle = (id) => setExpandedId((prev) => (prev === id ? null : id));
+
+  return (
+    <Stack gap={0} style={{ height: '100%' }}>
+      <QuestTitleBar theme={theme} />
+      <ExecutionStatusBar theme={theme} completed={data.completed} total={data.total} phase={data.phase} />
+      <Box style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}>
+        {/* FLOOR 1: CARTOGRAPHY */}
+        <FloorHeader label="FLOOR 1: CARTOGRAPHY" theme={theme} />
+        {scenario === 'exec-planning' ? (
+          <>
+            <ExecutionRow
+              step={{
+                id: 'pathseeker',
+                order: '--',
+                name: 'Planning steps...',
+                role: 'pathseeker',
+                status: 'in_progress',
+                files: [],
+                dependsOn: [],
+                messages: data.pathseekerMessages,
+              }}
+              theme={theme}
+              expanded={expandedId === 'pathseeker'}
+              onToggle={() => toggle('pathseeker')}
+            />
+            <Text
+              ff="monospace"
+              style={{
+                fontSize: 10,
+                color: theme.colors['text-dim'],
+                textAlign: 'center',
+                padding: '16px 0',
+              }}
+            >
+              Steps will appear once cartography is complete...
+            </Text>
+          </>
+        ) : (
+          <ExecutionRow
+            step={{
+              id: 'pathseeker-done',
+              order: '--',
+              name: `Planned ${data.total} steps`,
+              role: 'pathseeker',
+              status: 'complete',
+              files: [],
+              dependsOn: [],
+              messages: [
+                { from: 'pathseeker', text: `Mapped ${data.total} implementation steps across 3 dependency tiers.` },
+              ],
+            }}
+            theme={theme}
+            expanded={expandedId === 'pathseeker-done'}
+            onToggle={() => toggle('pathseeker-done')}
+          />
+        )}
+
+        {/* FLOOR 2: FORGE (only when we have steps) */}
+        {data.steps.length > 0 && (
+          <>
+            <FloorHeader
+              label="FLOOR 2: FORGE"
+              theme={theme}
+              concurrent={data.concurrent}
+            />
+            {data.steps.map((step) => (
+              <ExecutionRow
+                key={step.id}
+                step={step}
+                theme={theme}
+                expanded={expandedId === step.id}
+                onToggle={() => toggle(step.id)}
+              />
+            ))}
+          </>
+        )}
+
+        {/* FLOOR 3: GAUNTLET */}
+        {data.steps.length > 0 && (
+          <>
+            <FloorHeader label="FLOOR 3: GAUNTLET" theme={theme} />
+            <ExecutionRow
+              step={{
+                id: 'ward',
+                order: '--',
+                name: 'Lint + Typecheck + Tests',
+                role: 'ward',
+                status: 'pending',
+                files: [],
+                dependsOn: [],
+              }}
+              theme={theme}
+              expanded={expandedId === 'ward'}
+              onToggle={() => toggle('ward')}
+            />
+          </>
+        )}
+
+        {/* FLOOR 4: ARENA */}
+        {data.steps.length > 0 && (
+          <>
+            <FloorHeader label="FLOOR 4: ARENA" theme={theme} />
+            <ExecutionRow
+              step={{
+                id: 'siegemaster',
+                order: '--',
+                name: 'Verify observables',
+                role: 'siegemaster',
+                status: 'pending',
+                files: [],
+                dependsOn: [],
+              }}
+              theme={theme}
+              expanded={expandedId === 'siegemaster'}
+              onToggle={() => toggle('siegemaster')}
+            />
+          </>
+        )}
+
+        {/* FLOOR 5: TRIBUNAL */}
+        {data.steps.length > 0 && (
+          <>
+            <FloorHeader label="FLOOR 5: TRIBUNAL" theme={theme} />
+            <ExecutionRow
+              step={{
+                id: 'lawbringer',
+                order: '--',
+                name: 'Code quality review',
+                role: 'lawbringer',
+                status: 'pending',
+                files: [],
+                dependsOn: [],
+              }}
+              theme={theme}
+              expanded={expandedId === 'lawbringer'}
+              onToggle={() => toggle('lawbringer')}
+            />
+          </>
+        )}
+      </Box>
+    </Stack>
+  );
+}
+
+function QuestSpecReadonlyPanel({ theme }) {
+  return (
+    <Stack gap={0} style={{ height: '100%' }}>
+      <QuestTitleBar theme={theme} />
+      <Box style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+        {/* REQUIREMENTS */}
+        <SectionHeader label="REQUIREMENTS" theme={theme} count={MOCK_REQUIREMENTS.length} />
+        <Stack gap={4} mb="sm">
+          {MOCK_REQUIREMENTS.map((req) => (
+            <Group key={req.id} gap={8} wrap="nowrap" align="flex-start">
+              <Box style={{ flex: 1 }}>
+                <Text ff="monospace" size="xs" fw={600} style={{ color: theme.colors['text'] }}>
+                  {req.name}
+                </Text>
+                <Text ff="monospace" size="xs" style={{ color: theme.colors['text-dim'] }}>
+                  {req.desc}
+                </Text>
+                <Text ff="monospace" size="xs" style={{ color: theme.colors['text-dim'] }}>
+                  scope: {req.scope}
+                </Text>
+              </Box>
+              <Text
+                ff="monospace"
+                size="xs"
+                fw={600}
+                style={{ color: theme.colors[STATUS_COLORS[req.status]], flexShrink: 0 }}
+              >
+                {req.status.toUpperCase()}
+              </Text>
+            </Group>
+          ))}
+        </Stack>
+
+        {/* DESIGN DECISIONS */}
+        <SectionHeader label="DESIGN DECISIONS" theme={theme} count={MOCK_DECISIONS.length} />
+        <Stack gap={4} mb="sm">
+          {MOCK_DECISIONS.map((dec) => (
+            <Box key={dec.id}>
+              <Text ff="monospace" size="xs" fw={600} style={{ color: theme.colors['text'] }}>
+                {dec.title}
+              </Text>
+              <Text ff="monospace" size="xs" style={{ color: theme.colors['text-dim'] }}>
+                {dec.rationale}
+              </Text>
+              <EditTagList label="reqs" items={dec.relatedRequirements} theme={theme} />
+            </Box>
+          ))}
+        </Stack>
+
+        {/* CONTEXTS */}
+        <SectionHeader label="CONTEXTS" theme={theme} count={MOCK_CONTEXTS.length} />
+        <Stack gap={4} mb="sm">
+          {MOCK_CONTEXTS.map((ctx) => (
+            <Box key={ctx.id}>
+              <Text ff="monospace" size="xs" fw={600} style={{ color: theme.colors['loot-gold'] }}>
+                {ctx.name}
+              </Text>
+              <Text ff="monospace" size="xs" style={{ color: theme.colors['text-dim'] }}>
+                {ctx.desc}
+              </Text>
+              {ctx.locator && (
+                <Text ff="monospace" style={{ fontSize: 10, color: theme.colors['text-dim'] }}>
+                  locator: {ctx.locator.page} &rarr; {ctx.locator.section}
+                </Text>
+              )}
+            </Box>
+          ))}
+        </Stack>
+
+        {/* OBSERVABLES */}
+        <SectionHeader label="OBSERVABLES" theme={theme} count={MOCK_OBSERVABLES.length} />
+        <Stack gap={4} mb="sm">
+          {MOCK_OBSERVABLES.map((obs) => (
+            <Box key={obs.id}>
+              <Group gap={8} mb={2}>
+                <Text ff="monospace" style={{ fontSize: 10, color: theme.colors['text-dim'] }}>
+                  ctx: <span style={{ color: theme.colors['loot-gold'] }}>{obs.contextId}</span>
+                </Text>
+                {obs.reqId && (
+                  <Text ff="monospace" style={{ fontSize: 10, color: theme.colors['text-dim'] }}>
+                    req: <span style={{ color: theme.colors['loot-rare'] }}>{obs.reqId}</span>
+                  </Text>
+                )}
+              </Group>
+              <Text ff="monospace" size="xs" style={{ color: theme.colors['text-dim'] }}>
+                WHEN <span style={{ color: theme.colors['text'] }}>{obs.trigger}</span>
+              </Text>
+              {obs.outcomes.map((oc, oi) => (
+                <Text key={oi} ff="monospace" size="xs" style={{ color: theme.colors['text-dim'] }}>
+                  THEN <span style={{ color: theme.colors['success'] }}>{oc.description}</span>{' '}
+                  <span style={{ fontSize: 10 }}>({oc.type})</span>
+                </Text>
+              ))}
+              {obs.dependsOn.length > 0 && (
+                <EditTagList label="depends" items={obs.dependsOn} theme={theme} />
+              )}
+            </Box>
+          ))}
+        </Stack>
+
+        {/* CONTRACTS */}
+        <SectionHeader label="CONTRACTS" theme={theme} count={MOCK_CONTRACTS.length} />
+        <Stack gap={4} mb="sm">
+          {MOCK_CONTRACTS.map((ct) => (
+            <Box key={ct.id}>
+              <Group gap={8}>
+                <Text ff="monospace" size="xs" fw={600} style={{ color: theme.colors['loot-rare'] }}>
+                  {ct.name}
+                </Text>
+                <Text ff="monospace" size="xs" style={{ color: theme.colors['text-dim'] }}>
+                  {ct.kind}
+                </Text>
+                <Text ff="monospace" size="xs" style={{ color: theme.colors['success'] }}>
+                  {ct.status}
+                </Text>
+              </Group>
+              {ct.source && (
+                <Text ff="monospace" style={{ fontSize: 10, color: theme.colors['text-dim'] }}>
+                  {ct.source}
+                </Text>
+              )}
+              {ct.properties?.map((p, pi) => (
+                <Text key={pi} ff="monospace" style={{ fontSize: 10, color: theme.colors['text-dim'] }}>
+                  {p.name}: <span style={{ color: theme.colors['text'] }}>{p.type || p.value}</span>
+                </Text>
+              ))}
+            </Box>
+          ))}
+        </Stack>
+      </Box>
+    </Stack>
+  );
+}
+
+function LeftPanelTabs({ activeTab, onTabChange, theme }) {
+  const tabs = [
+    { id: 'execution', label: 'EXECUTION' },
+    { id: 'spec', label: 'QUEST SPEC' },
+  ];
+  return (
+    <Group
+      gap={0}
+      style={{ borderBottom: `1px solid ${theme.colors['border']}`, flexShrink: 0 }}
+    >
+      {tabs.map((tab) => (
+        <UnstyledButton
+          key={tab.id}
+          onClick={() => onTabChange(tab.id)}
+          px="sm"
+          py={5}
+          style={{
+            fontFamily: 'monospace',
+            fontSize: 10,
+            fontWeight: 600,
+            color: activeTab === tab.id ? theme.colors['primary'] : theme.colors['text-dim'],
+            borderBottom: activeTab === tab.id
+              ? `2px solid ${theme.colors['primary']}`
+              : '2px solid transparent',
+          }}
+        >
+          {tab.label}
+        </UnstyledButton>
+      ))}
+    </Group>
+  );
+}
+
+export function ExecuteQuestPage({ scenario = 'exec-planning' }) {
+  const { theme } = useTheme();
+  const b = theme.colors['border'];
+  const dim = theme.colors['text-dim'];
+  const [leftTab, setLeftTab] = useState('execution');
+
+  return (
+    <Stack
+      gap={0}
+      style={{
+        height: '100vh',
+        paddingTop: 40,
+        boxSizing: 'border-box',
+      }}
+    >
+      {/* Logo - top center */}
+      <Group align="center" justify="center" gap={40} py="sm">
+        <PixelSprite pixels={fireballPixels} scale={3} width={12} height={12} />
+        <pre
+          style={{
+            color: theme.colors['primary'],
+            fontFamily: 'monospace',
+            fontSize: '6px',
+            lineHeight: 1.15,
+            margin: 0,
+            whiteSpace: 'pre',
+          }}
+        >
+          {logo}
+        </pre>
+        <PixelSprite pixels={fireballPixels} scale={3} width={12} height={12} flip />
+      </Group>
+
+      {/* Main frame */}
+      <Box
+        style={{
+          flex: 1,
+          border: `2px solid ${b}`,
+          borderRadius: 2,
+          margin: '0 16px 16px 16px',
+          position: 'relative',
+          display: 'flex',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Corner decorations */}
+        <Text ff="monospace" size="xs" style={{ color: dim, position: 'absolute', top: -2, left: 8 }}>
+          ┌──
+        </Text>
+        <Text ff="monospace" size="xs" style={{ color: dim, position: 'absolute', top: -2, right: 8 }}>
+          ──┐
+        </Text>
+        <Text ff="monospace" size="xs" style={{ color: dim, position: 'absolute', bottom: -2, left: 8 }}>
+          └──
+        </Text>
+        <Text ff="monospace" size="xs" style={{ color: dim, position: 'absolute', bottom: -2, right: 8 }}>
+          ──┘
+        </Text>
+
+        {/* Left panel */}
+        <Box
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}
+        >
+          <LeftPanelTabs activeTab={leftTab} onTabChange={setLeftTab} theme={theme} />
+          {leftTab === 'execution' ? (
+            <ExecutionPanel theme={theme} scenario={scenario} />
+          ) : (
+            <QuestSpecReadonlyPanel theme={theme} />
+          )}
+        </Box>
+
+        {/* Delimiter */}
+        <Box style={{ width: 1, backgroundColor: b, flexShrink: 0 }} />
+
+        {/* Right panel: Raccoon placeholder */}
+        <Box
+          style={{
+            flex: 1,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <DumpsterRaccoonPlaceholder theme={theme} />
+        </Box>
+      </Box>
+    </Stack>
+  );
+}
 
 export function QuestDetailPage({ onBack, scenario = 'chat' }) {
   const { theme } = useTheme();
