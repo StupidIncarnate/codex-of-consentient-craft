@@ -106,31 +106,38 @@ The `outcomes` field is preserved during transition. ChaosWhisperer generates bo
 
 ### Quest Status Lifecycle
 
-Quests move through a defined status progression with two human approval gates:
+Quests move through a defined status progression with two human approval gates and explicit explore/review phases:
 
 ```
-created ──► requirements_approved ──► approved ──► in_progress ──► complete
-                                                       │
-                                                       ├──► blocked
-                                                       └──► abandoned
+created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► in_progress ──► complete
+                                   │                                                           │                                    │
+                                   └──► explore_flows (back)                                    └──► explore_observables (back)      ├──► blocked
+                                                                                                                                    └──► abandoned
 ```
 
-| Status                  | What Happened                                   | What's Allowed Next                           |
-|-------------------------|-------------------------------------------------|-----------------------------------------------|
-| `created`               | Quest exists, discovery in progress             | Add flows, requirements, design decisions     |
-| `requirements_approved` | User approved flows + requirements (Gate #1)    | Add contexts, observables, contracts, tooling |
-| `approved`              | User approved observables + contracts (Gate #2) | Spec is locked. Execution can start.          |
-| `in_progress`           | `start-quest` triggered, agents are working     | Steps added/modified by PathSeeker            |
-| `complete`              | All phases passed                               | Terminal state                                |
-| `blocked`               | Pipeline hit a blocker                          | Awaiting resolution                           |
-| `abandoned`             | User abandoned the quest                        | Terminal state                                |
+| Status                  | What Happened                                           | What's Allowed Next                                  |
+|-------------------------|---------------------------------------------------------|------------------------------------------------------|
+| `created`               | Quest exists, discovery in progress                     | ChaosWhisperer starting up                           |
+| `explore_flows`         | ChaosWhisperer starts flow work (Phase 1 exit)          | Add: flows, designDecisions                          |
+| `review_flows`          | ChaosWhisperer ready for flow review (Phase 2 exit)     | User reviews flows, APPROVE button visible           |
+| `flows_approved`        | User approves flows (Gate #1)                           | Add: observables (in flow nodes), contracts, tooling |
+| `explore_observables`   | ChaosWhisperer starts observable work (Phase 4 entry)   | Add: observables, contracts, tooling                 |
+| `review_observables`    | ChaosWhisperer ready for observable review (Phase 4 exit) | User reviews observables, APPROVE button visible    |
+| `approved`              | User approves observables + contracts (Gate #2)         | Spec is locked. Execution can start.                 |
+| `in_progress`           | `start-quest` triggered, agents are working             | Steps added/modified by PathSeeker                   |
+| `complete`              | All phases passed                                       | Terminal state                                       |
+| `blocked`               | Pipeline hit a blocker                                  | Awaiting resolution                                  |
+| `abandoned`             | User abandoned the quest                                | Terminal state                                       |
 
 The gates exist because LLMs rubber-stamp their own output. By splitting spec creation into two approval points, the
-user reviews flows + requirements (the "what") separately from observables + contracts (the "how"). Each gate is a
-meaningful checkpoint, not a formality.
+user reviews flows (the "what") separately from observables + contracts (the "how"). Each gate is a meaningful
+checkpoint, not a formality.
 
-Status transitions are currently enforced by prompt logic in ChaosWhisperer, not by a hard guard. This is intentional —
-adding a transition guard is a future hardening step once the workflow stabilizes.
+The `explore_*` / `review_*` split ensures the APPROVE button only appears when ChaosWhisperer signals readiness — not
+immediately after the previous gate. During `review_*` statuses, if the user requests changes, ChaosWhisperer transitions
+back to `explore_*` (hiding the APPROVE button) and re-enters `review_*` when ready.
+
+Status transitions are enforced by `quest-has-valid-status-transition-guard` — invalid transitions are rejected.
 
 ### Quest Stages (Filtered Views)
 
@@ -161,38 +168,40 @@ error, so that guard is hard.
 
 ## ChaosWhisperer Workflow
 
-ChaosWhisperer is the spec-creation agent. It runs when the user invokes `/quest`. The workflow has seven phases:
+ChaosWhisperer is the spec-creation agent. It runs when the user invokes `/quest`. The workflow has six phases:
 
 ```
 Phase 1: Discovery
   └─ Explore codebase, interview user, understand what exists
+  └─ EXIT: transitions to 'explore_flows'
 
 Phase 2: Flow Mapping
   └─ Draw mermaid flow diagrams based on user request
   └─ Every node needs entry + exit — forces glue discovery
   └─ Design decisions recorded as they emerge
+  └─ EXIT: transitions to 'review_flows'
 
-Phase 3: Requirements
-  └─ Extract requirements from flow nodes/paths
-  └─ "Looking at these flows, here's what needs to be built..."
+Phase 3: Flows Approval (Gate #1)
+  └─ ChaosWhisperer transitions to 'review_flows' (APPROVE button appears)
+  └─ User reviews flows + design decisions
+  └─ If changes needed, ChaosWhisperer goes back to 'explore_flows'
+  └─ User clicks APPROVE → status becomes 'flows_approved'
 
-Phase 4: Flows + Requirements Approval (Gate #1)
-  └─ Present flows (visual) + requirements (list) together
-  └─ User approves/defers requirements, confirms flows
-  └─ Status → 'requirements_approved'
-
-Phase 5: Observables + Contracts
+Phase 4: Observables + Contracts
+  └─ ENTRY: transitions to 'explore_observables'
   └─ Derive observables from flow paths
   └─ Each observable carries verification steps
   └─ Lock down tangible values (routes, endpoints, error messages)
   └─ Declare contracts from observable details
+  └─ EXIT: transitions to 'review_observables'
 
-Phase 6: Observables Approval (Gate #2)
-  └─ Present observables with verification steps, contracts
-  └─ User approves
-  └─ Status → 'approved'
+Phase 5: Observables Approval (Gate #2)
+  └─ ChaosWhisperer transitions to 'review_observables' (APPROVE button appears)
+  └─ User reviews observables, contracts, tooling
+  └─ If changes needed, ChaosWhisperer goes back to 'explore_observables'
+  └─ User clicks APPROVE → status becomes 'approved'
 
-Phase 7: Gap Review + Handoff
+Phase 6: Gap Review + Handoff
   └─ Spawn quest-gap-reviewer for final validation
   └─ Address any gaps, produce summary
 ```
