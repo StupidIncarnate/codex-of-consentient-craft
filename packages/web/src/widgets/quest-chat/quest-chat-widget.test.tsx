@@ -615,6 +615,342 @@ describe('QuestChatWidget', () => {
     });
   });
 
+  describe('approved modal', () => {
+    it('VALID: {quest transitions to approved status} => shows approved modal', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-modal-1',
+        status: 'review_observables',
+        flows: [FlowStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupModify();
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-modal-1', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      expect(proxy.hasApprovedModal()).toBe(false);
+
+      act(() => {
+        proxy.setupQuest({
+          quest: QuestStub({ id: 'chat-modal-1', status: 'approved', flows: [FlowStub()] }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasApprovedModal()).toBe(true);
+      });
+
+      expect(proxy.hasApprovedModal()).toBe(true);
+    });
+
+    it('VALID: {quest transitions to design_approved status} => shows approved modal', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-modal-2',
+        status: 'review_design',
+        flows: [FlowStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupModify();
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-modal-2', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      expect(proxy.hasApprovedModal()).toBe(false);
+
+      act(() => {
+        proxy.setupQuest({
+          quest: QuestStub({ id: 'chat-modal-2', status: 'design_approved', flows: [FlowStub()] }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasApprovedModal()).toBe(true);
+      });
+
+      expect(proxy.hasApprovedModal()).toBe(true);
+    });
+
+    it('VALID: {quest stays at non-approved status} => does not show approved modal', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-modal-3',
+        status: 'review_flows',
+        flows: [FlowStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-modal-3', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      expect(proxy.hasApprovedModal()).toBe(false);
+    });
+
+    it('VALID: {click Begin Quest on approved modal} => calls quest start broker', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-modal-4',
+        status: 'review_observables',
+        flows: [FlowStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupModify();
+      proxy.setupQuestStart({ processId: 'proc-modal-4' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-modal-4', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.setupQuest({
+          quest: QuestStub({ id: 'chat-modal-4', status: 'approved', flows: [FlowStub()] }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasApprovedModal()).toBe(true);
+      });
+
+      await proxy.clickApprovedModalBeginQuest();
+
+      await waitFor(() => {
+        expect(proxy.hasApprovedModal()).toBe(false);
+      });
+
+      expect(proxy.hasApprovedModal()).toBe(false);
+    });
+
+    it('VALID: {click Keep Chatting on approved modal, status approved} => closes modal', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-modal-5',
+        status: 'review_observables',
+        flows: [FlowStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupModify();
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-modal-5', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.setupQuest({
+          quest: QuestStub({ id: 'chat-modal-5', status: 'approved', flows: [FlowStub()] }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasApprovedModal()).toBe(true);
+      });
+
+      await proxy.clickApprovedModalKeepChatting();
+
+      await waitFor(() => {
+        expect(proxy.hasApprovedModal()).toBe(false);
+      });
+
+      expect(proxy.hasApprovedModal()).toBe(false);
+    });
+
+    it('VALID: {click Start a new Quest on approved modal} => closes modal', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-modal-6',
+        status: 'review_observables',
+        flows: [FlowStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupModify();
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-modal-6', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.setupQuest({
+          quest: QuestStub({ id: 'chat-modal-6', status: 'approved', flows: [FlowStub()] }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasApprovedModal()).toBe(true);
+      });
+
+      await proxy.clickApprovedModalNewQuest();
+
+      await waitFor(() => {
+        expect(proxy.hasApprovedModal()).toBe(false);
+      });
+
+      expect(proxy.hasApprovedModal()).toBe(false);
+    });
+
+    it('EMPTY: {no quest data} => does not render approved modal', () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/session/chat-modal-7']}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      expect(proxy.hasApprovedModal()).toBe(false);
+    });
+  });
+
   describe('guild-level chat', () => {
     it('VALID: {guildSlug without sessionId} => renders ChatPanelWidget', () => {
       const proxy = QuestChatWidgetProxy();

@@ -11,7 +11,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Box, Text } from '@mantine/core';
 
-import type { SessionId, UserInput } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 
 import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
@@ -21,6 +21,7 @@ import { useSessionListBinding } from '../../bindings/use-session-list/use-sessi
 import { designSessionBroker } from '../../brokers/design/session/design-session-broker';
 import { designStartBroker } from '../../brokers/design/start/design-start-broker';
 import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
+import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { isDesignStartVisibleGuard } from '../../guards/is-design-start-visible/is-design-start-visible-guard';
 import { isDesignTabVisibleGuard } from '../../guards/is-design-tab-visible/is-design-tab-visible-guard';
@@ -32,6 +33,7 @@ import { DesignPanelWidget } from '../design-panel/design-panel-widget';
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
 import { ExecutionPanelWidget } from '../execution-panel/execution-panel-widget';
 import { QuestClarifyPanelWidget } from '../quest-clarify-panel/quest-clarify-panel-widget';
+import { QuestApprovedModalWidget } from '../quest-approved-modal/quest-approved-modal-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 
 export const QuestChatWidget = (): React.JSX.Element => {
@@ -69,7 +71,9 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
   const [activeTab, setActiveTab] = useState<'spec' | 'design'>('spec');
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
+  const [approvedModalOpen, setApprovedModalOpen] = useState(false);
   const prevQuestDataRef = useRef(questData);
+  const prevQuestStatusRef = useRef<QuestStatus | null>(null);
 
   useEffect(() => {
     if (questData !== prevQuestDataRef.current && prevQuestDataRef.current !== null) {
@@ -77,6 +81,18 @@ export const QuestChatWidget = (): React.JSX.Element => {
     }
     prevQuestDataRef.current = questData;
   }, [questData]);
+
+  useEffect(() => {
+    const currentStatus = questData?.status ?? null;
+    const isApprovedPhase = currentStatus === 'approved' || currentStatus === 'design_approved';
+    const wasApprovedPhase =
+      prevQuestStatusRef.current === 'approved' || prevQuestStatusRef.current === 'design_approved';
+
+    if (isApprovedPhase && !wasApprovedPhase) {
+      setApprovedModalOpen(true);
+    }
+    prevQuestStatusRef.current = currentStatus;
+  }, [questData?.status]);
 
   useEffect(() => {
     if (isStreaming) return;
@@ -105,6 +121,13 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const pendingQuestion = pendingClarification ?? entryBasedQuestion;
 
   const questWithContent = questData;
+
+  const approvedReviewStatus: QuestStatus | null =
+    questData?.status === 'approved'
+      ? ('review_observables' as QuestStatus)
+      : questData?.status === 'design_approved'
+        ? ('review_design' as QuestStatus)
+        : null;
 
   if (questData && isExecutionPhaseGuard({ status: questData.status })) {
     return (
@@ -337,6 +360,33 @@ export const QuestChatWidget = (): React.JSX.Element => {
           </Box>
         )}
       </Box>
+      {questWithContent ? (
+        <QuestApprovedModalWidget
+          opened={approvedModalOpen}
+          onKeepChatting={() => {
+            setApprovedModalOpen(false);
+            if (approvedReviewStatus) {
+              questModifyBroker({
+                questId: questWithContent.id,
+                modifications: { status: approvedReviewStatus },
+              }).catch(() => undefined);
+            }
+          }}
+          onNewQuest={() => {
+            setApprovedModalOpen(false);
+            if (guildSlug) {
+              const navResult = navigate(`/${guildSlug}/session`);
+              if (navResult instanceof Promise) {
+                navResult.catch(() => undefined);
+              }
+            }
+          }}
+          onBeginQuest={() => {
+            setApprovedModalOpen(false);
+            questStartBroker({ questId: questWithContent.id }).catch(() => undefined);
+          }}
+        />
+      ) : null}
     </Box>
   );
 };

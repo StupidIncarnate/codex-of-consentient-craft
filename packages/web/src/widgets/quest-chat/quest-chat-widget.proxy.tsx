@@ -26,11 +26,13 @@ import { useSessionListBindingProxy } from '../../bindings/use-session-list/use-
 import { designSessionBrokerProxy } from '../../brokers/design/session/design-session-broker.proxy';
 import { designStartBrokerProxy } from '../../brokers/design/start/design-start-broker.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
+import { questStartBrokerProxy } from '../../brokers/quest/start/quest-start-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { DesignPanelWidgetProxy } from '../design-panel/design-panel-widget.proxy';
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
 import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
 import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
+import { QuestApprovedModalWidgetProxy } from '../quest-approved-modal/quest-approved-modal-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
@@ -70,6 +72,11 @@ export const QuestChatWidgetProxy = (): {
   setupDesignSession: (params: { chatProcessId: ProcessId }) => void;
   hasExecutionPanel: () => boolean;
   hasDumpsterRaccoon: () => boolean;
+  hasApprovedModal: () => boolean;
+  clickApprovedModalBeginQuest: () => Promise<void>;
+  clickApprovedModalKeepChatting: () => Promise<void>;
+  clickApprovedModalNewQuest: () => Promise<void>;
+  setupQuestStart: (params: { processId: string }) => void;
 } => {
   const guildsBindingProxy = useGuildsBindingProxy();
   const sessionListProxy = useSessionListBindingProxy();
@@ -80,8 +87,10 @@ export const QuestChatWidgetProxy = (): {
   QuestClarifyPanelWidgetProxy();
   const specPanelProxy = QuestSpecPanelWidgetProxy();
   const modifyProxy = questModifyBrokerProxy();
+  const startProxy = questStartBrokerProxy();
   const designStartProxy = designStartBrokerProxy();
   const designSessionProxy = designSessionBrokerProxy();
+  const approvedModalProxy = QuestApprovedModalWidgetProxy();
   DesignPanelWidgetProxy();
   DumpsterRaccoonWidgetProxy();
   ExecutionPanelWidgetProxy();
@@ -186,5 +195,18 @@ export const QuestChatWidgetProxy = (): {
     },
     hasExecutionPanel: (): boolean => screen.queryByTestId('execution-panel-widget') !== null,
     hasDumpsterRaccoon: (): boolean => screen.queryByTestId('dumpster-raccoon-widget') !== null,
+    hasApprovedModal: (): boolean => approvedModalProxy.hasModal(),
+    clickApprovedModalBeginQuest: async (): Promise<void> => {
+      await approvedModalProxy.clickBeginQuest();
+    },
+    clickApprovedModalKeepChatting: async (): Promise<void> => {
+      await approvedModalProxy.clickKeepChatting();
+    },
+    clickApprovedModalNewQuest: async (): Promise<void> => {
+      await approvedModalProxy.clickNewQuest();
+    },
+    setupQuestStart: ({ processId }: { processId: string }): void => {
+      startProxy.setupStart({ processId });
+    },
   };
 };
