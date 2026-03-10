@@ -372,9 +372,6 @@ test.describe('Quest Approved Modal', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    // PATCH quest to in_progress to simulate what the orchestrator would do
-    await patchQuestStatus({ request, questId, status: 'in_progress' });
-
     // Execution panel and dumpster raccoon should appear
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

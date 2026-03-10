@@ -12,6 +12,7 @@ import {
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';
 import { GuildRemoveResponder } from '../../responders/guild/remove/guild-remove-responder';
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
+import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { ModifyQuestInputStub } from '../../contracts/modify-quest-input/modify-quest-input.stub';
 import { OrchestrationFlow } from './orchestration-flow';
@@ -48,12 +49,14 @@ describe('OrchestrationFlow', () => {
         guildId: guild.id,
       });
 
-      const startPromise = OrchestrationFlow.start({ questId: addResult.questId! });
+      await expect(OrchestrationFlow.start({ questId: addResult.questId! })).rejects.toThrow(
+        /Quest must be approved before starting/u,
+      );
 
       await GuildRemoveResponder({ guildId: guild.id });
       testbed.cleanup();
 
-      await expect(startPromise).rejects.toThrow(/Quest must be approved before starting/u);
+      expect(addResult.questId).toBeDefined();
     });
 
     it('VALID: {approved quest} => start returns processId and getStatus returns idle orchestration status', async () => {
@@ -117,6 +120,11 @@ describe('OrchestrationFlow', () => {
       });
 
       const processId = await OrchestrationFlow.start({ questId });
+
+      const questResult = await QuestGetResponder({ questId });
+
+      expect(questResult.success).toBe(true);
+      expect(questResult.quest!.status).toBe('in_progress');
 
       const status = OrchestrationFlow.getStatus({ processId });
 

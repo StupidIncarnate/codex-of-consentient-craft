@@ -48,6 +48,19 @@ describe('OrchestrationStartResponder', () => {
     });
   });
 
+  describe('quest status transition', () => {
+    it('ERROR: {quest modify fails} => throws transition error', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupModifyFailure({ quest });
+
+      await expect(proxy.callResponder({ questId })).rejects.toThrow(
+        /Failed to transition quest to in_progress/u,
+      );
+    });
+  });
+
   describe('state registration', () => {
     it('VALID: {questId with approved quest} => registers process in orchestration state', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });

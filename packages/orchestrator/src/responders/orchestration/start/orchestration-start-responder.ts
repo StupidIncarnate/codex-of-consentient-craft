@@ -10,7 +10,9 @@ import { processIdContract } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
+import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { completedCountContract } from '../../../contracts/completed-count/completed-count-contract';
+import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
@@ -53,6 +55,15 @@ export const OrchestrationStartResponder = async ({
   });
 
   orchestrationProcessesState.register({ orchestrationProcess });
+
+  const modifyInput = modifyQuestInputContract.parse({ questId, status: 'in_progress' });
+  const modifyResult = await questModifyBroker({
+    input: modifyInput,
+  });
+
+  if (!modifyResult.success) {
+    throw new Error(`Failed to transition quest to in_progress: ${modifyResult.error}`);
+  }
 
   return processId;
 };
