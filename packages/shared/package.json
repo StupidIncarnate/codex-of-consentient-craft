@@ -4,46 +4,55 @@
   "description": "Shared contracts and utilities for Dungeonmaster packages",
   "exports": {
     "./contracts": {
+      "source": "./contracts.ts",
       "import": "./dist/contracts.js",
       "require": "./dist/contracts.js",
       "types": "./dist/contracts.d.ts"
     },
     "./guards": {
+      "source": "./guards.ts",
       "import": "./dist/guards.js",
       "require": "./dist/guards.js",
       "types": "./dist/guards.d.ts"
     },
     "./transformers": {
+      "source": "./transformers.ts",
       "import": "./dist/transformers.js",
       "require": "./dist/transformers.js",
       "types": "./dist/transformers.d.ts"
     },
     "./@types": {
+      "source": "./@types.ts",
       "import": "./dist/@types.js",
       "require": "./dist/@types.js",
       "types": "./dist/@types.d.ts"
     },
     "./statics": {
+      "source": "./statics.ts",
       "import": "./dist/statics.js",
       "require": "./dist/statics.js",
       "types": "./dist/statics.d.ts"
     },
     "./brokers": {
+      "source": "./brokers.ts",
       "import": "./dist/brokers.js",
       "require": "./dist/brokers.js",
       "types": "./dist/brokers.d.ts"
     },
     "./adapters": {
+      "source": "./adapters.ts",
       "import": "./dist/adapters.js",
       "require": "./dist/adapters.js",
       "types": "./dist/adapters.d.ts"
     },
     "./errors": {
+      "source": "./errors.ts",
       "import": "./dist/errors.js",
       "require": "./dist/errors.js",
       "types": "./dist/errors.d.ts"
     },
     "./testing": {
+      "source": "./testing.ts",
       "import": "./dist/testing.js",
       "require": "./dist/testing.js",
       "types": "./dist/testing.d.ts"

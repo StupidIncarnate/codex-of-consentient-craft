@@ -5,16 +5,19 @@
   "main": "dist/index.js",
   "exports": {
     ".": {
+      "source": "./src/index.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
     "./brokers": {
+      "source": "./brokers.ts",
       "import": "./dist/brokers.js",
       "require": "./dist/brokers.js",
       "types": "./dist/brokers.d.ts"
     },
     "./testing": {
+      "source": "./testing.ts",
       "import": "./dist/testing.js",
       "require": "./dist/testing.js",
       "types": "./dist/testing.d.ts"

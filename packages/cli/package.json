@@ -4,6 +4,14 @@
   "description": "CLI for Dungeonmaster quest management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/startup/start-cli.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "bin": {
     "dungeonmaster": "./dist/bin/dungeonmaster.js"
   },

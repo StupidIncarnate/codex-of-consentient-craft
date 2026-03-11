@@ -6,11 +6,13 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": {
+      "source": "./src/index.ts",
       "import": "./dist/src/index.js",
       "require": "./dist/src/index.js",
       "types": "./dist/src/index.d.ts"
     },
     "./testing": {
+      "source": "./testing.ts",
       "import": "./dist/testing.js",
       "require": "./dist/testing.js",
       "types": "./dist/testing.d.ts"

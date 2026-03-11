@@ -4,6 +4,14 @@
   "description": "Development tools for code quality analysis",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "bin": {
     "detect-duplicate-primitives": "./dist/bin/detect-duplicate-primitives.js"
   },

@@ -13,6 +13,9 @@ const webPort = basePort + 1;
 const { hostname } = environmentStatics;
 
 export default defineConfig({
+  resolve: {
+    conditions: ['source'],
+  },
   plugins: [react()],
   server: {
     port: webPort,
