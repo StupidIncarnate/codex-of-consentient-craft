@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Orchestrates the full quest pipeline: codeweaver -> ward -> siegemaster -> lawbringer
+ * PURPOSE: Orchestrates the full quest pipeline: pathseeker -> codeweaver -> ward -> siegemaster -> lawbringer
  *
  * USAGE:
  * await questPipelineBroker({processId, questId, questFilePath, startPath, onPhaseChange});
@@ -17,11 +17,12 @@ import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import { codeweaverPhaseLayerBroker } from './codeweaver-phase-layer-broker';
 import { lawbringerPhaseLayerBroker } from './lawbringer-phase-layer-broker';
+import { pathseekerPhaseLayerBroker } from './pathseeker-phase-layer-broker';
 import { siegemasterPhaseLayerBroker } from './siegemaster-phase-layer-broker';
 import { wardPhaseLayerBroker } from './ward-phase-layer-broker';
 
 export const questPipelineBroker = async ({
-  processId: _processId,
+  processId,
   questId,
   questFilePath,
   startPath,
@@ -36,6 +37,12 @@ export const questPipelineBroker = async ({
   onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
 }): Promise<void> => {
   try {
+    await pathseekerPhaseLayerBroker({
+      processId,
+      questId,
+      onPhaseChange,
+      ...(onAgentLine === undefined ? {} : { onAgentLine }),
+    });
     await codeweaverPhaseLayerBroker({
       questId,
       questFilePath,

@@ -114,6 +114,17 @@ export const QuestChatWidget = (): React.JSX.Element => {
     prevIsStreamingRef.current = isStreaming;
   }, [isStreaming, refreshGuild, refreshSessionList, requestRefresh]);
 
+  const pipelineStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (!questData) return;
+    if (!isExecutionPhaseGuard({ status: questData.status })) return;
+    if (pipelineStartedRef.current) return;
+
+    pipelineStartedRef.current = true;
+    questStartBroker({ questId: questData.id }).catch(() => undefined);
+  }, [questData]);
+
   const entryBasedQuestion = hasPendingQuestionGuard({ entries })
     ? extractAskUserQuestionTransformer({ entries })
     : null;

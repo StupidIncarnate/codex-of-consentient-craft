@@ -7,7 +7,7 @@
  * // Tracks which orchestration processes are running and their status
  */
 
-import type { ProcessId, OrchestrationStatus } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestId, OrchestrationStatus } from '@dungeonmaster/shared/contracts';
 import {
   orchestrationStatusContract,
   orchestrationSlotContract,
@@ -32,6 +32,15 @@ export const orchestrationProcessesState = {
 
   get: ({ processId }: { processId: ProcessId }): OrchestrationProcess | undefined =>
     state.processes.get(processId),
+
+  findByQuestId: ({ questId }: { questId: QuestId }): OrchestrationProcess | undefined => {
+    for (const process of state.processes.values()) {
+      if (process.questId === questId) {
+        return process;
+      }
+    }
+    return undefined;
+  },
 
   getProcess: ({ processId }: { processId: ProcessId }): KillableProcess | undefined => {
     const orchestrationProcess = state.processes.get(processId);

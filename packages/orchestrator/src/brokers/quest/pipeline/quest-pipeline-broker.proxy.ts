@@ -1,11 +1,17 @@
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
 
+// pathseeker MUST be created first - its mockImplementation for child_process.spawn
+// gets overwritten by later proxies. It uses mockReturnValueOnce instead.
+import { pathseekerPhaseLayerBrokerProxy } from './pathseeker-phase-layer-broker.proxy';
 import { codeweaverPhaseLayerBrokerProxy } from './codeweaver-phase-layer-broker.proxy';
 import { lawbringerPhaseLayerBrokerProxy } from './lawbringer-phase-layer-broker.proxy';
 import { siegemasterPhaseLayerBrokerProxy } from './siegemaster-phase-layer-broker.proxy';
+// Ward must be last - both capture and stream-json proxies mock child_process.spawn.
 import { wardPhaseLayerBrokerProxy } from './ward-phase-layer-broker.proxy';
 
 export const questPipelineBrokerProxy = (): {
+  setupPathseekerSpawnSuccess: () => void;
+  setupPathseekerSpawnFailure: () => void;
   setupCodeweaverQuestLoad: (params: { questJson: string }) => void;
   setupCodeweaverQuestLoadError: (params: { error: Error }) => void;
   setupWardSuccessFirstTry: (params: { exitCode: ExitCode }) => void;
@@ -21,12 +27,20 @@ export const questPipelineBrokerProxy = (): {
   setupLawbringerSpawnsSucceed: (params: { exitCode: ExitCode }) => void;
   setupLawbringerSpawnFailure: () => void;
 } => {
+  // Pathseeker first: uses mockReturnValueOnce for its single spawn call
+  const pathseeker = pathseekerPhaseLayerBrokerProxy();
   const codeweaver = codeweaverPhaseLayerBrokerProxy();
   const ward = wardPhaseLayerBrokerProxy();
   const siegemaster = siegemasterPhaseLayerBrokerProxy();
   const lawbringer = lawbringerPhaseLayerBrokerProxy();
 
   return {
+    setupPathseekerSpawnSuccess: (): void => {
+      pathseeker.setupSpawnSuccess();
+    },
+    setupPathseekerSpawnFailure: (): void => {
+      pathseeker.setupSpawnFailure();
+    },
     setupCodeweaverQuestLoad: ({ questJson }: { questJson: string }): void => {
       codeweaver.setupQuestLoad({ questJson });
     },

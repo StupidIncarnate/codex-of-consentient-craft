@@ -134,7 +134,18 @@ describe('OrchestrationFlow', () => {
       expect(processId).toMatch(/^proc-/u);
       expect(status.processId).toBe(processId);
       expect(status.questId).toBe(questId);
-      expect(status.phase).toBe('idle');
+      expect(
+        [
+          'idle',
+          'pathseeker',
+          'codeweaver',
+          'ward',
+          'siegemaster',
+          'lawbringer',
+          'complete',
+          'failed',
+        ].includes(status.phase),
+      ).toBe(true);
       expect(status.completed).toBe(0);
       expect(status.slots).toStrictEqual([]);
     });

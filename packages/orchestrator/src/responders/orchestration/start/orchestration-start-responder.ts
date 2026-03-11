@@ -11,6 +11,7 @@ import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
+import { questPipelineLaunchBroker } from '../../../brokers/quest/pipeline-launch/quest-pipeline-launch-broker';
 import { completedCountContract } from '../../../contracts/completed-count/completed-count-contract';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
@@ -18,6 +19,7 @@ import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-times
 import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
 import { totalCountContract } from '../../../contracts/total-count/total-count-contract';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
+import { startableQuestStatusesStatics } from '../../../statics/startable-quest-statuses/startable-quest-statuses-statics';
 
 export const OrchestrationStartResponder = async ({
   questId,
@@ -31,13 +33,21 @@ export const OrchestrationStartResponder = async ({
     throw new Error(`Quest not found: ${questId}`);
   }
 
-  if (result.quest.status !== 'approved' && result.quest.status !== 'design_approved') {
-    throw new Error(
-      `Quest must be approved before starting. Current status: ${result.quest.status}`,
-    );
+  const { quest } = result;
+
+  const statusAllowed = startableQuestStatusesStatics.some((s) => s === quest.status);
+  if (!statusAllowed) {
+    throw new Error(`Quest must be approved before starting. Current status: ${quest.status}`);
   }
 
-  const totalSteps = totalCountContract.parse(result.quest.steps.length);
+  const existingProcess = orchestrationProcessesState.findByQuestId({ questId });
+  if (existingProcess) {
+    return existingProcess.processId;
+  }
+
+  const alreadyInProgress = quest.status === 'in_progress';
+
+  const totalSteps = totalCountContract.parse(quest.steps.length);
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
 
   const orchestrationProcess = orchestrationProcessContract.parse({
@@ -56,14 +66,26 @@ export const OrchestrationStartResponder = async ({
 
   orchestrationProcessesState.register({ orchestrationProcess });
 
-  const modifyInput = modifyQuestInputContract.parse({ questId, status: 'in_progress' });
-  const modifyResult = await questModifyBroker({
-    input: modifyInput,
-  });
+  if (!alreadyInProgress) {
+    const modifyInput = modifyQuestInputContract.parse({ questId, status: 'in_progress' });
+    const modifyResult = await questModifyBroker({
+      input: modifyInput,
+    });
 
-  if (!modifyResult.success) {
-    throw new Error(`Failed to transition quest to in_progress: ${modifyResult.error}`);
+    if (!modifyResult.success) {
+      throw new Error(`Failed to transition quest to in_progress: ${modifyResult.error}`);
+    }
   }
+
+  questPipelineLaunchBroker({
+    processId,
+    questId,
+    onPhaseChange: ({ phase }) => {
+      orchestrationProcessesState.updatePhase({ processId, phase });
+    },
+  }).catch(() => {
+    orchestrationProcessesState.updatePhase({ processId, phase: 'failed' });
+  });
 
   return processId;
 };

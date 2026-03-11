@@ -14,6 +14,14 @@ import { questPipelineBrokerProxy } from './quest-pipeline-broker.proxy';
 
 type OrchestrationPhase = ReturnType<typeof OrchestrationPhaseStub>;
 
+const setupPathseekerSuccess = ({
+  proxy,
+}: {
+  proxy: ReturnType<typeof questPipelineBrokerProxy>;
+}): void => {
+  proxy.setupPathseekerSpawnSuccess();
+};
+
 describe('questPipelineBroker', () => {
   describe('successful full pipeline', () => {
     it('VALID: {all layers succeed} => onPhaseChange called with complete', async () => {
@@ -26,6 +34,8 @@ describe('questPipelineBroker', () => {
       const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
         phases.push(phase);
       };
+
+      setupPathseekerSuccess({ proxy });
 
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
@@ -47,7 +57,14 @@ describe('questPipelineBroker', () => {
         onPhaseChange,
       });
 
-      expect(phases).toStrictEqual(['codeweaver', 'ward', 'siegemaster', 'lawbringer', 'complete']);
+      expect(phases).toStrictEqual([
+        'pathseeker',
+        'codeweaver',
+        'ward',
+        'siegemaster',
+        'lawbringer',
+        'complete',
+      ]);
     });
   });
 
@@ -63,6 +80,7 @@ describe('questPipelineBroker', () => {
         phases.push(phase);
       };
 
+      setupPathseekerSuccess({ proxy });
       proxy.setupCodeweaverQuestLoadError({ error: new Error('Quest file not found') });
 
       await expect(
@@ -75,7 +93,7 @@ describe('questPipelineBroker', () => {
         }),
       ).rejects.toThrow(/Failed to read file/u);
 
-      expect(phases).toStrictEqual(['codeweaver', 'failed']);
+      expect(phases).toStrictEqual(['pathseeker', 'codeweaver', 'failed']);
     });
   });
 
@@ -90,6 +108,8 @@ describe('questPipelineBroker', () => {
       const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
         phases.push(phase);
       };
+
+      setupPathseekerSuccess({ proxy });
 
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
@@ -108,7 +128,7 @@ describe('questPipelineBroker', () => {
         }),
       ).rejects.toThrow(/Failed to parse quest file/u);
 
-      expect(phases).toStrictEqual(['codeweaver', 'ward', 'siegemaster', 'failed']);
+      expect(phases).toStrictEqual(['pathseeker', 'codeweaver', 'ward', 'siegemaster', 'failed']);
     });
   });
 
@@ -123,6 +143,8 @@ describe('questPipelineBroker', () => {
       const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
         phases.push(phase);
       };
+
+      setupPathseekerSuccess({ proxy });
 
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
@@ -170,7 +192,7 @@ describe('questPipelineBroker', () => {
         }),
       ).rejects.toThrow(/Ward phase failed after 3 retries/u);
 
-      expect(phases).toStrictEqual(['codeweaver', 'ward', 'failed']);
+      expect(phases).toStrictEqual(['pathseeker', 'codeweaver', 'ward', 'failed']);
     });
   });
 
@@ -185,6 +207,8 @@ describe('questPipelineBroker', () => {
       const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
         phases.push(phase);
       };
+
+      setupPathseekerSuccess({ proxy });
 
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
@@ -206,12 +230,19 @@ describe('questPipelineBroker', () => {
         }),
       ).rejects.toThrow(/Failed to parse quest file/u);
 
-      expect(phases).toStrictEqual(['codeweaver', 'ward', 'siegemaster', 'lawbringer', 'failed']);
+      expect(phases).toStrictEqual([
+        'pathseeker',
+        'codeweaver',
+        'ward',
+        'siegemaster',
+        'lawbringer',
+        'failed',
+      ]);
     });
   });
 
   describe('phase call order', () => {
-    it('VALID: {all succeed} => codeweaver before ward before siegemaster before lawbringer before complete', async () => {
+    it('VALID: {all succeed} => pathseeker before codeweaver before ward before siegemaster before lawbringer before complete', async () => {
       const proxy = questPipelineBrokerProxy();
       const processId = ProcessIdStub({ value: 'proc-test-6' });
       const questId = QuestIdStub({ value: 'add-auth' });
@@ -221,6 +252,8 @@ describe('questPipelineBroker', () => {
       const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
         phases.push(phase);
       };
+
+      setupPathseekerSuccess({ proxy });
 
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
@@ -242,7 +275,14 @@ describe('questPipelineBroker', () => {
         onPhaseChange,
       });
 
-      expect(phases).toStrictEqual(['codeweaver', 'ward', 'siegemaster', 'lawbringer', 'complete']);
+      expect(phases).toStrictEqual([
+        'pathseeker',
+        'codeweaver',
+        'ward',
+        'siegemaster',
+        'lawbringer',
+        'complete',
+      ]);
     });
   });
 });
