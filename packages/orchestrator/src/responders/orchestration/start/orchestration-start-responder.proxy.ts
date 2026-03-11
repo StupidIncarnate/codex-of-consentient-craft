@@ -4,6 +4,7 @@ import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questPipelineLaunchBrokerProxy } from '../../../brokers/quest/pipeline-launch/quest-pipeline-launch-broker.proxy';
+import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { OrchestrationStartResponder } from './orchestration-start-responder';
 
@@ -24,6 +25,8 @@ export const OrchestrationStartResponderProxy = (): {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const launchProxy = questPipelineLaunchBrokerProxy();
+  const eventsProxy = orchestrationEventsStateProxy();
+  eventsProxy.setupEmpty();
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
 

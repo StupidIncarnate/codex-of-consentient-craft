@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { AgentOutputPanelWidgetProxy } from '../agent-output-panel/agent-output-panel-widget.proxy';
 import { ExecutionRowLayerWidgetProxy } from './execution-row-layer-widget.proxy';
 import { ExecutionStatusBarLayerWidgetProxy } from './execution-status-bar-layer-widget.proxy';
 import { FloorHeaderLayerWidgetProxy } from './floor-header-layer-widget.proxy';
@@ -15,6 +16,7 @@ export const ExecutionPanelWidgetProxy = (): {
   getStepRows: () => HTMLElement[];
   getFloorHeaders: () => HTMLElement[];
 } => {
+  AgentOutputPanelWidgetProxy();
   ExecutionRowLayerWidgetProxy();
   ExecutionStatusBarLayerWidgetProxy();
   FloorHeaderLayerWidgetProxy();

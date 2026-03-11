@@ -107,4 +107,19 @@ describe('OrchestrationStartResponder', () => {
       expect(processId).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
+
+  describe('onAgentLine events', () => {
+    it('VALID: {questId with approved quest} => passes onAgentLine that emits to orchestrationEventsState', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved', steps: [] });
+      const questJson = JSON.stringify(quest);
+      const exitCode = ExitCodeStub({ value: 0 });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest, questJson, exitCode });
+
+      const processId = await proxy.callResponder({ questId });
+
+      expect(processId).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    });
+  });
 });

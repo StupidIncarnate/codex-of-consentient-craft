@@ -12,6 +12,7 @@ import { Box, Stack, UnstyledButton } from '@mantine/core';
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
+import type { AgentOutputLine } from '../../contracts/agent-output-line/agent-output-line-contract';
 import type { CompletedCount } from '../../contracts/completed-count/completed-count-contract';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
@@ -19,11 +20,13 @@ import type { ExecutionRole } from '../../contracts/execution-role/execution-rol
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { FloorName } from '../../contracts/floor-name/floor-name-contract';
 import type { FloorNumber } from '../../contracts/floor-number/floor-number-contract';
+import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionFloorConfigStatics } from '../../statics/execution-floor-config/execution-floor-config-statics';
+import { AgentOutputPanelWidget } from '../agent-output-panel/agent-output-panel-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
@@ -31,6 +34,7 @@ import { FloorHeaderLayerWidget } from './floor-header-layer-widget';
 
 export interface ExecutionPanelWidgetProps {
   quest: Quest;
+  slotOutputs?: Map<SlotIndex, AgentOutputLine[]>;
 }
 
 const TABS = [
@@ -45,7 +49,10 @@ const TAB_PADDING_VERTICAL = 5;
 const COLON_SEPARATOR_OFFSET = 2;
 const DEFAULT_ROLE = 'codeweaver' as ExecutionRole;
 
-export const ExecutionPanelWidget = ({ quest }: ExecutionPanelWidgetProps): React.JSX.Element => {
+export const ExecutionPanelWidget = ({
+  quest,
+  slotOutputs = new Map(),
+}: ExecutionPanelWidgetProps): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
   const { colors } = emberDepthsThemeStatics;
 
@@ -100,6 +107,9 @@ export const ExecutionPanelWidget = ({ quest }: ExecutionPanelWidgetProps): Reac
             totalCount={totalCount}
             isPlanning={isPlanning}
           />
+          {Array.from(slotOutputs.entries()).map(([slotIndex, lines]) => (
+            <AgentOutputPanelWidget key={String(slotIndex)} slotIndex={slotIndex} lines={lines} />
+          ))}
           <Box
             data-testid="execution-panel-floor-content"
             style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}

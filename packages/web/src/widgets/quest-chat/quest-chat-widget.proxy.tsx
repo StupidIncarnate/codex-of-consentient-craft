@@ -18,6 +18,8 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 
 import type { AskUserQuestionOption } from '../../contracts/ask-user-question/ask-user-question-contract';
+import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
+import { useAgentOutputBindingProxy } from '../../bindings/use-agent-output/use-agent-output-binding.proxy';
 import { useGuildDetailBindingProxy } from '../../bindings/use-guild-detail/use-guild-detail-binding.proxy';
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { useQuestEventsBindingProxy } from '../../bindings/use-quest-events/use-quest-events-binding.proxy';
@@ -78,6 +80,8 @@ export const QuestChatWidgetProxy = (): {
   clickApprovedModalNewQuest: () => Promise<void>;
   setupQuestStart: (params: { processId: string }) => void;
 } => {
+  websocketConnectAdapterProxy();
+  useAgentOutputBindingProxy();
   const guildsBindingProxy = useGuildsBindingProxy();
   const sessionListProxy = useSessionListBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();

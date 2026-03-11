@@ -2,6 +2,8 @@ import { screen } from '@testing-library/react';
 
 import { DependencyStepStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
+import { AgentOutputLineStub } from '../../contracts/agent-output-line/agent-output-line.stub';
+import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ExecutionPanelWidget } from './execution-panel-widget';
 import { ExecutionPanelWidgetProxy } from './execution-panel-widget.proxy';
@@ -145,6 +147,33 @@ describe('ExecutionPanelWidget', () => {
       });
 
       expect(screen.getByTestId('execution-panel-widget')).toBeInTheDocument();
+    });
+  });
+
+  describe('slotOutputs rendering', () => {
+    it('VALID: {quest with slotOutputs} => renders agent output panels for each slot', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress', steps: [] });
+      const slotIndex = SlotIndexStub({ value: 0 });
+      const line = AgentOutputLineStub({ value: 'Building auth guard...' });
+      const slotOutputs = new Map([[slotIndex, [line]]]);
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} slotOutputs={slotOutputs} />,
+      });
+
+      expect(screen.getByTestId('AGENT_OUTPUT_PANEL_0')).toBeInTheDocument();
+    });
+
+    it('EMPTY: {quest with empty slotOutputs} => renders no agent output panels', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress', steps: [] });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} slotOutputs={new Map()} />,
+      });
+
+      expect(screen.queryByTestId('AGENT_OUTPUT_PANEL_0')).toBeNull();
     });
   });
 });

@@ -1016,6 +1016,61 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasSpecPanel()).toBe(false);
     });
 
+    it('VALID: {quest with in_progress status, agent-output WS message} => renders agent output panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-exec-ws',
+        status: 'in_progress',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-exec-ws', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'agent-output',
+            payload: {
+              slotIndex: 0,
+              lines: ['Building auth guard...'],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('AGENT_OUTPUT_PANEL_0')).not.toBeNull();
+      });
+
+      expect(screen.getByTestId('AGENT_OUTPUT_PANEL_0')).toBeInTheDocument();
+    });
+
     it('VALID: {quest with non-execution status} => renders chat panel and spec panel', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });

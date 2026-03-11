@@ -12,12 +12,18 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Box, Text } from '@mantine/core';
 
 import type { QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
+import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
+import { agentOutputLineContract } from '../../contracts/agent-output-line/agent-output-line-contract';
+import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
+
+import { useAgentOutputBinding } from '../../bindings/use-agent-output/use-agent-output-binding';
 import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestEventsBinding } from '../../bindings/use-quest-events/use-quest-events-binding';
 import { useSessionChatBinding } from '../../bindings/use-session-chat/use-session-chat-binding';
 import { useSessionListBinding } from '../../bindings/use-session-list/use-session-list-binding';
+import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { designSessionBroker } from '../../brokers/design/session/design-session-broker';
 import { designStartBroker } from '../../brokers/design/start/design-start-broker';
 import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
@@ -68,6 +74,8 @@ export const QuestChatWidget = (): React.JSX.Element => {
     sessionId: currentSessionId ?? sessionId,
     guildId: resolvedGuildId,
   });
+
+  const { slotOutputs, handleAgentOutput } = useAgentOutputBinding();
 
   const [activeTab, setActiveTab] = useState<'spec' | 'design'>('spec');
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
@@ -125,6 +133,35 @@ export const QuestChatWidget = (): React.JSX.Element => {
     questStartBroker({ questId: questData.id }).catch(() => undefined);
   }, [questData]);
 
+  useEffect(() => {
+    if (!questData) return undefined;
+    if (!isExecutionPhaseGuard({ status: questData.status })) return undefined;
+
+    const connection = websocketConnectAdapter({
+      url: `ws://${globalThis.location.host}/ws`,
+      onMessage: (message: unknown): void => {
+        const parsed = wsMessageContract.safeParse(message);
+        if (!parsed.success) return;
+        if (parsed.data.type !== 'agent-output') return;
+
+        const rawSlotIndex: unknown = Reflect.get(parsed.data.payload, 'slotIndex');
+        const rawLines: unknown = Reflect.get(parsed.data.payload, 'lines');
+
+        const slotIndexParsed = slotIndexContract.safeParse(rawSlotIndex);
+        if (!slotIndexParsed.success) return;
+
+        const linesParsed = agentOutputLineContract.array().safeParse(rawLines);
+        if (!linesParsed.success) return;
+
+        handleAgentOutput({ slotIndex: slotIndexParsed.data, lines: linesParsed.data });
+      },
+    });
+
+    return (): void => {
+      connection.close();
+    };
+  }, [questData, handleAgentOutput]);
+
   const entryBasedQuestion = hasPendingQuestionGuard({ entries })
     ? extractAskUserQuestionTransformer({ entries })
     : null;
@@ -152,7 +189,9 @@ export const QuestChatWidget = (): React.JSX.Element => {
         }}
       >
         <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          {questWithContent ? <ExecutionPanelWidget quest={questWithContent} /> : null}
+          {questWithContent ? (
+            <ExecutionPanelWidget quest={questWithContent} slotOutputs={slotOutputs} />
+          ) : null}
         </Box>
 
         <div

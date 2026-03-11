@@ -18,6 +18,7 @@ import { getQuestInputContract } from '../../../contracts/get-quest-input/get-qu
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
 import { totalCountContract } from '../../../contracts/total-count/total-count-contract';
+import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { startableQuestStatusesStatics } from '../../../statics/startable-quest-statuses/startable-quest-statuses-statics';
 
@@ -82,6 +83,13 @@ export const OrchestrationStartResponder = async ({
     questId,
     onPhaseChange: ({ phase }) => {
       orchestrationProcessesState.updatePhase({ processId, phase });
+    },
+    onAgentLine: ({ slotIndex, line }) => {
+      orchestrationEventsState.emit({
+        type: 'agent-output',
+        processId,
+        payload: { processId, slotIndex, line },
+      });
     },
   }).catch(() => {
     orchestrationProcessesState.updatePhase({ processId, phase: 'failed' });
