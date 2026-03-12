@@ -1,4 +1,9 @@
-import { DependencyStepStub, ExitCodeStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  DependencyStepStub,
+  ExitCodeStub,
+  FilePathStub,
+  SessionIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { ContinuationContextStub } from '../../../contracts/continuation-context/continuation-context.stub';
 import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
@@ -33,7 +38,9 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
 
       expect(result).toStrictEqual({
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
@@ -55,7 +62,9 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -77,7 +86,9 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -99,7 +110,9 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -121,7 +134,9 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -147,9 +162,12 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await agentSpawnByRoleBroker({
         workUnit,
         timeoutMs,
+        startPath,
         continuationContext,
       });
 
@@ -177,9 +195,12 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await agentSpawnByRoleBroker({
         workUnit,
         timeoutMs,
+        startPath,
         resumeSessionId,
       });
 
@@ -203,7 +224,9 @@ describe('agentSpawnByRoleBroker', () => {
 
       proxy.setupSpawnFailure();
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
 
       expect(result).toStrictEqual({
         crashed: true,

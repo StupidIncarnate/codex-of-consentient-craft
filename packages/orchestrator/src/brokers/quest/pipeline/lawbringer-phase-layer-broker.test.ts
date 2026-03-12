@@ -51,7 +51,9 @@ describe('lawbringerPhaseLayerBroker', () => {
       });
       proxy.setupAllSpawnsSucceed({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      await lawbringerPhaseLayerBroker({ questFilePath, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['lawbringer']);
     });
@@ -98,7 +100,9 @@ describe('lawbringerPhaseLayerBroker', () => {
       });
       proxy.setupSpawnFailure();
 
-      await lawbringerPhaseLayerBroker({ questFilePath, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['lawbringer']);
     });
@@ -144,7 +148,9 @@ describe('lawbringerPhaseLayerBroker', () => {
         }),
       });
 
-      await lawbringerPhaseLayerBroker({ questFilePath, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['lawbringer']);
     });
@@ -191,7 +197,9 @@ describe('lawbringerPhaseLayerBroker', () => {
       });
       proxy.setupSpawnFailure();
 
-      await lawbringerPhaseLayerBroker({ questFilePath, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['lawbringer']);
     });

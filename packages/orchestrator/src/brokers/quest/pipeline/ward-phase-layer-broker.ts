@@ -8,6 +8,7 @@
 
 import {
   errorMessageContract,
+  filePathContract,
   type AbsoluteFilePath,
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
@@ -73,6 +74,7 @@ export const wardPhaseLayerBroker = async ({
     workUnits,
     maxConcurrent: maxConcurrentContract.parse(SPIRITMENDER_MAX_CONCURRENT),
     timeoutMs: timeoutMsContract.parse(SPIRITMENDER_TIMEOUT_MS),
+    startPath: filePathContract.parse(startPath),
   });
 
   return wardPhaseLayerBroker({

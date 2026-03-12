@@ -1,4 +1,9 @@
-import { ProcessIdStub, QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  FilePathStub,
+  ProcessIdStub,
+  QuestIdStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { KillableProcessStub } from '../../../contracts/killable-process/killable-process.stub';
 import { pathseekerPipelineBroker } from './pathseeker-pipeline-broker';
@@ -67,6 +72,7 @@ describe('pathseekerPipelineBroker', () => {
       await pathseekerPipelineBroker({
         processId,
         questId,
+        startPath: FilePathStub({ value: '/project/src' }),
         killableProcess,
         attempt: 0,
         onVerifySuccess: proxy.onVerifySuccess,
@@ -91,6 +97,7 @@ describe('pathseekerPipelineBroker', () => {
       await pathseekerPipelineBroker({
         processId,
         questId,
+        startPath: FilePathStub({ value: '/project/src' }),
         killableProcess,
         attempt: 3,
         onVerifySuccess: proxy.onVerifySuccess,
@@ -117,6 +124,7 @@ describe('pathseekerPipelineBroker', () => {
       await pathseekerPipelineBroker({
         processId,
         questId,
+        startPath: FilePathStub({ value: '/project/src' }),
         killableProcess,
         attempt: 2,
         onVerifySuccess: proxy.onVerifySuccess,

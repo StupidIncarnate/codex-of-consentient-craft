@@ -1,6 +1,4 @@
-import { installTestbedCreateBroker } from '@dungeonmaster/testing/src/brokers/install-testbed/create/install-testbed-create-broker';
-import { BaseNameStub } from '@dungeonmaster/testing/src/contracts/base-name/base-name.stub';
-import { RelativePathStub } from '@dungeonmaster/testing/src/contracts/relative-path/relative-path.stub';
+import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { InstallFlow } from './install-flow';
 

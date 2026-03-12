@@ -36,6 +36,7 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations,
   role,
   activeAgents,
+  startPath,
   onAgentLine,
 }: {
   questFilePath: FilePath;
@@ -44,6 +45,7 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations: SlotOperations;
   role: AgentRole;
   activeAgents: ActiveAgent[];
+  startPath: FilePath;
   onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
 }): Promise<LoopResult> => {
   const quest = await questLoadBroker({ questFilePath });
@@ -81,6 +83,7 @@ export const orchestrationLoopLayerBroker = async ({
       const agentPromise = spawnAgentLayerBroker({
         workUnit,
         timeoutMs,
+        startPath,
         ...(onAgentLine === undefined
           ? {}
           : {
@@ -137,6 +140,7 @@ export const orchestrationLoopLayerBroker = async ({
         const agentPromise = spawnAgentLayerBroker({
           workUnit,
           timeoutMs,
+          startPath,
           ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
           ...(onAgentLine === undefined
             ? {}
@@ -202,6 +206,7 @@ export const orchestrationLoopLayerBroker = async ({
           const agentPromise = spawnAgentLayerBroker({
             workUnit,
             timeoutMs,
+            startPath,
             ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
             ...(continuationContext === null ? {} : { continuationContext }),
             ...(onAgentLine === undefined
@@ -240,6 +245,7 @@ export const orchestrationLoopLayerBroker = async ({
           const agentPromise = spawnAgentLayerBroker({
             workUnit,
             timeoutMs,
+            startPath,
             ...(onAgentLine === undefined
               ? {}
               : {

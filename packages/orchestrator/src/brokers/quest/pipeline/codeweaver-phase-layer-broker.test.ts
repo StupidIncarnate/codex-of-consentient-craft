@@ -29,7 +29,9 @@ describe('codeweaverPhaseLayerBroker', () => {
 
       proxy.setupQuestLoad({ questJson: JSON.stringify(quest) });
 
-      await codeweaverPhaseLayerBroker({ questId, questFilePath, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await codeweaverPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['codeweaver']);
     });
@@ -62,7 +64,12 @@ describe('codeweaverPhaseLayerBroker', () => {
       proxy.setupQuestLoad({ questJson: JSON.stringify(quest) });
 
       await expect(
-        codeweaverPhaseLayerBroker({ questId, questFilePath, onPhaseChange }),
+        codeweaverPhaseLayerBroker({
+          questId,
+          questFilePath,
+          startPath: FilePathStub({ value: '/project/src' }),
+          onPhaseChange,
+        }),
       ).rejects.toThrow(/Codeweaver phase failed: incomplete steps/u);
 
       expect(phases).toStrictEqual(['codeweaver']);
@@ -82,7 +89,12 @@ describe('codeweaverPhaseLayerBroker', () => {
       proxy.setupQuestLoadError({ error: new Error('Quest file not found') });
 
       await expect(
-        codeweaverPhaseLayerBroker({ questId, questFilePath, onPhaseChange }),
+        codeweaverPhaseLayerBroker({
+          questId,
+          questFilePath,
+          startPath: FilePathStub({ value: '/project/src' }),
+          onPhaseChange,
+        }),
       ).rejects.toThrow(/Failed to read file/u);
 
       expect(phases).toStrictEqual(['codeweaver']);

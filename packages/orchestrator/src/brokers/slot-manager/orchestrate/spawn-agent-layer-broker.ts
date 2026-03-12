@@ -6,7 +6,7 @@
  * // Returns AgentSpawnStreamingResult from the spawned agent
  */
 
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { AgentSpawnStreamingResult } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
 import type { ContinuationContext } from '../../../contracts/continuation-context/continuation-context-contract';
@@ -19,17 +19,20 @@ export const spawnAgentLayerBroker = async ({
   resumeSessionId,
   continuationContext,
   timeoutMs,
+  startPath,
   onLine,
 }: {
   workUnit: WorkUnit;
   resumeSessionId?: SessionId;
   continuationContext?: ContinuationContext;
   timeoutMs: TimeoutMs;
+  startPath: FilePath;
   onLine?: (params: { line: string }) => void;
 }): Promise<AgentSpawnStreamingResult> => {
   const result = await agentSpawnByRoleBroker({
     workUnit,
     timeoutMs,
+    startPath,
     ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
     ...(continuationContext === undefined ? {} : { continuationContext }),
     ...(onLine === undefined ? {} : { onLine }),

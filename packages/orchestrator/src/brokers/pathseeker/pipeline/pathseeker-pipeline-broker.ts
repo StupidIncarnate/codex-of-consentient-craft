@@ -6,7 +6,7 @@
  * // Waits for PathSeeker exit, verifies quest, re-spawns if needed
  */
 
-import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import { killableProcessContract } from '../../../contracts/killable-process/killable-process-contract';
@@ -20,6 +20,7 @@ import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/path
 export const pathseekerPipelineBroker = async ({
   processId,
   questId,
+  startPath,
   killableProcess,
   attempt,
   onVerifySuccess,
@@ -27,6 +28,7 @@ export const pathseekerPipelineBroker = async ({
 }: {
   processId: ProcessId;
   questId: QuestId;
+  startPath: FilePath;
   killableProcess: KillableProcess;
   attempt: number;
   onVerifySuccess: () => void;
@@ -52,7 +54,7 @@ export const pathseekerPipelineBroker = async ({
   );
 
   const prompt = promptTextContract.parse(promptText);
-  const { process: childProcess } = childProcessSpawnStreamJsonAdapter({ prompt });
+  const { process: childProcess } = childProcessSpawnStreamJsonAdapter({ prompt, cwd: startPath });
 
   const newKillableProcess = killableProcessContract.parse({
     kill: () => childProcess.kill(),
@@ -69,6 +71,7 @@ export const pathseekerPipelineBroker = async ({
   return pathseekerPipelineBroker({
     processId,
     questId,
+    startPath,
     killableProcess: newKillableProcess,
     attempt: attempt + 1,
     onVerifySuccess,

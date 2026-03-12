@@ -1,4 +1,9 @@
-import { DependencyStepStub, ExitCodeStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  DependencyStepStub,
+  ExitCodeStub,
+  FilePathStub,
+  SessionIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { ContinuationContextStub } from '../../../contracts/continuation-context/continuation-context.stub';
 import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
@@ -19,9 +24,12 @@ describe('spawnAgentLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await spawnAgentLayerBroker({
         workUnit,
         timeoutMs,
+        startPath,
       });
 
       expect(result).toStrictEqual({
@@ -48,9 +56,12 @@ describe('spawnAgentLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await spawnAgentLayerBroker({
         workUnit,
         timeoutMs,
+        startPath,
         continuationContext,
       });
 
@@ -78,9 +89,12 @@ describe('spawnAgentLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await spawnAgentLayerBroker({
         workUnit,
         timeoutMs,
+        startPath,
         resumeSessionId,
       });
 
@@ -104,9 +118,12 @@ describe('spawnAgentLayerBroker', () => {
 
       proxy.setupSpawnFailure();
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await spawnAgentLayerBroker({
         workUnit,
         timeoutMs,
+        startPath,
       });
 
       expect(result).toStrictEqual({

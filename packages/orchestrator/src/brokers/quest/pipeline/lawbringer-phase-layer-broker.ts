@@ -32,10 +32,12 @@ const TIMEOUT_MS = 300000;
 
 export const lawbringerPhaseLayerBroker = async ({
   questFilePath,
+  startPath,
   onPhaseChange,
   _retryState,
 }: {
   questFilePath: FilePath;
+  startPath: FilePath;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
   _retryState?: {
     failedWorkUnits: WorkUnit[];
@@ -82,13 +84,16 @@ export const lawbringerPhaseLayerBroker = async ({
       .filter((unit): unit is WorkUnit => unit !== null);
 
     await Promise.all(
-      followupUnits.map(async (workUnit) => agentSpawnByRoleBroker({ workUnit, timeoutMs })),
+      followupUnits.map(async (workUnit) =>
+        agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath }),
+      ),
     );
 
     const retryResults = await agentParallelRunnerBroker({
       workUnits: failedWorkUnits,
       maxConcurrent,
       timeoutMs,
+      startPath,
     });
 
     const nextFailed = failedWorkUnits.filter((_, index) => {
@@ -98,6 +103,7 @@ export const lawbringerPhaseLayerBroker = async ({
 
     return lawbringerPhaseLayerBroker({
       questFilePath,
+      startPath,
       onPhaseChange,
       _retryState: {
         failedWorkUnits: nextFailed,
@@ -136,7 +142,12 @@ export const lawbringerPhaseLayerBroker = async ({
   const maxConcurrent = maxConcurrentContract.parse(CONCURRENT_LIMIT);
   const timeoutMs = timeoutMsContract.parse(TIMEOUT_MS);
 
-  const results = await agentParallelRunnerBroker({ workUnits, maxConcurrent, timeoutMs });
+  const results = await agentParallelRunnerBroker({
+    workUnits,
+    maxConcurrent,
+    timeoutMs,
+    startPath,
+  });
 
   const failedWorkUnits = workUnits.filter((_, index) => {
     const result = results[index];
@@ -145,6 +156,7 @@ export const lawbringerPhaseLayerBroker = async ({
 
   return lawbringerPhaseLayerBroker({
     questFilePath,
+    startPath,
     onPhaseChange,
     _retryState: {
       failedWorkUnits,

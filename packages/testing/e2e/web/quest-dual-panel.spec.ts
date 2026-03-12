@@ -235,6 +235,11 @@ test.describe('Quest Dual Panel', () => {
     await page.goto(`/${urlSlug}/session/${sessionId}`);
     await sessionResponsePromise;
 
+    // Dismiss the quest approved modal that appears when quest status is 'approved'
+    const keepChattingBtn = page.getByText('Keep Chatting');
+    await expect(keepChattingBtn).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await keepChattingBtn.click();
+
     // Send a message to trigger the queued clarification response
     await page.getByTestId('CHAT_INPUT').fill('Start the quest');
     await page.getByTestId('SEND_BUTTON').click();
@@ -298,6 +303,11 @@ test.describe('Quest Dual Panel', () => {
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
     await sessionResponsePromise;
+
+    // Dismiss the quest approved modal that appears when quest status is 'approved'
+    const keepChattingBtn = page.getByText('Keep Chatting');
+    await expect(keepChattingBtn).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await keepChattingBtn.click();
 
     // Send a message to trigger the clarification
     await page.getByTestId('CHAT_INPUT').fill('Start the quest');

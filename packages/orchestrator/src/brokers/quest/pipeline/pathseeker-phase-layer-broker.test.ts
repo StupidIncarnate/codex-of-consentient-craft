@@ -1,4 +1,4 @@
-import { ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import type { OrchestrationPhaseStub } from '../../../contracts/orchestration-phase/orchestration-phase.stub';
 import { pathseekerPhaseLayerBroker } from './pathseeker-phase-layer-broker';
@@ -19,7 +19,9 @@ describe('pathseekerPhaseLayerBroker', () => {
 
       proxy.setupSpawnSuccess();
 
-      await pathseekerPhaseLayerBroker({ processId, questId, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await pathseekerPhaseLayerBroker({ processId, questId, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['pathseeker']);
     });
@@ -37,7 +39,9 @@ describe('pathseekerPhaseLayerBroker', () => {
 
       proxy.setupSpawnFailure();
 
-      await pathseekerPhaseLayerBroker({ processId, questId, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await pathseekerPhaseLayerBroker({ processId, questId, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['pathseeker']);
     });

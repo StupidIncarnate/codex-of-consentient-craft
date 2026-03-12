@@ -30,8 +30,11 @@ describe('orchestrationLoopLayerBroker', () => {
         ),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await orchestrationLoopLayerBroker({
         questFilePath,
+        startPath,
         slotCount,
         timeoutMs,
         slotOperations,
@@ -62,8 +65,11 @@ describe('orchestrationLoopLayerBroker', () => {
         ),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await orchestrationLoopLayerBroker({
         questFilePath,
+        startPath,
         slotCount,
         timeoutMs,
         slotOperations,
@@ -93,8 +99,11 @@ describe('orchestrationLoopLayerBroker', () => {
         ),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await orchestrationLoopLayerBroker({
         questFilePath,
+        startPath,
         slotCount,
         timeoutMs,
         slotOperations,
@@ -125,8 +134,11 @@ describe('orchestrationLoopLayerBroker', () => {
         ),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await orchestrationLoopLayerBroker({
         questFilePath,
+        startPath,
         slotCount,
         timeoutMs,
         slotOperations,
@@ -167,8 +179,11 @@ describe('orchestrationLoopLayerBroker', () => {
         ),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await orchestrationLoopLayerBroker({
         questFilePath,
+        startPath,
         slotCount,
         timeoutMs,
         slotOperations,

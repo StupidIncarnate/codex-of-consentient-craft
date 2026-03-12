@@ -1,4 +1,4 @@
-import { ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { KillableProcessStub } from '../../contracts/killable-process/killable-process.stub';
 import { PathseekerFlow } from './pathseeker-flow';
@@ -20,6 +20,7 @@ describe('PathseekerFlow', () => {
         PathseekerFlow({
           processId,
           questId,
+          startPath: FilePathStub({ value: '/project/src' }),
           killableProcess,
           attempt: 3,
           onVerifySuccess: () => {
@@ -41,6 +42,7 @@ describe('PathseekerFlow', () => {
         PathseekerFlow({
           processId,
           questId,
+          startPath: FilePathStub({ value: '/project/src' }),
           killableProcess,
           attempt: 3,
           onVerifySuccess: () => {

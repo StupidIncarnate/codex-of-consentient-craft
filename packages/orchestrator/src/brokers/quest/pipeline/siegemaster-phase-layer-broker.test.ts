@@ -68,7 +68,9 @@ describe('siegemasterPhaseLayerBroker', () => {
       });
       proxy.setupAllSpawnsSucceed({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      await siegemasterPhaseLayerBroker({ questId, questFilePath, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['siegemaster']);
     });
@@ -123,7 +125,9 @@ describe('siegemasterPhaseLayerBroker', () => {
       });
       proxy.setupSpawnFailure();
 
-      await siegemasterPhaseLayerBroker({ questId, questFilePath, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['siegemaster']);
     });
@@ -178,7 +182,9 @@ describe('siegemasterPhaseLayerBroker', () => {
       });
       proxy.setupSpawnFailure();
 
-      await siegemasterPhaseLayerBroker({ questId, questFilePath, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['siegemaster']);
     });
@@ -219,7 +225,9 @@ describe('siegemasterPhaseLayerBroker', () => {
         }),
       });
 
-      await siegemasterPhaseLayerBroker({ questId, questFilePath, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['siegemaster']);
     });
@@ -249,7 +257,9 @@ describe('siegemasterPhaseLayerBroker', () => {
         }),
       });
 
-      await siegemasterPhaseLayerBroker({ questId, questFilePath, onPhaseChange });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
 
       expect(phases).toStrictEqual(['siegemaster']);
     });

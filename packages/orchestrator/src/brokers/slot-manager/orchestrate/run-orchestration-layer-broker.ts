@@ -24,6 +24,7 @@ export const runOrchestrationLayerBroker = async ({
   slotOperations,
   role,
   activeAgents,
+  startPath,
   onAgentLine,
 }: {
   questFilePath: FilePath;
@@ -32,6 +33,7 @@ export const runOrchestrationLayerBroker = async ({
   slotOperations: SlotOperations;
   role: AgentRole;
   activeAgents: ActiveAgent[];
+  startPath: FilePath;
   onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
 }): Promise<SlotManagerResult> => {
   const loopResult = await orchestrationLoopLayerBroker({
@@ -41,6 +43,7 @@ export const runOrchestrationLayerBroker = async ({
     slotOperations,
     role,
     activeAgents,
+    startPath,
     ...(onAgentLine === undefined ? {} : { onAgentLine }),
   });
 
@@ -55,6 +58,7 @@ export const runOrchestrationLayerBroker = async ({
     slotOperations,
     role,
     activeAgents: loopResult.activeAgents,
+    startPath,
     ...(onAgentLine === undefined ? {} : { onAgentLine }),
   });
 };

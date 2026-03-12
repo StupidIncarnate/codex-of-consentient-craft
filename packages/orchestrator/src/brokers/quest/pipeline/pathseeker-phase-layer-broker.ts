@@ -6,7 +6,7 @@
  * // Spawns PathSeeker agent to create step plan, streams output, waits for process exit
  */
 
-import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import { readlineCreateInterfaceAdapter } from '../../../adapters/readline/create-interface/readline-create-interface-adapter';
@@ -18,11 +18,13 @@ import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/path
 export const pathseekerPhaseLayerBroker = async ({
   processId: _processId,
   questId,
+  startPath,
   onPhaseChange,
   onAgentLine,
 }: {
   processId: ProcessId;
   questId: QuestId;
+  startPath: FilePath;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
   onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
 }): Promise<void> => {
@@ -34,7 +36,10 @@ export const pathseekerPhaseLayerBroker = async ({
   );
 
   const prompt = promptTextContract.parse(promptText);
-  const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter({ prompt });
+  const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter({
+    prompt,
+    cwd: startPath,
+  });
 
   const slotIndex = 0 as SlotIndex;
   const rl = readlineCreateInterfaceAdapter({ input: stdout });

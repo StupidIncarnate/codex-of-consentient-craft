@@ -22,6 +22,7 @@ export const slotManagerOrchestrateBroker = async ({
   timeoutMs,
   slotOperations,
   role,
+  startPath,
   onAgentLine,
 }: {
   questFilePath: FilePath;
@@ -29,6 +30,7 @@ export const slotManagerOrchestrateBroker = async ({
   timeoutMs: TimeoutMs;
   slotOperations: SlotOperations;
   role: AgentRole;
+  startPath: FilePath;
   onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
 }): Promise<SlotManagerResult> => {
   const result = await runOrchestrationLayerBroker({
@@ -38,6 +40,7 @@ export const slotManagerOrchestrateBroker = async ({
     slotOperations,
     role,
     activeAgents: [],
+    startPath,
     ...(onAgentLine === undefined ? {} : { onAgentLine }),
   });
   return result;

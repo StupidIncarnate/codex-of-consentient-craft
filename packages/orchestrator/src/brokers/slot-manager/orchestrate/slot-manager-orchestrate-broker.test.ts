@@ -28,8 +28,11 @@ describe('slotManagerOrchestrateBroker', () => {
         questJson: JSON.stringify(quest),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await slotManagerOrchestrateBroker({
         questFilePath,
+        startPath,
         slotCount,
         timeoutMs,
         slotOperations,
@@ -59,8 +62,11 @@ describe('slotManagerOrchestrateBroker', () => {
         questJson: JSON.stringify(quest),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await slotManagerOrchestrateBroker({
         questFilePath,
+        startPath,
         slotCount,
         timeoutMs,
         slotOperations,
@@ -88,8 +94,11 @@ describe('slotManagerOrchestrateBroker', () => {
         questJson: JSON.stringify(quest),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await slotManagerOrchestrateBroker({
         questFilePath,
+        startPath,
         slotCount,
         timeoutMs,
         slotOperations,
@@ -123,8 +132,11 @@ describe('slotManagerOrchestrateBroker', () => {
         questJson: JSON.stringify(quest),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await slotManagerOrchestrateBroker({
         questFilePath,
+        startPath,
         slotCount,
         timeoutMs,
         slotOperations,
@@ -155,8 +167,11 @@ describe('slotManagerOrchestrateBroker', () => {
         questJson: JSON.stringify(quest),
       });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await slotManagerOrchestrateBroker({
         questFilePath,
+        startPath,
         slotCount,
         timeoutMs,
         slotOperations,

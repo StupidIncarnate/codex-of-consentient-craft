@@ -9,7 +9,7 @@
  * // Returns { sessionId, exitCode, signal, crashed, timedOut }
  */
 
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import {
@@ -27,12 +27,14 @@ import { agentStreamMonitorBroker } from '../stream-monitor/agent-stream-monitor
 export const agentSpawnByRoleBroker = async ({
   workUnit,
   timeoutMs,
+  startPath,
   resumeSessionId,
   continuationContext,
   onLine,
 }: {
   workUnit: WorkUnit;
   timeoutMs: TimeoutMs;
+  startPath: FilePath;
   resumeSessionId?: SessionId;
   continuationContext?: ContinuationContext;
   onLine?: (params: { line: string }) => void;
@@ -50,6 +52,7 @@ export const agentSpawnByRoleBroker = async ({
   try {
     const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter({
       prompt,
+      cwd: startPath,
       ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
     });
 

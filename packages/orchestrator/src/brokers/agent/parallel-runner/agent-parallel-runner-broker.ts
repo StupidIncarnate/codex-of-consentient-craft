@@ -10,6 +10,8 @@
  * // Returns AgentSpawnStreamingResult[] in same order as input work units
  */
 
+import type { FilePath } from '@dungeonmaster/shared/contracts';
+
 import { agentSpawnStreamingResultContract } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
 import type { AgentSpawnStreamingResult } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
 import type { MaxConcurrent } from '../../../contracts/max-concurrent/max-concurrent-contract';
@@ -21,10 +23,12 @@ export const agentParallelRunnerBroker = async ({
   workUnits,
   maxConcurrent,
   timeoutMs,
+  startPath,
 }: {
   workUnits: WorkUnit[];
   maxConcurrent: MaxConcurrent;
   timeoutMs: TimeoutMs;
+  startPath: FilePath;
 }): Promise<AgentSpawnStreamingResult[]> => {
   if (workUnits.length === 0) {
     return [];
@@ -43,7 +47,7 @@ export const agentParallelRunnerBroker = async ({
   const remaining = workUnits.slice(batchSize);
 
   const batchResults = await Promise.allSettled(
-    batch.map(async (workUnit) => agentSpawnByRoleBroker({ workUnit, timeoutMs })),
+    batch.map(async (workUnit) => agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath })),
   );
 
   const mappedResults = batchResults.map(
@@ -55,6 +59,7 @@ export const agentParallelRunnerBroker = async ({
     workUnits: remaining,
     maxConcurrent,
     timeoutMs,
+    startPath,
   });
 
   return [...mappedResults, ...remainingResults];

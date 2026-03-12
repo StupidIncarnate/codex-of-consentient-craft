@@ -6,7 +6,7 @@
  * // Runs the PathSeeker verification pipeline with retry logic
  */
 
-import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { KillableProcess } from '../../../contracts/killable-process/killable-process-contract';
 import { pathseekerPipelineBroker } from '../../../brokers/pathseeker/pipeline/pathseeker-pipeline-broker';
@@ -14,6 +14,7 @@ import { pathseekerPipelineBroker } from '../../../brokers/pathseeker/pipeline/p
 export const PathseekerPipelineResponder = async ({
   processId,
   questId,
+  startPath,
   killableProcess,
   attempt,
   onVerifySuccess,
@@ -21,6 +22,7 @@ export const PathseekerPipelineResponder = async ({
 }: {
   processId: ProcessId;
   questId: QuestId;
+  startPath: FilePath;
   killableProcess: KillableProcess;
   attempt: number;
   onVerifySuccess: () => void;
@@ -29,6 +31,7 @@ export const PathseekerPipelineResponder = async ({
   pathseekerPipelineBroker({
     processId,
     questId,
+    startPath,
     killableProcess,
     attempt,
     onVerifySuccess,

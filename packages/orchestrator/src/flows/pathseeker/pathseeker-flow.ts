@@ -14,6 +14,7 @@ type PipelineResult = Awaited<ReturnType<typeof PathseekerPipelineResponder>>;
 export const PathseekerFlow = async ({
   processId,
   questId,
+  startPath,
   killableProcess,
   attempt,
   onVerifySuccess,
@@ -22,6 +23,7 @@ export const PathseekerFlow = async ({
   PathseekerPipelineResponder({
     processId,
     questId,
+    startPath,
     killableProcess,
     attempt,
     onVerifySuccess,

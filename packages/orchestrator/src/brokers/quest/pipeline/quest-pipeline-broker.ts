@@ -40,19 +40,21 @@ export const questPipelineBroker = async ({
     await pathseekerPhaseLayerBroker({
       processId,
       questId,
+      startPath,
       onPhaseChange,
       ...(onAgentLine === undefined ? {} : { onAgentLine }),
     });
     await codeweaverPhaseLayerBroker({
       questId,
       questFilePath,
+      startPath,
       onPhaseChange,
       ...(onAgentLine === undefined ? {} : { onAgentLine }),
     });
     const absoluteStartPath = absoluteFilePathContract.parse(startPath);
     await wardPhaseLayerBroker({ questFilePath, startPath: absoluteStartPath, onPhaseChange });
-    await siegemasterPhaseLayerBroker({ questId, questFilePath, onPhaseChange });
-    await lawbringerPhaseLayerBroker({ questFilePath, onPhaseChange });
+    await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
+    await lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange });
     onPhaseChange({ phase: 'complete' });
   } catch (error: unknown) {
     onPhaseChange({ phase: 'failed' });

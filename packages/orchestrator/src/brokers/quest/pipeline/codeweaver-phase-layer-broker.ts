@@ -21,11 +21,13 @@ const CODEWEAVER_TIMEOUT_MS = 600000;
 export const codeweaverPhaseLayerBroker = async ({
   questId: _questId,
   questFilePath,
+  startPath,
   onPhaseChange,
   onAgentLine,
 }: {
   questId: QuestId;
   questFilePath: FilePath;
+  startPath: FilePath;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
   onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
 }): Promise<void> => {
@@ -41,6 +43,7 @@ export const codeweaverPhaseLayerBroker = async ({
     timeoutMs,
     slotOperations,
     role: 'codeweaver',
+    startPath,
     ...(onAgentLine === undefined ? {} : { onAgentLine }),
   });
 

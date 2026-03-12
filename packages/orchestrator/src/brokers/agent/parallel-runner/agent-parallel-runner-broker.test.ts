@@ -1,4 +1,4 @@
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { MaxConcurrentStub } from '../../../contracts/max-concurrent/max-concurrent.stub';
 import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
@@ -13,10 +13,13 @@ describe('agentParallelRunnerBroker', () => {
       const maxConcurrent = MaxConcurrentStub({ value: 2 });
       const timeoutMs = TimeoutMsStub({ value: 60000 });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await agentParallelRunnerBroker({
         workUnits: [],
         maxConcurrent,
         timeoutMs,
+        startPath,
       });
 
       expect(result).toStrictEqual([]);
@@ -32,10 +35,13 @@ describe('agentParallelRunnerBroker', () => {
       const maxConcurrent = MaxConcurrentStub({ value: 2 });
       const timeoutMs = TimeoutMsStub({ value: 60000 });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await agentParallelRunnerBroker({
         workUnits: [workUnit],
         maxConcurrent,
         timeoutMs,
+        startPath,
       });
 
       expect(result).toStrictEqual([
@@ -57,10 +63,13 @@ describe('agentParallelRunnerBroker', () => {
       const maxConcurrent = MaxConcurrentStub({ value: 2 });
       const timeoutMs = TimeoutMsStub({ value: 60000 });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await agentParallelRunnerBroker({
         workUnits: [workUnit],
         maxConcurrent,
         timeoutMs,
+        startPath,
       });
 
       expect(result).toStrictEqual([
@@ -84,10 +93,13 @@ describe('agentParallelRunnerBroker', () => {
       const maxConcurrent = MaxConcurrentStub({ value: 3 });
       const timeoutMs = TimeoutMsStub({ value: 60000 });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await agentParallelRunnerBroker({
         workUnits: [WorkUnitStub(), WorkUnitStub()],
         maxConcurrent,
         timeoutMs,
+        startPath,
       });
 
       expect(result).toStrictEqual([
@@ -119,10 +131,13 @@ describe('agentParallelRunnerBroker', () => {
       const maxConcurrent = MaxConcurrentStub({ value: 2 });
       const timeoutMs = TimeoutMsStub({ value: 60000 });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await agentParallelRunnerBroker({
         workUnits: [WorkUnitStub(), WorkUnitStub(), WorkUnitStub(), WorkUnitStub(), WorkUnitStub()],
         maxConcurrent,
         timeoutMs,
+        startPath,
       });
 
       expect(result).toStrictEqual([
@@ -178,10 +193,13 @@ describe('agentParallelRunnerBroker', () => {
       const maxConcurrent = MaxConcurrentStub({ value: 3 });
       const timeoutMs = TimeoutMsStub({ value: 60000 });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await agentParallelRunnerBroker({
         workUnits: [WorkUnitStub(), WorkUnitStub(), WorkUnitStub()],
         maxConcurrent,
         timeoutMs,
+        startPath,
       });
 
       expect(result).toStrictEqual([
@@ -220,10 +238,13 @@ describe('agentParallelRunnerBroker', () => {
       const maxConcurrent = MaxConcurrentStub({ value: 3 });
       const timeoutMs = TimeoutMsStub({ value: 60000 });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await agentParallelRunnerBroker({
         workUnits: [WorkUnitStub(), WorkUnitStub(), WorkUnitStub()],
         maxConcurrent,
         timeoutMs,
+        startPath,
       });
 
       expect(result).toStrictEqual([
@@ -263,10 +284,13 @@ describe('agentParallelRunnerBroker', () => {
       const maxConcurrent = MaxConcurrentStub({ value: 1 });
       const timeoutMs = TimeoutMsStub({ value: 30000 });
 
+      const startPath = FilePathStub({ value: '/project/src' });
+
       const result = await agentParallelRunnerBroker({
         workUnits: [WorkUnitStub(), WorkUnitStub(), WorkUnitStub()],
         maxConcurrent,
         timeoutMs,
+        startPath,
       });
 
       expect(result).toStrictEqual([
