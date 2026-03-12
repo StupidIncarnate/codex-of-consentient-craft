@@ -10,8 +10,8 @@ import type { GuildId, ProcessId, QuestId } from '@dungeonmaster/shared/contract
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { chatRoleContract } from '../../../contracts/chat-role/chat-role-contract';
-import { chatProcessState } from '../../../state/chat-process/chat-process-state';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 
 export const DesignChatStartResponder = async ({
@@ -56,7 +56,7 @@ export const DesignChatStartResponder = async ({
       // Design chat does not tail sub-agents
     },
     onComplete: ({ chatProcessId, exitCode, sessionId }) => {
-      chatProcessState.remove({ processId: chatProcessId });
+      orchestrationProcessesState.remove({ processId: chatProcessId });
       orchestrationEventsState.emit({
         type: 'chat-complete',
         processId: chatProcessId,
@@ -64,7 +64,9 @@ export const DesignChatStartResponder = async ({
       });
     },
     registerProcess: ({ processId, kill }) => {
-      chatProcessState.register({ processId, kill });
+      orchestrationProcessesState.register({
+        orchestrationProcess: { processId, questId, kill },
+      });
     },
   });
 };

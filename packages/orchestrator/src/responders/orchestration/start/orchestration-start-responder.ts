@@ -12,12 +12,8 @@ import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questPipelineLaunchBroker } from '../../../brokers/quest/pipeline-launch/quest-pipeline-launch-broker';
-import { completedCountContract } from '../../../contracts/completed-count/completed-count-contract';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
-import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
-import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
-import { totalCountContract } from '../../../contracts/total-count/total-count-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { startableQuestStatusesStatics } from '../../../statics/startable-quest-statuses/startable-quest-statuses-statics';
@@ -48,24 +44,15 @@ export const OrchestrationStartResponder = async ({
 
   const alreadyInProgress = quest.status === 'in_progress';
 
-  const totalSteps = totalCountContract.parse(quest.steps.length);
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
 
-  const orchestrationProcess = orchestrationProcessContract.parse({
-    processId,
-    questId,
-    process: {
-      kill: () => true,
-      waitForExit: async () => Promise.resolve(),
+  orchestrationProcessesState.register({
+    orchestrationProcess: {
+      processId,
+      questId,
+      kill: () => undefined,
     },
-    phase: 'idle',
-    completedSteps: completedCountContract.parse(0),
-    totalSteps,
-    startedAt: isoTimestampContract.parse(new Date().toISOString()),
-    slots: [],
   });
-
-  orchestrationProcessesState.register({ orchestrationProcess });
 
   if (!alreadyInProgress) {
     const modifyInput = modifyQuestInputContract.parse({ questId, status: 'in_progress' });
@@ -81,8 +68,8 @@ export const OrchestrationStartResponder = async ({
   questPipelineLaunchBroker({
     processId,
     questId,
-    onPhaseChange: ({ phase }) => {
-      orchestrationProcessesState.updatePhase({ processId, phase });
+    onPhaseChange: () => {
+      // Phase tracking removed - derived from quest file in Phase 4
     },
     onAgentEntry: ({ slotIndex, entry }) => {
       orchestrationEventsState.emit({
@@ -92,7 +79,7 @@ export const OrchestrationStartResponder = async ({
       });
     },
   }).catch(() => {
-    orchestrationProcessesState.updatePhase({ processId, phase: 'failed' });
+    orchestrationProcessesState.remove({ processId });
   });
 
   return processId;

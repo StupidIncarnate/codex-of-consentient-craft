@@ -1,13 +1,13 @@
 /**
- * PURPOSE: Stops all active chat processes and clears the process registry
+ * PURPOSE: Stops all active processes and clears the process registry
  *
  * USAGE:
  * ChatStopAllResponder();
- * // Kills all tracked chat processes and clears state
+ * // Kills all tracked processes and clears state
  */
 
-import { chatProcessState } from '../../../state/chat-process/chat-process-state';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 
 export const ChatStopAllResponder = (): void => {
-  chatProcessState.killAll();
+  orchestrationProcessesState.killAll();
 };

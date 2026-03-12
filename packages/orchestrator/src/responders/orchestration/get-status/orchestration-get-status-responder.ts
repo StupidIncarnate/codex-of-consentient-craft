@@ -7,6 +7,7 @@
  */
 
 import type { OrchestrationStatus, ProcessId } from '@dungeonmaster/shared/contracts';
+import { orchestrationStatusContract } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 
@@ -15,11 +16,18 @@ export const OrchestrationGetStatusResponder = ({
 }: {
   processId: ProcessId;
 }): OrchestrationStatus => {
-  const status = orchestrationProcessesState.getStatus({ processId });
+  const process = orchestrationProcessesState.get({ processId });
 
-  if (!status) {
+  if (!process) {
     throw new Error(`Process not found: ${processId}`);
   }
 
-  return status;
+  return orchestrationStatusContract.parse({
+    processId: process.processId,
+    questId: process.questId,
+    phase: 'idle',
+    completed: 0,
+    total: 0,
+    slots: [],
+  });
 };

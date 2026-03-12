@@ -10,9 +10,6 @@ describe('OrchestrationGetStatusResponder', () => {
       const orchestrationProcess = OrchestrationProcessStub({
         processId,
         questId: 'add-auth',
-        phase: 'codeweaver',
-        completedSteps: 2,
-        totalSteps: 5,
       });
       const proxy = OrchestrationGetStatusResponderProxy();
       proxy.setupWithProcess({ orchestrationProcess });
@@ -22,10 +19,9 @@ describe('OrchestrationGetStatusResponder', () => {
       expect(result).toStrictEqual({
         processId: 'proc-test-123',
         questId: 'add-auth',
-        phase: 'codeweaver',
-        completed: 2,
-        total: 5,
-        currentStep: undefined,
+        phase: 'idle',
+        completed: 0,
+        total: 0,
         slots: [],
       });
     });

@@ -1,4 +1,4 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { ChatStopResponderProxy } from './chat-stop-responder.proxy';
 
@@ -7,8 +7,9 @@ describe('ChatStopResponder', () => {
     it('VALID: {chatProcessId: existing} => returns true and kills process', () => {
       const proxy = ChatStopResponderProxy();
       const chatProcessId = ProcessIdStub({ value: 'chat-abc-123' });
+      const questId = QuestIdStub({ value: 'quest-stop-1' });
       const kill = jest.fn();
-      proxy.setupWithProcess({ processId: chatProcessId, kill });
+      proxy.setupWithProcess({ processId: chatProcessId, questId, kill });
 
       const result = proxy.callResponder({ chatProcessId });
 

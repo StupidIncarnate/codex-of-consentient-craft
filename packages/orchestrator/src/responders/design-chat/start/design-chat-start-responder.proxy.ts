@@ -2,9 +2,9 @@ import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/co
 import type { ExitCodeStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
-import { chatProcessStateProxy } from '../../../state/chat-process/chat-process-state.proxy';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
+import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { DesignChatStartResponder } from './design-chat-start-responder';
 
 type ExitCode = ReturnType<typeof ExitCodeStub>;
@@ -26,7 +26,7 @@ export const DesignChatStartResponderProxy = (): {
   }) => void;
   setupQuestNotFound: () => void;
   setupInvalidStatus: (params: { quest: Quest }) => void;
-  setupProcessEmpty: ReturnType<typeof chatProcessStateProxy>['setupEmpty'];
+  setupProcessEmpty: ReturnType<typeof orchestrationProcessesStateProxy>['setupEmpty'];
   setupEventCapture: () => {
     getEmittedEvents: () => readonly {
       type: OrchestrationEventType;
@@ -36,7 +36,7 @@ export const DesignChatStartResponderProxy = (): {
   };
 } => {
   const spawnProxy = chatSpawnBrokerProxy();
-  const processStateProxy = chatProcessStateProxy();
+  const processStateProxy = orchestrationProcessesStateProxy();
   orchestrationEventsStateProxy();
 
   return {

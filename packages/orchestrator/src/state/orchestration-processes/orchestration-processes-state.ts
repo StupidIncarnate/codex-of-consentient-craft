@@ -1,25 +1,16 @@
 /**
- * PURPOSE: Manages state for tracking running orchestration processes by processId
+ * PURPOSE: Manages state for tracking all running processes (orchestration and chat) by processId
  *
  * USAGE:
  * orchestrationProcessesState.register({orchestrationProcess});
- * orchestrationProcessesState.get({processId});
- * // Tracks which orchestration processes are running and their status
+ * orchestrationProcessesState.kill({processId});
+ * orchestrationProcessesState.killAll();
+ * // Unified process registry for lifecycle management and cleanup
  */
 
-import type { ProcessId, QuestId, OrchestrationStatus } from '@dungeonmaster/shared/contracts';
-import {
-  orchestrationStatusContract,
-  orchestrationSlotContract,
-} from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import type { CompletedCount } from '../../contracts/completed-count/completed-count-contract';
-import type { KillableProcess } from '../../contracts/killable-process/killable-process-contract';
-import type { OrchestrationPhase } from '../../contracts/orchestration-phase/orchestration-phase-contract';
 import type { OrchestrationProcess } from '../../contracts/orchestration-process/orchestration-process-contract';
-import type { OrchestrationSlotData } from '../../contracts/orchestration-slot-data/orchestration-slot-data-contract';
-import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
-import type { StepName } from '../../contracts/step-name/step-name-contract';
 
 const state = {
   processes: new Map<ProcessId, OrchestrationProcess>(),
@@ -42,106 +33,22 @@ export const orchestrationProcessesState = {
     return undefined;
   },
 
-  getProcess: ({ processId }: { processId: ProcessId }): KillableProcess | undefined => {
-    const orchestrationProcess = state.processes.get(processId);
-    return orchestrationProcess?.process;
+  kill: ({ processId }: { processId: ProcessId }): boolean => {
+    const entry = state.processes.get(processId);
+    if (!entry) return false;
+    entry.kill();
+    state.processes.delete(processId);
+    return true;
   },
 
-  updateProcess: ({
-    processId,
-    process,
-  }: {
-    processId: ProcessId;
-    process: KillableProcess;
-  }): void => {
-    const orchestrationProcess = state.processes.get(processId);
-    if (orchestrationProcess) {
-      orchestrationProcess.process = process;
+  killAll: (): void => {
+    for (const [, entry] of state.processes) {
+      entry.kill();
     }
+    state.processes.clear();
   },
 
-  updatePhase: ({
-    processId,
-    phase,
-  }: {
-    processId: ProcessId;
-    phase: OrchestrationPhase;
-  }): void => {
-    const orchestrationProcess = state.processes.get(processId);
-    if (orchestrationProcess) {
-      orchestrationProcess.phase = phase;
-    }
-  },
-
-  updateProgress: ({
-    processId,
-    completedSteps,
-    currentStep,
-  }: {
-    processId: ProcessId;
-    completedSteps: CompletedCount;
-    currentStep?: StepName;
-  }): void => {
-    const orchestrationProcess = state.processes.get(processId);
-    if (orchestrationProcess) {
-      orchestrationProcess.completedSteps = completedSteps;
-      orchestrationProcess.currentStep = currentStep;
-    }
-  },
-
-  updateSlot: ({
-    processId,
-    slotData,
-  }: {
-    processId: ProcessId;
-    slotData: OrchestrationSlotData;
-  }): void => {
-    const orchestrationProcess = state.processes.get(processId);
-    if (orchestrationProcess) {
-      const existingIndex = orchestrationProcess.slots.findIndex(
-        (s) => s.slotIndex === slotData.slotIndex,
-      );
-      if (existingIndex >= 0) {
-        orchestrationProcess.slots[existingIndex] = slotData;
-      } else {
-        orchestrationProcess.slots.push(slotData);
-      }
-    }
-  },
-
-  removeSlot: ({ processId, slotIndex }: { processId: ProcessId; slotIndex: SlotIndex }): void => {
-    const orchestrationProcess = state.processes.get(processId);
-    if (orchestrationProcess) {
-      orchestrationProcess.slots = orchestrationProcess.slots.filter(
-        (s) => s.slotIndex !== slotIndex,
-      );
-    }
-  },
-
-  getStatus: ({ processId }: { processId: ProcessId }): OrchestrationStatus | undefined => {
-    const orchestrationProcess = state.processes.get(processId);
-    if (!orchestrationProcess) {
-      return undefined;
-    }
-
-    const slots = orchestrationProcess.slots.map((slot) =>
-      orchestrationSlotContract.parse({
-        slotId: slot.slotIndex,
-        step: slot.stepName,
-        status: slot.status,
-      }),
-    );
-
-    return orchestrationStatusContract.parse({
-      processId: orchestrationProcess.processId,
-      questId: orchestrationProcess.questId,
-      phase: orchestrationProcess.phase,
-      completed: orchestrationProcess.completedSteps,
-      total: orchestrationProcess.totalSteps,
-      currentStep: orchestrationProcess.currentStep,
-      slots,
-    });
-  },
+  has: ({ processId }: { processId: ProcessId }): boolean => state.processes.has(processId),
 
   remove: ({ processId }: { processId: ProcessId }): boolean => state.processes.delete(processId),
 

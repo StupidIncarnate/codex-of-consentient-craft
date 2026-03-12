@@ -1,6 +1,6 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
-import { chatProcessState } from '../../../state/chat-process/chat-process-state';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { ChatStopAllResponderProxy } from './chat-stop-all-responder.proxy';
 
 describe('ChatStopAllResponder', () => {
@@ -11,15 +11,19 @@ describe('ChatStopAllResponder', () => {
       const kill2 = jest.fn();
       const processId1 = ProcessIdStub({ value: 'chat-1' });
       const processId2 = ProcessIdStub({ value: 'chat-2' });
-      proxy.setupWithProcess({ processId: processId1, kill: kill1 });
-      chatProcessState.register({ processId: processId2, kill: kill2 });
+      const questId1 = QuestIdStub({ value: 'quest-1' });
+      const questId2 = QuestIdStub({ value: 'quest-2' });
+      proxy.setupWithProcess({ processId: processId1, questId: questId1, kill: kill1 });
+      orchestrationProcessesState.register({
+        orchestrationProcess: { processId: processId2, questId: questId2, kill: kill2 },
+      });
 
       proxy.callResponder();
 
       expect(kill1).toHaveBeenCalledTimes(1);
       expect(kill2).toHaveBeenCalledTimes(1);
-      expect(chatProcessState.has({ processId: processId1 })).toBe(false);
-      expect(chatProcessState.has({ processId: processId2 })).toBe(false);
+      expect(orchestrationProcessesState.has({ processId: processId1 })).toBe(false);
+      expect(orchestrationProcessesState.has({ processId: processId2 })).toBe(false);
     });
   });
 

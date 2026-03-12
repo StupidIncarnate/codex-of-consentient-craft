@@ -6,6 +6,7 @@
  * // Spawns chat process, streams output via orchestration events, handles clarifications
  */
 
+import { questIdContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, ProcessId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
@@ -13,8 +14,8 @@ import { chatSubagentTailBroker } from '../../../brokers/chat/subagent-tail/chat
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { chatRoleContract } from '../../../contracts/chat-role/chat-role-contract';
 import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
-import { chatProcessState } from '../../../state/chat-process/chat-process-state';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { pendingClarificationState } from '../../../state/pending-clarification/pending-clarification-state';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { streamJsonToClarificationTransformer } from '../../../transformers/stream-json-to-clarification/stream-json-to-clarification-transformer';
@@ -170,7 +171,7 @@ export const ChatStartResponder = async ({
         );
       }
 
-      chatProcessState.remove({ processId: chatProcessId });
+      orchestrationProcessesState.remove({ processId: chatProcessId });
       orchestrationEventsState.emit({
         type: 'chat-complete',
         processId: chatProcessId,
@@ -178,7 +179,13 @@ export const ChatStartResponder = async ({
       });
     },
     registerProcess: ({ processId, kill }) => {
-      chatProcessState.register({ processId, kill });
+      orchestrationProcessesState.register({
+        orchestrationProcess: {
+          processId,
+          questId: chatQuestId ?? questIdContract.parse(`chat-${processId}`),
+          kill,
+        },
+      });
     },
   });
 };

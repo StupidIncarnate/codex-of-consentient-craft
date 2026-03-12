@@ -8,7 +8,7 @@
 
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
-import { chatProcessState } from '../../../state/chat-process/chat-process-state';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 
 export const ChatStopResponder = ({ chatProcessId }: { chatProcessId: ProcessId }): boolean =>
-  chatProcessState.kill({ processId: chatProcessId });
+  orchestrationProcessesState.kill({ processId: chatProcessId });

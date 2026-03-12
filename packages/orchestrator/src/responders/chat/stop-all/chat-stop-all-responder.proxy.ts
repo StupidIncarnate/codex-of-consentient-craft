@@ -1,16 +1,16 @@
-import { chatProcessStateProxy } from '../../../state/chat-process/chat-process-state.proxy';
+import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { ChatStopAllResponder } from './chat-stop-all-responder';
 
 export const ChatStopAllResponderProxy = (): {
   callResponder: typeof ChatStopAllResponder;
-  setupWithProcess: ReturnType<typeof chatProcessStateProxy>['setupWithProcess'];
-  setupEmpty: ReturnType<typeof chatProcessStateProxy>['setupEmpty'];
+  setupWithProcess: ReturnType<typeof orchestrationProcessesStateProxy>['setupWithProcessAndKill'];
+  setupEmpty: ReturnType<typeof orchestrationProcessesStateProxy>['setupEmpty'];
 } => {
-  const stateProxy = chatProcessStateProxy();
+  const stateProxy = orchestrationProcessesStateProxy();
 
   return {
     callResponder: ChatStopAllResponder,
-    setupWithProcess: stateProxy.setupWithProcess,
+    setupWithProcess: stateProxy.setupWithProcessAndKill,
     setupEmpty: stateProxy.setupEmpty,
   };
 };

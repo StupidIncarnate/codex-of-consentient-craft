@@ -4,9 +4,9 @@ import type { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
 import { chatSubagentTailBrokerProxy } from '../../../brokers/chat/subagent-tail/chat-subagent-tail-broker.proxy';
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';
-import { chatProcessStateProxy } from '../../../state/chat-process/chat-process-state.proxy';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
+import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { pendingClarificationStateProxy } from '../../../state/pending-clarification/pending-clarification-state.proxy';
 import { ChatStartResponder } from './chat-start-responder';
 
@@ -26,8 +26,7 @@ export const ChatStartResponderProxy = (): {
   setupResumeSession: (params: { exitCode: ExitCode; stdoutLines?: readonly string[] }) => void;
   setupQuestsPath: ReturnType<typeof questListBrokerProxy>['setupQuestsPath'];
   setupQuestDirectories: ReturnType<typeof questListBrokerProxy>['setupQuestDirectories'];
-  setupProcessWithProcess: ReturnType<typeof chatProcessStateProxy>['setupWithProcess'];
-  setupProcessEmpty: ReturnType<typeof chatProcessStateProxy>['setupEmpty'];
+  setupProcessEmpty: ReturnType<typeof orchestrationProcessesStateProxy>['setupEmpty'];
   setupPendingEmpty: ReturnType<typeof pendingClarificationStateProxy>['setupEmpty'];
   setupPendingWithSessionEntry: ReturnType<
     typeof pendingClarificationStateProxy
@@ -42,7 +41,7 @@ export const ChatStartResponderProxy = (): {
 } => {
   const spawnProxy = chatSpawnBrokerProxy();
   const questListProxy = questListBrokerProxy();
-  const processStateProxy = chatProcessStateProxy();
+  const processStateProxy = orchestrationProcessesStateProxy();
   const pendingProxy = pendingClarificationStateProxy();
   orchestrationEventsStateProxy();
   chatSubagentTailBrokerProxy();
@@ -57,7 +56,6 @@ export const ChatStartResponderProxy = (): {
     },
     setupQuestsPath: questListProxy.setupQuestsPath,
     setupQuestDirectories: questListProxy.setupQuestDirectories,
-    setupProcessWithProcess: processStateProxy.setupWithProcess,
     setupProcessEmpty: processStateProxy.setupEmpty,
     setupPendingEmpty: pendingProxy.setupEmpty,
     setupPendingWithSessionEntry: pendingProxy.setupWithSessionEntry,
