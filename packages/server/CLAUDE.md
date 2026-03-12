@@ -63,7 +63,7 @@ The server has two WS broadcast paths — they handle different event tiers:
 | **Outbox watcher** (`orchestratorOutboxWatchAdapter`) | `quest-modified`, `quest-created` | Tails `event-outbox.jsonl`, loads full quest, broadcasts to all WS clients |
 | **In-memory relay** (`orchestratorEventsOnAdapter` loop) | `chat-output`, `chat-complete`, `clarification-request`, etc. | Subscribes to `orchestrationEventsState` in-process events |
 
-The relay loop explicitly skips `quest-modified`, `quest-created`, and `agent-output` — those are handled by the outbox watcher (or not relayed at all for agent-output).
+The relay loop explicitly skips `quest-modified` and `quest-created` — those are handled by the outbox watcher. Pipeline `chat-output` events (those with `slotIndex` in the payload) are batched at 100ms before broadcasting. Chat `chat-output` events (without `slotIndex`) relay immediately.
 
 **Do NOT** add quest mutation events to the in-memory relay. All quest mutations go through the file outbox for cross-process support.
 

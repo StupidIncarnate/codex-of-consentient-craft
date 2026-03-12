@@ -1016,7 +1016,7 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasSpecPanel()).toBe(false);
     });
 
-    it('VALID: {quest with in_progress status, agent-output WS message} => renders execution messages in planning row', async () => {
+    it('VALID: {quest with in_progress status, chat-output WS message with slotIndex} => renders execution messages in planning row', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
@@ -1054,15 +1054,14 @@ describe('QuestChatWidget', () => {
       act(() => {
         proxy.receiveWsMessage({
           data: JSON.stringify({
-            type: 'agent-output',
+            type: 'chat-output',
             payload: {
               slotIndex: 0,
-              lines: [
-                JSON.stringify({
-                  type: 'assistant',
-                  message: { content: [{ type: 'text', text: 'Building auth guard...' }] },
-                }),
-              ],
+              entry: {
+                role: 'assistant',
+                type: 'text',
+                content: 'Building auth guard...',
+              },
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),

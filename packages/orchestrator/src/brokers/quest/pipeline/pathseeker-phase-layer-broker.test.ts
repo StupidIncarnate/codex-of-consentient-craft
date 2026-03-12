@@ -46,4 +46,59 @@ describe('pathseekerPhaseLayerBroker', () => {
       expect(phases).toStrictEqual(['pathseeker']);
     });
   });
+
+  describe('onAgentEntry callback', () => {
+    it('VALID: {agent emits lines with onAgentEntry provided} => fires callback with slotIndex 0 and raw entry', async () => {
+      const proxy = pathseekerPhaseLayerBrokerProxy();
+      const processId = ProcessIdStub({ value: 'proc-ps-3' });
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const phases: OrchestrationPhase[] = [];
+      const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
+        phases.push(phase);
+      };
+
+      type AgentEntryEvent = Parameters<
+        NonNullable<Parameters<typeof pathseekerPhaseLayerBroker>[0]['onAgentEntry']>
+      >[0];
+      const entries: AgentEntryEvent[] = [];
+      const onAgentEntry = (params: AgentEntryEvent): void => {
+        entries.push(params);
+      };
+
+      proxy.setupSpawnSuccessWithLines({ lines: ['line-one', 'line-two'] });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await pathseekerPhaseLayerBroker({
+        processId,
+        questId,
+        startPath,
+        onPhaseChange,
+        onAgentEntry,
+      });
+
+      expect(entries).toStrictEqual([
+        { slotIndex: 0, entry: { raw: 'line-one' } },
+        { slotIndex: 0, entry: { raw: 'line-two' } },
+      ]);
+    });
+
+    it('VALID: {no onAgentEntry provided} => completes without error', async () => {
+      const proxy = pathseekerPhaseLayerBrokerProxy();
+      const processId = ProcessIdStub({ value: 'proc-ps-4' });
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const phases: OrchestrationPhase[] = [];
+      const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
+        phases.push(phase);
+      };
+
+      proxy.setupSpawnSuccessWithLines({ lines: ['some-line'] });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await pathseekerPhaseLayerBroker({ processId, questId, startPath, onPhaseChange });
+
+      expect(phases).toStrictEqual(['pathseeker']);
+    });
+  });
 });

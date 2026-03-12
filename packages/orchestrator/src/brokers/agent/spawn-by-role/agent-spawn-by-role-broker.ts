@@ -9,20 +9,29 @@
  * // Returns { sessionId, exitCode, signal, crashed, timedOut }
  */
 
-import type { FilePath, SessionId } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  exitCodeContract,
+  type FilePath,
+  type SessionId,
+} from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import {
   agentSpawnStreamingResultContract,
   type AgentSpawnStreamingResult,
 } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
 import type { ContinuationContext } from '../../../contracts/continuation-context/continuation-context-contract';
 import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
+import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
+import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
+import type { StreamText } from '../../../contracts/stream-text/stream-text-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkUnit } from '../../../contracts/work-unit/work-unit-contract';
 import { roleToPromptTemplateTransformer } from '../../../transformers/role-to-prompt-template/role-to-prompt-template-transformer';
+import { signalFromStreamTransformer } from '../../../transformers/signal-from-stream/signal-from-stream-transformer';
+import { streamJsonToTextTransformer } from '../../../transformers/stream-json-to-text/stream-json-to-text-transformer';
 import { workUnitToArgumentsTransformer } from '../../../transformers/work-unit-to-arguments/work-unit-to-arguments-transformer';
-import { agentStreamMonitorBroker } from '../stream-monitor/agent-stream-monitor-broker';
+import { agentSpawnUnifiedBroker } from '../spawn-unified/agent-spawn-unified-broker';
 
 export const agentSpawnByRoleBroker = async ({
   workUnit,
@@ -50,17 +59,61 @@ export const agentSpawnByRoleBroker = async ({
   const prompt = promptTextContract.parse(promptText);
 
   try {
-    const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter({
-      prompt,
-      cwd: startPath,
-      ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
-    });
+    let lastSignal: StreamSignal | null = null;
+    let timedOut = false;
+    const outputLines: StreamText[] = [];
 
-    return await agentStreamMonitorBroker({
-      stdout,
-      process: childProcess,
-      timeoutMs,
-      ...(onLine === undefined ? {} : { onLine }),
+    return await new Promise<AgentSpawnStreamingResult>((resolve) => {
+      const timeout: { handle: ReturnType<typeof setTimeout> | null } = { handle: null };
+
+      const { kill } = agentSpawnUnifiedBroker({
+        prompt,
+        cwd: absoluteFilePathContract.parse(startPath),
+        ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
+        onLine: ({ line }) => {
+          onLine?.({ line });
+
+          const parseResult = streamJsonLineContract.safeParse(line);
+          if (!parseResult.success) {
+            return;
+          }
+          const parsedLine = parseResult.data;
+
+          const text = streamJsonToTextTransformer({ line: parsedLine });
+          if (text !== null) {
+            outputLines.push(text);
+          }
+
+          const signal = signalFromStreamTransformer({ line: parsedLine });
+          if (signal !== null) {
+            lastSignal = signal;
+          }
+        },
+        onComplete: ({ exitCode, sessionId }) => {
+          if (timeout.handle !== null) {
+            clearTimeout(timeout.handle);
+          }
+
+          const parsedExitCode = exitCode === null ? null : exitCodeContract.parse(exitCode);
+          const crashed = parsedExitCode !== null && parsedExitCode !== 0 && !timedOut;
+
+          resolve(
+            agentSpawnStreamingResultContract.parse({
+              sessionId,
+              exitCode: parsedExitCode,
+              signal: lastSignal,
+              crashed,
+              timedOut,
+              capturedOutput: outputLines,
+            }),
+          );
+        },
+      });
+
+      timeout.handle = setTimeout(() => {
+        timedOut = true;
+        kill();
+      }, timeoutMs);
     });
   } catch {
     return agentSpawnStreamingResultContract.parse({

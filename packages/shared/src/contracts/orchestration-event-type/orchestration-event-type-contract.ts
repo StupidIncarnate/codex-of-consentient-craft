@@ -12,7 +12,6 @@ export const orchestrationEventTypeContract = z.enum([
   'phase-change',
   'slot-update',
   'progress-update',
-  'agent-output',
   'process-complete',
   'process-failed',
   'chat-output',

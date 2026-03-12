@@ -111,25 +111,96 @@ describe('ServerInitResponder', () => {
     });
   });
 
-  describe('event subscription for non-agent-output', () => {
-    it('VALID: {phase-change event} => registers handler for event type', () => {
+  describe('event subscription', () => {
+    it('VALID: {chat-output with slotIndex} => buffers event, does not broadcast immediately', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
+
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      handler!({
+        processId: ProcessIdStub(),
+        payload: { slotIndex: 0, text: 'buffered' },
+      });
+
+      expect(client.send).not.toHaveBeenCalled();
+    });
+
+    it('VALID: {chat-output without slotIndex} => broadcasts immediately', () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
+
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      const processId = ProcessIdStub();
+      handler!({
+        processId,
+        payload: { text: 'immediate' },
+      });
+
+      expect(client.send).toHaveBeenCalledTimes(1);
+    });
+
+    it('VALID: {buffered chat-output events} => flush interval drains buffer and broadcasts', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
+
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      handler!({
+        processId: ProcessIdStub(),
+        payload: { slotIndex: 0, text: 'batch-1' },
+      });
+      handler!({
+        processId: ProcessIdStub(),
+        payload: { slotIndex: 1, text: 'batch-2' },
+      });
+
+      expect(client.send).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(100);
+      jest.useRealTimers();
+
+      expect(client.send).toHaveBeenCalledTimes(2);
+    });
+
+    it('EDGE: {empty buffer at flush interval} => no broadcast occurs', () => {
+      jest.useFakeTimers();
+
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
+
+      jest.advanceTimersByTime(100);
+      jest.useRealTimers();
+
+      expect(client.send).not.toHaveBeenCalled();
+    });
+
+    it('VALID: {phase-change event} => broadcasts immediately to connected client', () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
 
       const handler = proxy.getCapturedEventHandler({ type: 'phase-change' });
+      handler!({
+        processId: ProcessIdStub(),
+        payload: { phase: 'codeweaver' },
+      });
 
-      expect(handler).toBeDefined();
-    });
-  });
-
-  describe('event subscription for agent-output', () => {
-    it('VALID: {agent-output event} => registers handler for agent-output', () => {
-      const proxy = ServerInitResponderProxy();
-      proxy.callResponder();
-
-      const handler = proxy.getCapturedEventHandler({ type: 'agent-output' });
-
-      expect(handler).toBeDefined();
+      expect(client.send).toHaveBeenCalledTimes(1);
     });
   });
 

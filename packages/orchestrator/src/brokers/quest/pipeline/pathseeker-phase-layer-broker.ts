@@ -1,61 +1,56 @@
 /**
- * PURPOSE: Runs the pathseeker phase — spawns PathSeeker agent, monitors stdout, and waits for completion
+ * PURPOSE: Runs the pathseeker phase — spawns PathSeeker agent via unified broker and waits for completion
  *
  * USAGE:
- * await pathseekerPhaseLayerBroker({processId, questId, onPhaseChange});
+ * await pathseekerPhaseLayerBroker({processId, questId, startPath, onPhaseChange});
  * // Spawns PathSeeker agent to create step plan, streams output, waits for process exit
  */
 
 import type { FilePath, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
-import { readlineCreateInterfaceAdapter } from '../../../adapters/readline/create-interface/readline-create-interface-adapter';
+import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
-import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
-import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/pathseeker-prompt-statics';
+import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
+import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
+import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
+
+const PATHSEEKER_TIMEOUT_MS = 600000;
 
 export const pathseekerPhaseLayerBroker = async ({
   processId: _processId,
   questId,
   startPath,
   onPhaseChange,
-  onAgentLine,
+  onAgentEntry,
 }: {
   processId: ProcessId;
   questId: QuestId;
   startPath: FilePath;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
-  onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
+  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
 }): Promise<void> => {
   onPhaseChange({ phase: 'pathseeker' });
 
-  const promptText = pathseekerPromptStatics.prompt.template.replace(
-    pathseekerPromptStatics.prompt.placeholders.arguments,
-    `Quest ID: ${questId}`,
-  );
-
-  const prompt = promptTextContract.parse(promptText);
-  const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter({
-    prompt,
-    cwd: startPath,
+  const workUnit = workUnitContract.parse({
+    role: 'pathseeker',
+    questId,
   });
 
-  const slotIndex = 0 as SlotIndex;
-  const rl = readlineCreateInterfaceAdapter({ input: stdout });
+  const slotIndex = slotIndexContract.parse(0);
+  const timeoutMs = timeoutMsContract.parse(PATHSEEKER_TIMEOUT_MS);
 
-  rl.onLine(({ line }) => {
-    onAgentLine?.({ slotIndex, line });
-  });
-
-  await new Promise<void>((resolve, reject) => {
-    childProcess.on('exit', () => {
-      rl.close();
-      resolve();
-    });
-    childProcess.on('error', (error: Error) => {
-      rl.close();
-      reject(error);
-    });
+  await agentSpawnByRoleBroker({
+    workUnit,
+    timeoutMs,
+    startPath,
+    ...(onAgentEntry === undefined
+      ? {}
+      : {
+          onLine: ({ line }: { line: string }) => {
+            onAgentEntry({ slotIndex, entry: { raw: line } });
+          },
+        }),
   });
 };

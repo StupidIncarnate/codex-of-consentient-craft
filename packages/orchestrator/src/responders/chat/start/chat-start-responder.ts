@@ -11,6 +11,7 @@ import type { GuildId, ProcessId, QuestId, SessionId } from '@dungeonmaster/shar
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { chatSubagentTailBroker } from '../../../brokers/chat/subagent-tail/chat-subagent-tail-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
+import { chatRoleContract } from '../../../contracts/chat-role/chat-role-contract';
 import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import { chatProcessState } from '../../../state/chat-process/chat-process-state';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
@@ -59,6 +60,7 @@ export const ChatStartResponder = async ({
   const subagentStopHandles: (() => void)[] = [];
 
   return chatSpawnBroker({
+    role: chatRoleContract.parse('chaoswhisperer'),
     guildId,
     message,
     processor,

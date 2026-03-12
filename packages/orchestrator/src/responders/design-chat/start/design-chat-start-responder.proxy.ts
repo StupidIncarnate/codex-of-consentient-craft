@@ -1,7 +1,7 @@
 import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
 import type { ExitCodeStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
-import { designChatSpawnBrokerProxy } from '../../../brokers/design-chat/spawn/design-chat-spawn-broker.proxy';
+import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
 import { chatProcessStateProxy } from '../../../state/chat-process/chat-process-state.proxy';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
@@ -35,7 +35,7 @@ export const DesignChatStartResponderProxy = (): {
     }[];
   };
 } => {
-  const spawnProxy = designChatSpawnBrokerProxy();
+  const spawnProxy = chatSpawnBrokerProxy();
   const processStateProxy = chatProcessStateProxy();
   orchestrationEventsStateProxy();
 
@@ -43,7 +43,11 @@ export const DesignChatStartResponderProxy = (): {
     callResponder: DesignChatStartResponder,
 
     setupDesignSession: ({ exitCode, quest, stdoutLines }): void => {
-      spawnProxy.setupDesignSession({ exitCode, quest, ...(stdoutLines && { stdoutLines }) });
+      spawnProxy.setupGlyphsmithSession({
+        exitCode,
+        quest,
+        ...(stdoutLines && { stdoutLines }),
+      });
     },
 
     setupQuestNotFound: (): void => {

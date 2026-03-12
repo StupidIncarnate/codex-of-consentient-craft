@@ -108,8 +108,8 @@ describe('OrchestrationStartResponder', () => {
     });
   });
 
-  describe('onAgentLine events', () => {
-    it('VALID: {questId with approved quest} => passes onAgentLine that emits to orchestrationEventsState', async () => {
+  describe('onAgentEntry events', () => {
+    it('VALID: {questId with approved quest} => passes onAgentEntry that emits to orchestrationEventsState', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved', steps: [] });
       const questJson = JSON.stringify(quest);

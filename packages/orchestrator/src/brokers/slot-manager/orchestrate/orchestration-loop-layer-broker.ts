@@ -13,6 +13,7 @@ import type { AgentRole } from '../../../contracts/agent-role/agent-role-contrac
 import { agentRoleContract } from '../../../contracts/agent-role/agent-role-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
+import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
@@ -37,7 +38,7 @@ export const orchestrationLoopLayerBroker = async ({
   role,
   activeAgents,
   startPath,
-  onAgentLine,
+  onAgentEntry,
 }: {
   questFilePath: FilePath;
   slotCount: SlotCount;
@@ -46,7 +47,7 @@ export const orchestrationLoopLayerBroker = async ({
   role: AgentRole;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
-  onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
+  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
 }): Promise<LoopResult> => {
   const quest = await questLoadBroker({ questFilePath });
 
@@ -84,11 +85,11 @@ export const orchestrationLoopLayerBroker = async ({
         workUnit,
         timeoutMs,
         startPath,
-        ...(onAgentLine === undefined
+        ...(onAgentEntry === undefined
           ? {}
           : {
               onLine: ({ line }: { line: string }) => {
-                onAgentLine({ slotIndex: availableSlotIndex, line });
+                onAgentEntry({ slotIndex: availableSlotIndex, entry: { raw: line } });
               },
             }),
       });
@@ -142,11 +143,11 @@ export const orchestrationLoopLayerBroker = async ({
           timeoutMs,
           startPath,
           ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
-          ...(onAgentLine === undefined
+          ...(onAgentEntry === undefined
             ? {}
             : {
                 onLine: ({ line }: { line: string }) => {
-                  onAgentLine({ slotIndex: newSlotIndex, line });
+                  onAgentEntry({ slotIndex: newSlotIndex, entry: { raw: line } });
                 },
               }),
         });
@@ -209,11 +210,11 @@ export const orchestrationLoopLayerBroker = async ({
             startPath,
             ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
             ...(continuationContext === null ? {} : { continuationContext }),
-            ...(onAgentLine === undefined
+            ...(onAgentEntry === undefined
               ? {}
               : {
                   onLine: ({ line }: { line: string }) => {
-                    onAgentLine({ slotIndex: newSlotIndex, line });
+                    onAgentEntry({ slotIndex: newSlotIndex, entry: { raw: line } });
                   },
                 }),
           });
@@ -246,11 +247,11 @@ export const orchestrationLoopLayerBroker = async ({
             workUnit,
             timeoutMs,
             startPath,
-            ...(onAgentLine === undefined
+            ...(onAgentEntry === undefined
               ? {}
               : {
                   onLine: ({ line }: { line: string }) => {
-                    onAgentLine({ slotIndex: newSlotIndex, line });
+                    onAgentEntry({ slotIndex: newSlotIndex, entry: { raw: line } });
                   },
                 }),
           });

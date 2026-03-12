@@ -1,5 +1,5 @@
 /**
- * PURPOSE: React hook that parses raw agent output lines into ChatEntry[] and manages state per execution slot
+ * PURPOSE: React hook that manages pre-parsed ChatEntry[] per execution slot
  *
  * USAGE:
  * const {slotEntries, handleAgentOutput, clearOutput} = useAgentOutputBinding();
@@ -7,35 +7,22 @@
  */
 import { useCallback, useState } from 'react';
 
-import type { AgentOutputLine } from '../../contracts/agent-output-line/agent-output-line-contract';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 import { agentOutputState } from '../../state/agent-output/agent-output-state';
-import { streamJsonToChatEntryTransformer } from '../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 
 export const useAgentOutputBinding = (): {
   slotEntries: Map<SlotIndex, ChatEntry[]>;
-  handleAgentOutput: (params: { slotIndex: SlotIndex; lines: AgentOutputLine[] }) => void;
+  handleAgentOutput: (params: { slotIndex: SlotIndex; entries: ChatEntry[] }) => void;
   clearOutput: () => void;
 } => {
   const [slotEntries, setSlotEntries] = useState<Map<SlotIndex, ChatEntry[]>>(new Map());
 
   const handleAgentOutput = useCallback(
-    ({ slotIndex, lines }: { slotIndex: SlotIndex; lines: AgentOutputLine[] }): void => {
-      const allEntries: ChatEntry[] = [];
+    ({ slotIndex, entries }: { slotIndex: SlotIndex; entries: ChatEntry[] }): void => {
+      if (entries.length === 0) return;
 
-      for (const line of lines) {
-        try {
-          const { entries } = streamJsonToChatEntryTransformer({ line });
-          allEntries.push(...entries);
-        } catch {
-          // Skip malformed lines
-        }
-      }
-
-      if (allEntries.length > 0) {
-        agentOutputState.append({ slotIndex, entries: allEntries });
-      }
+      agentOutputState.append({ slotIndex, entries });
       setSlotEntries(agentOutputState.getAll());
     },
     [],

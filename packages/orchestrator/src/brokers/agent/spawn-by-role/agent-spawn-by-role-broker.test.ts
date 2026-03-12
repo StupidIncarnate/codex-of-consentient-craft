@@ -1,8 +1,10 @@
 import {
+  AssistantTextStreamLineStub,
   DependencyStepStub,
   ExitCodeStub,
   FilePathStub,
   SessionIdStub,
+  StepIdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ContinuationContextStub } from '../../../contracts/continuation-context/continuation-context.stub';
@@ -26,7 +28,7 @@ const makeSessionIdLine = ({ sessionId }: { sessionId: SessionId }) =>
 
 describe('agentSpawnByRoleBroker', () => {
   describe('successful spawn', () => {
-    it('VALID: {codeweaver workUnit} => returns monitor result with session ID', async () => {
+    it('VALID: {codeweaver workUnit} => returns result with session ID', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
@@ -183,7 +185,7 @@ describe('agentSpawnByRoleBroker', () => {
   });
 
   describe('resume session', () => {
-    it('VALID: {resumeSessionId provided} => passes session ID to spawn adapter', async () => {
+    it('VALID: {resumeSessionId provided} => passes session ID to spawn', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
@@ -236,6 +238,153 @@ describe('agentSpawnByRoleBroker', () => {
         sessionId: null,
         exitCode: null,
       });
+    });
+  });
+
+  describe('timeout', () => {
+    it('VALID: {very small timeoutMs} => returns timedOut true', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ step });
+      const timeoutMs = TimeoutMsStub({ value: 1 });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      proxy.setupSpawnExitOnKill({ lines: [], exitCode: null });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+
+      expect(result).toStrictEqual({
+        sessionId: null,
+        exitCode: null,
+        signal: null,
+        crashed: false,
+        timedOut: true,
+        capturedOutput: [],
+      });
+    });
+  });
+
+  describe('crash exit', () => {
+    it('VALID: {process exits with code 1} => returns crashed true', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ step });
+      const timeoutMs = TimeoutMsStub({ value: 60000 });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 1 }),
+      });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+
+      expect(result).toStrictEqual({
+        sessionId: null,
+        exitCode: 1,
+        signal: null,
+        crashed: true,
+        timedOut: false,
+        capturedOutput: [],
+      });
+    });
+  });
+
+  describe('signal extraction', () => {
+    it('VALID: {stdout emits signal-back tool use line} => returns signal in result', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ step });
+      const timeoutMs = TimeoutMsStub({ value: 60000 });
+      const startPath = FilePathStub({ value: '/project/src' });
+      const stepId = StepIdStub();
+
+      const signalLine = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: {
+                signal: 'complete',
+                stepId,
+                summary: 'All done',
+              },
+            },
+          ],
+        },
+      });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [signalLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+
+      expect(result).toStrictEqual({
+        sessionId: null,
+        exitCode: 0,
+        signal: {
+          signal: 'complete',
+          stepId,
+          summary: 'All done',
+        },
+        crashed: false,
+        timedOut: false,
+        capturedOutput: [],
+      });
+    });
+  });
+
+  describe('text capture', () => {
+    it('VALID: {stdout emits assistant text line} => returns capturedOutput with text', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ step });
+      const timeoutMs = TimeoutMsStub({ value: 60000 });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const textLine = JSON.stringify(AssistantTextStreamLineStub());
+
+      proxy.setupSpawnAndMonitor({
+        lines: [textLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+
+      expect(result).toStrictEqual({
+        sessionId: null,
+        exitCode: 0,
+        signal: null,
+        crashed: false,
+        timedOut: false,
+        capturedOutput: ['Hello, I can help with that.'],
+      });
+    });
+  });
+
+  describe('onLine forwarding', () => {
+    it('VALID: {onLine callback provided, stdout emits lines} => callback receives lines', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ step });
+      const timeoutMs = TimeoutMsStub({ value: 60000 });
+      const startPath = FilePathStub({ value: '/project/src' });
+      const onLine = jest.fn();
+      const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [sessionLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath, onLine });
+
+      expect(onLine).toHaveBeenCalledTimes(1);
+      expect(onLine.mock.calls[0][0]).toStrictEqual({ line: sessionLine });
     });
   });
 });

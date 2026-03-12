@@ -14,7 +14,7 @@ import { Box, Text } from '@mantine/core';
 import type { QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
-import { agentOutputLineContract } from '../../contracts/agent-output-line/agent-output-line-contract';
+import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
 
 import { useAgentOutputBinding } from '../../bindings/use-agent-output/use-agent-output-binding';
@@ -142,18 +142,17 @@ export const QuestChatWidget = (): React.JSX.Element => {
       onMessage: (message: unknown): void => {
         const parsed = wsMessageContract.safeParse(message);
         if (!parsed.success) return;
-        if (parsed.data.type !== 'agent-output') return;
+        if (parsed.data.type !== 'chat-output') return;
 
         const rawSlotIndex: unknown = Reflect.get(parsed.data.payload, 'slotIndex');
-        const rawLines: unknown = Reflect.get(parsed.data.payload, 'lines');
-
         const slotIndexParsed = slotIndexContract.safeParse(rawSlotIndex);
         if (!slotIndexParsed.success) return;
 
-        const linesParsed = agentOutputLineContract.array().safeParse(rawLines);
-        if (!linesParsed.success) return;
+        const rawEntry: unknown = Reflect.get(parsed.data.payload, 'entry');
+        const entryParsed = chatEntryContract.safeParse(rawEntry);
+        if (!entryParsed.success) return;
 
-        handleAgentOutput({ slotIndex: slotIndexParsed.data, lines: linesParsed.data });
+        handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: [entryParsed.data] });
       },
     });
 

@@ -1,6 +1,6 @@
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { AgentOutputLineStub } from '../../contracts/agent-output-line/agent-output-line.stub';
+import { AssistantTextChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
 import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
 
 import { useAgentOutputBinding } from './use-agent-output-binding';
@@ -21,16 +21,11 @@ describe('useAgentOutputBinding', () => {
   });
 
   describe('handleAgentOutput', () => {
-    it('VALID: {slotIndex, lines with valid JSONL} => parses and appends entries to slot', () => {
+    it('VALID: {slotIndex, entries with pre-parsed ChatEntry} => appends entries to slot', () => {
       const proxy = useAgentOutputBindingProxy();
       proxy.setupEmpty();
       const slotIndex = SlotIndexStub({ value: 0 });
-      const line = AgentOutputLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: { content: [{ type: 'text', text: 'Building...' }] },
-        }),
-      });
+      const entry = AssistantTextChatEntryStub({ content: 'Building...' });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useAgentOutputBinding(),
@@ -38,20 +33,21 @@ describe('useAgentOutputBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.handleAgentOutput({ slotIndex, lines: [line] });
+          result.current.handleAgentOutput({ slotIndex, entries: [entry] });
         },
       });
 
       const entries = result.current.slotEntries.get(slotIndex);
 
-      expect(entries).toBeDefined();
-      expect(entries!.length).toBeGreaterThan(0);
+      expect(entries).toStrictEqual([entry]);
     });
 
     it('VALID: {multiple calls} => accumulates entries', () => {
       const proxy = useAgentOutputBindingProxy();
       proxy.setupEmpty();
       const slotIndex = SlotIndexStub({ value: 0 });
+      const entry1 = AssistantTextChatEntryStub({ content: 'line 1' });
+      const entry2 = AssistantTextChatEntryStub({ content: 'line 2' });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useAgentOutputBinding(),
@@ -59,40 +55,37 @@ describe('useAgentOutputBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.handleAgentOutput({
-            slotIndex,
-            lines: [
-              AgentOutputLineStub({
-                value: JSON.stringify({
-                  type: 'assistant',
-                  message: { content: [{ type: 'text', text: 'line 1' }] },
-                }),
-              }),
-            ],
-          });
+          result.current.handleAgentOutput({ slotIndex, entries: [entry1] });
         },
       });
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.handleAgentOutput({
-            slotIndex,
-            lines: [
-              AgentOutputLineStub({
-                value: JSON.stringify({
-                  type: 'assistant',
-                  message: { content: [{ type: 'text', text: 'line 2' }] },
-                }),
-              }),
-            ],
-          });
+          result.current.handleAgentOutput({ slotIndex, entries: [entry2] });
         },
       });
 
       const entries = result.current.slotEntries.get(slotIndex);
 
-      expect(entries).toBeDefined();
-      expect(entries!).toHaveLength(2);
+      expect(entries).toStrictEqual([entry1, entry2]);
+    });
+
+    it('EMPTY: {empty entries array} => does not update state', () => {
+      const proxy = useAgentOutputBindingProxy();
+      proxy.setupEmpty();
+      const slotIndex = SlotIndexStub({ value: 0 });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useAgentOutputBinding(),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.handleAgentOutput({ slotIndex, entries: [] });
+        },
+      });
+
+      expect(result.current.slotEntries.size).toBe(0);
     });
   });
 
@@ -101,6 +94,7 @@ describe('useAgentOutputBinding', () => {
       const proxy = useAgentOutputBindingProxy();
       proxy.setupEmpty();
       const slotIndex = SlotIndexStub({ value: 0 });
+      const entry = AssistantTextChatEntryStub({ content: 'some output' });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useAgentOutputBinding(),
@@ -108,17 +102,7 @@ describe('useAgentOutputBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.handleAgentOutput({
-            slotIndex,
-            lines: [
-              AgentOutputLineStub({
-                value: JSON.stringify({
-                  type: 'assistant',
-                  message: { content: [{ type: 'text', text: 'some output' }] },
-                }),
-              }),
-            ],
-          });
+          result.current.handleAgentOutput({ slotIndex, entries: [entry] });
         },
       });
 

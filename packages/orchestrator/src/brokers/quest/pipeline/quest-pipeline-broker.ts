@@ -13,6 +13,7 @@ import {
   type QuestId,
 } from '@dungeonmaster/shared/contracts';
 
+import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import { codeweaverPhaseLayerBroker } from './codeweaver-phase-layer-broker';
@@ -27,14 +28,14 @@ export const questPipelineBroker = async ({
   questFilePath,
   startPath,
   onPhaseChange,
-  onAgentLine,
+  onAgentEntry,
 }: {
   processId: ProcessId;
   questId: QuestId;
   questFilePath: FilePath;
   startPath: FilePath;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
-  onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
+  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
 }): Promise<void> => {
   try {
     await pathseekerPhaseLayerBroker({
@@ -42,14 +43,14 @@ export const questPipelineBroker = async ({
       questId,
       startPath,
       onPhaseChange,
-      ...(onAgentLine === undefined ? {} : { onAgentLine }),
+      ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     });
     await codeweaverPhaseLayerBroker({
       questId,
       questFilePath,
       startPath,
       onPhaseChange,
-      ...(onAgentLine === undefined ? {} : { onAgentLine }),
+      ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     });
     const absoluteStartPath = absoluteFilePathContract.parse(startPath);
     await wardPhaseLayerBroker({ questFilePath, startPath: absoluteStartPath, onPhaseChange });

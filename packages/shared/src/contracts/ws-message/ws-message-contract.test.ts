@@ -23,15 +23,6 @@ describe('wsMessageContract', () => {
       expect(message.payload).toStrictEqual({ slotId: 0, status: 'running' });
     });
 
-    it('VALID: {type: agent-output} => parses agent-output type', () => {
-      const message = WsMessageStub({
-        type: 'agent-output',
-        payload: { slotId: 1, line: 'Processing step 3...' },
-      });
-
-      expect(message.type).toBe('agent-output');
-    });
-
     it('VALID: {type: progress-update} => parses progress-update type', () => {
       const message = WsMessageStub({
         type: 'progress-update',

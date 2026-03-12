@@ -10,6 +10,7 @@ import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
+import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
@@ -23,7 +24,7 @@ export const slotManagerOrchestrateBroker = async ({
   slotOperations,
   role,
   startPath,
-  onAgentLine,
+  onAgentEntry,
 }: {
   questFilePath: FilePath;
   slotCount: SlotCount;
@@ -31,7 +32,7 @@ export const slotManagerOrchestrateBroker = async ({
   slotOperations: SlotOperations;
   role: AgentRole;
   startPath: FilePath;
-  onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
+  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
 }): Promise<SlotManagerResult> => {
   const result = await runOrchestrationLayerBroker({
     questFilePath,
@@ -41,7 +42,7 @@ export const slotManagerOrchestrateBroker = async ({
     role,
     activeAgents: [],
     startPath,
-    ...(onAgentLine === undefined ? {} : { onAgentLine }),
+    ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
   });
   return result;
 };

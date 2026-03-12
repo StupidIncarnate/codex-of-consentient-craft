@@ -8,7 +8,8 @@
 
 import type { GuildId, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { designChatSpawnBroker } from '../../../brokers/design-chat/spawn/design-chat-spawn-broker';
+import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
+import { chatRoleContract } from '../../../contracts/chat-role/chat-role-contract';
 import { chatProcessState } from '../../../state/chat-process/chat-process-state';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
@@ -24,7 +25,8 @@ export const DesignChatStartResponder = async ({
 }): Promise<{ chatProcessId: ProcessId }> => {
   const processor = chatLineProcessTransformer();
 
-  return designChatSpawnBroker({
+  return chatSpawnBroker({
+    role: chatRoleContract.parse('glyphsmith'),
     guildId,
     questId,
     message,

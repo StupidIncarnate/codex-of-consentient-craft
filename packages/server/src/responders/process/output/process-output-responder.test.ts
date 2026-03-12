@@ -1,29 +1,11 @@
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
-import { AgentOutputLineStub } from '../../../contracts/agent-output-line/agent-output-line.stub';
-import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 import { ProcessOutputResponderProxy } from './process-output-responder.proxy';
 
 describe('ProcessOutputResponder', () => {
   describe('successful output retrieval', () => {
-    it('VALID: {valid processId with output} => returns 200 with slots', () => {
+    it('VALID: {valid processId} => returns 200 with empty slots', () => {
       const proxy = ProcessOutputResponderProxy();
       const processId = ProcessIdStub();
-      const slotIndex = SlotIndexStub({ value: 0 });
-      const line = AgentOutputLineStub();
-      proxy.setupOutput({ processId, slotIndex, lines: [line] });
-
-      const result = proxy.callResponder({ params: { processId } });
-
-      expect(result).toStrictEqual({
-        status: 200,
-        data: { slots: { [slotIndex]: [line] } },
-      });
-    });
-
-    it('EMPTY: {valid processId with no output} => returns 200 with empty slots', () => {
-      const proxy = ProcessOutputResponderProxy();
-      const processId = ProcessIdStub();
-      proxy.setupNoOutput();
 
       const result = proxy.callResponder({ params: { processId } });
 

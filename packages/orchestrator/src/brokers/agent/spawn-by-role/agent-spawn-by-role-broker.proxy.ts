@@ -1,15 +1,15 @@
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnStreamJsonAdapterProxy } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.proxy';
-import { agentStreamMonitorBrokerProxy } from '../stream-monitor/agent-stream-monitor-broker.proxy';
+import { agentSpawnUnifiedBrokerProxy } from '../spawn-unified/agent-spawn-unified-broker.proxy';
 
 export const agentSpawnByRoleBrokerProxy = (): {
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnFailure: () => void;
   setupSpawnFailureOnce: () => void;
+  setupSpawnExitOnKill: (params: { lines: readonly string[]; exitCode: ExitCode | null }) => void;
 } => {
-  const monitorProxy = agentStreamMonitorBrokerProxy();
-  const spawnProxy = childProcessSpawnStreamJsonAdapterProxy();
+  const unifiedProxy = agentSpawnUnifiedBrokerProxy();
 
   return {
     setupSpawnAndMonitor: ({
@@ -19,20 +19,44 @@ export const agentSpawnByRoleBrokerProxy = (): {
       lines: readonly string[];
       exitCode: ExitCode;
     }): void => {
-      // Use monitor proxy for readline line emission (shared readline mock)
-      monitorProxy.setupStreamAndExit({ lines, exitCode });
+      // Set default config so all spawn calls auto-exit with this exitCode
+      unifiedProxy.setupSuccessConfig({ exitCode });
 
-      // Use spawn proxy so spawn() returns a mock ChildProcess
-      // The spawn mock's process handles exit event scheduling via setupSuccess
-      spawnProxy.setupSuccess({ exitCode });
+      // Emit lines through readline mock so unified broker's onLine handler processes them
+      if (lines.length > 0) {
+        setImmediate(() => {
+          unifiedProxy.emitLines({ lines });
+        });
+      }
+    },
+
+    setupSpawnOnce: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      // Use mockReturnValueOnce so this spawn takes priority over later mockImplementation calls
+      unifiedProxy.setupSpawnAndEmitLines({ lines, exitCode });
     },
 
     setupSpawnFailure: (): void => {
-      spawnProxy.setupSpawnThrow({ error: new Error('spawn claude ENOENT') });
+      unifiedProxy.setupSpawnThrow({ error: new Error('spawn claude ENOENT') });
     },
 
     setupSpawnFailureOnce: (): void => {
-      spawnProxy.setupSpawnThrowOnce({ error: new Error('spawn claude ENOENT') });
+      unifiedProxy.setupSpawnThrowOnce({ error: new Error('spawn claude ENOENT') });
+    },
+
+    setupSpawnExitOnKill: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode | null;
+    }): void => {
+      unifiedProxy.setupSpawnExitOnKill({ lines, exitCode });
     },
   };
 };

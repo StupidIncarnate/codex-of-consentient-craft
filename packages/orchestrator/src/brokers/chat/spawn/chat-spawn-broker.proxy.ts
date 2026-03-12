@@ -1,31 +1,32 @@
-import type { ExitCodeStub } from '@dungeonmaster/shared/contracts';
-import {
-  GuildConfigStub,
-  GuildStub,
-  GuildIdStub,
-  FilePathStub,
-} from '@dungeonmaster/shared/contracts';
+import type { ExitCodeStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { GuildConfigStub, GuildStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnStreamJsonAdapterProxy } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.proxy';
-import { readlineCreateInterfaceAdapterProxy } from '../../../adapters/readline/create-interface/readline-create-interface-adapter.proxy';
-import { questAddBrokerProxy } from '../../quest/add/quest-add-broker.proxy';
+import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
+import { designSessionWriteLayerBrokerProxy } from './design-session-write-layer-broker.proxy';
 import { questSessionWriteLayerBrokerProxy } from './quest-session-write-layer-broker.proxy';
+import { resolveQuestLayerBrokerProxy } from './resolve-quest-layer-broker.proxy';
 
 type ExitCode = ReturnType<typeof ExitCodeStub>;
+type Quest = ReturnType<typeof QuestStub>;
 
 export const chatSpawnBrokerProxy = (): {
   setupNewSession: (params: { exitCode: ExitCode; stdoutLines?: readonly string[] }) => void;
   setupResumeSession: (params: { exitCode: ExitCode; stdoutLines?: readonly string[] }) => void;
   setupQuestCreationFailure: () => void;
-  emitLines: (params: { lines: readonly string[] }) => void;
-  getSpawnedArgs: () => unknown;
+  setupGlyphsmithSession: (params: {
+    exitCode: ExitCode;
+    quest: Quest;
+    stdoutLines?: readonly string[];
+  }) => void;
+  setupQuestNotFound: () => void;
+  setupInvalidStatus: (params: { quest: Quest }) => void;
 } => {
-  const spawnProxy = childProcessSpawnStreamJsonAdapterProxy();
-  const rlProxy = readlineCreateInterfaceAdapterProxy();
-  const questProxy = questAddBrokerProxy();
+  const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
+  const resolveProxy = resolveQuestLayerBrokerProxy();
   questSessionWriteLayerBrokerProxy();
+  designSessionWriteLayerBrokerProxy();
 
   jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
@@ -41,9 +42,10 @@ export const chatSpawnBrokerProxy = (): {
       exitCode: ExitCode;
       stdoutLines?: readonly string[];
     }): void => {
-      spawnProxy.setupSuccess({
+      resolveProxy.setupQuestCreation();
+      unifiedProxy.setupSpawnAndEmitLines({
+        lines: stdoutLines ?? [],
         exitCode,
-        ...(stdoutLines && { stdoutData: stdoutLines as never }),
       });
     },
 
@@ -54,26 +56,38 @@ export const chatSpawnBrokerProxy = (): {
       exitCode: ExitCode;
       stdoutLines?: readonly string[];
     }): void => {
-      spawnProxy.setupSuccess({
+      unifiedProxy.setupSpawnAndEmitLines({
+        lines: stdoutLines ?? [],
         exitCode,
-        ...(stdoutLines && { stdoutData: stdoutLines as never }),
       });
     },
 
     setupQuestCreationFailure: (): void => {
-      const questsFolderPath = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/guilds/quests',
-      });
-      questProxy.setupQuestCreationFailure({
-        questsFolderPath,
-        error: new Error('mkdir failed'),
+      resolveProxy.setupQuestCreationFailure();
+    },
+
+    setupGlyphsmithSession: ({
+      exitCode,
+      quest,
+      stdoutLines,
+    }: {
+      exitCode: ExitCode;
+      quest: Quest;
+      stdoutLines?: readonly string[];
+    }): void => {
+      resolveProxy.setupQuestFound({ quest });
+      unifiedProxy.setupSpawnAndEmitLines({
+        lines: stdoutLines ?? [],
+        exitCode,
       });
     },
 
-    emitLines: ({ lines }: { lines: readonly string[] }): void => {
-      rlProxy.emitLines({ lines });
+    setupQuestNotFound: (): void => {
+      resolveProxy.setupQuestNotFound();
     },
 
-    getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
+    setupInvalidStatus: ({ quest }: { quest: Quest }): void => {
+      resolveProxy.setupQuestFound({ quest });
+    },
   };
 };

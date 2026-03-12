@@ -2,7 +2,7 @@
  * PURPOSE: Resolves quest file path and guild start path, then launches the quest pipeline
  *
  * USAGE:
- * await questPipelineLaunchBroker({ processId, questId, onPhaseChange, onAgentLine });
+ * await questPipelineLaunchBroker({ processId, questId, onPhaseChange, onAgentEntry });
  * // Finds quest path, gets guild, launches pipeline with resolved paths
  */
 
@@ -10,6 +10,7 @@ import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
+import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
@@ -22,12 +23,12 @@ export const questPipelineLaunchBroker = async ({
   processId,
   questId,
   onPhaseChange,
-  onAgentLine,
+  onAgentEntry,
 }: {
   processId: ProcessId;
   questId: QuestId;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
-  onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
+  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
 }): Promise<void> => {
   const { questPath, guildId } = await questFindQuestPathBroker({ questId });
   const questFilePath = filePathContract.parse(
@@ -42,6 +43,6 @@ export const questPipelineLaunchBroker = async ({
     questFilePath,
     startPath,
     onPhaseChange,
-    ...(onAgentLine === undefined ? {} : { onAgentLine }),
+    ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
   });
 };

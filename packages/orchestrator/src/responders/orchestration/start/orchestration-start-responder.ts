@@ -84,11 +84,11 @@ export const OrchestrationStartResponder = async ({
     onPhaseChange: ({ phase }) => {
       orchestrationProcessesState.updatePhase({ processId, phase });
     },
-    onAgentLine: ({ slotIndex, line }) => {
+    onAgentEntry: ({ slotIndex, entry }) => {
       orchestrationEventsState.emit({
-        type: 'agent-output',
+        type: 'chat-output',
         processId,
-        payload: { processId, slotIndex, line },
+        payload: { processId, slotIndex, entry },
       });
     },
   }).catch(() => {

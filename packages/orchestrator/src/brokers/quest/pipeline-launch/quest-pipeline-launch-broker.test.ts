@@ -36,8 +36,8 @@ describe('questPipelineLaunchBroker', () => {
     });
   });
 
-  describe('onAgentLine passthrough', () => {
-    it('VALID: {onAgentLine provided} => passes onAgentLine to pipeline broker without error', async () => {
+  describe('onAgentEntry passthrough', () => {
+    it('VALID: {onAgentEntry provided} => passes onAgentEntry to pipeline broker without error', async () => {
       const proxy = questPipelineLaunchBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved', steps: [] });
@@ -54,13 +54,13 @@ describe('questPipelineLaunchBroker', () => {
         onPhaseChange: ({ phase }) => {
           phases.push(phase);
         },
-        onAgentLine: () => undefined,
+        onAgentEntry: () => undefined,
       });
 
       expect(phases[phases.length - 1]).toBe('complete');
     });
 
-    it('VALID: {onAgentLine undefined} => launches pipeline without onAgentLine', async () => {
+    it('VALID: {onAgentEntry undefined} => launches pipeline without onAgentEntry', async () => {
       const proxy = questPipelineLaunchBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved', steps: [] });

@@ -1,32 +1,23 @@
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnStreamJsonAdapterProxy } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.proxy';
-import { readlineCreateInterfaceAdapterProxy } from '../../../adapters/readline/create-interface/readline-create-interface-adapter.proxy';
+import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
 
 export const pathseekerPhaseLayerBrokerProxy = (): {
   setupSpawnSuccess: () => void;
+  setupSpawnSuccessWithLines: (params: { lines: readonly string[] }) => void;
   setupSpawnFailure: () => void;
 } => {
-  const readlineProxy = readlineCreateInterfaceAdapterProxy();
-  const spawnProxy = childProcessSpawnStreamJsonAdapterProxy();
+  const spawnProxy = agentSpawnByRoleBrokerProxy();
 
   return {
     setupSpawnSuccess: (): void => {
-      const exitCode = ExitCodeStub({ value: 0 });
-      spawnProxy.setupSuccess({ exitCode });
-      // Queue a mockReturnValueOnce so this takes precedence over other proxies' mockImplementation
-      spawnProxy.setupSpawn();
-      setImmediate(() => {
-        readlineProxy.emitLines({ lines: [] });
-      });
+      spawnProxy.setupSpawnOnce({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
+    },
+    setupSpawnSuccessWithLines: ({ lines }: { lines: readonly string[] }): void => {
+      spawnProxy.setupSpawnOnce({ lines, exitCode: ExitCodeStub({ value: 0 }) });
     },
     setupSpawnFailure: (): void => {
-      const exitCode = ExitCodeStub({ value: 1 });
-      spawnProxy.setupSuccess({ exitCode });
-      spawnProxy.setupSpawn();
-      setImmediate(() => {
-        readlineProxy.emitLines({ lines: [] });
-      });
+      spawnProxy.setupSpawnOnce({ lines: [], exitCode: ExitCodeStub({ value: 1 }) });
     },
   };
 };

@@ -12,7 +12,6 @@ describe('orchestrationEventTypeContract', () => {
     'phase-change',
     'slot-update',
     'progress-update',
-    'agent-output',
     'process-complete',
     'process-failed',
     'chat-output',
