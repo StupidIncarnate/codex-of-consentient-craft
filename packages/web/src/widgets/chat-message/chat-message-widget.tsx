@@ -25,6 +25,7 @@ export interface ChatMessageWidgetProps {
   entry: ChatEntry;
   isLoading?: boolean;
   tokenBadgeLabel?: FormattedTokenLabel;
+  compact?: boolean;
 }
 
 const BORDER_WIDTH = '2px solid';
@@ -34,6 +35,7 @@ export const ChatMessageWidget = ({
   entry,
   isLoading,
   tokenBadgeLabel,
+  compact,
 }: ChatMessageWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const isSubagent = 'source' in entry && entry.source === 'subagent';
@@ -229,7 +231,7 @@ export const ChatMessageWidget = ({
           borderLeft: `${BORDER_WIDTH} ${textBorderColor}`,
           borderRight: `${BORDER_WIDTH} ${textBorderColor}`,
           textAlign: 'left',
-          paddingLeft: '15%',
+          ...(compact === true ? {} : { paddingLeft: '15%' }),
         }}
       >
         <Text
@@ -262,6 +264,7 @@ export const ChatMessageWidget = ({
         {...(isLoading === undefined ? {} : { isLoading })}
         tokenBadgeElement={tokenBadgeElement}
         isSubagent={isSubagent}
+        {...(compact === true ? { compact } : {})}
       />
     );
   }
@@ -285,7 +288,7 @@ export const ChatMessageWidget = ({
           borderLeft: `${BORDER_WIDTH} ${colors.warning}`,
           borderRight: `${BORDER_WIDTH} ${colors.warning}`,
           textAlign: 'left',
-          paddingLeft: '15%',
+          ...(compact === true ? {} : { paddingLeft: '15%' }),
         }}
       >
         <Text
@@ -325,7 +328,7 @@ export const ChatMessageWidget = ({
         borderLeft: `${BORDER_WIDTH} ${toolResultColor}`,
         borderRight: `${BORDER_WIDTH} ${toolResultColor}`,
         textAlign: 'left',
-        paddingLeft: '15%',
+        ...(compact === true ? {} : { paddingLeft: '15%' }),
       }}
     >
       <Text

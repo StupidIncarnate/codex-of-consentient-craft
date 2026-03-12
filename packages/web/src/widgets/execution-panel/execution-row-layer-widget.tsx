@@ -7,7 +7,7 @@
  */
 
 import { Box, Text, UnstyledButton } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
@@ -21,11 +21,8 @@ import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
-import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
-import { SubagentChainWidget } from '../subagent-chain/subagent-chain-widget';
-import { ToolGroupWidget } from '../tool-group/tool-group-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 
 export interface ExecutionRowLayerWidgetProps {
@@ -91,12 +88,19 @@ export const ExecutionRowLayerWidget = ({
   const [expanded, setExpanded] = useState(
     status === ('in_progress' as ExecutionStepStatus) && hasEntries,
   );
+  const scrollEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (status === ('in_progress' as ExecutionStepStatus) && hasEntries && !expanded) {
       setExpanded(true);
     }
   }, [status, hasEntries, expanded]);
+
+  useEffect(() => {
+    if (expanded && hasEntries && scrollEndRef.current?.scrollIntoView !== undefined) {
+      scrollEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [expanded, hasEntries, entries?.length]);
 
   const statusCfg = executionStepStatusConfigStatics.statusConfig[status];
   const roleColor = executionStepStatusConfigStatics.roleColors[role];
@@ -244,30 +248,10 @@ export const ExecutionRowLayerWidget = ({
           }}
         >
           {entries && entries.length > 0
-            ? (() => {
-                const groupedEntries = collectSubagentChainsTransformer({ entries });
-
-                return groupedEntries.map((group, i) => {
-                  if (group.kind === 'tool-group') {
-                    return (
-                      <ToolGroupWidget
-                        key={`group-${String(i)}`}
-                        group={group}
-                        isLastGroup={i === groupedEntries.length - 1}
-                        isStreaming={isStreaming ?? false}
-                      />
-                    );
-                  }
-
-                  if (group.kind === 'subagent-chain') {
-                    return <SubagentChainWidget key={`chain-${String(i)}`} group={group} />;
-                  }
-
-                  return <ChatMessageWidget key={`single-${String(i)}`} entry={group.entry} />;
-                });
-              })()
+            ? entries.map((entry, i) => <ChatMessageWidget key={i} entry={entry} compact={true} />)
             : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}
+          <div ref={scrollEndRef} />
           {files.length > 0 ? (
             <Text
               ff="monospace"
