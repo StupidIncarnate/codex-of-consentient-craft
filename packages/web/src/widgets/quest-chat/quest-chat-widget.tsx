@@ -75,7 +75,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     guildId: resolvedGuildId,
   });
 
-  const { slotOutputs, handleAgentOutput } = useAgentOutputBinding();
+  const { slotEntries, handleAgentOutput } = useAgentOutputBinding();
 
   const [activeTab, setActiveTab] = useState<'spec' | 'design'>('spec');
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
@@ -190,7 +190,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
       >
         <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {questWithContent ? (
-            <ExecutionPanelWidget quest={questWithContent} slotOutputs={slotOutputs} />
+            <ExecutionPanelWidget quest={questWithContent} slotEntries={slotEntries} />
           ) : null}
         </Box>
 

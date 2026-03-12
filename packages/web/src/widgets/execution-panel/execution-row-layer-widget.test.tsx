@@ -5,6 +5,10 @@ import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { BlockingReasonStub } from '../../contracts/blocking-reason/blocking-reason.stub';
+import {
+  AssistantTextChatEntryStub,
+  AssistantToolUseChatEntryStub,
+} from '../../contracts/chat-entry/chat-entry.stub';
 import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
 import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
@@ -336,6 +340,77 @@ describe('ExecutionRowLayerWidget', () => {
       const blockingEl = screen.getByTestId('execution-row-blocking-reason');
 
       expect(blockingEl.textContent).toBe('Blocked: Rate limited');
+    });
+  });
+
+  describe('entries rendering', () => {
+    it('VALID: {in_progress with entries} => auto-expands and renders execution messages', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              AssistantTextChatEntryStub({ content: 'Building auth module...' }),
+              AssistantToolUseChatEntryStub({
+                toolName: 'Edit',
+                toolInput: '{"file":"src/auth.ts"}',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-expanded')).not.toBeNull();
+      expect(screen.getAllByTestId('execution-message-widget')).toHaveLength(2);
+    });
+
+    it('VALID: {isStreaming true} => renders streaming bar', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[AssistantTextChatEntryStub({ content: 'Working...' })]}
+            isStreaming={true}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('streaming-bar-layer-widget')).not.toBeNull();
+    });
+
+    it('VALID: {ad-hoc with spiritmender entries} => renders with dashed border, AD-HOC tag, and messages', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            role={ExecutionRoleStub({ value: 'spiritmender' })}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            isAdhoc={true}
+            entries={[
+              AssistantTextChatEntryStub({ content: 'The auth-login broker has a type error...' }),
+              AssistantToolUseChatEntryStub({
+                toolName: 'Edit',
+                toolInput: 'brokers/auth/login/auth-login-broker.ts',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      const row = screen.getByTestId('execution-row-layer-widget');
+
+      expect(row.style.borderLeft).toMatch(/dashed/u);
+      expect(screen.getByTestId('execution-row-adhoc-tag').textContent).toBe('AD-HOC');
+      expect(screen.getByTestId('execution-row-expanded')).not.toBeNull();
+      expect(screen.getAllByTestId('execution-message-widget')).toHaveLength(2);
     });
   });
 });

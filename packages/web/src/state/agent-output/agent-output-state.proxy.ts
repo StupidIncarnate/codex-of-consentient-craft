@@ -1,23 +1,20 @@
-import type { AgentOutputLineStub } from '../../contracts/agent-output-line/agent-output-line.stub';
-import type { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
+import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 
 import { agentOutputState } from './agent-output-state';
 
-type AgentOutputLine = ReturnType<typeof AgentOutputLineStub>;
-type SlotIndex = ReturnType<typeof SlotIndexStub>;
-
 export const agentOutputStateProxy = (): {
-  setupSlotOutput: (params: { slotIndex: SlotIndex; lines: AgentOutputLine[] }) => void;
+  setupSlotOutput: (params: { slotIndex: SlotIndex; entries: ChatEntry[] }) => void;
   setupEmptyOutput: () => void;
 } => ({
   setupSlotOutput: ({
     slotIndex,
-    lines,
+    entries,
   }: {
     slotIndex: SlotIndex;
-    lines: AgentOutputLine[];
+    entries: ChatEntry[];
   }): void => {
-    agentOutputState.append({ slotIndex, lines });
+    agentOutputState.append({ slotIndex, entries });
   },
 
   setupEmptyOutput: (): void => {

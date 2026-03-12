@@ -1,4 +1,4 @@
-import { AgentOutputLineStub } from '../../contracts/agent-output-line/agent-output-line.stub';
+import { AssistantTextChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
 import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
 
 import { agentOutputState } from './agent-output-state';
@@ -6,40 +6,38 @@ import { agentOutputStateProxy } from './agent-output-state.proxy';
 
 describe('agentOutputState', () => {
   describe('append and get', () => {
-    it('VALID: {append lines to slot} => get returns lines for slot', () => {
+    it('VALID: {append entries to slot} => get returns entries for slot', () => {
       const proxy = agentOutputStateProxy();
       proxy.setupEmptyOutput();
       const slotIndex = SlotIndexStub({ value: 0 });
-      const line1 = AgentOutputLineStub({ value: 'Building project...' });
-      const line2 = AgentOutputLineStub({ value: 'Done.' });
+      const entry1 = AssistantTextChatEntryStub({ content: 'Building project...' });
+      const entry2 = AssistantTextChatEntryStub({ content: 'Done.' });
 
-      agentOutputState.append({ slotIndex, lines: [line1, line2] });
+      agentOutputState.append({ slotIndex, entries: [entry1, entry2] });
       const result = agentOutputState.get({ slotIndex });
 
-      expect(result).toStrictEqual(['Building project...', 'Done.']);
+      expect(result).toStrictEqual([entry1, entry2]);
     });
 
-    it('VALID: {append enforces max lines limit} => keeps latest 500 lines', () => {
+    it('VALID: {append enforces max entries limit} => keeps latest 500 entries', () => {
       const proxy = agentOutputStateProxy();
       proxy.setupEmptyOutput();
       const slotIndex = SlotIndexStub({ value: 0 });
-      const initialLines = Array.from({ length: 498 }, (_, i) =>
-        AgentOutputLineStub({ value: `line-${String(i)}` }),
+      const initialEntries = Array.from({ length: 498 }, (_, i) =>
+        AssistantTextChatEntryStub({ content: `line-${String(i)}` }),
       );
-      const extraLines = [
-        AgentOutputLineStub({ value: 'extra-1' }),
-        AgentOutputLineStub({ value: 'extra-2' }),
-        AgentOutputLineStub({ value: 'extra-3' }),
+      const extraEntries = [
+        AssistantTextChatEntryStub({ content: 'extra-1' }),
+        AssistantTextChatEntryStub({ content: 'extra-2' }),
+        AssistantTextChatEntryStub({ content: 'extra-3' }),
       ];
 
-      agentOutputState.append({ slotIndex, lines: initialLines });
-      agentOutputState.append({ slotIndex, lines: extraLines });
+      agentOutputState.append({ slotIndex, entries: initialEntries });
+      agentOutputState.append({ slotIndex, entries: extraEntries });
       const result = agentOutputState.get({ slotIndex });
 
       expect(result).toHaveLength(500);
-      expect(result[0]).toBe('line-1');
-      expect(result[496]).toBe('line-497');
-      expect(result.slice(497)).toStrictEqual(['extra-1', 'extra-2', 'extra-3']);
+      expect(result[499]?.role).toBe('assistant');
     });
   });
 
@@ -52,11 +50,11 @@ describe('agentOutputState', () => {
 
       agentOutputState.append({
         slotIndex: slotIndex0,
-        lines: [AgentOutputLineStub({ value: 'slot-0-line' })],
+        entries: [AssistantTextChatEntryStub({ content: 'slot-0-entry' })],
       });
       agentOutputState.append({
         slotIndex: slotIndex1,
-        lines: [AgentOutputLineStub({ value: 'slot-1-line' })],
+        entries: [AssistantTextChatEntryStub({ content: 'slot-1-entry' })],
       });
       agentOutputState.clear();
 
@@ -72,19 +70,15 @@ describe('agentOutputState', () => {
       proxy.setupEmptyOutput();
       const slotIndex0 = SlotIndexStub({ value: 0 });
       const slotIndex1 = SlotIndexStub({ value: 1 });
+      const entry0 = AssistantTextChatEntryStub({ content: 'slot-0-entry' });
+      const entry1 = AssistantTextChatEntryStub({ content: 'slot-1-entry' });
 
-      agentOutputState.append({
-        slotIndex: slotIndex0,
-        lines: [AgentOutputLineStub({ value: 'slot-0-line' })],
-      });
-      agentOutputState.append({
-        slotIndex: slotIndex1,
-        lines: [AgentOutputLineStub({ value: 'slot-1-line' })],
-      });
+      agentOutputState.append({ slotIndex: slotIndex0, entries: [entry0] });
+      agentOutputState.append({ slotIndex: slotIndex1, entries: [entry1] });
       agentOutputState.clearSlot({ slotIndex: slotIndex0 });
 
       expect(agentOutputState.get({ slotIndex: slotIndex0 })).toStrictEqual([]);
-      expect(agentOutputState.get({ slotIndex: slotIndex1 })).toStrictEqual(['slot-1-line']);
+      expect(agentOutputState.get({ slotIndex: slotIndex1 })).toStrictEqual([entry1]);
       expect(agentOutputState.size()).toBe(1);
     });
   });
@@ -110,11 +104,11 @@ describe('agentOutputState', () => {
 
       agentOutputState.append({
         slotIndex: slotIndex0,
-        lines: [AgentOutputLineStub({ value: 'line-a' })],
+        entries: [AssistantTextChatEntryStub({ content: 'entry-a' })],
       });
       agentOutputState.append({
         slotIndex: slotIndex1,
-        lines: [AgentOutputLineStub({ value: 'line-b' })],
+        entries: [AssistantTextChatEntryStub({ content: 'entry-b' })],
       });
 
       expect(agentOutputState.size()).toBe(2);

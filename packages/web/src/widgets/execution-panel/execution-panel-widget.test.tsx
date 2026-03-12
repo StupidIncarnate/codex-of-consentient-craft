@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { DependencyStepStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
-import { AgentOutputLineStub } from '../../contracts/agent-output-line/agent-output-line.stub';
+import { AssistantTextChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
 import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ExecutionPanelWidget } from './execution-panel-widget';
@@ -113,7 +113,8 @@ describe('ExecutionPanelWidget', () => {
 
       const stepRows = proxy.getStepRows();
 
-      expect(stepRows).toHaveLength(2);
+      // pathseeker done row + 2 step rows = 3
+      expect(stepRows).toHaveLength(3);
     });
 
     it('VALID: {quest with completed steps} => shows correct count in status bar', () => {
@@ -150,30 +151,62 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
-  describe('slotOutputs rendering', () => {
-    it('VALID: {quest with slotOutputs} => renders agent output panels for each slot', () => {
-      ExecutionPanelWidgetProxy();
+  describe('pathseeker planning row', () => {
+    it('VALID: {quest with no steps and slotEntries} => renders planning row with streaming bar', () => {
+      const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress', steps: [] });
       const slotIndex = SlotIndexStub({ value: 0 });
-      const line = AgentOutputLineStub({ value: 'Building auth guard...' });
-      const slotOutputs = new Map([[slotIndex, [line]]]);
+      const entry = AssistantTextChatEntryStub({ content: 'Analyzing quest requirements...' });
+      const slotEntries = new Map([[slotIndex, [entry]]]);
 
       mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} slotOutputs={slotOutputs} />,
+        ui: <ExecutionPanelWidget quest={quest} slotEntries={slotEntries} />,
       });
 
-      expect(screen.getByTestId('AGENT_OUTPUT_PANEL_0')).toBeInTheDocument();
+      expect(proxy.hasPlanningText()).toBe(true);
+      expect(proxy.hasStreamingBar()).toBe(true);
+
+      const stepRows = proxy.getStepRows();
+
+      expect(stepRows.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('EMPTY: {quest with empty slotOutputs} => renders no agent output panels', () => {
-      ExecutionPanelWidgetProxy();
+    it('VALID: {quest with no steps} => renders planning text', () => {
+      const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress', steps: [] });
 
       mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} slotOutputs={new Map()} />,
+        ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(screen.queryByTestId('AGENT_OUTPUT_PANEL_0')).toBeNull();
+      expect(proxy.hasPlanningText()).toBe(true);
+      expect(screen.getByTestId('execution-panel-planning-text').textContent).toBe(
+        'Steps will appear once cartography is complete...',
+      );
+    });
+  });
+
+  describe('pathseeker done row', () => {
+    it('VALID: {quest with steps} => renders pathseeker done row with step count', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [
+          DependencyStepStub({ id: 'step-1', name: 'Step A', status: 'complete' }),
+          DependencyStepStub({ id: 'step-2', name: 'Step B', status: 'pending' }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const stepRows = proxy.getStepRows();
+
+      // Should have pathseeker done row + 2 step rows = 3 total
+      expect(stepRows).toHaveLength(3);
+      // First row should be pathseeker done
+      expect(stepRows[0]?.textContent).toMatch(/Planned 2 steps/u);
     });
   });
 });

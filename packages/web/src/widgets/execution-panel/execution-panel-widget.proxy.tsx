@@ -1,7 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { AgentOutputPanelWidgetProxy } from '../agent-output-panel/agent-output-panel-widget.proxy';
 import { ExecutionRowLayerWidgetProxy } from './execution-row-layer-widget.proxy';
 import { ExecutionStatusBarLayerWidgetProxy } from './execution-status-bar-layer-widget.proxy';
 import { FloorHeaderLayerWidgetProxy } from './floor-header-layer-widget.proxy';
@@ -15,8 +14,10 @@ export const ExecutionPanelWidgetProxy = (): {
   hasSpecPanel: () => boolean;
   getStepRows: () => HTMLElement[];
   getFloorHeaders: () => HTMLElement[];
+  hasPlanningText: () => boolean;
+  hasStreamingBar: () => boolean;
+  getExecutionMessages: () => HTMLElement[];
 } => {
-  AgentOutputPanelWidgetProxy();
   ExecutionRowLayerWidgetProxy();
   ExecutionStatusBarLayerWidgetProxy();
   FloorHeaderLayerWidgetProxy();
@@ -35,5 +36,8 @@ export const ExecutionPanelWidgetProxy = (): {
     hasSpecPanel: (): boolean => screen.queryByTestId('QUEST_SPEC_PANEL') !== null,
     getStepRows: (): HTMLElement[] => screen.queryAllByTestId('execution-row-layer-widget'),
     getFloorHeaders: (): HTMLElement[] => screen.queryAllByTestId('floor-header-layer-widget'),
+    hasPlanningText: (): boolean => screen.queryByTestId('execution-panel-planning-text') !== null,
+    hasStreamingBar: (): boolean => screen.queryByTestId('streaming-bar-layer-widget') !== null,
+    getExecutionMessages: (): HTMLElement[] => screen.queryAllByTestId('execution-message-widget'),
   };
 };

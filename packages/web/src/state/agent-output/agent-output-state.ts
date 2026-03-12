@@ -1,29 +1,29 @@
 /**
- * PURPOSE: Manages agent output lines per execution slot with configurable max line limits
+ * PURPOSE: Manages parsed chat entries per execution slot with configurable max entry limits
  *
  * USAGE:
- * agentOutputState.append({slotIndex: slotIndexContract.parse(0), lines: [agentOutputLineContract.parse('Done.')]});
+ * agentOutputState.append({slotIndex: slotIndexContract.parse(0), entries: [chatEntry]});
  * agentOutputState.get({slotIndex: slotIndexContract.parse(0)});
- * // Returns AgentOutputLine[] for the slot
+ * // Returns ChatEntry[] for the slot
  */
 
-import type { AgentOutputLine } from '../../contracts/agent-output-line/agent-output-line-contract';
+import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type { SlotCount } from '../../contracts/slot-count/slot-count-contract';
 import { slotCountContract } from '../../contracts/slot-count/slot-count-contract';
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 import { agentOutputConfigStatics } from '../../statics/agent-output-config/agent-output-config-statics';
 
 const state = {
-  slots: new Map<SlotIndex, AgentOutputLine[]>(),
+  slots: new Map<SlotIndex, ChatEntry[]>(),
 };
 
 export const agentOutputState = {
-  get: ({ slotIndex }: { slotIndex: SlotIndex }): AgentOutputLine[] =>
-    state.slots.get(slotIndex) ?? ([] as AgentOutputLine[]),
+  get: ({ slotIndex }: { slotIndex: SlotIndex }): ChatEntry[] =>
+    state.slots.get(slotIndex) ?? ([] as ChatEntry[]),
 
-  append: ({ slotIndex, lines }: { slotIndex: SlotIndex; lines: AgentOutputLine[] }): void => {
-    const existing = state.slots.get(slotIndex) ?? ([] as AgentOutputLine[]);
-    const combined = [...existing, ...lines];
+  append: ({ slotIndex, entries }: { slotIndex: SlotIndex; entries: ChatEntry[] }): void => {
+    const existing = state.slots.get(slotIndex) ?? ([] as ChatEntry[]);
+    const combined = [...existing, ...entries];
     const maxLines = agentOutputConfigStatics.limits.maxLinesPerSlot;
 
     if (combined.length > maxLines) {
@@ -41,7 +41,7 @@ export const agentOutputState = {
     state.slots.delete(slotIndex);
   },
 
-  getAll: (): Map<SlotIndex, AgentOutputLine[]> => new Map(state.slots),
+  getAll: (): Map<SlotIndex, ChatEntry[]> => new Map(state.slots),
 
   size: (): SlotCount => slotCountContract.parse(state.slots.size),
 } as const;

@@ -16,16 +16,21 @@ describe('useAgentOutputBinding', () => {
         renderCallback: () => useAgentOutputBinding(),
       });
 
-      expect(result.current.slotOutputs.size).toBe(0);
+      expect(result.current.slotEntries.size).toBe(0);
     });
   });
 
   describe('handleAgentOutput', () => {
-    it('VALID: {slotIndex, lines} => appends output to slot', () => {
+    it('VALID: {slotIndex, lines with valid JSONL} => parses and appends entries to slot', () => {
       const proxy = useAgentOutputBindingProxy();
       proxy.setupEmpty();
       const slotIndex = SlotIndexStub({ value: 0 });
-      const lines = [AgentOutputLineStub({ value: 'Building...' })];
+      const line = AgentOutputLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: { content: [{ type: 'text', text: 'Building...' }] },
+        }),
+      });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useAgentOutputBinding(),
@@ -33,14 +38,17 @@ describe('useAgentOutputBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.handleAgentOutput({ slotIndex, lines });
+          result.current.handleAgentOutput({ slotIndex, lines: [line] });
         },
       });
 
-      expect(result.current.slotOutputs.get(slotIndex)).toStrictEqual(['Building...']);
+      const entries = result.current.slotEntries.get(slotIndex);
+
+      expect(entries).toBeDefined();
+      expect(entries!.length).toBeGreaterThan(0);
     });
 
-    it('VALID: {multiple calls} => accumulates output', () => {
+    it('VALID: {multiple calls} => accumulates entries', () => {
       const proxy = useAgentOutputBindingProxy();
       proxy.setupEmpty();
       const slotIndex = SlotIndexStub({ value: 0 });
@@ -53,7 +61,14 @@ describe('useAgentOutputBinding', () => {
         callback: () => {
           result.current.handleAgentOutput({
             slotIndex,
-            lines: [AgentOutputLineStub({ value: 'line 1' })],
+            lines: [
+              AgentOutputLineStub({
+                value: JSON.stringify({
+                  type: 'assistant',
+                  message: { content: [{ type: 'text', text: 'line 1' }] },
+                }),
+              }),
+            ],
           });
         },
       });
@@ -62,12 +77,22 @@ describe('useAgentOutputBinding', () => {
         callback: () => {
           result.current.handleAgentOutput({
             slotIndex,
-            lines: [AgentOutputLineStub({ value: 'line 2' })],
+            lines: [
+              AgentOutputLineStub({
+                value: JSON.stringify({
+                  type: 'assistant',
+                  message: { content: [{ type: 'text', text: 'line 2' }] },
+                }),
+              }),
+            ],
           });
         },
       });
 
-      expect(result.current.slotOutputs.get(slotIndex)).toStrictEqual(['line 1', 'line 2']);
+      const entries = result.current.slotEntries.get(slotIndex);
+
+      expect(entries).toBeDefined();
+      expect(entries!).toHaveLength(2);
     });
   });
 
@@ -85,7 +110,14 @@ describe('useAgentOutputBinding', () => {
         callback: () => {
           result.current.handleAgentOutput({
             slotIndex,
-            lines: [AgentOutputLineStub({ value: 'some output' })],
+            lines: [
+              AgentOutputLineStub({
+                value: JSON.stringify({
+                  type: 'assistant',
+                  message: { content: [{ type: 'text', text: 'some output' }] },
+                }),
+              }),
+            ],
           });
         },
       });
@@ -96,7 +128,7 @@ describe('useAgentOutputBinding', () => {
         },
       });
 
-      expect(result.current.slotOutputs.size).toBe(0);
+      expect(result.current.slotEntries.size).toBe(0);
     });
   });
 });

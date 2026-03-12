@@ -7,11 +7,12 @@
  */
 
 import { Box, Text, UnstyledButton } from '@mantine/core';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import type { BlockingReason } from '../../contracts/blocking-reason/blocking-reason-contract';
+import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
@@ -21,6 +22,8 @@ import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
+import { ExecutionMessageWidget } from '../execution-message/execution-message-widget';
+import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 
 export interface ExecutionRowLayerWidgetProps {
   order: StepOrder;
@@ -32,6 +35,8 @@ export interface ExecutionRowLayerWidgetProps {
   isAdhoc: boolean;
   errorMessage?: ErrorMessage;
   blockingReason?: BlockingReason;
+  entries?: ChatEntry[];
+  isStreaming?: boolean;
 }
 
 const EXPANDABLE_STATUSES: ExecutionStepStatus[] = [
@@ -75,9 +80,20 @@ export const ExecutionRowLayerWidget = ({
   isAdhoc,
   errorMessage,
   blockingReason,
+  entries,
+  isStreaming,
 }: ExecutionRowLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
-  const [expanded, setExpanded] = useState(false);
+  const hasEntries = entries !== undefined && entries.length > 0;
+  const [expanded, setExpanded] = useState(
+    status === ('in_progress' as ExecutionStepStatus) && hasEntries,
+  );
+
+  useEffect(() => {
+    if (status === ('in_progress' as ExecutionStepStatus) && hasEntries && !expanded) {
+      setExpanded(true);
+    }
+  }, [status, hasEntries, expanded]);
 
   const statusCfg = executionStepStatusConfigStatics.statusConfig[status];
   const roleColor = executionStepStatusConfigStatics.roleColors[role];
@@ -224,6 +240,17 @@ export const ExecutionRowLayerWidget = ({
             borderRadius: ROW_MARGIN_BOTTOM,
           }}
         >
+          {entries && entries.length > 0
+            ? entries.map((entry, i) => (
+                <ExecutionMessageWidget
+                  key={i}
+                  entry={entry}
+                  roleName={role}
+                  roleColor={roleColor}
+                />
+              ))
+            : null}
+          {isStreaming ? <StreamingBarLayerWidget /> : null}
           {files.length > 0 ? (
             <Text
               ff="monospace"

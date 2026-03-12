@@ -8,11 +8,11 @@
 
 import { useState } from 'react';
 
-import { Box, Stack, UnstyledButton } from '@mantine/core';
+import { Box, Stack, Text, UnstyledButton } from '@mantine/core';
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
-import type { AgentOutputLine } from '../../contracts/agent-output-line/agent-output-line-contract';
+import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type { CompletedCount } from '../../contracts/completed-count/completed-count-contract';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
@@ -26,7 +26,6 @@ import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionFloorConfigStatics } from '../../statics/execution-floor-config/execution-floor-config-statics';
-import { AgentOutputPanelWidget } from '../agent-output-panel/agent-output-panel-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
@@ -34,7 +33,7 @@ import { FloorHeaderLayerWidget } from './floor-header-layer-widget';
 
 export interface ExecutionPanelWidgetProps {
   quest: Quest;
-  slotOutputs?: Map<SlotIndex, AgentOutputLine[]>;
+  slotEntries?: Map<SlotIndex, ChatEntry[]>;
 }
 
 const TABS = [
@@ -51,7 +50,7 @@ const DEFAULT_ROLE = 'codeweaver' as ExecutionRole;
 
 export const ExecutionPanelWidget = ({
   quest,
-  slotOutputs = new Map(),
+  slotEntries = new Map(),
 }: ExecutionPanelWidgetProps): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
   const { colors } = emberDepthsThemeStatics;
@@ -107,13 +106,48 @@ export const ExecutionPanelWidget = ({
             totalCount={totalCount}
             isPlanning={isPlanning}
           />
-          {Array.from(slotOutputs.entries()).map(([slotIndex, lines]) => (
-            <AgentOutputPanelWidget key={String(slotIndex)} slotIndex={slotIndex} lines={lines} />
-          ))}
           <Box
             data-testid="execution-panel-floor-content"
             style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}
           >
+            {isPlanning ? (
+              <>
+                <ExecutionRowLayerWidget
+                  order={'--' as unknown as StepOrder}
+                  name={'Planning steps...' as StepName}
+                  role={'pathseeker' as ExecutionRole}
+                  status={'in_progress' as ExecutionStepStatus}
+                  files={[] as DisplayFilePath[]}
+                  dependsOn={[] as DependencyLabel[]}
+                  isAdhoc={false}
+                  entries={slotEntries.get(0 as SlotIndex) ?? []}
+                  isStreaming={true}
+                />
+                <Text
+                  ff="monospace"
+                  data-testid="execution-panel-planning-text"
+                  style={{
+                    fontSize: 10,
+                    color: colors['text-dim'],
+                    textAlign: 'center',
+                    padding: '16px 0',
+                  }}
+                >
+                  Steps will appear once cartography is complete...
+                </Text>
+              </>
+            ) : null}
+            {isPlanning ? null : (
+              <ExecutionRowLayerWidget
+                order={'--' as unknown as StepOrder}
+                name={`Planned ${String(totalCount)} steps` as StepName}
+                role={'pathseeker' as ExecutionRole}
+                status={'complete' as ExecutionStepStatus}
+                files={[] as DisplayFilePath[]}
+                dependsOn={[] as DependencyLabel[]}
+                isAdhoc={false}
+              />
+            )}
             {floorConfigs.map((floor, floorIndex) => {
               const floorNumber = (floorIndex + 1) as FloorNumber;
               const floorLabel = floor.label;
@@ -162,6 +196,8 @@ export const ExecutionPanelWidget = ({
                         }
                         dependsOn={step.dependsOn as unknown as DependencyLabel[]}
                         isAdhoc={step.blockingType === 'needs_role_followup'}
+                        entries={slotEntries.get(0 as SlotIndex) ?? []}
+                        isStreaming={step.status === 'in_progress'}
                         {...(step.errorMessage ? { errorMessage: step.errorMessage } : {})}
                         {...(step.blockingReason ? { blockingReason: step.blockingReason } : {})}
                       />
@@ -201,6 +237,8 @@ export const ExecutionPanelWidget = ({
                       }
                       dependsOn={step.dependsOn as unknown as DependencyLabel[]}
                       isAdhoc={step.blockingType === 'needs_role_followup'}
+                      entries={slotEntries.get(0 as SlotIndex) ?? []}
+                      isStreaming={step.status === 'in_progress'}
                       {...(step.errorMessage ? { errorMessage: step.errorMessage } : {})}
                       {...(step.blockingReason ? { blockingReason: step.blockingReason } : {})}
                     />

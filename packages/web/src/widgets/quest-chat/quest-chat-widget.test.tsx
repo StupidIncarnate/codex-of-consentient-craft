@@ -1016,7 +1016,7 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasSpecPanel()).toBe(false);
     });
 
-    it('VALID: {quest with in_progress status, agent-output WS message} => renders agent output panel', async () => {
+    it('VALID: {quest with in_progress status, agent-output WS message} => renders execution messages in planning row', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
@@ -1057,7 +1057,12 @@ describe('QuestChatWidget', () => {
             type: 'agent-output',
             payload: {
               slotIndex: 0,
-              lines: ['Building auth guard...'],
+              lines: [
+                JSON.stringify({
+                  type: 'assistant',
+                  message: { content: [{ type: 'text', text: 'Building auth guard...' }] },
+                }),
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -1065,10 +1070,10 @@ describe('QuestChatWidget', () => {
       });
 
       await waitFor(() => {
-        expect(screen.queryByTestId('AGENT_OUTPUT_PANEL_0')).not.toBeNull();
+        expect(screen.queryAllByTestId('execution-message-widget').length).toBeGreaterThan(0);
       });
 
-      expect(screen.getByTestId('AGENT_OUTPUT_PANEL_0')).toBeInTheDocument();
+      expect(screen.queryAllByTestId('execution-message-widget').length).toBeGreaterThan(0);
     });
 
     it('VALID: {quest with non-execution status} => renders chat panel and spec panel', async () => {
