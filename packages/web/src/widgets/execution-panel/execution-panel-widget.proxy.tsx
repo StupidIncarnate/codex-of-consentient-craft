@@ -38,6 +38,6 @@ export const ExecutionPanelWidgetProxy = (): {
     getFloorHeaders: (): HTMLElement[] => screen.queryAllByTestId('floor-header-layer-widget'),
     hasPlanningText: (): boolean => screen.queryByTestId('execution-panel-planning-text') !== null,
     hasStreamingBar: (): boolean => screen.queryByTestId('streaming-bar-layer-widget') !== null,
-    getExecutionMessages: (): HTMLElement[] => screen.queryAllByTestId('execution-message-widget'),
+    getExecutionMessages: (): HTMLElement[] => screen.queryAllByTestId('CHAT_MESSAGE'),
   };
 };

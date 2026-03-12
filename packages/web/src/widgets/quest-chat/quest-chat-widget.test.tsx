@@ -1070,10 +1070,10 @@ describe('QuestChatWidget', () => {
       });
 
       await waitFor(() => {
-        expect(screen.queryAllByTestId('execution-message-widget').length).toBeGreaterThan(0);
+        expect(screen.queryAllByTestId('CHAT_MESSAGE').length).toBeGreaterThan(0);
       });
 
-      expect(screen.queryAllByTestId('execution-message-widget').length).toBeGreaterThan(0);
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').length).toBeGreaterThan(0);
     });
 
     it('VALID: {quest with non-execution status} => renders chat panel and spec panel', async () => {

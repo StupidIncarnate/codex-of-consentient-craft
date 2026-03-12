@@ -5,10 +5,7 @@ import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { BlockingReasonStub } from '../../contracts/blocking-reason/blocking-reason.stub';
-import {
-  AssistantTextChatEntryStub,
-  AssistantToolUseChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+import { AssistantTextChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
 import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
 import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
@@ -352,19 +349,13 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            entries={[
-              AssistantTextChatEntryStub({ content: 'Building auth module...' }),
-              AssistantToolUseChatEntryStub({
-                toolName: 'Edit',
-                toolInput: '{"file":"src/auth.ts"}',
-              }),
-            ]}
+            entries={[AssistantTextChatEntryStub({ content: 'Building auth module...' })]}
           />
         ),
       });
 
       expect(screen.getByTestId('execution-row-expanded')).not.toBeNull();
-      expect(screen.getAllByTestId('execution-message-widget')).toHaveLength(2);
+      expect(screen.getAllByTestId('CHAT_MESSAGE')).toHaveLength(1);
     });
 
     it('VALID: {isStreaming true} => renders streaming bar', () => {
@@ -396,10 +387,6 @@ describe('ExecutionRowLayerWidget', () => {
             isAdhoc={true}
             entries={[
               AssistantTextChatEntryStub({ content: 'The auth-login broker has a type error...' }),
-              AssistantToolUseChatEntryStub({
-                toolName: 'Edit',
-                toolInput: 'brokers/auth/login/auth-login-broker.ts',
-              }),
             ]}
           />
         ),
@@ -410,7 +397,7 @@ describe('ExecutionRowLayerWidget', () => {
       expect(row.style.borderLeft).toMatch(/dashed/u);
       expect(screen.getByTestId('execution-row-adhoc-tag').textContent).toBe('AD-HOC');
       expect(screen.getByTestId('execution-row-expanded')).not.toBeNull();
-      expect(screen.getAllByTestId('execution-message-widget')).toHaveLength(2);
+      expect(screen.getAllByTestId('CHAT_MESSAGE')).toHaveLength(1);
     });
   });
 });

@@ -21,8 +21,11 @@ import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
+import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
-import { ExecutionMessageWidget } from '../execution-message/execution-message-widget';
+import { ChatMessageWidget } from '../chat-message/chat-message-widget';
+import { SubagentChainWidget } from '../subagent-chain/subagent-chain-widget';
+import { ToolGroupWidget } from '../tool-group/tool-group-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 
 export interface ExecutionRowLayerWidgetProps {
@@ -241,14 +244,28 @@ export const ExecutionRowLayerWidget = ({
           }}
         >
           {entries && entries.length > 0
-            ? entries.map((entry, i) => (
-                <ExecutionMessageWidget
-                  key={i}
-                  entry={entry}
-                  roleName={role}
-                  roleColor={roleColor}
-                />
-              ))
+            ? (() => {
+                const groupedEntries = collectSubagentChainsTransformer({ entries });
+
+                return groupedEntries.map((group, i) => {
+                  if (group.kind === 'tool-group') {
+                    return (
+                      <ToolGroupWidget
+                        key={`group-${String(i)}`}
+                        group={group}
+                        isLastGroup={i === groupedEntries.length - 1}
+                        isStreaming={isStreaming ?? false}
+                      />
+                    );
+                  }
+
+                  if (group.kind === 'subagent-chain') {
+                    return <SubagentChainWidget key={`chain-${String(i)}`} group={group} />;
+                  }
+
+                  return <ChatMessageWidget key={`single-${String(i)}`} entry={group.entry} />;
+                });
+              })()
             : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}
           {files.length > 0 ? (
