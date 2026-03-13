@@ -21,6 +21,7 @@ export const chatSpawnBrokerProxy = (): {
   }) => void;
   setupQuestNotFound: () => void;
   setupInvalidStatus: (params: { quest: Quest }) => void;
+  refreshGuildConfig: () => void;
 } => {
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
@@ -32,7 +33,12 @@ export const chatSpawnBrokerProxy = (): {
 
   const defaultGuildId = GuildIdStub();
   const defaultGuild = GuildStub({ id: defaultGuildId });
-  guildProxy.setupConfig({ config: GuildConfigStub({ guilds: [defaultGuild] }) });
+
+  const setupGuild = (): void => {
+    guildProxy.setupConfig({ config: GuildConfigStub({ guilds: [defaultGuild] }) });
+  };
+
+  setupGuild();
 
   return {
     setupNewSession: ({
@@ -88,6 +94,10 @@ export const chatSpawnBrokerProxy = (): {
 
     setupInvalidStatus: ({ quest }: { quest: Quest }): void => {
       resolveProxy.setupQuestFound({ quest });
+    },
+
+    refreshGuildConfig: (): void => {
+      setupGuild();
     },
   };
 };

@@ -51,6 +51,13 @@ export const ChatStartResponder = async ({
         process.stderr.write(
           `[CLARIFICATION-DEBUG] resumed session: found linked questId=${chatQuestId}\n`,
         );
+
+        const runningProcess = orchestrationProcessesState.findByQuestId({
+          questId: chatQuestId,
+        });
+        if (runningProcess) {
+          orchestrationProcessesState.kill({ processId: runningProcess.processId });
+        }
       }
     } catch {
       // Quest lookup failure should not block chat startup

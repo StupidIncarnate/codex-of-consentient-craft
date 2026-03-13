@@ -3,8 +3,12 @@ import {
   GuildIdStub,
   SessionIdStub,
   FilePathStub,
+  ProcessIdStub,
+  QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { ChatStartResponderProxy } from './chat-start-responder.proxy';
 
 describe('ChatStartResponder', () => {
@@ -48,6 +52,197 @@ describe('ChatStartResponder', () => {
         sessionId,
       });
 
+      expect(result.chatProcessId).toMatch(/^chat-/u);
+    });
+  });
+
+  describe('quest lookup failure', () => {
+    it('ERROR: {quest lookup fails} => still spawns chat normally', async () => {
+      const proxy = ChatStartResponderProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      const sessionId = SessionIdStub({ value: 'session-quest-fail' });
+
+      proxy.setupResumeSession({ exitCode });
+      proxy.setupPendingEmpty();
+
+      const result = await proxy.callResponder({
+        guildId: GuildIdStub(),
+        message: 'Chat despite quest lookup failure',
+        sessionId,
+      });
+
+      expect(result.chatProcessId).toMatch(/^chat-/u);
+    });
+  });
+
+  describe('in-flight process handling', () => {
+    it('VALID: {message with running process on same quest} => kills existing process, spawns new one', async () => {
+      const guildId = GuildIdStub();
+      const sessionId = SessionIdStub({ value: 'session-inflight' });
+      const questId = QuestIdStub({ value: 'quest-inflight' });
+      const existingProcessId = ProcessIdStub({ value: 'existing-proc-123' });
+      const killMock = jest.fn();
+      const exitCode = ExitCodeStub({ value: 0 });
+
+      const proxy = ChatStartResponderProxy({
+        questSetup: {
+          homeDir: '/home/testuser',
+          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+          questsPath: FilePathStub({
+            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+          }),
+          questFiles: [FileNameStub({ value: '001-quest-inflight' })],
+          questFilePath: FilePathStub({
+            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-inflight/quest.json`,
+          }),
+          questJson: JSON.stringify({
+            id: questId,
+            folder: '001-quest-inflight',
+            title: 'In-Flight Quest',
+            status: 'in_progress',
+            createdAt: '2024-01-15T10:00:00.000Z',
+            executionLog: [],
+            steps: [],
+            toolingRequirements: [],
+            flows: [],
+            pathseekerRuns: [],
+            questCreatedSessionBy: sessionId,
+          }),
+        },
+      });
+
+      proxy.setupResumeSession({ exitCode });
+      proxy.setupPendingEmpty();
+
+      proxy.setupProcessWithKill({
+        processId: existingProcessId,
+        questId,
+        kill: killMock,
+      });
+
+      const result = await proxy.callResponder({
+        guildId,
+        message: 'User interrupts running agent',
+        sessionId,
+      });
+
+      expect(killMock).toHaveBeenCalledTimes(1);
+      expect(orchestrationProcessesState.has({ processId: existingProcessId })).toBe(false);
+      expect(result.chatProcessId).toMatch(/^chat-/u);
+    });
+
+    it('VALID: {message with no running process} => spawns normally', async () => {
+      const guildId = GuildIdStub();
+      const sessionId = SessionIdStub({ value: 'session-no-proc' });
+      const questId = QuestIdStub({ value: 'quest-no-proc' });
+      const exitCode = ExitCodeStub({ value: 0 });
+
+      const proxy = ChatStartResponderProxy({
+        questSetup: {
+          homeDir: '/home/testuser',
+          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+          questsPath: FilePathStub({
+            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+          }),
+          questFiles: [FileNameStub({ value: '001-quest-no-proc' })],
+          questFilePath: FilePathStub({
+            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-no-proc/quest.json`,
+          }),
+          questJson: JSON.stringify({
+            id: questId,
+            folder: '001-quest-no-proc',
+            title: 'No Process Quest',
+            status: 'in_progress',
+            createdAt: '2024-01-15T10:00:00.000Z',
+            executionLog: [],
+            steps: [],
+            toolingRequirements: [],
+            flows: [],
+            pathseekerRuns: [],
+            questCreatedSessionBy: sessionId,
+          }),
+        },
+      });
+
+      proxy.setupResumeSession({ exitCode });
+      proxy.setupPendingEmpty();
+      proxy.setupProcessEmpty();
+
+      const result = await proxy.callResponder({
+        guildId,
+        message: 'Message with no running process',
+        sessionId,
+      });
+
+      expect(result.chatProcessId).toMatch(/^chat-/u);
+    });
+
+    it('VALID: {first message, no quest exists} => creates quest and spawns', async () => {
+      const proxy = ChatStartResponderProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      proxy.setupNewSession({ exitCode });
+
+      const result = await proxy.callResponder({
+        guildId: GuildIdStub(),
+        message: 'Brand new conversation',
+      });
+
+      expect(result.chatProcessId).toMatch(/^chat-/u);
+    });
+
+    it('EDGE: {running process on different quest} => does NOT kill, spawns normally', async () => {
+      const guildId = GuildIdStub();
+      const sessionId = SessionIdStub({ value: 'session-different' });
+      const questId = QuestIdStub({ value: 'quest-this-session' });
+      const otherQuestId = QuestIdStub({ value: 'quest-other' });
+      const otherProcessId = ProcessIdStub({ value: 'other-proc-456' });
+      const killMock = jest.fn();
+      const exitCode = ExitCodeStub({ value: 0 });
+
+      const proxy = ChatStartResponderProxy({
+        questSetup: {
+          homeDir: '/home/testuser',
+          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+          questsPath: FilePathStub({
+            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+          }),
+          questFiles: [FileNameStub({ value: '001-quest-this-session' })],
+          questFilePath: FilePathStub({
+            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-this-session/quest.json`,
+          }),
+          questJson: JSON.stringify({
+            id: questId,
+            folder: '001-quest-this-session',
+            title: 'This Session Quest',
+            status: 'in_progress',
+            createdAt: '2024-01-15T10:00:00.000Z',
+            executionLog: [],
+            steps: [],
+            toolingRequirements: [],
+            flows: [],
+            pathseekerRuns: [],
+            questCreatedSessionBy: sessionId,
+          }),
+        },
+      });
+
+      proxy.setupResumeSession({ exitCode });
+      proxy.setupPendingEmpty();
+
+      proxy.setupProcessWithKill({
+        processId: otherProcessId,
+        questId: otherQuestId,
+        kill: killMock,
+      });
+
+      const result = await proxy.callResponder({
+        guildId,
+        message: 'Message while other quest runs',
+        sessionId,
+      });
+
+      expect(killMock).not.toHaveBeenCalled();
+      expect(orchestrationProcessesState.has({ processId: otherProcessId })).toBe(true);
       expect(result.chatProcessId).toMatch(/^chat-/u);
     });
   });
