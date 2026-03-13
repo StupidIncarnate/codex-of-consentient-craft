@@ -189,7 +189,16 @@ export const QuestChatWidget = (): React.JSX.Element => {
       >
         <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {questWithContent ? (
-            <ExecutionPanelWidget quest={questWithContent} slotEntries={slotEntries} />
+            <ExecutionPanelWidget
+              quest={questWithContent}
+              slotEntries={slotEntries}
+              onStatusChange={({ status }): void => {
+                questModifyBroker({
+                  questId: questWithContent.id,
+                  modifications: { status },
+                }).catch(() => undefined);
+              }}
+            />
           ) : null}
         </Box>
 

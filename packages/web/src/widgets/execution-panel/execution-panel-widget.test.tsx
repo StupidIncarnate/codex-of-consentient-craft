@@ -138,6 +138,141 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
+  describe('action bar', () => {
+    it('VALID: {blocked quest with onStatusChange} => shows RESUME QUEST and ABANDON QUEST buttons', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onStatusChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
+      });
+
+      expect(proxy.hasActionBar()).toBe(true);
+
+      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+
+      expect(labels).toStrictEqual(['RESUME QUEST', 'ABANDON QUEST']);
+    });
+
+    it('VALID: {in_progress quest with onStatusChange} => shows ABANDON QUEST button only', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+      const onStatusChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
+      });
+
+      expect(proxy.hasActionBar()).toBe(true);
+
+      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+
+      expect(labels).toStrictEqual(['ABANDON QUEST']);
+    });
+
+    it('VALID: {complete quest} => does not show action bar', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'complete' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={jest.fn()} />,
+      });
+
+      expect(proxy.hasActionBar()).toBe(false);
+    });
+
+    it('VALID: {no onStatusChange prop} => does not show action bar', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.hasActionBar()).toBe(false);
+    });
+
+    it('VALID: {click RESUME QUEST} => calls onStatusChange with in_progress', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onStatusChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
+      });
+
+      await proxy.clickButtonByLabel({ label: 'RESUME QUEST' });
+
+      expect(onStatusChange).toHaveBeenCalledWith({ status: 'in_progress' });
+    });
+
+    it('VALID: {click ABANDON QUEST} => shows confirmation buttons', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+      const onStatusChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
+      });
+
+      await proxy.clickButtonByLabel({ label: 'ABANDON QUEST' });
+
+      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+
+      expect(labels).toStrictEqual(['CONFIRM ABANDON', 'CANCEL']);
+    });
+
+    it('VALID: {click CONFIRM ABANDON} => calls onStatusChange with abandoned', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+      const onStatusChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
+      });
+
+      await proxy.clickButtonByLabel({ label: 'ABANDON QUEST' });
+      await proxy.clickButtonByLabel({ label: 'CONFIRM ABANDON' });
+
+      expect(onStatusChange).toHaveBeenCalledWith({ status: 'abandoned' });
+    });
+
+    it('VALID: {click CANCEL after ABANDON QUEST} => returns to normal buttons', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onStatusChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
+      });
+
+      await proxy.clickButtonByLabel({ label: 'ABANDON QUEST' });
+      await proxy.clickButtonByLabel({ label: 'CANCEL' });
+
+      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+
+      expect(labels).toStrictEqual(['RESUME QUEST', 'ABANDON QUEST']);
+      expect(onStatusChange).not.toHaveBeenCalled();
+    });
+
+    it('VALID: {blocked quest confirming abandon} => hides RESUME QUEST button', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onStatusChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
+      });
+
+      await proxy.clickButtonByLabel({ label: 'ABANDON QUEST' });
+
+      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+
+      expect(labels).toStrictEqual(['CONFIRM ABANDON', 'CANCEL']);
+    });
+  });
+
   describe('data-testid', () => {
     it('VALID: {quest} => renders with execution-panel-widget testid', () => {
       ExecutionPanelWidgetProxy();

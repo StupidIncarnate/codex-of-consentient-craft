@@ -8,10 +8,12 @@
 
 import { useState } from 'react';
 
-import { Box, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 
-import type { Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus } from '@dungeonmaster/shared/contracts';
 
+import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
+import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type { CompletedCount } from '../../contracts/completed-count/completed-count-contract';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
@@ -26,6 +28,7 @@ import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionFloorConfigStatics } from '../../statics/execution-floor-config/execution-floor-config-statics';
+import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
@@ -34,6 +37,7 @@ import { FloorHeaderLayerWidget } from './floor-header-layer-widget';
 export interface ExecutionPanelWidgetProps {
   quest: Quest;
   slotEntries?: Map<SlotIndex, ChatEntry[]>;
+  onStatusChange?: (params: { status: QuestStatus }) => void;
 }
 
 const TABS = [
@@ -47,12 +51,21 @@ const ACTIVE_BORDER_WIDTH = 2;
 const TAB_PADDING_VERTICAL = 5;
 const COLON_SEPARATOR_OFFSET = 2;
 const DEFAULT_ROLE = 'codeweaver' as ExecutionRole;
+const RESUME_LABEL = 'RESUME QUEST' as ButtonLabel;
+const ABANDON_LABEL = 'ABANDON QUEST' as ButtonLabel;
+const CONFIRM_ABANDON_LABEL = 'CONFIRM ABANDON' as ButtonLabel;
+const CANCEL_LABEL = 'CANCEL' as ButtonLabel;
+const DANGER_VARIANT = 'danger' as ButtonVariant;
+const GHOST_VARIANT = 'ghost' as ButtonVariant;
+const ACTION_BAR_PADDING = 12;
 
 export const ExecutionPanelWidget = ({
   quest,
   slotEntries = new Map(),
+  onStatusChange,
 }: ExecutionPanelWidgetProps): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
+  const [confirmingAbandon, setConfirmingAbandon] = useState(false);
   const { colors } = emberDepthsThemeStatics;
 
   const { steps } = quest;
@@ -247,6 +260,54 @@ export const ExecutionPanelWidget = ({
               );
             })}
           </Box>
+          {(quest.status === 'blocked' || quest.status === 'in_progress') && onStatusChange && (
+            <Box
+              data-testid="execution-panel-action-bar"
+              style={{
+                padding: ACTION_BAR_PADDING,
+                borderTop: `1px solid ${colors.border}`,
+                flexShrink: 0,
+              }}
+            >
+              <Group gap="xs">
+                {quest.status === 'blocked' && !confirmingAbandon && (
+                  <PixelBtnWidget
+                    label={RESUME_LABEL}
+                    onClick={() => {
+                      onStatusChange({ status: 'in_progress' as QuestStatus });
+                    }}
+                  />
+                )}
+                {confirmingAbandon ? (
+                  <>
+                    <PixelBtnWidget
+                      label={CONFIRM_ABANDON_LABEL}
+                      variant={DANGER_VARIANT}
+                      onClick={() => {
+                        setConfirmingAbandon(false);
+                        onStatusChange({ status: 'abandoned' as QuestStatus });
+                      }}
+                    />
+                    <PixelBtnWidget
+                      label={CANCEL_LABEL}
+                      variant={GHOST_VARIANT}
+                      onClick={() => {
+                        setConfirmingAbandon(false);
+                      }}
+                    />
+                  </>
+                ) : (
+                  <PixelBtnWidget
+                    label={ABANDON_LABEL}
+                    variant={GHOST_VARIANT}
+                    onClick={() => {
+                      setConfirmingAbandon(true);
+                    }}
+                  />
+                )}
+              </Group>
+            </Box>
+          )}
         </Box>
       )}
     </Stack>
