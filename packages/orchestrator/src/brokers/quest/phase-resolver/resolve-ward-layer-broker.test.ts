@@ -61,6 +61,28 @@ describe('resolveWardLayerBroker', () => {
 
       expect(result).toStrictEqual({ action: 'launch-ward' });
     });
+
+    it('EDGE: {2 ward failures, under limit of 3} => launch-ward', () => {
+      resolveWardLayerBrokerProxy();
+      const quest = QuestStub({
+        executionLog: [
+          ExecutionLogEntryStub({
+            agentType: 'ward',
+            status: 'fail',
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'ward',
+            status: 'fail',
+            timestamp: '2024-01-15T11:00:00.000Z',
+          }),
+        ],
+      });
+
+      const result = resolveWardLayerBroker({ quest });
+
+      expect(result).toStrictEqual({ action: 'launch-ward' });
+    });
   });
 
   describe('last entry is pass and invalidated', () => {

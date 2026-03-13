@@ -104,6 +104,52 @@ describe('resolveLawbringerLayerBroker', () => {
     });
   });
 
+  describe('multi-entry ordering', () => {
+    it('VALID: {lawbringer fail then lawbringer pass} => lastEntry is pass, returns undefined', () => {
+      resolveLawbringerLayerBrokerProxy();
+      const quest = QuestStub({
+        executionLog: [
+          ExecutionLogEntryStub({
+            agentType: 'lawbringer',
+            status: 'fail',
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'lawbringer',
+            status: 'pass',
+            timestamp: '2024-01-15T11:00:00.000Z',
+          }),
+        ],
+      });
+
+      const result = resolveLawbringerLayerBroker({ quest });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('VALID: {lawbringer pass then lawbringer fail} => lastEntry is fail, returns launch-lawbringer', () => {
+      resolveLawbringerLayerBrokerProxy();
+      const quest = QuestStub({
+        executionLog: [
+          ExecutionLogEntryStub({
+            agentType: 'lawbringer',
+            status: 'pass',
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'lawbringer',
+            status: 'fail',
+            timestamp: '2024-01-15T11:00:00.000Z',
+          }),
+        ],
+      });
+
+      const result = resolveLawbringerLayerBroker({ quest });
+
+      expect(result).toStrictEqual({ action: 'launch-lawbringer' });
+    });
+  });
+
   describe('last entry has no status', () => {
     it('VALID: {lawbringer entry without status} => launch-lawbringer', () => {
       resolveLawbringerLayerBrokerProxy();

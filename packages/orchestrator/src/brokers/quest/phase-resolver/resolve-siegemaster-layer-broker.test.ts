@@ -151,6 +151,53 @@ describe('resolveSiegemasterLayerBroker', () => {
     });
   });
 
+  describe('multi-entry ordering', () => {
+    it('VALID: {siegemaster fail then siegemaster pass} => lastEntry is pass, returns undefined', () => {
+      resolveSiegemasterLayerBrokerProxy();
+      const quest = QuestStub({
+        executionLog: [
+          ExecutionLogEntryStub({
+            agentType: 'siegemaster',
+            status: 'fail',
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'siegemaster',
+            status: 'pass',
+            timestamp: '2024-01-15T11:00:00.000Z',
+          }),
+        ],
+      });
+
+      const result = resolveSiegemasterLayerBroker({ quest });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('VALID: {siegemaster pass then siegemaster fail} => lastEntry is fail, returns launch-codeweaver', () => {
+      resolveSiegemasterLayerBrokerProxy();
+      const quest = QuestStub({
+        executionLog: [
+          ExecutionLogEntryStub({
+            agentType: 'siegemaster',
+            status: 'pass',
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'siegemaster',
+            status: 'fail',
+            timestamp: '2024-01-15T11:00:00.000Z',
+          }),
+        ],
+        steps: [DependencyStepStub({ status: 'complete' })],
+      });
+
+      const result = resolveSiegemasterLayerBroker({ quest });
+
+      expect(result).toStrictEqual({ action: 'launch-codeweaver' });
+    });
+  });
+
   describe('last entry has no status', () => {
     it('VALID: {siegemaster entry without status} => launch-siegemaster', () => {
       resolveSiegemasterLayerBrokerProxy();
