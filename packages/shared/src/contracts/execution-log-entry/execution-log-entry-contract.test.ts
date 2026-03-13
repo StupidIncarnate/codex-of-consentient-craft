@@ -11,6 +11,7 @@ describe('executionLogEntryContract', () => {
       expect(result).toStrictEqual({
         report: '001-pathseeker-report.json',
         timestamp: '2024-01-15T10:00:00.000Z',
+        failedObservableIds: [],
       });
     });
 
@@ -21,14 +22,47 @@ describe('executionLogEntryContract', () => {
         timestamp: '2024-01-15T12:00:00.000Z',
         agentType: 'codeweaver',
         isRecovery: true,
+        status: 'pass',
+        failedObservableIds: ['login-redirects-to-dashboard'],
       });
 
       const result = executionLogEntryContract.parse(entry);
 
-      expect(result.report).toBe('002-codeweaver-report.json');
-      expect(result.stepId).toBe('create-login-api');
-      expect(result.agentType).toBe('codeweaver');
-      expect(result.isRecovery).toBe(true);
+      expect(result).toStrictEqual({
+        report: '002-codeweaver-report.json',
+        stepId: 'create-login-api',
+        timestamp: '2024-01-15T12:00:00.000Z',
+        agentType: 'codeweaver',
+        isRecovery: true,
+        status: 'pass',
+        failedObservableIds: ['login-redirects-to-dashboard'],
+      });
+    });
+
+    it('VALID: entry with status fail => parses successfully', () => {
+      const entry = ExecutionLogEntryStub({
+        status: 'fail',
+        agentType: 'siegemaster',
+        failedObservableIds: ['login-redirects-to-dashboard', 'shows-error-on-invalid-creds'],
+      });
+
+      const result = executionLogEntryContract.parse(entry);
+
+      expect(result.status).toBe('fail');
+      expect(result.failedObservableIds).toStrictEqual([
+        'login-redirects-to-dashboard',
+        'shows-error-on-invalid-creds',
+      ]);
+    });
+
+    it('VALID: entry without status => backward compat defaults failedObservableIds to empty', () => {
+      const result = executionLogEntryContract.parse({
+        report: '001-report.json',
+        timestamp: '2024-01-15T10:00:00.000Z',
+      });
+
+      expect(result.status).toBeUndefined();
+      expect(result.failedObservableIds).toStrictEqual([]);
     });
   });
 

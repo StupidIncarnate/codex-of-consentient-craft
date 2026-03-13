@@ -9,5 +9,6 @@ export const ExecutionLogEntryStub = ({
   executionLogEntryContract.parse({
     report: '001-pathseeker-report.json',
     timestamp: '2024-01-15T10:00:00.000Z',
+    failedObservableIds: [],
     ...props,
   });

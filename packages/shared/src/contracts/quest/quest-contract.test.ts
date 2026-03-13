@@ -1,5 +1,6 @@
 import { DependencyStepStub } from '../dependency-step/dependency-step.stub';
 import { FlowStub } from '../flow/flow.stub';
+import { PathseekerRunStub } from '../pathseeker-run/pathseeker-run.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
 import { questContract } from './quest-contract';
@@ -24,6 +25,7 @@ describe('questContract', () => {
         toolingRequirements: [],
         contracts: [],
         flows: [],
+        pathseekerRuns: [],
         needsDesign: false,
       });
     });
@@ -147,6 +149,37 @@ describe('questContract', () => {
       });
 
       expect(result.flows).toStrictEqual([]);
+    });
+
+    it('VALID: quest with pathseekerRuns => parses successfully', () => {
+      const run = PathseekerRunStub({
+        sessionId: 'session-abc',
+        attempt: 1,
+        status: 'complete',
+        completedAt: '2024-01-15T11:00:00.000Z',
+      });
+      const quest = QuestStub({
+        pathseekerRuns: [run],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.pathseekerRuns).toStrictEqual([run]);
+    });
+
+    it('VALID: quest without pathseekerRuns field => backward compat defaults to empty array', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        executionLog: [],
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.pathseekerRuns).toStrictEqual([]);
     });
 
     it('VALID: quest without contracts field => backward compat defaults to empty array', () => {

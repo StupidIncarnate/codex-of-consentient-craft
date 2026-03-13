@@ -12,6 +12,7 @@ import { dependencyStepContract } from '../dependency-step/dependency-step-contr
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
 import { executionLogEntryContract } from '../execution-log-entry/execution-log-entry-contract';
+import { pathseekerRunContract } from '../pathseeker-run/pathseeker-run-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
@@ -70,6 +71,10 @@ export const questContract = z.object({
     .brand<'SessionId'>()
     .optional()
     .describe('Session ID of the Glyphsmith design session'),
+  pathseekerRuns: z
+    .array(pathseekerRunContract)
+    .default([])
+    .describe('PathSeeker retry attempts with session IDs for crash recovery'),
   questCreatedSessionBy: z.string().brand<'SessionId'>().optional(),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),

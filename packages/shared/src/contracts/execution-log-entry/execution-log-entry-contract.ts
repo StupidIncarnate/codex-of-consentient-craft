@@ -8,14 +8,18 @@
 
 import { z } from 'zod';
 
+import { agentTypeContract } from '../agent-type/agent-type-contract';
+import { observableIdContract } from '../observable-id/observable-id-contract';
 import { stepIdContract } from '../step-id/step-id-contract';
 
 export const executionLogEntryContract = z.object({
   report: z.string().brand<'ReportFilename'>(),
   stepId: stepIdContract.optional(),
   timestamp: z.string().datetime().brand<'IsoTimestamp'>(),
-  agentType: z.string().brand<'AgentType'>().optional(),
+  agentType: agentTypeContract.optional(),
   isRecovery: z.boolean().optional(),
+  status: z.enum(['pass', 'fail']).optional(),
+  failedObservableIds: z.array(observableIdContract).default([]),
 });
 
 export type ExecutionLogEntry = z.infer<typeof executionLogEntryContract>;
