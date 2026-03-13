@@ -8,7 +8,7 @@ type OrchestrationPhase = ReturnType<typeof OrchestrationPhaseStub>;
 
 describe('siegemasterPhaseLayerBroker', () => {
   describe('all observables verified successfully', () => {
-    it('VALID: {quest with 2 observables in flow nodes, all succeed} => completes without error', async () => {
+    it('VALID: {quest with 2 observables in flow nodes, all succeed} => returns empty failedObservableIds', async () => {
       const proxy = siegemasterPhaseLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
@@ -66,18 +66,24 @@ describe('siegemasterPhaseLayerBroker', () => {
           ],
         }),
       });
-      proxy.setupAllSpawnsSucceed({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupAllSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
+      const result = await siegemasterPhaseLayerBroker({
+        questId,
+        questFilePath,
+        startPath,
+        onPhaseChange,
+      });
 
+      expect(result).toStrictEqual({ failedObservableIds: [] });
       expect(phases).toStrictEqual(['siegemaster']);
     });
   });
 
   describe('observable fails all retries', () => {
-    it('VALID: {observable fails all retries} => skips after max retries without error', async () => {
+    it('ERROR: {observable fails all retries} => throws with failed observable count in message', async () => {
       const proxy = siegemasterPhaseLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
@@ -127,14 +133,16 @@ describe('siegemasterPhaseLayerBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
+      await expect(
+        siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange }),
+      ).rejects.toThrow(/Siegemaster phase failed after 2 retries with 1 failed observables/u);
 
       expect(phases).toStrictEqual(['siegemaster']);
     });
   });
 
-  describe('max retries exceeded', () => {
-    it('VALID: {observable keeps failing beyond max retries} => skipped without throwing', async () => {
+  describe('max retries exceeded with error cause', () => {
+    it('ERROR: {observable keeps failing beyond max retries} => error cause contains failedObservableIds', async () => {
       const proxy = siegemasterPhaseLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
@@ -184,14 +192,26 @@ describe('siegemasterPhaseLayerBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
+      const caughtError = await siegemasterPhaseLayerBroker({
+        questId,
+        questFilePath,
+        startPath,
+        onPhaseChange,
+      }).catch((error: unknown) => error);
 
+      expect(caughtError).toBeInstanceOf(Error);
+
+      const { cause } = caughtError as Error;
+
+      expect(Reflect.get(cause as object, 'failedObservableIds')).toStrictEqual([
+        'redirects-to-dashboard',
+      ]);
       expect(phases).toStrictEqual(['siegemaster']);
     });
   });
 
   describe('no observables in quest', () => {
-    it('EMPTY: {quest with no observables in flow nodes} => returns immediately', async () => {
+    it('EMPTY: {quest with no observables in flow nodes} => returns empty failedObservableIds', async () => {
       const proxy = siegemasterPhaseLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
@@ -227,12 +247,18 @@ describe('siegemasterPhaseLayerBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
+      const result = await siegemasterPhaseLayerBroker({
+        questId,
+        questFilePath,
+        startPath,
+        onPhaseChange,
+      });
 
+      expect(result).toStrictEqual({ failedObservableIds: [] });
       expect(phases).toStrictEqual(['siegemaster']);
     });
 
-    it('EMPTY: {quest with no flows} => returns immediately', async () => {
+    it('EMPTY: {quest with no flows} => returns empty failedObservableIds', async () => {
       const proxy = siegemasterPhaseLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
@@ -259,8 +285,14 @@ describe('siegemasterPhaseLayerBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      await siegemasterPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
+      const result = await siegemasterPhaseLayerBroker({
+        questId,
+        questFilePath,
+        startPath,
+        onPhaseChange,
+      });
 
+      expect(result).toStrictEqual({ failedObservableIds: [] });
       expect(phases).toStrictEqual(['siegemaster']);
     });
   });

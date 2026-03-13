@@ -7,6 +7,7 @@ import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 export const siegemasterPhaseLayerBrokerProxy = (): {
   setupQuestFile: (params: { questJson: string }) => void;
   setupAllSpawnsSucceed: (params: { exitCode: ExitCode }) => void;
+  setupAllSpawnsComplete: (params: { exitCode: ExitCode }) => void;
   setupSpawnFailure: () => void;
 } => {
   const questProxy = questLoadBrokerProxy();
@@ -20,6 +21,10 @@ export const siegemasterPhaseLayerBrokerProxy = (): {
 
     setupAllSpawnsSucceed: ({ exitCode }: { exitCode: ExitCode }): void => {
       parallelProxy.setupAllSpawnsSucceed({ exitCode });
+    },
+
+    setupAllSpawnsComplete: ({ exitCode }: { exitCode: ExitCode }): void => {
+      parallelProxy.setupAllSpawnsComplete({ exitCode });
     },
 
     setupSpawnFailure: (): void => {

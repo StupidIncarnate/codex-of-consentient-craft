@@ -49,7 +49,7 @@ describe('lawbringerPhaseLayerBroker', () => {
           contracts: [],
         }),
       });
-      proxy.setupAllSpawnsSucceed({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupAllSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
 
       const startPath = FilePathStub({ value: '/project/src' });
 
@@ -60,7 +60,7 @@ describe('lawbringerPhaseLayerBroker', () => {
   });
 
   describe('file pair fails all retries', () => {
-    it('VALID: {file pair fails all retries} => skips after max retries without error', async () => {
+    it('ERROR: {file pair fails all retries} => throws after max retries', async () => {
       const proxy = lawbringerPhaseLayerBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
       const phases: OrchestrationPhase[] = [];
@@ -102,7 +102,9 @@ describe('lawbringerPhaseLayerBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      await lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange });
+      await expect(
+        lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange }),
+      ).rejects.toThrow(/Lawbringer phase failed after 2 retries/u);
 
       expect(phases).toStrictEqual(['lawbringer']);
     });
@@ -157,7 +159,7 @@ describe('lawbringerPhaseLayerBroker', () => {
   });
 
   describe('max retries exceeded', () => {
-    it('VALID: {file pair keeps failing beyond max retries} => skipped without throwing', async () => {
+    it('ERROR: {file pair keeps failing beyond max retries} => throws with retry count in message', async () => {
       const proxy = lawbringerPhaseLayerBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
       const phases: OrchestrationPhase[] = [];
@@ -199,7 +201,9 @@ describe('lawbringerPhaseLayerBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      await lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange });
+      await expect(
+        lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange }),
+      ).rejects.toThrow(/Lawbringer phase failed after 2 retries with 1 failed file pairs/u);
 
       expect(phases).toStrictEqual(['lawbringer']);
     });

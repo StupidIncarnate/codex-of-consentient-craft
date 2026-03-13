@@ -35,6 +35,7 @@ export const lawbringerPhaseLayerBroker = async ({
   startPath,
   onPhaseChange,
   _retryState,
+  abortSignal,
 }: {
   questFilePath: FilePath;
   startPath: FilePath;
@@ -47,13 +48,24 @@ export const lawbringerPhaseLayerBroker = async ({
     retryCount: number;
     dispatchDepth: number;
   };
+  abortSignal?: AbortSignal;
 }): Promise<void> => {
+  if (abortSignal?.aborted) {
+    return;
+  }
+
   if (_retryState !== undefined) {
     const { failedWorkUnits, lastResults, maxConcurrent, timeoutMs, retryCount, dispatchDepth } =
       _retryState;
 
-    if (failedWorkUnits.length === 0 || retryCount >= MAX_RETRIES) {
+    if (failedWorkUnits.length === 0) {
       return;
+    }
+
+    if (retryCount >= MAX_RETRIES) {
+      throw new Error(
+        `Lawbringer phase failed after ${String(MAX_RETRIES)} retries with ${String(failedWorkUnits.length)} failed file pairs`,
+      );
     }
 
     const followupUnits = lastResults
@@ -113,6 +125,7 @@ export const lawbringerPhaseLayerBroker = async ({
         retryCount: retryCount + 1,
         dispatchDepth: dispatchDepth + followupUnits.length,
       },
+      ...(abortSignal === undefined ? {} : { abortSignal }),
     });
   }
 
@@ -166,5 +179,6 @@ export const lawbringerPhaseLayerBroker = async ({
       retryCount: 0,
       dispatchDepth: 0,
     },
+    ...(abortSignal === undefined ? {} : { abortSignal }),
   });
 };
