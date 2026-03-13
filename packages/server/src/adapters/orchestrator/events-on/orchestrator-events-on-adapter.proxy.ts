@@ -3,6 +3,7 @@ jest.mock('@dungeonmaster/orchestrator', () => ({
   StartOrchestrator: {
     listQuests: jest.fn(),
     loadQuest: jest.fn(),
+    recoverActiveQuests: jest.fn(),
     replayChatHistory: jest.fn(),
     stopAllChats: jest.fn(),
   },

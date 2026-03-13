@@ -9,6 +9,7 @@
  * const added = await StartOrchestrator.addQuest({title: 'Add Auth', userRequest: 'User wants...', guildId});
  * const got = await StartOrchestrator.getQuest({questId: 'add-auth'});
  * const modified = await StartOrchestrator.modifyQuest({questId: 'add-auth', input: {...}});
+ * const recovered = await StartOrchestrator.recoverActiveQuests();
  */
 
 import type {
@@ -40,6 +41,7 @@ import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
+import { StartupRecoveryFlow } from '../flows/startup-recovery/startup-recovery-flow';
 
 export const StartOrchestrator = {
   // Guild methods
@@ -153,4 +155,7 @@ export const StartOrchestrator = {
     guildId: GuildId;
     message: string;
   }): Promise<{ chatProcessId: ProcessId }> => DesignChatStartFlow({ questId, guildId, message }),
+
+  // Recovery methods
+  recoverActiveQuests: async (): Promise<QuestId[]> => StartupRecoveryFlow(),
 };

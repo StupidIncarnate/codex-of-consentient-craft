@@ -9,10 +9,12 @@ import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrat
 import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter.proxy';
 import { orchestratorOutboxWatchAdapterProxy } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter.proxy';
 import { orchestratorReplayChatHistoryAdapterProxy } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter.proxy';
+import { orchestratorRecoverActiveQuestsAdapterProxy } from '../../../adapters/orchestrator/recover-active-quests/orchestrator-recover-active-quests-adapter.proxy';
 import { orchestratorStopAllChatsAdapterProxy } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
 import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
+import { agentOutputBufferStateProxy } from '../../../state/agent-output-buffer/agent-output-buffer-state.proxy';
 import { designProcessStateProxy } from '../../../state/design-process/design-process-state.proxy';
 import { ServerInitResponder } from './server-init-responder';
 
@@ -36,7 +38,6 @@ export const ServerInitResponderProxy = (): {
     onError: ((args: { error: unknown }) => void) | undefined;
   };
 } => {
-  jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-01T00:00:00.000Z');
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
   honoServeAdapterProxy();
   const eventsOnProxy = orchestratorEventsOnAdapterProxy();
@@ -44,9 +45,11 @@ export const ServerInitResponderProxy = (): {
   const loadQuestProxy = orchestratorLoadQuestAdapterProxy();
   const replayProxy = orchestratorReplayChatHistoryAdapterProxy();
   const outboxWatchProxy = orchestratorOutboxWatchAdapterProxy();
+  orchestratorRecoverActiveQuestsAdapterProxy();
   orchestratorStopAllChatsAdapterProxy();
   processDevLogAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();
+  agentOutputBufferStateProxy();
   designProcessStateProxy();
 
   return {

@@ -22,12 +22,15 @@ import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/li
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
 import { orchestratorOutboxWatchAdapter } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter';
 import { orchestratorReplayChatHistoryAdapter } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter';
+import { orchestratorRecoverActiveQuestsAdapter } from '../../../adapters/orchestrator/recover-active-quests/orchestrator-recover-active-quests-adapter';
 import { orchestratorStopAllChatsAdapter } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
+import { agentOutputLineContract } from '../../../contracts/agent-output-line/agent-output-line-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { ProcessId } from '../../../contracts/process-id/process-id-contract';
+import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
+import { agentOutputBufferState } from '../../../state/agent-output-buffer/agent-output-buffer-state';
 import { designProcessState } from '../../../state/design-process/design-process-state';
 
 type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
@@ -121,24 +124,15 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
   });
   nodeWebSocket.injectWebSocket(server);
 
-  const pipelineChatOutputBuffer: {
-    processId: ProcessId;
-    payload: Record<PropertyKey, unknown>;
-  }[] = [];
-
   const eventTypes = orchestrationEventTypeContract.options;
   for (const type of eventTypes) {
+    if (type === 'agent-output') continue;
     if (type === 'quest-modified') continue;
     if (type === 'quest-created') continue;
 
     orchestratorEventsOnAdapter({
       type,
       handler: ({ processId, payload }) => {
-        if (type === 'chat-output' && typeof Reflect.get(payload, 'slotIndex') === 'number') {
-          pipelineChatOutputBuffer.push({ processId, payload });
-          return;
-        }
-
         wsEventRelayBroadcastBroker({
           clients,
           message: wsMessageContract.parse({
@@ -151,19 +145,31 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
     });
   }
 
-  const flushIntervalHandle = setInterval(() => {
-    if (pipelineChatOutputBuffer.length === 0) return;
+  orchestratorEventsOnAdapter({
+    type: 'agent-output',
+    handler: ({ processId, payload }) => {
+      const slotIndex = slotIndexContract.parse(Reflect.get(payload, 'slotIndex'));
+      const rawLine = Reflect.get(payload, 'line');
+      const line = agentOutputLineContract.parse(typeof rawLine === 'string' ? rawLine : '');
 
-    const batch = pipelineChatOutputBuffer.splice(0);
-    for (const item of batch) {
-      wsEventRelayBroadcastBroker({
-        clients,
-        message: wsMessageContract.parse({
-          type: 'chat-output',
-          payload: { ...item.payload, processId: item.processId },
-          timestamp: isoTimestampContract.parse(new Date().toISOString()),
-        }),
-      });
+      agentOutputBufferState.addLine({ processId, slotIndex, line });
+    },
+  });
+
+  setInterval(() => {
+    const pending = agentOutputBufferState.flush();
+
+    for (const [processId, slots] of pending) {
+      for (const [slotIndex, lines] of slots) {
+        wsEventRelayBroadcastBroker({
+          clients,
+          message: wsMessageContract.parse({
+            type: 'agent-output',
+            payload: { processId, slotIndex, lines },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          }),
+        });
+      }
     }
   }, FLUSH_INTERVAL_MS);
 
@@ -191,16 +197,26 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
     processDevLogAdapter({ message: 'Outbox watcher failed to start' });
   });
 
+  orchestratorRecoverActiveQuestsAdapter()
+    .then((recoveredIds) => {
+      if (recoveredIds.length > 0) {
+        processDevLogAdapter({
+          message: `Startup recovery: re-registered ${String(recoveredIds.length)} active quest(s)`,
+        });
+      }
+    })
+    .catch(() => {
+      processDevLogAdapter({ message: 'Startup recovery failed' });
+    });
+
   process.on('SIGTERM', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
-    clearInterval(flushIntervalHandle);
     orchestratorStopAllChatsAdapter();
     designProcessState.stopAll();
     process.exit(0);
   });
   process.on('SIGINT', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGINT)' });
-    clearInterval(flushIntervalHandle);
     orchestratorStopAllChatsAdapter();
     designProcessState.stopAll();
     process.exit(0);

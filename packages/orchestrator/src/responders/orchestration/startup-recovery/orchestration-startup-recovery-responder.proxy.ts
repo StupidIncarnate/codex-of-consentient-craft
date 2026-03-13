@@ -1,18 +1,22 @@
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
-import { guildListBrokerProxy } from '../../../brokers/guild/list/guild-list-broker.proxy';
+import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
+import { OrchestrationStartupRecoveryResponder } from './orchestration-startup-recovery-responder';
 
-import { RecoverGuildLayerResponderProxy } from './recover-guild-layer-responder.proxy';
+type Quest = ReturnType<typeof QuestStub>;
 
 export const OrchestrationStartupRecoveryResponderProxy = (): {
-  setupEmpty: (params: { homeDir: string; homePath: FilePath }) => void;
+  callResponder: (params: {
+    quests: Quest[];
+  }) => ReturnType<typeof OrchestrationStartupRecoveryResponder>;
 } => {
-  const guildListProxy = guildListBrokerProxy();
-  RecoverGuildLayerResponderProxy();
+  const stateProxy = orchestrationProcessesStateProxy();
+
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+
+  stateProxy.setupEmpty();
 
   return {
-    setupEmpty: ({ homeDir, homePath }: { homeDir: string; homePath: FilePath }): void => {
-      guildListProxy.setupEmptyConfig({ homeDir, homePath });
-    },
+    callResponder: OrchestrationStartupRecoveryResponder,
   };
 };
