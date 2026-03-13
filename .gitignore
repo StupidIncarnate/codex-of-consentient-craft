@@ -73,3 +73,4 @@ dependency-graph.html
 _test-workspace/
 .ward/
 .dungeonmaster-home
+.claude/worktrees
