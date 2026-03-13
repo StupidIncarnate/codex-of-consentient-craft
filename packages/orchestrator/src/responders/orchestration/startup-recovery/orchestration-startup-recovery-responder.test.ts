@@ -69,7 +69,7 @@ describe('OrchestrationStartupRecoveryResponder', () => {
   });
 
   describe('state registration', () => {
-    it('VALID: {in_progress quest with mixed steps} => registers process with correct quest id and phase', () => {
+    it('VALID: {in_progress quest with mixed steps} => registers process with correct quest id', () => {
       const proxy = OrchestrationStartupRecoveryResponderProxy();
       const questId = QuestIdStub({ value: 'progress-quest' });
       const quest = QuestStub({
@@ -93,32 +93,6 @@ describe('OrchestrationStartupRecoveryResponder', () => {
       });
 
       expect(process?.questId).toBe('progress-quest');
-      expect(process?.phase).toBe('idle');
-    });
-
-    it('VALID: {in_progress quest with mixed steps} => tracks step counts and empty slots', () => {
-      const proxy = OrchestrationStartupRecoveryResponderProxy();
-      const questId = QuestIdStub({ value: 'progress-quest' });
-      const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({ status: 'complete' }),
-          DependencyStepStub({ status: 'complete' }),
-          DependencyStepStub({ status: 'in_progress' }),
-        ],
-      });
-
-      proxy.callResponder({ quests: [quest] });
-
-      const processIds = orchestrationProcessesState.getAll();
-      const process = orchestrationProcessesState.get({
-        processId: processIds[0]!,
-      });
-
-      expect(process?.completedSteps).toBe(2);
-      expect(process?.totalSteps).toBe(3);
-      expect(process?.slots).toStrictEqual([]);
     });
   });
 

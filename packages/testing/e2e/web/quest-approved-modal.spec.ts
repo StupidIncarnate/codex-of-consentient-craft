@@ -245,7 +245,7 @@ test.describe('Quest Approved Modal', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
   });
 
-  test('clicking Keep Chatting on design_approved reverts to review_design', async ({
+  test('clicking Keep Chatting on design_approved reverts to explore_design', async ({
     page,
     request,
   }) => {
@@ -282,7 +282,7 @@ test.describe('Quest Approved Modal', () => {
 
     const patchRequest = await patchPromise;
     const body = patchRequest.postDataJSON();
-    expect(body).toHaveProperty('status', 'review_design');
+    expect(body).toHaveProperty('status', 'explore_design');
   });
 
   test('clicking Start a new Quest navigates to /:guildSlug/session', async ({ page, request }) => {
