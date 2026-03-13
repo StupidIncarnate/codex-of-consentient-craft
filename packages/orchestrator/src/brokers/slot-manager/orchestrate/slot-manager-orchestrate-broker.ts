@@ -25,6 +25,7 @@ export const slotManagerOrchestrateBroker = async ({
   role,
   startPath,
   onAgentEntry,
+  abortSignal,
 }: {
   questFilePath: FilePath;
   slotCount: SlotCount;
@@ -33,6 +34,7 @@ export const slotManagerOrchestrateBroker = async ({
   role: AgentRole;
   startPath: FilePath;
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  abortSignal?: AbortSignal;
 }): Promise<SlotManagerResult> => {
   const result = await runOrchestrationLayerBroker({
     questFilePath,
@@ -43,6 +45,7 @@ export const slotManagerOrchestrateBroker = async ({
     activeAgents: [],
     startPath,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+    ...(abortSignal === undefined ? {} : { abortSignal }),
   });
   return result;
 };

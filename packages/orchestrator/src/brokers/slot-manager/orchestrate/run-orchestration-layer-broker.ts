@@ -27,6 +27,7 @@ export const runOrchestrationLayerBroker = async ({
   activeAgents,
   startPath,
   onAgentEntry,
+  abortSignal,
 }: {
   questFilePath: FilePath;
   slotCount: SlotCount;
@@ -36,7 +37,12 @@ export const runOrchestrationLayerBroker = async ({
   activeAgents: ActiveAgent[];
   startPath: FilePath;
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  abortSignal?: AbortSignal;
 }): Promise<SlotManagerResult> => {
+  if (abortSignal?.aborted) {
+    return { completed: false, incompleteSteps: [] };
+  }
+
   const loopResult = await orchestrationLoopLayerBroker({
     questFilePath,
     slotCount,
@@ -61,5 +67,6 @@ export const runOrchestrationLayerBroker = async ({
     activeAgents: loopResult.activeAgents,
     startPath,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+    ...(abortSignal === undefined ? {} : { abortSignal }),
   });
 };

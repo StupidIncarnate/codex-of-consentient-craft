@@ -25,13 +25,19 @@ export const codeweaverPhaseLayerBroker = async ({
   startPath,
   onPhaseChange,
   onAgentEntry,
+  abortSignal,
 }: {
   questId: QuestId;
   questFilePath: FilePath;
   startPath: FilePath;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  abortSignal?: AbortSignal;
 }): Promise<void> => {
+  if (abortSignal?.aborted) {
+    return;
+  }
+
   onPhaseChange({ phase: 'codeweaver' });
 
   const slotCount = slotCountContract.parse(CODEWEAVER_SLOT_COUNT);
@@ -46,7 +52,12 @@ export const codeweaverPhaseLayerBroker = async ({
     role: 'codeweaver',
     startPath,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+    ...(abortSignal === undefined ? {} : { abortSignal }),
   });
+
+  if (abortSignal?.aborted) {
+    return;
+  }
 
   if (!result.completed) {
     const stepNames = result.incompleteSteps.map((step) => step.name).join(', ');

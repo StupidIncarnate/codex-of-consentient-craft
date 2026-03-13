@@ -32,12 +32,18 @@ export const wardPhaseLayerBroker = async ({
   startPath,
   onPhaseChange,
   attempt = 1,
+  abortSignal,
 }: {
   questFilePath: FilePath;
   startPath: AbsoluteFilePath;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
   attempt?: number;
+  abortSignal?: AbortSignal;
 }): Promise<void> => {
+  if (abortSignal?.aborted) {
+    return;
+  }
+
   if (attempt === 1) {
     onPhaseChange({ phase: 'ward' });
   }
@@ -49,6 +55,10 @@ export const wardPhaseLayerBroker = async ({
   const { exitCode, wardResultJson } = await spawnWardLayerBroker({ startPath });
 
   if (exitCode === 0) {
+    return;
+  }
+
+  if (abortSignal?.aborted) {
     return;
   }
 
@@ -82,5 +92,6 @@ export const wardPhaseLayerBroker = async ({
     startPath,
     onPhaseChange,
     attempt: attempt + 1,
+    ...(abortSignal === undefined ? {} : { abortSignal }),
   });
 };
