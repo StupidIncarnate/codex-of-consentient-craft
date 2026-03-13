@@ -173,7 +173,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     questData?.status === 'approved'
       ? ('review_observables' as QuestStatus)
       : questData?.status === 'design_approved'
-        ? ('review_design' as QuestStatus)
+        ? ('explore_design' as QuestStatus)
         : null;
 
   if (questData && isExecutionPhaseGuard({ status: questData.status })) {
