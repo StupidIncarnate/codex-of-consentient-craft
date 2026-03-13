@@ -34,6 +34,10 @@ export const pathseekerPipelineBroker = async ({
   onVerifySuccess: () => void;
   onProcessUpdate: (params: { process: KillableProcess }) => void;
 }): Promise<void> => {
+  if (attempt >= pathseekerPipelineStatics.limits.maxAttempts) {
+    return;
+  }
+
   await killableProcess.waitForExit();
 
   const input = verifyQuestInputContract.parse({ questId });
@@ -41,10 +45,6 @@ export const pathseekerPipelineBroker = async ({
 
   if (result.success) {
     onVerifySuccess();
-    return;
-  }
-
-  if (attempt >= pathseekerPipelineStatics.limits.maxAttempts) {
     return;
   }
 

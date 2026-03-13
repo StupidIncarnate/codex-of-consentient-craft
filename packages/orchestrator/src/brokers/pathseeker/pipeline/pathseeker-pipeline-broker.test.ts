@@ -85,14 +85,12 @@ describe('pathseekerPipelineBroker', () => {
   });
 
   describe('verify fails at max attempts', () => {
-    it('VALID: {verify fails, attempt >= maxAttempts} => stops without spawning', async () => {
+    it('VALID: {attempt >= maxAttempts} => returns immediately without running', async () => {
       const proxy = pathseekerPipelineBrokerProxy();
 
       const processId = ProcessIdStub({ value: 'proc-12345' });
       const questId = QuestIdStub();
       const killableProcess = KillableProcessStub();
-
-      proxy.setupVerifyFailure();
 
       await pathseekerPipelineBroker({
         processId,
@@ -132,6 +130,33 @@ describe('pathseekerPipelineBroker', () => {
       });
 
       expect(proxy.onProcessUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it('VALID: {all 3 attempts fail from attempt 0} => spawns 3 retries then stops', async () => {
+      const proxy = pathseekerPipelineBrokerProxy();
+
+      const processId = ProcessIdStub({ value: 'proc-12345' });
+      const questId = QuestIdStub();
+      const killableProcess = KillableProcessStub();
+
+      proxy.setupVerifyFailure();
+      proxy.setupSpawnSuccess();
+      proxy.setupVerifyFailure();
+      proxy.setupSpawnSuccess();
+      proxy.setupVerifyFailure();
+      proxy.setupSpawnSuccess();
+
+      await pathseekerPipelineBroker({
+        processId,
+        questId,
+        killableProcess,
+        attempt: 0,
+        onVerifySuccess: proxy.onVerifySuccess,
+        onProcessUpdate: proxy.onProcessUpdate,
+      });
+
+      expect(proxy.onVerifySuccess).not.toHaveBeenCalled();
+      expect(proxy.onProcessUpdate).toHaveBeenCalledTimes(3);
     });
   });
 });
