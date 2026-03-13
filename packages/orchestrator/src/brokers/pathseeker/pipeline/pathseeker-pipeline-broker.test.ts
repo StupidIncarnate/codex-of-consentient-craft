@@ -149,6 +149,7 @@ describe('pathseekerPipelineBroker', () => {
       await pathseekerPipelineBroker({
         processId,
         questId,
+        startPath: FilePathStub({ value: '/project/src' }),
         killableProcess,
         attempt: 0,
         onVerifySuccess: proxy.onVerifySuccess,

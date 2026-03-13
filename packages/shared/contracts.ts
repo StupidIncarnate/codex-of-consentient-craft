@@ -83,6 +83,9 @@ export * from './src/contracts/file-name/file-name.stub';
 export * from './src/contracts/execution-log-entry/execution-log-entry-contract';
 export * from './src/contracts/execution-log-entry/execution-log-entry.stub';
 
+export * from './src/contracts/execution-log-entry-outcome/execution-log-entry-outcome-contract';
+export * from './src/contracts/execution-log-entry-outcome/execution-log-entry-outcome.stub';
+
 export * from './src/contracts/quest-list-item/quest-list-item-contract';
 export * from './src/contracts/quest-list-item/quest-list-item.stub';
 

@@ -23,16 +23,19 @@ describe('resolveWardLayerBroker', () => {
           ExecutionLogEntryStub({
             agentType: 'ward',
             status: 'fail',
+            outcome: 'fail',
             timestamp: '2024-01-15T10:00:00.000Z',
           }),
           ExecutionLogEntryStub({
             agentType: 'ward',
             status: 'fail',
+            outcome: 'fail',
             timestamp: '2024-01-15T11:00:00.000Z',
           }),
           ExecutionLogEntryStub({
             agentType: 'ward',
             status: 'fail',
+            outcome: 'fail',
             timestamp: '2024-01-15T12:00:00.000Z',
           }),
         ],

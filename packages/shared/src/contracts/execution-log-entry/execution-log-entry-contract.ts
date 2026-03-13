@@ -9,6 +9,7 @@
 import { z } from 'zod';
 
 import { agentTypeContract } from '../agent-type/agent-type-contract';
+import { executionLogEntryOutcomeContract } from '../execution-log-entry-outcome/execution-log-entry-outcome-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { stepIdContract } from '../step-id/step-id-contract';
 
@@ -19,6 +20,7 @@ export const executionLogEntryContract = z.object({
   agentType: agentTypeContract.optional(),
   isRecovery: z.boolean().optional(),
   status: z.enum(['pass', 'fail']).optional(),
+  outcome: executionLogEntryOutcomeContract.optional(),
   failedObservableIds: z.array(observableIdContract).default([]),
 });
 

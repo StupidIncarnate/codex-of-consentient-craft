@@ -490,16 +490,19 @@ describe('questPhaseResolverBroker', () => {
           ExecutionLogEntryStub({
             agentType: 'ward',
             status: 'fail',
+            outcome: 'fail',
             timestamp: '2024-01-15T12:00:00.000Z',
           }),
           ExecutionLogEntryStub({
             agentType: 'ward',
             status: 'fail',
+            outcome: 'fail',
             timestamp: '2024-01-15T13:00:00.000Z',
           }),
           ExecutionLogEntryStub({
             agentType: 'ward',
             status: 'fail',
+            outcome: 'fail',
             timestamp: '2024-01-15T14:00:00.000Z',
           }),
         ],
@@ -715,11 +718,13 @@ describe('questPhaseResolverBroker', () => {
           ExecutionLogEntryStub({
             agentType: 'siegemaster',
             status: 'fail',
+            outcome: 'fail',
             timestamp: '2024-01-15T13:00:00.000Z',
           }),
           ExecutionLogEntryStub({
             agentType: 'siegemaster',
             status: 'fail',
+            outcome: 'fail',
             timestamp: '2024-01-15T14:00:00.000Z',
           }),
         ],
@@ -877,11 +882,13 @@ describe('questPhaseResolverBroker', () => {
           ExecutionLogEntryStub({
             agentType: 'lawbringer',
             status: 'fail',
+            outcome: 'fail',
             timestamp: '2024-01-15T14:00:00.000Z',
           }),
           ExecutionLogEntryStub({
             agentType: 'lawbringer',
             status: 'fail',
+            outcome: 'fail',
             timestamp: '2024-01-15T15:00:00.000Z',
           }),
         ],
