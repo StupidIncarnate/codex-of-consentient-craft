@@ -1,4 +1,4 @@
-import { ExitCodeStub, QuestStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { OrchestrationStartResponderProxy } from './orchestration-start-responder.proxy';
 
@@ -7,10 +7,8 @@ describe('OrchestrationStartResponder', () => {
     it('VALID: {questId with approved quest} => returns processId', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
-      const questJson = JSON.stringify(quest);
-      const exitCode = ExitCodeStub({ value: 0 });
       const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestApproved({ quest, questJson, exitCode });
+      proxy.setupQuestApproved({ quest });
 
       const result = await proxy.callResponder({ questId });
 
@@ -41,10 +39,8 @@ describe('OrchestrationStartResponder', () => {
     it('VALID: {questId with design_approved quest} => returns processId', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'design_approved' });
-      const questJson = JSON.stringify(quest);
-      const exitCode = ExitCodeStub({ value: 0 });
       const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestApproved({ quest, questJson, exitCode });
+      proxy.setupQuestApproved({ quest });
 
       const result = await proxy.callResponder({ questId });
 
@@ -54,10 +50,8 @@ describe('OrchestrationStartResponder', () => {
     it('VALID: {questId with in_progress quest} => restarts pipeline and returns processId', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'in_progress', steps: [] });
-      const questJson = JSON.stringify(quest);
-      const exitCode = ExitCodeStub({ value: 0 });
       const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestInProgressRestart({ quest, questJson, exitCode });
+      proxy.setupQuestInProgressRestart({ quest });
 
       const result = await proxy.callResponder({ questId });
 
@@ -78,48 +72,16 @@ describe('OrchestrationStartResponder', () => {
     });
   });
 
-  describe('state registration', () => {
-    it('VALID: {questId with approved quest} => registers process and returns processId', async () => {
+  describe('in_progress skips status transition', () => {
+    it('VALID: {quest already in_progress} => skips modify to in_progress and returns processId', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({ id: questId, status: 'approved', steps: [] });
-      const questJson = JSON.stringify(quest);
-      const exitCode = ExitCodeStub({ value: 0 });
+      const quest = QuestStub({ id: questId, status: 'in_progress', steps: [] });
       const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestApproved({ quest, questJson, exitCode });
+      proxy.setupQuestInProgressRestart({ quest });
 
-      const processId = await proxy.callResponder({ questId });
+      const result = await proxy.callResponder({ questId });
 
-      expect(processId).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
-    });
-  });
-
-  describe('pipeline launch', () => {
-    it('VALID: {questId with approved quest} => returns processId after launching pipeline', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({ id: questId, status: 'approved', steps: [] });
-      const questJson = JSON.stringify(quest);
-      const exitCode = ExitCodeStub({ value: 0 });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestApproved({ quest, questJson, exitCode });
-
-      const processId = await proxy.callResponder({ questId });
-
-      expect(processId).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
-    });
-  });
-
-  describe('onAgentEntry events', () => {
-    it('VALID: {questId with approved quest} => passes onAgentEntry that emits to orchestrationEventsState', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({ id: questId, status: 'approved', steps: [] });
-      const questJson = JSON.stringify(quest);
-      const exitCode = ExitCodeStub({ value: 0 });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestApproved({ quest, questJson, exitCode });
-
-      const processId = await proxy.callResponder({ questId });
-
-      expect(processId).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      expect(result).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
 });

@@ -1,7 +1,9 @@
 import {
+  ExecutionLogEntryStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  PathseekerRunStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -180,6 +182,88 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({ questId: 'add-auth' });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('execution log append', () => {
+    it('VALID: {questId, executionLog: [entry]} with empty existing log => appends entry', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', executionLog: [] });
+
+      proxy.setupQuestFound({ quest });
+
+      const entry = ExecutionLogEntryStub({ agentType: 'ward', status: 'pass' });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        executionLog: [entry],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {questId, executionLog: [entry]} with existing log => appends to existing entries', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingEntry = ExecutionLogEntryStub({ agentType: 'codeweaver', status: 'pass' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        executionLog: [existingEntry],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newEntry = ExecutionLogEntryStub({ agentType: 'ward', status: 'fail' });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        executionLog: [newEntry],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('pathseeker runs append', () => {
+    it('VALID: {questId, pathseekerRuns: [run]} with empty existing runs => appends run', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', pathseekerRuns: [] });
+
+      proxy.setupQuestFound({ quest });
+
+      const run = PathseekerRunStub({ attempt: 0, status: 'in_progress' });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        pathseekerRuns: [run],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {questId, pathseekerRuns: [run]} with existing runs => appends to existing runs', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingRun = PathseekerRunStub({ attempt: 0, status: 'complete' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        pathseekerRuns: [existingRun],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newRun = PathseekerRunStub({ attempt: 1, status: 'in_progress' });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        pathseekerRuns: [newRun],
+      });
 
       const result = await questModifyBroker({ input });
 

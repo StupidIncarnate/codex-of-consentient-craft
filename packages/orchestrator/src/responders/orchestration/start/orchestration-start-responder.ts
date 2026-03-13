@@ -1,22 +1,27 @@
 /**
- * PURPOSE: Validates a quest is approved, creates a processId, registers the orchestration process, and launches the quest pipeline fire-and-forget
+ * PURPOSE: Validates a quest is startable, resolves paths, creates a processId, registers the orchestration process, and launches the orchestration loop fire-and-forget
  *
  * USAGE:
  * const processId = await OrchestrationStartResponder({ questId });
- * // Returns ProcessId after registering process and starting pipeline
+ * // Returns ProcessId after registering process and starting orchestration loop
  */
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
+import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
+import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
-import { questPipelineLaunchBroker } from '../../../brokers/quest/pipeline-launch/quest-pipeline-launch-broker';
+import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
+import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { startableQuestStatusesStatics } from '../../../statics/startable-quest-statuses/startable-quest-statuses-statics';
+
+const QUEST_FILE_NAME = 'quest.json';
 
 export const OrchestrationStartResponder = async ({
   questId,
@@ -46,11 +51,15 @@ export const OrchestrationStartResponder = async ({
 
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
 
+  const abortController = new AbortController();
+
   orchestrationProcessesState.register({
     orchestrationProcess: {
       processId,
       questId,
-      kill: () => undefined,
+      kill: () => {
+        abortController.abort();
+      },
     },
   });
 
@@ -65,12 +74,18 @@ export const OrchestrationStartResponder = async ({
     }
   }
 
-  questPipelineLaunchBroker({
+  const { questPath, guildId } = await questFindQuestPathBroker({ questId });
+  const questFilePath = filePathContract.parse(
+    pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+  );
+  const guild = await guildGetBroker({ guildId });
+  const startPath = filePathContract.parse(guild.path);
+
+  questOrchestrationLoopBroker({
     processId,
     questId,
-    onPhaseChange: () => {
-      // Phase tracking removed - derived from quest file in Phase 4
-    },
+    questFilePath,
+    startPath,
     onAgentEntry: ({ slotIndex, entry }) => {
       orchestrationEventsState.emit({
         type: 'chat-output',
@@ -78,9 +93,17 @@ export const OrchestrationStartResponder = async ({
         payload: { processId, slotIndex, entry },
       });
     },
-  }).catch(() => {
-    orchestrationProcessesState.remove({ processId });
-  });
+    abortSignal: abortController.signal,
+  })
+    .then(() => {
+      orchestrationProcessesState.remove({ processId });
+    })
+    .catch((error: unknown) => {
+      process.stderr.write(
+        `Orchestration loop failed for quest ${questId}: ${error instanceof Error ? error.message : 'Unknown error'}\n`,
+      );
+      orchestrationProcessesState.remove({ processId });
+    });
 
   return processId;
 };

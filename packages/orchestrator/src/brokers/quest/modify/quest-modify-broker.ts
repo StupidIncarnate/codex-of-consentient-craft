@@ -101,6 +101,14 @@ export const questModifyBroker = async ({
       quest.designPort = validated.designPort as typeof quest.designPort;
     }
 
+    if (validated.executionLog) {
+      quest.executionLog = [...quest.executionLog, ...validated.executionLog];
+    }
+
+    if (validated.pathseekerRuns) {
+      quest.pathseekerRuns = [...quest.pathseekerRuns, ...validated.pathseekerRuns];
+    }
+
     if (validated.status) {
       const isValidTransition = questHasValidStatusTransitionGuard({
         currentStatus: quest.status,
