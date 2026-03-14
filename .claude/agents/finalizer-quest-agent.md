@@ -45,7 +45,7 @@ Fetch the quest in stages via MCP tools to manage context size:
 
 **Fetch 2:** `get-quest` tool (params: `{ questId: "QUEST_ID", stage: "spec-obs" }`)
 
-- Record all observables embedded in flow nodes (flat assertions with `id`, `type`, `description`)
+- Record all observables embedded in flow nodes (`then` assertion arrays)
 - Note which nodes have observables and which don't
 - Contracts are included again for cross-referencing
 

@@ -1,0 +1,130 @@
+import * as crypto from 'crypto';
+import { mkdirSync, writeFileSync } from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { test, expect } from '@playwright/test';
+import {
+  cleanGuilds,
+  createGuild,
+  createSessionFile,
+  cleanSessionDirectory,
+  queueClaudeResponse,
+  clearClaudeQueue,
+  SimpleTextResponseStub,
+} from './fixtures/test-helpers';
+
+const GUILD_PATH = '/tmp/dm-e2e-quest-execution-streaming';
+const JSON_INDENT = 2;
+const HTTP_OK = 200;
+const PANEL_TIMEOUT = 15_000;
+const STREAMING_TEXT_TIMEOUT = 20_000;
+
+const createQuestFile = ({
+  guildId,
+  questId,
+  sessionId,
+}: {
+  guildId: string;
+  questId: string;
+  sessionId: string;
+}): void => {
+  const homeDir = os.homedir();
+  const questFolder = '001-e2e-execution-streaming';
+  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
+  mkdirSync(questDir, { recursive: true });
+
+  const quest = {
+    id: questId,
+    folder: questFolder,
+    title: 'E2E Execution Streaming Quest',
+    status: 'in_progress',
+    createdAt: new Date().toISOString(),
+    questCreatedSessionBy: sessionId,
+    designDecisions: [],
+    steps: [],
+    toolingRequirements: [],
+    contracts: [],
+    flows: [
+      {
+        id: 'test-flow',
+        name: 'Test Flow',
+        entryPoint: 'start',
+        exitPoints: ['end'],
+        nodes: [
+          { id: 'start', label: 'Start', type: 'state', observables: [] },
+          { id: 'end', label: 'End', type: 'terminal', observables: [] },
+        ],
+        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
+      },
+    ],
+  };
+
+  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
+};
+
+const navigateToSession = async ({
+  page,
+  urlSlug,
+  sessionId,
+}: {
+  page: Parameters<Parameters<typeof test>[2]>[0]['page'];
+  urlSlug: string;
+  sessionId: string;
+}): Promise<void> => {
+  const sessionResponsePromise = page.waitForResponse(
+    (r) =>
+      r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+  );
+  await page.goto(`/${urlSlug}/session/${sessionId}`);
+  await sessionResponsePromise;
+};
+
+test.describe('Quest Execution Streaming', () => {
+  test.beforeEach(async ({ request }) => {
+    await cleanGuilds(request);
+    clearClaudeQueue();
+    mkdirSync(GUILD_PATH, { recursive: true });
+    cleanSessionDirectory({ guildPath: GUILD_PATH });
+  });
+
+  test('execution panel renders streamed LLM text content from pathseeker', async ({
+    page,
+    request,
+  }) => {
+    const guild = await createGuild(request, {
+      name: 'Streaming Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = String(guild.id);
+    const sessionId = `e2e-exec-stream-${Date.now()}`;
+    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+
+    const questId = crypto.randomUUID();
+    createQuestFile({ guildId, questId, sessionId });
+
+    // Queue response for pathseeker with delay so the text is visible before CLI exits
+    const response = SimpleTextResponseStub({
+      text: 'Analyzing quest requirements and planning steps',
+    });
+    response.delayMs = 500;
+    queueClaudeResponse(response);
+
+    const urlSlug = String(guild.urlSlug ?? guild.name)
+      .toLowerCase()
+      .replace(/\s+/gu, '-');
+    await navigateToSession({ page, urlSlug, sessionId });
+
+    // Execution panel should appear since quest is in_progress
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+
+    // The planning row should be visible
+    await expect(page.getByText('Planning steps...')).toBeVisible({ timeout: PANEL_TIMEOUT });
+
+    // The actual streamed text content should appear in the execution row — not just "streaming..."
+    await expect(
+      page.getByText('Analyzing quest requirements and planning steps'),
+    ).toBeVisible({ timeout: STREAMING_TEXT_TIMEOUT });
+  });
+});

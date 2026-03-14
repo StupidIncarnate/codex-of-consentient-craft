@@ -44,6 +44,7 @@ it. Instead, provide brief summaries referencing items by name and ask focused q
 - NEVER create observables before flows are approved
 - NEVER proceed past an approval gate without explicit user approval
 - NEVER re-output quest data the user can already see (diagrams, observable lists)
+- NEVER set quest status to `flows_approved` or `approved` directly — users do this via the APPROVE button
 
 ---
 
@@ -89,8 +90,9 @@ it. Instead, provide brief summaries referencing items by name and ask focused q
 4. **Update quest title** - The quest was created with a placeholder title. Update it to a concise, descriptive name via
    `modify-quest` before Phase 4.
 
-**EXIT when:** Quest reviewed AND you have codebase context AND you have enough user clarity to draw flows. Mark Phase 1
-task completed, mark Phase 2 task in_progress.
+**EXIT when:** Quest reviewed AND you have codebase context AND you have enough user clarity to draw flows.
+**Transition status:** Call `modify-quest` with `status: 'explore_flows'` to signal you are entering flow work.
+Mark Phase 1 task completed, mark Phase 2 task in_progress.
 
 ### Phase 2: Flow Mapping
 
@@ -127,8 +129,10 @@ diagrams from the structured data. The user sees the rendered diagram in their U
 - Do NOT include observables yet — leave `observables: []` on all nodes. Observables come in Phase 4.
 - Cross-flow references use `"flowId:nodeId"` format for edges that link between flows.
 
-**EXIT when:** Flows and design decisions are persisted to the quest via `modify-quest`. Mark Phase 2 task completed,
-mark Phase 3 task in_progress.
+**EXIT when:** Flows and design decisions are persisted to the quest via `modify-quest`.
+**Transition status:** Call `modify-quest` with `status: 'review_flows'` to signal flows are ready for user review. This
+enables the APPROVE button in the user's UI.
+Mark Phase 2 task completed, mark Phase 3 task in_progress.
 
 ### Phase 3: Approval Gate - Flows
 
@@ -139,11 +143,18 @@ mark Phase 3 task in_progress.
     - Are the error/recovery paths complete?
     - Are any flows missing?
 
-**GATE: Do NOT proceed until user explicitly approves flows and quest status is `flows_approved`.** Quest title must be
-updated from the placeholder before proceeding.
+If the user requests changes or identifies gaps, call `modify-quest` with `status: 'explore_flows'` to return to
+exploration mode (this hides the APPROVE button). Make the requested changes, then transition back to `review_flows`
+when ready for another review.
+
+**GATE: Do NOT proceed until user explicitly approves flows and quest status is `flows_approved`.**
+The user clicks APPROVE in their UI to transition from `review_flows` to `flows_approved`.
+Quest title must be updated from the placeholder before proceeding.
 Mark Phase 3 task completed, mark Phase 4 task in_progress.
 
 ### Phase 4: Observables + Contracts
+
+**First action:** Call `modify-quest` with `status: 'explore_observables'` to signal you are entering observable work.
 
 12. **Lock down tangible values** - For each flow node, get concrete values where needed (see Tangible
     Requirements section)
@@ -163,8 +174,10 @@ Mark Phase 3 task completed, mark Phase 4 task in_progress.
 16. **Persist everything** - Call `modify-quest` with updated `flows` (containing embedded observables),
     `toolingRequirements`, and `contracts`
 
-**EXIT when:** All observables (embedded in flow nodes), contracts, and tooling requirements are persisted via
-`modify-quest`. Mark Phase 4 task completed, mark Phase 5 task in_progress.
+**EXIT when:** All observables, contracts, and tooling requirements are persisted via `modify-quest`.
+**Transition status:** Call `modify-quest` with `status: 'review_observables'` to signal observables are ready for user
+review. This enables the APPROVE button in the user's UI.
+Mark Phase 4 task completed, mark Phase 5 task in_progress.
 
 ### Phase 5: Observables Approval Gate
 
@@ -178,8 +191,14 @@ Mark Phase 3 task completed, mark Phase 4 task in_progress.
     full details in their UI.
 21. **Get approval** - User must approve observables and contracts
 
-**GATE: Do NOT proceed until user explicitly approves observables and contracts and quest status is `approved`.** Mark
-Phase 5 task completed, mark Phase 6 task in_progress.
+If the user requests changes or identifies gaps, call `modify-quest` with `status: 'explore_observables'` to return to
+exploration mode (this hides the APPROVE button). Make the requested changes, then transition back to
+`review_observables`
+when ready for another review.
+
+**GATE: Do NOT proceed until user explicitly approves observables and contracts and quest status is `approved`.**
+The user clicks APPROVE in their UI to transition from `review_observables` to `approved`.
+Mark Phase 5 task completed, mark Phase 6 task in_progress.
 
 ### Phase 6: Handoff
 
@@ -195,14 +214,18 @@ Phase 5 task completed, mark Phase 6 task in_progress.
 ## Status Lifecycle
 
 ```
-created -> flows_approved -> approved
+created -> explore_flows -> review_flows -> flows_approved -> explore_observables -> review_observables -> approved
 ```
 
-| Status           | Set When                                             | Allowed Actions                                      |
-|------------------|------------------------------------------------------|------------------------------------------------------|
-| `created`        | Quest is first created                               | Add: flows, designDecisions                          |
-| `flows_approved` | User approves flows (Phase 3 gate)                   | Add: observables (in flow nodes), contracts, tooling |
-| `approved`       | User approves observables + contracts (Phase 5 gate) | Spec locked. `start-quest` allowed.                  |
+| Status                | Set When                                                  | Allowed Actions                                      |
+|-----------------------|-----------------------------------------------------------|------------------------------------------------------|
+| `created`             | Quest is first created                                    | ChaosWhisperer starting up                           |
+| `explore_flows`       | ChaosWhisperer starts flow work (Phase 1 exit)            | Add: flows, designDecisions                          |
+| `review_flows`        | ChaosWhisperer ready for flow review (Phase 2 exit)       | User reviews flows, APPROVE button visible           |
+| `flows_approved`      | User approves flows (Phase 3 gate)                        | Add: observables (in flow nodes), contracts, tooling |
+| `explore_observables` | ChaosWhisperer starts observable work (Phase 4 entry)     | Add: observables, contracts, tooling                 |
+| `review_observables`  | ChaosWhisperer ready for observable review (Phase 4 exit) | User reviews observables, APPROVE button visible     |
+| `approved`            | User approves observables + contracts (Phase 5 gate)      | Spec locked. `start-quest` allowed.                  |
 
 ---
 
@@ -237,7 +260,6 @@ Flows are **structured data** with typed nodes and labeled edges. The system aut
 data. You NEVER write raw mermaid — you define nodes and edges.
 
 **Node types:**
-
 - `state` — Resting states, UI pages, waiting points (mermaid: rectangle)
 - `decision` — Branching points, conditionals (mermaid: diamond `{}`)
 - `action` — Operations, API calls, processing steps (mermaid: rectangle, blue when no observables)
@@ -247,7 +269,6 @@ data. You NEVER write raw mermaid — you define nodes and edges.
 Regex: `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`
 
 **Edge rules:**
-
 - Every edge MUST have an `id` field (kebab-case, e.g., `form-to-submit`, `validate-invalid`)
 - Every node must have at least one incoming or outgoing edge (except entry/exit)
 - Use `label` on edges for branch conditions (e.g., "yes"/"no", "valid"/"invalid", "200"/"401")
@@ -271,196 +292,57 @@ observables show as red in the diagram — a visual gap indicator. Phase 2 leave
 - Exit points include ALL terminal states: success, error, and redirect outcomes
 
 **Example flow (web login):**
-
 ```json
 {
   "name": "User Login",
   "entryPoint": "/login",
-  "exitPoints": [
-    "/dashboard",
-    "/login (error)",
-    "/forgot-password"
-  ],
+  "exitPoints": ["/dashboard", "/login (error)", "/forgot-password"],
   "nodes": [
-    {
-      "id": "login-form",
-      "label": "Login form displayed",
-      "type": "state"
-    },
-    {
-      "id": "submit-creds",
-      "label": "User submits credentials",
-      "type": "action"
-    },
-    {
-      "id": "server-validates",
-      "label": "Server validates?",
-      "type": "decision"
-    },
-    {
-      "id": "set-cookie",
-      "label": "Set auth cookie",
-      "type": "action"
-    },
-    {
-      "id": "dashboard",
-      "label": "Redirect to /dashboard",
-      "type": "terminal"
-    },
-    {
-      "id": "show-error",
-      "label": "Show: Invalid email or password",
-      "type": "terminal"
-    },
-    {
-      "id": "forgot-password",
-      "label": "Link to /forgot-password",
-      "type": "terminal"
-    }
+    { "id": "login-form", "label": "Login form displayed", "type": "state" },
+    { "id": "submit-creds", "label": "User submits credentials", "type": "action" },
+    { "id": "server-validates", "label": "Server validates?", "type": "decision" },
+    { "id": "set-cookie", "label": "Set auth cookie", "type": "action" },
+    { "id": "dashboard", "label": "Redirect to /dashboard", "type": "terminal" },
+    { "id": "show-error", "label": "Show: Invalid email or password", "type": "terminal" },
+    { "id": "forgot-password", "label": "Link to /forgot-password", "type": "terminal" }
   ],
   "edges": [
-    {
-      "id": "form-to-submit",
-      "from": "login-form",
-      "to": "submit-creds"
-    },
-    {
-      "id": "submit-to-validate",
-      "from": "submit-creds",
-      "to": "server-validates"
-    },
-    {
-      "id": "validate-valid",
-      "from": "server-validates",
-      "to": "set-cookie",
-      "label": "valid"
-    },
-    {
-      "id": "validate-invalid",
-      "from": "server-validates",
-      "to": "show-error",
-      "label": "invalid"
-    },
-    {
-      "id": "cookie-to-dashboard",
-      "from": "set-cookie",
-      "to": "dashboard"
-    },
-    {
-      "id": "error-to-form",
-      "from": "show-error",
-      "to": "login-form"
-    },
-    {
-      "id": "form-to-forgot",
-      "from": "login-form",
-      "to": "forgot-password",
-      "label": "clicks forgot"
-    }
+    { "id": "form-to-submit", "from": "login-form", "to": "submit-creds" },
+    { "id": "submit-to-validate", "from": "submit-creds", "to": "server-validates" },
+    { "id": "validate-valid", "from": "server-validates", "to": "set-cookie", "label": "valid" },
+    { "id": "validate-invalid", "from": "server-validates", "to": "show-error", "label": "invalid" },
+    { "id": "cookie-to-dashboard", "from": "set-cookie", "to": "dashboard" },
+    { "id": "error-to-form", "from": "show-error", "to": "login-form" },
+    { "id": "form-to-forgot", "from": "login-form", "to": "forgot-password", "label": "clicks forgot" }
   ]
 }
 ```
 
 **Example flow (CLI init):**
-
 ```json
 {
   "name": "CLI Project Init",
   "entryPoint": "dungeonmaster init",
-  "exitPoints": [
-    "Config files written",
-    "Init aborted",
-    "Init failed"
-  ],
+  "exitPoints": ["Config files written", "Init aborted", "Init failed"],
   "nodes": [
-    {
-      "id": "run-init",
-      "label": "User runs dungeonmaster init",
-      "type": "action"
-    },
-    {
-      "id": "check-package-json",
-      "label": "package.json exists?",
-      "type": "decision"
-    },
-    {
-      "id": "no-package-json",
-      "label": "Error: No package.json",
-      "type": "terminal"
-    },
-    {
-      "id": "check-config",
-      "label": "Config already exists?",
-      "type": "decision"
-    },
-    {
-      "id": "prompt-overwrite",
-      "label": "Prompt: Overwrite?",
-      "type": "decision"
-    },
-    {
-      "id": "abort",
-      "label": "Init aborted by user",
-      "type": "terminal"
-    },
-    {
-      "id": "write-config",
-      "label": "Write config files",
-      "type": "action"
-    },
-    {
-      "id": "done",
-      "label": "Config files written",
-      "type": "terminal"
-    }
+    { "id": "run-init", "label": "User runs dungeonmaster init", "type": "action" },
+    { "id": "check-package-json", "label": "package.json exists?", "type": "decision" },
+    { "id": "no-package-json", "label": "Error: No package.json", "type": "terminal" },
+    { "id": "check-config", "label": "Config already exists?", "type": "decision" },
+    { "id": "prompt-overwrite", "label": "Prompt: Overwrite?", "type": "decision" },
+    { "id": "abort", "label": "Init aborted by user", "type": "terminal" },
+    { "id": "write-config", "label": "Write config files", "type": "action" },
+    { "id": "done", "label": "Config files written", "type": "terminal" }
   ],
   "edges": [
-    {
-      "id": "init-to-check-pkg",
-      "from": "run-init",
-      "to": "check-package-json"
-    },
-    {
-      "id": "no-pkg-json",
-      "from": "check-package-json",
-      "to": "no-package-json",
-      "label": "no"
-    },
-    {
-      "id": "has-pkg-json",
-      "from": "check-package-json",
-      "to": "check-config",
-      "label": "yes"
-    },
-    {
-      "id": "config-exists",
-      "from": "check-config",
-      "to": "prompt-overwrite",
-      "label": "yes"
-    },
-    {
-      "id": "no-config",
-      "from": "check-config",
-      "to": "write-config",
-      "label": "no"
-    },
-    {
-      "id": "overwrite-no",
-      "from": "prompt-overwrite",
-      "to": "abort",
-      "label": "no"
-    },
-    {
-      "id": "overwrite-yes",
-      "from": "prompt-overwrite",
-      "to": "write-config",
-      "label": "yes"
-    },
-    {
-      "id": "write-to-done",
-      "from": "write-config",
-      "to": "done"
-    }
+    { "id": "init-to-check-pkg", "from": "run-init", "to": "check-package-json" },
+    { "id": "no-pkg-json", "from": "check-package-json", "to": "no-package-json", "label": "no" },
+    { "id": "has-pkg-json", "from": "check-package-json", "to": "check-config", "label": "yes" },
+    { "id": "config-exists", "from": "check-config", "to": "prompt-overwrite", "label": "yes" },
+    { "id": "no-config", "from": "check-config", "to": "write-config", "label": "no" },
+    { "id": "overwrite-no", "from": "prompt-overwrite", "to": "abort", "label": "no" },
+    { "id": "overwrite-yes", "from": "prompt-overwrite", "to": "write-config", "label": "yes" },
+    { "id": "write-to-done", "from": "write-config", "to": "done" }
   ]
 }
 ```
@@ -495,7 +377,6 @@ Multiple observables per node example:
 **Observable IDs** must be kebab-case (e.g., `check-login-api-called`, `verify-cookie-set`).
 
 **`type` tags** (used by PathSeeker for file planning):
-
 - `ui-state` — Visual/DOM changes (→ widgets)
 - `api-call` — HTTP requests/responses (→ responders, adapters)
 - `file-exists` — File system changes (→ brokers)

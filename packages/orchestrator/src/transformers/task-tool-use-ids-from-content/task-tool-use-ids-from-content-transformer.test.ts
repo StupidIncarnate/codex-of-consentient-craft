@@ -15,6 +15,15 @@ const AssistantTaskEntry = ({ toolUseId }: { toolUseId: string }) => ({
   } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
 });
 
+const AssistantAgentEntry = ({ toolUseId }: { toolUseId: string }) => ({
+  ...AssistantToolUseStreamLineStub({
+    message: {
+      role: 'assistant',
+      content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: {} }],
+    },
+  } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+});
+
 const AssistantNonTaskToolEntry = ({ toolUseId }: { toolUseId: string }) => ({
   ...AssistantToolUseStreamLineStub({
     message: {
@@ -72,6 +81,24 @@ const AssistantMultipleTaskEntry = ({
   } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
 });
 
+const AssistantMixedAgentTaskEntry = ({
+  toolUseId1,
+  toolUseId2,
+}: {
+  toolUseId1: string;
+  toolUseId2: string;
+}) => ({
+  ...AssistantToolUseStreamLineStub({
+    message: {
+      role: 'assistant',
+      content: [
+        { type: 'tool_use', id: toolUseId1, name: 'Task', input: {} },
+        { type: 'tool_use', id: toolUseId2, name: 'Agent', input: {} },
+      ],
+    },
+  } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+});
+
 describe('taskToolUseIdsFromContentTransformer', () => {
   describe('valid extraction', () => {
     it('VALID: {assistant entry with Task tool_use} => returns tool_use id', () => {
@@ -81,6 +108,15 @@ describe('taskToolUseIdsFromContentTransformer', () => {
       const result = taskToolUseIdsFromContentTransformer({ entry });
 
       expect(result).toStrictEqual(['toolu_task_01']);
+    });
+
+    it('VALID: {assistant entry with Agent tool_use} => returns tool_use id', () => {
+      const toolUseId = ToolUseIdStub({ value: 'toolu_agent_01' });
+      const entry = AssistantAgentEntry({ toolUseId });
+
+      const result = taskToolUseIdsFromContentTransformer({ entry });
+
+      expect(result).toStrictEqual(['toolu_agent_01']);
     });
   });
 
@@ -160,6 +196,16 @@ describe('taskToolUseIdsFromContentTransformer', () => {
       const result = taskToolUseIdsFromContentTransformer({ entry });
 
       expect(result).toStrictEqual(['toolu_task_a', 'toolu_task_b']);
+    });
+
+    it('VALID: {mixed Task and Agent tool_use items} => returns all ids', () => {
+      const toolUseId1 = ToolUseIdStub({ value: 'toolu_task_c' });
+      const toolUseId2 = ToolUseIdStub({ value: 'toolu_agent_d' });
+      const entry = AssistantMixedAgentTaskEntry({ toolUseId1, toolUseId2 });
+
+      const result = taskToolUseIdsFromContentTransformer({ entry });
+
+      expect(result).toStrictEqual(['toolu_task_c', 'toolu_agent_d']);
     });
   });
 });

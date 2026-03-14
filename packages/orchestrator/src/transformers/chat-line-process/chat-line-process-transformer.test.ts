@@ -208,6 +208,110 @@ describe('chatLineProcessTransformer', () => {
     });
   });
 
+  describe('agent ID correlation with Agent tool name', () => {
+    it('VALID: {assistant Agent tool_use emitted first, then user tool_result with agentId} => emits patch', () => {
+      const processor = chatLineProcessTransformer();
+      const toolUseId = ToolUseIdStub({ value: 'toolu_agent_04' });
+      const agentId = AgentIdStub({ value: 'agent-new-cli' });
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const assistantLine = StreamJsonLineStub({
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: {} }],
+            },
+          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+        ),
+      });
+
+      const userLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId },
+        }),
+      });
+
+      processor.processLine({ line: assistantLine, source });
+      const userResult = processor.processLine({ line: userLine, source });
+
+      expect(userResult).toStrictEqual([
+        {
+          type: 'patch',
+          toolUseId: 'toolu_agent_04',
+          agentId: 'agent-new-cli',
+        },
+        {
+          type: 'entry',
+          entry: {
+            type: 'user',
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+            },
+            toolUseResult: { agentId },
+            source: 'session',
+            agentId: 'agent-new-cli',
+          },
+        },
+      ]);
+    });
+
+    it('VALID: {user tool_result with agentId followed by assistant Agent tool_use} => attaches agentId to assistant entry', () => {
+      const processor = chatLineProcessTransformer();
+      const toolUseId = ToolUseIdStub({ value: 'toolu_agent_05' });
+      const agentId = AgentIdStub({ value: 'agent-forward' });
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const userLine = StreamJsonLineStub({
+        value: JSON.stringify({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId },
+        }),
+      });
+
+      const assistantLine = StreamJsonLineStub({
+        value: JSON.stringify(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: {} }],
+            },
+          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+        ),
+      });
+
+      processor.processLine({ line: userLine, source });
+      const assistantResult = processor.processLine({ line: assistantLine, source });
+
+      expect(assistantResult).toStrictEqual([
+        {
+          type: 'entry',
+          entry: {
+            type: 'assistant',
+            message: {
+              role: 'assistant',
+              content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: {} }],
+            },
+            source: 'session',
+            agentId: 'agent-forward',
+          },
+        },
+      ]);
+    });
+  });
+
   describe('explicit agentId parameter', () => {
     it('VALID: {assistant line with agentId param} => attaches agentId to assistant entry', () => {
       const processor = chatLineProcessTransformer();

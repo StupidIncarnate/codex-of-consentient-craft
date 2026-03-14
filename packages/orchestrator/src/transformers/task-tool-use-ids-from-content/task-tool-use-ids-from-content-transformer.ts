@@ -28,7 +28,8 @@ export const taskToolUseIdsFromContentTransformer = ({
   for (const item of content) {
     if (typeof item !== 'object' || item === null) continue;
     if (Reflect.get(item, 'type') !== 'tool_use') continue;
-    if (Reflect.get(item, 'name') !== 'Task') continue;
+    const itemName: unknown = Reflect.get(item, 'name');
+    if (itemName !== 'Task' && itemName !== 'Agent') continue;
     const id: unknown = Reflect.get(item, 'id');
     if (typeof id === 'string') {
       ids.push(toolUseIdContract.parse(id));

@@ -61,6 +61,7 @@ export const ChatPanelWidget = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const userScrolledUp = useRef(false);
+  const isUserScrollEvent = useRef(false);
 
   const interval = raccoonAnimationIntervalTransformer({ isStreaming, entries });
   const shouldBounce = isStreaming && entries.length > 0 && entries.at(-1)?.role === 'user';
@@ -87,7 +88,7 @@ export const ChatPanelWidget = ({
     if (!userScrolledUp.current && messagesEndRef.current?.scrollIntoView !== undefined) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [entries.length]);
+  }, [entries]);
 
   return (
     <Box
@@ -130,7 +131,18 @@ export const ChatPanelWidget = ({
           flexDirection: 'column',
           gap: 8,
         }}
+        onPointerDown={() => {
+          isUserScrollEvent.current = true;
+        }}
+        onWheel={() => {
+          isUserScrollEvent.current = true;
+        }}
+        onKeyDown={() => {
+          isUserScrollEvent.current = true;
+        }}
         onScroll={(event) => {
+          if (!isUserScrollEvent.current) return;
+          isUserScrollEvent.current = false;
           const target = event.currentTarget;
           const { scrollThresholdPx } = raccoonAnimationConfigStatics;
           userScrolledUp.current =

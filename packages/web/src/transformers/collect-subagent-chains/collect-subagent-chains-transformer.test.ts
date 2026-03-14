@@ -372,6 +372,47 @@ describe('collectSubagentChainsTransformer', () => {
       ]);
     });
 
+    it('EDGE: {Task tool_use without agentId} => still creates chain with empty agentId and empty innerGroups', () => {
+      const taskToolUse = TaskToolUseChatEntryStub();
+
+      const result = collectSubagentChainsTransformer({ entries: [taskToolUse] });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: '',
+          description: 'Run tests',
+          taskToolUse,
+          innerGroups: [],
+          taskNotification: null,
+          entryCount: 0,
+          contextTokens: null,
+        },
+      ]);
+    });
+
+    it('EDGE: {Agent tool_use without agentId} => still creates chain placeholder', () => {
+      const agentToolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Agent',
+        toolInput: JSON.stringify({ description: 'Explore codebase', prompt: 'find files' }),
+      });
+
+      const result = collectSubagentChainsTransformer({ entries: [agentToolUse] });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: '',
+          description: 'Explore codebase',
+          taskToolUse: agentToolUse,
+          innerGroups: [],
+          taskNotification: null,
+          entryCount: 0,
+          contextTokens: null,
+        },
+      ]);
+    });
+
     it('EDGE: {subagent entries without matching Task tool_use} => treated as normal flat entries', () => {
       const subagentToolUse = AssistantToolUseChatEntryStub({
         source: 'subagent',

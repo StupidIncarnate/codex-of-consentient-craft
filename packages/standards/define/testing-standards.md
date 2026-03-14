@@ -2093,3 +2093,133 @@ describe("CLI", () => {
     })
 })
 ```
+
+## E2E Testing (Playwright)
+
+E2E tests run the full stack (real server, real browser, real WebSocket). Only external
+dependencies (LLMs, third-party APIs) are mocked. See your project's testing harness docs for
+setup specifics.
+
+### Assert the Full Transition
+
+Every user action that changes the UI must assert **three things**:
+
+1. **Request correctness** — the right HTTP method, URL, and body were sent
+2. **Old UI disappeared** — previous state elements are gone
+3. **New UI appeared** — expected elements are visible
+
+```typescript
+// ❌ WRONG — only checks the request fired
+await page.getByText('Submit').click();
+const req = await patchPromise;
+expect(req.postDataJSON()).toHaveProperty('status', 'active');
+// Test ends here — never verified the UI actually changed
+
+// ✅ CORRECT — checks request, disappearance, AND appearance
+await page.getByText('Submit').click();
+
+const req = await patchPromise;
+expect(req.postDataJSON()).toHaveProperty('status', 'active');
+
+await expect(page.getByText('Are you sure?')).not.toBeVisible({timeout: 5000});
+await expect(page.getByTestId('dashboard-panel')).toBeVisible({timeout: 10_000});
+```
+
+### Never Sleep, Always Wait for Elements
+
+```typescript
+// ❌ WRONG — arbitrary sleep hoping the UI updates
+await page.waitForTimeout(3000);
+expect(await page.getByTestId('panel').isVisible()).toBe(true);
+
+// ✅ CORRECT — wait for the specific element
+await expect(page.getByTestId('panel')).toBeVisible({timeout: 10_000});
+```
+
+The only acceptable use of `waitForTimeout` is proving something does NOT appear after a delay
+(e.g., confirming a toast stays hidden during a non-triggering event).
+
+### Drive State via the Real API
+
+```typescript
+// ❌ WRONG — intercepting server responses (forbidden)
+await page.route('/api/items/*', (route) => route.fulfill({body: '{}'}));
+
+// ✅ CORRECT — use the real server to produce real state changes
+await request.patch(`/api/items/${itemId}`, {data: {status: 'approved'}});
+```
+
+Calling `request.patch()` / `request.post()` drives the real server, which produces real
+side effects (file writes, DB updates, WS broadcasts). The frontend reacts to these exactly
+as a real user session would.
+
+### Observe Requests, Don't Intercept
+
+```typescript
+// ✅ Watching (allowed) — page.waitForRequest just observes traffic
+const patchPromise = page.waitForRequest(
+    (req) => req.method() === 'PATCH' && req.url().includes(`/api/items/${itemId}`),
+    {timeout: 5000},
+);
+await page.getByText('Save').click();
+const patchReq = await patchPromise;
+expect(patchReq.postDataJSON()).toHaveProperty('status', 'active');
+
+// ❌ Intercepting (forbidden) — page.route stubs the response
+await page.route('/api/items/*', (route) => route.fulfill({status: 200, body: '{}'}));
+```
+
+### Wait for Data Before Interacting
+
+```typescript
+// ❌ WRONG — interacting before data loads
+await page.goto('/dashboard/123');
+await page.getByTestId('INPUT').fill('hello');  // data not loaded yet, action silently fails
+
+// ✅ CORRECT — wait for initial data fetch
+await page.goto('/dashboard/123');
+await page.waitForResponse(
+    (r) => r.url().includes('/api/dashboard') && r.status() === 200,
+);
+await page.getByTestId('INPUT').fill('hello');
+```
+
+### Each Test Owns Its State
+
+```typescript
+test.beforeEach(async ({request}) => {
+    await cleanAllData(request);                             // wipe server state
+    mkdirSync(TEST_DIR, {recursive: true});                // ensure working dir exists
+});
+```
+
+Tests must not depend on ordering or state from previous tests. Create all fixtures fresh
+in each test.
+
+### Test User-Visible Behavior, Not Implementation
+
+```typescript
+// ❌ WRONG — checking internal CSS or DOM structure
+expect(await page.locator('.mantine-Modal-root').getAttribute('aria-hidden')).toBe('true');
+
+// ✅ CORRECT — checking what the user sees
+await expect(page.getByText('Confirm deletion?')).not.toBeVisible();
+await expect(page.getByTestId('success-panel')).toBeVisible();
+```
+
+Use `data-testid` for structural elements (panels, buttons, containers).
+Use `getByText` for content-specific assertions (modal titles, labels).
+
+### Anti-Patterns
+
+| Anti-Pattern                               | Why It Fails                                          | Do Instead                                              |
+|--------------------------------------------|-------------------------------------------------------|---------------------------------------------------------|
+| Assert only that a request fired           | UI might never update (silent error, swallowed catch) | Assert request + old UI gone + new UI visible           |
+| `page.waitForTimeout(N)` before assertions | Flaky — timing depends on machine speed               | `await expect(locator).toBeVisible({ timeout })`        |
+| `page.route()` to stub responses           | Bypasses real server — hides real bugs                | `request.patch()` to drive real state                   |
+| Shared state across tests                  | Order-dependent failures                              | Fresh fixtures in `beforeEach`                          |
+| Checking CSS classes or DOM attributes     | Breaks on styling changes                             | Check visibility and text content                       |
+| One giant test for the whole flow          | Hard to debug, slow to pinpoint failures              | One test per user action with full transition assertion |
+| Missing `not.toBeVisible` checks           | Old UI lingers undetected (modals, panels, toasts)    | Always assert previous state is gone                    |
+
+```

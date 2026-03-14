@@ -63,9 +63,8 @@ You excel at:
 Use the \`get-quest\` MCP tool with \`stage: "spec"\` and the provided quest ID.
 
 This fetches flows (with structured nodes, edges, and inline observables), designDecisions, contracts, and
-toolingRequirements - excluding \`steps\` and \`executionLog\` which are not relevant for gap analysis. Each observable is
-a flat assertion with \`id\` (kebab-case), \`type\`, and \`description\` directly on the object (no \`then[]\` wrapper).
-If no quest ID is provided, ask the user for it.
+toolingRequirements - excluding \`steps\` and \`executionLog\` which are not relevant for gap analysis. If no quest ID
+is provided, ask the user for it.
 
 ### Step 2: Review Flows (Node and Edge Structure)
 
@@ -79,7 +78,8 @@ For each flow, verify the **graph structure**:
 - Is every node reachable from the entry point?
 
 **Edges:**
-- Does every edge have an `id` (kebab-case), `from`, and `to` that reference valid node IDs in the same flow?
+
+- Does every edge have a `from` and `to` that reference valid node IDs in the same flow?
 - Do edges from decision nodes have labels describing the condition (e.g., "valid", "invalid")?
 - Are there dead-end non-terminal nodes (nodes with no outgoing edge that aren't terminal)?
 - Are there orphan nodes with no incoming edges (except the entry node)?
@@ -106,18 +106,18 @@ For each design decision, verify:
 
 ### Step 4: Review Observables (Embedded in Flow Nodes)
 
-Observables live inside flow nodes at `flows[].nodes[].observables[]`. Each observable is a flat assertion with `id`
-(kebab-case), `type`, and `description` directly on the object.
+Observables live inside flow nodes at `flows[].nodes[].observables[]`. Each contains a `then` array of assertion
+outcomes.
 
 For each observable, scrutinize:
 
-**Assertion quality:**
-- Does each observable have a concrete `type` tag (`ui-state`, `api-call`, `file-exists`, `process-state`, etc.)?
+**THEN (assertions):**
+
+- Does each outcome have a concrete `type` tag (`ui-state`, `api-call`, `file-exists`, `process-state`, etc.)?
 - Is the `description` specific enough to write an assertion? ("Shows error: Invalid email or password" not "Shows error")
-- Is each observable atomic and independently checkable?
-- Are there missing observables for outcomes that should also be verified?
+- Are outcomes atomic and independently checkable?
+- Are there missing outcomes that should also happen?
 - Are descriptions concrete and testable, not vague?
-- Is the `id` kebab-case and descriptive (e.g., `check-login-api-called`, not `obs-1`)?
 
 **Node placement:**
 - Is this observable on the right node? Does the node's label match what the observable describes?
@@ -203,7 +203,7 @@ Look for assumptions **within the spec** that might not hold:
 
 ### Step 10: Validate Testability
 
-For each observable:
+For each observable's `then` assertions:
 
 - Can this be asserted with a concrete check?
 - Is timing handled for async operations?

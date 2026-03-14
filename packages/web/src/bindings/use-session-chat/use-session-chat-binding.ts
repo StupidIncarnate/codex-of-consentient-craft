@@ -235,14 +235,15 @@ export const useSessionChatBinding = ({
 
   const stopChat = useCallback((): void => {
     const currentProcessId = chatProcessIdRef.current;
-    const activeSessionId = sessionIdRef.current;
-    if (!currentProcessId || !activeSessionId) return;
+    if (!currentProcessId) return;
 
-    sessionChatStopBroker({ sessionId: activeSessionId, chatProcessId: currentProcessId }).catch(
-      () => {
-        setIsStreaming(false);
-      },
-    );
+    const activeSessionId = sessionIdRef.current;
+    sessionChatStopBroker({
+      chatProcessId: currentProcessId,
+      ...(activeSessionId ? { sessionId: activeSessionId } : {}),
+    }).catch(() => {
+      setIsStreaming(false);
+    });
   }, []);
 
   return {

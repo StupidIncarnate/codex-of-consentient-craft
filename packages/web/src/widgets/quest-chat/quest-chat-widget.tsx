@@ -14,8 +14,8 @@ import { Box, Text } from '@mantine/core';
 import type { QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
-import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
+import { streamJsonToChatEntryTransformer } from '../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 
 import { useAgentOutputBinding } from '../../bindings/use-agent-output/use-agent-output-binding';
 import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
@@ -149,10 +149,15 @@ export const QuestChatWidget = (): React.JSX.Element => {
         if (!slotIndexParsed.success) return;
 
         const rawEntry: unknown = Reflect.get(parsed.data.payload, 'entry');
-        const entryParsed = chatEntryContract.safeParse(rawEntry);
-        if (!entryParsed.success) return;
+        if (typeof rawEntry !== 'object' || rawEntry === null) return;
 
-        handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: [entryParsed.data] });
+        const rawLine: unknown = Reflect.get(rawEntry, 'raw');
+        if (typeof rawLine !== 'string') return;
+
+        const result = streamJsonToChatEntryTransformer({ line: rawLine });
+        if (result.entries.length === 0) return;
+
+        handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: result.entries });
       },
     });
 
@@ -441,7 +446,10 @@ export const QuestChatWidget = (): React.JSX.Element => {
           }}
           onBeginQuest={() => {
             setApprovedModalOpen(false);
-            questStartBroker({ questId: questWithContent.id }).catch(() => undefined);
+            questModifyBroker({
+              questId: questWithContent.id,
+              modifications: { status: 'in_progress' },
+            }).catch(() => undefined);
           }}
         />
       ) : null}

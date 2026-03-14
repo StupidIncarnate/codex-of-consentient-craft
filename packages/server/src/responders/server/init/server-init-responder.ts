@@ -34,6 +34,7 @@ import { designProcessState } from '../../../state/design-process/design-process
 type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
 
 const FLUSH_INTERVAL_MS = 100;
+const LOG_SNIPPET_LENGTH = 200;
 
 export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
   const nodeWebSocket = honoCreateNodeWebSocketAdapter({ app });
@@ -135,6 +136,10 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
     orchestratorEventsOnAdapter({
       type,
       handler: ({ processId, payload }) => {
+        processDevLogAdapter({
+          message: `${type} ${JSON.stringify(payload).slice(0, LOG_SNIPPET_LENGTH)}`,
+        });
+
         if (type === 'chat-output' && typeof Reflect.get(payload, 'slotIndex') === 'number') {
           pipelineChatOutputBuffer.push({ processId, payload });
           return;

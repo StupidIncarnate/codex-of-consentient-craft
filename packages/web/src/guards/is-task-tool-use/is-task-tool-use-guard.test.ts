@@ -14,6 +14,33 @@ describe('isTaskToolUseGuard', () => {
 
       expect(result).toBe(true);
     });
+
+    it('VALID: {Task tool_use without agentId} => returns true', () => {
+      const entry = TaskToolUseChatEntryStub();
+
+      const result = isTaskToolUseGuard({ entry });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {Agent tool_use with agentId} => returns true', () => {
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'Agent',
+        agentId: 'agent-002',
+      });
+
+      const result = isTaskToolUseGuard({ entry });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {Agent tool_use without agentId} => returns true', () => {
+      const entry = AssistantToolUseChatEntryStub({ toolName: 'Agent' });
+
+      const result = isTaskToolUseGuard({ entry });
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('non-task entries', () => {
@@ -25,16 +52,8 @@ describe('isTaskToolUseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('VALID: {tool_use without Task toolName} => returns false', () => {
+    it('VALID: {tool_use without Task/Agent toolName} => returns false', () => {
       const entry = AssistantToolUseChatEntryStub({ toolName: 'read_file' });
-
-      const result = isTaskToolUseGuard({ entry });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {Task tool_use without agentId} => returns false', () => {
-      const entry = TaskToolUseChatEntryStub();
 
       const result = isTaskToolUseGuard({ entry });
 

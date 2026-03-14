@@ -133,6 +133,15 @@ export const chatSpawnBroker = async ({
 
         if (output.type === 'patch') {
           onPatch({ chatProcessId, toolUseId: output.toolUseId, agentId: output.agentId });
+
+          if (sessionId) {
+            onAgentDetected({
+              chatProcessId,
+              toolUseId: output.toolUseId,
+              agentId: output.agentId,
+              sessionId,
+            });
+          }
         }
       }
     },

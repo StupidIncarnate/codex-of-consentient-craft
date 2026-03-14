@@ -106,6 +106,18 @@ that the frontend sent the correct HTTP method, URL, and body to the real server
 **Driving state via the API is fine** — calling `request.patch('/api/quests/:id', { data })` to change quest status is
 not mocking; it's using the real server to produce real WS events that the frontend reacts to.
 
+### Assert the Full Transition
+
+**CRITICAL:** Every E2E test that triggers a user action must assert all three:
+
+1. **Request correctness** — right method, URL, body
+2. **Old UI disappeared** — `not.toBeVisible()` on previous state
+3. **New UI appeared** — `toBeVisible()` on expected state
+
+A test that only checks a request fired is incomplete — the UI might silently fail to update.
+
+See `packages/standards/define/testing-standards.md` § "E2E Testing" for full patterns and anti-patterns.
+
 ### Gotchas
 
 - **Guild path must exist on disk** — the server spawns the fake CLI with `cwd: guildPath`

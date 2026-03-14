@@ -86,7 +86,7 @@ describe('ChatPanelWidget', () => {
           toolName: 'Bash',
           toolInput: '{"command":"ls standards"}',
         }),
-        AssistantToolUseChatEntryStub({ toolName: 'Task', toolInput: '{"prompt":"explore"}' }),
+        AssistantToolUseChatEntryStub({ toolName: 'Read', toolInput: '{"file":"index.ts"}' }),
       ];
 
       mantineRenderAdapter({
@@ -116,7 +116,7 @@ describe('ChatPanelWidget', () => {
         }),
         AssistantTextChatEntryStub({ content: 'Here are the results' }),
         UserChatEntryStub({ content: 'Second question' }),
-        AssistantToolUseChatEntryStub({ toolName: 'Task', toolInput: '{"prompt":"explore"}' }),
+        AssistantToolUseChatEntryStub({ toolName: 'Read', toolInput: '{"file":"index.ts"}' }),
       ];
 
       mantineRenderAdapter({

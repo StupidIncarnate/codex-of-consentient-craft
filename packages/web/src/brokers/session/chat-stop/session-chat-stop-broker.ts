@@ -10,15 +10,17 @@ import type { ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
 import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
+const PLACEHOLDER_SESSION_ID = '_';
+
 export const sessionChatStopBroker = async ({
   sessionId,
   chatProcessId,
 }: {
-  sessionId: SessionId;
+  sessionId?: SessionId;
   chatProcessId: ProcessId;
 }): Promise<void> => {
   const url = webConfigStatics.api.routes.sessionChatStop
-    .replace(':sessionId', sessionId)
+    .replace(':sessionId', sessionId ?? PLACEHOLDER_SESSION_ID)
     .replace(':chatProcessId', chatProcessId);
 
   await fetchPostAdapter({ url, body: {} });
