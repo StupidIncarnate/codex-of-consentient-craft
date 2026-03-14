@@ -19,7 +19,7 @@ export const executionLogEntryContract = z.object({
   timestamp: z.string().datetime().brand<'IsoTimestamp'>(),
   agentType: agentTypeContract.optional(),
   isRecovery: z.boolean().optional(),
-  status: z.enum(['pass', 'fail']).optional(),
+  status: z.enum(['start', 'pass', 'fail']).optional(),
   outcome: executionLogEntryOutcomeContract.optional(),
   failedObservableIds: z.array(observableIdContract).default([]),
 });

@@ -50,7 +50,7 @@ export const runPathseekerLayerBroker = async ({
   const slotIndex = slotIndexContract.parse(0);
   const timeoutMs = timeoutMsContract.parse(PATHSEEKER_TIMEOUT_MS);
 
-  await agentSpawnByRoleBroker({
+  const spawnResult = await agentSpawnByRoleBroker({
     workUnit,
     timeoutMs,
     startPath,
@@ -63,6 +63,19 @@ export const runPathseekerLayerBroker = async ({
         }),
   });
 
+  const sessionId = spawnResult.sessionId ?? undefined;
+
+  const sessionRunInput = modifyQuestInputContract.parse({
+    questId,
+    pathseekerRuns: [
+      {
+        ...pathseekerRunEntry,
+        sessionId,
+      },
+    ],
+  });
+  await questModifyBroker({ input: sessionRunInput });
+
   const verifyInput = verifyQuestInputContract.parse({ questId });
   const verifyResult = await questVerifyBroker({ input: verifyInput });
 
@@ -73,6 +86,7 @@ export const runPathseekerLayerBroker = async ({
     pathseekerRuns: [
       {
         ...pathseekerRunEntry,
+        sessionId,
         completedAt: new Date().toISOString(),
         status: newStatus,
       },

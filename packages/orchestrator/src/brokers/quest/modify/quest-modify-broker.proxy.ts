@@ -24,6 +24,7 @@ type Quest = ReturnType<typeof QuestStub>;
 export const questModifyBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupEmptyFolder: () => void;
+  getAllPersistedContents: () => readonly unknown[];
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
@@ -79,6 +80,12 @@ export const questModifyBrokerProxy = (): {
         outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
       });
     },
+
+    getAllPersistedContents: (): readonly unknown[] =>
+      persistProxy
+        .getAllWrittenFiles()
+        .filter(({ path }) => String(path).endsWith('quest.json'))
+        .map(({ content }) => content),
 
     setupEmptyFolder: (): void => {
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });

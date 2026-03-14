@@ -101,11 +101,35 @@ export const questOrchestrationLoopBroker = async ({
 
   try {
     if (resolution.action === 'launch-pathseeker' || resolution.action === 'resume-pathseeker') {
-      await runPathseekerLayerBroker({
+      await writeExecutionLogLayerBroker({
         questId,
-        startPath,
-        ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+        agentType: agentTypeContract.parse('pathseeker'),
+        status: 'start',
+        report: executionLogEntryContract.shape.report.parse('pathseeker-phase'),
       });
+
+      try {
+        await runPathseekerLayerBroker({
+          questId,
+          startPath,
+          ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+        });
+
+        await writeExecutionLogLayerBroker({
+          questId,
+          agentType: agentTypeContract.parse('pathseeker'),
+          status: 'pass',
+          report: executionLogEntryContract.shape.report.parse('pathseeker-phase'),
+        });
+      } catch (pathseekerError: unknown) {
+        await writeExecutionLogLayerBroker({
+          questId,
+          agentType: agentTypeContract.parse('pathseeker'),
+          status: 'fail',
+          report: executionLogEntryContract.shape.report.parse('pathseeker-phase-failed'),
+        });
+        throw pathseekerError;
+      }
     }
 
     if (resolution.action === 'launch-codeweaver' || resolution.action === 'resume-codeweaver') {

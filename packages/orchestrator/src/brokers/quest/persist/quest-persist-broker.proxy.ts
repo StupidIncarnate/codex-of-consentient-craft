@@ -13,6 +13,7 @@ export const questPersistBrokerProxy = (): {
   }) => void;
   getWrittenContent: () => unknown;
   getWrittenPath: () => unknown;
+  getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const writeFileProxy = fsWriteFileAdapterProxy();
   const outboxProxy = questOutboxAppendBrokerProxy();
@@ -49,5 +50,8 @@ export const questPersistBrokerProxy = (): {
     getWrittenContent: (): unknown => writeFileProxy.getWrittenContent(),
 
     getWrittenPath: (): unknown => writeFileProxy.getWrittenPath(),
+
+    getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
+      writeFileProxy.getAllWrittenFiles(),
   };
 };

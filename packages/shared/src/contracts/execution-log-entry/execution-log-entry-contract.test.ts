@@ -39,6 +39,17 @@ describe('executionLogEntryContract', () => {
       });
     });
 
+    it('VALID: entry with status start => parses successfully', () => {
+      const entry = ExecutionLogEntryStub({
+        status: 'start',
+        agentType: 'pathseeker',
+      });
+
+      const result = executionLogEntryContract.parse(entry);
+
+      expect(result.status).toBe('start');
+    });
+
     it('VALID: entry with status fail => parses successfully', () => {
       const entry = ExecutionLogEntryStub({
         status: 'fail',
