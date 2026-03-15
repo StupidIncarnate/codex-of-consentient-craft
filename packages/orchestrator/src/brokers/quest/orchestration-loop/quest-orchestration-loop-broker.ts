@@ -142,19 +142,29 @@ export const questOrchestrationLoopBroker = async ({
         await questModifyBroker({ input: modifyInput });
       }
 
-      await runCodeweaverLayerBroker({
-        questId,
-        questFilePath,
-        startPath,
-        ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
-      });
+      try {
+        await runCodeweaverLayerBroker({
+          questId,
+          questFilePath,
+          startPath,
+          ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+        });
 
-      await writeExecutionLogLayerBroker({
-        questId,
-        agentType: agentTypeContract.parse('codeweaver'),
-        status: 'pass',
-        report: executionLogEntryContract.shape.report.parse('codeweaver-phase'),
-      });
+        await writeExecutionLogLayerBroker({
+          questId,
+          agentType: agentTypeContract.parse('codeweaver'),
+          status: 'pass',
+          report: executionLogEntryContract.shape.report.parse('codeweaver-phase'),
+        });
+      } catch (codeweaverError: unknown) {
+        await writeExecutionLogLayerBroker({
+          questId,
+          agentType: agentTypeContract.parse('codeweaver'),
+          status: 'fail',
+          report: executionLogEntryContract.shape.report.parse('codeweaver-phase-failed'),
+        });
+        throw codeweaverError;
+      }
     }
 
     if (resolution.action === 'launch-ward') {
