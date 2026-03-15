@@ -23,6 +23,7 @@ export const resolveLawbringerLayerBroker = ({
   const { lastEntry, failCount } = executionLogAgentSummaryTransformer({
     executionLog: quest.executionLog,
     agentType: agentTypeContract.parse('lawbringer'),
+    resetAfterAgentType: agentTypeContract.parse('siegemaster'),
   });
 
   if (lastEntry === undefined) {

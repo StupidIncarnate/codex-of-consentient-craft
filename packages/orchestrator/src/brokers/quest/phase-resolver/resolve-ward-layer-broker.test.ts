@@ -174,6 +174,44 @@ describe('resolveWardLayerBroker', () => {
     });
   });
 
+  describe('fail count resets after codeweaver pass', () => {
+    it('VALID: {2 ward fails, codeweaver pass, 1 ward fail} => launch-ward (not blocked)', () => {
+      resolveWardLayerBrokerProxy();
+      const quest = QuestStub({
+        executionLog: [
+          ExecutionLogEntryStub({
+            agentType: 'ward',
+            status: 'fail',
+            outcome: 'fail',
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'ward',
+            status: 'fail',
+            outcome: 'fail',
+            timestamp: '2024-01-15T11:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'codeweaver',
+            status: 'pass',
+            outcome: 'pass',
+            timestamp: '2024-01-15T12:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'ward',
+            status: 'fail',
+            outcome: 'fail',
+            timestamp: '2024-01-15T13:00:00.000Z',
+          }),
+        ],
+      });
+
+      const result = resolveWardLayerBroker({ quest });
+
+      expect(result).toStrictEqual({ action: 'launch-ward' });
+    });
+  });
+
   describe('last entry has no status', () => {
     it('VALID: {ward entry without status} => launch-ward', () => {
       resolveWardLayerBrokerProxy();

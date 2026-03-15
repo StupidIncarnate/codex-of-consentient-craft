@@ -24,6 +24,7 @@ export const resolveSiegemasterLayerBroker = ({
   const { lastEntry, failCount } = executionLogAgentSummaryTransformer({
     executionLog: quest.executionLog,
     agentType: agentTypeContract.parse('siegemaster'),
+    resetAfterAgentType: agentTypeContract.parse('codeweaver'),
   });
 
   if (lastEntry === undefined) {

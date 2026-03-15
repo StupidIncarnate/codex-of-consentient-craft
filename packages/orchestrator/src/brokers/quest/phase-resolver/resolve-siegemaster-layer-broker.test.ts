@@ -200,6 +200,39 @@ describe('resolveSiegemasterLayerBroker', () => {
     });
   });
 
+  describe('fail count resets after codeweaver pass', () => {
+    it('VALID: {1 siege fail, codeweaver pass, 1 siege fail} => launch-codeweaver (not blocked)', () => {
+      resolveSiegemasterLayerBrokerProxy();
+      const quest = QuestStub({
+        executionLog: [
+          ExecutionLogEntryStub({
+            agentType: 'siegemaster',
+            status: 'fail',
+            outcome: 'fail',
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'codeweaver',
+            status: 'pass',
+            outcome: 'pass',
+            timestamp: '2024-01-15T11:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'siegemaster',
+            status: 'fail',
+            outcome: 'fail',
+            timestamp: '2024-01-15T12:00:00.000Z',
+          }),
+        ],
+        steps: [DependencyStepStub({ status: 'complete' })],
+      });
+
+      const result = resolveSiegemasterLayerBroker({ quest });
+
+      expect(result).toStrictEqual({ action: 'launch-codeweaver' });
+    });
+  });
+
   describe('last entry has no status', () => {
     it('VALID: {siegemaster entry without status} => launch-siegemaster', () => {
       resolveSiegemasterLayerBrokerProxy();

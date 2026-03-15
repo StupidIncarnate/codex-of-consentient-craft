@@ -8,6 +8,7 @@
 
 import {
   executionLogEntryContract,
+  executionLogEntryOutcomeContract,
   type AgentType,
   type QuestId,
 } from '@dungeonmaster/shared/contracts';
@@ -27,9 +28,15 @@ export const writeExecutionLogLayerBroker = async ({
   status: NonNullable<ExecutionLogEntry['status']>;
   report: ExecutionLogEntry['report'];
 }): Promise<void> => {
+  const outcome =
+    status === 'pass' || status === 'fail'
+      ? executionLogEntryOutcomeContract.parse(status)
+      : undefined;
+
   const entry = executionLogEntryContract.parse({
     agentType,
     status,
+    outcome,
     report,
     timestamp: new Date().toISOString(),
   });

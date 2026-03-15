@@ -23,6 +23,7 @@ export const resolveWardLayerBroker = ({
   const { lastEntry, failCount } = executionLogAgentSummaryTransformer({
     executionLog: quest.executionLog,
     agentType: agentTypeContract.parse('ward'),
+    resetAfterAgentType: agentTypeContract.parse('codeweaver'),
   });
 
   if (lastEntry === undefined) {

@@ -152,6 +152,38 @@ describe('resolveLawbringerLayerBroker', () => {
     });
   });
 
+  describe('fail count resets after siegemaster pass', () => {
+    it('VALID: {1 lawbringer fail, siegemaster pass, 1 lawbringer fail} => launch-lawbringer (not blocked)', () => {
+      resolveLawbringerLayerBrokerProxy();
+      const quest = QuestStub({
+        executionLog: [
+          ExecutionLogEntryStub({
+            agentType: 'lawbringer',
+            status: 'fail',
+            outcome: 'fail',
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'siegemaster',
+            status: 'pass',
+            outcome: 'pass',
+            timestamp: '2024-01-15T11:00:00.000Z',
+          }),
+          ExecutionLogEntryStub({
+            agentType: 'lawbringer',
+            status: 'fail',
+            outcome: 'fail',
+            timestamp: '2024-01-15T12:00:00.000Z',
+          }),
+        ],
+      });
+
+      const result = resolveLawbringerLayerBroker({ quest });
+
+      expect(result).toStrictEqual({ action: 'launch-lawbringer' });
+    });
+  });
+
   describe('last entry has no status', () => {
     it('VALID: {lawbringer entry without status} => launch-lawbringer', () => {
       resolveLawbringerLayerBrokerProxy();
