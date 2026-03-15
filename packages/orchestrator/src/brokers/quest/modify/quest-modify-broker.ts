@@ -109,6 +109,20 @@ export const questModifyBroker = async ({
       quest.pathseekerRuns = [...quest.pathseekerRuns, ...validated.pathseekerRuns];
     }
 
+    if (validated.workItems) {
+      quest.workItems = questArrayUpsertTransformer({
+        existing: quest.workItems,
+        updates: validated.workItems as typeof quest.workItems,
+      });
+    }
+
+    if (validated.wardResults) {
+      quest.wardResults = questArrayUpsertTransformer({
+        existing: quest.wardResults,
+        updates: validated.wardResults,
+      });
+    }
+
     if (validated.status) {
       const isValidTransition = questHasValidStatusTransitionGuard({
         currentStatus: quest.status,

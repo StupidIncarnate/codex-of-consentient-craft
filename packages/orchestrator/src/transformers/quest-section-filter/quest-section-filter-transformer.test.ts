@@ -54,6 +54,8 @@ describe('questSectionFilterTransformer', () => {
         contracts: [],
         steps: [],
         toolingRequirements: [],
+        workItems: [],
+        wardResults: [],
         flows: [
           FlowStub({
             nodes: [
@@ -92,6 +94,8 @@ describe('questSectionFilterTransformer', () => {
         contracts: [],
         steps: [],
         toolingRequirements: [],
+        workItems: [],
+        wardResults: [],
         flows: [],
       });
     });
@@ -125,6 +129,8 @@ describe('questSectionFilterTransformer', () => {
         contracts: [contract],
         steps: [],
         toolingRequirements: [],
+        workItems: [],
+        wardResults: [],
         flows: [flow],
       });
     });
@@ -154,6 +160,8 @@ describe('questSectionFilterTransformer', () => {
         contracts: [],
         steps: [],
         toolingRequirements: [],
+        workItems: [],
+        wardResults: [],
         flows: [],
       });
     });
@@ -191,6 +199,8 @@ describe('questSectionFilterTransformer', () => {
         contracts: [],
         steps: [],
         toolingRequirements: [],
+        workItems: [],
+        wardResults: [],
         flows: [],
       });
     });

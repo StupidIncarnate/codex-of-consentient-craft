@@ -1,0 +1,173 @@
+import { QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+
+import { nextReadyWorkItemsTransformer } from './next-ready-work-items-transformer';
+
+describe('nextReadyWorkItemsTransformer', () => {
+  describe('terminal states', () => {
+    it('EMPTY: {workItems: []} => questTerminal true', () => {
+      const result = nextReadyWorkItemsTransformer({ workItems: [] });
+
+      expect(result).toStrictEqual({
+        ready: [],
+        questTerminal: true,
+        questBlocked: false,
+      });
+    });
+
+    it('VALID: {all items complete} => questTerminal true', () => {
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'complete',
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [item] });
+
+      expect(result).toStrictEqual({
+        ready: [],
+        questTerminal: true,
+        questBlocked: false,
+      });
+    });
+
+    it('VALID: {all items failed} => questTerminal true', () => {
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'failed',
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [item] });
+
+      expect(result).toStrictEqual({
+        ready: [],
+        questTerminal: true,
+        questBlocked: false,
+      });
+    });
+
+    it('VALID: {mix of complete and skipped} => questTerminal true', () => {
+      const item1 = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'complete',
+      });
+      const item2 = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'skipped',
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [item1, item2] });
+
+      expect(result).toStrictEqual({
+        ready: [],
+        questTerminal: true,
+        questBlocked: false,
+      });
+    });
+  });
+
+  describe('ready items', () => {
+    it('VALID: {single pending item with no deps} => ready', () => {
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'pending',
+        dependsOn: [],
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [item] });
+
+      expect(result.ready).toStrictEqual([item]);
+      expect(result.questTerminal).toBe(false);
+      expect(result.questBlocked).toBe(false);
+    });
+
+    it('VALID: {item with completed dep} => ready', () => {
+      const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const dep = WorkItemStub({ id: depId, status: 'complete' });
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'pending',
+        dependsOn: [depId],
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [dep, item] });
+
+      expect(result.ready).toStrictEqual([item]);
+      expect(result.questTerminal).toBe(false);
+      expect(result.questBlocked).toBe(false);
+    });
+
+    it('VALID: {skipped dep counts as satisfied} => ready', () => {
+      const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const dep = WorkItemStub({ id: depId, status: 'skipped' });
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'pending',
+        dependsOn: [depId],
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [dep, item] });
+
+      expect(result.ready).toStrictEqual([item]);
+      expect(result.questTerminal).toBe(false);
+      expect(result.questBlocked).toBe(false);
+    });
+
+    it('VALID: {multiple ready items} => all returned', () => {
+      const item1 = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'pending',
+        dependsOn: [],
+      });
+      const item2 = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'pending',
+        dependsOn: [],
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [item1, item2] });
+
+      expect(result.ready).toStrictEqual([item1, item2]);
+      expect(result.questTerminal).toBe(false);
+      expect(result.questBlocked).toBe(false);
+    });
+  });
+
+  describe('blocked state', () => {
+    it('VALID: {pending item with failed dep} => blocked', () => {
+      const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const dep = WorkItemStub({ id: depId, status: 'failed' });
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'pending',
+        dependsOn: [depId],
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [dep, item] });
+
+      expect(result).toStrictEqual({
+        ready: [],
+        questTerminal: false,
+        questBlocked: true,
+      });
+    });
+  });
+
+  describe('in progress items', () => {
+    it('VALID: {item with in_progress dep} => not ready, not blocked', () => {
+      const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const dep = WorkItemStub({ id: depId, status: 'in_progress' });
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'pending',
+        dependsOn: [depId],
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [dep, item] });
+
+      expect(result).toStrictEqual({
+        ready: [],
+        questTerminal: false,
+        questBlocked: false,
+      });
+    });
+  });
+});

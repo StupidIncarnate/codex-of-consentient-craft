@@ -1,0 +1,198 @@
+import {
+  DependencyStepStub,
+  QuestWorkItemIdStub,
+  StepIdStub,
+} from '@dungeonmaster/shared/contracts';
+
+import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
+import { stepsToWorkItemsTransformer } from './steps-to-work-items-transformer';
+import { stepsToWorkItemsTransformerProxy } from './steps-to-work-items-transformer.proxy';
+
+const NOW = IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' });
+
+describe('stepsToWorkItemsTransformer', () => {
+  describe('basic chain generation', () => {
+    it('VALID: {1 step} => 1 codeweaver + 1 ward + 1 siege + 1 lawbringer', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      proxy.setupUuids({
+        uuids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+        ],
+      });
+
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const step = DependencyStepStub({ id: stepId, dependsOn: [] });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [step],
+        pathseekerWorkItemId,
+        now: NOW,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          id: '00000000-0000-4000-8000-000000000001',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [`steps/${String(stepId)}`],
+          dependsOn: [pathseekerWorkItemId],
+          timeoutMs: 600000,
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000002',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000001'],
+          maxAttempts: 3,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000003',
+          role: 'siegemaster',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000002'],
+          timeoutMs: 300000,
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000004',
+          role: 'lawbringer',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [`steps/${String(stepId)}`],
+          dependsOn: ['00000000-0000-4000-8000-000000000003'],
+          timeoutMs: 300000,
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+      ]);
+    });
+  });
+
+  describe('step dependency DAG', () => {
+    it('VALID: {step B depends on step A} => codeweaver B depends on codeweaver A and pathseeker', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      proxy.setupUuids({
+        uuids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
+          '00000000-0000-4000-8000-000000000006',
+        ],
+      });
+
+      const stepAId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const stepBId = StepIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' });
+
+      const stepA = DependencyStepStub({ id: stepAId, dependsOn: [] });
+      const stepB = DependencyStepStub({ id: stepBId, dependsOn: [stepAId] });
+
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [stepA, stepB],
+        pathseekerWorkItemId,
+        now: NOW,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          id: '00000000-0000-4000-8000-000000000001',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [`steps/${String(stepAId)}`],
+          dependsOn: [pathseekerWorkItemId],
+          timeoutMs: 600000,
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000002',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [`steps/${String(stepBId)}`],
+          dependsOn: [pathseekerWorkItemId, '00000000-0000-4000-8000-000000000001'],
+          timeoutMs: 600000,
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000003',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [],
+          dependsOn: [
+            '00000000-0000-4000-8000-000000000001',
+            '00000000-0000-4000-8000-000000000002',
+          ],
+          maxAttempts: 3,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000004',
+          role: 'siegemaster',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000003'],
+          timeoutMs: 300000,
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000005',
+          role: 'lawbringer',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [`steps/${String(stepAId)}`],
+          dependsOn: ['00000000-0000-4000-8000-000000000004'],
+          timeoutMs: 300000,
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000006',
+          role: 'lawbringer',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [`steps/${String(stepBId)}`],
+          dependsOn: ['00000000-0000-4000-8000-000000000004'],
+          timeoutMs: 300000,
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+      ]);
+    });
+  });
+});

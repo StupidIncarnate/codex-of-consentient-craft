@@ -27,7 +27,10 @@ import {
   stepIdContract,
   toolingRequirementContract,
   toolingRequirementIdContract,
+  wardResultContract,
 } from '@dungeonmaster/shared/contracts';
+
+import { workItemForUpsertContract } from '../work-item-for-upsert/work-item-for-upsert-contract';
 
 const deleteMarker = z.literal(true);
 
@@ -114,6 +117,14 @@ export const modifyQuestInputContract = z
     pathseekerRuns: z
       .array(pathseekerRunContract)
       .describe('PathSeeker run entries to append (not upsert)')
+      .optional(),
+    workItems: z
+      .array(workItemForUpsertContract)
+      .describe('Work items to upsert (existing ID updates, new ID adds)')
+      .optional(),
+    wardResults: z
+      .array(wardResultContract)
+      .describe('Ward result entries to upsert (existing ID updates, new ID adds)')
       .optional(),
   })
   .brand<'ModifyQuestInput'>();
