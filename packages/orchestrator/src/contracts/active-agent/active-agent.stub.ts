@@ -11,6 +11,7 @@ export const ActiveAgentStub = ({ ...props }: StubArgument<ActiveAgent> = {}): A
     slotIndex: SlotIndexStub(),
     stepId: StepIdStub(),
     sessionId: SessionIdStub(),
+    isFollowup: false,
     promise: Promise.resolve(AgentSpawnStreamingResultStub()),
     ...props,
   });

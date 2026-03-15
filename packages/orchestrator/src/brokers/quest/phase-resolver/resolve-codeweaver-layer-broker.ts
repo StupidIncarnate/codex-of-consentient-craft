@@ -11,21 +11,26 @@ import type { Quest } from '@dungeonmaster/shared/contracts';
 import { phaseResolutionContract } from '../../../contracts/phase-resolution/phase-resolution-contract';
 import type { PhaseResolution } from '../../../contracts/phase-resolution/phase-resolution-contract';
 
+const ACTIVE_STATUSES = new Set(['pending', 'in_progress', 'partially_complete', 'blocked']);
+const RESET_STATUSES = new Set(['in_progress', 'partially_complete', 'blocked']);
+
 export const resolveCodeweaverLayerBroker = ({
   quest,
 }: {
   quest: Quest;
 }): PhaseResolution | undefined => {
-  const hasActiveSteps = quest.steps.some(
-    (step) =>
-      step.status === 'pending' ||
-      step.status === 'in_progress' ||
-      step.status === 'partially_complete',
-  );
+  const hasActiveSteps = quest.steps.some((step) => ACTIVE_STATUSES.has(step.status));
 
-  if (hasActiveSteps) {
-    return phaseResolutionContract.parse({ action: 'launch-codeweaver' });
+  if (!hasActiveSteps) {
+    return undefined;
   }
 
-  return undefined;
+  const resetStepIds = quest.steps
+    .filter((step) => RESET_STATUSES.has(step.status))
+    .map((step) => step.id);
+
+  return phaseResolutionContract.parse({
+    action: 'launch-codeweaver',
+    ...(resetStepIds.length > 0 ? { resetStepIds } : {}),
+  });
 };

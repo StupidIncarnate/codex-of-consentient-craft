@@ -8,6 +8,7 @@
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
+import { activeAgentContract } from '../../../contracts/active-agent/active-agent-contract';
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
 import { agentRoleContract } from '../../../contracts/agent-role/agent-role-contract';
@@ -25,6 +26,10 @@ import { questLoadBroker } from '../../quest/load/quest-load-broker';
 import { questUpdateStepBroker } from '../../quest/update-step/quest-update-step-broker';
 import { handleSignalLayerBroker } from './handle-signal-layer-broker';
 import { spawnAgentLayerBroker } from './spawn-agent-layer-broker';
+
+const isFollowupField = activeAgentContract.shape.isFollowup;
+const NOT_FOLLOWUP = isFollowupField.parse(false);
+const IS_FOLLOWUP = isFollowupField.parse(true);
 
 type LoopResult =
   | { done: true; result: SlotManagerResult }
@@ -98,6 +103,7 @@ export const orchestrationLoopLayerBroker = async ({
         slotIndex: availableSlotIndex,
         stepId: stepToRun.id,
         sessionId: null,
+        isFollowup: NOT_FOLLOWUP,
         promise: agentPromise,
       });
     }
@@ -156,6 +162,7 @@ export const orchestrationLoopLayerBroker = async ({
           slotIndex: newSlotIndex,
           stepId: completedAgent.stepId,
           sessionId: result.sessionId,
+          isFollowup: NOT_FOLLOWUP,
           promise: agentPromise,
         });
       }
@@ -182,6 +189,15 @@ export const orchestrationLoopLayerBroker = async ({
 
   switch (signalResult.action) {
     case 'continue': {
+      if (completedAgent.isFollowup && result.signal.signal === 'complete') {
+        await questUpdateStepBroker({
+          questFilePath,
+          stepId: completedAgent.stepId,
+          updates: {
+            status: 'pending',
+          },
+        });
+      }
       return { done: false, activeAgents };
     }
 
@@ -223,6 +239,7 @@ export const orchestrationLoopLayerBroker = async ({
             slotIndex: newSlotIndex,
             stepId: completedAgent.stepId,
             sessionId: result.sessionId,
+            isFollowup: NOT_FOLLOWUP,
             promise: agentPromise,
           });
         }
@@ -260,6 +277,7 @@ export const orchestrationLoopLayerBroker = async ({
             slotIndex: newSlotIndex,
             stepId: completedAgent.stepId,
             sessionId: null,
+            isFollowup: IS_FOLLOWUP,
             promise: agentPromise,
           });
         }

@@ -1,13 +1,18 @@
 import {
   DependencyStepStub,
+  ExitCodeStub,
   FilePathStub,
   QuestStub,
+  SessionIdStub,
   StepIdStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { ActiveAgentStub } from '../../../contracts/active-agent/active-agent.stub';
+import { AgentSpawnStreamingResultStub } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result.stub';
 import { AgentRoleStub } from '../../../contracts/agent-role/agent-role.stub';
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
+import { StreamSignalStub } from '../../../contracts/stream-signal/stream-signal.stub';
 import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
 import { orchestrationLoopLayerBroker } from './orchestration-loop-layer-broker';
 import { orchestrationLoopLayerBrokerProxy } from './orchestration-loop-layer-broker.proxy';
@@ -195,6 +200,113 @@ describe('orchestrationLoopLayerBroker', () => {
         done: true,
         result: { completed: false, incompleteSteps: [failedStep] },
       });
+    });
+  });
+
+  describe('followup agent completion', () => {
+    it('VALID: {followup agent signals complete} => resets step to pending instead of complete', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+      const slotCount = SlotCountStub({ value: 2 });
+      const timeoutMs = TimeoutMsStub({ value: 60000 });
+      const slotOperations = SlotOperationsStub();
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const inProgressStep = DependencyStepStub({
+        id: stepId,
+        status: 'in_progress',
+        dependsOn: [],
+      });
+      const questJson = JSON.stringify(
+        QuestStub({
+          steps: [inProgressStep],
+        }),
+      );
+
+      proxy.setupQuestLoad({ questJson });
+      proxy.setupSignalQuestUpdate({ questJson });
+      proxy.setupFollowupResetQuestUpdate({ questJson });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const completeSignal = StreamSignalStub({ signal: 'complete', stepId });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: completeSignal,
+        crashed: false as never,
+        timedOut: false as never,
+      });
+
+      const followupAgent = ActiveAgentStub({
+        stepId,
+        sessionId: null,
+        isFollowup: true as never,
+        promise: Promise.resolve(agentResult),
+      });
+
+      const result = await orchestrationLoopLayerBroker({
+        questFilePath,
+        startPath,
+        slotCount,
+        timeoutMs,
+        slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
+        activeAgents: [followupAgent],
+      });
+
+      expect(result).toStrictEqual({ done: false, activeAgents: [] });
+    });
+
+    it('VALID: {non-followup agent signals complete} => keeps step as complete', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+      const slotCount = SlotCountStub({ value: 2 });
+      const timeoutMs = TimeoutMsStub({ value: 60000 });
+      const slotOperations = SlotOperationsStub();
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const inProgressStep = DependencyStepStub({
+        id: stepId,
+        status: 'in_progress',
+        dependsOn: [],
+      });
+      const questJson = JSON.stringify(
+        QuestStub({
+          steps: [inProgressStep],
+        }),
+      );
+
+      proxy.setupQuestLoad({ questJson });
+      proxy.setupSignalQuestUpdate({ questJson });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const completeSignal = StreamSignalStub({ signal: 'complete', stepId });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: completeSignal,
+        crashed: false as never,
+        timedOut: false as never,
+      });
+
+      const nonFollowupAgent = ActiveAgentStub({
+        stepId,
+        sessionId: null,
+        isFollowup: false as never,
+        promise: Promise.resolve(agentResult),
+      });
+
+      const result = await orchestrationLoopLayerBroker({
+        questFilePath,
+        startPath,
+        slotCount,
+        timeoutMs,
+        slotOperations,
+        role: AgentRoleStub({ value: 'codeweaver' }),
+        activeAgents: [nonFollowupAgent],
+      });
+
+      expect(result).toStrictEqual({ done: false, activeAgents: [] });
     });
   });
 });

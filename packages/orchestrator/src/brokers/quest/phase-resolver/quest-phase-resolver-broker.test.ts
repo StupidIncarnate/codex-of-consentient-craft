@@ -345,49 +345,52 @@ describe('questPhaseResolverBroker', () => {
       expect(result).toStrictEqual({ action: 'launch-codeweaver' });
     });
 
-    it('VALID: {steps in_progress} => launch-codeweaver', () => {
+    it('VALID: {steps in_progress} => launch-codeweaver with resetStepIds', () => {
       questPhaseResolverBrokerProxy();
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
         status: 'in_progress',
         pathseekerRuns: [
           PathseekerRunStub({ status: 'complete', completedAt: '2024-01-15T11:00:00.000Z' }),
         ],
-        steps: [DependencyStepStub({ status: 'in_progress' })],
+        steps: [DependencyStepStub({ id: stepId, status: 'in_progress' })],
       });
 
       const result = questPhaseResolverBroker({ quest });
 
-      expect(result).toStrictEqual({ action: 'launch-codeweaver' });
+      expect(result).toStrictEqual({ action: 'launch-codeweaver', resetStepIds: [stepId] });
     });
 
-    it('VALID: {steps partially_complete} => launch-codeweaver', () => {
+    it('VALID: {steps partially_complete} => launch-codeweaver with resetStepIds', () => {
       questPhaseResolverBrokerProxy();
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
         status: 'in_progress',
         pathseekerRuns: [
           PathseekerRunStub({ status: 'complete', completedAt: '2024-01-15T11:00:00.000Z' }),
         ],
-        steps: [DependencyStepStub({ status: 'partially_complete' })],
+        steps: [DependencyStepStub({ id: stepId, status: 'partially_complete' })],
       });
 
       const result = questPhaseResolverBroker({ quest });
 
-      expect(result).toStrictEqual({ action: 'launch-codeweaver' });
+      expect(result).toStrictEqual({ action: 'launch-codeweaver', resetStepIds: [stepId] });
     });
 
-    it('VALID: {steps blocked} => falls through to ward (blocked is terminal)', () => {
+    it('VALID: {steps blocked} => launch-codeweaver with resetStepIds', () => {
       questPhaseResolverBrokerProxy();
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
         status: 'in_progress',
         pathseekerRuns: [
           PathseekerRunStub({ status: 'complete', completedAt: '2024-01-15T11:00:00.000Z' }),
         ],
-        steps: [DependencyStepStub({ status: 'blocked' })],
+        steps: [DependencyStepStub({ id: stepId, status: 'blocked' })],
       });
 
       const result = questPhaseResolverBroker({ quest });
 
-      expect(result).toStrictEqual({ action: 'launch-ward' });
+      expect(result).toStrictEqual({ action: 'launch-codeweaver', resetStepIds: [stepId] });
     });
 
     it('VALID: {all steps complete} => falls through to ward', () => {

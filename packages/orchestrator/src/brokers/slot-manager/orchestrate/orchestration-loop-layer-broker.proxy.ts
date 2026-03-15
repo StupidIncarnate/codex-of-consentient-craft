@@ -43,6 +43,7 @@ export const orchestrationLoopLayerBrokerProxy = (): {
     lines: readonly StreamJsonLine[];
   }) => void;
   setupSignalQuestUpdate: (params: { questJson: string }) => void;
+  setupFollowupResetQuestUpdate: (params: { questJson: string }) => void;
   getSignalWrittenQuestContent: () => unknown;
 } => {
   const questLoadProxy = questLoadBrokerProxy();
@@ -126,6 +127,10 @@ export const orchestrationLoopLayerBrokerProxy = (): {
     },
     setupSignalQuestUpdate: ({ questJson }: { questJson: string }): void => {
       handleSignalProxy.setupQuestUpdateSuccess({ questJson });
+    },
+    setupFollowupResetQuestUpdate: ({ questJson }: { questJson: string }): void => {
+      questUpdateStepProxy.setupQuestRead({ questJson });
+      questUpdateStepProxy.setupQuestWriteSuccess();
     },
     getSignalWrittenQuestContent: (): unknown => handleSignalProxy.getWrittenQuestContent(),
   };

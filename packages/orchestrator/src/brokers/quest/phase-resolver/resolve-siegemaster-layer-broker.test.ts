@@ -233,6 +233,32 @@ describe('resolveSiegemasterLayerBroker', () => {
     });
   });
 
+  describe('BUG: pass entry with non-empty failedObservableIds is silently ignored', () => {
+    it('EDGE: {siegemaster pass with failedObservableIds} => treated as done (bug: should have been written as fail)', () => {
+      resolveSiegemasterLayerBrokerProxy();
+      const observableId = ObservableIdStub({ value: 'obs-login-redirect' });
+      const stepId = StepIdStub({ value: 'step-login' });
+      const quest = QuestStub({
+        executionLog: [
+          ExecutionLogEntryStub({
+            agentType: 'siegemaster',
+            status: 'pass',
+            timestamp: '2024-01-15T10:00:00.000Z',
+            failedObservableIds: [observableId],
+          }),
+        ],
+        steps: [DependencyStepStub({ id: stepId, observablesSatisfied: [observableId] })],
+      });
+
+      const result = resolveSiegemasterLayerBroker({ quest });
+
+      // A 'pass' with failedObservableIds should never happen after the orchestration loop fix.
+      // The orchestration loop now writes 'fail' when failedObservableIds is non-empty.
+      // If this entry somehow arrives as 'pass', the resolver treats it as done (undefined).
+      expect(result).toBeUndefined();
+    });
+  });
+
   describe('last entry has no status', () => {
     it('VALID: {siegemaster entry without status} => launch-siegemaster', () => {
       resolveSiegemasterLayerBrokerProxy();

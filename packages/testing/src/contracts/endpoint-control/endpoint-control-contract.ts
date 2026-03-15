@@ -7,6 +7,8 @@
 
 import { z } from 'zod';
 
+import type { RequestCount } from '../request-count/request-count-contract';
+
 export const endpointControlContract = z.object({});
 
 export type HttpMethod = 'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put';
@@ -20,4 +22,5 @@ export type EndpointControl = z.infer<typeof endpointControlContract> & {
     headers: Record<string, string>;
   }) => void;
   networkError: () => void;
+  getRequestCount: () => RequestCount;
 };

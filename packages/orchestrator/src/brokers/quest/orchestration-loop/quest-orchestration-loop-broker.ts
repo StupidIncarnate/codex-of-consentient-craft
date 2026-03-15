@@ -197,7 +197,7 @@ export const questOrchestrationLoopBroker = async ({
         await writeExecutionLogLayerBroker({
           questId,
           agentType: agentTypeContract.parse('siegemaster'),
-          status: 'pass',
+          status: siegeResult.failedObservableIds.length === 0 ? 'pass' : 'fail',
           report: executionLogEntryContract.shape.report.parse('siegemaster-phase'),
           ...(siegeResult.failedObservableIds.length === 0
             ? {}

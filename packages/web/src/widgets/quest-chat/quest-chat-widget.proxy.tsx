@@ -16,6 +16,7 @@ import type {
   QuestStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
+import type { RequestCount } from '@dungeonmaster/testing';
 
 import type { AskUserQuestionOption } from '../../contracts/ask-user-question/ask-user-question-contract';
 import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
@@ -79,6 +80,7 @@ export const QuestChatWidgetProxy = (): {
   clickApprovedModalKeepChatting: () => Promise<void>;
   clickApprovedModalNewQuest: () => Promise<void>;
   setupQuestStart: (params: { processId: string }) => void;
+  getQuestStartRequestCount: () => RequestCount;
 } => {
   websocketConnectAdapterProxy();
   useAgentOutputBindingProxy();
@@ -212,5 +214,6 @@ export const QuestChatWidgetProxy = (): {
     setupQuestStart: ({ processId }: { processId: string }): void => {
       startProxy.setupStart({ processId });
     },
+    getQuestStartRequestCount: (): RequestCount => startProxy.getRequestCount(),
   };
 };

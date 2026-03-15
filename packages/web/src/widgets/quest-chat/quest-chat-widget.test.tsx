@@ -975,6 +975,67 @@ describe('QuestChatWidget', () => {
     });
   });
 
+  describe('pipeline restart after blocked', () => {
+    it('VALID: {quest transitions from in_progress to blocked to in_progress} => calls questStartBroker again on resume', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-resume-1',
+        status: 'in_progress',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupQuestStart({ processId: 'proc-resume-1' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/test-guild/session/chat-resume-1', state: { questId: quest.id } },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      await waitFor(() => {
+        expect(proxy.getQuestStartRequestCount()).toBe(1);
+      });
+
+      act(() => {
+        proxy.setupQuest({
+          quest: QuestStub({ id: 'chat-resume-1', status: 'blocked' }),
+        });
+      });
+
+      act(() => {
+        proxy.setupQuest({
+          quest: QuestStub({ id: 'chat-resume-1', status: 'in_progress' }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.getQuestStartRequestCount()).toBe(2);
+      });
+
+      expect(proxy.getQuestStartRequestCount()).toBe(2);
+    });
+  });
+
   describe('execution phase layout', () => {
     it('VALID: {quest with in_progress status} => renders execution panel in left and dumpster raccoon in right', async () => {
       const proxy = QuestChatWidgetProxy();
@@ -1058,9 +1119,13 @@ describe('QuestChatWidget', () => {
             payload: {
               slotIndex: 0,
               entry: {
-                role: 'assistant',
-                type: 'text',
-                content: 'Building auth guard...',
+                raw: JSON.stringify({
+                  type: 'assistant',
+                  message: {
+                    role: 'assistant',
+                    content: [{ type: 'text', text: 'Building auth guard...' }],
+                  },
+                }),
               },
             },
             timestamp: '2025-01-01T00:00:00.000Z',

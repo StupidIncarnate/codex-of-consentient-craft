@@ -125,6 +125,10 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const pipelineStartedRef = useRef(false);
 
   useEffect(() => {
+    if (questData?.status === 'blocked') {
+      pipelineStartedRef.current = false;
+      return;
+    }
     if (!questData) return;
     if (!isExecutionPhaseGuard({ status: questData.status })) return;
     if (pipelineStartedRef.current) return;

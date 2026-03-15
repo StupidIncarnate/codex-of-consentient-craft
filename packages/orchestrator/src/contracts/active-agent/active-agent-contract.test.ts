@@ -34,6 +34,29 @@ describe('activeAgentContract', () => {
 
       expect(result.sessionId).toBeNull();
     });
+
+    it('VALID: {isFollowup omitted} => defaults to false', () => {
+      const result = activeAgentContract.parse({
+        slotIndex: SlotIndexStub(),
+        stepId: StepIdStub(),
+        sessionId: SessionIdStub(),
+        promise: Promise.resolve(AgentSpawnStreamingResultStub()),
+      });
+
+      expect(result.isFollowup).toBe(false);
+    });
+
+    it('VALID: {isFollowup: true} => parses successfully', () => {
+      const result = activeAgentContract.parse({
+        slotIndex: SlotIndexStub(),
+        stepId: StepIdStub(),
+        sessionId: SessionIdStub(),
+        isFollowup: true,
+        promise: Promise.resolve(AgentSpawnStreamingResultStub()),
+      });
+
+      expect(result.isFollowup).toBe(true);
+    });
   });
 
   describe('invalid inputs', () => {

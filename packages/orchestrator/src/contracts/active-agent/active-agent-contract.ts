@@ -17,6 +17,7 @@ export const activeAgentContract = z.object({
   slotIndex: slotIndexContract,
   stepId: stepIdContract,
   sessionId: sessionIdContract.nullable(),
+  isFollowup: z.boolean().brand<'IsFollowupFlag'>().default(false),
   promise: z.promise(agentSpawnStreamingResultContract),
 });
 

@@ -18,6 +18,7 @@ describe('endpointControlContract', () => {
       expect(typeof control.responds).toBe('function');
       expect(typeof control.respondRaw).toBe('function');
       expect(typeof control.networkError).toBe('function');
+      expect(typeof control.getRequestCount).toBe('function');
     });
 
     it('VALID: {custom resolves} => creates EndpointControl with overridden method', () => {

@@ -8,6 +8,8 @@
 
 import { mswHttpAdapter } from '../../../adapters/msw/http/msw-http-adapter';
 import { mswServerAdapter } from '../../../adapters/msw/server/msw-server-adapter';
+import { requestCountContract } from '../../../contracts/request-count/request-count-contract';
+import type { RequestCount } from '../../../contracts/request-count/request-count-contract';
 import type {
   EndpointControl,
   HttpMethod,
@@ -26,30 +28,38 @@ export const EndpointMockListenResponder = ({
   const { http, HttpResponse } = mswHttpAdapter();
   // MSW handlers need absolute URLs in Node/jsdom - resolve relative paths against localhost
   const handlerUrl = url.startsWith('/') ? `http://localhost${url}` : url;
+  const requestLog: true[] = [];
 
   server.use(
-    http[method](handlerUrl, () =>
-      HttpResponse.json(
+    http[method](handlerUrl, () => {
+      requestLog.push(true);
+      return HttpResponse.json(
         {
           error: `StartEndpointMock: No response configured for ${method.toUpperCase()} ${handlerUrl}`,
         },
         { status: INTERNAL_SERVER_ERROR },
-      ),
-    ),
+      );
+    }),
   );
 
   return {
     resolves: ({ data }: { data: unknown }): void => {
-      server.use(http[method](handlerUrl, () => HttpResponse.json(data as never)));
+      server.use(
+        http[method](handlerUrl, () => {
+          requestLog.push(true);
+          return HttpResponse.json(data as never);
+        }),
+      );
     },
 
     responds: ({ status, body }: { status: number; body?: unknown }): void => {
       server.use(
-        http[method](handlerUrl, () =>
-          body === undefined
+        http[method](handlerUrl, () => {
+          requestLog.push(true);
+          return body === undefined
             ? new HttpResponse(null, { status })
-            : HttpResponse.json(body as never, { status }),
-        ),
+            : HttpResponse.json(body as never, { status });
+        }),
       );
     },
 
@@ -62,11 +72,23 @@ export const EndpointMockListenResponder = ({
       body: BodyInit | null;
       headers: Record<PropertyKey, string>;
     }): void => {
-      server.use(http[method](handlerUrl, () => new HttpResponse(body, { status, headers })));
+      server.use(
+        http[method](handlerUrl, () => {
+          requestLog.push(true);
+          return new HttpResponse(body, { status, headers });
+        }),
+      );
     },
 
     networkError: (): void => {
-      server.use(http[method](handlerUrl, () => HttpResponse.error()));
+      server.use(
+        http[method](handlerUrl, () => {
+          requestLog.push(true);
+          return HttpResponse.error();
+        }),
+      );
     },
+
+    getRequestCount: (): RequestCount => requestCountContract.parse(requestLog.length),
   };
 };

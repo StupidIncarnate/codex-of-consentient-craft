@@ -24,6 +24,7 @@ export type {
   EndpointControl,
   HttpMethod,
 } from './contracts/endpoint-control/endpoint-control-contract';
+export type { RequestCount } from './contracts/request-count/request-count-contract';
 
 // TypeScript transformer - use @dungeonmaster/testing/ts-jest/proxy-mock-transformer in jest.config.js
 
