@@ -1,90 +1,65 @@
 /**
- * PURPOSE: Executes a single iteration of the orchestration loop
+ * PURPOSE: Executes a single iteration of the orchestration loop using WorkTracker abstraction
  *
  * USAGE:
- * const result = await orchestrationLoopLayerBroker({questFilePath, slotCount, timeoutMs, slotOperations, role, activeAgents});
+ * const result = await orchestrationLoopLayerBroker({workTracker, slotCount, timeoutMs, slotOperations, activeAgents, startPath});
  * // Returns { done: true, result } when complete, or { done: false, activeAgents } to continue
  */
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-import { activeAgentContract } from '../../../contracts/active-agent/active-agent-contract';
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
-import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
-import { agentRoleContract } from '../../../contracts/agent-role/agent-role-contract';
-import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
+import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
+import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
-import { isStepReadyGuard } from '../../../guards/is-step-ready/is-step-ready-guard';
+import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 import { buildContinuationContextTransformer } from '../../../transformers/build-continuation-context/build-continuation-context-transformer';
-import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';
-import { questLoadBroker } from '../../quest/load/quest-load-broker';
-import { questUpdateStepBroker } from '../../quest/update-step/quest-update-step-broker';
 import { handleSignalLayerBroker } from './handle-signal-layer-broker';
 import { spawnAgentLayerBroker } from './spawn-agent-layer-broker';
 
-const isFollowupField = activeAgentContract.shape.isFollowup;
-const NOT_FOLLOWUP = isFollowupField.parse(false);
-const IS_FOLLOWUP = isFollowupField.parse(true);
+const ZERO_DEPTH = followupDepthContract.parse(0);
 
 type LoopResult =
   | { done: true; result: SlotManagerResult }
   | { done: false; activeAgents: ActiveAgent[] };
 
 export const orchestrationLoopLayerBroker = async ({
-  questFilePath,
+  workTracker,
   slotCount,
   timeoutMs,
   slotOperations,
-  role,
   activeAgents,
   startPath,
   onAgentEntry,
+  maxFollowupDepth,
 }: {
-  questFilePath: FilePath;
+  workTracker: WorkTracker;
   slotCount: SlotCount;
   timeoutMs: TimeoutMs;
   slotOperations: SlotOperations;
-  role: AgentRole;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  maxFollowupDepth?: FollowupDepth;
 }): Promise<LoopResult> => {
-  const quest = await questLoadBroker({ questFilePath });
-
-  const allComplete = quest.steps.every((step) => step.status === 'complete');
-  if (allComplete && activeAgents.length === 0) {
+  if (workTracker.isAllComplete() && activeAgents.length === 0) {
     return { done: true, result: { completed: true } };
   }
 
-  const readySteps = quest.steps.filter((step) =>
-    isStepReadyGuard({ step, allSteps: quest.steps }),
-  );
+  const readyIds = workTracker.getReadyWorkIds();
 
   const availableSlotIndex = slotOperations.getAvailableSlot({ slotCount });
-  if (availableSlotIndex !== undefined && readySteps.length > 0) {
-    const [stepToRun] = readySteps;
-    if (stepToRun) {
-      const now = isoTimestampContract.parse(new Date().toISOString());
+  if (availableSlotIndex !== undefined && readyIds.length > 0) {
+    const [workItemId] = readyIds;
+    if (workItemId) {
+      await workTracker.markStarted({ workItemId });
 
-      await questUpdateStepBroker({
-        questFilePath,
-        stepId: stepToRun.id,
-        updates: {
-          status: 'in_progress',
-          startedAt: now,
-        },
-      });
-
-      const workUnit = buildWorkUnitForRoleTransformer({
-        role,
-        step: stepToRun,
-        quest,
-      });
+      const workUnit = workTracker.getWorkUnit({ workItemId });
 
       const agentPromise = spawnAgentLayerBroker({
         workUnit,
@@ -101,17 +76,18 @@ export const orchestrationLoopLayerBroker = async ({
 
       activeAgents.push({
         slotIndex: availableSlotIndex,
-        stepId: stepToRun.id,
+        workItemId,
         sessionId: null,
-        isFollowup: NOT_FOLLOWUP,
+        followupDepth: ZERO_DEPTH,
         promise: agentPromise,
       });
     }
   }
 
-  if (activeAgents.length === 0 && readySteps.length === 0) {
-    const incompleteSteps = quest.steps.filter((s) => s.status !== 'complete');
-    return { done: true, result: { completed: false, incompleteSteps } };
+  if (activeAgents.length === 0 && readyIds.length === 0) {
+    const incompleteIds = workTracker.getIncompleteIds();
+    const failedIds = workTracker.getFailedIds();
+    return { done: true, result: { completed: false, incompleteIds, failedIds } };
   }
 
   if (activeAgents.length === 0) {
@@ -133,22 +109,72 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations.releaseSlot({ slotIndex: completedAgent.slotIndex });
 
   if (result.crashed || result.timedOut) {
-    const quest2 = await questLoadBroker({ questFilePath });
-    const step = quest2.steps.find((s) => s.id === completedAgent.stepId);
-    if (step) {
-      const workUnit = buildWorkUnitForRoleTransformer({
-        role,
-        step,
-        quest: quest2,
+    const workUnit = workTracker.getWorkUnit({ workItemId: completedAgent.workItemId });
+
+    const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
+    if (newSlotIndex !== undefined) {
+      const agentPromise = spawnAgentLayerBroker({
+        workUnit,
+        timeoutMs,
+        startPath,
+        ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
+        ...(onAgentEntry === undefined
+          ? {}
+          : {
+              onLine: ({ line }: { line: string }) => {
+                onAgentEntry({ slotIndex: newSlotIndex, entry: { raw: line } });
+              },
+            }),
       });
+
+      activeAgents.push({
+        slotIndex: newSlotIndex,
+        workItemId: completedAgent.workItemId,
+        sessionId: result.sessionId,
+        followupDepth: ZERO_DEPTH,
+        promise: agentPromise,
+      });
+    }
+    return { done: false, activeAgents };
+  }
+
+  if (result.signal === null) {
+    await workTracker.markPartiallyCompleted({ workItemId: completedAgent.workItemId });
+    return { done: false, activeAgents };
+  }
+
+  const signalResult = await handleSignalLayerBroker({
+    signal: result.signal,
+    workItemId: completedAgent.workItemId,
+    workTracker,
+  });
+
+  switch (signalResult.action) {
+    case 'continue': {
+      if (completedAgent.followupDepth > 0 && result.signal.signal === 'complete') {
+        await workTracker.markStarted({ workItemId: completedAgent.workItemId });
+      }
+      return { done: false, activeAgents };
+    }
+
+    case 'respawn': {
+      const workUnit = workTracker.getWorkUnit({ workItemId: completedAgent.workItemId });
 
       const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
       if (newSlotIndex !== undefined) {
+        const continuationContext = buildContinuationContextTransformer({
+          ...(signalResult.continuationPoint === undefined
+            ? {}
+            : { continuationPoint: signalResult.continuationPoint }),
+          capturedOutput: result.capturedOutput,
+        });
+
         const agentPromise = spawnAgentLayerBroker({
           workUnit,
           timeoutMs,
           startPath,
           ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
+          ...(continuationContext === null ? {} : { continuationContext }),
           ...(onAgentEntry === undefined
             ? {}
             : {
@@ -160,103 +186,21 @@ export const orchestrationLoopLayerBroker = async ({
 
         activeAgents.push({
           slotIndex: newSlotIndex,
-          stepId: completedAgent.stepId,
+          workItemId: completedAgent.workItemId,
           sessionId: result.sessionId,
-          isFollowup: NOT_FOLLOWUP,
+          followupDepth: ZERO_DEPTH,
           promise: agentPromise,
         });
-      }
-    }
-    return { done: false, activeAgents };
-  }
-
-  if (result.signal === null) {
-    await questUpdateStepBroker({
-      questFilePath,
-      stepId: completedAgent.stepId,
-      updates: {
-        status: 'partially_complete',
-      },
-    });
-    return { done: false, activeAgents };
-  }
-
-  const signalResult = await handleSignalLayerBroker({
-    signal: result.signal,
-    stepId: completedAgent.stepId,
-    questFilePath,
-  });
-
-  switch (signalResult.action) {
-    case 'continue': {
-      if (completedAgent.isFollowup && result.signal.signal === 'complete') {
-        await questUpdateStepBroker({
-          questFilePath,
-          stepId: completedAgent.stepId,
-          updates: {
-            status: 'pending',
-          },
-        });
-      }
-      return { done: false, activeAgents };
-    }
-
-    case 'respawn': {
-      const quest3 = await questLoadBroker({ questFilePath });
-      const step = quest3.steps.find((s) => s.id === completedAgent.stepId);
-      if (step) {
-        const workUnit = buildWorkUnitForRoleTransformer({
-          role,
-          step,
-          quest: quest3,
-        });
-
-        const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
-        if (newSlotIndex !== undefined) {
-          const continuationContext = buildContinuationContextTransformer({
-            ...(signalResult.continuationPoint === undefined
-              ? {}
-              : { continuationPoint: signalResult.continuationPoint }),
-            capturedOutput: result.capturedOutput,
-          });
-
-          const agentPromise = spawnAgentLayerBroker({
-            workUnit,
-            timeoutMs,
-            startPath,
-            ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
-            ...(continuationContext === null ? {} : { continuationContext }),
-            ...(onAgentEntry === undefined
-              ? {}
-              : {
-                  onLine: ({ line }: { line: string }) => {
-                    onAgentEntry({ slotIndex: newSlotIndex, entry: { raw: line } });
-                  },
-                }),
-          });
-
-          activeAgents.push({
-            slotIndex: newSlotIndex,
-            stepId: completedAgent.stepId,
-            sessionId: result.sessionId,
-            isFollowup: NOT_FOLLOWUP,
-            promise: agentPromise,
-          });
-        }
       }
       return { done: false, activeAgents };
     }
 
     case 'spawn_role': {
-      const quest4 = await questLoadBroker({ questFilePath });
-      const step = quest4.steps.find((s) => s.id === completedAgent.stepId);
-      if (step) {
-        const targetRole = agentRoleContract.parse(signalResult.targetRole);
-        const workUnit = buildWorkUnitForRoleTransformer({
-          role: targetRole,
-          step,
-          quest: quest4,
-        });
+      const isWithinDepthLimit =
+        maxFollowupDepth === undefined || completedAgent.followupDepth < maxFollowupDepth;
+
+      if (isWithinDepthLimit) {
+        const workUnit = workTracker.getWorkUnit({ workItemId: completedAgent.workItemId });
 
         const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
         if (newSlotIndex !== undefined) {
@@ -273,14 +217,18 @@ export const orchestrationLoopLayerBroker = async ({
                 }),
           });
 
+          const nextDepth = followupDepthContract.parse(completedAgent.followupDepth + 1);
+
           activeAgents.push({
             slotIndex: newSlotIndex,
-            stepId: completedAgent.stepId,
+            workItemId: completedAgent.workItemId,
             sessionId: null,
-            isFollowup: IS_FOLLOWUP,
+            followupDepth: nextDepth,
             promise: agentPromise,
           });
         }
+      } else {
+        await workTracker.markFailed({ workItemId: completedAgent.workItemId });
       }
       return { done: false, activeAgents };
     }

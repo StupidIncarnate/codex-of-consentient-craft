@@ -14,6 +14,9 @@ import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-lin
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
+import { workUnitsToWorkTrackerTransformer } from '../../../transformers/work-units-to-work-tracker/work-units-to-work-tracker-transformer';
+import { questLoadBroker } from '../load/quest-load-broker';
+import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';
 import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
 
 const CODEWEAVER_SLOT_COUNT = 3;
@@ -44,12 +47,18 @@ export const codeweaverPhaseLayerBroker = async ({
   const timeoutMs = timeoutMsContract.parse(CODEWEAVER_TIMEOUT_MS);
   const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
 
+  const quest = await questLoadBroker({ questFilePath });
+  const pendingSteps = quest.steps.filter((step) => step.status !== 'complete');
+  const workUnits = pendingSteps.map((step) =>
+    buildWorkUnitForRoleTransformer({ role: 'codeweaver', step, quest }),
+  );
+  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });
+
   const result = await slotManagerOrchestrateBroker({
-    questFilePath,
+    workTracker,
     slotCount,
     timeoutMs,
     slotOperations,
-    role: 'codeweaver',
     startPath,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(abortSignal === undefined ? {} : { abortSignal }),
@@ -60,7 +69,7 @@ export const codeweaverPhaseLayerBroker = async ({
   }
 
   if (!result.completed) {
-    const stepNames = result.incompleteSteps.map((step) => step.name).join(', ');
-    throw new Error(`Codeweaver phase failed: incomplete steps - ${stepNames}`);
+    const incompleteCount = result.incompleteIds.length;
+    throw new Error(`Codeweaver phase failed: ${String(incompleteCount)} incomplete work items`);
   }
 };

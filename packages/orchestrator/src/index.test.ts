@@ -10,6 +10,7 @@ describe('orchestrator', () => {
       'agentSlotContract',
       'chaoswhispererPromptStatics',
       'codeweaverPromptStatics',
+      'followupDepthContract',
       'getQuestInputContract',
       'getQuestResultContract',
       'isoTimestampContract',
@@ -49,6 +50,8 @@ describe('orchestrator', () => {
       'verifyQuestCheckContract',
       'verifyQuestInputContract',
       'verifyQuestResultContract',
+      'workItemIdContract',
+      'workTrackerContract',
     ]);
   });
 });

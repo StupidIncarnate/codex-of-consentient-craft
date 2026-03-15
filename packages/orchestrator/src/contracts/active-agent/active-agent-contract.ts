@@ -2,22 +2,24 @@
  * PURPOSE: Defines the structure of an active agent being orchestrated
  *
  * USAGE:
- * const agent: ActiveAgent = { slotIndex, stepId, sessionId, promise };
+ * const agent: ActiveAgent = { slotIndex, workItemId, sessionId, followupDepth, promise };
  * // Tracks an agent running in an orchestration slot
  */
 
 import { z } from 'zod';
 
-import { sessionIdContract, stepIdContract } from '@dungeonmaster/shared/contracts';
+import { sessionIdContract } from '@dungeonmaster/shared/contracts';
 
 import { agentSpawnStreamingResultContract } from '../agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
+import { followupDepthContract } from '../followup-depth/followup-depth-contract';
 import { slotIndexContract } from '../slot-index/slot-index-contract';
+import { workItemIdContract } from '../work-item-id/work-item-id-contract';
 
 export const activeAgentContract = z.object({
   slotIndex: slotIndexContract,
-  stepId: stepIdContract,
+  workItemId: workItemIdContract,
   sessionId: sessionIdContract.nullable(),
-  isFollowup: z.boolean().brand<'IsFollowupFlag'>().default(false),
+  followupDepth: followupDepthContract.default(0),
   promise: z.promise(agentSpawnStreamingResultContract),
 });
 

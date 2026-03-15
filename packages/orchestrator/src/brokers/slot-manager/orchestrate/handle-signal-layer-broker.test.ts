@@ -1,188 +1,132 @@
-import { FilePathStub, StepIdStub } from '@dungeonmaster/shared/contracts';
-
 import { StreamSignalStub } from '../../../contracts/stream-signal/stream-signal.stub';
+import { WorkItemIdStub } from '../../../contracts/work-item-id/work-item-id.stub';
+import { WorkTrackerStub } from '../../../contracts/work-tracker/work-tracker.stub';
 import { handleSignalLayerBroker } from './handle-signal-layer-broker';
 import { handleSignalLayerBrokerProxy } from './handle-signal-layer-broker.proxy';
 
 describe('handleSignalLayerBroker', () => {
   describe('complete signal', () => {
-    it('VALID: {signal: complete, stepId} => updates step to complete and returns continue action', async () => {
-      const proxy = handleSignalLayerBrokerProxy();
-      const stepId = StepIdStub();
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
-      const signal = StreamSignalStub({ signal: 'complete', stepId });
-
-      proxy.setupQuestUpdateSuccess({
-        questJson: JSON.stringify({
-          id: 'test-quest',
-          folder: '001-test',
-          title: 'Test Quest',
-          status: 'in_progress',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          executionLog: [],
-          contexts: [],
-          observables: [],
-          steps: [
-            {
-              id: stepId,
-              name: 'Test',
-              description: 'Test step',
-              observablesSatisfied: [],
-              dependsOn: [],
-              filesToCreate: [],
-              filesToModify: [],
-              status: 'in_progress',
-            },
-          ],
-          toolingRequirements: [],
-        }),
-      });
-
-      const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
-
-      expect(result).toStrictEqual({ action: 'continue' });
-    });
-
-    it('VALID: {signal: complete, no stepId} => skips quest update and returns continue action', async () => {
+    it('VALID: {signal: complete, workItemId} => calls markCompleted and returns continue action', async () => {
       handleSignalLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markCompleted: mockMarkCompleted,
+      });
       const signal = StreamSignalStub({ signal: 'complete' });
 
-      const result = await handleSignalLayerBroker({ signal, questFilePath });
+      const result = await handleSignalLayerBroker({ signal, workItemId, workTracker });
 
       expect(result).toStrictEqual({ action: 'continue' });
+      expect(mockMarkCompleted).toHaveBeenCalledTimes(1);
+    });
+
+    it('VALID: {signal: complete, no workItemId} => skips markCompleted and returns continue action', async () => {
+      handleSignalLayerBrokerProxy();
+      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markCompleted: mockMarkCompleted,
+      });
+      const signal = StreamSignalStub({ signal: 'complete' });
+
+      const result = await handleSignalLayerBroker({ signal, workTracker });
+
+      expect(result).toStrictEqual({ action: 'continue' });
+      expect(mockMarkCompleted).toHaveBeenCalledTimes(0);
     });
   });
 
   describe('partially-complete signal', () => {
-    it('VALID: {signal: partially-complete, stepId, continuationPoint: defined} => returns respawn action with continuationPoint', async () => {
-      const proxy = handleSignalLayerBrokerProxy();
-      const stepId = StepIdStub();
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+    it('VALID: {signal: partially-complete, workItemId, continuationPoint: defined} => returns respawn action with continuationPoint', async () => {
+      handleSignalLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkPartiallyCompleted = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markPartiallyCompleted: mockMarkPartiallyCompleted,
+      });
       const signal = StreamSignalStub({
         signal: 'partially-complete',
-        stepId,
         continuationPoint: 'Continue from step 2' as never,
       });
 
-      proxy.setupQuestUpdateSuccess({
-        questJson: JSON.stringify({
-          id: 'test-quest',
-          folder: '001-test',
-          title: 'Test Quest',
-          status: 'in_progress',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          executionLog: [],
-          contexts: [],
-          observables: [],
-          steps: [
-            {
-              id: stepId,
-              name: 'Test',
-              description: 'Test step',
-              observablesSatisfied: [],
-              dependsOn: [],
-              filesToCreate: [],
-              filesToModify: [],
-              status: 'in_progress',
-            },
-          ],
-          toolingRequirements: [],
-        }),
-      });
-
-      const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
+      const result = await handleSignalLayerBroker({ signal, workItemId, workTracker });
 
       expect(result).toStrictEqual({
         action: 'respawn',
         continuationPoint: 'Continue from step 2',
       });
+      expect(mockMarkPartiallyCompleted).toHaveBeenCalledTimes(1);
     });
 
-    it('VALID: {signal: partially-complete, no stepId} => skips quest update and returns respawn action', async () => {
+    it('VALID: {signal: partially-complete, no workItemId} => skips markPartiallyCompleted and returns respawn action', async () => {
       handleSignalLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+      const mockMarkPartiallyCompleted = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markPartiallyCompleted: mockMarkPartiallyCompleted,
+      });
       const signal = StreamSignalStub({
         signal: 'partially-complete',
         continuationPoint: 'Continue from step 2' as never,
       });
 
-      const result = await handleSignalLayerBroker({ signal, questFilePath });
+      const result = await handleSignalLayerBroker({ signal, workTracker });
 
       expect(result).toStrictEqual({
         action: 'respawn',
         continuationPoint: 'Continue from step 2',
       });
+      expect(mockMarkPartiallyCompleted).toHaveBeenCalledTimes(0);
     });
   });
 
   describe('needs-role-followup signal', () => {
-    it('VALID: {signal: needs-role-followup, stepId, all fields defined} => returns spawn_role action with all fields', async () => {
-      const proxy = handleSignalLayerBrokerProxy();
-      const stepId = StepIdStub();
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+    it('VALID: {signal: needs-role-followup, workItemId, all fields defined} => returns spawn_role action with all fields', async () => {
+      handleSignalLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkBlocked = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markBlocked: mockMarkBlocked,
+      });
       const signal = StreamSignalStub({
         signal: 'needs-role-followup',
-        stepId,
-        targetRole: 'reviewer' as never,
+        targetRole: 'spiritmender' as never,
         reason: 'Need code review' as never,
         context: 'Review context' as never,
       });
 
-      proxy.setupQuestUpdateSuccess({
-        questJson: JSON.stringify({
-          id: 'test-quest',
-          folder: '001-test',
-          title: 'Test Quest',
-          status: 'in_progress',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          executionLog: [],
-          contexts: [],
-          observables: [],
-          steps: [
-            {
-              id: stepId,
-              name: 'Test',
-              description: 'Test step',
-              observablesSatisfied: [],
-              dependsOn: [],
-              filesToCreate: [],
-              filesToModify: [],
-              status: 'in_progress',
-            },
-          ],
-          toolingRequirements: [],
-        }),
-      });
-
-      const result = await handleSignalLayerBroker({ signal, stepId, questFilePath });
+      const result = await handleSignalLayerBroker({ signal, workItemId, workTracker });
 
       expect(result).toStrictEqual({
         action: 'spawn_role',
-        targetRole: 'reviewer',
+        targetRole: 'spiritmender',
         reason: 'Need code review',
         context: 'Review context',
       });
+      expect(mockMarkBlocked).toHaveBeenCalledTimes(1);
     });
 
-    it('VALID: {signal: needs-role-followup, no stepId} => skips quest update and returns spawn_role action', async () => {
+    it('VALID: {signal: needs-role-followup, no workItemId} => skips markBlocked and returns spawn_role action', async () => {
       handleSignalLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
+      const mockMarkBlocked = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markBlocked: mockMarkBlocked,
+      });
       const signal = StreamSignalStub({
         signal: 'needs-role-followup',
-        targetRole: 'reviewer' as never,
+        targetRole: 'spiritmender' as never,
         reason: 'Need code review' as never,
         context: 'Review context' as never,
       });
 
-      const result = await handleSignalLayerBroker({ signal, questFilePath });
+      const result = await handleSignalLayerBroker({ signal, workTracker });
 
       expect(result).toStrictEqual({
         action: 'spawn_role',
-        targetRole: 'reviewer',
+        targetRole: 'spiritmender',
         reason: 'Need code review',
         context: 'Review context',
       });
+      expect(mockMarkBlocked).toHaveBeenCalledTimes(0);
     });
   });
 });

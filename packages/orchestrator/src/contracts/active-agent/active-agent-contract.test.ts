@@ -1,7 +1,8 @@
-import { SessionIdStub, StepIdStub } from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { AgentSpawnStreamingResultStub } from '../agent-spawn-streaming-result/agent-spawn-streaming-result.stub';
 import { SlotIndexStub } from '../slot-index/slot-index.stub';
+import { WorkItemIdStub } from '../work-item-id/work-item-id.stub';
 import { ActiveAgentStub } from './active-agent.stub';
 import { activeAgentContract } from './active-agent-contract';
 
@@ -10,7 +11,7 @@ describe('activeAgentContract', () => {
     it('VALID: {all fields} => parses successfully', () => {
       const result = activeAgentContract.parse({
         slotIndex: SlotIndexStub(),
-        stepId: StepIdStub(),
+        workItemId: WorkItemIdStub(),
         sessionId: SessionIdStub(),
         promise: Promise.resolve(AgentSpawnStreamingResultStub()),
       });
@@ -27,7 +28,7 @@ describe('activeAgentContract', () => {
     it('VALID: {nullable sessionId} => parses successfully', () => {
       const result = activeAgentContract.parse({
         slotIndex: SlotIndexStub(),
-        stepId: StepIdStub(),
+        workItemId: WorkItemIdStub(),
         sessionId: null,
         promise: Promise.resolve(AgentSpawnStreamingResultStub()),
       });
@@ -35,27 +36,27 @@ describe('activeAgentContract', () => {
       expect(result.sessionId).toBeNull();
     });
 
-    it('VALID: {isFollowup omitted} => defaults to false', () => {
+    it('VALID: {followupDepth omitted} => defaults to 0', () => {
       const result = activeAgentContract.parse({
         slotIndex: SlotIndexStub(),
-        stepId: StepIdStub(),
+        workItemId: WorkItemIdStub(),
         sessionId: SessionIdStub(),
         promise: Promise.resolve(AgentSpawnStreamingResultStub()),
       });
 
-      expect(result.isFollowup).toBe(false);
+      expect(result.followupDepth).toBe(0);
     });
 
-    it('VALID: {isFollowup: true} => parses successfully', () => {
+    it('VALID: {followupDepth: 3} => parses successfully', () => {
       const result = activeAgentContract.parse({
         slotIndex: SlotIndexStub(),
-        stepId: StepIdStub(),
+        workItemId: WorkItemIdStub(),
         sessionId: SessionIdStub(),
-        isFollowup: true,
+        followupDepth: 3,
         promise: Promise.resolve(AgentSpawnStreamingResultStub()),
       });
 
-      expect(result.isFollowup).toBe(true);
+      expect(result.followupDepth).toBe(3);
     });
   });
 
@@ -63,7 +64,7 @@ describe('activeAgentContract', () => {
     it('INVALID: {missing slotIndex} => throws error', () => {
       expect(() =>
         activeAgentContract.parse({
-          stepId: StepIdStub(),
+          workItemId: WorkItemIdStub(),
           sessionId: SessionIdStub(),
           promise: Promise.resolve(AgentSpawnStreamingResultStub()),
         }),
@@ -74,7 +75,7 @@ describe('activeAgentContract', () => {
       expect(() =>
         activeAgentContract.parse({
           slotIndex: SlotIndexStub(),
-          stepId: StepIdStub(),
+          workItemId: WorkItemIdStub(),
           sessionId: SessionIdStub(),
         }),
       ).toThrow(/Required/u);

@@ -1,51 +1,52 @@
 /**
- * PURPOSE: Orchestrates N concurrent agent slots to execute quest steps in parallel
+ * PURPOSE: Orchestrates N concurrent agent slots to execute work items in parallel
  *
  * USAGE:
- * const result = await slotManagerOrchestrateBroker({questFilePath, slotCount, timeoutMs, slotOperations, role});
- * // Returns { completed: true } when all steps done
+ * const result = await slotManagerOrchestrateBroker({workTracker, slotCount, timeoutMs, slotOperations, startPath});
+ * // Returns { completed: true } when all work items done
  */
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
+import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 import { runOrchestrationLayerBroker } from './run-orchestration-layer-broker';
 
 export const slotManagerOrchestrateBroker = async ({
-  questFilePath,
+  workTracker,
   slotCount,
   timeoutMs,
   slotOperations,
-  role,
   startPath,
   onAgentEntry,
   abortSignal,
+  maxFollowupDepth,
 }: {
-  questFilePath: FilePath;
+  workTracker: WorkTracker;
   slotCount: SlotCount;
   timeoutMs: TimeoutMs;
   slotOperations: SlotOperations;
-  role: AgentRole;
   startPath: FilePath;
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
   abortSignal?: AbortSignal;
+  maxFollowupDepth?: FollowupDepth;
 }): Promise<SlotManagerResult> => {
   const result = await runOrchestrationLayerBroker({
-    questFilePath,
+    workTracker,
     slotCount,
     timeoutMs,
     slotOperations,
-    role,
     activeAgents: [],
     startPath,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(abortSignal === undefined ? {} : { abortSignal }),
+    ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
   });
   return result;
 };

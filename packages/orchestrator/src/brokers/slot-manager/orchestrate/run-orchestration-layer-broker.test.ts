@@ -1,44 +1,30 @@
-import {
-  DependencyStepStub,
-  FilePathStub,
-  QuestStub,
-  StepIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
-import { AgentRoleStub } from '../../../contracts/agent-role/agent-role.stub';
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
+import { WorkItemIdStub } from '../../../contracts/work-item-id/work-item-id.stub';
+import { WorkTrackerStub } from '../../../contracts/work-tracker/work-tracker.stub';
 import { runOrchestrationLayerBroker } from './run-orchestration-layer-broker';
 import { runOrchestrationLayerBrokerProxy } from './run-orchestration-layer-broker.proxy';
 
 describe('runOrchestrationLayerBroker', () => {
   describe('immediate completion', () => {
-    it('VALID: {all steps complete, no active agents} => returns completed true', async () => {
-      const proxy = runOrchestrationLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
-      const slotCount = SlotCountStub({ value: 2 });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
-      const slotOperations = SlotOperationsStub();
-      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-
-      proxy.setupQuestLoad({
-        questJson: JSON.stringify(
-          QuestStub({
-            steps: [DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] })],
-          }),
-        ),
+    it('VALID: {all work complete, no active agents} => returns completed true', async () => {
+      runOrchestrationLayerBrokerProxy();
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => true,
+        getReadyWorkIds: () => [],
       });
 
       const startPath = FilePathStub({ value: '/project/src' });
 
       const result = await runOrchestrationLayerBroker({
-        questFilePath,
+        workTracker,
         startPath,
-        slotCount,
-        timeoutMs,
-        slotOperations,
-        role: AgentRoleStub({ value: 'codeweaver' }),
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
         activeAgents: [],
       });
 
@@ -47,77 +33,59 @@ describe('runOrchestrationLayerBroker', () => {
   });
 
   describe('no work available', () => {
-    it('VALID: {no available slots, no active agents} => returns completed true', async () => {
-      const proxy = runOrchestrationLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
-      const slotCount = SlotCountStub({ value: 2 });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
-      const slotOperations = SlotOperationsStub({
-        getAvailableSlot: () => undefined,
-      });
-      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-
-      proxy.setupQuestLoad({
-        questJson: JSON.stringify(
-          QuestStub({
-            steps: [DependencyStepStub({ id: stepId, status: 'pending', dependsOn: [] })],
-          }),
-        ),
+    it('VALID: {no ready ids, no active agents} => returns completed true', async () => {
+      runOrchestrationLayerBrokerProxy();
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [],
+        getFailedIds: () => [],
       });
 
       const startPath = FilePathStub({ value: '/project/src' });
+      const slotOperations = SlotOperationsStub({
+        getAvailableSlot: () => undefined,
+      });
 
       const result = await runOrchestrationLayerBroker({
-        questFilePath,
+        workTracker,
         startPath,
-        slotCount,
-        timeoutMs,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
         slotOperations,
-        role: AgentRoleStub({ value: 'codeweaver' }),
         activeAgents: [],
       });
 
-      expect(result).toStrictEqual({ completed: true });
+      expect(result).toStrictEqual({ completed: false, incompleteIds: [], failedIds: [] });
     });
   });
 
   describe('stuck state', () => {
-    it('VALID: {failed step, no agents, no ready steps} => returns completed false with incompleteSteps', async () => {
-      const proxy = runOrchestrationLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
-      const slotCount = SlotCountStub({ value: 2 });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
-      const slotOperations = SlotOperationsStub();
-      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const failedStep = DependencyStepStub({
-        id: stepId,
-        status: 'failed',
-        dependsOn: [],
-      });
-
-      proxy.setupQuestLoad({
-        questJson: JSON.stringify(
-          QuestStub({
-            steps: [failedStep],
-          }),
-        ),
+    it('VALID: {failed work item, no agents, no ready ids} => returns completed false with failedIds', async () => {
+      runOrchestrationLayerBrokerProxy();
+      const failedId = WorkItemIdStub({ value: 'work-item-failed' });
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [failedId],
+        getFailedIds: () => [failedId],
       });
 
       const startPath = FilePathStub({ value: '/project/src' });
 
       const result = await runOrchestrationLayerBroker({
-        questFilePath,
+        workTracker,
         startPath,
-        slotCount,
-        timeoutMs,
-        slotOperations,
-        role: AgentRoleStub({ value: 'codeweaver' }),
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
         activeAgents: [],
       });
 
       expect(result).toStrictEqual({
         completed: false,
-        incompleteSteps: [failedStep],
+        incompleteIds: ['work-item-failed'],
+        failedIds: ['work-item-failed'],
       });
     });
   });

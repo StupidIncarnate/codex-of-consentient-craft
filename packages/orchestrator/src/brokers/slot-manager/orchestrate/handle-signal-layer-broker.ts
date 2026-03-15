@@ -1,18 +1,16 @@
 /**
- * PURPOSE: Handles agent signal types and updates quest step status accordingly
+ * PURPOSE: Handles agent signal types and updates work item status via WorkTracker
  *
  * USAGE:
- * const result = await handleSignalLayerBroker({signal, stepId, questFilePath});
- * // Returns SlotManagerResult or null to continue orchestration
+ * const result = await handleSignalLayerBroker({signal, workItemId, workTracker});
+ * // Returns HandleSignalResult to drive orchestration loop decisions
  */
 
-import type { FilePath, StepId } from '@dungeonmaster/shared/contracts';
-
-import { blockingReasonContract } from '../../../contracts/blocking-reason/blocking-reason-contract';
-import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
+import { agentRoleContract } from '../../../contracts/agent-role/agent-role-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import { streamSignalContract } from '../../../contracts/stream-signal/stream-signal-contract';
-import { questUpdateStepBroker } from '../../quest/update-step/quest-update-step-broker';
+import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
+import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 
 type SignalContinuationPoint = NonNullable<StreamSignal['continuationPoint']>;
 type SignalTargetRole = NonNullable<StreamSignal['targetRole']>;
@@ -31,39 +29,24 @@ type HandleSignalResult =
 
 export const handleSignalLayerBroker = async ({
   signal,
-  stepId,
-  questFilePath,
+  workItemId,
+  workTracker,
 }: {
   signal: StreamSignal;
-  stepId?: StepId;
-  questFilePath: FilePath;
+  workItemId?: WorkItemId;
+  workTracker: WorkTracker;
 }): Promise<HandleSignalResult> => {
-  const now = isoTimestampContract.parse(new Date().toISOString());
-
   switch (signal.signal) {
     case 'complete': {
-      if (stepId) {
-        await questUpdateStepBroker({
-          questFilePath,
-          stepId,
-          updates: {
-            status: 'complete',
-            completedAt: now,
-          },
-        });
+      if (workItemId) {
+        await workTracker.markCompleted({ workItemId });
       }
       return { action: 'continue' };
     }
 
     case 'partially-complete': {
-      if (stepId) {
-        await questUpdateStepBroker({
-          questFilePath,
-          stepId,
-          updates: {
-            status: 'partially_complete',
-          },
-        });
+      if (workItemId) {
+        await workTracker.markPartiallyCompleted({ workItemId });
       }
       return {
         action: 'respawn',
@@ -74,15 +57,11 @@ export const handleSignalLayerBroker = async ({
     }
 
     case 'needs-role-followup': {
-      if (stepId) {
-        await questUpdateStepBroker({
-          questFilePath,
-          stepId,
-          updates: {
-            status: 'blocked',
-            blockingType: 'needs_role_followup',
-            blockingReason: blockingReasonContract.parse(signal.reason ?? 'Role followup needed'),
-          },
+      if (workItemId) {
+        const parsedTargetRole = agentRoleContract.parse(signal.targetRole ?? 'spiritmender');
+        await workTracker.markBlocked({
+          workItemId,
+          targetRole: parsedTargetRole,
         });
       }
 

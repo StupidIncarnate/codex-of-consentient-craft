@@ -1,5 +1,4 @@
-import { DependencyStepStub } from '@dungeonmaster/shared/contracts';
-
+import { WorkItemIdStub } from '../work-item-id/work-item-id.stub';
 import { slotManagerResultContract } from './slot-manager-result-contract';
 import { SlotManagerResultIncompleteStub, SlotManagerResultStub } from './slot-manager-result.stub';
 
@@ -25,28 +24,32 @@ describe('slotManagerResultContract', () => {
   });
 
   describe('completed: false', () => {
-    it('VALID: {completed: false, incompleteSteps: [step]} => parses successfully', () => {
-      const step = DependencyStepStub({ status: 'failed' });
+    it('VALID: {completed: false, incompleteIds, failedIds} => parses successfully', () => {
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
       const result = slotManagerResultContract.parse({
         completed: false,
-        incompleteSteps: [step],
+        incompleteIds: [workItemId],
+        failedIds: [],
       });
 
       expect(result).toStrictEqual({
         completed: false,
-        incompleteSteps: [step],
+        incompleteIds: ['work-item-1'],
+        failedIds: [],
       });
     });
 
-    it('VALID: {completed: false, incompleteSteps: []} => parses with empty array', () => {
+    it('VALID: {completed: false, empty arrays} => parses with empty arrays', () => {
       const result = slotManagerResultContract.parse({
         completed: false,
-        incompleteSteps: [],
+        incompleteIds: [],
+        failedIds: [],
       });
 
       expect(result).toStrictEqual({
         completed: false,
-        incompleteSteps: [],
+        incompleteIds: [],
+        failedIds: [],
       });
     });
 
@@ -55,7 +58,23 @@ describe('slotManagerResultContract', () => {
 
       expect(result).toStrictEqual({
         completed: false,
-        incompleteSteps: [DependencyStepStub()],
+        incompleteIds: ['work-item-0'],
+        failedIds: [],
+      });
+    });
+
+    it('VALID: {completed: false, with failedIds} => parses successfully', () => {
+      const failedId = WorkItemIdStub({ value: 'failed-item-1' });
+      const result = slotManagerResultContract.parse({
+        completed: false,
+        incompleteIds: [],
+        failedIds: [failedId],
+      });
+
+      expect(result).toStrictEqual({
+        completed: false,
+        incompleteIds: [],
+        failedIds: ['failed-item-1'],
       });
     });
   });
@@ -73,10 +92,20 @@ describe('slotManagerResultContract', () => {
       ).toThrow(/Invalid discriminator value/u);
     });
 
-    it('INVALID_INCOMPLETE_STEPS: {completed: false, missing incompleteSteps} => throws required error', () => {
+    it('INVALID_INCOMPLETE_IDS: {completed: false, missing incompleteIds} => throws required error', () => {
       expect(() =>
         slotManagerResultContract.parse({
           completed: false,
+          failedIds: [],
+        }),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID_FAILED_IDS: {completed: false, missing failedIds} => throws required error', () => {
+      expect(() =>
+        slotManagerResultContract.parse({
+          completed: false,
+          incompleteIds: [],
         }),
       ).toThrow(/Required/u);
     });

@@ -27,3 +27,6 @@ export { SlotOperationsStub } from './src/contracts/slot-operations/slot-operati
 export { StreamJsonLineStub } from './src/contracts/stream-json-line/stream-json-line.stub';
 export { StreamSignalStub } from './src/contracts/stream-signal/stream-signal.stub';
 export { TimeoutMsStub } from './src/contracts/timeout-ms/timeout-ms.stub';
+export { WorkItemIdStub } from './src/contracts/work-item-id/work-item-id.stub';
+export { WorkTrackerStub } from './src/contracts/work-tracker/work-tracker.stub';
+export { FollowupDepthStub } from './src/contracts/followup-depth/followup-depth.stub';

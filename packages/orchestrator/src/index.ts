@@ -80,6 +80,15 @@ export type { SlotIndex } from './contracts/slot-index/slot-index-contract';
 export { slotManagerResultContract } from './contracts/slot-manager-result/slot-manager-result-contract';
 export type { SlotManagerResult } from './contracts/slot-manager-result/slot-manager-result-contract';
 
+export { followupDepthContract } from './contracts/followup-depth/followup-depth-contract';
+export type { FollowupDepth } from './contracts/followup-depth/followup-depth-contract';
+
+export { workItemIdContract } from './contracts/work-item-id/work-item-id-contract';
+export type { WorkItemId } from './contracts/work-item-id/work-item-id-contract';
+
+export { workTrackerContract } from './contracts/work-tracker/work-tracker-contract';
+export type { WorkTracker } from './contracts/work-tracker/work-tracker-contract';
+
 export { slotOperationsContract } from './contracts/slot-operations/slot-operations-contract';
 export type { SlotOperations } from './contracts/slot-operations/slot-operations-contract';
 

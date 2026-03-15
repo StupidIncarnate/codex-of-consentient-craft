@@ -37,45 +37,6 @@ describe('codeweaverPhaseLayerBroker', () => {
     });
   });
 
-  describe('incomplete steps', () => {
-    it('ERROR: {slot manager returns incomplete} => throws error with step names', async () => {
-      const proxy = codeweaverPhaseLayerBrokerProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
-      const phases: OrchestrationPhase[] = [];
-      const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
-        phases.push(phase);
-      };
-
-      const stepId1 = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const stepId2 = StepIdStub({ value: 'b2c3d4e5-f6a7-5b8c-9d0e-1f2a3b4c5d6e' });
-      const step1 = DependencyStepStub({
-        id: stepId1,
-        status: 'in_progress',
-        dependsOn: [],
-      });
-      const step2 = DependencyStepStub({
-        id: stepId2,
-        status: 'pending',
-        dependsOn: [stepId1],
-      });
-      const quest = QuestStub({ steps: [step1, step2] });
-
-      proxy.setupQuestLoad({ questJson: JSON.stringify(quest) });
-
-      await expect(
-        codeweaverPhaseLayerBroker({
-          questId,
-          questFilePath,
-          startPath: FilePathStub({ value: '/project/src' }),
-          onPhaseChange,
-        }),
-      ).rejects.toThrow(/Codeweaver phase failed: incomplete steps/u);
-
-      expect(phases).toStrictEqual(['codeweaver']);
-    });
-  });
-
   describe('slot manager error', () => {
     it('ERROR: {quest load fails} => throws error', async () => {
       const proxy = codeweaverPhaseLayerBrokerProxy();
