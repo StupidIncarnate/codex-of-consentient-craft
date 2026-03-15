@@ -18,6 +18,7 @@ import type {
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';
+import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questOrchestrationLoopBrokerProxy } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -40,6 +41,7 @@ export const RecoverGuildLayerResponderProxy = (): {
 } => {
   const guildGetProxy = guildGetBrokerProxy();
   const questListProxy = questListBrokerProxy();
+  const modifyProxy = questModifyBrokerProxy();
   questOrchestrationLoopBrokerProxy();
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
@@ -87,6 +89,15 @@ export const RecoverGuildLayerResponderProxy = (): {
           guilds: [GuildStub({ id: guildId, path: guildPath })],
         }),
       });
+
+      // Step 5: questModifyBroker for pathseeker insertion (in_progress quests without pathseeker)
+      for (const quest of quests) {
+        const needsPathseeker =
+          quest.status === 'in_progress' && !quest.workItems.some((wi) => wi.role === 'pathseeker');
+        if (needsPathseeker) {
+          modifyProxy.setupQuestFound({ quest });
+        }
+      }
     },
 
     setupGuildWithExistingProcess: ({

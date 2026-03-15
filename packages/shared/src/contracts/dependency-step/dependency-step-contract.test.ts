@@ -120,23 +120,6 @@ describe('dependencyStepContract', () => {
     expect(step.blockingType).toBe('needs_role_followup');
   });
 
-  it('VALID: {with currentSession} => parses session tracking', () => {
-    const step = DependencyStepStub({
-      status: 'in_progress',
-      currentSession: {
-        sessionId: 'session-123',
-        agentRole: 'codeweaver',
-        startedAt: '2024-01-15T10:00:00.000Z',
-      },
-    });
-
-    expect(step.currentSession).toStrictEqual({
-      sessionId: 'session-123',
-      agentRole: 'codeweaver',
-      startedAt: '2024-01-15T10:00:00.000Z',
-    });
-  });
-
   it('VALID: {with exportName} => parses step with export name', () => {
     const step = DependencyStepStub({
       exportName: 'questExecuteBroker',

@@ -39,7 +39,7 @@ const createQuestFile = ({
     title: 'E2E Execution Streaming Quest',
     status: 'in_progress',
     createdAt: new Date().toISOString(),
-    questCreatedSessionBy: sessionId,
+    workItems: [{ id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete', spawnerType: 'agent', sessionId, createdAt: new Date().toISOString(), relatedDataItems: [], dependsOn: [] }],
     designDecisions: [],
     steps: [],
     toolingRequirements: [],

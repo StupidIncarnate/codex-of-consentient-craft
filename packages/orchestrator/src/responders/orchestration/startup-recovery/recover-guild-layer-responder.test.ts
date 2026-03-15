@@ -11,7 +11,6 @@ import {
   GuildPathStub,
   QuestIdStub,
   QuestStub,
-  SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { RecoverGuildLayerResponder } from './recover-guild-layer-responder';
@@ -68,12 +67,10 @@ describe('RecoverGuildLayerResponder', () => {
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
       const questId = QuestIdStub({ value: 'quest-explore-flows' });
-      const sessionId = SessionIdStub({ value: 'session-abc' });
       const quest = QuestStub({
         id: questId,
         folder: '001-explore-flows-quest',
         status: 'explore_flows',
-        questCreatedSessionBy: sessionId,
       });
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
 

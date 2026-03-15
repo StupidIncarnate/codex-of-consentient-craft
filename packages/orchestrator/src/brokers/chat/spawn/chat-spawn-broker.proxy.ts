@@ -1,11 +1,16 @@
 import type { ExitCodeStub, QuestStub } from '@dungeonmaster/shared/contracts';
-import { GuildConfigStub, GuildStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  FilePathStub,
+  GuildConfigStub,
+  GuildStub,
+  GuildIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
-import { designSessionWriteLayerBrokerProxy } from './design-session-write-layer-broker.proxy';
-import { questSessionWriteLayerBrokerProxy } from './quest-session-write-layer-broker.proxy';
-import { resolveQuestLayerBrokerProxy } from './resolve-quest-layer-broker.proxy';
+import { questAddBrokerProxy } from '../../quest/add/quest-add-broker.proxy';
+import { questGetBrokerProxy } from '../../quest/get/quest-get-broker.proxy';
+import { questModifyBrokerProxy } from '../../quest/modify/quest-modify-broker.proxy';
 
 type ExitCode = ReturnType<typeof ExitCodeStub>;
 type Quest = ReturnType<typeof QuestStub>;
@@ -25,9 +30,9 @@ export const chatSpawnBrokerProxy = (): {
 } => {
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
-  const resolveProxy = resolveQuestLayerBrokerProxy();
-  questSessionWriteLayerBrokerProxy();
-  designSessionWriteLayerBrokerProxy();
+  const addProxy = questAddBrokerProxy();
+  const getProxy = questGetBrokerProxy();
+  questModifyBrokerProxy();
 
   jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
@@ -48,7 +53,7 @@ export const chatSpawnBrokerProxy = (): {
       exitCode: ExitCode;
       stdoutLines?: readonly string[];
     }): void => {
-      resolveProxy.setupQuestCreation();
+      // questAddBrokerProxy default mock already handles quest creation
       unifiedProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
@@ -69,7 +74,13 @@ export const chatSpawnBrokerProxy = (): {
     },
 
     setupQuestCreationFailure: (): void => {
-      resolveProxy.setupQuestCreationFailure();
+      const questsFolderPath = FilePathStub({
+        value: '/home/testuser/.dungeonmaster/guilds/quests',
+      });
+      addProxy.setupQuestCreationFailure({
+        questsFolderPath,
+        error: new Error('mkdir failed'),
+      });
     },
 
     setupGlyphsmithSession: ({
@@ -81,7 +92,7 @@ export const chatSpawnBrokerProxy = (): {
       quest: Quest;
       stdoutLines?: readonly string[];
     }): void => {
-      resolveProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
       unifiedProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
@@ -89,11 +100,11 @@ export const chatSpawnBrokerProxy = (): {
     },
 
     setupQuestNotFound: (): void => {
-      resolveProxy.setupQuestNotFound();
+      getProxy.setupEmptyFolder();
     },
 
     setupInvalidStatus: ({ quest }: { quest: Quest }): void => {
-      resolveProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
     },
 
     refreshGuildConfig: (): void => {

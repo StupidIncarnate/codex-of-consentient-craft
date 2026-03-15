@@ -16,25 +16,32 @@
  * // Spawns Claude CLI with role-specific prompt, streams output via callbacks, returns chatProcessId
  */
 
-import type { GuildId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
-import { absoluteFilePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import type { GuildId, QuestId, SessionId, WorkItemRole } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  processIdContract,
+  sessionIdContract,
+} from '@dungeonmaster/shared/contracts';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
 import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
+import { addQuestInputContract } from '../../../contracts/add-quest-input/add-quest-input-contract';
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
-import type { ChatRole } from '../../../contracts/chat-role/chat-role-contract';
+import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import type { ToolUseId } from '../../../contracts/tool-use-id/tool-use-id-contract';
+import { questStatics } from '../../../statics/quest/quest-statics';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { taskToolUseIdsFromContentTransformer } from '../../../transformers/task-tool-use-ids-from-content/task-tool-use-ids-from-content-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
-import { designSessionWriteLayerBroker } from './design-session-write-layer-broker';
-import { questSessionWriteLayerBroker } from './quest-session-write-layer-broker';
-import { resolveQuestLayerBroker } from './resolve-quest-layer-broker';
+import { questAddBroker } from '../../quest/add/quest-add-broker';
+import { questGetBroker } from '../../quest/get/quest-get-broker';
+import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
+import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 
 export const chatSpawnBroker = async ({
   role,
@@ -51,7 +58,7 @@ export const chatSpawnBroker = async ({
   onDesignSessionLinked,
   registerProcess,
 }: {
-  role: ChatRole;
+  role: WorkItemRole;
   guildId: GuildId;
   questId?: QuestId;
   message: string;
@@ -79,15 +86,37 @@ export const chatSpawnBroker = async ({
   const guild = await guildGetBroker({ guildId });
   const sessionSource = chatLineSourceContract.parse('session');
 
-  const resolvedQuestId = await resolveQuestLayerBroker({
-    role,
-    message,
-    guildId,
-    chatProcessId,
-    ...(questId ? { questId } : {}),
-    ...(sessionId ? { sessionId } : {}),
-    ...(onQuestCreated ? { onQuestCreated } : {}),
-  });
+  let resolvedQuestId: QuestId | null = null;
+
+  if (role === 'glyphsmith') {
+    if (!questId) {
+      throw new Error('questId is required for glyphsmith role');
+    }
+    const input = getQuestInputContract.parse({ questId });
+    const result = await questGetBroker({ input });
+    if (!result.success || !result.quest) {
+      throw new Error(`Quest not found: ${questId}`);
+    }
+    const questStatus = result.quest.status;
+    const allowedStatuses = questStatics.designStatuses.allowed;
+    const isValidStatus = allowedStatuses.some((status) => status === questStatus);
+    if (!isValidStatus) {
+      throw new Error(
+        `Quest must be in a design status (${allowedStatuses.join(', ')}) to start design chat. Current status: ${questStatus}`,
+      );
+    }
+    resolvedQuestId = questId;
+  } else if (sessionId) {
+    resolvedQuestId = questId ?? null;
+  } else {
+    const addInput = addQuestInputContract.parse({ title: 'New Quest', userRequest: message });
+    const questResult = await questAddBroker({ input: addInput, guildId });
+    if (!questResult.success || !questResult.questId) {
+      throw new Error(`Failed to create quest: ${questResult.error ?? 'unknown'}`);
+    }
+    onQuestCreated?.({ questId: questResult.questId, chatProcessId });
+    resolvedQuestId = questResult.questId;
+  }
 
   const prompt = chatPromptBuildTransformer({
     role,
@@ -96,7 +125,7 @@ export const chatSpawnBroker = async ({
     ...(sessionId ? { sessionId } : {}),
   });
 
-  const { kill } = agentSpawnUnifiedBroker({
+  const { kill, sessionId$ } = agentSpawnUnifiedBroker({
     prompt,
     cwd: absoluteFilePathContract.parse(guild.path),
     ...(sessionId ? { resumeSessionId: sessionId } : {}),
@@ -148,34 +177,40 @@ export const chatSpawnBroker = async ({
     onComplete: ({ exitCode, sessionId: extractedSessionId }) => {
       const finalSessionId = sessionId ?? extractedSessionId;
 
-      if (resolvedQuestId && !sessionId && extractedSessionId) {
-        if (role === 'chaoswhisperer') {
-          questSessionWriteLayerBroker({
-            questId: resolvedQuestId,
-            sessionId: extractedSessionId,
-          }).catch((error: unknown) => {
-            process.stderr.write(
-              `questSessionWriteLayerBroker failed: ${error instanceof Error ? error.message : String(error)}\n`,
-            );
-          });
-        }
-
-        if (role === 'glyphsmith') {
-          onDesignSessionLinked?.({ questId: resolvedQuestId, chatProcessId });
-          designSessionWriteLayerBroker({
-            questId: resolvedQuestId,
-            sessionId: extractedSessionId,
-          }).catch((error: unknown) => {
-            process.stderr.write(
-              `designSessionWriteLayerBroker failed: ${error instanceof Error ? error.message : String(error)}\n`,
-            );
-          });
-        }
+      if (resolvedQuestId && !sessionId && extractedSessionId && role === 'glyphsmith') {
+        onDesignSessionLinked?.({ questId: resolvedQuestId, chatProcessId });
       }
 
       onComplete({ chatProcessId, exitCode: exitCode ?? null, sessionId: finalSessionId });
     },
   });
+
+  // Stamp sessionId onto the chat work item as soon as it's extracted from the CLI init line.
+  // This ensures the quest's work item has a sessionId before onComplete fires, so the
+  // frontend's quest-modified WS filter can correlate events by sessionId.
+  if (resolvedQuestId && !sessionId) {
+    sessionId$
+      .then(async (extractedSid) => {
+        if (!extractedSid) return;
+        const getResult = await questGetBroker({
+          input: getQuestInputContract.parse({ questId: resolvedQuestId }),
+        });
+        if (!getResult.success || !getResult.quest) return;
+        const chatItem = getResult.quest.workItems.find(
+          (wi) => (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') && !wi.sessionId,
+        );
+        if (!chatItem) return;
+        await questModifyBroker({
+          input: {
+            questId: resolvedQuestId,
+            workItems: [{ id: chatItem.id, sessionId: sessionIdContract.parse(extractedSid) }],
+          } as ModifyQuestInput,
+        });
+      })
+      .catch(() => {
+        // Best-effort — frontend may fall back to quest-by-session-request polling
+      });
+  }
 
   registerProcess({ processId: chatProcessId, kill });
 

@@ -82,7 +82,7 @@ describe('questGetBroker', () => {
         }),
       ]);
       expect(result.quest?.steps).toStrictEqual([]);
-      expect(result.quest?.executionLog).toStrictEqual([]);
+      expect(result.quest?.steps).toStrictEqual([]);
     });
 
     it('VALID: {stage: "implementation"} => returns quest with only steps and contracts', async () => {

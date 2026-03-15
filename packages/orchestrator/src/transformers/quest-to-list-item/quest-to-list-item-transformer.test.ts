@@ -1,5 +1,5 @@
 import { questToListItemTransformer } from './quest-to-list-item-transformer';
-import { QuestStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub, SessionIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
 import { DependencyStepStub } from '@dungeonmaster/shared/contracts';
 
 describe('questToListItemTransformer', () => {
@@ -70,16 +70,18 @@ describe('questToListItemTransformer', () => {
       expect(result.stepProgress).toBe('0/2');
     });
 
-    it('VALID: {quest with questCreatedSessionBy} => returns activeSessionId', () => {
+    it('VALID: {quest with in_progress chat work item} => returns activeSessionId', () => {
       const sessionId = SessionIdStub();
-      const quest = QuestStub({ questCreatedSessionBy: sessionId });
+      const quest = QuestStub({
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', status: 'in_progress', sessionId })],
+      });
 
       const result = questToListItemTransformer({ quest });
 
       expect(result.activeSessionId).toBe(sessionId);
     });
 
-    it('VALID: {quest without questCreatedSessionBy} => returns undefined activeSessionId', () => {
+    it('VALID: {quest without chat work items} => returns undefined activeSessionId', () => {
       const quest = QuestStub();
 
       const result = questToListItemTransformer({ quest });

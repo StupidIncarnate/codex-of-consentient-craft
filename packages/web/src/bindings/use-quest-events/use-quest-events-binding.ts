@@ -55,12 +55,10 @@ export const useQuestEventsBinding = ({
           const questParsed = questContract.safeParse(rawQuest);
           if (!questParsed.success) return;
 
-          const questSession: unknown = questParsed.data.questCreatedSessionBy;
-          if (
-            sessionIdRef.current &&
-            typeof questSession === 'string' &&
-            questSession !== sessionIdRef.current
-          ) {
+          const hasMatchingWorkItem = questParsed.data.workItems.some(
+            (wi) => wi.sessionId === sessionIdRef.current,
+          );
+          if (sessionIdRef.current && !hasMatchingWorkItem) {
             return;
           }
 

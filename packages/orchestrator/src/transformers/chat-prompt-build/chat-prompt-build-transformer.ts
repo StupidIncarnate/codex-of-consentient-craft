@@ -6,9 +6,8 @@
  * // Returns branded PromptText with role-specific template populated
  */
 
-import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { QuestId, SessionId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 
-import type { ChatRole } from '../../contracts/chat-role/chat-role-contract';
 import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 import { chaoswhispererPromptStatics } from '../../statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
@@ -20,7 +19,7 @@ export const chatPromptBuildTransformer = ({
   questId,
   sessionId,
 }: {
-  role: ChatRole;
+  role: WorkItemRole;
   message: string;
   questId: QuestId | null;
   sessionId?: SessionId;

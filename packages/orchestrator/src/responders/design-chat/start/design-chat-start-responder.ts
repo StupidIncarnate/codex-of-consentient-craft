@@ -11,7 +11,7 @@ import type { GuildId, ProcessId, QuestId } from '@dungeonmaster/shared/contract
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
-import { chatRoleContract } from '../../../contracts/chat-role/chat-role-contract';
+import { workItemRoleContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -32,7 +32,7 @@ export const DesignChatStartResponder = async ({
   const glyphWorkItemId = crypto.randomUUID();
 
   return chatSpawnBroker({
-    role: chatRoleContract.parse('glyphsmith'),
+    role: workItemRoleContract.parse('glyphsmith'),
     guildId,
     questId,
     message,

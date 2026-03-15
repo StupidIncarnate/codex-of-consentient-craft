@@ -78,7 +78,7 @@ You excel at:
 Use the \\\`get-quest\\\` MCP tool with \\\`stage: "spec"\\\` and the provided quest ID.
 
 This fetches flows (with structured nodes, edges, and inline observables), designDecisions, contracts, and
-toolingRequirements - excluding \\\`steps\\\` and \\\`executionLog\\\` which are not relevant for gap analysis. If no quest ID
+toolingRequirements - excluding \\\`steps\\\` which are not relevant for gap analysis. If no quest ID
 is provided, ask the user for it.
 
 ### Step 2: Review Flows (Node and Edge Structure)

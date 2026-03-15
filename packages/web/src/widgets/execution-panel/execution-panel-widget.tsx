@@ -10,7 +10,7 @@ import { useState } from 'react';
 
 import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 
-import type { Quest, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, StepId } from '@dungeonmaster/shared/contracts';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
@@ -72,6 +72,17 @@ export const ExecutionPanelWidget = ({
   const completedCount = steps.filter((s) => s.status === 'complete').length as CompletedCount;
   const totalCount = steps.length as TotalCount;
   const isPlanning = steps.length === 0;
+
+  const stepRoleMap = new Map<StepId, ExecutionRole>();
+  for (const step of steps) {
+    const stepRef = `steps/${step.id}`;
+    const matchingItem = quest.workItems.find((wi) =>
+      wi.relatedDataItems.some((ref) => ref === stepRef),
+    );
+    if (matchingItem) {
+      stepRoleMap.set(step.id, matchingItem.role as ExecutionRole);
+    }
+  }
 
   const floorConfigs = executionFloorConfigStatics.floors;
 
@@ -171,8 +182,7 @@ export const ExecutionPanelWidget = ({
 
               if (floor.role === 'codeweaver') {
                 const codeweaverSteps = steps.filter((step) => {
-                  const role =
-                    (step.currentSession?.agentRole as ExecutionRole | undefined) ?? DEFAULT_ROLE;
+                  const role = stepRoleMap.get(step.id) ?? DEFAULT_ROLE;
                   return !otherRoles.has(role);
                 });
 
@@ -196,10 +206,7 @@ export const ExecutionPanelWidget = ({
                         key={step.id}
                         order={(stepIndex + 1) as StepOrder}
                         name={step.name as unknown as StepName}
-                        role={
-                          (step.currentSession?.agentRole as ExecutionRole | undefined) ??
-                          DEFAULT_ROLE
-                        }
+                        role={stepRoleMap.get(step.id) ?? DEFAULT_ROLE}
                         status={step.status as ExecutionStepStatus}
                         files={
                           [
@@ -220,8 +227,7 @@ export const ExecutionPanelWidget = ({
               }
 
               const floorSteps = steps.filter((step) => {
-                const role =
-                  (step.currentSession?.agentRole as ExecutionRole | undefined) ?? DEFAULT_ROLE;
+                const role = stepRoleMap.get(step.id) ?? DEFAULT_ROLE;
                 return role === floor.role;
               });
 
@@ -237,10 +243,7 @@ export const ExecutionPanelWidget = ({
                       key={step.id}
                       order={(stepIndex + 1) as StepOrder}
                       name={step.name as unknown as StepName}
-                      role={
-                        (step.currentSession?.agentRole as ExecutionRole | undefined) ??
-                        (floor.role as ExecutionRole)
-                      }
+                      role={stepRoleMap.get(step.id) ?? (floor.role as ExecutionRole)}
                       status={step.status as ExecutionStepStatus}
                       files={
                         [

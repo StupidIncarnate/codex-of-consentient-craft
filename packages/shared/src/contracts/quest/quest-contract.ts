@@ -11,8 +11,6 @@ import { z } from 'zod';
 import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
-import { executionLogEntryContract } from '../execution-log-entry/execution-log-entry-contract';
-import { pathseekerRunContract } from '../pathseeker-run/pathseeker-run-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
@@ -27,12 +25,6 @@ export const questContract = z.object({
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
   updatedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
-  executionLog: z
-    .array(executionLogEntryContract)
-    .default([])
-    .describe(
-      'Operational log of quest execution events. Not included in any stage filter - only available via full quest retrieval',
-    ),
   designDecisions: z
     .array(designDecisionContract)
     .default([])
@@ -68,16 +60,6 @@ export const questContract = z.object({
     .brand<'DesignPort'>()
     .optional()
     .describe('Port of per-quest Vite design sandbox'),
-  designSessionBy: z
-    .string()
-    .brand<'SessionId'>()
-    .optional()
-    .describe('Session ID of the Glyphsmith design session'),
-  pathseekerRuns: z
-    .array(pathseekerRunContract)
-    .default([])
-    .describe('PathSeeker retry attempts with session IDs for crash recovery'),
-  questCreatedSessionBy: z.string().brand<'SessionId'>().optional(),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
   workItems: z

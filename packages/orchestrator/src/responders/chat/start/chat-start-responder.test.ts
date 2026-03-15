@@ -101,11 +101,9 @@ describe('ChatStartResponder', () => {
             title: 'In-Flight Quest',
             status: 'in_progress',
             createdAt: '2024-01-15T10:00:00.000Z',
-            executionLog: [],
             steps: [],
             toolingRequirements: [],
             flows: [],
-            pathseekerRuns: [],
             workItems: [
               {
                 id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
@@ -167,11 +165,9 @@ describe('ChatStartResponder', () => {
             title: 'No Process Quest',
             status: 'in_progress',
             createdAt: '2024-01-15T10:00:00.000Z',
-            executionLog: [],
             steps: [],
             toolingRequirements: [],
             flows: [],
-            pathseekerRuns: [],
             workItems: [
               {
                 id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
@@ -242,11 +238,9 @@ describe('ChatStartResponder', () => {
             title: 'This Session Quest',
             status: 'in_progress',
             createdAt: '2024-01-15T10:00:00.000Z',
-            executionLog: [],
             steps: [],
             toolingRequirements: [],
             flows: [],
-            pathseekerRuns: [],
             workItems: [
               {
                 id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',

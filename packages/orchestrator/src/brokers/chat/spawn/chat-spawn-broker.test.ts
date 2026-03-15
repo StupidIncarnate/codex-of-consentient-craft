@@ -7,9 +7,8 @@ import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
   SuccessfulToolResultStreamLineStub,
+  WorkItemRoleStub,
 } from '@dungeonmaster/shared/contracts';
-
-import { ChatRoleStub } from '../../../contracts/chat-role/chat-role.stub';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { chatSpawnBroker } from './chat-spawn-broker';
 import { chatSpawnBrokerProxy } from './chat-spawn-broker.proxy';
@@ -19,7 +18,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer + message, no sessionId} => returns chatProcessId', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
@@ -41,7 +40,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer new session} => calls registerProcess with kill function', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const registerProcess = jest.fn();
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
@@ -68,7 +67,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer + sessionId} => returns chatProcessId', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const sessionId = SessionIdStub({ value: 'existing-session-123' });
 
       proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }) });
@@ -94,7 +93,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer process exits} => calls onComplete', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const onComplete = jest.fn();
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
@@ -125,7 +124,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer resume exits} => calls onComplete with provided sessionId', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const sessionId = SessionIdStub({ value: 'resume-session-789' });
       const onComplete = jest.fn();
 
@@ -161,7 +160,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer new session} => calls onQuestCreated', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const onQuestCreated = jest.fn();
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
@@ -187,7 +186,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer resume session} => does not call onQuestCreated', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const sessionId = SessionIdStub({ value: 'existing-session-999' });
       const onQuestCreated = jest.fn();
 
@@ -215,7 +214,7 @@ describe('chatSpawnBroker', () => {
     it('ERROR: {quest creation fails} => throws error', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
 
       proxy.setupQuestCreationFailure();
 
@@ -239,7 +238,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {stdout emits assistant text line} => calls onEntry with parsed entry', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const onEntry = jest.fn();
       const assistantLine = JSON.stringify(AssistantTextStreamLineStub());
 
@@ -276,7 +275,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {glyphsmith stdout emits assistant text line} => calls onEntry with parsed entry', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
       const onEntry = jest.fn();
@@ -317,7 +316,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {glyphsmith new session with no sessionId} => calls onDesignSessionLinked', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
       const onDesignSessionLinked = jest.fn();
@@ -360,7 +359,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer new session extracts sessionId} => calls questSessionWriteLayerBroker', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const onComplete = jest.fn();
       const sessionLine = JSON.stringify({ session_id: 'extracted-session-xyz' });
 
@@ -400,7 +399,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {glyphsmith new session extracts sessionId} => calls designSessionWriteLayerBroker', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
       const onComplete = jest.fn();
@@ -444,7 +443,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {process killed with null exit code} => calls onComplete with null exitCode', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const onComplete = jest.fn();
 
       proxy.setupNewSession({ exitCode: null as never });
@@ -477,7 +476,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {glyphsmith + questId in explore_design} => returns chatProcessId', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
 
@@ -502,7 +501,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {glyphsmith + questId in review_design} => returns chatProcessId', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'review_design' });
 
@@ -527,7 +526,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {glyphsmith + questId in design_approved} => returns chatProcessId', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'design_approved' });
 
@@ -552,7 +551,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {glyphsmith session} => calls registerProcess with kill function', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
       const registerProcess = jest.fn();
@@ -582,7 +581,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {glyphsmith + sessionId} => returns chatProcessId', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
       const sessionId = SessionIdStub({ value: 'design-session-123' });
@@ -611,7 +610,7 @@ describe('chatSpawnBroker', () => {
     it('ERROR: {glyphsmith + quest in approved status} => throws', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'approved' });
 
@@ -636,7 +635,7 @@ describe('chatSpawnBroker', () => {
     it('ERROR: {glyphsmith + quest in created status} => throws', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'created' });
 
@@ -663,7 +662,7 @@ describe('chatSpawnBroker', () => {
     it('ERROR: {glyphsmith + nonexistent questId} => throws', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'nonexistent' });
 
       proxy.setupQuestNotFound();
@@ -689,7 +688,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {patch output with sessionId} => calls onAgentDetected', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const sessionId = SessionIdStub({ value: 'session-for-patch' });
       const onAgentDetected = jest.fn();
       const toolUseId = 'toolu_patch_test_01';
@@ -749,7 +748,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {patch output without sessionId} => does not call onAgentDetected', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'chaoswhisperer' });
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const onAgentDetected = jest.fn();
       const toolUseId = 'toolu_patch_no_session_01';
 
@@ -804,7 +803,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {glyphsmith process exits} => calls onComplete', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = ChatRoleStub({ value: 'glyphsmith' });
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest' });
       const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
       const onComplete = jest.fn();

@@ -24,13 +24,6 @@ export const dependencyStepContract = z.object({
   status: stepStatusContract,
   startedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
-  currentSession: z
-    .object({
-      sessionId: z.string().brand<'SessionId'>(),
-      agentRole: z.string().brand<'AgentRole'>(),
-      startedAt: z.string().datetime().brand<'IsoTimestamp'>(),
-    })
-    .optional(),
   blockingReason: z.string().brand<'BlockingReason'>().optional(),
   blockingType: z.enum(['needs_role_followup']).optional(),
   errorMessage: z.string().brand<'ErrorMessage'>().optional(),

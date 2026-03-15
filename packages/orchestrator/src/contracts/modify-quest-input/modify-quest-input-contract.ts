@@ -11,7 +11,6 @@ import {
   dependencyStepContract,
   designDecisionContract,
   designDecisionIdContract,
-  executionLogEntryContract,
   flowContract,
   flowEdgeContract,
   flowEdgeIdContract,
@@ -20,7 +19,6 @@ import {
   flowNodeIdContract,
   flowObservableContract,
   observableIdContract,
-  pathseekerRunContract,
   questContractEntryContract,
   questContractEntryIdContract,
   questStatusContract,
@@ -109,14 +107,6 @@ export const modifyQuestInputContract = z
       .positive()
       .brand<'DesignPort'>()
       .describe('Port of per-quest Vite design sandbox')
-      .optional(),
-    executionLog: z
-      .array(executionLogEntryContract)
-      .describe('Execution log entries to append (not upsert)')
-      .optional(),
-    pathseekerRuns: z
-      .array(pathseekerRunContract)
-      .describe('PathSeeker run entries to append (not upsert)')
       .optional(),
     workItems: z
       .array(workItemForUpsertContract)

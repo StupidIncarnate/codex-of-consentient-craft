@@ -84,11 +84,23 @@ export const OrchestrationStartResponderProxy = (): {
     setupQuestApproved: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
+
+      const hasPathseeker = quest.workItems.some((wi) => wi.role === 'pathseeker');
+      if (!hasPathseeker) {
+        modifyProxy.setupQuestFound({ quest });
+      }
+
       setupPathResolution({ quest });
     },
 
     setupQuestInProgressRestart: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
+
+      const hasPathseeker = quest.workItems.some((wi) => wi.role === 'pathseeker');
+      if (!hasPathseeker) {
+        modifyProxy.setupQuestFound({ quest });
+      }
+
       setupPathResolution({ quest });
     },
 

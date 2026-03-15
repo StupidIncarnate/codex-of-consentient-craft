@@ -8,10 +8,6 @@
 
 // Subpath export entry for @dungeonmaster/shared/contracts
 
-// Agent Type Contracts
-export * from './src/contracts/agent-type/agent-type-contract';
-export * from './src/contracts/agent-type/agent-type.stub';
-
 // File Path Contracts
 export * from './src/contracts/file-path/file-path-contract';
 export * from './src/contracts/file-path/file-path.stub';
@@ -80,20 +76,8 @@ export * from './src/contracts/step-status/step-status.stub';
 export * from './src/contracts/file-name/file-name-contract';
 export * from './src/contracts/file-name/file-name.stub';
 
-export * from './src/contracts/execution-log-entry/execution-log-entry-contract';
-export * from './src/contracts/execution-log-entry/execution-log-entry.stub';
-
-export * from './src/contracts/execution-log-entry-outcome/execution-log-entry-outcome-contract';
-export * from './src/contracts/execution-log-entry-outcome/execution-log-entry-outcome.stub';
-
 export * from './src/contracts/quest-list-item/quest-list-item-contract';
 export * from './src/contracts/quest-list-item/quest-list-item.stub';
-
-export * from './src/contracts/pathseeker-run-status/pathseeker-run-status-contract';
-export * from './src/contracts/pathseeker-run-status/pathseeker-run-status.stub';
-
-export * from './src/contracts/pathseeker-run/pathseeker-run-contract';
-export * from './src/contracts/pathseeker-run/pathseeker-run.stub';
 
 export * from './src/contracts/quest/quest-contract';
 export * from './src/contracts/quest/quest.stub';

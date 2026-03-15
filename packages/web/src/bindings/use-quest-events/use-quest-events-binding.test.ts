@@ -3,6 +3,7 @@ import {
   QuestIdStub,
   QuestStub,
   SessionIdStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
@@ -18,7 +19,10 @@ describe('useQuestEventsBinding', () => {
       const sessionId = SessionIdStub({ value: 'session-1' });
       const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'my-quest' });
-      const quest = QuestStub({ id: questId });
+      const quest = QuestStub({
+        id: questId,
+        workItems: [WorkItemStub({ sessionId })],
+      });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestEventsBinding({ sessionId, guildId }),
@@ -45,7 +49,10 @@ describe('useQuestEventsBinding', () => {
       const proxy = useQuestEventsBindingProxy();
       const sessionId = SessionIdStub({ value: 'session-1' });
       const guildId = GuildIdStub();
-      const quest = QuestStub({ id: QuestIdStub({ value: 'my-quest' }) });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        workItems: [WorkItemStub({ sessionId })],
+      });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestEventsBinding({ sessionId, guildId }),

@@ -16,6 +16,7 @@ import type {
   QuestStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
 import type { AskUserQuestionOption } from '../../contracts/ask-user-question/ask-user-question-contract';
@@ -121,10 +122,15 @@ export const QuestChatWidgetProxy = (): {
       sessionListProxy.setupSessions({ sessions });
     },
     setupQuest: ({ quest }: { quest: Quest }): void => {
+      const questWithWorkItem =
+        quest.workItems.length === 0
+          ? { ...quest, workItems: [WorkItemStub({ sessionId: quest.id as never })] }
+          : quest;
+
       chatBindingProxy.receiveWsMessage({
         data: JSON.stringify({
           type: 'quest-modified',
-          payload: { questId: quest.id, quest },
+          payload: { questId: quest.id, quest: questWithWorkItem },
           timestamp: '2025-01-01T00:00:00.000Z',
         }),
       });

@@ -1,5 +1,8 @@
 # @dungeonmaster/orchestrator
 
+## Callouts
+- Don't read stuff in .claude/agents and .claude/commands if you're looking for orchestrator prompts. Those are just copied from the statics folder.
+
 ## Quest Pipeline
 
 ```

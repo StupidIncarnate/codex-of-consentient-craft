@@ -6,7 +6,11 @@
  * // Returns ProcessId after registering process and starting orchestration loop
  */
 
-import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import {
+  filePathContract,
+  processIdContract,
+  workItemContract,
+} from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
@@ -69,6 +73,29 @@ export const OrchestrationStartResponder = async ({
     if (!modifyResult.success) {
       throw new Error(`Failed to transition quest to in_progress: ${modifyResult.error}`);
     }
+  }
+
+  const hasPathseeker = quest.workItems.some((wi) => wi.role === 'pathseeker');
+
+  if (!hasPathseeker) {
+    const chatItemIds = quest.workItems
+      .filter(
+        (wi) =>
+          (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') && wi.status === 'complete',
+      )
+      .map((wi) => wi.id);
+
+    const pathseekerItem = workItemContract.parse({
+      id: crypto.randomUUID(),
+      role: 'pathseeker',
+      status: 'pending',
+      spawnerType: 'agent',
+      dependsOn: chatItemIds,
+      createdAt: new Date().toISOString(),
+    });
+
+    const insertInput = modifyQuestInputContract.parse({ questId, workItems: [pathseekerItem] });
+    await questModifyBroker({ input: insertInput });
   }
 
   const { guildId } = await questFindQuestPathBroker({ questId });
